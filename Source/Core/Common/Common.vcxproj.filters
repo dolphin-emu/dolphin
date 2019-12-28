@@ -279,6 +279,8 @@
     </ClInclude>
     <ClInclude Include="VariantUtil.h" />
     <ClInclude Include="DynamicLibrary.h" />
+    <ClInclude Include="Arm64Emitter.h" />
+    <ClInclude Include="ArmCommon.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -361,6 +363,9 @@
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
     <ClCompile Include="DynamicLibrary.cpp" />
+    <ClCompile Include="ArmCPUDetect.cpp" />
+    <ClCompile Include="Arm64Emitter.cpp" />
+    <ClCompile Include="GenericFPURoundMode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

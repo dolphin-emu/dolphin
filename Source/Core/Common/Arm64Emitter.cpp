@@ -364,6 +364,8 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 #if defined(IOS)
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
+#elif defined(WIN32)
+  FlushInstructionCache(GetCurrentProcess(), start, end - start);
 #else
   // Don't rely on GCC's __clear_cache implementation, as it caches
   // icache/dcache cache line sizes, that can vary between cores on
@@ -2172,6 +2174,8 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
   ARM64Reg second;
   if (!(num_regs & 1))
     second = (ARM64Reg)(X0 + *it++);
+  else
+    second = {};
 
   // 8 byte per register, but 16 byte alignment, so we may have to padd one register.
   // Only update the SP on the last load to avoid the dependency between those loads.
@@ -4164,20 +4168,19 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative,
                                  bool flags)
 {
-  switch ((negative << 1) | flags)
+  if (!negative)
   {
-  case 0:
-    ADD(Rd, Rn, imm, shift);
-    break;
-  case 1:
-    ADDS(Rd, Rn, imm, shift);
-    break;
-  case 2:
-    SUB(Rd, Rn, imm, shift);
-    break;
-  case 3:
-    SUBS(Rd, Rn, imm, shift);
-    break;
+    if (!flags)
+      ADD(Rd, Rn, imm, shift);
+    else
+      ADDS(Rd, Rn, imm, shift);
+  }
+  else
+  {
+    if (!flags)
+      SUB(Rd, Rn, imm, shift);
+    else
+      SUBS(Rd, Rn, imm, shift);
   }
 }
 
@@ -4185,7 +4188,7 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
                                     ARM64Reg scratch)
 {
   bool has_scratch = scratch != INVALID_REG;
-  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
+  u64 imm_neg = Is64Bit(Rd) ? u64(-s64(imm)) : u64(-s64(imm)) & 0xFFFFFFFFuLL;
   bool neg_neg = negative ? false : true;
 
   // Fast paths, aarch64 immediate instructions
@@ -4232,20 +4235,19 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
              (u32)imm);
 
   negative ^= MOVI2R2(scratch, imm, imm_neg);
-  switch ((negative << 1) | flags)
+  if (!negative)
   {
-  case 0:
-    ADD(Rd, Rn, scratch);
-    break;
-  case 1:
-    ADDS(Rd, Rn, scratch);
-    break;
-  case 2:
-    SUB(Rd, Rn, scratch);
-    break;
-  case 3:
-    SUBS(Rd, Rn, scratch);
-    break;
+    if (!flags)
+      ADD(Rd, Rn, scratch);
+    else
+      ADDS(Rd, Rn, scratch);
+  }
+  else
+  {
+    if (!flags)
+      SUB(Rd, Rn, scratch);
+    else
+      SUBS(Rd, Rn, scratch);
   }
 }
 

@@ -1,9 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -275,26 +283,111 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_FloatingPoint.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_Integer.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_LoadStore.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_LoadStoreFloating.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_LoadStorePaired.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_Paired.cpp" />
-    <ClCompile Include="PowerPC\Jit64\Jit_SystemRegisters.cpp" />
-    <ClCompile Include="PowerPC\Jit64\JitAsm.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\BlockCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp" />
-    <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp" />
+    <ClCompile Include="PowerPC\Jit64\Jit.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit64_Tables.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_FloatingPoint.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Integer.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStore.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStoreFloating.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_LoadStorePaired.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_Paired.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\Jit_SystemRegisters.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\JitAsm.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\BlockCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64Cache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_BackPatch.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Branch.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_FloatingPoint.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Integer.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStore.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStoreFloating.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStorePaired.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Paired.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_RegCache.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_SystemRegisters.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Tables.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitAsm.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit_Util.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
@@ -539,20 +632,63 @@
     <ClInclude Include="PowerPC\Interpreter\ExceptionUtils.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
-    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h" />
-    <ClInclude Include="PowerPC\Jit64\FPURegCache.h" />
-    <ClInclude Include="PowerPC\Jit64\GPRRegCache.h" />
-    <ClInclude Include="PowerPC\Jit64\Jit.h" />
-    <ClInclude Include="PowerPC\Jit64\JitAsm.h" />
-    <ClInclude Include="PowerPC\Jit64\JitRegCache.h" />
-    <ClInclude Include="PowerPC\Jit64Common\BlockCache.h" />
-    <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h" />
-    <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h" />
-    <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h" />
-    <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h" />
-    <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h" />
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\FPURegCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\GPRRegCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\Jit.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\JitAsm.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\JitRegCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\BlockCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Constants.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\JitArm64Cache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\JitArm64_RegCache.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit_Util.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArmCommon\BackPatch.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h" />
     <ClInclude Include="PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />

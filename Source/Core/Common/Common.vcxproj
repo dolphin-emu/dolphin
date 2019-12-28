@@ -1,9 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -38,6 +46,12 @@
   <ItemGroup>
     <ClInclude Include="Align.h" />
     <ClInclude Include="Analytics.h" />
+    <ClInclude Include="Arm64Emitter.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ArmCommon.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="Atomic_GCC.h" />
@@ -122,9 +136,15 @@
     <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h" />
     <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
-    <ClInclude Include="GL\GLContext.h" />
-    <ClInclude Include="GL\GLInterface\WGL.h" />
-    <ClInclude Include="GL\GLUtil.h" />
+    <ClInclude Include="GL\GLContext.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="GL\GLInterface\WGL.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="GL\GLUtil.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
@@ -165,9 +185,15 @@
     <ClInclude Include="VariantUtil.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WorkQueueThread.h" />
-    <ClInclude Include="x64ABI.h" />
-    <ClInclude Include="x64Emitter.h" />
-    <ClInclude Include="x64Reg.h" />
+    <ClInclude Include="x64ABI.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="x64Emitter.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="x64Reg.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Crypto\AES.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
@@ -177,6 +203,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="Arm64Emitter.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArmCPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="CommonFuncs.cpp" />
@@ -193,10 +225,19 @@
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="GenericFPURoundMode.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
-    <ClCompile Include="GL\GLContext.cpp" />
-    <ClCompile Include="GL\GLInterface\WGL.cpp" />
-    <ClCompile Include="GL\GLUtil.cpp" />
+    <ClCompile Include="GL\GLContext.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GL\GLInterface\WGL.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GL\GLUtil.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -226,10 +267,18 @@
     <ClCompile Include="TraversalClient.cpp" />
     <ClCompile Include="UPnP.cpp" />
     <ClCompile Include="Version.cpp" />
-    <ClCompile Include="x64ABI.cpp" />
-    <ClCompile Include="x64CPUDetect.cpp" />
-    <ClCompile Include="x64Emitter.cpp" />
-    <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="x64ABI.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64CPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64Emitter.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64FPURoundMode.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Crypto\AES.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />

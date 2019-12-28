@@ -754,9 +754,9 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
         FixupBranch b1 = TBNZ(WA, 13);  // Test FP enabled bit
 
-        FixupBranch far = B();
+        FixupBranch far_addr = B();
         SwitchToFarCode();
-        SetJumpTarget(far);
+        SetJumpTarget(far_addr);
 
         gpr.Flush(FLUSH_MAINTAIN_STATE);
         fpr.Flush(FLUSH_MAINTAIN_STATE);

@@ -379,7 +379,7 @@ void VertexLoaderARM64::GenerateVertexLoader()
   bool has_tc_scale = false;
   for (int i = 0; i < 8; i++)
   {
-    has_tc |= tc[i];
+    has_tc |= tc[i] != 0;
     has_tc_scale |= !!m_VtxAttr.texCoord[i].Frac;
   }
 
