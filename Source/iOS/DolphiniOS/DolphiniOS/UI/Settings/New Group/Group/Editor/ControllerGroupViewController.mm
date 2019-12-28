@@ -146,8 +146,7 @@
     
     [cell.m_user_setting_label setText:@"[...]"];
     
-    [self.tableView setUserInteractionEnabled:false];
-    self.navigationController.navigationBar.userInteractionEnabled = false;
+    [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
     
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), ^{
       dispatch_sync(dispatch_get_main_queue(), ^{
@@ -185,8 +184,7 @@
   
   [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForCell:cell] animated:true];
   
-  [self.tableView setUserInteractionEnabled:true];
-  self.navigationController.navigationBar.userInteractionEnabled = true;
+  [[UIApplication sharedApplication] endIgnoringInteractionEvents];
 }
 
 @end
