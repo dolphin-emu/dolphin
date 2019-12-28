@@ -89,6 +89,8 @@ private:
 
   ResultCode CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
                                    FileAttribute attribute, Modes modes, bool is_file);
+  bool IsFileOpened(const std::string& path) const;
+  bool IsDirectoryInUse(const std::string& path) const;
 
   std::string GetFstFilePath() const;
   void ResetFst();

@@ -401,18 +401,50 @@ ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& 
   return CreateFileOrDirectory(uid, gid, path, attr, modes, false);
 }
 
-ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
+bool HostFileSystem::IsFileOpened(const std::string& path) const
 {
-  if (!IsValidPath(path))
+  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+    return handle.opened && handle.wii_path == path;
+  });
+}
+
+bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
+{
+  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+    return handle.opened && StringBeginsWith(handle.wii_path, path);
+  });
+}
+
+ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
+{
+  if (!IsValidNonRootPath(path))
     return ResultCode::Invalid;
 
-  const std::string file_name = BuildFilename(path);
-  if (File::Delete(file_name))
-    INFO_LOG(IOS_FS, "DeleteFile %s", file_name.c_str());
-  else if (File::DeleteDirRecursively(file_name))
-    INFO_LOG(IOS_FS, "DeleteDir %s", file_name.c_str());
+  const std::string host_path = BuildFilename(path);
+  const auto split_path = SplitPathAndBasename(path);
+
+  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  if (!parent)
+    return ResultCode::NotFound;
+
+  if (!parent->CheckPermission(uid, gid, Mode::Write))
+    return ResultCode::AccessDenied;
+
+  if (!File::Exists(host_path))
+    return ResultCode::NotFound;
+
+  if (File::IsFile(host_path) && !IsFileOpened(path))
+    File::Delete(host_path);
+  else if (File::IsDirectory(host_path) && !IsDirectoryInUse(path))
+    File::DeleteDirRecursively(host_path);
   else
-    WARN_LOG(IOS_FS, "DeleteFile %s - failed!!!", file_name.c_str());
+    return ResultCode::InUse;
+
+  const auto it = std::find_if(parent->children.begin(), parent->children.end(),
+                               GetNamePredicate(split_path.file_name));
+  if (it != parent->children.end())
+    parent->children.erase(it);
+  SaveFst();
 
   return ResultCode::Success;
 }
