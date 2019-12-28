@@ -71,6 +71,8 @@
 		B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */; };
 		B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */; };
 		B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */; };
+		B988D80423B801F40092CB6C /* TouchGCPadProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D80223B801F40092CB6C /* TouchGCPadProfile.ini */; };
+		B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */; };
 		B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */; };
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
@@ -202,6 +204,8 @@
 		B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerProfileCell.m; sourceTree = "<group>"; };
 		B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MFiGCPadProfile.ini; path = BundleResources/MFiGCPadProfile.ini; sourceTree = "<group>"; };
 		B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MFiWiimoteProfile.ini; path = BundleResources/MFiWiimoteProfile.ini; sourceTree = "<group>"; };
+		B988D80223B801F40092CB6C /* TouchGCPadProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TouchGCPadProfile.ini; path = BundleResources/TouchGCPadProfile.ini; sourceTree = "<group>"; };
+		B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TouchWiimoteProfile.ini; path = BundleResources/TouchWiimoteProfile.ini; sourceTree = "<group>"; };
 		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
 		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
 		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
@@ -498,6 +502,8 @@
 				B99B05A223A067560076C7D8 /* WiimoteProfile.ini */,
 				B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */,
 				B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */,
+				B988D80223B801F40092CB6C /* TouchGCPadProfile.ini */,
+				B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */,
 				B9766AF423A5EACD00FF7F17 /* license.txt */,
 				B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */,
 			);
@@ -699,6 +705,7 @@
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
+				B988D80423B801F40092CB6C /* TouchGCPadProfile.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
@@ -712,6 +719,7 @@
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
+				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
