@@ -66,7 +66,7 @@
   NSString* raw_device_name = [NSString stringWithUTF8String:self.m_controller->GetDefaultDevice().ToString().c_str()];
   if ([raw_device_name hasPrefix:@"Android"])
   {
-    //configuration_enabled = false;
+    configuration_enabled = false;
   }
   
   if (can_change_devices)
