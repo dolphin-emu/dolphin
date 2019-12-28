@@ -449,39 +449,73 @@ ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
+ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
                                   const std::string& new_path)
 {
-  if (!IsValidPath(old_path))
+  if (!IsValidNonRootPath(old_path) || !IsValidNonRootPath(new_path))
     return ResultCode::Invalid;
-  const std::string old_name = BuildFilename(old_path);
 
-  if (!IsValidPath(new_path))
+  const auto split_old_path = SplitPathAndBasename(old_path);
+  const auto split_new_path = SplitPathAndBasename(new_path);
+
+  FstEntry* old_parent = GetFstEntryForPath(split_old_path.parent);
+  FstEntry* new_parent = GetFstEntryForPath(split_new_path.parent);
+  if (!old_parent || !new_parent)
+    return ResultCode::NotFound;
+
+  if (!old_parent->CheckPermission(uid, gid, Mode::Write) ||
+      !new_parent->CheckPermission(uid, gid, Mode::Write))
+  {
+    return ResultCode::AccessDenied;
+  }
+
+  FstEntry* entry = GetFstEntryForPath(old_path);
+  if (!entry)
+    return ResultCode::NotFound;
+
+  // For files, the file name is not allowed to change.
+  if (entry->data.is_file && split_old_path.file_name != split_new_path.file_name)
     return ResultCode::Invalid;
-  const std::string new_name = BuildFilename(new_path);
 
-  // try to make the basis directory
-  File::CreateFullPath(new_name);
+  if ((!entry->data.is_file && IsDirectoryInUse(old_path)) ||
+      (entry->data.is_file && IsFileOpened(old_path)))
+  {
+    return ResultCode::InUse;
+  }
+
+  const std::string host_old_path = BuildFilename(old_path);
+  const std::string host_new_path = BuildFilename(new_path);
 
   // If there is already something of the same type at the new path, delete it.
-  if (File::Exists(new_name))
+  if (File::Exists(host_new_path))
   {
-    const bool old_is_file = File::IsFile(old_name);
-    const bool new_is_file = File::IsFile(new_name);
+    const bool old_is_file = File::IsFile(host_old_path);
+    const bool new_is_file = File::IsFile(host_new_path);
     if (old_is_file && new_is_file)
-      File::Delete(new_name);
+      File::Delete(host_new_path);
     else if (!old_is_file && !new_is_file)
-      File::DeleteDirRecursively(new_name);
+      File::DeleteDirRecursively(host_new_path);
     else
       return ResultCode::Invalid;
   }
 
-  // finally try to rename the file
-  if (!File::Rename(old_name, new_name))
+  if (!File::Rename(host_old_path, host_new_path))
   {
-    ERROR_LOG(IOS_FS, "Rename %s to %s - failed", old_name.c_str(), new_name.c_str());
+    ERROR_LOG(IOS_FS, "Rename %s to %s - failed", host_old_path.c_str(), host_new_path.c_str());
     return ResultCode::NotFound;
   }
+
+  // Finally, remove the child from the old parent and move it to the new parent.
+  const auto it = std::find_if(old_parent->children.begin(), old_parent->children.end(),
+                               GetNamePredicate(split_old_path.file_name));
+  FstEntry* new_entry = GetFstEntryForPath(new_path);
+  if (it != old_parent->children.end())
+  {
+    *new_entry = *it;
+    old_parent->children.erase(it);
+  }
+  new_entry->name = split_new_path.file_name;
+  SaveFst();
 
   return ResultCode::Success;
 }
