@@ -66,6 +66,14 @@
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
+		B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B988D7F523B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m */; };
+		B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B988D7F923B604690092CB6C /* ControllerLoadProfileViewController.mm */; };
+		B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */; };
+		B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */; };
+		B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */; };
+		B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */; };
+		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
+		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
 		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
 		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
 		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
@@ -75,13 +83,27 @@
 		B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */; };
 		B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */; };
 		B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99B05BE23A323600076C7D8 /* MetalKit.framework */; };
+		B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */; };
+		B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */; };
 		B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */; };
 		B9C85E1223AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */; };
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */; };
 		B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
+		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
+		B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */; };
 		B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */; };
+		B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */; };
+		B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA523AF7BB400593A20 /* ControllerDevicesViewController.mm */; };
+		B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA823AF7DB000593A20 /* ControllerDeviceCell.m */; };
+		B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFAB23AF892B00593A20 /* ControllerTypePickerViewController.mm */; };
+		B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFAE23AF8A5B00593A20 /* ControllerTypeCell.m */; };
+		B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CAB23B021E000423AE6 /* ControllerGroupListViewController.mm */; };
+		B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CAE23B0264200423AE6 /* ControllerGroupCell.m */; };
+		B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CB123B0598100423AE6 /* ControllerGroupViewController.mm */; };
+		B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */; };
+		B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -172,6 +194,20 @@
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
+		B988D7F423B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupExtensionButtonCell.h; sourceTree = "<group>"; };
+		B988D7F523B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerGroupExtensionButtonCell.m; sourceTree = "<group>"; };
+		B988D7F823B604690092CB6C /* ControllerLoadProfileViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerLoadProfileViewController.h; sourceTree = "<group>"; };
+		B988D7F923B604690092CB6C /* ControllerLoadProfileViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerLoadProfileViewController.mm; sourceTree = "<group>"; };
+		B988D7FB23B604AB0092CB6C /* ControllerProfileCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerProfileCell.h; sourceTree = "<group>"; };
+		B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerProfileCell.m; sourceTree = "<group>"; };
+		B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MFiGCPadProfile.ini; path = BundleResources/MFiGCPadProfile.ini; sourceTree = "<group>"; };
+		B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = MFiWiimoteProfile.ini; path = BundleResources/MFiWiimoteProfile.ini; sourceTree = "<group>"; };
+		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
+		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
+		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
+		B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerExtensionsViewController.mm; sourceTree = "<group>"; };
+		B989DFCB23B4AE1A005C7773 /* ControllerExtensionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ControllerExtensionCell.h; path = "DolphiniOS/UI/Settings/New Group/Group/Editor/Extensions/ControllerExtensionCell.h"; sourceTree = SOURCE_ROOT; };
+		B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ControllerExtensionCell.m; path = "DolphiniOS/UI/Settings/New Group/Group/Editor/Extensions/ControllerExtensionCell.m"; sourceTree = SOURCE_ROOT; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -183,6 +219,10 @@
 		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
 		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = SpecialThanks.txt; path = BundleResources/SpecialThanks.txt; sourceTree = "<group>"; };
 		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		B9BEADDF23AF08320014617A /* ControllerSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerSettingsUtils.h; sourceTree = "<group>"; };
+		B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerSettingsUtils.mm; sourceTree = "<group>"; };
+		B9BEADE223AF1A310014617A /* ControllerRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerRootViewController.h; sourceTree = "<group>"; };
+		B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerRootViewController.mm; sourceTree = "<group>"; };
 		B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDeviceMotion.swift; sourceTree = "<group>"; };
 		B9C85E1023AA21DC008A4DD1 /* MotionControlsSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MotionControlsSettingsViewController.h; sourceTree = "<group>"; };
 		B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MotionControlsSettingsViewController.mm; sourceTree = "<group>"; };
@@ -195,10 +235,32 @@
 		B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildCsdbgd.sh; path = BuildResources/BuildScripts/BuildCsdbgd.sh; sourceTree = "<group>"; };
 		B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CopyDolphinImages.sh; path = BuildResources/BuildScripts/CopyDolphinImages.sh; sourceTree = "<group>"; };
 		B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = UpdateEntitlements.sh; path = BuildResources/BuildScripts/UpdateEntitlements.sh; sourceTree = "<group>"; };
+		B9DCAC9E23AC9C83002B95C8 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
+		B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = ControllerSettings.storyboard; sourceTree = "<group>"; };
 		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9E1ACB623B355050072EDF0 /* postrm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postrm.sh; path = BuildResources/DebFiles/postrm.sh; sourceTree = "<group>"; };
 		B9E1ACB723B355860072EDF0 /* BuildDebs.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDebs.sh; path = BuildResources/BuildScripts/BuildDebs.sh; sourceTree = "<group>"; };
 		B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EmulationViewController.swift; sourceTree = "<group>"; };
+		B9EFBFA123AF582400593A20 /* ControllerDetailsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDetailsViewController.h; sourceTree = "<group>"; };
+		B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDetailsViewController.mm; sourceTree = "<group>"; };
+		B9EFBFA423AF7BB400593A20 /* ControllerDevicesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDevicesViewController.h; sourceTree = "<group>"; };
+		B9EFBFA523AF7BB400593A20 /* ControllerDevicesViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDevicesViewController.mm; sourceTree = "<group>"; };
+		B9EFBFA723AF7DB000593A20 /* ControllerDeviceCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDeviceCell.h; sourceTree = "<group>"; };
+		B9EFBFA823AF7DB000593A20 /* ControllerDeviceCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerDeviceCell.m; sourceTree = "<group>"; };
+		B9EFBFAA23AF892B00593A20 /* ControllerTypePickerViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerTypePickerViewController.h; sourceTree = "<group>"; };
+		B9EFBFAB23AF892B00593A20 /* ControllerTypePickerViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerTypePickerViewController.mm; sourceTree = "<group>"; };
+		B9EFBFAD23AF8A5000593A20 /* ControllerTypeCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerTypeCell.h; sourceTree = "<group>"; };
+		B9EFBFAE23AF8A5B00593A20 /* ControllerTypeCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerTypeCell.m; sourceTree = "<group>"; };
+		B9F03CAA23B021E000423AE6 /* ControllerGroupListViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupListViewController.h; sourceTree = "<group>"; };
+		B9F03CAB23B021E000423AE6 /* ControllerGroupListViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupListViewController.mm; sourceTree = "<group>"; };
+		B9F03CAD23B0263700423AE6 /* ControllerGroupCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerGroupCell.h; sourceTree = "<group>"; };
+		B9F03CAE23B0264200423AE6 /* ControllerGroupCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerGroupCell.m; sourceTree = "<group>"; };
+		B9F03CB023B0598100423AE6 /* ControllerGroupViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupViewController.h; sourceTree = "<group>"; };
+		B9F03CB123B0598100423AE6 /* ControllerGroupViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupViewController.mm; sourceTree = "<group>"; };
+		B9F03CB823B05FD000423AE6 /* ControllerGroupButtonCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupButtonCell.h; sourceTree = "<group>"; };
+		B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupButtonCell.mm; sourceTree = "<group>"; };
+		B9F03CBB23B0627100423AE6 /* ControllerGroupCheckboxCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupCheckboxCell.h; sourceTree = "<group>"; };
+		B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupCheckboxCell.mm; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -209,6 +271,7 @@
 				B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */,
 				B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */,
 				B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */,
+				B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */,
 				B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */,
 				B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */,
 				B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */,
@@ -255,6 +318,7 @@
 		B91BF35F236B390900199BA7 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				B9DCACA223ADDD34002B95C8 /* Controller */,
 				B91BF372236B400200199BA7 /* SettingsTableViewController.h */,
 				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
 			);
@@ -336,6 +400,7 @@
 		B945A3932362D98300B21680 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B9DCAC9E23AC9C83002B95C8 /* GameController.framework */,
 				B99B05BE23A323600076C7D8 /* MetalKit.framework */,
 				B95A09472385DE9600DBBB01 /* AudioToolbox.framework */,
 				B95A09482385DE9600DBBB01 /* AudioUnit.framework */,
@@ -402,6 +467,28 @@
 			path = TouchController;
 			sourceTree = "<group>";
 		};
+		B988D7F723B604440092CB6C /* Profile */ = {
+			isa = PBXGroup;
+			children = (
+				B988D7F823B604690092CB6C /* ControllerLoadProfileViewController.h */,
+				B988D7F923B604690092CB6C /* ControllerLoadProfileViewController.mm */,
+				B988D7FB23B604AB0092CB6C /* ControllerProfileCell.h */,
+				B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */,
+			);
+			path = Profile;
+			sourceTree = "<group>";
+		};
+		B989DFC723B4ADA7005C7773 /* Extensions */ = {
+			isa = PBXGroup;
+			children = (
+				B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */,
+				B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */,
+				B989DFCB23B4AE1A005C7773 /* ControllerExtensionCell.h */,
+				B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */,
+			);
+			path = Extensions;
+			sourceTree = "<group>";
+		};
 		B99B059F23A067090076C7D8 /* Bundle Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -409,6 +496,8 @@
 				B99B05A123A067560076C7D8 /* GCPadNew.ini */,
 				B99B05A023A067560076C7D8 /* WiimoteNew.ini */,
 				B99B05A223A067560076C7D8 /* WiimoteProfile.ini */,
+				B988D7FE23B60B510092CB6C /* MFiGCPadProfile.ini */,
+				B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */,
 				B9766AF423A5EACD00FF7F17 /* license.txt */,
 				B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */,
 			);
@@ -461,6 +550,85 @@
 				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
 			);
 			name = "Build Scripts";
+			sourceTree = "<group>";
+		};
+		B9DCACA223ADDD34002B95C8 /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				B9F03CB723B059CD00423AE6 /* DeviceSelector */,
+				B9F03CB623B059C000423AE6 /* TypePicker */,
+				B9F03CB323B0598B00423AE6 /* Group */,
+				B988D7F723B604440092CB6C /* Profile */,
+				B9BEADDF23AF08320014617A /* ControllerSettingsUtils.h */,
+				B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */,
+				B9BEADE223AF1A310014617A /* ControllerRootViewController.h */,
+				B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */,
+				B9EFBFA123AF582400593A20 /* ControllerDetailsViewController.h */,
+				B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */,
+				B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */,
+			);
+			name = Controller;
+			path = "New Group";
+			sourceTree = "<group>";
+		};
+		B9F03CB323B0598B00423AE6 /* Group */ = {
+			isa = PBXGroup;
+			children = (
+				B9F03CB523B059A400423AE6 /* List */,
+				B9F03CB423B0599300423AE6 /* Editor */,
+			);
+			path = Group;
+			sourceTree = "<group>";
+		};
+		B9F03CB423B0599300423AE6 /* Editor */ = {
+			isa = PBXGroup;
+			children = (
+				B989DFC723B4ADA7005C7773 /* Extensions */,
+				B9F03CB023B0598100423AE6 /* ControllerGroupViewController.h */,
+				B9F03CB123B0598100423AE6 /* ControllerGroupViewController.mm */,
+				B9F03CB823B05FD000423AE6 /* ControllerGroupButtonCell.h */,
+				B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */,
+				B9F03CBB23B0627100423AE6 /* ControllerGroupCheckboxCell.h */,
+				B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */,
+				B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */,
+				B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */,
+			);
+			path = Editor;
+			sourceTree = "<group>";
+		};
+		B9F03CB523B059A400423AE6 /* List */ = {
+			isa = PBXGroup;
+			children = (
+				B9F03CAA23B021E000423AE6 /* ControllerGroupListViewController.h */,
+				B9F03CAB23B021E000423AE6 /* ControllerGroupListViewController.mm */,
+				B9F03CAD23B0263700423AE6 /* ControllerGroupCell.h */,
+				B9F03CAE23B0264200423AE6 /* ControllerGroupCell.m */,
+				B988D7F423B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.h */,
+				B988D7F523B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m */,
+			);
+			path = List;
+			sourceTree = "<group>";
+		};
+		B9F03CB623B059C000423AE6 /* TypePicker */ = {
+			isa = PBXGroup;
+			children = (
+				B9EFBFAA23AF892B00593A20 /* ControllerTypePickerViewController.h */,
+				B9EFBFAB23AF892B00593A20 /* ControllerTypePickerViewController.mm */,
+				B9EFBFAD23AF8A5000593A20 /* ControllerTypeCell.h */,
+				B9EFBFAE23AF8A5B00593A20 /* ControllerTypeCell.m */,
+			);
+			path = TypePicker;
+			sourceTree = "<group>";
+		};
+		B9F03CB723B059CD00423AE6 /* DeviceSelector */ = {
+			isa = PBXGroup;
+			children = (
+				B9EFBFA423AF7BB400593A20 /* ControllerDevicesViewController.h */,
+				B9EFBFA523AF7BB400593A20 /* ControllerDevicesViewController.mm */,
+				B9EFBFA723AF7DB000593A20 /* ControllerDeviceCell.h */,
+				B9EFBFA823AF7DB000593A20 /* ControllerDeviceCell.m */,
+			);
+			path = DeviceSelector;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -535,10 +703,13 @@
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
+				B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
+				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
+				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 			);
@@ -644,25 +815,43 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */,
 				B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */,
+				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
+				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
+				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
+				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
+				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */,
+				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
+				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
+				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
+				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
+				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
+				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
+				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
 				B9C85E1223AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm in Sources */,
+				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
 				B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
+				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
+				B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */,
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
+				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
+				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -828,7 +1017,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -841,7 +1030,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -867,7 +1056,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				HEADER_SEARCH_PATHS = "";
@@ -876,7 +1065,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -966,7 +1155,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -979,7 +1168,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -1066,7 +1255,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				GCC_PREPROCESSOR_DEFINITIONS = "PATREON=1";
@@ -1076,7 +1265,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.2;
+				MARKETING_VERSION = 2.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "org.dolphin-emu.DolphiniOS-patreon-beta";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";

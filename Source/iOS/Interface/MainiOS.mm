@@ -17,9 +17,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
+#include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/State.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #include "MainiOS.h"
@@ -245,6 +247,17 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   }
 
   UICommon::Init();
+
+  if (g_controller_interface.IsInit())
+    return;
+
+  // Create a dummy WindowSystemInfo
+  WindowSystemInfo wsi;
+  wsi.type = WindowSystemType::IPhoneOS;
+
+  g_controller_interface.Initialize(wsi);
+  Pad::Initialize();
+  Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
 }
 
 + (NSString*)getUserFolder
