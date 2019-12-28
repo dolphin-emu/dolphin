@@ -37,6 +37,10 @@
     {
       url = @"https://patreon.com/oatmealdome";
     }
+    else if (indexPath.row == 2)
+    {
+      url = @"https://github.com/oatmealdome/dolphin/tree/ios-jb/";
+    }
     else
     {
       // Load the special thanks
