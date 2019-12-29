@@ -4,7 +4,11 @@
 
 #import "ControllerDetailsViewController.h"
 
+#import "Common/FileUtil.h"
+#import "Common/IniFile.h"
+
 #import "Core/ConfigManager.h"
+#import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
 
 #import "ControllerDevicesViewController.h"
@@ -114,6 +118,62 @@
       [label setTextColor:is_link ? [UIColor blueColor] : [UIColor blackColor]];
     }
   }
+}
+
+- (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  if (indexPath.section == 1 && indexPath.row == 3)
+  {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Save Profile"
+                                   message:@"Please enter a name for this profile. If a profile with that name already exists, it will be overwritten."
+                                   preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addTextFieldWithConfigurationHandler:^(UITextField* field) {
+      field.placeholder = @"Name";
+    }];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+      UITextField* field = alert.textFields.firstObject;
+      
+      NSString* name = field.text;
+      if ([name isEqualToString:@""])
+      {
+        UIAlertController* failed_alert = [UIAlertController alertControllerWithTitle:@"Failed" message:@"You have not entered a valid name." preferredStyle:UIAlertControllerStyleAlert];
+        [failed_alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        [self presentViewController:failed_alert animated:true completion:nil];
+        
+        return;
+      }
+      
+      InputConfig* config;
+      if (self.m_is_wii)
+      {
+        config = Wiimote::GetConfig();
+      }
+      else
+      {
+        config = Pad::GetConfig();
+      }
+      
+      const std::string name_str = std::string([name cStringUsingEncoding:NSUTF8StringEncoding]);
+      const std::string profile_path = File::GetUserPath(D_CONFIG_IDX) + "Profiles/" + config->GetProfileName() + "/" + name_str + ".ini";
+      File::CreateFullPath(profile_path);
+
+      IniFile ini;
+      self.m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
+      ini.Save(profile_path);
+      
+      UIAlertController* ok_alert = [UIAlertController alertControllerWithTitle:@"Saved" message:@"The profile has been saved." preferredStyle:UIAlertControllerStyleAlert];
+      [ok_alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+      [self presentViewController:ok_alert animated:true completion:nil];
+    }]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    
+    [self presentViewController:alert animated:true completion:nil];
+  }
+  
+  [self.tableView deselectRowAtIndexPath:indexPath animated:true];
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
