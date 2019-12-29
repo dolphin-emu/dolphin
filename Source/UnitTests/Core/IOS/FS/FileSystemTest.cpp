@@ -39,6 +39,41 @@ private:
   std::string m_profile_path;
 };
 
+TEST(FileSystem, BasicPathValidity)
+{
+  EXPECT_TRUE(IsValidPath("/"));
+  EXPECT_FALSE(IsValidNonRootPath("/"));
+
+  EXPECT_TRUE(IsValidNonRootPath("/shared2/sys/SYSCONF"));
+  EXPECT_TRUE(IsValidNonRootPath("/shared2/sys"));
+  EXPECT_TRUE(IsValidNonRootPath("/shared2"));
+
+  // Paths must start with /.
+  EXPECT_FALSE(IsValidNonRootPath("\\test"));
+  // Paths must not end with /.
+  EXPECT_FALSE(IsValidNonRootPath("/shared2/sys/"));
+  // Paths must not be longer than 64 characters.
+  EXPECT_FALSE(IsValidPath(
+      "/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"));
+}
+
+TEST(FileSystem, PathSplitting)
+{
+  SplitPathResult result;
+
+  result = {"/shared1", "00000042.app"};
+  EXPECT_EQ(SplitPathAndBasename("/shared1/00000042.app"), result);
+
+  result = {"/shared2/sys", "SYSCONF"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2/sys/SYSCONF"), result);
+
+  result = {"/shared2", "sys"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2/sys"), result);
+
+  result = {"/", "shared2"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2"), result);
+}
+
 TEST_F(FileSystemTest, EssentialDirectories)
 {
   for (const std::string& path :
@@ -70,6 +105,13 @@ TEST_F(FileSystemTest, CreateFile)
   const Result<std::vector<std::string>> tmp_files = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp");
   ASSERT_TRUE(tmp_files.Succeeded());
   EXPECT_EQ(std::count(tmp_files->begin(), tmp_files->end(), "f"), 1u);
+
+  // Test invalid paths
+  // Unprintable characters
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/tes\1t", 0, modes), ResultCode::Invalid);
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/te\x7fst", 0, modes), ResultCode::Invalid);
+  // Paths with too many components are not rejected for files.
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/1/2/3/4/5/6/7/8/9", 0, modes), ResultCode::NotFound);
 }
 
 TEST_F(FileSystemTest, CreateDirectory)
@@ -94,6 +136,10 @@ TEST_F(FileSystemTest, CreateDirectory)
   EXPECT_TRUE(children->empty());
 
   EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
+
+  // Paths with too many components should be rejected.
+  EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/1/2/3/4/5/6/7/8/9", 0, modes),
+            ResultCode::TooManyPathComponents);
 }
 
 TEST_F(FileSystemTest, Delete)

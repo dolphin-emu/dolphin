@@ -136,6 +136,19 @@ struct SplitPathResult
   std::string parent;
   std::string file_name;
 };
+inline bool operator==(const SplitPathResult& lhs, const SplitPathResult& rhs)
+{
+  const auto fields = [](const SplitPathResult& obj) {
+    return std::tie(obj.parent, obj.file_name);
+  };
+  return fields(lhs) == fields(rhs);
+}
+
+inline bool operator!=(const SplitPathResult& lhs, const SplitPathResult& rhs)
+{
+  return !(lhs == rhs);
+}
+
 /// Split a path into a parent path and the file name. Takes a *valid non-root* path.
 ///
 /// Example: /shared2/sys/SYSCONF => {/shared2/sys, SYSCONF}
