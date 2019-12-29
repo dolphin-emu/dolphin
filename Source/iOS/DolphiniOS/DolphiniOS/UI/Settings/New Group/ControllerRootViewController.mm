@@ -48,30 +48,36 @@
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  [self performSegueWithIdentifier:@"to_controller_edit" sender:nil];
+  if (indexPath.section != 2)
+  {
+    [self performSegueWithIdentifier:@"to_controller_edit" sender:nil];
+  }
 }
 
 - (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
 {
-  ControllerDetailsViewController* view_controller = (ControllerDetailsViewController*)segue.destinationViewController;
-  NSIndexPath* index_path = [self.tableView indexPathForSelectedRow];
-  
-  InputConfig* input_config;
-  if (index_path.section == 0)
+  if ([segue.identifier isEqualToString:@"to_controller_edit"])
   {
-    Pad::LoadConfig();
-    input_config = Pad::GetConfig();
-    view_controller.m_is_wii = false;
+    ControllerDetailsViewController* view_controller = (ControllerDetailsViewController*)segue.destinationViewController;
+    NSIndexPath* index_path = [self.tableView indexPathForSelectedRow];
+    
+    InputConfig* input_config;
+    if (index_path.section == 0)
+    {
+      Pad::LoadConfig();
+      input_config = Pad::GetConfig();
+      view_controller.m_is_wii = false;
+    }
+    else
+    {
+      Wiimote::LoadConfig();
+      input_config = Wiimote::GetConfig();
+      view_controller.m_is_wii = true;
+    }
+    
+    view_controller.m_port = (int)index_path.row;
+    view_controller.m_controller = input_config->GetController(view_controller.m_port);
   }
-  else
-  {
-    Wiimote::LoadConfig();
-    input_config = Wiimote::GetConfig();
-    view_controller.m_is_wii = true;
-  }
-  
-  view_controller.m_port = (int)index_path.row;
-  view_controller.m_controller = input_config->GetController(view_controller.m_port);
 }
 
 
