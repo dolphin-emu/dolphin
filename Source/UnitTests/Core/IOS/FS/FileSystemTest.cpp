@@ -157,6 +157,14 @@ TEST_F(FileSystemTest, Rename)
 
   EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
   EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/test").Succeeded());
+
+  // Rename /test back to /tmp.
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/test", "/tmp"), ResultCode::Success);
+
+  // Create a file called /tmp/f1, and rename it to /tmp/f2.
+  // This should not work; file name changes are not allowed for files.
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, modes), ResultCode::Success);
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Invalid);
 }
 
 TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
@@ -177,26 +185,29 @@ TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
 
 TEST_F(FileSystemTest, RenameWithExistingTargetFile)
 {
+  const std::string source_path = "/sys/f2";
+  const std::string dest_path = "/tmp/f2";
+
   // Create the test source file and write some data (so that we can check its size later on).
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, source_path, 0, modes), ResultCode::Success);
   const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   std::vector<u8> read_buffer(TEST_DATA.size());
   {
-    const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f1", Mode::ReadWrite);
+    const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, source_path, Mode::ReadWrite);
     ASSERT_TRUE(file.Succeeded());
     ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
   }
 
   // Create the test target file and leave it empty.
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f2", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, dest_path, 0, modes), ResultCode::Success);
 
-  // Rename f1 to f2 and check that f1 replaced f2.
-  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Success);
+  // Rename /sys/f2 to /tmp/f2 and check that f1 replaced f2.
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, source_path, dest_path), ResultCode::Success);
 
-  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Succeeded());
-  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Error(), ResultCode::NotFound);
+  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Succeeded());
+  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Error(), ResultCode::NotFound);
 
-  const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f2");
+  const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, dest_path);
   ASSERT_TRUE(metadata.Succeeded());
   EXPECT_TRUE(metadata->is_file);
   EXPECT_EQ(metadata->size, TEST_DATA.size());
