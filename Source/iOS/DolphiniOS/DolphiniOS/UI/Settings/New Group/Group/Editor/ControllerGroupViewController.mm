@@ -40,6 +40,8 @@
                             group->type == ControllerEmu::GroupType::Stick ||
                             group->type == ControllerEmu::GroupType::Tilt ||
                             group->type == ControllerEmu::GroupType::Force;
+  
+  self.navigationItem.title = [NSString stringWithUTF8String:self.m_control_group->ui_name.c_str()];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
