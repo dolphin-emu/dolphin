@@ -103,6 +103,7 @@ bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
 
 HostFileSystem::HostFileSystem(const std::string& root_path) : m_root_path{root_path}
 {
+  File::CreateFullPath(m_root_path + "/");
   ResetFst();
   LoadFst();
 }
