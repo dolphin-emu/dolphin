@@ -188,6 +188,7 @@
   {
     ControllerDevicesViewController* view_controller = (ControllerDevicesViewController*)segue.destinationViewController;
     view_controller.m_controller = self.m_controller;
+    view_controller.m_port = self.m_port;
     view_controller.m_is_wii = self.m_is_wii;
   }
   else if ([segue.identifier isEqualToString:@"to_configure"])
