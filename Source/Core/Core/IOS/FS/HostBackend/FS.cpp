@@ -610,10 +610,30 @@ Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string
 }
 
 ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                       FileAttribute, Modes)
+                                       FileAttribute attr, Modes modes)
 {
   if (!IsValidPath(path))
     return ResultCode::Invalid;
+
+  FstEntry* entry = GetFstEntryForPath(path);
+  if (!entry)
+    return ResultCode::NotFound;
+
+  if (caller_uid != 0 && caller_uid != entry->data.uid)
+    return ResultCode::AccessDenied;
+  if (caller_uid != 0 && uid != entry->data.uid)
+    return ResultCode::AccessDenied;
+
+  const bool is_empty = File::GetSize(BuildFilename(path)) == 0;
+  if (entry->data.uid != uid && entry->data.is_file && !is_empty)
+    return ResultCode::FileNotEmpty;
+
+  entry->data.gid = gid;
+  entry->data.uid = uid;
+  entry->data.attribute = attr;
+  entry->data.modes = modes;
+  SaveFst();
+
   return ResultCode::Success;
 }
 
