@@ -12,10 +12,13 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ControllerDevicesViewController : UITableViewController
+{
+  std::vector<std::string> m_devices;
+}
 
-@property(nonatomic) ControllerEmu::EmulatedController* m_controller;
-@property(nonatomic) NSArray<NSString*>* m_devices;
 @property(nonatomic) NSInteger m_last_selected;
+@property(nonatomic) ControllerEmu::EmulatedController* m_controller;
+@property(nonatomic) int m_port;
 @property(nonatomic) bool m_is_wii;
 
 @end

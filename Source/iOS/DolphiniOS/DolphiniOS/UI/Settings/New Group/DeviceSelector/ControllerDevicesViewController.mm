@@ -30,25 +30,43 @@
 
 - (void)RefreshDevices
 {
-  NSMutableArray* array = [NSMutableArray array];
-  
   self.m_last_selected = -1;
   
-  const std::string current_device = self.m_controller->GetDefaultDevice().ToString();
   std::vector<std::string> devices = g_controller_interface.GetAllDeviceStrings();
-  
+  const std::string android_str("Android");
+  const std::string port_str = std::to_string(self.m_port + (self.m_is_wii ? 4 : 0)); // Wiimotes starts at 4
+
+  // Populate our devices list
   for (size_t i = 0; i < devices.size(); i++)
   {
     std::string device = devices[i];
+    
+    // Check if this is a Touchscreen device
+    if (device.compare(0, android_str.size(), android_str) == 0)
+    {
+      // Don't add this to the list if it isn't this controller's designated Touchscreen
+      if (device.compare(android_str.size() + 1, port_str.size(), port_str) == 0)
+      {
+        self->m_devices.push_back(device);
+      }
+    }
+    else
+    {
+      self->m_devices.push_back(device);
+    }
+  }
+  
+  // Get the current device
+  const std::string current_device = self.m_controller->GetDefaultDevice().ToString();
+  for (size_t i = 0; i < self->m_devices.size(); i++)
+  {
+    std::string device = self->m_devices[i];
     if (device == current_device)
     {
       self.m_last_selected = i;
     }
-    
-    [array addObject:[NSString stringWithUTF8String:device.c_str()]];
   }
   
-  self.m_devices = [array copy];
   
   if (self.m_last_selected == -1)
   {
@@ -71,14 +89,14 @@
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section
 {
-  return [self.m_devices count];
+  return self->m_devices.size();
 }
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
   ControllerDeviceCell* cell = (ControllerDeviceCell*)[tableView dequeueReusableCellWithIdentifier:@"device_cell" forIndexPath:indexPath];
   
-  NSString* device_name = [self.m_devices objectAtIndex:indexPath.row];
+  NSString* device_name = [NSString stringWithUTF8String:self->m_devices[indexPath.row].c_str()];
   [cell.m_device_label setText:[ControllerSettingsUtils RemoveAndroidFromDeviceName:device_name]];
   
   if (indexPath.row == self.m_last_selected)
@@ -97,7 +115,7 @@
   }
   
   std::string last_device = self.m_controller->GetDefaultDevice().ToString();
-  std::string device_name = std::string([[self.m_devices objectAtIndex:indexPath.row] cStringUsingEncoding:NSUTF8StringEncoding]);
+  std::string device_name = std::string(self->m_devices[indexPath.row]);
   std::string android_str("Android");
   std::string mfi_str("MFi");
   
