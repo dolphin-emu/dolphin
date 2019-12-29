@@ -25,6 +25,9 @@
 - (void)viewDidLoad
 {
   [super viewDidLoad];
+  
+  Pad::LoadConfig();
+  Wiimote::LoadConfig();
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -64,13 +67,11 @@
     InputConfig* input_config;
     if (index_path.section == 0)
     {
-      Pad::LoadConfig();
       input_config = Pad::GetConfig();
       view_controller.m_is_wii = false;
     }
     else
     {
-      Wiimote::LoadConfig();
       input_config = Wiimote::GetConfig();
       view_controller.m_is_wii = true;
     }
