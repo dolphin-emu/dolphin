@@ -6,6 +6,7 @@
 
 #include <array>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -43,6 +44,13 @@ private:
   bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
                       bool exception_list);
+  bool ReadCompressedData(u32 decompressed_data_size, u64 data_offset, u64 data_size, u8* out_ptr,
+                          bool exception_list);
+  bool ReadCompressedData(u32 decompressed_data_size, u64 data_offset, u64 data_size,
+                          u64 offset_in_data, u64 size_in_data, u8* out_ptr, bool exception_list);
+
+  // Returns the number of bytes read
+  std::optional<u64> ReadExceptionListFromFile();
 
   static std::string VersionToString(u32 version);
 
@@ -128,9 +136,26 @@ private:
     SHA1 hash;
   };
   static_assert(sizeof(HashExceptionEntry) == 0x16, "Wrong size for WIA hash exception entry");
+
+  struct PurgeSegment
+  {
+    u32 offset;
+    u32 size;
+  };
+  static_assert(sizeof(PurgeSegment) == 0x08, "Wrong size for WIA purge segment");
 #pragma pack(pop)
 
+  enum class CompressionType : u32
+  {
+    None = 0,
+    Purge = 1,
+    Bzip2 = 2,
+    LZMA = 3,
+    LZMA2 = 4,
+  };
+
   bool m_valid;
+  CompressionType m_compression_type;
 
   File::IOFile m_file;
 
