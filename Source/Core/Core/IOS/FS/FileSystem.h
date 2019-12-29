@@ -77,6 +77,16 @@ struct Modes
 {
   Mode owner, group, other;
 };
+inline bool operator==(const Modes& lhs, const Modes& rhs)
+{
+  const auto fields = [](const Modes& obj) { return std::tie(obj.owner, obj.group, obj.other); };
+  return fields(lhs) == fields(rhs);
+}
+
+inline bool operator!=(const Modes& lhs, const Modes& rhs)
+{
+  return !(lhs == rhs);
+}
 
 struct Metadata
 {

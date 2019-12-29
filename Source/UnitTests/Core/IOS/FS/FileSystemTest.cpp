@@ -52,14 +52,18 @@ TEST_F(FileSystemTest, CreateFile)
 {
   const std::string PATH = "/tmp/f";
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
+  constexpr u8 ArbitraryAttribute = 0xE1;
+
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_TRUE(stats->is_file);
   EXPECT_EQ(stats->size, 0u);
-  // TODO: After we start saving metadata correctly, check the UID, GID, permissions
-  // as well (issue 10234).
+  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->gid, 0);
+  EXPECT_EQ(stats->modes, modes);
+  EXPECT_EQ(stats->attribute, ArbitraryAttribute);
 
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
 
@@ -72,21 +76,24 @@ TEST_F(FileSystemTest, CreateDirectory)
 {
   const std::string PATH = "/tmp/d";
 
-  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
+  constexpr u8 ArbitraryAttribute = 0x20;
+
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes),
+            ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_FALSE(stats->is_file);
-  // TODO: After we start saving metadata correctly, check the UID, GID, permissions
-  // as well (issue 10234).
+  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->gid, 0);
+  EXPECT_EQ(stats->modes, modes);
+  EXPECT_EQ(stats->attribute, ArbitraryAttribute);
 
   const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(children.Succeeded());
   EXPECT_TRUE(children->empty());
 
-  // TODO: uncomment this after the FS code is fixed to return AlreadyExists.
-  // EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, Mode::Read, Mode::None, Mode::None),
-  //           ResultCode::AlreadyExists);
+  EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
 }
 
 TEST_F(FileSystemTest, Delete)
