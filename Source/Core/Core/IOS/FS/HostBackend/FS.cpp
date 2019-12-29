@@ -580,36 +580,32 @@ Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
   return output;
 }
 
-Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
+Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string& path)
 {
-  Metadata metadata;
-  metadata.uid = 0;
-  metadata.gid = 0x3031;  // this is also known as makercd, 01 (0x3031) for nintendo and 08
-                          // (0x3038) for MH3 etc
-
-  if (!IsValidPath(path))
-    return ResultCode::Invalid;
-
-  std::string file_name = BuildFilename(path);
-  metadata.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
-  metadata.attribute = 0x00;  // no attributes
-
-  // Hack: if the path that is being accessed is within an installed title directory, get the
-  // UID/GID from the installed title TMD.
-  Kernel* ios = GetIOS();
-  u64 title_id;
-  if (ios && IsTitlePath(file_name, Common::FROM_SESSION_ROOT, &title_id))
+  const FstEntry* entry = nullptr;
+  if (path == "/")
   {
-    IOS::ES::TMDReader tmd = ios->GetES()->FindInstalledTMD(title_id);
-    if (tmd.IsValid())
-      metadata.gid = tmd.GetGroupId();
+    entry = &m_root_entry;
+  }
+  else
+  {
+    if (!IsValidNonRootPath(path))
+      return ResultCode::Invalid;
+
+    const auto split_path = SplitPathAndBasename(path);
+    const FstEntry* parent = GetFstEntryForPath(split_path.parent);
+    if (!parent)
+      return ResultCode::NotFound;
+    if (!parent->CheckPermission(uid, gid, Mode::Read))
+      return ResultCode::AccessDenied;
+    entry = GetFstEntryForPath(path);
   }
 
-  const File::FileInfo info{file_name};
-  metadata.is_file = info.IsFile();
-  metadata.size = info.GetSize();
-  if (!info.Exists())
+  if (!entry)
     return ResultCode::NotFound;
+
+  Metadata metadata = entry->data;
+  metadata.size = File::GetSize(BuildFilename(path));
   return metadata;
 }
 
