@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -148,6 +149,25 @@ TEST_F(FileSystemTest, Delete)
   EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Succeeded());
   EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/tmp"), ResultCode::Success);
   EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
+
+  // Test recursive directory deletion.
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/sys/1", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/sys/1/2", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/sys/1/2/3", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/sys/1/2/4", 0, modes), ResultCode::Success);
+
+  // Leave a file open. Deletion should fail while the file is in use.
+  auto handle = std::make_optional(m_fs->OpenFile(Uid{0}, Gid{0}, "/sys/1/2/3", Mode::Read));
+  ASSERT_TRUE(handle->Succeeded());
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1/2/3"), ResultCode::InUse);
+  // A directory that contains a file that is in use is considered to be in use,
+  // so this should fail too.
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1"), ResultCode::InUse);
+
+  // With the handle closed, both of these should work:
+  handle.reset();
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1/2/3"), ResultCode::Success);
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1"), ResultCode::Success);
 }
 
 TEST_F(FileSystemTest, Rename)
