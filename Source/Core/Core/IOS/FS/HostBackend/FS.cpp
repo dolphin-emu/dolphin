@@ -6,6 +6,7 @@
 #include <optional>
 #include <string_view>
 #include <type_traits>
+#include <unordered_map>
 
 #include <fmt/format.h>
 
@@ -520,45 +521,61 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   return ResultCode::Success;
 }
 
-Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const std::string& path)
+Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
+                                                               const std::string& path)
 {
   if (!IsValidPath(path))
     return ResultCode::Invalid;
 
-  const std::string dir_name(BuildFilename(path));
-
-  const File::FileInfo file_info(dir_name);
-
-  if (!file_info.Exists())
-  {
-    WARN_LOG(IOS_FS, "Search not found: %s", dir_name.c_str());
+  const FstEntry* entry = GetFstEntryForPath(path);
+  if (!entry)
     return ResultCode::NotFound;
-  }
 
-  if (!file_info.IsDirectory())
-  {
-    // It's not a directory, so error.
+  if (!entry->CheckPermission(uid, gid, Mode::Read))
+    return ResultCode::AccessDenied;
+
+  if (entry->data.is_file)
     return ResultCode::Invalid;
-  }
 
-  File::FSTEntry entry = File::ScanDirectoryTree(dir_name, false);
-
-  for (File::FSTEntry& child : entry.children)
+  const std::string host_path = BuildFilename(path);
+  File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
+  for (File::FSTEntry& child : host_entry.children)
   {
     // Decode escaped invalid file system characters so that games (such as
     // Harry Potter and the Half-Blood Prince) can find what they expect.
     child.virtualName = Common::UnescapeFileName(child.virtualName);
   }
 
-  // NOTE(leoetlino): this is absolutely wrong, but there is no way to fix this properly
-  // if we use the host filesystem.
-  std::sort(entry.children.begin(), entry.children.end(),
-            [](const File::FSTEntry& one, const File::FSTEntry& two) {
-              return one.virtualName < two.virtualName;
+  // Sort files according to their order in the FST tree (issue 10234).
+  // The result should look like this:
+  //     [FilesNotInFst, ..., OldestFileInFst, ..., NewestFileInFst]
+  std::unordered_map<std::string_view, int> sort_keys;
+  sort_keys.reserve(entry->children.size());
+  for (size_t i = 0; i < entry->children.size(); ++i)
+    sort_keys.emplace(entry->children[i].name, int(i));
+
+  const auto get_key = [&sort_keys](std::string_view key) {
+    const auto it = sort_keys.find(key);
+    // As a fallback, files that are not in the FST are put at the beginning.
+    return it != sort_keys.end() ? it->second : -1;
+  };
+
+  // Now sort in reverse order because Nintendo traverses a linked list
+  // in which new elements are inserted at the front.
+  std::sort(host_entry.children.begin(), host_entry.children.end(),
+            [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
+              const int key1 = get_key(one.virtualName);
+              const int key2 = get_key(two.virtualName);
+              if (key1 != key2)
+                return key1 > key2;
+
+              // For files that are not in the FST, sort lexicographically to ensure that
+              // results are consistent no matter what the underlying filesystem is.
+              return one.virtualName > two.virtualName;
             });
 
   std::vector<std::string> output;
-  for (File::FSTEntry& child : entry.children)
+  for (const File::FSTEntry& child : host_entry.children)
     output.emplace_back(child.virtualName);
   return output;
 }
