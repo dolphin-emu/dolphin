@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <string>
@@ -388,4 +389,28 @@ TEST_F(FileSystemTest, ReadDirectoryOnFile)
   const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/f");
   ASSERT_FALSE(result.Succeeded());
   EXPECT_EQ(result.Error(), ResultCode::Invalid);
+}
+
+TEST_F(FileSystemTest, ReadDirectoryOrdering)
+{
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/o", 0, modes), ResultCode::Success);
+
+  // Randomly generated file names in no particular order.
+  const std::array<std::string, 5> file_names{{
+      "Rkj62lGwHp",
+      "XGDQTDJMea",
+      "1z5M43WeFw",
+      "YAY39VuMRd",
+      "hxJ86nkoBX",
+  }};
+  // Create the files.
+  for (const auto& name : file_names)
+    ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/o/" + name, 0, modes), ResultCode::Success);
+
+  // Verify that ReadDirectory returns a file list that is ordered by descending creation date
+  // (issue 10234).
+  const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/o");
+  ASSERT_TRUE(result.Succeeded());
+  ASSERT_EQ(result->size(), file_names.size());
+  EXPECT_TRUE(std::equal(result->begin(), result->end(), file_names.rbegin()));
 }
