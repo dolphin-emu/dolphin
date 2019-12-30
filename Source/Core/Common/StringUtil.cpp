@@ -235,51 +235,6 @@ std::string_view StripQuotes(std::string_view s)
     return s;
 }
 
-bool TryParse(const std::string& str, u16* const output)
-{
-  u64 value;
-  if (!TryParse(str, &value))
-    return false;
-
-  if (value >= 0x10000ull && value <= 0xFFFFFFFFFFFF0000ull)
-    return false;
-
-  *output = static_cast<u16>(value);
-  return true;
-}
-
-bool TryParse(const std::string& str, u32* const output)
-{
-  u64 value;
-  if (!TryParse(str, &value))
-    return false;
-
-  if (value >= 0x100000000ull && value <= 0xFFFFFFFF00000000ull)
-    return false;
-
-  *output = static_cast<u32>(value);
-  return true;
-}
-
-bool TryParse(const std::string& str, u64* const output)
-{
-  char* end_ptr = nullptr;
-
-  // Set errno to a clean slate
-  errno = 0;
-
-  u64 value = strtoull(str.c_str(), &end_ptr, 0);
-
-  if (end_ptr == nullptr || *end_ptr != '\0')
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  *output = value;
-  return true;
-}
-
 bool TryParse(const std::string& str, bool* const output)
 {
   float value;
