@@ -133,8 +133,8 @@
     
     UIAlertAction* overwrite_action = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive
        handler:^(UIAlertAction * action) {
-      [self LoadDefaultProfileForType:@"Touch"];
       [self ChangeDevice:device_name];
+      [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"Touch"];
      }];
     
     [alert addAction:stop_action];
@@ -154,8 +154,8 @@
     }];
     
     UIAlertAction* continue_action = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
-      [self LoadDefaultProfileForType:@"MFi"];
       [self ChangeDevice:device_name];
+      [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"MFi"];
      }];
     
     [alert addAction:stop_action];
@@ -186,26 +186,6 @@
   self.m_controller->SetDefaultDevice(new_device);
   
   [self.tableView deselectRowAtIndexPath:indexPath animated:true];
-}
-
-- (void)LoadDefaultProfileForType:(NSString*)type
-{
-  NSString* ini_path;
-  if (self.m_is_wii)
-  {
-    ini_path = [NSString stringWithFormat:@"%@WiimoteProfile", type];
-  }
-  else
-  {
-    ini_path = [NSString stringWithFormat:@"%@GCPadProfile", type];
-  }
-  
-  NSString* bundle_path = [[NSBundle mainBundle] pathForResource:ini_path ofType:@"ini"];
-  
-  IniFile ini;
-  ini.Load(std::string([bundle_path cStringUsingEncoding:NSUTF8StringEncoding]));
-  self.m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
-  self.m_controller->UpdateReferences(g_controller_interface);
 }
 
 @end

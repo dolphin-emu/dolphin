@@ -13,6 +13,7 @@
 #import "Core/HW/Wiimote.h"
 
 #import "ControllerProfileCell.h"
+#import "ControllerSettingsUtils.h"
 
 constexpr const char* PROFILES_DIR = "Profiles/";
 
@@ -83,43 +84,14 @@ constexpr const char* PROFILES_DIR = "Profiles/";
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  std::string profile_path;
   if (indexPath.section == 0)
   {
-    NSString* bundle_path;
-    if (self.m_is_wii)
-    {
-      bundle_path = [[NSBundle mainBundle] pathForResource:@"MFiWiimoteProfile" ofType:@"ini"];
-    }
-    else
-    {
-      bundle_path = [[NSBundle mainBundle] pathForResource:@"MFiGCPadProfile" ofType:@"ini"];
-    }
-    
-    profile_path = std::string([bundle_path cStringUsingEncoding:NSUTF8StringEncoding]);
+    [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"MFi"];
   }
   else
   {
-    profile_path = self->m_profiles[indexPath.row];
+    [ControllerSettingsUtils LoadProfileOnController:self.m_controller device:"" is_wii:self.m_is_wii profile_path:self->m_profiles[indexPath.row]];
   }
-  
-  // Preserve the device if needed (ie loading defaults)
-  std::string device;
-  if (indexPath.section == 0)
-  {
-    device = self.m_controller->GetDefaultDevice().ToString();
-  }
-  
-  IniFile ini;
-  ini.Load(profile_path);
-  self.m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
-  
-  if (indexPath.section == 0)
-  {
-    self.m_controller->SetDefaultDevice(device);
-  }
-  
-  self.m_controller->UpdateReferences(g_controller_interface);
   
   self.m_config->SaveConfig();
   

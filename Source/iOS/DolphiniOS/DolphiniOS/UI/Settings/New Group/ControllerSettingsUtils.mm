@@ -8,6 +8,7 @@
 
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #import "InputCommon/ControllerInterface/iOS/iOS.h"
 #import "InputCommon/InputConfig.h"
@@ -95,21 +96,80 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   return [expression stringByReplacingOccurrencesOfString:@"`" withString:@""];
 }
 
-+ (bool)DoesDeviceSupportFullMotion:(ciface::Core::Device*)device
++ (bool)ShouldControllerSupportFullMotion:(ControllerEmu::EmulatedController*)controller
 {
+  ciface::Core::Device* device = g_controller_interface.FindDevice(controller->GetDefaultDevice()).get();
+  
   std::string device_source = device->GetSource();
   if (device_source == "Android" || device_source == "DSUClient")
   {
     return true;
   }
   
-  ciface::iOS::Controller* controller = dynamic_cast<ciface::iOS::Controller*>(device);
-  if (controller)
+  ciface::iOS::Controller* ios_controller = dynamic_cast<ciface::iOS::Controller*>(device);
+  if (ios_controller)
   {
-    return controller->SupportsAccelerometer() && controller->SupportsGyroscope();
+    return ios_controller->SupportsAccelerometer() && ios_controller->SupportsGyroscope();
   }
   
   return false;
+}
+
++ (void)LoadDefaultProfileOnController:(ControllerEmu::EmulatedController*)controller is_wii:(bool)is_wii type:(NSString*)type
+{
+  NSString* ini_path;
+  if (is_wii)
+  {
+    ini_path = [NSString stringWithFormat:@"%@WiimoteProfile", type];
+  }
+  else
+  {
+    ini_path = [NSString stringWithFormat:@"%@GCPadProfile", type];
+  }
+  
+  NSString* bundle_path = [[NSBundle mainBundle] pathForResource:ini_path ofType:@"ini"];
+  std::string path = std::string([bundle_path cStringUsingEncoding:NSUTF8StringEncoding]);
+  
+  [ControllerSettingsUtils LoadProfileOnController:controller device:controller->GetDefaultDevice().ToString() is_wii:is_wii profile_path:path];
+}
+
++ (void)LoadProfileOnController:(ControllerEmu::EmulatedController*)controller device:(std::string)device is_wii:(bool)is_wii profile_path:(std::string)profile_path
+{
+  if (device == "")
+  {
+    device = controller->GetDefaultDevice().ToString();
+  }
+  
+  IniFile ini;
+  ini.Load(profile_path);
+  controller->LoadConfig(ini.GetOrCreateSection("Profile"));
+  
+  // Reload the device
+  controller->SetDefaultDevice(device);
+  
+  // Set IMU defaults if motion is supported
+  if (is_wii && [ControllerSettingsUtils ShouldControllerSupportFullMotion:controller])
+  {
+    WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(controller);
+    
+    ControllerEmu::ControlGroup* imu_accelerometer = wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::IMUAccelerometer);
+    imu_accelerometer->SetControlExpression(0, "Accel Left");
+    imu_accelerometer->SetControlExpression(1, "Accel Right");
+    imu_accelerometer->SetControlExpression(2, "Accel Forward");
+    imu_accelerometer->SetControlExpression(3, "Accel Backward");
+    imu_accelerometer->SetControlExpression(4, "Accel Up");
+    imu_accelerometer->SetControlExpression(5, "Accel Down");
+    
+    ControllerEmu::ControlGroup* imu_gyroscope = wiimote->GetWiimoteGroup(WiimoteEmu::WiimoteGroup::IMUGyroscope);
+    imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
+    imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
+    imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
+    imu_gyroscope->SetControlExpression(3, "Gyro Roll Right");
+    imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
+    imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
+  }
+  
+  controller->UpdateReferences(g_controller_interface);
 }
 
 + (void)SaveSettings:(bool)is_wii
