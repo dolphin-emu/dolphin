@@ -104,6 +104,40 @@ Controller::Controller(GCController* controller) : m_controller(controller)
       AddInput(new Button(gamepad.buttonMenu, "Menu"));
     }
   }
+
+  if (controller.motion != nil)
+  {
+    GCMotion* motion = controller.motion;
+
+    AddInput(new AccelerometerAxis(motion, X, -1.0, "Accel Left"));
+    AddInput(new AccelerometerAxis(motion, X, 1.0, "Accel Right"));
+    AddInput(new AccelerometerAxis(motion, Y, 1.0, "Accel Forward"));
+    AddInput(new AccelerometerAxis(motion, Y, -1.0, "Accel Back"));
+    AddInput(new AccelerometerAxis(motion, Z, 1.0, "Accel Up"));
+    AddInput(new AccelerometerAxis(motion, Z, -1.0, "Accel Down"));
+
+    if (motion.hasAttitudeAndRotationRate)
+    {
+      AddInput(new GyroscopeAxis(motion, X, 1.0, "Gyro Pitch Up"));
+      AddInput(new GyroscopeAxis(motion, X, -1.0, "Gyro Pitch Down"));
+      AddInput(new GyroscopeAxis(motion, Y, -1.0, "Gyro Roll Left"));
+      AddInput(new GyroscopeAxis(motion, Y, 1.0, "Gyro Roll Right"));
+      AddInput(new GyroscopeAxis(motion, Z, -1.0, "Gyro Yaw Left"));
+      AddInput(new GyroscopeAxis(motion, Z, 1.0, "Gyro Yaw Right"));
+
+      m_supports_gyroscope = true;
+    }
+    else
+    {
+      m_supports_gyroscope = false;
+    }
+
+    m_supports_accelerometer = true;
+  }
+  else
+  {
+    m_supports_accelerometer = false;
+  }
 }
 
 std::string Controller::GetName() const
@@ -122,6 +156,16 @@ std::string Controller::GetName() const
 std::string Controller::GetSource() const
 {
   return "MFi";
+}
+
+bool Controller::SupportsAccelerometer() const
+{
+  return m_supports_accelerometer;
+}
+
+bool Controller::SupportsGyroscope() const
+{
+  return m_supports_gyroscope;
 }
 
 bool Controller::IsSameController(GCController* controller) const
@@ -157,6 +201,76 @@ std::string Controller::Axis::GetName() const
 ControlState Controller::Axis::GetState() const
 {
   return m_input.value * m_multiplier;
+}
+
+Controller::AccelerometerAxis::AccelerometerAxis(GCMotion* motion, MotionPlane plane,
+                                                 const double multiplier, const std::string name)
+    : m_motion(motion), m_plane(plane), m_name(name)
+{
+  if (plane == X || plane == Y)
+  {
+    m_multiplier = -1.0;
+  }
+  else  // Z
+  {
+    m_multiplier = 1.0;
+  }
+
+  m_multiplier *= multiplier;
+}
+
+std::string Controller::AccelerometerAxis::GetName() const
+{
+  return m_name;
+}
+
+ControlState Controller::AccelerometerAxis::GetState() const
+{
+  double full_multiplier = -9.81 * m_multiplier;
+
+  switch (m_plane)
+  {
+  case X:
+    return m_motion.userAcceleration.x * full_multiplier;
+  case Y:
+    return m_motion.userAcceleration.y * full_multiplier;
+  case Z:
+    return m_motion.userAcceleration.z * full_multiplier;
+  }
+}
+
+Controller::GyroscopeAxis::GyroscopeAxis(GCMotion* motion, MotionPlane plane,
+                                         const double multiplier, const std::string name)
+    : m_motion(motion), m_plane(plane), m_name(name)
+{
+  if (plane == X || plane == Y)
+  {
+    m_multiplier = -1.0;
+  }
+  else  // Z
+  {
+    m_multiplier = 1.0;
+  }
+
+  m_multiplier *= multiplier;
+}
+
+std::string Controller::GyroscopeAxis::GetName() const
+{
+  return m_name;
+}
+
+ControlState Controller::GyroscopeAxis::GetState() const
+{
+  switch (m_plane)
+  {
+  case X:
+    return m_motion.rotationRate.x * m_multiplier;
+  case Y:
+    return m_motion.rotationRate.y * m_multiplier;
+  case Z:
+    return m_motion.rotationRate.z * m_multiplier;
+  }
 }
 
 }  // namespace ciface::iOS
