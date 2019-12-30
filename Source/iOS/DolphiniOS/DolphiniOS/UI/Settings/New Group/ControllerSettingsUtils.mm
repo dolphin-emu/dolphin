@@ -9,6 +9,7 @@
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
 
+#import "InputCommon/ControllerInterface/iOS/iOS.h"
 #import "InputCommon/InputConfig.h"
 
 @implementation ControllerSettingsUtils
@@ -92,6 +93,23 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
 + (NSString*)FormatExpression:(NSString*)expression
 {
   return [expression stringByReplacingOccurrencesOfString:@"`" withString:@""];
+}
+
++ (bool)DoesDeviceSupportFullMotion:(ciface::Core::Device*)device
+{
+  std::string device_source = device->GetSource();
+  if (device_source == "Android" || device_source == "DSUClient")
+  {
+    return true;
+  }
+  
+  ciface::iOS::Controller* controller = dynamic_cast<ciface::iOS::Controller*>(device);
+  if (controller)
+  {
+    return controller->SupportsAccelerometer() && controller->SupportsGyroscope();
+  }
+  
+  return false;
 }
 
 + (void)SaveSettings:(bool)is_wii
