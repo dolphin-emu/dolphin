@@ -66,20 +66,6 @@
       self.m_last_selected = i;
     }
   }
-  
-  
-  if (self.m_last_selected == -1)
-  {
-    NSString* alert_str = [NSString stringWithFormat:@"The selected physical controller \"%@\" for this emulated controller is not connected to your device.", [NSString stringWithUTF8String:current_device.c_str()]];
-    
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning"
-                                   message:alert_str
-                                   preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-                                            handler:nil]];
-    
-    [self presentViewController:alert animated:true completion:nil];
-  }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
