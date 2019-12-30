@@ -122,8 +122,8 @@
   
   if (device_name.compare(0, android_str.size(), android_str) == 0)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Configuration"
-                                   message:@"Your configuration will be overwritten by the Touchscreen defaults. If you wish to keep your button rebinds and settings, save it as a profile on the previous screen before changing devices.\n\nDo you wish to proceed?"
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning"
+                                   message:@"Your controller configuration will be overwritten by the Touchscreen default settings.\n\nIf you want to keep your button mappings and settings, save it as a profile on the previous screen before changing devices.\n\nProceed?"
                                    preferredStyle:UIAlertControllerStyleAlert];
      
     UIAlertAction* stop_action = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
@@ -144,8 +144,8 @@
   }
   else if (device_name.compare(0, mfi_str.size(), mfi_str) == 0 && last_device.compare(0, android_str.size(), android_str) == 0)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Configuration"
-                                   message:@"Do you want to load the default configuration for MFi controllers? You may customize the button rebinds and settings after if you wish."
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Load Defaults"
+                                   message:@"Do you want to load the default configuration for MFi controllers?\n\nThe default configuration contains button mappings that will work on many MFi controllers."
                                    preferredStyle:UIAlertControllerStyleAlert];
      
     UIAlertAction* stop_action = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
