@@ -69,7 +69,29 @@
   
   if (can_change_devices)
   {
-    NSString* raw_device_name = [NSString stringWithUTF8String:self.m_controller->GetDefaultDevice().ToString().c_str()];
+    // Get the current device
+    const std::string current_device = self.m_controller->GetDefaultDevice().ToString();
+    std::vector<std::string> all_connected_devices = g_controller_interface.GetAllDeviceStrings();
+    
+    // Check if the current device isn't connected
+    if (std::find(all_connected_devices.begin(), all_connected_devices.end(), current_device) == all_connected_devices.end())
+    {
+      // Show an error
+      NSString* alert_str = [NSString stringWithFormat:@"The selected device \"%@\" for this emulated controller is not connected.", [NSString stringWithUTF8String:current_device.c_str()]];
+      
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning"
+                                     message:alert_str
+                                     preferredStyle:UIAlertControllerStyleAlert];
+      [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+                                              handler:nil]];
+      
+      [self presentViewController:alert animated:true completion:nil];
+      
+      // Disable configuration
+      configuration_enabled = false;
+    }
+  
+    NSString* raw_device_name = [NSString stringWithUTF8String:current_device.c_str()];
     [self.m_device_label setText:[ControllerSettingsUtils RemoveAndroidFromDeviceName:raw_device_name]];
   }
   
