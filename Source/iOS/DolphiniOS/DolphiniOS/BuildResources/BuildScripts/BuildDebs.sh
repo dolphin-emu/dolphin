@@ -8,6 +8,7 @@ EXPORT_PATH="/tmp/DolphiniOS-$EXPORT_UUID"
 DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_deb_root/"
 CONTROL_FILE=$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/control.in
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Applications/DolphiniOS.app
+BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
 
 if [ $BUILD_FOR_PATREON == "YES" ]; then
   CONTROL_FILE=$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/control-patreon.in
@@ -36,7 +37,7 @@ cp $ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/postinst.sh $DOLP
 cp $ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/prerm.sh $DOLPHIN_EXPORT_PATH/DEBIAN/prerm
 cp $ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/postrm.sh $DOLPHIN_EXPORT_PATH/DEBIAN/postrm
 chmod -R 755 $DOLPHIN_EXPORT_PATH/DEBIAN/*
-sed "s/VERSION_NUMBER/$MARKETING_VERSION-$CURRENT_PROJECT_VERSION/g" $CONTROL_FILE > $DOLPHIN_EXPORT_PATH/DEBIAN/control
+sed "s/VERSION_NUMBER/$MARKETING_VERSION-$BUILD_NUMBER/g" $CONTROL_FILE > $DOLPHIN_EXPORT_PATH/DEBIAN/control
 
 # Resign the application
 codesign -f -s "OatmealDome Software" --entitlements $ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_JB.plist $APPLICATION_DESTINATION_PATH
