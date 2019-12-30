@@ -1392,7 +1392,7 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
   if (!info)
     return "";
 
-  std::stringstream ss;
+  std::ostringstream ss;
   switch (palette_format)
   {
   case TLUTFormat::IA8:
@@ -1414,7 +1414,7 @@ std::string GenerateDecodingShader(TextureFormat format, TLUTFormat palette_form
 
 std::string GeneratePaletteConversionShader(TLUTFormat palette_format, APIType api_type)
 {
-  std::stringstream ss;
+  std::ostringstream ss;
 
   ss << R"(
 int Convert3To8(int v)

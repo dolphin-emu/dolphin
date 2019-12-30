@@ -1193,7 +1193,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
 
   if (b->codeSize <= 250)
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << std::hex;
     for (u8 i = 0; i <= b->codeSize; i++)
     {

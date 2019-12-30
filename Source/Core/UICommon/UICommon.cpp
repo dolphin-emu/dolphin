@@ -464,7 +464,7 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << std::fixed << std::setprecision(2);
   ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
   return ss.str();

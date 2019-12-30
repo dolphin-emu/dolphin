@@ -768,12 +768,12 @@ void VertexManagerBase::OnEndFrame()
 
 #if 0
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
     WARN_LOG(VIDEO, "CPU EFB accesses in last frame: %s", ss.str().c_str());
   }
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
     WARN_LOG(VIDEO, "Scheduled command buffer kicks: %s", ss.str().c_str());
   }

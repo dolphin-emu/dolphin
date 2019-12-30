@@ -512,7 +512,7 @@ void BluetoothReal::LoadLinkKeys()
     for (size_t i = 0; i < key_string.length(); i = i + 2)
     {
       int value;
-      std::stringstream(key_string.substr(i, 2)) >> std::hex >> value;
+      std::istringstream(key_string.substr(i, 2)) >> std::hex >> value;
       key[pos++] = value;
     }
 
