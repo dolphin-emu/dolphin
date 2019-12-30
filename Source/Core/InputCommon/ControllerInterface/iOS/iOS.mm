@@ -56,14 +56,14 @@ Controller::Controller(GCController* controller) : m_controller(controller)
     AddInput(new PressureSensitiveButton(gamepad.rightShoulder, "R Shoulder"));
     AddInput(new PressureSensitiveButton(gamepad.leftTrigger, "L Trigger"));
     AddInput(new PressureSensitiveButton(gamepad.rightTrigger, "R Trigger"));
-    AddInput(new Axis(gamepad.leftThumbstick.xAxis, Axis::Positive, "L Stick X+"));
-    AddInput(new Axis(gamepad.leftThumbstick.xAxis, Axis::Negative, "L Stick X-"));
-    AddInput(new Axis(gamepad.leftThumbstick.yAxis, Axis::Positive, "L Stick Y+"));
-    AddInput(new Axis(gamepad.leftThumbstick.yAxis, Axis::Negative, "L Stick Y-"));
-    AddInput(new Axis(gamepad.rightThumbstick.xAxis, Axis::Positive, "R Stick X+"));
-    AddInput(new Axis(gamepad.rightThumbstick.xAxis, Axis::Negative, "R Stick X-"));
-    AddInput(new Axis(gamepad.rightThumbstick.yAxis, Axis::Positive, "R Stick Y+"));
-    AddInput(new Axis(gamepad.rightThumbstick.yAxis, Axis::Negative, "R Stick Y-"));
+    AddInput(new Axis(gamepad.leftThumbstick.xAxis, 1.0f, "L Stick X+"));
+    AddInput(new Axis(gamepad.leftThumbstick.xAxis, -1.0f, "L Stick X-"));
+    AddInput(new Axis(gamepad.leftThumbstick.yAxis, 1.0f, "L Stick Y+"));
+    AddInput(new Axis(gamepad.leftThumbstick.yAxis, -1.0f, "L Stick Y-"));
+    AddInput(new Axis(gamepad.rightThumbstick.xAxis, 1.0f, "R Stick X+"));
+    AddInput(new Axis(gamepad.rightThumbstick.xAxis, -1.0f, "R Stick X-"));
+    AddInput(new Axis(gamepad.rightThumbstick.yAxis, 1.0f, "R Stick Y+"));
+    AddInput(new Axis(gamepad.rightThumbstick.yAxis, -1.0f, "R Stick Y-"));
 
     // Optionals and buttons only on newer iOS versions
     if (@available(iOS 13, *))
@@ -156,15 +156,7 @@ std::string Controller::Axis::GetName() const
 
 ControlState Controller::Axis::GetState() const
 {
-  float value = m_input.value;
-  if (m_direction == Positive)
-  {
-    return value > 0 ? value : 0.0;
-  }
-  else
-  {
-    return value < 0 ? (value * -1) : 0.0;
-  }
+  return m_input.value * m_multiplier;
 }
 
 }  // namespace ciface::iOS

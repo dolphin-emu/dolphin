@@ -53,14 +53,8 @@ private:
   class Axis : public Core::Device::Input
   {
   public:
-    enum Direction
-    {
-      Positive = 0,
-      Negative
-    };
-
-    Axis(GCControllerAxisInput* input, const Direction direction, const std::string name)
-        : m_input(input), m_direction(direction), m_name(name)
+    Axis(GCControllerAxisInput* input, const float multiplier, const std::string name)
+        : m_input(input), m_multiplier(multiplier), m_name(name)
     {
     }
     std::string GetName() const override;
@@ -68,7 +62,7 @@ private:
 
   private:
     GCControllerAxisInput* m_input;
-    const Direction m_direction;
+    float m_multiplier;
     const std::string m_name;
   };
 
