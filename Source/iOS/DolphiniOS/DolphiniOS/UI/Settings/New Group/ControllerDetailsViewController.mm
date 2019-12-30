@@ -69,6 +69,7 @@
   
   if (can_change_devices)
   {
+    NSString* raw_device_name = [NSString stringWithUTF8String:self.m_controller->GetDefaultDevice().ToString().c_str()];
     [self.m_device_label setText:[ControllerSettingsUtils RemoveAndroidFromDeviceName:raw_device_name]];
   }
   
