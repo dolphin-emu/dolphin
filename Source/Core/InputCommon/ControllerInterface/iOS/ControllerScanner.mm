@@ -42,9 +42,12 @@
 - (void)ControllerDisconnected:(NSNotification*)notification
 {
   // Get the GCController instance
-  GCController* controller = (GCController*)notification.object;
-
-  // TODO: Remove device
+  GCController* gc_controller = (GCController*)notification.object;
+  g_controller_interface.RemoveDevice([&gc_controller](const auto* device) {
+    const ciface::iOS::Controller* controller =
+        dynamic_cast<const ciface::iOS::Controller*>(device);
+    return controller && controller->IsSameController(gc_controller);
+  });
 }
 
 @end
