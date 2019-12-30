@@ -651,6 +651,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */;
 			buildPhases = (
+				B988D80B23BA8BBB0092CB6C /* ShellScript */,
 				B945A38C2362AEB900B21680 /* Build Dolphin */,
 				B9766AF023A4964B00FF7F17 /* Build csdbgd */,
 				B95A093F2384F18600DBBB01 /* Copy Dolphin Images */,
@@ -786,6 +787,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/BuildCsdbgd.sh\n";
+		};
+		B988D80B23BA8BBB0092CB6C /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/IncrementBuild.sh\n";
 		};
 		B9E1ACB423B34F540072EDF0 /* Clean Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1033,7 +1051,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1057,7 +1075,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
-				VERSIONING_SYSTEM = "apple-generic";
+				VERSIONING_SYSTEM = "";
 			};
 			name = "Debug (Jailbroken)";
 		};
@@ -1073,7 +1091,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				HEADER_SEARCH_PATHS = "";
@@ -1092,7 +1110,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
-				VERSIONING_SYSTEM = "apple-generic";
+				VERSIONING_SYSTEM = "";
 			};
 			name = "Release (Jailbroken)";
 		};
@@ -1173,7 +1191,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1197,7 +1215,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
-				VERSIONING_SYSTEM = "apple-generic";
+				VERSIONING_SYSTEM = "";
 			};
 			name = "Debug (Non-Jailbroken)";
 		};
@@ -1274,7 +1292,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 11;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				GCC_PREPROCESSOR_DEFINITIONS = "PATREON=1";
@@ -1294,7 +1312,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
-				VERSIONING_SYSTEM = "apple-generic";
+				VERSIONING_SYSTEM = "";
 			};
 			name = "Release (Patreon)";
 		};
