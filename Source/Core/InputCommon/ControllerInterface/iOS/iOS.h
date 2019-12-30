@@ -77,6 +77,7 @@ public:
 
   std::string GetName() const final override;
   std::string GetSource() const final override;
+  bool IsSameController(GCController* controller) const;
   // std::optional<int> GetPreferredId() const final override;
 
 private:

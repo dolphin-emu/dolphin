@@ -124,6 +124,11 @@ std::string Controller::GetSource() const
   return "MFi";
 }
 
+bool Controller::IsSameController(GCController* controller) const
+{
+  return m_controller == controller;
+}
+
 std::string Controller::Button::GetName() const
 {
   return m_name;
