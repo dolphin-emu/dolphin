@@ -9,6 +9,8 @@
 #import "Core/HW/SI/SI.h"
 #import "Core/HW/SI/SI_Device.h"
 
+#include "InputCommon/ControllerInterface/Device.h"
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface ControllerSettingsUtils : NSObject
@@ -21,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString*)GetLocalizedWiimoteStringFromIndex:(NSInteger)idx;
 + (NSString*)RemoveAndroidFromDeviceName:(NSString*)name;
 + (NSString*)FormatExpression:(NSString*)expression;
++ (bool)DoesDeviceSupportFullMotion:(ciface::Core::Device*)device;
 + (void)SaveSettings:(bool)is_wii;
 
 @end
