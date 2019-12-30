@@ -9,7 +9,7 @@
 #import "Core/HW/SI/SI.h"
 #import "Core/HW/SI/SI_Device.h"
 
-#include "InputCommon/ControllerInterface/Device.h"
+#import "InputCommon/ControllerEmu/ControllerEmu.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -23,7 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString*)GetLocalizedWiimoteStringFromIndex:(NSInteger)idx;
 + (NSString*)RemoveAndroidFromDeviceName:(NSString*)name;
 + (NSString*)FormatExpression:(NSString*)expression;
-+ (bool)DoesDeviceSupportFullMotion:(ciface::Core::Device*)device;
++ (bool)ShouldControllerSupportFullMotion:(ControllerEmu::EmulatedController*)controller;
++ (void)LoadDefaultProfileOnController:(ControllerEmu::EmulatedController*)controller is_wii:(bool)is_wii type:(NSString*)type;
++ (void)LoadProfileOnController:(ControllerEmu::EmulatedController*)controller device:(std::string)device is_wii:(bool)is_wii profile_path:(std::string)profile_path;
 + (void)SaveSettings:(bool)is_wii;
 
 @end
