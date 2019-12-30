@@ -67,12 +67,6 @@
     [self.m_type_label setText:[ControllerSettingsUtils GetLocalizedGameCubeControllerFromIndex:gc_index.value()]];
   }
   
-  NSString* raw_device_name = [NSString stringWithUTF8String:self.m_controller->GetDefaultDevice().ToString().c_str()];
-  if ([raw_device_name hasPrefix:@"Android"])
-  {
-    configuration_enabled = false;
-  }
-  
   if (can_change_devices)
   {
     [self.m_device_label setText:[ControllerSettingsUtils RemoveAndroidFromDeviceName:raw_device_name]];
