@@ -109,12 +109,6 @@ static std::vector<u64> GetTitlesInTitleOrImport(FS::FileSystem* fs, const std::
     }
   }
 
-  // On a real Wii, the title list is not in any particular order. However, because of how
-  // the flash filesystem works, titles such as 1-2 are *never* in the first position.
-  // We must keep this behaviour, or some versions of the System Menu may break.
-
-  std::sort(title_ids.begin(), title_ids.end(), std::greater<>());
-
   return title_ids;
 }
 
