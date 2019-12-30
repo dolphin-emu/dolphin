@@ -111,6 +111,7 @@
 {
   if (indexPath.row == self.m_last_selected)
   {
+    [self.tableView deselectRowAtIndexPath:indexPath animated:true];
     return;
   }
   
