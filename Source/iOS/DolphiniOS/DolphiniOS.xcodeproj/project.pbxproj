@@ -209,6 +209,7 @@
 		B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TouchWiimoteProfile.ini; path = BundleResources/TouchWiimoteProfile.ini; sourceTree = "<group>"; };
 		B988D80623B83AB40092CB6C /* ControllerDsuClientViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDsuClientViewController.h; sourceTree = "<group>"; };
 		B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDsuClientViewController.mm; sourceTree = "<group>"; };
+		B988D80A23B982C80092CB6C /* IncrementBuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = IncrementBuild.sh; path = BuildResources/BuildScripts/IncrementBuild.sh; sourceTree = "<group>"; };
 		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
 		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
 		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
@@ -551,12 +552,13 @@
 		B9DCAC9923AB43B3002B95C8 /* Build Scripts */ = {
 			isa = PBXGroup;
 			children = (
+				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
 				B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */,
 				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
-				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
-				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
 				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
-				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
+				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
+				B988D80A23B982C80092CB6C /* IncrementBuild.sh */,
+				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
 			);
 			name = "Build Scripts";
 			sourceTree = "<group>";
@@ -1031,7 +1033,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1055,6 +1057,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = "Debug (Jailbroken)";
 		};
@@ -1070,7 +1073,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				HEADER_SEARCH_PATHS = "";
@@ -1089,6 +1092,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = "Release (Jailbroken)";
 		};
@@ -1169,7 +1173,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -1193,6 +1197,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = "Debug (Non-Jailbroken)";
 		};
@@ -1269,7 +1274,7 @@
 				CLANG_CXX_LIBRARY = "compiler-default";
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 2;
+				CURRENT_PROJECT_VERSION = 11;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
 				GCC_PREPROCESSOR_DEFINITIONS = "PATREON=1";
@@ -1289,6 +1294,7 @@
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
 				);
+				VERSIONING_SYSTEM = "apple-generic";
 			};
 			name = "Release (Patreon)";
 		};
