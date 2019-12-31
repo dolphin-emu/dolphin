@@ -23,5 +23,6 @@
 + (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value;
 + (void)toggleImuIr:(bool)enabled;
 + (void)toggleSidewaysWiimote:(bool)enabled reload_wiimote:(bool)reload_wiimote;
++ (bool)isTouchscreenDeviceConnected:(bool)check_wii;
 
 @end

@@ -19,10 +19,14 @@
 #include "Core/Host.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/State.h"
 
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
+#include "InputCommon/InputConfig.h"
 
 #include "MainiOS.h"
 
@@ -427,6 +431,45 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   {
     Wiimote::LoadConfig();
   }
+}
+
++ (bool)IsTouchscreenConnectedToController:(int)i input_config:(InputConfig*)input_config
+{
+  std::string android_str = "Android";
+  
+  ControllerEmu::EmulatedController* controller = input_config->GetController(i);
+  std::string device = controller->GetDefaultDevice().ToString();
+  
+  return device.compare(0, android_str.size(), android_str) == 0;
+}
+
++ (bool)isTouchscreenDeviceConnected:(bool)check_wii
+{
+  for (size_t i = 0; i < 4; i++)
+  {
+    InputConfig* gc_input_config = Pad::GetConfig();    
+    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE)
+    {
+      if ([MainiOS IsTouchscreenConnectedToController:i input_config:gc_input_config])
+      {
+        return true;
+      }
+    }
+
+    if (check_wii)
+    {
+      InputConfig* wii_input_config = Wiimote::GetConfig();
+      if (g_wiimote_sources[i] == 1) // Emulated
+      {
+        if ([MainiOS IsTouchscreenConnectedToController:i input_config:wii_input_config])
+        {
+          return true;
+        }
+      }
+    }
+  }
+
+  return false;
 }
 
 @end
