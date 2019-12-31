@@ -47,6 +47,7 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     renderer_view.isHidden = false
     
     self.changeController(idx: 0)
+    self.setPadOpacity()
     
     setupTapGestureRecognizer(m_wii_pad_view)
     setupTapGestureRecognizer(m_wii_pad_sideways_view)
@@ -287,6 +288,19 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
     }
     
     self.m_visible_controller = proper_idx
+  }
+  
+  func setPadOpacity()
+  {
+    let opacityValue = UserDefaults.standard.float(forKey: "pad_opacity_value")
+    if (self.isWii)
+    {
+        self.m_wii_controllers[m_visible_controller].layer.opacity = opacityValue
+    }
+    else
+    {
+        self.m_gc_controllers[m_visible_controller].layer.opacity = opacityValue
+    }
   }
   
   @IBAction func exitButtonPressed(_ sender: Any)
