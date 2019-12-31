@@ -18,18 +18,10 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-//const std::string scm_rev_str = ""
-//#if !SCM_IS_MASTER
-//                                ""
-//#endif
-//
-//#ifdef __INTEL_COMPILER
-//    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
-//#else
-//    BUILD_TYPE_STR SCM_DESC_STR;
-//#endif
+//RNO Dolphin Version
+#define RNO_REV_STR "12/31/19"
 
-#define RNO_REV_STR "r1"
+
 const std::string scm_rev_str = "Dolphin RNO - (" RNO_REV_STR ")";
 
 #ifdef _WIN32

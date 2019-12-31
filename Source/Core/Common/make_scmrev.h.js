@@ -91,7 +91,7 @@ describe = describe.replace(/(-0)?-[^-]+(-dirty)?$/, '$2');
 
 var out_contents =
 	"#define SCM_REV_STR \"" + revision + "\"\n" +
-	"#define SCM_DESC_STR \"Dolphin RNO (12/19/19)" + "\"\n" +
+	"#define SCM_DESC_STR \"" + describe + "\"\n" +
 	"#define SCM_BRANCH_STR \"" + "\"\n" +
 	"#define SCM_IS_MASTER " + isStable + "\n" +
 	"#define SCM_DISTRIBUTOR_STR \"" + distributor + "\"\n" +
