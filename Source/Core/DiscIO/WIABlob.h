@@ -8,6 +8,9 @@
 #include <memory>
 #include <utility>
 
+#include <bzlib.h>
+#include <lzma.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Swap.h"
@@ -152,6 +155,62 @@ private:
     Bzip2 = 2,
     LZMA = 3,
     LZMA2 = 4,
+  };
+
+  class Decompressor
+  {
+  public:
+    virtual ~Decompressor();
+
+    // Specifies the compressed data to read. The data must still be in memory when calling Read.
+    virtual bool Start(const u8* in_ptr, u64 size) = 0;
+
+    // Reads the specified number of bytes into out_ptr (or less, if there aren't that many bytes
+    // to output). Returns the number of bytes read. Start must be called before this.
+    virtual u64 Read(u8* out_ptr, u64 size) = 0;
+
+    // Returns whether every byte of the input data has been read.
+    virtual bool DoneReading() const = 0;
+
+    // Will be called automatically upon destruction, but can be called earlier if desired.
+    virtual void End() = 0;
+  };
+
+  class Bzip2Decompressor final : public Decompressor
+  {
+  public:
+    ~Bzip2Decompressor();
+
+    bool Start(const u8* in_ptr, u64 size) override;
+    u64 Read(u8* out_ptr, u64 size) override;
+    bool DoneReading() const override;
+    void End() override;
+
+  private:
+    bz_stream m_stream;
+    bool m_started = false;
+    bool m_ended = false;
+    bool m_error_occurred = false;
+  };
+
+  class LZMADecompressor final : public Decompressor
+  {
+  public:
+    LZMADecompressor(bool lzma2, const u8* filter_options, size_t filter_options_size);
+    ~LZMADecompressor();
+
+    bool Start(const u8* in_ptr, u64 size) override;
+    u64 Read(u8* out_ptr, u64 size) override;
+    bool DoneReading() const override;
+    void End() override;
+
+  private:
+    lzma_stream m_stream = LZMA_STREAM_INIT;
+    lzma_options_lzma m_options = {};
+    lzma_filter m_filters[2];
+    bool m_started = false;
+    bool m_ended = false;
+    bool m_error_occurred = false;
   };
 
   bool m_valid;

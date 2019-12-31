@@ -10,6 +10,9 @@
 #include <memory>
 #include <utility>
 
+#include <bzlib.h>
+#include <lzma.h>
+
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -74,7 +77,7 @@ bool WIAFileReader::Initialize(const std::string& path)
 
   const u32 compression_type = Common::swap32(m_header_2.compression_type);
   m_compression_type = static_cast<CompressionType>(compression_type);
-  if (m_compression_type > CompressionType::Purge)
+  if (m_compression_type > CompressionType::LZMA2)
   {
     ERROR_LOG(DISCIO, "Unsupported WIA compression type %u in %s", compression_type, path.c_str());
     return false;
@@ -338,6 +341,60 @@ bool WIAFileReader::ReadCompressedData(u32 decompressed_data_size, u64 data_offs
 
     return true;
   }
+
+  case CompressionType::Bzip2:
+  case CompressionType::LZMA:
+  case CompressionType::LZMA2:
+  {
+    std::vector<u8> compressed_data(data_size);
+    if (!m_file.Seek(data_offset, SEEK_SET) || !m_file.ReadBytes(compressed_data.data(), data_size))
+      return false;
+
+    std::unique_ptr<Decompressor> decompressor;
+    switch (m_compression_type)
+    {
+    case CompressionType::Bzip2:
+      decompressor = std::make_unique<Bzip2Decompressor>();
+      break;
+    case CompressionType::LZMA:
+      decompressor = std::make_unique<LZMADecompressor>(false, m_header_2.compressor_data,
+                                                        m_header_2.compressor_data_size);
+      break;
+    case CompressionType::LZMA2:
+      decompressor = std::make_unique<LZMADecompressor>(true, m_header_2.compressor_data,
+                                                        m_header_2.compressor_data_size);
+      break;
+    }
+
+    if (!decompressor->Start(compressed_data.data(), compressed_data.size()))
+      return false;
+
+    if (exception_list)
+    {
+      u16 exceptions;
+      if (decompressor->Read(reinterpret_cast<u8*>(&exceptions), sizeof(exceptions)) !=
+          sizeof(exceptions))
+      {
+        return false;
+      }
+
+      std::vector<HashExceptionEntry> exception_entries(Common::swap16(exceptions));
+      u8* exceptions_data = reinterpret_cast<u8*>(exception_entries.data());
+      const size_t exceptions_size = exception_entries.size() * sizeof(HashExceptionEntry);
+      if (decompressor->Read(exceptions_data, exceptions_size) != exceptions_size)
+        return false;
+
+      // TODO: Actually handle the exceptions
+    }
+
+    if (decompressor->Read(out_ptr, decompressed_data_size) != decompressed_data_size)
+      return false;
+
+    if (!decompressor->DoneReading())
+      return false;
+
+    return true;
+  }
   }
 
   return false;
@@ -409,4 +466,146 @@ std::string WIAFileReader::VersionToString(u32 version)
   else
     return StringFromFormat("%u.%02x.%02x.beta%u", a, b, c, d);
 }
+
+WIAFileReader::Decompressor::~Decompressor() = default;
+
+WIAFileReader::Bzip2Decompressor::~Bzip2Decompressor()
+{
+  End();
+}
+
+bool WIAFileReader::Bzip2Decompressor::Start(const u8* in_ptr, u64 size)
+{
+  if (m_started)
+    return false;
+
+  m_stream.bzalloc = nullptr;
+  m_stream.bzfree = nullptr;
+  m_stream.opaque = nullptr;
+
+  m_started = BZ2_bzDecompressInit(&m_stream, 0, 0) == BZ_OK;
+
+  m_stream.next_in = reinterpret_cast<char*>(const_cast<u8*>(in_ptr));
+  m_stream.avail_in = size;
+
+  return m_started;
+}
+
+u64 WIAFileReader::Bzip2Decompressor::Read(u8* out_ptr, u64 size)
+{
+  if (!m_started || m_error_occurred || m_stream.avail_in == 0)
+    return 0;
+
+  m_stream.next_out = reinterpret_cast<char*>(out_ptr);
+  m_stream.avail_out = size;
+
+  const int result = BZ2_bzDecompress(&m_stream);
+  m_error_occurred = result != BZ_OK && result != BZ_STREAM_END;
+
+  return m_error_occurred ? 0 : m_stream.next_out - reinterpret_cast<char*>(out_ptr);
+}
+
+bool WIAFileReader::Bzip2Decompressor::DoneReading() const
+{
+  return m_started && !m_error_occurred && m_stream.avail_in == 0;
+}
+
+void WIAFileReader::Bzip2Decompressor::End()
+{
+  if (m_started && !m_ended)
+  {
+    BZ2_bzDecompressEnd(&m_stream);
+    m_ended = true;
+  }
+}
+
+WIAFileReader::LZMADecompressor::LZMADecompressor(bool lzma2, const u8* filter_options,
+                                                  size_t filter_options_size)
+{
+  m_options.preset_dict = nullptr;
+
+  if (!lzma2 && filter_options_size == 5)
+  {
+    // The dictionary size is stored as a 32-bit little endian unsigned integer
+    static_assert(sizeof(m_options.dict_size) == sizeof(u32));
+    std::memcpy(&m_options.dict_size, filter_options + 1, sizeof(u32));
+
+    const u8 d = filter_options[0];
+    if (d >= (9 * 5 * 5))
+    {
+      m_error_occurred = true;
+    }
+    else
+    {
+      m_options.lc = d % 9;
+      const u8 e = d / 9;
+      m_options.pb = e / 5;
+      m_options.lp = e % 5;
+    }
+  }
+  else if (lzma2 && filter_options_size == 1)
+  {
+    const u8 d = filter_options[0];
+    if (d > 40)
+      m_error_occurred = true;
+    else
+      m_options.dict_size = d == 40 ? 0xFFFFFFFF : (static_cast<u32>(2) | (d & 1)) << (d / 2 + 11);
+  }
+  else
+  {
+    m_error_occurred = true;
+  }
+
+  m_filters[0].id = lzma2 ? LZMA_FILTER_LZMA2 : LZMA_FILTER_LZMA1;
+  m_filters[0].options = &m_options;
+  m_filters[1].id = LZMA_VLI_UNKNOWN;
+  m_filters[1].options = nullptr;
+}
+
+WIAFileReader::LZMADecompressor::~LZMADecompressor()
+{
+  End();
+}
+
+bool WIAFileReader::LZMADecompressor::Start(const u8* in_ptr, u64 size)
+{
+  if (m_started || m_error_occurred)
+    return false;
+
+  m_started = lzma_raw_decoder(&m_stream, m_filters) == LZMA_OK;
+
+  m_stream.next_in = in_ptr;
+  m_stream.avail_in = size;
+
+  return m_started;
+}
+
+u64 WIAFileReader::LZMADecompressor::Read(u8* out_ptr, u64 size)
+{
+  if (!m_started || m_error_occurred || m_stream.avail_in == 0)
+    return 0;
+
+  m_stream.next_out = out_ptr;
+  m_stream.avail_out = size;
+
+  const lzma_ret result = lzma_code(&m_stream, LZMA_RUN);
+  m_error_occurred = result != LZMA_OK && result != LZMA_STREAM_END;
+
+  return m_error_occurred ? 0 : m_stream.next_out - out_ptr;
+}
+
+bool WIAFileReader::LZMADecompressor::DoneReading() const
+{
+  return m_started && !m_error_occurred && m_stream.avail_in == 0;
+}
+
+void WIAFileReader::LZMADecompressor::End()
+{
+  if (m_started && !m_ended)
+  {
+    lzma_end(&m_stream);
+    m_ended = true;
+  }
+}
+
 }  // namespace DiscIO
