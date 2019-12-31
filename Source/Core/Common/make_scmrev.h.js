@@ -82,7 +82,7 @@ var isStable = +("master" == branch || "stable" == branch);
 
 // Get environment information.
 var distributor = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DISTRIBUTOR%");
-if (distributor == "%DOLPHIN_DISTRIBUTOR%") distributor = "None";
+if (distributor == "%DOLPHIN_DISTRIBUTOR%") distributor = "Retro Nintendo Online";
 var default_update_track = wshShell.ExpandEnvironmentStrings("%DOLPHIN_DEFAULT_UPDATE_TRACK%");
 if (default_update_track == "%DOLPHIN_DEFAULT_UPDATE_TRACK%") default_update_track = "";
 
