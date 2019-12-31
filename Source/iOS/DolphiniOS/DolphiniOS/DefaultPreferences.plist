@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>haptic_feedback_enabled</key>
+	<true/>
+	<key>pad_opacity_value</key>
+	<real>0.5</real>
+</dict>
+</plist>

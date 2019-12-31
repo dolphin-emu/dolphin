@@ -16,6 +16,11 @@
 - (BOOL)application:(UIApplication*)application
     didFinishLaunchingWithOptions:(NSDictionary*)launchOptions
 {
+  // Default settings values should be set in DefaultPreferences.plist in the future
+  NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];
+  NSDictionary *defaultPrefs = [NSDictionary dictionaryWithContentsOfURL:defaultPrefsFile];
+  [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
+    
   // Override point for customization after application launch.
   
   [MainiOS applicationStart];

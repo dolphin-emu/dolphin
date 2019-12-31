@@ -8,6 +8,8 @@ import UIKit
 @IBDesignable
 class TCButton: UIButton
 {
+  let hapticGenerator = UIImpactFeedbackGenerator(style: .medium)
+    
   @IBInspectable var controllerButton: Int = 0 // default: GC A button
   {
     didSet
@@ -72,6 +74,11 @@ class TCButton: UIButton
   
   @objc func buttonPressed()
   {
+    // Check UserDefaults for haptic setting
+    if (UserDefaults.standard.bool(forKey: "haptic_feedback_enabled"))
+    {
+        hapticGenerator.impactOccurred()
+    }
     MainiOS.gamepadEvent(forButton: Int32(controllerButton), action: 1)
   }
   
