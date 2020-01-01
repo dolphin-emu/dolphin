@@ -11,7 +11,7 @@
         <!--Dolphin-->
         <scene sceneID="Zqh-7S-E1N">
             <objects>
-                <viewController automaticallyAdjustsScrollViewInsets="NO" id="72Z-je-Eys" customClass="EmulationViewController" customModule="GoobDolphin" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController automaticallyAdjustsScrollViewInsets="NO" id="72Z-je-Eys" customClass="EmulationViewController" customModule="DolphiniOS" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="MkU-9V-PoJ">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -24,15 +24,15 @@
                                 <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                             </view>
-                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="GoobDolphin" customModuleProvider="target">
+                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
-                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kFP-2O-2AC" userLabel="WiiPad" customClass="TCWiiPad" customModule="GoobDolphin" customModuleProvider="target">
+                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kFP-2O-2AC" userLabel="WiiPad" customClass="TCWiiPad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
-                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DHP-hz-C2m" userLabel="SidewaysWiiPad" customClass="TCSidewaysWiiPad" customModule="GoobDolphin" customModuleProvider="target">
+                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DHP-hz-C2m" userLabel="SidewaysWiiPad" customClass="TCSidewaysWiiPad" customModule="DolphiniOS" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
@@ -95,7 +95,7 @@
         <!--In-Game Configuration-->
         <scene sceneID="qX3-Ix-rdJ">
             <objects>
-                <tableViewController id="hkl-ry-5ed" userLabel="In-Game Configuration" customClass="InGameConfigViewController" customModule="GoobDolphin" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController id="hkl-ry-5ed" userLabel="In-Game Configuration" customClass="InGameConfigViewController" customModule="DolphiniOS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="9Xg-s1-gPN">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -254,7 +254,7 @@
         <!--Change Controller GC-->
         <scene sceneID="pSx-eL-uIO">
             <objects>
-                <tableViewController title="Change Controller GC" id="Zqj-KM-Ut1" customClass="ControllerToggleViewController" customModule="GoobDolphin" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Change Controller GC" id="Zqj-KM-Ut1" customClass="ControllerToggleViewController" customModule="DolphiniOS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="aPN-7U-UtD">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -445,7 +445,7 @@
         <!--Change Controller Wii-->
         <scene sceneID="8xj-JN-V83">
             <objects>
-                <tableViewController title="Change Controller Wii" id="eRi-h2-aMK" customClass="ControllerToggleViewController" customModule="GoobDolphin" customModuleProvider="target" sceneMemberID="viewController">
+                <tableViewController title="Change Controller Wii" id="eRi-h2-aMK" customClass="ControllerToggleViewController" customModule="DolphiniOS" customModuleProvider="target" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="8vB-wm-hta">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
