@@ -244,10 +244,6 @@ bool NetPlayClient::Connect()
     case CON_ERR_SERVER_FULL:
       m_dialog->OnConnectionError(_trans("The server is full."));
       break;
-    case CON_ERR_VERSION_MISMATCH:
-      m_dialog->OnConnectionError(
-          _trans("The server and client's NetPlay versions are incompatible."));
-      break;
     case CON_ERR_GAME_RUNNING:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
