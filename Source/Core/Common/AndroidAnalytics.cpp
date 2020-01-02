@@ -7,7 +7,7 @@
 
 #include "Common/AndroidAnalytics.h"
 
-namespace Common
+namespace Commono
 {
 std::function<void(std::string, std::string)> s_android_send_report;
 void AndroidSetReportHandler(std::function<void(std::string, std::string)> func)
