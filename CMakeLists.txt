@@ -280,9 +280,13 @@ else()
   check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 
   check_and_add_flag(FOMIT_FRAME_POINTER -fomit-frame-pointer RELEASE_ONLY)
-
+  
   dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
-  check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
+  if(IOS)
+    check_and_add_flag(GGDB -g DEBUG_ONLY)
+  else()
+    check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
+  endif()
 
   if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
     # GNU ar: Create thin archive files.
