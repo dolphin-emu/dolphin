@@ -94,4 +94,19 @@
   self.additionalSafeAreaInsets = insets;
 }
 
+#pragma mark - Stop button
+
+- (IBAction)StopButtonPressed:(id)sender
+{
+  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Stop Emulation" message:@"Do you really want to stop the emulation? All unsaved data will be lost." preferredStyle:UIAlertControllerStyleAlert];
+  
+  [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault handler:nil]];
+  
+  [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+    [MainiOS stopEmulation];
+  }]];
+  
+  [self presentViewController:alert animated:true completion:nil];
+}
+
 @end

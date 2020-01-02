@@ -72,7 +72,11 @@
                                 <segue destination="Izy-YD-mb0" kind="presentation" modalPresentationStyle="formSheet" id="tH0-m0-32A"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="stop" id="KWi-lr-CcJ"/>
+                        <barButtonItem key="rightBarButtonItem" systemItem="stop" id="KWi-lr-CcJ">
+                            <connections>
+                                <action selector="StopButtonPressed:" destination="72Z-je-Eys" id="ops-JT-dnN"/>
+                            </connections>
+                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="m_eagl_view" destination="daX-vt-kk3" id="9Fx-FT-ga5"/>
