@@ -261,8 +261,8 @@ public:
   {
     m_input_binds[std::make_pair(bind->m_pad_id, bind->m_button_type)] = bind;
   }
-  bool PressEvent(int button, int action);
-  void AxisEvent(int axis, float value);
+  bool PressEvent(int pad_id, int button, int action);
+  void AxisEvent(int pad_id, int axis, float value);
   bool ButtonValue(int pad_id, ButtonType button);
   float AxisValue(int pad_id, ButtonType axis);
 };
@@ -276,8 +276,8 @@ float GetAxisValue(int pad_id, ButtonType axis);
 // emu_pad_id is numbered 0 to 3 for both GC pads and Wiimotes
 double GetInputRadiusAtAngle(int emu_pad_id, ButtonType stick, double angle);
 
-bool GamepadEvent(const std::string& dev, int button, int action);
-void GamepadAxisEvent(const std::string& dev, int axis, float value);
+bool GamepadEvent(const std::string& dev, int pad_id, int button, int action);
+void GamepadAxisEvent(const std::string& dev, int pad_id, int axis, float value);
 
 void Shutdown();
 }  // namespace ButtonManager
