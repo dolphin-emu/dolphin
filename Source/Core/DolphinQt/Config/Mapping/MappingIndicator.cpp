@@ -797,9 +797,9 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   const auto gyro_state = m_gyro_group.GetState();
   const auto angular_velocity = gyro_state.value_or(Common::Vec3{});
 
-  m_state *= Common::Matrix33::RotateX(angular_velocity.x / -INDICATOR_UPDATE_FREQ) *
-             Common::Matrix33::RotateY(angular_velocity.y / INDICATOR_UPDATE_FREQ) *
-             Common::Matrix33::RotateZ(angular_velocity.z / -INDICATOR_UPDATE_FREQ);
+  m_state *= Common::Matrix33::FromQuaternion(angular_velocity.x / -INDICATOR_UPDATE_FREQ / 2,
+                                              angular_velocity.y / INDICATOR_UPDATE_FREQ / 2,
+                                              angular_velocity.z / -INDICATOR_UPDATE_FREQ / 2, 1);
 
   // Reset orientation when stable for a bit:
   constexpr u32 STABLE_RESET_STEPS = INDICATOR_UPDATE_FREQ;
