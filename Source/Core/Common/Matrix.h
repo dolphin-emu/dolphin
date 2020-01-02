@@ -273,6 +273,7 @@ class Matrix33
 {
 public:
   static Matrix33 Identity();
+  static Matrix33 FromQuaternion(float x, float y, float z, float w);
 
   // Return a rotation matrix around the x,y,z axis
   static Matrix33 RotateX(float rad);

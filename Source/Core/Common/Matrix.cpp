@@ -45,6 +45,22 @@ Matrix33 Matrix33::Identity()
   return mtx;
 }
 
+Matrix33 Matrix33::FromQuaternion(float qx, float qy, float qz, float qw)
+{
+  // Normalize.
+  const float n = 1.0f / sqrt(qx * qx + qy * qy + qz * qz + qw * qw);
+  qx *= n;
+  qy *= n;
+  qz *= n;
+  qw *= n;
+
+  return {
+      1 - 2 * qy * qy - 2 * qz * qz, 2 * qx * qy - 2 * qz * qw,     2 * qx * qz + 2 * qy * qw,
+      2 * qx * qy + 2 * qz * qw,     1 - 2 * qx * qx - 2 * qz * qz, 2 * qy * qz - 2 * qx * qw,
+      2 * qx * qz - 2 * qy * qw,     2 * qy * qz + 2 * qx * qw,     1 - 2 * qx * qx - 2 * qy * qy,
+  };
+}
+
 Matrix33 Matrix33::RotateX(float rad)
 {
   const float s = std::sin(rad);
