@@ -688,19 +688,19 @@ float GetAxisValue(int pad_id, ButtonType axis)
   return value;
 }
 
-bool GamepadEvent(const std::string& dev, int button, int action)
+bool GamepadEvent(const std::string& dev, int pad_id, int button, int action)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
-    return it->second->PressEvent(button, action);
+    return it->second->PressEvent(button, pad_id, action);
   return false;
 }
 
-void GamepadAxisEvent(const std::string& dev, int axis, float value)
+void GamepadAxisEvent(const std::string& dev, int pad_id, int axis, float value)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
-    it->second->AxisEvent(axis, value);
+    it->second->AxisEvent(axis, pad_id, value);
 }
 
 void Shutdown()
@@ -711,12 +711,12 @@ void Shutdown()
 }
 
 // InputDevice
-bool InputDevice::PressEvent(int button, int action)
+bool InputDevice::PressEvent(int pad_id, int button, int action)
 {
   bool handled = false;
   for (const auto& binding : m_input_binds)
   {
-    if (binding.second->m_bind == button)
+    if (binding.second->m_pad_id == pad_id && binding.second->m_bind == button)
     {
       if (binding.second->m_bind_type == BIND_BUTTON)
         m_buttons[binding.second->m_button_type] = action == BUTTON_PRESSED ? true : false;
@@ -728,11 +728,11 @@ bool InputDevice::PressEvent(int button, int action)
   return handled;
 }
 
-void InputDevice::AxisEvent(int axis, float value)
+void InputDevice::AxisEvent(int pad_id, int axis, float value)
 {
   for (const auto& binding : m_input_binds)
   {
-    if (binding.second->m_bind == axis)
+    if (binding.second->m_pad_id == pad_id && binding.second->m_bind == axis)
     {
       if (binding.second->m_bind_type == BIND_AXIS)
         m_axises[binding.second->m_button_type] = value;
