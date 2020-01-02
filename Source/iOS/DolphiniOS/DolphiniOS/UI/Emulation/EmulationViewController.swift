@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-import Foundation
+/*import Foundation
 import MetalKit
 import UIKit
 
@@ -318,3 +318,4 @@ class EmulationViewController: UIViewController, UIGestureRecognizerDelegate
   @IBAction func unwindToEmulationView(segue: UIStoryboardSegue) {}
   
 }
+*/

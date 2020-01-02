@@ -87,13 +87,11 @@
 		B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */; };
 		B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */; };
 		B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99B05BE23A323600076C7D8 /* MetalKit.framework */; };
+		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */; };
 		B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */; };
 		B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */; };
-		B9C85E1223AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */; };
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
-		B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */; };
-		B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
 		B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */; };
@@ -229,16 +227,14 @@
 		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
 		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = SpecialThanks.txt; path = BundleResources/SpecialThanks.txt; sourceTree = "<group>"; };
 		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
+		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9BEADDF23AF08320014617A /* ControllerSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerSettingsUtils.h; sourceTree = "<group>"; };
 		B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerSettingsUtils.mm; sourceTree = "<group>"; };
 		B9BEADE223AF1A310014617A /* ControllerRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerRootViewController.h; sourceTree = "<group>"; };
 		B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerRootViewController.mm; sourceTree = "<group>"; };
 		B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDeviceMotion.swift; sourceTree = "<group>"; };
-		B9C85E1023AA21DC008A4DD1 /* MotionControlsSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MotionControlsSettingsViewController.h; sourceTree = "<group>"; };
-		B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MotionControlsSettingsViewController.mm; sourceTree = "<group>"; };
 		B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCSidewaysWiiPad.xib; sourceTree = "<group>"; };
-		B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InGameConfigViewController.swift; sourceTree = "<group>"; };
-		B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ControllerToggleViewController.swift; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
 		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "control-patreon.in"; path = "BuildResources/DebFiles/control-patreon.in"; sourceTree = "<group>"; };
 		B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDolphin.sh; path = BuildResources/BuildScripts/BuildDolphin.sh; sourceTree = "<group>"; };
@@ -362,6 +358,8 @@
 				B9C85E1323AA21E2008A4DD1 /* InGameSettings */,
 				B95A09252382667000DBBB01 /* TouchController */,
 				B9EB847D2389C1A7006256C0 /* EmulationViewController.swift */,
+				B9B948AF23BDC95E00E244FF /* EmulationViewController.h */,
+				B9B948B023BDC95E00E244FF /* EmulationViewController.mm */,
 				B945A3902362D90200B21680 /* EAGLView.h */,
 				B945A3912362D90200B21680 /* EAGLView.m */,
 				B99B05B423A182B20076C7D8 /* Emulation.storyboard */,
@@ -531,10 +529,6 @@
 		B9C85E1323AA21E2008A4DD1 /* InGameSettings */ = {
 			isa = PBXGroup;
 			children = (
-				B9DCAC8B23AACCB3002B95C8 /* InGameConfigViewController.swift */,
-				B9DCAC8D23AAD3C3002B95C8 /* ControllerToggleViewController.swift */,
-				B9C85E1023AA21DC008A4DD1 /* MotionControlsSettingsViewController.h */,
-				B9C85E1123AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm */,
 			);
 			path = InGameSettings;
 			sourceTree = "<group>";
@@ -853,7 +847,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */,
-				B9DCAC8C23AACCB3002B95C8 /* InGameConfigViewController.swift in Sources */,
+				B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */,
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
@@ -866,7 +860,6 @@
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
-				B9DCAC8E23AAD3C3002B95C8 /* ControllerToggleViewController.swift in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
@@ -878,7 +871,6 @@
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
 				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
-				B9C85E1223AA21DC008A4DD1 /* MotionControlsSettingsViewController.mm in Sources */,
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
 				B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,

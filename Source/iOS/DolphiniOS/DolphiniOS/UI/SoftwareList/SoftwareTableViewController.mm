@@ -5,6 +5,7 @@
 #import "SoftwareTableViewController.h"
 
 #import "DolphiniOS-Swift.h"
+#import "EmulationViewController.h"
 #import "SoftwareTableViewCell.h"
 
 #import "MainiOS.h"
@@ -282,9 +283,7 @@
     
     // Get the GameFile and set values
     std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get([self.tableView indexPathForSelectedRow].item);
-    viewController.softwareFile = [NSString stringWithUTF8String:file->GetFilePath().c_str()];
-    viewController.softwareName = [NSString stringWithUTF8String:file->GetLongName().c_str()];
-    viewController.isWii = DiscIO::IsWii(file->GetPlatform());
+    viewController.m_game_file = const_cast<UICommon::GameFile*>(file.get());
   }
 }
 
