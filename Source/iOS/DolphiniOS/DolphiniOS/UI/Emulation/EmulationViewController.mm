@@ -45,4 +45,36 @@
   });
 }
 
+- (IBAction)topEdgeRecognized:(id)sender
+{
+  // Don't do anything if already visible
+  if (![self.navigationController isNavigationBarHidden])
+  {
+    return;
+  }
+  
+  [self UpdateNavigationBar:false];
+  
+  // Automatic hide after 5 seconds
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [self UpdateNavigationBar:true];
+  });
+}
+
+- (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
+{
+  return UIRectEdgeTop;
+}
+
+- (bool)prefersStatusBarHidden
+{
+  return [self.navigationController isNavigationBarHidden];
+}
+
+- (void)UpdateNavigationBar:(bool)hidden
+{
+  [self.navigationController setNavigationBarHidden:hidden animated:true];
+  [self setNeedsStatusBarAppearanceUpdate];
+}
+
 @end
