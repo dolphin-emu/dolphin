@@ -190,7 +190,7 @@ void Wiimote::Reset()
   m_tilt_state = {};
   m_cursor_state = {};
   m_shake_state = {};
-  m_imu_cursor_state = {};
+  m_imu_cursor_state = Common::Matrix33::Identity();
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
@@ -812,12 +812,13 @@ Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity)
 Common::Matrix44 Wiimote::GetTransformation(Common::Vec3 extra_rotation) const
 {
   // Includes positional and rotational effects of:
-  // Cursor, Swing, Tilt, Shake
+  // Point, Swing, Tilt, Shake
 
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(GetRotationalMatrix(
-             -m_tilt_state.angle - m_swing_state.angle - m_cursor_state.angle - extra_rotation)) *
+         Common::Matrix44::FromMatrix33(
+             m_imu_cursor_state * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
+                                                      m_cursor_state.angle - extra_rotation)) *
          Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
 }
 
@@ -836,6 +837,7 @@ Common::Vec3 Wiimote::GetTotalAcceleration()
     return GetAcceleration();
 }
 
+// TODO: Kill this function.
 Common::Vec3 Wiimote::GetTotalAngularVelocity()
 {
   auto ang_vel = m_imu_gyroscope->GetState();
@@ -845,13 +847,10 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity()
     return GetAngularVelocity();
 }
 
+// TODO: Kill this function.
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  auto state = m_imu_cursor_state;
-  if (state.has_value())
-    return GetTransformation(state->angle);
-  else
-    return GetTransformation();
+  return GetTransformation();
 }
 
 }  // namespace WiimoteEmu

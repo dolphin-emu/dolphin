@@ -300,6 +300,6 @@ private:
   RotationalState m_tilt_state;
   MotionState m_cursor_state;
   PositionalState m_shake_state;
-  std::optional<RotationalState> m_imu_cursor_state;
+  Common::Matrix33 m_imu_cursor_state;
 };
 }  // namespace WiimoteEmu

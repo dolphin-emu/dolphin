@@ -723,12 +723,7 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  const auto angle = std::acos(state.Normalized().Dot({0, 0, 1}));
-  const auto axis = state.Normalized().Cross({0, 0, 1});
-
-  // Check that axis is non-zero to handle perfect up/down orientations.
-  const auto rotation = Common::Matrix33::Rotate(
-      angle, axis.LengthSquared() ? axis.Normalized() : Common::Vec3{0, 1, 0});
+  const auto rotation = WiimoteEmu::GetMatrixFromAcceleration(state);
 
   // Draw sphere.
   p.setPen(Qt::NoPen);
