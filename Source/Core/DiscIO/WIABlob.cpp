@@ -246,12 +246,20 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
     const u64 group_offset = data_offset + i * chunk_size;
     const u64 offset_in_group = *offset - group_offset;
 
-    const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
     const u64 bytes_to_read = std::min(chunk_size - offset_in_group, *size);
-    if (!ReadCompressedData(chunk_size, group_offset_in_file, Common::swap32(group.data_size),
-                            offset_in_group, bytes_to_read, *out_ptr, exception_list))
+    const u32 group_data_size = Common::swap32(group.data_size);
+    if (group_data_size == 0)
     {
-      return false;
+      std::memset(*out_ptr, 0, bytes_to_read);
+    }
+    else
+    {
+      const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
+      if (!ReadCompressedData(chunk_size, group_offset_in_file, group_data_size, offset_in_group,
+                              bytes_to_read, *out_ptr, exception_list))
+      {
+        return false;
+      }
     }
 
     *offset += bytes_to_read;
