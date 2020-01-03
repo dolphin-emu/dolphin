@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
@@ -13,27 +13,27 @@
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="72Z-je-Eys" customClass="EmulationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="MkU-9V-PoJ">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mtkView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="ODM-xp-bCF" userLabel="MTKView">
-                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="88" width="375" height="345"/>
                                 <gestureRecognizers/>
                             </mtkView>
                             <view hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="daX-vt-kk3" userLabel="EAGLView" customClass="EAGLView">
-                                <rect key="frame" x="0.0" y="0.0" width="414" height="862"/>
+                                <rect key="frame" x="0.0" y="0.0" width="375" height="433"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="88" width="375" height="690"/>
                                 <gestureRecognizers/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kFP-2O-2AC" userLabel="WiiPad" customClass="TCWiiPad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="88" width="375" height="690"/>
                                 <gestureRecognizers/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DHP-hz-C2m" userLabel="SidewaysWiiPad" customClass="TCSidewaysWiiPad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
+                                <rect key="frame" x="0.0" y="88" width="375" height="690"/>
                                 <gestureRecognizers/>
                             </view>
                         </subviews>
@@ -49,7 +49,7 @@
                             <constraint firstItem="daX-vt-kk3" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="L1v-Zt-8lf"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="top" secondItem="kFP-2O-2AC" secondAttribute="top" id="NYU-W4-kan"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="top" secondItem="Dzs-Je-a4O" secondAttribute="top" id="V6f-dU-BSw"/>
-                            <constraint firstItem="daX-vt-kk3" firstAttribute="top" secondItem="MkU-9V-PoJ" secondAttribute="top" priority="1" id="Vmf-Bw-Og5"/>
+                            <constraint firstItem="daX-vt-kk3" firstAttribute="top" secondItem="MkU-9V-PoJ" secondAttribute="top" id="Vmf-Bw-Og5"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="Vqn-LI-cDx"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="leading" secondItem="DHP-hz-C2m" secondAttribute="leading" id="YOZ-r8-cM1"/>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="b66-Y6-wOW"/>
@@ -60,8 +60,36 @@
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="DHP-hz-C2m" secondAttribute="bottom" id="idl-QD-yJr"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="l7v-5a-mFJ"/>
                             <constraint firstItem="daX-vt-kk3" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="scI-dh-7aD"/>
+                            <constraint firstItem="Dzs-Je-a4O" firstAttribute="centerY" secondItem="daX-vt-kk3" secondAttribute="bottom" id="uhM-Ah-BI9"/>
+                            <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="centerY" id="xPp-nK-9tw"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Dzs-Je-a4O"/>
+                        <variation key="default">
+                            <mask key="constraints">
+                                <exclude reference="L1v-Zt-8lf"/>
+                                <exclude reference="uhM-Ah-BI9"/>
+                                <exclude reference="l7v-5a-mFJ"/>
+                                <exclude reference="xPp-nK-9tw"/>
+                            </mask>
+                        </variation>
+                        <variation key="widthClass=regular">
+                            <mask key="constraints">
+                                <include reference="L1v-Zt-8lf"/>
+                                <include reference="l7v-5a-mFJ"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=compact-widthClass=compact">
+                            <mask key="constraints">
+                                <include reference="L1v-Zt-8lf"/>
+                                <include reference="l7v-5a-mFJ"/>
+                            </mask>
+                        </variation>
+                        <variation key="heightClass=regular-widthClass=compact">
+                            <mask key="constraints">
+                                <include reference="uhM-Ah-BI9"/>
+                                <include reference="xPp-nK-9tw"/>
+                            </mask>
+                        </variation>
                         <connections>
                             <outletCollection property="gestureRecognizers" destination="k9B-W2-NA3" appends="YES" id="VT2-Zk-rhf"/>
                         </connections>
@@ -104,7 +132,7 @@
             <objects>
                 <navigationController id="Izy-YD-mb0" userLabel="In-Game Navigation" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="yYW-iL-C27">
-                        <rect key="frame" x="0.0" y="0.0" width="414" height="56"/>
+                        <rect key="frame" x="0.0" y="0.0" width="375" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                 </navigationController>
@@ -118,7 +146,7 @@
                 <navigationController storyboardIdentifier="Root" automaticallyAdjustsScrollViewInsets="NO" modalPresentationStyle="fullScreen" id="oIO-lQ-aAN" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="7Sv-y1-cTO">
-                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
+                        <rect key="frame" x="0.0" y="44" width="375" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
