@@ -17,25 +17,16 @@ import Foundation
   
   override required init()
   {
-    // integer(forKey:) returns 0 by default, so we use 0 as the "this isn't set"
-    // value, and just add 1 to what Android uses
-    //
     // motion_mode:
-    // 1 - On with IMU IR
-    // 2 - On without IMU IR
-    // 3 - Off
-    motion_mode = UserDefaults.standard.integer(forKey: "motion_controls_enabled")
-    if (motion_mode == 0)
-    {
-      // On without IMU IR is the default
-      UserDefaults.standard.set(2, forKey: "motion_controls_enabled")
-      motion_mode = 2
-    }
+    // 0 - On with IMU IR
+    // 1 - On without IMU IR
+    // 2 - Off
+    motion_mode = UserDefaults.standard.integer(forKey: "tscontroller_motion_mode")
   }
   
   func registerMotionHandlers()
   {
-    if (is_motion_enabled || motion_mode == 3)
+    if (is_motion_enabled || motion_mode == 2)
     {
       return
     }
@@ -153,15 +144,15 @@ import Foundation
   
   @objc func getMotionMode() -> Int
   {
-    return self.motion_mode - 1
+    return self.motion_mode
   }
   
   @objc func setMotionMode(_ mode: Int)
   {
-    self.motion_mode = mode + 1
-    UserDefaults.standard.set(motion_mode, forKey: "motion_controls_enabled")
+    self.motion_mode = mode
+    UserDefaults.standard.set(motion_mode, forKey: "tscontroller_motion_mode")
     
-    if (motion_mode != 3)
+    if (motion_mode != 2)
     {
       self.registerMotionHandlers()
     }
