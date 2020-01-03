@@ -246,6 +246,8 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
     const u64 group_offset = data_offset + i * chunk_size;
     const u64 offset_in_group = *offset - group_offset;
 
+    chunk_size = std::min(chunk_size, data_offset + data_size - group_offset);
+
     const u64 bytes_to_read = std::min(chunk_size - offset_in_group, *size);
     const u32 group_data_size = Common::swap32(group.data_size);
     if (group_data_size == 0)
