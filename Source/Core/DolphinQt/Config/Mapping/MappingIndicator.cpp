@@ -724,12 +724,11 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   const auto angle = std::acos(state.Normalized().Dot({0, 0, 1}));
-  const auto axis = state.Normalized().Cross({0, 0, 1}).Normalized();
+  const auto axis = state.Normalized().Cross({0, 0, 1});
 
-  // Odd checks to handle case of 0g (draw no sphere) and perfect up/down orientation.
-  const auto rotation = (!state.LengthSquared() || axis.LengthSquared() < 2) ?
-                            Common::Matrix33::Rotate(angle, axis) :
-                            Common::Matrix33::Identity();
+  // Check that axis is non-zero to handle perfect up/down orientations.
+  const auto rotation = Common::Matrix33::Rotate(
+      angle, axis.LengthSquared() ? axis.Normalized() : Common::Vec3{0, 1, 0});
 
   // Draw sphere.
   p.setPen(Qt::NoPen);
