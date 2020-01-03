@@ -25,11 +25,11 @@ namespace Common
 const std::string scm_rev_str = "Dolphin RNO - (" RNO_REV_STR ")";
 
 #ifdef _WIN32
-const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - Win32";
+const std::string netplay_dolphin_ver = "Dol RNO - " RNO_REV_STR " - Win32";
 #elif __APPLE__
-const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - macOS";
+const std::string netplay_dolphin_ver = "Dol RNO - " RNO_REV_STR " - macOS";
 #else
-const std::string netplay_dolphin_ver = "Dol RNO -" RNO_REV_STR " - GNU Linux";
+const std::string netplay_dolphin_ver = "Dol RNO - " RNO_REV_STR " - GNU Linux";
 #endif
 
 const std::string scm_rev_git_str = SCM_REV_STR;
