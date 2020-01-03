@@ -19,7 +19,7 @@ namespace Common
 #endif
 
 //RNO Dolphin Version
-#define RNO_REV_STR "12/31/19"
+#define RNO_REV_STR "01/02/20"
 
 
 const std::string scm_rev_str = "Dolphin RNO - (" RNO_REV_STR ")";
