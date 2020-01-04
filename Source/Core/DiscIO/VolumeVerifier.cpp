@@ -88,11 +88,9 @@ void RedumpVerifier::Start(const Volume& volume)
       return {};
     }
 
-    DownloadStatus status;
     {
       std::lock_guard lk(download_state->mutex);
       download_state->status = DownloadDatfile(system, download_state->status);
-      status = download_state->status;
     }
 
     switch (download_state->status)

@@ -321,7 +321,7 @@ bool GCMemcard::Save()
   return mcdFile.Close();
 }
 
-std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
+static std::pair<u16, u16> CalculateMemcardChecksums(const u8* data, size_t size)
 {
   assert(size % 2 == 0);
   u16 csum = 0;

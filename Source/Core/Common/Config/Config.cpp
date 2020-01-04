@@ -35,7 +35,7 @@ using ReadLock = std::shared_lock<std::shared_mutex>;
 using WriteLock = std::unique_lock<std::shared_mutex>;
 #endif
 
-void AddLayerInternal(std::shared_ptr<Layer> layer)
+static void AddLayerInternal(std::shared_ptr<Layer> layer)
 {
   {
     WriteLock lock(s_layers_rw_lock);
