@@ -54,6 +54,7 @@ double CalculateStopDistance(double velocity, double max_accel)
   return velocity * velocity / (2 * std::copysign(max_accel, velocity));
 }
 
+// Note that 'gyroscope' is rotation of world around device.
 Common::Matrix33 ComplementaryFilter(const Common::Vec3& accelerometer,
                                      const Common::Matrix33& gyroscope, float accel_weight)
 {
@@ -79,6 +80,10 @@ Common::Matrix33 ComplementaryFilter(const Common::Vec3& accelerometer,
 
 namespace WiimoteEmu
 {
+IMUCursorState::IMUCursorState() : rotation{Common::Matrix33::Identity()}
+{
+}
+
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* const shake_group,
                   float time_elapsed)
 {
@@ -296,13 +301,12 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
 {
-  auto ang_vel = imu_gyroscope_group->GetState();
+  const auto ang_vel = imu_gyroscope_group->GetState();
 
-  // Reset if we have no gyro data.
-  if (!ang_vel.has_value())
+  // Reset if pointing is disabled or we have no gyro data.
+  if (!imu_ir_group->enabled || !ang_vel.has_value())
   {
-    state->recentered_pitch = 0;
-    state->rotation = Common::Matrix33::Identity();
+    *state = {};
     return;
   }
 
@@ -312,21 +316,30 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
                                                               ang_vel->z * time_elapsed / -2, 1);
   state->rotation = gyro_rotation * state->rotation;
 
-  const auto yaw = std::asin((state->rotation * Common::Vec3{0, 1, 0}).x);
+  // If we have some non-zero accel data use it to adjust gyro drift.
+  constexpr auto ACCEL_WEIGHT = 0.02f;
+  auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
+  if (accel.LengthSquared())
+    state->rotation = ComplementaryFilter(accel, state->rotation, ACCEL_WEIGHT);
+
+  const auto inv_rotation = state->rotation.Inverted();
+
+  // Clamp yaw within configured bounds.
+  const auto yaw = std::asin((inv_rotation * Common::Vec3{0, 1, 0}).x);
+  const auto max_yaw = float(imu_ir_group->GetTotalYaw() / 2);
+  auto target_yaw = std::clamp(yaw, -max_yaw, max_yaw);
 
   // Handle the "Recenter" button being pressed.
   if (imu_ir_group->controls[0]->control_ref->State() >
       ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
   {
-    state->recentered_pitch = -std::asin((state->rotation * Common::Vec3{0, 1, 0}).z);
-    state->rotation *= Common::Matrix33::RotateZ(yaw);
+    state->recentered_pitch = std::asin((inv_rotation * Common::Vec3{0, 1, 0}).z);
+    target_yaw = 0;
   }
 
-  // If we have usable accel data use it to adjust gyro drift.
-  constexpr float accel_weight = 0.02;
-  auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
-  if (accel.LengthSquared())
-    state->rotation = ComplementaryFilter(accel, state->rotation, accel_weight);
+  // Adjust yaw as needed.
+  if (yaw != target_yaw)
+    state->rotation *= Common::Matrix33::RotateZ(target_yaw - yaw);
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,

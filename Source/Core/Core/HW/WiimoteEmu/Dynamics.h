@@ -41,8 +41,12 @@ struct RotationalState
 
 struct IMUCursorState
 {
+  IMUCursorState();
+
+  // Rotation of world around device.
   Common::Matrix33 rotation;
-  float recentered_pitch;
+
+  float recentered_pitch = {};
 };
 
 // Contains both positional and rotational state.

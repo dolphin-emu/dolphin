@@ -191,9 +191,7 @@ void Wiimote::Reset()
   m_cursor_state = {};
   m_shake_state = {};
 
-  // TODO: save state these
-  m_imu_cursor_state.rotation = Common::Matrix33::Identity();
-  m_imu_cursor_state.recentered_pitch = 0;
+  m_imu_cursor_state = {};
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
@@ -851,8 +849,8 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity()
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch) *
-                           m_imu_cursor_state.rotation);
+  return GetTransformation(m_imu_cursor_state.rotation *
+                           Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch));
 }
 
 }  // namespace WiimoteEmu

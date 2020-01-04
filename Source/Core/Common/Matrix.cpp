@@ -136,6 +136,33 @@ void Matrix33::Multiply(const Matrix33& a, const Vec3& vec, Vec3* result)
   result->data = MatrixMultiply<3, 3, 1>(a.data, vec.data);
 }
 
+Matrix33 Matrix33::Inverted() const
+{
+  const auto m = [this](int x, int y) { return data[y + x * 3]; };
+
+  const auto det = m(0, 0) * (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) -
+                   m(0, 1) * (m(1, 0) * m(2, 2) - m(1, 2) * m(2, 0)) +
+                   m(0, 2) * (m(1, 0) * m(2, 1) - m(1, 1) * m(2, 0));
+
+  const auto invdet = 1 / det;
+
+  Matrix33 result;
+
+  const auto minv = [&result](int x, int y) -> auto& { return result.data[y + x * 3]; };
+
+  minv(0, 0) = (m(1, 1) * m(2, 2) - m(2, 1) * m(1, 2)) * invdet;
+  minv(0, 1) = (m(0, 2) * m(2, 1) - m(0, 1) * m(2, 2)) * invdet;
+  minv(0, 2) = (m(0, 1) * m(1, 2) - m(0, 2) * m(1, 1)) * invdet;
+  minv(1, 0) = (m(1, 2) * m(2, 0) - m(1, 0) * m(2, 2)) * invdet;
+  minv(1, 1) = (m(0, 0) * m(2, 2) - m(0, 2) * m(2, 0)) * invdet;
+  minv(1, 2) = (m(1, 0) * m(0, 2) - m(0, 0) * m(1, 2)) * invdet;
+  minv(2, 0) = (m(1, 0) * m(2, 1) - m(2, 0) * m(1, 1)) * invdet;
+  minv(2, 1) = (m(2, 0) * m(0, 1) - m(0, 0) * m(2, 1)) * invdet;
+  minv(2, 2) = (m(0, 0) * m(1, 1) - m(1, 0) * m(0, 1)) * invdet;
+
+  return result;
+}
+
 Matrix44 Matrix44::Identity()
 {
   Matrix44 mtx = {};
