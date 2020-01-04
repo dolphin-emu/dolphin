@@ -685,10 +685,10 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // B
   m_buttons->SetControlExpression(1, "Click 1");
 #endif
-  m_buttons->SetControlExpression(2, "1");  // 1
-  m_buttons->SetControlExpression(3, "2");  // 2
-  m_buttons->SetControlExpression(4, "Q");  // -
-  m_buttons->SetControlExpression(5, "E");  // +
+  m_buttons->SetControlExpression(2, "`1`");  // 1
+  m_buttons->SetControlExpression(3, "`2`");  // 2
+  m_buttons->SetControlExpression(4, "Q");    // -
+  m_buttons->SetControlExpression(5, "E");    // +
 
 #ifdef _WIN32
   m_buttons->SetControlExpression(6, "!LMENU & RETURN");  // Home
