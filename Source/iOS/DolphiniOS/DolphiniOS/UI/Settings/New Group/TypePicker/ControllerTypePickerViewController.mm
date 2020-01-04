@@ -78,7 +78,7 @@
 {
   if (![self IsSelectable:indexPath])
   {
-      return nil;
+    return nil;
   }
 
   return indexPath;
@@ -86,6 +86,12 @@
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
+  if (self.m_last_selected == indexPath.row)
+  {
+    [self.tableView deselectRowAtIndexPath:indexPath animated:true];
+    return;
+  }
+  
   if (self.m_is_wii)
   {
     WiimoteReal::ChangeWiimoteSource(self.m_port, static_cast<u32>(indexPath.row));
