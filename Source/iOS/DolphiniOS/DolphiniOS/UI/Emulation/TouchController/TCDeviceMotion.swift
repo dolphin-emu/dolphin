@@ -19,15 +19,14 @@ import Foundation
   override required init()
   {
     // motion_mode:
-    // 0 - On with IMU IR
-    // 1 - On without IMU IR
-    // 2 - Off
+    // 0 - On
+    // 1 - Off
     motion_mode = UserDefaults.standard.integer(forKey: "tscontroller_motion_mode")
   }
   
-  func registerMotionHandlers()
+  @objc func registerMotionHandlers()
   {
-    if (is_motion_enabled || motion_mode == 2)
+    if (is_motion_enabled || motion_mode == 1)
     {
       return
     }
@@ -130,7 +129,7 @@ import Foundation
     self.is_motion_enabled = true
   }
   
-  func stopMotionUpdates()
+  @objc func stopMotionUpdates()
   {
     if (!is_motion_enabled)
     {
@@ -153,7 +152,7 @@ import Foundation
     self.motion_mode = mode
     UserDefaults.standard.set(motion_mode, forKey: "tscontroller_motion_mode")
     
-    if (motion_mode != 2)
+    if (motion_mode != 1)
     {
       self.registerMotionHandlers()
     }

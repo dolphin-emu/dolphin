@@ -71,6 +71,8 @@
 {
   [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
+  [[TCDeviceMotion shared] stopMotionUpdates];
+  
   dispatch_sync(dispatch_get_main_queue(), ^{
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
   });
@@ -217,6 +219,7 @@
   
   if (port == -1)
   {
+    [[TCDeviceMotion shared] stopMotionUpdates];
     self.m_ts_active_port = -1;
     self.m_ts_active_view = nil;
   }
@@ -230,6 +233,16 @@
       [pair.second setUserInteractionEnabled:true];
       pair.second.m_port = port;
       
+      if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+      {
+        [[TCDeviceMotion shared] registerMotionHandlers];
+        [[TCDeviceMotion shared] setPort:port];
+      }
+      else
+      {
+        [[TCDeviceMotion shared] stopMotionUpdates];
+      }
+      
       self.m_ts_active_port = port;
       self.m_ts_active_view = pair.second;
       
@@ -239,6 +252,7 @@
   
   if (!found_port)
   {
+    [[TCDeviceMotion shared] stopMotionUpdates];
     self.m_ts_active_port = -1;
     self.m_ts_active_view = nil;
   }
