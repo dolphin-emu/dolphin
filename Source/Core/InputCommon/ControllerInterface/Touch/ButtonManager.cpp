@@ -370,8 +370,7 @@ void AddBind(const std::string& dev, sBind* bind)
 
 void Init(const std::string& game_id)
 {
-  // Initialize pad 0(gc 1) and pad 4(wii 1) as touch overlay controller
-  for (int a = 0; a < 5; a += 4)
+  for (int a = 0; a < 8; a++)
   {
     // GC
     AddBind(TOUCHSCREEN_KEY, new sBind(a, BUTTON_A, BIND_BUTTON, BUTTON_A, 1.0f));
@@ -692,7 +691,7 @@ bool GamepadEvent(const std::string& dev, int pad_id, int button, int action)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
-    return it->second->PressEvent(button, pad_id, action);
+    return it->second->PressEvent(pad_id, button, action);
   return false;
 }
 
@@ -700,7 +699,7 @@ void GamepadAxisEvent(const std::string& dev, int pad_id, int axis, float value)
 {
   auto it = m_controllers.find(dev);
   if (it != m_controllers.end())
-    it->second->AxisEvent(axis, pad_id, value);
+    it->second->AxisEvent(pad_id, axis, value);
 }
 
 void Shutdown()
