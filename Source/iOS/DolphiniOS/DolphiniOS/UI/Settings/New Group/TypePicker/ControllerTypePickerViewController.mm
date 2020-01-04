@@ -88,7 +88,7 @@
 {
   if (self.m_is_wii)
   {
-    WiimoteReal::ChangeWiimoteSource(static_cast<u32>(indexPath.row), self.m_port);
+    WiimoteReal::ChangeWiimoteSource(self.m_port, static_cast<u32>(indexPath.row));
   }
   else
   {
