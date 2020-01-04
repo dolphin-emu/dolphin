@@ -39,6 +39,12 @@ struct RotationalState
   Common::Vec3 angular_velocity;
 };
 
+struct IMUCursorState
+{
+  Common::Matrix33 rotation;
+  float recentered_pitch;
+};
+
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
@@ -60,7 +66,7 @@ void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, flo
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
 void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
-void EmulateIMUCursor(Common::Matrix33* state, ControllerEmu::IMUCursor* imu_ir_group,
+void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);
 

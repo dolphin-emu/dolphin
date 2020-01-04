@@ -190,7 +190,10 @@ void Wiimote::Reset()
   m_tilt_state = {};
   m_cursor_state = {};
   m_shake_state = {};
-  m_imu_cursor_state = Common::Matrix33::Identity();
+
+  // TODO: save state these
+  m_imu_cursor_state.rotation = Common::Matrix33::Identity();
+  m_imu_cursor_state.recentered_pitch = 0;
 }
 
 Wiimote::Wiimote(const unsigned int index) : m_index(index)
@@ -809,7 +812,7 @@ Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity)
                              m_cursor_state.angular_velocity + extra_angular_velocity);
 }
 
-Common::Matrix44 Wiimote::GetTransformation(Common::Vec3 extra_rotation) const
+Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
 {
   // Includes positional and rotational effects of:
   // Point, Swing, Tilt, Shake
@@ -817,8 +820,8 @@ Common::Matrix44 Wiimote::GetTransformation(Common::Vec3 extra_rotation) const
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
          Common::Matrix44::FromMatrix33(
-             m_imu_cursor_state * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
-                                                      m_cursor_state.angle - extra_rotation)) *
+             extra_rotation * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
+                                                  m_cursor_state.angle)) *
          Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
 }
 
@@ -837,7 +840,6 @@ Common::Vec3 Wiimote::GetTotalAcceleration()
     return GetAcceleration();
 }
 
-// TODO: Kill this function.
 Common::Vec3 Wiimote::GetTotalAngularVelocity()
 {
   auto ang_vel = m_imu_gyroscope->GetState();
@@ -847,10 +849,10 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity()
     return GetAngularVelocity();
 }
 
-// TODO: Kill this function.
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation();
+  return GetTransformation(Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch) *
+                           m_imu_cursor_state.rotation);
 }
 
 }  // namespace WiimoteEmu

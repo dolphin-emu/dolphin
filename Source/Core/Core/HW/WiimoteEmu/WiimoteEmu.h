@@ -159,7 +159,8 @@ private:
   // Returns the transformation of the world around the wiimote.
   // Used for simulating camera data and for rotating acceleration data.
   // Does not include orientation transformations.
-  Common::Matrix44 GetTransformation(Common::Vec3 extra_rotation = {}) const;
+  Common::Matrix44
+  GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Matrix33 GetOrientation() const;
@@ -300,6 +301,7 @@ private:
   RotationalState m_tilt_state;
   MotionState m_cursor_state;
   PositionalState m_shake_state;
-  Common::Matrix33 m_imu_cursor_state;
+
+  IMUCursorState m_imu_cursor_state;
 };
 }  // namespace WiimoteEmu

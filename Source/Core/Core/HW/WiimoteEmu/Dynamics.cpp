@@ -66,8 +66,6 @@ Common::Matrix33 ComplementaryFilter(const Common::Vec3& accelerometer,
   const auto abs_cos_angle = std::abs(cos_angle);
   if (abs_cos_angle > 0 && abs_cos_angle < 1)
   {
-    INFO_LOG(WIIMOTE, "angle diff: %lf", std::acos(cos_angle) * 360 / MathUtil::TAU);
-
     const auto axis = gyro_vec.Cross(normalized_accel).Normalized();
     return Common::Matrix33::Rotate(std::acos(cos_angle) * accel_weight, axis) * gyroscope;
   }
@@ -294,31 +292,41 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& angle_ta
   }
 }
 
-void EmulateIMUCursor(Common::Matrix33* state, ControllerEmu::IMUCursor* imu_ir_group,
+void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed)
 {
   auto ang_vel = imu_gyroscope_group->GetState();
 
-  // Recenter if we have no gyro data or the "Recenter" button is pressed.
-  if (!ang_vel.has_value() || imu_ir_group->controls[0]->control_ref->State() >
-                                  ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
+  // Reset if we have no gyro data.
+  if (!ang_vel.has_value())
   {
-    *state = Common::Matrix33::Identity();
+    state->recentered_pitch = 0;
+    state->rotation = Common::Matrix33::Identity();
     return;
   }
 
   // Apply rotation from gyro data.
-  const auto rotation = Common::Matrix33::FromQuaternion(ang_vel->x * time_elapsed / -2,
-                                                         ang_vel->y * time_elapsed / -2,
-                                                         ang_vel->z * time_elapsed / -2, 1);
-  *state = rotation * *state;
+  const auto gyro_rotation = Common::Matrix33::FromQuaternion(ang_vel->x * time_elapsed / -2,
+                                                              ang_vel->y * time_elapsed / -2,
+                                                              ang_vel->z * time_elapsed / -2, 1);
+  state->rotation = gyro_rotation * state->rotation;
+
+  const auto yaw = std::asin((state->rotation * Common::Vec3{0, 1, 0}).x);
+
+  // Handle the "Recenter" button being pressed.
+  if (imu_ir_group->controls[0]->control_ref->State() >
+      ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
+  {
+    state->recentered_pitch = -std::asin((state->rotation * Common::Vec3{0, 1, 0}).z);
+    state->rotation *= Common::Matrix33::RotateZ(yaw);
+  }
 
   // If we have usable accel data use it to adjust gyro drift.
   constexpr float accel_weight = 0.02;
   auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
   if (accel.LengthSquared())
-    *state = ComplementaryFilter(accel, *state, accel_weight);
+    state->rotation = ComplementaryFilter(accel, state->rotation, accel_weight);
 }
 
 void ApproachPositionWithJerk(PositionalState* state, const Common::Vec3& position_target,
