@@ -16,6 +16,8 @@ class TCDirectionalPad: UIView
   
   @IBInspectable var directionalPadType: Int = 6 // default: GC D-Pad
   
+  var m_port: Int = 0
+  
   override init(frame: CGRect)
   {
     super.init(frame: frame)
@@ -167,7 +169,7 @@ class TCDirectionalPad: UIView
     // Send button values
     for i in 0...3
     {
-      MainiOS.gamepadEvent(forButton: Int32(directionalPadType + i), action: buttonPresses[i] ? 1 : 0)
+      MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(directionalPadType + i), action: buttonPresses[i] ? 1 : 0)
     }
   }
   

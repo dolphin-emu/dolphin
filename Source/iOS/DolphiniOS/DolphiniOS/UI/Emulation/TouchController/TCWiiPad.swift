@@ -103,7 +103,7 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
       let axisStartIdx = TCButtonType.WIIMOTE_IR_UP
       for i in 0...3
       {
-        MainiOS.gamepadMoveEvent(forAxis: Int32(axisStartIdx.rawValue + i), value: send_axises[i])
+        MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(axisStartIdx.rawValue + i), value: send_axises[i])
       }
       
     }
