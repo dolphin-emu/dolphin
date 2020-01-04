@@ -65,12 +65,6 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
   
   @objc func handleLongPress(gesture: UILongPressGestureRecognizer)
   {
-    // Ignore if IMU IR is enabled
-    if (TCDeviceMotion.shared.getMotionMode() == 0)
-    {
-      return
-    }
-    
     // Convert the point to the native screen scale
     let screen_scale = UIScreen.main.scale
     var point = gesture.location(in: self)
