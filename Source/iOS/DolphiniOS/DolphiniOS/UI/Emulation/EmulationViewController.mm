@@ -5,6 +5,14 @@
 #import "EmulationViewController.h"
 
 #import "Core/ConfigManager.h"
+#import "Core/HW/GCPad.h"
+#import "Core/HW/Wiimote.h"
+#import "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#import "Core/HW/SI/SI.h"
+#import "Core/HW/SI/SI_Device.h"
+
+#import "InputCommon/ControllerEmu/ControllerEmu.h"
+#import "InputCommon/InputConfig.h"
 
 #import "MainiOS.h"
 
@@ -30,10 +38,33 @@
   
   [self.m_renderer_view setHidden:false];
   
+  // Set default port
+  [self PopulatePortDictionary];
+  
+  if (self->m_controllers.size() != 0)
+  {
+    self.m_ts_active_port = self->m_controllers[0].first;
+  }
+  else
+  {
+    self.m_ts_active_port = -1;
+  }
+  
+  [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
+  
   // Hide navigation bar
   [self.navigationController setNavigationBarHidden:true animated:true];
   
   [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  
+  [self PopulatePortDictionary];
+  
+  [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
 }
 
 - (void)StartEmulation
@@ -107,6 +138,110 @@
   }]];
   
   [self presentViewController:alert animated:true completion:nil];
+}
+
+#pragma mark - Touchscreen Controller Switcher
+
+- (bool)IsControllerConnectedToTouchscreen:(ControllerEmu::EmulatedController*)controller
+{
+  const std::string android_str = "Android";
+  std::string device = controller->GetDefaultDevice().ToString();
+  
+  return device.compare(0, android_str.size(), android_str) == 0;
+}
+
+- (void)PopulatePortDictionary
+{
+  self->m_controllers.clear();
+  
+  if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+  {
+    InputConfig* wii_input_config = Wiimote::GetConfig();
+    for (int i = 0; i < 4; i++)
+    {
+      if (g_wiimote_sources[i] != 1) // not Emulated or not touchscreen
+      {
+        continue;
+      }
+      
+      ControllerEmu::EmulatedController* controller = wii_input_config->GetController(i);
+      if (![self IsControllerConnectedToTouchscreen:controller])
+      {
+        continue;
+      }
+      
+      // TODO: A better way? This will break if more settings are added to the Options group.
+      ControllerEmu::ControlGroup* group = Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Options);
+      ControllerEmu::NumericSetting<bool>* setting = static_cast<ControllerEmu::NumericSetting<bool>*>(group->numeric_settings[1].get());
+      
+      TCView* pad_view;
+      if (setting->GetValue())
+      {
+        pad_view = self.m_wii_sideways_pad;
+      }
+      else
+      {
+        pad_view = self.m_wii_normal_pad;
+      }
+      
+      self->m_controllers.push_back(std::make_pair(i + 4, pad_view));
+    }
+  }
+  
+  InputConfig* gc_input_config = Pad::GetConfig();
+  for (int i = 0; i < 4; i++)
+  {
+    ControllerEmu::EmulatedController* controller = gc_input_config->GetController(i);
+    if (![self IsControllerConnectedToTouchscreen:controller])
+    {
+      continue;
+    }
+    
+    SerialInterface::SIDevices device = SConfig::GetInstance().m_SIDevice[i];
+    switch (device)
+    {
+      case SerialInterface::SIDEVICE_GC_CONTROLLER:
+        self->m_controllers.push_back(std::make_pair(i, self.m_gc_pad));
+      default:
+        continue;
+    }
+  }
+}
+
+- (void)ChangeVisibleTouchControllerToPort:(int)port
+{
+  if (self.m_ts_active_view != nil)
+  {
+    [self.m_ts_active_view setHidden:true];
+  }
+  
+  if (port == -1)
+  {
+    self.m_ts_active_port = -1;
+    self.m_ts_active_view = nil;
+  }
+  
+  bool found_port = false;
+  for (std::pair<int, TCView*> pair : self->m_controllers)
+  {
+    if (pair.first == port)
+    {
+      [pair.second setHidden:false];
+      [pair.second setUserInteractionEnabled:true];
+      pair.second.m_port = port;
+      
+      self.m_ts_active_port = port;
+      self.m_ts_active_view = pair.second;
+      
+      found_port = true;
+    }
+  }
+  
+  if (!found_port)
+  {
+    self.m_ts_active_port = -1;
+    self.m_ts_active_view = nil;
+  }
 }
 
 @end

@@ -88,6 +88,8 @@
 		B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */; };
 		B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99B05BE23A323600076C7D8 /* MetalKit.framework */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
+		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
+		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
 		B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */; };
 		B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */; };
 		B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */; };
@@ -229,6 +231,10 @@
 		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
+		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
+		B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGamePortSelectorViewController.mm; sourceTree = "<group>"; };
+		B9B948B923BFC4EC00E244FF /* PortSelectorCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PortSelectorCell.h; sourceTree = "<group>"; };
+		B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PortSelectorCell.m; sourceTree = "<group>"; };
 		B9BEADDF23AF08320014617A /* ControllerSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerSettingsUtils.h; sourceTree = "<group>"; };
 		B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerSettingsUtils.mm; sourceTree = "<group>"; };
 		B9BEADE223AF1A310014617A /* ControllerRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerRootViewController.h; sourceTree = "<group>"; };
@@ -526,9 +532,21 @@
 			name = "Build Resources";
 			sourceTree = "<group>";
 		};
+		B9B948B823BFC4AC00E244FF /* PortSelector */ = {
+			isa = PBXGroup;
+			children = (
+				B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */,
+				B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */,
+				B9B948B923BFC4EC00E244FF /* PortSelectorCell.h */,
+				B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */,
+			);
+			path = PortSelector;
+			sourceTree = "<group>";
+		};
 		B9C85E1323AA21E2008A4DD1 /* InGameSettings */ = {
 			isa = PBXGroup;
 			children = (
+				B9B948B823BFC4AC00E244FF /* PortSelector */,
 			);
 			path = InGameSettings;
 			sourceTree = "<group>";
@@ -849,6 +867,7 @@
 				B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */,
 				B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */,
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
+				B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.m in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
@@ -865,6 +884,7 @@
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
+				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
 				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,

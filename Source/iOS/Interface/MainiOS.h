@@ -15,6 +15,7 @@
 + (void)importFiles:(NSSet<NSURL*>*)files;
 + (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view;
 + (void)stopEmulation;
++ (UIViewController*)getEmulationViewController;
 + (CGFloat)getGameAspectRatio;
 + (CGRect)getRenderTargetRectangle;
 + (void)setDrawRectangleCustomOriginAsX:(int)x y:(int)y;
@@ -22,7 +23,5 @@
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action;
 + (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value;
 + (void)toggleImuIr:(bool)enabled;
-+ (void)toggleSidewaysWiimote:(bool)enabled reload_wiimote:(bool)reload_wiimote;
-+ (bool)isTouchscreenDeviceConnected:(bool)check_wii;
 
 @end

@@ -163,7 +163,7 @@ import Foundation
     }
   }
   
-  @objc func setPort(port: Int)
+  @objc func setPort(_ port: Int)
   {
     self.m_port = port
   }

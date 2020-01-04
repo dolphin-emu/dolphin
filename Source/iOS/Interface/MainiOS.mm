@@ -368,6 +368,11 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   s_update_main_frame_event.Set();
 }
 
++ (UIViewController*)getEmulationViewController
+{
+  return s_view_controller;
+}
+
 + (CGFloat)getGameAspectRatio
 {
   if (!g_renderer)
@@ -417,59 +422,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   wiimote_ini.Load(wiimote_ini_path);
   wiimote_ini.GetOrCreateSection("Wiimote1")->Set("IMUIR/Enabled", enabled);
   wiimote_ini.Save(wiimote_ini_path);
-}
-
-+ (void)toggleSidewaysWiimote:(bool)enabled reload_wiimote:(bool)reload_wiimote
-{
-  std::string wiimote_ini_path = File::GetUserPath(F_WIIPADCONFIG_IDX);
-  IniFile wiimote_ini;
-  wiimote_ini.Load(wiimote_ini_path);
-  wiimote_ini.GetOrCreateSection("Wiimote1")->Set("Options/Sideways Wiimote", enabled);
-  wiimote_ini.Save(wiimote_ini_path);
-
-  if (reload_wiimote)
-  {
-    Wiimote::LoadConfig();
-  }
-}
-
-+ (bool)IsTouchscreenConnectedToController:(int)i input_config:(InputConfig*)input_config
-{
-  std::string android_str = "Android";
-  
-  ControllerEmu::EmulatedController* controller = input_config->GetController(i);
-  std::string device = controller->GetDefaultDevice().ToString();
-  
-  return device.compare(0, android_str.size(), android_str) == 0;
-}
-
-+ (bool)isTouchscreenDeviceConnected:(bool)check_wii
-{
-  for (size_t i = 0; i < 4; i++)
-  {
-    InputConfig* gc_input_config = Pad::GetConfig();    
-    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE)
-    {
-      if ([MainiOS IsTouchscreenConnectedToController:i input_config:gc_input_config])
-      {
-        return true;
-      }
-    }
-
-    if (check_wii)
-    {
-      InputConfig* wii_input_config = Wiimote::GetConfig();
-      if (g_wiimote_sources[i] == 1) // Emulated
-      {
-        if ([MainiOS IsTouchscreenConnectedToController:i input_config:wii_input_config])
-        {
-          return true;
-        }
-      }
-    }
-  }
-
-  return false;
 }
 
 @end

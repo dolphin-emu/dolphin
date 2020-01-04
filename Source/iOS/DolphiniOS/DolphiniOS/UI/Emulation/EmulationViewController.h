@@ -6,6 +6,8 @@
 
 #import <UIKit/UIKit.h>
 
+#import "DolphiniOS-Swift.h"
+
 #import "EAGLView.h"
 
 #import "UICommon/GameFile.h"
@@ -13,15 +15,23 @@
 NS_ASSUME_NONNULL_BEGIN
 
 @interface EmulationViewController : UIViewController
+{
+  @public std::vector<std::pair<int, TCView*>> m_controllers;
+}
 
 @property (weak, nonatomic) IBOutlet MTKView* m_metal_view;
 @property (weak, nonatomic) IBOutlet EAGLView* m_eagl_view;
 
-@property (strong, nonatomic) IBOutletCollection(UIView) NSArray* m_gc_controllers;
-@property (strong, nonatomic) IBOutletCollection(UIView) NSArray* m_wii_controllers;
+@property (weak, nonatomic) IBOutlet TCView* m_gc_pad;
+@property (weak, nonatomic) IBOutlet TCView* m_wii_normal_pad;
+@property (weak, nonatomic) IBOutlet TCView* m_wii_sideways_pad;
 
 @property(nonatomic) UIView* m_renderer_view;
+@property(nonatomic) int m_ts_active_port;
+@property(weak, nonatomic) TCView* m_ts_active_view;
 @property(nonatomic) UICommon::GameFile* m_game_file;
+
+- (void)ChangeVisibleTouchControllerToPort:(int)port;
 
 @end
 
