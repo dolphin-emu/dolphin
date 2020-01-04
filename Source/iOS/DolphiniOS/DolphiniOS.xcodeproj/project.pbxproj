@@ -14,6 +14,7 @@
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B945A3752362908500B21680 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.m */; };
 		B945A3782362908500B21680 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3772362908500B21680 /* SceneDelegate.m */; };
 		B945A37E2362908500B21680 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A37C2362908500B21680 /* Main.storyboard */; };
@@ -133,6 +134,7 @@
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../build/libs/Externals/libMoltenVK.dylib; sourceTree = "<group>"; };
+		B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtensions.swift; sourceTree = "<group>"; };
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B945A3732362908500B21680 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B945A3742362908500B21680 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
@@ -354,6 +356,7 @@
 				B91BF368236B3E3900199BA7 /* Emulation */,
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
+				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -899,6 +902,7 @@
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */,
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
+				B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */,
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
