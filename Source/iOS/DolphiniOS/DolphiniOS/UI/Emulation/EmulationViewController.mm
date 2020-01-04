@@ -127,6 +127,14 @@
   self.additionalSafeAreaInsets = insets;
 }
 
+#pragma mark - Screen rotation specific
+
+- (void)viewDidLayoutSubviews
+{
+  [[TCDeviceMotion shared] statusBarOrientationChanged];
+  [MainiOS windowResized];
+}
+
 #pragma mark - Stop button
 
 - (IBAction)StopButtonPressed:(id)sender
