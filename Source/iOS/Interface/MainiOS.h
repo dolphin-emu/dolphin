@@ -11,7 +11,6 @@
 
 + (void)applicationStart;
 + (NSString*)getUserFolder;
-+ (NSString*)getGfxBackend;
 + (void)importFiles:(NSSet<NSURL*>*)files;
 + (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view;
 + (void)stopEmulation;
