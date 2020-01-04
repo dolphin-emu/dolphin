@@ -5,7 +5,11 @@
 #import "ControllerTypePickerViewController.h"
 
 #import "Core/ConfigManager.h"
+#import "Core/Core.h"
+#import "Core/HW/SI/SI.h"
 #import "Core/HW/WiimoteReal/WiimoteReal.h"
+
+#import "UICommon/UICommon.h"
 
 #import "ControllerSettingsUtils.h"
 #import "ControllerTypeCell.h"
@@ -95,6 +99,8 @@
   if (self.m_is_wii)
   {
     WiimoteReal::ChangeWiimoteSource(self.m_port, static_cast<u32>(indexPath.row));
+    
+    UICommon::SaveWiimoteSources();
   }
   else
   {
@@ -102,6 +108,11 @@
     if (si_device)
     {
       SConfig::GetInstance().m_SIDevice[self.m_port] = *si_device;
+      
+      if (Core::IsRunning())
+      {
+        SerialInterface::ChangeDevice(*si_device, static_cast<s32>(indexPath.row));
+      }
     }
   }
   
