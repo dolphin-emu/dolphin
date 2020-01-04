@@ -5,9 +5,38 @@
 import Foundation
 import UIKit
 
-class TCView: UIView
+@objc class TCView: UIView
 {
   var real_view: UIView?
+  
+  private var _m_port: Int = 0
+  @objc var m_port: Int
+  {
+    get
+    {
+      return _m_port
+    }
+    set
+    {
+      _m_port = newValue
+      
+      for subview in real_view!.subviews
+      {
+        if (subview is TCButton)
+        {
+          (subview as! TCButton).m_port = newValue
+        }
+        else if (subview is TCJoystick)
+        {
+          (subview as! TCJoystick).m_port = newValue
+        }
+        else if (subview is TCDirectionalPad)
+        {
+          (subview as! TCDirectionalPad).m_port = newValue
+        }
+      }
+    }
+  }
   
   required init?(coder: NSCoder)
   {

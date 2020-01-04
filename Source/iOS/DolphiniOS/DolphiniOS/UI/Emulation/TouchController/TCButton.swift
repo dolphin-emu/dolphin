@@ -18,6 +18,8 @@ class TCButton: UIButton
     }
   }
   
+  var m_port: Int = 0
+  
   override init(frame: CGRect)
   {
     super.init(frame: frame)
@@ -79,12 +81,12 @@ class TCButton: UIButton
     {
         hapticGenerator.impactOccurred()
     }
-    MainiOS.gamepadEvent(forButton: Int32(controllerButton), action: 1)
+    MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 1)
   }
   
   @objc func buttonReleased()
   {
-    MainiOS.gamepadEvent(forButton: Int32(controllerButton), action: 0)
+    MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 0)
   }
   
 }

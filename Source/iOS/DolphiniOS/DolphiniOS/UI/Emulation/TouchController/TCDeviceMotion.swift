@@ -14,6 +14,7 @@ import Foundation
   private var is_motion_enabled = false
   private var orientation: UIInterfaceOrientation = .portrait
   private var motion_mode = 0
+  private var m_port = 0
   
   override required init()
   {
@@ -80,12 +81,12 @@ import Foundation
       y *= gravity
       z *= gravity
       
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_LEFT.rawValue), value: CGFloat(x))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_RIGHT.rawValue), value: CGFloat(x))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_FORWARD.rawValue), value: CGFloat(y))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_BACKWARD.rawValue), value: CGFloat(y))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_UP.rawValue), value: CGFloat(z))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_ACCEL_DOWN.rawValue), value: CGFloat(z))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_LEFT.rawValue), value: CGFloat(x))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_RIGHT.rawValue), value: CGFloat(x))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_FORWARD.rawValue), value: CGFloat(y))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_BACKWARD.rawValue), value: CGFloat(y))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_UP.rawValue), value: CGFloat(z))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_ACCEL_DOWN.rawValue), value: CGFloat(z))
     }
     
     self.motion_manager.startGyroUpdates(to: motion_queue) { (data, error) in
@@ -118,12 +119,12 @@ import Foundation
         return
       }
       
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_PITCH_UP.rawValue), value: CGFloat(x))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_PITCH_DOWN.rawValue), value: CGFloat(x))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_ROLL_LEFT.rawValue), value: CGFloat(y))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_ROLL_RIGHT.rawValue), value: CGFloat(y))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_LEFT.rawValue), value: CGFloat(z))
-      MainiOS.gamepadMoveEvent(forAxis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_RIGHT.rawValue), value: CGFloat(z))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_PITCH_UP.rawValue), value: CGFloat(x))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_PITCH_DOWN.rawValue), value: CGFloat(x))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_ROLL_LEFT.rawValue), value: CGFloat(y))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_ROLL_RIGHT.rawValue), value: CGFloat(y))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_LEFT.rawValue), value: CGFloat(z))
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(TCButtonType.WIIMOTE_GYRO_YAW_RIGHT.rawValue), value: CGFloat(z))
     }
     
     self.is_motion_enabled = true
@@ -160,6 +161,11 @@ import Foundation
     {
       self.stopMotionUpdates()
     }
+  }
+  
+  @objc func setPort(port: Int)
+  {
+    self.m_port = port
   }
   
   // UIApplicationDidChangeStatusBarOrientationNotification is deprecated...

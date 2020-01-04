@@ -9,6 +9,7 @@ import UIKit
 class TCJoystick: UIView
 {
   @IBInspectable var joystickType: Int = 10 // default: GC stick
+  var m_port: Int = 0
   
   override init(frame: CGRect)
   {
@@ -106,7 +107,7 @@ class TCJoystick: UIView
     let axisStartIdx = joystickType
     for i in 0...3
     {
-      MainiOS.gamepadMoveEvent(forAxis: Int32(axisStartIdx + i + 1), value: joyAxises[i])
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(axisStartIdx + i + 1), value: joyAxises[i])
     }
     
     gesture.view?.center = point
