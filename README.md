@@ -1,6 +1,6 @@
 # Dolphin RNO
 
-Dolphin RNO is an emulator for running GameCube and Wii games on Windows and Linux 
+Dolphin RNO is an emulator for running GameCube and Wii games on Windows and Linux
 
 
 ## Info
@@ -11,21 +11,23 @@ This emulator bundled a modified version of Dolphin
 
 ## Compiling
 
-Windows: 
+Windows:
 1) Clone the Git Repo
 2) Open Source/dolphin-emu.sln in Visual Studio 2017
 3) Set Build Path to Release -> x64
 4) Build
 
 Linux:
-1) Clone the Git Repo
-2) Open Terminal inside of Git Repo
+1) Open Terminal
+1) run `git clone https://github.com/Retro-Nintendo-Online/dolphin-rno.git`
+2) run `cd dolphin-rno`
 3) run `mkdir build`
 4) run `cd build`
 5) run `cmake .. -DLINUX_LOCAL_DEV=true`
 6) run `make`
 7) run `cp -r ../Data/Sys/ Binaries/`
-8) run `touch Binaries/portable.txt`
+8) run `cp -r ../Data/User/ Binaries/`
+9) run `touch Binaries/portable.txt`
 
 macOS:
 1) Install Xcode Command Line Tools if you havent
