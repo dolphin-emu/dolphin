@@ -27,7 +27,10 @@ Linux:
 6) run `make`
 7) run `cp -r ../Data/Sys/ Binaries/`
 8) run `cp -r ../Data/User/ Binaries/`
-9) run `touch Binaries/portable.txt`
+9) run `cp -r ../Data/qt-dark/ Binaries/`
+10) run `cp -r ../Data/Dolphin.png/ Binaries/`
+11) run `touch Binaries/portable.txt`
+**Binary is Located at build/Binaries/dolphin-emu**
 
 macOS:
 1) Install Xcode Command Line Tools if you havent
