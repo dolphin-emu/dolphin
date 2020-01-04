@@ -36,7 +36,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gametdb_id, bool* succeeded)
   std::vector<GeckoCode> gcodes;
 
   // parse the codes
-  std::istringstream ss(reinterpret_cast<const char*>(response->data()));
+  std::istringstream ss(std::string(response->begin(), response->end()));
 
   std::string line;
 
