@@ -199,7 +199,7 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
     NSString* bundle_wii_pad = [[NSBundle mainBundle] pathForResource:@"WiimoteNew" ofType:@"ini"];
     [file_manager copyItemAtPath:bundle_wii_pad toPath:wii_pad_path error:nil];
   }
-  
+
   // Get the Dolphin.ini path
   std::string dolphin_config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
 
@@ -250,17 +250,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 #endif
 
   return user_directory;
-}
-
-+ (NSString*)getGfxBackend
-{
-  IniFile dolphin_config;
-  dolphin_config.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  
-  std::string gfx_backend;
-  dolphin_config.GetOrCreateSection("Core")->Get("GFXBackend", &gfx_backend, "OGL");
-
-  return [NSString stringWithUTF8String:gfx_backend.c_str()];
 }
 
 + (void)importFiles:(NSSet<NSURL*>*)files
