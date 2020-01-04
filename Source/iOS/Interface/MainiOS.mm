@@ -199,23 +199,7 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
     NSString* bundle_wii_pad = [[NSBundle mainBundle] pathForResource:@"WiimoteNew" ofType:@"ini"];
     [file_manager copyItemAtPath:bundle_wii_pad toPath:wii_pad_path error:nil];
   }
-
-  // Check if WiimoteProfile.ini exists
-  NSString* wiimote_profile_folder = [[[user_directory stringByAppendingPathComponent:@"Config"]
-                                                        stringByAppendingPathComponent:@"Profiles"]
-                                                        stringByAppendingPathComponent:@"Wiimote"];
-  NSString* wiimote_profile_ini = [wiimote_profile_folder stringByAppendingPathComponent:@"WiimoteProfile.ini"];
-  if (![file_manager fileExistsAtPath:wiimote_profile_folder])
-  {
-    [file_manager createDirectoryAtPath:wiimote_profile_folder withIntermediateDirectories:true
-                  attributes:nil error:nil];
-  }
-  if (![file_manager fileExistsAtPath:wiimote_profile_ini])
-  {
-    NSString* bundle_profile = [[NSBundle mainBundle] pathForResource:@"WiimoteProfile" ofType:@"ini"];
-    [file_manager copyItemAtPath:bundle_profile toPath:wiimote_profile_ini error:nil];
-  }
-
+  
   // Get the Dolphin.ini path
   std::string dolphin_config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
 
