@@ -1,5 +1,9 @@
 if (NOT Qt5_DIR AND MSVC)
-set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.13.1/5.13.1/msvc2017_64/lib/cmake/Qt5")
+  if(_M_ARM_64)
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.13.1/5.13.1/msvc2017_64/lib/cmake/Qt5")
+  else()
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.13.2/5.13.2/msvc2017_arm64/lib/cmake/Qt5")
+  endif()
 endif()
 
 find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)

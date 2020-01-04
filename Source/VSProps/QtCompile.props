@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Label="UserMacros">
-    <QTDIRDefault>$(ExternalsDir)Qt\Qt5.13.1\5.13.1\msvc2017_64\</QTDIRDefault>
+    <QTDIRDefault Condition="'$(Platform)'=='x64'">$(ExternalsDir)Qt\Qt5.13.1\5.13.1\msvc2017_64\</QTDIRDefault>
+    <QTDIRDefault Condition="'$(Platform)'=='ARM64'">$(ExternalsDir)Qt\Qt5.14.0\5.14.0\msvc2017_arm64\</QTDIRDefault>
     <QTDIR Condition="Exists('$(QTDIRDefault)') And ('$(QTDIR)'=='' Or !Exists('$(QTDIR)'))">$(QTDIRDefault)</QTDIR>
     <QTDIR Condition="Exists('$(QTDIR)') And !HasTrailingSlash('$(QTDIR)')">$(QTDIR)\</QTDIR>
     <QtDirValid>false</QtDirValid>
@@ -27,6 +28,7 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtCore;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
       Negate the previously enabled warning (set in Base.props). Not compatible with QtCore\qtmap.h
       This isn't too bad since we live with the fact that Qt-using projects will have different compiler args already.
@@ -88,6 +90,10 @@
   <!--Copy the needed dlls-->
   <ItemGroup>
     <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
+
+    <!-- Include ANGLE for ARM64 since there is no native OpenGL -->
+    <QtLibNames Condition="'$(Platform)'=='ARM64'" Include="$(QtLibNames);libEGL$(QtLibSuffix);libGLESv2$(QtLibSuffix)" />
+
     <QtDlls Include="@(QtLibNames -> '$(QtBinDir)%(Identity).dll')" />
     <!--Filter plugins to copy based on the observation that all debug versions end in "d"-->
     <QtAllPlugins Include="$(QtPluginsDir)**\*$(QtLibSuffix).dll" />
