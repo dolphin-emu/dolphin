@@ -20,21 +20,7 @@ import UIKit
     {
       _m_port = newValue
       
-      for subview in real_view!.subviews
-      {
-        if (subview is TCButton)
-        {
-          (subview as! TCButton).m_port = newValue
-        }
-        else if (subview is TCJoystick)
-        {
-          (subview as! TCJoystick).m_port = newValue
-        }
-        else if (subview is TCDirectionalPad)
-        {
-          (subview as! TCDirectionalPad).m_port = newValue
-        }
-      }
+      SetPort(newValue, view: real_view!)
     }
   }
   
@@ -50,4 +36,28 @@ import UIKit
     
     real_view = view;
   }
+  
+  func SetPort(_ port: Int, view: UIView)
+  {
+    for subview in view.subviews
+    {
+      if (subview is TCButton)
+      {
+        (subview as! TCButton).m_port = port
+      }
+      else if (subview is TCJoystick)
+      {
+        (subview as! TCJoystick).m_port = port
+      }
+      else if (subview is TCDirectionalPad)
+      {
+        (subview as! TCDirectionalPad).m_port = port
+      }
+      else
+      {
+        SetPort(port, view: subview)
+      }
+    }
+  }
+  
 }
