@@ -200,13 +200,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
     [file_manager copyItemAtPath:bundle_wii_pad toPath:wii_pad_path error:nil];
   }
 
-  // Set IMU IR if needed
-  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"imu_ir_initial_value_set"])
-  {
-    [MainiOS toggleImuIr:false];
-    [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"imu_ir_initial_value_set"];
-  }
-
   // Check if WiimoteProfile.ini exists
   NSString* wiimote_profile_folder = [[[user_directory stringByAppendingPathComponent:@"Config"]
                                                         stringByAppendingPathComponent:@"Profiles"]
@@ -413,15 +406,6 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 + (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value
 {
   ButtonManager::GamepadAxisEvent("Touchscreen", pad, axis, value);
-}
-
-+ (void)toggleImuIr:(bool)enabled
-{
-  std::string wiimote_ini_path = File::GetUserPath(F_WIIPADCONFIG_IDX);
-  IniFile wiimote_ini;
-  wiimote_ini.Load(wiimote_ini_path);
-  wiimote_ini.GetOrCreateSection("Wiimote1")->Set("IMUIR/Enabled", enabled);
-  wiimote_ini.Save(wiimote_ini_path);
 }
 
 @end
