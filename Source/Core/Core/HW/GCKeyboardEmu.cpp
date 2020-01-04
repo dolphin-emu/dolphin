@@ -157,16 +157,16 @@ void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)
   m_keys1x->SetControlExpression(13, "Y");
   m_keys1x->SetControlExpression(14, "Z");
 
-  m_keys1x->SetControlExpression(15, "1");
-  m_keys2x->SetControlExpression(0, "2");
-  m_keys2x->SetControlExpression(1, "3");
-  m_keys2x->SetControlExpression(2, "4");
-  m_keys2x->SetControlExpression(3, "5");
-  m_keys2x->SetControlExpression(4, "6");
-  m_keys2x->SetControlExpression(5, "7");
-  m_keys2x->SetControlExpression(6, "8");
-  m_keys2x->SetControlExpression(7, "9");
-  m_keys2x->SetControlExpression(8, "0");
+  m_keys1x->SetControlExpression(15, "`1`");
+  m_keys2x->SetControlExpression(0, "`2`");
+  m_keys2x->SetControlExpression(1, "`3`");
+  m_keys2x->SetControlExpression(2, "`4`");
+  m_keys2x->SetControlExpression(3, "`5`");
+  m_keys2x->SetControlExpression(4, "`6`");
+  m_keys2x->SetControlExpression(5, "`7`");
+  m_keys2x->SetControlExpression(6, "`8`");
+  m_keys2x->SetControlExpression(7, "`9`");
+  m_keys2x->SetControlExpression(8, "`0`");
 
   m_keys3x->SetControlExpression(5, "F1");
   m_keys3x->SetControlExpression(6, "F2");
