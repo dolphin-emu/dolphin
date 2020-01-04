@@ -400,14 +400,14 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
     g_renderer->ResizeSurface();
 }
 
-+ (void)gamepadEventForButton:(int)button action:(int)action
++ (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action
 {
-  ButtonManager::GamepadEvent("Touchscreen", button, action);
+  ButtonManager::GamepadEvent("Touchscreen", pad, button, action);
 }
 
-+ (void)gamepadMoveEventForAxis:(int)axis value:(CGFloat)value
++ (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value
 {
-  ButtonManager::GamepadAxisEvent("Touchscreen", axis, value);
+  ButtonManager::GamepadAxisEvent("Touchscreen", pad, axis, value);
 }
 
 + (void)toggleImuIr:(bool)enabled
