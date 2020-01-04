@@ -353,18 +353,18 @@ constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
     RUMBLE,
 }};
 
-std::unordered_map<std::string, InputDevice*> m_controllers;
+std::unordered_map<int, InputDevice*> m_controllers;
 
 void AddBind(const std::string& dev, sBind* bind)
 {
-  auto it = m_controllers.find(dev);
+  auto it = m_controllers.find(bind->m_pad_id);
   if (it != m_controllers.end())
   {
     it->second->AddBind(bind);
     return;
   }
-  m_controllers[dev] = new InputDevice(dev);
-  m_controllers[dev]->AddBind(bind);
+  m_controllers[bind->m_pad_id] = new InputDevice(dev);
+  m_controllers[bind->m_pad_id]->AddBind(bind);
 }
 }  // Anonymous namespace
 
@@ -664,18 +664,17 @@ void Init(const std::string& game_id)
 
 bool GetButtonPressed(int pad_id, ButtonType button)
 {
-  bool pressed = m_controllers[TOUCHSCREEN_KEY]->ButtonValue(pad_id, button);
-
-  for (const auto& ctrl : m_controllers)
-    pressed |= ctrl.second->ButtonValue(pad_id, button);
+  bool pressed = m_controllers[pad_id]->ButtonValue(pad_id, button);
+  // for (const auto& ctrl : m_controllers)
+  //  pressed |= ctrl.second->ButtonValue(pad_id, button);
 
   return pressed;
 }
 
 float GetAxisValue(int pad_id, ButtonType axis)
 {
-  float value = m_controllers[TOUCHSCREEN_KEY]->AxisValue(pad_id, axis);
-  if (value == 0.0f)
+  float value = m_controllers[pad_id]->AxisValue(pad_id, axis);
+  /*if (value == 0.0f)
   {
     for (const auto& ctrl : m_controllers)
     {
@@ -683,13 +682,13 @@ float GetAxisValue(int pad_id, ButtonType axis)
       if (value != 0.0f)
         return value;
     }
-  }
+  }*/
   return value;
 }
 
 bool GamepadEvent(const std::string& dev, int pad_id, int button, int action)
 {
-  auto it = m_controllers.find(dev);
+  auto it = m_controllers.find(pad_id);
   if (it != m_controllers.end())
     return it->second->PressEvent(pad_id, button, action);
   return false;
@@ -697,7 +696,7 @@ bool GamepadEvent(const std::string& dev, int pad_id, int button, int action)
 
 void GamepadAxisEvent(const std::string& dev, int pad_id, int axis, float value)
 {
-  auto it = m_controllers.find(dev);
+  auto it = m_controllers.find(pad_id);
   if (it != m_controllers.end())
     it->second->AxisEvent(pad_id, axis, value);
 }
