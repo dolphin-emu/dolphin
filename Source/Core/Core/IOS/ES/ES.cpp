@@ -168,13 +168,26 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid)
+static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
+                                         const IOS::ES::TMDReader& active_tmd)
 {
   IOS::ES::UIDSys uid_map{kernel.GetFS()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
-  return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
+
+  if (caller_uid == system_menu_uid)
+    return IPC_SUCCESS;
+
+  if (kernel.GetVersion() == 62)
+  {
+    const bool is_wiiu_transfer_tool =
+        active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484353ff;
+    if (is_wiiu_transfer_tool)
+      return IPC_SUCCESS;
+  }
+
+  return ES_EINVAL;
 }
 
 IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
@@ -184,7 +197,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid);
+  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid, m_title_context.tmd);
   if (ret < 0)
   {
     ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
