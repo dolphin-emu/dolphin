@@ -1342,6 +1342,14 @@ void Jit64::addx(UGeckoInstruction inst)
     {
       LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
     }
+    else if (Ra.IsSimpleReg() && Rb.IsImm() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Ra.GetSimpleReg(), Rb.SImm32()));
+    }
+    else if (Rb.IsSimpleReg() && Ra.IsImm() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rb.GetSimpleReg(), Ra.SImm32()));
+    }
     else
     {
       MOV(32, Rd, Ra);
