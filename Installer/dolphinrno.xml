@@ -2,7 +2,8 @@
     <shortName>dolphinrno</shortName>
     <fullName>DolphinRNO</fullName>
     <version>01-03-20</version>
-    <licenseFile>/home/parkerhanegan/Documents/GitHub/dolphin-rno/license.txt</licenseFile>
+    <licenseFile>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/license.txt</licenseFile>
+    <logoImage>E:\Git\Retro Nintendo Online\dolphin-rno\Binary\x64\Dolphin.png</logoImage>
     <componentList>
         <component>
             <name>default</name>
@@ -20,10 +21,10 @@
                     <platforms>all</platforms>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
-                    <windowsExec></windowsExec>
+                    <windowsExec>${installdir}/Dolphin.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon></windowsIcon>
-                    <windowsPath></windowsPath>
+                    <windowsIcon>${installdir}/Dolphin.png</windowsIcon>
+                    <windowsPath>${installdir}</windowsPath>
                 </shortcut>
             </desktopShortcutList>
             <folderList>
@@ -62,25 +63,25 @@
                     <platforms>linux-x64</platforms>
                     <distributionFileList>
                         <distributionDirectory>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/qt-dark</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/qt-dark</origin>
                         </distributionDirectory>
                         <distributionDirectory>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/Sys</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/Sys</origin>
                         </distributionDirectory>
                         <distributionDirectory>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/User</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/User</origin>
                         </distributionDirectory>
                         <distributionFile>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/dolphin-emu</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/dolphin-emu</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/dolphin-emu-nogui</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/dolphin-emu-nogui</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/portable.txt</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/portable.txt</origin>
                         </distributionFile>
                         <distributionFile>
-                            <origin>/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/traversal_server</origin>
+                            <origin>C:/home/parkerhanegan/Documents/GitHub/dolphin-rno/build/Binaries/traversal_server</origin>
                         </distributionFile>
                     </distributionFileList>
                 </folder>
@@ -89,6 +90,53 @@
                     <destination>${installdir}</destination>
                     <name>programfileswindows</name>
                     <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Languages</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/qt-dark</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/QtPlugins</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Sys</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/User</origin>
+                        </distributionDirectory>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Dolphin.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Dolphin.png</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/DSPTool.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/license.txt</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/portable.txt</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/qt.conf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Qt5Core.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Qt5Gui.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Qt5Widgets.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>E:/Git/Retro Nintendo Online/dolphin-rno/Binary/x64/Updater.exe</origin>
+                        </distributionFile>
+                    </distributionFileList>
                 </folder>
                 <folder>
                     <description>Program Files</description>
@@ -114,6 +162,22 @@
                     <windowsIcon></windowsIcon>
                     <windowsPath>${installdir}/</windowsPath>
                 </startMenuShortcut>
+                <startMenuFolder>
+                    <name>Retro Nintendo Online</name>
+                    <platforms>windows</platforms>
+                    <startMenuShortcutList>
+                        <startMenuShortcut>
+                            <comment>Retro Nintendo Online's Dolphin</comment>
+                            <name>Dolphin RNO</name>
+                            <runAsAdmin>0</runAsAdmin>
+                            <runInTerminal>0</runInTerminal>
+                            <windowsExec>${installdir}/Dolphin.exe</windowsExec>
+                            <windowsExecArgs></windowsExecArgs>
+                            <windowsIcon>${installdir}/Dolphin.png</windowsIcon>
+                            <windowsPath></windowsPath>
+                        </startMenuShortcut>
+                    </startMenuShortcutList>
+                </startMenuFolder>
             </startMenuShortcutList>
         </component>
     </componentList>
@@ -135,5 +199,15 @@
             <width>30</width>
         </directoryParameter>
     </parameterList>
+    <platformOptionsList>
+        <platformOptions>
+            <shortName>DolphinRNO</shortName>
+            <fullName>Dolphin RNO</fullName>
+            <licenseFile>E:\Git\Retro Nintendo Online\dolphin-rno\license.txt</licenseFile>
+            <platform>windows</platform>
+            <requireInstallationByRootUser>1</requireInstallationByRootUser>
+            <vendor>Retro Nintendo Online</vendor>
+        </platformOptions>
+    </platformOptionsList>
 </project>
 
