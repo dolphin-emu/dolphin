@@ -101,7 +101,7 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   ciface::Core::Device* device = g_controller_interface.FindDevice(controller->GetDefaultDevice()).get();
   
   std::string device_source = device->GetSource();
-  if (device_source == "Android" || device_source == "DSUClient")
+  if (device_source == "DSUClient")
   {
     return true;
   }
