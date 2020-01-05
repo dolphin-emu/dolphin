@@ -275,4 +275,8 @@
   }
 }
 
+#pragma mark - Rewind segue
+
+- (IBAction)unwindToEmulation:(UIStoryboardSegue*)segue {}
+
 @end

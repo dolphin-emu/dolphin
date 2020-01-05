@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
-    <device id="retina6_5" orientation="landscape" appearance="light"/>
+    <device id="retina6_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
@@ -13,31 +13,31 @@
             <objects>
                 <viewController automaticallyAdjustsScrollViewInsets="NO" id="72Z-je-Eys" customClass="EmulationViewController" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="MkU-9V-PoJ">
-                        <rect key="frame" x="0.0" y="0.0" width="896" height="414"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <mtkView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" colorPixelFormat="BGRA8Unorm" depthStencilPixelFormat="Depth32Float" translatesAutoresizingMaskIntoConstraints="NO" id="ODM-xp-bCF" userLabel="MTKView">
-                                <rect key="frame" x="44" y="44" width="808" height="370"/>
+                                <rect key="frame" x="0.0" y="88" width="414" height="387"/>
                                 <gestureRecognizers/>
                             </mtkView>
                             <view hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="daX-vt-kk3" userLabel="EAGLView" customClass="EAGLView">
-                                <rect key="frame" x="44" y="0.0" width="808" height="414"/>
+                                <rect key="frame" x="0.0" y="0.0" width="414" height="475"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="R1C-TK-7Br" userLabel="GameCubePad" customClass="TCGameCubePad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="44" y="44" width="808" height="349"/>
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="kFP-2O-2AC" userLabel="WiiPad" customClass="TCWiiPad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="44" y="44" width="808" height="349"/>
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="DHP-hz-C2m" userLabel="SidewaysWiiPad" customClass="TCSidewaysWiiPad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="44" y="44" width="808" height="349"/>
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
                             <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="YWH-fQ-xGM" userLabel="ClassicWiiPad" customClass="TCClassicWiiPad" customModule="DolphiniOS" customModuleProvider="target">
-                                <rect key="frame" x="44" y="44" width="808" height="349"/>
+                                <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
                         </subviews>
@@ -140,7 +140,7 @@
             <objects>
                 <navigationController id="Izy-YD-mb0" userLabel="In-Game Navigation" customClass="InGameSettingsViewController" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="yYW-iL-C27">
-                        <rect key="frame" x="0.0" y="0.0" width="896" height="44"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="56"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <connections>
@@ -156,16 +156,16 @@
             <objects>
                 <tableViewController title="Settings" id="vzh-dh-b6l" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="be6-8h-vmk">
-                        <rect key="frame" x="0.0" y="0.0" width="896" height="414"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <sections>
                             <tableViewSection id="vaH-YK-bVw">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="1v4-7v-1Zv">
-                                        <rect key="frame" x="64" y="18" width="768" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="18" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="1v4-7v-1Zv" id="399-VI-PwD">
-                                            <rect key="frame" x="0.0" y="0.0" width="737" height="43.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Controllers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QsB-Mh-a47">
@@ -182,10 +182,10 @@
                                         </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="05y-Na-daV">
-                                        <rect key="frame" x="64" y="61.666667938232422" width="768" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="61.666667938232422" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="05y-Na-daV" id="VBF-6Y-U2k">
-                                            <rect key="frame" x="0.0" y="0.0" width="737" height="43.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Change Touchscreen Controller" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="y3m-b3-1LP">
@@ -209,9 +209,16 @@
                             <outlet property="delegate" destination="vzh-dh-b6l" id="V3h-29-FNo"/>
                         </connections>
                     </tableView>
-                    <navigationItem key="navigationItem" title="Settings" id="tYT-yt-Xek"/>
+                    <navigationItem key="navigationItem" title="Settings" id="tYT-yt-Xek">
+                        <barButtonItem key="rightBarButtonItem" systemItem="done" id="jNH-dc-Z50">
+                            <connections>
+                                <segue destination="WDX-gD-W5j" kind="unwind" unwindAction="unwindToEmulation:" id="nah-rz-OAX"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Z5q-pu-JNF" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <exit id="WDX-gD-W5j" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
             <point key="canvasLocation" x="2909" y="57"/>
         </scene>
@@ -220,18 +227,18 @@
             <objects>
                 <tableViewController title="Change Touchscreen" id="0vc-YY-wgE" customClass="InGamePortSelectorViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="hdR-np-tlK">
-                        <rect key="frame" x="0.0" y="0.0" width="896" height="414"/>
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <prototypes>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="controller_cell" rowHeight="44" id="GUy-pC-ENI" customClass="PortSelectorCell">
-                                <rect key="frame" x="64" y="55.333332061767578" width="768" height="44"/>
+                                <rect key="frame" x="20" y="55.333332061767578" width="374" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="GUy-pC-ENI" id="PkU-JF-otS">
-                                    <rect key="frame" x="0.0" y="0.0" width="768" height="44"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Controller Type" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gCx-Ed-dri">
-                                            <rect key="frame" x="20" y="11.666666666666664" width="748" height="21"/>
+                                            <rect key="frame" x="20" y="11.666666666666664" width="354" height="21"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
@@ -275,7 +282,7 @@
                 <navigationController storyboardIdentifier="Root" automaticallyAdjustsScrollViewInsets="NO" modalPresentationStyle="fullScreen" id="oIO-lQ-aAN" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="7Sv-y1-cTO">
-                        <rect key="frame" x="0.0" y="0.0" width="896" height="44"/>
+                        <rect key="frame" x="0.0" y="44" width="414" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
                     <nil name="viewControllers"/>
