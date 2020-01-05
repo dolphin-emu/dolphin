@@ -7,10 +7,12 @@
 #import "Core/ConfigManager.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/HW/WiimoteEmu/Extension/Classic.h"
 #import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #import "Core/HW/SI/SI.h"
 #import "Core/HW/SI/SI_Device.h"
 
+#import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
 
@@ -56,15 +58,6 @@
   [self.navigationController setNavigationBarHidden:true animated:true];
   
   [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
-  [super viewWillAppear:animated];
-  
-  [self PopulatePortDictionary];
-  
-  [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
 }
 
 - (void)StartEmulation
@@ -170,7 +163,8 @@
 {
   self->m_controllers.clear();
   
-  if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+  //if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+  if (true)
   {
     InputConfig* wii_input_config = Wiimote::GetConfig();
     for (int i = 0; i < 4; i++)
@@ -197,7 +191,17 @@
       }
       else
       {
-        pad_view = self.m_wii_normal_pad;
+        ControllerEmu::Attachments* attachments = static_cast<ControllerEmu::Attachments*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Attachments));
+        
+        switch (attachments->GetSelectedAttachment())
+        {
+          case WiimoteEmu::ExtensionNumber::CLASSIC:
+            pad_view = self.m_wii_classic_pad;
+            break;
+          default:
+            pad_view = self.m_wii_normal_pad;
+            break;
+        }
       }
       
       self->m_controllers.push_back(std::make_pair(i + 4, pad_view));
