@@ -275,6 +275,22 @@
   }
 }
 
+#pragma mark - Top bar tutorial
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
+  
+  if (![user_defaults boolForKey:@"seen_top_bar_swipe_down_notice"])
+  {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Tutorial" message:@"To reveal the top bar, swipe down from the top of the screen.\n\nYou can change settings and stop the emulation from the top bar." preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    [self presentViewController:alert animated:true completion:nil];
+    
+    [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
+  }
+}
+
 #pragma mark - Rewind segue
 
 - (IBAction)unwindToEmulation:(UIStoryboardSegue*)segue {}
