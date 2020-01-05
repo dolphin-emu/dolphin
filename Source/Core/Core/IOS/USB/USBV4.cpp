@@ -77,8 +77,9 @@ void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
 {
   const std::locale& c_locale = std::locale::classic();
   std::string message = Memory::GetString(data_address);
-  std::replace_if(message.begin(), message.end(),
-                  [&c_locale](char c) { return !std::isprint(c, c_locale); }, '?');
+  std::replace_if(
+      message.begin(), message.end(), [&c_locale](char c) { return !std::isprint(c, c_locale); },
+      '?');
   Memory::CopyToEmu(data_address, message.c_str(), message.size());
   TransferCommand::OnTransferComplete(return_value);
 }

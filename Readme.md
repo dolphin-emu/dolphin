@@ -56,11 +56,6 @@ Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
 since the Binary directory contains a working Dolphin distribution.
 
-To ease contributing code to Dolphin which has been modified in Visual Studio,
-install clang-format-7 by installing a 7.x version of the LLVM tools from http://releases.llvm.org.
-In Visual Studio, under Options > Text Editor > C/C++ > Formatting > General,
-enable "Use custom clang-format.exe file" and point it to the just-installed clang-format.exe
-
 ## Building for Linux and macOS
 
 Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
