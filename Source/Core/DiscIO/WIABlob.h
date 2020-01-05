@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <limits>
 #include <memory>
 #include <utility>
 
@@ -41,24 +42,17 @@ public:
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
 private:
-  explicit WIAFileReader(File::IOFile file, const std::string& path);
-  bool Initialize(const std::string& path);
-
-  bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
-                      u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
-                      bool exception_list);
-  bool ReadCompressedData(u32 decompressed_data_size, u64 data_offset, u64 data_size, u8* out_ptr,
-                          bool exception_list);
-  bool ReadCompressedData(u32 decompressed_data_size, u64 data_offset, u64 data_size,
-                          u64 offset_in_data, u64 size_in_data, u8* out_ptr, bool exception_list);
-
-  // Returns the number of bytes read
-  std::optional<u64> ReadExceptionListFromFile();
-
-  static std::string VersionToString(u32 version);
-
   using SHA1 = std::array<u8, 20>;
   using WiiKey = std::array<u8, 16>;
+
+  enum class CompressionType : u32
+  {
+    None = 0,
+    Purge = 1,
+    Bzip2 = 2,
+    LZMA = 3,
+    LZMA2 = 4,
+  };
 
 #pragma pack(push, 1)
   struct WIAHeader1
@@ -148,13 +142,10 @@ private:
   static_assert(sizeof(PurgeSegment) == 0x08, "Wrong size for WIA purge segment");
 #pragma pack(pop)
 
-  enum class CompressionType : u32
+  struct DecompressionBuffer
   {
-    None = 0,
-    Purge = 1,
-    Bzip2 = 2,
-    LZMA = 3,
-    LZMA2 = 4,
+    std::vector<u8> data;
+    size_t bytes_written = 0;
   };
 
   class Decompressor
@@ -162,18 +153,36 @@ private:
   public:
     virtual ~Decompressor();
 
-    // Specifies the compressed data to read. The data must still be in memory when calling Read.
-    virtual bool Start(const u8* in_ptr, u64 size) = 0;
+    virtual bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                            size_t* in_bytes_read) = 0;
+    virtual bool Done() const { return m_done; };
 
-    // Reads the specified number of bytes into out_ptr (or less, if there aren't that many bytes
-    // to output). Returns the number of bytes read. Start must be called before this.
-    virtual u64 Read(u8* out_ptr, u64 size) = 0;
+  protected:
+    bool m_done = false;
+  };
 
-    // Returns whether every byte of the input data has been read.
-    virtual bool DoneReading() const = 0;
+  class NoneDecompressor final : public Decompressor
+  {
+  public:
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
+  };
 
-    // Will be called automatically upon destruction, but can be called earlier if desired.
-    virtual void End() = 0;
+  // This class assumes that more bytes won't be added to in once in.bytes_written == in.data.size()
+  class PurgeDecompressor final : public Decompressor
+  {
+  public:
+    PurgeDecompressor(u64 decompressed_size);
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
+
+  private:
+    PurgeSegment m_segment = {};
+    size_t m_bytes_read = 0;
+    size_t m_segment_bytes_written = 0;
+    size_t m_out_bytes_written = 0;
+
+    const u64 m_decompressed_size;
   };
 
   class Bzip2Decompressor final : public Decompressor
@@ -181,16 +190,12 @@ private:
   public:
     ~Bzip2Decompressor();
 
-    bool Start(const u8* in_ptr, u64 size) override;
-    u64 Read(u8* out_ptr, u64 size) override;
-    bool DoneReading() const override;
-    void End() override;
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
 
   private:
-    bz_stream m_stream;
+    bz_stream m_stream = {};
     bool m_started = false;
-    bool m_ended = false;
-    bool m_error_occurred = false;
   };
 
   class LZMADecompressor final : public Decompressor
@@ -199,24 +204,63 @@ private:
     LZMADecompressor(bool lzma2, const u8* filter_options, size_t filter_options_size);
     ~LZMADecompressor();
 
-    bool Start(const u8* in_ptr, u64 size) override;
-    u64 Read(u8* out_ptr, u64 size) override;
-    bool DoneReading() const override;
-    void End() override;
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
 
   private:
     lzma_stream m_stream = LZMA_STREAM_INIT;
     lzma_options_lzma m_options = {};
     lzma_filter m_filters[2];
     bool m_started = false;
-    bool m_ended = false;
     bool m_error_occurred = false;
   };
+
+  class Chunk
+  {
+  public:
+    Chunk();
+    Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
+          bool exception_list, bool compressed_exception_list,
+          std::unique_ptr<Decompressor> decompressor);
+
+    bool Read(u64 offset, u64 size, u8* out_ptr);
+
+    template <typename T>
+    bool ReadAll(std::vector<T>* vector)
+    {
+      return Read(0, vector->size() * sizeof(T), reinterpret_cast<u8*>(vector->data()));
+    }
+
+  private:
+    DecompressionBuffer m_in;
+    DecompressionBuffer m_out;
+    DecompressionBuffer m_exceptions;
+    size_t m_in_bytes_read = 0;
+
+    std::unique_ptr<Decompressor> m_decompressor = nullptr;
+    File::IOFile* m_file = nullptr;
+    u64 m_offset_in_file = 0;
+    bool m_exception_list = false;
+    bool m_compressed_exception_list = false;
+  };
+
+  explicit WIAFileReader(File::IOFile file, const std::string& path);
+  bool Initialize(const std::string& path);
+
+  bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
+                      u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
+                      bool exception_list);
+  Chunk& ReadCompressedData(u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
+                            bool exception_list);
+
+  static std::string VersionToString(u32 version);
 
   bool m_valid;
   CompressionType m_compression_type;
 
   File::IOFile m_file;
+  Chunk m_cached_chunk;
+  u64 m_cached_chunk_offset = std::numeric_limits<u64>::max();
 
   WIAHeader1 m_header_1;
   WIAHeader2 m_header_2;
