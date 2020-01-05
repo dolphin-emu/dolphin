@@ -86,7 +86,29 @@ constexpr const char* PROFILES_DIR = "Profiles/";
 {
   if (indexPath.section == 0)
   {
-    [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"MFi"];
+    const std::string device_source = self.m_controller->GetDefaultDevice().source;
+    
+    NSString* type;
+    if (device_source == "Android")
+    {
+      type = @"Touch";
+    }
+    else if (device_source == "MFi")
+    {
+      type = @"MFi";
+    }
+    else
+    {
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Error" message:@"Cannot load a default configuration for the device attached to this controller." preferredStyle:UIAlertControllerStyleAlert];
+      [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+      [self presentViewController:alert animated:true completion:nil];
+      
+      [self.tableView deselectRowAtIndexPath:indexPath animated:true];
+      
+      return;
+    }
+    
+    [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:type];
   }
   else
   {
