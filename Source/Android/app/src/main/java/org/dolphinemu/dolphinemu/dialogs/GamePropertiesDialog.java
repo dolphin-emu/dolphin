@@ -10,9 +10,12 @@ import androidx.fragment.app.FragmentActivity;
 
 import android.widget.Toast;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
@@ -61,22 +64,28 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
-                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId);
+                  NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini",
+                          Settings.SECTION_INI_CORE, SettingsFile.KEY_DEFAULT_ISO, path);
+                  NativeLibrary.ReloadConfig();
+                  Toast.makeText(getContext(), "Default ISO set", Toast.LENGTH_SHORT).show();
                   break;
                 case 2:
-                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId);
                   break;
                 case 3:
-                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId);
                   break;
                 case 4:
+                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId);
+                  break;
+                case 5:
                   // Clear option for GC, Wii controls for else
                   if (platform == Platform.GAMECUBE.toInt())
                     clearGameSettings(gameId);
                   else
                     SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId);
                   break;
-                case 5:
+                case 6:
                   clearGameSettings(gameId);
                   break;
               }
