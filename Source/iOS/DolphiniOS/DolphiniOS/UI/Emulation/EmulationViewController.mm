@@ -163,8 +163,7 @@
 {
   self->m_controllers.clear();
   
-  //if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
-  if (true)
+  if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
   {
     InputConfig* wii_input_config = Wiimote::GetConfig();
     for (int i = 0; i < 4; i++)
