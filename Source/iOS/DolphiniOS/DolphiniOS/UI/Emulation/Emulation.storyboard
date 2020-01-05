@@ -36,6 +36,10 @@
                                 <rect key="frame" x="44" y="44" width="808" height="349"/>
                                 <gestureRecognizers/>
                             </view>
+                            <view hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="YWH-fQ-xGM" userLabel="ClassicWiiPad" customClass="TCClassicWiiPad" customModule="DolphiniOS" customModuleProvider="target">
+                                <rect key="frame" x="44" y="44" width="808" height="349"/>
+                                <gestureRecognizers/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <gestureRecognizers/>
@@ -56,12 +60,16 @@
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="trailing" secondItem="kFP-2O-2AC" secondAttribute="trailing" id="cQa-Rc-8Wf"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="trailing" secondItem="DHP-hz-C2m" secondAttribute="trailing" id="dC9-fp-f9H"/>
                             <constraint firstItem="R1C-TK-7Br" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="bottom" id="ddA-4h-f70"/>
+                            <constraint firstItem="Dzs-Je-a4O" firstAttribute="top" secondItem="YWH-fQ-xGM" secondAttribute="top" id="e7E-OR-OP0"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="leading" secondItem="kFP-2O-2AC" secondAttribute="leading" id="hyT-uu-y6h"/>
+                            <constraint firstItem="Dzs-Je-a4O" firstAttribute="trailing" secondItem="YWH-fQ-xGM" secondAttribute="trailing" id="i49-lP-ZK1"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="DHP-hz-C2m" secondAttribute="bottom" id="idl-QD-yJr"/>
+                            <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="YWH-fQ-xGM" secondAttribute="bottom" id="kvB-9E-d0e"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="MkU-9V-PoJ" secondAttribute="bottom" id="l7v-5a-mFJ"/>
                             <constraint firstItem="daX-vt-kk3" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="scI-dh-7aD"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="centerY" secondItem="daX-vt-kk3" secondAttribute="bottom" id="uhM-Ah-BI9"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="centerY" id="xPp-nK-9tw"/>
+                            <constraint firstItem="Dzs-Je-a4O" firstAttribute="leading" secondItem="YWH-fQ-xGM" secondAttribute="leading" id="yCl-wb-fOr"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Dzs-Je-a4O"/>
                         <variation key="default">
@@ -110,6 +118,7 @@
                         <outlet property="m_eagl_view" destination="daX-vt-kk3" id="9Fx-FT-ga5"/>
                         <outlet property="m_gc_pad" destination="R1C-TK-7Br" id="lIa-V3-4Kh"/>
                         <outlet property="m_metal_view" destination="ODM-xp-bCF" id="iZt-J9-8uw"/>
+                        <outlet property="m_wii_classic_pad" destination="YWH-fQ-xGM" id="apE-lX-o8f"/>
                         <outlet property="m_wii_normal_pad" destination="kFP-2O-2AC" id="0cx-4G-3Wk"/>
                         <outlet property="m_wii_sideways_pad" destination="DHP-hz-C2m" id="DVv-1S-JEJ"/>
                         <segue destination="BG8-Lj-EOf" kind="unwind" identifier="toSoftwareTable" unwindAction="unwindToSoftwareTable:" id="Sqg-ww-7Od"/>
@@ -129,7 +138,7 @@
         <!--In-Game Navigation-->
         <scene sceneID="qlf-d4-rlN">
             <objects>
-                <navigationController id="Izy-YD-mb0" userLabel="In-Game Navigation" sceneMemberID="viewController">
+                <navigationController id="Izy-YD-mb0" userLabel="In-Game Navigation" customClass="InGameSettingsViewController" sceneMemberID="viewController">
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="yYW-iL-C27">
                         <rect key="frame" x="0.0" y="0.0" width="896" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>

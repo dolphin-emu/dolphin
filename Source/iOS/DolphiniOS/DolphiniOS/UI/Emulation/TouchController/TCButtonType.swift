@@ -78,6 +78,32 @@ enum TCButtonType: Int
   case NUNCHUK_SHAKE_X = 220
   case NUNCHUK_SHAKE_Y = 221
   case NUNCHUK_SHAKE_Z = 222
+  // Classic Controller
+  case CLASSIC_BUTTON_A = 300
+  case CLASSIC_BUTTON_B = 301
+  case CLASSIC_BUTTON_X = 302
+  case CLASSIC_BUTTON_Y = 303
+  case CLASSIC_BUTTON_MINUS = 304
+  case CLASSIC_BUTTON_PLUS = 305
+  case CLASSIC_BUTTON_HOME = 306
+  case CLASSIC_BUTTON_ZL = 307
+  case CLASSIC_BUTTON_ZR = 308
+  case CLASSIC_DPAD_UP = 309
+  case CLASSIC_DPAD_DOWN = 310
+  case CLASSIC_DPAD_LEFT = 311
+  case CLASSIC_DPAD_RIGHT = 312
+  case CLASSIC_STICK_LEFT = 313
+  case CLASSIC_STICK_LEFT_UP = 314
+  case CLASSIC_STICK_LEFT_DOWN = 315
+  case CLASSIC_STICK_LEFT_LEFT = 316
+  case CLASSIC_STICK_LEFT_RIGHT = 317
+  case CLASSIC_STICK_RIGHT = 318
+  case CLASSIC_STICK_RIGHT_UP = 319
+  case CLASSIC_STICK_RIGHT_DOWN = 320
+  case CLASSIC_STICK_RIGHT_LEFT = 321
+  case CLASSIC_STICK_RIGHT_RIGHT = 322
+  case CLASSIC_TRIGGER_L = 323
+  case CLASSIC_TRIGGER_R = 324
   // Wiimote IMU
   case WIIMOTE_ACCEL_LEFT = 625
   case WIIMOTE_ACCEL_RIGHT = 626
@@ -110,9 +136,9 @@ enum TCButtonType: Int
     case .BUTTON_Z:
       return "gcpad_z"
     case .BUTTON_UP, .BUTTON_DOWN, .BUTTON_LEFT, .BUTTON_RIGHT, .WIIMOTE_UP, .WIIMOTE_DOWN,
-         .WIIMOTE_LEFT, .WIIMOTE_RIGHT:
+         .WIIMOTE_LEFT, .WIIMOTE_RIGHT, .CLASSIC_DPAD_UP, .CLASSIC_DPAD_DOWN, .CLASSIC_DPAD_LEFT, .CLASSIC_DPAD_RIGHT:
       return "gcwii_dpad"
-    case .STICK_MAIN, .WIIMOTE_IR, .NUNCHUK_STICK:
+    case .STICK_MAIN, .WIIMOTE_IR, .NUNCHUK_STICK, .CLASSIC_STICK_LEFT, .CLASSIC_STICK_RIGHT:
       return "gcwii_joystick"
     case .STICK_C:
       return "gcpad_c"
@@ -124,11 +150,11 @@ enum TCButtonType: Int
       return "wiimote_a"
     case .WIIMOTE_BUTTON_B:
       return "wiimote_b"
-    case .WIIMOTE_BUTTON_MINUS:
+    case .WIIMOTE_BUTTON_MINUS, .CLASSIC_BUTTON_MINUS:
       return "wiimote_minus"
-    case .WIIMOTE_BUTTON_PLUS:
+    case .WIIMOTE_BUTTON_PLUS, .CLASSIC_BUTTON_PLUS:
       return "wiimote_plus"
-    case .WIIMOTE_BUTTON_HOME:
+    case .WIIMOTE_BUTTON_HOME, .CLASSIC_BUTTON_HOME:
       return "wiimote_home"
     case .WIIMOTE_BUTTON_1:
       return "wiimote_one"
@@ -138,6 +164,22 @@ enum TCButtonType: Int
       return "nunchuk_c"
     case .NUNCHUK_BUTTON_Z:
       return "nunchuk_z"
+    case .CLASSIC_BUTTON_A:
+      return "classic_a"
+    case .CLASSIC_BUTTON_B:
+      return "classic_b"
+    case .CLASSIC_BUTTON_X:
+      return "classic_x"
+    case .CLASSIC_BUTTON_Y:
+      return "classic_y"
+    case .CLASSIC_BUTTON_ZL:
+      return "classic_zl"
+    case .CLASSIC_BUTTON_ZR:
+      return "classic_zr"
+    case .CLASSIC_TRIGGER_L:
+      return "classic_l"
+    case .CLASSIC_TRIGGER_R:
+      return "classic_r"
     default:
       return "gcpad_a"
     }
@@ -147,9 +189,9 @@ enum TCButtonType: Int
   {
     switch self
     {
-    case .BUTTON_A, .BUTTON_Z, .TRIGGER_L, .TRIGGER_R, .WIIMOTE_BUTTON_B, .NUNCHUK_BUTTON_Z:
+    case .BUTTON_A, .BUTTON_Z, .TRIGGER_L, .TRIGGER_R, .WIIMOTE_BUTTON_B, .NUNCHUK_BUTTON_Z, .CLASSIC_BUTTON_ZL, .CLASSIC_BUTTON_ZR, .CLASSIC_TRIGGER_L, .CLASSIC_TRIGGER_R:
       return 0.6
-    case .BUTTON_B, .BUTTON_START, .WIIMOTE_BUTTON_1, .WIIMOTE_BUTTON_2, .WIIMOTE_BUTTON_A:
+    case .BUTTON_B, .BUTTON_START, .WIIMOTE_BUTTON_1, .WIIMOTE_BUTTON_2, .WIIMOTE_BUTTON_A, .CLASSIC_BUTTON_A, .CLASSIC_BUTTON_B, .CLASSIC_BUTTON_X, .CLASSIC_BUTTON_Y:
       return 0.33
     case .BUTTON_X, .BUTTON_Y:
       return 0.5
