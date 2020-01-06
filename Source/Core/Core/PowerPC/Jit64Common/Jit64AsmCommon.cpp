@@ -101,8 +101,8 @@ void CommonAsmRoutines::GenFrsqrte()
   MOVQ_xmm(XMM0, R(RSCRATCH));
   RET();
   SetJumpTarget(inf);
-  BT(64, R(RSCRATCH), Imm8(63));
-  FixupBranch negative = J_CC(CC_C);
+  TEST(64, R(RSCRATCH), R(RSCRATCH));
+  FixupBranch negative = J_CC(CC_S);
   XORPD(XMM0, R(XMM0));
   RET();
 
