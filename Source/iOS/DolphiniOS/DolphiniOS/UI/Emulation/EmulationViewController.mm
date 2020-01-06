@@ -232,6 +232,7 @@
   if (self.m_ts_active_view != nil)
   {
     [self.m_ts_active_view setHidden:true];
+    [self.m_ts_active_view setUserInteractionEnabled:false];
   }
   
   if (port == -1)
