@@ -154,15 +154,15 @@
         <!--Settings-->
         <scene sceneID="dPB-8u-8H5">
             <objects>
-                <tableViewController title="Settings" id="vzh-dh-b6l" sceneMemberID="viewController">
+                <tableViewController title="Settings" id="vzh-dh-b6l" customClass="InGameSettingsTableViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="be6-8h-vmk">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <sections>
-                            <tableViewSection id="vaH-YK-bVw">
+                            <tableViewSection headerTitle="Controls" id="vaH-YK-bVw">
                                 <cells>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="1v4-7v-1Zv">
-                                        <rect key="frame" x="20" y="18" width="374" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="55.333332061767578" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="1v4-7v-1Zv" id="399-VI-PwD">
                                             <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
@@ -182,7 +182,7 @@
                                         </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="05y-Na-daV">
-                                        <rect key="frame" x="20" y="61.666667938232422" width="374" height="43.666667938232422"/>
+                                        <rect key="frame" x="20" y="99" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="05y-Na-daV" id="VBF-6Y-U2k">
                                             <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
