@@ -554,7 +554,7 @@ TWO_OP_ARITH_TEST(OR)
 TWO_OP_ARITH_TEST(XOR)
 TWO_OP_ARITH_TEST(MOV)
 
-TEST_F(x64EmitterTest, MOV_Imm64)
+TEST_F(x64EmitterTest, MOV64)
 {
   for (size_t i = 0; i < reg64names.size(); i++)
   {
@@ -569,6 +569,10 @@ TEST_F(x64EmitterTest, MOV_Imm64)
     emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEF));
     EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
     ExpectDisassembly("mov " + reg32names[i].name + ", 0xdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm32(0x7FFFFFFF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
+    ExpectDisassembly("mov " + reg32names[i].name + ", 0x7fffffff");
   }
 }
 
