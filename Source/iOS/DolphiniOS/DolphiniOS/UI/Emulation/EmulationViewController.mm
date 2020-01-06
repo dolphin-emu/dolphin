@@ -71,6 +71,11 @@
   });
 }
 
+- (bool)prefersHomeIndicatorAutoHidden
+{
+  return true;
+}
+
 #pragma mark - Navigation bar
 
 - (IBAction)topEdgeRecognized:(id)sender
@@ -127,11 +132,6 @@
   [[TCDeviceMotion shared] statusBarOrientationChanged];
   [MainiOS windowResized];
   [self setNeedsUpdateOfHomeIndicatorAutoHidden];
-}
-
-- (bool)prefersHomeIndicatorAutoHidden
-{
-  return UIInterfaceOrientationIsLandscape(UIApplication.sharedApplication.statusBarOrientation);
 }
 
 #pragma mark - Stop button
