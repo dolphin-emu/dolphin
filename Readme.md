@@ -39,11 +39,11 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2019 16.3 is a hard requirement. Other compilers might be
+Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK must be installed when building.
 
-Make sure to check out the Qt submodule before building:
+Make sure to pull submodules before building:
 ```sh
 git submodule update --init
 ```
@@ -55,6 +55,11 @@ An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
 since the Binary directory contains a working Dolphin distribution.
+
+To ease contributing code to Dolphin which has been modified in Visual Studio,
+install clang-format-7 by installing a 7.x version of the LLVM tools from http://releases.llvm.org.
+In Visual Studio, under Options > Text Editor > C/C++ > Formatting > General,
+enable "Use custom clang-format.exe file" and point it to the just-installed clang-format.exe
 
 ## Building for Linux and macOS
 
