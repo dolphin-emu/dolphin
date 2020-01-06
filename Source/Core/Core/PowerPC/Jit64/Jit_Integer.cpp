@@ -1330,18 +1330,29 @@ void Jit64::addx(UGeckoInstruction inst)
     RCX64Reg Rd = gpr.Bind(d, RCMode::Write);
     RegCache::Realize(Ra, Rb, Rd);
 
-    if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
+    if (d == a)
     {
-      LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
+      ADD(32, Rd, Rb);
     }
     else if (d == b)
     {
       ADD(32, Rd, Ra);
     }
+    else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
+    {
+      LEA(32, Rd, MRegSum(Ra.GetSimpleReg(), Rb.GetSimpleReg()));
+    }
+    else if (Ra.IsSimpleReg() && Rb.IsImm() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Ra.GetSimpleReg(), Rb.SImm32()));
+    }
+    else if (Rb.IsSimpleReg() && Ra.IsImm() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rb.GetSimpleReg(), Ra.SImm32()));
+    }
     else
     {
-      if (d != a)
-        MOV(32, Rd, Ra);
+      MOV(32, Rd, Ra);
       ADD(32, Rd, Rb);
     }
     if (inst.OE)
