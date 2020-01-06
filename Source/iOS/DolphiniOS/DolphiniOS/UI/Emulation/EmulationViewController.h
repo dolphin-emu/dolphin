@@ -27,10 +27,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet TCView* m_wii_sideways_pad;
 @property (weak, nonatomic) IBOutlet TCView* m_wii_classic_pad;
 
+@property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
 @property(nonatomic) int m_ts_active_port;
 @property(weak, nonatomic) TCView* m_ts_active_view;
-@property(nonatomic) UICommon::GameFile* m_game_file;
 
 - (void)PopulatePortDictionary;
 - (void)ChangeVisibleTouchControllerToPort:(int)port;
