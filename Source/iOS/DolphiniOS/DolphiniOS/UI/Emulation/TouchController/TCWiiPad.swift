@@ -63,6 +63,16 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
     return false
   }
   
+  func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRequireFailureOf otherGestureRecognizer: UIGestureRecognizer) -> Bool
+  {
+    if (otherGestureRecognizer is UIScreenEdgePanGestureRecognizer)
+    {
+      return true
+    }
+    
+    return false
+  }
+  
   @objc func handleLongPress(gesture: UILongPressGestureRecognizer)
   {
     // Convert the point to the native screen scale
