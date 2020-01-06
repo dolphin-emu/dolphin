@@ -21,6 +21,7 @@
 #import "ControllerGroupCell.h"
 #import "ControllerGroupExtensionButtonCell.h"
 #import "ControllerGroupViewController.h"
+#import "ControllerSettingsUtils.h"
 
 @interface ControllerGroupListViewController ()
 
@@ -55,11 +56,22 @@
     self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::DPad));
     self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Hotkeys));
     self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Rumble));
+    
+    if ([ControllerSettingsUtils ShouldControllerSupportFullMotion:self.m_controller] || self.m_controller->GetDefaultDevice().source == "Android")
+    {
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::IMUPoint));
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::IMUAccelerometer));
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::IMUGyroscope));
+    }
+    else
+    {
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Shake));
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Point));
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Tilt));
+      self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Swing));
+    }
+    
     self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Options));
-    self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Shake));
-    self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Point));
-    self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Tilt));
-    self->m_controller_groups.push_back(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Swing));
     
     // Set the attachments
     self.m_attachments = static_cast<ControllerEmu::Attachments*>(Wiimote::GetWiimoteGroup(self.m_port, WiimoteEmu::WiimoteGroup::Attachments));
