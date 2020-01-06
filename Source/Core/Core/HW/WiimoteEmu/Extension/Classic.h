@@ -105,26 +105,22 @@ public:
   static constexpr u16 PAD_LEFT = 0x0200;
   static constexpr u16 PAD_UP = 0x0100;
 
+  // Typical value pulled from physical Classic Controller.
+  static constexpr u8 STICK_GATE_RADIUS = 0x61;
+
   static constexpr u8 CAL_STICK_CENTER = 0x80;
   static constexpr u8 CAL_STICK_RANGE = 0x7f;
   static constexpr int CAL_STICK_BITS = 8;
 
   static constexpr int LEFT_STICK_BITS = 6;
-  static constexpr u8 LEFT_STICK_CENTER_X = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
-  static constexpr u8 LEFT_STICK_CENTER_Y = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
+  static constexpr u8 LEFT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - LEFT_STICK_BITS);
   static constexpr u8 LEFT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - LEFT_STICK_BITS);
 
   static constexpr int RIGHT_STICK_BITS = 5;
-  static constexpr u8 RIGHT_STICK_CENTER_X = CAL_STICK_CENTER >>
-                                             (CAL_STICK_BITS - RIGHT_STICK_BITS);
-  static constexpr u8 RIGHT_STICK_CENTER_Y = CAL_STICK_CENTER >>
-                                             (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
   static constexpr u8 RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
 
-  static constexpr u8 LEFT_TRIGGER_RANGE = 0x1F;
-  static constexpr u8 RIGHT_TRIGGER_RANGE = 0x1F;
-
-  static constexpr u8 STICK_GATE_RADIUS = 0x16;
+  static constexpr u8 TRIGGER_RANGE = 0x1F;
 
 private:
   ControllerEmu::Buttons* m_buttons;

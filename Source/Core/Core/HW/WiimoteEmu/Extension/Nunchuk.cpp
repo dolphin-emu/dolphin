@@ -144,12 +144,12 @@ void Nunchuk::Reset()
       // Possibly LSBs of 1G values:
       0x00,
       // Stick X max,min,center:
-      STICK_CENTER + STICK_RADIUS,
-      STICK_CENTER - STICK_RADIUS,
+      STICK_CENTER + STICK_GATE_RADIUS,
+      STICK_CENTER - STICK_GATE_RADIUS,
       STICK_CENTER,
       // Stick Y max,min,center:
-      STICK_CENTER + STICK_RADIUS,
-      STICK_CENTER - STICK_RADIUS,
+      STICK_CENTER + STICK_GATE_RADIUS,
+      STICK_CENTER - STICK_GATE_RADIUS,
       STICK_CENTER,
       // 2 checksum bytes calculated below:
       0x00,

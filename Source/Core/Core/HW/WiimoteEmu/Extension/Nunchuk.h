@@ -81,12 +81,13 @@ public:
   static constexpr u8 BUTTON_C = 0x02;
   static constexpr u8 BUTTON_Z = 0x01;
 
+  // Typical values pulled from physical Nunchuk.
   static constexpr u8 ACCEL_ZERO_G = 0x80;
   static constexpr u8 ACCEL_ONE_G = 0xB3;
+  static constexpr u8 STICK_GATE_RADIUS = 0x60;
 
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
-  static constexpr u8 STICK_GATE_RADIUS = 0x52;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
