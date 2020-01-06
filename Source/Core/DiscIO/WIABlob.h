@@ -54,6 +54,8 @@ private:
     LZMA2 = 4,
   };
 
+  // See docs/WIA.md for details about the format
+
 #pragma pack(push, 1)
   struct WIAHeader1
   {
