@@ -412,17 +412,17 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
 
   // Filter out interesting devices (see description below)
   m_interesting = num_motion_axis != 0 || num_axis >= 2 || num_buttons >= 8;
-    
+
   // On modern linux systems, there are a lot of event devices that aren't controllers.
   // For example, the PC Speaker is an event device. Webcams sometimes show up as
   // event devices. The power button is an event device.
-  
+  //
   // We don't want these showing up in the list of controllers, so we use this
   // heuristic to filter out anything that doesn't smell like a controller:
   //
-  // More than two analog axis: 
+  // More than two analog axis:
   //    Most controllers have at least one stick. This rule will catch all such
-  //    controllers, while ignoring anything with a single axis (like the mouse 
+  //    controllers, while ignoring anything with a single axis (like the mouse
   //    scroll-wheel)
   //
   // --- OR ---
@@ -433,16 +433,16 @@ evdevDevice::evdevDevice(const std::string& devnode) : m_devfile(devnode)
   //     only a few buttons, like the power button. Sometimes laptops have devices
   //     with 5 or 6 special buttons, which is why the threshold is set to 8 to
   //     match a NES controller.
-  // 
+  //
   // --- OR ---
   //
   // Any Motion Axis:
   //     This rule is to catch any theoretical motion controllers with only a few
-  //     buttons that the user might want to use as a controller. 
+  //     buttons that the user might want to use as a controller.
   //
   // This heuristic is quite loose. The user may still see weird devices showing up
   // as controllers, but it hopefully shouldn't filter out anything they actually
-  // want to use.  
+  // want to use.
 }
 
 evdevDevice::~evdevDevice()
