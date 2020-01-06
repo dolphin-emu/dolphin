@@ -17,7 +17,6 @@
 + (UIViewController*)getEmulationViewController;
 + (CGFloat)getGameAspectRatio;
 + (CGRect)getRenderTargetRectangle;
-+ (void)setDrawRectangleCustomOriginAsX:(int)x y:(int)y;
 + (void)windowResized;
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action;
 + (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value;
