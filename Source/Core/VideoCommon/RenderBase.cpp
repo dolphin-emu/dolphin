@@ -1225,10 +1225,17 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       if (!IsHeadless())
       {
         BindBackbuffer({{0.0f, 0.0f, 0.0f, 1.0f}});
+
+        auto old_render_target_rc = GetTargetRectangle();
         UpdateDrawRectangle();
+        auto render_target_rc = GetTargetRectangle();
+
+        if (!(old_render_target_rc == render_target_rc))
+        {
+          Host_TargetRectangleWasUpdated();
+        }
 
         // Adjust the source rectangle instead of using an oversized viewport to render the XFB.
-        auto render_target_rc = GetTargetRectangle();
         auto render_source_rc = xfb_rect;
         AdjustRectanglesToFitBounds(&render_target_rc, &render_source_rc, m_backbuffer_width,
                                     m_backbuffer_height);
