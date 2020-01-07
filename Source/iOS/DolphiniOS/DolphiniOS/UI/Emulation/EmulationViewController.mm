@@ -18,6 +18,8 @@
 
 #import "MainiOS.h"
 
+#import "VideoCommon/RenderBase.h"
+
 @interface EmulationViewController ()
 
 @end
@@ -131,7 +133,20 @@
 {
   [[TCDeviceMotion shared] statusBarOrientationChanged];
   [MainiOS windowResized];
-  [self setNeedsUpdateOfHomeIndicatorAutoHidden];
+}
+
+- (void)UpdateWiiPointer
+{
+  if (g_renderer && [self.m_ts_active_view isKindOfClass:[TCWiiPad class]])
+  {
+    const MathUtil::Rectangle<int>& draw_rect = g_renderer->GetTargetRectangle();
+    CGRect rect = CGRectMake(draw_rect.left, draw_rect.top, draw_rect.GetWidth(), draw_rect.GetHeight());
+    
+    dispatch_async(dispatch_get_main_queue(), ^{
+      TCWiiPad* wii_pad = (TCWiiPad*)self.m_ts_active_view;
+      [wii_pad recalculatePointerValuesWithNew_rect:rect game_aspect:g_renderer->CalculateDrawAspectRatio()];
+    });
+  }
 }
 
 #pragma mark - Stop button
