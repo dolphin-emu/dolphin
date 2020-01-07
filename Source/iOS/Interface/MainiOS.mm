@@ -187,7 +187,9 @@ void UpdateWiiPointer()
   // HACK: We can't import EmulationViewController's header here... MainiOS should
   // probably be in the Xcode project anyway.
   SEL selector = NSSelectorFromString(@"UpdateWiiPointer");
-  [s_view_controller performSelector:selector];
+  IMP imp = [s_view_controller methodForSelector:selector];
+  void (*update_pointer)(id, SEL) = (void(*)(id, SEL))imp;
+  update_pointer(s_view_controller, selector);
 }
 
 @implementation MainiOS
