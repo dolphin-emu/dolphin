@@ -84,6 +84,12 @@ void Host_UpdateMainFrame()
 
 void Host_RequestRenderWindowSize(int width, int height)
 {
+  UpdateWiiPointer();
+}
+
+void Host_TargetRectangleWasUpdated()
+{
+  UpdateWiiPointer();
 }
 
 bool Host_UINeedsControllerState()
@@ -169,6 +175,19 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
     return yes_pressed;
   }
+}
+
+void UpdateWiiPointer()
+{
+  if (!s_view_controller)
+  {
+    return;
+  }
+
+  // HACK: We can't import EmulationViewController's header here... MainiOS should
+  // probably be in the Xcode project anyway.
+  SEL selector = NSSelectorFromString(@"UpdateWiiPointer");
+  [s_view_controller performSelector:selector];
 }
 
 @implementation MainiOS

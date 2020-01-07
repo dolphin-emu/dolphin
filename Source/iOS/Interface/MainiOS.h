@@ -7,6 +7,8 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+void UpdateWiiPointer();
+
 @interface MainiOS : NSObject
 
 + (void)applicationStart;
