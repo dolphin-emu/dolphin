@@ -15,6 +15,8 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ControllerGroupListViewController : UITableViewController
 {
   std::vector<ControllerEmu::ControlGroup*> m_controller_groups;
+  std::vector<ControllerEmu::ControlGroup*> m_normal_motion_groups;
+  std::vector<ControllerEmu::ControlGroup*> m_imu_motion_groups;
   std::vector<ControllerEmu::ControlGroup*> m_extension_groups;
 }
 
