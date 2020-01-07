@@ -222,7 +222,7 @@ private:
   public:
     Chunk();
     Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-          bool exception_list, bool compressed_exception_list,
+          u32 exception_lists, bool compressed_exception_lists,
           std::unique_ptr<Decompressor> decompressor);
 
     bool Read(u64 offset, u64 size, u8* out_ptr);
@@ -234,16 +234,22 @@ private:
     }
 
   private:
+    bool HandleExceptions(const u8* data, size_t bytes_allocated, size_t bytes_written,
+                          size_t* bytes_used, bool align);
+
     DecompressionBuffer m_in;
     DecompressionBuffer m_out;
-    DecompressionBuffer m_exceptions;
     size_t m_in_bytes_read = 0;
 
     std::unique_ptr<Decompressor> m_decompressor = nullptr;
     File::IOFile* m_file = nullptr;
     u64 m_offset_in_file = 0;
-    bool m_exception_list = false;
-    bool m_compressed_exception_list = false;
+
+    size_t m_out_bytes_allocated_for_exceptions = 0;
+    size_t m_out_bytes_used_for_exceptions = 0;
+    size_t m_in_bytes_used_for_exceptions = 0;
+    u32 m_exception_lists = 0;
+    bool m_compressed_exception_lists = false;
   };
 
   explicit WIAFileReader(File::IOFile file, const std::string& path);
@@ -251,9 +257,9 @@ private:
 
   bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
-                      bool exception_list);
+                      u32 exception_lists);
   Chunk& ReadCompressedData(u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-                            bool exception_list);
+                            u32 exception_lists);
 
   static std::string VersionToString(u32 version);
 

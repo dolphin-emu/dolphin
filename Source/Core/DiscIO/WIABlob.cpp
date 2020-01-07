@@ -175,7 +175,7 @@ bool WIAFileReader::Read(u64 offset, u64 size, u8* out_ptr)
     if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_TOTAL_SIZE,
                         Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
                         Common::swap32(raw_data.group_index),
-                        Common::swap32(raw_data.number_of_groups), false))
+                        Common::swap32(raw_data.number_of_groups), 0))
     {
       return false;
     }
@@ -210,7 +210,8 @@ bool WIAFileReader::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 part
 
       if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
                           data_offset, data_size, Common::swap32(data.group_index),
-                          Common::swap32(data.number_of_groups), true))
+                          Common::swap32(data.number_of_groups),
+                          chunk_size / VolumeWii::GROUP_DATA_SIZE))
       {
         return false;
       }
@@ -224,7 +225,7 @@ bool WIAFileReader::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 part
 
 bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size,
                                    u32 sector_size, u64 data_offset, u64 data_size, u32 group_index,
-                                   u32 number_of_groups, bool exception_list)
+                                   u32 number_of_groups, u32 exception_lists)
 {
   if (data_offset + data_size <= *offset)
     return true;
@@ -259,7 +260,7 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
     {
       const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
       Chunk& chunk =
-          ReadCompressedData(group_offset_in_file, group_data_size, chunk_size, exception_list);
+          ReadCompressedData(group_offset_in_file, group_data_size, chunk_size, exception_lists);
       if (!chunk.Read(offset_in_group, bytes_to_read, *out_ptr))
       {
         m_cached_chunk_offset = std::numeric_limits<u64>::max();  // Invalidate the cache
@@ -276,7 +277,7 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
 }
 
 WIAFileReader::Chunk& WIAFileReader::ReadCompressedData(u64 offset_in_file, u64 compressed_size,
-                                                        u64 decompressed_size, bool exception_list)
+                                                        u64 decompressed_size, u32 exception_lists)
 {
   if (offset_in_file == m_cached_chunk_offset)
     return m_cached_chunk;
@@ -303,10 +304,10 @@ WIAFileReader::Chunk& WIAFileReader::ReadCompressedData(u64 offset_in_file, u64 
     break;
   }
 
-  const bool compressed_exception_list = m_compression_type > CompressionType::Purge;
+  const bool compressed_exception_lists = m_compression_type > CompressionType::Purge;
 
   m_cached_chunk = Chunk(&m_file, offset_in_file, compressed_size, decompressed_size,
-                         exception_list, compressed_exception_list, std::move(decompressor));
+                         exception_lists, compressed_exception_lists, std::move(decompressor));
   m_cached_chunk_offset = offset_in_file;
   return m_cached_chunk;
 }
@@ -544,41 +545,34 @@ bool WIAFileReader::LZMADecompressor::Decompress(const DecompressionBuffer& in,
 WIAFileReader::Chunk::Chunk() = default;
 
 WIAFileReader::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size,
-                            u64 decompressed_size, bool exception_list,
-                            bool compressed_exception_list,
+                            u64 decompressed_size, u32 exception_lists,
+                            bool compressed_exception_lists,
                             std::unique_ptr<Decompressor> decompressor)
-    : m_file(file), m_offset_in_file(offset_in_file), m_exception_list(exception_list),
-      m_compressed_exception_list(compressed_exception_list),
+    : m_file(file), m_offset_in_file(offset_in_file), m_exception_lists(exception_lists),
+      m_compressed_exception_lists(compressed_exception_lists),
       m_decompressor(std::move(decompressor))
 {
+  constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
+      Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, sizeof(SHA1)) / sizeof(SHA1) *
+          VolumeWii::BLOCKS_PER_GROUP * sizeof(HashExceptionEntry) +
+      sizeof(u16);
+
+  m_out_bytes_allocated_for_exceptions =
+      m_compressed_exception_lists ? MAX_SIZE_PER_EXCEPTION_LIST * m_exception_lists : 0;
+
   m_in.data.resize(compressed_size);
-  m_out.data.resize(decompressed_size);
+  m_out.data.resize(decompressed_size + m_out_bytes_allocated_for_exceptions);
 }
 
 bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
 {
-  if (offset + size > m_out.data.size() || !m_decompressor || !m_file)
-    return false;
-
-  if (m_exception_list && !m_compressed_exception_list)
+  if (!m_decompressor || !m_file ||
+      offset + size > m_out.data.size() - m_out_bytes_allocated_for_exceptions)
   {
-    u16 exceptions;
-    if (!m_file->Seek(m_offset_in_file, SEEK_SET) || !m_file->ReadArray(&exceptions, 1))
-      return false;
-
-    m_exceptions.data.resize(Common::swap16(exceptions) * sizeof(HashExceptionEntry));
-    if (!m_file->ReadBytes(m_exceptions.data.data(), m_exceptions.data.size()))
-      return false;
-    m_exceptions.bytes_written = m_exceptions.data.size();
-
-    m_in.bytes_written = Common::AlignUp(sizeof(exceptions) + m_exceptions.data.size(), 4);
-    m_in_bytes_read = m_in.bytes_written;
-    m_exception_list = false;
-
-    // TODO: Actually handle the exceptions
+    return false;
   }
 
-  while (offset + size > m_out.bytes_written)
+  while (offset + size > m_out.bytes_written - m_out_bytes_used_for_exceptions)
   {
     u64 bytes_to_read;
     if (offset + size == m_out.data.size())
@@ -592,8 +586,9 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
       // be as it is, but the rest is a bit arbitrary and can be changed if desired.
 
       // The compressed data is probably not much bigger than the decompressed data.
-      // Add a few bytes for possible compression overhead and for the exception list.
-      bytes_to_read = offset + size - m_out.bytes_written + 0x100;
+      // Add a few bytes for possible compression overhead and for any hash exceptions.
+      bytes_to_read =
+          offset + size - (m_out.bytes_written - m_out_bytes_used_for_exceptions) + 0x100;
 
       // Align the access in an attempt to gain speed. But we don't actually know the
       // block size of the underlying storage device, so we just use the Wii block size.
@@ -619,43 +614,41 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     m_offset_in_file += bytes_to_read;
     m_in.bytes_written += bytes_to_read;
 
-    if (m_exception_list)
+    if (m_exception_lists > 0 && !m_compressed_exception_lists)
     {
-      if (m_exceptions.data.empty())
-        m_exceptions.data.resize(sizeof(u16));
-
-      if (m_exceptions.data.size() == sizeof(u16))
+      if (!HandleExceptions(m_in.data.data(), m_in.data.size(), m_in.bytes_written,
+                            &m_in_bytes_used_for_exceptions, true))
       {
-        if (!m_decompressor->Decompress(m_in, &m_exceptions, &m_in_bytes_read))
-          return false;
-
-        if (m_exceptions.bytes_written == m_exceptions.data.size())
-        {
-          u16 exceptions;
-          std::memcpy(&exceptions, m_exceptions.data.data(), sizeof(exceptions));
-          m_exceptions.data.resize(Common::swap16(exceptions) * sizeof(HashExceptionEntry));
-          m_exceptions.bytes_written = 0;
-        }
+        return false;
       }
 
-      if (m_exceptions.data.size() != sizeof(u16))
-      {
-        if (!m_decompressor->Decompress(m_in, &m_exceptions, &m_in_bytes_read))
-          return false;
-
-        if (m_exceptions.bytes_written == m_exceptions.data.size())
-          m_exception_list = false;
-
-        // TODO: Actually handle the exceptions
-      }
+      m_in_bytes_read = m_in_bytes_used_for_exceptions;
     }
 
-    if (!m_exception_list)
+    if (m_exception_lists == 0 || m_compressed_exception_lists)
     {
       if (!m_decompressor->Decompress(m_in, &m_out, &m_in_bytes_read))
         return false;
+    }
 
-      if (m_out.bytes_written == m_out.data.size() && !m_decompressor->Done())
+    if (m_exception_lists > 0 && m_compressed_exception_lists)
+    {
+      if (!HandleExceptions(m_out.data.data(), m_out_bytes_allocated_for_exceptions,
+                            m_out.bytes_written, &m_out_bytes_used_for_exceptions, false))
+      {
+        return false;
+      }
+    }
+
+    if (m_exception_lists == 0)
+    {
+      const size_t expected_out_bytes = m_out.data.size() - m_out_bytes_allocated_for_exceptions +
+                                        m_out_bytes_used_for_exceptions;
+
+      if (m_out.bytes_written > expected_out_bytes)
+        return false;  // Decompressed size is larger than expected
+
+      if (m_out.bytes_written == expected_out_bytes && !m_decompressor->Done())
         return false;  // Decompressed size is larger than expected
 
       if (m_decompressor->Done() && m_in_bytes_read != m_in.data.size())
@@ -663,7 +656,41 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
     }
   }
 
-  std::memcpy(out_ptr, m_out.data.data() + offset, size);
+  std::memcpy(out_ptr, m_out.data.data() + offset + m_out_bytes_used_for_exceptions, size);
+  return true;
+}
+
+bool WIAFileReader::Chunk::HandleExceptions(const u8* data, size_t bytes_allocated,
+                                            size_t bytes_written, size_t* bytes_used, bool align)
+{
+  while (m_exception_lists > 0)
+  {
+    if (sizeof(u16) + *bytes_used > bytes_allocated)
+    {
+      ERROR_LOG(DISCIO, "More hash exceptions than expected");
+      return false;
+    }
+    if (sizeof(u16) + *bytes_used > bytes_written)
+      return true;
+
+    const u16 exceptions = Common::swap16(data + *bytes_used);
+
+    size_t exception_list_size = exceptions * sizeof(HashExceptionEntry) + sizeof(u16);
+    if (align && m_exception_lists == 1)
+      exception_list_size = Common::AlignUp(*bytes_used + exception_list_size, 4) - *bytes_used;
+
+    if (exception_list_size + *bytes_used > bytes_allocated)
+    {
+      ERROR_LOG(DISCIO, "More hash exceptions than expected");
+      return false;
+    }
+    if (exception_list_size + *bytes_used > bytes_written)
+      return true;
+
+    *bytes_used += exception_list_size;
+    --m_exception_lists;
+  }
+
   return true;
 }
 
