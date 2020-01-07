@@ -17,9 +17,6 @@ void UpdateWiiPointer();
 + (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view;
 + (void)stopEmulation;
 + (UIViewController*)getEmulationViewController;
-+ (CGFloat)getGameAspectRatio;
-+ (CGRect)getRenderTargetRectangle;
-+ (void)windowResized;
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action;
 + (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value;
 

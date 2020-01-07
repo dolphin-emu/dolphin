@@ -358,29 +358,6 @@ void UpdateWiiPointer()
   return s_view_controller;
 }
 
-+ (CGFloat)getGameAspectRatio
-{
-  if (!g_renderer)
-    return 0;
-  
-  return g_renderer->CalculateDrawAspectRatio();
-}
-
-+ (CGRect)getRenderTargetRectangle
-{
-  if (!g_renderer)
-    return CGRectZero;
-  
-  const MathUtil::Rectangle<int>& rect = g_renderer->GetTargetRectangle();
-  return CGRectMake(rect.left, rect.top, rect.GetWidth(), rect.GetHeight());
-}
-
-+ (void)windowResized
-{
-  if (g_renderer)
-    g_renderer->ResizeSurface();
-}
-
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action
 {
   ButtonManager::GamepadEvent("Touchscreen", pad, button, action);

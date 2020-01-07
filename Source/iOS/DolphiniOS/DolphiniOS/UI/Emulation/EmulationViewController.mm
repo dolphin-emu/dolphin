@@ -132,7 +132,11 @@
 - (void)viewDidLayoutSubviews
 {
   [[TCDeviceMotion shared] statusBarOrientationChanged];
-  [MainiOS windowResized];
+  
+  if (g_renderer)
+  {
+    g_renderer->ResizeSurface();
+  }
 }
 
 - (void)UpdateWiiPointer
