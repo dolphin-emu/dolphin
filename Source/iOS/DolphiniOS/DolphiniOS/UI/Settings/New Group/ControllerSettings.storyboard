@@ -718,6 +718,7 @@
                                         <constraint firstItem="1Bh-Yd-mZn" firstAttribute="leading" secondItem="34D-Zv-mq3" secondAttribute="leadingMargin" id="5Zi-HT-H8M"/>
                                         <constraint firstAttribute="trailing" secondItem="1Bh-Yd-mZn" secondAttribute="trailing" id="CJi-oZ-u6q"/>
                                         <constraint firstItem="1Bh-Yd-mZn" firstAttribute="centerY" secondItem="34D-Zv-mq3" secondAttribute="centerY" id="K5M-Y8-Wyz"/>
+                                        <constraint firstItem="1Bh-Yd-mZn" firstAttribute="top" secondItem="34D-Zv-mq3" secondAttribute="topMargin" constant="0.66666666666666785" id="MoU-I5-B57"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <connections>
@@ -756,6 +757,28 @@
                                     <outlet property="m_extension_name" destination="fyb-Gv-J1r" id="k1L-vP-TvB"/>
                                     <segue destination="JPL-hJ-93c" kind="show" identifier="to_extensions" id="cz0-lG-8YN"/>
                                 </connections>
+                            </tableViewCell>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="imu_help_cell" rowHeight="43.5" id="vV3-nC-tV6">
+                                <rect key="frame" x="16" y="142.83333206176758" width="343" height="43.5"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="vV3-nC-tV6" id="CH5-3i-tqF">
+                                    <rect key="frame" x="0.0" y="0.0" width="343" height="43.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Help" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fcW-EL-79q">
+                                            <rect key="frame" x="15" y="11.666666666666666" width="328" height="20.333333333333336"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <color key="textColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="fcW-EL-79q" firstAttribute="top" secondItem="CH5-3i-tqF" secondAttribute="topMargin" constant="0.66666666666666785" id="gEX-gp-ZBw"/>
+                                        <constraint firstItem="fcW-EL-79q" firstAttribute="centerY" secondItem="CH5-3i-tqF" secondAttribute="centerY" id="yT7-Y2-P0f"/>
+                                        <constraint firstAttribute="trailing" secondItem="fcW-EL-79q" secondAttribute="trailing" id="zbu-2f-tP9"/>
+                                        <constraint firstItem="fcW-EL-79q" firstAttribute="leading" secondItem="CH5-3i-tqF" secondAttribute="leadingMargin" id="ziq-8p-Rij"/>
+                                    </constraints>
+                                </tableViewCellContentView>
                             </tableViewCell>
                         </prototypes>
                         <sections/>
