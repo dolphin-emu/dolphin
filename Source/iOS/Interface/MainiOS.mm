@@ -221,6 +221,13 @@ void UpdateWiiPointer()
     [file_manager copyItemAtPath:bundle_wii_pad toPath:wii_pad_path error:nil];
   }
 
+  // Create blank GCKeyNew
+  NSString* gc_key_path = [NSString stringWithUTF8String:File::GetUserPath(F_GCKEYBOARDCONFIG_IDX).c_str()];
+  if (![file_manager fileExistsAtPath:gc_key_path])
+  {
+    [file_manager createFileAtPath:gc_key_path contents:nil attributes:nil];
+  }
+
   // Get the Dolphin.ini path
   std::string dolphin_config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
 
