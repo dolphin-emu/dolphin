@@ -1048,14 +1048,14 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <slider opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" value="0.5" minValue="0.0" maxValue="1" continuous="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cKe-Dg-Tgd">
-                                                    <rect key="frame" x="148" y="7" width="197" height="31"/>
+                                                    <rect key="frame" x="148" y="7" width="182" height="31"/>
                                                     <connections>
                                                         <action selector="OpacityChanged:" destination="cCm-i9-QPx" eventType="valueChanged" id="bsD-uS-HlY"/>
                                                     </connections>
                                                 </slider>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="trailing" secondItem="cKe-Dg-Tgd" secondAttribute="trailing" id="2zJ-Fb-sPo"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="cKe-Dg-Tgd" secondAttribute="trailing" id="2zJ-Fb-sPo"/>
                                                 <constraint firstItem="cKe-Dg-Tgd" firstAttribute="leading" secondItem="Ba8-9K-oXL" secondAttribute="trailing" constant="20" id="JSE-Wu-6ga"/>
                                                 <constraint firstItem="Ba8-9K-oXL" firstAttribute="centerY" secondItem="Sjp-Nj-w0M" secondAttribute="centerY" id="TfM-UB-bT2"/>
                                                 <constraint firstItem="Ba8-9K-oXL" firstAttribute="leading" secondItem="Sjp-Nj-w0M" secondAttribute="leadingMargin" id="jKU-tF-381"/>
