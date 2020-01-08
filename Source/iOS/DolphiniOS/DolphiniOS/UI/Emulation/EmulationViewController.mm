@@ -4,6 +4,8 @@
 
 #import "EmulationViewController.h"
 
+#import "ControllerSettingsUtils.h"
+
 #import "Core/ConfigManager.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
@@ -170,14 +172,6 @@
 
 #pragma mark - Touchscreen Controller Switcher
 
-- (bool)IsControllerConnectedToTouchscreen:(ControllerEmu::EmulatedController*)controller
-{
-  const std::string android_str = "Android";
-  std::string device = controller->GetDefaultDevice().ToString();
-  
-  return device.compare(0, android_str.size(), android_str) == 0;
-}
-
 - (void)PopulatePortDictionary
 {
   self->m_controllers.clear();
@@ -193,7 +187,7 @@
       }
       
       ControllerEmu::EmulatedController* controller = wii_input_config->GetController(i);
-      if (![self IsControllerConnectedToTouchscreen:controller])
+      if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
       {
         continue;
       }
@@ -230,7 +224,7 @@
   for (int i = 0; i < 4; i++)
   {
     ControllerEmu::EmulatedController* controller = gc_input_config->GetController(i);
-    if (![self IsControllerConnectedToTouchscreen:controller])
+    if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
     {
       continue;
     }
