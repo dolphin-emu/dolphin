@@ -7,6 +7,7 @@ import UIKit
 
 class TCWiiPad: TCView, UIGestureRecognizerDelegate
 {
+  var touch_ir_enabled: Bool = false
   var current_rect: CGRect? = nil
   var max_size: CGSize = CGSize.zero
   var aspect_adjusted: CGFloat = 0
@@ -77,6 +78,11 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
   
   @objc func handleLongPress(gesture: UILongPressGestureRecognizer)
   {
+    if (!self.touch_ir_enabled)
+    {
+      return
+    }
+    
     if let image_rect = self.current_rect
     {
       // Convert the point to the native screen scale
@@ -113,6 +119,11 @@ class TCWiiPad: TCView, UIGestureRecognizerDelegate
         }
       }
     }
+  }
+  
+  @objc func setTouchPointerEnabled(_ enabled: Bool)
+  {
+    self.touch_ir_enabled = enabled
   }
   
 }

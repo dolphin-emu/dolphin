@@ -271,10 +271,17 @@
       [pair.second setAlpha:[[NSUserDefaults standardUserDefaults] floatForKey:@"pad_opacity_value"]];
       pair.second.m_port = port;
       
-      if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+      if ([pair.second isKindOfClass:[TCWiiPad class]])
       {
         [[TCDeviceMotion shared] registerMotionHandlers];
         [[TCDeviceMotion shared] setPort:port];
+        
+        [self UpdateWiiPointer];
+        
+        // Set if the touch IR pointer should be enabled
+        ControllerEmu::ControlGroup* group = Wiimote::GetWiimoteGroup(self.m_ts_active_port - 4, WiimoteEmu::WiimoteGroup::IMUPoint);
+        TCWiiPad* wii_pad = (TCWiiPad*)pair.second;
+        [wii_pad setTouchPointerEnabled:!group->enabled];
       }
       else
       {
