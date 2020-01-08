@@ -677,7 +677,7 @@ void Interpreter::lswx(UGeckoInstruction inst)
   }
 
   // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
-  for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); n++)
+  for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer.stringctrl); n++)
   {
     const int reg = (inst.RD + (n >> 2)) & 0x1f;
     const int offset = (n & 3) << 3;
@@ -949,7 +949,7 @@ void Interpreter::stswx(UGeckoInstruction inst)
     return;
   }
 
-  u32 n = (u8)PowerPC::ppcState.xer_stringctrl;
+  u32 n = (u8)PowerPC::ppcState.xer.stringctrl;
   int r = inst.RS;
   int i = 0;
 
@@ -1017,13 +1017,13 @@ void Interpreter::stwcxd(UGeckoInstruction inst)
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
         m_reserve = false;
-        PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::GetXER_SO());
+        PowerPC::ppcState.cr.SetField(0, 2 | PowerPC::ppcState.xer.so);
         return;
       }
     }
   }
 
-  PowerPC::ppcState.cr.SetField(0, PowerPC::GetXER_SO());
+  PowerPC::ppcState.cr.SetField(0, PowerPC::ppcState.xer.so);
 }
 
 void Interpreter::stwux(UGeckoInstruction inst)

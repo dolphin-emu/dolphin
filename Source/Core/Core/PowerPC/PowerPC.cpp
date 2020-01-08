@@ -114,9 +114,9 @@ void DoState(PointerWrap& p)
   p.Do(ppcState.fpscr);
   p.Do(ppcState.Exceptions);
   p.Do(ppcState.downcount);
-  p.Do(ppcState.xer_ca);
-  p.Do(ppcState.xer_so_ov);
-  p.Do(ppcState.xer_stringctrl);
+  p.Do(ppcState.xer.ca);
+  p.Do(ppcState.xer.so_ov);
+  p.Do(ppcState.xer.stringctrl);
   p.DoArray(ppcState.ps);
   p.DoArray(ppcState.sr);
   p.DoArray(ppcState.spr);

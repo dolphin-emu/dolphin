@@ -703,25 +703,25 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
 void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
 {
   if (oe)
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));  // XER.OV = 0
-  SHR(8, PPCSTATE(xer_ca), Imm8(1));                  // carry = XER.CA, XER.CA = 0
+    AND(8, PPCSTATE(xer.so_ov), Imm8(~XER_OV_MASK));  // XER.OV = 0
+  SHR(8, PPCSTATE(xer.ca), Imm8(1));                  // carry = XER.CA, XER.CA = 0
 }
 
 void EmuCodeBlock::JitSetCA()
 {
-  MOV(8, PPCSTATE(xer_ca), Imm8(1));  // XER.CA = 1
+  MOV(8, PPCSTATE(xer.ca), Imm8(1));  // XER.CA = 1
 }
 
 // Some testing shows CA is set roughly ~1/3 of the time (relative to clears), so
 // branchless calculation of CA is probably faster in general.
 void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
 {
-  SETcc(conditionCode, PPCSTATE(xer_ca));
+  SETcc(conditionCode, PPCSTATE(xer.ca));
 }
 
 void EmuCodeBlock::JitClearCA()
 {
-  MOV(8, PPCSTATE(xer_ca), Imm8(0));
+  MOV(8, PPCSTATE(xer.ca), Imm8(0));
 }
 
 void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool packed,
