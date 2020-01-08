@@ -24,8 +24,17 @@
   [super viewWillDisappear:animated];
   
   EmulationViewController* emulation_controller = (EmulationViewController*)[MainiOS getEmulationViewController];
+  
+  bool was_dict_empty = emulation_controller->m_controllers.size() == 0;
   [emulation_controller PopulatePortDictionary];
-  [emulation_controller ChangeVisibleTouchControllerToPort:emulation_controller.m_ts_active_port];
+  
+  int target_port = emulation_controller.m_ts_active_port;
+  if (was_dict_empty && emulation_controller->m_controllers.size() != 0)
+  {
+    target_port = emulation_controller->m_controllers[0].first;
+  }
+  
+  [emulation_controller ChangeVisibleTouchControllerToPort:target_port];
 }
 
 @end
