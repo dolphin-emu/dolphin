@@ -268,6 +268,7 @@
     {
       [pair.second setHidden:false];
       [pair.second setUserInteractionEnabled:true];
+      [pair.second setAlpha:[[NSUserDefaults standardUserDefaults] floatForKey:@"pad_opacity_value"]];
       pair.second.m_port = port;
       
       if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
