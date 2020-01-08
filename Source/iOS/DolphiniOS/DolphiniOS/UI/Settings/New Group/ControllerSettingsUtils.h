@@ -23,6 +23,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (NSString*)GetLocalizedWiimoteStringFromIndex:(NSInteger)idx;
 + (NSString*)RemoveAndroidFromDeviceName:(NSString*)name;
 + (NSString*)FormatExpression:(NSString*)expression;
++ (bool)IsControllerConnectedToTouchscreen:(ControllerEmu::EmulatedController*)controller;
 + (bool)ShouldControllerSupportFullMotion:(ControllerEmu::EmulatedController*)controller;
 + (void)LoadDefaultProfileOnController:(ControllerEmu::EmulatedController*)controller is_wii:(bool)is_wii type:(NSString*)type;
 + (void)LoadProfileOnController:(ControllerEmu::EmulatedController*)controller device:(std::string)device is_wii:(bool)is_wii profile_path:(std::string)profile_path;
