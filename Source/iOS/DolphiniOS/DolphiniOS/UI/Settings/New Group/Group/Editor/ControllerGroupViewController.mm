@@ -96,6 +96,11 @@
     ControllerGroupButtonCell* cell = (ControllerGroupButtonCell*)[tableView dequeueReusableCellWithIdentifier:@"button_cell" forIndexPath:indexPath];
     [cell SetupCellWithControl:self.m_control_group->controls[indexPath.row] controller:self.m_controller];
     
+    if ([ControllerSettingsUtils IsControllerConnectedToTouchscreen:self.m_controller])
+    {
+      [cell.m_button_name setTextColor:[UIColor systemGrayColor]];
+    }
+    
     return cell;
   }
   else if (indexPath.section == SECTION_NUMERIC_SETTINGS)
@@ -148,6 +153,19 @@
   {
     return nil;
   }
+}
+
+- (NSIndexPath*)tableView:(UITableView*)tableView willSelectRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  if (indexPath.section == SECTION_BUTTONS)
+  {
+    if ([ControllerSettingsUtils IsControllerConnectedToTouchscreen:self.m_controller])
+    {
+      return nil;
+    }
+  }
+  
+  return indexPath;
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
