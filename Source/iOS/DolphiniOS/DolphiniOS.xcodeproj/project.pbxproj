@@ -17,7 +17,6 @@
 		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
 		B945A3752362908500B21680 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.m */; };
-		B945A3782362908500B21680 /* SceneDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3772362908500B21680 /* SceneDelegate.m */; };
 		B945A37E2362908500B21680 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A37C2362908500B21680 /* Main.storyboard */; };
 		B945A3802362909500B21680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B945A37F2362909500B21680 /* Assets.xcassets */; };
 		B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A3812362909500B21680 /* LaunchScreen.storyboard */; };
@@ -145,8 +144,6 @@
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B945A3732362908500B21680 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B945A3742362908500B21680 /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		B945A3762362908500B21680 /* SceneDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SceneDelegate.h; sourceTree = "<group>"; };
-		B945A3772362908500B21680 /* SceneDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SceneDelegate.m; sourceTree = "<group>"; };
 		B945A37D2362908500B21680 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B945A37F2362909500B21680 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B945A3822362909500B21680 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -419,8 +416,6 @@
 				B945A3732362908500B21680 /* AppDelegate.h */,
 				B945A3742362908500B21680 /* AppDelegate.m */,
 				4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */,
-				B945A3762362908500B21680 /* SceneDelegate.h */,
-				B945A3772362908500B21680 /* SceneDelegate.m */,
 				B945A37C2362908500B21680 /* Main.storyboard */,
 				B945A37F2362909500B21680 /* Assets.xcassets */,
 				B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */,
@@ -932,7 +927,6 @@
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
-				B945A3782362908500B21680 /* SceneDelegate.m in Sources */,
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
 				B9EB847E2389C1A8006256C0 /* EmulationViewController.swift in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
