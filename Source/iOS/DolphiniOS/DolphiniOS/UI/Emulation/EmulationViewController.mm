@@ -279,7 +279,7 @@
         [self UpdateWiiPointer];
         
         // Set if the touch IR pointer should be enabled
-        ControllerEmu::ControlGroup* group = Wiimote::GetWiimoteGroup(self.m_ts_active_port - 4, WiimoteEmu::WiimoteGroup::IMUPoint);
+        ControllerEmu::ControlGroup* group = Wiimote::GetWiimoteGroup(port - 4, WiimoteEmu::WiimoteGroup::IMUPoint);
         TCWiiPad* wii_pad = (TCWiiPad*)pair.second;
         [wii_pad setTouchPointerEnabled:!group->enabled];
       }
