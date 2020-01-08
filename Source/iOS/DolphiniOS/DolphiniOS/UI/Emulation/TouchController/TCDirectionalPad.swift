@@ -17,6 +17,7 @@ class TCDirectionalPad: UIView
   @IBInspectable var directionalPadType: Int = 6 // default: GC D-Pad
   
   var m_port: Int = 0
+  var m_has_pressed: Bool = false
   
   override init(frame: CGRect)
   {
@@ -76,20 +77,20 @@ class TCDirectionalPad: UIView
     let point = gesture.location(in: self)
     var buttonPresses: [Bool] = [ false, false, false, false ]
     
-    if (gesture.state == .began)
-    {
-      // Check UserDefaults for haptic setting
-      if (UserDefaults.standard.bool(forKey: "haptic_feedback_enabled"))
-      {
-        hapticGenerator.impactOccurred()
-      }
-    }
-    else if (gesture.state == .ended)
+    if (gesture.state == .ended)
     {
       imageView.image = dpadNoPressed
+      self.m_has_pressed = false
     }
     else
     {
+      // Check UserDefaults for haptic setting
+      if (!self.m_has_pressed && UserDefaults.standard.bool(forKey: "haptic_feedback_enabled"))
+      {
+        hapticGenerator.impactOccurred()
+        self.m_has_pressed = true
+      }
+      
       // Get button boundary
       let buttonBounds = (gesture.view?.frame.width)! / 3
       
