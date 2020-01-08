@@ -13,7 +13,13 @@
 #import "ControllerGroupButtonCell.h"
 #import "ControllerGroupCheckboxCell.h"
 #import "ControllerGroupDoubleCell.h"
+#import "ControllerGroupEnabledCell.h"
 #import "ControllerSettingsUtils.h"
+
+#define SECTION_ENABLE_SWITCH 0
+//#define SECTION_CALIBRATION 0
+#define SECTION_BUTTONS 1
+#define SECTION_NUMERIC_SETTINGS 2
 
 @interface ControllerGroupViewController ()
 
@@ -57,38 +63,42 @@
   // TODO: Indicators
   // TODO: Calibration
   
-  return 2;
+  return 3;
 }
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section
 {
   switch (section)
   {
-    case 0: // Buttons
+    case SECTION_ENABLE_SWITCH: // Enabled
+      return self.m_control_group->can_be_disabled ? 1 : 0;
+    case SECTION_BUTTONS: // Buttons
       return self.m_control_group->controls.size();
-    case 1: // Numeric Settings
+    case SECTION_NUMERIC_SETTINGS: // Numeric Settings
       return self.m_control_group->numeric_settings.size();
     default:
       return 0;
   }
-  
-  return self.m_control_group->controls.size();
 }
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  // TODO: Enabled toggle
-  // TODO: Indicators
-  // TODO: Calibration
-  
-  if (indexPath.section == 0)
+  if (indexPath.section == SECTION_ENABLE_SWITCH)
+  {
+    ControllerGroupEnabledCell* cell = (ControllerGroupEnabledCell*)[tableView dequeueReusableCellWithIdentifier:@"enabled_cell" forIndexPath:indexPath];
+    [cell SetupCellWithGroup:self.m_control_group];
+    [cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+    
+    return cell;
+  }
+  else if (indexPath.section == SECTION_BUTTONS)
   {
     ControllerGroupButtonCell* cell = (ControllerGroupButtonCell*)[tableView dequeueReusableCellWithIdentifier:@"button_cell" forIndexPath:indexPath];
     [cell SetupCellWithControl:self.m_control_group->controls[indexPath.row] controller:self.m_controller];
     
     return cell;
   }
-  else if (indexPath.section == 1)
+  else if (indexPath.section == SECTION_NUMERIC_SETTINGS)
   {
     std::unique_ptr<ControllerEmu::NumericSettingBase>& setting = self.m_control_group->numeric_settings[indexPath.row];
     ControllerEmu::SettingType setting_type = setting->GetType();
@@ -116,7 +126,7 @@
 
 - (UISwipeActionsConfiguration*)tableView:(UITableView*)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  if (indexPath.section == 0)
+  if (indexPath.section == SECTION_BUTTONS)
   {
     UIContextualAction* clear_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:@"Clear" handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
       ControllerGroupButtonCell* cell = [self.tableView cellForRowAtIndexPath:indexPath];
@@ -142,7 +152,7 @@
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  if (indexPath.section == 0)
+  if (indexPath.section == SECTION_BUTTONS)
   {
     ControllerGroupButtonCell* cell = (ControllerGroupButtonCell*)[self.tableView cellForRowAtIndexPath:indexPath];
     
@@ -178,6 +188,16 @@
   }
   
   [self.tableView deselectRowAtIndexPath:indexPath animated:true];
+}
+
+- (CGFloat)tableView:(UITableView*)tableView heightForHeaderInSection:(NSInteger)section
+{
+  if ([self tableView:tableView numberOfRowsInSection:section] == 0)
+  {
+    return CGFLOAT_MIN;
+  }
+  
+  return UITableViewAutomaticDimension;
 }
 
 - (void)StopEditingCell:(ControllerGroupButtonCell*)cell

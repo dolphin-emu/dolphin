@@ -93,6 +93,7 @@
 		B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */; };
 		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */; };
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
+		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -244,6 +245,8 @@
 		B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerTouchscreenSettingsViewController.m; sourceTree = "<group>"; };
 		B9A7AD6823C1EC0B00C70473 /* InGameSettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameSettingsTableViewController.h; sourceTree = "<group>"; };
 		B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsTableViewController.mm; sourceTree = "<group>"; };
+		B9A7AD6B23C5304D00C70473 /* ControllerGroupEnabledCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerGroupEnabledCell.h; sourceTree = "<group>"; };
+		B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupEnabledCell.mm; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -650,6 +653,8 @@
 				B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */,
 				B9F03CBB23B0627100423AE6 /* ControllerGroupCheckboxCell.h */,
 				B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */,
+				B9A7AD6B23C5304D00C70473 /* ControllerGroupEnabledCell.h */,
+				B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */,
 				B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */,
 				B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */,
 			);
@@ -918,6 +923,7 @@
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
+				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
