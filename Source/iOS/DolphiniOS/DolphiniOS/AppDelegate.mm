@@ -5,6 +5,8 @@
 #import "AppDelegate.h"
 #import "DolphiniOS-Swift.h"
 
+#import "Common/Config/Config.h"
+
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
 #import "Core/HW/GCKeyboard.h"
@@ -14,6 +16,8 @@
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #import "MainiOS.h"
+
+#import "UICommon/UICommon.h"
 
 @interface AppDelegate ()
 
@@ -42,6 +46,11 @@
   Keyboard::Shutdown();
   Wiimote::Shutdown();
   g_controller_interface.Shutdown();
+  
+  Config::Save();
+  
+  Core::Shutdown();
+  UICommon::Shutdown();
 }
 
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
