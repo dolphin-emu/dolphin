@@ -5,6 +5,14 @@
 #import "AppDelegate.h"
 #import "DolphiniOS-Swift.h"
 
+#import "Core/ConfigManager.h"
+#import "Core/Core.h"
+#import "Core/HW/GCKeyboard.h"
+#import "Core/HW/GCPad.h"
+#import "Core/HW/Wiimote.h"
+
+#import "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #import "MainiOS.h"
 
 @interface AppDelegate ()
@@ -26,6 +34,14 @@
   [MainiOS applicationStart];
   
   return YES;
+}
+
+- (void)applicationWillTerminate:(UIApplication*)application
+{
+  Pad::Shutdown();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  g_controller_interface.Shutdown();
 }
 
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
