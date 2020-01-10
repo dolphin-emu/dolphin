@@ -18,6 +18,12 @@
 {
   [super viewDidLoad];
   
+  // Create a UIRefreshControl
+  UIRefreshControl* refreshControl = [[UIRefreshControl alloc] init];
+  [refreshControl addTarget:self action:@selector(RefreshDevices) forControlEvents:UIControlEventValueChanged];
+  
+  self.tableView.refreshControl = refreshControl;
+  
   [self RefreshDevices];
 }
 
@@ -31,6 +37,7 @@
 - (void)RefreshDevices
 {
   self.m_last_selected = -1;
+  self->m_devices.clear();
   
   std::vector<std::string> devices = g_controller_interface.GetAllDeviceStrings();
   const std::string android_str("Android");
@@ -66,6 +73,9 @@
       self.m_last_selected = i;
     }
   }
+  
+  [self.tableView reloadData];
+  [self.tableView.refreshControl endRefreshing];
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
