@@ -23,13 +23,9 @@
 
 @implementation ControllerDetailsViewController
 
-
-
 - (void)viewDidLoad
 {
   [super viewDidLoad];
-  
-  [self UpdateViewContents];
 }
 
 - (void)viewWillAppear:(BOOL)animated
