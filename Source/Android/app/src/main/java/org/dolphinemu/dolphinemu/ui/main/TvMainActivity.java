@@ -240,24 +240,15 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     mBrowseFragment.setAdapter(mRowsAdapter);
   }
 
-  private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
-  {
-    // If there are no games, don't return a Row.
-    if (gameFiles.size() == 0)
-    {
-      return null;
-    }
-
-    // Create an adapter for this row.
-    ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
-    row.addAll(0, gameFiles);
-
-    // Create a header for this row.
-    HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
-
-    // Create the row, passing it the filled adapter and the header, and give it to the master adapter.
-    return new ListRow(header, row);
-  }
+  private static ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles) {
+	if (gameFiles.size() == 0) {
+		return null;
+	}
+	ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
+	row.addAll(0, gameFiles);
+	HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());
+	return new ListRow(header, row);
+}
 
   private ListRow buildSettingsRow()
   {
