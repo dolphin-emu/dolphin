@@ -11,6 +11,7 @@
 
 #include <bzlib.h>
 #include <lzma.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -171,6 +172,7 @@ private:
   };
 
   // This class assumes that more bytes won't be added to in once in.bytes_written == in.data.size()
+  // and that *in_bytes_read initially will be equal to the size of the exception lists
   class PurgeDecompressor final : public Decompressor
   {
   public:
@@ -179,12 +181,15 @@ private:
                     size_t* in_bytes_read) override;
 
   private:
+    const u64 m_decompressed_size;
+
     PurgeSegment m_segment = {};
     size_t m_bytes_read = 0;
     size_t m_segment_bytes_written = 0;
     size_t m_out_bytes_written = 0;
+    bool m_started = false;
 
-    const u64 m_decompressed_size;
+    mbedtls_sha1_context m_sha1_context;
   };
 
   class Bzip2Decompressor final : public Decompressor

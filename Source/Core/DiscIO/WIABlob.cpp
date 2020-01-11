@@ -13,6 +13,7 @@
 
 #include <bzlib.h>
 #include <lzma.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
@@ -49,6 +50,12 @@ bool WIAFileReader::Initialize(const std::string& path)
     return false;
   }
 
+  SHA1 header_1_actual_hash;
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&m_header_1), sizeof(m_header_1) - sizeof(SHA1),
+                   header_1_actual_hash.data());
+  if (m_header_1.header_1_hash != header_1_actual_hash)
+    return false;
+
   if (Common::swap64(m_header_1.wia_file_size) != m_file.GetSize())
   {
     ERROR_LOG(DISCIO, "File size is incorrect for %s", path.c_str());
@@ -62,6 +69,11 @@ bool WIAFileReader::Initialize(const std::string& path)
 
   std::vector<u8> header_2(header_2_size);
   if (!m_file.ReadBytes(header_2.data(), header_2.size()))
+    return false;
+
+  SHA1 header_2_actual_hash;
+  mbedtls_sha1_ret(header_2.data(), header_2.size(), header_2_actual_hash.data());
+  if (m_header_1.header_2_hash != header_2_actual_hash)
     return false;
 
   std::memcpy(&m_header_2, header_2.data(), std::min(header_2.size(), sizeof(WIAHeader2)));
@@ -91,7 +103,12 @@ bool WIAFileReader::Initialize(const std::string& path)
     return false;
   if (!m_file.ReadBytes(partition_entries.data(), partition_entries.size()))
     return false;
-  // TODO: Check hash
+
+  SHA1 partition_entries_actual_hash;
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(partition_entries.data()), partition_entries.size(),
+                   partition_entries_actual_hash.data());
+  if (m_header_2.partition_entries_hash != partition_entries_actual_hash)
+    return false;
 
   const size_t copy_length = std::min(partition_entry_size, sizeof(PartitionEntry));
   const size_t memset_length = sizeof(PartitionEntry) - copy_length;
@@ -345,11 +362,22 @@ bool WIAFileReader::NoneDecompressor::Decompress(const DecompressionBuffer& in,
 WIAFileReader::PurgeDecompressor::PurgeDecompressor(u64 decompressed_size)
     : m_decompressed_size(decompressed_size)
 {
+  mbedtls_sha1_init(&m_sha1_context);
 }
 
 bool WIAFileReader::PurgeDecompressor::Decompress(const DecompressionBuffer& in,
                                                   DecompressionBuffer* out, size_t* in_bytes_read)
 {
+  if (!m_started)
+  {
+    mbedtls_sha1_starts_ret(&m_sha1_context);
+
+    // Include the exception lists in the SHA-1 calculation (but not in the compression...)
+    mbedtls_sha1_update_ret(&m_sha1_context, in.data.data(), *in_bytes_read);
+
+    m_started = true;
+  }
+
   while (!m_done && in.bytes_written != *in_bytes_read &&
          (m_segment_bytes_written < sizeof(m_segment) || out->data.size() != out->bytes_written))
   {
@@ -363,12 +391,19 @@ bool WIAFileReader::PurgeDecompressor::Decompress(const DecompressionBuffer& in,
       out->bytes_written += zeroes_to_write;
       m_out_bytes_written += zeroes_to_write;
 
-      if (m_out_bytes_written == m_decompressed_size)
+      if (m_out_bytes_written == m_decompressed_size && in.bytes_written == in.data.size())
       {
-        *in_bytes_read += sizeof(SHA1);
+        SHA1 actual_hash;
+        mbedtls_sha1_finish_ret(&m_sha1_context, actual_hash.data());
+
+        SHA1 expected_hash;
+        std::memcpy(expected_hash.data(), in.data.data() + *in_bytes_read, expected_hash.size());
+
+        *in_bytes_read += expected_hash.size();
         m_done = true;
 
-        // TODO: Check hash
+        if (actual_hash != expected_hash)
+          return false;
       }
 
       return true;
@@ -381,6 +416,7 @@ bool WIAFileReader::PurgeDecompressor::Decompress(const DecompressionBuffer& in,
 
       std::memcpy(reinterpret_cast<u8*>(&m_segment) + m_segment_bytes_written,
                   in.data.data() + *in_bytes_read, bytes_to_copy);
+      mbedtls_sha1_update_ret(&m_sha1_context, in.data.data() + *in_bytes_read, bytes_to_copy);
 
       *in_bytes_read += bytes_to_copy;
       m_bytes_read += bytes_to_copy;
@@ -412,6 +448,7 @@ bool WIAFileReader::PurgeDecompressor::Decompress(const DecompressionBuffer& in,
 
       std::memcpy(out->data.data() + out->bytes_written, in.data.data() + *in_bytes_read,
                   bytes_to_copy);
+      mbedtls_sha1_update_ret(&m_sha1_context, in.data.data() + *in_bytes_read, bytes_to_copy);
 
       *in_bytes_read += bytes_to_copy;
       m_bytes_read += bytes_to_copy;
