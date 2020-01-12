@@ -313,11 +313,6 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
   return (u32)distance;
 }
 
-// usage: int a[]; ARRAY_OFFSET(a,10)
-#define ARRAY_OFFSET(array, index) ((u32)((u64) & (array)[index] - (u64) & (array)[0]))
-// usage: struct {int e;} s; STRUCT_OFFSET(s,e)
-#define STRUCT_OFFSET(str, elem) ((u32)((u64) & (str).elem - (u64) & (str)))
-
 struct FixupBranch
 {
   enum class Type
