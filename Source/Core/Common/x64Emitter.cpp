@@ -13,7 +13,6 @@
 
 namespace Gen
 {
-// TODO(ector): Add EAX special casing, for ever so slightly smaller code.
 struct NormalOpDef
 {
   u8 toRm8, toRm32, fromRm8, fromRm32, imm8, imm32, simm8, eaximm8, eaximm32, ext;
