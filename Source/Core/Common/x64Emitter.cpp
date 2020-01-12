@@ -323,7 +323,11 @@ void OpArg::WriteRest(XEmitter* emit, int extraBytes, X64Reg _operandReg,
       // Okay, we're fine. Just disp encoding.
       // We need displacement. Which size?
       int ioff = (int)(s64)offset;
-      if (ioff < -128 || ioff > 127)
+      if (ioff == 0 && (_offsetOrBaseReg & 7) != 5)
+      {
+        mod = 0;
+      }
+      else if (ioff < -128 || ioff > 127)
       {
         mod = 2;  // 32-bit displacement
       }
