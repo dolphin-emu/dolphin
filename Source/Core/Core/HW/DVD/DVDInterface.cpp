@@ -174,6 +174,10 @@ static std::string s_disc_path_to_insert;
 static std::vector<std::string> s_auto_disc_change_paths;
 static size_t s_auto_disc_change_index;
 
+// Hacks
+static bool s_disc_has_accurate_size;
+static u64 s_guessed_disc_size;
+
 // Events
 static CoreTiming::EventType* s_finish_executing_command;
 static CoreTiming::EventType* s_auto_change_disc;
@@ -184,6 +188,8 @@ static void AutoChangeDiscCallback(u64 userdata, s64 cyclesLate);
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
+
+static u64 GuessDiscSize(const DiscIO::VolumeDisc& disc);
 
 void SetLidOpen();
 
@@ -420,6 +426,35 @@ void Shutdown()
   DVDThread::Stop();
 }
 
+static u64 GuessDiscSize(const DiscIO::VolumeDisc& disc)
+{
+  // Many Wii games intentionally try to read from an offset which is just past the end of a regular
+  // DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot if the read
+  // succeeds (see https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for more details).
+  //
+  // We normally handle this by checking whether the DiscIO code considers the read to be out of
+  // bounds (this is done in DVDThread.cpp), but this doesn't work correctly for disc image formats
+  // that don't store the original size of the disc, most notably WBFS. Because of this, we have a
+  // hack here that guesses the original size of the disc if necessary. For Wii discs, there are
+  // two possibilities: single-layer discs (4.7 GiB) and dual-layer discs (7.93 GiB). Thankfully,
+  // 0x30-0x34 in BI2 tells us which disc type the game is expecting: 0x7ED40000 (0x1FB500000 >> 2)
+  // for games that expect dual-layer, and 0x00000000 for other games. The game uses this value
+  // when determining whether the attempted out of bounds read should be at 0x118280000 (just past
+  // the end of a of a single-layer DVD) or at 0x1FB500000 (just past the end of a dual-layer DVD).
+  //
+  // An alternative hack that also would work (which was used in Dolphin in the past)
+  // is to always reject DVDLowUnencryptedRead commands other than ones before 0x50000,
+  // since Wii games never do any such reads with the expectation that they will work. However,
+  // this must not be done for the raw Read command (which is used by GC games and CleanRip).
+
+  if (disc.GetVolumeType() == DiscIO::Platform::GameCubeDisc)
+    return 0x57058000;
+
+  const std::optional<u32> value = disc.ReadSwapped<u32>(0x440 + 0x30, disc.GetGamePartition());
+  const bool dual_layer = value.has_value() && *value != 0;
+  return dual_layer ? 0x1FB4E0000 : 0x118240000;
+}
+
 void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
              std::optional<std::vector<std::string>> auto_disc_change_paths = {})
 {
@@ -438,6 +473,10 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
   // Assume that inserting a disc requires having an empty disc before
   if (had_disc != has_disc)
     ExpansionInterface::g_rtc_flags[ExpansionInterface::RTCFlag::DiscChanged] = true;
+
+  s_disc_has_accurate_size = has_disc && disc->IsSizeAccurate();
+  if (has_disc && !s_disc_has_accurate_size)
+    s_guessed_disc_size = GuessDiscSize(*disc);
 
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
@@ -746,6 +785,18 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
     WARN_LOG(DVDINTERFACE, "Detected an attempt to read more data from the DVD "
                            "than what fits inside the out buffer. Clamping.");
     dvd_length = output_length;
+  }
+
+  if (SConfig::GetInstance().bWii && !s_disc_has_accurate_size &&
+      partition == DiscIO::PARTITION_NONE)
+  {
+    WARN_LOG(DVDINTERFACE, "Unknown disc size, guessing %" PRIu64 " bytes", s_guessed_disc_size);
+    if (dvd_offset + dvd_length > s_guessed_disc_size)
+    {
+      SetHighError(DVDInterface::ERROR_BLOCK_OOB);
+      *interrupt_type = DIInterruptType::DEINT;
+      return false;
+    }
   }
 
   ScheduleReads(dvd_offset, dvd_length, partition, output_address, reply_type);
