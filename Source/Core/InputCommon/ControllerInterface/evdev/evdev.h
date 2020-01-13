@@ -76,18 +76,26 @@ public:
   void UpdateInput() override;
   bool IsValid() const override;
 
-  evdevDevice(const std::string& devnode);
   ~evdevDevice();
+
+  // Return true if node was "interesting".
+  bool AddNode(std::string devnode, int fd, libevdev* dev);
+
+  const char* GetUniqueID() const;
 
   std::string GetName() const override { return m_name; }
   std::string GetSource() const override { return "evdev"; }
-  bool IsInteresting() const { return m_interesting; }
 
 private:
-  const std::string m_devfile;
-  int m_fd;
-  libevdev* m_dev;
   std::string m_name;
-  bool m_interesting = false;
+
+  struct Node
+  {
+    std::string devnode;
+    int fd;
+    libevdev* device;
+  };
+
+  std::vector<Node> m_nodes;
 };
 }  // namespace ciface::evdev
