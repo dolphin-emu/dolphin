@@ -12,6 +12,7 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
+#include "Core/HW/WII_IPC.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace WiimoteEmu
@@ -103,23 +104,31 @@ void CameraLogic::Update(const Common::Matrix44& transform)
 
   std::array<CameraPoint, leds.size()> camera_points;
 
-  std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
-    const auto point = camera_view * Vec4(v, 1.0);
+  if (IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
+  {
+    std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
+      const auto point = camera_view * Vec4(v, 1.0);
 
-    if (point.z > 0)
-    {
-      // FYI: Casting down vs. rounding seems to produce more symmetrical output.
-      const auto x = s32((1 - point.x / point.w) * CAMERA_WIDTH / 2);
-      const auto y = s32((1 - point.y / point.w) * CAMERA_HEIGHT / 2);
+      if (point.z > 0)
+      {
+        // FYI: Casting down vs. rounding seems to produce more symmetrical output.
+        const auto x = s32((1 - point.x / point.w) * CAMERA_WIDTH / 2);
+        const auto y = s32((1 - point.y / point.w) * CAMERA_HEIGHT / 2);
 
-      const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
+        const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
 
-      if (x >= 0 && y >= 0 && x < CAMERA_WIDTH && y < CAMERA_HEIGHT)
-        return CameraPoint{u16(x), u16(y), u8(point_size)};
-    }
+        if (x >= 0 && y >= 0 && x < CAMERA_WIDTH && y < CAMERA_HEIGHT)
+          return CameraPoint{u16(x), u16(y), u8(point_size)};
+      }
 
-    return INVISIBLE_POINT;
-  });
+      return INVISIBLE_POINT;
+    });
+  }
+  else
+  {
+    // Sensor bar is off
+    camera_points.fill(INVISIBLE_POINT);
+  }
 
   // IR data is read from offset 0x37 on real hardware
   auto& data = reg_data.camera_data;

@@ -19,6 +19,7 @@
 #include <deque>
 #include <list>
 #include <map>
+#include <optional>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -142,6 +143,36 @@ public:
   {
     Do(x.first);
     Do(x.second);
+  }
+
+  template <typename T>
+  void Do(std::optional<T>& x)
+  {
+    bool present = x.has_value();
+    Do(present);
+
+    switch (mode)
+    {
+    case MODE_READ:
+      if (present)
+      {
+        x = std::make_optional<T>();
+        Do(x.value());
+      }
+      else
+      {
+        x = std::nullopt;
+      }
+      break;
+
+    case MODE_WRITE:
+    case MODE_MEASURE:
+    case MODE_VERIFY:
+      if (present)
+        Do(x.value());
+
+      break;
+    }
   }
 
   template <typename T, std::size_t N>

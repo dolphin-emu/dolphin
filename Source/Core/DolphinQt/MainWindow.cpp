@@ -686,7 +686,7 @@ void MainWindow::ChangeDisc()
 
 void MainWindow::EjectDisc()
 {
-  Core::RunAsCPUThread(DVDInterface::EjectDisc);
+  Core::RunAsCPUThread([] { DVDInterface::EjectDisc(DVDInterface::EjectCause::User); });
 }
 
 void MainWindow::Open()

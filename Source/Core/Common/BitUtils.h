@@ -8,6 +8,7 @@
 #include <climits>
 #include <cstddef>
 #include <cstring>
+#include <initializer_list>
 #include <type_traits>
 
 namespace Common
@@ -298,5 +299,45 @@ void SetBit(T& value, size_t bit_number, bool bit_value)
   else
     value &= ~(T{1} << bit_number);
 }
+
+template <typename T>
+class FlagBit
+{
+public:
+  FlagBit(std::underlying_type_t<T>& bits, T bit) : m_bits(bits), m_bit(bit) {}
+  explicit operator bool() const
+  {
+    return (m_bits & static_cast<std::underlying_type_t<T>>(m_bit)) != 0;
+  }
+  FlagBit& operator=(const bool rhs)
+  {
+    if (rhs)
+      m_bits |= static_cast<std::underlying_type_t<T>>(m_bit);
+    else
+      m_bits &= ~static_cast<std::underlying_type_t<T>>(m_bit);
+    return *this;
+  }
+
+private:
+  std::underlying_type_t<T>& m_bits;
+  T m_bit;
+};
+
+template <typename T>
+class Flags
+{
+public:
+  constexpr Flags() = default;
+  constexpr Flags(std::initializer_list<T> bits)
+  {
+    for (auto bit : bits)
+    {
+      m_hex |= static_cast<std::underlying_type_t<T>>(bit);
+    }
+  }
+  FlagBit<T> operator[](T bit) { return FlagBit(m_hex, bit); }
+
+  std::underlying_type_t<T> m_hex = 0;
+};
 
 }  // namespace Common
