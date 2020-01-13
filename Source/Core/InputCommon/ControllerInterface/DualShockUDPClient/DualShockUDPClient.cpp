@@ -42,65 +42,90 @@ const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "
 // Clock type used for querying timeframes
 using SteadyClock = std::chrono::steady_clock;
 
-class Device : public Core::Device
+class Device final : public Core::Device
 {
 private:
   template <class T>
-  class Button : public Core::Device::Input
+  class Button final : public Input
   {
   public:
-    Button(std::string name, const T& buttons, unsigned mask)
-        : m_name(std::move(name)), m_buttons(buttons), m_mask(mask)
+    Button(const char* name, const T& buttons, T mask)
+        : m_name(name), m_buttons(buttons), m_mask(mask)
     {
     }
     std::string GetName() const override { return m_name; }
     ControlState GetState() const override { return (m_buttons & m_mask) != 0; }
 
   private:
-    const std::string m_name;
+    const char* const m_name;
     const T& m_buttons;
-    unsigned m_mask;
+    const T m_mask;
   };
 
   template <class T>
-  class AnalogInput : public Core::Device::Input
+  class AnalogInput : public Input
   {
   public:
-    AnalogInput(std::string name, const T& input, ControlState range, ControlState offset = 0)
-        : m_name(std::move(name)), m_input(input), m_range(range), m_offset(offset)
+    AnalogInput(const char* name, const T& input, ControlState range, ControlState offset = 0)
+        : m_name(name), m_input(input), m_range(range), m_offset(offset)
     {
     }
-    std::string GetName() const override { return m_name; }
-    ControlState GetState() const override { return (ControlState(m_input) + m_offset) / m_range; }
+    std::string GetName() const final override { return m_name; }
+    ControlState GetState() const final override
+    {
+      return (ControlState(m_input) + m_offset) / m_range;
+    }
 
   private:
-    const std::string m_name;
+    const char* m_name;
     const T& m_input;
     const ControlState m_range;
     const ControlState m_offset;
   };
 
-  class TouchInput : public AnalogInput<int>
+  class TouchInput final : public AnalogInput<int>
   {
   public:
-    TouchInput(std::string name, const int& input, ControlState range)
-        : AnalogInput(std::move(name), input, range)
-    {
-    }
+    using AnalogInput::AnalogInput;
     bool IsDetectable() override { return false; }
   };
 
-  class AccelerometerInput : public AnalogInput<double>
+  class MotionInput final : public AnalogInput<double>
   {
   public:
-    AccelerometerInput(std::string name, const double& input, ControlState range)
-        : AnalogInput(std::move(name), input, range)
-    {
-    }
+    using AnalogInput::AnalogInput;
     bool IsDetectable() override { return false; }
   };
 
-  using GyroInput = AccelerometerInput;
+  using AccelerometerInput = MotionInput;
+  using GyroInput = MotionInput;
+
+  class BatteryInput final : public Input
+  {
+  public:
+    using BatteryState = Proto::DsBattery;
+
+    BatteryInput(const BatteryState& battery) : m_battery(battery) {}
+
+    std::string GetName() const override { return "Battery"; }
+
+    ControlState GetState() const override
+    {
+      switch (m_battery)
+      {
+      case BatteryState::Charging:
+      case BatteryState::Charged:
+        return BATTERY_INPUT_MAX_VALUE;
+      default:
+        return ControlState(m_battery) / ControlState(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
+      }
+    }
+
+    bool IsDetectable() override { return false; }
+
+  private:
+    const BatteryState& m_battery;
+  };
 
 public:
   void UpdateInput() override;
@@ -355,6 +380,8 @@ Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
   AddInput(new GyroInput("Gyro Roll Left", m_gyro.y, 1));
   AddInput(new GyroInput("Gyro Yaw Right", m_gyro.z, -1));
   AddInput(new GyroInput("Gyro Yaw Left", m_gyro.z, 1));
+
+  AddInput(new BatteryInput(m_pad_data.battery_status));
 }
 
 std::string Device::GetName() const
