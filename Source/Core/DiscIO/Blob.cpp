@@ -96,6 +96,9 @@ const SectorReader::Cache* SectorReader::GetCacheLine(u64 block_num)
 
 bool SectorReader::Read(u64 offset, u64 size, u8* out_ptr)
 {
+  if (offset + size > GetDataSize())
+    return false;
+
   u64 remain = size;
   u64 block = 0;
   u32 position_in_block = static_cast<u32>(offset % m_block_size);

@@ -49,6 +49,9 @@ u64 CISOFileReader::GetRawSize() const
 
 bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
+  if (offset + nbytes > GetDataSize())
+    return false;
+
   while (nbytes != 0)
   {
     u64 const block = offset / m_block_size;
