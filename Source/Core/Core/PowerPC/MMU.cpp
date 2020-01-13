@@ -1117,13 +1117,12 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      u32 pteg;
-      std::memcpy(&pteg, &Memory::physical_base[pteg_addr], sizeof(u32));
+      u32 pteg = Common::swap32(Memory::Read_U32(pteg_addr));
 
       if (pte1 == pteg)
       {
         UPTE2 PTE2;
-        PTE2.Hex = Common::swap32(&Memory::physical_base[pteg_addr + 4]);
+        PTE2.Hex = Memory::Read_U32(pteg_addr + 4);
 
         // set the access bits
         switch (flag)
@@ -1145,8 +1144,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
         if (!IsNoExceptionFlag(flag))
         {
-          const u32 swapped_pte2 = Common::swap32(PTE2.Hex);
-          std::memcpy(&Memory::physical_base[pteg_addr + 4], &swapped_pte2, sizeof(u32));
+          Memory::Write_U32(PTE2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.

@@ -304,7 +304,9 @@ void Jit64::dcbz(UGeckoInstruction inst)
     AND(32, R(RSCRATCH), Imm32(~31));
   }
 
-  if (MSR.DR)
+  bool emit_fast_path = MSR.DR && m_jit.jo.fastmem_arena;
+
+  if (emit_fast_path)
   {
     // Perform lookup to see if we can use fast path.
     MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::dbat_table[0]));
@@ -329,7 +331,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
-  if (MSR.DR)
+  if (emit_fast_path)
   {
     FixupBranch end = J(true);
     SwitchToNearCode();
