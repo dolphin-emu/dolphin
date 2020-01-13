@@ -76,6 +76,8 @@ void WiimoteEmuGeneral::Connect(MappingWindow* window)
 
 void WiimoteEmuGeneral::OnAttachmentChanged(int extension)
 {
+  GetParent()->ShowExtensionMotionTabs(extension == WiimoteEmu::ExtensionNumber::NUNCHUK);
+
   m_extension_widget->ChangeExtensionType(extension);
 
   auto* ce_extension = static_cast<ControllerEmu::Attachments*>(

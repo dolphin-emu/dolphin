@@ -27,7 +27,8 @@ enum class NunchukGroup
   Stick,
   Tilt,
   Swing,
-  Shake
+  Shake,
+  IMUAccelerometer,
 };
 
 class Nunchuk : public Extension1stParty
@@ -96,6 +97,7 @@ private:
   ControllerEmu::Shake* m_shake;
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
+  ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
 
   // Dynamics:
   MotionState m_swing_state;
