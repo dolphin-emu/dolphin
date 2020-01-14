@@ -526,6 +526,16 @@ std::optional<DI::DIResult> DI::StartImmediateTransfer(const IOCtlRequest& reque
   return {};
 }
 
+static std::shared_ptr<DI> GetDevice()
+{
+  auto ios = IOS::HLE::GetIOS();
+  if (!ios)
+    return nullptr;
+  auto di = ios->GetDeviceByName("/dev/di");
+  // di may be empty, but static_pointer_cast returns empty in that case
+  return std::static_pointer_cast<DI>(di);
+}
+
 void DI::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
 {
   DIResult result;
@@ -544,10 +554,10 @@ void DI::InterruptFromDVDInterface(DVDInterface::DIInterruptType interrupt_type)
     break;
   }
 
-  auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
+  auto di = GetDevice();
   if (di)
   {
-    std::static_pointer_cast<DI>(di)->FinishDICommand(result);
+    di->FinishDICommand(result);
   }
   else
   {
@@ -560,9 +570,9 @@ void DI::FinishDICommandCallback(u64 userdata, s64 ticksbehind)
 {
   const DIResult result = static_cast<DIResult>(userdata);
 
-  auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
+  auto di = GetDevice();
   if (di)
-    std::static_pointer_cast<DI>(di)->FinishDICommand(result);
+    di->FinishDICommand(result);
   else
     PanicAlert("IOS::HLE::Device::DI: Received interrupt from DI when device wasn't registered!");
 }
@@ -691,12 +701,12 @@ void DI::ChangePartition(const DiscIO::Partition partition)
 
 DiscIO::Partition DI::GetCurrentPartition()
 {
-  auto di = IOS::HLE::GetIOS()->GetDeviceByName("/dev/di");
+  auto di = GetDevice();
   // Note that this function is called in Gamecube mode for UpdateRunningGameMetadata,
   // so both cases are hit in normal circumstances.
   if (!di)
     return DiscIO::PARTITION_NONE;
-  return std::static_pointer_cast<DI>(di)->m_current_partition;
+  return di->m_current_partition;
 }
 
 void DI::InitializeIfFirstTime()
