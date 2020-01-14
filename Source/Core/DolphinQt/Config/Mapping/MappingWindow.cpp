@@ -360,6 +360,8 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
         AddWidget(EXTENSION_MOTION_SIMULATION_TAB_NAME, extension_motion_simulation);
     m_extension_motion_input_tab =
         AddWidget(EXTENSION_MOTION_INPUT_TAB_NAME, extension_motion_input);
+    // Hide tabs by default. "Nunchuk" selection triggers an event to show them.
+    ShowExtensionMotionTabs(false);
     break;
   }
   case Type::MAPPING_HOTKEYS:
