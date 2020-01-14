@@ -165,7 +165,6 @@ make HW_TYPE=gamecube</NMakeReBuildCommandLine>
     <ClCompile Include="dsp_interface.cpp" />
     <ClCompile Include="real_dsp.cpp" />
     <ClCompile Include="main_spy.cpp" />
-    <ClCompile Include="Stubs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dsp_interface.h" />
