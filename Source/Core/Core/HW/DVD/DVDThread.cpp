@@ -345,17 +345,8 @@ static void FinishRead(u64 id, s64 cycles_late)
   DVDInterface::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
-    if (request.dvd_offset != 0x118280000 && request.dvd_offset != 0x1FB500000)
-    {
-      PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
-                  request.dvd_offset, request.dvd_offset + request.length);
-    }
-    else
-    {
-      // Part of the error 001 check.
-      INFO_LOG(DVDINTERFACE, "Ignoring out of bounds test read (at 0x%" PRIx64 " - 0x%" PRIx64 ")",
-               request.dvd_offset, request.dvd_offset + request.length);
-    }
+    PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
+                request.dvd_offset, request.dvd_offset + request.length);
 
     DVDInterface::SetHighError(DVDInterface::ERROR_BLOCK_OOB);
     interrupt = DVDInterface::DIInterruptType::DEINT;
