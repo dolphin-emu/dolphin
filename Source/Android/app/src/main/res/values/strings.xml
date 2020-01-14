@@ -232,6 +232,8 @@
     <string name="xfb_copy_method_description">Stores XFB Copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games that need to readback from memory. If unsure, leave this checked.</string>
     <string name="immediate_xfb">Immediately Present XFB</string>
     <string name="immediate_xfb_description">Displays the XFB copies as soon as they are created, without waiting for scanout. Causes graphical defects in some games but reduces latency. If unsure, leave this unchecked.</string>
+    <string name="skip_duplicate_xfbs">Immediately Present XFB</string>
+    <string name="skip_duplicate_xfbs_description">Skips presentation of duplicate frames. This may improve performance on low-end devices, while making frame pacing less consistent. If unsure, leave this checked.</string>
     <string name="disable_destination_alpha">Disable Destination Alpha</string>
     <string name="disable_destination_alpha_description">Disables emulation of a hardware feature called destination alpha, which is used in many games for various effects.</string>
     <string name="fast_depth_calculation">Fast Depth Calculation</string>

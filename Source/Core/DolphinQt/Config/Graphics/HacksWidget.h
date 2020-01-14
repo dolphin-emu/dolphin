@@ -37,6 +37,7 @@ private:
   // External Framebuffer
   QCheckBox* m_store_xfb_copies;
   QCheckBox* m_immediate_xfb;
+  QCheckBox* m_skip_duplicate_xfbs;
 
   // Other
   QCheckBox* m_fast_depth_calculation;
@@ -50,4 +51,5 @@ private:
   void AddDescriptions();
 
   void UpdateDeferEFBCopiesEnabled();
+  void UpdateSkipPresentingDuplicateFramesEnabled();
 };
