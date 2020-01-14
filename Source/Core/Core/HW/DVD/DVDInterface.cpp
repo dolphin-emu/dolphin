@@ -748,6 +748,26 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
     dvd_length = output_length;
   }
 
+  // Many Wii games intentionally try to read from an offset which is just past the end of a regular
+  // DVD but just before the end of a DVD-R, displaying "Error #001" and failing to boot if the read
+  // succeeds (see https://wiibrew.org/wiki//dev/di#0x8D_DVDLowUnencryptedRead for more details).
+  // It would be nice if we simply could rely on DiscIO for letting us know whether a read is out
+  // of bounds, but this unfortunately doesn't work when using a disc image format that doesn't
+  // store the original size of the disc, most notably WBFS. Instead, we have a little hack here:
+  // reject all non-partition reads that come from IOS that go past the offset 0x50000. IOS only
+  // allows non-partition reads if they are before 0x50000 or if they are in one of the two small
+  // areas 0x118240000-0x118240020 and 0x1FB4E0000-0x1FB4E0020 (both of which only are used for
+  // Error #001 checks), so the only thing we disallow with this hack that actually should be
+  // allowed is non-partition reads in the 0x118240000-0x118240020 area on dual-layer discs.
+  // In practice, dual-layer games don't attempt to do non-partition reads in that area.
+  if (reply_type == ReplyType::IOS && partition == DiscIO::PARTITION_NONE &&
+      dvd_offset + dvd_length > 0x50000)
+  {
+    SetHighError(DVDInterface::ERROR_BLOCK_OOB);
+    *interrupt_type = DIInterruptType::DEINT;
+    return false;
+  }
+
   ScheduleReads(dvd_offset, dvd_length, partition, output_address, reply_type);
   return true;
 }
