@@ -14,6 +14,7 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Common/Swap.h"
 
 namespace IOS::HLE::FS
 {
@@ -55,14 +56,17 @@ public:
     {
       if (bytes.size() != sizeof(T))
         return default_value;
+
       T value;
       std::memcpy(&value, bytes.data(), bytes.size());
-      return value;
+      return Common::FromBigEndian(value);
     }
     template <typename T>
     void SetData(T value)
     {
       ASSERT(sizeof(value) == bytes.size());
+
+      value = Common::FromBigEndian(value);
       std::memcpy(bytes.data(), &value, bytes.size());
     }
 

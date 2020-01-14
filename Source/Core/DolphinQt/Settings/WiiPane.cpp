@@ -177,8 +177,9 @@ void WiiPane::CreateWiiRemoteSettings()
   // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   m_wiimote_ir_sensitivity_label = new QLabel(tr("IR Sensitivity:"));
   m_wiimote_ir_sensitivity = new QSlider(Qt::Horizontal);
-  m_wiimote_ir_sensitivity->setMinimum(4);
-  m_wiimote_ir_sensitivity->setMaximum(127);
+  // Wii menu saves values from 1 to 5.
+  m_wiimote_ir_sensitivity->setMinimum(1);
+  m_wiimote_ir_sensitivity->setMaximum(5);
 
   // Speaker Volume Slider
   m_wiimote_speaker_volume_label = new QLabel(tr("Speaker Volume:"));
