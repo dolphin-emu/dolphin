@@ -273,6 +273,7 @@ class Matrix33
 {
 public:
   static Matrix33 Identity();
+  static Matrix33 FromQuaternion(float x, float y, float z, float w);
 
   // Return a rotation matrix around the x,y,z axis
   static Matrix33 RotateX(float rad);
@@ -286,6 +287,8 @@ public:
   // set result = a x b
   static void Multiply(const Matrix33& a, const Matrix33& b, Matrix33* result);
   static void Multiply(const Matrix33& a, const Vec3& vec, Vec3* result);
+
+  Matrix33 Inverted() const;
 
   Matrix33& operator*=(const Matrix33& rhs)
   {
