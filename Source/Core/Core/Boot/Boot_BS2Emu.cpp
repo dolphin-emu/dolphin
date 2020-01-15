@@ -174,10 +174,8 @@ void CBoot::SetupGCMemory()
   // Physical Memory Size (24MB on retail)
   PowerPC::HostWrite_U32(Memory::GetRamSizeReal(), 0x80000028);
 
-  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
-  // TODO: determine why some games fail when using a retail ID.
-  // (Seem to take different EXI paths, see Ikaruga for example)
-  const u32 console_type = static_cast<u32>(Core::ConsoleType::LatestDevkit);
+  // Console type - Retail (YAGCD 4.2.1.1.2)
+  const u32 console_type = static_cast<u32>(Core::ConsoleType::LatestProductionBoard);
   PowerPC::HostWrite_U32(console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
