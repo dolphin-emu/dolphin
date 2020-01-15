@@ -646,8 +646,7 @@
 				B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */,
 				B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */,
 			);
-			name = Controller;
-			path = "New Group";
+			path = Controller;
 			sourceTree = "<group>";
 		};
 		B9F03CB323B0598B00423AE6 /* Group */ = {
