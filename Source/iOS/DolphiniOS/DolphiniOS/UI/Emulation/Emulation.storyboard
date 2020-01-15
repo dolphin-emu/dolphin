@@ -116,6 +116,7 @@
                     </navigationItem>
                     <connections>
                         <outlet property="m_eagl_view" destination="daX-vt-kk3" id="9Fx-FT-ga5"/>
+                        <outlet property="m_edge_pan_recognizer" destination="k9B-W2-NA3" id="bEe-AH-f8u"/>
                         <outlet property="m_gc_pad" destination="R1C-TK-7Br" id="lIa-V3-4Kh"/>
                         <outlet property="m_metal_view" destination="ODM-xp-bCF" id="iZt-J9-8uw"/>
                         <outlet property="m_wii_classic_pad" destination="YWH-fQ-xGM" id="apE-lX-o8f"/>

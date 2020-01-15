@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet TCView* m_wii_sideways_pad;
 @property (weak, nonatomic) IBOutlet TCView* m_wii_classic_pad;
 
+@property (strong, nonatomic) IBOutlet UIScreenEdgePanGestureRecognizer* m_edge_pan_recognizer;
+
 @property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
 @property(nonatomic) int m_ts_active_port;
