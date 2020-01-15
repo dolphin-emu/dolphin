@@ -58,8 +58,15 @@
   
   [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
   
-  // Hide navigation bar
-  [self.navigationController setNavigationBarHidden:true animated:true];
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"])
+  {
+    // Hide navigation bar
+    [self.navigationController setNavigationBarHidden:true animated:true];
+  }
+  else
+  {
+    [self.m_edge_pan_recognizer setEnabled:false];
+  }
   
   [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
 }

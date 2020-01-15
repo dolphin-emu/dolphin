@@ -69,6 +69,8 @@
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
+		B98584C423CEDE7C00BE94B0 /* ConfigSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B98584C323CEDE7B00BE94B0 /* ConfigSettings.storyboard */; };
+		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
 		B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B988D7F523B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m */; };
 		B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B988D7F923B604690092CB6C /* ControllerLoadProfileViewController.mm */; };
 		B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */; };
@@ -205,6 +207,9 @@
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
+		B98584C323CEDE7B00BE94B0 /* ConfigSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = ConfigSettings.storyboard; sourceTree = "<group>"; };
+		B98584C523CEDFB800BE94B0 /* ConfigInterfaceViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigInterfaceViewController.h; sourceTree = "<group>"; };
+		B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigInterfaceViewController.mm; sourceTree = "<group>"; };
 		B988D7F423B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupExtensionButtonCell.h; sourceTree = "<group>"; };
 		B988D7F523B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerGroupExtensionButtonCell.m; sourceTree = "<group>"; };
 		B988D7F823B604690092CB6C /* ControllerLoadProfileViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerLoadProfileViewController.h; sourceTree = "<group>"; };
@@ -343,6 +348,7 @@
 		B91BF35F236B390900199BA7 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
+				B98584C223CEDE3900BE94B0 /* Config */,
 				B9DCACA223ADDD34002B95C8 /* Controller */,
 				B91BF372236B400200199BA7 /* SettingsTableViewController.h */,
 				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
@@ -493,6 +499,24 @@
 				B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */,
 			);
 			path = TouchController;
+			sourceTree = "<group>";
+		};
+		B98584C223CEDE3900BE94B0 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				B98584C823CEDFC400BE94B0 /* Interface */,
+				B98584C323CEDE7B00BE94B0 /* ConfigSettings.storyboard */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		B98584C823CEDFC400BE94B0 /* Interface */ = {
+			isa = PBXGroup;
+			children = (
+				B98584C523CEDFB800BE94B0 /* ConfigInterfaceViewController.h */,
+				B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */,
+			);
+			path = Interface;
 			sourceTree = "<group>";
 		};
 		B988D7F723B604440092CB6C /* Profile */ = {
@@ -762,6 +786,7 @@
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
+				B98584C423CEDE7C00BE94B0 /* ConfigSettings.storyboard in Resources */,
 				B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */,
@@ -918,6 +943,7 @@
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
+				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
 				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,

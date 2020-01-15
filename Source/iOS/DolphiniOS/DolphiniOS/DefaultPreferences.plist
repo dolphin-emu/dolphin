@@ -8,5 +8,7 @@
 	<true/>
 	<key>pad_opacity_value</key>
 	<real>0.5</real>
+	<key>always_show_top_bar</key>
+	<false/>
 </dict>
 </plist>
