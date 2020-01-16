@@ -89,8 +89,6 @@ public:
                            float far_depth)
   {
   }
-  virtual void SetFullscreen(bool enable_fullscreen) {}
-  virtual bool IsFullscreen() const { return false; }
   virtual void BeginUtilityDrawing();
   virtual void EndUtilityDrawing();
   virtual std::unique_ptr<AbstractTexture> CreateTexture(const TextureConfig& config) = 0;
@@ -201,6 +199,11 @@ public:
 
   virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
                            bool zEnable, u32 color, u32 z);
+
+  // Fullscreen manipulation. Called from the UI thread.
+  void SetFullscreen(bool enable_fullscreen);
+  bool IsFullscreen() const { return m_fullscreen_state; }
+
   virtual void ReinterpretPixelData(EFBReinterpretType convtype);
   void RenderToXFB(u32 xfbAddr, const MathUtil::Rectangle<int>& sourceRc, u32 fbStride,
                    u32 fbHeight, float Gamma = 1.0f);
@@ -233,6 +236,7 @@ public:
   VideoCommon::PostProcessing* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
+  float GetLastRefreshRate() const { return m_last_refresh_rate; }
   void ChangeSurface(void* new_surface_handle);
   void ResizeSurface();
   bool UseVertexDepthRange() const;
@@ -293,6 +297,9 @@ protected:
   // Should be called with the ImGui lock held.
   void DrawImGui();
 
+  // Changes fullscreen state for the backend. This is only overridden in D3D.
+  virtual bool ChangeFullscreenState(bool enable, float target_refresh_rate);
+
   AbstractFramebuffer* m_current_framebuffer = nullptr;
   const AbstractPipeline* m_current_pipeline = nullptr;
 
@@ -313,6 +320,8 @@ protected:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   MathUtil::Rectangle<int> m_target_rectangle = {};
   int m_frame_count = 0;
+  float m_last_refresh_rate = 0.0f;
+  bool m_fullscreen_state = false;
 
   FPSCounter m_fps_counter;
 

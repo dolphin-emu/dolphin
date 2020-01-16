@@ -472,6 +472,18 @@ void Renderer::OnConfigChanged(u32 bits)
     g_dx_context->RecreateGXRootSignature();
 }
 
+bool Renderer::ChangeFullscreenState(bool enabled, float refresh_rate)
+{
+  if (g_ActiveConfig.bBorderlessFullscreen)
+    return ::Renderer::ChangeFullscreenState(enabled, refresh_rate);
+
+  if (!m_swap_chain->SetFullscreen(enabled, refresh_rate))
+    return false;
+
+  m_fullscreen_state = enabled;
+  return true;
+}
+
 void Renderer::ExecuteCommandList(bool wait_for_completion)
 {
   PerfQuery::GetInstance()->ResolveQueries();

@@ -102,9 +102,9 @@ private:
 
   void PerformOnlineUpdate(const std::string& region);
 
-  void SetFullScreenResolution(bool fullscreen);
+  void RequestFullscreen(bool fullscreen, float refresh_rate);
 
-  void FullScreen();
+  void ToggleFullscreen();
   void ScreenShot();
 
   void CreateComponents();
@@ -197,11 +197,11 @@ private:
   SearchBar* m_search_bar;
   GameList* m_game_list;
   RenderWidget* m_render_widget = nullptr;
-  bool m_rendering_to_main;
+  bool m_rendering_to_main = false;
   bool m_stop_confirm_showing = false;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
-  bool m_fullscreen_requested = false;
+  bool m_display_settings_changed = false;
   int m_state_slot = 1;
   std::unique_ptr<BootParameters> m_pending_boot;
 

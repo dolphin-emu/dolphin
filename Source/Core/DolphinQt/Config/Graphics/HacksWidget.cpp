@@ -86,9 +86,12 @@ void HacksWidget::CreateWidgets()
   m_store_xfb_copies = new GraphicsBool(tr("Store XFB Copies to Texture Only"),
                                         Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM);
   m_immediate_xfb = new GraphicsBool(tr("Immediately Present XFB"), Config::GFX_HACK_IMMEDIATE_XFB);
+  m_skip_duplicate_xfbs = new GraphicsBool(tr("Skip Presenting Duplicate Frames"),
+                                           Config::GFX_HACK_SKIP_DUPLICATE_XFBS);
 
   xfb_layout->addWidget(m_store_xfb_copies);
   xfb_layout->addWidget(m_immediate_xfb);
+  xfb_layout->addWidget(m_skip_duplicate_xfbs);
 
   // Other
   auto* other_box = new QGroupBox(tr("Other"));
@@ -235,6 +238,12 @@ void HacksWidget::AddDescriptions()
                  "expect all XFB copies to be displayed. However, turning this setting on reduces "
                  "latency.\n\nIf unsure, leave this unchecked.");
 
+  static const char TR_SKIP_DUPLICATE_XFBS_DESCRIPTION[] = QT_TR_NOOP(
+      "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. This may improve "
+      "performance on low-end devices, while making frame pacing less consistent.\n\nDisable this "
+      "option as well as enabling V-Sync for optimal frame pacing.\n\nIf unsure, leave this "
+      "checked.");
+
   static const char TR_GPU_DECODING_DESCRIPTION[] =
       QT_TR_NOOP("Enables texture decoding using the GPU instead of the CPU.\n\nThis may result in "
                  "performance gains in some scenarios, or on systems where the CPU is the "
@@ -263,6 +272,7 @@ void HacksWidget::AddDescriptions()
   AddDescription(m_accuracy, TR_ACCUARCY_DESCRIPTION);
   AddDescription(m_store_xfb_copies, TR_STORE_XFB_TO_TEXTURE_DESCRIPTION);
   AddDescription(m_immediate_xfb, TR_IMMEDIATE_XFB_DESCRIPTION);
+  AddDescription(m_skip_duplicate_xfbs, TR_SKIP_DUPLICATE_XFBS_DESCRIPTION);
   AddDescription(m_gpu_texture_decoding, TR_GPU_DECODING_DESCRIPTION);
   AddDescription(m_fast_depth_calculation, TR_FAST_DEPTH_CALC_DESCRIPTION);
   AddDescription(m_disable_bounding_box, TR_DISABLE_BOUNDINGBOX_DESCRIPTION);

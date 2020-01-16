@@ -58,8 +58,6 @@ public:
                              u32 groups_z) override;
   void BindBackbuffer(const ClearColor& clear_color = {}) override;
   void PresentBackbuffer() override;
-  void SetFullscreen(bool enable_fullscreen) override;
-  bool IsFullscreen() const override;
 
   u16 BBoxRead(int index) override;
   void BBoxWrite(int index, u16 value) override;
@@ -67,7 +65,9 @@ public:
   void Flush() override;
   void WaitForGPUIdle() override;
 
+protected:
   void OnConfigChanged(u32 bits) override;
+  bool ChangeFullscreenState(bool enabled, float refresh_rate) override;
 
 private:
   void CheckForSwapChainChanges();

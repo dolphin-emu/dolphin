@@ -108,6 +108,7 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  bool bSyncRefreshRate;
   bool bEnableGPUTextureDecoding;
   int iBitrateKbps;
 
@@ -124,6 +125,7 @@ struct VideoConfig final
   bool bDisableCopyToVRAM;
   bool bDeferEFBCopies;
   bool bImmediateXFB;
+  bool bSkipPresentingDuplicateXFBs;
   bool bCopyEFBScaled;
   int iSafeTextureCache_ColorSamples;
   float fAspectRatioHackW, fAspectRatioHackH;
@@ -190,7 +192,6 @@ struct VideoConfig final
     u32 MaxTextureSize;
     bool bUsesLowerLeftOrigin;
 
-    bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
     bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
@@ -226,10 +227,6 @@ struct VideoConfig final
 
   // Utility
   bool MultisamplingEnabled() const { return iMultisamples > 1; }
-  bool ExclusiveFullscreenEnabled() const
-  {
-    return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
-  }
   bool UseGPUTextureDecoding() const
   {
     return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;

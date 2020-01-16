@@ -364,6 +364,7 @@ void UpdateInterrupts();
 void UpdateParameters();
 
 u32 GetTargetRefreshRate();
+float GetTargetFractionalRefreshRate();
 u32 GetTicksPerSample();
 u32 GetTicksPerHalfLine();
 u32 GetTicksPerField();

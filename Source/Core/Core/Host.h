@@ -34,10 +34,10 @@ enum class HostMessageID
 
 bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
-bool Host_RendererIsFullscreen();
 void Host_Message(HostMessageID id);
 void Host_NotifyMapLoaded();
 void Host_RefreshDSPDebuggerWindow();
+void Host_RequestFullscreen(bool active, float refresh_rate);
 void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
 void Host_UpdateMainFrame();

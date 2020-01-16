@@ -65,8 +65,6 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   // We have to use Qt::DirectConnection here because we don't want those signals to get queued
   // (which results in them not getting called)
-  connect(this, &RenderWidget::StateChanged, Host::GetInstance(), &Host::SetRenderFullscreen,
-          Qt::DirectConnection);
   connect(this, &RenderWidget::HandleChanged, Host::GetInstance(), &Host::SetRenderHandle,
           Qt::DirectConnection);
   connect(this, &RenderWidget::SizeChanged, Host::GetInstance(), &Host::ResizeSurface,
@@ -230,9 +228,6 @@ bool RenderWidget::event(QEvent* event)
     emit SizeChanged(new_size.width() * dpr, new_size.height() * dpr);
     break;
   }
-  case QEvent::WindowStateChange:
-    emit StateChanged(isFullScreen());
-    break;
   case QEvent::Close:
     emit Closed();
     break;

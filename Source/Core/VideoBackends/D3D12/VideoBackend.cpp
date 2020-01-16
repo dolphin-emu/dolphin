@@ -48,7 +48,6 @@ void VideoBackend::FillBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::D3D;
   g_Config.backend_info.bUsesLowerLeftOrigin = false;
-  g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsOversizedViewports = false;

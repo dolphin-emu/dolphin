@@ -20,12 +20,19 @@ class Host final : public QObject
 public:
   static Host* GetInstance();
 
-  bool GetRenderFocus();
-  bool GetRenderFullscreen();
+  bool GetRenderFocus() const;
+  bool IsFullscreenEnabled() const;
+  bool IsFullscreenActive() const;
 
   void SetRenderHandle(void* handle);
   void SetRenderFocus(bool focus);
-  void SetRenderFullscreen(bool fullscreen);
+
+  // changes the enabled state
+  void SetFullscreenEnabled(bool enabled);
+
+  // synchronizes the enabled state with the real state
+  void UpdateFullscreen(bool disable_temporarily = false);
+
   void ResizeSurface(int new_width, int new_height);
   void RequestNotifyMapLoaded();
 
@@ -33,6 +40,7 @@ signals:
   void RequestTitle(const QString& title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
+  void RequestFullscreen(bool enabled, float target_refresh_rate);
   void UpdateProgressDialog(QString label, int position, int maximum);
   void UpdateDisasmDialog();
   void NotifyMapLoaded();
@@ -41,6 +49,8 @@ private:
   Host();
 
   std::atomic<void*> m_render_handle{nullptr};
-  std::atomic<bool> m_render_focus{false};
-  std::atomic<bool> m_render_fullscreen{false};
+  std::atomic_bool m_render_focus{false};
+
+  // Remains true if fullscreen is enabled, but focus is lost.
+  std::atomic_bool m_fullscreen_enabled{false};
 };

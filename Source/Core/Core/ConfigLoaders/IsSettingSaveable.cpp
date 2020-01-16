@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::ConfigLocation*, 92> s_setting_saveable = {
+  static constexpr std::array<const Config::ConfigLocation*, 94> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -87,6 +87,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       &Config::GFX_ENABLE_WIREFRAME.location,
       &Config::GFX_DISABLE_FOG.location,
       &Config::GFX_BORDERLESS_FULLSCREEN.location,
+      &Config::GFX_SYNC_REFRESH_RATE.location,
       &Config::GFX_ENABLE_VALIDATION_LAYER.location,
       &Config::GFX_BACKEND_MULTITHREADING.location,
       &Config::GFX_COMMAND_BUFFER_EXECUTE_INTERVAL.location,
@@ -136,6 +137,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       &Config::GFX_HACK_DISABLE_COPY_TO_VRAM.location,
       &Config::GFX_HACK_DEFER_EFB_COPIES.location,
       &Config::GFX_HACK_IMMEDIATE_XFB.location,
+      &Config::GFX_HACK_SKIP_DUPLICATE_XFBS.location,
       &Config::GFX_HACK_COPY_EFB_SCALED.location,
       &Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES.location,
       &Config::GFX_HACK_VERTEX_ROUDING.location,

@@ -101,6 +101,7 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height, float backbuffer
   CalculateTargetSize();
 
   m_aspect_wide = SConfig::GetInstance().bWii && Config::Get(Config::SYSCONF_WIDESCREEN);
+  m_last_refresh_rate = VideoInterface::GetTargetFractionalRefreshRate();
 }
 
 Renderer::~Renderer() = default;
@@ -122,6 +123,10 @@ void Renderer::Shutdown()
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+
+  if (m_fullscreen_state)
+    ChangeFullscreenState(false, 0.0f);
+
   ShutdownImGui();
   m_post_processor.reset();
 }
@@ -833,12 +838,13 @@ void Renderer::SetWindowSize(int width, int height)
   const auto [out_width, out_height] = CalculateOutputDimensions(width, height);
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
-  if (out_width == m_last_window_request_width && out_height == m_last_window_request_height)
-    return;
-
-  m_last_window_request_width = out_width;
-  m_last_window_request_height = out_height;
-  Host_RequestRenderWindowSize(out_width, out_height);
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    if (!m_fullscreen_state)
+      Host_RequestRenderWindowSize(width, height);
+  }
 }
 
 std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) const
@@ -909,6 +915,22 @@ void Renderer::RecordVideoMemory()
 
   FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size,
                                              texMem);
+}
+
+void Renderer::SetFullscreen(bool enable_fullscreen)
+{
+  if (enable_fullscreen == m_fullscreen_state)
+    return;
+
+  ChangeFullscreenState(enable_fullscreen,
+                        g_ActiveConfig.bSyncRefreshRate ? m_last_refresh_rate : 0.0f);
+}
+
+bool Renderer::ChangeFullscreenState(bool enable, float target_refresh_rate)
+{
+  m_fullscreen_state = enable;
+  Host_RequestFullscreen(enable, target_refresh_rate);
+  return true;
 }
 
 bool Renderer::InitializeImGui()
@@ -1184,14 +1206,25 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
   // behind the renderer.
   FlushFrameDump();
 
+  // If the refresh rate has changed, update the host.
+  const float current_refresh_rate = VideoInterface::GetTargetFractionalRefreshRate();
+  if (m_last_refresh_rate != current_refresh_rate)
+  {
+    m_last_refresh_rate = current_refresh_rate;
+    if (IsFullscreen() && g_ActiveConfig.bSyncRefreshRate)
+      ChangeFullscreenState(true, current_refresh_rate);
+  }
+
   if (xfb_addr && fb_width && fb_stride && fb_height)
   {
     // Get the current XFB from texture cache
     MathUtil::Rectangle<int> xfb_rect;
     const auto* xfb_entry =
         g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
-    if (xfb_entry && xfb_entry->id != m_last_xfb_id)
+    if (xfb_entry &&
+        (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || xfb_entry->id != m_last_xfb_id))
     {
+      const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
       m_last_xfb_id = xfb_entry->id;
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
@@ -1235,20 +1268,24 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
       }
 
-      m_fps_counter.Update();
+      if (!is_duplicate_frame)
+      {
+        m_fps_counter.Update();
 
-      DolphinAnalytics::PerformanceSample perf_sample;
-      perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-      perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
-      perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
-      DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
+        DolphinAnalytics::PerformanceSample perf_sample;
+        perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
+        perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
+        perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
+        DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
-      if (IsFrameDumping())
-        DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
+        if (IsFrameDumping())
+          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
 
-      // Begin new frame
-      m_frame_count++;
-      g_stats.ResetFrame();
+        // Begin new frame
+        m_frame_count++;
+        g_stats.ResetFrame();
+      }
+
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
       BeginImGuiFrame();
@@ -1263,16 +1300,18 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
       g_texture_cache->FlushEFBCopies();
 
-      // Remove stale EFB/XFB copies.
-      g_texture_cache->Cleanup(m_frame_count);
+      if (!is_duplicate_frame)
+      {
+        // Remove stale EFB/XFB copies.
+        g_texture_cache->Cleanup(m_frame_count);
+        Core::Callback_VideoCopiedToXFB(true);
+      }
 
       // Handle any config changes, this gets propogated to the backend.
       CheckForConfigChanges();
       g_Config.iSaveTargetId = 0;
 
       EndUtilityDrawing();
-
-      Core::Callback_VideoCopiedToXFB(true);
     }
     else
     {

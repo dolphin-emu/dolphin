@@ -120,6 +120,10 @@ void Host_UpdateMainFrame()
 {
 }
 
+void Host_RequestFullscreen(bool active, float refresh_rate)
+{
+}
+
 void Host_RequestRenderWindowSize(int width, int height)
 {
   std::thread jnicall(UpdatePointer);
@@ -129,11 +133,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 bool Host_RendererHasFocus()
 {
   return true;
-}
-
-bool Host_RendererIsFullscreen()
-{
-  return false;
 }
 
 void Host_YieldToUI()
