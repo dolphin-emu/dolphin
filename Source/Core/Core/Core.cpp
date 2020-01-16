@@ -4,9 +4,9 @@
 
 #include "Core/Core.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
-#include <locale>
 #include <mutex>
 #include <queue>
 #include <utility>
@@ -31,6 +31,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -160,11 +161,8 @@ void DisplayMessage(std::string message, int time_in_ms)
     return;
 
   // Actually displaying non-ASCII could cause things to go pear-shaped
-  for (const char& c : message)
-  {
-    if (!std::isprint(c, std::locale::classic()))
-      return;
-  }
+  if (!std::all_of(message.begin(), message.end(), IsPrintableCharacter))
+    return;
 
   Host_UpdateTitle(message);
   OSD::AddMessage(std::move(message), time_in_ms);

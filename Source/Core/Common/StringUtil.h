@@ -222,3 +222,11 @@ std::string ThousandSeparate(I value, int spaces = 0)
   return stream.str();
 #endif
 }
+
+/// Returns whether a character is printable, i.e. whether 0x20 <= c <= 0x7e is true.
+/// Use this instead of calling std::isprint directly to ensure
+/// the C locale is being used and to avoid possibly undefined behaviour.
+inline bool IsPrintableCharacter(char c)
+{
+  return std::isprint(c, std::locale::classic());
+}

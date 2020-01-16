@@ -9,7 +9,6 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <optional>
 #include <string>
@@ -314,11 +313,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  const bool all_printable = std::all_of(std::begin(game_id), std::end(game_id), [](char c) {
-    return std::isprint(c, std::locale::classic());
-  });
-
-  if (all_printable)
+  if (std::all_of(std::begin(game_id), std::end(game_id), IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -329,10 +324,7 @@ std::string TMDReader::GetGameTDBID() const
   const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
   const u8* end = begin + 4;
 
-  const bool all_printable =
-      std::all_of(begin, end, [](char c) { return std::isprint(c, std::locale::classic()); });
-
-  if (all_printable)
+  if (std::all_of(begin, end, IsPrintableCharacter))
     return std::string(begin, end);
 
   return fmt::format("{:016x}", GetTitleId());

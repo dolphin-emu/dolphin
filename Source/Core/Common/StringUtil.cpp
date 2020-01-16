@@ -71,7 +71,7 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += std::isprint(c, std::locale::classic()) ? c : '.';
+        out += IsPrintableCharacter(c) ? c : '.';
       }
     }
     out += "\n";
