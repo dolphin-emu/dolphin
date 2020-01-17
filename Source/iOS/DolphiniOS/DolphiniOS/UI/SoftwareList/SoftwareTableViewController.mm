@@ -35,6 +35,64 @@
   [refreshControl addTarget:self action:@selector(refreshGameFileCache) forControlEvents:UIControlEventValueChanged];
   
   self.tableView.refreshControl = refreshControl;
+  
+#ifndef DEBUG
+  NSString* update_url_string;
+#ifndef PATREON
+  update_url_string = @"https://cydia.oatmealdome.me/update.json";
+#else
+  update_url_string = @"https://cydia.oatmealdome.me/update_patreon.json";
+#endif
+  
+  NSURL* update_url = [NSURL URLWithString:update_url_string];
+  
+  // Create en ephemeral session to avoid caching
+  NSURLSession* session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
+  [[session dataTaskWithURL:update_url completionHandler:^(NSData* data, NSURLResponse* response, NSError* error) {
+    if (error != nil)
+    {
+      return;
+    }
+    
+    // Get the version string
+    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+    NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+    
+    // Deserialize the JSON
+    NSDictionary* dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    
+    if (dict[@"version"] != version_str)
+    {
+      NSString* message = [NSString stringWithFormat:@"DolphiniOS version %@ is now available.\n\n%@", dict[@"version"], dict[@"changes"]];
+      
+      dispatch_async(dispatch_get_main_queue(), ^{
+        UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Update" message:message preferredStyle:UIAlertControllerStyleAlert];
+        
+#ifndef PATREON
+        [alert addAction:[UIAlertAction actionWithTitle:@"Update Now" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+          NSURL* url = [NSURL URLWithString:@"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios"];
+          [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        }]];
+        
+        [alert addAction:[UIAlertAction actionWithTitle:@"See Changes" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+          NSURL* url = [NSURL URLWithString:dict[@"url"]];
+          [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+        }]];
+        
+        [alert addAction:[UIAlertAction actionWithTitle:@"Later" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+          // Nothing
+        }]];
+#else
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+          // Nothing
+        }]];
+#endif
+        
+        [self presentViewController:alert animated:true completion:nil];
+      });
+    }
+  }] resume];
+#endif
 }
 
 - (void)refreshGameFileCache
