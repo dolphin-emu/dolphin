@@ -48,7 +48,7 @@
       NSString* thanks_str = [NSString stringWithContentsOfFile:thanks_path encoding:NSUTF8StringEncoding error:nil];
       
       UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Special Thanks"
-                                     message:[NSString stringWithFormat:@"(c) 2003 - 2015+ Dolphin Team\n(c) 2019 OatmealDome, goob47, and Magnetar\n\nShoutouts to Shadów for their help.\n\nThank you to the following generous Patrons!\n\n%@", thanks_str]
+                                     message:[NSString stringWithFormat:@"(c) 2003 - 2015+ Dolphin Team\n(c) 2019-2020 OatmealDome, goob47, and Magnetar\n\nShoutouts to Shadów for their help.\n\nThank you to the following generous Patrons!\n\n%@", thanks_str]
                                      preferredStyle:UIAlertControllerStyleAlert];
        
       UIAlertAction* ok_action = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
