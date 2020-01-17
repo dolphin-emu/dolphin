@@ -90,6 +90,35 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="43.5" id="Q9N-8C-Guf">
+                                        <rect key="frame" x="20" y="61.5" width="374" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Q9N-8C-Guf" id="TUq-Ex-tJG">
+                                            <rect key="frame" x="0.0" y="0.0" width="374" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Center Game Image" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6K0-Zw-CzT">
+                                                    <rect key="frame" x="20" y="11.5" width="152.5" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I6V-QG-3Ju">
+                                                    <rect key="frame" x="305" y="6.5" width="51" height="31"/>
+                                                    <connections>
+                                                        <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="dZL-OT-B0l"/>
+                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="njv-Tx-BZs"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="I6V-QG-3Ju" firstAttribute="centerY" secondItem="TUq-Ex-tJG" secondAttribute="centerY" id="1PA-NS-r9j"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="I6V-QG-3Ju" secondAttribute="trailing" id="CD8-bE-JFJ"/>
+                                                <constraint firstItem="6K0-Zw-CzT" firstAttribute="centerY" secondItem="TUq-Ex-tJG" secondAttribute="centerY" id="Kpy-xD-I1y"/>
+                                                <constraint firstItem="6K0-Zw-CzT" firstAttribute="leading" secondItem="TUq-Ex-tJG" secondAttribute="leadingMargin" id="W3a-3O-fZB"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
@@ -101,6 +130,7 @@
                     <navigationItem key="navigationItem" title="Interface" id="zlc-hO-hJt"/>
                     <simulatedNavigationBarMetrics key="simulatedTopBarMetrics" prompted="NO"/>
                     <connections>
+                        <outlet property="m_center_image_switch" destination="I6V-QG-3Ju" id="HVi-lI-RqE"/>
                         <outlet property="m_top_bar_switch" destination="N4o-ug-sPA" id="7Fc-CV-224"/>
                     </connections>
                 </tableViewController>

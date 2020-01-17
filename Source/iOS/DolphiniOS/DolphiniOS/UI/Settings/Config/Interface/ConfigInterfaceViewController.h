@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface ConfigInterfaceViewController : UITableViewController
 
 @property (weak, nonatomic) IBOutlet UISwitch* m_top_bar_switch;
+@property (weak, nonatomic) IBOutlet UISwitch* m_center_image_switch;
 
 @end
 

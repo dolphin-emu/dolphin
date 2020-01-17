@@ -115,9 +115,13 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="m_eagl_bottom_constraint" destination="L1v-Zt-8lf" id="DEm-Su-fgy"/>
+                        <outlet property="m_eagl_half_constraint" destination="uhM-Ah-BI9" id="ycb-tf-3pS"/>
                         <outlet property="m_eagl_view" destination="daX-vt-kk3" id="9Fx-FT-ga5"/>
                         <outlet property="m_edge_pan_recognizer" destination="k9B-W2-NA3" id="bEe-AH-f8u"/>
                         <outlet property="m_gc_pad" destination="R1C-TK-7Br" id="lIa-V3-4Kh"/>
+                        <outlet property="m_metal_bottom_constraint" destination="l7v-5a-mFJ" id="XpZ-Je-sgD"/>
+                        <outlet property="m_metal_half_constraint" destination="xPp-nK-9tw" id="Dmm-bt-ZWA"/>
                         <outlet property="m_metal_view" destination="ODM-xp-bCF" id="iZt-J9-8uw"/>
                         <outlet property="m_wii_classic_pad" destination="YWH-fQ-xGM" id="apE-lX-o8f"/>
                         <outlet property="m_wii_normal_pad" destination="kFP-2O-2AC" id="0cx-4G-3Wk"/>
