@@ -58,6 +58,13 @@
   
   [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
   
+  // Adjust view depending on preference
+  bool do_not_raise = [[NSUserDefaults standardUserDefaults] boolForKey:@"do_not_raise_rendering_view"];
+  [self.m_metal_half_constraint setActive:!do_not_raise];
+  [self.m_eagl_half_constraint setActive:!do_not_raise];
+  [self.m_metal_bottom_constraint setActive:do_not_raise];
+  [self.m_eagl_bottom_constraint setActive:do_not_raise];
+  
   if (![[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"])
   {
     // Hide navigation bar
