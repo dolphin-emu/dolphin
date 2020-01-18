@@ -61,7 +61,11 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
     // Attachments:
     if (ctrlGroup->type == GroupType::Attachments)
     {
-      for (auto& attachment : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
+      auto* const attachments = static_cast<Attachments*>(ctrlGroup.get());
+
+      attachments->GetSelectionSetting().GetInputReference().UpdateReference(env);
+
+      for (auto& attachment : attachments->GetAttachmentList())
         attachment->UpdateReferences(env);
     }
   }

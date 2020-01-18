@@ -16,6 +16,7 @@ namespace ControllerEmu
 {
 enum class SettingType
 {
+  Int,
   Double,
   Bool,
 };
@@ -56,6 +57,8 @@ public:
   virtual InputReference& GetInputReference() = 0;
   virtual const InputReference& GetInputReference() const = 0;
 
+  virtual bool IsSimpleValue() const = 0;
+
   // Convert a literal expression e.g. "7.0" to a regular value. (disables expression parsing)
   virtual void SimplifyIfPossible() = 0;
 
@@ -76,13 +79,14 @@ template <typename T>
 class SettingValue;
 
 template <typename T>
-class NumericSetting : public NumericSettingBase
+class NumericSetting final : public NumericSettingBase
 {
 public:
   using ValueType = T;
 
-  static_assert(std::is_same<ValueType, double>() || std::is_same<ValueType, bool>(),
-                "NumericSetting is only implemented for double and bool.");
+  static_assert(std::is_same<ValueType, int>() || std::is_same<ValueType, double>() ||
+                    std::is_same<ValueType, bool>(),
+                "NumericSetting is only implemented for int, double, and bool.");
 
   NumericSetting(SettingValue<ValueType>* value, const NumericSettingDetails& details,
                  ValueType default_value, ValueType min_value, ValueType max_value)
@@ -114,7 +118,7 @@ public:
       section.Set(group_name + m_details.ini_name, m_value.m_input.GetExpression(), "");
   }
 
-  bool IsSimpleValue() const { return m_value.IsSimpleValue(); }
+  bool IsSimpleValue() const override { return m_value.IsSimpleValue(); }
 
   void SimplifyIfPossible() override
   {
@@ -123,15 +127,7 @@ public:
       m_value.SetValue(value);
   }
 
-  void SetExpressionFromValue() override
-  {
-    if (!IsSimpleValue())
-      return;
-
-    // Cast to double to prevent bool -> "true"/"false" strings.
-    m_value.m_input.SetExpression(ValueToString(static_cast<double>(GetValue())));
-  }
-
+  void SetExpressionFromValue() override;
   InputReference& GetInputReference() override { return m_value.m_input; }
   const InputReference& GetInputReference() const override { return m_value.m_input; }
 

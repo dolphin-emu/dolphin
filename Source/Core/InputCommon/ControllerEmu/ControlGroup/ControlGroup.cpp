@@ -74,15 +74,19 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 
     ext->SetSelectedAttachment(0);
     u32 n = 0;
-    std::string extname;
-    sec->Get(base + name, &extname, "");
+    std::string attachment_text;
+    sec->Get(base + name, &attachment_text, "");
+
+    // First assume attachment string is a valid expression.
+    // If it instead matches one of the names of our attachments it is overridden below.
+    ext->GetSelectionSetting().GetInputReference().SetExpression(attachment_text);
 
     for (auto& ai : ext->GetAttachmentList())
     {
       ai->SetDefaultDevice(defdev);
       ai->LoadConfig(sec, base + ai->GetName() + "/");
 
-      if (ai->GetName() == extname)
+      if (ai->GetName() == attachment_text)
         ext->SetSelectedAttachment(n);
 
       n++;
@@ -114,8 +118,16 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   if (type == GroupType::Attachments)
   {
     auto* const ext = static_cast<Attachments*>(this);
-    sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
-             "None");
+
+    if (ext->GetSelectionSetting().IsSimpleValue())
+    {
+      sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
+               "None");
+    }
+    else
+    {
+      sec->Set(base + name, ext->GetSelectionSetting().GetInputReference().GetExpression(), "None");
+    }
 
     for (auto& ai : ext->GetAttachmentList())
       ai->SaveConfig(sec, base + ai->GetName() + "/");

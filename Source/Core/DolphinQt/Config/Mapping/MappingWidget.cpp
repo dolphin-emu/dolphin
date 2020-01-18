@@ -9,7 +9,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QTimer>
 
 #include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
@@ -29,14 +28,6 @@ MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
   connect(parent, &MappingWindow::Update, this, &MappingWidget::Update);
   connect(parent, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
   connect(parent, &MappingWindow::ConfigChanged, this, &MappingWidget::ConfigChanged);
-
-  const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this] {
-    const auto lock = m_parent->GetController()->GetStateLock();
-    emit Update();
-  });
-
-  timer->start(1000 / INDICATOR_UPDATE_FREQ);
 }
 
 MappingWindow* MappingWidget::GetParent() const
@@ -139,31 +130,18 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       setting_widget =
           new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
       break;
+
+    default:
+      // FYI: Widgets for additional types can be implemented as needed.
+      break;
     }
 
     if (setting_widget)
     {
       const auto hbox = new QHBoxLayout;
+
       hbox->addWidget(setting_widget);
-
-      const auto advanced_button = new QPushButton(tr("..."));
-      advanced_button->setFixedWidth(
-          QFontMetrics(font()).boundingRect(advanced_button->text()).width() * 2);
-
-      hbox->addWidget(advanced_button);
-
-      advanced_button->connect(
-          advanced_button, &QPushButton::clicked, [this, &setting = *setting.get()]() {
-            setting.SetExpressionFromValue();
-
-            IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
-            io.exec();
-
-            setting.SimplifyIfPossible();
-
-            ConfigChanged();
-            SaveSettings();
-          });
+      hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
 
       form_layout->addRow(tr(setting->GetUIName()), hbox);
     }
@@ -197,4 +175,26 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
 {
   return m_parent->GetController();
+}
+
+QPushButton*
+MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting)
+{
+  const auto button = new QPushButton(tr("..."));
+  button->setFixedWidth(QFontMetrics(font()).boundingRect(button->text()).width() * 2);
+
+  button->connect(button, &QPushButton::clicked, [this, &setting]() {
+    if (setting.IsSimpleValue())
+      setting.SetExpressionFromValue();
+
+    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    io.exec();
+
+    setting.SimplifyIfPossible();
+
+    ConfigChanged();
+    SaveSettings();
+  });
+
+  return button;
 }

@@ -17,6 +17,7 @@ class InputConfig;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
+class QPushButton;
 class QGroupBox;
 
 namespace ControllerEmu
@@ -24,12 +25,8 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class EmulatedController;
+class NumericSettingBase;
 }  // namespace ControllerEmu
-
-namespace ciface::Core
-{
-class Device;
-}  // namespace ciface::Core
 
 constexpr int INDICATOR_UPDATE_FREQ = 30;
 
@@ -56,6 +53,7 @@ protected:
 
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
+  QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
   MappingWindow* m_parent;
