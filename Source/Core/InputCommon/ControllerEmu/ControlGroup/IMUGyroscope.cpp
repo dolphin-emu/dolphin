@@ -27,15 +27,14 @@ IMUGyroscope::IMUGyroscope(std::string name, std::string ui_name)
 
 std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const
 {
+  if (controls[0]->control_ref->BoundCount() == 0)
+    return std::nullopt;
+
   StateData state;
   state.x = (controls[1]->control_ref->State() - controls[0]->control_ref->State());
   state.y = (controls[2]->control_ref->State() - controls[3]->control_ref->State());
   state.z = (controls[4]->control_ref->State() - controls[5]->control_ref->State());
-
-  if (controls[0]->control_ref->BoundCount() != 0)
-    return state;
-  else
-    return std::nullopt;
+  return state;
 }
 
 }  // namespace ControllerEmu
