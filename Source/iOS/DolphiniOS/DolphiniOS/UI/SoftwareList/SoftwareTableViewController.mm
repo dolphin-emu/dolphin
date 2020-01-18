@@ -39,9 +39,9 @@
 #ifndef DEBUG
   NSString* update_url_string;
 #ifndef PATREON
-  update_url_string = @"https://cydia.oatmealdome.me/update.json";
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update.json";
 #else
-  update_url_string = @"https://cydia.oatmealdome.me/update_patreon.json";
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon.json";
 #endif
   
   NSURL* update_url = [NSURL URLWithString:update_url_string];
