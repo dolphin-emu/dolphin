@@ -61,7 +61,7 @@
     // Deserialize the JSON
     NSDictionary* dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
     
-    if (dict[@"version"] != version_str)
+    if (![dict[@"version"] isEqualToString:version_str])
     {
       NSString* message = [NSString stringWithFormat:@"DolphiniOS version %@ is now available.\n\n%@", dict[@"version"], dict[@"changes"]];
       
