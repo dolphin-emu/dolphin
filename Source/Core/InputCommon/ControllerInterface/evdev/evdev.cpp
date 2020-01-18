@@ -2,10 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/evdev/evdev.h"
+
 #include <algorithm>
 #include <cstring>
 #include <map>
 #include <memory>
+#include <regex>
 #include <string>
 
 #include <fcntl.h>
@@ -21,7 +24,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
-#include "InputCommon/ControllerInterface/evdev/evdev.h"
 
 namespace ciface::evdev
 {
@@ -223,13 +225,17 @@ std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
   return nullptr;
 }
 
-void AddDeviceNode(const char* devnode)
+void AddDeviceNode(std::string devnode)
 {
+  // This node is already in use.
+  if (s_devnode_objects.count(devnode) != 0)
+    return;
+
   // Unfortunately udev gives us no way to filter out the non event device interfaces.
   // So we open it and see if it works with evdev ioctls or not.
 
   // The device file will be read on one of the main threads, so we open in non-blocking mode.
-  const int fd = open(devnode, O_RDWR | O_NONBLOCK);
+  const int fd = open(devnode.c_str(), O_RDWR | O_NONBLOCK);
   if (fd == -1)
   {
     return;
@@ -269,7 +275,7 @@ void AddDeviceNode(const char* devnode)
       g_controller_interface.AddDevice(evdev_device);
   }
 
-  s_devnode_objects.emplace(devnode, std::move(evdev_device));
+  s_devnode_objects.emplace(std::move(devnode), std::move(evdev_device));
 }
 
 static void HotplugThreadFunc()
@@ -327,7 +333,8 @@ static void HotplugThreadFunc()
     }
     else if (strcmp(action, "add") == 0)
     {
-      AddDeviceNode(devnode);
+      // Rather than just adding this node, Populate so all new devices are added in proper order.
+      PopulateDevices();
     }
   }
   NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
@@ -371,6 +378,22 @@ void Init()
 
 void PopulateDevices()
 {
+  // Unfortunately there doesn't seem to be a documented way to
+  // enumerate devices in a consistent order.
+  // This is especially problematic for 4-port controller adapters.
+  // Sorting device nodes based on their /dev/ name seems to give us the
+  // order of discovery which is what is wanted.
+  std::map<std::string, std::string> devnodes;
+
+  // Pad the first occurance of digits for natural sorting,
+  // so /dev/input/event9 sorts before /dev/input/event10.
+  auto ConvertStringForNaturalSorting = [](std::string str) {
+    std::smatch sm;
+    if (std::regex_search(str, sm, std::regex(R"(\d{1,10})")))
+      str.insert(sm.position(), std::string(10 - sm.length(), '0'));
+    return str;
+  };
+
   // We use udev to iterate over all /dev/input/event* devices.
   // Note: the Linux kernel is currently limited to just 32 event devices. If
   // this ever changes, hopefully udev will take care of this.
@@ -393,12 +416,16 @@ void PopulateDevices()
     udev_device* dev = udev_device_new_from_syspath(udev, path);
 
     if (const char* devnode = udev_device_get_devnode(dev))
-      AddDeviceNode(devnode);
+      devnodes.emplace(ConvertStringForNaturalSorting(devnode), devnode);
 
     udev_device_unref(dev);
   }
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
+
+  // Add our enumerated device nodes after a "natural" sort.
+  for (auto& [sorted_name, devnode] : devnodes)
+    AddDeviceNode(std::move(devnode));
 }
 
 void Shutdown()
