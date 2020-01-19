@@ -375,6 +375,13 @@ void Reset(bool spinup)
   s_DICFG.Hex = 0;
   s_DICFG.CONFIG = 1;  // Disable bootrom descrambler
 
+  ResetDrive(spinup);
+}
+
+// Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
+// emulated device, or any inserted disc.
+void ResetDrive(bool spinup)
+{
   s_stream = false;
   s_stop_at_track_end = false;
   s_audio_position = 0;
@@ -453,7 +460,7 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
   DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
 
-  Reset(false);
+  ResetDrive(false);
 }
 
 bool IsDiscInside()

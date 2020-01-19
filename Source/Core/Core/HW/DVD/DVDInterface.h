@@ -111,6 +111,7 @@ enum class EjectCause
 
 void Init();
 void Reset(bool spinup = true);
+void ResetDrive(bool spinup);
 void Shutdown();
 void DoState(PointerWrap& p);
 
