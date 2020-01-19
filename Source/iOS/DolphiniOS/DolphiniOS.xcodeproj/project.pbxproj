@@ -222,13 +222,13 @@
 		B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TouchWiimoteProfile.ini; path = BundleResources/TouchWiimoteProfile.ini; sourceTree = "<group>"; };
 		B988D80623B83AB40092CB6C /* ControllerDsuClientViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDsuClientViewController.h; sourceTree = "<group>"; };
 		B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDsuClientViewController.mm; sourceTree = "<group>"; };
-		B988D80A23B982C80092CB6C /* IncrementBuild.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = IncrementBuild.sh; path = BuildResources/BuildScripts/IncrementBuild.sh; sourceTree = "<group>"; };
 		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
 		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
 		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
 		B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerExtensionsViewController.mm; sourceTree = "<group>"; };
 		B989DFCB23B4AE1A005C7773 /* ControllerExtensionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionCell.h; sourceTree = "<group>"; };
 		B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerExtensionCell.m; sourceTree = "<group>"; };
+		B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = PreBuildTasks.sh; path = BuildResources/BuildScripts/PreBuildTasks.sh; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -624,7 +624,7 @@
 				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
 				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
 				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
-				B988D80A23B982C80092CB6C /* IncrementBuild.sh */,
+				B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */,
 				B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */,
 			);
 			name = "Build Scripts";
@@ -718,7 +718,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */;
 			buildPhases = (
-				B988D80B23BA8BBB0092CB6C /* ShellScript */,
+				B988D80B23BA8BBB0092CB6C /* Pre-Build Tasks */,
 				B945A38C2362AEB900B21680 /* Build Dolphin */,
 				B9766AF023A4964B00FF7F17 /* Build csdbgd */,
 				B95A093F2384F18600DBBB01 /* Copy Dolphin Images */,
@@ -858,7 +858,7 @@
 			shellPath = /bin/sh;
 			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/BuildCsdbgd.sh\n";
 		};
-		B988D80B23BA8BBB0092CB6C /* ShellScript */ = {
+		B988D80B23BA8BBB0092CB6C /* Pre-Build Tasks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -867,13 +867,14 @@
 			);
 			inputPaths = (
 			);
+			name = "Pre-Build Tasks";
 			outputFileListPaths = (
 			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/IncrementBuild.sh\n";
+			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/PreBuildTasks.sh\n";
 		};
 		B9E1ACB423B34F540072EDF0 /* Clean Bundle */ = {
 			isa = PBXShellScriptBuildPhase;
