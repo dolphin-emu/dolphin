@@ -24,7 +24,14 @@
 {
   [super viewDidLoad];
   
-  self.m_last_selected = [ControllerSettingsUtils SIDevicesToGCMenuIndex:SConfig::GetInstance().m_SIDevice[self.m_port]].value();
+  if (self.m_is_wii)
+  {
+    self.m_last_selected = g_wiimote_sources[self.m_port];
+  }
+  else
+  {
+    self.m_last_selected = [ControllerSettingsUtils SIDevicesToGCMenuIndex:SConfig::GetInstance().m_SIDevice[self.m_port]].value();
+  }
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
