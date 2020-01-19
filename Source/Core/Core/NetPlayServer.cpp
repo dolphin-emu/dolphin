@@ -434,21 +434,6 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   spac << m_host_input_authority;
   Send(player.socket, spac);
 
-  // sync GC SRAM with new client
-  if (!g_SRAM_netplay_initialized)
-  {
-    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-    InitSRAM();
-    g_SRAM_netplay_initialized = true;
-  }
-  spac.clear();
-  spac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
-  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
-  {
-    spac << g_SRAM[offsetof(Sram, settings) + i];
-  }
-  Send(player.socket, spac);
-
   // sync values with new client
   for (const auto& p : m_players)
   {
@@ -1274,6 +1259,21 @@ bool NetPlayServer::StartGame()
 
   const std::string region = SConfig::GetDirectoryForRegion(
       SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
+
+  // sync GC SRAM with clients
+  if (!g_SRAM_netplay_initialized)
+  {
+    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+    InitSRAM();
+    g_SRAM_netplay_initialized = true;
+  }
+  sf::Packet srampac;
+  srampac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
+  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
+  {
+    srampac << g_SRAM[offsetof(Sram, settings) + i];
+  }
+  SendAsyncToClients(std::move(srampac), 1);
 
   // tell clients to start game
   sf::Packet spac;
