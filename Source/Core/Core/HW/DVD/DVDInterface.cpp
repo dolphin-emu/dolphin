@@ -1283,8 +1283,11 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
   else if (reply_type == ReplyType::Interrupt || reply_type == ReplyType::IOS)
     transfer_size = s_DILENGTH;
 
-  s_DIMAR += transfer_size;
-  s_DILENGTH -= transfer_size;
+  if (interrupt_type == DIInterruptType::TCINT)
+  {
+    s_DIMAR += transfer_size;
+    s_DILENGTH -= transfer_size;
+  }
 
   switch (reply_type)
   {
