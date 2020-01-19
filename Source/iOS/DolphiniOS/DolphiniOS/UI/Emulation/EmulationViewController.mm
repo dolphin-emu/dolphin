@@ -208,7 +208,7 @@
       
       // TODO: A better way? This will break if more settings are added to the Options group.
       ControllerEmu::ControlGroup* group = Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Options);
-      ControllerEmu::NumericSetting<bool>* setting = static_cast<ControllerEmu::NumericSetting<bool>*>(group->numeric_settings[1].get());
+      ControllerEmu::NumericSetting<bool>* setting = static_cast<ControllerEmu::NumericSetting<bool>*>(group->numeric_settings[3].get());
       
       TCView* pad_view;
       if (setting->GetValue())
