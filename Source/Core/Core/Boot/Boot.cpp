@@ -250,8 +250,9 @@ bool CBoot::DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address)
   if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), buffer.size());
-  // Clear ERROR_NO_DISKID_L, probably should check if that's currently set
-  DVDInterface::SetLowError(DVDInterface::ERROR_READY);
+  // Transition out of the DiscIdNotRead state (which the drive should be in at this point,
+  // on the assumption that this is only used for the first read)
+  DVDInterface::SetDriveState(DVDInterface::DriveState::ReadyNoReadsMade);
   return true;
 }
 

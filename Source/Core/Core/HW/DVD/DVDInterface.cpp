@@ -157,12 +157,12 @@ static u32 s_current_length;
 static u64 s_next_start;
 static u32 s_next_length;
 static u32 s_pending_samples;
-static bool s_can_configure_dtk = true;
 static bool s_enable_dtk = false;
 static u8 s_dtk_buffer_length = 0;  // TODO: figure out how this affects the regular buffer
 
 // Disc drive state
-static u32 s_error_code = 0;
+static DriveState s_drive_state;
+static DriveError s_error_code;
 
 // Disc drive timing
 static u64 s_read_buffer_start_time;
@@ -219,10 +219,10 @@ void DoState(PointerWrap& p)
   p.Do(s_next_start);
   p.Do(s_next_length);
   p.Do(s_pending_samples);
-  p.Do(s_can_configure_dtk);
   p.Do(s_enable_dtk);
   p.Do(s_dtk_buffer_length);
 
+  p.Do(s_drive_state);
   p.Do(s_error_code);
 
   p.Do(s_read_buffer_start_time);
@@ -383,31 +383,30 @@ void Reset(bool spinup)
   s_current_start = 0;
   s_current_length = 0;
   s_pending_samples = 0;
-  s_can_configure_dtk = true;
   s_enable_dtk = false;
   s_dtk_buffer_length = 0;
 
   if (!IsDiscInside())
   {
-    // ERROR_COVER is used when the cover is open;
-    // ERROR_NO_DISK_L is used when the cover is closed but there is no disc.
+    // CoverOpened is used when the cover is open;
+    // NoMediumPresent is used when the cover is closed but there is no disc.
     // On the Wii, this can only happen if something other than a DVD is inserted into the disc
     // drive (for instance, an audio CD) and only after it attempts to read it.  Otherwise, it will
     // report the cover as opened.
-    SetLowError(ERROR_COVER);
+    SetDriveState(DriveState::CoverOpened);
   }
   else if (!spinup)
   {
     // Wii hardware tests indicate that this is used when ejecting and inserting a new disc, or
     // performing a reset without spinup.
-    SetLowError(ERROR_CHANGE_DISK);
+    SetDriveState(DriveState::DiscChangeDetected);
   }
   else
   {
-    SetLowError(ERROR_NO_DISKID_L);
+    SetDriveState(DriveState::DiscIdNotRead);
   }
 
-  SetHighError(ERROR_NONE);
+  SetDriveError(DriveError::None);
 
   // The buffer is empty at start
   s_read_buffer_start_offset = 0;
@@ -705,32 +704,32 @@ void ClearInterrupt(DIInterruptType interrupt)
 }
 
 // Checks the drive state to make sure a read-like command can be performed.
-// If false is returned, SetHighError will have been called, and the caller
+// If false is returned, SetDriveError will have been called, and the caller
 // should issue a DEINT interrupt.
 static bool CheckReadPreconditions()
 {
-  if (!IsDiscInside())  // Implies ERROR_COVER or ERROR_NO_DISK
+  if (!IsDiscInside())  // Implies CoverOpened or NoMediumPresent
   {
     ERROR_LOG(DVDINTERFACE, "No disc inside.");
-    SetHighError(ERROR_NO_DISK_H);
+    SetDriveError(DriveError::MediumNotPresent);
     return false;
   }
-  if ((s_error_code & LOW_ERROR_MASK) == ERROR_CHANGE_DISK)
+  if (s_drive_state == DriveState::DiscChangeDetected)
   {
     ERROR_LOG(DVDINTERFACE, "Disc changed (motor stopped).");
-    SetHighError(ERROR_MEDIUM);
+    SetDriveError(DriveError::MediumChanged);
     return false;
   }
-  if ((s_error_code & LOW_ERROR_MASK) == ERROR_MOTOR_STOP_L)
+  if (s_drive_state == DriveState::MotorStopped)
   {
     ERROR_LOG(DVDINTERFACE, "Motor stopped.");
-    SetHighError(ERROR_MOTOR_STOP_H);
+    SetDriveError(DriveError::MotorStopped);
     return false;
   }
-  if ((s_error_code & LOW_ERROR_MASK) == ERROR_NO_DISKID_L)
+  if (s_drive_state == DriveState::DiscIdNotRead)
   {
     ERROR_LOG(DVDINTERFACE, "Disc id not read.");
-    SetHighError(ERROR_NO_DISKID_H);
+    SetDriveError(DriveError::NoDiscID);
     return false;
   }
   return true;
@@ -775,7 +774,7 @@ bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 
   if (reply_type == ReplyType::IOS && partition == DiscIO::PARTITION_NONE &&
       dvd_offset + dvd_length > 0x50000)
   {
-    SetHighError(DVDInterface::ERROR_BLOCK_OOB);
+    SetDriveError(DriveError::BlockOOB);
     *interrupt_type = DIInterruptType::DEINT;
     return false;
   }
@@ -794,7 +793,7 @@ void ExecuteCommand(ReplyType reply_type)
 
   // DVDLowRequestError needs access to the error code set by the previous command
   if (static_cast<DICommand>(s_DICMDBUF[0] >> 24) != DICommand::RequestError)
-    SetHighError(0);
+    SetDriveError(DriveError::None);
 
   switch (static_cast<DICommand>(s_DICMDBUF[0] >> 24))
   {
@@ -811,7 +810,7 @@ void ExecuteCommand(ReplyType reply_type)
   // GC-only patched drive firmware command, used by libogc
   case DICommand::Unknown55:
     INFO_LOG(DVDINTERFACE, "SetExtension");
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
 
@@ -820,7 +819,7 @@ void ExecuteCommand(ReplyType reply_type)
     INFO_LOG(DVDINTERFACE, "DVDLowReportKey");
     // Does not work on retail discs/drives
     // Retail games send this command to see if they are running on real retail hw
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
 
@@ -838,7 +837,9 @@ void ExecuteCommand(ReplyType reply_type)
                ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH);
 
-      s_can_configure_dtk = false;
+      if (s_drive_state == DriveState::ReadyNoReadsMade)
+        SetDriveState(DriveState::Ready);
+
       command_handled_by_thread =
           ExecuteReadCommand(iDVDOffset, s_DIMAR, s_DICMDBUF[2], s_DILENGTH, DiscIO::PARTITION_NONE,
                              reply_type, &interrupt_type);
@@ -847,20 +848,20 @@ void ExecuteCommand(ReplyType reply_type)
 
     case 0x40:  // Read DiscID
       INFO_LOG(DVDINTERFACE, "Read DiscID: buffer %08x", s_DIMAR);
-      // TODO: It doesn't make sense to include ERROR_CHANGE_DISK here, as it implies that the drive
-      // is not spinning and reading the disc ID shouldn't change it.  However, the Wii Menu breaks
-      // without it.
-      if ((s_error_code & LOW_ERROR_MASK) == ERROR_NO_DISKID_L ||
-          (s_error_code & LOW_ERROR_MASK) == ERROR_CHANGE_DISK)
+      // TODO: It doesn't make sense to include DiscChangeDetected here, as it implies that the
+      // drive is not spinning and reading the disc ID shouldn't change it.  However, the Wii Menu
+      // breaks without it.
+      if (s_drive_state == DriveState::DiscIdNotRead ||
+          s_drive_state == DriveState::DiscChangeDetected)
       {
-        SetLowError(ERROR_READY);
+        SetDriveState(DriveState::ReadyNoReadsMade);
       }
-      else
+      else if (s_drive_state == DriveState::ReadyNoReadsMade)
       {
         // The first disc ID reading is required before DTK can be configured.
         // If the disc ID is read again (or any other read occurs), it no longer can
         // be configured.
-        s_can_configure_dtk = false;
+        SetDriveState(DriveState::Ready);
       }
 
       command_handled_by_thread = ExecuteReadCommand(
@@ -897,33 +898,33 @@ void ExecuteCommand(ReplyType reply_type)
       ERROR_LOG(DVDINTERFACE, "Unknown 0xAD subcommand in %08x", s_DICMDBUF[0]);
       break;
     }
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::ReadDVD:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvd");
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::ReadDVDConfig:
     ERROR_LOG(DVDINTERFACE, "DVDLowReadDvdConfig");
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::StopLaser:
     ERROR_LOG(DVDINTERFACE, "DVDLowStopLaser");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_STOP_LASER);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::Offset:
     ERROR_LOG(DVDINTERFACE, "DVDLowOffset");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_OFFSET);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
@@ -943,36 +944,45 @@ void ExecuteCommand(ReplyType reply_type)
   case DICommand::RequestDiscStatus:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestDiscStatus");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_DISC_STATUS);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::RequestRetryNumber:
     ERROR_LOG(DVDINTERFACE, "DVDLowRequestRetryNumber");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_REQUEST_RETRY_NUMBER);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::SetMaximumRotation:
     ERROR_LOG(DVDINTERFACE, "DVDLowSetMaximumRotation");
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   // Wii-exclusive
   case DICommand::SerMeasControl:
     ERROR_LOG(DVDINTERFACE, "DVDLowSerMeasControl");
     DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DVD_LOW_SER_MEAS_CONTROL);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
 
   // Used by both GC and Wii
   case DICommand::RequestError:
-    INFO_LOG(DVDINTERFACE, "Requesting error... (0x%08x)", s_error_code);
-    s_DIIMMBUF = s_error_code;
-    SetHighError(0);
+  {
+    u32 drive_state;
+    if (s_drive_state == DriveState::Ready)
+      drive_state = 0;
+    else
+      drive_state = static_cast<u32>(s_drive_state) - 1;
+
+    const u32 result = (drive_state << 24) | static_cast<u32>(s_error_code);
+    INFO_LOG(DVDINTERFACE, "Requesting error... (0x%08x)", result);
+    s_DIIMMBUF = result;
+    SetDriveError(DriveError::None);
     break;
+  }
 
   // Audio Stream (Immediate). Only used by some GC games, but does exist on the Wii
   // (command_0 >> 16) & 0xFF = Subcommand
@@ -983,7 +993,6 @@ void ExecuteCommand(ReplyType reply_type)
     if (!CheckReadPreconditions())
     {
       ERROR_LOG(DVDINTERFACE, "Cannot play audio (command %08x)", s_DICMDBUF[0]);
-      SetHighError(ERROR_AUDIO_BUF);
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
@@ -992,12 +1001,13 @@ void ExecuteCommand(ReplyType reply_type)
       ERROR_LOG(DVDINTERFACE,
                 "Attempted to change playing audio while audio is disabled!  (%08x %08x %08x)",
                 s_DICMDBUF[0], s_DICMDBUF[1], s_DICMDBUF[2]);
-      SetHighError(ERROR_AUDIO_BUF);
+      SetDriveError(DriveError::NoAudioBuf);
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
 
-    s_can_configure_dtk = false;
+    if (s_drive_state == DriveState::ReadyNoReadsMade)
+      SetDriveState(DriveState::Ready);
 
     switch ((s_DICMDBUF[0] >> 16) & 0xFF)
     {
@@ -1035,7 +1045,7 @@ void ExecuteCommand(ReplyType reply_type)
     default:
       ERROR_LOG(DVDINTERFACE, "Invalid audio command!  (%08x %08x %08x)", s_DICMDBUF[0],
                 s_DICMDBUF[1], s_DICMDBUF[2]);
-      SetHighError(ERROR_INV_AUDIO);
+      SetDriveError(DriveError::InvalidAudioCommand);
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
@@ -1045,10 +1055,17 @@ void ExecuteCommand(ReplyType reply_type)
   // Request Audio Status (Immediate). Only used by some GC games, but does exist on the Wii
   case DICommand::RequestAudioStatus:
   {
+    if (!CheckReadPreconditions())
+    {
+      ERROR_LOG(DVDINTERFACE, "Attempted to request audio status in an invalid state!");
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
+
     if (!s_enable_dtk)
     {
       ERROR_LOG(DVDINTERFACE, "Attempted to request audio status while audio is disabled!");
-      SetHighError(ERROR_AUDIO_BUF);
+      SetDriveError(DriveError::NoAudioBuf);
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
@@ -1082,7 +1099,7 @@ void ExecuteCommand(ReplyType reply_type)
     default:
       ERROR_LOG(DVDINTERFACE, "Invalid audio status command!  (%08x %08x %08x)", s_DICMDBUF[0],
                 s_DICMDBUF[1], s_DICMDBUF[2]);
-      SetHighError(ERROR_INV_AUDIO);
+      SetDriveError(DriveError::InvalidAudioCommand);
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
@@ -1096,7 +1113,12 @@ void ExecuteCommand(ReplyType reply_type)
     const bool kill = (s_DICMDBUF[0] & (1 << 20));
     INFO_LOG(DVDINTERFACE, "DVDLowStopMotor%s%s", eject ? " eject" : "", kill ? " kill!" : "");
 
-    SetLowError(ERROR_MOTOR_STOP_L);
+    if (s_drive_state == DriveState::Ready || s_drive_state == DriveState::ReadyNoReadsMade ||
+        s_drive_state == DriveState::DiscIdNotRead)
+    {
+      SetDriveState(DriveState::MotorStopped);
+    }
+
     const bool force_eject = eject && !kill;
 
     if (Config::Get(Config::MAIN_AUTO_DISC_CHANGE) && !Movie::IsPlayingInput() &&
@@ -1121,22 +1143,31 @@ void ExecuteCommand(ReplyType reply_type)
     // The link is dead, but you can access the page using the Wayback Machine at archive.org.
 
     // This command can only be used immediately after reading the disc ID, before any other
-    // reads. Too early, and you get ERROR_NO_DISKID.  Too late, and you get ERROR_INV_PERIOD.
-    if (!s_can_configure_dtk)
+    // reads. Too early, and you get NoDiscID.  Too late, and you get InvalidPeriod.
+    if (!CheckReadPreconditions())
     {
-      ERROR_LOG(DVDINTERFACE, "Attempted to change DTK configuration after a read has been made!");
-      SetHighError(ERROR_INV_PERIOD);
+      ERROR_LOG(DVDINTERFACE, "Attempted to change DTK configuration in an invalid state!");
       interrupt_type = DIInterruptType::DEINT;
       break;
     }
 
+    if (s_drive_state == DriveState::Ready)
+    {
+      ERROR_LOG(DVDINTERFACE, "Attempted to change DTK configuration after a read has been made!");
+      SetDriveError(DriveError::InvalidPeriod);
+      interrupt_type = DIInterruptType::DEINT;
+      break;
+    }
+
+    // Note that this can be called multiple times, as long as the drive is in the ReadyNoReadsMade
+    // state. Calling it does not exit that state.
     AudioBufferConfig((s_DICMDBUF[0] >> 16) & 1, s_DICMDBUF[0] & 0xf);
     break;
 
   // GC-only patched drive firmware command, used by libogc
   case DICommand::UnknownEE:
     INFO_LOG(DVDINTERFACE, "SetStatus");
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
 
@@ -1146,7 +1177,7 @@ void ExecuteCommand(ReplyType reply_type)
   // Can only be used through direct access and only after unlocked.
   case DICommand::Debug:
     ERROR_LOG(DVDINTERFACE, "Unsupported DVD Drive debug command 0x%08x", s_DICMDBUF[0]);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
 
@@ -1175,7 +1206,7 @@ void ExecuteCommand(ReplyType reply_type)
     ERROR_LOG(DVDINTERFACE, "Unknown command 0x%08x (Buffer 0x%08x, 0x%x)", s_DICMDBUF[0], s_DIMAR,
               s_DILENGTH);
     PanicAlertT("Unknown DVD command %08x - fatal error", s_DICMDBUF[0]);
-    SetHighError(ERROR_INV_CMD);
+    SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;
   }
@@ -1193,7 +1224,7 @@ void PerformDecryptingRead(u32 position, u32 length, u32 output_address,
                            const DiscIO::Partition& partition, ReplyType reply_type)
 {
   DIInterruptType interrupt_type = DIInterruptType::TCINT;
-  s_can_configure_dtk = false;
+  SetDriveState(DriveState::Ready);
 
   const bool command_handled_by_thread =
       ExecuteReadCommand(static_cast<u64>(position) << 2, output_address, length, length, partition,
@@ -1230,16 +1261,14 @@ void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late)
   FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
 }
 
-void SetLowError(u32 low_error)
+void SetDriveState(DriveState state)
 {
-  DEBUG_ASSERT((low_error & HIGH_ERROR_MASK) == 0);
-  s_error_code = (s_error_code & HIGH_ERROR_MASK) | (low_error & LOW_ERROR_MASK);
+  s_drive_state = state;
 }
 
-void SetHighError(u32 high_error)
+void SetDriveError(DriveError error)
 {
-  DEBUG_ASSERT((high_error & LOW_ERROR_MASK) == 0);
-  s_error_code = (s_error_code & LOW_ERROR_MASK) | (high_error & HIGH_ERROR_MASK);
+  s_error_code = error;
 }
 
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
