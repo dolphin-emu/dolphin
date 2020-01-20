@@ -26,6 +26,9 @@ for root, dirs, files in os.walk(sys.argv[1]):
     
     # Load the po and its strings into a dictionary
     for entry in po:
+      if not entry.msgstr:
+        continue
+      
       po_entries[entry.msgid] = entry.msgstr
       
     loaded_pos[language] = po_entries
