@@ -29,4 +29,8 @@ for root, dirs, files in os.walk(sys.argv[1]):
       po = polib.pofile(os.path.join(sys.argv[1], po_path))
       
       for entry in po:
-        strings_file.write('"' + entry.msgid.replace('"', r'\"') + '" = "' + entry.msgstr.replace('"', r'\"') + '";\n')
+        msgstr = entry.msgstr
+        if not entry.msgstr:
+          msgstr = entry.msgid
+        
+        strings_file.write('"' + entry.msgid.replace('"', r'\"') + '" = "' + msgstr.replace('"', r'\"') + '";\n')
