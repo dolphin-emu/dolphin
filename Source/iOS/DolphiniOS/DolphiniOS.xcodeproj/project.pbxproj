@@ -558,6 +558,7 @@
 			isa = PBXGroup;
 			children = (
 				B996C85723D5884300700D6F /* UpdateDolphinStrings.py */,
+				B996C86323D5927800700D6F /* UpdateUIStrings.py */,
 			);
 			name = Tools;
 			path = BuildResources/Tools;
