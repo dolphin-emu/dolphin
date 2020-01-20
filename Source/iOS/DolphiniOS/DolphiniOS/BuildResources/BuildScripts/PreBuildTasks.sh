@@ -16,13 +16,17 @@ CheckCommand "ninja"
 
 CheckCommand "/usr/local/bin/python3"
 
+CheckCommand "bartycrouch"
+
 ROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..
 
 cd $PROJECT_DIR
 
+# Run BartyCrouch to update storyboard strings
+bartycrouch update -x
+
 # Update the strings
 /usr/local/bin/python3 $PROJECT_DIR/DolphiniOS/BuildResources/Tools/UpdateDolphinStrings.py $ROOT_DOLPHIN_DIR/Languages/po $PROJECT_DIR/DolphiniOS/Localizables/
-
 /usr/local/bin/python3 $PROJECT_DIR/DolphiniOS/BuildResources/Tools/UpdateUIStrings.py $ROOT_DOLPHIN_DIR/Languages/po $PROJECT_DIR/DolphiniOS/UI/
 
 # Increment the build number
