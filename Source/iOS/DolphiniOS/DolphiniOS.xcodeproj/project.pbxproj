@@ -82,6 +82,8 @@
 		B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */; };
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
+		B996C85223D50FC600700D6F /* Dolphin.strings in Resources */ = {isa = PBXBuildFile; fileRef = B996C85423D50FC600700D6F /* Dolphin.strings */; };
+		B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */ = {isa = PBXBuildFile; fileRef = B996C85723D5884300700D6F /* UpdateDolphinStrings.py */; };
 		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
 		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
 		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
@@ -229,6 +231,8 @@
 		B989DFCB23B4AE1A005C7773 /* ControllerExtensionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionCell.h; sourceTree = "<group>"; };
 		B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerExtensionCell.m; sourceTree = "<group>"; };
 		B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = PreBuildTasks.sh; path = BuildResources/BuildScripts/PreBuildTasks.sh; sourceTree = "<group>"; };
+		B996C85323D50FC600700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Dolphin.strings; sourceTree = "<group>"; };
+		B996C85723D5884300700D6F /* UpdateDolphinStrings.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = UpdateDolphinStrings.py; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -414,6 +418,7 @@
 			children = (
 				B99B05A923A09CDC0076C7D8 /* Build Resources */,
 				B99B059F23A067090076C7D8 /* Bundle Resources */,
+				B996C84F23D50E3600700D6F /* Localizables */,
 				B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */,
 				B91BF364236B3DFF00199BA7 /* UI */,
 				B945A3732362908500B21680 /* AppDelegate.h */,
@@ -541,6 +546,23 @@
 			path = Extensions;
 			sourceTree = "<group>";
 		};
+		B996C84F23D50E3600700D6F /* Localizables */ = {
+			isa = PBXGroup;
+			children = (
+				B996C85423D50FC600700D6F /* Dolphin.strings */,
+			);
+			path = Localizables;
+			sourceTree = "<group>";
+		};
+		B996C85623D586F900700D6F /* Tools */ = {
+			isa = PBXGroup;
+			children = (
+				B996C85723D5884300700D6F /* UpdateDolphinStrings.py */,
+			);
+			name = Tools;
+			path = BuildResources/Tools;
+			sourceTree = "<group>";
+		};
 		B99B059F23A067090076C7D8 /* Bundle Resources */ = {
 			isa = PBXGroup;
 			children = (
@@ -563,6 +585,7 @@
 			children = (
 				B9DCAC9923AB43B3002B95C8 /* Build Scripts */,
 				B9DCAC9823AB42CA002B95C8 /* Deb FIles */,
+				B996C85623D586F900700D6F /* Tools */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 			);
@@ -785,6 +808,7 @@
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
+				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B98584C423CEDE7C00BE94B0 /* ConfigSettings.storyboard in Resources */,
 				B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
@@ -796,6 +820,7 @@
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
+				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 			);
@@ -983,6 +1008,14 @@
 				B945A3822362909500B21680 /* Base */,
 			);
 			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+		B996C85423D50FC600700D6F /* Dolphin.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B996C85323D50FC600700D6F /* en */,
+			);
+			name = Dolphin.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
