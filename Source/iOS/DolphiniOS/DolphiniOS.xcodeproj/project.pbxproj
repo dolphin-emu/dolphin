@@ -84,6 +84,7 @@
 		B996C85223D50FC600700D6F /* Dolphin.strings in Resources */ = {isa = PBXBuildFile; fileRef = B996C85423D50FC600700D6F /* Dolphin.strings */; };
 		B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */ = {isa = PBXBuildFile; fileRef = B996C85723D5884300700D6F /* UpdateDolphinStrings.py */; };
 		B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86023D590D500700D6F /* ConfigSettings.storyboard */; };
+		B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86823D5F49500700D6F /* ControllerSettings.storyboard */; };
 		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
 		B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A123A067560076C7D8 /* GCPadNew.ini */; };
 		B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A223A067560076C7D8 /* WiimoteProfile.ini */; };
@@ -106,7 +107,6 @@
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
-		B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */; };
 		B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */; };
 		B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA523AF7BB400593A20 /* ControllerDevicesViewController.mm */; };
 		B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA823AF7DB000593A20 /* ControllerDeviceCell.m */; };
@@ -237,6 +237,9 @@
 		B996C86323D5927800700D6F /* UpdateUIStrings.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = UpdateUIStrings.py; sourceTree = "<group>"; };
 		B996C86423D5A6CC00700D6F /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/ConfigSettings.strings; sourceTree = "<group>"; };
 		B996C86523D5A6CC00700D6F /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Dolphin.strings; sourceTree = "<group>"; };
+		B996C86723D5F49500700D6F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/ControllerSettings.storyboard; sourceTree = "<group>"; };
+		B996C86A23D5F4AB00700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/ControllerSettings.strings; sourceTree = "<group>"; };
+		B996C86C23D5F4AF00700D6F /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/ControllerSettings.strings; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -275,7 +278,6 @@
 		B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CopyDolphinImages.sh; path = BuildResources/BuildScripts/CopyDolphinImages.sh; sourceTree = "<group>"; };
 		B9DCAC9D23AB4486002B95C8 /* UpdateEntitlements.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = UpdateEntitlements.sh; path = BuildResources/BuildScripts/UpdateEntitlements.sh; sourceTree = "<group>"; };
 		B9DCAC9E23AC9C83002B95C8 /* GameController.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GameController.framework; path = System/Library/Frameworks/GameController.framework; sourceTree = SDKROOT; };
-		B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = ControllerSettings.storyboard; sourceTree = "<group>"; };
 		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9E1ACB623B355050072EDF0 /* postrm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postrm.sh; path = BuildResources/DebFiles/postrm.sh; sourceTree = "<group>"; };
 		B9E1ACB723B355860072EDF0 /* BuildDebs.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDebs.sh; path = BuildResources/BuildScripts/BuildDebs.sh; sourceTree = "<group>"; };
@@ -672,7 +674,7 @@
 				B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */,
 				B9EFBFA123AF582400593A20 /* ControllerDetailsViewController.h */,
 				B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */,
-				B9DCACA323ADE663002B95C8 /* ControllerSettings.storyboard */,
+				B996C86823D5F49500700D6F /* ControllerSettings.storyboard */,
 			);
 			path = Controller;
 			sourceTree = "<group>";
@@ -816,7 +818,7 @@
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */,
-				B9DCACA423ADE663002B95C8 /* ControllerSettings.storyboard in Resources */,
+				B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
@@ -1033,6 +1035,16 @@
 				B996C86423D5A6CC00700D6F /* ja */,
 			);
 			name = ConfigSettings.storyboard;
+			sourceTree = "<group>";
+		};
+		B996C86823D5F49500700D6F /* ControllerSettings.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B996C86723D5F49500700D6F /* Base */,
+				B996C86A23D5F4AB00700D6F /* en */,
+				B996C86C23D5F4AF00700D6F /* ja */,
+			);
+			name = ControllerSettings.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
