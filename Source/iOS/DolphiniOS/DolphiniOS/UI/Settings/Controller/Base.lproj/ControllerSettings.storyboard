@@ -24,8 +24,8 @@
                                             <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Port 1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SE1-G6-XZg">
-                                                    <rect key="frame" x="15" y="12.333333333333334" width="45" height="20.333333333333329"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Port 1" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SE1-G6-XZg">
+                                                    <rect key="frame" x="15" y="14.333333333333144" width="45" height="20.333333333333329"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -330,6 +330,14 @@
                         <outletCollection property="m_wiimote_labels" destination="cJF-NU-6lV" id="IdV-WJ-ksx"/>
                         <outletCollection property="m_wiimote_labels" destination="Dqz-rz-WrZ" id="gm8-px-aXt"/>
                         <outletCollection property="m_wiimote_labels" destination="b08-mZ-m35" id="Gxb-k0-Orb"/>
+                        <outletCollection property="m_port_name_labels" destination="SE1-G6-XZg" id="cKf-8o-RAW"/>
+                        <outletCollection property="m_port_name_labels" destination="8QZ-ZA-mzk" id="uKP-rj-xsA"/>
+                        <outletCollection property="m_port_name_labels" destination="jJz-l4-7o7" id="w22-Hl-iqd"/>
+                        <outletCollection property="m_port_name_labels" destination="oBE-Gs-oZH" id="DwE-FY-AJq"/>
+                        <outletCollection property="m_wiimote_name_labels" destination="ygq-gb-7v6" id="9qA-AA-Pgc"/>
+                        <outletCollection property="m_wiimote_name_labels" destination="ckA-vr-jU6" id="VZA-8L-pbt"/>
+                        <outletCollection property="m_wiimote_name_labels" destination="gq3-vA-FKC" id="qFq-9W-ojF"/>
+                        <outletCollection property="m_wiimote_name_labels" destination="s3f-8P-DdD" id="fO3-zS-TDW"/>
                         <segue destination="R3b-Ox-sS8" kind="show" identifier="to_controller_edit" id="pkz-Ue-XJF"/>
                     </connections>
                 </tableViewController>

@@ -26,6 +26,13 @@
 {
   [super viewDidLoad];
   
+  // Localize port labels
+  for (size_t i = 0; i < 4; i++)
+  {
+    [[self.m_port_name_labels objectAtIndex:i] setText:[NSString localizedStringWithFormat:DOLocalizedStringWithArgs(@"Port %1", @"d"), i + 1]];
+    [[self.m_wiimote_name_labels objectAtIndex:i] setText:[NSString localizedStringWithFormat:DOLocalizedStringWithArgs(@"Wii Remote %1", @"d"), i + 1]];
+  }
+  
   Pad::LoadConfig();
   Wiimote::LoadConfig();
 }
