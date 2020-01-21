@@ -30,7 +30,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
       if not entry.msgstr:
         msgstr = entry.msgid
       
-      po_entries[entry.msgid] = entry.msgstr
+      po_entries[entry.msgid] = msgstr
       
     loaded_pos[language] = po_entries
       
@@ -74,7 +74,11 @@ for dir in found_dirs:
           
           # Replace all matches
           for replace in to_replace:
-            content = content.replace('"' + replace + '";', '"' + po_entries[replace] + '";')
+            final_string = po_entries[replace]
+            if replace == final_string:
+              continue
+            
+            content = content.replace('"' + replace + '";', '"' + final_string + '";')
             
           strings_file.seek(0)
           strings_file.write(content)
