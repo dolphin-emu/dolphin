@@ -44,23 +44,23 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   switch (idx)
   {
     case 0:
-      return @"None";
+      return DOLocalizedString(@"None");
     case 1:
-      return @"Standard Controller";
+      return DOLocalizedString(@"Standard Controller");
     case 2:
-      return @"GameCube Adapter for Wii U";
+      return DOLocalizedString(@"GameCube Adapter for Wii U");
     case 3:
-      return @"Steering Wheel";
+      return DOLocalizedString(@"Steering Wheel");
     case 4:
-      return @"Dance Mat";
+      return DOLocalizedString(@"Dance Mat");
     case 5:
-      return @"DK Bongos";
+      return DOLocalizedString(@"DK Bongos");
     case 6:
-      return @"GBA";
+      return DOLocalizedString(@"GBA");
     case 7:
-      return @"Keyboard";
+      return DOLocalizedString(@"Keyboard");
     default:
-      return @"Unknown";
+      return @"??? (GC)";
   }
 }
 
@@ -74,13 +74,13 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   switch (idx)
   {
     case 0:
-      return @"None";
+      return DOLocalizedString(@"None");
     case 1:
-      return @"Emulated";
+      return DOLocalizedString(@"Emulated Wii Remote");
     case 2:
-      return @"Real";
+      return DOLocalizedString(@"Real Wii Remote");
     default:
-      return @"Unknown";
+      return @"??? (Wii)";
   }
 }
 
