@@ -1,6 +1,6 @@
 
-/* Class = "UILabel"; text = "Configuration"; ObjectID = "0TW-1a-IeH"; */
-"0TW-1a-IeH.text" = "Configuration";
+/* Class = "UILabel"; text = "Configure"; ObjectID = "0TW-1a-IeH"; */
+"0TW-1a-IeH.text" = "Configure";
 
 /* Class = "UILabel"; text = "Extension Name"; ObjectID = "0eE-YR-R88"; */
 "0eE-YR-R88.text" = "Extension Name";
@@ -50,11 +50,11 @@
 /* Class = "UILabel"; text = "Device"; ObjectID = "FT1-rG-Tk3"; */
 "FT1-rG-Tk3.text" = "Device";
 
-/* Class = "UILabel"; text = "IP"; ObjectID = "Gq2-rT-Uq2"; */
-"Gq2-rT-Uq2.text" = "IP";
+/* Class = "UILabel"; text = "IP Address"; ObjectID = "Gq2-rT-Uq2"; */
+"Gq2-rT-Uq2.text" = "IP Address";
 
-/* Class = "UINavigationItem"; title = "Devices"; ObjectID = "IZx-UR-35B"; */
-"IZx-UR-35B.title" = "Devices";
+/* Class = "UINavigationItem"; title = "Device"; ObjectID = "IZx-UR-35B"; */
+"IZx-UR-35B.title" = "Device";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "J79-DY-CEt"; */
 "J79-DY-CEt.text" = "Type";
@@ -65,8 +65,8 @@
 /* Class = "UINavigationItem"; title = "Type"; ObjectID = "JWn-tN-bch"; */
 "JWn-tN-bch.title" = "Type";
 
-/* Class = "UINavigationItem"; title = "Configuration"; ObjectID = "Jcs-zW-f0t"; */
-"Jcs-zW-f0t.title" = "Configuration";
+/* Class = "UINavigationItem"; title = "Configure"; ObjectID = "Jcs-zW-f0t"; */
+"Jcs-zW-f0t.title" = "Configure";
 
 /* Class = "UILabel"; text = "Profile Name"; ObjectID = "KqR-0N-gs6"; */
 "KqR-0N-gs6.text" = "Profile Name";
@@ -77,8 +77,8 @@
 /* Class = "UILabel"; text = "Option"; ObjectID = "LaI-lg-59f"; */
 "LaI-lg-59f.text" = "Option";
 
-/* Class = "UILabel"; text = "Save Configuration Profile"; ObjectID = "NB0-GD-Qur"; */
-"NB0-GD-Qur.text" = "Save Configuration Profile";
+/* Class = "UILabel"; text = "Save"; ObjectID = "NB0-GD-Qur"; */
+"NB0-GD-Qur.text" = "Save";
 
 /* Class = "UILabel"; text = "Port"; ObjectID = "PCF-H3-GB4"; */
 "PCF-H3-GB4.text" = "Port";
@@ -152,14 +152,14 @@
 /* Class = "UILabel"; text = "Port 3"; ObjectID = "jJz-l4-7o7"; */
 "jJz-l4-7o7.text" = "Port 3";
 
-/* Class = "UILabel"; text = "Load Configuration Profile"; ObjectID = "joW-Na-mVW"; */
-"joW-Na-mVW.text" = "Load Configuration Profile";
+/* Class = "UILabel"; text = "Load"; ObjectID = "joW-Na-mVW"; */
+"joW-Na-mVW.text" = "Load";
 
 /* Class = "UINavigationItem"; title = "Profile"; ObjectID = "jsy-24-OXj"; */
 "jsy-24-OXj.title" = "Profile";
 
-/* Class = "UILabel"; text = "Extensions"; ObjectID = "nZJ-JZ-d70"; */
-"nZJ-JZ-d70.text" = "Extensions";
+/* Class = "UILabel"; text = "Extension"; ObjectID = "nZJ-JZ-d70"; */
+"nZJ-JZ-d70.text" = "Extension";
 
 /* Class = "UILabel"; text = "Port 4"; ObjectID = "oBE-Gs-oZH"; */
 "oBE-Gs-oZH.text" = "Port 4";
@@ -170,8 +170,8 @@
 /* Class = "UINavigationItem"; title = "Port 0"; ObjectID = "qeO-Qo-Gt8"; */
 "qeO-Qo-Gt8.title" = "Port 0";
 
-/* Class = "UILabel"; text = "Enabled"; ObjectID = "qhK-oa-Vec"; */
-"qhK-oa-Vec.text" = "Enabled";
+/* Class = "UILabel"; text = "Enable"; ObjectID = "qhK-oa-Vec"; */
+"qhK-oa-Vec.text" = "Enable";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "qlf-xO-p0I"; */
 "qlf-xO-p0I.text" = "Type";
@@ -191,11 +191,14 @@
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "wqu-s3-jmH"; */
 "wqu-s3-jmH.text" = "Controller Type 4";
 
-/* Class = "UINavigationItem"; title = "Extensions"; ObjectID = "xW3-sC-el7"; */
-"xW3-sC-el7.title" = "Extensions";
+/* Class = "UINavigationItem"; title = "Extension"; ObjectID = "xW3-sC-el7"; */
+"xW3-sC-el7.title" = "Extension";
 
 /* Class = "UITableViewController"; title = "Devices"; ObjectID = "xwN-gx-mk9"; */
 "xwN-gx-mk9.title" = "Devices";
 
 /* Class = "UILabel"; text = "Wiimote 1"; ObjectID = "ygq-gb-7v6"; */
 "ygq-gb-7v6.text" = "Wiimote 1";
+
+/* Class = "UITableViewSection"; headerTitle = "Profile"; ObjectID = "w8A-mj-uDH"; */
+"w8A-mj-uDH.headerTitle" = "Profile";
