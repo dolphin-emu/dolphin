@@ -23,8 +23,8 @@
 /* Class = "UITableViewController"; title = "Profile Selector"; ObjectID = "6bQ-Dj-mFK"; */
 "6bQ-Dj-mFK.title" = "Profile Selector";
 
-/* Class = "UILabel"; text = "Enabled"; ObjectID = "7vY-8m-y7Y"; */
-"7vY-8m-y7Y.text" = "Enabled";
+/* Class = "UILabel"; text = "Enable"; ObjectID = "7vY-8m-y7Y"; */
+"7vY-8m-y7Y.text" = "Enable";
 
 /* Class = "UILabel"; text = "Port 2"; ObjectID = "8QZ-ZA-mzk"; */
 "8QZ-ZA-mzk.text" = "Port 2";

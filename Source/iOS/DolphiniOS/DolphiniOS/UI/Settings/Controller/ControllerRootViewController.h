@@ -8,7 +8,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface ControllerRootViewController : UITableViewController
 
+@property (strong, nonatomic) IBOutletCollection(UILabel) NSArray* m_port_name_labels;
 @property (nonatomic, retain) IBOutletCollection(UILabel) NSArray* m_port_labels;
+@property (strong, nonatomic) IBOutletCollection(UILabel) NSArray* m_wiimote_name_labels;
 @property (strong, nonatomic) IBOutletCollection(UILabel) NSArray* m_wiimote_labels;
 
 @end
