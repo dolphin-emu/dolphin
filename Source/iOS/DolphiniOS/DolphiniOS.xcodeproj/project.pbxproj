@@ -98,6 +98,7 @@
 		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */; };
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
+		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -240,6 +241,7 @@
 		B996C86723D5F49500700D6F /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/ControllerSettings.storyboard; sourceTree = "<group>"; };
 		B996C86A23D5F4AB00700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/ControllerSettings.strings; sourceTree = "<group>"; };
 		B996C86C23D5F4AF00700D6F /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/ControllerSettings.strings; sourceTree = "<group>"; };
+		B996C86D23D6F0D000700D6F /* DolphiniOS-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Prefix.pch"; sourceTree = "<group>"; };
 		B99B05A023A067560076C7D8 /* WiimoteNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteNew.ini; path = ../../../Android/app/src/main/assets/WiimoteNew.ini; sourceTree = "<group>"; };
 		B99B05A123A067560076C7D8 /* GCPadNew.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = GCPadNew.ini; path = ../../../Android/app/src/main/assets/GCPadNew.ini; sourceTree = "<group>"; };
 		B99B05A223A067560076C7D8 /* WiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = WiimoteProfile.ini; path = ../../../Android/app/src/main/assets/WiimoteProfile.ini; sourceTree = "<group>"; };
@@ -259,6 +261,8 @@
 		B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsTableViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6B23C5304D00C70473 /* ControllerGroupEnabledCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerGroupEnabledCell.h; sourceTree = "<group>"; };
 		B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupEnabledCell.mm; sourceTree = "<group>"; };
+		B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalizerUtils.h; sourceTree = "<group>"; };
+		B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalizerUtils.m; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -384,6 +388,8 @@
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
 				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
+				B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */,
+				B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -422,10 +428,11 @@
 		B945A3722362908500B21680 /* DolphiniOS */ = {
 			isa = PBXGroup;
 			children = (
-				B99B05A923A09CDC0076C7D8 /* Build Resources */,
 				B99B059F23A067090076C7D8 /* Bundle Resources */,
 				B996C84F23D50E3600700D6F /* Localizables */,
 				B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */,
+				B996C86D23D6F0D000700D6F /* DolphiniOS-Prefix.pch */,
+				B99B05A923A09CDC0076C7D8 /* Build Resources */,
 				B91BF364236B3DFF00199BA7 /* UI */,
 				B945A3732362908500B21680 /* AppDelegate.h */,
 				B945A3742362908500B21680 /* AppDelegate.mm */,
@@ -963,6 +970,7 @@
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
+				B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */,
 				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
@@ -1194,6 +1202,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"SUPPRESS_UNSUPPORTED_DEVICE=1",
@@ -1235,6 +1245,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1337,6 +1349,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"SUPPRESS_UNSUPPORTED_DEVICE=1",
@@ -1439,6 +1453,8 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "PATREON=1";
 				HEADER_SEARCH_PATHS = "";
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
