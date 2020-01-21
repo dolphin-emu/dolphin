@@ -13,6 +13,19 @@ import sys
 
 loaded_pos = {}
 
+def strip_string_for_ios(str):
+  # Strip (&X) for Japanese
+  str = re.sub("\(&(\S)\)", "", str)
+  
+  # Remove & in &X
+  str = re.sub("&(\S)", "\g<1>", str)
+  
+  # Strip trailing : and ： (full-width)
+  if str.endswith(':') or str.endswith('：'):
+    str = str[:-1]
+  
+  return str
+
 for root, dirs, files in os.walk(sys.argv[1]):
   for po_path in files:
     # Skip the template file
@@ -29,8 +42,11 @@ for root, dirs, files in os.walk(sys.argv[1]):
       msgstr = entry.msgstr
       if not entry.msgstr:
         msgstr = entry.msgid
+        
+      msgid = strip_string_for_ios(entry.msgid)
+      msgstr = strip_string_for_ios(msgstr)
       
-      po_entries[entry.msgid] = msgstr
+      po_entries[msgid] = msgstr
       
     loaded_pos[language] = po_entries
       
