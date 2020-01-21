@@ -135,7 +135,7 @@
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  if (indexPath.section == 1 && indexPath.row == 3)
+  if (indexPath.section == 1 && indexPath.row == 2)
   {
     UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Save Profile"
                                    message:@"Please enter a name for this profile. If a profile with that name already exists, it will be overwritten."
