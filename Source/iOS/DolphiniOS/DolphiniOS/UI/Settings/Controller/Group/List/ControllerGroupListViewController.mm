@@ -159,11 +159,11 @@
       case WII_SECTION_EXTENSION_SELECTOR:
         return nil;
       case WII_SECTION_WIIMOTE_CONTROLS:
-        return @"Wiimote";
+        return DOLocalizedString(@"Wii Remote");
       case WII_SECTION_NORMAL_MOTION:
-        return @"Motion Simulation";
+        return DOLocalizedString(@"Motion Simulation");
       case WII_SECTION_IMU_MOTION:
-        return @"Motion Input";
+        return DOLocalizedString(@"Motion Input");
       case WII_SECTION_EXTENSION_CONTROLS:
         // Don't show the header if there is nothing to customize
         if (self->m_extension_groups.size() == 0)
@@ -211,7 +211,7 @@
   }
   
   ControllerGroupCell* cell = (ControllerGroupCell*)[tableView dequeueReusableCellWithIdentifier:@"group_cell" forIndexPath:indexPath];
-  [cell.m_group_label setText:[NSString stringWithUTF8String:group->ui_name.c_str()]];
+  [cell.m_group_label setText:DOLocalizedString([NSString stringWithUTF8String:group->ui_name.c_str()])];
   
   return cell;
 }
@@ -220,8 +220,8 @@
 {
   if (indexPath.section == WII_SECTION_IMU_MOTION && indexPath.row == 0)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Help" message:@"These settings are intended for use with real motion hardware. Compatible hardware includes your device's built-in motion sensors, and sensors on controllers connected with DSU Client.\n\nYou can enable IR pointer simulation using your motion hardware under \"Point\". IR pointer simulation using motion hardware is required for Wii MotionPlus games." preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:NSLocalizedString(@"These settings are intended for use with real motion hardware. Compatible hardware includes your device's built-in motion sensors, and sensors on controllers connected with DSU Client.\n\nYou can enable IR pointer simulation using your motion hardware under \"Point\". IR pointer simulation using motion hardware is required for Wii MotionPlus games.", nil) preferredStyle:UIAlertControllerStyleAlert];
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
     
     [self presentViewController:alert animated:true completion:nil];
     
@@ -279,7 +279,7 @@
 {
   u32 attachment = self.m_attachments->GetSelectedAttachment();
   std::string ui_name = self.m_attachments->GetAttachmentList()[attachment]->GetDisplayName();
-  return [NSString stringWithUTF8String:ui_name.c_str()];
+  return DOLocalizedString([NSString stringWithUTF8String:ui_name.c_str()]);
 }
 
 @end

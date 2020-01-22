@@ -69,7 +69,7 @@ constexpr const char* PROFILES_DIR = "Profiles/";
   
   if (indexPath.section == 0)
   {
-    [cell.m_profile_label setText:@"Default Configuration"];
+    [cell.m_profile_label setText:DOLocalizedString(@"Default")];
   }
   else
   {
@@ -99,8 +99,8 @@ constexpr const char* PROFILES_DIR = "Profiles/";
     }
     else
     {
-      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Error" message:@"Cannot load a default configuration for the device attached to this controller." preferredStyle:UIAlertControllerStyleAlert];
-      [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Error") message:NSLocalizedString(@"Cannot load a default configuration for the device attached to this controller.", nil) preferredStyle:UIAlertControllerStyleAlert];
+      [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
       [self presentViewController:alert animated:true completion:nil];
       
       [self.tableView deselectRowAtIndexPath:indexPath animated:true];

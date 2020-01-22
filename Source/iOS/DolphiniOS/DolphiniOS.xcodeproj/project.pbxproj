@@ -99,6 +99,7 @@
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
+		B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4323D7F5660094F159 /* Localizable.strings */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -263,6 +264,7 @@
 		B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupEnabledCell.mm; sourceTree = "<group>"; };
 		B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalizerUtils.h; sourceTree = "<group>"; };
 		B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalizerUtils.m; sourceTree = "<group>"; };
+		B9AAAB4223D7F5660094F159 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -563,6 +565,7 @@
 			isa = PBXGroup;
 			children = (
 				B996C85423D50FC600700D6F /* Dolphin.strings */,
+				B9AAAB4323D7F5660094F159 /* Localizable.strings */,
 			);
 			path = Localizables;
 			sourceTree = "<group>";
@@ -824,6 +827,7 @@
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
+				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
 				B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */,
 				B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
@@ -1053,6 +1057,14 @@
 				B996C86C23D5F4AF00700D6F /* ja */,
 			);
 			name = ControllerSettings.storyboard;
+			sourceTree = "<group>";
+		};
+		B9AAAB4323D7F5660094F159 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B9AAAB4223D7F5660094F159 /* en */,
+			);
+			name = Localizable.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

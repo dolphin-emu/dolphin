@@ -133,7 +133,7 @@
 {
   if (indexPath.section == SECTION_BUTTONS)
   {
-    UIContextualAction* clear_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:@"Clear" handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
+    UIContextualAction* clear_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:DOLocalizedString(@"Clear") handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
       ControllerGroupButtonCell* cell = [self.tableView cellForRowAtIndexPath:indexPath];
       
       cell.m_reference->SetExpression("");

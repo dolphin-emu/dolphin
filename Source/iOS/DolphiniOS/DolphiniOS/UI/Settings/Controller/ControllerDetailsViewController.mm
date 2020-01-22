@@ -73,12 +73,12 @@
     if (std::find(all_connected_devices.begin(), all_connected_devices.end(), current_device) == all_connected_devices.end())
     {
       // Show an error
-      NSString* alert_str = [NSString stringWithFormat:@"The selected device \"%@\" for this emulated controller is not connected.", [NSString stringWithUTF8String:current_device.c_str()]];
+      NSString* alert_str = [NSString stringWithFormat:NSLocalizedString(@"The selected device \"%@\" for this emulated controller is not connected.", nil), [NSString stringWithUTF8String:current_device.c_str()]];
       
-      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning"
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Warning")
                                      message:alert_str
                                      preferredStyle:UIAlertControllerStyleAlert];
-      [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
+      [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault
                                               handler:nil]];
       
       [self presentViewController:alert animated:true completion:nil];
@@ -93,14 +93,14 @@
   
   [self SetConfigurationEnabled:configuration_enabled device_change_enabled:can_change_devices];
   
-  self.navigationItem.title = [NSString stringWithFormat:self.m_is_wii ? @"Wiimote %d" : @"Port %d", self.m_port + 1];
+  self.navigationItem.title = [NSString stringWithFormat:self.m_is_wii ? DOLocalizedStringWithArgs(@"Wii Remote %1", @"d") : DOLocalizedStringWithArgs(@"Port %1", @"d"), self.m_port + 1];
 }
 
 - (void)SetConfigurationEnabled:(bool)config_change_enabled device_change_enabled:(bool)device_change_enabled
 {
   if (!device_change_enabled)
   {
-    [self.m_device_label setText:@"N/A"];
+    [self.m_device_label setText:DOLocalizedString(@"None")];
   }
   
   [self SetLabelColor:self.m_device_header_label enabled:device_change_enabled is_link:false];
@@ -137,22 +137,22 @@
 {
   if (indexPath.section == 1 && indexPath.row == 2)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Save Profile"
-                                   message:@"Please enter a name for this profile. If a profile with that name already exists, it will be overwritten."
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Save")
+                                   message:NSLocalizedString(@"Please enter a name for this profile. If a profile with that name already exists, it will be overwritten.", nil)
                                    preferredStyle:UIAlertControllerStyleAlert];
     
     [alert addTextFieldWithConfigurationHandler:^(UITextField* field) {
-      field.placeholder = @"Name";
+      field.placeholder = DOLocalizedString(@"Name");
     }];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Save" style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Save") style:UIAlertActionStyleDefault handler:^(UIAlertAction* action) {
       UITextField* field = alert.textFields.firstObject;
       
       NSString* name = field.text;
       if ([name isEqualToString:@""])
       {
-        UIAlertController* failed_alert = [UIAlertController alertControllerWithTitle:@"Failed" message:@"You have not entered a valid name." preferredStyle:UIAlertControllerStyleAlert];
-        [failed_alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+        UIAlertController* failed_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Error") message:NSLocalizedString(@"You have not entered a valid name.", nil) preferredStyle:UIAlertControllerStyleAlert];
+        [failed_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleCancel handler:nil]];
         [self presentViewController:failed_alert animated:true completion:nil];
         
         return;
@@ -176,12 +176,12 @@
       self.m_controller->SaveConfig(ini.GetOrCreateSection("Profile"));
       ini.Save(profile_path);
       
-      UIAlertController* ok_alert = [UIAlertController alertControllerWithTitle:@"Saved" message:@"The profile has been saved." preferredStyle:UIAlertControllerStyleAlert];
-      [ok_alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleCancel handler:nil]];
+      UIAlertController* ok_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Success") message:NSLocalizedString(@"The profile has been saved.", nil) preferredStyle:UIAlertControllerStyleAlert];
+      [ok_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleCancel handler:nil]];
       [self presentViewController:ok_alert animated:true completion:nil];
     }]];
     
-    [alert addAction:[UIAlertAction actionWithTitle:@"Cancel" style:UIAlertActionStyleCancel handler:nil]];
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
     
     [self presentViewController:alert animated:true completion:nil];
   }

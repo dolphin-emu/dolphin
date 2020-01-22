@@ -16,7 +16,7 @@
 {
   self.m_setting = setting;
   
-  [self.m_name_label setText:[NSString stringWithUTF8String:setting->GetUIName()]];
+  [self.m_name_label setText:DOLocalizedString([NSString stringWithUTF8String:setting->GetUIName()])];
   [self.m_switch setOn:setting->GetValue()];
 }
 
