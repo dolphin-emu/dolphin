@@ -300,6 +300,12 @@ void SetBit(T& value, size_t bit_number, bool bit_value)
     value &= ~(T{1} << bit_number);
 }
 
+template <size_t bit_number, typename T>
+void SetBit(T& value, bool bit_value)
+{
+  SetBit(value, bit_number, bit_value);
+}
+
 template <typename T>
 class FlagBit
 {
@@ -339,5 +345,16 @@ public:
 
   std::underlying_type_t<T> m_hex = 0;
 };
+
+// Left-shift a value and set new LSBs to that of the supplied LSB.
+// Converts a value from a N-bit range to an (N+X)-bit range. e.g. 0x101 -> 0x10111
+template <typename T>
+T ExpandValue(T value, size_t left_shift_amount)
+{
+  static_assert(std::is_unsigned<T>(), "ExpandValue is only sane on unsigned types.");
+
+  return (value << left_shift_amount) |
+         (T(-ExtractBit<0>(value)) >> (BitSize<T>() - left_shift_amount));
+}
 
 }  // namespace Common
