@@ -39,7 +39,7 @@ std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
 
 u64 CISOFileReader::GetDataSize() const
 {
-  return CISO_MAP_SIZE * m_block_size;
+  return static_cast<u64>(CISO_MAP_SIZE) * m_block_size;
 }
 
 u64 CISOFileReader::GetRawSize() const
