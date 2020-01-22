@@ -1238,9 +1238,6 @@ void VolumeVerifier::Finish()
 
   WaitForAsyncOperations();
 
-  ASSERT(m_content_index == m_content_offsets.size());
-  ASSERT(m_block_index == m_blocks.size());
-
   if (m_calculating_any_hash)
   {
     if (m_hashes_to_calculate.crc32)
@@ -1267,25 +1264,33 @@ void VolumeVerifier::Finish()
   if (m_read_errors_occurred)
     AddProblem(Severity::Medium, Common::GetStringT("Some of the data could not be read."));
 
+  bool file_too_small = false;
+
+  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size())
+    file_too_small = true;
+
   if (IsDisc(m_volume.GetVolumeType()) &&
       (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
   {
     u64 volume_size = m_volume.IsSizeAccurate() ? m_volume.GetSize() : m_biggest_verified_offset;
     if (m_biggest_referenced_offset > volume_size)
-    {
-      const bool second_layer_missing =
-          m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-      std::string text =
-          second_layer_missing ?
-              Common::GetStringT("This disc image is too small and lacks some data. The problem is "
-                                 "most likely that this is a dual-layer disc that has been dumped "
-                                 "as a single-layer disc.") :
-              Common::GetStringT("This disc image is too small and lacks some data. If your "
-                                 "dumping program saved the disc image as several parts, you need "
-                                 "to merge them into one file.");
-      AddProblem(Severity::High, std::move(text));
-      return;
-    }
+      file_too_small = true;
+  }
+
+  if (file_too_small)
+  {
+    const bool second_layer_missing =
+        m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
+    std::string text =
+        second_layer_missing ?
+            Common::GetStringT("This disc image is too small and lacks some data. The problem is "
+                               "most likely that this is a dual-layer disc that has been dumped "
+                               "as a single-layer disc.") :
+            Common::GetStringT("This disc image is too small and lacks some data. If your "
+                               "dumping program saved the disc image as several parts, you need "
+                               "to merge them into one file.");
+    AddProblem(Severity::High, std::move(text));
+    return;
   }
 
   for (auto [partition, blocks] : m_block_errors)
