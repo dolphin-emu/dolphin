@@ -1290,7 +1290,6 @@ void VolumeVerifier::Finish()
                                "dumping program saved the disc image as several parts, you need "
                                "to merge them into one file.");
     AddProblem(Severity::High, std::move(text));
-    return;
   }
 
   for (auto [partition, blocks] : m_block_errors)
