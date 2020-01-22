@@ -806,9 +806,8 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   const auto jitter = raw_gyro_state - m_previous_velocity;
   m_previous_velocity = raw_gyro_state;
 
-  m_state *= Common::Matrix33::FromQuaternion(angular_velocity.x / -INDICATOR_UPDATE_FREQ / 2,
-                                              angular_velocity.y / INDICATOR_UPDATE_FREQ / 2,
-                                              angular_velocity.z / -INDICATOR_UPDATE_FREQ / 2, 1);
+  m_state *= WiimoteEmu::GetMatrixFromGyroscope(angular_velocity * Common::Vec3(-1, +1, -1) /
+                                                INDICATOR_UPDATE_FREQ);
 
   // Reset orientation when stable for a bit:
   constexpr u32 STABLE_RESET_STEPS = INDICATOR_UPDATE_FREQ;

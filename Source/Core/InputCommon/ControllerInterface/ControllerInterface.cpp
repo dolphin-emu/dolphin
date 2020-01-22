@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
@@ -131,7 +132,8 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_DUALSHOCKUDPCLIENT
   ciface::DualShockUDPClient::PopulateDevices();
 #endif
-  ciface::Wiimote::PopulateDevices();
+
+  WiimoteReal::ProcessWiimotePool();
 
   m_is_populating_devices = false;
   InvokeDevicesChangedCallbacks();

@@ -65,6 +65,7 @@ public:
   void Update();
   bool CheckForButtonPress();
 
+  bool GetNextReport(Report* report);
   Report& ProcessReadQueue();
 
   void Read();
@@ -101,7 +102,15 @@ public:
 
   void QueueReport(WiimoteCommon::OutputReportID rpt_id, const void* data, unsigned int size);
 
+  template <typename T>
+  void QueueReport(const T& report)
+  {
+    QueueReport(report.REPORT_ID, &report, sizeof(report));
+  }
+
   int GetIndex() const;
+
+  void SetChannel(u16 channel);
 
 protected:
   Wiimote();
@@ -173,6 +182,7 @@ public:
 
 private:
   void ThreadFunc();
+  void PoolThreadFunc();
 
   std::vector<std::unique_ptr<WiimoteScannerBackend>> m_backends;
   mutable std::mutex m_backends_mutex;
@@ -183,9 +193,12 @@ private:
   std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 };
 
-extern std::mutex g_wiimotes_mutex;
+// Mutex is recursive as ControllerInterface may call AddWiimoteToPool within ProcessWiimotePool.
+extern std::recursive_mutex g_wiimotes_mutex;
 extern WiimoteScanner g_wiimote_scanner;
 extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
+
+void AddWiimoteToPool(std::unique_ptr<Wiimote>);
 
 void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
 void ControlChannel(int wiimote_number, u16 channel_id, const void* data, u32 size);
@@ -201,5 +214,8 @@ void HandleWiimoteSourceChange(unsigned int wiimote_number);
 #ifdef ANDROID
 void InitAdapterClass();
 #endif
+
+void HandleWiimotesInControllerInterfaceSettingChange();
+void ProcessWiimotePool();
 
 }  // namespace WiimoteReal

@@ -50,6 +50,8 @@ add_library(inputcommon
   ControllerInterface/ControllerInterface.h
   ControllerInterface/Device.cpp
   ControllerInterface/Device.h
+  ControllerInterface/Wiimote/Wiimote.cpp
+  ControllerInterface/Wiimote/Wiimote.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp

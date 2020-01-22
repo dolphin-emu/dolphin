@@ -110,6 +110,9 @@
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp">
       <Filter>ControllerInterface\Win32</Filter>
     </ClCompile>
+    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp">
+      <Filter>ControllerInterface\Wiimote</Filter>
+    </ClCompile>
     <ClCompile Include="ControlReference\ExpressionParser.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
@@ -217,6 +220,9 @@
     </ClInclude>
     <ClInclude Include="ControllerInterface\Win32\Win32.h">
       <Filter>ControllerInterface\Win32</Filter>
+    </ClInclude>
+    <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h">
+      <Filter>ControllerInterface\Wiimote</Filter>
     </ClInclude>
     <ClInclude Include="ControlReference\ExpressionParser.h">
       <Filter>ControllerInterface</Filter>
