@@ -6,6 +6,8 @@
 #import "DolphiniOS-Swift.h"
 
 #import "Common/Config/Config.h"
+#import "Common/MsgHandler.h"
+#import "Common/StringUtil.h"
 
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
@@ -34,6 +36,11 @@
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
     
   // Override point for customization after application launch.
+  
+  Common::RegisterStringTranslator([](const char* text) -> std::string {
+    NSString* localized_text = DOLocalizedString([NSString stringWithUTF8String:text]);
+    return std::string([localized_text UTF8String]);
+  });
   
   [MainiOS applicationStart];
   
