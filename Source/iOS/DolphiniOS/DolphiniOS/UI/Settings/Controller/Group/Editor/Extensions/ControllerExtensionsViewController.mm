@@ -40,7 +40,7 @@
   ControllerExtensionCell* cell = (ControllerExtensionCell*)[tableView dequeueReusableCellWithIdentifier:@"extension_cell" forIndexPath:indexPath];
   
   const std::unique_ptr<ControllerEmu::EmulatedController>& controller = self.m_attachments->GetAttachmentList().at(indexPath.row);
-  [cell.m_extension_name setText:[NSString stringWithUTF8String:controller->GetDisplayName().c_str()]];
+  [cell.m_extension_name setText:DOLocalizedString([NSString stringWithUTF8String:controller->GetDisplayName().c_str()])];
   
   if (self.m_attachments->GetSelectedAttachment() == indexPath.row)
   {

@@ -118,16 +118,16 @@
   
   if (device_name.compare(0, android_str.size(), android_str) == 0)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning"
-                                   message:@"Your controller configuration will be overwritten by the Touchscreen default settings.\n\nIf you want to keep your button mappings and settings, save it as a profile on the previous screen before changing devices.\n\nProceed?"
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Warning")
+                                   message:NSLocalizedString(@"Your controller configuration will be overwritten by the Touchscreen default settings.\n\nIf you want to keep your button mappings and settings, save it as a profile on the previous screen before changing devices.\n\nProceed?", nil)
                                    preferredStyle:UIAlertControllerStyleAlert];
      
-    UIAlertAction* stop_action = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
+    UIAlertAction* stop_action = [UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault
        handler:^(UIAlertAction * action) {
       [self.tableView deselectRowAtIndexPath:indexPath animated:true];
     }];
     
-    UIAlertAction* overwrite_action = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive
+    UIAlertAction* overwrite_action = [UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive
        handler:^(UIAlertAction * action) {
       [self ChangeDevice:device_name];
       [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"Touch"];
@@ -140,16 +140,16 @@
   }
   else if (device_name.compare(0, mfi_str.size(), mfi_str) == 0 && last_device.compare(0, android_str.size(), android_str) == 0)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Load Defaults"
-                                   message:@"Do you want to load the default configuration for MFi controllers?\n\nThe default configuration contains button mappings that will work on many MFi controllers."
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:NSLocalizedString(@"Load Defaults", nil)
+                                   message:NSLocalizedString(@"Do you want to load the default configuration for MFi controllers?\n\nThe default configuration contains button mappings that will work on many MFi controllers.", nil)
                                    preferredStyle:UIAlertControllerStyleAlert];
      
-    UIAlertAction* stop_action = [UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
+    UIAlertAction* stop_action = [UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault
        handler:^(UIAlertAction * action) {
       [self ChangeDevice:device_name];
     }];
     
-    UIAlertAction* continue_action = [UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
+    UIAlertAction* continue_action = [UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDefault handler:^(UIAlertAction * action) {
       [self ChangeDevice:device_name];
       [ControllerSettingsUtils LoadDefaultProfileOnController:self.m_controller is_wii:self.m_is_wii type:@"MFi"];
      }];

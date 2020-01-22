@@ -18,8 +18,8 @@
 {
   self.m_setting = setting;
   
-  [self.m_name_label setText:[NSString stringWithUTF8String:setting->GetUIName()]];
-  [self.m_text_field setText:[NSString stringWithFormat:@"%f", setting->GetValue()]];
+  [self.m_name_label setText:DOLocalizedString([NSString stringWithUTF8String:setting->GetUIName()])];
+  [self.m_text_field setText:[NSString localizedStringWithFormat:@"%f", setting->GetValue()]];
 }
 
 - (void)setSelected:(BOOL)selected animated:(BOOL)animated
