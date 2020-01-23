@@ -6,6 +6,7 @@
 
 #include <array>
 #include <limits>
+#include <map>
 #include <memory>
 #include <utility>
 
@@ -17,6 +18,7 @@
 #include "Common/File.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/WiiEncryptionCache.h"
 
 namespace DiscIO
 {
@@ -274,12 +276,29 @@ private:
   File::IOFile m_file;
   Chunk m_cached_chunk;
   u64 m_cached_chunk_offset = std::numeric_limits<u64>::max();
+  WiiEncryptionCache m_encryption_cache;
 
   WIAHeader1 m_header_1;
   WIAHeader2 m_header_2;
   std::vector<PartitionEntry> m_partition_entries;
   std::vector<RawDataEntry> m_raw_data_entries;
   std::vector<GroupEntry> m_group_entries;
+
+  struct DataEntry
+  {
+    u32 index;
+    bool is_partition;
+    u8 partition_data_index;
+
+    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
+    DataEntry(size_t index_, size_t partition_data_index_)
+        : index(static_cast<u32>(index_)), is_partition(true),
+          partition_data_index(static_cast<u8>(partition_data_index_))
+    {
+    }
+  };
+
+  std::map<u64, DataEntry> m_data_entries;
 
   static constexpr u32 WIA_VERSION = 0x01000000;
   static constexpr u32 WIA_VERSION_WRITE_COMPATIBLE = 0x01000000;

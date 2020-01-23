@@ -8,6 +8,7 @@
 #include <array>
 #include <cstring>
 #include <limits>
+#include <map>
 #include <memory>
 #include <utility>
 
@@ -23,10 +24,12 @@
 #include "Common/Swap.h"
 
 #include "DiscIO/VolumeWii.h"
+#include "DiscIO/WiiEncryptionCache.h"
 
 namespace DiscIO
 {
-WIAFileReader::WIAFileReader(File::IOFile file, const std::string& path) : m_file(std::move(file))
+WIAFileReader::WIAFileReader(File::IOFile file, const std::string& path)
+    : m_file(std::move(file)), m_encryption_cache(this)
 {
   m_valid = Initialize(path);
 }
@@ -120,23 +123,32 @@ bool WIAFileReader::Initialize(const std::string& path)
     std::memset(reinterpret_cast<u8*>(&m_partition_entries[i]) + copy_length, 0, memset_length);
   }
 
-  for (const PartitionEntry& partition : m_partition_entries)
+  for (size_t i = 0; i < m_partition_entries.size(); ++i)
   {
-    if (Common::swap32(partition.data_entries[1].number_of_sectors) != 0)
+    const std::array<PartitionDataEntry, 2>& entries = m_partition_entries[i].data_entries;
+
+    size_t non_empty_entries = 0;
+    for (size_t j = 0; j < entries.size(); ++j)
     {
-      const u32 first_end = Common::swap32(partition.data_entries[0].first_sector) +
-                            Common::swap32(partition.data_entries[0].number_of_sectors);
-      const u32 second_start = Common::swap32(partition.data_entries[1].first_sector);
+      const u32 number_of_sectors = Common::swap32(entries[j].number_of_sectors);
+      if (number_of_sectors != 0)
+      {
+        ++non_empty_entries;
+
+        const u32 last_sector = Common::swap32(entries[j].first_sector) + number_of_sectors;
+        m_data_entries.emplace(last_sector * VolumeWii::BLOCK_TOTAL_SIZE, DataEntry(i, j));
+      }
+    }
+
+    if (non_empty_entries > 1)
+    {
+      const u32 first_end =
+          Common::swap32(entries[0].first_sector) + Common::swap32(entries[0].number_of_sectors);
+      const u32 second_start = Common::swap32(entries[1].first_sector);
       if (first_end > second_start)
         return false;
     }
   }
-
-  std::sort(m_partition_entries.begin(), m_partition_entries.end(),
-            [](const PartitionEntry& a, const PartitionEntry& b) {
-              return Common::swap32(a.data_entries[0].first_sector) <
-                     Common::swap32(b.data_entries[0].first_sector);
-            });
 
   const u32 number_of_raw_data_entries = Common::swap32(m_header_2.number_of_raw_data_entries);
   m_raw_data_entries.resize(number_of_raw_data_entries);
@@ -147,10 +159,13 @@ bool WIAFileReader::Initialize(const std::string& path)
   if (!raw_data_entries.ReadAll(&m_raw_data_entries))
     return false;
 
-  std::sort(m_raw_data_entries.begin(), m_raw_data_entries.end(),
-            [](const RawDataEntry& a, const RawDataEntry& b) {
-              return Common::swap64(a.data_offset) < Common::swap64(b.data_offset);
-            });
+  for (size_t i = 0; i < m_raw_data_entries.size(); ++i)
+  {
+    const RawDataEntry& entry = m_raw_data_entries[i];
+    const u64 data_size = Common::swap64(entry.data_size);
+    if (data_size != 0)
+      m_data_entries.emplace(Common::swap64(entry.data_offset) + data_size, DataEntry(i));
+  }
 
   const u32 number_of_group_entries = Common::swap32(m_header_2.number_of_group_entries);
   m_group_entries.resize(number_of_group_entries);
@@ -184,21 +199,75 @@ bool WIAFileReader::Read(u64 offset, u64 size, u8* out_ptr)
   }
 
   const u32 chunk_size = Common::swap32(m_header_2.chunk_size);
-  for (RawDataEntry raw_data : m_raw_data_entries)
+  while (size > 0)
   {
-    if (size == 0)
-      return true;
-
-    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_TOTAL_SIZE,
-                        Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
-                        Common::swap32(raw_data.group_index),
-                        Common::swap32(raw_data.number_of_groups), 0))
-    {
+    const auto it = m_data_entries.upper_bound(offset);
+    if (it == m_data_entries.end())
       return false;
+
+    const DataEntry& data = it->second;
+    if (data.is_partition)
+    {
+      const PartitionEntry& partition = m_partition_entries[it->second.index];
+
+      const u32 partition_first_sector = Common::swap32(partition.data_entries[0].first_sector);
+      const u64 partition_data_offset = partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE;
+
+      const u32 second_number_of_sectors =
+          Common::swap32(partition.data_entries[1].number_of_sectors);
+      const u32 partition_total_sectors =
+          second_number_of_sectors ? Common::swap32(partition.data_entries[1].first_sector) -
+                                         partition_first_sector + second_number_of_sectors :
+                                     Common::swap32(partition.data_entries[0].number_of_sectors);
+
+      for (const PartitionDataEntry& partition_data : partition.data_entries)
+      {
+        if (size == 0)
+          return true;
+
+        const u32 first_sector = Common::swap32(partition_data.first_sector);
+        const u32 number_of_sectors = Common::swap32(partition_data.number_of_sectors);
+
+        const u64 data_offset = first_sector * VolumeWii::BLOCK_TOTAL_SIZE;
+        const u64 data_size = number_of_sectors * VolumeWii::BLOCK_TOTAL_SIZE;
+
+        if (data_size == 0)
+          continue;
+
+        if (data_offset + data_size <= offset)
+          continue;
+
+        if (offset < data_offset)
+          return false;
+
+        const u64 bytes_to_read = std::min(data_size - (offset - data_offset), size);
+
+        if (!m_encryption_cache.EncryptGroups(
+                offset - partition_data_offset, bytes_to_read, out_ptr, partition_data_offset,
+                partition_total_sectors * VolumeWii::BLOCK_DATA_SIZE, partition.partition_key))
+        {
+          return false;
+        }
+
+        offset += bytes_to_read;
+        size -= bytes_to_read;
+        out_ptr += bytes_to_read;
+      }
+    }
+    else
+    {
+      const RawDataEntry& raw_data = m_raw_data_entries[data.index];
+      if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_TOTAL_SIZE,
+                          Common::swap64(raw_data.data_offset), Common::swap64(raw_data.data_size),
+                          Common::swap32(raw_data.group_index),
+                          Common::swap32(raw_data.number_of_groups), 0))
+      {
+        return false;
+      }
     }
   }
 
-  return size == 0;
+  return true;
 }
 
 bool WIAFileReader::SupportsReadWiiDecrypted() const
@@ -210,34 +279,35 @@ bool WIAFileReader::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 part
 {
   const u64 chunk_size = Common::swap32(m_header_2.chunk_size) * VolumeWii::BLOCK_DATA_SIZE /
                          VolumeWii::BLOCK_TOTAL_SIZE;
-  for (const PartitionEntry& partition : m_partition_entries)
+
+  const auto it = m_data_entries.upper_bound(partition_data_offset);
+  if (it == m_data_entries.end() || !it->second.is_partition)
+    return false;
+
+  const PartitionEntry& partition = m_partition_entries[it->second.index];
+  const u32 partition_first_sector = Common::swap32(partition.data_entries[0].first_sector);
+  if (partition_data_offset != partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE)
+    return false;
+
+  for (const PartitionDataEntry& data : partition.data_entries)
   {
-    const u32 partition_first_sector = Common::swap32(partition.data_entries[0].first_sector);
-    if (partition_data_offset != partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE)
-      continue;
+    if (size == 0)
+      return true;
 
-    for (const PartitionDataEntry& data : partition.data_entries)
+    const u64 data_offset =
+        (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
+    const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
+
+    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
+                        data_offset, data_size, Common::swap32(data.group_index),
+                        Common::swap32(data.number_of_groups),
+                        chunk_size / VolumeWii::GROUP_DATA_SIZE))
     {
-      if (size == 0)
-        return true;
-
-      const u64 data_offset =
-          (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
-      const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
-
-      if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
-                          data_offset, data_size, Common::swap32(data.group_index),
-                          Common::swap32(data.number_of_groups),
-                          chunk_size / VolumeWii::GROUP_DATA_SIZE))
-      {
-        return false;
-      }
+      return false;
     }
-
-    return size == 0;
   }
 
-  return false;
+  return size == 0;
 }
 
 bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size,
