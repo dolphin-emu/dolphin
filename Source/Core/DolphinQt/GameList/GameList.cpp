@@ -145,6 +145,7 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_COUNTRY, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_PATH, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_TAGS, QHeaderView::Interactive);
 
   // There's some odd platform-specific behavior with default minimum section size
@@ -188,6 +189,8 @@ void GameList::UpdateColumnVisibility()
   m_list->setColumnHidden(GameListModel::COL_SIZE, !SConfig::GetInstance().m_showSizeColumn);
   m_list->setColumnHidden(GameListModel::COL_FILE_NAME,
                           !SConfig::GetInstance().m_showFileNameColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_PATH,
+                          !SConfig::GetInstance().m_showFilePathColumn);
   m_list->setColumnHidden(GameListModel::COL_TAGS, !SConfig::GetInstance().m_showTagsColumn);
 }
 
@@ -908,6 +911,7 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Description"), GameListModel::COL_DESCRIPTION},
       {tr("Maker"), GameListModel::COL_MAKER},
       {tr("File Name"), GameListModel::COL_FILE_NAME},
+      {tr("File Path"), GameListModel::COL_FILE_PATH},
       {tr("Game ID"), GameListModel::COL_ID},
       {tr("Region"), GameListModel::COL_COUNTRY},
       {tr("File Size"), GameListModel::COL_SIZE},

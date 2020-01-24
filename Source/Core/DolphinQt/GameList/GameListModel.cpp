@@ -4,6 +4,7 @@
 
 #include "DolphinQt/GameList/GameListModel.h"
 
+#include <QDir>
 #include <QPixmap>
 
 #include "Core/ConfigManager.h"
@@ -140,6 +141,26 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
       return QString::fromStdString(game.GetFileName());
     break;
+  case COL_FILE_PATH:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      QString file_path = QDir::cleanPath(QString::fromStdString(game.GetFilePath()));
+      for (QString dir : Settings::Instance().GetPaths())
+      {
+        dir = QDir::cleanPath(dir);
+        if (file_path.startsWith(dir))
+        {
+          int path_index = dir.lastIndexOf(QLatin1Char('/'), -2);
+          if (path_index > -1)
+          {
+            file_path = file_path.mid(path_index + 1);
+            break;
+          }
+        }
+      }
+      return QDir::toNativeSeparators(file_path);
+    }
+    break;
   case COL_SIZE:
     if (role == Qt::DisplayRole)
     {
@@ -186,6 +207,8 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("Maker");
   case COL_FILE_NAME:
     return tr("File Name");
+  case COL_FILE_PATH:
+    return tr("File Path");
   case COL_SIZE:
     return tr("Size");
   case COL_TAGS:

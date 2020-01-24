@@ -606,6 +606,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("File Path"), &SConfig::GetInstance().m_showFilePathColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
       {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
