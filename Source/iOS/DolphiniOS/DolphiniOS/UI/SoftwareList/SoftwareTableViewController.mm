@@ -198,7 +198,7 @@
   {
     // Show the maintainer alert on first launch
     [self showAlertWithTitle:@"Note"
-          text:@"DolphiniOS is NOT an official version of Dolphin. It is a separate version based on the original Dolphin's code.\n\nDO NOT ask for help on the official Dolphin forums or report bugs on the official Dolphin bug tracker.\n\nIf you need help, go to the Settings tab and tap \"Support\"."
+          text:@"DolphiniOS is NOT an official version of Dolphin. It is a separate version based on the original Dolphin's code.\n\nDO NOT ask for help on the official Dolphin forums or report bugs on the official Dolphin bug tracker.\n\nIf you need help, go to the Settings tab and tap \"Help\"."
           isFatal:false];
   }
   else if (launch_times % 10 == 0)
