@@ -350,8 +350,7 @@ void UpdateWiiPointer()
       Core::HostDispatchJobs();
     }
   }
-
-  Core::Shutdown();
+  
   ButtonManager::Shutdown();
 
   s_view_controller = nullptr;
