@@ -14,6 +14,7 @@
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
 		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
 		B945A3752362908500B21680 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.mm */; };
@@ -100,7 +101,6 @@
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
 		B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4323D7F5660094F159 /* Localizable.strings */; };
-		B9AAAB4523D826DE0094F159 /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4423D826DE0094F159 /* Settings.storyboard */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -146,6 +146,9 @@
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../build/libs/Externals/libMoltenVK.dylib; sourceTree = "<group>"; };
+		B924DCA323DA873000831A1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Settings.storyboard; sourceTree = "<group>"; };
+		B924DCA623DA88FA00831A1A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Settings.strings; sourceTree = "<group>"; };
+		B924DCA823DA890800831A1A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Settings.strings; sourceTree = "<group>"; };
 		B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtensions.swift; sourceTree = "<group>"; };
 		B928112523C0A24700B53145 /* TCClassicWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCClassicWiiPad.xib; sourceTree = "<group>"; };
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -267,7 +270,6 @@
 		B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalizerUtils.h; sourceTree = "<group>"; };
 		B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalizerUtils.m; sourceTree = "<group>"; };
 		B9AAAB4223D7F5660094F159 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
-		B9AAAB4423D826DE0094F159 /* Settings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Settings.storyboard; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -375,7 +377,7 @@
 				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
 				B9EEFBF723DA261600EAF92A /* AboutViewController.h */,
 				B9EEFBF823DA261600EAF92A /* AboutViewController.m */,
-				B9AAAB4423D826DE0094F159 /* Settings.storyboard */,
+				B924DCA423DA873000831A1A /* Settings.storyboard */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -836,7 +838,7 @@
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
-				B9AAAB4523D826DE0094F159 /* Settings.storyboard in Resources */,
+				B924DCA223DA873000831A1A /* Settings.storyboard in Resources */,
 				B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */,
 				B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
@@ -1024,6 +1026,16 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
+		B924DCA423DA873000831A1A /* Settings.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B924DCA323DA873000831A1A /* Base */,
+				B924DCA623DA88FA00831A1A /* en */,
+				B924DCA823DA890800831A1A /* ja */,
+			);
+			name = Settings.storyboard;
+			sourceTree = "<group>";
+		};
 		B945A37C2362908500B21680 /* Main.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
