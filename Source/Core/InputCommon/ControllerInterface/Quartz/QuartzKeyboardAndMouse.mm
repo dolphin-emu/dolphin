@@ -9,6 +9,8 @@
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 namespace ciface::Quartz
 {
 std::string KeycodeToName(const CGKeyCode keycode)
@@ -177,10 +179,12 @@ void KeyboardAndMouse::UpdateInput()
   CGPoint loc = CGEventGetLocation(event);
   CFRelease(event);
 
+  const auto window_scale = g_controller_interface.GetWindowInputScale();
+
   loc.x -= bounds.origin.x;
   loc.y -= bounds.origin.y;
-  m_cursor.x = loc.x / bounds.size.width * 2 - 1.0;
-  m_cursor.y = loc.y / bounds.size.height * 2 - 1.0;
+  m_cursor.x = (loc.x / bounds.size.width * 2 - 1.0) * window_scale.x;
+  m_cursor.y = (loc.y / bounds.size.height * 2 - 1.0) * window_scale.y;
 }
 
 std::string KeyboardAndMouse::GetName() const

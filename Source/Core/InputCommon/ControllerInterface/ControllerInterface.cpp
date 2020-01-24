@@ -257,6 +257,21 @@ void ControllerInterface::UpdateInput()
   }
 }
 
+void ControllerInterface::SetAspectRatioAdjustment(float value)
+{
+  m_aspect_ratio_adjustment = value;
+}
+
+Common::Vec2 ControllerInterface::GetWindowInputScale() const
+{
+  const auto ar = m_aspect_ratio_adjustment.load();
+
+  if (ar > 1)
+    return {1.f, ar};
+  else
+    return {1 / ar, 1.f};
+}
+
 // Register a callback to be called when a device is added or removed (as from the input backends'
 // hotplug thread), or when devices are refreshed
 // Returns a handle for later removing the callback.
