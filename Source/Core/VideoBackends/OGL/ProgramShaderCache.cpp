@@ -17,6 +17,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 
 #include "Core/ConfigManager.h"
 
@@ -31,6 +32,7 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace OGL
 {
@@ -356,11 +358,13 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
     {
       ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
 
-      std::string filename = StringFromFormat(
-          "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
+      std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       file << s_glsl_header << code << info_log;
+      file << "\n";
+      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
       PanicAlert("Failed to compile %s shader: %s\n"
@@ -392,8 +396,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
     if (linkStatus != GL_TRUE)
     {
       ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
-      std::string filename =
-          StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+      std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
       if (!vcode.empty())
@@ -404,6 +407,9 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
         file << s_glsl_header << pcode << '\n';
 
       file << info_log;
+      file << "\n";
+      file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+      file << "Video Backend: " + g_video_backend->GetDisplayName();
       file.close();
 
       PanicAlert("Failed to link shaders: %s\n"
