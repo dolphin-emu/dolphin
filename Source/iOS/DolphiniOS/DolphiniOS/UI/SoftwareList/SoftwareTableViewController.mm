@@ -178,20 +178,6 @@
   
   NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
   
-  // Check for jailbreakd (Chimera)
-  if (![user_defaults boolForKey:@"seen_chimera_notice_exp"])
-  {
-    NSFileManager* file_manager = [NSFileManager defaultManager];
-    if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
-    {
-      [self showAlertWithTitle:@"Experimental Support"
-            text:@"Experimental support for Chimera has been added to DolphiniOS. It may be broken. Please report if it is.\n\nFor the best experience, switch to checkra1n (A9 to A11 processors only) or unc0ver."
-            isFatal:false];
-    }
-    
-    [user_defaults setBool:true forKey:@"seen_chimera_notice_exp"];
-  }
-  
   // Get the number of launches
   NSInteger launch_times = [user_defaults integerForKey:@"launch_times"];
   if (launch_times == 0)
