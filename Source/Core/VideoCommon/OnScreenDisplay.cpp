@@ -94,29 +94,31 @@ void AddMessage(std::string message, u32 ms, u32 rgba)
 
 void DrawMessages()
 {
-  if (!SConfig::GetInstance().bOnScreenDisplayMessages)
-    return;
+  const bool draw_messages = SConfig::GetInstance().bOnScreenDisplayMessages;
+  const u32 now = Common::Timer::GetTimeMs();
+  const float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
+  float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y;
+  int index = 0;
 
+  std::lock_guard lock{s_messages_mutex};
+
+  for (auto it = s_messages.begin(); it != s_messages.end();)
   {
-    std::lock_guard lock{s_messages_mutex};
+    const Message& msg = it->second;
+    const int time_left = static_cast<int>(msg.timestamp - now);
 
-    const u32 now = Common::Timer::GetTimeMs();
-    float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
-    float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y;
-    int index = 0;
-
-    auto it = s_messages.begin();
-    while (it != s_messages.end())
+    if (time_left <= 0)
     {
-      const Message& msg = it->second;
-      const int time_left = static_cast<int>(msg.timestamp - now);
-      current_y += DrawMessage(index++, msg, ImVec2(current_x, current_y), time_left);
-
-      if (time_left <= 0)
-        it = s_messages.erase(it);
-      else
-        ++it;
+      it = s_messages.erase(it);
+      continue;
     }
+    else
+    {
+      ++it;
+    }
+
+    if (draw_messages)
+      current_y += DrawMessage(index++, msg, ImVec2(current_x, current_y), time_left);
   }
 }
 
