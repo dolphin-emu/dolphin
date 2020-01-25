@@ -8,16 +8,19 @@
 #include <array>
 #include <cstddef>
 #include <cstring>
+#include <future>
 #include <map>
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
 #include <mbedtls/aes.h>
 #include <mbedtls/sha1.h>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -530,85 +533,131 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
                              std::array<u8, GROUP_TOTAL_SIZE>* out)
 {
   std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
-
-  for (size_t i = 0; i < BLOCKS_PER_GROUP; ++i)
-  {
-    if (offset + (i + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
-    {
-      if (!blob->ReadWiiDecrypted(offset + i * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
-                                  unencrypted_data[i].data(), partition_data_offset))
-      {
-        return false;
-      }
-    }
-    else
-    {
-      unencrypted_data[i].fill(0);
-    }
-  }
-
   std::vector<std::array<u8, BLOCK_HEADER_SIZE>> unencrypted_hashes(BLOCKS_PER_GROUP);
 
-  // H0 hashes
+  std::array<std::future<void>, BLOCKS_PER_GROUP> hash_futures;
+  bool error_occurred = false;
+
   for (size_t i = 0; i < BLOCKS_PER_GROUP; ++i)
   {
-    for (u32 j = 0; j < 31; ++j)
+    if (!error_occurred)
     {
-      mbedtls_sha1_ret(unencrypted_data[i].data() + j * 0x400, 0x400,
-                       unencrypted_hashes[i].data() + j * SHA1_SIZE);
+      if (offset + (i + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
+      {
+        if (!blob->ReadWiiDecrypted(offset + i * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
+                                    unencrypted_data[i].data(), partition_data_offset))
+        {
+          error_occurred = true;
+        }
+      }
+      else
+      {
+        unencrypted_data[i].fill(0);
+      }
     }
 
-    std::memset(unencrypted_hashes[i].data() + 0x26C, 0, 0x14);
+    hash_futures[i] = std::async(std::launch::async, [&unencrypted_data, &unencrypted_hashes,
+                                                      &hash_futures, error_occurred, i]() {
+      const size_t h1_base = Common::AlignDown(i, 8);
+
+      if (!error_occurred)
+      {
+        // H0 hashes
+        for (size_t j = 0; j < 31; ++j)
+        {
+          mbedtls_sha1_ret(unencrypted_data[i].data() + j * 0x400, 0x400,
+                           unencrypted_hashes[i].data() + j * SHA1_SIZE);
+        }
+
+        // H0 padding
+        std::memset(unencrypted_hashes[i].data() + 0x26C, 0, 0x14);
+
+        // H1 hash
+        mbedtls_sha1_ret(unencrypted_hashes[i].data(), 0x26C,
+                         unencrypted_hashes[h1_base].data() + 0x280 + (i - h1_base) * SHA1_SIZE);
+      }
+
+      if (i % 8 == 7)
+      {
+        for (size_t j = 0; j < 7; ++j)
+          hash_futures[h1_base + j].get();
+
+        if (!error_occurred)
+        {
+          // H1 padding
+          std::memset(unencrypted_hashes[h1_base].data() + 0x320, 0, 0x20);
+
+          // H1 copies
+          for (size_t j = 1; j < 8; ++j)
+          {
+            std::memcpy(unencrypted_hashes[h1_base + j].data() + 0x280,
+                        unencrypted_hashes[h1_base].data() + 0x280, 0xC0);
+          }
+
+          // H2 hash
+          mbedtls_sha1_ret(unencrypted_hashes[h1_base].data() + 0x280, 0xA0,
+                           unencrypted_hashes[0].data() + 0x340 + h1_base / 8 * SHA1_SIZE);
+        }
+
+        if (i == BLOCKS_PER_GROUP - 1)
+        {
+          for (size_t j = 0; j < 7; ++j)
+            hash_futures[j * 8 + 7].get();
+
+          if (!error_occurred)
+          {
+            // H2 padding
+            std::memset(unencrypted_hashes[0].data() + 0x3E0, 0, 0x20);
+
+            // H2 copies
+            for (size_t j = 1; j < BLOCKS_PER_GROUP; ++j)
+            {
+              std::memcpy(unencrypted_hashes[j].data() + 0x340,
+                          unencrypted_hashes[0].data() + 0x340, 0xC0);
+            }
+          }
+        }
+      }
+    });
   }
 
-  // H1 hashes
-  for (size_t i = 0; i < BLOCKS_PER_GROUP / 8; ++i)
-  {
-    for (u32 j = 0; j < 8; ++j)
-    {
-      mbedtls_sha1_ret(unencrypted_hashes[i * 8 + j].data(), 0x26C,
-                       unencrypted_hashes[i * 8].data() + 0x280 + j * SHA1_SIZE);
-    }
+  // Wait for all the async tasks to finish
+  hash_futures.back().get();
 
-    std::memset(unencrypted_hashes[i * 8].data() + 0x320, 0, 0x20);
+  if (error_occurred)
+    return false;
 
-    for (u32 j = 1; j < 8; ++j)
-    {
-      std::memcpy(unencrypted_hashes[i * 8 + j].data() + 0x280,
-                  unencrypted_hashes[i * 8].data() + 0x280, 0xC0);
-    }
-  }
+  const unsigned int threads =
+      std::min(BLOCKS_PER_GROUP, std::max<unsigned int>(1, std::thread::hardware_concurrency()));
 
-  // H2 hashes
-  {
-    for (u32 i = 0; i < BLOCKS_PER_GROUP / 8; ++i)
-    {
-      mbedtls_sha1_ret(unencrypted_hashes[i * 8].data() + 0x280, 0xA0,
-                       unencrypted_hashes[0].data() + 0x340 + i * SHA1_SIZE);
-    }
-
-    std::memset(unencrypted_hashes[0].data() + 0x3E0, 0, 0x20);
-
-    for (size_t i = 1; i < BLOCKS_PER_GROUP; ++i)
-      std::memcpy(unencrypted_hashes[i].data() + 0x340, unencrypted_hashes[0].data() + 0x340, 0xC0);
-  }
+  std::vector<std::future<void>> encryption_futures(threads);
 
   mbedtls_aes_context aes_context;
   mbedtls_aes_setkey_enc(&aes_context, key.data(), 128);
 
-  // Encryption
-  for (size_t i = 0; i < BLOCKS_PER_GROUP; ++i)
+  for (size_t i = 0; i < threads; ++i)
   {
-    u8* out_ptr = out->data() + i * BLOCK_TOTAL_SIZE;
+    encryption_futures[i] = std::async(
+        std::launch::async,
+        [&unencrypted_data, &unencrypted_hashes, &aes_context, &out](size_t start, size_t end) {
+          for (size_t i = start; i < end; ++i)
+          {
+            u8* out_ptr = out->data() + i * BLOCK_TOTAL_SIZE;
 
-    u8 iv[16] = {};
-    mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
-                          unencrypted_hashes[i].data(), out_ptr);
+            u8 iv[16] = {};
+            mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
+                                  unencrypted_hashes[i].data(), out_ptr);
 
-    std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
-    mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,
-                          unencrypted_data[i].data(), out_ptr + BLOCK_HEADER_SIZE);
+            std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
+            mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,
+                                  unencrypted_data[i].data(), out_ptr + BLOCK_HEADER_SIZE);
+          }
+        },
+        i * BLOCKS_PER_GROUP / threads, (i + 1) * BLOCKS_PER_GROUP / threads);
   }
+
+  for (std::future<void>& future : encryption_futures)
+    future.get();
 
   return true;
 }
