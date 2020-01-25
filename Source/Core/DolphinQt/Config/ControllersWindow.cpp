@@ -489,11 +489,13 @@ void ControllersWindow::LoadSettings()
       m_gc_controller_boxes[i]->setCurrentIndex(*gc_index);
       m_gc_buttons[i]->setEnabled(*gc_index != 0 && *gc_index != 6);
     }
-    m_wiimote_boxes[i]->setCurrentIndex(g_wiimote_sources[i]);
-    m_wiimote_buttons[i]->setEnabled(g_wiimote_sources[i] != 0 && g_wiimote_sources[i] != 2);
+
+    const WiimoteSource source = WiimoteCommon::GetSource(int(i));
+    m_wiimote_boxes[i]->setCurrentIndex(int(source));
+    m_wiimote_buttons[i]->setEnabled(source == WiimoteSource::Emulated);
   }
-  m_wiimote_real_balance_board->setChecked(g_wiimote_sources[WIIMOTE_BALANCE_BOARD] ==
-                                           WIIMOTE_SRC_REAL);
+  m_wiimote_real_balance_board->setChecked(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD) ==
+                                           WiimoteSource::Real);
   m_wiimote_speaker_data->setChecked(SConfig::GetInstance().m_WiimoteEnableSpeaker);
   m_wiimote_continuous_scanning->setChecked(SConfig::GetInstance().m_WiimoteContinuousScanning);
 
@@ -514,15 +516,15 @@ void ControllersWindow::SaveSettings()
   SConfig::GetInstance().m_bt_passthrough_enabled = m_wiimote_passthrough->isChecked();
   SConfig::GetInstance().m_BackgroundInput = m_common_bg_input->isChecked();
 
-  WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD,
-                                   m_wiimote_real_balance_board->isChecked() ? WIIMOTE_SRC_REAL :
-                                                                               WIIMOTE_SRC_NONE);
+  WiimoteCommon::SetSource(WIIMOTE_BALANCE_BOARD, m_wiimote_real_balance_board->isChecked() ?
+                                                      WiimoteSource::Real :
+                                                      WiimoteSource::None);
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    const int index = m_wiimote_boxes[i]->currentIndex();
-    m_wiimote_buttons[i]->setEnabled(index != 0 && index != 2);
-    WiimoteReal::ChangeWiimoteSource(static_cast<u32>(i), index);
+    const auto source = WiimoteSource(m_wiimote_boxes[i]->currentIndex());
+    m_wiimote_buttons[i]->setEnabled(source == WiimoteSource::Emulated);
+    WiimoteCommon::SetSource(static_cast<u32>(i), source);
   }
 
   UICommon::SaveWiimoteSources();

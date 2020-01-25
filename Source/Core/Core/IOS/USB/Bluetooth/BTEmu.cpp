@@ -67,7 +67,7 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
 
     DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmp_bd[0], tmp_bd[1],
               tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
-    m_wiimotes.emplace_back(this, i, tmp_bd, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
+    m_wiimotes.emplace_back(this, i, tmp_bd, WiimoteCommon::GetSource(i) != WiimoteSource::None);
     i++;
   }
 

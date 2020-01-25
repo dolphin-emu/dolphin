@@ -160,7 +160,7 @@ std::string GetInputDisplay()
     {
       if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers |= (1 << i);
-      if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+      if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
         s_controllers |= (1 << (i + 4));
     }
   }
@@ -463,7 +463,7 @@ void ChangeWiiPads(bool instantly)
   int controllers = 0;
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
-    if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << i);
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
@@ -478,7 +478,7 @@ void ChangeWiiPads(bool instantly)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
-    g_wiimote_sources[i] = is_using_wiimote ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+    WiimoteCommon::SetSource(i, is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
     if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }

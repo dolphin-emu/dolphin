@@ -1510,7 +1510,10 @@ bool NetPlayClient::StartGame(const std::string& path)
   }
 
   for (unsigned int i = 0; i < 4; ++i)
-    WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+  {
+    WiimoteCommon::SetSource(i,
+                             m_wiimote_map[i] > 0 ? WiimoteSource::Emulated : WiimoteSource::None);
+  }
 
   // boot game
   m_dialog->BootGame(path);

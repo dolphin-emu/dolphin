@@ -367,12 +367,12 @@ void SaveWiimoteSources()
     secname += (char)('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    sec.Set("Source", (int)g_wiimote_sources[i]);
+    sec.Set("Source", int(WiimoteCommon::GetSource(i)));
   }
 
   std::string secname("BalanceBoard");
   IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+  sec.Set("Source", int(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD)));
 
   inifile.Save(ini_filename);
 }
