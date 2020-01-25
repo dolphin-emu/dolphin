@@ -79,11 +79,7 @@ bool operator!=(const Content& lhs, const Content& rhs)
   return !operator==(lhs, rhs);
 }
 
-SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
-{
-}
-
-SignedBlobReader::SignedBlobReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+SignedBlobReader::SignedBlobReader(std::vector<u8> bytes) : m_bytes(std::move(bytes))
 {
 }
 
@@ -92,12 +88,7 @@ const std::vector<u8>& SignedBlobReader::GetBytes() const
   return m_bytes;
 }
 
-void SignedBlobReader::SetBytes(const std::vector<u8>& bytes)
-{
-  m_bytes = bytes;
-}
-
-void SignedBlobReader::SetBytes(std::vector<u8>&& bytes)
+void SignedBlobReader::SetBytes(std::vector<u8> bytes)
 {
   m_bytes = std::move(bytes);
 }
@@ -213,11 +204,7 @@ bool IsValidTMDSize(size_t size)
   return size <= 0x49e4;
 }
 
-TMDReader::TMDReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TMDReader::TMDReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TMDReader::TMDReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 
@@ -376,11 +363,7 @@ bool TMDReader::FindContentById(u32 id, Content* content) const
   return false;
 }
 
-TicketReader::TicketReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TicketReader::TicketReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TicketReader::TicketReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 

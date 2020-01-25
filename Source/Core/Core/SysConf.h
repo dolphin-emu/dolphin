@@ -47,8 +47,7 @@ public:
     };
 
     Entry(Type type_, const std::string& name_);
-    Entry(Type type_, const std::string& name_, const std::vector<u8>& bytes_);
-    Entry(Type type_, const std::string& name_, std::vector<u8>&& bytes_);
+    Entry(Type type_, const std::string& name_, std::vector<u8> bytes_);
 
     // Intended for use with the non array types.
     template <typename T>

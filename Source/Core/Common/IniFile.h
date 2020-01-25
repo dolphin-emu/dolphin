@@ -143,8 +143,7 @@ public:
 
   bool GetKeys(std::string_view section_name, std::vector<std::string>* keys) const;
 
-  void SetLines(std::string_view section_name, const std::vector<std::string>& lines);
-  void SetLines(std::string_view section_name, std::vector<std::string>&& lines);
+  void SetLines(std::string_view section_name, std::vector<std::string> lines);
   bool GetLines(std::string_view section_name, std::vector<std::string>* lines,
                 bool remove_comments = true) const;
 
