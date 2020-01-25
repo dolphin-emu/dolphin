@@ -49,6 +49,8 @@ public:
   // thread which owns the window.
   virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
 
+  static std::string BadShaderFilename(const char* shader_stage, int counter);
+
   void Video_ExitLoop();
 
   void Video_BeginField(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);

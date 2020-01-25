@@ -10,10 +10,13 @@
 #include <string>
 #include <vector>
 
+#include "fmt/format.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -67,6 +70,12 @@ extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 }
 #endif
+
+std::string VideoBackendBase::BadShaderFilename(const char* shader_stage, int counter)
+{
+  return fmt::format("{}bad_{}_{}_{}.txt", File::GetUserPath(D_DUMP_IDX), shader_stage,
+                     g_video_backend->GetName(), counter);
+}
 
 void VideoBackendBase::Video_ExitLoop()
 {
