@@ -174,6 +174,8 @@ private:
   bool m_redump_verification;
   RedumpVerifier m_redump_verifier;
 
+  bool m_read_errors_occurred = false;
+
   Hashes<bool> m_hashes_to_calculate{};
   bool m_calculating_any_hash = false;
   unsigned long m_crc32_context = 0;

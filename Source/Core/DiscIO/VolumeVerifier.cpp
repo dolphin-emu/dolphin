@@ -1114,36 +1114,38 @@ void VolumeVerifier::Process()
   const bool is_data_needed = m_calculating_any_hash || content_read || block_read;
   const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
 
+  if (!read_succeeded)
+  {
+    ERROR_LOG(DISCIO, "Read failed at 0x%" PRIx64 " to 0x%" PRIx64, m_progress,
+              m_progress + bytes_to_read);
+
+    m_read_errors_occurred = true;
+    m_calculating_any_hash = false;
+  }
+
   if (m_calculating_any_hash)
   {
-    if (!read_succeeded)
+    if (m_hashes_to_calculate.crc32)
     {
-      m_calculating_any_hash = false;
+      m_crc32_future = std::async(std::launch::async, [this] {
+        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
+        m_crc32_context =
+            crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(m_data.size()));
+      });
     }
-    else
+
+    if (m_hashes_to_calculate.md5)
     {
-      if (m_hashes_to_calculate.crc32)
-      {
-        m_crc32_future = std::async(std::launch::async, [this] {
-          // Would be nice to use crc32_z here instead of crc32, but it isn't available on Android
-          m_crc32_context =
-              crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(m_data.size()));
-        });
-      }
+      m_md5_future = std::async(std::launch::async, [this] {
+        mbedtls_md5_update_ret(&m_md5_context, m_data.data(), m_data.size());
+      });
+    }
 
-      if (m_hashes_to_calculate.md5)
-      {
-        m_md5_future = std::async(std::launch::async, [this] {
-          mbedtls_md5_update_ret(&m_md5_context, m_data.data(), m_data.size());
-        });
-      }
-
-      if (m_hashes_to_calculate.sha1)
-      {
-        m_sha1_future = std::async(std::launch::async, [this] {
-          mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), m_data.size());
-        });
-      }
+    if (m_hashes_to_calculate.sha1)
+    {
+      m_sha1_future = std::async(std::launch::async, [this] {
+        mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), m_data.size());
+      });
     }
   }
 
@@ -1261,6 +1263,9 @@ void VolumeVerifier::Finish()
       mbedtls_sha1_finish_ret(&m_sha1_context, m_result.hashes.sha1.data());
     }
   }
+
+  if (m_read_errors_occurred)
+    AddProblem(Severity::Medium, Common::GetStringT("Some of the data could not be read."));
 
   if (IsDisc(m_volume.GetVolumeType()) &&
       (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
