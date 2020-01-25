@@ -34,9 +34,8 @@ static std::string s_temp_wii_root;
 
 static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 title_id)
 {
-  dest->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id), 0,
-                        {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                         IOS::HLE::FS::Mode::ReadWrite});
+  dest->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id) + '/',
+                       0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
   const auto source_save = WiiSave::MakeNandStorage(source, title_id);
   const auto dest_save = WiiSave::MakeNandStorage(dest, title_id);
   WiiSave::Copy(source_save.get(), dest_save.get());
@@ -49,9 +48,8 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
   if (last_slash != std::string::npos && last_slash > 0)
   {
     const std::string dir = dest_file.substr(0, last_slash);
-    dest_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, dir, 0,
-                             {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                              IOS::HLE::FS::Mode::ReadWrite});
+    dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dir + '/', 0,
+                            {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
   }
 
   auto source_handle =
@@ -190,7 +188,7 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
 
     if (entry.isDirectory)
     {
-      fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, 0, public_modes);
+      fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path + '/', 0, public_modes);
       if (!CopySysmenuFilesToFS(fs, host_path, nand_path))
         return false;
     }
@@ -259,12 +257,8 @@ void CleanUpWiiFileSystemContents()
 
     // FS won't write the save if the directory doesn't exist
     const std::string title_path = Common::GetTitleDataPath(title_id);
-    if (!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path))
-    {
-      configured_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path, 0,
-                                     {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                      IOS::HLE::FS::Mode::ReadWrite});
-    }
+    configured_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path + '/', 0,
+                                  {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
 
     const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 

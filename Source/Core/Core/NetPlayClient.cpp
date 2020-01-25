@@ -904,8 +904,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       {
         auto buffer = DecompressPacketIntoBuffer(packet);
 
-        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib", 0,
-                                 fs_modes);
+        temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, "/shared2/menu/FaceLib/", 0,
+                                fs_modes);
         auto file = temp_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
                                                Common::GetMiiDatabasePath(), fs_modes);
 
@@ -924,8 +924,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       {
         u64 title_id = Common::PacketReadU64(packet);
         titles.push_back(title_id);
-        temp_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                 Common::GetTitleDataPath(title_id), 0, fs_modes);
+        temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                Common::GetTitleDataPath(title_id) + '/', 0, fs_modes);
         auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
 
         bool exists;

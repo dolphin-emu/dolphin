@@ -11,6 +11,24 @@
 
 namespace IOS::HLE::FS
 {
+bool IsValidPath(std::string_view path)
+{
+  return path == "/" || IsValidNonRootPath(path);
+}
+
+bool IsValidNonRootPath(std::string_view path)
+{
+  return path.length() > 1 && path.length() <= MaxPathLength && path[0] == '/' &&
+         path.back() != '/';
+}
+
+SplitPathResult SplitPathAndBasename(std::string_view path)
+{
+  const auto last_separator = path.rfind('/');
+  return {std::string(path.substr(0, std::max<size_t>(1, last_separator))),
+          std::string(path.substr(last_separator + 1))};
+}
+
 std::unique_ptr<FileSystem> MakeFileSystem(Location location)
 {
   const std::string nand_root =
@@ -64,12 +82,6 @@ Result<u32> FileHandle::Seek(u32 offset, SeekMode mode) const
 Result<FileStatus> FileHandle::GetStatus() const
 {
   return m_fs->GetFileStatus(*m_fd);
-}
-
-void FileSystem::Init()
-{
-  if (Delete(0, 0, "/tmp") == ResultCode::Success)
-    CreateDirectory(0, 0, "/tmp", 0, {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite});
 }
 
 Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
