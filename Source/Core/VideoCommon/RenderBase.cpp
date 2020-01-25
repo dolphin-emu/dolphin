@@ -50,6 +50,8 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -119,6 +121,9 @@ bool Renderer::Initialize()
 
 void Renderer::Shutdown()
 {
+  // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
+  g_controller_interface.SetAspectRatioAdjustment(1);
+
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
@@ -775,10 +780,15 @@ void Renderer::UpdateDrawRectangle()
     g_Config.fAspectRatioHackH = 1;
   }
 
-  float draw_width, draw_height, crop_width, crop_height;
-
   // get the picture aspect ratio
-  draw_width = crop_width = CalculateDrawAspectRatio();
+  const float draw_aspect_ratio = CalculateDrawAspectRatio();
+
+  // Make ControllerInterface aware of the render window region actually being used
+  // to adjust mouse cursor inputs.
+  g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / (win_width / win_height));
+
+  float draw_width, draw_height, crop_width, crop_height;
+  draw_width = crop_width = draw_aspect_ratio;
   draw_height = crop_height = 1;
 
   // crop the picture to a standard aspect ratio

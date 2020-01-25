@@ -6,6 +6,7 @@
 
 #include <QuartzCore/QuartzCore.h>
 
+#include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface::Quartz
@@ -64,10 +65,7 @@ public:
   std::string GetSource() const override;
 
 private:
-  struct
-  {
-    float x, y;
-  } m_cursor;
+  Common::Vec2 m_cursor;
 
   uint32_t m_windowid;
 };
