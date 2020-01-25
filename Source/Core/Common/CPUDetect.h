@@ -54,6 +54,8 @@ struct CPUInfo
   bool bLAHFSAHF64 = false;
   bool bLongMode = false;
   bool bAtom = false;
+  // Intel Erratum SKX102
+  bool bJccErratum = false;
 
   // ARMv8 specific
   bool bFP = false;

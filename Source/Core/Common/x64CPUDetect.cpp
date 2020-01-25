@@ -113,6 +113,7 @@ void CPUInfo::Detect()
     __cpuid(cpu_id, 0x00000001);
     int family = ((cpu_id[0] >> 8) & 0xf) + ((cpu_id[0] >> 20) & 0xff);
     int model = ((cpu_id[0] >> 4) & 0xf) + ((cpu_id[0] >> 12) & 0xf0);
+    int stepping = cpu_id[0] & 0xf;
     // Detect people unfortunate enough to be running Dolphin on an Atom
     if (family == 6 &&
         (model == 0x1C || model == 0x26 || model == 0x27 || model == 0x35 || model == 0x36 ||
@@ -168,6 +169,18 @@ void CPUInfo::Detect()
         bBMI1 = true;
       if ((cpu_id[1] >> 8) & 1)
         bBMI2 = true;
+    }
+
+    // Detect processors affected by SKX102. See also Intel Whitepaper 341810-001.
+    if (family == 6 && ((model == 0x4E && stepping == 0x3) || (model == 0x55 && stepping == 0x4) ||
+                        (model == 0x55 && stepping == 0x7) || (model == 0x5E && stepping == 0x3) ||
+                        (model == 0x8E && stepping == 0x9) || (model == 0x8E && stepping == 0xA) ||
+                        (model == 0x8E && stepping == 0xB) || (model == 0x8E && stepping == 0xC) ||
+                        (model == 0x9E && stepping == 0x9) || (model == 0x9E && stepping == 0xA) ||
+                        (model == 0x9E && stepping == 0xB) || (model == 0x9E && stepping == 0xD) ||
+                        (model == 0xA6 && stepping == 0x0) || (model == 0xAE && stepping == 0xA)))
+    {
+      bJccErratum = true;
     }
   }
 
@@ -270,5 +283,7 @@ std::string CPUInfo::Summarize()
     sum += ", MOVBE";
   if (bLongMode)
     sum += ", 64-bit support";
+  if (bJccErratum)
+    sum += ", SKX102 bug";
   return sum;
 }

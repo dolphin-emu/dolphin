@@ -386,11 +386,96 @@ void XEmitter::Rex(int w, int r, int x, int b)
     Write8(rx);
 }
 
+void XEmitter::AddJccErratumPadding(size_t instruction_size)
+{
+  if (!cpu_info.bJccErratum)
+  {
+    return;
+  }
+
+  constexpr u64 cache_line_size = 32;  // bytes
+  const u64 remaining = cache_line_size - (reinterpret_cast<u64>(code) & (cache_line_size - 1));
+  if (remaining > instruction_size)
+  {
+    return;
+  }
+
+  NOP(remaining);
+}
+
+void XEmitter::AddJccErratumPaddingFusable(CCFlags cc, size_t jcc_size)
+{
+  if (!cpu_info.bJccErratum)
+  {
+    return;
+  }
+
+  const bool is_fusable = [this, cc] {
+    if (code != jcc_fusion_last_inst_end)
+    {
+      return false;
+    }
+
+    switch (jcc_fusion_type)
+    {
+    case JccFusionType::All:
+      return true;
+    case JccFusionType::Numeric:
+      switch (cc)
+      {
+      case CC_B:
+      case CC_AE:
+      case CC_E:
+      case CC_NE:
+      case CC_BE:
+      case CC_A:
+      case CC_L:
+      case CC_GE:
+      case CC_LE:
+      case CC_G:
+        return true;
+      case CC_O:
+      case CC_NO:
+      case CC_S:
+      case CC_NS:
+      case CC_P:
+      case CC_NP:
+        return false;
+      }
+    default:
+      return false;
+    }
+  }();
+
+  if (!is_fusable)
+  {
+    AddJccErratumPadding(jcc_size);
+    return;
+  }
+
+  const size_t op_size = jcc_fusion_last_inst_end - jcc_fusion_last_inst_start;
+
+  constexpr u64 cache_line_size = 32;  // bytes
+  const u64 remaining =
+      cache_line_size - (reinterpret_cast<u64>(jcc_fusion_last_inst_start) & (cache_line_size - 1));
+
+  if (remaining > op_size + jcc_size)
+  {
+    return;
+  }
+
+  std::memmove(jcc_fusion_last_inst_start + remaining, jcc_fusion_last_inst_start, op_size);
+  code = jcc_fusion_last_inst_start;
+  NOP(remaining);
+  code += op_size;
+}
+
 void XEmitter::JMP(const u8* addr, bool force5Bytes)
 {
   u64 fn = (u64)addr;
   if (!force5Bytes)
   {
+    AddJccErratumPadding(2);
     s64 distance = (s64)(fn - ((u64)code + 2));
     ASSERT_MSG(DYNA_REC, distance >= -0x80 && distance < 0x80,
                "Jump target too far away, needs force5Bytes = true");
@@ -400,6 +485,7 @@ void XEmitter::JMP(const u8* addr, bool force5Bytes)
   }
   else
   {
+    AddJccErratumPadding(5);
     s64 distance = (s64)(fn - ((u64)code + 5));
 
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
@@ -411,35 +497,67 @@ void XEmitter::JMP(const u8* addr, bool force5Bytes)
 
 void XEmitter::JMPptr(const OpArg& arg2)
 {
-  OpArg arg = arg2;
-  if (arg.IsImm())
-    ASSERT_MSG(DYNA_REC, 0, "JMPptr - Imm argument");
-  arg.operandReg = 4;
-  arg.WriteREX(this, 0, 0);
-  Write8(0xFF);
-  arg.WriteRest(this);
+  const auto emit = [&] {
+    OpArg arg = arg2;
+    if (arg.IsImm())
+      ASSERT_MSG(DYNA_REC, 0, "JMPptr - Imm argument");
+    arg.operandReg = 4;
+    arg.WriteREX(this, 0, 0);
+    Write8(0xFF);
+    arg.WriteRest(this);
+  };
+
+  if (!cpu_info.bJccErratum)
+  {
+    emit();
+    return;
+  }
+
+  u8* instruction_begin = code;
+  emit();
+  u8* instruction_end = code;
+  code = instruction_begin;
+  AddJccErratumPadding(instruction_end - instruction_begin);
+  emit();
 }
 
 // Can be used to trap other processors, before overwriting their code
 // not used in Dolphin
 void XEmitter::JMPself()
 {
+  AddJccErratumPadding(2);
   Write8(0xEB);
   Write8(0xFE);
 }
 
 void XEmitter::CALLptr(OpArg arg)
 {
-  if (arg.IsImm())
-    ASSERT_MSG(DYNA_REC, 0, "CALLptr - Imm argument");
-  arg.operandReg = 2;
-  arg.WriteREX(this, 0, 0);
-  Write8(0xFF);
-  arg.WriteRest(this);
+  const auto emit = [&] {
+    if (arg.IsImm())
+      ASSERT_MSG(DYNA_REC, 0, "CALLptr - Imm argument");
+    arg.operandReg = 2;
+    arg.WriteREX(this, 0, 0);
+    Write8(0xFF);
+    arg.WriteRest(this);
+  };
+
+  if (!cpu_info.bJccErratum)
+  {
+    emit();
+    return;
+  }
+
+  u8* instruction_begin = code;
+  emit();
+  u8* instruction_end = code;
+  code = instruction_begin;
+  AddJccErratumPadding(instruction_end - instruction_begin);
+  emit();
 }
 
 void XEmitter::CALL(const void* fnptr)
 {
+  AddJccErratumPadding(5);
   u64 distance = u64(fnptr) - (u64(code) + 5);
   ASSERT_MSG(DYNA_REC, distance < 0x0000000080000000ULL || distance >= 0xFFFFFFFF80000000ULL,
              "CALL out of range (%p calls %p)", code, fnptr);
@@ -449,11 +567,12 @@ void XEmitter::CALL(const void* fnptr)
 
 FixupBranch XEmitter::CALL()
 {
+  AddJccErratumPadding(5);
   FixupBranch branch;
   branch.type = FixupBranch::Type::Branch32Bit;
-  branch.ptr = code + 5;
   Write8(0xE8);
   Write32(0);
+  branch.ptr = code;
   return branch;
 }
 
@@ -461,18 +580,20 @@ FixupBranch XEmitter::J(bool force5bytes)
 {
   FixupBranch branch;
   branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 5 : 2);
   if (!force5bytes)
   {
+    AddJccErratumPadding(2);
     // 8 bits will do
     Write8(0xEB);
     Write8(0);
   }
   else
   {
+    AddJccErratumPadding(5);
     Write8(0xE9);
     Write32(0);
   }
+  branch.ptr = code;
   return branch;
 }
 
@@ -480,28 +601,34 @@ FixupBranch XEmitter::J_CC(CCFlags conditionCode, bool force5bytes)
 {
   FixupBranch branch;
   branch.type = force5bytes ? FixupBranch::Type::Branch32Bit : FixupBranch::Type::Branch8Bit;
-  branch.ptr = code + (force5bytes ? 6 : 2);
   if (!force5bytes)
   {
+    AddJccErratumPaddingFusable(conditionCode, 2);
     // 8 bits will do
     Write8(0x70 + conditionCode);
     Write8(0);
   }
   else
   {
+    AddJccErratumPaddingFusable(conditionCode, 6);
     Write8(0x0F);
     Write8(0x80 + conditionCode);
     Write32(0);
   }
+  branch.ptr = code;
   return branch;
 }
 
 void XEmitter::J_CC(CCFlags conditionCode, const u8* addr)
 {
+  AddJccErratumPaddingFusable(conditionCode, 2);
+
   u64 fn = (u64)addr;
   s64 distance = (s64)(fn - ((u64)code + 2));
+
   if (distance < -0x80 || distance >= 0x80)
   {
+    AddJccErratumPaddingFusable(conditionCode, 6);
     distance = (s64)(fn - ((u64)code + 6));
     ASSERT_MSG(DYNA_REC, distance >= -0x80000000LL && distance < 0x80000000LL,
                "Jump target too far away, needs indirect register");
@@ -544,10 +671,12 @@ void XEmitter::INT3()
 }
 void XEmitter::RET()
 {
+  AddJccErratumPadding(1);
   Write8(0xC3);
 }
 void XEmitter::RET_FAST()
 {
+  AddJccErratumPadding(2);
   Write8(0xF3);
   Write8(0xC3);
 }  // two-byte return (rep ret) - recommended by AMD optimization manual for the case of jumping to
@@ -1534,7 +1663,8 @@ void XEmitter::WriteNormalOp(int bits, NormalOp op, const OpArg& a1, const OpArg
 void XEmitter::ADD(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, NormalOp::ADD, a1, a2);
+  EmitJccFusableInstruction(JccFusionType::Numeric,
+                            [&] { WriteNormalOp(bits, NormalOp::ADD, a1, a2); });
 }
 void XEmitter::ADC(int bits, const OpArg& a1, const OpArg& a2)
 {
@@ -1544,7 +1674,8 @@ void XEmitter::ADC(int bits, const OpArg& a1, const OpArg& a2)
 void XEmitter::SUB(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, NormalOp::SUB, a1, a2);
+  EmitJccFusableInstruction(JccFusionType::Numeric,
+                            [&] { WriteNormalOp(bits, NormalOp::SUB, a1, a2); });
 }
 void XEmitter::SBB(int bits, const OpArg& a1, const OpArg& a2)
 {
@@ -1554,7 +1685,8 @@ void XEmitter::SBB(int bits, const OpArg& a1, const OpArg& a2)
 void XEmitter::AND(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, NormalOp::AND, a1, a2);
+  EmitJccFusableInstruction(JccFusionType::All,
+                            [&] { WriteNormalOp(bits, NormalOp::AND, a1, a2); });
 }
 void XEmitter::OR(int bits, const OpArg& a1, const OpArg& a2)
 {
@@ -1582,12 +1714,14 @@ void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 void XEmitter::TEST(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, NormalOp::TEST, a1, a2);
+  EmitJccFusableInstruction(JccFusionType::All,
+                            [&] { WriteNormalOp(bits, NormalOp::TEST, a1, a2); });
 }
 void XEmitter::CMP(int bits, const OpArg& a1, const OpArg& a2)
 {
   CheckFlags();
-  WriteNormalOp(bits, NormalOp::CMP, a1, a2);
+  EmitJccFusableInstruction(JccFusionType::Numeric,
+                            [&] { WriteNormalOp(bits, NormalOp::CMP, a1, a2); });
 }
 void XEmitter::XCHG(int bits, const OpArg& a1, const OpArg& a2)
 {
@@ -1598,11 +1732,13 @@ void XEmitter::CMP_or_TEST(int bits, const OpArg& a1, const OpArg& a2)
   CheckFlags();
   if (a1.IsSimpleReg() && a2.IsZero())  // turn 'CMP reg, 0' into shorter 'TEST reg, reg'
   {
-    WriteNormalOp(bits, NormalOp::TEST, a1, a1);
+    EmitJccFusableInstruction(JccFusionType::All,
+                              [&] { WriteNormalOp(bits, NormalOp::TEST, a1, a1); });
   }
   else
   {
-    WriteNormalOp(bits, NormalOp::CMP, a1, a2);
+    EmitJccFusableInstruction(JccFusionType::Numeric,
+                              [&] { WriteNormalOp(bits, NormalOp::CMP, a1, a2); });
   }
 }
 

@@ -425,6 +425,14 @@ public:
   void PUSHF();
   void POPF();
 
+  // Intel CPU microcode migitations that fix Intel erratum SKX102 affect the caching of certain
+  // jmp/call/ret instructions: If such instructions (or such macrofused instruction pairs) span
+  // a 32-byte boundary, they will not be cached in the host CPU's micro-op cache. In order to
+  // reduce the performance impact of these micro-op cache misses / pipeline transitions, we add
+  // NOP instructions so such flow control instructions do not cross 32-byte boundaries or end on
+  // a 32-byte boundary. See also Intel White Paper 341810-001.
+  void AddJccErratumPadding(size_t instruction_size);
+
   // Flow control
   void RET();
   void RET_FAST();
@@ -1158,6 +1166,29 @@ public:
     auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
     ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
   }
+
+private:
+  enum class JccFusionType
+  {
+    None,
+    All,
+    Numeric,  // jz jl jg jc jb ja (and their inverses)
+  };
+
+  template <typename Fn>
+  void EmitJccFusableInstruction(JccFusionType type, Fn&& fn)
+  {
+    jcc_fusion_type = type;
+    jcc_fusion_last_inst_start = code;
+    fn();
+    jcc_fusion_last_inst_end = code;
+  }
+
+  void AddJccErratumPaddingFusable(CCFlags cc, size_t instruction_size);
+
+  JccFusionType jcc_fusion_type = JccFusionType::None;
+  u8* jcc_fusion_last_inst_start = nullptr;
+  u8* jcc_fusion_last_inst_end = nullptr;
 };  // class XEmitter
 
 class X64CodeBlock : public Common::CodeBlock<XEmitter>
