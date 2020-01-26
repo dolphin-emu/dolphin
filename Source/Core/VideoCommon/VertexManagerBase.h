@@ -46,6 +46,34 @@ private:
 
   static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
 
+  // Used for 16:9 anamorphic widescreen heuristic.
+  struct FlushStatistics
+  {
+    struct ProjectionCounts
+    {
+      size_t normal_flush_count;
+      size_t anamorphic_flush_count;
+      size_t other_flush_count;
+
+      size_t normal_vertex_count;
+      size_t anamorphic_vertex_count;
+      size_t other_vertex_count;
+
+      size_t GetTotalFlushCount() const
+      {
+        return normal_flush_count + anamorphic_flush_count + other_flush_count;
+      }
+
+      size_t GetTotalVertexCount() const
+      {
+        return normal_vertex_count + anamorphic_vertex_count + other_vertex_count;
+      }
+    };
+
+    ProjectionCounts perspective;
+    ProjectionCounts orthographic;
+  };
+
 public:
   static constexpr u32 MAXVBUFFERSIZE =
       MathUtil::NextPowerOf2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
@@ -74,7 +102,7 @@ public:
 
   void DoState(PointerWrap& p);
 
-  std::pair<size_t, size_t> ResetFlushAspectRatioCount();
+  FlushStatistics ResetFlushAspectRatioCount();
 
   // State setters, called from register update functions.
   void SetRasterizationStateChanged() { m_rasterization_state_changed = true; }
@@ -171,8 +199,7 @@ private:
   void UpdatePipelineObject();
 
   bool m_is_flushed = true;
-  size_t m_flush_count_4_3 = 0;
-  size_t m_flush_count_anamorphic = 0;
+  FlushStatistics m_flush_statistics = {};
 
   // CPU access tracking
   u32 m_draw_counter = 0;
