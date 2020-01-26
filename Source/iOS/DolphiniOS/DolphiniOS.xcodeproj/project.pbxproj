@@ -101,6 +101,8 @@
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
 		B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4323D7F5660094F159 /* Localizable.strings */; };
+		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
+		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -270,6 +272,9 @@
 		B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalizerUtils.h; sourceTree = "<group>"; };
 		B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalizerUtils.m; sourceTree = "<group>"; };
 		B9AAAB4223D7F5660094F159 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
+		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
+		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -396,6 +401,7 @@
 		B91BF364236B3DFF00199BA7 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				B924DCA923DAD40700831A1A /* Notices */,
 				B91BF368236B3E3900199BA7 /* Emulation */,
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
@@ -418,6 +424,14 @@
 				B99B05B423A182B20076C7D8 /* Emulation.storyboard */,
 			);
 			path = Emulation;
+			sourceTree = "<group>";
+		};
+		B924DCA923DAD40700831A1A /* Notices */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536C823DD8AA900F03106 /* Updates */,
+			);
+			path = Notices;
 			sourceTree = "<group>";
 		};
 		B945A3672362908400B21680 = {
@@ -630,6 +644,16 @@
 			path = Interface;
 			sourceTree = "<group>";
 		};
+		B9B536C823DD8AA900F03106 /* Updates */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */,
+				B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */,
+				B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */,
+			);
+			path = Updates;
+			sourceTree = "<group>";
+		};
 		B9B948B823BFC4AC00E244FF /* PortSelector */ = {
 			isa = PBXGroup;
 			children = (
@@ -837,6 +861,7 @@
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
+				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
 				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
 				B924DCA223DA873000831A1A /* Settings.storyboard in Resources */,
 				B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */,
@@ -995,6 +1020,7 @@
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
+				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
