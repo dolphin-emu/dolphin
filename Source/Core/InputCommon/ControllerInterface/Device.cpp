@@ -21,6 +21,38 @@ namespace ciface::Core
 // Note: Detect() logic assumes this is greater than 0.5.
 constexpr ControlState INPUT_DETECT_THRESHOLD = 0.55;
 
+class CombinedInput final : public Device::Input
+{
+public:
+  using Inputs = std::pair<Device::Input*, Device::Input*>;
+
+  CombinedInput(std::string name, const Inputs& inputs) : m_name(std::move(name)), m_inputs(inputs)
+  {
+  }
+  ControlState GetState() const override
+  {
+    ControlState result = 0;
+
+    if (m_inputs.first)
+      result = m_inputs.first->GetState();
+
+    if (m_inputs.second)
+      result = std::max(result, m_inputs.second->GetState());
+
+    return result;
+  }
+  std::string GetName() const override { return m_name; }
+  bool IsDetectable() const override { return false; }
+  bool IsChild(const Input* input) const override
+  {
+    return m_inputs.first == input || m_inputs.second == input;
+  }
+
+private:
+  const std::string m_name;
+  const std::pair<Device::Input*, Device::Input*> m_inputs;
+};
+
 Device::~Device()
 {
   // delete inputs
@@ -50,6 +82,20 @@ void Device::AddOutput(Device::Output* const o)
 std::string Device::GetQualifiedName() const
 {
   return fmt::format("{}/{}/{}", GetSource(), GetId(), GetName());
+}
+
+auto Device::GetParentMostInput(Input* child) const -> Input*
+{
+  for (auto* input : m_inputs)
+  {
+    if (input->IsChild(child))
+    {
+      // Running recursively is currently unnecessary but it doesn't hurt.
+      return GetParentMostInput(input);
+    }
+  }
+
+  return child;
 }
 
 Device::Input* Device::FindInput(std::string_view name) const
@@ -101,34 +147,6 @@ bool Device::FullAnalogSurface::IsMatchingName(std::string_view name) const
   const auto old_name = m_low.GetName() + *m_high.GetName().rbegin();
 
   return old_name == name;
-}
-
-Device::CombinedInput::CombinedInput(std::string name, const Inputs& inputs)
-    : m_name(std::move(name)), m_inputs(inputs)
-{
-}
-
-ControlState Device::CombinedInput::GetState() const
-{
-  ControlState result = 0;
-
-  if (m_inputs.first)
-    result = m_inputs.first->GetState();
-
-  if (m_inputs.second)
-    result = std::max(result, m_inputs.second->GetState());
-
-  return result;
-}
-
-std::string Device::CombinedInput::GetName() const
-{
-  return m_name;
-}
-
-bool Device::CombinedInput::IsDetectable()
-{
-  return false;
 }
 
 void Device::AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs)

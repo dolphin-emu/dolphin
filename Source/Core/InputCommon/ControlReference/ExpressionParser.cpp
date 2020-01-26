@@ -291,9 +291,14 @@ bool HotkeySuppressions::IsSuppressedIgnoringModifiers(Device::Input* input,
   auto it = m_suppressions.lower_bound({input, nullptr});
   auto it_end = m_suppressions.lower_bound({input + 1, nullptr});
 
+  // We need to ignore L_Ctrl R_Ctrl when supplied Ctrl and vice-versa.
+  const auto is_same_modifier = [](Device::Input* i1, Device::Input* i2) {
+    return i1 == i2 || i1->IsChild(i2) || i2->IsChild(i1);
+  };
+
   return std::any_of(it, it_end, [&](auto& s) {
     return std::none_of(begin(ignore_modifiers), end(ignore_modifiers),
-                        [&](auto& m) { return m->GetInput() == s.first.second; });
+                        [&](auto& m) { return is_same_modifier(m->GetInput(), s.first.second); });
   });
 }
 

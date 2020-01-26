@@ -85,6 +85,11 @@ public:
     virtual ControlState GetState() const = 0;
 
     Input* ToInput() override { return this; }
+
+    // Overridden by CombinedInput,
+    // so hotkey logic knows Ctrl, L_Ctrl, and R_Ctrl are the same,
+    // and so input detection can return the parent name.
+    virtual bool IsChild(const Input*) const { return false; }
   };
 
   //
@@ -119,6 +124,8 @@ public:
   const std::vector<Input*>& Inputs() const { return m_inputs; }
   const std::vector<Output*>& Outputs() const { return m_outputs; }
 
+  Input* GetParentMostInput(Input* input) const;
+
   Input* FindInput(std::string_view name) const;
   Output* FindOutput(std::string_view name) const;
 
@@ -146,21 +153,6 @@ protected:
     AddInput(new FullAnalogSurface(low, high));
     AddInput(new FullAnalogSurface(high, low));
   }
-
-  class CombinedInput final : public Input
-  {
-  public:
-    using Inputs = std::pair<Input*, Input*>;
-
-    CombinedInput(std::string name, const Inputs& inputs);
-    ControlState GetState() const override;
-    std::string GetName() const override;
-    bool IsDetectable() override;
-
-  private:
-    const std::string m_name;
-    const std::pair<Input*, Input*> m_inputs;
-  };
 
   void AddCombinedInput(std::string name, const std::pair<std::string, std::string>& inputs);
 

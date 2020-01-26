@@ -93,6 +93,12 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
     if (!full_expression.isEmpty())
       full_expression += QChar::fromLatin1('+');
 
+    // Return the parent-most name if there is one for better hotkey strings.
+    // Detection of L/R_Ctrl will be changed to just Ctrl.
+    // Users can manually map L_Ctrl if they so desire.
+    if (quote == Quote::On)
+      input = device->GetParentMostInput(input);
+
     full_expression += MappingCommon::GetExpressionForControl(
         QString::fromStdString(input->GetName()), device_qualifier, default_device, quote);
   }
