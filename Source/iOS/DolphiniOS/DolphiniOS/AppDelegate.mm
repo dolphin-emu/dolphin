@@ -21,6 +21,8 @@
 
 #import "UICommon/UICommon.h"
 
+#import "UpdateNoticeViewController.h"
+
 @interface AppDelegate ()
 
 @end
@@ -43,6 +45,56 @@
   });
   
   [MainiOS applicationStart];
+  
+  // Create a UINavigationController for alerts
+  UINavigationController* nav_controller = [[UINavigationController alloc] init];
+  [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
+  [nav_controller setNavigationBarHidden:true];
+  
+  [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:nav_controller animated:true completion:nil];
+  
+  // Check for updates
+#ifndef DEBUG
+  NSString* update_url_string;
+#ifndef PATREON
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update.json";
+#else
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon.json";
+#endif
+  
+  NSURL* update_url = [NSURL URLWithString:update_url_string];
+  
+  // Create en ephemeral session to avoid caching
+  NSURLSession* session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
+  [[session dataTaskWithURL:update_url completionHandler:^(NSData* data, NSURLResponse* response, NSError* error) {
+    if (error != nil)
+    {
+      return;
+    }
+    
+    // Get the version string
+    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+    NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+    
+    // Deserialize the JSON
+    NSDictionary* dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    
+    if (![dict[@"version"] isEqualToString:version_str])
+    {
+      dispatch_async(dispatch_get_main_queue(), ^{
+        UpdateNoticeViewController* update_controller = [[UpdateNoticeViewController alloc] initWithNibName:@"UpdateNotice" bundle:nil];
+        update_controller.m_update_json = dict;
+        
+        [nav_controller pushViewController:update_controller animated:true];
+        
+        if (![nav_controller isBeingPresented])
+        {
+          [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:nav_controller animated:true completion:nil];
+        }
+      });
+    }
+  }] resume];
+ #endif
   
   return YES;
 }
