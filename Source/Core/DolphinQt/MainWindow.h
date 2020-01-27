@@ -162,7 +162,10 @@ private:
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
   void OnConnectWiiRemote(int id);
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   void OnSignal();
+#endif
 
   void OnUpdateProgressDialog(QString label, int progress, int total);
 
