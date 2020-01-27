@@ -261,6 +261,7 @@ private:
 
   explicit WIAFileReader(File::IOFile file, const std::string& path);
   bool Initialize(const std::string& path);
+  bool HasDataOverlap() const;
 
   bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,

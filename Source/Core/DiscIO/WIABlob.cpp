@@ -142,10 +142,7 @@ bool WIAFileReader::Initialize(const std::string& path)
 
     if (non_empty_entries > 1)
     {
-      const u32 first_end =
-          Common::swap32(entries[0].first_sector) + Common::swap32(entries[0].number_of_sectors);
-      const u32 second_start = Common::swap32(entries[1].first_sector);
-      if (first_end > second_start)
+      if (Common::swap32(entries[0].first_sector) > Common::swap32(entries[1].first_sector))
         return false;
     }
   }
@@ -175,7 +172,45 @@ bool WIAFileReader::Initialize(const std::string& path)
   if (!group_entries.ReadAll(&m_group_entries))
     return false;
 
+  if (HasDataOverlap())
+    return false;
+
   return true;
+}
+
+bool WIAFileReader::HasDataOverlap() const
+{
+  for (size_t i = 0; i < m_partition_entries.size(); ++i)
+  {
+    const std::array<PartitionDataEntry, 2>& entries = m_partition_entries[i].data_entries;
+    for (size_t j = 0; j < entries.size(); ++j)
+    {
+      if (Common::swap32(entries[j].number_of_sectors) == 0)
+        continue;
+
+      const u64 data_offset = Common::swap32(entries[j].first_sector) * VolumeWii::BLOCK_TOTAL_SIZE;
+      const auto it = m_data_entries.upper_bound(data_offset);
+      if (it == m_data_entries.end())
+        return true;  // Not an overlap, but an error nonetheless
+      if (!it->second.is_partition || it->second.index != i || it->second.partition_data_index != j)
+        return true;  // Overlap
+    }
+  }
+
+  for (size_t i = 0; i < m_raw_data_entries.size(); ++i)
+  {
+    if (Common::swap64(m_raw_data_entries[i].data_size) == 0)
+      continue;
+
+    const u64 data_offset = Common::swap64(m_raw_data_entries[i].data_offset);
+    const auto it = m_data_entries.upper_bound(data_offset);
+    if (it == m_data_entries.end())
+      return true;  // Not an overlap, but an error nonetheless
+    if (it->second.is_partition || it->second.index != i)
+      return true;  // Overlap
+  }
+
+  return false;
 }
 
 std::unique_ptr<WIAFileReader> WIAFileReader::Create(File::IOFile file, const std::string& path)
