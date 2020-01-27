@@ -323,7 +323,18 @@ void UpdateWiiPointer()
   wsi.render_surface = (__bridge void*)view;
   wsi.render_surface_scale = [UIScreen mainScreen].scale;  
 
-  std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile([file UTF8String]);
+  std::unique_ptr<BootParameters> boot;
+
+  std::string auto_save_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"; 
+  if (File::Exists(auto_save_path))
+  {
+    boot = BootParameters::GenerateFromFile([file UTF8String], auto_save_path);
+    boot->delete_savestate = true;
+  }
+  else
+  {
+    boot = BootParameters::GenerateFromFile([file UTF8String]);
+  }
 
   std::unique_lock<std::mutex> guard(s_host_identity_lock);
 
@@ -350,7 +361,7 @@ void UpdateWiiPointer()
       Core::HostDispatchJobs();
     }
   }
-  
+
   ButtonManager::Shutdown();
 
   s_view_controller = nullptr;

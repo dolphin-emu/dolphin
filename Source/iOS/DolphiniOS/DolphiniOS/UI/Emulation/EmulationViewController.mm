@@ -6,6 +6,8 @@
 
 #import "ControllerSettingsUtils.h"
 
+#import "Common/FileUtil.h"
+
 #import "Core/ConfigManager.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
@@ -13,12 +15,15 @@
 #import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #import "Core/HW/SI/SI.h"
 #import "Core/HW/SI/SI_Device.h"
+#import "Core/State.h"
 
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
 
 #import "MainiOS.h"
+
+#import "UICommon/GameFile.h"
 
 #import "VideoCommon/RenderBase.h"
 
@@ -31,6 +36,21 @@
 - (void)viewDidLoad
 {
   [super viewDidLoad];
+  
+  if (self.m_game_file == nullptr)
+  {
+    // Create the GameFile from the last game
+    NSString* path = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_path"];
+    self.m_game_file = new UICommon::GameFile(std::string([path UTF8String]));
+  }
+  else
+  {
+    // Save the last game information
+    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+    [defaults setObject:[NSString stringWithCString:self.m_game_file->GetLongName().c_str() encoding:NSUTF8StringEncoding] forKey:@"last_game_title"];
+    [defaults setObject:[NSString stringWithCString:self.m_game_file->GetFilePath().c_str() encoding:NSUTF8StringEncoding] forKey:@"last_game_path"];
+    [defaults setInteger:State::GetVersion() forKey:@"last_game_state_version"];
+  }
   
   // Setup renderer view
   if (SConfig::GetInstance().m_strVideoBackend == "Vulkan")
@@ -179,6 +199,9 @@
   
   [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
     [MainiOS stopEmulation];
+    
+    // Delete the automatic save state
+    File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
   }]];
   
   [self presentViewController:alert animated:true completion:nil];

@@ -68,6 +68,7 @@
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
+		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -109,6 +110,9 @@
 		B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536DA23DE649A00F03106 /* NoticeNavigationViewController.m */; };
 		B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536DD23DE707F00F03106 /* UnofficialBuildNotice.xib */; };
 		B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536E023DE722800F03106 /* UnofficialBuildNoticeViewController.m */; };
+		B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536E323DE822B00F03106 /* ReloadStateNotice.xib */; };
+		B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B536E623DE824800F03106 /* ReloadStateNoticeViewController.mm */; };
+		B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536E923DE976B00F03106 /* ReloadFailedNotice.xib */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -219,6 +223,7 @@
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
+		B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReloadFailedNoticeViewController.mm; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -290,6 +295,11 @@
 		B9B536DD23DE707F00F03106 /* UnofficialBuildNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = UnofficialBuildNotice.xib; path = DolphiniOS/UI/Notices/UnofficialBuild/UnofficialBuildNotice.xib; sourceTree = SOURCE_ROOT; };
 		B9B536DF23DE722800F03106 /* UnofficialBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UnofficialBuildNoticeViewController.h; sourceTree = "<group>"; };
 		B9B536E023DE722800F03106 /* UnofficialBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UnofficialBuildNoticeViewController.m; sourceTree = "<group>"; };
+		B9B536E323DE822B00F03106 /* ReloadStateNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ReloadStateNotice.xib; path = DolphiniOS/UI/Notices/ReloadState/ReloadStateNotice.xib; sourceTree = SOURCE_ROOT; };
+		B9B536E523DE824800F03106 /* ReloadStateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ReloadStateNoticeViewController.h; sourceTree = "<group>"; };
+		B9B536E623DE824800F03106 /* ReloadStateNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ReloadStateNoticeViewController.mm; sourceTree = "<group>"; };
+		B9B536E923DE976B00F03106 /* ReloadFailedNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ReloadFailedNotice.xib; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNotice.xib; sourceTree = SOURCE_ROOT; };
+		B9B536EB23DE97B000F03106 /* ReloadFailedNoticeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReloadFailedNoticeViewController.h; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.h; sourceTree = SOURCE_ROOT; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -444,8 +454,10 @@
 		B924DCA923DAD40700831A1A /* Notices */ = {
 			isa = PBXGroup;
 			children = (
-				B9B536DC23DE706300F03106 /* UnofficialBuild */,
 				B9B536D323DE604A00F03106 /* Donation */,
+				B9B536E823DE974300F03106 /* ReloadFailed */,
+				B9B536E223DE81F000F03106 /* ReloadState */,
+				B9B536DC23DE706300F03106 /* UnofficialBuild */,
 				B9B536D023DE4F8700F03106 /* UnsupportedDevice */,
 				B9B536C823DD8AA900F03106 /* Updates */,
 				B9B536D923DE649A00F03106 /* NoticeNavigationViewController.h */,
@@ -702,6 +714,26 @@
 			path = UnofficialBuild;
 			sourceTree = "<group>";
 		};
+		B9B536E223DE81F000F03106 /* ReloadState */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536E523DE824800F03106 /* ReloadStateNoticeViewController.h */,
+				B9B536E623DE824800F03106 /* ReloadStateNoticeViewController.mm */,
+				B9B536E323DE822B00F03106 /* ReloadStateNotice.xib */,
+			);
+			path = ReloadState;
+			sourceTree = "<group>";
+		};
+		B9B536E823DE974300F03106 /* ReloadFailed */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536EB23DE97B000F03106 /* ReloadFailedNoticeViewController.h */,
+				B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */,
+				B9B536E923DE976B00F03106 /* ReloadFailedNotice.xib */,
+			);
+			path = ReloadFailed;
+			sourceTree = "<group>";
+		};
 		B9B948B823BFC4AC00E244FF /* PortSelector */ = {
 			isa = PBXGroup;
 			children = (
@@ -899,6 +931,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */,
 				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
@@ -908,6 +941,7 @@
 				B99B05A723A067D10076C7D8 /* Sys in Resources */,
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
+				B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
 				B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */,
@@ -1071,6 +1105,7 @@
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
+				B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */,
 				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
@@ -1097,6 +1132,7 @@
 				B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */,
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
+				B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */,
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,

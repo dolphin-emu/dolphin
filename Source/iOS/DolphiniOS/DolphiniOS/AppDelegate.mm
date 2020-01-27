@@ -6,6 +6,7 @@
 #import "DolphiniOS-Swift.h"
 
 #import "Common/Config/Config.h"
+#import "Common/FileUtil.h"
 #import "Common/MsgHandler.h"
 #import "Common/StringUtil.h"
 
@@ -14,6 +15,7 @@
 #import "Core/HW/GCKeyboard.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/State.h"
 
 #import "DonationNoticeViewController.h"
 
@@ -24,6 +26,9 @@
 #import <MetalKit/MetalKit.h>
 
 #import "NoticeNavigationViewController.h"
+
+#import "ReloadFailedNoticeViewController.h"
+#import "ReloadStateNoticeViewController.h"
 
 #import "UICommon/UICommon.h"
 
@@ -64,7 +69,7 @@
   NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];
   NSDictionary *defaultPrefs = [NSDictionary dictionaryWithContentsOfURL:defaultPrefsFile];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
-    
+  
   Common::RegisterStringTranslator([](const char* text) -> std::string {
     NSString* localized_text = DOLocalizedString([NSString stringWithUTF8String:text]);
     return std::string([localized_text UTF8String]);
@@ -77,6 +82,19 @@
   [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
   [nav_controller setNavigationBarHidden:true];
   
+  // Check if the background save state exists
+  if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"))
+  {
+    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"] == State::GetVersion())
+    {
+      [nav_controller pushViewController:[[ReloadStateNoticeViewController alloc] initWithNibName:@"ReloadStateNotice" bundle:nil] animated:true];
+    }
+    else
+    {
+      [nav_controller pushViewController:[[ReloadFailedNoticeViewController alloc] initWithNibName:@"ReloadFailedNotice" bundle:nil] animated:true];
+    }
+  }
+  
   // Get the number of launches
   NSInteger launch_times = [[NSUserDefaults standardUserDefaults] integerForKey:@"launch_times"];
   if (launch_times == 0)
@@ -87,7 +105,7 @@
   {
 #ifndef PATREON
     bool suppress_donation_message = [[NSUserDefaults standardUserDefaults] boolForKey:@"suppress_donation_message"];
-  
+    
     if (!suppress_donation_message)
     {
       [nav_controller pushViewController:[[DonationNoticeViewController alloc] initWithNibName:@"DonationNotice" bundle:nil] animated:true];
@@ -147,7 +165,7 @@
       });
     }
   }] resume];
- #endif
+#endif
   
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
@@ -157,6 +175,15 @@
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
+  if (Core::IsRunning())
+  {
+    Core::Stop();
+    
+    // Spin while Core stops
+    while (Core::GetState() != Core::State::Uninitialized);
+  }
+  
+  [[TCDeviceMotion shared] stopMotionUpdates];
   Pad::Shutdown();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
@@ -167,6 +194,32 @@
   Core::Shutdown();
   UICommon::Shutdown();
 }
+
+- (void)applicationDidBecomeActive:(UIApplication*)application
+{
+  if (Core::IsRunning())
+  {
+    Core::SetState(Core::State::Running);
+  }
+}
+
+- (void)applicationWillResignActive:(UIApplication*)application
+{
+  if (Core::IsRunning())
+  {
+    Core::SetState(Core::State::Paused);
+  }
+}
+
+- (void)applicationDidEnterBackground:(UIApplication*)application
+{
+  if (Core::IsRunning())
+  {
+    // Save out a save state
+    State::SaveAs(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
+  }
+}
+
 
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
 {

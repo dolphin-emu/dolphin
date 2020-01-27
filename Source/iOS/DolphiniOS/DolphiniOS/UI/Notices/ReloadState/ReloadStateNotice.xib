@@ -8,11 +8,9 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UpdateNoticeViewController">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ReloadStateNoticeViewController">
             <connections>
-                <outlet property="m_changes_label" destination="cRL-yG-mYd" id="iG9-ra-grN"/>
-                <outlet property="m_save_states_warning_label" destination="luA-1B-bZp" id="e9X-Sl-kCq"/>
-                <outlet property="m_version_label" destination="G2L-KW-hUh" id="yS7-Ir-Mr1"/>
+                <outlet property="m_game_name_label" destination="G2L-KW-hUh" id="rW9-5G-uqe"/>
                 <outlet property="view" destination="r55-Fn-aBI" id="r9r-Zd-Dn7"/>
             </connections>
         </placeholder>
@@ -23,13 +21,13 @@
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W3E-IV-CzC" userLabel="Header Stack">
                     <rect key="frame" x="0.0" y="63.999999999999986" width="375" height="183.66666666666663"/>
                     <subviews>
-                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_icloud_and_arrow_down" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_arrow_2_circlepath_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
                             <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="100" id="hmP-nM-OsB"/>
                             </constraints>
                         </imageView>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Update" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MKg-MP-jJG">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Return to Game" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MKg-MP-jJG">
                             <rect key="frame" x="0.0" y="100" width="375" height="83.666666666666686"/>
                             <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="34"/>
                             <nil key="textColor"/>
@@ -41,30 +39,34 @@
                     <rect key="frame" x="0.0" y="247.66666666666669" width="375" height="530.33333333333326"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
-                            <rect key="frame" x="20" y="0.0" width="335" height="80.666666666666671"/>
+                            <rect key="frame" x="20" y="0.0" width="335" height="242.66666666666666"/>
                             <subviews>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="DolphiniOS version 1.0.0 is now available." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Version Text">
-                                    <rect key="frame" x="11.333333333333343" y="0.0" width="312.66666666666663" height="20.333333333333332"/>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="You were playing an unknown game before DolphiniOS was quit." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Game Name Text">
+                                    <rect key="frame" x="2" y="0.0" width="331" height="40.666666666666664"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Changes Placeholder" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cRL-yG-mYd" userLabel="Changes">
-                                    <rect key="frame" x="86.333333333333329" y="40.333333333333343" width="162.66666666666669" height="20.333333333333329"/>
-                                    <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="17"/>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="DolphiniOS automatically made a save state before exiting." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Lp-si-dj1" userLabel="State Info Text">
+                                    <rect key="frame" x="0.0" y="60.666666666666657" width="335" height="40.666666666666657"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
-                                <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="luA-1B-bZp" userLabel="Save States Warning">
-                                    <rect key="frame" x="-255.66666666666666" y="70.666666666666657" width="846.33333333333337" height="0.0"/>
-                                    <string key="text">WARNING: Save states made on this version of DolphiniOS cannot be loaded after updating to the new version.
-
-Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.</string>
-                                    <fontDescription key="fontDescription" name=".AppleSystemUIFont" family=".AppleSystemUIFont" pointSize="17"/>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Do you want to load this save state and return to where you were?" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qec-pW-vzO" userLabel="Prompt Text">
+                                    <rect key="frame" x="16" y="121.33333333333336" width="303.33333333333331" height="40.666666666666671"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <nil key="textColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="(If you choose to not return, the save state will be deleted.)" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6hj-VW-Alo" userLabel="Warning Text">
+                                    <rect key="frame" x="3.3333333333333428" y="182.00000000000003" width="328.66666666666663" height="40.666666666666657"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
-                                    <rect key="frame" x="47.666666666666686" y="80.666666666666657" width="240" height="0.0"/>
+                                    <rect key="frame" x="47.666666666666686" y="242.66666666666666" width="240" height="0.0"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" id="kge-k2-qnG"/>
@@ -84,13 +86,13 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                     <viewLayoutGuide key="frameLayoutGuide" id="BUq-vD-SSA"/>
                 </scrollView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="o40-Qv-36o">
-                    <rect key="frame" x="0.0" y="583" width="375" height="195"/>
+                    <rect key="frame" x="0.0" y="638" width="375" height="140"/>
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fA2-eu-kzr">
-                            <rect key="frame" x="0.0" y="0.0" width="375" height="195"/>
+                            <rect key="frame" x="0.0" y="0.0" width="375" height="140"/>
                             <subviews>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="np2-xh-cqO">
-                                    <rect key="frame" x="20" y="20" width="335" height="155"/>
+                                    <rect key="frame" x="20" y="20" width="335" height="100"/>
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPS-qP-47c">
                                             <rect key="frame" x="0.0" y="0.0" width="335" height="45"/>
@@ -99,7 +101,7 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                                                 <constraint firstAttribute="height" constant="45" id="j1f-m3-E7Q"/>
                                             </constraints>
                                             <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
-                                            <state key="normal" title="Update Now">
+                                            <state key="normal" title="Return">
                                                 <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                             </state>
                                             <userDefinedRuntimeAttributes>
@@ -108,21 +110,16 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                                                 </userDefinedRuntimeAttribute>
                                             </userDefinedRuntimeAttributes>
                                             <connections>
-                                                <action selector="UpdateNowTouched:" destination="-1" eventType="touchUpInside" id="xf7-wB-kXA"/>
+                                                <action selector="ReturnPressed:" destination="-1" eventType="touchUpInside" id="enI-Bb-2xy"/>
                                             </connections>
                                         </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Ddp-vN-h8U">
+                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="15a-8Z-M5U">
                                             <rect key="frame" x="0.0" y="55" width="335" height="45"/>
-                                            <state key="normal" title="See Changes"/>
+                                            <state key="normal" title="Don't Return">
+                                                <color key="titleColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            </state>
                                             <connections>
-                                                <action selector="SeeChangesTouched:" destination="-1" eventType="touchUpInside" id="Ufq-UN-Xnz"/>
-                                            </connections>
-                                        </button>
-                                        <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gmF-1y-bUR">
-                                            <rect key="frame" x="0.0" y="110" width="335" height="45"/>
-                                            <state key="normal" title="Not Now"/>
-                                            <connections>
-                                                <action selector="NotNowTouched:" destination="-1" eventType="touchUpInside" id="0DW-FT-gYw"/>
+                                                <action selector="DontReturnPressed:" destination="-1" eventType="touchUpInside" id="q5B-4V-PB9"/>
                                             </connections>
                                         </button>
                                     </subviews>
@@ -159,6 +156,6 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
     </objects>
     <resources>
-        <image name="SF_icloud_and_arrow_down" width="512" height="512"/>
+        <image name="SF_arrow_2_circlepath_circle" width="17" height="17"/>
     </resources>
 </document>
