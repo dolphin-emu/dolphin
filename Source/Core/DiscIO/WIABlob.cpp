@@ -277,12 +277,26 @@ bool WIAFileReader::Read(u64 offset, u64 size, u8* out_ptr)
 
         const u64 bytes_to_read = std::min(data_size - (offset - data_offset), size);
 
+        bool hash_exception_error = false;
         if (!m_encryption_cache.EncryptGroups(
                 offset - partition_data_offset, bytes_to_read, out_ptr, partition_data_offset,
-                partition_total_sectors * VolumeWii::BLOCK_DATA_SIZE, partition.partition_key))
+                partition_total_sectors * VolumeWii::BLOCK_DATA_SIZE, partition.partition_key,
+                [this, chunk_size, first_sector, partition_first_sector, &hash_exception_error](
+                    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 offset) {
+                  const u64 partition_part_offset =
+                      (first_sector - partition_first_sector) * VolumeWii::BLOCK_TOTAL_SIZE;
+                  const u64 index =
+                      (offset - partition_part_offset) % chunk_size / VolumeWii::GROUP_TOTAL_SIZE;
+
+                  // EncryptGroups calls ReadWiiDecrypted, which populates m_cached_chunk
+                  if (!m_cached_chunk.ApplyHashExceptions(hash_blocks, index))
+                    hash_exception_error = true;
+                }))
         {
           return false;
         }
+        if (hash_exception_error)
+          return false;
 
         offset += bytes_to_read;
         size -= bytes_to_read;
@@ -831,6 +845,43 @@ bool WIAFileReader::Chunk::HandleExceptions(const u8* data, size_t bytes_allocat
 
     *bytes_used += exception_list_size;
     --m_exception_lists;
+  }
+
+  return true;
+}
+
+bool WIAFileReader::Chunk::ApplyHashExceptions(
+    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 exception_list_index) const
+{
+  if (m_exception_lists > 0)
+    return false;  // We still have exception lists left to read
+
+  const u8* data = m_compressed_exception_lists ? m_out.data.data() : m_in.data.data();
+
+  for (u64 i = exception_list_index; i > 0; --i)
+    data += Common::swap16(data) * sizeof(HashExceptionEntry) + sizeof(u16);
+
+  const u16 exceptions = Common::swap16(data);
+  data += sizeof(u16);
+
+  for (size_t i = 0; i < exceptions; ++i)
+  {
+    HashExceptionEntry exception;
+    std::memcpy(&exception, data, sizeof(HashExceptionEntry));
+    data += sizeof(HashExceptionEntry);
+
+    const u16 offset = Common::swap16(exception.offset);
+
+    const size_t block_index = offset / VolumeWii::BLOCK_HEADER_SIZE;
+    if (block_index > VolumeWii::BLOCKS_PER_GROUP)
+      return false;
+
+    const size_t offset_in_block = offset % VolumeWii::BLOCK_HEADER_SIZE;
+    if (offset_in_block + sizeof(SHA1) > VolumeWii::BLOCK_HEADER_SIZE)
+      return false;
+
+    std::memcpy(reinterpret_cast<u8*>(&hash_blocks[block_index]) + offset_in_block, &exception.hash,
+                sizeof(SHA1));
   }
 
   return true;

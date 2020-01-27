@@ -532,10 +532,11 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
   return CheckBlockIntegrity(block_index, cluster, partition);
 }
 
-bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
-                             u64 partition_data_decrypted_size,
-                             const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
-                             std::array<u8, GROUP_TOTAL_SIZE>* out)
+bool VolumeWii::EncryptGroup(
+    u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
+    const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
+    std::array<u8, GROUP_TOTAL_SIZE>* out,
+    const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>& hash_exception_callback)
 {
   std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
   std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
@@ -631,6 +632,9 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
 
   if (error_occurred)
     return false;
+
+  if (hash_exception_callback)
+    hash_exception_callback(unencrypted_hashes.data());
 
   const unsigned int threads =
       std::min(BLOCKS_PER_GROUP, std::max<unsigned int>(1, std::thread::hardware_concurrency()));

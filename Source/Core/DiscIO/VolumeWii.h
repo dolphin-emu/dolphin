@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -99,7 +100,9 @@ public:
 
   static bool EncryptGroup(u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
                            const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
-                           std::array<u8, GROUP_TOTAL_SIZE>* out);
+                           std::array<u8, GROUP_TOTAL_SIZE>* out,
+                           const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
+                               hash_exception_callback = {});
 
 protected:
   u32 GetOffsetShift() const override { return 2; }

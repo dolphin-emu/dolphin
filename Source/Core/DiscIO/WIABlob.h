@@ -234,6 +234,10 @@ private:
 
     bool Read(u64 offset, u64 size, u8* out_ptr);
 
+    // This can only be called once at least one byte of data has been read
+    bool ApplyHashExceptions(VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP],
+                             u64 exception_list_index) const;
+
     template <typename T>
     bool ReadAll(std::vector<T>* vector)
     {
