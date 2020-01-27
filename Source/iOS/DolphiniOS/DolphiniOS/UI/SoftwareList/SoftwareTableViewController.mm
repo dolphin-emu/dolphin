@@ -12,8 +12,6 @@
 
 #import "UICommon/GameFile.h"
 
-#import <MetalKit/MetalKit.h>
-
 @interface SoftwareTableViewController ()
 
 @end
@@ -101,22 +99,7 @@
 
 - (void)viewDidAppear:(BOOL)animated
 {
-#ifndef SUPPRESS_UNSUPPORTED_DEVICE
-  // Check if should skip this check
-  NSString* bypass_flag_file = [[MainiOS getUserFolder] stringByAppendingPathComponent:@"bypass_unsupported_device"];
-  NSFileManager* file_manager = [NSFileManager defaultManager];
-  if (![file_manager fileExistsAtPath:bypass_flag_file])
-  {
-    // Check for GPU Family 3
-    id<MTLDevice> metalDevice = MTLCreateSystemDefaultDevice();
-    if (![metalDevice supportsFeatureSet:MTLFeatureSet_iOS_GPUFamily3_v2])
-    {
-      [self showAlertWithTitle:@"Unsupported Device"
-            text:@"DolphiniOS can only run on devices with an A9 processor or newer.\n\nThis is because your device's GPU does not support a feature required by Dolphin for good performance. Your device would run Dolphin at an unplayable speed without this feature."
-            isFatal:true];
-    }
-  }
-#endif
+  [super viewDidAppear:animated];
   
   NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
   
