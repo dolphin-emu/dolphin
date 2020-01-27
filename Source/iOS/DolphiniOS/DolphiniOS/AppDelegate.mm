@@ -15,13 +15,19 @@
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
 
+#import "DonationNoticeViewController.h"
+
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #import "MainiOS.h"
 
 #import <MetalKit/MetalKit.h>
 
+#import "NoticeNavigationViewController.h"
+
 #import "UICommon/UICommon.h"
+
+#import "UnofficialBuildNoticeViewController.h"
 
 #import "UpdateNoticeViewController.h"
 
@@ -59,8 +65,6 @@
   NSDictionary *defaultPrefs = [NSDictionary dictionaryWithContentsOfURL:defaultPrefsFile];
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
     
-  // Override point for customization after application launch.
-  
   Common::RegisterStringTranslator([](const char* text) -> std::string {
     NSString* localized_text = DOLocalizedString([NSString stringWithUTF8String:text]);
     return std::string([localized_text UTF8String]);
@@ -69,11 +73,34 @@
   [MainiOS applicationStart];
   
   // Create a UINavigationController for alerts
-  UINavigationController* nav_controller = [[UINavigationController alloc] init];
+  NoticeNavigationViewController* nav_controller = [[NoticeNavigationViewController alloc] init];
   [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
   [nav_controller setNavigationBarHidden:true];
   
-  [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:nav_controller animated:true completion:nil];
+  // Get the number of launches
+  NSInteger launch_times = [[NSUserDefaults standardUserDefaults] integerForKey:@"launch_times"];
+  if (launch_times == 0)
+  {
+    [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
+  }
+  else if (launch_times % 10 == 0)
+  {
+#ifndef PATREON
+    bool suppress_donation_message = [[NSUserDefaults standardUserDefaults] boolForKey:@"suppress_donation_message"];
+  
+    if (!suppress_donation_message)
+    {
+      [nav_controller pushViewController:[[DonationNoticeViewController alloc] initWithNibName:@"DonationNotice" bundle:nil] animated:true];
+    }
+#endif
+  }
+  
+  // Present if the navigation controller isn't empty
+  if ([[nav_controller viewControllers] count] != 0)
+  {
+    [self.window makeKeyAndVisible];
+    [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
+  }
   
   // Check for updates
 #ifndef DEBUG
@@ -107,16 +134,23 @@
         UpdateNoticeViewController* update_controller = [[UpdateNoticeViewController alloc] initWithNibName:@"UpdateNotice" bundle:nil];
         update_controller.m_update_json = dict;
         
-        [nav_controller pushViewController:update_controller animated:true];
-        
         if (![nav_controller isBeingPresented])
         {
-          [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:nav_controller animated:true completion:nil];
+          [nav_controller setViewControllers:@[update_controller]];
+          [self.window makeKeyAndVisible];
+          [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
+        }
+        else
+        {
+          [nav_controller pushViewController:update_controller animated:true];
         }
       });
     }
   }] resume];
  #endif
+  
+  // Increment the launch count
+  [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
   return YES;
 }

@@ -101,55 +101,6 @@
 {
   [super viewDidAppear:animated];
   
-  NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
-  
-  // Get the number of launches
-  NSInteger launch_times = [user_defaults integerForKey:@"launch_times"];
-  if (launch_times == 0)
-  {
-    // Show the maintainer alert on first launch
-    [self showAlertWithTitle:@"Note"
-          text:@"DolphiniOS is NOT an official version of Dolphin. It is a separate version based on the original Dolphin's code.\n\nDO NOT ask for help on the official Dolphin forums or report bugs on the official Dolphin bug tracker.\n\nIf you need help, go to the Settings tab and tap \"Help\"."
-          isFatal:false];
-  }
-  else if (launch_times % 10 == 0)
-  {
-#ifndef PATREON
-    bool suppress_donation_message = [user_defaults boolForKey:@"suppress_donation_message"];
-    
-    if (!suppress_donation_message)
-    {
-      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Donate"
-                                     message:@"DolphiniOS is an unofficial version of Dolphin, maintained separately from the official Dolphin code.\n\nWhile DolphiniOS will forever remain free, it takes time and money to support its development and server costs. Your support is greatly appreciated. As a benefit for donating, you can get access to beta builds with new features."
-                                     preferredStyle:UIAlertControllerStyleAlert];
-       
-      UIAlertAction* donate_action = [UIAlertAction actionWithTitle:@"Donate" style:UIAlertActionStyleDefault
-         handler:^(UIAlertAction * action) {
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.patreon.com/oatmealdome"] options:@{} completionHandler:nil];
-      }];
-      
-      UIAlertAction* no_thanks_action = [UIAlertAction actionWithTitle:@"Not Now" style:UIAlertActionStyleDefault
-         handler:nil];
-      
-      [alert addAction:donate_action];
-      [alert addAction:no_thanks_action];
-      
-      if (launch_times > 10)
-      {
-        UIAlertAction* do_not_show_action = [UIAlertAction actionWithTitle:@"Don't Show Again" style:UIAlertActionStyleDefault
-           handler:^(UIAlertAction * action) {
-          [user_defaults setBool:true forKey:@"suppress_donation_message"];
-        }];
-        
-        [alert addAction:do_not_show_action];
-      }
-      
-      [self presentViewController:alert animated:YES completion:nil];
-    }
-#endif
-  }
-  
-  [user_defaults setInteger:launch_times + 1 forKey:@"launch_times"];
 }
 
 - (IBAction)addButtonPressed:(id)sender

@@ -38,7 +38,7 @@
 
 - (IBAction)NotNowTouched:(id)sender
 {
-  [self dismissViewControllerAnimated:true completion:nil];
+  [self.navigationController popViewControllerAnimated:true];
 }
 
 @end
