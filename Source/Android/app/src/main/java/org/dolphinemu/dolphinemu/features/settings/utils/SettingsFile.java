@@ -124,6 +124,8 @@ public final class SettingsFile
   public static final String KEY_GCBIND_C_RIGHT = "CStickRight_";
   public static final String KEY_GCBIND_TRIGGER_L = "InputL_";
   public static final String KEY_GCBIND_TRIGGER_R = "InputR_";
+  public static final String KEY_GCBIND_TRIGGER_L_ANALOG = "InputLAnalog_";
+  public static final String KEY_GCBIND_TRIGGER_R_ANALOG = "InputRAnalog_";
   public static final String KEY_GCBIND_DPAD_UP = "DPadUp_";
   public static final String KEY_GCBIND_DPAD_DOWN = "DPadDown_";
   public static final String KEY_GCBIND_DPAD_LEFT = "DPadLeft_";

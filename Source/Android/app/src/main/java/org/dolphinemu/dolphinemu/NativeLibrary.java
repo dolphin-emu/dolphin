@@ -60,6 +60,8 @@ public final class NativeLibrary
     public static final int STICK_C_RIGHT = 19;
     public static final int TRIGGER_L = 20;
     public static final int TRIGGER_R = 21;
+    public static final int TRIGGER_L_ANALOG = 22;
+    public static final int TRIGGER_R_ANALOG = 23;
     public static final int WIIMOTE_BUTTON_A = 100;
     public static final int WIIMOTE_BUTTON_B = 101;
     public static final int WIIMOTE_BUTTON_MINUS = 102;

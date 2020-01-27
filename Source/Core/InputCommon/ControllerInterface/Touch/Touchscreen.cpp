@@ -48,6 +48,8 @@ Touchscreen::Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_
   AddInput(new Axis(m_pad_id, ButtonManager::STICK_C_DOWN));
   AddInput(new Axis(m_pad_id, ButtonManager::TRIGGER_L));
   AddInput(new Axis(m_pad_id, ButtonManager::TRIGGER_R));
+  AddInput(new Axis(m_pad_id, ButtonManager::TRIGGER_L_ANALOG));
+  AddInput(new Axis(m_pad_id, ButtonManager::TRIGGER_R_ANALOG));
 
   // Wiimote
   AddInput(new Button(m_pad_id, ButtonManager::WIIMOTE_BUTTON_A));

@@ -530,6 +530,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
               R.drawable.gcpad_c, R.drawable.gcpad_c_pressed, ButtonType.STICK_C, orientation));
     }
+    if (mPreferences.getBoolean("buttonToggleGc11", true))
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l_analog,
+        R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG, orientation));
+    }
+    if (mPreferences.getBoolean("buttonToggleGc12", true))
+    {
+      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r_analog,
+        R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG, orientation));
+    }
+
   }
 
   private void addWiimoteOverlayControls(String orientation)
@@ -815,6 +826,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       case ButtonType.BUTTON_Z:
       case ButtonType.TRIGGER_L:
       case ButtonType.TRIGGER_R:
+      case ButtonType.TRIGGER_R_ANALOG:
+      case ButtonType.TRIGGER_L_ANALOG:
         scale = 0.225f;
         break;
       case ButtonType.BUTTON_START:
@@ -1174,6 +1187,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             (((float) res.getInteger(R.integer.TRIGGER_R_X) / 1000) * maxX));
     sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-Y",
             (((float) res.getInteger(R.integer.TRIGGER_R_Y) / 1000) * maxY));
+    sPrefsEditor.putFloat(ButtonType.TRIGGER_L_ANALOG + "-X",
+      (((float) res.getInteger(R.integer.TRIGGER_L_A_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.TRIGGER_L_ANALOG + "-Y",
+      (((float) res.getInteger(R.integer.TRIGGER_L_A_Y) / 1000) * maxY));
+    sPrefsEditor.putFloat(ButtonType.TRIGGER_R_ANALOG + "-X",
+      (((float) res.getInteger(R.integer.TRIGGER_R_A_X) / 1000) * maxX));
+    sPrefsEditor.putFloat(ButtonType.TRIGGER_R_ANALOG + "-Y",
+      (((float) res.getInteger(R.integer.TRIGGER_R_A_Y) / 1000) * maxY));
     sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-X",
             (((float) res.getInteger(R.integer.BUTTON_START_X) / 1000) * maxX));
     sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-Y",

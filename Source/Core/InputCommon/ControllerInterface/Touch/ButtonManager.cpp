@@ -18,7 +18,7 @@ namespace ButtonManager
 namespace
 {
 constexpr char TOUCHSCREEN_KEY[] = "Touchscreen";
-constexpr std::array<const char*, 155> CONFIG_STRINGS{{
+constexpr std::array<const char*, 157> CONFIG_STRINGS{{
     // GC
     "InputA",
     "InputB",
@@ -40,6 +40,8 @@ constexpr std::array<const char*, 155> CONFIG_STRINGS{{
     "CStickRight",
     "InputL",
     "InputR",
+    "InputLAnalog",
+    "InputRAnalog",
     // Wiimote
     "WiimoteA",
     "WiimoteB",
@@ -185,7 +187,7 @@ constexpr std::array<const char*, 155> CONFIG_STRINGS{{
     "Rumble",
 }};
 
-constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
+constexpr std::array<ButtonType, 157> CONFIG_TYPES{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -207,6 +209,8 @@ constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
     STICK_C_RIGHT,
     TRIGGER_L,
     TRIGGER_R,
+    TRIGGER_L_ANALOG,
+    TRIGGER_R_ANALOG,
     // Wiimote
     WIIMOTE_BUTTON_A,
     WIIMOTE_BUTTON_B,
@@ -394,6 +398,8 @@ void Init(const std::string& game_id)
     AddBind(TOUCHSCREEN_KEY, new sBind(a, STICK_C_RIGHT, BIND_AXIS, STICK_C_RIGHT, 1.0f));
     AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_L, BIND_AXIS, TRIGGER_L, 1.0f));
     AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_R, BIND_AXIS, TRIGGER_R, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_L_ANALOG, BIND_AXIS, TRIGGER_L_ANALOG, 1.0f));
+    AddBind(TOUCHSCREEN_KEY, new sBind(a, TRIGGER_R_ANALOG, BIND_AXIS, TRIGGER_R_ANALOG, 1.0f));
 
     // Wiimote
     AddBind(TOUCHSCREEN_KEY, new sBind(a, WIIMOTE_BUTTON_A, BIND_BUTTON, WIIMOTE_BUTTON_A, 1.0f));
