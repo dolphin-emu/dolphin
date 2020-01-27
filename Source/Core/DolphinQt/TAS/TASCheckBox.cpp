@@ -13,7 +13,7 @@ TASCheckBox::TASCheckBox(const QString& text) : QCheckBox(text)
   setTristate(true);
 }
 
-bool TASCheckBox::GetValue()
+bool TASCheckBox::GetValue() const
 {
   if (checkState() == Qt::PartiallyChecked)
     return Movie::GetCurrentFrame() % 2 == static_cast<u64>(m_trigger_on_odd);
