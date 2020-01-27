@@ -61,4 +61,6 @@ void Flush();
 // for calling back into UI code without introducing a dependency on it in core
 using AfterLoadCallbackFunc = std::function<void()>;
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback);
+
+u32 GetVersion();
 }  // namespace State
