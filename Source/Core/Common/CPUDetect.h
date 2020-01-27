@@ -54,6 +54,7 @@ struct CPUInfo
   bool bLAHFSAHF64 = false;
   bool bLongMode = false;
   bool bAtom = false;
+  bool bZen = false;
 
   // ARMv8 specific
   bool bFP = false;
