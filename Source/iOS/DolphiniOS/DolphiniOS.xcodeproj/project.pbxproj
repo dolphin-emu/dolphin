@@ -103,6 +103,7 @@
 		B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4323D7F5660094F159 /* Localizable.strings */; };
 		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
+		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -275,6 +276,7 @@
 		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
 		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
+		B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UnsupportedDeviceNotice.xib; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -429,6 +431,7 @@
 		B924DCA923DAD40700831A1A /* Notices */ = {
 			isa = PBXGroup;
 			children = (
+				B9B536D023DE4F8700F03106 /* UnsupportedDevice */,
 				B9B536C823DD8AA900F03106 /* Updates */,
 			);
 			path = Notices;
@@ -654,6 +657,14 @@
 			path = Updates;
 			sourceTree = "<group>";
 		};
+		B9B536D023DE4F8700F03106 /* UnsupportedDevice */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */,
+			);
+			path = UnsupportedDevice;
+			sourceTree = "<group>";
+		};
 		B9B948B823BFC4AC00E244FF /* PortSelector */ = {
 			isa = PBXGroup;
 			children = (
@@ -862,6 +873,7 @@
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
+				B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */,
 				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
 				B924DCA223DA873000831A1A /* Settings.storyboard in Resources */,
 				B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */,

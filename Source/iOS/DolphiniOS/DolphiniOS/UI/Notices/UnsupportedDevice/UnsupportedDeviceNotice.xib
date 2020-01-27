@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina5_9" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <objects>
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UIViewController">
+            <connections>
+                <outlet property="view" destination="r55-Fn-aBI" id="O5U-Ln-M5g"/>
+            </connections>
+        </placeholder>
+        <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
+        <view contentMode="scaleToFill" id="r55-Fn-aBI">
+            <rect key="frame" x="0.0" y="0.0" width="375" height="812"/>
+            <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+            <subviews>
+                <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W3E-IV-CzC" userLabel="Header Stack">
+                    <rect key="frame" x="0.0" y="53.999999999999986" width="375" height="183.66666666666663"/>
+                    <subviews>
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_xmark_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
+                            <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
+                            <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                            <constraints>
+                                <constraint firstAttribute="height" constant="100" id="hmP-nM-OsB"/>
+                            </constraints>
+                        </imageView>
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Incompatible" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MKg-MP-jJG">
+                            <rect key="frame" x="0.0" y="100" width="375" height="83.666666666666686"/>
+                            <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="34"/>
+                            <nil key="textColor"/>
+                            <nil key="highlightedColor"/>
+                        </label>
+                    </subviews>
+                </stackView>
+                <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uo7-Aa-Z1e">
+                    <rect key="frame" x="0.0" y="237.66666666666669" width="375" height="540.33333333333326"/>
+                    <subviews>
+                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
+                            <rect key="frame" x="20" y="0.0" width="335" height="263.66666666666669"/>
+                            <subviews>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Version Text">
+                                    <rect key="frame" x="0.0" y="0.0" width="335" height="243.66666666666666"/>
+                                    <string key="text">DolphiniOS can only run on devices with an A9 processor or newer.
+
+This is because your device's GPU does not support a feature required by Dolphin for good performance.
+
+Your device would run Dolphin at an unplayable speed without this GPU feature.
+
+Please run DolphiniOS on a compatible device.</string>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <nil key="textColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
+                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
+                                    <rect key="frame" x="47.666666666666686" y="263.66666666666663" width="240" height="0.0"/>
+                                    <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                    <constraints>
+                                        <constraint firstAttribute="height" id="kge-k2-qnG"/>
+                                    </constraints>
+                                </view>
+                            </subviews>
+                        </stackView>
+                    </subviews>
+                    <constraints>
+                        <constraint firstItem="90n-Az-9Cs" firstAttribute="bottom" secondItem="Kge-Xi-eWX" secondAttribute="bottom" id="4hu-HG-Vv7"/>
+                        <constraint firstItem="90n-Az-9Cs" firstAttribute="top" secondItem="Kge-Xi-eWX" secondAttribute="top" id="77B-Au-2TX"/>
+                        <constraint firstItem="Kge-Xi-eWX" firstAttribute="trailing" secondItem="90n-Az-9Cs" secondAttribute="trailing" constant="20" id="ZhY-20-2kC"/>
+                        <constraint firstItem="90n-Az-9Cs" firstAttribute="leading" secondItem="Kge-Xi-eWX" secondAttribute="leading" constant="20" id="bwN-bm-4Xx"/>
+                        <constraint firstItem="90n-Az-9Cs" firstAttribute="width" secondItem="uo7-Aa-Z1e" secondAttribute="width" constant="-40" id="wQE-ei-H5x"/>
+                    </constraints>
+                    <viewLayoutGuide key="contentLayoutGuide" id="Kge-Xi-eWX"/>
+                    <viewLayoutGuide key="frameLayoutGuide" id="BUq-vD-SSA"/>
+                </scrollView>
+            </subviews>
+            <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+            <constraints>
+                <constraint firstItem="W3E-IV-CzC" firstAttribute="leading" secondItem="Bm9-Am-iRC" secondAttribute="leading" id="5GE-q5-pch"/>
+                <constraint firstItem="W3E-IV-CzC" firstAttribute="height" secondItem="Bm9-Am-iRC" secondAttribute="height" multiplier="1:4" id="EpQ-3r-cdM"/>
+                <constraint firstItem="W3E-IV-CzC" firstAttribute="trailing" secondItem="Bm9-Am-iRC" secondAttribute="trailing" id="F2S-Ow-J2r"/>
+                <constraint firstItem="W3E-IV-CzC" firstAttribute="top" secondItem="Bm9-Am-iRC" secondAttribute="top" constant="10" id="Ixq-TV-fPR"/>
+                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="trailing" secondItem="Bm9-Am-iRC" secondAttribute="trailing" id="OhX-j2-NPF"/>
+                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="top" secondItem="W3E-IV-CzC" secondAttribute="bottom" id="Qlb-Sy-Zj4"/>
+                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="bottom" secondItem="Bm9-Am-iRC" secondAttribute="bottom" id="bFd-1Z-7Ng"/>
+                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="leading" secondItem="Bm9-Am-iRC" secondAttribute="leading" id="yLl-4y-JII"/>
+            </constraints>
+            <viewLayoutGuide key="safeArea" id="Bm9-Am-iRC"/>
+            <point key="canvasLocation" x="-1026" y="204"/>
+        </view>
+    </objects>
+    <resources>
+        <image name="SF_xmark_circle" width="17" height="17"/>
+    </resources>
+</document>
