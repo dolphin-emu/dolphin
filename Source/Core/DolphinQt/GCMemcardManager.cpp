@@ -599,5 +599,5 @@ QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode&
   if (sl.empty())
     return tr("No errors.");
 
-  return sl.join(QStringLiteral("\n"));
+  return sl.join(QLatin1Char{'\n'});
 }
