@@ -597,7 +597,7 @@ QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode&
     sl.push_back(tr("Data in area of file that should be unused."));
 
   if (sl.empty())
-    return QStringLiteral("No errors.");
+    return tr("No errors.");
 
   return sl.join(QStringLiteral("\n"));
 }
