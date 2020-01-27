@@ -10,5 +10,11 @@
 	<real>0.5</real>
 	<key>always_show_top_bar</key>
 	<false/>
+	<key>last_game_title</key>
+	<string>Unknown</string>
+	<key>last_game_path</key>
+	<string>/tmp/dummy</string>
+	<key>last_game_state_version</key>
+	<integer>0</integer>
 </dict>
 </plist>
