@@ -104,6 +104,11 @@
 		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
+		B9B536D523DE609900F03106 /* DonationNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D423DE609900F03106 /* DonationNotice.xib */; };
+		B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536D723DE621600F03106 /* DonationNoticeViewController.m */; };
+		B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536DA23DE649A00F03106 /* NoticeNavigationViewController.m */; };
+		B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536DD23DE707F00F03106 /* UnofficialBuildNotice.xib */; };
+		B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536E023DE722800F03106 /* UnofficialBuildNoticeViewController.m */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -277,6 +282,14 @@
 		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
 		B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UnsupportedDeviceNotice.xib; sourceTree = "<group>"; };
+		B9B536D423DE609900F03106 /* DonationNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = DonationNotice.xib; path = DolphiniOS/UI/Notices/Donation/DonationNotice.xib; sourceTree = SOURCE_ROOT; };
+		B9B536D623DE621600F03106 /* DonationNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DonationNoticeViewController.h; sourceTree = "<group>"; };
+		B9B536D723DE621600F03106 /* DonationNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DonationNoticeViewController.m; sourceTree = "<group>"; };
+		B9B536D923DE649A00F03106 /* NoticeNavigationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NoticeNavigationViewController.h; sourceTree = "<group>"; };
+		B9B536DA23DE649A00F03106 /* NoticeNavigationViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NoticeNavigationViewController.m; sourceTree = "<group>"; };
+		B9B536DD23DE707F00F03106 /* UnofficialBuildNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = UnofficialBuildNotice.xib; path = DolphiniOS/UI/Notices/UnofficialBuild/UnofficialBuildNotice.xib; sourceTree = SOURCE_ROOT; };
+		B9B536DF23DE722800F03106 /* UnofficialBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UnofficialBuildNoticeViewController.h; sourceTree = "<group>"; };
+		B9B536E023DE722800F03106 /* UnofficialBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UnofficialBuildNoticeViewController.m; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -431,8 +444,12 @@
 		B924DCA923DAD40700831A1A /* Notices */ = {
 			isa = PBXGroup;
 			children = (
+				B9B536DC23DE706300F03106 /* UnofficialBuild */,
+				B9B536D323DE604A00F03106 /* Donation */,
 				B9B536D023DE4F8700F03106 /* UnsupportedDevice */,
 				B9B536C823DD8AA900F03106 /* Updates */,
+				B9B536D923DE649A00F03106 /* NoticeNavigationViewController.h */,
+				B9B536DA23DE649A00F03106 /* NoticeNavigationViewController.m */,
 			);
 			path = Notices;
 			sourceTree = "<group>";
@@ -665,6 +682,26 @@
 			path = UnsupportedDevice;
 			sourceTree = "<group>";
 		};
+		B9B536D323DE604A00F03106 /* Donation */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536D623DE621600F03106 /* DonationNoticeViewController.h */,
+				B9B536D723DE621600F03106 /* DonationNoticeViewController.m */,
+				B9B536D423DE609900F03106 /* DonationNotice.xib */,
+			);
+			path = Donation;
+			sourceTree = "<group>";
+		};
+		B9B536DC23DE706300F03106 /* UnofficialBuild */ = {
+			isa = PBXGroup;
+			children = (
+				B9B536DF23DE722800F03106 /* UnofficialBuildNoticeViewController.h */,
+				B9B536E023DE722800F03106 /* UnofficialBuildNoticeViewController.m */,
+				B9B536DD23DE707F00F03106 /* UnofficialBuildNotice.xib */,
+			);
+			path = UnofficialBuild;
+			sourceTree = "<group>";
+		};
 		B9B948B823BFC4AC00E244FF /* PortSelector */ = {
 			isa = PBXGroup;
 			children = (
@@ -880,6 +917,7 @@
 				B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */,
 				B945A37E2362908500B21680 /* Main.storyboard in Resources */,
 				B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */,
+				B9B536D523DE609900F03106 /* DonationNotice.xib in Resources */,
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
 				4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */,
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
@@ -889,6 +927,7 @@
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
+				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1036,6 +1075,7 @@
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
+				B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
@@ -1046,9 +1086,11 @@
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
+				B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
+				B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */,
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
