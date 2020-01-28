@@ -72,6 +72,9 @@
 		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
 		B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */; };
 		B971155323E0292F001C6BD6 /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B971155223E0292F001C6BD6 /* InGameSettings.storyboard */; };
+		B971155723E02FAA001C6BD6 /* StateCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971155623E02FAA001C6BD6 /* StateCell.m */; };
+		B971155A23E03056001C6BD6 /* LoadStateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971155923E03056001C6BD6 /* LoadStateViewController.mm */; };
+		B971155D23E03256001C6BD6 /* SaveStateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971155C23E03256001C6BD6 /* SaveStateViewController.mm */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -230,6 +233,12 @@
 		B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InvalidCpuCoreNoticeViewController.mm; sourceTree = "<group>"; };
 		B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = InvalidCpuCoreNotice.xib; path = DolphiniOS/UI/Notices/InvalidCpuCore/InvalidCpuCoreNotice.xib; sourceTree = SOURCE_ROOT; };
 		B971155223E0292F001C6BD6 /* InGameSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = InGameSettings.storyboard; sourceTree = "<group>"; };
+		B971155523E02FAA001C6BD6 /* StateCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StateCell.h; sourceTree = "<group>"; };
+		B971155623E02FAA001C6BD6 /* StateCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = StateCell.m; sourceTree = "<group>"; };
+		B971155823E03056001C6BD6 /* LoadStateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LoadStateViewController.h; sourceTree = "<group>"; };
+		B971155923E03056001C6BD6 /* LoadStateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LoadStateViewController.mm; sourceTree = "<group>"; };
+		B971155B23E03256001C6BD6 /* SaveStateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SaveStateViewController.h; sourceTree = "<group>"; };
+		B971155C23E03256001C6BD6 /* SaveStateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SaveStateViewController.mm; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -594,6 +603,19 @@
 			path = InvalidCpuCore;
 			sourceTree = "<group>";
 		};
+		B971155423E02E2B001C6BD6 /* State */ = {
+			isa = PBXGroup;
+			children = (
+				B971155823E03056001C6BD6 /* LoadStateViewController.h */,
+				B971155923E03056001C6BD6 /* LoadStateViewController.mm */,
+				B971155B23E03256001C6BD6 /* SaveStateViewController.h */,
+				B971155C23E03256001C6BD6 /* SaveStateViewController.mm */,
+				B971155523E02FAA001C6BD6 /* StateCell.h */,
+				B971155623E02FAA001C6BD6 /* StateCell.m */,
+			);
+			path = State;
+			sourceTree = "<group>";
+		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
 			isa = PBXGroup;
 			children = (
@@ -766,6 +788,7 @@
 			isa = PBXGroup;
 			children = (
 				B9B948B823BFC4AC00E244FF /* PortSelector */,
+				B971155423E02E2B001C6BD6 /* State */,
 				B9A7AD6123C16B0F00C70473 /* InGameSettingsViewController.h */,
 				B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */,
 				B9A7AD6823C1EC0B00C70473 /* InGameSettingsTableViewController.h */,
@@ -1114,6 +1137,7 @@
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
+				B971155D23E03256001C6BD6 /* SaveStateViewController.mm in Sources */,
 				B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */,
 				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
@@ -1130,8 +1154,10 @@
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
 				B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */,
+				B971155A23E03056001C6BD6 /* LoadStateViewController.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
 				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
+				B971155723E02FAA001C6BD6 /* StateCell.m in Sources */,
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
