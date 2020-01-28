@@ -7,19 +7,24 @@
 
 #import "Common/Config/Config.h"
 #import "Common/FileUtil.h"
+#import "Common/IniFile.h"
 #import "Common/MsgHandler.h"
 #import "Common/StringUtil.h"
 
+#import "Core/Config/MainSettings.h"
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
 #import "Core/HW/GCKeyboard.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
 #import "DonationNoticeViewController.h"
 
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
+
+#import "InvalidCpuCoreNoticeViewController.h"
 
 #import "MainiOS.h"
 
@@ -102,6 +107,25 @@
     {
       [nav_controller pushViewController:[[ReloadFailedNoticeViewController alloc] initWithNibName:@"ReloadFailedNotice" bundle:nil] animated:true];
     }
+  }
+  
+  // Check the CPUCore type
+  const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  
+  // Create a new Dolphin.ini
+  IniFile dolphin_config;
+  dolphin_config.Load(config_path);
+  
+  PowerPC::CPUCore core_type;
+  dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
+  
+  if (core_type != PowerPC::CPUCore::Interpreter && core_type != PowerPC::CPUCore::CachedInterpreter && core_type != PowerPC::CPUCore::JITARM64)
+  {
+    // Reset the CPUCore
+    SConfig::GetInstance().cpu_core = PowerPC::CPUCore::JITARM64;
+    Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::CPUCore::JITARM64);
+    
+    [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
   }
   
   // Get the number of launches

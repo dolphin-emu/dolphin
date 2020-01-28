@@ -69,6 +69,8 @@
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
 		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
+		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
+		B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -224,6 +226,9 @@
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
 		B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReloadFailedNoticeViewController.mm; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
+		B971154D23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InvalidCpuCoreNoticeViewController.h; sourceTree = "<group>"; };
+		B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InvalidCpuCoreNoticeViewController.mm; sourceTree = "<group>"; };
+		B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = InvalidCpuCoreNotice.xib; path = DolphiniOS/UI/Notices/InvalidCpuCore/InvalidCpuCoreNotice.xib; sourceTree = SOURCE_ROOT; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -455,6 +460,7 @@
 			isa = PBXGroup;
 			children = (
 				B9B536D323DE604A00F03106 /* Donation */,
+				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
 				B9B536E223DE81F000F03106 /* ReloadState */,
 				B9B536DC23DE706300F03106 /* UnofficialBuild */,
@@ -575,6 +581,16 @@
 				B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */,
 			);
 			path = TouchController;
+			sourceTree = "<group>";
+		};
+		B971154C23DF4451001C6BD6 /* InvalidCpuCore */ = {
+			isa = PBXGroup;
+			children = (
+				B971154D23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.h */,
+				B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */,
+				B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */,
+			);
+			path = InvalidCpuCore;
 			sourceTree = "<group>";
 		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
@@ -944,6 +960,7 @@
 				B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */,
 				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
+				B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */,
 				B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */,
 				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
 				B924DCA223DA873000831A1A /* Settings.storyboard in Resources */,
@@ -1125,6 +1142,7 @@
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
+				B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */,
 				B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */,
