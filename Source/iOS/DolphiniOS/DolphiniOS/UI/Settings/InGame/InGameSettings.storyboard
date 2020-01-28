@@ -17,41 +17,51 @@
                         <sections>
                             <tableViewSection headerTitle="Controls" id="Hcg-Pf-vHF">
                                 <cells>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="QYy-0g-dM7">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.666667938232422" id="QYy-0g-dM7">
                                         <rect key="frame" x="20" y="55.5" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="QYy-0g-dM7" id="xnE-PQ-8cE">
                                             <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Controllers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eS5-Gd-2Ef">
-                                                    <rect key="frame" x="20" y="11" width="84" height="21"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Controllers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eS5-Gd-2Ef">
+                                                    <rect key="frame" x="20" y="0.0" width="323" height="43.5"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="eS5-Gd-2Ef" firstAttribute="top" secondItem="xnE-PQ-8cE" secondAttribute="top" id="3d8-b6-tGC"/>
+                                                <constraint firstAttribute="bottom" secondItem="eS5-Gd-2Ef" secondAttribute="bottom" id="bLg-s9-e2W"/>
+                                                <constraint firstAttribute="trailing" secondItem="eS5-Gd-2Ef" secondAttribute="trailing" id="qAx-s2-Vol"/>
+                                                <constraint firstItem="eS5-Gd-2Ef" firstAttribute="leading" secondItem="xnE-PQ-8cE" secondAttribute="leadingMargin" id="vhF-g8-8Yc"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                         <connections>
                                             <segue destination="IpD-ys-Rj7" kind="show" id="qVQ-2E-wbN"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="gU2-Lj-EDe">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.666667938232422" id="gU2-Lj-EDe">
                                         <rect key="frame" x="20" y="99.166667938232422" width="374" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="gU2-Lj-EDe" id="bp0-oh-SQo">
                                             <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Change Touchscreen Controller" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="o8N-ql-HBA">
-                                                    <rect key="frame" x="20" y="11" width="242" height="21"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Change Touchscreen Controller" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="o8N-ql-HBA">
+                                                    <rect key="frame" x="20" y="0.0" width="323" height="43.5"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
+                                            <constraints>
+                                                <constraint firstItem="o8N-ql-HBA" firstAttribute="leading" secondItem="bp0-oh-SQo" secondAttribute="leadingMargin" id="1Hl-9B-oX6"/>
+                                                <constraint firstItem="o8N-ql-HBA" firstAttribute="top" secondItem="bp0-oh-SQo" secondAttribute="top" id="Wm5-YE-qmi"/>
+                                                <constraint firstAttribute="bottom" secondItem="o8N-ql-HBA" secondAttribute="bottom" id="iyy-Uv-0Fx"/>
+                                                <constraint firstAttribute="trailing" secondItem="o8N-ql-HBA" secondAttribute="trailing" id="kQ2-8O-sjz"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                         <connections>
                                             <segue destination="rSZ-0M-uTE" kind="show" id="EMG-Wm-GUU"/>
