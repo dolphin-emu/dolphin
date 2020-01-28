@@ -79,8 +79,17 @@
   
   // Create a UINavigationController for alerts
   NoticeNavigationViewController* nav_controller = [[NoticeNavigationViewController alloc] init];
-  [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
   [nav_controller setNavigationBarHidden:true];
+  
+  if (@available(iOS 13, *))
+  {
+  [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
+    nav_controller.modalInPresentation = true;
+  }
+  else
+  {
+    [nav_controller setModalPresentationStyle:UIModalPresentationFullScreen];
+  }
   
   // Check if the background save state exists
   if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"))
