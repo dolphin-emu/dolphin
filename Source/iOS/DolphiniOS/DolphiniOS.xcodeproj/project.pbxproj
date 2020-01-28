@@ -71,6 +71,7 @@
 		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
 		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
 		B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */; };
+		B971155323E0292F001C6BD6 /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B971155223E0292F001C6BD6 /* InGameSettings.storyboard */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -228,6 +229,7 @@
 		B971154D23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InvalidCpuCoreNoticeViewController.h; sourceTree = "<group>"; };
 		B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InvalidCpuCoreNoticeViewController.mm; sourceTree = "<group>"; };
 		B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = InvalidCpuCoreNotice.xib; path = DolphiniOS/UI/Notices/InvalidCpuCore/InvalidCpuCoreNotice.xib; sourceTree = SOURCE_ROOT; };
+		B971155223E0292F001C6BD6 /* InGameSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = InGameSettings.storyboard; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -768,6 +770,7 @@
 				B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */,
 				B9A7AD6823C1EC0B00C70473 /* InGameSettingsTableViewController.h */,
 				B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */,
+				B971155223E0292F001C6BD6 /* InGameSettings.storyboard */,
 			);
 			path = InGame;
 			sourceTree = "<group>";
@@ -978,6 +981,7 @@
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
+				B971155323E0292F001C6BD6 /* InGameSettings.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
