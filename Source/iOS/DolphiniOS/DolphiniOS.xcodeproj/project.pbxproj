@@ -86,7 +86,6 @@
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
 		B996C85223D50FC600700D6F /* Dolphin.strings in Resources */ = {isa = PBXBuildFile; fileRef = B996C85423D50FC600700D6F /* Dolphin.strings */; };
-		B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */ = {isa = PBXBuildFile; fileRef = B996C85723D5884300700D6F /* UpdateDolphinStrings.py */; };
 		B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86023D590D500700D6F /* ConfigSettings.storyboard */; };
 		B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86823D5F49500700D6F /* ControllerSettings.storyboard */; };
 		B99B05A323A067570076C7D8 /* WiimoteNew.ini in Resources */ = {isa = PBXBuildFile; fileRef = B99B05A023A067560076C7D8 /* WiimoteNew.ini */; };
@@ -958,7 +957,6 @@
 				B945A3802362909500B21680 /* Assets.xcassets in Resources */,
 				B99B05A523A067570076C7D8 /* WiimoteProfile.ini in Resources */,
 				B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */,
-				B996C85823D5884300700D6F /* UpdateDolphinStrings.py in Resources */,
 				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
 				B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */,
 				B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */,
