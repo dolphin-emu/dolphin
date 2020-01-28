@@ -407,6 +407,7 @@
 			children = (
 				B98584C223CEDE3900BE94B0 /* Config */,
 				B9DCACA223ADDD34002B95C8 /* Controller */,
+				B9C85E1323AA21E2008A4DD1 /* InGame */,
 				B91BF372236B400200199BA7 /* SettingsTableViewController.h */,
 				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
 				B9EEFBF723DA261600EAF92A /* AboutViewController.h */,
@@ -444,7 +445,6 @@
 		B91BF368236B3E3900199BA7 /* Emulation */ = {
 			isa = PBXGroup;
 			children = (
-				B9C85E1323AA21E2008A4DD1 /* InGameSettings */,
 				B95A09252382667000DBBB01 /* TouchController */,
 				B9B948AF23BDC95E00E244FF /* EmulationViewController.h */,
 				B9B948B023BDC95E00E244FF /* EmulationViewController.mm */,
@@ -760,7 +760,7 @@
 			path = PortSelector;
 			sourceTree = "<group>";
 		};
-		B9C85E1323AA21E2008A4DD1 /* InGameSettings */ = {
+		B9C85E1323AA21E2008A4DD1 /* InGame */ = {
 			isa = PBXGroup;
 			children = (
 				B9B948B823BFC4AC00E244FF /* PortSelector */,
@@ -769,7 +769,7 @@
 				B9A7AD6823C1EC0B00C70473 /* InGameSettingsTableViewController.h */,
 				B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */,
 			);
-			path = InGameSettings;
+			path = InGame;
 			sourceTree = "<group>";
 		};
 		B9DCAC9823AB42CA002B95C8 /* Deb FIles */ = {
