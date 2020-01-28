@@ -88,7 +88,7 @@
   
   if (@available(iOS 13, *))
   {
-  [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
+    [nav_controller setModalPresentationStyle:UIModalPresentationFormSheet];
     nav_controller.modalInPresentation = true;
   }
   else
@@ -246,6 +246,9 @@
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
 {
+  // Write out the configuration in case we don't get a chance later
+  Config::Save();
+  
   if (Core::IsRunning())
   {
     // Save out a save state
