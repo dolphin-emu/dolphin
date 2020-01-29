@@ -40,3 +40,12 @@
 
 /* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
 "yax-jm-ehL.text" = "Speed";
+
+/* Class = "UILabel"; text = "オンスクリーンメッセージを表示"; ObjectID = "I12-Zq-IDS"; */
+"I12-Zq-IDS.text" = "オンスクリーンメッセージを表示";
+
+/* Class = "UILabel"; text = "動作停止時に確認"; ObjectID = "UWa-CA-YiK"; */
+"UWa-CA-YiK.text" = "動作停止時に確認";
+
+/* Class = "UILabel"; text = "パニックハンドラを使用"; ObjectID = "wvb-0C-F6M"; */
+"wvb-0C-F6M.text" = "パニックハンドラを使用";
