@@ -30,7 +30,7 @@ void DSPEmitter::multiply()
   TEST(16, sr_reg, Imm16(SR_MUL_MODIFY));
   FixupBranch noMult2 = J_CC(CC_NZ);
   //		prod <<= 1;
-  LEA(64, RAX, MRegSum(RAX, RAX));
+  ADD(64, R(RAX), R(RAX));
   SetJumpTarget(noMult2);
   m_gpr.PutReg(DSP_REG_SR, false);
   //	return prod;
@@ -130,7 +130,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
   TEST(16, sr_reg, Imm16(SR_MUL_MODIFY));
   FixupBranch noMult2 = J_CC(CC_NZ);
   //		prod <<= 1;
-  LEA(64, RAX, MRegSum(RAX, RAX));
+  ADD(64, R(RAX), R(RAX));
   SetJumpTarget(noMult2);
   m_gpr.PutReg(DSP_REG_SR, false);
   //	return prod;
