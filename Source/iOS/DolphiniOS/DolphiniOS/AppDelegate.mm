@@ -223,6 +223,7 @@
   g_controller_interface.Shutdown();
   
   Config::Save();
+  SConfig::GetInstance().SaveSettings();
   
   Core::Shutdown();
   UICommon::Shutdown();
@@ -248,6 +249,7 @@
 {
   // Write out the configuration in case we don't get a chance later
   Config::Save();
+  SConfig::GetInstance().SaveSettings();
   
   if (Core::IsRunning())
   {
