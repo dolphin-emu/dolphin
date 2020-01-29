@@ -75,6 +75,9 @@
 		B971155723E02FAA001C6BD6 /* StateCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971155623E02FAA001C6BD6 /* StateCell.m */; };
 		B971155A23E03056001C6BD6 /* LoadStateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971155923E03056001C6BD6 /* LoadStateViewController.mm */; };
 		B971155D23E03256001C6BD6 /* SaveStateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971155C23E03256001C6BD6 /* SaveStateViewController.mm */; };
+		B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156023E13641001C6BD6 /* ConfigGeneralViewController.mm */; };
+		B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */; };
+		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -239,6 +242,12 @@
 		B971155923E03056001C6BD6 /* LoadStateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = LoadStateViewController.mm; sourceTree = "<group>"; };
 		B971155B23E03256001C6BD6 /* SaveStateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SaveStateViewController.h; sourceTree = "<group>"; };
 		B971155C23E03256001C6BD6 /* SaveStateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SaveStateViewController.mm; sourceTree = "<group>"; };
+		B971155F23E13641001C6BD6 /* ConfigGeneralViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigGeneralViewController.h; sourceTree = "<group>"; };
+		B971156023E13641001C6BD6 /* ConfigGeneralViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigGeneralViewController.mm; sourceTree = "<group>"; };
+		B971156223E15004001C6BD6 /* SpeedLimitViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpeedLimitViewController.h; sourceTree = "<group>"; };
+		B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SpeedLimitViewController.mm; sourceTree = "<group>"; };
+		B971156523E1511A001C6BD6 /* SpeedCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpeedCell.h; sourceTree = "<group>"; };
+		B971156623E1511A001C6BD6 /* SpeedCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SpeedCell.m; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -616,9 +625,23 @@
 			path = State;
 			sourceTree = "<group>";
 		};
+		B971155E23E13617001C6BD6 /* General */ = {
+			isa = PBXGroup;
+			children = (
+				B971155F23E13641001C6BD6 /* ConfigGeneralViewController.h */,
+				B971156023E13641001C6BD6 /* ConfigGeneralViewController.mm */,
+				B971156523E1511A001C6BD6 /* SpeedCell.h */,
+				B971156623E1511A001C6BD6 /* SpeedCell.m */,
+				B971156223E15004001C6BD6 /* SpeedLimitViewController.h */,
+				B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */,
+			);
+			path = General;
+			sourceTree = "<group>";
+		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				B971155E23E13617001C6BD6 /* General */,
 				B98584C823CEDFC400BE94B0 /* Interface */,
 				B996C86023D590D500700D6F /* ConfigSettings.storyboard */,
 			);
@@ -1131,6 +1154,7 @@
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
 				B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */,
 				B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */,
+				B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */,
 				B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.mm in Sources */,
@@ -1139,10 +1163,12 @@
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
 				B971155D23E03256001C6BD6 /* SaveStateViewController.mm in Sources */,
 				B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */,
+				B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */,
 				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
+				B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,

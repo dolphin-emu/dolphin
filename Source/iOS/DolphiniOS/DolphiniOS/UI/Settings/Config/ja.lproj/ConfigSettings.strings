@@ -13,3 +13,30 @@
 
 /* Class = "UINavigationItem"; title = "表示"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "表示";
+
+/* Class = "UILabel"; text = "ディスク交換を自動化"; ObjectID = "6Jm-cq-bVY"; */
+"6Jm-cq-bVY.text" = "ディスク交換を自動化";
+
+/* Class = "UILabel"; text = "チートコードを有効化"; ObjectID = "DAs-t0-7XG"; */
+"DAs-t0-7XG.text" = "チートコードを有効化";
+
+/* Class = "UILabel"; text = "デュアルコア動作を行う (速度向上)"; ObjectID = "Hqe-6i-IcW"; */
+"Hqe-6i-IcW.text" = "デュアルコア動作を行う (速度向上)";
+
+/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "Allow Mismatched Region Settings";
+
+/* Class = "UINavigationItem"; title = "一般"; ObjectID = "VNc-Ms-o2f"; */
+"VNc-Ms-o2f.title" = "一般";
+
+/* Class = "UILabel"; text = "一般"; ObjectID = "bZj-AD-NCb"; */
+"bZj-AD-NCb.text" = "一般";
+
+/* Class = "UINavigationItem"; title = "速度制限"; ObjectID = "fN5-W1-lFO"; */
+"fN5-W1-lFO.title" = "速度制限";
+
+/* Class = "UILabel"; text = "速度制限"; ObjectID = "ikA-Z6-A6b"; */
+"ikA-Z6-A6b.text" = "速度制限";
+
+/* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
+"yax-jm-ehL.text" = "Speed";

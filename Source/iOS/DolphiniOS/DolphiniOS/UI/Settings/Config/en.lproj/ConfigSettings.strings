@@ -13,3 +13,30 @@
 
 /* Class = "UINavigationItem"; title = "Interface"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Interface";
+
+/* Class = "UILabel"; text = "Change Discs Automatically"; ObjectID = "6Jm-cq-bVY"; */
+"6Jm-cq-bVY.text" = "Change Discs Automatically";
+
+/* Class = "UILabel"; text = "Enable Cheats"; ObjectID = "DAs-t0-7XG"; */
+"DAs-t0-7XG.text" = "Enable Cheats";
+
+/* Class = "UILabel"; text = "Enable Dual Core (speedup)"; ObjectID = "Hqe-6i-IcW"; */
+"Hqe-6i-IcW.text" = "Enable Dual Core (speedup)";
+
+/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "Allow Mismatched Region Settings";
+
+/* Class = "UINavigationItem"; title = "General"; ObjectID = "VNc-Ms-o2f"; */
+"VNc-Ms-o2f.title" = "General";
+
+/* Class = "UILabel"; text = "General"; ObjectID = "bZj-AD-NCb"; */
+"bZj-AD-NCb.text" = "General";
+
+/* Class = "UINavigationItem"; title = "Speed Limit"; ObjectID = "fN5-W1-lFO"; */
+"fN5-W1-lFO.title" = "Speed Limit";
+
+/* Class = "UILabel"; text = "Speed Limit"; ObjectID = "ikA-Z6-A6b"; */
+"ikA-Z6-A6b.text" = "Speed Limit";
+
+/* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
+"yax-jm-ehL.text" = "Speed";
