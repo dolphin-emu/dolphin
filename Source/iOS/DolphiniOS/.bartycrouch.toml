@@ -3,6 +3,6 @@ tasks = ["interfaces"]
 
 [update.interfaces]
 path = "."
-defaultToBase = false
+defaultToBase = true
 ignoreEmptyStrings = false
 unstripped = false
