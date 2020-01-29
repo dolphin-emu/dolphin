@@ -40,3 +40,12 @@
 
 /* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
 "yax-jm-ehL.text" = "Speed";
+
+/* Class = "UILabel"; text = "Show On-Screen Display Messages"; ObjectID = "I12-Zq-IDS"; */
+"I12-Zq-IDS.text" = "Show On-Screen Display Messages";
+
+/* Class = "UILabel"; text = "Confirm on Stop"; ObjectID = "UWa-CA-YiK"; */
+"UWa-CA-YiK.text" = "Confirm on Stop";
+
+/* Class = "UILabel"; text = "Use Panic Handlers"; ObjectID = "wvb-0C-F6M"; */
+"wvb-0C-F6M.text" = "Use Panic Handlers";
