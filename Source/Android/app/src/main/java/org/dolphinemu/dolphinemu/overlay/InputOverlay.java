@@ -197,26 +197,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         case MotionEvent.ACTION_DOWN:
         case MotionEvent.ACTION_POINTER_DOWN:
           // If a pointer enters the bounds of a button, press that button.
-          Rect original = button.getBounds();
-          Rect top = new Rect(button.getBounds());
-          Rect bottom = new Rect(button.getBounds());
-
-
-          top.bottom = top.bottom - top.height()/2;
-          bottom.top = bottom.top + top.height()/2;
           if (button.getBounds()
                   .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
           {
-
-            //check if we touched bottom half or top half
-            if (top.contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
-            {
-              Log.d("jon", "onTouch: top half!!!!!");
-            }
-            if (bottom.contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
-            {
-              Log.d("jon", "onTouch: bottom half******");
-            }
 
             int buttonId = button.getId();
             if (button.getSecondaryBounds()
@@ -827,7 +810,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
    * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
    * @return An {@link InputOverlayDrawableButton} with the correct drawing bounds set.
    */
-
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int buttonId, String orientation)
   {
@@ -907,7 +889,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             resizeBitmap(context, BitmapFactory.decodeResource(res, pressedResId), scale);
     final InputOverlayDrawableButton overlayDrawable =
             new InputOverlayDrawableButton(res, defaultStateBitmap, pressedStateBitmap, buttonId);
-
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
