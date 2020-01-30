@@ -19,10 +19,6 @@
     <integer name="TRIGGER_L_Y">330</integer>
     <integer name="TRIGGER_R_X">845</integer>
     <integer name="TRIGGER_R_Y">133</integer>
-    <integer name="TRIGGER_L_A_X">13</integer>
-    <integer name="TRIGGER_L_A_Y">200</integer>
-    <integer name="TRIGGER_R_A_X">845</integer>
-    <integer name="TRIGGER_R_A_Y">3</integer>
     <integer name="BUTTON_START_X">506</integer>
     <integer name="BUTTON_START_Y">818</integer>
     <integer name="STICK_C_X">686</integer>

@@ -19,6 +19,7 @@ import android.graphics.drawable.Drawable;
 import android.preference.PreferenceManager;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.MotionEvent;
 import android.view.SurfaceView;
@@ -68,6 +69,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_B);
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_1);
     WIIMOTE_H_BUTTONS.add(ButtonType.WIIMOTE_BUTTON_2);
+  }
+
+  // Buttons that have secondary actions such as analog triggers
+  private static final ArrayList<Integer> SECONDARY_FUNCTION_BUTTONS = new ArrayList<>();
+
+  static
+  {
+    SECONDARY_FUNCTION_BUTTONS.add(ButtonType.TRIGGER_R);
+    SECONDARY_FUNCTION_BUTTONS.add(ButtonType.TRIGGER_L);
   }
 
   private static final ArrayList<Integer> WIIMOTE_O_BUTTONS = new ArrayList<>();
@@ -187,13 +197,38 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         case MotionEvent.ACTION_DOWN:
         case MotionEvent.ACTION_POINTER_DOWN:
           // If a pointer enters the bounds of a button, press that button.
+          Rect original = button.getBounds();
+          Rect top = new Rect(button.getBounds());
+          Rect bottom = new Rect(button.getBounds());
+
+
+          top.bottom = top.bottom - top.height()/2;
+          bottom.top = bottom.top + top.height()/2;
           if (button.getBounds()
                   .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
           {
+
+            //check if we touched bottom half or top half
+            if (top.contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+            {
+              Log.d("jon", "onTouch: top half!!!!!");
+            }
+            if (bottom.contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+            {
+              Log.d("jon", "onTouch: bottom half******");
+            }
+
+            int buttonId = button.getId();
+            if (button.getSecondaryBounds()
+                    .contains((int) event.getX(pointerIndex), (int) event.getY(pointerIndex)))
+            {
+              buttonId = button.getSecondaryId();
+              button.setSecondaryPressedState(true);
+            }
             button.setPressedState(true);
             button.setTrackId(event.getPointerId(pointerIndex));
             pressed = true;
-            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, buttonId,
                     ButtonState.PRESSED);
           }
           break;
@@ -203,8 +238,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           if (button.getTrackId() == event.getPointerId(pointerIndex))
           {
             button.setPressedState(false);
+            button.setSecondaryPressedState(false);
             NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getId(),
                     ButtonState.RELEASED);
+            NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, button.getSecondaryId(),
+                    ButtonState.RELEASED);
+
             button.setTrackId(-1);
           }
           break;
@@ -504,12 +543,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (mPreferences.getBoolean("buttonToggleGc6", true))
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l,
-              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation));
+              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation, R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG));
     }
     if (mPreferences.getBoolean("buttonToggleGc7", true))
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r,
-              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation));
+              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation, R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG ));
     }
     if (mPreferences.getBoolean("buttonToggleGc8", true))
     {
@@ -530,17 +569,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       overlayJoysticks.add(initializeOverlayJoystick(getContext(), R.drawable.gcwii_joystick_range,
               R.drawable.gcpad_c, R.drawable.gcpad_c_pressed, ButtonType.STICK_C, orientation));
     }
-    if (mPreferences.getBoolean("buttonToggleGc11", true))
-    {
-      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l_analog,
-        R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG, orientation));
-    }
-    if (mPreferences.getBoolean("buttonToggleGc12", true))
-    {
-      overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r_analog,
-        R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG, orientation));
-    }
-
   }
 
   private void addWiimoteOverlayControls(String orientation)
@@ -799,8 +827,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
    * @param buttonId     Identifier for determining what type of button the initialized InputOverlayDrawableButton represents.
    * @return An {@link InputOverlayDrawableButton} with the correct drawing bounds set.
    */
+
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int buttonId, String orientation)
+  {
+    return initializeOverlayButton(context,defaultResId,pressedResId,buttonId, orientation,
+            -1,-1);
+  }
+
+  private static InputOverlayDrawableButton initializeOverlayButton(Context context,
+          int defaultResId, int pressedResId, int buttonId, String orientation, int secondaryPressedResId, int secondaryButtonId )
   {
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
@@ -824,11 +860,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
         scale = 0.175f;
         break;
       case ButtonType.BUTTON_Z:
+        scale = 0.225f;
+        break;
       case ButtonType.TRIGGER_L:
       case ButtonType.TRIGGER_R:
       case ButtonType.TRIGGER_R_ANALOG:
       case ButtonType.TRIGGER_L_ANALOG:
-        scale = 0.225f;
+        scale = 0.3f;
         break;
       case ButtonType.BUTTON_START:
         scale = 0.075f;
@@ -870,6 +908,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     final InputOverlayDrawableButton overlayDrawable =
             new InputOverlayDrawableButton(res, defaultStateBitmap, pressedStateBitmap, buttonId);
 
+
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
     String xKey;
@@ -903,6 +942,19 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Need to set the image's position
     overlayDrawable.setPosition(drawableX, drawableY);
+
+    // Set the button secondary function if it exist such as analog triggers
+    if (SECONDARY_FUNCTION_BUTTONS.contains(buttonId) && buttonId >= 0)
+    {
+      final Bitmap secondaryPressedStateBitmap =
+              resizeBitmap(context, BitmapFactory.decodeResource(res, secondaryPressedResId), scale);
+      overlayDrawable.setSecondaryButton(res, secondaryPressedStateBitmap, secondaryButtonId);
+
+      Rect secondaryBounds = new Rect(overlayDrawable.getBounds());
+      //this will set the analog function to the top half of the button
+      secondaryBounds.bottom = secondaryBounds.bottom - secondaryBounds.height()/2;
+      overlayDrawable.setSecondaryBounds(secondaryBounds);
+    }
 
     return overlayDrawable;
   }
@@ -1187,14 +1239,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             (((float) res.getInteger(R.integer.TRIGGER_R_X) / 1000) * maxX));
     sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-Y",
             (((float) res.getInteger(R.integer.TRIGGER_R_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L_ANALOG + "-X",
-      (((float) res.getInteger(R.integer.TRIGGER_L_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L_ANALOG + "-Y",
-      (((float) res.getInteger(R.integer.TRIGGER_L_A_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R_ANALOG + "-X",
-      (((float) res.getInteger(R.integer.TRIGGER_R_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R_ANALOG + "-Y",
-      (((float) res.getInteger(R.integer.TRIGGER_R_A_Y) / 1000) * maxY));
     sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-X",
             (((float) res.getInteger(R.integer.BUTTON_START_X) / 1000) * maxX));
     sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-Y",

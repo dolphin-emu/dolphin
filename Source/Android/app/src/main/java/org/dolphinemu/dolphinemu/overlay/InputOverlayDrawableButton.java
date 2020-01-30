@@ -30,6 +30,12 @@ public final class InputOverlayDrawableButton
   private BitmapDrawable mPressedStateBitmap;
   private boolean mPressedState = false;
 
+  //secondary Input such as analog triggers
+  private int mSecondaryButtonType;
+  private Rect secondaryBounds  = new Rect();
+  private BitmapDrawable mSecondaryPressedStateBitmap;
+  private boolean mSecondaryPressedState = false;
+
   /**
    * Constructor
    *
@@ -48,6 +54,18 @@ public final class InputOverlayDrawableButton
 
     mWidth = mDefaultStateBitmap.getIntrinsicWidth();
     mHeight = mDefaultStateBitmap.getIntrinsicHeight();
+
+    //set secondary value to original by default
+    mSecondaryPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
+    mSecondaryButtonType = buttonType;
+  }
+
+
+  public void setSecondaryButton(Resources res,
+                                    Bitmap pressedStateBitmap, int buttonType)
+  {
+    mSecondaryPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
+    mSecondaryButtonType = buttonType;
   }
 
   /**
@@ -59,6 +77,17 @@ public final class InputOverlayDrawableButton
   {
     return mButtonType;
   }
+
+  /**
+   * Gets this InputOverlayDrawableButton's Secondary button ID.
+   *
+   * @return this InputOverlayDrawableButton's Secondary button ID.
+   */
+  public int getSecondaryId()
+  {
+    return mSecondaryButtonType;
+  }
+
 
   public void setTrackId(int trackId)
   {
@@ -107,6 +136,10 @@ public final class InputOverlayDrawableButton
 
   private BitmapDrawable getCurrentStateBitmapDrawable()
   {
+    if(mSecondaryPressedState){
+      return  mSecondaryPressedStateBitmap;
+    }
+
     return mPressedState ? mPressedStateBitmap : mDefaultStateBitmap;
   }
 
@@ -114,11 +147,24 @@ public final class InputOverlayDrawableButton
   {
     mDefaultStateBitmap.setBounds(left, top, right, bottom);
     mPressedStateBitmap.setBounds(left, top, right, bottom);
+
+  }
+
+  public void setSecondaryBounds(Rect bounds)
+  {
+    secondaryBounds = bounds;
+    mSecondaryPressedStateBitmap.setBounds(mPressedStateBitmap.getBounds());
+
   }
 
   public Rect getBounds()
   {
     return mDefaultStateBitmap.getBounds();
+  }
+
+  public Rect getSecondaryBounds()
+  {
+    return secondaryBounds;
   }
 
   public int getWidth()
@@ -134,5 +180,9 @@ public final class InputOverlayDrawableButton
   public void setPressedState(boolean isPressed)
   {
     mPressedState = isPressed;
+  }
+  public void setSecondaryPressedState(boolean isPressed)
+  {
+    mSecondaryPressedState = isPressed;
   }
 }
