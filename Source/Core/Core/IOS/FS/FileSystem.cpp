@@ -115,9 +115,12 @@ ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
     if (metadata && metadata->is_file)
       return ResultCode::Invalid;
 
-    const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, modes);
-    if (result != ResultCode::Success && result != ResultCode::AlreadyExists)
-      return result;
+    if (!metadata)
+    {
+      const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, modes);
+      if (result != ResultCode::Success)
+        return result;
+    }
 
     ++position;
   }
