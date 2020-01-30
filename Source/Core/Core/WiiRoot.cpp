@@ -188,7 +188,7 @@ static bool CopySysmenuFilesToFS(FS::FileSystem* fs, const std::string& host_sou
 
     if (entry.isDirectory)
     {
-      fs->CreateFullPath(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path + '/', 0, public_modes);
+      fs->CreateDirectory(IOS::SYSMENU_UID, IOS::SYSMENU_GID, nand_path, 0, public_modes);
       if (!CopySysmenuFilesToFS(fs, host_path, nand_path))
         return false;
     }
