@@ -476,36 +476,36 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encr
   if (!aes_context)
     return false;
 
-  u8 cluster_metadata[BLOCK_HEADER_SIZE];
+  HashBlock hashes;
   u8 iv[16] = {0};
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_HEADER_SIZE, iv,
-                        encrypted_data.data(), cluster_metadata);
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(HashBlock), iv,
+                        encrypted_data.data(), reinterpret_cast<u8*>(&hashes));
 
   u8 cluster_data[BLOCK_DATA_SIZE];
   std::memcpy(iv, encrypted_data.data() + 0x3D0, 16);
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, iv,
-                        encrypted_data.data() + BLOCK_HEADER_SIZE, cluster_data);
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(cluster_data), iv,
+                        encrypted_data.data() + sizeof(HashBlock), cluster_data);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
     u8 h0_hash[SHA1_SIZE];
     mbedtls_sha1_ret(cluster_data + hash_index * 0x400, 0x400, h0_hash);
-    if (memcmp(h0_hash, cluster_metadata + hash_index * SHA1_SIZE, SHA1_SIZE))
+    if (memcmp(h0_hash, hashes.h0[hash_index], SHA1_SIZE))
       return false;
   }
 
   u8 h1_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(cluster_metadata, SHA1_SIZE * 31, h1_hash);
-  if (memcmp(h1_hash, cluster_metadata + 0x280 + (block_index % 8) * SHA1_SIZE, SHA1_SIZE))
+  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h0), sizeof(hashes.h0), h1_hash);
+  if (memcmp(h1_hash, hashes.h1[block_index % 8], SHA1_SIZE))
     return false;
 
   u8 h2_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(cluster_metadata + 0x280, SHA1_SIZE * 8, h2_hash);
-  if (memcmp(h2_hash, cluster_metadata + 0x340 + (block_index / 8 % 8) * SHA1_SIZE, SHA1_SIZE))
+  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h1), sizeof(hashes.h1), h2_hash);
+  if (memcmp(h2_hash, hashes.h2[block_index / 8 % 8], SHA1_SIZE))
     return false;
 
   u8 h3_hash[SHA1_SIZE];
-  mbedtls_sha1_ret(cluster_metadata + 0x340, SHA1_SIZE * 8, h3_hash);
+  mbedtls_sha1_ret(reinterpret_cast<u8*>(hashes.h2), sizeof(hashes.h2), h3_hash);
   if (memcmp(h3_hash, partition_details.h3_table->data() + block_index / 64 * SHA1_SIZE, SHA1_SIZE))
     return false;
 
@@ -533,7 +533,7 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
                              std::array<u8, GROUP_TOTAL_SIZE>* out)
 {
   std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
-  std::vector<std::array<u8, BLOCK_HEADER_SIZE>> unencrypted_hashes(BLOCKS_PER_GROUP);
+  std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
 
   std::array<std::future<void>, BLOCKS_PER_GROUP> hash_futures;
   bool error_occurred = false;
@@ -566,15 +566,15 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
         for (size_t j = 0; j < 31; ++j)
         {
           mbedtls_sha1_ret(unencrypted_data[i].data() + j * 0x400, 0x400,
-                           unencrypted_hashes[i].data() + j * SHA1_SIZE);
+                           unencrypted_hashes[i].h0[j]);
         }
 
         // H0 padding
-        std::memset(unencrypted_hashes[i].data() + 0x26C, 0, 0x14);
+        std::memset(unencrypted_hashes[i].padding_0, 0, sizeof(HashBlock::padding_0));
 
         // H1 hash
-        mbedtls_sha1_ret(unencrypted_hashes[i].data(), 0x26C,
-                         unencrypted_hashes[h1_base].data() + 0x280 + (i - h1_base) * SHA1_SIZE);
+        mbedtls_sha1_ret(reinterpret_cast<u8*>(unencrypted_hashes[i].h0), sizeof(HashBlock::h0),
+                         unencrypted_hashes[h1_base].h1[i - h1_base]);
       }
 
       if (i % 8 == 7)
@@ -585,18 +585,18 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
         if (!error_occurred)
         {
           // H1 padding
-          std::memset(unencrypted_hashes[h1_base].data() + 0x320, 0, 0x20);
+          std::memset(unencrypted_hashes[h1_base].padding_1, 0, sizeof(HashBlock::padding_1));
 
           // H1 copies
           for (size_t j = 1; j < 8; ++j)
           {
-            std::memcpy(unencrypted_hashes[h1_base + j].data() + 0x280,
-                        unencrypted_hashes[h1_base].data() + 0x280, 0xC0);
+            std::memcpy(unencrypted_hashes[h1_base + j].h1, unencrypted_hashes[h1_base].h1,
+                        sizeof(HashBlock::h1));
           }
 
           // H2 hash
-          mbedtls_sha1_ret(unencrypted_hashes[h1_base].data() + 0x280, 0xA0,
-                           unencrypted_hashes[0].data() + 0x340 + h1_base / 8 * SHA1_SIZE);
+          mbedtls_sha1_ret(reinterpret_cast<u8*>(unencrypted_hashes[i].h1), sizeof(HashBlock::h1),
+                           unencrypted_hashes[0].h2[h1_base / 8]);
         }
 
         if (i == BLOCKS_PER_GROUP - 1)
@@ -607,13 +607,13 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
           if (!error_occurred)
           {
             // H2 padding
-            std::memset(unencrypted_hashes[0].data() + 0x3E0, 0, 0x20);
+            std::memset(unencrypted_hashes[0].padding_2, 0, sizeof(HashBlock::padding_2));
 
             // H2 copies
             for (size_t j = 1; j < BLOCKS_PER_GROUP; ++j)
             {
-              std::memcpy(unencrypted_hashes[j].data() + 0x340,
-                          unencrypted_hashes[0].data() + 0x340, 0xC0);
+              std::memcpy(unencrypted_hashes[j].h2, unencrypted_hashes[0].h2,
+                          sizeof(HashBlock::h2));
             }
           }
         }
@@ -646,7 +646,7 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
 
             u8 iv[16] = {};
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
-                                  unencrypted_hashes[i].data(), out_ptr);
+                                  reinterpret_cast<u8*>(&unencrypted_hashes[i]), out_ptr);
 
             std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,

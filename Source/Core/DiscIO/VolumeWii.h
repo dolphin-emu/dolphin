@@ -46,6 +46,17 @@ public:
   static constexpr u64 GROUP_DATA_SIZE = BLOCK_DATA_SIZE * BLOCKS_PER_GROUP;
   static constexpr u64 GROUP_TOTAL_SIZE = GROUP_HEADER_SIZE + GROUP_DATA_SIZE;
 
+  struct HashBlock
+  {
+    u8 h0[31][SHA1_SIZE];
+    u8 padding_0[20];
+    u8 h1[8][SHA1_SIZE];
+    u8 padding_1[32];
+    u8 h2[8][SHA1_SIZE];
+    u8 padding_2[32];
+  };
+  static_assert(sizeof(HashBlock) == BLOCK_HEADER_SIZE);
+
   VolumeWii(std::unique_ptr<BlobReader> reader);
   ~VolumeWii();
   bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const override;
