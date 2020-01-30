@@ -49,3 +49,27 @@
 
 /* Class = "UILabel"; text = "パニックハンドラを使用"; ObjectID = "wvb-0C-F6M"; */
 "wvb-0C-F6M.text" = "パニックハンドラを使用";
+
+/* Class = "UINavigationItem"; title = "サウンド"; ObjectID = "1tL-Cz-TAL"; */
+"1tL-Cz-TAL.title" = "サウンド";
+
+/* Class = "UILabel"; text = "0ms"; ObjectID = "8fb-Ub-qRJ"; */
+"8fb-Ub-qRJ.text" = "0ms";
+
+/* Class = "UILabel"; text = "サウンド"; ObjectID = "BPT-fd-wOl"; */
+"BPT-fd-wOl.text" = "サウンド";
+
+/* Class = "UILabel"; text = "バッファサイズ"; ObjectID = "CrC-lY-5Tq"; */
+"CrC-lY-5Tq.text" = "バッファサイズ";
+
+/* Class = "UITableViewSection"; headerTitle = "タイムストレッチの設定"; ObjectID = "Gbe-Ah-d5T"; */
+"Gbe-Ah-d5T.headerTitle" = "タイムストレッチの設定";
+
+/* Class = "UILabel"; text = "音量"; ObjectID = "LeV-Nx-S8y"; */
+"LeV-Nx-S8y.text" = "音量";
+
+/* Class = "UILabel"; text = "0%"; ObjectID = "Zlo-ls-qgb"; */
+"Zlo-ls-qgb.text" = "0%";
+
+/* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
+"w8Z-IJ-Fbf.text" = "Enable";

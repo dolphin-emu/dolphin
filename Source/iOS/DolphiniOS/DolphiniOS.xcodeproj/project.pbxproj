@@ -78,6 +78,7 @@
 		B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156023E13641001C6BD6 /* ConfigGeneralViewController.mm */; };
 		B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */; };
 		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
+		B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -248,6 +249,8 @@
 		B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SpeedLimitViewController.mm; sourceTree = "<group>"; };
 		B971156523E1511A001C6BD6 /* SpeedCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpeedCell.h; sourceTree = "<group>"; };
 		B971156623E1511A001C6BD6 /* SpeedCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SpeedCell.m; sourceTree = "<group>"; };
+		B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSoundViewController.h; sourceTree = "<group>"; };
+		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
 		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
@@ -638,11 +641,21 @@
 			path = General;
 			sourceTree = "<group>";
 		};
+		B971156823E1D353001C6BD6 /* Sound */ = {
+			isa = PBXGroup;
+			children = (
+				B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */,
+				B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */,
+			);
+			path = Sound;
+			sourceTree = "<group>";
+		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
 			isa = PBXGroup;
 			children = (
 				B971155E23E13617001C6BD6 /* General */,
 				B98584C823CEDFC400BE94B0 /* Interface */,
+				B971156823E1D353001C6BD6 /* Sound */,
 				B996C86023D590D500700D6F /* ConfigSettings.storyboard */,
 			);
 			path = Config;
@@ -1169,6 +1182,7 @@
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */,
+				B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */,
 				B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */,
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
@@ -1446,6 +1460,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
 				);
 				VERSIONING_SYSTEM = "";
 			};
@@ -1485,6 +1500,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
 				);
 				VERSIONING_SYSTEM = "";
 			};
@@ -1593,6 +1609,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
 				);
 				VERSIONING_SYSTEM = "";
 			};
@@ -1695,6 +1712,7 @@
 				USER_HEADER_SEARCH_PATHS = (
 					"$(SRCROOT)/../../Core/**",
 					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
 				);
 				VERSIONING_SYSTEM = "";
 			};
