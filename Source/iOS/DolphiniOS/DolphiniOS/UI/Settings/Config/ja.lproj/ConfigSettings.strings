@@ -106,3 +106,93 @@
 
 /* Class = "UILabel"; text = "フランス語"; ObjectID = "zZn-vO-FBV"; */
 "zZn-vO-FBV.text" = "フランス語";
+
+/* Class = "UILabel"; text = "Wiiリモコンの振動を有効化"; ObjectID = "0K1-Oi-viC"; */
+"0K1-Oi-viC.text" = "Wiiリモコンの振動を有効化";
+
+/* Class = "UILabel"; text = "システムの言語"; ObjectID = "1L5-Kj-USx"; */
+"1L5-Kj-USx.text" = "システムの言語";
+
+/* Class = "UILabel"; text = "オランダ語"; ObjectID = "2Eo-dx-eKL"; */
+"2Eo-dx-eKL.text" = "オランダ語";
+
+/* Class = "UILabel"; text = "スクリーンセーバーを有効化"; ObjectID = "3Gq-Ip-xn2"; */
+"3Gq-Ip-xn2.text" = "スクリーンセーバーを有効化";
+
+/* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
+"5dO-8H-gFe.text" = "4:3";
+
+/* Class = "UILabel"; text = "センサーバーの位置"; ObjectID = "6Qs-g2-BTZ"; */
+"6Qs-g2-BTZ.text" = "センサーバーの位置";
+
+/* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
+"7aI-mV-ROW.text" = "Wii";
+
+/* Class = "UILabel"; text = "PAL60 (EuRGB60) モードを使用"; ObjectID = "CGi-MG-0NE"; */
+"CGi-MG-0NE.text" = "PAL60 (EuRGB60) モードを使用";
+
+/* Class = "UINavigationItem"; title = "アスペクト比"; ObjectID = "F9G-27-Tjl"; */
+"F9G-27-Tjl.title" = "アスペクト比";
+
+/* Class = "UITableViewSection"; headerTitle = "その他の設定"; ObjectID = "Is2-CQ-RYW"; */
+"Is2-CQ-RYW.headerTitle" = "その他の設定";
+
+/* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
+"MBg-6m-DDq.title" = "Wii";
+
+/* Class = "UILabel"; text = "アスペクト比"; ObjectID = "MUM-cb-6W0"; */
+"MUM-cb-6W0.text" = "アスペクト比";
+
+/* Class = "UILabel"; text = "簡体字中国語"; ObjectID = "QAt-xr-bbV"; */
+"QAt-xr-bbV.text" = "簡体字中国語";
+
+/* Class = "UILabel"; text = "繁体字中国語"; ObjectID = "SEK-Rf-1qk"; */
+"SEK-Rf-1qk.text" = "繁体字中国語";
+
+/* Class = "UILabel"; text = "日本語"; ObjectID = "ThN-T3-iRi"; */
+"ThN-T3-iRi.text" = "日本語";
+
+/* Class = "UILabel"; text = "韓国語"; ObjectID = "UuH-ey-51W"; */
+"UuH-ey-51W.text" = "韓国語";
+
+/* Class = "UILabel"; text = "SDカードの挿入をエミュレート"; ObjectID = "acr-9s-yir"; */
+"acr-9s-yir.text" = "SDカードの挿入をエミュレート";
+
+/* Class = "UILabel"; text = "下"; ObjectID = "diR-dc-PZQ"; */
+"diR-dc-PZQ.text" = "下";
+
+/* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
+"fUQ-3L-qGc.text" = "16:9";
+
+/* Class = "UILabel"; text = "Wiiリモコンの感度"; ObjectID = "gam-22-Oa4"; */
+"gam-22-Oa4.text" = "Wiiリモコンの感度";
+
+/* Class = "UILabel"; text = "リモコンスピーカー音量"; ObjectID = "hEq-jG-aOY"; */
+"hEq-jG-aOY.text" = "リモコンスピーカー音量";
+
+/* Class = "UINavigationItem"; title = "センサーバーの位置"; ObjectID = "hSw-Hy-ACo"; */
+"hSw-Hy-ACo.title" = "センサーバーの位置";
+
+/* Class = "UITableViewSection"; headerTitle = "Wiiリモコンの設定"; ObjectID = "jyG-uN-4nV"; */
+"jyG-uN-4nV.headerTitle" = "Wiiリモコンの設定";
+
+/* Class = "UILabel"; text = "ドイツ語"; ObjectID = "mkw-NI-JPB"; */
+"mkw-NI-JPB.text" = "ドイツ語";
+
+/* Class = "UILabel"; text = "フランス語"; ObjectID = "o0Y-zK-I1w"; */
+"o0Y-zK-I1w.text" = "フランス語";
+
+/* Class = "UILabel"; text = "英語"; ObjectID = "riQ-Hp-p07"; */
+"riQ-Hp-p07.text" = "英語";
+
+/* Class = "UINavigationItem"; title = "システムの言語"; ObjectID = "txG-ij-PdN"; */
+"txG-ij-PdN.title" = "システムの言語";
+
+/* Class = "UILabel"; text = "上"; ObjectID = "u9J-1j-jvw"; */
+"u9J-1j-jvw.text" = "上";
+
+/* Class = "UILabel"; text = "スペイン語"; ObjectID = "vac-nW-Iuh"; */
+"vac-nW-Iuh.text" = "スペイン語";
+
+/* Class = "UILabel"; text = "イタリア語"; ObjectID = "yer-Iz-yOE"; */
+"yer-Iz-yOE.text" = "イタリア語";

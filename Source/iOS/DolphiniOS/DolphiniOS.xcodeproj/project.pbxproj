@@ -105,6 +105,10 @@
 		B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */; };
 		B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */ = {isa = PBXBuildFile; fileRef = B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */; };
 		B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B99B05BE23A323600076C7D8 /* MetalKit.framework */; };
+		B99D361A23E3F313005627CE /* WiiLanguageViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D361923E3F313005627CE /* WiiLanguageViewController.mm */; };
+		B99D361D23E3F405005627CE /* WiiAspectRatioViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D361C23E3F405005627CE /* WiiAspectRatioViewController.mm */; };
+		B99D362023E3F42F005627CE /* WiiSensorBarViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D361F23E3F42F005627CE /* WiiSensorBarViewController.mm */; };
+		B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362423E3F949005627CE /* ConfigWiiViewController.mm */; };
 		B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */; };
 		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */; };
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
@@ -301,6 +305,14 @@
 		B99B05BA23A2118B0076C7D8 /* TCWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCWiiPad.swift; sourceTree = "<group>"; };
 		B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = SpecialThanks.txt; path = BundleResources/SpecialThanks.txt; sourceTree = "<group>"; };
 		B99B05BE23A323600076C7D8 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
+		B99D361823E3F305005627CE /* WiiLanguageViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = WiiLanguageViewController.h; path = DolphiniOS/UI/Settings/Config/Wii/WiiLanguageViewController.h; sourceTree = SOURCE_ROOT; };
+		B99D361923E3F313005627CE /* WiiLanguageViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = WiiLanguageViewController.mm; path = DolphiniOS/UI/Settings/Config/Wii/WiiLanguageViewController.mm; sourceTree = SOURCE_ROOT; };
+		B99D361B23E3F3FC005627CE /* WiiAspectRatioViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiAspectRatioViewController.h; sourceTree = "<group>"; };
+		B99D361C23E3F405005627CE /* WiiAspectRatioViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiAspectRatioViewController.mm; sourceTree = "<group>"; };
+		B99D361E23E3F420005627CE /* WiiSensorBarViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WiiSensorBarViewController.h; sourceTree = "<group>"; };
+		B99D361F23E3F42F005627CE /* WiiSensorBarViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSensorBarViewController.mm; sourceTree = "<group>"; };
+		B99D362123E3F6C1005627CE /* ConfigWiiViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigWiiViewController.h; sourceTree = "<group>"; };
+		B99D362423E3F949005627CE /* ConfigWiiViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigWiiViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6123C16B0F00C70473 /* InGameSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameSettingsViewController.h; sourceTree = "<group>"; };
 		B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6523C1960000C70473 /* ControllerTouchscreenSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerTouchscreenSettingsViewController.h; sourceTree = "<group>"; };
@@ -663,6 +675,7 @@
 				B971155E23E13617001C6BD6 /* General */,
 				B98584C823CEDFC400BE94B0 /* Interface */,
 				B971156823E1D353001C6BD6 /* Sound */,
+				B99D361723E3F2D5005627CE /* Wii */,
 				B996C86023D590D500700D6F /* ConfigSettings.storyboard */,
 			);
 			path = Config;
@@ -745,6 +758,21 @@
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 			);
 			name = "Build Resources";
+			sourceTree = "<group>";
+		};
+		B99D361723E3F2D5005627CE /* Wii */ = {
+			isa = PBXGroup;
+			children = (
+				B99D362123E3F6C1005627CE /* ConfigWiiViewController.h */,
+				B99D362423E3F949005627CE /* ConfigWiiViewController.mm */,
+				B99D361B23E3F3FC005627CE /* WiiAspectRatioViewController.h */,
+				B99D361C23E3F405005627CE /* WiiAspectRatioViewController.mm */,
+				B99D361823E3F305005627CE /* WiiLanguageViewController.h */,
+				B99D361923E3F313005627CE /* WiiLanguageViewController.mm */,
+				B99D361E23E3F420005627CE /* WiiSensorBarViewController.h */,
+				B99D361F23E3F42F005627CE /* WiiSensorBarViewController.mm */,
+			);
+			path = Wii;
 			sourceTree = "<group>";
 		};
 		B9A7AD6423C1925B00C70473 /* Interface */ = {
@@ -1214,6 +1242,7 @@
 				B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */,
 				B971155A23E03056001C6BD6 /* LoadStateViewController.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
+				B99D362023E3F42F005627CE /* WiiSensorBarViewController.mm in Sources */,
 				B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */,
 				B971155723E02FAA001C6BD6 /* StateCell.m in Sources */,
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
@@ -1226,9 +1255,12 @@
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
 				B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
+				B99D361D23E3F405005627CE /* WiiAspectRatioViewController.mm in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
 				B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */,
+				B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
+				B99D361A23E3F313005627CE /* WiiLanguageViewController.mm in Sources */,
 				B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */,
 				B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,

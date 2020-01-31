@@ -106,3 +106,93 @@
 
 /* Class = "UILabel"; text = "French"; ObjectID = "zZn-vO-FBV"; */
 "zZn-vO-FBV.text" = "French";
+
+/* Class = "UILabel"; text = "Wii Remote Rumble"; ObjectID = "0K1-Oi-viC"; */
+"0K1-Oi-viC.text" = "Wii Remote Rumble";
+
+/* Class = "UILabel"; text = "System Language"; ObjectID = "1L5-Kj-USx"; */
+"1L5-Kj-USx.text" = "System Language";
+
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "2Eo-dx-eKL"; */
+"2Eo-dx-eKL.text" = "Dutch";
+
+/* Class = "UILabel"; text = "Enable Screen Saver"; ObjectID = "3Gq-Ip-xn2"; */
+"3Gq-Ip-xn2.text" = "Enable Screen Saver";
+
+/* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
+"5dO-8H-gFe.text" = "4:3";
+
+/* Class = "UILabel"; text = "Sensor Bar Position"; ObjectID = "6Qs-g2-BTZ"; */
+"6Qs-g2-BTZ.text" = "Sensor Bar Position";
+
+/* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
+"7aI-mV-ROW.text" = "Wii";
+
+/* Class = "UILabel"; text = "Use PAL60 Mode (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
+"CGi-MG-0NE.text" = "Use PAL60 Mode (EuRGB60)";
+
+/* Class = "UINavigationItem"; title = "Aspect Ratio"; ObjectID = "F9G-27-Tjl"; */
+"F9G-27-Tjl.title" = "Aspect Ratio";
+
+/* Class = "UITableViewSection"; headerTitle = "Misc Settings"; ObjectID = "Is2-CQ-RYW"; */
+"Is2-CQ-RYW.headerTitle" = "Misc Settings";
+
+/* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
+"MBg-6m-DDq.title" = "Wii";
+
+/* Class = "UILabel"; text = "Aspect Ratio"; ObjectID = "MUM-cb-6W0"; */
+"MUM-cb-6W0.text" = "Aspect Ratio";
+
+/* Class = "UILabel"; text = "Simplified Chinese"; ObjectID = "QAt-xr-bbV"; */
+"QAt-xr-bbV.text" = "Simplified Chinese";
+
+/* Class = "UILabel"; text = "Traditional Chinese"; ObjectID = "SEK-Rf-1qk"; */
+"SEK-Rf-1qk.text" = "Traditional Chinese";
+
+/* Class = "UILabel"; text = "Japanese"; ObjectID = "ThN-T3-iRi"; */
+"ThN-T3-iRi.text" = "Japanese";
+
+/* Class = "UILabel"; text = "Korean"; ObjectID = "UuH-ey-51W"; */
+"UuH-ey-51W.text" = "Korean";
+
+/* Class = "UILabel"; text = "Insert SD Card"; ObjectID = "acr-9s-yir"; */
+"acr-9s-yir.text" = "Insert SD Card";
+
+/* Class = "UILabel"; text = "Bottom"; ObjectID = "diR-dc-PZQ"; */
+"diR-dc-PZQ.text" = "Bottom";
+
+/* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
+"fUQ-3L-qGc.text" = "16:9";
+
+/* Class = "UILabel"; text = "IR Sensitivity"; ObjectID = "gam-22-Oa4"; */
+"gam-22-Oa4.text" = "IR Sensitivity";
+
+/* Class = "UILabel"; text = "Speaker Volume"; ObjectID = "hEq-jG-aOY"; */
+"hEq-jG-aOY.text" = "Speaker Volume";
+
+/* Class = "UINavigationItem"; title = "Sensor Bar Position"; ObjectID = "hSw-Hy-ACo"; */
+"hSw-Hy-ACo.title" = "Sensor Bar Position";
+
+/* Class = "UITableViewSection"; headerTitle = "Wii Remote Settings"; ObjectID = "jyG-uN-4nV"; */
+"jyG-uN-4nV.headerTitle" = "Wii Remote Settings";
+
+/* Class = "UILabel"; text = "German"; ObjectID = "mkw-NI-JPB"; */
+"mkw-NI-JPB.text" = "German";
+
+/* Class = "UILabel"; text = "French"; ObjectID = "o0Y-zK-I1w"; */
+"o0Y-zK-I1w.text" = "French";
+
+/* Class = "UILabel"; text = "English"; ObjectID = "riQ-Hp-p07"; */
+"riQ-Hp-p07.text" = "English";
+
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "txG-ij-PdN"; */
+"txG-ij-PdN.title" = "System Language";
+
+/* Class = "UILabel"; text = "Top"; ObjectID = "u9J-1j-jvw"; */
+"u9J-1j-jvw.text" = "Top";
+
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "vac-nW-Iuh"; */
+"vac-nW-Iuh.text" = "Spanish";
+
+/* Class = "UILabel"; text = "Italian"; ObjectID = "yer-Iz-yOE"; */
+"yer-Iz-yOE.text" = "Italian";
