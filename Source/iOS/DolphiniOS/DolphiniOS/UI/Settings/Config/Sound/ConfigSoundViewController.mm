@@ -14,6 +14,10 @@
 
 @implementation ConfigSoundViewController
 
+// Skipped settings:
+// DSP Emulation Engine - DSP LLE is unsupported on iOS; JIT is for x86_64
+// Backend Settings (all) - CoreAudio is the only supported backend
+
 - (void)viewDidLoad
 {
   [super viewDidLoad];
