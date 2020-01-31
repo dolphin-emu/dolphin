@@ -196,3 +196,42 @@
 
 /* Class = "UILabel"; text = "Italian"; ObjectID = "yer-Iz-yOE"; */
 "yer-Iz-yOE.text" = "Italian";
+
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "0s6-c7-OwY"; */
+"0s6-c7-OwY.title" = "Advanced";
+
+/* Class = "UITableViewSection"; headerTitle = "Clock Override"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "Clock Override";
+
+/* Class = "UITableViewSection"; headerTitle = "CPU Options"; ObjectID = "3FW-wh-rEp"; */
+"3FW-wh-rEp.headerTitle" = "CPU Options";
+
+/* Class = "UILabel"; text = "Interpreter (slowest)"; ObjectID = "6dX-G1-g6C"; */
+"6dX-G1-g6C.text" = "Interpreter (slowest)";
+
+/* Class = "UILabel"; text = "Help"; ObjectID = "7wX-hc-fac"; */
+"7wX-hc-fac.text" = "Help";
+
+/* Class = "UILabel"; text = "Enable"; ObjectID = "PUW-7n-hkA"; */
+"PUW-7n-hkA.text" = "Enable";
+
+/* Class = "UILabel"; text = "JIT Recompiler (recommended)"; ObjectID = "QLN-FA-k5N"; */
+"QLN-FA-k5N.text" = "JIT Recompiler (recommended)";
+
+/* Class = "UILabel"; text = "Enable MMU"; ObjectID = "RvK-8a-gsf"; */
+"RvK-8a-gsf.text" = "Enable MMU";
+
+/* Class = "UILabel"; text = "CPU Emulation Engine"; ObjectID = "TS7-s0-dMM"; */
+"TS7-s0-dMM.text" = "CPU Emulation Engine";
+
+/* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
+"ab2-Af-AKe.text" = "100% (486MHz)";
+
+/* Class = "UINavigationItem"; title = "CPU Emulation Engine"; ObjectID = "bUR-fZ-pg3"; */
+"bUR-fZ-pg3.title" = "CPU Emulation Engine";
+
+/* Class = "UILabel"; text = "Advanced"; ObjectID = "ffY-kZ-p24"; */
+"ffY-kZ-p24.text" = "Advanced";
+
+/* Class = "UILabel"; text = "Cached Interpreter (slower)"; ObjectID = "s3k-Uc-UWw"; */
+"s3k-Uc-UWw.text" = "Cached Interpreter (slower)";
