@@ -305,6 +305,7 @@ void Renderer::BindBackbuffer(const ClearColor& clear_color)
     }
     else if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
     {
+      INFO_LOG(VIDEO, "Resizing swap chain due to suboptimal/out-of-date");
       m_swap_chain->ResizeSwapChain();
     }
     else
