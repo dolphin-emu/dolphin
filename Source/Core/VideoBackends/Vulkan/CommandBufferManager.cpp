@@ -375,12 +375,21 @@ void CommandBufferManager::SubmitCommandBuffer(u32 command_buffer_index,
     if (m_last_present_result != VK_SUCCESS)
     {
       // VK_ERROR_OUT_OF_DATE_KHR is not fatal, just means we need to recreate our swap chain.
-      if (m_last_present_result != VK_ERROR_OUT_OF_DATE_KHR && res != VK_SUBOPTIMAL_KHR &&
+      if (m_last_present_result != VK_ERROR_OUT_OF_DATE_KHR &&
+          m_last_present_result != VK_SUBOPTIMAL_KHR &&
           m_last_present_result != VK_ERROR_FULL_SCREEN_EXCLUSIVE_MODE_LOST_EXT)
       {
         LOG_VULKAN_ERROR(m_last_present_result, "vkQueuePresentKHR failed: ");
       }
+
+      // Don't treat VK_SUBOPTIMAL_KHR as fatal on Android. Android 10+ requires prerotation.
+      // See https://twitter.com/Themaister/status/1207062674011574273
+#ifdef VK_USE_PLATFORM_ANDROID_KHR
+      if (m_last_present_result != VK_SUBOPTIMAL_KHR)
+        m_last_present_failed.Set();
+#else
       m_last_present_failed.Set();
+#endif
     }
   }
 
