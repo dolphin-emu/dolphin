@@ -1155,19 +1155,6 @@ void Renderer::UpdateWidescreenHeuristic()
                                           g_ActiveConfig.aspect_mode == AspectMode::AnalogWide))
     return;
 
-  const auto& persp = flush_statistics.perspective;
-  const auto& ortho = flush_statistics.orthographic;
-
-  DEBUG_LOG(VIDEO,
-            "flush stats: persp: 4:3=%ld 16:9=%ld other=%ld | ortho: 4:3=%ld 16:9=%ld other=%ld",
-            persp.normal_flush_count, persp.anamorphic_flush_count, persp.other_flush_count,
-            ortho.normal_flush_count, ortho.anamorphic_flush_count, ortho.other_flush_count);
-
-  DEBUG_LOG(VIDEO,
-            "vertex stats: persp: 4:3=%ld 16:9=%ld other=%ld | ortho: 4:3=%ld 16:9=%ld other=%ld",
-            persp.normal_vertex_count, persp.anamorphic_vertex_count, persp.other_vertex_count,
-            ortho.normal_vertex_count, ortho.anamorphic_vertex_count, ortho.other_vertex_count);
-
   // Modify the threshold based on which aspect ratio we're already using:
   // If the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
   static constexpr u32 TRANSITION_THRESHOLD = 3;
@@ -1178,6 +1165,9 @@ void Renderer::UpdateWidescreenHeuristic()
   const auto looks_anamorphic = [](auto& counts) {
     return counts.anamorphic_vertex_count > counts.normal_vertex_count * TRANSITION_THRESHOLD;
   };
+
+  const auto& persp = flush_statistics.perspective;
+  const auto& ortho = flush_statistics.orthographic;
 
   const auto ortho_looks_anamorphic = looks_anamorphic(ortho);
 
