@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Danish (http://www.transifex.com/delroth/dolphin-emu/language/"
 "da/)\n"
@@ -5452,6 +5452,10 @@ msgstr ""
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:495
 msgid "No description available"
 msgstr "Ingen beskrivelse tilgængelig"
+
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."

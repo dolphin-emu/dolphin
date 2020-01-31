@@ -3,14 +3,14 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Mewster <mewster@libero.it>, 2013-2019
+# Mewster <mewster@libero.it>, 2013-2020
 # RebuMan, 2011
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
@@ -3502,11 +3502,11 @@ msgstr "Estensione"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "Estensione Input di Movimento"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "Estensione Simulazione di Movimento"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5900,6 +5900,10 @@ msgstr "Nessun Valore Inserito"
 msgid "No description available"
 msgstr "Non è disponibile una descrizione"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Nessuna estensione selezionata."
@@ -7842,7 +7846,7 @@ msgstr "Salta Main Menu"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "Salta Frame Duplicati"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7854,6 +7858,14 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Salta la presentazione di frame duplicati (copie XFB) in giochi a 25/30fps.\n"
+"Potrebbe migliorare le prestazioni in dispositivi più datati, al prezzo di "
+"un framerate meno stabile.\n"
+"\n"
+"Disabilitare questa opzione e abilitare il V-Sync migliora la stabilità del "
+"framerate.\n"
+"\n"
+"Nel dubbio, lascia selezionato."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7884,7 +7896,7 @@ msgstr "Software Renderer"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "Non è stato possibile leggere alcuni dati."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9654,6 +9666,10 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"ATTENZIONE: questi controlli sono progettati per interfacciarsi direttamente "
+"con l'hardware dei sensori di movimento. Non sono fatti per essere mappati a "
+"pulsanti tradizionali, grilletti o assi. Dovresti configurare sorgenti di "
+"input diverse prima di usarli."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -10034,7 +10050,7 @@ msgstr "Devi inserire un nome per la tua sessione!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "Devi indicare una regione per la tua sessione!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

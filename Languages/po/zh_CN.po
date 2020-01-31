@@ -8,7 +8,7 @@
 # Yueyu <lxfly2000@outlook.com>, 2014
 # Kazushim <kazushim@outlook.com>, 2017
 # Yueyu <lxfly2000@outlook.com>, 2015-2016
-# Ryan Zhou <sentret_c@sina.cn>, 2013-2019
+# Ryan Zhou <sentret_c@sina.cn>, 2013-2020
 # Yueyu <lxfly2000@outlook.com>, 2015
 # thegfw <thegfw@gmail.com>, 2011
 # Yueyu <lxfly2000@outlook.com>, 2014-2016
@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -3411,11 +3411,11 @@ msgstr "扩展"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "扩展体感输入"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "扩展体感模拟"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5752,6 +5752,10 @@ msgstr "无给定值"
 msgid "No description available"
 msgstr "没有可用的说明"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "未选择扩展。"
@@ -7658,7 +7662,7 @@ msgstr "跳过主菜单"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "跳过重复出现的帧"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7670,6 +7674,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"在 25fps/30fps 游戏中跳过重复帧（XFB 副本）的显示。这可以提高低端设备的性能，"
+"同时会降低帧定步的一致性。\n"
+"\n"
+"可禁用此选项并启用 “垂直同步” 来获得最佳的帧定步。\n"
+"\n"
+"如果不确定，请保持选中状态。"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7700,7 +7710,7 @@ msgstr "软件渲染器"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "一些数据无法读取。"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9389,6 +9399,8 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"警告: 这些控制项用于直接对接体感硬件，而非映射至传统按键、扳机或轴。使用这些"
+"控制项前可能需要先进行其他输入源的配置。"
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9752,7 +9764,7 @@ msgstr "你必须为会话提供一个名称！"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "你必须为会话提供一个区域！"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

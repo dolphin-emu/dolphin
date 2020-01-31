@@ -9,14 +9,14 @@
 # A. Regnander <anton_r_3@hotmail.com>, 2013,2015
 # A. Regnander <anton_r_3@hotmail.com>, 2015-2016,2018-2020
 # Arve Eriksson <031299870@telia.com>, 2017,2019
-# JosJuice, 2015-2019
+# JosJuice, 2015-2020
 # Mat Mat <pprova2004@gmail.com>, 2019
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
@@ -5879,6 +5879,10 @@ msgstr "Inget Värde Angivet"
 msgid "No description available"
 msgstr "Ingen beskrivning tillgänglig"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Ingen extern kontroll har valts."
@@ -7857,7 +7861,7 @@ msgstr "Mjukvarurenderare"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "Viss data kunde inte läsas."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9999,7 +10003,7 @@ msgstr "Du måste ange ett namn för din session!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "Du måste ange en region för din session!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

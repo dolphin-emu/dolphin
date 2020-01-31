@@ -11,7 +11,7 @@
 # Jos van Mourik, 2018-2019
 # MADCreations <http://www.dpro.freehosting.org>, 2011
 # Marinus Schot <marinus@live.com>, 2013
-# Mike Kuijl <kuijlmike@gmail.com>, 2019
+# Mike Kuijl <kuijlmike@gmail.com>, 2019-2020
 # Mourits Pvllen <mauritspullen@gmail.com>, 2014
 # Pierre Bourdon <delroth@gmail.com>, 2014
 # Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2015-2016
@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
@@ -3507,11 +3507,11 @@ msgstr "Extensie"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "Extensie Beweging invoer"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "Extensie Beweging Simulatie"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5891,6 +5891,10 @@ msgstr "Geen Waarde Gegeven"
 msgid "No description available"
 msgstr "Geen omschrijving beschikbaar"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Geen extensie geselecteerd."
@@ -6950,7 +6954,7 @@ msgstr "S&la Staat Op"
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:224
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:70
 msgid "Safe"
-msgstr "Betrouwbaar"
+msgstr "Veilig"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:90
@@ -7830,7 +7834,7 @@ msgstr "Hoofdmenu Overslaan"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "Sla Weergave Dubbele Frames Over"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7842,6 +7846,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Slaat de weergave van dubbele frames (XFB kopieën) over in 25fps/30fps "
+"spellen. Dit kan de prestaties op low-end apparaten verbeteren, maar zorgt "
+"voor minder consistente frame weergave.\n"
+"\n"
+"Schakel deze optie uit en schakel V-Sync in voor optimale frame weergave.\n"
+"\n"
+"In geval van twijfel geselecteerd laten."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7872,7 +7883,7 @@ msgstr "Software Renderer"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "Een deel van de data kon niet worden gelezen."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9637,6 +9648,10 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"Waarschuwing: Deze bediening is ontworpen om rechtstreeks te worden "
+"gekoppeld aan bewegingssensors. Het is niet bedoeld om te koppelen met "
+"traditionele knoppen, trekkers of sticks. Mogelijk moet u alternatieve "
+"invoerbronnen configureren voordat u deze besturing kan gebruiken."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -10017,7 +10032,7 @@ msgstr "U moet een naam voor uw sessie opgeven!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "U moet een regio voor uw sessie opgeven!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

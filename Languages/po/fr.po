@@ -4,7 +4,7 @@
 #
 # Translators:
 # Pascal <pascal2j-language@yahoo.com>, 2013
-# Pascal <pascal2j-language@yahoo.com>, 2013-2019
+# Pascal <pascal2j-language@yahoo.com>, 2013-2020
 # Pierre Bourdon <delroth@gmail.com>, 2014,2016
 # RyDroid <inactive+RyDroid@transifex.com>, 2013
 # RyDroid <inactive+RyDroid@transifex.com>, 2013
@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
@@ -3520,11 +3520,11 @@ msgstr "Extension"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "Entrée MotionPlus"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "Simulation du MotionPlus"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5926,6 +5926,10 @@ msgstr "Aucune valeur donnée"
 msgid "No description available"
 msgstr "Aucune description disponible"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Aucune extension sélectionnée"
@@ -7882,7 +7886,7 @@ msgstr "Passer le Menu Principal"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "Sauter les images en doublon"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7894,6 +7898,15 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Saute la présentation d'images en double (copies de XFB) dans les jeux en "
+"25fps/30fps. Ceci peut améliorer les performances sur des ordinateurs peu "
+"puissants, tout en rendant l'écart temporel entre chaque image moins "
+"régulier.\n"
+"\n"
+"Désactivez cette option et activez la Synchronisation verticale pour un "
+"écart optimal entre chaque image.\n"
+"\n"
+"Dans le doute, cochez cette case."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7924,7 +7937,7 @@ msgstr "Rendu logiciel"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "Des données n'ont pu être lues."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9696,6 +9709,10 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"ATTENTION : Ces contrôles sont conçus pour communiquer directement avec les "
+"capteurs de mouvements du matériel. Ils n'ont pas été prévus pour mapper des "
+"boutons traditionnels, gâchettes ou axes. Vous pourriez avoir besoin de "
+"configurer les sources d'entrées alternatives avant d'utiliser ces contrôles."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -10079,7 +10096,7 @@ msgstr "Vous devez entrer un nom pour votre session !"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "Vous devez entrer une région pour votre session !"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

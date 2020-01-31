@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
@@ -3472,11 +3472,11 @@ msgstr "ملحق"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "ملحق إدخال الحركة"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "ملحق محاكاة الحركة"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5843,6 +5843,10 @@ msgstr "لا قيمة مقيمة"
 msgid "No description available"
 msgstr "لا يوجد وصف متاح"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "لم يتم تحديد ملحق"
@@ -7773,7 +7777,7 @@ msgstr "تخطي القائمة الرئيسية"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "تخطي تقديم إطارات مكررة"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7785,6 +7789,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
+"This may improve performance on low-end devices, while making frame pacing "
+"less consistent.\n"
+"\n"
+"Disable this option as well as enabling V-Sync for optimal frame pacing.\n"
+"\n"
+"إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7815,7 +7826,7 @@ msgstr "Software Renderer"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "لا يمكن قراءة بعض البيانات."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9557,6 +9568,9 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"تحذير: تم تصميم أدوات التحكم هذه بحيث تتفاعل مباشرة مع أجهزة استشعار الحركة. "
+"وهي غير مخصصة لتعيين الأزرار أو المشغلات أو المحاور التقليدية. قد تحتاج إلى "
+"تكوين مصادر إدخال بديلة قبل استخدام عناصر التحكم هذه."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9933,7 +9947,7 @@ msgstr "يجب تقديم اسم لجلستك!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "يجب عليك توفير منطقة لجلستك!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

@@ -19,7 +19,7 @@
 # Guilherme Dias, 2017-2018
 # Guilherme Dias, 2018-2020
 # Runo <i.am.runo@gmail.com>, 2013
-# igorruckert <igorruckert@yahoo.com.br>, 2015-2019
+# igorruckert <igorruckert@yahoo.com.br>, 2015-2020
 # JohnCorsi <jjcorsif@hotmail.com>, 2018
 # JohnCorsi <jjcorsif@hotmail.com>, 2018
 # Laete Meireles <laetemn@hotmail.com>, 2016-2017
@@ -39,8 +39,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
@@ -3518,11 +3518,11 @@ msgstr "Acessório"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "Extensão de Entrada de Movimento"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "Extensão de Simulação de Movimento"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5908,6 +5908,10 @@ msgstr "Nenhum valor fornecido"
 msgid "No description available"
 msgstr "Nenhuma descrição disponível"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "Nenhuma extensão selecionada."
@@ -7846,7 +7850,7 @@ msgstr "Pular menu principal"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "Ignorar Apresentar Frames Duplicados"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7858,6 +7862,14 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Ignora a apresentação de frames duplicados (cópias XPB) em jogos de "
+"25fps/30fps. Isto pode melhorar o desempenho em dispositivos mais fracos, "
+"enquanto torna o ritmo do quadro menos consistente.\n"
+"\n"
+"Desabilite esta opção, bem como habilite V-Sync para um ritmo de frames "
+"ideal.\n"
+"\n"
+"Se não tiver certeza, deixe marcado."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7888,7 +7900,7 @@ msgstr "Renderizador de software"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "Alguns dos dados não puderam ser lidos."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9660,6 +9672,10 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"AVISO: Estes controles foram projetados para interagir diretamente com o "
+"hardware do sensor de movimento. Eles não se destinam ao mapeamento de "
+"botões, gatilhos ou eixos tradicionais. Pode ser necessário configurar "
+"fontes de entrada alternativas antes de usar estes controles."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -10042,7 +10058,7 @@ msgstr "Você deve fornecer um nome para sua sessão!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "Você precisa fornecer uma região para a sua sessão!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."

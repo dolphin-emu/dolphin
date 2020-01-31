@@ -16,8 +16,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -77,7 +77,7 @@ msgstr "(ディスク %1)"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:252
 msgid "! Not"
-msgstr ""
+msgstr "! Not（否定）"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:191
 #, c-format
@@ -106,7 +106,7 @@ msgstr "%"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:255
 msgid "% Modulo"
-msgstr ""
+msgstr "% Modulo（剰余）"
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:59
 msgid ""
@@ -187,11 +187,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:882
 msgid "%1 has joined"
-msgstr ""
+msgstr "%1 が入室しました"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:887
 msgid "%1 has left"
-msgstr ""
+msgstr "%1 が退室しました"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1008
 msgid "%1 is now golfing"
@@ -266,7 +266,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:260
 msgid "& And"
-msgstr ""
+msgstr "& And（論理積）"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:577
 msgid "&About"
@@ -315,7 +315,7 @@ msgstr "開く...(&B)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:560
 msgid "&Bug Tracker"
-msgstr ""
+msgstr "バグトラッカー(&B)"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:102
 msgid "&Cancel"
@@ -566,11 +566,11 @@ msgstr "(ppc)"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:253
 msgid "* Multiply"
-msgstr ""
+msgstr "* Multiply（乗算）"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:256
 msgid "+ Add"
-msgstr ""
+msgstr "+ Add（加算）"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:266
 msgid ", Comma"
@@ -578,7 +578,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:257
 msgid "- Subtract"
-msgstr ""
+msgstr "- Subtract（減算）"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:177
 msgid "--> %1"
@@ -591,7 +591,7 @@ msgstr "..."
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:254
 msgid "/ Divide"
-msgstr ""
+msgstr "/ Divide（除算）"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:110
 msgid "16-bit"
@@ -688,7 +688,7 @@ msgstr "8x Native (5120x4224) for 5K"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:259
 msgid "< Less-than"
-msgstr ""
+msgstr "< Less-than（より小さい）"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:89
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:104
@@ -710,7 +710,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:258
 msgid "> Greater-than"
-msgstr ""
+msgstr "> Greater-than（より大きい）"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1290
 #: Source/Core/DolphinQt/MainWindow.cpp:1361
@@ -1026,7 +1026,7 @@ msgstr "アフリカ"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:292
 msgid "All Files (*)"
-msgstr ""
+msgstr "すべてのファイル (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:669
 msgid ""
@@ -1095,7 +1095,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
-msgstr ""
+msgstr "他の入力方法を使う"
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1460,7 +1460,7 @@ msgstr "下"
 #. i18n: "Branch" means the version control term, not a literal tree branch.
 #: Source/Core/DolphinQt/AboutDialog.cpp:53
 msgid "Branch: %1"
-msgstr ""
+msgstr "Branch: %1"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -1545,7 +1545,7 @@ msgstr "CP register "
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:56
 msgid "CPU Emulation Engine:"
-msgstr ""
+msgstr "CPUエミュレーション方式"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:50
 msgid "CPU Options"
@@ -1799,7 +1799,7 @@ msgstr "コメント"
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
 msgid "Common"
-msgstr ""
+msgstr "全般"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:125
 msgid "Compile Shaders Before Starting"
@@ -2289,7 +2289,7 @@ msgstr "DSP LLE Recompiler"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:32
 msgid "DSU Client"
-msgstr ""
+msgstr "DSU Client"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:40
 msgid ""
@@ -2298,6 +2298,10 @@ msgid ""
 "setup instructions, <a href=\"https://wiki.dolphin-emu.org/index.php?"
 "title=DSU_Client\">refer to this page</a>."
 msgstr ""
+"PlaystationやNintendo Switch、Steamコントローラーなど、互換性のある入力デバイ"
+"スからボタン入力やモーションデータを取得して使用します。<br><br>詳しいセット"
+"アップ方法については <a href=\"https://wiki.dolphin-emu.org/index.php?"
+"title=DSU_Client\">こちらのページを参照してください</a>"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
 msgid "Dance Mat"
@@ -2353,7 +2357,7 @@ msgstr "Decimal"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:99
 msgid "Decoding Quality:"
-msgstr ""
+msgstr "デコード精度"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:310
 msgid "Decompress ISO..."
@@ -4142,7 +4146,7 @@ msgstr "Function calls"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:270
 msgid "Functions"
-msgstr ""
+msgstr "制御構造"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
 msgid "GBA"
@@ -5021,19 +5025,19 @@ msgstr "レイテンシ："
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:431
 msgid "Latency: ~10ms"
-msgstr ""
+msgstr "遅延： ~10ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:433
 msgid "Latency: ~20ms"
-msgstr ""
+msgstr "遅延： ~20ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:437
 msgid "Latency: ~40ms"
-msgstr ""
+msgstr "遅延： ~40ms"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:435
 msgid "Latency: ~80ms"
-msgstr ""
+msgstr "遅延： ~80ms"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:34
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:37
@@ -5772,6 +5776,10 @@ msgstr "No Value Given"
 msgid "No description available"
 msgstr "説明なし"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "拡張コントローラが選択されていません"
@@ -6008,7 +6016,7 @@ msgstr "OpenGL ES"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:248
 msgid "Operators"
-msgstr ""
+msgstr "演算子"
 
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:81
 #: Source/Core/Core/HW/GCPadEmu.cpp:103
@@ -6403,6 +6411,8 @@ msgstr "Quality of Service (QoS) が有効になっています"
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:107
 msgid "Quality of the DPLII decoder. Audio latency increases with quality."
 msgstr ""
+"Dolby Pro Logic II デコーダの精度を調整します。精度を高めると遅延も大きくなり"
+"ます。"
 
 #: Source/Core/Common/MsgHandler.cpp:90
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:419
@@ -7753,7 +7763,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:105
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:246
 msgid "Sort Alphabetically"
-msgstr ""
+msgstr "アルファベット順で並べ替え"
 
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "South America"
@@ -7990,7 +8000,7 @@ msgstr "完了"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:181
 msgid "Success."
-msgstr ""
+msgstr "完了"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:388
 msgid "Successfully added to the NetPlay index"
@@ -9216,7 +9226,7 @@ msgstr "フルスクリーンで表示"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:93
 msgid "Use Lossless Codec (FFV1)"
-msgstr ""
+msgstr "Use Lossless Codec (FFV1)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:108
 msgid "Use PAL60 Mode (EuRGB60)"
@@ -9784,7 +9794,7 @@ msgstr "Zero code unknown to Dolphin: %08x"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:261
 msgid "^ Xor"
-msgstr ""
+msgstr "^ Xor（排他的論理和）"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "auto"
@@ -9843,7 +9853,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:263
 msgid "| Or"
-msgstr ""
+msgstr "| Or（論理和）"
 
 #. i18n: This message uses curly quotes in English. If you want to use curly quotes
 #. in your translation, please use the type of curly quotes that's appropriate for

@@ -3,7 +3,7 @@
 # This file is distributed under the same license as the Dolphin Emulator package.
 #
 # Translators:
-# Siegfried, 2013-2019
+# Siegfried, 2013-2020
 # its take <bexco2010@gmail.com>, 2016
 # its take <bexco2010@gmail.com>, 2015
 # Siegfried, 2011
@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-01-26 14:17+0100\n"
-"PO-Revision-Date: 2020-01-26 13:17+0000\n"
+"POT-Creation-Date: 2020-01-31 23:44+0100\n"
+"PO-Revision-Date: 2020-01-31 22:44+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -3464,11 +3464,11 @@ msgstr "확장"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "확장 모션 입력"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "확장 모션 시뮬레이션"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
 msgid "External"
@@ -5827,6 +5827,10 @@ msgstr "주어진 값 없음"
 msgid "No description available"
 msgstr "적합한 상세 설명 없음"
 
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:600
+msgid "No errors."
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:92
 msgid "No extension selected."
 msgstr "선택된 확장이 없습니다."
@@ -7753,7 +7757,7 @@ msgstr "메인 메뉴 스킵"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Skip Presenting Duplicate Frames"
-msgstr ""
+msgstr "반복 프레임들 제출 스킵"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
 msgid ""
@@ -7765,6 +7769,13 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"25fps/30fps 게임들에서 반복 프레임들 (XFB 복사들) 제출을 스킵합니다. 이것은 "
+"로-엔드 장비상에서 성능을 향상 시킬지도 모릅니다, 반면 프레임 패이싱은 덜 안"
+"정적이게 됩니다.\n"
+"\n"
+"최적 프레임 패이싱을 위해서는 수직-동기를 키고 이 옵션은 끄세요.\n"
+"\n"
+"잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:97
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7795,7 +7806,7 @@ msgstr "소프트웨어 렌더러"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1268
 msgid "Some of the data could not be read."
-msgstr ""
+msgstr "데이터의 일부가 읽혀지지 않았습니다."
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:1015
 msgid ""
@@ -9537,6 +9548,9 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"경고: 이 컨트롤들은 모션 센서 하드웨어와 직접 접속하도록 디자인되어있습니다. "
+"그것들은 전통적 버튼, 트리거, 축들을 맵핑하도록 의도되어있지 않습니다. 이들 "
+"컨트롤들을 사용하기 전에 대체 입력 소스를 설정할 필요가 있을 것 같습니다."
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9910,7 +9924,7 @@ msgstr "당신의 세션을 위한 이름을 제공해야만 합니다!"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:343
 msgid "You must provide a region for your session!"
-msgstr ""
+msgstr "당신의 세션을 위한 지역을 제공해야만 합니다!"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:274
 msgid "You must restart Dolphin in order for the change to take effect."
