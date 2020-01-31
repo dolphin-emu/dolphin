@@ -524,6 +524,13 @@ void HotkeyScheduler::Run()
     // Freelook
     static float fl_speed = 1.0;
 
+    if (IsHotkey(HK_FREELOOK_TOGGLE))
+    {
+      const bool new_value = !Config::Get(Config::GFX_FREE_LOOK);
+      Config::SetCurrent(Config::GFX_FREE_LOOK, new_value);
+      OSD::AddMessage(StringFromFormat("Freelook: %s", new_value ? "Enabled" : "Disabled"));
+    }
+
     if (IsHotkey(HK_FREELOOK_DECREASE_SPEED, true))
       fl_speed /= 1.1f;
 
