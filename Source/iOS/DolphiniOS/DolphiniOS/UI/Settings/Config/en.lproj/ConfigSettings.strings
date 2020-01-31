@@ -73,3 +73,36 @@
 
 /* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
 "w8Z-IJ-Fbf.text" = "Enable";
+
+/* Class = "UILabel"; text = "System Language"; ObjectID = "15i-sg-byP"; */
+"15i-sg-byP.text" = "System Language";
+
+/* Class = "UINavigationItem"; title = "GameCube"; ObjectID = "95Z-nw-IkP"; */
+"95Z-nw-IkP.title" = "GameCube";
+
+/* Class = "UILabel"; text = "GameCube"; ObjectID = "B86-pG-KqL"; */
+"B86-pG-KqL.text" = "GameCube";
+
+/* Class = "UILabel"; text = "Skip Main Menu"; ObjectID = "T9q-6x-qwt"; */
+"T9q-6x-qwt.text" = "Skip Main Menu";
+
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "xFX-NZ-sg9"; */
+"xFX-NZ-sg9.title" = "System Language";
+
+/* Class = "UILabel"; text = "English"; ObjectID = "zek-wt-iwk"; */
+"zek-wt-iwk.text" = "English";
+
+/* Class = "UILabel"; text = "German"; ObjectID = "6hU-jR-80J"; */
+"6hU-jR-80J.text" = "German";
+
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "Ac5-y8-3WG"; */
+"Ac5-y8-3WG.text" = "Spanish";
+
+/* Class = "UILabel"; text = "Italian"; ObjectID = "UMf-Ls-Y2a"; */
+"UMf-Ls-Y2a.text" = "Italian";
+
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "xuE-0a-y6h"; */
+"xuE-0a-y6h.text" = "Dutch";
+
+/* Class = "UILabel"; text = "French"; ObjectID = "zZn-vO-FBV"; */
+"zZn-vO-FBV.text" = "French";

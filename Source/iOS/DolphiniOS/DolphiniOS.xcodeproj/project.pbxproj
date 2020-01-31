@@ -128,6 +128,8 @@
 		B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */; };
 		B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */; };
 		B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */; };
+		B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */; };
+		B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */; };
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
@@ -338,6 +340,10 @@
 		B9BEADE223AF1A310014617A /* ControllerRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerRootViewController.h; sourceTree = "<group>"; };
 		B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerRootViewController.mm; sourceTree = "<group>"; };
 		B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDeviceMotion.swift; sourceTree = "<group>"; };
+		B9D1E1A923E2B4B6008A6EE2 /* ConfigGameCubeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigGameCubeViewController.h; sourceTree = "<group>"; };
+		B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigGameCubeViewController.mm; sourceTree = "<group>"; };
+		B9D1E1AF23E2B5E0008A6EE2 /* GameCubeLanguageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameCubeLanguageViewController.h; sourceTree = "<group>"; };
+		B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameCubeLanguageViewController.mm; sourceTree = "<group>"; };
 		B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCSidewaysWiiPad.xib; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
 		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "control-patreon.in"; path = "BuildResources/DebFiles/control-patreon.in"; sourceTree = "<group>"; };
@@ -653,6 +659,7 @@
 		B98584C223CEDE3900BE94B0 /* Config */ = {
 			isa = PBXGroup;
 			children = (
+				B9D1E1A823E2B48C008A6EE2 /* GameCube */,
 				B971155E23E13617001C6BD6 /* General */,
 				B98584C823CEDFC400BE94B0 /* Interface */,
 				B971156823E1D353001C6BD6 /* Sound */,
@@ -832,6 +839,17 @@
 				B971155223E0292F001C6BD6 /* InGameSettings.storyboard */,
 			);
 			path = InGame;
+			sourceTree = "<group>";
+		};
+		B9D1E1A823E2B48C008A6EE2 /* GameCube */ = {
+			isa = PBXGroup;
+			children = (
+				B9D1E1A923E2B4B6008A6EE2 /* ConfigGameCubeViewController.h */,
+				B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */,
+				B9D1E1AF23E2B5E0008A6EE2 /* GameCubeLanguageViewController.h */,
+				B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */,
+			);
+			path = GameCube;
 			sourceTree = "<group>";
 		};
 		B9DCAC9823AB42CA002B95C8 /* Deb FIles */ = {
@@ -1209,6 +1227,7 @@
 				B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
+				B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
 				B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */,
 				B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */,
@@ -1219,6 +1238,7 @@
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
 				B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */,
+				B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */,
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
