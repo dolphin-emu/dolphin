@@ -73,3 +73,36 @@
 
 /* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
 "w8Z-IJ-Fbf.text" = "Enable";
+
+/* Class = "UILabel"; text = "システムの言語"; ObjectID = "15i-sg-byP"; */
+"15i-sg-byP.text" = "システムの言語";
+
+/* Class = "UINavigationItem"; title = "ゲームキューブ"; ObjectID = "95Z-nw-IkP"; */
+"95Z-nw-IkP.title" = "ゲームキューブ";
+
+/* Class = "UILabel"; text = "ゲームキューブ"; ObjectID = "B86-pG-KqL"; */
+"B86-pG-KqL.text" = "ゲームキューブ";
+
+/* Class = "UILabel"; text = "メインメニューをスキップ"; ObjectID = "T9q-6x-qwt"; */
+"T9q-6x-qwt.text" = "メインメニューをスキップ";
+
+/* Class = "UINavigationItem"; title = "システムの言語"; ObjectID = "xFX-NZ-sg9"; */
+"xFX-NZ-sg9.title" = "システムの言語";
+
+/* Class = "UILabel"; text = "英語"; ObjectID = "zek-wt-iwk"; */
+"zek-wt-iwk.text" = "英語";
+
+/* Class = "UILabel"; text = "ドイツ語"; ObjectID = "6hU-jR-80J"; */
+"6hU-jR-80J.text" = "ドイツ語";
+
+/* Class = "UILabel"; text = "スペイン語"; ObjectID = "Ac5-y8-3WG"; */
+"Ac5-y8-3WG.text" = "スペイン語";
+
+/* Class = "UILabel"; text = "イタリア語"; ObjectID = "UMf-Ls-Y2a"; */
+"UMf-Ls-Y2a.text" = "イタリア語";
+
+/* Class = "UILabel"; text = "オランダ語"; ObjectID = "xuE-0a-y6h"; */
+"xuE-0a-y6h.text" = "オランダ語";
+
+/* Class = "UILabel"; text = "フランス語"; ObjectID = "zZn-vO-FBV"; */
+"zZn-vO-FBV.text" = "フランス語";
