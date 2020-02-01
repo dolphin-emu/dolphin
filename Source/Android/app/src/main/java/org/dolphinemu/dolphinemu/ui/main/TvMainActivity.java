@@ -59,8 +59,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     {
       StartupHandler.HandleInit(this);
     }
-    // Setup and/or sync channels
-    TvUtil.scheduleSyncingChannel(getApplicationContext());
   }
 
   @Override
