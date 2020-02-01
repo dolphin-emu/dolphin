@@ -181,7 +181,7 @@ struct PadDataResponse
   u64 timestamp_us;
   float accelerometer_x_g;
   float accelerometer_y_g;
-  float accelerometer_z_inverted_g;
+  float accelerometer_z_g;
   float gyro_pitch_deg_s;
   float gyro_yaw_deg_s;
   float gyro_roll_deg_s;
