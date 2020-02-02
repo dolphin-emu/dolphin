@@ -726,12 +726,12 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Motion Source
-  m_imu_accelerometer->SetControlExpression(0, "Accel Left");
-  m_imu_accelerometer->SetControlExpression(1, "Accel Right");
-  m_imu_accelerometer->SetControlExpression(2, "Accel Forward");
-  m_imu_accelerometer->SetControlExpression(3, "Accel Backward");
-  m_imu_accelerometer->SetControlExpression(4, "Accel Up");
-  m_imu_accelerometer->SetControlExpression(5, "Accel Down");
+  m_imu_accelerometer->SetControlExpression(0, "Accel Up");
+  m_imu_accelerometer->SetControlExpression(1, "Accel Down");
+  m_imu_accelerometer->SetControlExpression(2, "Accel Left");
+  m_imu_accelerometer->SetControlExpression(3, "Accel Right");
+  m_imu_accelerometer->SetControlExpression(4, "Accel Forward");
+  m_imu_accelerometer->SetControlExpression(5, "Accel Backward");
   m_imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
   m_imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
   m_imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
