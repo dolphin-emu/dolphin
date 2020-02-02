@@ -41,6 +41,12 @@ enum class GameQuirk
   // already-read data is provided
   USES_DIFFERENT_PARTITION_COMMAND,
 
+  // IOS has implementations for ioctls 0x85 and 0x89 and a stub for 0x87, but
+  // DVDLowMaskCoverInterrupt/DVDLowUnmaskCoverInterrupt/DVDLowUnmaskStatusInterrupts
+  // are all stubbed on the PPC side so they presumably will never be used.
+  // (DVDLowClearCoverInterrupt is used, though)
+  USES_DI_INTERRUPT_MASK_COMMAND,
+
   COUNT,
 };
 

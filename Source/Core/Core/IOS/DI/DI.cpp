@@ -240,22 +240,29 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_DI, "DVDLowGetImmBuf 0x%08x", diimmbuf);
     return WriteIfFits(request, diimmbuf);
   }
-  case DIIoctl::DVDLowUnmaskCoverInterrupt:
-    INFO_LOG(IOS_DI, "DVDLowUnmaskCoverInterrupt");
+  case DIIoctl::DVDLowMaskCoverInterrupt:
+    INFO_LOG(IOS_DI, "DVDLowMaskCoverInterrupt");
     DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, false);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowClearCoverInterrupt:
     DEBUG_LOG(IOS_DI, "DVDLowClearCoverInterrupt");
     DVDInterface::ClearInterrupt(DVDInterface::DIInterruptType::CVRINT);
+    return DIResult::Success;
+  case DIIoctl::DVDLowUnmaskStatusInterrupts:
+    INFO_LOG(IOS_DI, "DVDLowUnmaskStatusInterrupts");
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
+    // Dummied out
     return DIResult::Success;
   case DIIoctl::DVDLowGetCoverStatus:
     // TODO: handle resetting case
     INFO_LOG(IOS_DI, "DVDLowGetCoverStatus: Disc %sInserted",
              DVDInterface::IsDiscInside() ? "" : "Not ");
     return WriteIfFits(request, DVDInterface::IsDiscInside() ? 2 : 1);
-  case DIIoctl::DVDLowEnableCoverInterrupt:
-    INFO_LOG(IOS_DI, "DVDLowEnableCoverInterrupt");
+  case DIIoctl::DVDLowUnmaskCoverInterrupt:
+    INFO_LOG(IOS_DI, "DVDLowUnmaskCoverInterrupt");
     DVDInterface::SetInterruptEnabled(DVDInterface::DIInterruptType::CVRINT, true);
+    DolphinAnalytics::Instance().ReportGameQuirk(GameQuirk::USES_DI_INTERRUPT_MASK_COMMAND);
     return DIResult::Success;
   case DIIoctl::DVDLowReset:
   {
