@@ -35,6 +35,8 @@
   [self.m_mmu_switch setEnabled:!running];
   [self.m_overclock_switch setEnabled:!running];
   
+  [self.m_overclock_slider setValue:static_cast<int>(std::round(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f))];
+  
   [self UpdateOverclockSlider];
 }
 
