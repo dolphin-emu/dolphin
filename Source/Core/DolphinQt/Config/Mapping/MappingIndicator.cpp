@@ -30,6 +30,7 @@
 
 namespace
 {
+const QColor STICK_GATE_COLOR = Qt::lightGray;
 const QColor C_STICK_GATE_COLOR = Qt::yellow;
 const QColor CURSOR_TV_COLOR = 0xaed6f1;
 const QColor TILT_GATE_COLOR = 0xa2d9ce;
@@ -72,7 +73,9 @@ QColor MappingIndicator::GetCenterColor() const
 
 QColor MappingIndicator::GetDeadZoneColor() const
 {
-  return palette().shadow().color();
+  QColor color = GetBBoxBrush().color().valueF() > 0.5 ? Qt::black : Qt::white;
+  color.setAlphaF(0.25);
+  return color;
 }
 
 QPen MappingIndicator::GetDeadZonePen() const
@@ -96,9 +99,10 @@ QColor MappingIndicator::GetAltTextColor() const
   return palette().highlightedText().color();
 }
 
-QColor MappingIndicator::GetGateColor() const
+void MappingIndicator::AdjustGateColor(QColor* color)
 {
-  return palette().mid().color();
+  if (GetBBoxBrush().color().valueF() < 0.5)
+    color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
 }
 
 MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
@@ -211,8 +215,11 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
 {
   const auto center = cursor.GetCenter();
 
-  const QColor tv_brush_color = CURSOR_TV_COLOR;
-  const QColor tv_pen_color = tv_brush_color.darker(125);
+  QColor tv_brush_color = CURSOR_TV_COLOR;
+  QColor tv_pen_color = tv_brush_color.darker(125);
+
+  AdjustGateColor(&tv_brush_color);
+  AdjustGateColor(&tv_pen_color);
 
   const auto raw_coord = cursor.GetState(false);
   const auto adj_coord = cursor.GetState(true);
@@ -294,14 +301,17 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
 
   const auto center = stick.GetCenter();
 
-  QColor gate_brush_color = GetGateColor();
+  QColor gate_brush_color = STICK_GATE_COLOR;
 
   if (is_c_stick)
     gate_brush_color = C_STICK_GATE_COLOR;
   else if (is_tilt)
     gate_brush_color = TILT_GATE_COLOR;
 
-  const QColor gate_pen_color = gate_brush_color.darker(125);
+  QColor gate_pen_color = gate_brush_color.darker(125);
+
+  AdjustGateColor(&gate_brush_color);
+  AdjustGateColor(&gate_pen_color);
 
   const auto raw_coord = stick.GetReshapableState(false);
 
@@ -482,8 +492,11 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
 {
   const auto center = force.GetCenter();
 
-  const QColor gate_brush_color = SWING_GATE_COLOR;
-  const QColor gate_pen_color = gate_brush_color.darker(125);
+  QColor gate_brush_color = SWING_GATE_COLOR;
+  QColor gate_pen_color = gate_brush_color.darker(125);
+
+  AdjustGateColor(&gate_brush_color);
+  AdjustGateColor(&gate_pen_color);
 
   const auto raw_coord = force.GetState(false);
   WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
@@ -677,7 +690,7 @@ void ShakeMappingIndicator::DrawShake()
   p.drawLine(QPointF{grid_line_x, -1.0} * scale, QPointF{grid_line_x, 1.0} * scale);
 
   // Position history.
-  const QColor component_colors[] = {Qt::red, Qt::green, Qt::blue};
+  const QColor component_colors[] = {Qt::blue, Qt::green, Qt::red};
   p.setBrush(Qt::NoBrush);
   for (std::size_t c = 0; c != raw_coord.data.size(); ++c)
   {
