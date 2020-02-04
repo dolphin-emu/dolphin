@@ -989,7 +989,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
     SetRegName(BPMEM_EFB_TL);
     X10Y10 left_top;
     left_top.hex = cmddata;
-    *desc = fmt::format("Left: {}\nTop: {}", left_top.x, left_top.y);
+    *desc = fmt::format("Left: {}\nTop: {}", u32(left_top.x), u32(left_top.y));
   }
   break;
 
@@ -1183,7 +1183,7 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Width: {}\n"
                         "Height: {}\n"
                         "Format: {:x}\n",
-                        texnum, teximg.width + 1, teximg.height + 1, teximg.format);
+                        texnum, u32(teximg.width) + 1, u32(teximg.height) + 1, u32(teximg.format));
   }
   break;
 
@@ -1206,8 +1206,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Even TMEM Width: {}\n"
                         "Even TMEM Height: {}\n"
                         "Cache is manually managed: {}\n",
-                        texnum, teximg.tmem_even, teximg.cache_width, teximg.cache_height,
-                        no_yes[teximg.image_type]);
+                        texnum, u32(teximg.tmem_even), u32(teximg.cache_width),
+                        u32(teximg.cache_height), no_yes[teximg.image_type]);
   }
   break;
 
@@ -1229,7 +1229,8 @@ void GetBPRegInfo(const u8* data, std::string* name, std::string* desc)
                         "Odd TMEM Offset: {:x}\n"
                         "Odd TMEM Width: {}\n"
                         "Odd TMEM Height: {}\n",
-                        texnum, teximg.tmem_odd, teximg.cache_width, teximg.cache_height);
+                        texnum, u32(teximg.tmem_odd), u32(teximg.cache_width),
+                        u32(teximg.cache_height));
   }
   break;
 
