@@ -72,7 +72,9 @@ QColor MappingIndicator::GetCenterColor() const
 
 QColor MappingIndicator::GetDeadZoneColor() const
 {
-  return palette().shadow().color();
+  QColor color = Qt::black;
+  color.setAlphaF(1 / 3.f);
+  return color;
 }
 
 QPen MappingIndicator::GetDeadZonePen() const
