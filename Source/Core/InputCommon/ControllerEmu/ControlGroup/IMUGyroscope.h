@@ -9,6 +9,7 @@
 
 #include "Common/Matrix.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -19,6 +20,13 @@ public:
 
   IMUGyroscope(std::string name, std::string ui_name);
 
+  StateData GetRawState() const;
   std::optional<StateData> GetState() const;
+
+  // Value is in rad/s.
+  ControlState GetDeadzone() const;
+
+private:
+  SettingValue<double> m_deadzone_setting;
 };
 }  // namespace ControllerEmu
