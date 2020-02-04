@@ -12,8 +12,8 @@
 #include <utility>
 #include <variant>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <fmt/time.h>
 
 #ifdef _WIN32
 #include <windows.h>
