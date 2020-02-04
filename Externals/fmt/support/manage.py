@@ -5,6 +5,9 @@
 Usage:
   manage.py release [<branch>]
   manage.py site
+
+For the release command $FMT_TOKEN should contain a GitHub personal access token
+obtained from https://github.com/settings/tokens.
 """
 
 from __future__ import print_function
@@ -142,6 +145,7 @@ def update_site(env):
                 b.data = b.data.replace('std::FILE*', 'std::FILE *')
                 b.data = b.data.replace('unsigned int', 'unsigned')
                 b.data = b.data.replace('operator""_', 'operator"" _')
+                b.data = b.data.replace(', size_t', ', std::size_t')
         # Fix a broken link in index.rst.
         index = os.path.join(target_doc_dir, 'index.rst')
         with rewrite(index) as b:
