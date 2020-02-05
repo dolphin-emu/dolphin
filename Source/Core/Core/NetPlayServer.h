@@ -39,7 +39,8 @@ public:
   void SendChunkedToClients(sf::Packet&& packet, PlayerId skip_pid = 0,
                             const std::string& title = "");
 
-  NetPlayServer(u16 port, bool forward_port, const NetTraversalConfig& traversal_config);
+  NetPlayServer(u16 port, bool forward_port, NetPlayUI* dialog,
+                const NetTraversalConfig& traversal_config);
   ~NetPlayServer();
 
   bool ChangeGame(const std::string& game);
@@ -67,7 +68,6 @@ public:
 
   u16 GetPort() const;
 
-  void SetNetPlayUI(NetPlayUI* dialog);
   std::unordered_set<std::string> GetInterfaceSet() const;
   std::string GetInterfaceHost(const std::string& inter) const;
 
