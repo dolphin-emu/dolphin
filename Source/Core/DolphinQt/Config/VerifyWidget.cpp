@@ -41,6 +41,7 @@ VerifyWidget::VerifyWidget(std::shared_ptr<DiscIO::Volume> volume) : m_volume(st
 void VerifyWidget::CreateWidgets()
 {
   m_problems = new QTableWidget(0, 2, this);
+  m_problems->setTabKeyNavigation(false);
   m_problems->setHorizontalHeaderLabels({tr("Problem"), tr("Severity")});
   m_problems->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
   m_problems->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);

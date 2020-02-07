@@ -73,6 +73,7 @@ void WatchWidget::CreateWidgets()
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
 
   m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(NUM_COLUMNS);

@@ -102,6 +102,7 @@ void GameList::MakeListView()
   m_list = new QTableView(this);
   m_list->setModel(m_list_proxy);
 
+  m_list->setTabKeyNavigation(false);
   m_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_list->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_list->setAlternatingRowColors(true);

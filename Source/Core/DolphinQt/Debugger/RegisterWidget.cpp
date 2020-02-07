@@ -69,6 +69,7 @@ void RegisterWidget::showEvent(QShowEvent* event)
 void RegisterWidget::CreateWidgets()
 {
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
 
   m_table->setColumnCount(9);
 
