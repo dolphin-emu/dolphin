@@ -295,6 +295,8 @@ void IOWindow::CreateMainLayout()
 
   // Options (Buttons, Outputs) and action buttons
 
+  m_option_list->setTabKeyNavigation(false);
+
   if (m_type == Type::Input)
   {
     m_option_list->setColumnCount(2);

@@ -76,6 +76,7 @@ void BreakpointWidget::CreateWidgets()
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
   m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);

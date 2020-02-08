@@ -231,6 +231,7 @@ void NetPlayDialog::CreatePlayersLayout()
   m_kick_button = new QPushButton(tr("Kick Player"));
   m_assign_ports_button = new QPushButton(tr("Assign Controller Ports"));
 
+  m_players_list->setTabKeyNavigation(false);
   m_players_list->setColumnCount(5);
   m_players_list->verticalHeader()->hide();
   m_players_list->setSelectionBehavior(QAbstractItemView::SelectRows);
