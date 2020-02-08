@@ -99,6 +99,10 @@ extern const ConfigInfo<int> GFX_STEREO_CONVERGENCE;
 extern const ConfigInfo<bool> GFX_STEREO_EFB_MONO_DEPTH;
 extern const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE;
 
+// Stereoscopy pseudo-limits for consistent behavior between enhancements tab and hotkeys.
+static constexpr int GFX_STEREO_DEPTH_MAXIMUM = 100;
+static constexpr int GFX_STEREO_CONVERGENCE_MAXIMUM = 200;
+
 // Graphics.Hacks
 
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;
