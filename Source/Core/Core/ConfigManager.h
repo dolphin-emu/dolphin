@@ -105,6 +105,7 @@ struct SConfig
   bool bJITPairedOff = false;
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
+  bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
   bool bFPRF = false;
