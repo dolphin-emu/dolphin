@@ -59,9 +59,10 @@ void WiimoteEmuExtension::CreateClassicLayout()
                      Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::RightStick)),
       0, 2, -1, 1);
   layout->addWidget(
-      CreateGroupBox(tr("Triggers"),
-                     Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)),
-      0, 3, -1, 1);
+      CreateGroupBox(Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Triggers)), 0,
+      3);
+  layout->addWidget(
+      CreateGroupBox(Wiimote::GetClassicGroup(GetPort(), WiimoteEmu::ClassicGroup::Options)), 1, 3);
 
   m_classic_box->setLayout(layout);
 }

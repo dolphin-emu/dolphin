@@ -35,6 +35,11 @@ std::string Extension::GetDisplayName() const
   return m_display_name;
 }
 
+bool Extension::IsResetNeeded() const
+{
+  return false;
+}
+
 None::None() : Extension("None")
 {
 }

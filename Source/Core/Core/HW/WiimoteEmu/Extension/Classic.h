@@ -6,6 +6,7 @@
 
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 #include "Core/HW/WiimoteEmu/Extension/Extension.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -23,7 +24,8 @@ enum class ClassicGroup
   Triggers,
   DPad,
   LeftStick,
-  RightStick
+  RightStick,
+  Options,
 };
 
 class Classic : public Extension1stParty
@@ -86,6 +88,8 @@ public:
   bool IsButtonPressed() const override;
   void Reset() override;
 
+  bool IsResetNeeded() const override;
+
   ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
 
   static constexpr u16 PAD_RIGHT = 0x80;
@@ -123,10 +127,15 @@ public:
   static constexpr u8 TRIGGER_RANGE = 0x1F;
 
 private:
+  bool IsCurrentlyClassicControllerPro() const;
+
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::MixedTriggers* m_triggers;
   ControllerEmu::Buttons* m_dpad;
   ControllerEmu::AnalogStick* m_left_stick;
   ControllerEmu::AnalogStick* m_right_stick;
+  ControllerEmu::ControlGroup* m_options;
+
+  ControllerEmu::SettingValue<bool> m_cc_pro_setting;
 };
 }  // namespace WiimoteEmu

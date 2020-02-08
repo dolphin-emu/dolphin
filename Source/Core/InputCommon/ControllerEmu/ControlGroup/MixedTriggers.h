@@ -16,11 +16,17 @@ class MixedTriggers : public ControlGroup
 public:
   explicit MixedTriggers(const std::string& name);
 
-  void GetState(u16* digital, const u16* bitmasks, ControlState* analog,
-                bool adjusted = true) const;
+  size_t GetTriggerCount() const;
+
+  void GetState(u16* digital, const u16* bitmasks, ControlState* analog) const;
+
+  ControlState GetRawDigitalState(size_t index) const;
+  ControlState GetRawAnalogState(size_t index) const;
 
   ControlState GetDeadzone() const;
   ControlState GetThreshold() const;
+
+  virtual bool IsAnalogEnabled() const;
 
 private:
   SettingValue<double> m_threshold_setting;
