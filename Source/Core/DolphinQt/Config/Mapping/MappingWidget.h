@@ -60,6 +60,4 @@ protected:
 
 private:
   MappingWindow* m_parent;
-  bool m_first = true;
-  std::vector<MappingButton*> m_buttons;
 };
