@@ -121,8 +121,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     const QString translated_name =
         translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
     form_layout->addRow(translated_name, button);
-
-    m_buttons.push_back(button);
   }
 
   for (auto& setting : group->numeric_settings)
