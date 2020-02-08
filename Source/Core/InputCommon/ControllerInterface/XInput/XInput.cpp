@@ -10,6 +10,17 @@
 
 namespace ciface::XInput
 {
+class Battery : public Core::Device::Input
+{
+public:
+  Battery(const ControlState* level) : m_level(*level) {}
+  std::string GetName() const override { return "Battery"; }
+  ControlState GetState() const override { return m_level; }
+
+private:
+  const ControlState& m_level;
+};
+
 static const struct
 {
   const char* const name;
@@ -41,10 +52,12 @@ static HMODULE hXInput = nullptr;
 typedef decltype(&XInputGetCapabilities) XInputGetCapabilities_t;
 typedef decltype(&XInputSetState) XInputSetState_t;
 typedef decltype(&XInputGetState) XInputGetState_t;
+typedef decltype(&XInputGetBatteryInformation) XInputGetBatteryInformation_t;
 
 static XInputGetCapabilities_t PXInputGetCapabilities = nullptr;
 static XInputSetState_t PXInputSetState = nullptr;
 static XInputGetState_t PXInputGetState = nullptr;
+static XInputGetBatteryInformation_t PXInputGetBatteryInformation = nullptr;
 
 static bool haveGuideButton = false;
 
@@ -67,6 +80,8 @@ void Init()
     PXInputGetCapabilities =
         (XInputGetCapabilities_t)::GetProcAddress(hXInput, "XInputGetCapabilities");
     PXInputSetState = (XInputSetState_t)::GetProcAddress(hXInput, "XInputSetState");
+    PXInputGetBatteryInformation =
+        (XInputGetBatteryInformation_t)::GetProcAddress(hXInput, "XInputGetBatteryInformation");
 
     // Ordinal 100 is the same as XInputGetState, except it doesn't dummy out the guide
     // button info. Try loading it and fall back if needed.
@@ -76,7 +91,8 @@ void Init()
     else
       PXInputGetState = (XInputGetState_t)::GetProcAddress(hXInput, "XInputGetState");
 
-    if (!PXInputGetCapabilities || !PXInputSetState || !PXInputGetState)
+    if (!PXInputGetCapabilities || !PXInputSetState || !PXInputGetState ||
+        !PXInputGetBatteryInformation)
     {
       ::FreeLibrary(hXInput);
       hXInput = nullptr;
@@ -142,7 +158,7 @@ Device::Device(const XINPUT_CAPABILITIES& caps, u8 index) : m_subtype(caps.SubTy
     AddOutput(new Motor(i, this, (&m_state_out.wLeftMotorSpeed)[i], 65535));
   }
 
-  ZeroMemory(&m_state_in, sizeof(m_state_in));
+  AddInput(new Battery(&m_battery_level));
 }
 
 std::string Device::GetName() const
@@ -178,6 +194,25 @@ std::string Device::GetSource() const
 void Device::UpdateInput()
 {
   PXInputGetState(m_index, &m_state_in);
+
+  XINPUT_BATTERY_INFORMATION battery_info = {};
+  if (SUCCEEDED(PXInputGetBatteryInformation(m_index, BATTERY_DEVTYPE_GAMEPAD, &battery_info)))
+  {
+    switch (battery_info.BatteryType)
+    {
+    case BATTERY_TYPE_DISCONNECTED:
+    case BATTERY_TYPE_UNKNOWN:
+      m_battery_level = 0;
+      break;
+    case BATTERY_TYPE_WIRED:
+      m_battery_level = BATTERY_INPUT_MAX_VALUE;
+      break;
+    default:
+      m_battery_level =
+          battery_info.BatteryLevel / ControlState(BATTERY_LEVEL_FULL) * BATTERY_INPUT_MAX_VALUE;
+      break;
+    }
+  }
 }
 
 void Device::UpdateMotors()
