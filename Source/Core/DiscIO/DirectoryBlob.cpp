@@ -104,8 +104,7 @@ bool DiscContent::Read(u64* offset, u64* length, u8** buffer) const
     if (std::holds_alternative<std::string>(m_content_source))
     {
       File::IOFile file(std::get<std::string>(m_content_source), "rb");
-      file.Seek(offset_in_content, SEEK_SET);
-      if (!file.ReadBytes(*buffer, bytes_to_read))
+      if (!file.Seek(offset_in_content, SEEK_SET) || !file.ReadBytes(*buffer, bytes_to_read))
         return false;
     }
     else
