@@ -18,10 +18,31 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 
+namespace
+{
+constexpr std::array<u8, 6> GenerateClassicControllerID(bool is_pro_controller)
+{
+  return {{is_pro_controller, 0x00, 0xa4, 0x20, 0x01, 0x01}};
+}
+
+class DisableableMixedTriggers : public ControllerEmu::MixedTriggers
+{
+public:
+  DisableableMixedTriggers(const ControllerEmu::SettingValue<bool>* disable_setting)
+      : MixedTriggers(_trans("Triggers")), m_analog_disabled(*disable_setting)
+  {
+  }
+
+  bool IsAnalogEnabled() const override { return !m_analog_disabled.GetValue(); }
+
+private:
+  const ControllerEmu::SettingValue<bool>& m_analog_disabled;
+};
+
+}  // namespace
+
 namespace WiimoteEmu
 {
-constexpr std::array<u8, 6> classic_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x01}};
-
 constexpr std::array<u16, 9> classic_button_bitmasks{{
     Classic::BUTTON_A,
     Classic::BUTTON_B,
@@ -91,7 +112,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
       m_right_stick = new ControllerEmu::OctagonAnalogStick(_trans("Right Stick"), gate_radius));
 
   // triggers
-  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
+  groups.emplace_back(m_triggers = new DisableableMixedTriggers(&m_cc_pro_setting));
   for (const char* trigger_name : classic_trigger_names)
   {
     m_triggers->controls.emplace_back(
@@ -105,6 +126,12 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
     m_dpad->controls.emplace_back(
         new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
   }
+
+  // options
+  m_options =
+      groups.emplace_back(std::make_unique<ControllerEmu::ControlGroup>(_trans("Options"))).get();
+
+  m_options->AddSetting(&m_cc_pro_setting, {_trans("Classic Controller Pro")}, false);
 }
 
 void Classic::Update()
@@ -136,6 +163,13 @@ void Classic::Update()
   {
     ControlState trigs[2] = {0, 0};
     m_triggers->GetState(&classic_data.bt.hex, classic_trigger_bitmasks.data(), trigs);
+
+    if (IsCurrentlyClassicControllerPro())
+    {
+      // CC Pro trigger values are either 0 OR 31 depending on the trigger button state.
+      trigs[0] = classic_data.bt.lt;
+      trigs[1] = classic_data.bt.rt;
+    }
 
     const u8 lt = static_cast<u8>(trigs[0] * TRIGGER_RANGE);
     const u8 rt = static_cast<u8>(trigs[1] * TRIGGER_RANGE);
@@ -170,7 +204,7 @@ void Classic::Reset()
 {
   EncryptedExtension::Reset();
 
-  m_reg.identifier = classic_id;
+  m_reg.identifier = GenerateClassicControllerID(m_cc_pro_setting.GetValue());
 
   // Build calibration data:
   // All values are to 8 bits of precision.
@@ -202,6 +236,17 @@ void Classic::Reset()
   UpdateCalibrationDataChecksum(m_reg.calibration, CALIBRATION_CHECKSUM_BYTES);
 }
 
+bool Classic::IsResetNeeded() const
+{
+  // If we wish to change the type of controller we are emulating the extension must be reconnected.
+  return IsCurrentlyClassicControllerPro() != m_cc_pro_setting.GetValue();
+}
+
+bool Classic::IsCurrentlyClassicControllerPro() const
+{
+  return m_reg.identifier[0] == 0x01;
+}
+
 ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
 {
   switch (group)
@@ -216,6 +261,8 @@ ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
     return m_left_stick;
   case ClassicGroup::RightStick:
     return m_right_stick;
+  case ClassicGroup::Options:
+    return m_options;
   default:
     assert(false);
     return nullptr;

@@ -200,7 +200,8 @@ void Wiimote::HandleExtensionSwap()
     }
   }
 
-  if (GetActiveExtensionNumber() != desired_extension_number)
+  if (GetActiveExtensionNumber() != desired_extension_number ||
+      GetActiveExtension()->IsResetNeeded())
   {
     // A different extension is wanted (either by user or by the M+ logic above)
     if (GetActiveExtensionNumber() != ExtensionNumber::NONE)

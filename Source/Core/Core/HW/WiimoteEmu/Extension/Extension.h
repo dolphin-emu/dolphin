@@ -36,6 +36,9 @@ public:
   virtual void DoState(PointerWrap& p) = 0;
   virtual void Update() = 0;
 
+  // Wii Remote checks this in case config changes require a re-connection of the extension.
+  virtual bool IsResetNeeded() const;
+
 private:
   const char* const m_config_name;
   const char* const m_display_name;

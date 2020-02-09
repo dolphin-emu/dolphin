@@ -394,13 +394,11 @@ void MappingIndicator::DrawMixedTriggers()
 
   // MixedTriggers interface is a bit ugly:
   constexpr int TRIGGER_COUNT = 2;
-  std::array<ControlState, TRIGGER_COUNT> raw_analog_state;
   std::array<ControlState, TRIGGER_COUNT> adj_analog_state;
   const std::array<u16, TRIGGER_COUNT> button_masks = {0x1, 0x2};
   u16 button_state = 0;
 
-  triggers.GetState(&button_state, button_masks.data(), raw_analog_state.data(), false);
-  triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data(), true);
+  triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data());
 
   // Rectangle sizes:
   const int trigger_height = 32;
@@ -415,39 +413,64 @@ void MappingIndicator::DrawMixedTriggers()
 
   for (int t = 0; t != TRIGGER_COUNT; ++t)
   {
-    const double raw_analog = raw_analog_state[t];
-    const double adj_analog = adj_analog_state[t];
     const bool trigger_button = button_state & button_masks[t];
-    auto const analog_name = QString::fromStdString(triggers.controls[TRIGGER_COUNT + t]->ui_name);
-    auto const button_name = QString::fromStdString(triggers.controls[t]->ui_name);
 
-    const QRectF trigger_rect(0, 0, trigger_width, trigger_height);
+    auto const analog_name = QString::fromStdString(triggers.controls[TRIGGER_COUNT + t]->ui_name);
 
     const QRectF analog_rect(0, 0, trigger_analog_width, trigger_height);
 
-    // Unactivated analog text:
-    p.setPen(GetTextColor());
-    p.drawText(analog_rect, Qt::AlignCenter, analog_name);
+    if (triggers.IsAnalogEnabled())
+    {
+      // Unactivated analog text:
+      p.setPen(GetTextColor());
+      p.drawText(analog_rect, Qt::AlignCenter, analog_name);
 
-    const QRectF adj_analog_rect(0, 0, adj_analog * trigger_analog_width, trigger_height);
+      p.setPen(Qt::NoPen);
 
-    // Trigger analog:
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetRawInputColor());
-    p.drawEllipse(QPoint(raw_analog * trigger_analog_width, trigger_height - INPUT_DOT_RADIUS),
-                  INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+      // Trigger analog raw value:
+      if (const double raw_analog = triggers.GetRawAnalogState(t); raw_analog < deadzone)
+      {
+        p.setBrush(GetRawInputColor());
+        p.drawEllipse(QPoint(raw_analog * trigger_analog_width, trigger_height - INPUT_DOT_RADIUS),
+                      INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+      }
+    }
+    else
+    {
+      adj_analog_state[t] = trigger_button;
+    }
+
+    const QRectF adj_analog_rect(0, 0, adj_analog_state[t] * trigger_analog_width, trigger_height);
+
+    // Trigger analog adjusted value:
     p.setBrush(GetAdjustedInputColor());
     p.drawRect(adj_analog_rect);
 
-    // Deadzone:
-    p.setPen(GetDeadZonePen());
-    p.setBrush(GetDeadZoneBrush());
-    p.drawRect(0, 0, trigger_analog_width * deadzone, trigger_height);
+    if (triggers.IsAnalogEnabled())
+    {
+      // Deadzone:
+      p.setPen(GetDeadZonePen());
+      p.setBrush(GetDeadZoneBrush());
+      p.drawRect(0, 0, trigger_analog_width * deadzone, trigger_height);
+
+      // Activated analog text:
+      p.setPen(GetAltTextColor());
+      p.setClipping(true);
+      p.setClipRect(adj_analog_rect);
+      p.drawText(analog_rect, Qt::AlignCenter, analog_name);
+      p.setClipping(false);
+    }
 
     // Threshold setting:
     const int threshold_x = trigger_analog_width * threshold;
     p.setPen(GetInputShapePen());
     p.drawLine(threshold_x, 0, threshold_x, trigger_height);
+
+    // Raw digital state
+    p.setPen(Qt::NoPen);
+    p.setBrush(GetRawInputColor());
+    p.drawEllipse(QPoint(triggers.GetRawDigitalState(t) * trigger_analog_width, INPUT_DOT_RADIUS),
+                  INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
     const QRectF button_rect(trigger_analog_width, 0, trigger_button_width, trigger_height);
 
@@ -459,19 +482,13 @@ void MappingIndicator::DrawMixedTriggers()
     // Bounding box outline:
     p.setPen(GetBBoxPen());
     p.setBrush(Qt::NoBrush);
-    p.drawRect(trigger_rect);
+    p.drawRect(QRectF(0, 0, trigger_width, trigger_height));
 
     // Button text:
     p.setPen(GetTextColor());
     p.setPen(trigger_button ? GetAltTextColor() : GetTextColor());
+    auto const button_name = QString::fromStdString(triggers.controls[t]->ui_name);
     p.drawText(button_rect, Qt::AlignCenter, button_name);
-
-    // Activated analog text:
-    p.setPen(GetAltTextColor());
-    p.setClipping(true);
-    p.setClipRect(adj_analog_rect);
-    p.drawText(analog_rect, Qt::AlignCenter, analog_name);
-    p.setClipping(false);
 
     // Move down for next trigger:
     p.translate(0.0, trigger_height);
