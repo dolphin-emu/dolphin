@@ -31,14 +31,14 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
+  CreateWidgets();
+
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
   // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
-
-  CreateWidgets();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
     UpdateButtonsEnabled();

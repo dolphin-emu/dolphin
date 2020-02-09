@@ -32,6 +32,8 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
+  CreateWidgets();
+
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("watchwidget/geometry")).toByteArray());
@@ -39,7 +41,6 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
   // according to Settings
   setFloating(settings.value(QStringLiteral("watchwidget/floating")).toBool());
 
-  CreateWidgets();
   ConnectWidgets();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
