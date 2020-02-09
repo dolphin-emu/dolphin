@@ -10,8 +10,6 @@
 
 namespace ciface::ExpressionParser
 {
-constexpr ControlState CONDITION_THRESHOLD = 0.5;
-
 using Clock = std::chrono::steady_clock;
 using FSec = std::chrono::duration<ControlState>;
 

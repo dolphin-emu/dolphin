@@ -35,19 +35,19 @@ void ModifySettingsButton::GetState()
 {
   for (size_t i = 0; i < controls.size(); ++i)
   {
-    ControlState state = controls[i]->control_ref->State();
+    const bool state = controls[i]->control_ref->GetState<bool>();
 
     if (!associated_settings_toggle[i])
     {
       // not toggled
-      associated_settings[i] = state > ACTIVATION_THRESHOLD;
+      associated_settings[i] = state;
     }
     else
     {
       // toggle (loading savestates does not en-/disable toggle)
       // after we passed the threshold, we en-/disable. but after that, we don't change it
       // anymore
-      if (!threshold_exceeded[i] && state > ACTIVATION_THRESHOLD)
+      if (!threshold_exceeded[i] && state)
       {
         associated_settings[i] = !associated_settings[i];
 
@@ -59,7 +59,7 @@ void ModifySettingsButton::GetState()
         threshold_exceeded[i] = true;
       }
 
-      if (state < ACTIVATION_THRESHOLD)
+      if (!state)
         threshold_exceeded[i] = false;
     }
   }
