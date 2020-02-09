@@ -433,7 +433,7 @@ std::string UTF16ToCP(u32 code_page, std::wstring_view input)
   {
     // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
     auto const size = WideCharToMultiByte(
-        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, false);
+        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
 
     output.resize(size);
 
