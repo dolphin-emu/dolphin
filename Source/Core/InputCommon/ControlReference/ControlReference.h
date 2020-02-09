@@ -4,10 +4,10 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControlReference/FunctionExpression.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // ControlReference
@@ -52,11 +52,18 @@ protected:
 template <>
 inline bool ControlReference::GetState<bool>()
 {
-  return State() > ciface::ExpressionParser::CONDITION_THRESHOLD;
+  // Round to nearest of 0 or 1.
+  return std::lround(State()) > 0;
 }
 
-template <typename T>
-T ControlReference::GetState()
+template <>
+inline int ControlReference::GetState<int>()
+{
+  return std::lround(State());
+}
+
+template <>
+inline ControlState ControlReference::GetState<ControlState>()
 {
   return State();
 }

@@ -34,14 +34,14 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
 
 AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->GetState() - controls[1]->GetState();
+  const ControlState x = controls[3]->GetState() - controls[2]->GetState();
 
   // Return raw values. (used in UI)
   if (!adjusted)
     return {x, y};
 
-  const ControlState modifier = controls[4]->control_ref->State();
+  const ControlState modifier = controls[4]->GetState();
 
   return Reshape(x, y, modifier);
 }

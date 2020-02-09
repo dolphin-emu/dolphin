@@ -261,5 +261,5 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 bool GCPad::GetMicButton() const
 {
   const auto lock = GetStateLock();
-  return (0.0f != m_mic->controls.back()->control_ref->State());
+  return m_mic->controls.back()->GetState<bool>();
 }

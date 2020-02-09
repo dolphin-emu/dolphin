@@ -67,8 +67,8 @@ Cursor::Cursor(std::string name, std::string ui_name)
 
 Cursor::ReshapeData Cursor::GetReshapableState(bool adjusted)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->GetState() - controls[1]->GetState();
+  const ControlState x = controls[3]->GetState() - controls[2]->GetState();
 
   // Return raw values. (used in UI)
   if (!adjusted)
@@ -103,10 +103,10 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   const double max_step = STEP_PER_SEC / 1000.0 * ms_since_update;
 
   // Relative input:
-  if (m_relative_setting.GetValue() ^ (controls[6]->control_ref->State() > BUTTON_THRESHOLD))
+  if (m_relative_setting.GetValue() ^ (controls[6]->GetState<bool>()))
   {
     // Recenter:
-    if (controls[5]->control_ref->State() > BUTTON_THRESHOLD)
+    if (controls[5]->GetState<bool>())
     {
       m_state.x = 0.0;
       m_state.y = 0.0;
@@ -143,7 +143,7 @@ Cursor::StateData Cursor::GetState(const bool adjusted)
   m_prev_result = result;
 
   // If auto-hide time is up or hide button is held:
-  if (!m_auto_hide_timer || controls[4]->control_ref->State() > BUTTON_THRESHOLD)
+  if (!m_auto_hide_timer || controls[4]->GetState<bool>())
   {
     result.x = std::numeric_limits<ControlState>::quiet_NaN();
     result.y = 0;
