@@ -70,8 +70,8 @@ struct Rectangle
     return left == r.left && top == r.top && right == r.right && bottom == r.bottom;
   }
 
-  T GetWidth() const { return abs(right - left); }
-  T GetHeight() const { return abs(bottom - top); }
+  T GetWidth() const { return std::abs(right - left); }
+  T GetHeight() const { return std::abs(bottom - top); }
   // If the rectangle is in a coordinate system with a lower-left origin, use
   // this Clamp.
   void ClampLL(T x1, T y1, T x2, T y2)
