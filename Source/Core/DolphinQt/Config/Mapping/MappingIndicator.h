@@ -44,7 +44,7 @@ public:
   QBrush GetDeadZoneBrush() const;
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
-  QColor GetGateColor() const;
+  void AdjustGateColor(QColor*);
 
 protected:
   double GetScale() const;
