@@ -391,27 +391,29 @@ void VolumeVerifier::Start()
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  CheckPartitions();
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
     CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
-  CheckDiscSize();
+  CheckDiscSize(CheckPartitions());
   CheckMisc();
 
   SetUpHashing();
 }
 
-void VolumeVerifier::CheckPartitions()
+std::vector<Partition> VolumeVerifier::CheckPartitions()
 {
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
+    return {};
+
   const std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
   {
-    if (m_volume.GetVolumeType() != Platform::WiiWAD &&
-        !m_volume.GetFileSystem(m_volume.GetGamePartition()))
+    if (!m_volume.GetFileSystem(m_volume.GetGamePartition()))
     {
       AddProblem(Severity::High,
                  Common::GetStringT("The filesystem is invalid or could not be read."));
+      return {};
     }
-    return;
+    return {m_volume.GetGamePartition()};
   }
 
   std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
@@ -484,8 +486,14 @@ void VolumeVerifier::CheckPartitions()
     }
   }
 
+  std::vector<Partition> valid_partitions;
   for (const Partition& partition : partitions)
-    CheckPartition(partition);
+  {
+    if (CheckPartition(partition))
+      valid_partitions.push_back(partition);
+  }
+
+  return valid_partitions;
 }
 
 bool VolumeVerifier::CheckPartition(const Partition& partition)
@@ -720,12 +728,12 @@ bool VolumeVerifier::ShouldBeDualLayer() const
                             std::string_view(m_volume.GetGameID()));
 }
 
-void VolumeVerifier::CheckDiscSize()
+void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
 {
   if (!IsDisc(m_volume.GetVolumeType()))
     return;
 
-  m_biggest_referenced_offset = GetBiggestReferencedOffset();
+  m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
   if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
@@ -781,12 +789,8 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestReferencedOffset() const
+u64 VolumeVerifier::GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const
 {
-  std::vector<Partition> partitions = m_volume.GetPartitions();
-  if (partitions.empty())
-    partitions.emplace_back(m_volume.GetGamePartition());
-
   const u64 disc_header_size = m_volume.GetVolumeType() == Platform::GameCubeDisc ? 0x460 : 0x50000;
   u64 biggest_offset = disc_header_size;
   for (const Partition& partition : partitions)
