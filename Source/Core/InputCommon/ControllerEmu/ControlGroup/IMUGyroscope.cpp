@@ -31,9 +31,9 @@ std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const
     return std::nullopt;
 
   StateData state;
-  state.x = (controls[1]->control_ref->State() - controls[0]->control_ref->State());
-  state.y = (controls[2]->control_ref->State() - controls[3]->control_ref->State());
-  state.z = (controls[4]->control_ref->State() - controls[5]->control_ref->State());
+  state.x = (controls[1]->GetState() - controls[0]->GetState());
+  state.y = (controls[2]->GetState() - controls[3]->GetState());
+  state.z = (controls[4]->GetState() - controls[5]->GetState());
   return state;
 }
 

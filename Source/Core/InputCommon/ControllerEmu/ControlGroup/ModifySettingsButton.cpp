@@ -35,7 +35,7 @@ void ModifySettingsButton::GetState()
 {
   for (size_t i = 0; i < controls.size(); ++i)
   {
-    const bool state = controls[i]->control_ref->GetState<bool>();
+    const bool state = controls[i]->GetState<bool>();
 
     if (!associated_settings_toggle[i])
     {

@@ -330,7 +330,7 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   auto target_yaw = std::clamp(yaw, -max_yaw, max_yaw);
 
   // Handle the "Recenter" button being pressed.
-  if (imu_ir_group->controls[0]->control_ref->GetState<bool>())
+  if (imu_ir_group->controls[0]->GetState<bool>())
   {
     state->recentered_pitch = std::asin((inv_rotation * Common::Vec3{0, 1, 0}).z);
     target_yaw = 0;
