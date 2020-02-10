@@ -158,10 +158,13 @@ class SettingValue
 public:
   ValueType GetValue() const
   {
-    if (IsSimpleValue())
-      return m_value;
-    else
-      return m_input.GetState<ValueType>();
+    // Only update dynamic values when the input gate is enabled.
+    // Otherwise settings will all change to 0 when window focus is lost.
+    // This is very undesirable for things like battery level or attached extension.
+    if (!IsSimpleValue() && ControlReference::GetInputGate())
+      m_value = m_input.GetState<ValueType>();
+
+    return m_value;
   }
 
   bool IsSimpleValue() const { return m_input.GetExpression().empty(); }
@@ -176,7 +179,7 @@ private:
   }
 
   // Values are R/W by both UI and CPU threads.
-  std::atomic<ValueType> m_value = {};
+  mutable std::atomic<ValueType> m_value = {};
 
   // Unfortunately InputReference's state grabbing is non-const requiring mutable here.
   mutable InputReference m_input;
