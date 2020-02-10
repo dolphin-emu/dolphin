@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cassert>
 #include <memory>
+#include <string_view>
 
 #include <fmt/format.h>
 
@@ -62,7 +63,7 @@ static const u16 dpad_bitmasks[] = {Wiimote::PAD_UP, Wiimote::PAD_DOWN, Wiimote:
 static const u16 dpad_sideways_bitmasks[] = {Wiimote::PAD_RIGHT, Wiimote::PAD_LEFT, Wiimote::PAD_UP,
                                              Wiimote::PAD_DOWN};
 
-static const char* const named_buttons[] = {
+constexpr std::array<std::string_view, 7> named_buttons{
     "A", "B", "1", "2", "-", "+", "Home",
 };
 
@@ -198,11 +199,11 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 {
   // Buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  for (const char* named_button : named_buttons)
+  for (auto& named_button : named_buttons)
   {
-    const std::string& ui_name = (named_button == std::string("Home")) ? "HOME" : named_button;
-    m_buttons->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::DoNotTranslate, named_button, ui_name));
+    std::string_view ui_name = (named_button == "Home") ? "HOME" : named_button;
+    m_buttons->AddInput(ControllerEmu::DoNotTranslate, std::string(named_button),
+                        std::string(ui_name));
   }
 
   // Pointing (IR)
@@ -233,15 +234,13 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
 
   // Rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(
-      m_motor = new ControllerEmu::Output(ControllerEmu::Translate, _trans("Motor")));
+  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // D-Pad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
 
   // Options
@@ -780,7 +779,7 @@ bool Wiimote::IsUpright() const
 void Wiimote::SetRumble(bool on)
 {
   const auto lock = GetStateLock();
-  m_motor->control_ref->State(on);
+  m_rumble->controls.front()->control_ref->State(on);
 }
 
 void Wiimote::StepDynamics()

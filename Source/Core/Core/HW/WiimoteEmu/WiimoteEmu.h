@@ -253,7 +253,6 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
-  ControllerEmu::Output* m_motor;
   ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;

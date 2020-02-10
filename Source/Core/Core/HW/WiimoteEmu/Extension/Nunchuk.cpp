@@ -37,8 +37,8 @@ Nunchuk::Nunchuk() : Extension1stParty(_trans("Nunchuk"))
 {
   // buttons
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "C"));
-  m_buttons->controls.emplace_back(new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Z"));
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "C");
+  m_buttons->AddInput(ControllerEmu::DoNotTranslate, "Z");
 
   // stick
   constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;

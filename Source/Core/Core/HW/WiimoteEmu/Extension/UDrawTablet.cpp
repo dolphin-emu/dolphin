@@ -37,8 +37,7 @@ UDrawTablet::UDrawTablet() : Extension3rdParty("uDraw", _trans("uDraw GameTablet
   groups.emplace_back(m_buttons = new ControllerEmu::Buttons(_trans("Buttons")));
   for (auto& button_name : udraw_tablet_button_names)
   {
-    m_buttons->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, button_name));
+    m_buttons->AddInput(ControllerEmu::Translate, button_name);
   }
 
   // Stylus
@@ -47,8 +46,7 @@ UDrawTablet::UDrawTablet() : Extension3rdParty("uDraw", _trans("uDraw GameTablet
 
   // Touch
   groups.emplace_back(m_touch = new ControllerEmu::Triggers(_trans("Touch")));
-  m_touch->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Pressure")));
+  m_touch->AddInput(ControllerEmu::Translate, _trans("Pressure"));
 }
 
 void UDrawTablet::Update()
