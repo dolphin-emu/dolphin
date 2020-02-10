@@ -557,10 +557,11 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
       }
     }
 
-    // The loop above ends without breaking for discs that legitimately lack updates.
-    // No such discs have been released to end users. Most such discs are debug signed,
+    // The loop above ends without setting invalid_disc_header for discs that legitimately lack
+    // updates. No such discs have been released to end users. Most such discs are debug signed,
     // but there is apparently at least one that is retail signed, the Movie-Ch Install Disc.
-    return false;
+    if (!invalid_disc_header)
+      return false;
   }
   if (invalid_disc_header)
   {
