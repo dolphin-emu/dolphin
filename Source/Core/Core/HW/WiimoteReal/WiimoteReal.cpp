@@ -9,6 +9,7 @@
 #include <queue>
 #include <unordered_set>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
@@ -24,6 +25,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
@@ -292,6 +294,24 @@ void Wiimote::InterruptDataOutput(const u8* data, const u32 size)
     // Keep only the rumble bit.
     rpt[2] &= 0x1;
   }
+  else if (rpt[1] == u8(OutputReportID::WriteData) &&
+           rpt.size() >= sizeof(OutputReportWriteData) + 2)
+  {
+    OutputReportWriteData write_data = Common::BitCastPtr<OutputReportWriteData>(rpt.data() + 2);
+    if (write_data.space == u8(AddressSpace::I2CBus) &&
+        Common::swap16(write_data.address) == WiimoteEmu::MotionPlus::PASSTHROUGH_MODE_OFFSET)
+    {
+      // TODO: check activation value.
+      INFO_LOG_FMT(WIIMOTE, "Noticed M+ activation signal.");
+
+      // Request two status reports.
+      Report status_report = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+      WriteReport(status_report);
+      WriteReport(std::move(status_report));
+
+      m_is_performing_mplus_detection_fix = true;
+    }
+  }
 
   WriteReport(std::move(rpt));
 }
@@ -486,10 +506,24 @@ void Wiimote::Update(const WiimoteEmu::DesiredWiimoteState& target_state)
   const bool repeat_reports_to_maintain_200hz =
       Config::Get(Config::MAIN_REAL_WII_REMOTE_REPEAT_REPORTS);
 
-  const Report& rpt = ProcessReadQueue(repeat_reports_to_maintain_200hz);
+  Report& rpt = ProcessReadQueue(repeat_reports_to_maintain_200hz);
 
   if (rpt.empty())
     return;
+
+  if (m_is_performing_mplus_detection_fix && InputReportID(rpt[1]) == InputReportID::Status)
+  {
+    m_is_performing_mplus_detection_fix = false;
+
+    InputReportStatus status = Common::BitCastPtr<InputReportStatus>(rpt.data() + 2);
+
+    const bool was_needed = status.extension;
+    status.extension = 0;
+
+    Common::BitCastPtr<InputReportStatus>(rpt.data() + 2) = status;
+
+    INFO_LOG_FMT(WIIMOTE, "Performed M+ detection fix: {}", was_needed);
+  }
 
   InterruptCallback(rpt.front(), rpt.data() + REPORT_HID_HEADER_SIZE,
                     u32(rpt.size() - REPORT_HID_HEADER_SIZE));
