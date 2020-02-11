@@ -50,7 +50,7 @@ public:
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp), partition))
-      return {};
+      return std::nullopt;
     return Common::FromBigEndian(temp);
   }
   std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const

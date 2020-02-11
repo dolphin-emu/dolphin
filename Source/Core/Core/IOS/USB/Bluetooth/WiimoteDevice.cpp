@@ -211,7 +211,7 @@ void WiimoteDevice::Activate(bool ready)
 
 void WiimoteDevice::EventConnectionAccepted()
 {
-  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", m_connection_state);
+  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", int(m_connection_state));
   m_connection_state = ConnectionState::Linking;
 }
 

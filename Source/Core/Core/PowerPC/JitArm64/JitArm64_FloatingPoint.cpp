@@ -35,7 +35,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   bool inputs_are_singles = fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
                             (!use_c || fpr.IsSingle(c, !packed));
 
-  ARM64Reg VA, VB, VC, VD;
+  ARM64Reg VA{}, VB{}, VC{}, VD{};
 
   if (packed)
   {

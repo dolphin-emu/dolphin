@@ -723,13 +723,7 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  const auto angle = std::acos(state.Normalized().Dot({0, 0, 1}));
-  const auto axis = state.Normalized().Cross({0, 0, 1}).Normalized();
-
-  // Odd checks to handle case of 0g (draw no sphere) and perfect up/down orientation.
-  const auto rotation = (!state.LengthSquared() || axis.LengthSquared() < 2) ?
-                            Common::Matrix33::Rotate(angle, axis) :
-                            Common::Matrix33::Identity();
+  const auto rotation = WiimoteEmu::GetMatrixFromAcceleration(state);
 
   // Draw sphere.
   p.setPen(Qt::NoPen);
@@ -797,9 +791,9 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   const auto gyro_state = m_gyro_group.GetState();
   const auto angular_velocity = gyro_state.value_or(Common::Vec3{});
 
-  m_state *= Common::Matrix33::RotateX(angular_velocity.x / -INDICATOR_UPDATE_FREQ) *
-             Common::Matrix33::RotateY(angular_velocity.y / INDICATOR_UPDATE_FREQ) *
-             Common::Matrix33::RotateZ(angular_velocity.z / -INDICATOR_UPDATE_FREQ);
+  m_state *= Common::Matrix33::FromQuaternion(angular_velocity.x / -INDICATOR_UPDATE_FREQ / 2,
+                                              angular_velocity.y / INDICATOR_UPDATE_FREQ / 2,
+                                              angular_velocity.z / -INDICATOR_UPDATE_FREQ / 2, 1);
 
   // Reset orientation when stable for a bit:
   constexpr u32 STABLE_RESET_STEPS = INDICATOR_UPDATE_FREQ;

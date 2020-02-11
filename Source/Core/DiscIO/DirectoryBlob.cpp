@@ -375,6 +375,9 @@ DirectoryBlobReader::DirectoryBlobReader(const std::string& game_partition_root,
 
 bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
 {
+  if (offset + length > m_data_size)
+    return false;
+
   // TODO: We don't handle raw access to the encrypted area of Wii discs correctly.
   return (m_is_wii ? m_nonpartition_contents : m_gamecube_pseudopartition.GetContents())
       .Read(offset, length, buffer);
@@ -392,6 +395,9 @@ bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64
 
   auto it = m_partitions.find(partition_offset);
   if (it == m_partitions.end())
+    return false;
+
+  if (offset + size > it->second.GetDataSize())
     return false;
 
   return it->second.GetContents().Read(offset, size, buffer);
@@ -451,7 +457,7 @@ void DirectoryBlobReader::SetWiiRegionData(const std::string& game_partition_roo
     ERROR_LOG(DISCIO, "Couldn't read age ratings from %s", region_bin_path.c_str());
 
   constexpr u64 WII_REGION_DATA_ADDRESS = 0x4E000;
-  constexpr u64 WII_REGION_DATA_SIZE = 0x20;
+  [[maybe_unused]] constexpr u64 WII_REGION_DATA_SIZE = 0x20;
   m_nonpartition_contents.Add(WII_REGION_DATA_ADDRESS, m_wii_region_data);
 }
 

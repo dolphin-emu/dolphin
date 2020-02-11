@@ -16,6 +16,8 @@
 
 #include <gtest/gtest.h>
 
+namespace
+{
 class TestCommonAsmRoutines : public CommonAsmRoutines
 {
 public:
@@ -51,6 +53,7 @@ public:
   u64 (*wrapped_frsqrte)(u64, UReg_FPSCR&);
   Jit64 jit;
 };
+}  // namespace
 
 TEST(Jit64, Frsqrte)
 {

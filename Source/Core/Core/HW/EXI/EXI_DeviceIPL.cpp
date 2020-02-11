@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/DVD/DVDInterface.h"
 
 #include <cstring>
 #include <string>
@@ -42,6 +43,8 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                       "(C) 1999 ArtX Inc.  All rights reserved.";
+
+Common::Flags<RTCFlag> g_rtc_flags;
 
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
@@ -149,6 +152,7 @@ CEXIIPL::~CEXIIPL()
 void CEXIIPL::DoState(PointerWrap& p)
 {
   p.Do(g_SRAM.rtc);
+  p.Do(g_rtc_flags);
   p.Do(m_command);
   p.Do(m_command_bytes_received);
   p.Do(m_cursor);
@@ -361,10 +365,12 @@ void CEXIIPL::TransferByte(u8& data)
         break;
       }
     }
-    else if (IN_RANGE(WII_RTC))
+    else if (IN_RANGE(WII_RTC) && DEV_ADDR(WII_RTC) == 0x20)
     {
-      // Wii only RTC flags... afaik only the Wii Menu initializes it
-      // Seems to be 4bytes at dev_addr 0x20
+      if (m_command.is_write())
+        g_rtc_flags.m_hex = data;
+      else
+        data = g_rtc_flags.m_hex;
     }
     else if (IN_RANGE(EUART))
     {

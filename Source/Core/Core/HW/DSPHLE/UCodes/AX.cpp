@@ -279,21 +279,6 @@ void AXUCode::HandleCommandList()
   }
 }
 
-void AXUCode::ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates)
-{
-  u32 start_idx = 0;
-  for (int i = 0; i < curr_ms; ++i)
-    start_idx += num_updates[i];
-
-  for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
-  {
-    u16 update_off = Common::swap16(updates[2 * i]);
-    u16 update_val = Common::swap16(updates[2 * i + 1]);
-
-    pb[update_off] = update_val;
-  }
-}
-
 AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
 {
   u32 ret = 0;
@@ -428,7 +413,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 {
   // Samples per millisecond. In theory DSP sampling rate can be changed from
   // 32KHz to 48KHz, but AX always process at 32KHz.
-  const u32 spms = 32;
+  constexpr u32 spms = 32;
 
   AXPB pb;
 
@@ -445,7 +430,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
-      ApplyUpdatesForMs(curr_ms, (u16*)&pb, pb.updates.num_updates, updates);
+      ApplyUpdatesForMs(curr_ms, pb, pb.updates.num_updates, updates);
 
       ProcessVoice(pb, buffers, spms, ConvertMixerControl(pb.mixer_control),
                    m_coeffs_available ? m_coeffs : nullptr);

@@ -595,6 +595,9 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_cursor_state);
   p.Do(m_shake_state);
 
+  // We'll consider the IMU state part of the user's physical controller state and not sync it.
+  // (m_imu_cursor_state)
+
   p.DoMarker("Wiimote");
 }
 

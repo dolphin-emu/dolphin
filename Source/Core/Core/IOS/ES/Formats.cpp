@@ -9,7 +9,6 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <optional>
 #include <string>
@@ -80,11 +79,7 @@ bool operator!=(const Content& lhs, const Content& rhs)
   return !operator==(lhs, rhs);
 }
 
-SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
-{
-}
-
-SignedBlobReader::SignedBlobReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+SignedBlobReader::SignedBlobReader(std::vector<u8> bytes) : m_bytes(std::move(bytes))
 {
 }
 
@@ -93,12 +88,7 @@ const std::vector<u8>& SignedBlobReader::GetBytes() const
   return m_bytes;
 }
 
-void SignedBlobReader::SetBytes(const std::vector<u8>& bytes)
-{
-  m_bytes = bytes;
-}
-
-void SignedBlobReader::SetBytes(std::vector<u8>&& bytes)
+void SignedBlobReader::SetBytes(std::vector<u8> bytes)
 {
   m_bytes = std::move(bytes);
 }
@@ -214,11 +204,7 @@ bool IsValidTMDSize(size_t size)
   return size <= 0x49e4;
 }
 
-TMDReader::TMDReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TMDReader::TMDReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TMDReader::TMDReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 
@@ -314,11 +300,7 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  const bool all_printable = std::all_of(std::begin(game_id), std::end(game_id), [](char c) {
-    return std::isprint(c, std::locale::classic());
-  });
-
-  if (all_printable)
+  if (std::all_of(std::begin(game_id), std::end(game_id), IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
   return fmt::format("{:016x}", GetTitleId());
@@ -329,10 +311,7 @@ std::string TMDReader::GetGameTDBID() const
   const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
   const u8* end = begin + 4;
 
-  const bool all_printable =
-      std::all_of(begin, end, [](char c) { return std::isprint(c, std::locale::classic()); });
-
-  if (all_printable)
+  if (std::all_of(begin, end, IsPrintableCharacter))
     return std::string(begin, end);
 
   return fmt::format("{:016x}", GetTitleId());
@@ -384,11 +363,7 @@ bool TMDReader::FindContentById(u32 id, Content* content) const
   return false;
 }
 
-TicketReader::TicketReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TicketReader::TicketReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TicketReader::TicketReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 

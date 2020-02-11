@@ -9,6 +9,10 @@ if(ENABLE_X11 AND X11_FOUND)
   target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
 endif()
 
+if(WIN32)
+  target_sources(dolphin-nogui PRIVATE PlatformWin32.cpp)
+endif()
+
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
 endif()

@@ -59,7 +59,7 @@ public:
 
     // For encoding detection only.
     const Ch* Peek4() const {
-        return (current_ + 4 <= bufferLast_) ? current_ : 0;
+        return (current_ + 4 - !eof_ <= bufferLast_) ? current_ : 0;
     }
 
 private:
@@ -68,7 +68,7 @@ private:
             ++current_;
         else if (!eof_) {
             count_ += readCount_;
-            readCount_ = fread(buffer_, 1, bufferSize_, fp_);
+            readCount_ = std::fread(buffer_, 1, bufferSize_, fp_);
             bufferLast_ = buffer_ + readCount_ - 1;
             current_ = buffer_;
 

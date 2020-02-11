@@ -166,7 +166,9 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   u32 CurrentGameId = 0;
   if (game_id.length() >= 4 && game_id != "00000000" &&
       SConfig::GetInstance().GetTitleID() != Titles::SYSTEM_MENU)
-    CurrentGameId = BE32((u8*)game_id.c_str());
+  {
+    CurrentGameId = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
+  }
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;
 

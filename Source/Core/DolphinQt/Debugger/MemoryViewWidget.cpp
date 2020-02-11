@@ -14,6 +14,7 @@
 #include <cctype>
 #include <cmath>
 
+#include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/HW/AddressSpace.h"
 #include "Core/PowerPC/BreakPoints.h"
@@ -169,8 +170,8 @@ void MemoryViewWidget::Update()
     case Type::ASCII:
       update_values([&accessors](u32 address) {
         const char value = accessors->ReadU8(address);
-        return std::isprint(value) ? QString{QChar::fromLatin1(value)} :
-                                     QString{QChar::fromLatin1('.')};
+        return IsPrintableCharacter(value) ? QString{QChar::fromLatin1(value)} :
+                                             QString{QChar::fromLatin1('.')};
       });
       break;
     case Type::U16:

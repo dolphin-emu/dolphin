@@ -42,65 +42,90 @@ const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "
 // Clock type used for querying timeframes
 using SteadyClock = std::chrono::steady_clock;
 
-class Device : public Core::Device
+class Device final : public Core::Device
 {
 private:
   template <class T>
-  class Button : public Core::Device::Input
+  class Button final : public Input
   {
   public:
-    Button(std::string name, const T& buttons, unsigned mask)
-        : m_name(std::move(name)), m_buttons(buttons), m_mask(mask)
+    Button(const char* name, const T& buttons, T mask)
+        : m_name(name), m_buttons(buttons), m_mask(mask)
     {
     }
     std::string GetName() const override { return m_name; }
     ControlState GetState() const override { return (m_buttons & m_mask) != 0; }
 
   private:
-    const std::string m_name;
+    const char* const m_name;
     const T& m_buttons;
-    unsigned m_mask;
+    const T m_mask;
   };
 
   template <class T>
-  class AnalogInput : public Core::Device::Input
+  class AnalogInput : public Input
   {
   public:
-    AnalogInput(std::string name, const T& input, ControlState range, ControlState offset = 0)
-        : m_name(std::move(name)), m_input(input), m_range(range), m_offset(offset)
+    AnalogInput(const char* name, const T& input, ControlState range, ControlState offset = 0)
+        : m_name(name), m_input(input), m_range(range), m_offset(offset)
     {
     }
-    std::string GetName() const override { return m_name; }
-    ControlState GetState() const override { return (ControlState(m_input) + m_offset) / m_range; }
+    std::string GetName() const final override { return m_name; }
+    ControlState GetState() const final override
+    {
+      return (ControlState(m_input) + m_offset) / m_range;
+    }
 
   private:
-    const std::string m_name;
+    const char* m_name;
     const T& m_input;
     const ControlState m_range;
     const ControlState m_offset;
   };
 
-  class TouchInput : public AnalogInput<int>
+  class TouchInput final : public AnalogInput<int>
   {
   public:
-    TouchInput(std::string name, const int& input, ControlState range)
-        : AnalogInput(std::move(name), input, range)
-    {
-    }
+    using AnalogInput::AnalogInput;
     bool IsDetectable() override { return false; }
   };
 
-  class AccelerometerInput : public AnalogInput<double>
+  class MotionInput final : public AnalogInput<float>
   {
   public:
-    AccelerometerInput(std::string name, const double& input, ControlState range)
-        : AnalogInput(std::move(name), input, range)
-    {
-    }
+    using AnalogInput::AnalogInput;
     bool IsDetectable() override { return false; }
   };
 
-  using GyroInput = AccelerometerInput;
+  using AccelerometerInput = MotionInput;
+  using GyroInput = MotionInput;
+
+  class BatteryInput final : public Input
+  {
+  public:
+    using BatteryState = Proto::DsBattery;
+
+    BatteryInput(const BatteryState& battery) : m_battery(battery) {}
+
+    std::string GetName() const override { return "Battery"; }
+
+    ControlState GetState() const override
+    {
+      switch (m_battery)
+      {
+      case BatteryState::Charging:
+      case BatteryState::Charged:
+        return BATTERY_INPUT_MAX_VALUE;
+      default:
+        return ControlState(m_battery) / ControlState(BatteryState::Full) * BATTERY_INPUT_MAX_VALUE;
+      }
+    }
+
+    bool IsDetectable() override { return false; }
+
+  private:
+    const BatteryState& m_battery;
+  };
 
 public:
   void UpdateInput() override;
@@ -116,8 +141,6 @@ private:
   const int m_index;
   u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
-  Common::DVec3 m_accel{};
-  Common::DVec3 m_gyro{};
   SteadyClock::time_point m_next_reregister = SteadyClock::time_point::min();
   Proto::MessageType::PadDataResponse m_pad_data{};
   Proto::Touch m_prev_touch{};
@@ -166,7 +189,7 @@ static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, 
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -211,7 +234,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -241,7 +264,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -281,7 +304,7 @@ void Init()
 
 void PopulateDevices()
 {
-  NOTICE_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
   g_controller_interface.RemoveDevice(
       [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
@@ -342,19 +365,25 @@ Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
   AddInput(new TouchInput("Touch Y-", m_touch_y, -TOUCH_Y_AXIS_MAX));
   AddInput(new TouchInput("Touch Y+", m_touch_y, TOUCH_Y_AXIS_MAX));
 
-  AddInput(new AccelerometerInput("Accel Left", m_accel.x, 1));
-  AddInput(new AccelerometerInput("Accel Right", m_accel.x, -1));
-  AddInput(new AccelerometerInput("Accel Backward", m_accel.y, 1));
-  AddInput(new AccelerometerInput("Accel Forward", m_accel.y, -1));
-  AddInput(new AccelerometerInput("Accel Up", m_accel.z, 1));
-  AddInput(new AccelerometerInput("Accel Down", m_accel.z, -1));
+  // Convert Gs to meters per second squared
+  constexpr auto accel_scale = 1.0 / GRAVITY_ACCELERATION;
 
-  AddInput(new GyroInput("Gyro Pitch Up", m_gyro.x, -1));
-  AddInput(new GyroInput("Gyro Pitch Down", m_gyro.x, 1));
-  AddInput(new GyroInput("Gyro Roll Right", m_gyro.y, -1));
-  AddInput(new GyroInput("Gyro Roll Left", m_gyro.y, 1));
-  AddInput(new GyroInput("Gyro Yaw Right", m_gyro.z, -1));
-  AddInput(new GyroInput("Gyro Yaw Left", m_gyro.z, 1));
+  AddInput(new AccelerometerInput("Accel Up", m_pad_data.accelerometer_y_g, -accel_scale));
+  AddInput(new AccelerometerInput("Accel Down", m_pad_data.accelerometer_y_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Left", m_pad_data.accelerometer_x_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Right", m_pad_data.accelerometer_x_g, -accel_scale));
+  AddInput(new AccelerometerInput("Accel Forward", m_pad_data.accelerometer_z_g, accel_scale));
+  AddInput(new AccelerometerInput("Accel Backward", m_pad_data.accelerometer_z_g, -accel_scale));
+
+  // Convert degrees per second to radians per second
+  constexpr auto gyro_scale = 360.0 / MathUtil::TAU;
+
+  AddInput(new GyroInput("Gyro Pitch Up", m_pad_data.gyro_pitch_deg_s, gyro_scale));
+  AddInput(new GyroInput("Gyro Pitch Down", m_pad_data.gyro_pitch_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Roll Left", m_pad_data.gyro_roll_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Roll Right", m_pad_data.gyro_roll_deg_s, gyro_scale));
+  AddInput(new GyroInput("Gyro Yaw Left", m_pad_data.gyro_yaw_deg_s, -gyro_scale));
+  AddInput(new GyroInput("Gyro Yaw Right", m_pad_data.gyro_yaw_deg_s, gyro_scale));
 }
 
 std::string Device::GetName() const
@@ -408,19 +437,6 @@ void Device::UpdateInput()
     if (auto pad_data = msg.CheckAndCastTo<Proto::MessageType::PadDataResponse>())
     {
       m_pad_data = *pad_data;
-
-      m_accel.x = m_pad_data.accelerometer_x_g;
-      m_accel.z = -m_pad_data.accelerometer_y_g;
-      m_accel.y = -m_pad_data.accelerometer_z_inverted_g;
-      m_gyro.x = -m_pad_data.gyro_pitch_deg_s;
-      m_gyro.z = -m_pad_data.gyro_yaw_deg_s;
-      m_gyro.y = -m_pad_data.gyro_roll_deg_s;
-
-      // Convert Gs to meters per second squared
-      m_accel = m_accel * GRAVITY_ACCELERATION;
-
-      // Convert degrees per second to radians per second
-      m_gyro = m_gyro * (MathUtil::TAU / 360);
 
       // Update touch pad relative coordinates
       if (m_pad_data.touch1.id != m_prev_touch.id)

@@ -76,7 +76,7 @@ std::vector<ResourcePack>& GetPacks()
 std::vector<ResourcePack*> GetLowerPriorityPacks(ResourcePack& pack)
 {
   std::vector<ResourcePack*> list;
-  for (auto it = std::find(packs.begin(), packs.end(), pack) + 1; it != packs.end(); it++)
+  for (auto it = std::find(packs.begin(), packs.end(), pack) + 1; it != packs.end(); ++it)
   {
     auto& entry = *it;
     if (!IsInstalled(pack))
@@ -93,7 +93,7 @@ std::vector<ResourcePack*> GetHigherPriorityPacks(ResourcePack& pack)
   std::vector<ResourcePack*> list;
   auto end = std::find(packs.begin(), packs.end(), pack);
 
-  for (auto it = packs.begin(); it != end; it++)
+  for (auto it = packs.begin(); it != end; ++it)
   {
     auto& entry = *it;
     if (!IsInstalled(entry))

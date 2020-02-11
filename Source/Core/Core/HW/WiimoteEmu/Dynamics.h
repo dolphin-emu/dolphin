@@ -39,10 +39,23 @@ struct RotationalState
   Common::Vec3 angular_velocity;
 };
 
+struct IMUCursorState
+{
+  IMUCursorState();
+
+  // Rotation of world around device.
+  Common::Matrix33 rotation;
+
+  float recentered_pitch = {};
+};
+
 // Contains both positional and rotational state.
 struct MotionState : PositionalState, RotationalState
 {
 };
+
+// Estimate orientation from accelerometer data.
+Common::Matrix33 GetMatrixFromAcceleration(const Common::Vec3& accel);
 
 // Build a rotational matrix from euler angles.
 Common::Matrix33 GetRotationalMatrix(const Common::Vec3& angle);
@@ -57,7 +70,7 @@ void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, flo
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
 void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
-void EmulateIMUCursor(std::optional<RotationalState>* state, ControllerEmu::IMUCursor* imu_ir_group,
+void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);
 

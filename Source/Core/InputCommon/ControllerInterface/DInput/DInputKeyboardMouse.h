@@ -6,6 +6,7 @@
 
 #include <windows.h>
 
+#include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -20,10 +21,7 @@ private:
   {
     BYTE keyboard[256];
     DIMOUSESTATE2 mouse;
-    struct
-    {
-      ControlState x, y;
-    } cursor;
+    Common::TVec2<ControlState> cursor;
   };
 
   class Key : public Input

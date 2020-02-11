@@ -367,12 +367,12 @@ void SaveWiimoteSources()
     secname += (char)('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    sec.Set("Source", (int)g_wiimote_sources[i]);
+    sec.Set("Source", int(WiimoteCommon::GetSource(i)));
   }
 
   std::string secname("BalanceBoard");
   IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+  sec.Set("Source", int(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD)));
 
   inifile.Save(ini_filename);
 }
@@ -464,7 +464,7 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  std::stringstream ss;
+  std::ostringstream ss;
   ss << std::fixed << std::setprecision(2);
   ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
   return ss.str();

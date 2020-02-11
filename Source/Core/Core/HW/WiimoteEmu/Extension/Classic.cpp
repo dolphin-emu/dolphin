@@ -84,7 +84,7 @@ Classic::Classic() : Extension1stParty("Classic", _trans("Classic Controller"))
   }
 
   // sticks
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / LEFT_STICK_RADIUS;
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / CAL_STICK_RANGE;
   groups.emplace_back(m_left_stick =
                           new ControllerEmu::OctagonAnalogStick(_trans("Left Stick"), gate_radius));
   groups.emplace_back(
@@ -115,20 +115,16 @@ void Classic::Update()
   {
     const ControllerEmu::AnalogStick::StateData left_stick_state = m_left_stick->GetState();
 
-    classic_data.lx = static_cast<u8>(Classic::LEFT_STICK_CENTER_X +
-                                      (left_stick_state.x * Classic::LEFT_STICK_RADIUS));
-    classic_data.ly = static_cast<u8>(Classic::LEFT_STICK_CENTER_Y +
-                                      (left_stick_state.y * Classic::LEFT_STICK_RADIUS));
+    classic_data.lx = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.x * LEFT_STICK_RADIUS));
+    classic_data.ly = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.y * LEFT_STICK_RADIUS));
   }
 
   // right stick
   {
     const ControllerEmu::AnalogStick::StateData right_stick_data = m_right_stick->GetState();
 
-    const u8 x = static_cast<u8>(Classic::RIGHT_STICK_CENTER_X +
-                                 (right_stick_data.x * Classic::RIGHT_STICK_RADIUS));
-    const u8 y = static_cast<u8>(Classic::RIGHT_STICK_CENTER_Y +
-                                 (right_stick_data.y * Classic::RIGHT_STICK_RADIUS));
+    const u8 x = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.x * RIGHT_STICK_RADIUS));
+    const u8 y = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.y * RIGHT_STICK_RADIUS));
 
     classic_data.rx1 = x;
     classic_data.rx2 = x >> 1;
@@ -141,8 +137,8 @@ void Classic::Update()
     ControlState trigs[2] = {0, 0};
     m_triggers->GetState(&classic_data.bt.hex, classic_trigger_bitmasks.data(), trigs);
 
-    const u8 lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
-    const u8 rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
+    const u8 lt = static_cast<u8>(trigs[0] * TRIGGER_RANGE);
+    const u8 rt = static_cast<u8>(trigs[1] * TRIGGER_RANGE);
 
     classic_data.lt1 = lt;
     classic_data.lt2 = lt >> 3;
@@ -177,26 +173,27 @@ void Classic::Reset()
   m_reg.identifier = classic_id;
 
   // Build calibration data:
+  // All values are to 8 bits of precision.
   m_reg.calibration = {{
       // Left Stick X max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER + STICK_GATE_RADIUS,
+      CAL_STICK_CENTER - STICK_GATE_RADIUS,
       CAL_STICK_CENTER,
       // Left Stick Y max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER + STICK_GATE_RADIUS,
+      CAL_STICK_CENTER - STICK_GATE_RADIUS,
       CAL_STICK_CENTER,
       // Right Stick X max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER + STICK_GATE_RADIUS,
+      CAL_STICK_CENTER - STICK_GATE_RADIUS,
       CAL_STICK_CENTER,
       // Right Stick Y max,min,center:
-      CAL_STICK_CENTER + CAL_STICK_RANGE,
-      CAL_STICK_CENTER - CAL_STICK_RANGE,
+      CAL_STICK_CENTER + STICK_GATE_RADIUS,
+      CAL_STICK_CENTER - STICK_GATE_RADIUS,
       CAL_STICK_CENTER,
-      // Left/Right trigger range: (assumed based on real calibration data values)
-      LEFT_TRIGGER_RANGE,
-      RIGHT_TRIGGER_RANGE,
+      // Left/Right trigger neutrals.
+      0,
+      0,
       // 2 checksum bytes calculated below:
       0x00,
       0x00,

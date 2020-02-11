@@ -26,10 +26,10 @@ class IOFile;
 
 struct RegionSetting
 {
-  const std::string area;
-  const std::string video;
-  const std::string game;
-  const std::string code;
+  std::string area;
+  std::string video;
+  std::string game;
+  std::string code;
 };
 
 class BootExecutableReader;
@@ -104,6 +104,7 @@ public:
 private:
   static bool DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_address,
                       u32 length, const DiscIO::Partition& partition);
+  static bool DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address);
   static void RunFunction(u32 address);
 
   static void UpdateDebugger_MapLoaded();

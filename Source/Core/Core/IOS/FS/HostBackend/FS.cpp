@@ -3,23 +3,26 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <optional>
+#include <string_view>
+#include <type_traits>
+#include <unordered_map>
+
+#include <fmt/format.h>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/HostBackend/FS.h"
 #include "Core/IOS/IOS.h"
 
 namespace IOS::HLE::FS
 {
-static bool IsValidWiiPath(const std::string& path)
-{
-  return path.compare(0, 1, "/") == 0;
-}
-
 std::string HostFileSystem::BuildFilename(const std::string& wii_path) const
 {
   if (wii_path.compare(0, 1, "/") == 0)
@@ -44,12 +47,185 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parent_entry)
   return sizeOfFiles;
 }
 
+namespace
+{
+struct SerializedFstEntry
+{
+  std::string_view GetName() const { return {name.data(), strnlen(name.data(), name.size())}; }
+  void SetName(std::string_view new_name)
+  {
+    std::memcpy(name.data(), new_name.data(), std::min(name.size(), new_name.length()));
+  }
+
+  /// File name
+  std::array<char, 12> name{};
+  /// File owner user ID
+  Common::BigEndianValue<Uid> uid{};
+  /// File owner group ID
+  Common::BigEndianValue<Gid> gid{};
+  /// Is this a file or a directory?
+  bool is_file = false;
+  /// File access modes
+  Modes modes{};
+  /// File attribute
+  FileAttribute attribute{};
+  /// Unknown property
+  Common::BigEndianValue<u32> x3{};
+  /// Number of children
+  Common::BigEndianValue<u32> num_children{};
+};
+static_assert(std::is_standard_layout<SerializedFstEntry>());
+static_assert(sizeof(SerializedFstEntry) == 0x20);
+
+template <typename T>
+auto GetMetadataFields(T& obj)
+{
+  return std::tie(obj.uid, obj.gid, obj.is_file, obj.modes, obj.attribute);
+}
+
+auto GetNamePredicate(const std::string& name)
+{
+  return [&name](const auto& entry) { return entry.name == name; };
+}
+}  // namespace
+
+bool HostFileSystem::FstEntry::CheckPermission(Uid caller_uid, Gid caller_gid,
+                                               Mode requested_mode) const
+{
+  if (caller_uid == 0)
+    return true;
+  Mode file_mode = data.modes.other;
+  if (data.uid == caller_uid)
+    file_mode = data.modes.owner;
+  else if (data.gid == caller_gid)
+    file_mode = data.modes.group;
+  return (u8(requested_mode) & u8(file_mode)) == u8(requested_mode);
+}
+
 HostFileSystem::HostFileSystem(const std::string& root_path) : m_root_path{root_path}
 {
-  Init();
+  File::CreateFullPath(m_root_path + "/");
+  ResetFst();
+  LoadFst();
 }
 
 HostFileSystem::~HostFileSystem() = default;
+
+std::string HostFileSystem::GetFstFilePath() const
+{
+  return fmt::format("{}/fst.bin", m_root_path);
+}
+
+void HostFileSystem::ResetFst()
+{
+  m_root_entry = {};
+  m_root_entry.name = "/";
+  // Mode 0x16 (Directory | Owner_None | Group_Read | Other_Read) in the FS sysmodule
+  m_root_entry.data.modes = {Mode::None, Mode::Read, Mode::Read};
+}
+
+void HostFileSystem::LoadFst()
+{
+  File::IOFile file{GetFstFilePath(), "rb"};
+  // Existing filesystems will not have a FST. This is not a problem,
+  // as the rest of HostFileSystem will use sane defaults.
+  if (!file)
+    return;
+
+  const auto parse_entry = [&file](const auto& parse, size_t depth) -> std::optional<FstEntry> {
+    if (depth > MaxPathDepth)
+      return std::nullopt;
+
+    SerializedFstEntry entry;
+    if (!file.ReadArray(&entry, 1))
+      return std::nullopt;
+
+    FstEntry result;
+    result.name = entry.GetName();
+    GetMetadataFields(result.data) = GetMetadataFields(entry);
+    for (size_t i = 0; i < entry.num_children; ++i)
+    {
+      const auto maybe_child = parse(parse, depth + 1);
+      if (!maybe_child.has_value())
+        return std::nullopt;
+      result.children.push_back(*maybe_child);
+    }
+    return result;
+  };
+
+  const auto root_entry = parse_entry(parse_entry, 0);
+  if (!root_entry.has_value())
+  {
+    ERROR_LOG(IOS_FS, "Failed to parse FST: at least one of the entries was invalid");
+    return;
+  }
+  m_root_entry = *root_entry;
+}
+
+void HostFileSystem::SaveFst()
+{
+  std::vector<SerializedFstEntry> to_write;
+  auto collect_entries = [&to_write](const auto& collect, const FstEntry& entry) -> void {
+    SerializedFstEntry& serialized = to_write.emplace_back();
+    serialized.SetName(entry.name);
+    GetMetadataFields(serialized) = GetMetadataFields(entry.data);
+    serialized.num_children = u32(entry.children.size());
+    for (const FstEntry& child : entry.children)
+      collect(collect, child);
+  };
+  collect_entries(collect_entries, m_root_entry);
+
+  const std::string dest_path = GetFstFilePath();
+  const std::string temp_path = File::GetTempFilenameForAtomicWrite(dest_path);
+  File::IOFile file{temp_path, "wb"};
+  if (!file.WriteArray(to_write.data(), to_write.size()) || !File::Rename(temp_path, dest_path))
+    ERROR_LOG(IOS_FS, "Failed to write new FST");
+}
+
+HostFileSystem::FstEntry* HostFileSystem::GetFstEntryForPath(const std::string& path)
+{
+  if (path == "/")
+    return &m_root_entry;
+
+  if (!IsValidNonRootPath(path))
+    return nullptr;
+
+  const File::FileInfo host_file_info{BuildFilename(path)};
+  if (!host_file_info.Exists())
+    return nullptr;
+
+  FstEntry* entry = &m_root_entry;
+  std::string complete_path = "";
+  for (const std::string& component : SplitString(std::string(path.substr(1)), '/'))
+  {
+    complete_path += '/' + component;
+    const auto next =
+        std::find_if(entry->children.begin(), entry->children.end(), GetNamePredicate(component));
+    if (next != entry->children.end())
+    {
+      entry = &*next;
+    }
+    else
+    {
+      // Fall back to dummy data to avoid breaking existing filesystems.
+      // This code path is also reached when creating a new file or directory;
+      // proper metadata is filled in later.
+      INFO_LOG(IOS_FS, "Creating a default entry for %s", complete_path.c_str());
+      entry = &entry->children.emplace_back();
+      entry->name = component;
+      entry->data.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
+    }
+  }
+
+  entry->data.is_file = host_file_info.IsFile();
+  if (entry->data.is_file && !entry->children.empty())
+  {
+    WARN_LOG(IOS_FS, "%s is a file but also has children; clearing children", path.c_str());
+    entry->children.clear();
+  }
+
+  return entry;
+}
 
 void HostFileSystem::DoState(PointerWrap& p)
 {
@@ -159,179 +335,305 @@ void HostFileSystem::DoState(PointerWrap& p)
 
 ResultCode HostFileSystem::Format(Uid uid)
 {
+  if (uid != 0)
+    return ResultCode::AccessDenied;
+  if (m_root_path.empty())
+    return ResultCode::AccessDenied;
   const std::string root = BuildFilename("/");
   if (!File::DeleteDirRecursively(root) || !File::CreateDir(root))
     return ResultCode::UnknownError;
+  ResetFst();
+  SaveFst();
+  // Reset and close all handles.
+  m_handles = {};
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateFile(Uid, Gid, const std::string& path, FileAttribute, Modes)
+ResultCode HostFileSystem::CreateFileOrDirectory(Uid uid, Gid gid, const std::string& path,
+                                                 FileAttribute attr, Modes modes, bool is_file)
 {
-  std::string file_name(BuildFilename(path));
-  // check if the file already exist
-  if (File::Exists(file_name))
+  if (!IsValidNonRootPath(path) || !std::all_of(path.begin(), path.end(), IsPrintableCharacter))
+    return ResultCode::Invalid;
+
+  if (!is_file && std::count(path.begin(), path.end(), '/') > int(MaxPathDepth))
+    return ResultCode::TooManyPathComponents;
+
+  const auto split_path = SplitPathAndBasename(path);
+  const std::string host_path = BuildFilename(path);
+
+  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  if (!parent)
+    return ResultCode::NotFound;
+
+  if (!parent->CheckPermission(uid, gid, Mode::Write))
+    return ResultCode::AccessDenied;
+
+  if (File::Exists(host_path))
     return ResultCode::AlreadyExists;
 
-  // create the file
-  File::CreateFullPath(file_name);  // just to be sure
-  if (!File::CreateEmptyFile(file_name))
+  const bool ok = is_file ? File::CreateEmptyFile(host_path) : File::CreateDir(host_path);
+  if (!ok)
   {
-    ERROR_LOG(IOS_FS, "couldn't create new file");
-    return ResultCode::Invalid;
+    ERROR_LOG(IOS_FS, "Failed to create file or directory: %s", host_path.c_str());
+    return ResultCode::UnknownError;
   }
 
+  FstEntry* child = GetFstEntryForPath(path);
+  *child = {};
+  child->name = split_path.file_name;
+  child->data.is_file = is_file;
+  child->data.modes = modes;
+  child->data.uid = uid;
+  child->data.gid = gid;
+  child->data.attribute = attr;
+  SaveFst();
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::CreateDirectory(Uid, Gid, const std::string& path, FileAttribute, Modes)
+ResultCode HostFileSystem::CreateFile(Uid uid, Gid gid, const std::string& path, FileAttribute attr,
+                                      Modes modes)
 {
-  if (!IsValidWiiPath(path))
-    return ResultCode::Invalid;
-
-  std::string name(BuildFilename(path));
-
-  name += "/";
-  File::CreateFullPath(name);
-  DEBUG_ASSERT_MSG(IOS_FS, File::IsDirectory(name), "CREATE_DIR %s failed", name.c_str());
-
-  return ResultCode::Success;
+  return CreateFileOrDirectory(uid, gid, path, attr, modes, true);
 }
 
-ResultCode HostFileSystem::Delete(Uid, Gid, const std::string& path)
+ResultCode HostFileSystem::CreateDirectory(Uid uid, Gid gid, const std::string& path,
+                                           FileAttribute attr, Modes modes)
 {
-  if (!IsValidWiiPath(path))
+  return CreateFileOrDirectory(uid, gid, path, attr, modes, false);
+}
+
+bool HostFileSystem::IsFileOpened(const std::string& path) const
+{
+  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+    return handle.opened && handle.wii_path == path;
+  });
+}
+
+bool HostFileSystem::IsDirectoryInUse(const std::string& path) const
+{
+  return std::any_of(m_handles.begin(), m_handles.end(), [&path](const Handle& handle) {
+    return handle.opened && StringBeginsWith(handle.wii_path, path);
+  });
+}
+
+ResultCode HostFileSystem::Delete(Uid uid, Gid gid, const std::string& path)
+{
+  if (!IsValidNonRootPath(path))
     return ResultCode::Invalid;
 
-  const std::string file_name = BuildFilename(path);
-  if (File::Delete(file_name))
-    INFO_LOG(IOS_FS, "DeleteFile %s", file_name.c_str());
-  else if (File::DeleteDirRecursively(file_name))
-    INFO_LOG(IOS_FS, "DeleteDir %s", file_name.c_str());
+  const std::string host_path = BuildFilename(path);
+  const auto split_path = SplitPathAndBasename(path);
+
+  FstEntry* parent = GetFstEntryForPath(split_path.parent);
+  if (!parent)
+    return ResultCode::NotFound;
+
+  if (!parent->CheckPermission(uid, gid, Mode::Write))
+    return ResultCode::AccessDenied;
+
+  if (!File::Exists(host_path))
+    return ResultCode::NotFound;
+
+  if (File::IsFile(host_path) && !IsFileOpened(path))
+    File::Delete(host_path);
+  else if (File::IsDirectory(host_path) && !IsDirectoryInUse(path))
+    File::DeleteDirRecursively(host_path);
   else
-    WARN_LOG(IOS_FS, "DeleteFile %s - failed!!!", file_name.c_str());
+    return ResultCode::InUse;
+
+  const auto it = std::find_if(parent->children.begin(), parent->children.end(),
+                               GetNamePredicate(split_path.file_name));
+  if (it != parent->children.end())
+    parent->children.erase(it);
+  SaveFst();
 
   return ResultCode::Success;
 }
 
-ResultCode HostFileSystem::Rename(Uid, Gid, const std::string& old_path,
+ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
                                   const std::string& new_path)
 {
-  if (!IsValidWiiPath(old_path))
+  if (!IsValidNonRootPath(old_path) || !IsValidNonRootPath(new_path))
     return ResultCode::Invalid;
-  const std::string old_name = BuildFilename(old_path);
 
-  if (!IsValidWiiPath(new_path))
+  const auto split_old_path = SplitPathAndBasename(old_path);
+  const auto split_new_path = SplitPathAndBasename(new_path);
+
+  FstEntry* old_parent = GetFstEntryForPath(split_old_path.parent);
+  FstEntry* new_parent = GetFstEntryForPath(split_new_path.parent);
+  if (!old_parent || !new_parent)
+    return ResultCode::NotFound;
+
+  if (!old_parent->CheckPermission(uid, gid, Mode::Write) ||
+      !new_parent->CheckPermission(uid, gid, Mode::Write))
+  {
+    return ResultCode::AccessDenied;
+  }
+
+  FstEntry* entry = GetFstEntryForPath(old_path);
+  if (!entry)
+    return ResultCode::NotFound;
+
+  // For files, the file name is not allowed to change.
+  if (entry->data.is_file && split_old_path.file_name != split_new_path.file_name)
     return ResultCode::Invalid;
-  const std::string new_name = BuildFilename(new_path);
 
-  // try to make the basis directory
-  File::CreateFullPath(new_name);
+  if ((!entry->data.is_file && IsDirectoryInUse(old_path)) ||
+      (entry->data.is_file && IsFileOpened(old_path)))
+  {
+    return ResultCode::InUse;
+  }
+
+  const std::string host_old_path = BuildFilename(old_path);
+  const std::string host_new_path = BuildFilename(new_path);
 
   // If there is already something of the same type at the new path, delete it.
-  if (File::Exists(new_name))
+  if (File::Exists(host_new_path))
   {
-    const bool old_is_file = File::IsFile(old_name);
-    const bool new_is_file = File::IsFile(new_name);
+    const bool old_is_file = File::IsFile(host_old_path);
+    const bool new_is_file = File::IsFile(host_new_path);
     if (old_is_file && new_is_file)
-      File::Delete(new_name);
+      File::Delete(host_new_path);
     else if (!old_is_file && !new_is_file)
-      File::DeleteDirRecursively(new_name);
+      File::DeleteDirRecursively(host_new_path);
     else
       return ResultCode::Invalid;
   }
 
-  // finally try to rename the file
-  if (!File::Rename(old_name, new_name))
+  if (!File::Rename(host_old_path, host_new_path))
   {
-    ERROR_LOG(IOS_FS, "Rename %s to %s - failed", old_name.c_str(), new_name.c_str());
+    ERROR_LOG(IOS_FS, "Rename %s to %s - failed", host_old_path.c_str(), host_new_path.c_str());
     return ResultCode::NotFound;
   }
+
+  // Finally, remove the child from the old parent and move it to the new parent.
+  const auto it = std::find_if(old_parent->children.begin(), old_parent->children.end(),
+                               GetNamePredicate(split_old_path.file_name));
+  FstEntry* new_entry = GetFstEntryForPath(new_path);
+  if (it != old_parent->children.end())
+  {
+    *new_entry = *it;
+    old_parent->children.erase(it);
+  }
+  new_entry->name = split_new_path.file_name;
+  SaveFst();
 
   return ResultCode::Success;
 }
 
-Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid, Gid, const std::string& path)
+Result<std::vector<std::string>> HostFileSystem::ReadDirectory(Uid uid, Gid gid,
+                                                               const std::string& path)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
 
-  // the Wii uses this function to define the type (dir or file)
-  const std::string dir_name(BuildFilename(path));
-
-  const File::FileInfo file_info(dir_name);
-
-  if (!file_info.Exists())
-  {
-    WARN_LOG(IOS_FS, "Search not found: %s", dir_name.c_str());
+  const FstEntry* entry = GetFstEntryForPath(path);
+  if (!entry)
     return ResultCode::NotFound;
-  }
 
-  if (!file_info.IsDirectory())
-  {
-    // It's not a directory, so error.
+  if (!entry->CheckPermission(uid, gid, Mode::Read))
+    return ResultCode::AccessDenied;
+
+  if (entry->data.is_file)
     return ResultCode::Invalid;
-  }
 
-  File::FSTEntry entry = File::ScanDirectoryTree(dir_name, false);
-
-  for (File::FSTEntry& child : entry.children)
+  const std::string host_path = BuildFilename(path);
+  File::FSTEntry host_entry = File::ScanDirectoryTree(host_path, false);
+  for (File::FSTEntry& child : host_entry.children)
   {
     // Decode escaped invalid file system characters so that games (such as
     // Harry Potter and the Half-Blood Prince) can find what they expect.
     child.virtualName = Common::UnescapeFileName(child.virtualName);
   }
 
-  // NOTE(leoetlino): this is absolutely wrong, but there is no way to fix this properly
-  // if we use the host filesystem.
-  std::sort(entry.children.begin(), entry.children.end(),
-            [](const File::FSTEntry& one, const File::FSTEntry& two) {
-              return one.virtualName < two.virtualName;
+  // Sort files according to their order in the FST tree (issue 10234).
+  // The result should look like this:
+  //     [FilesNotInFst, ..., OldestFileInFst, ..., NewestFileInFst]
+  std::unordered_map<std::string_view, int> sort_keys;
+  sort_keys.reserve(entry->children.size());
+  for (size_t i = 0; i < entry->children.size(); ++i)
+    sort_keys.emplace(entry->children[i].name, int(i));
+
+  const auto get_key = [&sort_keys](std::string_view key) {
+    const auto it = sort_keys.find(key);
+    // As a fallback, files that are not in the FST are put at the beginning.
+    return it != sort_keys.end() ? it->second : -1;
+  };
+
+  // Now sort in reverse order because Nintendo traverses a linked list
+  // in which new elements are inserted at the front.
+  std::sort(host_entry.children.begin(), host_entry.children.end(),
+            [&get_key](const File::FSTEntry& one, const File::FSTEntry& two) {
+              const int key1 = get_key(one.virtualName);
+              const int key2 = get_key(two.virtualName);
+              if (key1 != key2)
+                return key1 > key2;
+
+              // For files that are not in the FST, sort lexicographically to ensure that
+              // results are consistent no matter what the underlying filesystem is.
+              return one.virtualName > two.virtualName;
             });
 
   std::vector<std::string> output;
-  for (File::FSTEntry& child : entry.children)
+  for (const File::FSTEntry& child : host_entry.children)
     output.emplace_back(child.virtualName);
   return output;
 }
 
-Result<Metadata> HostFileSystem::GetMetadata(Uid, Gid, const std::string& path)
+Result<Metadata> HostFileSystem::GetMetadata(Uid uid, Gid gid, const std::string& path)
 {
-  Metadata metadata;
-  metadata.uid = 0;
-  metadata.gid = 0x3031;  // this is also known as makercd, 01 (0x3031) for nintendo and 08
-                          // (0x3038) for MH3 etc
-
-  if (!IsValidWiiPath(path))
-    return ResultCode::Invalid;
-
-  std::string file_name = BuildFilename(path);
-  metadata.modes = {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite};
-  metadata.attribute = 0x00;  // no attributes
-
-  // Hack: if the path that is being accessed is within an installed title directory, get the
-  // UID/GID from the installed title TMD.
-  Kernel* ios = GetIOS();
-  u64 title_id;
-  if (ios && IsTitlePath(file_name, Common::FROM_SESSION_ROOT, &title_id))
+  const FstEntry* entry = nullptr;
+  if (path == "/")
   {
-    IOS::ES::TMDReader tmd = ios->GetES()->FindInstalledTMD(title_id);
-    if (tmd.IsValid())
-      metadata.gid = tmd.GetGroupId();
+    entry = &m_root_entry;
+  }
+  else
+  {
+    if (!IsValidNonRootPath(path))
+      return ResultCode::Invalid;
+
+    const auto split_path = SplitPathAndBasename(path);
+    const FstEntry* parent = GetFstEntryForPath(split_path.parent);
+    if (!parent)
+      return ResultCode::NotFound;
+    if (!parent->CheckPermission(uid, gid, Mode::Read))
+      return ResultCode::AccessDenied;
+    entry = GetFstEntryForPath(path);
   }
 
-  const File::FileInfo info{file_name};
-  metadata.is_file = info.IsFile();
-  metadata.size = info.GetSize();
-  if (!info.Exists())
+  if (!entry)
     return ResultCode::NotFound;
+
+  Metadata metadata = entry->data;
+  metadata.size = File::GetSize(BuildFilename(path));
   return metadata;
 }
 
 ResultCode HostFileSystem::SetMetadata(Uid caller_uid, const std::string& path, Uid uid, Gid gid,
-                                       FileAttribute, Modes)
+                                       FileAttribute attr, Modes modes)
 {
-  if (!IsValidWiiPath(path))
+  if (!IsValidPath(path))
     return ResultCode::Invalid;
+
+  FstEntry* entry = GetFstEntryForPath(path);
+  if (!entry)
+    return ResultCode::NotFound;
+
+  if (caller_uid != 0 && caller_uid != entry->data.uid)
+    return ResultCode::AccessDenied;
+  if (caller_uid != 0 && uid != entry->data.uid)
+    return ResultCode::AccessDenied;
+
+  const bool is_empty = File::GetSize(BuildFilename(path)) == 0;
+  if (entry->data.uid != uid && entry->data.is_file && !is_empty)
+    return ResultCode::FileNotEmpty;
+
+  entry->data.gid = gid;
+  entry->data.uid = uid;
+  entry->data.attribute = attr;
+  entry->data.modes = modes;
+  SaveFst();
+
   return ResultCode::Success;
 }
 
@@ -354,7 +656,7 @@ Result<NandStats> HostFileSystem::GetNandStats()
 
 Result<DirectoryStats> HostFileSystem::GetDirectoryStats(const std::string& wii_path)
 {
-  if (!IsValidWiiPath(wii_path))
+  if (!IsValidPath(wii_path))
     return ResultCode::Invalid;
 
   DirectoryStats stats{};

@@ -88,12 +88,18 @@ VertexManagerBase::~VertexManagerBase() = default;
 
 bool VertexManagerBase::Initialize()
 {
+  m_index_generator.Init();
   return true;
 }
 
 u32 VertexManagerBase::GetRemainingSize() const
 {
   return static_cast<u32>(m_end_buffer_pointer - m_cur_buffer_pointer);
+}
+
+void VertexManagerBase::AddIndices(int primitive, u32 num_vertices)
+{
+  m_index_generator.AddIndices(primitive, num_vertices);
 }
 
 DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride,
@@ -120,12 +126,12 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
 
   // Check for size in buffer, if the buffer gets full, call Flush()
   if (!m_is_flushed &&
-      (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) ||
+      (count > m_index_generator.GetRemainingIndices() || count > GetRemainingIndices(primitive) ||
        needed_vertex_bytes > GetRemainingSize()))
   {
     Flush();
 
-    if (count > IndexGenerator::GetRemainingIndices())
+    if (count > m_index_generator.GetRemainingIndices())
       ERROR_LOG(VIDEO, "Too little remaining index values. Use 32-bit or reset them on flush.");
     if (count > GetRemainingIndices(primitive))
       ERROR_LOG(VIDEO, "VertexManager: Buffer not large enough for all indices! "
@@ -145,7 +151,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
       // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
       m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_vertex_buffer.data();
       m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
-      IndexGenerator::Start(m_cpu_index_buffer.data());
+      m_index_generator.Start(m_cpu_index_buffer.data());
     }
     else
     {
@@ -163,9 +169,9 @@ void VertexManagerBase::FlushData(u32 count, u32 stride)
   m_cur_buffer_pointer += count * stride;
 }
 
-u32 VertexManagerBase::GetRemainingIndices(int primitive)
+u32 VertexManagerBase::GetRemainingIndices(int primitive) const
 {
-  u32 index_len = MAXIBUFFERSIZE - IndexGenerator::GetIndexLen();
+  const u32 index_len = MAXIBUFFERSIZE - m_index_generator.GetIndexLen();
 
   if (g_Config.backend_info.bSupportsPrimitiveRestart)
   {
@@ -234,7 +240,7 @@ void VertexManagerBase::ResetBuffer(u32 vertex_stride)
   m_base_buffer_pointer = m_cpu_vertex_buffer.data();
   m_cur_buffer_pointer = m_cpu_vertex_buffer.data();
   m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_vertex_buffer.size();
-  IndexGenerator::Start(m_cpu_index_buffer.data());
+  m_index_generator.Start(m_cpu_index_buffer.data());
 }
 
 void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,
@@ -247,7 +253,7 @@ void VertexManagerBase::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 nu
 void VertexManagerBase::DrawCurrentBatch(u32 base_index, u32 num_indices, u32 base_vertex)
 {
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
-  if (::BoundingBox::active && g_ActiveConfig.bBBoxEnable &&
+  if (BoundingBox::IsEnabled() && g_ActiveConfig.bBBoxEnable &&
       g_ActiveConfig.backend_info.bSupportsBBox)
   {
     g_renderer->BBoxFlush();
@@ -288,7 +294,7 @@ void VertexManagerBase::UploadUtilityVertices(const void* vertices, u32 vertex_s
     m_cur_buffer_pointer += copy_size;
   }
   if (indices)
-    IndexGenerator::AddExternalIndices(indices, num_indices, num_vertices);
+    m_index_generator.AddExternalIndices(indices, num_indices, num_vertices);
 
   CommitBuffer(num_vertices, vertex_stride, num_indices, out_base_vertex, out_base_index);
 }
@@ -413,9 +419,9 @@ void VertexManagerBase::Flush()
   {
     // Now the vertices can be flushed to the GPU. Everything following the CommitBuffer() call
     // must be careful to not upload any utility vertices, as the binding will be lost otherwise.
-    const u32 num_indices = IndexGenerator::GetIndexLen();
+    const u32 num_indices = m_index_generator.GetIndexLen();
     u32 base_vertex, base_index;
-    CommitBuffer(IndexGenerator::GetNumVerts(),
+    CommitBuffer(m_index_generator.GetNumVerts(),
                  VertexLoaderManager::GetCurrentVertexFormat()->GetVertexStride(), num_indices,
                  &base_vertex, &base_index);
 
@@ -762,12 +768,12 @@ void VertexManagerBase::OnEndFrame()
 
 #if 0
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     std::for_each(m_cpu_accesses_this_frame.begin(), m_cpu_accesses_this_frame.end(), [&ss](u32 idx) { ss << idx << ","; });
     WARN_LOG(VIDEO, "CPU EFB accesses in last frame: %s", ss.str().c_str());
   }
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     std::for_each(m_scheduled_command_buffer_kicks.begin(), m_scheduled_command_buffer_kicks.end(), [&ss](u32 idx) { ss << idx << ","; });
     WARN_LOG(VIDEO, "Scheduled command buffer kicks: %s", ss.str().c_str());
   }

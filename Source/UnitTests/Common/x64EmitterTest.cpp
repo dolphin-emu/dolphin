@@ -554,7 +554,7 @@ TWO_OP_ARITH_TEST(OR)
 TWO_OP_ARITH_TEST(XOR)
 TWO_OP_ARITH_TEST(MOV)
 
-TEST_F(x64EmitterTest, MOV_Imm64)
+TEST_F(x64EmitterTest, MOV64)
 {
   for (size_t i = 0; i < reg64names.size(); i++)
   {
@@ -569,6 +569,101 @@ TEST_F(x64EmitterTest, MOV_Imm64)
     emitter->MOV(64, R(reg64names[i].reg), Imm64(0xDEADBEEF));
     EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
     ExpectDisassembly("mov " + reg32names[i].name + ", 0xdeadbeef");
+
+    emitter->MOV(64, R(reg64names[i].reg), Imm32(0x7FFFFFFF));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5 + (i > 7));
+    ExpectDisassembly("mov " + reg32names[i].name + ", 0x7fffffff");
+  }
+}
+
+TEST_F(x64EmitterTest, MOV_AtReg)
+{
+  for (const auto& src : reg64names)
+  {
+    std::string segment = src.reg == RSP || src.reg == RBP ? "ss" : "ds";
+
+    emitter->MOV(64, R(RAX), MatR(src.reg));
+    EXPECT_EQ(emitter->GetCodePtr(),
+              code_buffer + 3 + ((src.reg & 7) == RBP || (src.reg & 7) == RSP));
+    ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src.name + "]");
+  }
+}
+
+TEST_F(x64EmitterTest, MOV_RegSum)
+{
+  for (const auto& src2 : reg64names)
+  {
+    for (const auto& src1 : reg64names)
+    {
+      if (src2.reg == RSP)
+        continue;
+      std::string segment = src1.reg == RSP || src1.reg == RBP ? "ss" : "ds";
+
+      emitter->MOV(64, R(RAX), MRegSum(src1.reg, src2.reg));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 4 + ((src1.reg & 7) == RBP));
+      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name + "]");
+    }
+  }
+}
+
+TEST_F(x64EmitterTest, MOV_Disp)
+{
+  for (const auto& dest : reg64names)
+  {
+    for (const auto& src : reg64names)
+    {
+      std::string segment = src.reg == RSP || src.reg == RBP ? "ss" : "ds";
+
+      emitter->MOV(64, R(dest.reg), MDisp(src.reg, 42));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 4 + ((src.reg & 7) == RSP));
+      ExpectDisassembly("mov " + dest.name + ", qword ptr " + segment + ":[" + src.name + "+42]");
+
+      emitter->MOV(64, R(dest.reg), MDisp(src.reg, 1000));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 7 + ((src.reg & 7) == RSP));
+      ExpectDisassembly("mov " + dest.name + ", qword ptr " + segment + ":[" + src.name + "+1000]");
+    }
+  }
+}
+
+TEST_F(x64EmitterTest, MOV_Scaled)
+{
+  for (const auto& src : reg64names)
+  {
+    if (src.reg == RSP)
+      continue;
+
+    emitter->MOV(64, R(RAX), MScaled(src.reg, 2, 42));
+    EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 8);
+    ExpectDisassembly("mov rax, qword ptr ds:[" + src.name + "*2+42]");
+  }
+}
+
+TEST_F(x64EmitterTest, MOV_Complex)
+{
+  for (const auto& src1 : reg64names)
+  {
+    std::string segment = src1.reg == RSP || src1.reg == RBP ? "ss" : "ds";
+
+    for (const auto& src2 : reg64names)
+    {
+      if (src2.reg == RSP)
+        continue;
+
+      emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 0));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 4 + ((src1.reg & 7) == RBP));
+      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
+                        "*4]");
+
+      emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 42));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 5);
+      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
+                        "*4+42]");
+
+      emitter->MOV(64, R(RAX), MComplex(src1.reg, src2.reg, 4, 1000));
+      EXPECT_EQ(emitter->GetCodePtr(), code_buffer + 8);
+      ExpectDisassembly("mov rax, qword ptr " + segment + ":[" + src1.name + "+" + src2.name +
+                        "*4+1000]");
+    }
   }
 }
 

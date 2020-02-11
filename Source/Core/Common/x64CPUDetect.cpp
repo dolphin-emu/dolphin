@@ -118,6 +118,9 @@ void CPUInfo::Detect()
         (model == 0x1C || model == 0x26 || model == 0x27 || model == 0x35 || model == 0x36 ||
          model == 0x37 || model == 0x4A || model == 0x4D || model == 0x5A || model == 0x5D))
       bAtom = true;
+    // Detect AMD Zen (all models)
+    if (family == 23)
+      bZen = true;
     logical_cpu_count = (cpu_id[1] >> 16) & 0xFF;
     ht = (cpu_id[3] >> 28) & 1;
 
@@ -172,6 +175,7 @@ void CPUInfo::Detect()
   }
 
   bFlushToZero = bSSE;
+  bFastBMI2 = bBMI2 && !bZen;
 
   if (max_ex_fn >= 0x80000004)
   {

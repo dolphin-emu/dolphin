@@ -782,6 +782,9 @@ void Init()
       device->EventNotify();
   });
 
+  Device::DI::s_finish_executing_di_command =
+      CoreTiming::RegisterEvent("FinishDICommand", Device::DI::FinishDICommandCallback);
+
   // Start with IOS80 to simulate part of the Wii boot process.
   s_ios = std::make_unique<EmulationKernel>(Titles::SYSTEM_MENU_IOS);
   // On a Wii, boot2 launches the system menu IOS, which then launches the system menu

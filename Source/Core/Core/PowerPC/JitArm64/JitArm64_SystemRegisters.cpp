@@ -32,6 +32,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
     return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
   default:
     ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
+    return {};
   }
 }
 
@@ -196,9 +197,9 @@ void JitArm64::twx(UGeckoInstruction inst)
     SetJumpTarget(fixup);
   }
 
-  FixupBranch far = B();
+  FixupBranch far_addr = B();
   SwitchToFarCode();
-  SetJumpTarget(far);
+  SetJumpTarget(far_addr);
 
   gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
   fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);

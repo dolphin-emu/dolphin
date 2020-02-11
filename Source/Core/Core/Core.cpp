@@ -4,9 +4,9 @@
 
 #include "Core/Core.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstring>
-#include <locale>
 #include <mutex>
 #include <queue>
 #include <utility>
@@ -31,6 +31,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -160,11 +161,8 @@ void DisplayMessage(std::string message, int time_in_ms)
     return;
 
   // Actually displaying non-ASCII could cause things to go pear-shaped
-  for (const char& c : message)
-  {
-    if (!std::isprint(c, std::locale::classic()))
-      return;
-  }
+  if (!std::all_of(message.begin(), message.end(), IsPrintableCharacter))
+    return;
 
   Host_UpdateTitle(message);
   OSD::AddMessage(std::move(message), time_in_ms);
@@ -289,15 +287,6 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
-
-  if (_CoreParameter.bWii)
-    Wiimote::ResetAllWiimotes();
-
-  ResetRumble();
-
-#ifdef USE_MEMORYWATCHER
-  s_memory_watcher.reset();
-#endif
 }
 
 void DeclareAsCPUThread()
@@ -373,6 +362,10 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   // Enter CPU run loop. When we leave it - we are done.
   CPU::Run();
+
+#ifdef USE_MEMORYWATCHER
+  s_memory_watcher.reset();
+#endif
 
   s_is_started = false;
 
@@ -533,7 +526,12 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
       return;
 
     if (init_wiimotes)
+    {
+      Wiimote::ResetAllWiimotes();
       Wiimote::Shutdown();
+    }
+
+    ResetRumble();
 
     Keyboard::Shutdown();
     Pad::Shutdown();

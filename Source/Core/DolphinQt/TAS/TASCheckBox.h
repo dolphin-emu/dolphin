@@ -14,7 +14,7 @@ class TASCheckBox : public QCheckBox
 public:
   explicit TASCheckBox(const QString& text);
 
-  bool GetValue();
+  bool GetValue() const;
 
 protected:
   void mousePressEvent(QMouseEvent* event) override;

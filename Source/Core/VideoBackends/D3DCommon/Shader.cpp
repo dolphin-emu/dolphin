@@ -10,8 +10,11 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Version.h"
 
 #include "VideoBackends/D3DCommon/Shader.h"
+
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace D3DCommon
@@ -105,13 +108,15 @@ std::optional<Shader::BinaryData> Shader::CompileShader(D3D_FEATURE_LEVEL featur
   if (FAILED(hr))
   {
     static int num_failures = 0;
-    std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), target, num_failures++);
+    std::string filename = VideoBackendBase::BadShaderFilename(target, num_failures++);
     std::ofstream file;
     File::OpenFStream(file, filename, std::ios_base::out);
     file.write(source.data(), source.size());
     file << "\n";
     file.write(static_cast<const char*>(errors->GetBufferPointer()), errors->GetBufferSize());
+    file << "\n";
+    file << "Dolphin Version: " + Common::scm_rev_str + "\n";
+    file << "Video Backend: " + g_video_backend->GetDisplayName();
     file.close();
 
     PanicAlert("Failed to compile %s:\nDebug info (%s):\n%s", filename.c_str(), target,

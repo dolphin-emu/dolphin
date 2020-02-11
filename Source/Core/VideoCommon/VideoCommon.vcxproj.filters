@@ -203,6 +203,12 @@
     <ClCompile Include="NetPlayGolfUI.cpp">
       <Filter>Util</Filter>
     </ClCompile>
+    <ClCompile Include="TextureDecoder_Generic.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLoaderARM64.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -397,6 +403,9 @@
     </ClInclude>
     <ClInclude Include="NetPlayGolfUI.h">
       <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLoaderARM64.h">
+      <Filter>Vertex Loading</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

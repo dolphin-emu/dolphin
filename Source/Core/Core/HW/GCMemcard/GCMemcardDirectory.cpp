@@ -102,7 +102,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 
   u32 game_code = 0;
   if (game_id.length() >= 4 && game_id != "00000000")
-    game_code = BE32(reinterpret_cast<const u8*>(game_id.c_str()));
+    game_code = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
 
   std::vector<std::string> loaded_saves;
   for (const std::string& file_name : Common::DoFileSearch({directory}, {".gci"}))
@@ -136,7 +136,7 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     // card (see above method), but since we're only loading the saves for one GameID here, we're
     // definitely not going to run out of space.
 
-    if (game_code == BE32(gci.m_gci_header.m_gamecode.data()))
+    if (game_code == Common::swap32(gci.m_gci_header.m_gamecode.data()))
     {
       loaded_saves.push_back(gci_filename);
       filenames.push_back(file_name);
@@ -175,7 +175,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
       continue;
     }
 
-    if (m_game_id == BE32(gci.m_gci_header.m_gamecode.data()))
+    if (m_game_id == Common::swap32(gci.m_gci_header.m_gamecode.data()))
       gci_current_game.emplace_back(std::move(gci));
     else if (!current_game_only)
       gci_other_games.emplace_back(std::move(gci));
@@ -443,7 +443,7 @@ inline void GCMemcardDirectory::SyncSaves()
     if (current->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
     {
       INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x",
-               BE32(current->m_dir_entries[i].m_gamecode.data()));
+               Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
       bool added = false;
       while (i >= m_saves.size())
       {
@@ -456,16 +456,16 @@ inline void GCMemcardDirectory::SyncSaves()
           memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
-        u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode.data());
-        u32 new_gamecode = BE32(current->m_dir_entries[i].m_gamecode.data());
-        u32 old_start = m_saves[i].m_gci_header.m_first_block;
-        u32 new_start = current->m_dir_entries[i].m_first_block;
+        const u32 gamecode = Common::swap32(m_saves[i].m_gci_header.m_gamecode.data());
+        const u32 new_gamecode = Common::swap32(current->m_dir_entries[i].m_gamecode.data());
+        const u32 old_start = m_saves[i].m_gci_header.m_first_block;
+        const u32 new_start = current->m_dir_entries[i].m_first_block;
 
         if ((gamecode != 0xFFFFFFFF) && (gamecode != new_gamecode))
         {
           PanicAlertT("Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x",
-                      BE32(m_saves[i].m_gci_header.m_gamecode.data()),
-                      BE32(current->m_dir_entries[i].m_gamecode.data()));
+                      Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()),
+                      Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
         }
         memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE);
         if (old_start != new_start)
@@ -483,7 +483,7 @@ inline void GCMemcardDirectory::SyncSaves()
     else if ((i < m_saves.size()) && (*(u32*)&(m_saves[i].m_gci_header) != 0xFFFFFFFF))
     {
       INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or deleting save 0x%x",
-               BE32(m_saves[i].m_gci_header.m_gamecode.data()));
+               Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
       m_saves[i].m_gci_header.m_gamecode = DEntry::UNINITIALIZED_GAMECODE;
       m_saves[i].m_save_data.clear();
       m_saves[i].m_used_blocks.clear();
@@ -660,7 +660,7 @@ void GCMemcardDirectory::FlushToFile()
     // simultaneously
     // this ensures that the save data for all of the current games gci files are stored in the
     // savestate
-    u32 gamecode = BE32(m_saves[i].m_gci_header.m_gamecode.data());
+    const u32 gamecode = Common::swap32(m_saves[i].m_gci_header.m_gamecode.data());
     if (gamecode != m_game_id && gamecode != 0xFFFFFFFF && !m_saves[i].m_save_data.empty())
     {
       INFO_LOG(EXPANSIONINTERFACE, "Flushing savedata to disk for %s",

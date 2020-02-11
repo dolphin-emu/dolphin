@@ -19,8 +19,10 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/DI/DI.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/FS/FileSystem.h"
@@ -209,7 +211,22 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
 
   SetupGCMemory();
 
-  DVDRead(volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, DiscIO::PARTITION_NONE);
+  DVDReadDiscID(volume, 0x00000000);
+
+  bool streaming = Memory::Read_U8(0x80000008);
+  if (streaming)
+  {
+    u8 streaming_size = Memory::Read_U8(0x80000009);
+    // If the streaming buffer size is 0, then BS2 uses a default size of 10 instead.
+    // No known game uses a size other than the default.
+    if (streaming_size == 0)
+      streaming_size = 10;
+    DVDInterface::AudioBufferConfig(true, streaming_size);
+  }
+  else
+  {
+    DVDInterface::AudioBufferConfig(false, 0);
+  }
 
   const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
@@ -233,7 +250,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
       {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LE"}},
       {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
-  const RegionSetting& region_setting = entryPos->second;
+  RegionSetting region_setting = entryPos->second;
 
   Common::SettingsHandler gen;
   std::string serno;
@@ -250,6 +267,11 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     {
       gen.SetBytes(std::move(data));
       serno = gen.GetValue("SERNO");
+      if (SConfig::GetInstance().bOverrideRegionSettings)
+      {
+        region_setting = RegionSetting{gen.GetValue("AREA"), gen.GetValue("VIDEO"),
+                                       gen.GetValue("GAME"), gen.GetValue("CODE")};
+      }
       gen.Reset();
     }
   }
@@ -385,6 +407,9 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
     state->discstate = 0x01;
   });
 
+  // The system menu clears the RTC flags
+  ExpansionInterface::g_rtc_flags.m_hex = 0;
+
   // While reading a disc, the system menu reads the first partition table
   // (0x20 bytes from 0x00040020) and stores a pointer to the data partition entry.
   // When launching the disc game, it copies the partition type and offset to 0x3194
@@ -397,7 +422,13 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
   if (!SetupWiiMemory(console_type) || !IOS::HLE::GetIOS()->BootIOS(tmd.GetIOSId()))
     return false;
 
-  DVDRead(volume, 0x00000000, 0x00000000, 0x20, DiscIO::PARTITION_NONE);  // Game Code
+  auto di = std::static_pointer_cast<IOS::HLE::Device::DI>(
+      IOS::HLE::GetIOS()->GetDeviceByName("/dev/di"));
+
+  di->InitializeIfFirstTime();
+  di->ChangePartition(data_partition);
+
+  DVDReadDiscID(volume, 0x00000000);
 
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long

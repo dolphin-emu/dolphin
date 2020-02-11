@@ -176,9 +176,9 @@ constexpr std::array<u8, 256> s_key_codes_azerty{};
 #endif
 }  // Anonymous namespace
 
-USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers, PressedKeyData pressed_keys)
-    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers}, pressed_keys{
-                                                                                  pressed_keys}
+USB_KBD::MessageData::MessageData(MessageType type, u8 modifiers_, PressedKeyData pressed_keys_)
+    : msg_type{Common::swap32(static_cast<u32>(type))}, modifiers{modifiers_}, pressed_keys{
+                                                                                   pressed_keys_}
 {
 }
 

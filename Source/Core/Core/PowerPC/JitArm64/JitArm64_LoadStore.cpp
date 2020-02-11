@@ -408,7 +408,7 @@ void JitArm64::stX(UGeckoInstruction inst)
     gpr.BindToRegister(a, false);
 
     ARM64Reg WA = gpr.GetReg();
-    ARM64Reg RB;
+    ARM64Reg RB = {};
     ARM64Reg RA = gpr.R(a);
     if (regOffset != -1)
       RB = gpr.R(regOffset);
@@ -549,9 +549,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   LSR(value, value, addr);  // move current bit to bit 0
 
   FixupBranch bit_not_set = TBZ(value, 0);
-  FixupBranch far = B();
+  FixupBranch far_addr = B();
   SwitchToFarCode();
-  SetJumpTarget(far);
+  SetJumpTarget(far_addr);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -568,10 +568,10 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
   ABI_PopRegisters(gprs_to_push);
 
-  FixupBranch near = B();
+  FixupBranch near_addr = B();
   SwitchToNearCode();
   SetJumpTarget(bit_not_set);
-  SetJumpTarget(near);
+  SetJumpTarget(near_addr);
 
   gpr.Unlock(addr, value, W30);
 }

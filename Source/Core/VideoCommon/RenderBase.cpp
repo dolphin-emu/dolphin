@@ -50,6 +50,8 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
@@ -65,6 +67,7 @@
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
@@ -118,6 +121,9 @@ bool Renderer::Initialize()
 
 void Renderer::Shutdown()
 {
+  // Disable ControllerInterface's aspect ratio adjustments so mapping dialog behaves normally.
+  g_controller_interface.SetAspectRatioAdjustment(1);
+
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
@@ -774,10 +780,15 @@ void Renderer::UpdateDrawRectangle()
     g_Config.fAspectRatioHackH = 1;
   }
 
-  float draw_width, draw_height, crop_width, crop_height;
-
   // get the picture aspect ratio
-  draw_width = crop_width = CalculateDrawAspectRatio();
+  const float draw_aspect_ratio = CalculateDrawAspectRatio();
+
+  // Make ControllerInterface aware of the render window region actually being used
+  // to adjust mouse cursor inputs.
+  g_controller_interface.SetAspectRatioAdjustment(draw_aspect_ratio / (win_width / win_height));
+
+  float draw_width, draw_height, crop_width, crop_height;
+  draw_width = crop_width = draw_aspect_ratio;
   draw_height = crop_height = 1;
 
   // crop the picture to a standard aspect ratio
@@ -880,19 +891,18 @@ std::tuple<int, int> Renderer::CalculateOutputDimensions(int width, int height) 
 
 void Renderer::CheckFifoRecording()
 {
-  bool wasRecording = g_bRecordFifoData;
-  g_bRecordFifoData = FifoRecorder::GetInstance().IsRecording();
+  const bool was_recording = OpcodeDecoder::g_record_fifo_data;
+  OpcodeDecoder::g_record_fifo_data = FifoRecorder::GetInstance().IsRecording();
 
-  if (g_bRecordFifoData)
+  if (!OpcodeDecoder::g_record_fifo_data)
+    return;
+
+  if (!was_recording)
   {
-    if (!wasRecording)
-    {
-      RecordVideoMemory();
-    }
-
-    FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase,
-                                         CommandProcessor::fifo.CPEnd);
+    RecordVideoMemory();
   }
+
+  FifoRecorder::GetInstance().EndFrame(CommandProcessor::fifo.CPBase, CommandProcessor::fifo.CPEnd);
 }
 
 void Renderer::RecordVideoMemory()
@@ -1190,8 +1200,10 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
     MathUtil::Rectangle<int> xfb_rect;
     const auto* xfb_entry =
         g_texture_cache->GetXFBTexture(xfb_addr, fb_width, fb_height, fb_stride, &xfb_rect);
-    if (xfb_entry && xfb_entry->id != m_last_xfb_id)
+    if (xfb_entry &&
+        (!g_ActiveConfig.bSkipPresentingDuplicateXFBs || xfb_entry->id != m_last_xfb_id))
     {
+      const bool is_duplicate_frame = xfb_entry->id == m_last_xfb_id;
       m_last_xfb_id = xfb_entry->id;
 
       // Since we use the common pipelines here and draw vertices if a batch is currently being
@@ -1235,20 +1247,24 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
         SetWindowSize(xfb_rect.GetWidth(), xfb_rect.GetHeight());
       }
 
-      m_fps_counter.Update();
+      if (!is_duplicate_frame)
+      {
+        m_fps_counter.Update();
 
-      DolphinAnalytics::PerformanceSample perf_sample;
-      perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
-      perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
-      perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
-      DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
+        DolphinAnalytics::PerformanceSample perf_sample;
+        perf_sample.speed_ratio = SystemTimers::GetEstimatedEmulationPerformance();
+        perf_sample.num_prims = g_stats.this_frame.num_prims + g_stats.this_frame.num_dl_prims;
+        perf_sample.num_draw_calls = g_stats.this_frame.num_draw_calls;
+        DolphinAnalytics::Instance().ReportPerformanceInfo(std::move(perf_sample));
 
-      if (IsFrameDumping())
-        DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
+        if (IsFrameDumping())
+          DumpCurrentFrame(xfb_entry->texture.get(), xfb_rect, ticks);
 
-      // Begin new frame
-      m_frame_count++;
-      g_stats.ResetFrame();
+        // Begin new frame
+        m_frame_count++;
+        g_stats.ResetFrame();
+      }
+
       g_shader_cache->RetrieveAsyncShaders();
       g_vertex_manager->OnEndFrame();
       BeginImGuiFrame();
@@ -1263,16 +1279,18 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       // rate and not waiting for vblank. Otherwise, we'd end up with a huge list of pending copies.
       g_texture_cache->FlushEFBCopies();
 
-      // Remove stale EFB/XFB copies.
-      g_texture_cache->Cleanup(m_frame_count);
+      if (!is_duplicate_frame)
+      {
+        // Remove stale EFB/XFB copies.
+        g_texture_cache->Cleanup(m_frame_count);
+        Core::Callback_VideoCopiedToXFB(true);
+      }
 
       // Handle any config changes, this gets propogated to the backend.
       CheckForConfigChanges();
       g_Config.iSaveTargetId = 0;
 
       EndUtilityDrawing();
-
-      Core::Callback_VideoCopiedToXFB(true);
     }
     else
     {

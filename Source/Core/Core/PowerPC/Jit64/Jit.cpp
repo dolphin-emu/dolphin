@@ -333,6 +333,7 @@ void Jit64::Init()
   InitializeInstructionTables();
   EnableBlockLink();
 
+  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   UpdateMemoryOptions();
@@ -392,6 +393,8 @@ void Jit64::Shutdown()
 {
   FreeStack();
   FreeCodeSpace();
+
+  Memory::ShutdownFastmemArena();
 
   blocks.Shutdown();
   m_far_code.Shutdown();
@@ -1193,7 +1196,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
 
   if (b->codeSize <= 250)
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << std::hex;
     for (u8 i = 0; i <= b->codeSize; i++)
     {

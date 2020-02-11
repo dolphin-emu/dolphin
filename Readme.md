@@ -29,9 +29,9 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
+    * Windows (7 SP1 or higher).
     * Linux.
-    * macOS (10.9 Mavericks or higher).
+    * macOS (10.12 Sierra or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -55,11 +55,11 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2019 16.3 is a hard requirement. Other compilers might be
+Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK must be installed when building.
 
-Make sure to check out the Qt submodule before building:
+Make sure to pull submodules before building:
 ```sh
 git submodule update --init
 ```
