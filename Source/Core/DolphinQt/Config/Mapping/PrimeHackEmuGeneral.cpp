@@ -20,8 +20,8 @@
 
 #include "Core/PrimeHack/HackConfig.h"
 
-PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension)
-    : MappingWidget(window), m_extension_widget(extension)
+PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window)
+    : MappingWidget(window)
 {
   CreateMainLayout();
   Connect(window);

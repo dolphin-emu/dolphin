@@ -351,10 +351,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     auto* extension = new WiimoteEmuExtension(this);
     auto* extension_motion_input = new WiimoteEmuExtensionMotionInput(this);
     auto* extension_motion_simulation = new WiimoteEmuExtensionMotionSimulation(this);
+    auto* primehack = new PrimeHackEmuGeneral(this);
+
     widget = new WiimoteEmuGeneral(this, extension);
 
     setWindowTitle(tr("Wii Remote %1").arg(GetPort() + 1));
     AddWidget(tr("General and Options"), widget);
+
     AddWidget(tr("Motion Simulation"), new WiimoteEmuMotionControl(this));
     AddWidget(tr("Motion Input"), new WiimoteEmuMotionControlIMU(this));
     AddWidget(tr("Extension"), extension);
@@ -362,11 +365,12 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
         AddWidget(EXTENSION_MOTION_SIMULATION_TAB_NAME, extension_motion_simulation);
     m_extension_motion_input_tab =
         AddWidget(EXTENSION_MOTION_INPUT_TAB_NAME, extension_motion_input);
+    m_primehack_tab =
+      AddWidget(PRIMEHACK_TAB_NAME, primehack);
+
     // Hide tabs by default. "Nunchuk" selection triggers an event to show them.
     ShowExtensionMotionTabs(false);
 
-    //Added the PrimeHack tab
-    AddWidget(tr("PrimeHack"), new PrimeHackEmuGeneral(this, extension));
     break;
   }
   case Type::MAPPING_HOTKEYS:
@@ -456,10 +460,16 @@ void MappingWindow::ShowExtensionMotionTabs(bool show)
   {
     m_tab_widget->addTab(m_extension_motion_simulation_tab, EXTENSION_MOTION_SIMULATION_TAB_NAME);
     m_tab_widget->addTab(m_extension_motion_input_tab, EXTENSION_MOTION_INPUT_TAB_NAME);
+
+    m_tab_widget->removeTab(4);
+    m_tab_widget->addTab(m_primehack_tab, PRIMEHACK_TAB_NAME);
   }
   else
   {
+    m_tab_widget->removeTab(6);
     m_tab_widget->removeTab(5);
     m_tab_widget->removeTab(4);
+
+    m_tab_widget->addTab(m_primehack_tab, PRIMEHACK_TAB_NAME);
   }
 }

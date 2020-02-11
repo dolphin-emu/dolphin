@@ -12,7 +12,7 @@ class WiimoteEmuExtension;
 class PrimeHackEmuGeneral final : public MappingWidget
 {
 public:
-  explicit PrimeHackEmuGeneral(MappingWindow* window, WiimoteEmuExtension* extension);
+  explicit PrimeHackEmuGeneral(MappingWindow* window);
 
   InputConfig* GetConfig() override;
 

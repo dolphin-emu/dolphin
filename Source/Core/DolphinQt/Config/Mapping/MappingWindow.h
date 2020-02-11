@@ -111,8 +111,10 @@ private:
   QTabWidget* m_tab_widget;
   QWidget* m_extension_motion_input_tab;
   QWidget* m_extension_motion_simulation_tab;
+  QWidget* m_primehack_tab;
   const QString EXTENSION_MOTION_INPUT_TAB_NAME = tr("Extension Motion Input");
   const QString EXTENSION_MOTION_SIMULATION_TAB_NAME = tr("Extension Motion Simulation");
+  const QString PRIMEHACK_TAB_NAME = tr("PrimeHack");
 
   Type m_mapping_type;
   const int m_port;
