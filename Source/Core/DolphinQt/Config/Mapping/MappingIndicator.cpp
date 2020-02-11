@@ -159,10 +159,12 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
   // Even the GC controller's small range would pass this test.
   constexpr double REASONABLE_AVERAGE_RADIUS = 0.6;
 
-  const double sum = std::accumulate(data.begin(), data.end(), 0.0);
-  const double mean = sum / data.size();
+  MathUtil::RunningVariance<ControlState> stats;
 
-  if (mean < REASONABLE_AVERAGE_RADIUS)
+  for (auto& x : data)
+    stats.Push(x);
+
+  if (stats.Mean() < REASONABLE_AVERAGE_RADIUS)
   {
     return false;
   }
@@ -173,11 +175,7 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
   // Approx. deviation of a square input gate, anything much more than that would be unusual.
   constexpr double REASONABLE_DEVIATION = 0.14;
 
-  // Population standard deviation.
-  const double square_sum = std::inner_product(data.begin(), data.end(), data.begin(), 0.0);
-  const double standard_deviation = std::sqrt(square_sum / data.size() - mean * mean);
-
-  return standard_deviation < REASONABLE_DEVIATION;
+  return stats.StandardDeviation() < REASONABLE_DEVIATION;
 }
 
 // Used to test for a miscalibrated stick so the user can be informed.
@@ -805,6 +803,8 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   const auto gyro_state = m_gyro_group.GetState();
   const auto raw_gyro_state = m_gyro_group.GetRawState();
   const auto angular_velocity = gyro_state.value_or(Common::Vec3{});
+  const auto jitter = raw_gyro_state - m_previous_velocity;
+  m_previous_velocity = raw_gyro_state;
 
   m_state *= Common::Matrix33::FromQuaternion(angular_velocity.x / -INDICATOR_UPDATE_FREQ / 2,
                                               angular_velocity.y / INDICATOR_UPDATE_FREQ / 2,
@@ -855,12 +855,12 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
 
     if (gyro_state.has_value())
     {
-      const auto max_velocity = std::max(
-          {std::abs(raw_gyro_state.x), std::abs(raw_gyro_state.y), std::abs(raw_gyro_state.z)});
-      const auto max_velocity_line_y =
-          std::min(max_velocity / deadzone_value * DEADZONE_DRAW_SIZE - DEADZONE_DRAW_BOTTOM, 1.0);
+      const auto max_jitter =
+          std::max({std::abs(jitter.x), std::abs(jitter.y), std::abs(jitter.z)});
+      const auto jitter_line_y =
+          std::min(max_jitter / deadzone_value * DEADZONE_DRAW_SIZE - DEADZONE_DRAW_BOTTOM, 1.0);
       p.setPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS));
-      p.drawLine(-scale, max_velocity_line_y * -scale, scale, max_velocity_line_y * -scale);
+      p.drawLine(-scale, jitter_line_y * -scale, scale, jitter_line_y * -scale);
 
       // Sphere background.
       p.setPen(Qt::NoPen);
@@ -881,7 +881,10 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   });
 
   // Sphere outline.
-  p.setPen(is_stable ? GetRawInputColor() : GetAdjustedInputColor());
+  const auto outline_color = is_stable ?
+                                 (m_gyro_group.IsCalibrating() ? Qt::blue : GetRawInputColor()) :
+                                 GetAdjustedInputColor();
+  p.setPen(outline_color);
   p.setBrush(Qt::NoBrush);
   p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
 
