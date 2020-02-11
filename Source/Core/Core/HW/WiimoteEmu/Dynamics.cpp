@@ -320,10 +320,10 @@ void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_gr
   state->rotation = gyro_rotation * state->rotation;
 
   // If we have some non-zero accel data use it to adjust gyro drift.
-  constexpr auto ACCEL_WEIGHT = 0.02f;
+  const auto accel_weight = imu_ir_group->GetAccelWeight();
   auto const accel = imu_accelerometer_group->GetState().value_or(Common::Vec3{});
   if (accel.LengthSquared())
-    state->rotation = ComplementaryFilter(state->rotation, accel, ACCEL_WEIGHT);
+    state->rotation = ComplementaryFilter(state->rotation, accel, accel_weight);
 
   // Clamp yaw within configured bounds.
   const auto yaw = GetYaw(state->rotation);

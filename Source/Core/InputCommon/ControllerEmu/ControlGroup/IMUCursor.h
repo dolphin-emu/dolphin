@@ -19,7 +19,10 @@ public:
   // Yaw movement in radians.
   ControlState GetTotalYaw() const;
 
+  ControlState GetAccelWeight() const;
+
 private:
   SettingValue<double> m_yaw_setting;
+  SettingValue<double> m_accel_weight_setting;
 };
 }  // namespace ControllerEmu
