@@ -101,6 +101,7 @@ public:
 private:
   ControllerEmu::IMUGyroscope& m_gyro_group;
   Common::Matrix33 m_state;
+  Common::Vec3 m_previous_velocity = {};
   u32 m_stable_steps = 0;
 };
 
