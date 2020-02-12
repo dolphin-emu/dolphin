@@ -13,6 +13,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/MathUtil.h"
 #include "Common/Thread.h"
 
 namespace ciface::Core
@@ -301,19 +302,54 @@ bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
   return device != nullptr && device->IsValid();
 }
 
-// Wait for input on a particular device.
-// Inputs are considered if they are first seen in a neutral state.
+// Wait for inputs on supplied devices.
+// Inputs are only considered if they are first seen in a neutral state.
 // This is useful for crazy flightsticks that have certain buttons that are always held down
 // and also properly handles detection when using "FullAnalogSurface" inputs.
-// Detects multiple inputs if they are pressed before others are released.
-// Upon input, return the detected Device and Input pairs, else return an empty container
-std::vector<std::pair<std::shared_ptr<Device>, Device::Input*>>
-DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const
+// Multiple detections are returned until the various timeouts have been reached.
+auto DeviceContainer::DetectInput(const std::vector<std::string>& device_strings,
+                                  std::chrono::milliseconds initial_wait,
+                                  std::chrono::milliseconds confirmation_wait,
+                                  std::chrono::milliseconds maximum_wait) const
+    -> std::vector<InputDetection>
 {
   struct InputState
   {
+    InputState(ciface::Core::Device::Input* input_) : input{input_} { stats.Push(0.0); }
+
     ciface::Core::Device::Input* input;
-    ControlState initial_state;
+    ControlState initial_state = input->GetState();
+    ControlState last_state = initial_state;
+    MathUtil::RunningVariance<ControlState> stats;
+
+    // Prevent multiiple detections until after release.
+    bool is_ready = true;
+
+    void Update()
+    {
+      const auto new_state = input->GetState();
+
+      if (!is_ready && new_state < (1 - INPUT_DETECT_THRESHOLD))
+      {
+        last_state = new_state;
+        is_ready = true;
+        stats.Clear();
+      }
+
+      const auto difference = new_state - last_state;
+      stats.Push(difference);
+      last_state = new_state;
+    }
+
+    bool IsPressed()
+    {
+      if (!is_ready)
+        return false;
+
+      // We want an input that was initially 0.0 and currently 1.0.
+      const auto detection_score = (last_state - std::abs(initial_state));
+      return detection_score > INPUT_DETECT_THRESHOLD;
+    }
   };
 
   struct DeviceState
@@ -338,13 +374,13 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
 
     for (auto* input : device->Inputs())
     {
-      // Don't detect things like absolute cursor position.
+      // Don't detect things like absolute cursor positions, accelerometers, or gyroscopes.
       if (!input->IsDetectable())
         continue;
 
       // Undesirable axes will have negative values here when trying to map a
       // "FullAnalogSurface".
-      input_states.push_back({input, input->GetState()});
+      input_states.push_back(InputState{input});
     }
 
     if (!input_states.empty())
@@ -354,44 +390,59 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
   if (device_states.empty())
     return {};
 
-  std::vector<std::pair<std::shared_ptr<Device>, Device::Input*>> detections;
+  std::vector<InputDetection> detections;
 
-  u32 time = 0;
-  while (time < wait_ms)
+  const auto start_time = Clock::now();
+  while (true)
   {
+    const auto now = Clock::now();
+    const auto elapsed_time = now - start_time;
+
+    if (elapsed_time >= maximum_wait || (detections.empty() && elapsed_time >= initial_wait) ||
+        (!detections.empty() && detections.back().release_time.has_value() &&
+         now >= *detections.back().release_time + confirmation_wait))
+    {
+      break;
+    }
+
     Common::SleepCurrentThread(10);
-    time += 10;
 
     for (auto& device_state : device_states)
     {
       for (std::size_t i = 0; i != device_state.input_states.size(); ++i)
       {
         auto& input_state = device_state.input_states[i];
+        input_state.Update();
 
-        // We want an input that was initially 0.0 and currently 1.0.
-        const auto detection_score =
-            (input_state.input->GetState() - std::abs(input_state.initial_state));
-
-        if (detection_score > INPUT_DETECT_THRESHOLD)
+        if (input_state.IsPressed())
         {
-          // We found an input. Add it to our detections.
-          detections.emplace_back(device_state.device, input_state.input);
+          input_state.is_ready = false;
 
-          // And remove from input_states to prevent more detections.
-          device_state.input_states.erase(device_state.input_states.begin() + i--);
+          // Digital presses will evaluate as 1 here.
+          // Analog presses will evaluate greater than 1.
+          const auto smoothness =
+              1 / std::sqrt(input_state.stats.Variance() / input_state.stats.Mean());
+
+          InputDetection new_detection;
+          new_detection.device = device_state.device;
+          new_detection.input = input_state.input;
+          new_detection.press_time = Clock::now();
+          new_detection.smoothness = smoothness;
+
+          // We found an input. Add it to our detections.
+          detections.emplace_back(std::move(new_detection));
         }
       }
     }
 
-    for (auto& detection : detections)
+    // Check for any releases of our detected inputs.
+    for (auto& d : detections)
     {
-      // If one of our detected inputs is released we are done.
-      if (detection.second->GetState() < (1 - INPUT_DETECT_THRESHOLD))
-        return detections;
+      if (!d.release_time.has_value() && d.input->GetState() < (1 - INPUT_DETECT_THRESHOLD))
+        d.release_time = Clock::now();
     }
   }
 
-  // No input was detected. :'(
-  return {};
+  return detections;
 }
 }  // namespace ciface::Core

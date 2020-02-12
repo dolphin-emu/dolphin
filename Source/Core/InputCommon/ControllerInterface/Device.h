@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <chrono>
 #include <memory>
 #include <mutex>
 #include <optional>
@@ -194,6 +195,17 @@ public:
 class DeviceContainer
 {
 public:
+  using Clock = std::chrono::steady_clock;
+
+  struct InputDetection
+  {
+    std::shared_ptr<Device> device;
+    Device::Input* input;
+    Clock::time_point press_time;
+    std::optional<Clock::time_point> release_time;
+    ControlState smoothness;
+  };
+
   Device::Input* FindInput(std::string_view name, const Device* def_dev) const;
   Device::Output* FindOutput(std::string_view name, const Device* def_dev) const;
 
@@ -203,8 +215,10 @@ public:
 
   bool HasConnectedDevice(const DeviceQualifier& qualifier) const;
 
-  std::vector<std::pair<std::shared_ptr<Device>, Device::Input*>>
-  DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const;
+  std::vector<InputDetection> DetectInput(const std::vector<std::string>& device_strings,
+                                          std::chrono::milliseconds initial_wait,
+                                          std::chrono::milliseconds confirmation_wait,
+                                          std::chrono::milliseconds maximum_wait) const;
 
 protected:
   mutable std::recursive_mutex m_devices_mutex;
