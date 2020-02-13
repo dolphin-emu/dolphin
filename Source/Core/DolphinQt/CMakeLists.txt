@@ -296,6 +296,14 @@ PRIVATE
   imgui
 )
 
+if (WIN32)
+  target_link_libraries(dolphin-emu
+  PRIVATE
+	  gdi32.lib
+		shell32.lib
+  )
+endif()
+
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
