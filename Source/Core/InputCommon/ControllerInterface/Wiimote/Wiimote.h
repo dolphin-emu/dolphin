@@ -64,12 +64,6 @@ private:
     Common::Vec3 gyro_data = {};
 
     std::optional<WiimoteEmu::MotionPlus::CalibrationBlocks> calibration;
-
-  private:
-    // Used to perform realtime calibration.
-    std::optional<Common::Vec3> m_dynamic_calibration = {};
-    Common::Vec3 m_new_dynamic_calibration = {};
-    u32 m_new_calibration_frames = 0;
   };
 
   struct NunchukState

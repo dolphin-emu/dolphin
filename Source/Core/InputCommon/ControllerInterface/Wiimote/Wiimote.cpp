@@ -1323,46 +1323,7 @@ void Device::MotionPlusState::ProcessData(const WiimoteEmu::MotionPlus::DataForm
   if (!calibration.has_value())
     return;
 
-  // Unfortunately M+ calibration zero values are very poor.
-  // We calibrate when we receive a few seconds of stable data.
-  const auto unadjusted_gyro_data = data.GetData().GetAngularVelocity(*calibration);
-
-  // Use zero-data calibration until acquired.
-  const auto adjusted_gyro_data =
-      unadjusted_gyro_data - m_dynamic_calibration.value_or(Common::Vec3{});
-
-  // We want quick calibration when remote is set down but not when held in the hand.
-  // This magic value seems to work well enough.
-  static constexpr auto UNSTABLE_ROTATION = float(MathUtil::TAU / 120);
-
-  const bool is_stable = (adjusted_gyro_data - gyro_data).Length() < UNSTABLE_ROTATION;
-
-  gyro_data = adjusted_gyro_data;
-
-  // If we've yet to achieve calibration acquire one more quickly.
-  // This lessens the extreme drift on initial M+ activation.
-  const auto required_stable_frames = m_dynamic_calibration.has_value() ? 100u : 5u;
-
-  if (is_stable)
-  {
-    if (++m_new_calibration_frames < required_stable_frames)
-    {
-      m_new_dynamic_calibration += unadjusted_gyro_data;
-    }
-    else
-    {
-      m_dynamic_calibration = m_new_dynamic_calibration / m_new_calibration_frames;
-      m_new_dynamic_calibration = {};
-      m_new_calibration_frames = 0;
-
-      DEBUG_LOG(WIIMOTE, "WiiRemote: M+ applied dynamic calibration.");
-    }
-  }
-  else
-  {
-    m_new_dynamic_calibration = {};
-    m_new_calibration_frames = 0;
-  }
+  gyro_data = data.GetData().GetAngularVelocity(*calibration);
 }
 
 bool Device::IsWaitingForMotionPlus() const
