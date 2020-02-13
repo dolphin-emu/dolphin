@@ -16,9 +16,8 @@
 
 #include "Common/CommonTypes.h"
 
-#ifdef _MSC_VER
+#ifdef HAS_STD_FILESYSTEM
 #include <filesystem>
-#define HAS_STD_FILESYSTEM
 #endif
 
 std::string StringFromFormatV(const char* format, va_list args);

@@ -20,6 +20,19 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Make sure std::filesystem usage actually compiles and links. *rolls eyes at android*
+check_cxx_source_compiles("
+	#include <filesystem>
+	int main() { std::filesystem::current_path(); }"
+	STD_FILESYSTEM_OK)
+
+if(STD_FILESYSTEM_OK)
+  message(STATUS "Environment supports std::filesystem.")
+  add_definitions(-DHAS_STD_FILESYSTEM)
+else()
+  message(STATUS "Environment does not support std::filesystem.")
+endif()
+
 if (MSVC)
 	# TODO: Use https://cmake.org/cmake/help/latest/policy/CMP0092.html instead (once we can require CMake >= 3.15)
   # Taken from http://www.cmake.org/Wiki/CMake_FAQ#Dynamic_Replace.

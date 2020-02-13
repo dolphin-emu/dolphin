@@ -68,7 +68,7 @@
       <!--
       Make sure we include a clean version of windows.h.
       -->
-      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;HAS_STD_FILESYSTEM;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       This numeral indicates the "minimum system required" to run the resulting
       program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
