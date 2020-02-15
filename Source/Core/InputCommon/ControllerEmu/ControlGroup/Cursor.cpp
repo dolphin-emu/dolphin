@@ -33,7 +33,7 @@ Cursor::Cursor(std::string name, std::string ui_name)
 
   AddInput(Translate, _trans("Relative Input Hold"));
 
-  // Default values are optimized for "Super Mario Galaxy 2".
+  // Default values are optimized for the Wii System Menu.
   // This seems to be acceptable for a good number of games.
 
   AddSetting(&m_vertical_offset_setting,
@@ -50,7 +50,7 @@ Cursor::Cursor(std::string name, std::string ui_name)
               _trans("°"),
               // i18n: Refers to emulated wii remote movements.
               _trans("Total rotation about the yaw axis.")},
-             15, 0, 360);
+             20, 0, 360);
 
   AddSetting(&m_pitch_setting,
              // i18n: Refers to an amount of rotational movement about the "pitch" axis.
