@@ -15,7 +15,6 @@
 
 #include "Common/Common.h"
 #include "Common/Logging/Log.h"
-#include "Common/ScopeGuard.h"
 #include "Common/StringUtil.h"
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -31,7 +30,17 @@ class HotkeySuppressions
 {
 public:
   using Modifiers = std::vector<std::unique_ptr<ControlExpression>>;
-  using Suppressor = std::unique_ptr<Common::ScopeGuard>;
+
+  struct InvokingDeleter
+  {
+    template <typename T>
+    void operator()(T* func)
+    {
+      (*func)();
+    }
+  };
+
+  using Suppressor = std::unique_ptr<std::function<void()>, InvokingDeleter>;
 
   bool IsSuppressed(Device::Input* input) const
   {
@@ -309,10 +318,11 @@ HotkeySuppressions::MakeSuppressor(const Modifiers* modifiers,
   for (auto& modifier : *modifiers)
     ++m_suppressions[{(*final_input)->GetInput(), modifier->GetInput()}];
 
-  return std::make_unique<Common::ScopeGuard>([this, modifiers, final_input]() {
-    for (auto& modifier : *modifiers)
-      RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
-  });
+  return Suppressor(std::make_unique<std::function<void()>>([this, modifiers, final_input]() {
+                      for (auto& modifier : *modifiers)
+                        RemoveSuppression(modifier->GetInput(), (*final_input)->GetInput());
+                    }).release(),
+                    InvokingDeleter{});
 }
 
 class BinaryExpression : public Expression
