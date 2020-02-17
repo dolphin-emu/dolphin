@@ -67,6 +67,8 @@
 		B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09462385DE9500DBBB01 /* CoreAudio.framework */; };
 		B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B95A09472385DE9600DBBB01 /* AudioToolbox.framework */; };
 		B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */; };
+		B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */; };
+		B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
 		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
 		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
@@ -111,12 +113,16 @@
 		B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362423E3F949005627CE /* ConfigWiiViewController.mm */; };
 		B99D362B23E415A0005627CE /* ConfigAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362A23E415A0005627CE /* ConfigAdvancedViewController.mm */; };
 		B99D362E23E49461005627CE /* CpuEmulationEngineViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362D23E49461005627CE /* CpuEmulationEngineViewController.mm */; };
+		B99D363123E801FC005627CE /* GraphicsSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B99D363023E801FB005627CE /* GraphicsSettings.storyboard */; };
 		B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */; };
 		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */; };
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
 		B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = B9AAAB4323D7F5660094F159 /* Localizable.strings */; };
+		B9B47C7D23FB26520077375A /* GraphicsBackendViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C7C23FB26520077375A /* GraphicsBackendViewController.mm */; };
+		B9B47C8023FB42460077375A /* AspectRatioViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C7F23FB42460077375A /* AspectRatioViewController.mm */; };
+		B9B47C8323FB4A1C0077375A /* ShaderModeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C8223FB4A1C0077375A /* ShaderModeViewController.mm */; };
 		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
@@ -239,6 +245,10 @@
 		B95A09472385DE9600DBBB01 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		B95A09482385DE9600DBBB01 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		B95A094C2386FAAA00DBBB01 /* TCWiiPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCWiiPad.xib; sourceTree = "<group>"; };
+		B95BCFF623F9EC8900CE4E6D /* GraphicsGeneralViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsGeneralViewController.h; sourceTree = "<group>"; };
+		B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsGeneralViewController.mm; sourceTree = "<group>"; };
+		B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsSettingsUtils.h; sourceTree = "<group>"; };
+		B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsSettingsUtils.mm; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
 		B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReloadFailedNoticeViewController.mm; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
 		B971154D23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InvalidCpuCoreNoticeViewController.h; sourceTree = "<group>"; };
@@ -319,6 +329,7 @@
 		B99D362A23E415A0005627CE /* ConfigAdvancedViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigAdvancedViewController.mm; sourceTree = "<group>"; };
 		B99D362C23E4944F005627CE /* CpuEmulationEngineViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CpuEmulationEngineViewController.h; path = DolphiniOS/UI/Settings/Config/Advanced/CpuEmulationEngineViewController.h; sourceTree = SOURCE_ROOT; };
 		B99D362D23E49461005627CE /* CpuEmulationEngineViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = CpuEmulationEngineViewController.mm; path = DolphiniOS/UI/Settings/Config/Advanced/CpuEmulationEngineViewController.mm; sourceTree = SOURCE_ROOT; };
+		B99D363023E801FB005627CE /* GraphicsSettings.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = GraphicsSettings.storyboard; sourceTree = "<group>"; };
 		B9A7AD6123C16B0F00C70473 /* InGameSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameSettingsViewController.h; sourceTree = "<group>"; };
 		B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6523C1960000C70473 /* ControllerTouchscreenSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerTouchscreenSettingsViewController.h; sourceTree = "<group>"; };
@@ -330,6 +341,12 @@
 		B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LocalizerUtils.h; sourceTree = "<group>"; };
 		B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LocalizerUtils.m; sourceTree = "<group>"; };
 		B9AAAB4223D7F5660094F159 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Localizable.strings; sourceTree = "<group>"; };
+		B9B47C7B23FB26520077375A /* GraphicsBackendViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsBackendViewController.h; sourceTree = "<group>"; };
+		B9B47C7C23FB26520077375A /* GraphicsBackendViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsBackendViewController.mm; sourceTree = "<group>"; };
+		B9B47C7E23FB42460077375A /* AspectRatioViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AspectRatioViewController.h; sourceTree = "<group>"; };
+		B9B47C7F23FB42460077375A /* AspectRatioViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AspectRatioViewController.mm; sourceTree = "<group>"; };
+		B9B47C8123FB4A1C0077375A /* ShaderModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderModeViewController.h; sourceTree = "<group>"; };
+		B9B47C8223FB4A1C0077375A /* ShaderModeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ShaderModeViewController.mm; sourceTree = "<group>"; };
 		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
 		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
@@ -454,6 +471,7 @@
 			children = (
 				B98584C223CEDE3900BE94B0 /* Config */,
 				B9DCACA223ADDD34002B95C8 /* Controller */,
+				B99D362F23E8017B005627CE /* Graphics */,
 				B9C85E1323AA21E2008A4DD1 /* InGame */,
 				B91BF372236B400200199BA7 /* SettingsTableViewController.h */,
 				B91BF373236B400200199BA7 /* SettingsTableViewController.m */,
@@ -793,6 +811,32 @@
 			path = Advanced;
 			sourceTree = "<group>";
 		};
+		B99D362F23E8017B005627CE /* Graphics */ = {
+			isa = PBXGroup;
+			children = (
+				B99D363423E810DC005627CE /* General */,
+				B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */,
+				B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */,
+				B99D363023E801FB005627CE /* GraphicsSettings.storyboard */,
+			);
+			path = Graphics;
+			sourceTree = "<group>";
+		};
+		B99D363423E810DC005627CE /* General */ = {
+			isa = PBXGroup;
+			children = (
+				B9B47C7E23FB42460077375A /* AspectRatioViewController.h */,
+				B9B47C7F23FB42460077375A /* AspectRatioViewController.mm */,
+				B95BCFF623F9EC8900CE4E6D /* GraphicsGeneralViewController.h */,
+				B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */,
+				B9B47C7B23FB26520077375A /* GraphicsBackendViewController.h */,
+				B9B47C7C23FB26520077375A /* GraphicsBackendViewController.mm */,
+				B9B47C8123FB4A1C0077375A /* ShaderModeViewController.h */,
+				B9B47C8223FB4A1C0077375A /* ShaderModeViewController.mm */,
+			);
+			path = General;
+			sourceTree = "<group>";
+		};
 		B9A7AD6423C1925B00C70473 /* Interface */ = {
 			isa = PBXGroup;
 			children = (
@@ -1098,6 +1142,7 @@
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
+				B99D363123E801FC005627CE /* GraphicsSettings.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
@@ -1227,8 +1272,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */,
+				B9B47C7D23FB26520077375A /* GraphicsBackendViewController.mm in Sources */,
 				B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */,
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
+				B9B47C8023FB42460077375A /* AspectRatioViewController.mm in Sources */,
 				B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */,
 				B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */,
 				B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */,
@@ -1272,6 +1319,7 @@
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
+				B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */,
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
 				B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
@@ -1281,11 +1329,13 @@
 				B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
 				B99D361A23E3F313005627CE /* WiiLanguageViewController.mm in Sources */,
+				B9B47C8323FB4A1C0077375A /* ShaderModeViewController.mm in Sources */,
 				B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */,
 				B9B536D823DE621600F03106 /* DonationNoticeViewController.m in Sources */,
 				B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */,
 				B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */,
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
+				B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */,
 				B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */,
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,

@@ -55,3 +55,6 @@
 
 /* Class = "UILabel"; text = "コントローラ"; ObjectID = "xpQ-qK-CHk"; */
 "xpQ-qK-CHk.text" = "コントローラ";
+
+/* Class = "UILabel"; text = "ビデオ"; ObjectID = "6BT-cH-KPV"; */
+"6BT-cH-KPV.text" = "ビデオ";
