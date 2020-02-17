@@ -141,8 +141,10 @@ private:
   static constexpr u8 INACTIVE_DEVICE_ADDR = 0x53;
   static constexpr u8 ACTIVE_DEVICE_ADDR = 0x52;
 
+public:
   static constexpr u8 PASSTHROUGH_MODE_OFFSET = 0xfe;
 
+private:
   static constexpr int CALIBRATION_BITS = 16;
 
   static constexpr u16 CALIBRATION_ZERO = 1 << (CALIBRATION_BITS - 1);

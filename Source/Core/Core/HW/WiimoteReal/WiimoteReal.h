@@ -132,6 +132,8 @@ private:
   // And we track the rumble state to drop unnecessary rumble reports.
   bool m_rumble_state = false;
 
+  bool m_is_performing_mplus_detection_fix = false;
+
   std::thread m_wiimote_thread;
   // Whether to keep running the thread.
   Common::Flag m_run_thread;

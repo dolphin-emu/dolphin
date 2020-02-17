@@ -10,6 +10,7 @@
 #include <queue>
 #include <unordered_set>
 
+#include "Common/BitUtils.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -21,6 +22,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
+#include "Core/HW/WiimoteEmu/MotionPlus.h"
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "Core/HW/WiimoteReal/IOLinux.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
@@ -247,6 +249,24 @@ void Wiimote::InterruptChannel(const u16 channel, const void* const data, const 
     rpt[2] &= 0x1;
     rpt.resize(3);
   }
+  else if (rpt[1] == u8(OutputReportID::WriteData) &&
+           rpt.size() >= sizeof(OutputReportWriteData) + 2)
+  {
+    OutputReportWriteData write_data = Common::BitCastPtr<OutputReportWriteData>(rpt.data() + 2);
+    if (write_data.space == u8(AddressSpace::I2CBus) &&
+        Common::swap16(write_data.address) == WiimoteEmu::MotionPlus::PASSTHROUGH_MODE_OFFSET)
+    {
+      // TODO: check activation value.
+      INFO_LOG(WIIMOTE, "noticed M+ activation signal.");
+
+      // Request two status reports.
+      Report status_report = {WR_SET_REPORT | BT_OUTPUT, u8(OutputReportID::RequestStatus), 0};
+      WriteReport(status_report);
+      WriteReport(std::move(status_report));
+
+      m_is_performing_mplus_detection_fix = true;
+    }
+  }
 
   WriteReport(std::move(rpt));
 }
@@ -415,11 +435,25 @@ void Wiimote::Update()
   }
 
   // Pop through the queued reports
-  const Report& rpt = ProcessReadQueue();
+  Report& rpt = ProcessReadQueue();
 
   // Send the report
   if (!rpt.empty() && m_channel > 0)
   {
+    if (m_is_performing_mplus_detection_fix && rpt[1] == u8(InputReportID::Status))
+    {
+      m_is_performing_mplus_detection_fix = false;
+
+      InputReportStatus status = Common::BitCastPtr<InputReportStatus>(rpt.data() + 2);
+
+      const bool was_needed = status.extension;
+      status.extension = 0;
+
+      Common::BitCastPtr<InputReportStatus>(rpt.data() + 2) = status;
+
+      INFO_LOG(WIIMOTE, "performed mplus detection fix: %d", was_needed);
+    }
+
     Core::Callback_WiimoteInterruptChannel(m_index, m_channel, rpt.data(), (u32)rpt.size());
   }
 }
