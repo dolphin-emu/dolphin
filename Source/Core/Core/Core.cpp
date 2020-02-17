@@ -434,7 +434,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   s_frame_step = false;
 
   Movie::Init(*boot);
-  Common::ScopeGuard movie_guard{Movie::Shutdown};
+  Common::ScopeGuard movie_guard{&Movie::Shutdown};
 
   HW::Init();
 
@@ -539,7 +539,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }};
 
   AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{AudioCommon::ShutdownSoundStream};
+  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -565,7 +565,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in HW to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{Core::CleanUpWiiFileSystemContents};
+  Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
   if (SConfig::GetInstance().bWii)
     Core::InitializeWiiFileSystemContents();
   else
