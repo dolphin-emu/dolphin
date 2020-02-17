@@ -5,6 +5,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 
 #include <array>
+#include <cfloat>
 #include <cmath>
 #include <cstring>
 #include <iterator>
@@ -371,7 +372,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      g_fProjectionMatrix[14] = -1.0f;
+      // Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
+      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
       g_fProjectionMatrix[15] = 0.0f;
 
       g_stats.gproj = g_fProjectionMatrix;
@@ -397,7 +399,8 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[13] = 0.0f;
 
       g_fProjectionMatrix[14] = 0.0f;
-      g_fProjectionMatrix[15] = 1.0f;
+      // Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
+      g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
 
       g_stats.g2proj = g_fProjectionMatrix;
       g_stats.proj = rawProjection;
