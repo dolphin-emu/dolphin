@@ -143,8 +143,32 @@
                                             <segue destination="bZJ-5A-c9m" kind="show" id="idd-4u-lZh"/>
                                         </connections>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.5" id="m5z-a3-Ash">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.5" id="VR7-7r-GB2">
                                         <rect key="frame" x="16" y="271.5" width="343" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="VR7-7r-GB2" id="66F-Pa-HfN">
+                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Graphics" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6BT-cH-KPV">
+                                                    <rect key="frame" x="15" y="11.000000000000002" width="68.666666666666671" height="21.666666666666671"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="6BT-cH-KPV" firstAttribute="centerY" secondItem="66F-Pa-HfN" secondAttribute="centerY" id="CHP-17-imI"/>
+                                                <constraint firstItem="6BT-cH-KPV" firstAttribute="top" secondItem="66F-Pa-HfN" secondAttribute="topMargin" id="Syw-PQ-GYy"/>
+                                                <constraint firstItem="6BT-cH-KPV" firstAttribute="leading" secondItem="66F-Pa-HfN" secondAttribute="leadingMargin" id="gWw-0w-v0l"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <segue destination="vG8-os-Nos" kind="show" id="DRe-VX-Hg8"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.5" id="m5z-a3-Ash">
+                                        <rect key="frame" x="16" y="315" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="m5z-a3-Ash" id="SJm-bS-iPh">
                                             <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
@@ -354,7 +378,17 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="r3w-C1-wVr" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2546" y="451"/>
+            <point key="canvasLocation" x="2546" y="495"/>
+        </scene>
+        <!--GraphicsSettings-->
+        <scene sceneID="Foj-wh-xSl">
+            <objects>
+                <viewControllerPlaceholder storyboardName="GraphicsSettings" referencedIdentifier="Root" id="vG8-os-Nos" userLabel="GraphicsSettings" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="1Ld-uk-8To"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="wc5-Sd-zp4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2546" y="457"/>
         </scene>
     </scenes>
     <resources>
