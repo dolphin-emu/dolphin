@@ -34,6 +34,19 @@
   }
 }
 
+// TODO: Better way?
++ (void)SetInitialForTransitionCellU32:(const Config::ConfigInfo<u32>&)setting forLabel:(UILabel*)label
+{
+  if (Config::GetActiveLayerForConfig(setting) != Config::LayerType::Base)
+  {
+    [label setFont:[UIFont boldSystemFontOfSize:[[label font] pointSize]]];
+  }
+  else
+  {
+    [label setFont:[UIFont systemFontOfSize:[[label font] pointSize]]];
+  }
+}
+
 + (void)ShowInfoAlertForLocalizable:(NSString*)localizable onController:(UIViewController*)target_controller
 {
   UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:DOLocalizedString(localizable) preferredStyle:UIAlertControllerStyleAlert];

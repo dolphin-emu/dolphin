@@ -23,6 +23,9 @@
 {
   [super viewWillAppear:animated];
   
+  GSUSetInitialForTransitionCell(Config::GFX_EFB_SCALE, self.m_efb_scale_label);
+  GSUSetInitialForTransitionCellU32(Config::GFX_MSAA, self.m_anti_aliasing_label);
+  GSUSetInitialForTransitionCell(Config::GFX_ENHANCE_MAX_ANISOTROPY, self.m_anisotropic_filtering_label);
   GSUSetInitialForBool(Config::GFX_HACK_COPY_EFB_SCALED, false, self.m_scaled_efb_switch, self.m_scaled_efb_label);
   GSUSetInitialForBool(Config::GFX_ENABLE_PIXEL_LIGHTING, false, self.m_per_pixel_switch, self.m_per_pixel_label);
   GSUSetInitialForBool(Config::GFX_ENHANCE_FORCE_FILTERING, false, self.m_texture_filtering_switch, self.m_texture_filtering_label);
