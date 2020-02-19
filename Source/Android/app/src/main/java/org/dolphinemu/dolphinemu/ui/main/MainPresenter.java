@@ -17,6 +17,8 @@ public final class MainPresenter
 {
   public static final int REQUEST_ADD_DIRECTORY = 1;
   public static final int REQUEST_OPEN_FILE = 2;
+  public static final int REQUEST_OPEN_GAME_PAD = 3;
+  public static final int REQUEST_SAVE_GAME_PAD = 4;
 
   private final MainView mView;
   private final Context mContext;
@@ -90,6 +92,14 @@ public final class MainPresenter
 
       case R.id.menu_open_file:
         mView.launchOpenFileActivity();
+        return true;
+
+      case R.id.menu_open_game_pad:
+        mView.launchOpenGamePadActivity();
+        return true;
+
+      case R.id.menu_save_game_pad:
+        mView.launchSaveGamePadActivity();
         return true;
     }
 

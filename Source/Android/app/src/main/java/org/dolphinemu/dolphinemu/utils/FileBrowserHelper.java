@@ -44,6 +44,19 @@ public final class FileBrowserHelper
     activity.startActivityForResult(i, requestCode);
   }
 
+  public static void openFileSavePicker(FragmentActivity activity, int requestCode)
+  {
+    Intent i = new Intent(activity, CustomFilePickerActivity.class);
+
+    i.putExtra(FilePickerActivity.EXTRA_ALLOW_MULTIPLE, false);
+    i.putExtra(FilePickerActivity.EXTRA_ALLOW_CREATE_DIR, true);
+    i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_NEW_FILE);
+    i.putExtra(FilePickerActivity.EXTRA_START_PATH,
+            Environment.getExternalStorageDirectory().getPath());
+
+    activity.startActivityForResult(i, requestCode);
+  }
+
   @Nullable
   public static String getSelectedDirectory(Intent result)
   {

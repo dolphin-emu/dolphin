@@ -23,6 +23,10 @@ public interface MainView
 
   void launchOpenFileActivity();
 
+  void launchOpenGamePadActivity();
+
+  void launchSaveGamePadActivity();
+
   /**
    * To be called when the game file cache is updated.
    */

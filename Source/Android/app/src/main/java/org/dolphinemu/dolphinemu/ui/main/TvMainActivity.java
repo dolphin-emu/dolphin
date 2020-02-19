@@ -29,6 +29,7 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.GamePadHandler;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
@@ -153,6 +154,18 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
+  public void launchOpenGamePadActivity()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_GAME_PAD, false);
+  }
+
+  @Override
+  public void launchSaveGamePadActivity()
+  {
+    FileBrowserHelper.openFileSavePicker(this, MainPresenter.REQUEST_SAVE_GAME_PAD);
+  }
+
+  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -186,6 +199,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_OPEN_GAME_PAD:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          GamePadHandler.load(FileBrowserHelper.getSelectedFiles(result)[0]);
         }
         break;
     }

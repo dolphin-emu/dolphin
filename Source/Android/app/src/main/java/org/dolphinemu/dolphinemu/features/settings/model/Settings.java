@@ -163,7 +163,8 @@ public class Settings
   {
     if (TextUtils.isEmpty(gameId))
     {
-      view.showToastMessage("Saved settings to INI files");
+      if (view != null)
+        view.showToastMessage("Saved settings to INI files");
 
       for (Map.Entry<String, List<String>> entry : configFileSectionsMap.entrySet())
       {

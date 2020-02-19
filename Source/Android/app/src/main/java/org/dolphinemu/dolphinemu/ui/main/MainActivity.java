@@ -29,6 +29,7 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.GamePadHandler;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
 
@@ -154,6 +155,18 @@ public final class MainActivity extends AppCompatActivity implements MainView
     FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_FILE, true);
   }
 
+  @Override
+  public void launchOpenGamePadActivity()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_GAME_PAD, false);
+  }
+
+  @Override
+  public void launchSaveGamePadActivity()
+  {
+    FileBrowserHelper.openFileSavePicker(this, MainPresenter.REQUEST_SAVE_GAME_PAD);
+  }
+
   /**
    * @param requestCode An int describing whether the Activity that is returning did so successfully.
    * @param resultCode  An int describing what Activity is giving us this callback.
@@ -177,6 +190,22 @@ public final class MainActivity extends AppCompatActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_OPEN_GAME_PAD:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          GamePadHandler.load(FileBrowserHelper.getSelectedFiles(result)[0]);
+        }
+        break;
+
+      case MainPresenter.REQUEST_SAVE_GAME_PAD:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          GamePadHandler.save(FileBrowserHelper.getSelectedFiles(result)[0]);
         }
         break;
     }

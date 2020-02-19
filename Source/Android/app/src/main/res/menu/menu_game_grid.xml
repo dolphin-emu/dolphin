@@ -36,5 +36,15 @@
         android:icon="@android:drawable/ic_media_play"
         android:title="Open File"
         app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_open_game_pad"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="Open Gamepad Profile"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/menu_save_game_pad"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="Save Gamepad Profile"
+        app:showAsAction="ifRoom" />
 
 </menu>
