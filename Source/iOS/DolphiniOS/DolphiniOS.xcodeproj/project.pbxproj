@@ -123,6 +123,12 @@
 		B9B47C7D23FB26520077375A /* GraphicsBackendViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C7C23FB26520077375A /* GraphicsBackendViewController.mm */; };
 		B9B47C8023FB42460077375A /* AspectRatioViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C7F23FB42460077375A /* AspectRatioViewController.mm */; };
 		B9B47C8323FB4A1C0077375A /* ShaderModeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C8223FB4A1C0077375A /* ShaderModeViewController.mm */; };
+		B9B47C8723FB5D280077375A /* GraphicsEnhancementsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C8623FB5D280077375A /* GraphicsEnhancementsViewController.mm */; };
+		B9B47C8B23FB86B40077375A /* InternalResolutionViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C8A23FB86B40077375A /* InternalResolutionViewController.mm */; };
+		B9B47C8E23FB893B0077375A /* AnisotropicFilteringViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C8D23FB893B0077375A /* AnisotropicFilteringViewController.mm */; };
+		B9B47C9123FB8BA80077375A /* AntiAliasingViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9023FB8BA80077375A /* AntiAliasingViewController.mm */; };
+		B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9323FC7B830077375A /* AntiAliasingCell.m */; };
+		B9B47C9723FCBEA90077375A /* GraphicsRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */; };
 		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
@@ -347,6 +353,18 @@
 		B9B47C7F23FB42460077375A /* AspectRatioViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AspectRatioViewController.mm; sourceTree = "<group>"; };
 		B9B47C8123FB4A1C0077375A /* ShaderModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ShaderModeViewController.h; sourceTree = "<group>"; };
 		B9B47C8223FB4A1C0077375A /* ShaderModeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ShaderModeViewController.mm; sourceTree = "<group>"; };
+		B9B47C8523FB5D280077375A /* GraphicsEnhancementsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsEnhancementsViewController.h; sourceTree = "<group>"; };
+		B9B47C8623FB5D280077375A /* GraphicsEnhancementsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsEnhancementsViewController.mm; sourceTree = "<group>"; };
+		B9B47C8923FB86B40077375A /* InternalResolutionViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InternalResolutionViewController.h; sourceTree = "<group>"; };
+		B9B47C8A23FB86B40077375A /* InternalResolutionViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InternalResolutionViewController.mm; sourceTree = "<group>"; };
+		B9B47C8C23FB893B0077375A /* AnisotropicFilteringViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AnisotropicFilteringViewController.h; sourceTree = "<group>"; };
+		B9B47C8D23FB893B0077375A /* AnisotropicFilteringViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AnisotropicFilteringViewController.mm; sourceTree = "<group>"; };
+		B9B47C8F23FB8BA80077375A /* AntiAliasingViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AntiAliasingViewController.h; sourceTree = "<group>"; };
+		B9B47C9023FB8BA80077375A /* AntiAliasingViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AntiAliasingViewController.mm; sourceTree = "<group>"; };
+		B9B47C9223FC7B830077375A /* AntiAliasingCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AntiAliasingCell.h; sourceTree = "<group>"; };
+		B9B47C9323FC7B830077375A /* AntiAliasingCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntiAliasingCell.m; sourceTree = "<group>"; };
+		B9B47C9523FCBEA90077375A /* GraphicsRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsRootViewController.h; sourceTree = "<group>"; };
+		B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsRootViewController.mm; sourceTree = "<group>"; };
 		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
 		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
@@ -814,7 +832,10 @@
 		B99D362F23E8017B005627CE /* Graphics */ = {
 			isa = PBXGroup;
 			children = (
+				B9B47C8423FB5D010077375A /* Enhancements */,
 				B99D363423E810DC005627CE /* General */,
+				B9B47C9523FCBEA90077375A /* GraphicsRootViewController.h */,
+				B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */,
 				B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */,
 				B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */,
 				B99D363023E801FB005627CE /* GraphicsSettings.storyboard */,
@@ -846,6 +867,23 @@
 				B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */,
 			);
 			path = Interface;
+			sourceTree = "<group>";
+		};
+		B9B47C8423FB5D010077375A /* Enhancements */ = {
+			isa = PBXGroup;
+			children = (
+				B9B47C9223FC7B830077375A /* AntiAliasingCell.h */,
+				B9B47C9323FC7B830077375A /* AntiAliasingCell.m */,
+				B9B47C8F23FB8BA80077375A /* AntiAliasingViewController.h */,
+				B9B47C9023FB8BA80077375A /* AntiAliasingViewController.mm */,
+				B9B47C8C23FB893B0077375A /* AnisotropicFilteringViewController.h */,
+				B9B47C8D23FB893B0077375A /* AnisotropicFilteringViewController.mm */,
+				B9B47C8523FB5D280077375A /* GraphicsEnhancementsViewController.h */,
+				B9B47C8623FB5D280077375A /* GraphicsEnhancementsViewController.mm */,
+				B9B47C8923FB86B40077375A /* InternalResolutionViewController.h */,
+				B9B47C8A23FB86B40077375A /* InternalResolutionViewController.mm */,
+			);
+			path = Enhancements;
 			sourceTree = "<group>";
 		};
 		B9B536C823DD8AA900F03106 /* Updates */ = {
@@ -1284,6 +1322,7 @@
 				B945A3752362908500B21680 /* AppDelegate.mm in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
+				B9B47C9123FB8BA80077375A /* AntiAliasingViewController.mm in Sources */,
 				B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */,
 				B971155D23E03256001C6BD6 /* SaveStateViewController.mm in Sources */,
 				B99D362B23E415A0005627CE /* ConfigAdvancedViewController.mm in Sources */,
@@ -1306,6 +1345,7 @@
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
+				B9B47C9723FCBEA90077375A /* GraphicsRootViewController.mm in Sources */,
 				B9B536E123DE722800F03106 /* UnofficialBuildNoticeViewController.m in Sources */,
 				B971155A23E03056001C6BD6 /* LoadStateViewController.mm in Sources */,
 				B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */,
@@ -1314,8 +1354,10 @@
 				B971155723E02FAA001C6BD6 /* StateCell.m in Sources */,
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
+				B9B47C8B23FB86B40077375A /* InternalResolutionViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
 				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,
+				B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */,
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
@@ -1337,7 +1379,9 @@
 				B99B05BB23A2118B0076C7D8 /* TCWiiPad.swift in Sources */,
 				B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */,
 				B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */,
+				B9B47C8723FB5D280077375A /* GraphicsEnhancementsViewController.mm in Sources */,
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
+				B9B47C8E23FB893B0077375A /* AnisotropicFilteringViewController.mm in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
 				B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */,
 				B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */,
