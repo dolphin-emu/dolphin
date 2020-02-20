@@ -82,6 +82,10 @@
   
   [MainiOS applicationStart];
   
+  // Mark the ROM folder as excluded from backups
+  NSURL* rom_folder_url = [NSURL fileURLWithPath:[MainiOS getUserFolder]];
+  [rom_folder_url setResourceValue:[NSNumber numberWithBool:true] forKey:NSURLIsExcludedFromBackupKey error:nil];
+  
   // Create a UINavigationController for alerts
   NoticeNavigationViewController* nav_controller = [[NoticeNavigationViewController alloc] init];
   [nav_controller setNavigationBarHidden:true];
