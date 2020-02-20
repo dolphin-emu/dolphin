@@ -80,9 +80,9 @@ namespace prime
     }
 
     if (PowerPC::HostRead_U8(cursor_enabled_address()) ||
-      PowerPC::HostRead_U32(boss_id_address()) == 0x442f0000)
+      PowerPC::HostRead_U64(boss_id_address() - 1) == boss_id())
     {
-      if (PowerPC::HostRead_U32(boss_id_address()) == 0x442f0000 && !fighting_ridley)
+      if (PowerPC::HostRead_U64(boss_id_address()) == boss_id() && !fighting_ridley)
       {
         fighting_ridley = true;
         apply_normal_instructions();
@@ -174,6 +174,9 @@ namespace prime
   {
     return 0x805c6f44;
   }
+  uint64_t MP3NTSC::boss_id() const {
+    return 0x000201CD442f0000;
+  }
   uint32_t MP3NTSC::cursor_dlg_address() const
   {
     return 0x805c8d77;
@@ -253,6 +256,9 @@ namespace prime
   uint32_t MP3PAL::boss_id_address() const
   {
     return 0x805ca3c4;
+  }
+  uint64_t MP3PAL::boss_id() const {
+    return 0x00020230442f0000;
   }
   uint32_t MP3PAL::cursor_dlg_address() const
   {
