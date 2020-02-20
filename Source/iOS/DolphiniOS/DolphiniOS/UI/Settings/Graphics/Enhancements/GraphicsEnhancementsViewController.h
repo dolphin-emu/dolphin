@@ -9,7 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface GraphicsEnhancementsViewController : UITableViewController
 
 @property (weak, nonatomic) IBOutlet UILabel* m_efb_scale_label;
-@property (weak, nonatomic) IBOutlet UILabel* m_anti_aliasing_label;
+//@property (weak, nonatomic) IBOutlet UILabel* m_anti_aliasing_label;
 @property (weak, nonatomic) IBOutlet UILabel* m_anisotropic_filtering_label;
 @property (weak, nonatomic) IBOutlet UILabel* m_scaled_efb_label;
 @property (weak, nonatomic) IBOutlet UILabel* m_texture_filtering_label;
