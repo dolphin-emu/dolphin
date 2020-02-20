@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cstring>
+#include <string>
 
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
@@ -11,6 +12,7 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/DolphinDevice.h"
 
@@ -25,6 +27,7 @@ enum
   IOCTL_DOLPHIN_GET_SPEED_LIMIT = 0x03,
   IOCTL_DOLPHIN_SET_SPEED_LIMIT = 0x04,
   IOCTL_DOLPHIN_GET_CPU_SPEED = 0x05,
+  IOCTL_DOLPHIN_CHANGE_DISC = 0x06,
 
 };
 
@@ -123,6 +126,29 @@ IPCCommandResult SetSpeedLimit(const IOCtlVRequest& request)
   return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
 }
 
+IPCCommandResult ChangeDisc(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0))
+  {
+    return DolphinDevice::GetDefaultReply(IPC_EINVAL);
+  }
+
+  const auto length = size_t(request.in_vectors[0].size);
+  std::string string(length, 0);
+
+  Memory::CopyFromEmu(string.data(), request.in_vectors[0].address, length);
+
+  auto null = string.find('\0');
+  if (null != std::string::npos)
+  {
+    string.erase(null);
+  }
+
+  DVDInterface::ChangeDisc(string);
+
+  return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
+}
+
 }  // namespace
 
 IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
@@ -144,6 +170,8 @@ IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return SetSpeedLimit(request);
   case IOCTL_DOLPHIN_GET_CPU_SPEED:
     return GetCPUSpeed(request);
+  case IOCTL_DOLPHIN_CHANGE_DISC:
+    return ChangeDisc(request);
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
