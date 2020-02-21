@@ -98,7 +98,7 @@ bool CheckBeam(int beam_count);
 bool CheckBeamScroll(bool direction);
 bool CheckSpringBall();
 
-std::tuple<double, double, double, bool, bool> PrimeSettings();
+std::tuple<double, double, double, bool, bool, bool> PrimeSettings();
 
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size);
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);

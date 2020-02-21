@@ -26,8 +26,7 @@ protected:
   virtual uint32_t beamchange_flag_address() const = 0;
   virtual uint32_t camera_ptr_address() const = 0;
   virtual uint32_t camera_offset_address() const = 0;
-
-  //void beam_change_code(uint32_t base_offset);
+  virtual uint32_t culling_address() const = 0;
 
 private:
   float pitch = 0;
@@ -50,6 +49,7 @@ protected:
   uint32_t beamchange_flag_address() const override;
   uint32_t camera_ptr_address() const override;
   uint32_t camera_offset_address() const override;
+  uint32_t culling_address() const override;
 };
 
 class MP2PAL : public MP2
@@ -69,6 +69,7 @@ protected:
   uint32_t beamchange_flag_address() const override;
   uint32_t camera_ptr_address() const override;
   uint32_t camera_offset_address() const override;
+  uint32_t culling_address() const override;
 };
 
 }

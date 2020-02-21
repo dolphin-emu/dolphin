@@ -96,11 +96,12 @@ namespace prime
       << 3;
     u32 camera_base = PowerPC::HostRead_U32(camera_ptr + camera_offset + 4);
     u32 camera_base_tp = PowerPC::HostRead_U32(camera_ptr + camera_offset_tp + 4);
-    const float fov = std::min(GetFov(), 101.f);
+    const float fov = std::min(GetFov(), 170.f);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base + 0x1e8);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base_tp + 0x1e8);
 
-    set_cplayer_str(base_address);
+    if (Culling() || GetFov() > 101.f)
+      disable_culling(culling_address(), &code_changes);
   }
 
   MP2NTSC::MP2NTSC()
@@ -148,6 +149,10 @@ namespace prime
   {
     return 0x804eb9ac;
   }
+  uint32_t MP2NTSC::culling_address() const
+  {
+    return 0x802C8114;
+  }
 
   MP2PAL::MP2PAL()
   {
@@ -194,5 +199,8 @@ namespace prime
   {
     return 0x804f2f4c;
   }
-
+  uint32_t MP2PAL::culling_address() const
+  {
+    return 0x802CA730;
+  }
 }

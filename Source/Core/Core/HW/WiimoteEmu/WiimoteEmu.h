@@ -140,7 +140,7 @@ public:
   bool CheckBeamCtrl(int beam_count);
   bool CheckBeamScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
-  std::tuple <double, double, double, bool, bool> GetPrimeSettings();
+  std::tuple <double, double, double, bool, bool, bool> GetPrimeSettings();
 
   void Reset();
 
@@ -292,6 +292,7 @@ private:
   ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
+  ControllerEmu::SettingValue<bool> m_primehack_toggle_culling;
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;

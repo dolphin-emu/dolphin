@@ -26,6 +26,7 @@ static float camera_fov;
 static std::string device_name, device_source;
 static bool inverted_y = false;
 static bool inverted_x = false;
+static bool camera_culling = false;
 static HackManager hack_mgr;
 bool isRunning = false;
 
@@ -92,8 +93,8 @@ bool GetEFBTexture()
 void UpdateHackSettings()
 {
   double camera, cursor, fov;
-  bool invertx, inverty;
-  std::tie<double, double, double, bool, bool>(camera, cursor, fov, invertx, inverty) =
+  bool invertx, inverty, culling;
+  std::tie<double, double, double, bool, bool, bool>(camera, cursor, fov, invertx, inverty, culling) =
       Wiimote::PrimeSettings();
 
   SetSensitivity((float)camera);
@@ -101,6 +102,7 @@ void UpdateHackSettings()
   SetFov((float)fov);
   SetInvertedX(invertx);
   SetInvertedY(inverty);
+  SetCulling(culling);
 }
 
 float GetSensitivity()
@@ -136,6 +138,16 @@ void SetFov(float fov)
 bool InvertedY()
 {
   return inverted_y;
+}
+
+void SetCulling(bool culling)
+{
+  camera_culling = culling; 
+}
+
+bool Culling()
+{
+  return camera_culling;
 }
 
 void SetInvertedY(bool inverted)

@@ -41,6 +41,12 @@ namespace prime
     cursor_y = y;
   }
 
+  void disable_culling(u32 address, std::vector<CodeChange>* code_changes)
+  {
+    write_invalidate(address, 0x38600001);
+    write_invalidate(address + 0x4, 0x4E800020);
+  }
+
   void write_invalidate(u32 address, u32 value)
   {
     PowerPC::HostWrite_U32(value, address);

@@ -29,6 +29,7 @@ namespace prime
     virtual uint32_t camera_pointer_address() const = 0;
     virtual void apply_mod_instructions() = 0;
     virtual void apply_normal_instructions() = 0;
+    virtual uint32_t culling_address() const = 0;
 
     void control_state_hook(u32 base_offset, Region region);
     void grapple_slide_no_lookat(u32 base_offset);
@@ -58,6 +59,7 @@ namespace prime
     uint32_t cannon_lag_rtoc_offset() const override;
     uint32_t lockon_address() const override;
     uint32_t camera_pointer_address() const override;
+    uint32_t culling_address() const override;
     void apply_mod_instructions() override;
     void apply_normal_instructions() override;
   };
@@ -82,6 +84,7 @@ namespace prime
     uint32_t cannon_lag_rtoc_offset() const override;
     uint32_t lockon_address() const override;
     uint32_t camera_pointer_address() const override;
+    uint32_t culling_address() const override;
     void apply_mod_instructions() override;
     void apply_normal_instructions() override;
   };

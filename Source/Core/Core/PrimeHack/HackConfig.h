@@ -30,6 +30,8 @@ namespace prime
   void SetInvertedY(bool inverted);
   bool InvertedX();
   void SetInvertedX(bool inverted);
+  void SetCulling(bool culling);
+  bool Culling();
 
   std::string const& GetCtlDeviceName();
   std::string const& GetCtlDeviceSource();

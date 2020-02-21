@@ -74,13 +74,14 @@ namespace prime
       u32 camera_offset = ((PowerPC::HostRead_U32(active_camera_offset_address()) >> 16) & 0x3ff)
         << 3;
       u32 camera_base = PowerPC::HostRead_U32(camera_ptr + camera_offset + 0x04);
-      const float fov = std::min(GetFov(), 101.f);
+      const float fov = std::min(GetFov(), 170.f);
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base + 0x164);
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov1());
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov2());
     }
 
-    set_cplayer_str(cplayer());
+    if (Culling() || GetFov() > 101.f)
+      disable_culling(culling_address(), &code_changes);
   }
 
   MP1NTSC::MP1NTSC()
@@ -157,6 +158,10 @@ namespace prime
   {
     return 0x805c0e3c;
   }
+  uint32_t MP1NTSC::culling_address() const
+  {
+    return 0x802C7DBC;
+  }
 
   MP1PAL::MP1PAL()
   {
@@ -167,9 +172,6 @@ namespace prime
     code_changes.emplace_back(0x801768b4, 0x60000000);
     code_changes.emplace_back(0x802fb84c, 0xd23f009c);
     code_changes.emplace_back(0x8019fe64, 0x60000000);
-
-    beam_change_code(0x8018e7dc);
-    springball_code(0x80147820, &code_changes);
   }
 
   uint32_t MP1PAL::orbit_state_address() const
@@ -228,5 +230,8 @@ namespace prime
   {
     return 0x805c517c;
   }
-
+  uint32_t MP1PAL::culling_address() const
+  {
+    return 0x802C8024;
+  }
 }
