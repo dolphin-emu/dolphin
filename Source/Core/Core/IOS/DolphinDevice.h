@@ -16,7 +16,9 @@ public:
   using Device::Device;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
+#ifndef __ANDROID__
 private:
   UICommon::GameFileCache cache;
+#endif
 };
 }  // namespace IOS::HLE::Device

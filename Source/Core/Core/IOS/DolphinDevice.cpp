@@ -207,12 +207,14 @@ IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return SetSpeedLimit(request);
   case IOCTL_DOLPHIN_GET_CPU_SPEED:
     return GetCPUSpeed(request);
+#ifndef __ANDROID__
   case IOCTL_DOLPHIN_GET_GAME_LIST_SIZE:
     return GetGameListSize(cache, request);
   case IOCTL_DOLPHIN_GET_GAME_LIST_NAMES:
     return GetGameListNames(cache, request);
   case IOCTL_DOLPHIN_CHANGE_DISC:
     return ChangeDisc(cache, request);
+#endif
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
