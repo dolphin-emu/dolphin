@@ -27,7 +27,7 @@ enum
   IOCTL_DOLPHIN_GET_SPEED_LIMIT = 0x03,
   IOCTL_DOLPHIN_SET_SPEED_LIMIT = 0x04,
   IOCTL_DOLPHIN_GET_CPU_SPEED = 0x05,
-  IOCTL_DOLPHIN_CHANGE_DISC = 0x06,
+  IOCTL_DOLPHIN_GET_GAME_LIST_SIZE = 0x06,
 
 };
 
@@ -126,25 +126,21 @@ IPCCommandResult SetSpeedLimit(const IOCtlVRequest& request)
   return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ChangeDisc(const IOCtlVRequest& request)
+IPCCommandResult GetGameListSize(UICommon::GameFileCache& cache, const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(1, 0))
+  if (!request.HasNumberOfValidVectors(0, 1))
   {
     return DolphinDevice::GetDefaultReply(IPC_EINVAL);
   }
 
-  const auto length = size_t(request.in_vectors[0].size);
-  std::string string(length, 0);
-
-  Memory::CopyFromEmu(string.data(), request.in_vectors[0].address, length);
-
-  auto null = string.find('\0');
-  if (null != std::string::npos)
+  if (request.io_vectors[0].size != 4)
   {
-    string.erase(null);
+    return DolphinDevice::GetDefaultReply(IPC_EINVAL);
   }
 
-  DVDInterface::ChangeDisc(string);
+  cache.Load();
+  const u32 size = cache.GetSize();
+  Memory::Write_U32(size, request.io_vectors[0].address);
 
   return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
 }
@@ -170,8 +166,8 @@ IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return SetSpeedLimit(request);
   case IOCTL_DOLPHIN_GET_CPU_SPEED:
     return GetCPUSpeed(request);
-  case IOCTL_DOLPHIN_CHANGE_DISC:
-    return ChangeDisc(request);
+  case IOCTL_DOLPHIN_GET_GAME_LIST_SIZE:
+    return GetGameListSize(cache, request);
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
