@@ -221,14 +221,14 @@
 /* Class = "UILabel"; text = "Enable MMU"; ObjectID = "RvK-8a-gsf"; */
 "RvK-8a-gsf.text" = "Enable MMU";
 
-/* Class = "UILabel"; text = "CPU Emulation Engine"; ObjectID = "TS7-s0-dMM"; */
-"TS7-s0-dMM.text" = "CPU Emulation Engine";
+/* Class = "UILabel"; text = "CPUエミュレーション方式"; ObjectID = "TS7-s0-dMM"; */
+"TS7-s0-dMM.text" = "CPUエミュレーション方式";
 
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
 
-/* Class = "UINavigationItem"; title = "CPU Emulation Engine"; ObjectID = "bUR-fZ-pg3"; */
-"bUR-fZ-pg3.title" = "CPU Emulation Engine";
+/* Class = "UINavigationItem"; title = "CPUエミュレーション方式"; ObjectID = "bUR-fZ-pg3"; */
+"bUR-fZ-pg3.title" = "CPUエミュレーション方式";
 
 /* Class = "UILabel"; text = "高度な設定"; ObjectID = "ffY-kZ-p24"; */
 "ffY-kZ-p24.text" = "高度な設定";

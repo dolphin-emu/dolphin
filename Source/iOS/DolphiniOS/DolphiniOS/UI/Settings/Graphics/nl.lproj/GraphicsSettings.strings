@@ -98,8 +98,8 @@
 /* Class = "UILabel"; text = "Anisotrope Filtering"; ObjectID = "Skl-PD-WnK"; */
 "Skl-PD-WnK.text" = "Anisotrope Filtering";
 
-/* Class = "UILabel"; text = "Betrouwbaar"; ObjectID = "TGq-7C-aJD"; */
-"TGq-7C-aJD.text" = "Betrouwbaar";
+/* Class = "UILabel"; text = "Veilig"; ObjectID = "TGq-7C-aJD"; */
+"TGq-7C-aJD.text" = "Veilig";
 
 /* Class = "UILabel"; text = "Natief (640x528)"; ObjectID = "U3R-RE-wrE"; */
 "U3R-RE-wrE.text" = "Natief (640x528)";

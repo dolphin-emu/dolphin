@@ -8,8 +8,8 @@
 /* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "Idioma del sistema";
 
-/* Class = "UITableViewSection"; headerTitle = "Clock Override"; ObjectID = "16h-jz-fQG"; */
-"16h-jz-fQG.headerTitle" = "Clock Override";
+/* Class = "UITableViewSection"; headerTitle = "Ciclo de reloj"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "Ciclo de reloj";
 
 /* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "1L5-Kj-USx"; */
 "1L5-Kj-USx.text" = "Idioma del sistema";
@@ -92,8 +92,8 @@
 /* Class = "UITableViewSection"; headerTitle = "Otros ajustes"; ObjectID = "Is2-CQ-RYW"; */
 "Is2-CQ-RYW.headerTitle" = "Otros ajustes";
 
-/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
-"JXJ-Qk-sNk.text" = "Allow Mismatched Region Settings";
+/* Class = "UILabel"; text = "Permitir configuracion de region inparejada"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "Permitir configuracion de region inparejada";
 
 /* Class = "UILabel"; text = "Volumen"; ObjectID = "LeV-Nx-S8y"; */
 "LeV-Nx-S8y.text" = "Volumen";
@@ -107,8 +107,8 @@
 /* Class = "UILabel"; text = "Relación de aspecto"; ObjectID = "MUM-cb-6W0"; */
 "MUM-cb-6W0.text" = "Relación de aspecto";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "PUW-7n-hkA"; */
-"PUW-7n-hkA.text" = "Enable";
+/* Class = "UILabel"; text = "Habilitar"; ObjectID = "PUW-7n-hkA"; */
+"PUW-7n-hkA.text" = "Habilitar";
 
 /* Class = "UILabel"; text = "Chino simplificado"; ObjectID = "QAt-xr-bbV"; */
 "QAt-xr-bbV.text" = "Chino simplificado";
@@ -206,8 +206,8 @@
 /* Class = "UILabel"; text = "Español"; ObjectID = "vac-nW-Iuh"; */
 "vac-nW-Iuh.text" = "Español";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
-"w8Z-IJ-Fbf.text" = "Enable";
+/* Class = "UILabel"; text = "Habilitar"; ObjectID = "w8Z-IJ-Fbf"; */
+"w8Z-IJ-Fbf.text" = "Habilitar";
 
 /* Class = "UILabel"; text = "Notificar errores y advertencias"; ObjectID = "wvb-0C-F6M"; */
 "wvb-0C-F6M.text" = "Notificar errores y advertencias";
