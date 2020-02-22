@@ -17,6 +17,11 @@ for root, dirs, files in os.walk(sys.argv[1]):
       continue
       
     language = os.path.splitext(os.path.basename(po_path))[0]
+    
+    # Manual overrides
+    if language == "pt":
+      language = "pt-BR"
+    
     strings_path = os.path.join(sys.argv[2], language + '.lproj', 'Dolphin.strings')
     
     # Skip unsupported languages
@@ -32,7 +37,5 @@ for root, dirs, files in os.walk(sys.argv[1]):
         msgstr = entry.msgstr
         if not entry.msgstr:
           msgstr = entry.msgid
-        #if "plaats van bewaar punt" in msgstr:
-        #  print(msgstr)
-        #  exit(1)
+        
         strings_file.write('"' + entry.msgid.replace(r'"', r'\"') + '" = "' + msgstr.replace(r'\"', r'\\"').replace(r'"', r'\"') + '";\n')
