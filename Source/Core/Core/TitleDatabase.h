@@ -26,6 +26,7 @@ public:
 
   // Get a user friendly title name for a GameTDB ID.
   // This falls back to returning an empty string if none could be found.
+  const std::string& GetDeveloper(const std::string& gametdb_id) const;
   const std::string& GetTitleName(const std::string& gametdb_id, DiscIO::Language language) const;
 
   // Same as above, but takes a title ID instead of a GameTDB ID, and only works for channels.
@@ -37,9 +38,9 @@ public:
 private:
   void AddLazyMap(DiscIO::Language language, const std::string& language_code);
 
-  std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>>
-      m_title_maps;
+  std::unordered_map<DiscIO::Language, Common::Lazy<std::unordered_map<std::string, std::string>>> m_title_maps;
   std::unordered_map<std::string, std::string> m_base_map;
+  std::unordered_map<std::string, std::string> m_user_developer_map;
   std::unordered_map<std::string, std::string> m_user_title_map;
 };
 }  // namespace Core
