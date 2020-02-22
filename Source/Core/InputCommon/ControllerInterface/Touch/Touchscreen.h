@@ -27,7 +27,7 @@ private:
   {
   public:
     std::string GetName() const;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     Axis(int pad_id, ButtonManager::ButtonType index, float neg = 1.0f)
         : m_pad_id(pad_id), m_index(index), m_neg(neg)
     {

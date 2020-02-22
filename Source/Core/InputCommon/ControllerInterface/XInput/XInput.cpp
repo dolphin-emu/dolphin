@@ -118,7 +118,7 @@ public:
   Battery(const ControlState* level) : m_level(*level) {}
   std::string GetName() const override { return "Battery"; }
   ControlState GetState() const override { return m_level; }
-  bool IsDetectable() override { return false; }
+  bool IsDetectable() const override { return false; }
 
 private:
   const ControlState& m_level;
