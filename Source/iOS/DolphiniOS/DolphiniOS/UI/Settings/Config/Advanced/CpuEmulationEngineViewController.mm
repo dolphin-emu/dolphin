@@ -40,6 +40,8 @@
     PowerPC::CPUCore core = [self RowToCpuCore:indexPath.row];
     SConfig::GetInstance().cpu_core = core;
     Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, core);
+    
+    [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"did_deliberately_change_cpu_core"];
   }
   
   [tableView deselectRowAtIndexPath:indexPath animated:true];
