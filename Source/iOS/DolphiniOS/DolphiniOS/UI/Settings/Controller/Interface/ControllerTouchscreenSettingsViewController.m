@@ -25,6 +25,8 @@
   
   [self.m_motion_switch setOn:[[TCDeviceMotion shared] getMotionMode] == 0];
   
+  [self.m_recentering_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"tscontroller_stick_recentering"]];
+  
   [self.m_button_opacity_slider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"pad_opacity_value"]];
 }
 
@@ -47,6 +49,11 @@
   }
   
   [[TCDeviceMotion shared] setMotionMode:mode];
+}
+
+- (IBAction)RecenteringChanged:(id)sender
+{
+  [[NSUserDefaults standardUserDefaults] setBool:[self.m_recentering_switch isOn] forKey:@"tscontroller_stick_recentering"];
 }
 
 - (IBAction)OpacityChanged:(id)sender
