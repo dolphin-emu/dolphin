@@ -32,5 +32,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
         msgstr = entry.msgstr
         if not entry.msgstr:
           msgstr = entry.msgid
-        
-        strings_file.write('"' + entry.msgid.replace('"', r'\"') + '" = "' + msgstr.replace('"', r'\"') + '";\n')
+        #if "plaats van bewaar punt" in msgstr:
+        #  print(msgstr)
+        #  exit(1)
+        strings_file.write('"' + entry.msgid.replace(r'"', r'\"') + '" = "' + msgstr.replace(r'\"', r'\\"').replace(r'"', r'\"') + '";\n')
