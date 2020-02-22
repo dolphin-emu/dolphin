@@ -215,8 +215,8 @@
 /* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
 "ufh-Et-UDN.text" = "1x";
 
-/* Class = "UILabel"; text = "Save Texture Cache to State"; ObjectID = "v90-sm-gpO"; */
-"v90-sm-gpO.text" = "Save Texture Cache to State";
+/* Class = "UILabel"; text = "Texturen-Cache in Spielstand speichern"; ObjectID = "v90-sm-gpO"; */
+"v90-sm-gpO.text" = "Texturen-Cache in Spielstand speichern";
 
 /* Class = "UILabel"; text = "Protokolliert Renderzeit in Datei"; ObjectID = "vLt-rL-Jc6"; */
 "vLt-rL-Jc6.text" = "Protokolliert Renderzeit in Datei";

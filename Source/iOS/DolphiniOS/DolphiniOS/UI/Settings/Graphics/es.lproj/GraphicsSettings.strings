@@ -62,8 +62,8 @@
 /* Class = "UILabel"; text = "Asíncrono (omitir dibujo)"; ObjectID = "JFv-mk-0yL"; */
 "JFv-mk-0yL.text" = "Asíncrono (omitir dibujo)";
 
-/* Class = "UILabel"; text = "Synchronous (Ubershaders)"; ObjectID = "JV5-g2-2Ro"; */
-"JV5-g2-2Ro.text" = "Synchronous (Ubershaders)";
+/* Class = "UILabel"; text = "Síncronos (Ubershaders) "; ObjectID = "JV5-g2-2Ro"; */
+"JV5-g2-2Ro.text" = "Síncronos (Ubershaders) ";
 
 /* Class = "UILabel"; text = "Desactivar niebla"; ObjectID = "Jp9-YG-fFU"; */
 "Jp9-YG-fFU.text" = "Desactivar niebla";
@@ -158,8 +158,8 @@
 /* Class = "UILabel"; text = "Ignorar cambios de formato"; ObjectID = "g9b-oy-vim"; */
 "g9b-oy-vim.text" = "Ignorar cambios de formato";
 
-/* Class = "UILabel"; text = "Synchronous"; ObjectID = "gmt-s1-lH4"; */
-"gmt-s1-lH4.text" = "Synchronous";
+/* Class = "UILabel"; text = "Síncronos"; ObjectID = "gmt-s1-lH4"; */
+"gmt-s1-lH4.text" = "Síncronos";
 
 /* Class = "UINavigationItem"; title = "Arreglos temporales"; ObjectID = "hAk-wO-QgI"; */
 "hAk-wO-QgI.title" = "Arreglos temporales";
@@ -215,8 +215,8 @@
 /* Class = "UILabel"; text = "x1"; ObjectID = "ufh-Et-UDN"; */
 "ufh-Et-UDN.text" = "x1";
 
-/* Class = "UILabel"; text = "Save Texture Cache to State"; ObjectID = "v90-sm-gpO"; */
-"v90-sm-gpO.text" = "Save Texture Cache to State";
+/* Class = "UILabel"; text = "Guardar caché de texturas en estado"; ObjectID = "v90-sm-gpO"; */
+"v90-sm-gpO.text" = "Guardar caché de texturas en estado";
 
 /* Class = "UILabel"; text = "Guardar tiempos de dibujado en archivo"; ObjectID = "vLt-rL-Jc6"; */
 "vLt-rL-Jc6.text" = "Guardar tiempos de dibujado en archivo";
