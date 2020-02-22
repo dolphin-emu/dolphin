@@ -8,6 +8,7 @@
 
 #import "Core/HW/SI/SI.h"
 #import "Core/HW/SI/SI_Device.h"
+#import "Core/HW/Wiimote.h"
 
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 
@@ -20,7 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 + (size_t)GetTotalAvailableSIDevices;
 + (NSString*)GetLocalizedGameCubeControllerFromIndex:(NSInteger)idx;
 + (size_t)GetTotalAvailableWiimoteTypes;
-+ (NSString*)GetLocalizedWiimoteStringFromIndex:(NSInteger)idx;
++ (NSString*)GetLocalizedWiimoteStringFromSource:(WiimoteSource)source;
 + (NSString*)RemoveAndroidFromDeviceName:(NSString*)name;
 + (NSString*)FormatExpression:(NSString*)expression;
 + (bool)IsControllerConnectedToTouchscreen:(ControllerEmu::EmulatedController*)controller;

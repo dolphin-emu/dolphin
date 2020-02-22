@@ -52,7 +52,7 @@
   
   for (size_t i = 0; i < 4; i++)
   {
-    [[self.m_wiimote_labels objectAtIndex:i] setText:[ControllerSettingsUtils GetLocalizedWiimoteStringFromIndex:g_wiimote_sources[i]]];
+    [[self.m_wiimote_labels objectAtIndex:i] setText:[ControllerSettingsUtils GetLocalizedWiimoteStringFromSource:WiimoteCommon::GetSource(i)]];
   }
 }
 

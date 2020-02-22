@@ -221,7 +221,7 @@
     InputConfig* wii_input_config = Wiimote::GetConfig();
     for (int i = 0; i < 4; i++)
     {
-      if (g_wiimote_sources[i] != 1) // not Emulated or not touchscreen
+      if (WiimoteCommon::GetSource(i) != WiimoteSource::Emulated) // not Emulated or not touchscreen
       {
         continue;
       }
