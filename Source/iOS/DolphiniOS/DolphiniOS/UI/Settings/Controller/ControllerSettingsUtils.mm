@@ -7,7 +7,6 @@
 #import <map>
 
 #import "Core/HW/GCPad.h"
-#import "Core/HW/Wiimote.h"
 #import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #import "InputCommon/ControllerInterface/iOS/iOS.h"
@@ -69,15 +68,15 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   return 3;
 }
 
-+ (NSString*)GetLocalizedWiimoteStringFromIndex:(NSInteger)idx
++ (NSString*)GetLocalizedWiimoteStringFromSource:(WiimoteSource)source
 {
-  switch (idx)
+  switch (source)
   {
-    case 0:
+    case WiimoteSource::None:
       return DOLocalizedString(@"None");
-    case 1:
+    case WiimoteSource::Emulated:
       return DOLocalizedString(@"Emulated Wii Remote");
-    case 2:
+    case WiimoteSource::Real:
       return DOLocalizedString(@"Real Wii Remote");
     default:
       return @"??? (Wii)";

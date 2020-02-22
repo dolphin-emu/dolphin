@@ -26,7 +26,7 @@
   
   if (self.m_is_wii)
   {
-    self.m_last_selected = g_wiimote_sources[self.m_port];
+    self.m_last_selected = (NSInteger)WiimoteCommon::GetSource(self.m_port);
   }
   else
   {
@@ -58,7 +58,7 @@
   NSString* type;
   if (self.m_is_wii)
   {
-    type = [ControllerSettingsUtils GetLocalizedWiimoteStringFromIndex:indexPath.row];
+    type = [ControllerSettingsUtils GetLocalizedWiimoteStringFromSource:(WiimoteSource)indexPath.row];
   }
   else
   {
@@ -105,7 +105,7 @@
   
   if (self.m_is_wii)
   {
-    WiimoteReal::ChangeWiimoteSource(self.m_port, static_cast<u32>(indexPath.row));
+    WiimoteCommon::SetSource(self.m_port, static_cast<WiimoteSource>(indexPath.row));
     
     UICommon::SaveWiimoteSources();
   }

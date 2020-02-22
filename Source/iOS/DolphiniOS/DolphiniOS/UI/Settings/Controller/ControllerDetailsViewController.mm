@@ -42,14 +42,14 @@
   
   if (self.m_is_wii)
   {
-    u32 wiimote_source = g_wiimote_sources[self.m_port];
-    if (wiimote_source != 1)
+    WiimoteSource wiimote_source = WiimoteCommon::GetSource(self.m_port);
+    if (wiimote_source != WiimoteSource::Emulated)
     {
       configuration_enabled = false;
       can_change_devices = false;
     }
     
-    [self.m_type_label setText:[ControllerSettingsUtils GetLocalizedWiimoteStringFromIndex:wiimote_source]];
+    [self.m_type_label setText:[ControllerSettingsUtils GetLocalizedWiimoteStringFromSource:wiimote_source]];
   }
   else
   {
