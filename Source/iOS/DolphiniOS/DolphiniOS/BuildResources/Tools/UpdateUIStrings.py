@@ -33,6 +33,11 @@ for root, dirs, files in os.walk(sys.argv[1]):
       continue
       
     language = os.path.splitext(os.path.basename(po_path))[0]
+    
+    # Manual overrides
+    if language == "pt":
+      language = "pt-BR"
+    
     po = polib.pofile(os.path.join(sys.argv[1], po_path))
     
     po_entries = {}
