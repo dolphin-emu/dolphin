@@ -1,0 +1,15 @@
+
+/* Class = "UITabBarItem"; title = "Settings"; ObjectID = "5gb-G7-eot"; */
+"5gb-G7-eot.title" = "Settings";
+
+/* Class = "UIViewController"; title = "Software"; ObjectID = "8zf-F8-4Cl"; */
+"8zf-F8-4Cl.title" = "Software";
+
+/* Class = "UITabBarItem"; title = "Games"; ObjectID = "9X2-kc-x4w"; */
+"9X2-kc-x4w.title" = "Games";
+
+/* Class = "UINavigationItem"; title = "Games"; ObjectID = "O8d-Sc-z6Q"; */
+"O8d-Sc-z6Q.title" = "Games";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "nfc-i9-ORm"; */
+"nfc-i9-ORm.text" = "Label";

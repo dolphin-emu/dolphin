@@ -1,0 +1,237 @@
+
+/* Class = "UILabel"; text = "Wii 리모트 진동"; ObjectID = "0K1-Oi-viC"; */
+"0K1-Oi-viC.text" = "Wii 리모트 진동";
+
+/* Class = "UINavigationItem"; title = "고급"; ObjectID = "0s6-c7-OwY"; */
+"0s6-c7-OwY.title" = "고급";
+
+/* Class = "UILabel"; text = "시스템 언어"; ObjectID = "15i-sg-byP"; */
+"15i-sg-byP.text" = "시스템 언어";
+
+/* Class = "UITableViewSection"; headerTitle = "클럭 오버라이드"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "클럭 오버라이드";
+
+/* Class = "UILabel"; text = "시스템 언어"; ObjectID = "1L5-Kj-USx"; */
+"1L5-Kj-USx.text" = "시스템 언어";
+
+/* Class = "UINavigationItem"; title = "오디오"; ObjectID = "1tL-Cz-TAL"; */
+"1tL-Cz-TAL.title" = "오디오";
+
+/* Class = "UILabel"; text = "네덜란드어"; ObjectID = "2Eo-dx-eKL"; */
+"2Eo-dx-eKL.text" = "네덜란드어";
+
+/* Class = "UITableViewSection"; headerTitle = "CPU 옵션"; ObjectID = "3FW-wh-rEp"; */
+"3FW-wh-rEp.headerTitle" = "CPU 옵션";
+
+/* Class = "UILabel"; text = "화면 보호기 활성화"; ObjectID = "3Gq-Ip-xn2"; */
+"3Gq-Ip-xn2.text" = "화면 보호기 활성화";
+
+/* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
+"5dO-8H-gFe.text" = "4:3";
+
+/* Class = "UILabel"; text = "디스크 자동 교환"; ObjectID = "6Jm-cq-bVY"; */
+"6Jm-cq-bVY.text" = "디스크 자동 교환";
+
+/* Class = "UILabel"; text = "Center Game Image"; ObjectID = "6K0-Zw-CzT"; */
+"6K0-Zw-CzT.text" = "Center Game Image";
+
+/* Class = "UILabel"; text = "센서 바 위치"; ObjectID = "6Qs-g2-BTZ"; */
+"6Qs-g2-BTZ.text" = "센서 바 위치";
+
+/* Class = "UILabel"; text = "인터프리터 (가장 느림)"; ObjectID = "6dX-G1-g6C"; */
+"6dX-G1-g6C.text" = "인터프리터 (가장 느림)";
+
+/* Class = "UILabel"; text = "독일어"; ObjectID = "6hU-jR-80J"; */
+"6hU-jR-80J.text" = "독일어";
+
+/* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
+"7aI-mV-ROW.text" = "Wii";
+
+/* Class = "UILabel"; text = "도움말"; ObjectID = "7wX-hc-fac"; */
+"7wX-hc-fac.text" = "도움말";
+
+/* Class = "UILabel"; text = "인터페이스"; ObjectID = "8QE-dy-7FY"; */
+"8QE-dy-7FY.text" = "인터페이스";
+
+/* Class = "UILabel"; text = "0ms"; ObjectID = "8fb-Ub-qRJ"; */
+"8fb-Ub-qRJ.text" = "0ms";
+
+/* Class = "UINavigationItem"; title = "게임큐브"; ObjectID = "95Z-nw-IkP"; */
+"95Z-nw-IkP.title" = "게임큐브";
+
+/* Class = "UILabel"; text = "스페인어"; ObjectID = "Ac5-y8-3WG"; */
+"Ac5-y8-3WG.text" = "스페인어";
+
+/* Class = "UILabel"; text = "게임큐브"; ObjectID = "B86-pG-KqL"; */
+"B86-pG-KqL.text" = "게임큐브";
+
+/* Class = "UILabel"; text = "오디오"; ObjectID = "BPT-fd-wOl"; */
+"BPT-fd-wOl.text" = "오디오";
+
+/* Class = "UILabel"; text = "PAL60 모드 (EuRGB60) 사용"; ObjectID = "CGi-MG-0NE"; */
+"CGi-MG-0NE.text" = "PAL60 모드 (EuRGB60) 사용";
+
+/* Class = "UILabel"; text = "버퍼 크기"; ObjectID = "CrC-lY-5Tq"; */
+"CrC-lY-5Tq.text" = "버퍼 크기";
+
+/* Class = "UILabel"; text = "치트 활성화"; ObjectID = "DAs-t0-7XG"; */
+"DAs-t0-7XG.text" = "치트 활성화";
+
+/* Class = "UINavigationItem"; title = "종횡비"; ObjectID = "F9G-27-Tjl"; */
+"F9G-27-Tjl.title" = "종횡비";
+
+/* Class = "UITableViewSection"; headerTitle = "오디오 늘림 설정"; ObjectID = "Gbe-Ah-d5T"; */
+"Gbe-Ah-d5T.headerTitle" = "오디오 늘림 설정";
+
+/* Class = "UILabel"; text = "듀얼 코어 활성화 (속도 상승)"; ObjectID = "Hqe-6i-IcW"; */
+"Hqe-6i-IcW.text" = "듀얼 코어 활성화 (속도 상승)";
+
+/* Class = "UILabel"; text = "온-스크린 메시지 보여주기"; ObjectID = "I12-Zq-IDS"; */
+"I12-Zq-IDS.text" = "온-스크린 메시지 보여주기";
+
+/* Class = "UITableViewSection"; headerTitle = "기타 설정"; ObjectID = "Is2-CQ-RYW"; */
+"Is2-CQ-RYW.headerTitle" = "기타 설정";
+
+/* Class = "UILabel"; text = "맞지 않는 지역 설정 허락"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "맞지 않는 지역 설정 허락";
+
+/* Class = "UILabel"; text = "볼륨"; ObjectID = "LeV-Nx-S8y"; */
+"LeV-Nx-S8y.text" = "볼륨";
+
+/* Class = "UINavigationItem"; title = " 환경설정"; ObjectID = "M5b-kB-xlF"; */
+"M5b-kB-xlF.title" = " 환경설정";
+
+/* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
+"MBg-6m-DDq.title" = "Wii";
+
+/* Class = "UILabel"; text = "종횡비"; ObjectID = "MUM-cb-6W0"; */
+"MUM-cb-6W0.text" = "종횡비";
+
+/* Class = "UILabel"; text = "활성"; ObjectID = "PUW-7n-hkA"; */
+"PUW-7n-hkA.text" = "활성";
+
+/* Class = "UILabel"; text = "간소화 중국어"; ObjectID = "QAt-xr-bbV"; */
+"QAt-xr-bbV.text" = "간소화 중국어";
+
+/* Class = "UILabel"; text = "JIT 리컴파일러 (권장)"; ObjectID = "QLN-FA-k5N"; */
+"QLN-FA-k5N.text" = "JIT 리컴파일러 (권장)";
+
+/* Class = "UILabel"; text = "MMU 활성화"; ObjectID = "RvK-8a-gsf"; */
+"RvK-8a-gsf.text" = "MMU 활성화";
+
+/* Class = "UILabel"; text = "전통 중국어"; ObjectID = "SEK-Rf-1qk"; */
+"SEK-Rf-1qk.text" = "전통 중국어";
+
+/* Class = "UILabel"; text = "메인 메뉴 스킵"; ObjectID = "T9q-6x-qwt"; */
+"T9q-6x-qwt.text" = "메인 메뉴 스킵";
+
+/* Class = "UILabel"; text = "CPU 에뮬레이션 엔진"; ObjectID = "TS7-s0-dMM"; */
+"TS7-s0-dMM.text" = "CPU 에뮬레이션 엔진";
+
+/* Class = "UILabel"; text = "일본어"; ObjectID = "ThN-T3-iRi"; */
+"ThN-T3-iRi.text" = "일본어";
+
+/* Class = "UILabel"; text = "이탈리아어"; ObjectID = "UMf-Ls-Y2a"; */
+"UMf-Ls-Y2a.text" = "이탈리아어";
+
+/* Class = "UILabel"; text = "멈출 때 확인"; ObjectID = "UWa-CA-YiK"; */
+"UWa-CA-YiK.text" = "멈출 때 확인";
+
+/* Class = "UILabel"; text = "한국어"; ObjectID = "UuH-ey-51W"; */
+"UuH-ey-51W.text" = "한국어";
+
+/* Class = "UINavigationItem"; title = "일반"; ObjectID = "VNc-Ms-o2f"; */
+"VNc-Ms-o2f.title" = "일반";
+
+/* Class = "UILabel"; text = "0%"; ObjectID = "Zlo-ls-qgb"; */
+"Zlo-ls-qgb.text" = "0%";
+
+/* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
+"ab2-Af-AKe.text" = "100% (486MHz)";
+
+/* Class = "UILabel"; text = "SD 카드 삽입"; ObjectID = "acr-9s-yir"; */
+"acr-9s-yir.text" = "SD 카드 삽입";
+
+/* Class = "UINavigationItem"; title = "CPU 에뮬레이션 엔진"; ObjectID = "bUR-fZ-pg3"; */
+"bUR-fZ-pg3.title" = "CPU 에뮬레이션 엔진";
+
+/* Class = "UILabel"; text = "일반"; ObjectID = "bZj-AD-NCb"; */
+"bZj-AD-NCb.text" = "일반";
+
+/* Class = "UILabel"; text = "아래"; ObjectID = "diR-dc-PZQ"; */
+"diR-dc-PZQ.text" = "아래";
+
+/* Class = "UINavigationItem"; title = "속도 제한"; ObjectID = "fN5-W1-lFO"; */
+"fN5-W1-lFO.title" = "속도 제한";
+
+/* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
+"fUQ-3L-qGc.text" = "16:9";
+
+/* Class = "UILabel"; text = "고급"; ObjectID = "ffY-kZ-p24"; */
+"ffY-kZ-p24.text" = "고급";
+
+/* Class = "UILabel"; text = "IR 감도"; ObjectID = "gam-22-Oa4"; */
+"gam-22-Oa4.text" = "IR 감도";
+
+/* Class = "UILabel"; text = "스피커 볼륨"; ObjectID = "hEq-jG-aOY"; */
+"hEq-jG-aOY.text" = "스피커 볼륨";
+
+/* Class = "UINavigationItem"; title = "센서 바 위치"; ObjectID = "hSw-Hy-ACo"; */
+"hSw-Hy-ACo.title" = "센서 바 위치";
+
+/* Class = "UILabel"; text = "속도 제한"; ObjectID = "ikA-Z6-A6b"; */
+"ikA-Z6-A6b.text" = "속도 제한";
+
+/* Class = "UITableViewSection"; headerTitle = "Wii 리모트 설정"; ObjectID = "jyG-uN-4nV"; */
+"jyG-uN-4nV.headerTitle" = "Wii 리모트 설정";
+
+/* Class = "UILabel"; text = "독일어"; ObjectID = "mkw-NI-JPB"; */
+"mkw-NI-JPB.text" = "독일어";
+
+/* Class = "UILabel"; text = "프랑스어"; ObjectID = "o0Y-zK-I1w"; */
+"o0Y-zK-I1w.text" = "프랑스어";
+
+/* Class = "UILabel"; text = "영어"; ObjectID = "riQ-Hp-p07"; */
+"riQ-Hp-p07.text" = "영어";
+
+/* Class = "UILabel"; text = "캐시된 인터프리터 (더 느림)"; ObjectID = "s3k-Uc-UWw"; */
+"s3k-Uc-UWw.text" = "캐시된 인터프리터 (더 느림)";
+
+/* Class = "UINavigationItem"; title = "시스템 언어"; ObjectID = "txG-ij-PdN"; */
+"txG-ij-PdN.title" = "시스템 언어";
+
+/* Class = "UILabel"; text = "위"; ObjectID = "u9J-1j-jvw"; */
+"u9J-1j-jvw.text" = "위";
+
+/* Class = "UILabel"; text = "스페인어"; ObjectID = "vac-nW-Iuh"; */
+"vac-nW-Iuh.text" = "스페인어";
+
+/* Class = "UILabel"; text = "활성"; ObjectID = "w8Z-IJ-Fbf"; */
+"w8Z-IJ-Fbf.text" = "활성";
+
+/* Class = "UILabel"; text = "패닉 핸들러 사용"; ObjectID = "wvb-0C-F6M"; */
+"wvb-0C-F6M.text" = "패닉 핸들러 사용";
+
+/* Class = "UINavigationItem"; title = "시스템 언어"; ObjectID = "xFX-NZ-sg9"; */
+"xFX-NZ-sg9.title" = "시스템 언어";
+
+/* Class = "UILabel"; text = "네덜란드어"; ObjectID = "xuE-0a-y6h"; */
+"xuE-0a-y6h.text" = "네덜란드어";
+
+/* Class = "UILabel"; text = "Always Show Top Bar"; ObjectID = "yKS-Vb-4Fe"; */
+"yKS-Vb-4Fe.text" = "Always Show Top Bar";
+
+/* Class = "UILabel"; text = "속도"; ObjectID = "yax-jm-ehL"; */
+"yax-jm-ehL.text" = "속도";
+
+/* Class = "UILabel"; text = "이탈리아어"; ObjectID = "yer-Iz-yOE"; */
+"yer-Iz-yOE.text" = "이탈리아어";
+
+/* Class = "UILabel"; text = "프랑스어"; ObjectID = "zZn-vO-FBV"; */
+"zZn-vO-FBV.text" = "프랑스어";
+
+/* Class = "UILabel"; text = "영어"; ObjectID = "zek-wt-iwk"; */
+"zek-wt-iwk.text" = "영어";
+
+/* Class = "UINavigationItem"; title = "인터페이스"; ObjectID = "zlc-hO-hJt"; */
+"zlc-hO-hJt.title" = "인터페이스";
