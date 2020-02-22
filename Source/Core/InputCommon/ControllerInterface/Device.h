@@ -70,7 +70,7 @@ public:
   public:
     // Things like absolute axes/ absolute mouse position should override this to prevent
     // undesirable behavior in our mapping logic.
-    virtual bool IsDetectable() { return true; }
+    virtual bool IsDetectable() const { return true; }
 
     // Implementations should return a value from 0.0 to 1.0 across their normal range.
     // One input should be provided for each "direction". (e.g. 2 for each axis)

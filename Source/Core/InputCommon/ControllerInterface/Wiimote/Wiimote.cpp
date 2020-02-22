@@ -48,7 +48,7 @@ public:
   {
   }
 
-  bool IsDetectable() override { return Detectable; }
+  bool IsDetectable() const override { return Detectable; }
 
   std::string GetName() const override { return m_name; }
 
