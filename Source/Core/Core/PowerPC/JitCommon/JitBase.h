@@ -48,7 +48,6 @@ protected:
     bool optimizeGatherPipe;
     bool accurateSinglePrecision;
     bool fastmem;
-    bool fastmem_arena;
     bool memcheck;
     bool profile_blocks;
   };
