@@ -129,6 +129,7 @@
 		B9B47C9123FB8BA80077375A /* AntiAliasingViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9023FB8BA80077375A /* AntiAliasingViewController.mm */; };
 		B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9323FC7B830077375A /* AntiAliasingCell.m */; };
 		B9B47C9723FCBEA90077375A /* GraphicsRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */; };
+		B9B47C9D23FF5AE90077375A /* GraphicsHacksViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9C23FF5AE80077375A /* GraphicsHacksViewController.mm */; };
 		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
@@ -365,6 +366,8 @@
 		B9B47C9323FC7B830077375A /* AntiAliasingCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntiAliasingCell.m; sourceTree = "<group>"; };
 		B9B47C9523FCBEA90077375A /* GraphicsRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsRootViewController.h; sourceTree = "<group>"; };
 		B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsRootViewController.mm; sourceTree = "<group>"; };
+		B9B47C9B23FF5AE80077375A /* GraphicsHacksViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsHacksViewController.h; sourceTree = "<group>"; };
+		B9B47C9C23FF5AE80077375A /* GraphicsHacksViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsHacksViewController.mm; sourceTree = "<group>"; };
 		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
 		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
@@ -834,6 +837,7 @@
 			children = (
 				B9B47C8423FB5D010077375A /* Enhancements */,
 				B99D363423E810DC005627CE /* General */,
+				B9B47C9A23FF5A820077375A /* Hacks */,
 				B9B47C9523FCBEA90077375A /* GraphicsRootViewController.h */,
 				B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */,
 				B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */,
@@ -884,6 +888,15 @@
 				B9B47C8A23FB86B40077375A /* InternalResolutionViewController.mm */,
 			);
 			path = Enhancements;
+			sourceTree = "<group>";
+		};
+		B9B47C9A23FF5A820077375A /* Hacks */ = {
+			isa = PBXGroup;
+			children = (
+				B9B47C9B23FF5AE80077375A /* GraphicsHacksViewController.h */,
+				B9B47C9C23FF5AE80077375A /* GraphicsHacksViewController.mm */,
+			);
+			path = Hacks;
 			sourceTree = "<group>";
 		};
 		B9B536C823DD8AA900F03106 /* Updates */ = {
@@ -1311,6 +1324,7 @@
 			files = (
 				B988D7FA23B604690092CB6C /* ControllerLoadProfileViewController.mm in Sources */,
 				B9B47C7D23FB26520077375A /* GraphicsBackendViewController.mm in Sources */,
+				B9B47C9D23FF5AE90077375A /* GraphicsHacksViewController.mm in Sources */,
 				B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */,
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
 				B9B47C8023FB42460077375A /* AspectRatioViewController.mm in Sources */,
