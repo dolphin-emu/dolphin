@@ -202,3 +202,6 @@
 
 /* Class = "UILabel"; text = "Wiimote 1"; ObjectID = "ygq-gb-7v6"; */
 "ygq-gb-7v6.text" = "Wiimote 1";
+
+/* Class = "UILabel"; text = "Stick Recentering"; ObjectID = "ygG-fJ-PN6"; */
+"ygG-fJ-PN6.text" = "Stick Recentering";
