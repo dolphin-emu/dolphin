@@ -72,6 +72,7 @@ struct SConfig
   bool m_WiiKeyboard;
   bool m_WiimoteContinuousScanning;
   bool m_WiimoteEnableSpeaker;
+  bool connect_wiimotes_for_ciface;
 
   // ISO folder
   std::vector<std::string> m_ISOFolder;

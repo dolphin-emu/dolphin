@@ -10,6 +10,10 @@ namespace WiimoteCommon
 {
 constexpr u8 MAX_PAYLOAD = 23;
 
+// Based on testing, old WiiLi.org docs, and WiiUse library:
+// Max battery level seems to be 0xc8 (decimal 200)
+constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
+
 enum class InputReportID : u8
 {
   Status = 0x20,

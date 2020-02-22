@@ -500,7 +500,7 @@ void Wiimote::SendDataReport()
     if (rpt_builder.HasAccel())
     {
       // Calibration values are 8-bit but we want 10-bit precision, so << 2.
-      DataReportBuilder::AccelData accel =
+      AccelData accel =
           ConvertAccelData(GetTotalAcceleration(), ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
       rpt_builder.SetAccelData(accel);
     }

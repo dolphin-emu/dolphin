@@ -678,12 +678,13 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
   if (rpt.HasAccel())
   {
-    DataReportBuilder::AccelData accel_data;
+    AccelData accel_data;
     rpt.GetAccelData(&accel_data);
 
     // FYI: This will only print partial data for interleaved reports.
 
-    display_str += fmt::format(" ACC:{},{},{}", accel_data.x, accel_data.y, accel_data.z);
+    display_str +=
+        fmt::format(" ACC:{},{},{}", accel_data.value.x, accel_data.value.y, accel_data.value.z);
   }
 
   if (rpt.HasIR())
@@ -707,9 +708,8 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
     nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
-    const std::string accel = fmt::format(
-        " N-ACC:{},{},{}", (nunchuk.ax << 2) | nunchuk.bt.acc_x_lsb,
-        (nunchuk.ay << 2) | nunchuk.bt.acc_y_lsb, (nunchuk.az << 2) | nunchuk.bt.acc_z_lsb);
+    const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
+                                          nunchuk.GetAccelY(), nunchuk.GetAccelZ());
 
     if (nunchuk.bt.c)
       display_str += " C";
@@ -756,10 +756,14 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     if (cc.bt.home)
       display_str += " HOME";
 
-    display_str += Analog1DToString(cc.lt1 | (cc.lt2 << 3), " L", 31);
-    display_str += Analog1DToString(cc.rt, " R", 31);
-    display_str += Analog2DToString(cc.lx, cc.ly, " ANA", 63);
-    display_str += Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31);
+    display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", 31);
+    display_str += Analog1DToString(cc.GetRightTrigger().value, " R", 31);
+
+    const auto left_stick = cc.GetLeftStick().value;
+    display_str += Analog2DToString(left_stick.x, left_stick.y, " ANA", 63);
+
+    const auto right_stick = cc.GetRightStick().value;
+    display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
   }
 
   std::lock_guard<std::mutex> guard(s_input_display_lock);

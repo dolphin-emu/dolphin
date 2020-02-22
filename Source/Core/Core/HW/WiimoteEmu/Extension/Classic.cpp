@@ -114,8 +114,10 @@ void Classic::Update()
   {
     const ControllerEmu::AnalogStick::StateData left_stick_state = m_left_stick->GetState();
 
-    classic_data.lx = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.x * LEFT_STICK_RADIUS));
-    classic_data.ly = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.y * LEFT_STICK_RADIUS));
+    const u8 x = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.x * LEFT_STICK_RADIUS));
+    const u8 y = static_cast<u8>(LEFT_STICK_CENTER + (left_stick_state.y * LEFT_STICK_RADIUS));
+
+    classic_data.SetLeftStick({x, y});
   }
 
   // right stick
@@ -125,10 +127,7 @@ void Classic::Update()
     const u8 x = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.x * RIGHT_STICK_RADIUS));
     const u8 y = static_cast<u8>(RIGHT_STICK_CENTER + (right_stick_data.y * RIGHT_STICK_RADIUS));
 
-    classic_data.rx1 = x;
-    classic_data.rx2 = x >> 1;
-    classic_data.rx3 = x >> 3;
-    classic_data.ry = y;
+    classic_data.SetRightStick({x, y});
   }
 
   // triggers
@@ -139,18 +138,15 @@ void Classic::Update()
     const u8 lt = static_cast<u8>(trigs[0] * TRIGGER_RANGE);
     const u8 rt = static_cast<u8>(trigs[1] * TRIGGER_RANGE);
 
-    classic_data.lt1 = lt;
-    classic_data.lt2 = lt >> 3;
-    classic_data.rt = rt;
+    classic_data.SetLeftTrigger(lt);
+    classic_data.SetRightTrigger(rt);
   }
 
-  // buttons
-  m_buttons->GetState(&classic_data.bt.hex, classic_button_bitmasks.data());
-  // dpad
-  m_dpad->GetState(&classic_data.bt.hex, classic_dpad_bitmasks.data());
-
-  // flip button bits
-  classic_data.bt.hex ^= 0xFFFF;
+  // buttons and dpad
+  u16 buttons = 0;
+  m_buttons->GetState(&buttons, classic_button_bitmasks.data());
+  m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
+  classic_data.SetButtons(buttons);
 
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = classic_data;
 }

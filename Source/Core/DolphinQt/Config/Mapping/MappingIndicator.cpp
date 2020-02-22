@@ -159,10 +159,12 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
   // Even the GC controller's small range would pass this test.
   constexpr double REASONABLE_AVERAGE_RADIUS = 0.6;
 
-  const double sum = std::accumulate(data.begin(), data.end(), 0.0);
-  const double mean = sum / data.size();
+  MathUtil::RunningVariance<ControlState> stats;
 
-  if (mean < REASONABLE_AVERAGE_RADIUS)
+  for (auto& x : data)
+    stats.Push(x);
+
+  if (stats.Mean() < REASONABLE_AVERAGE_RADIUS)
   {
     return false;
   }
@@ -173,11 +175,7 @@ bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::Calibration
   // Approx. deviation of a square input gate, anything much more than that would be unusual.
   constexpr double REASONABLE_DEVIATION = 0.14;
 
-  // Population standard deviation.
-  const double square_sum = std::inner_product(data.begin(), data.end(), data.begin(), 0.0);
-  const double standard_deviation = std::sqrt(square_sum / data.size() - mean * mean);
-
-  return standard_deviation < REASONABLE_DEVIATION;
+  return stats.StandardDeviation() < REASONABLE_DEVIATION;
 }
 
 // Used to test for a miscalibrated stick so the user can be informed.
@@ -754,32 +752,33 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   p.setBrush(Qt::NoBrush);
   p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
 
-  // Red dot upright target.
-  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
-  p.drawEllipse(QPointF{0, SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(Qt::NoPen);
 
   // Red dot.
   const auto point = rotation * Common::Vec3{0, 0, SPHERE_INDICATOR_DIST};
   if (point.y > 0 || Common::Vec2(point.x, point.z).Length() > SPHERE_SIZE)
   {
-    p.setPen(Qt::NoPen);
     p.setBrush(GetAdjustedInputColor());
     p.drawEllipse(QPointF(point.x, point.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
-
-  // Blue dot target.
-  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
-  p.setBrush(Qt::NoBrush);
-  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Blue dot.
   const auto point2 = -point;
   if (point2.y > 0 || Common::Vec2(point2.x, point2.z).Length() > SPHERE_SIZE)
   {
-    p.setPen(Qt::NoPen);
     p.setBrush(Qt::blue);
     p.drawEllipse(QPointF(point2.x, point2.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
+
+  p.setBrush(Qt::NoBrush);
+
+  // Red dot upright target.
+  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
+  p.drawEllipse(QPointF{0, SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+
+  // Blue dot target.
+  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
+  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Only draw g-force text if acceleration data is present.
   if (!accel_state.has_value())
@@ -802,16 +801,18 @@ GyroMappingIndicator::GyroMappingIndicator(ControllerEmu::IMUGyroscope* group)
 void GyroMappingIndicator::paintEvent(QPaintEvent*)
 {
   const auto gyro_state = m_gyro_group.GetState();
+  const auto raw_gyro_state = m_gyro_group.GetRawState();
   const auto angular_velocity = gyro_state.value_or(Common::Vec3{});
+  const auto jitter = raw_gyro_state - m_previous_velocity;
+  m_previous_velocity = raw_gyro_state;
 
-  m_state *= Common::Matrix33::FromQuaternion(angular_velocity.x / -INDICATOR_UPDATE_FREQ / 2,
-                                              angular_velocity.y / INDICATOR_UPDATE_FREQ / 2,
-                                              angular_velocity.z / -INDICATOR_UPDATE_FREQ / 2, 1);
+  m_state *= WiimoteEmu::GetMatrixFromGyroscope(angular_velocity * Common::Vec3(-1, +1, -1) /
+                                                INDICATOR_UPDATE_FREQ);
 
   // Reset orientation when stable for a bit:
   constexpr u32 STABLE_RESET_STEPS = INDICATOR_UPDATE_FREQ;
-  // This works well with my DS4 but a potentially noisy device might not behave.
-  const bool is_stable = angular_velocity.Length() < MathUtil::TAU / 30;
+  // Consider device stable when data (with deadzone applied) is zero.
+  const bool is_stable = !angular_velocity.LengthSquared();
 
   if (!is_stable)
     m_stable_steps = 0;
@@ -839,10 +840,39 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
+  // Deadzone.
+  if (const auto deadzone_value = m_gyro_group.GetDeadzone(); deadzone_value)
+  {
+    static constexpr auto DEADZONE_DRAW_SIZE = 1 - SPHERE_SIZE;
+    static constexpr auto DEADZONE_DRAW_BOTTOM = 1;
+
+    p.setPen(GetDeadZonePen());
+    p.setBrush(GetDeadZoneBrush());
+    p.scale(-1.0, 1.0);
+    p.drawRect(-scale, DEADZONE_DRAW_BOTTOM * scale, scale * 2, -scale * DEADZONE_DRAW_SIZE);
+    p.scale(-1.0, 1.0);
+
+    if (gyro_state.has_value())
+    {
+      const auto max_jitter =
+          std::max({std::abs(jitter.x), std::abs(jitter.y), std::abs(jitter.z)});
+      const auto jitter_line_y =
+          std::min(max_jitter / deadzone_value * DEADZONE_DRAW_SIZE - DEADZONE_DRAW_BOTTOM, 1.0);
+      p.setPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS));
+      p.drawLine(-scale, jitter_line_y * -scale, scale, jitter_line_y * -scale);
+
+      // Sphere background.
+      p.setPen(Qt::NoPen);
+      p.setBrush(GetBBoxBrush());
+      p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
+    }
+  }
+
+  // Sphere dots.
   p.setPen(Qt::NoPen);
   p.setBrush(GetRawInputColor());
 
-  GenerateFibonacciSphere(SPHERE_POINT_COUNT, [&, this](const Common::Vec3& point) {
+  GenerateFibonacciSphere(SPHERE_POINT_COUNT, [&](const Common::Vec3& point) {
     const auto pt = rotation * point;
 
     if (pt.y > 0)
@@ -850,49 +880,39 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   });
 
   // Sphere outline.
-  p.setPen(GetRawInputColor());
+  const auto outline_color = is_stable ?
+                                 (m_gyro_group.IsCalibrating() ? Qt::blue : GetRawInputColor()) :
+                                 GetAdjustedInputColor();
+  p.setPen(outline_color);
   p.setBrush(Qt::NoBrush);
   p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
 
-  // Red dot upright target.
-  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
-  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(Qt::NoPen);
 
   // Red dot.
   const auto point = rotation * Common::Vec3{0, 0, -SPHERE_INDICATOR_DIST};
   if (point.y > 0 || Common::Vec2(point.x, point.z).Length() > SPHERE_SIZE)
   {
-    p.setPen(Qt::NoPen);
     p.setBrush(GetAdjustedInputColor());
     p.drawEllipse(QPointF(point.x, point.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
-
-  // Blue dot target.
-  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
-  p.setBrush(Qt::NoBrush);
-  p.drawEllipse(QPointF{}, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-
   // Blue dot.
   const auto point2 = rotation * Common::Vec3{0, SPHERE_INDICATOR_DIST, 0};
   if (point2.y > 0 || Common::Vec2(point2.x, point2.z).Length() > SPHERE_SIZE)
   {
-    p.setPen(Qt::NoPen);
     p.setBrush(Qt::blue);
     p.drawEllipse(QPointF(point2.x, point2.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 
-  // Only draw text if data is present.
-  if (!gyro_state.has_value())
-    return;
+  p.setBrush(Qt::NoBrush);
 
-  // Angle of red dot from starting position.
-  const auto angle = std::acos(point.Normalized().Dot({0, 0, -1}));
+  // Red dot upright target.
+  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
+  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
-  // Angle text:
-  p.setPen(GetTextColor());
-  p.drawText(QRectF(-2, 0, scale, scale), Qt::AlignBottom | Qt::AlignRight,
-             // i18n: "°" is the symbol for degrees (angular measurement).
-             QString::fromStdString(fmt::format("{:.2f} °", angle / MathUtil::TAU * 360)));
+  // Blue dot target.
+  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
+  p.drawEllipse(QPointF{}, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 }
 
 void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)

@@ -60,14 +60,6 @@ void CameraLogic::Update(const Common::Matrix44& transform)
   using Common::Vec3;
   using Common::Vec4;
 
-  constexpr int CAMERA_WIDTH = 1024;
-  constexpr int CAMERA_HEIGHT = 768;
-
-  // Wiibrew claims the camera FOV is about 33 deg by 23 deg.
-  // Unconfirmed but it seems to work well enough.
-  constexpr int CAMERA_FOV_X_DEG = 33;
-  constexpr int CAMERA_FOV_Y_DEG = 23;
-
   constexpr auto CAMERA_FOV_Y = float(CAMERA_FOV_Y_DEG * MathUtil::TAU / 360);
   constexpr auto CAMERA_ASPECT_RATIO = float(CAMERA_FOV_X_DEG) / CAMERA_FOV_Y_DEG;
 
@@ -112,12 +104,12 @@ void CameraLogic::Update(const Common::Matrix44& transform)
       if (point.z > 0)
       {
         // FYI: Casting down vs. rounding seems to produce more symmetrical output.
-        const auto x = s32((1 - point.x / point.w) * CAMERA_WIDTH / 2);
-        const auto y = s32((1 - point.y / point.w) * CAMERA_HEIGHT / 2);
+        const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
+        const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
         const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
 
-        if (x >= 0 && y >= 0 && x < CAMERA_WIDTH && y < CAMERA_HEIGHT)
+        if (x >= 0 && y >= 0 && x < CAMERA_RES_X && y < CAMERA_RES_Y)
           return CameraPoint{u16(x), u16(y), u8(point_size)};
       }
 
@@ -165,7 +157,7 @@ void CameraLogic::Update(const Common::Matrix44& transform)
       for (std::size_t i = 0; i != camera_points.size(); ++i)
       {
         const auto& p = camera_points[i];
-        if (p.x < CAMERA_WIDTH)
+        if (p.x < CAMERA_RES_X)
         {
           IRExtended irdata = {};
 
@@ -186,7 +178,7 @@ void CameraLogic::Update(const Common::Matrix44& transform)
       for (std::size_t i = 0; i != camera_points.size(); ++i)
       {
         const auto& p = camera_points[i];
-        if (p.x < CAMERA_WIDTH)
+        if (p.x < CAMERA_RES_X)
         {
           IRFull irdata = {};
 
@@ -203,8 +195,8 @@ void CameraLogic::Update(const Common::Matrix44& transform)
 
           irdata.xmin = std::max(p.x - p.size, 0);
           irdata.ymin = std::max(p.y - p.size, 0);
-          irdata.xmax = std::min(p.x + p.size, CAMERA_WIDTH);
-          irdata.ymax = std::min(p.y + p.size, CAMERA_HEIGHT);
+          irdata.xmax = std::min(p.x + p.size, CAMERA_RES_X);
+          irdata.ymax = std::min(p.y + p.size, CAMERA_RES_Y);
 
           // TODO: Is this maybe MSbs of the "intensity" value?
           irdata.zero = 0;

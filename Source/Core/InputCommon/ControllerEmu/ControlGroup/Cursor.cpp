@@ -50,7 +50,7 @@ Cursor::Cursor(std::string name, std::string ui_name)
               _trans("°"),
               // i18n: Refers to emulated wii remote movements.
               _trans("Total rotation about the yaw axis.")},
-             15, 0, 180);
+             15, 0, 360);
 
   AddSetting(&m_pitch_setting,
              // i18n: Refers to an amount of rotational movement about the "pitch" axis.
@@ -59,7 +59,7 @@ Cursor::Cursor(std::string name, std::string ui_name)
               _trans("°"),
               // i18n: Refers to emulated wii remote movements.
               _trans("Total rotation about the pitch axis.")},
-             15, 0, 180);
+             15, 0, 360);
 
   AddSetting(&m_relative_setting, {_trans("Relative Input")}, false);
   AddSetting(&m_autohide_setting, {_trans("Auto-Hide")}, false);

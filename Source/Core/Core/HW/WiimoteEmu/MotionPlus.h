@@ -7,59 +7,90 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/HW/WiimoteEmu/Dynamics.h"
 #include "Core/HW/WiimoteEmu/ExtensionPort.h"
 #include "Core/HW/WiimoteEmu/I2CBus.h"
 
 namespace WiimoteEmu
 {
-struct AngularVelocity;
-
 struct MotionPlus : public Extension
 {
 public:
-  MotionPlus();
-
-  void Update() override;
-  void Reset() override;
-  void DoState(PointerWrap& p) override;
-
-  ExtensionPort& GetExtPort();
-
-  // Vec3 is interpreted as radians/s about the x,y,z axes following the "right-hand rule".
-  void PrepareInput(const Common::Vec3& angular_velocity);
-
-private:
-  enum class ChallengeState : u8
-  {
-    // Note: This is not a value seen on a real M+.
-    // Used to emulate activation state during which the M+ is not responsive.
-    Activating = 0x00,
-
-    PreparingX = 0x02,
-    ParameterXReady = 0x0e,
-    PreparingY = 0x14,
-    ParameterYReady = 0x1a,
-  };
-
   enum class PassthroughMode : u8
   {
+    // Note: `Disabled` is an M+ enabled with no passthrough. Maybe there is a better name.
     Disabled = 0x04,
     Nunchuk = 0x05,
     Classic = 0x07,
   };
 
-  enum class ActivationStatus
+#pragma pack(push, 1)
+  struct CalibrationBlock
   {
-    Inactive,
-    Activating,
-    Deactivating,
-    Active,
+    Common::BigEndianValue<u16> yaw_zero;
+    Common::BigEndianValue<u16> roll_zero;
+    Common::BigEndianValue<u16> pitch_zero;
+    Common::BigEndianValue<u16> yaw_scale;
+    Common::BigEndianValue<u16> roll_scale;
+    Common::BigEndianValue<u16> pitch_scale;
+    u8 degrees_div_6;
   };
 
-#pragma pack(push, 1)
+  struct CalibrationBlocks
+  {
+    using GyroType = Common::TVec3<u16>;
+    using SlowType = Common::TVec3<bool>;
+
+    struct RelevantCalibration
+    {
+      ControllerEmu::TwoPointCalibration<GyroType, 16> value;
+      Common::TVec3<u16> degrees;
+    };
+
+    // Each axis may be using either slow or fast calibration.
+    // This function builds calibration that is relevant for current data.
+    RelevantCalibration GetRelevantCalibration(SlowType is_slow) const;
+
+    CalibrationBlock fast;
+    CalibrationBlock slow;
+  };
+
+  struct CalibrationData
+  {
+    void UpdateChecksum();
+
+    CalibrationBlock fast;
+    u8 uid_1;
+    Common::BigEndianValue<u16> crc32_msb;
+    CalibrationBlock slow;
+    u8 uid_2;
+    Common::BigEndianValue<u16> crc32_lsb;
+  };
+  static_assert(sizeof(CalibrationData) == 0x20, "Wrong size");
+
   struct DataFormat
   {
+    using GyroType = CalibrationBlocks::GyroType;
+    using SlowType = CalibrationBlocks::SlowType;
+    using GyroRawValue = ControllerEmu::RawValue<GyroType, 14>;
+
+    struct Data
+    {
+      // Return radian/s following "right-hand rule" with given calibration blocks.
+      Common::Vec3 GetAngularVelocity(const CalibrationBlocks&) const;
+
+      GyroRawValue gyro;
+      SlowType is_slow;
+    };
+
+    auto GetData() const
+    {
+      return Data{
+          GyroRawValue{GyroType(pitch1 | pitch2 << 8, roll1 | roll2 << 8, yaw1 | yaw2 << 8)},
+          SlowType(pitch_slow, roll_slow, yaw_slow)};
+    }
+
     // yaw1, roll1, pitch1: Bits 0-7
     // yaw2, roll2, pitch2: Bits 8-13
 
@@ -79,7 +110,50 @@ private:
     u8 is_mp_data : 1;
     u8 pitch2 : 6;
   };
+  static_assert(sizeof(DataFormat) == 6, "Wrong size");
+#pragma pack(pop)
 
+  static constexpr u8 INACTIVE_DEVICE_ADDR = 0x53;
+  static constexpr u8 ACTIVE_DEVICE_ADDR = 0x52;
+  static constexpr u8 PASSTHROUGH_MODE_OFFSET = 0xfe;
+
+  MotionPlus();
+
+  void Update() override;
+  void Reset() override;
+  void DoState(PointerWrap& p) override;
+
+  ExtensionPort& GetExtPort();
+
+  // Vec3 is interpreted as radians/s about the x,y,z axes following the "right-hand rule".
+  void PrepareInput(const Common::Vec3& angular_velocity);
+
+  // Pointer to 6 bytes is expected.
+  static void ApplyPassthroughModifications(PassthroughMode, u8* data);
+  static void ReversePassthroughModifications(PassthroughMode, u8* data);
+
+private:
+  enum class ChallengeState : u8
+  {
+    // Note: This is not a value seen on a real M+.
+    // Used to emulate activation state during which the M+ is not responsive.
+    Activating = 0x00,
+
+    PreparingX = 0x02,
+    ParameterXReady = 0x0e,
+    PreparingY = 0x14,
+    ParameterYReady = 0x1a,
+  };
+
+  enum class ActivationStatus
+  {
+    Inactive,
+    Activating,
+    Deactivating,
+    Active,
+  };
+
+#pragma pack(push, 1)
   struct Register
   {
     std::array<u8, 21> controller_data;
@@ -135,13 +209,7 @@ private:
     std::array<u8, 6> ext_identifier;
   };
 #pragma pack(pop)
-  static_assert(sizeof(DataFormat) == 6, "Wrong size");
   static_assert(0x100 == sizeof(Register), "Wrong size");
-
-  static constexpr u8 INACTIVE_DEVICE_ADDR = 0x53;
-  static constexpr u8 ACTIVE_DEVICE_ADDR = 0x52;
-
-  static constexpr u8 PASSTHROUGH_MODE_OFFSET = 0xfe;
 
   static constexpr int CALIBRATION_BITS = 16;
 

@@ -87,10 +87,9 @@ void Nunchuk::Update()
   }
 
   // buttons
-  m_buttons->GetState(&nc_data.bt.hex, nunchuk_button_bitmasks.data());
-
-  // flip the button bits :/
-  nc_data.bt.hex ^= 0x03;
+  u8 buttons = 0;
+  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
+  nc_data.SetButtons(buttons);
 
   // Acceleration data:
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
@@ -109,13 +108,7 @@ void Nunchuk::Update()
 
   // Calibration values are 8-bit but we want 10-bit precision, so << 2.
   const auto acc = ConvertAccelData(accel, ACCEL_ZERO_G << 2, ACCEL_ONE_G << 2);
-
-  nc_data.ax = (acc.x >> 2) & 0xFF;
-  nc_data.ay = (acc.y >> 2) & 0xFF;
-  nc_data.az = (acc.z >> 2) & 0xFF;
-  nc_data.bt.acc_x_lsb = acc.x & 0x3;
-  nc_data.bt.acc_y_lsb = acc.y & 0x3;
-  nc_data.bt.acc_z_lsb = acc.z & 0x3;
+  nc_data.SetAccel(acc.value);
 
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = nc_data;
 }

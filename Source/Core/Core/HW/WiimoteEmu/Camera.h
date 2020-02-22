@@ -20,6 +20,8 @@ namespace WiimoteEmu
 // Four bytes for two objects. Filled with 0xFF if empty
 struct IRBasic
 {
+  using IRObject = Common::TVec2<u16>;
+
   u8 x1;
   u8 y1;
   u8 x2hi : 2;
@@ -28,6 +30,9 @@ struct IRBasic
   u8 y1hi : 2;
   u8 x2;
   u8 y2;
+
+  auto GetObject1() const { return IRObject(x1hi << 8 | x1, y1hi << 8 | y1); }
+  auto GetObject2() const { return IRObject(x2hi << 8 | x2, y2hi << 8 | y2); }
 };
 static_assert(sizeof(IRBasic) == 5, "Wrong size");
 
@@ -62,6 +67,14 @@ static_assert(sizeof(IRFull) == 9, "Wrong size");
 class CameraLogic : public I2CSlave
 {
 public:
+  static constexpr int CAMERA_RES_X = 1024;
+  static constexpr int CAMERA_RES_Y = 768;
+
+  // Wiibrew claims the camera FOV is about 33 deg by 23 deg.
+  // Unconfirmed but it seems to work well enough.
+  static constexpr int CAMERA_FOV_X_DEG = 33;
+  static constexpr int CAMERA_FOV_Y_DEG = 23;
+
   enum : u8
   {
     IR_MODE_BASIC = 1,

@@ -236,10 +236,6 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
 
-  // Based on testing, old WiiLi.org docs, and WiiUse library:
-  // Max battery level seems to be 0xc8 (decimal 200)
-  constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
-
   m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
 
   if (Core::WantsDeterminism())

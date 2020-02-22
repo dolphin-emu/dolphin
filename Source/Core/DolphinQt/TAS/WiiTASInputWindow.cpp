@@ -334,18 +334,20 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     DataReportBuilder::CoreData core;
     rpt.GetCoreData(&core);
 
+    using EmuWiimote = WiimoteEmu::Wiimote;
+
     u16& buttons = core.hex;
-    GetButton<u16>(m_a_button, buttons, WiimoteEmu::Wiimote::BUTTON_A);
-    GetButton<u16>(m_b_button, buttons, WiimoteEmu::Wiimote::BUTTON_B);
-    GetButton<u16>(m_1_button, buttons, WiimoteEmu::Wiimote::BUTTON_ONE);
-    GetButton<u16>(m_2_button, buttons, WiimoteEmu::Wiimote::BUTTON_TWO);
-    GetButton<u16>(m_plus_button, buttons, WiimoteEmu::Wiimote::BUTTON_PLUS);
-    GetButton<u16>(m_minus_button, buttons, WiimoteEmu::Wiimote::BUTTON_MINUS);
-    GetButton<u16>(m_home_button, buttons, WiimoteEmu::Wiimote::BUTTON_HOME);
-    GetButton<u16>(m_left_button, buttons, WiimoteEmu::Wiimote::PAD_LEFT);
-    GetButton<u16>(m_up_button, buttons, WiimoteEmu::Wiimote::PAD_UP);
-    GetButton<u16>(m_down_button, buttons, WiimoteEmu::Wiimote::PAD_DOWN);
-    GetButton<u16>(m_right_button, buttons, WiimoteEmu::Wiimote::PAD_RIGHT);
+    GetButton<u16>(m_a_button, buttons, EmuWiimote::BUTTON_A);
+    GetButton<u16>(m_b_button, buttons, EmuWiimote::BUTTON_B);
+    GetButton<u16>(m_1_button, buttons, EmuWiimote::BUTTON_ONE);
+    GetButton<u16>(m_2_button, buttons, EmuWiimote::BUTTON_TWO);
+    GetButton<u16>(m_plus_button, buttons, EmuWiimote::BUTTON_PLUS);
+    GetButton<u16>(m_minus_button, buttons, EmuWiimote::BUTTON_MINUS);
+    GetButton<u16>(m_home_button, buttons, EmuWiimote::BUTTON_HOME);
+    GetButton<u16>(m_left_button, buttons, EmuWiimote::PAD_LEFT);
+    GetButton<u16>(m_up_button, buttons, EmuWiimote::PAD_UP);
+    GetButton<u16>(m_down_button, buttons, EmuWiimote::PAD_DOWN);
+    GetButton<u16>(m_right_button, buttons, EmuWiimote::PAD_RIGHT);
 
     rpt.SetCoreData(core);
   }
@@ -354,12 +356,12 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
   {
     // FYI: Interleaved reports may behave funky as not all data is always available.
 
-    DataReportBuilder::AccelData accel;
+    AccelData accel;
     rpt.GetAccelData(&accel);
 
-    GetSpinBoxU16(m_remote_orientation_x_value, accel.x);
-    GetSpinBoxU16(m_remote_orientation_y_value, accel.y);
-    GetSpinBoxU16(m_remote_orientation_z_value, accel.z);
+    GetSpinBoxU16(m_remote_orientation_x_value, accel.value.x);
+    GetSpinBoxU16(m_remote_orientation_y_value, accel.value.y);
+    GetSpinBoxU16(m_remote_orientation_z_value, accel.value.z);
 
     rpt.SetAccelData(accel);
   }
@@ -439,26 +441,16 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     GetSpinBoxU8(m_nunchuk_stick_x_value, nunchuk.jx);
     GetSpinBoxU8(m_nunchuk_stick_y_value, nunchuk.jy);
 
-    u16 accel_x = nunchuk.ax << 2 & (nunchuk.bt.acc_x_lsb & 0b11);
-    u16 accel_y = nunchuk.ay << 2 & (nunchuk.bt.acc_y_lsb & 0b11);
-    u16 accel_z = nunchuk.az << 2 & (nunchuk.bt.acc_z_lsb & 0b11);
+    auto accel = nunchuk.GetAccel().value;
+    GetSpinBoxU16(m_nunchuk_orientation_x_value, accel.x);
+    GetSpinBoxU16(m_nunchuk_orientation_y_value, accel.y);
+    GetSpinBoxU16(m_nunchuk_orientation_z_value, accel.z);
+    nunchuk.SetAccel(accel);
 
-    GetSpinBoxU16(m_nunchuk_orientation_x_value, accel_x);
-    GetSpinBoxU16(m_nunchuk_orientation_y_value, accel_y);
-    GetSpinBoxU16(m_nunchuk_orientation_z_value, accel_z);
-
-    nunchuk.ax = accel_x >> 2;
-    nunchuk.ay = accel_y >> 2;
-    nunchuk.az = accel_z >> 2;
-
-    nunchuk.bt.acc_x_lsb = accel_x & 0b11;
-    nunchuk.bt.acc_y_lsb = accel_y & 0b11;
-    nunchuk.bt.acc_z_lsb = accel_z & 0b11;
-
-    nunchuk.bt.hex ^= 0b11;
-    GetButton<u8>(m_c_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_C);
-    GetButton<u8>(m_z_button, nunchuk.bt.hex, WiimoteEmu::Nunchuk::BUTTON_Z);
-    nunchuk.bt.hex ^= 0b11;
+    u8 bt = nunchuk.GetButtons();
+    GetButton<u8>(m_c_button, bt, WiimoteEmu::Nunchuk::BUTTON_C);
+    GetButton<u8>(m_z_button, bt, WiimoteEmu::Nunchuk::BUTTON_Z);
+    nunchuk.SetButtons(bt);
 
     key.Encrypt(reinterpret_cast<u8*>(&nunchuk), 0, sizeof(nunchuk));
   }
@@ -470,50 +462,41 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     auto& cc = *reinterpret_cast<WiimoteEmu::Classic::DataFormat*>(ext_data);
     key.Decrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
 
-    cc.bt.hex ^= 0xFFFF;
-    GetButton<u16>(m_classic_a_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_A);
-    GetButton<u16>(m_classic_b_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_B);
-    GetButton<u16>(m_classic_x_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_X);
-    GetButton<u16>(m_classic_y_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_Y);
-    GetButton<u16>(m_classic_plus_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_PLUS);
-    GetButton<u16>(m_classic_minus_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_MINUS);
-    GetButton<u16>(m_classic_l_button, cc.bt.hex, WiimoteEmu::Classic::TRIGGER_L);
-    GetButton<u16>(m_classic_r_button, cc.bt.hex, WiimoteEmu::Classic::TRIGGER_R);
-    GetButton<u16>(m_classic_zl_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZL);
-    GetButton<u16>(m_classic_zr_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_ZR);
-    GetButton<u16>(m_classic_home_button, cc.bt.hex, WiimoteEmu::Classic::BUTTON_HOME);
-    GetButton<u16>(m_classic_left_button, cc.bt.hex, WiimoteEmu::Classic::PAD_LEFT);
-    GetButton<u16>(m_classic_up_button, cc.bt.hex, WiimoteEmu::Classic::PAD_UP);
-    GetButton<u16>(m_classic_down_button, cc.bt.hex, WiimoteEmu::Classic::PAD_DOWN);
-    GetButton<u16>(m_classic_right_button, cc.bt.hex, WiimoteEmu::Classic::PAD_RIGHT);
-    cc.bt.hex ^= 0xFFFF;
+    u16 bt = cc.GetButtons();
+    GetButton<u16>(m_classic_a_button, bt, WiimoteEmu::Classic::BUTTON_A);
+    GetButton<u16>(m_classic_b_button, bt, WiimoteEmu::Classic::BUTTON_B);
+    GetButton<u16>(m_classic_x_button, bt, WiimoteEmu::Classic::BUTTON_X);
+    GetButton<u16>(m_classic_y_button, bt, WiimoteEmu::Classic::BUTTON_Y);
+    GetButton<u16>(m_classic_plus_button, bt, WiimoteEmu::Classic::BUTTON_PLUS);
+    GetButton<u16>(m_classic_minus_button, bt, WiimoteEmu::Classic::BUTTON_MINUS);
+    GetButton<u16>(m_classic_l_button, bt, WiimoteEmu::Classic::TRIGGER_L);
+    GetButton<u16>(m_classic_r_button, bt, WiimoteEmu::Classic::TRIGGER_R);
+    GetButton<u16>(m_classic_zl_button, bt, WiimoteEmu::Classic::BUTTON_ZL);
+    GetButton<u16>(m_classic_zr_button, bt, WiimoteEmu::Classic::BUTTON_ZR);
+    GetButton<u16>(m_classic_home_button, bt, WiimoteEmu::Classic::BUTTON_HOME);
+    GetButton<u16>(m_classic_left_button, bt, WiimoteEmu::Classic::PAD_LEFT);
+    GetButton<u16>(m_classic_up_button, bt, WiimoteEmu::Classic::PAD_UP);
+    GetButton<u16>(m_classic_down_button, bt, WiimoteEmu::Classic::PAD_DOWN);
+    GetButton<u16>(m_classic_right_button, bt, WiimoteEmu::Classic::PAD_RIGHT);
+    cc.SetButtons(bt);
 
-    u8 rx = (cc.rx1 & 0b1) & ((cc.rx2 & 0b11) << 1) & ((cc.rx3 & 0b11) << 3);
-    GetSpinBoxU8(m_classic_right_stick_x_value, rx);
-    cc.rx1 = rx & 0b1;
-    cc.rx2 = (rx >> 1) & 0b11;
-    cc.rx3 = (rx >> 3) & 0b11;
+    auto right_stick = cc.GetRightStick().value;
+    GetSpinBoxU8(m_classic_right_stick_x_value, right_stick.x);
+    GetSpinBoxU8(m_classic_right_stick_y_value, right_stick.y);
+    cc.SetRightStick(right_stick);
 
-    u8 ry = cc.ry;
-    GetSpinBoxU8(m_classic_right_stick_y_value, ry);
-    cc.ry = ry;
+    auto left_stick = cc.GetLeftStick().value;
+    GetSpinBoxU8(m_classic_left_stick_x_value, left_stick.x);
+    GetSpinBoxU8(m_classic_left_stick_y_value, left_stick.y);
+    cc.SetLeftStick(left_stick);
 
-    u8 lx = cc.lx;
-    GetSpinBoxU8(m_classic_left_stick_x_value, lx);
-    cc.lx = lx;
-
-    u8 ly = cc.ly;
-    GetSpinBoxU8(m_classic_left_stick_y_value, ly);
-    cc.ly = ly;
-
-    u8 rt = cc.rt;
+    u8 rt = cc.GetRightTrigger().value;
     GetSpinBoxU8(m_right_trigger_value, rt);
-    cc.rt = rt;
+    cc.SetRightTrigger(rt);
 
-    u8 lt = (cc.lt1 & 0b111) & (cc.lt2 >> 3);
+    u8 lt = cc.GetLeftTrigger().value;
     GetSpinBoxU8(m_left_trigger_value, lt);
-    cc.lt1 = lt & 0b111;
-    cc.lt2 = (lt >> 3) & 0b11;
+    cc.SetLeftTrigger(lt);
 
     key.Encrypt(reinterpret_cast<u8*>(&cc), 0, sizeof(cc));
   }

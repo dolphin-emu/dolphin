@@ -198,7 +198,7 @@ public:
   DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const;
 
 protected:
-  mutable std::mutex m_devices_mutex;
+  mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
 }  // namespace Core
