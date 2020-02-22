@@ -17,6 +17,7 @@
 #ifdef IPHONEOS
 #include <regex>
 #include <sys/utsname.h>
+#include <unistd.h>
 #endif
 
 #include <fmt/format.h>
@@ -163,6 +164,7 @@ void CPUInfo::Detect()
   bCRC32 = hwcaps & HWCAP_CRC32;
   bSHA1 = hwcaps & HWCAP_SHA1;
   bSHA2 = hwcaps & HWCAP_SHA2;
+#endif
 #endif
 }
 
