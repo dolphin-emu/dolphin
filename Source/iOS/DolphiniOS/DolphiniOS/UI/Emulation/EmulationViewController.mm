@@ -37,6 +37,9 @@
 {
   [super viewDidLoad];
   
+  // Do not synthesize events from controller data for the responder chain
+  self.controllerUserInteractionEnabled = false;
+  
   if (self.m_game_file == nullptr)
   {
     // Create the GameFile from the last game

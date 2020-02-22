@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import <GameController/GameController.h>
+
 #import <MetalKit/MetalKit.h>
 
 #import <UIKit/UIKit.h>
@@ -14,7 +16,7 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EmulationViewController : UIViewController
+@interface EmulationViewController : GCEventViewController
 {
   @public std::vector<std::pair<int, TCView*>> m_controllers;
 }
