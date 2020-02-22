@@ -1,0 +1,60 @@
+
+/* Class = "UILabel"; text = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers."; ObjectID = "4JH-mf-sk9"; */
+"4JH-mf-sk9.text" = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers.";
+
+/* Class = "UILabel"; text = "Patrons 2"; ObjectID = "4zt-R7-qCU"; */
+"4zt-R7-qCU.text" = "Patrons 2";
+
+/* Class = "UILabel"; text = "Grafik"; ObjectID = "6BT-cH-KPV"; */
+"6BT-cH-KPV.text" = "Grafik";
+
+/* Class = "UILabel"; text = "Om Dolphin"; ObjectID = "AZC-s5-S3W"; */
+"AZC-s5-S3W.text" = "Om Dolphin";
+
+/* Class = "UILabel"; text = "Thank you to the following generous Patrons!"; ObjectID = "Apg-2S-OEc"; */
+"Apg-2S-OEc.text" = "Thank you to the following generous Patrons!";
+
+/* Class = "UITableViewController"; title = "Inställningar"; ObjectID = "B4L-TL-IR8"; */
+"B4L-TL-IR8.title" = "Inställningar";
+
+/* Class = "UILabel"; text = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way."; ObjectID = "Iw7-Nn-kBa"; */
+"Iw7-Nn-kBa.text" = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way.";
+
+/* Class = "UINavigationItem"; title = "Om Dolphin"; ObjectID = "RI4-PG-OKc"; */
+"RI4-PG-OKc.title" = "Om Dolphin";
+
+/* Class = "UIButton"; normalTitle = "Source Code"; ObjectID = "Sud-8v-xe3"; */
+"Sud-8v-xe3.normalTitle" = "Source Code";
+
+/* Class = "UILabel"; text = "1.0.0"; ObjectID = "TO3-cy-H2Y"; */
+"TO3-cy-H2Y.text" = "1.0.0";
+
+/* Class = "UILabel"; text = "DolphiniOS"; ObjectID = "YrK-0b-KPM"; */
+"YrK-0b-KPM.text" = "DolphiniOS";
+
+/* Class = "UINavigationItem"; title = "Inställningar"; ObjectID = "ack-ew-MP2"; */
+"ack-ew-MP2.title" = "Inställningar";
+
+/* Class = "UILabel"; text = "Donate"; ObjectID = "cRV-Hq-IOP"; */
+"cRV-Hq-IOP.text" = "Donate";
+
+/* Class = "UILabel"; text = "Hjälp"; ObjectID = "dfe-JF-PdQ"; */
+"dfe-JF-PdQ.text" = "Hjälp";
+
+/* Class = "UILabel"; text = "Denna mjukvara bör inte användas för att spela spel som du inte äger lagligt."; ObjectID = "f6q-Ez-JFr"; */
+"f6q-Ez-JFr.text" = "Denna mjukvara bör inte användas för att spela spel som du inte äger lagligt.";
+
+/* Class = "UILabel"; text = "Version"; ObjectID = "fTF-PL-Io8"; */
+"fTF-PL-Io8.text" = "Version";
+
+/* Class = "UILabel"; text = "Konfig."; ObjectID = "n0Q-3C-VDC"; */
+"n0Q-3C-VDC.text" = "Konfig.";
+
+/* Class = "UILabel"; text = "Patrons 1"; ObjectID = "qg5-mQ-I0A"; */
+"qg5-mQ-I0A.text" = "Patrons 1";
+
+/* Class = "UIViewController"; title = "Om Dolphin"; ObjectID = "u6n-zE-oUh"; */
+"u6n-zE-oUh.title" = "Om Dolphin";
+
+/* Class = "UILabel"; text = "Kontroller"; ObjectID = "xpQ-qK-CHk"; */
+"xpQ-qK-CHk.text" = "Kontroller";

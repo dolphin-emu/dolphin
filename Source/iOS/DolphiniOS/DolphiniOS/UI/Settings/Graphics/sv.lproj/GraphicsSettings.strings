@@ -1,0 +1,240 @@
+
+/* Class = "UITableViewSection"; headerTitle = "Shaderkompilering"; ObjectID = "0Hp-gJ-2eG"; */
+"0Hp-gJ-2eG.headerTitle" = "Shaderkompilering";
+
+/* Class = "UILabel"; text = "Ljus per bildpunkt"; ObjectID = "0JJ-Dl-Dzd"; */
+"0JJ-Dl-Dzd.text" = "Ljus per bildpunkt";
+
+/* Class = "UILabel"; text = "Inaktivera Bounding Box"; ObjectID = "1m0-8t-Mn1"; */
+"1m0-8t-Mn1.text" = "Inaktivera Bounding Box";
+
+/* Class = "UILabel"; text = "Bildförhållande"; ObjectID = "4Cz-mQ-iAR"; */
+"4Cz-mQ-iAR.text" = "Bildförhållande";
+
+/* Class = "UINavigationItem"; title = "Allmänt"; ObjectID = "5gK-bb-ym4"; */
+"5gK-bb-ym4.title" = "Allmänt";
+
+/* Class = "UILabel"; text = "6x ursprunglig (3840x3168) för 4K"; ObjectID = "5wx-F7-0NK"; */
+"5wx-F7-0NK.text" = "6x ursprunglig (3840x3168) för 4K";
+
+/* Class = "UINavigationItem"; title = "Backend"; ObjectID = "6a1-9U-EM4"; */
+"6a1-9U-EM4.title" = "Backend";
+
+/* Class = "UILabel"; text = "Visa nätspelsping"; ObjectID = "8Le-el-gF3"; */
+"8Le-el-gF3.text" = "Visa nätspelsping";
+
+/* Class = "UILabel"; text = "8x"; ObjectID = "Bjq-pC-89X"; */
+"Bjq-pC-89X.text" = "8x";
+
+/* Class = "UILabel"; text = "GPU-texturdekodning"; ObjectID = "CQB-7r-OLi"; */
+"CQB-7r-OLi.text" = "GPU-texturdekodning";
+
+/* Class = "UINavigationItem"; title = "Förbättringar"; ObjectID = "CTh-oC-ajn"; */
+"CTh-oC-ajn.title" = "Förbättringar";
+
+/* Class = "UITableViewSection"; headerTitle = "Övrigt"; ObjectID = "D6g-cJ-B7W"; */
+"D6g-cJ-B7W.headerTitle" = "Övrigt";
+
+/* Class = "UINavigationItem"; title = "Anisotropisk filtrering"; ObjectID = "E6W-P0-4HU"; */
+"E6W-P0-4HU.title" = "Anisotropisk filtrering";
+
+/* Class = "UILabel"; text = "5x ursprunglig (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
+"EKI-bu-6U3.text" = "5x ursprunglig (3200x2640)";
+
+/* Class = "UITableViewSection"; headerTitle = "Inbäddad bildrutebuffert (EFB)"; ObjectID = "Ett-Ts-rvO"; */
+"Ett-Ts-rvO.headerTitle" = "Inbäddad bildrutebuffert (EFB)";
+
+/* Class = "UILabel"; text = "Kompilera shaders före start"; ObjectID = "F1L-Ic-sg5"; */
+"F1L-Ic-sg5.text" = "Kompilera shaders före start";
+
+/* Class = "UILabel"; text = "Asynkron (übershaders)"; ObjectID = "GRf-hV-FTp"; */
+"GRf-hV-FTp.text" = "Asynkron (übershaders)";
+
+/* Class = "UILabel"; text = "Mode"; ObjectID = "GXD-b5-okS"; */
+"GXD-b5-okS.text" = "Mode";
+
+/* Class = "UILabel"; text = "4:3"; ObjectID = "HbW-Xk-1Jb"; */
+"HbW-Xk-1Jb.text" = "4:3";
+
+/* Class = "UITableViewSection"; headerTitle = "Extern bildrutebuffert (XFB)"; ObjectID = "ITz-dG-oBq"; */
+"ITz-dG-oBq.headerTitle" = "Extern bildrutebuffert (XFB)";
+
+/* Class = "UILabel"; text = "Asynkron (rita inte)"; ObjectID = "JFv-mk-0yL"; */
+"JFv-mk-0yL.text" = "Asynkron (rita inte)";
+
+/* Class = "UILabel"; text = "Synkron (übershaders)"; ObjectID = "JV5-g2-2Ro"; */
+"JV5-g2-2Ro.text" = "Synkron (übershaders)";
+
+/* Class = "UILabel"; text = "Inaktivera dimma"; ObjectID = "Jp9-YG-fFU"; */
+"Jp9-YG-fFU.text" = "Inaktivera dimma";
+
+/* Class = "UILabel"; text = "Backend"; ObjectID = "KuT-dh-F8a"; */
+"KuT-dh-F8a.text" = "Backend";
+
+/* Class = "UILabel"; text = "Snabb"; ObjectID = "LCC-Te-e70"; */
+"LCC-Te-e70.text" = "Snabb";
+
+/* Class = "UILabel"; text = "Lagra XFB-kopior endast i texturer"; ObjectID = "M18-ia-W0B"; */
+"M18-ia-W0B.text" = "Lagra XFB-kopior endast i texturer";
+
+/* Class = "UILabel"; text = "Förbättringar"; ObjectID = "PdH-nE-Ghg"; */
+"PdH-nE-Ghg.text" = "Förbättringar";
+
+/* Class = "UILabel"; text = "Precision"; ObjectID = "PhH-xb-F6t"; */
+"PhH-xb-F6t.text" = "Precision";
+
+/* Class = "UILabel"; text = "16:9"; ObjectID = "Q84-dr-3b6"; */
+"Q84-dr-3b6.text" = "16:9";
+
+/* Class = "UILabel"; text = "Intern upplösning"; ObjectID = "QzX-GC-ybU"; */
+"QzX-GC-ybU.text" = "Intern upplösning";
+
+/* Class = "UILabel"; text = "16x"; ObjectID = "RnS-Zb-Fvf"; */
+"RnS-Zb-Fvf.text" = "16x";
+
+/* Class = "UILabel"; text = "4x ursprunglig (2560x2112) för 1440p"; ObjectID = "SSy-g0-mPk"; */
+"SSy-g0-mPk.text" = "4x ursprunglig (2560x2112) för 1440p";
+
+/* Class = "UILabel"; text = "Anisotropisk filtrering"; ObjectID = "Skl-PD-WnK"; */
+"Skl-PD-WnK.text" = "Anisotropisk filtrering";
+
+/* Class = "UILabel"; text = "Säker"; ObjectID = "TGq-7C-aJD"; */
+"TGq-7C-aJD.text" = "Säker";
+
+/* Class = "UILabel"; text = "Ursprunglig (640x528)"; ObjectID = "U3R-RE-wrE"; */
+"U3R-RE-wrE.text" = "Ursprunglig (640x528)";
+
+/* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
+"U4x-0k-bbr.text" = "OpenGL";
+
+/* Class = "UILabel"; text = "Hackningar"; ObjectID = "VGQ-Nc-rWb"; */
+"VGQ-Nc-rWb.text" = "Hackningar";
+
+/* Class = "UILabel"; text = "24-bitars färg"; ObjectID = "WX6-i9-QZE"; */
+"WX6-i9-QZE.text" = "24-bitars färg";
+
+/* Class = "UILabel"; text = "V-synk"; ObjectID = "Xcm-Jb-oAP"; */
+"Xcm-Jb-oAP.text" = "V-synk";
+
+/* Class = "UILabel"; text = "Lagra EFB-kopior endast i texturer"; ObjectID = "Y8a-Ay-DoO"; */
+"Y8a-Ay-DoO.text" = "Lagra EFB-kopior endast i texturer";
+
+/* Class = "UILabel"; text = "Typ"; ObjectID = "YYq-jr-mf8"; */
+"YYq-jr-mf8.text" = "Typ";
+
+/* Class = "UITableViewSection"; headerTitle = "Texturcache"; ObjectID = "bH4-hd-zlv"; */
+"bH4-hd-zlv.headerTitle" = "Texturcache";
+
+/* Class = "UILabel"; text = "Fördröj EFB-kopior till RAM"; ObjectID = "bXh-Hx-pED"; */
+"bXh-Hx-pED.text" = "Fördröj EFB-kopior till RAM";
+
+/* Class = "UILabel"; text = "Sträck ut till fönster"; ObjectID = "bmF-fV-4T8"; */
+"bmF-fV-4T8.text" = "Sträck ut till fönster";
+
+/* Class = "UILabel"; text = "Null"; ObjectID = "boB-ud-v0p"; */
+"boB-ud-v0p.text" = "Null";
+
+/* Class = "UILabel"; text = "Vulkan"; ObjectID = "cUR-qy-iP1"; */
+"cUR-qy-iP1.text" = "Vulkan";
+
+/* Class = "UILabel"; text = "Avancerat"; ObjectID = "dQQ-I9-Ulq"; */
+"dQQ-I9-Ulq.text" = "Avancerat";
+
+/* Class = "UILabel"; text = "Inaktivera kopieringsfilter"; ObjectID = "eOJ-Ic-E7Z"; */
+"eOJ-Ic-E7Z.text" = "Inaktivera kopieringsfilter";
+
+/* Class = "UILabel"; text = "Visa bildfrekvens"; ObjectID = "ed5-iw-Rp5"; */
+"ed5-iw-Rp5.text" = "Visa bildfrekvens";
+
+/* Class = "UINavigationItem"; title = "Intern upplösning"; ObjectID = "f7Y-b5-U6K"; */
+"f7Y-b5-U6K.title" = "Intern upplösning";
+
+/* Class = "UINavigationItem"; title = "Grafik"; ObjectID = "f8i-gK-HxI"; */
+"f8i-gK-HxI.title" = "Grafik";
+
+/* Class = "UILabel"; text = "Snabb djupberäkning"; ObjectID = "fNB-Qp-KPf"; */
+"fNB-Qp-KPf.text" = "Snabb djupberäkning";
+
+/* Class = "UILabel"; text = "Ignorera formatändringar"; ObjectID = "g9b-oy-vim"; */
+"g9b-oy-vim.text" = "Ignorera formatändringar";
+
+/* Class = "UILabel"; text = "Synkron"; ObjectID = "gmt-s1-lH4"; */
+"gmt-s1-lH4.text" = "Synkron";
+
+/* Class = "UINavigationItem"; title = "Hackningar"; ObjectID = "hAk-wO-QgI"; */
+"hAk-wO-QgI.title" = "Hackningar";
+
+/* Class = "UILabel"; text = "Presentera XFB omedelbart"; ObjectID = "hiz-TR-uFn"; */
+"hiz-TR-uFn.text" = "Presentera XFB omedelbart";
+
+/* Class = "UILabel"; text = "Auto"; ObjectID = "jAa-cL-Rjh"; */
+"jAa-cL-Rjh.text" = "Auto";
+
+/* Class = "UILabel"; text = "3x ursprunglig (1920x1584) för 1080p"; ObjectID = "jJs-ou-NxC"; */
+"jJs-ou-NxC.text" = "3x ursprunglig (1920x1584) för 1080p";
+
+/* Class = "UILabel"; text = "Allmänt"; ObjectID = "jjY-Es-Kzy"; */
+"jjY-Es-Kzy.text" = "Allmänt";
+
+/* Class = "UILabel"; text = "Vertexavrundning"; ObjectID = "kV2-YB-mFd"; */
+"kV2-YB-mFd.text" = "Vertexavrundning";
+
+/* Class = "UILabel"; text = "Mjukvarurenderare"; ObjectID = "lIB-f6-qZI"; */
+"lIB-f6-qZI.text" = "Mjukvarurenderare";
+
+/* Class = "UITableViewSection"; headerTitle = "Grundläggande"; ObjectID = "mGF-H0-YAg"; */
+"mGF-H0-YAg.headerTitle" = "Grundläggande";
+
+/* Class = "UILabel"; text = "Bredbildshack"; ObjectID = "myf-Wb-hBV"; */
+"myf-Wb-hBV.text" = "Bredbildshack";
+
+/* Class = "UILabel"; text = "Auto (multipel av 640x528)"; ObjectID = "nNo-B4-PCq"; */
+"nNo-B4-PCq.text" = "Auto (multipel av 640x528)";
+
+/* Class = "UINavigationItem"; title = "Shaderkompilering"; ObjectID = "ohZ-y2-lIa"; */
+"ohZ-y2-lIa.title" = "Shaderkompilering";
+
+/* Class = "UILabel"; text = "Upptäck godtyckliga mipmaps"; ObjectID = "pMs-1L-1dY"; */
+"pMs-1L-1dY.text" = "Upptäck godtyckliga mipmaps";
+
+/* Class = "UILabel"; text = "Skalad EFB-kopia"; ObjectID = "s0l-GD-nfn"; */
+"s0l-GD-nfn.text" = "Skalad EFB-kopia";
+
+/* Class = "UILabel"; text = "Tvinga texturfiltrering"; ObjectID = "sWs-Hb-DWK"; */
+"sWs-Hb-DWK.text" = "Tvinga texturfiltrering";
+
+/* Class = "UILabel"; text = "2x"; ObjectID = "tne-SZ-I6X"; */
+"tne-SZ-I6X.text" = "2x";
+
+/* Class = "UILabel"; text = "8x ursprunglig (5120x4224) för 5K"; ObjectID = "u1l-8D-mFj"; */
+"u1l-8D-mFj.text" = "8x ursprunglig (5120x4224) för 5K";
+
+/* Class = "UINavigationItem"; title = "Bildförhållande"; ObjectID = "ubg-gf-CKs"; */
+"ubg-gf-CKs.title" = "Bildförhållande";
+
+/* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
+"ufh-Et-UDN.text" = "1x";
+
+/* Class = "UILabel"; text = "Spara texturcache i snabbsparningar"; ObjectID = "v90-sm-gpO"; */
+"v90-sm-gpO.text" = "Spara texturcache i snabbsparningar";
+
+/* Class = "UILabel"; text = "Logga renderingstid till fil"; ObjectID = "vLt-rL-Jc6"; */
+"vLt-rL-Jc6.text" = "Logga renderingstid till fil";
+
+/* Class = "UILabel"; text = "Visa nätspelsmeddelanden"; ObjectID = "vVd-gU-Rn3"; */
+"vVd-gU-Rn3.text" = "Visa nätspelsmeddelanden";
+
+/* Class = "UILabel"; text = "Hoppa över tillgång till EFB från processorn"; ObjectID = "xLh-SQ-2m3"; */
+"xLh-SQ-2m3.text" = "Hoppa över tillgång till EFB från processorn";
+
+/* Class = "UITableViewSection"; headerTitle = "Övrigt"; ObjectID = "xsF-Eo-4KA"; */
+"xsF-Eo-4KA.headerTitle" = "Övrigt";
+
+/* Class = "UINavigationItem"; title = "Kantutjämning"; ObjectID = "y9H-fG-lRi"; */
+"y9H-fG-lRi.title" = "Kantutjämning";
+
+/* Class = "UILabel"; text = "2x ursprunglig (1280x1056) för 720p"; ObjectID = "yPP-e3-670"; */
+"yPP-e3-670.text" = "2x ursprunglig (1280x1056) för 720p";
+
+/* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
+"yzN-eq-mOS.text" = "4x";

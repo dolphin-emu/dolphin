@@ -1,0 +1,25 @@
+// Copyright 2020 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+"Your controller configuration will be overwritten by the Touchscreen default settings.\n\nIf you want to keep your button mappings and settings, save it as a profile on the previous screen before changing devices.\n\nProceed?" = "Your controller configuration will be overwritten by the Touchscreen default settings.\n\nIf you want to keep your button mappings and settings, save it as a profile on the previous screen before changing devices.\n\nProceed?";
+
+"Load Defaults" = "Load Defaults";
+
+"Do you want to load the default configuration for MFi controllers?\n\nThe default configuration contains button mappings that will work on many MFi controllers." = "Do you want to load the default configuration for MFi controllers?\n\nThe default configuration contains button mappings that will work on many MFi controllers.";
+
+"These settings are intended for use with real motion hardware. Compatible hardware includes your device's built-in motion sensors, and sensors on controllers connected with DSU Client.\n\nYou can enable IR pointer simulation using your motion hardware under \"Point\". IR pointer simulation using motion hardware is required for Wii MotionPlus games." = "These settings are intended for use with real motion hardware. Compatible hardware includes your device's built-in motion sensors, and sensors on controllers connected with DSU Client.\n\nYou can enable IR pointer simulation using your motion hardware under \"Point\". IR pointer simulation using motion hardware is required for Wii MotionPlus games.";
+
+"[Not Set]" = "[Not Set]";
+
+"Cannot load a default configuration for the device attached to this controller." = "Cannot load a default configuration for the device attached to this controller.";
+
+"The selected device \"%@\" for this emulated controller is not connected." = "The selected device \"%@\" for this emulated controller is not connected.";
+
+"Please enter a name for this profile. If a profile with that name already exists, it will be overwritten." = "Please enter a name for this profile. If a profile with that name already exists, it will be overwritten.";
+
+"You have not entered a valid name." = "You have not entered a valid name.";
+
+"The profile has been saved." = "The profile has been saved.";
+
+
