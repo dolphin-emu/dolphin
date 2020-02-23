@@ -14,8 +14,10 @@
 #include <QKeyEvent>
 #include <QMenu>
 #include <QMouseEvent>
+#include <QPainter>
 #include <QResizeEvent>
 #include <QScrollBar>
+#include <QStyledItemDelegate>
 #include <QTableWidgetItem>
 #include <QWheelEvent>
 
@@ -30,6 +32,90 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+struct CodeViewBranch
+{
+  u32 src_addr;
+  u32 dst_addr;
+  bool is_link;
+};
+
+constexpr u32 WIDTH_PER_BRANCH_ARROW = 16;
+
+class BranchDisplayDelegate : public QStyledItemDelegate
+{
+public:
+  BranchDisplayDelegate(CodeViewWidget* parent) : m_parent(parent) {}
+
+private:
+  CodeViewWidget* m_parent;
+
+  void paint(QPainter* painter, const QStyleOptionViewItem& option,
+             const QModelIndex& index) const override
+  {
+    QStyledItemDelegate::paint(painter, option, index);
+
+    painter->save();
+    painter->setClipRect(option.rect);
+    painter->setPen(m_parent->palette().text().color());
+
+    constexpr u32 x_offset_in_branch_for_vertical_line = 10;
+    const u32 addr = m_parent->AddressForRow(index.row());
+    u32 current_branch_index = 0;
+    for (const CodeViewBranch& branch : m_parent->m_branches)
+    {
+      const int y_center = option.rect.top() + option.rect.height() / 2;
+      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * current_branch_index;
+      const int x_right = x_left + x_offset_in_branch_for_vertical_line;
+
+      if (branch.is_link)
+      {
+        // just draw an arrow pointing right from the branch instruction for link branches, they
+        // rarely are close enough to actually see the target and are just visual noise otherwise
+        if (addr == branch.src_addr)
+        {
+          painter->drawLine(x_left, y_center, x_right, y_center);
+          painter->drawLine(x_right, y_center, x_right - 6, y_center - 3);
+          painter->drawLine(x_right, y_center, x_right - 6, y_center + 3);
+        }
+      }
+      else
+      {
+        const u32 addr_lower = std::min(branch.src_addr, branch.dst_addr);
+        const u32 addr_higher = std::max(branch.src_addr, branch.dst_addr);
+        const bool in_range = addr >= addr_lower && addr <= addr_higher;
+
+        if (in_range)
+        {
+          const bool is_lowest = addr == addr_lower;
+          const bool is_highest = addr == addr_higher;
+          const int top = (is_lowest ? y_center : option.rect.top());
+          const int bottom = (is_highest ? y_center : option.rect.bottom());
+
+          // draw vertical part of the branch line
+          painter->drawLine(x_right, top, x_right, bottom);
+
+          if (is_lowest || is_highest)
+          {
+            // draw horizontal part of the branch line if this is either the source or destination
+            painter->drawLine(x_left, y_center, x_right, y_center);
+          }
+
+          if (addr == branch.dst_addr)
+          {
+            // draw arrow if this is the destination address
+            painter->drawLine(x_left, y_center, x_left + 6, y_center - 3);
+            painter->drawLine(x_left, y_center, x_left + 6, y_center + 3);
+          }
+        }
+      }
+
+      ++current_branch_index;
+    }
+
+    painter->restore();
+  }
+};
+
 // "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
 constexpr double SCROLL_FRACTION_DEGREES = 15.;
@@ -41,7 +127,8 @@ constexpr int CODE_VIEW_COLUMN_ADDRESS = 1;
 constexpr int CODE_VIEW_COLUMN_INSTRUCTION = 2;
 constexpr int CODE_VIEW_COLUMN_PARAMETERS = 3;
 constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
-constexpr int CODE_VIEW_COLUMNCOUNT = 5;
+constexpr int CODE_VIEW_COLUMN_BRANCH_ARROWS = 5;
+constexpr int CODE_VIEW_COLUMNCOUNT = 6;
 
 CodeViewWidget::CodeViewWidget()
 {
@@ -58,6 +145,7 @@ CodeViewWidget::CodeViewWidget()
   horizontalHeader()->hide();
 
   setFont(Settings::Instance().GetDebugFont());
+  setItemDelegateForColumn(CODE_VIEW_COLUMN_BRANCH_ARROWS, new BranchDisplayDelegate(this));
 
   FontBasedSizing();
 
@@ -74,6 +162,8 @@ CodeViewWidget::CodeViewWidget()
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
 }
+
+CodeViewWidget::~CodeViewWidget() = default;
 
 static u32 GetBranchFromAddress(u32 addr)
 {
@@ -95,6 +185,20 @@ void CodeViewWidget::FontBasedSizing()
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
   Update();
+}
+
+u32 CodeViewWidget::AddressForRow(int row) const
+{
+  // m_address is defined as the center row of the table, so we have rowCount/2 instructions above
+  // it; an instruction is 4 bytes long on GC/Wii so we increment 4 bytes per row
+  const u32 row_zero_address = m_address - ((rowCount() / 2) * 4);
+  return row_zero_address + row * 4;
+}
+
+static bool IsBranchInstructionWithLink(std::string_view ins)
+{
+  return StringEndsWith(ins, "l") || StringEndsWith(ins, "la") || StringEndsWith(ins, "l+") ||
+         StringEndsWith(ins, "la+") || StringEndsWith(ins, "l-") || StringEndsWith(ins, "la-");
 }
 
 void CodeViewWidget::Update()
@@ -129,9 +233,11 @@ void CodeViewWidget::Update()
 
   const bool dark_theme = qApp->palette().color(QPalette::Base).valueF() < 0.5;
 
+  m_branches.clear();
+
   for (int i = 0; i < rowCount(); i++)
   {
-    const u32 addr = m_address - ((rowCount() / 2) * 4) + i * 4;
+    const u32 addr = AddressForRow(i);
     const u32 color = PowerPC::debug_interface.GetColor(addr);
     auto* bp_item = new QTableWidgetItem;
     auto* addr_item = new QTableWidgetItem(QStringLiteral("%1").arg(addr, 8, 16, QLatin1Char('0')));
@@ -154,8 +260,9 @@ void CodeViewWidget::Update()
     auto* ins_item = new QTableWidgetItem(ins_formatted);
     auto* param_item = new QTableWidgetItem(param_formatted);
     auto* description_item = new QTableWidgetItem(desc_formatted);
+    auto* branch_item = new QTableWidgetItem();
 
-    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item})
+    for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item, branch_item})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setData(Qt::UserRole, addr);
@@ -181,8 +288,14 @@ void CodeViewWidget::Update()
 
     if (hex_str.length() == VALID_BRANCH_LENGTH && desc != "---")
     {
-      description_item->setText(tr("--> %1").arg(QString::fromStdString(
-          PowerPC::debug_interface.GetDescription(GetBranchFromAddress(addr)))));
+      u32 branch_addr = GetBranchFromAddress(addr);
+      CodeViewBranch& branch = m_branches.emplace_back();
+      branch.src_addr = addr;
+      branch.dst_addr = branch_addr;
+      branch.is_link = IsBranchInstructionWithLink(ins);
+
+      description_item->setText(tr("--> %1").arg(
+          QString::fromStdString(PowerPC::debug_interface.GetDescription(branch_addr))));
       param_item->setForeground(Qt::magenta);
     }
 
@@ -201,6 +314,7 @@ void CodeViewWidget::Update()
     setItem(i, CODE_VIEW_COLUMN_INSTRUCTION, ins_item);
     setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
     setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
+    setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
 
     if (addr == GetAddress())
     {
@@ -209,6 +323,8 @@ void CodeViewWidget::Update()
   }
 
   resizeColumnsToContents();
+  setColumnWidth(CODE_VIEW_COLUMN_BRANCH_ARROWS,
+                 static_cast<int>(WIDTH_PER_BRANCH_ARROW * m_branches.size()));
   g_symbolDB.FillInCallers();
 
   repaint();
