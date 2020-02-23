@@ -1,0 +1,45 @@
+
+/* Class = "UILabel"; text = "Controller Type"; ObjectID = "CkD-S7-YYh"; */
+"CkD-S7-YYh.text" = "Controller Type";
+
+/* Class = "UITableViewSection"; headerTitle = "Controller"; ObjectID = "Hcg-Pf-vHF"; */
+"Hcg-Pf-vHF.headerTitle" = "Controller";
+
+/* Class = "UILabel"; text = "Salva"; ObjectID = "K1u-Lf-ImR"; */
+"K1u-Lf-ImR.text" = "Salva";
+
+/* Class = "UILabel"; text = "Carica"; ObjectID = "Kj5-6t-VLU"; */
+"Kj5-6t-VLU.text" = "Carica";
+
+/* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
+"LOg-ZN-hB0.title" = "Change Controller";
+
+/* Class = "UITableViewSection"; headerTitle = "Salva Stato di Gioco"; ObjectID = "OsQ-TK-bBV"; */
+"OsQ-TK-bBV.headerTitle" = "Salva Stato di Gioco";
+
+/* Class = "UINavigationItem"; title = "Salva"; ObjectID = "dYF-hp-EOu"; */
+"dYF-hp-EOu.title" = "Salva";
+
+/* Class = "UILabel"; text = "Impostazioni"; ObjectID = "eS5-Gd-2Ef"; */
+"eS5-Gd-2Ef.text" = "Impostazioni";
+
+/* Class = "UINavigationItem"; title = "Carica"; ObjectID = "elK-Yl-abI"; */
+"elK-Yl-abI.title" = "Carica";
+
+/* Class = "UINavigationItem"; title = "Impostazioni"; ObjectID = "ggR-Du-beY"; */
+"ggR-Du-beY.title" = "Impostazioni";
+
+/* Class = "UITableViewController"; title = "Impostazioni"; ObjectID = "kpj-vC-v4K"; */
+"kpj-vC-v4K.title" = "Impostazioni";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "lY7-Nq-L4G"; */
+"lY7-Nq-L4G.text" = "State Slot 1";
+
+/* Class = "UILabel"; text = "Change Touchscreen Controller"; ObjectID = "o8N-ql-HBA"; */
+"o8N-ql-HBA.text" = "Change Touchscreen Controller";
+
+/* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "rSZ-0M-uTE"; */
+"rSZ-0M-uTE.title" = "Change Touchscreen";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
+"uVG-PZ-CTl.text" = "State Slot 1";
