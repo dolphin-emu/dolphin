@@ -105,14 +105,16 @@ void MappingIndicator::AdjustGateColor(QColor* color)
     color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
 }
 
-MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
+MappingIndicator::MappingIndicator()
 {
   // TODO: Make these magic numbers less ugly.
-  int required_height = 106;
+  const int required_height = 106;
+  setFixedHeight(required_height);
+}
 
-  if (group && ControllerEmu::GroupType::MixedTriggers == group->type)
-    required_height = 64 + 1;
-
+MixedTriggersIndicator::MixedTriggersIndicator(ControllerEmu::MixedTriggers& group) : m_group(group)
+{
+  const int required_height = 64 + 1;
   setFixedHeight(required_height);
 }
 
@@ -209,8 +211,16 @@ void GenerateFibonacciSphere(int point_count, F&& callback)
 
 }  // namespace
 
-void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
+void MappingIndicator::paintEvent(QPaintEvent*)
 {
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  Draw();
+}
+
+void CursorIndicator::Draw()
+{
+  auto& cursor = m_cursor_group;
+
   const auto center = cursor.GetCenter();
 
   QColor tv_brush_color = CURSOR_TV_COLOR;
@@ -291,20 +301,11 @@ void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
   }
 }
 
-void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick)
+void ReshapableInputIndicator::DrawReshapableInput(
+    ControllerEmu::ReshapableInput& stick,
+    const ControllerEmu::ReshapableInput::ReshapeData& adj_coord, QColor gate_brush_color)
 {
-  // Some hacks for pretty colors:
-  const bool is_c_stick = m_group->name == "C-Stick";
-  const bool is_tilt = m_group->name == "Tilt";
-
   const auto center = stick.GetCenter();
-
-  QColor gate_brush_color = STICK_GATE_COLOR;
-
-  if (is_c_stick)
-    gate_brush_color = C_STICK_GATE_COLOR;
-  else if (is_tilt)
-    gate_brush_color = TILT_GATE_COLOR;
 
   QColor gate_pen_color = gate_brush_color.darker(125);
 
@@ -312,18 +313,6 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   AdjustGateColor(&gate_pen_color);
 
   const auto raw_coord = stick.GetReshapableState(false);
-
-  Common::DVec2 adj_coord;
-  if (is_tilt)
-  {
-    WiimoteEmu::EmulateTilt(&m_motion_state, static_cast<ControllerEmu::Tilt*>(&stick),
-                            1.f / INDICATOR_UPDATE_FREQ);
-    adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
-  }
-  else
-  {
-    adj_coord = stick.GetReshapableState(true);
-  }
 
   UpdateCalibrationWidget(raw_coord);
 
@@ -391,12 +380,33 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
   }
 }
 
-void MappingIndicator::DrawMixedTriggers()
+void AnalogStickIndicator::Draw()
+{
+  // Some hacks for pretty colors:
+  const bool is_c_stick = m_group.name == "C-Stick";
+
+  const auto gate_brush_color = is_c_stick ? C_STICK_GATE_COLOR : STICK_GATE_COLOR;
+
+  const auto adj_coord = m_group.GetReshapableState(true);
+
+  DrawReshapableInput(m_group, adj_coord, gate_brush_color);
+}
+
+void TiltIndicator::Draw()
+{
+  WiimoteEmu::EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
+  const auto adj_coord =
+      Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+
+  DrawReshapableInput(m_group, adj_coord, TILT_GATE_COLOR);
+}
+
+void MixedTriggersIndicator::Draw()
 {
   QPainter p(this);
   p.setRenderHint(QPainter::TextAntialiasing, true);
 
-  const auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
+  const auto& triggers = m_group;
   const ControlState threshold = triggers.GetThreshold();
   const ControlState deadzone = triggers.GetDeadzone();
 
@@ -486,8 +496,10 @@ void MappingIndicator::DrawMixedTriggers()
   }
 }
 
-void MappingIndicator::DrawForce(ControllerEmu::Force& force)
+void SwingIndicator::Draw()
 {
+  auto& force = m_swing_group;
+
   const auto center = force.GetCenter();
 
   QColor gate_brush_color = SWING_GATE_COLOR;
@@ -597,39 +609,7 @@ void MappingIndicator::DrawForce(ControllerEmu::Force& force)
   }
 }
 
-void MappingIndicator::paintEvent(QPaintEvent*)
-{
-  switch (m_group->type)
-  {
-  case ControllerEmu::GroupType::Cursor:
-    DrawCursor(*static_cast<ControllerEmu::Cursor*>(m_group));
-    break;
-  case ControllerEmu::GroupType::Stick:
-  case ControllerEmu::GroupType::Tilt:
-    DrawReshapableInput(*static_cast<ControllerEmu::ReshapableInput*>(m_group));
-    break;
-  case ControllerEmu::GroupType::MixedTriggers:
-    DrawMixedTriggers();
-    break;
-  case ControllerEmu::GroupType::Force:
-    DrawForce(*static_cast<ControllerEmu::Force*>(m_group));
-    break;
-  default:
-    break;
-  }
-}
-
-ShakeMappingIndicator::ShakeMappingIndicator(ControllerEmu::Shake* group)
-    : MappingIndicator(group), m_shake_group(*group)
-{
-}
-
-void ShakeMappingIndicator::paintEvent(QPaintEvent*)
-{
-  DrawShake();
-}
-
-void ShakeMappingIndicator::DrawShake()
+void ShakeMappingIndicator::Draw()
 {
   constexpr std::size_t HISTORY_COUNT = INDICATOR_UPDATE_FREQ;
 
@@ -706,12 +686,7 @@ void ShakeMappingIndicator::DrawShake()
   }
 }
 
-AccelerometerMappingIndicator::AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer* group)
-    : MappingIndicator(group), m_accel_group(*group)
-{
-}
-
-void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
+void AccelerometerMappingIndicator::Draw()
 {
   const auto accel_state = m_accel_group.GetState();
   const auto state = accel_state.value_or(Common::Vec3{});
@@ -793,12 +768,7 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
                  fmt::format("{:.2f} g", state.Length() / WiimoteEmu::GRAVITY_ACCELERATION)));
 }
 
-GyroMappingIndicator::GyroMappingIndicator(ControllerEmu::IMUGyroscope* group)
-    : MappingIndicator(group), m_gyro_group(*group), m_state(Common::Matrix33::Identity())
-{
-}
-
-void GyroMappingIndicator::paintEvent(QPaintEvent*)
+void GyroMappingIndicator::Draw()
 {
   const auto gyro_state = m_gyro_group.GetState();
   const auto raw_gyro_state = m_gyro_group.GetRawState();
@@ -915,7 +885,7 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   p.drawEllipse(QPointF{}, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 }
 
-void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
+void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
   // Bounding box size:
   const double scale = GetScale();
@@ -942,24 +912,24 @@ void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
   p.drawEllipse(QPointF{point.x, point.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 }
 
-void MappingIndicator::UpdateCalibrationWidget(Common::DVec2 point)
+void ReshapableInputIndicator::UpdateCalibrationWidget(Common::DVec2 point)
 {
   if (m_calibration_widget)
     m_calibration_widget->Update(point);
 }
 
-bool MappingIndicator::IsCalibrating() const
+bool ReshapableInputIndicator::IsCalibrating() const
 {
   return m_calibration_widget && m_calibration_widget->IsCalibrating();
 }
 
-void MappingIndicator::SetCalibrationWidget(CalibrationWidget* widget)
+void ReshapableInputIndicator::SetCalibrationWidget(CalibrationWidget* widget)
 {
   m_calibration_widget = widget;
 }
 
 CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
-                                     MappingIndicator& indicator)
+                                     ReshapableInputIndicator& indicator)
     : m_input(input), m_indicator(indicator), m_completion_action{}
 {
   m_indicator.SetCalibrationWidget(this);
