@@ -36,9 +36,16 @@ constexpr double SCROLL_FRACTION_DEGREES = 15.;
 
 constexpr size_t VALID_BRANCH_LENGTH = 10;
 
+constexpr int CODE_VIEW_COLUMN_BREAKPOINT = 0;
+constexpr int CODE_VIEW_COLUMN_ADDRESS = 1;
+constexpr int CODE_VIEW_COLUMN_INSTRUCTION = 2;
+constexpr int CODE_VIEW_COLUMN_PARAMETERS = 3;
+constexpr int CODE_VIEW_COLUMN_DESCRIPTION = 4;
+constexpr int CODE_VIEW_COLUMNCOUNT = 5;
+
 CodeViewWidget::CodeViewWidget()
 {
-  setColumnCount(5);
+  setColumnCount(CODE_VIEW_COLUMNCOUNT);
   setShowGrid(false);
   setContextMenuPolicy(Qt::CustomContextMenu);
   setSelectionMode(QAbstractItemView::SingleSelection);
@@ -86,7 +93,7 @@ void CodeViewWidget::FontBasedSizing()
   const int rowh = fm.height() + 1;
   verticalHeader()->setMaximumSectionSize(rowh);
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
-  setColumnWidth(0, rowh + 5);
+  setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
   Update();
 }
 
@@ -189,11 +196,11 @@ void CodeViewWidget::Update()
           Resources::GetScaledThemeIcon("debugger_breakpoint").pixmap(QSize(rowh - 2, rowh - 2)));
     }
 
-    setItem(i, 0, bp_item);
-    setItem(i, 1, addr_item);
-    setItem(i, 2, ins_item);
-    setItem(i, 3, param_item);
-    setItem(i, 4, description_item);
+    setItem(i, CODE_VIEW_COLUMN_BREAKPOINT, bp_item);
+    setItem(i, CODE_VIEW_COLUMN_ADDRESS, addr_item);
+    setItem(i, CODE_VIEW_COLUMN_INSTRUCTION, ins_item);
+    setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
+    setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
 
     if (addr == GetAddress())
     {
@@ -559,7 +566,7 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
   switch (event->button())
   {
   case Qt::LeftButton:
-    if (column(item) == 0)
+    if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
       ToggleBreakpoint();
     else
       SetAddress(addr, SetAddressUpdate::WithUpdate);
