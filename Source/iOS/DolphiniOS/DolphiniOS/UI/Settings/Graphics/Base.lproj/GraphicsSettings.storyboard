@@ -1351,7 +1351,7 @@
         <!--Anisotropic Filtering-->
         <scene sceneID="HKW-2G-4dc">
             <objects>
-                <tableViewController id="chl-Ei-7pX" customClass="InternalResolutionViewController" sceneMemberID="viewController">
+                <tableViewController id="chl-Ei-7pX" customClass="AnisotropicFilteringViewController" sceneMemberID="viewController">
                     <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="static" style="insetGrouped" separatorStyle="default" rowHeight="44" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="arc-co-Yz3">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
