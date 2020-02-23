@@ -1,0 +1,45 @@
+
+/* Class = "UILabel"; text = "Controller Type"; ObjectID = "CkD-S7-YYh"; */
+"CkD-S7-YYh.text" = "Controller Type";
+
+/* Class = "UITableViewSection"; headerTitle = "Mandos"; ObjectID = "Hcg-Pf-vHF"; */
+"Hcg-Pf-vHF.headerTitle" = "Mandos";
+
+/* Class = "UILabel"; text = "Guardar"; ObjectID = "K1u-Lf-ImR"; */
+"K1u-Lf-ImR.text" = "Guardar";
+
+/* Class = "UILabel"; text = "Cargar"; ObjectID = "Kj5-6t-VLU"; */
+"Kj5-6t-VLU.text" = "Cargar";
+
+/* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
+"LOg-ZN-hB0.title" = "Change Controller";
+
+/* Class = "UITableViewSection"; headerTitle = "Guardar estado"; ObjectID = "OsQ-TK-bBV"; */
+"OsQ-TK-bBV.headerTitle" = "Guardar estado";
+
+/* Class = "UINavigationItem"; title = "Guardar"; ObjectID = "dYF-hp-EOu"; */
+"dYF-hp-EOu.title" = "Guardar";
+
+/* Class = "UILabel"; text = "Ajustes"; ObjectID = "eS5-Gd-2Ef"; */
+"eS5-Gd-2Ef.text" = "Ajustes";
+
+/* Class = "UINavigationItem"; title = "Cargar"; ObjectID = "elK-Yl-abI"; */
+"elK-Yl-abI.title" = "Cargar";
+
+/* Class = "UINavigationItem"; title = "Ajustes"; ObjectID = "ggR-Du-beY"; */
+"ggR-Du-beY.title" = "Ajustes";
+
+/* Class = "UITableViewController"; title = "Ajustes"; ObjectID = "kpj-vC-v4K"; */
+"kpj-vC-v4K.title" = "Ajustes";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "lY7-Nq-L4G"; */
+"lY7-Nq-L4G.text" = "State Slot 1";
+
+/* Class = "UILabel"; text = "Change Touchscreen Controller"; ObjectID = "o8N-ql-HBA"; */
+"o8N-ql-HBA.text" = "Change Touchscreen Controller";
+
+/* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "rSZ-0M-uTE"; */
+"rSZ-0M-uTE.title" = "Change Touchscreen";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
+"uVG-PZ-CTl.text" = "State Slot 1";

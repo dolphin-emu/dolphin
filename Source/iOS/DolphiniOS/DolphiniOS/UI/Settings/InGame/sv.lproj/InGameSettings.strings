@@ -1,0 +1,45 @@
+
+/* Class = "UILabel"; text = "Controller Type"; ObjectID = "CkD-S7-YYh"; */
+"CkD-S7-YYh.text" = "Controller Type";
+
+/* Class = "UITableViewSection"; headerTitle = "Kontroller"; ObjectID = "Hcg-Pf-vHF"; */
+"Hcg-Pf-vHF.headerTitle" = "Kontroller";
+
+/* Class = "UILabel"; text = "Spara"; ObjectID = "K1u-Lf-ImR"; */
+"K1u-Lf-ImR.text" = "Spara";
+
+/* Class = "UILabel"; text = "Läs in"; ObjectID = "Kj5-6t-VLU"; */
+"Kj5-6t-VLU.text" = "Läs in";
+
+/* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
+"LOg-ZN-hB0.title" = "Change Controller";
+
+/* Class = "UITableViewSection"; headerTitle = "Spara snabbsparning"; ObjectID = "OsQ-TK-bBV"; */
+"OsQ-TK-bBV.headerTitle" = "Spara snabbsparning";
+
+/* Class = "UINavigationItem"; title = "Spara"; ObjectID = "dYF-hp-EOu"; */
+"dYF-hp-EOu.title" = "Spara";
+
+/* Class = "UILabel"; text = "Inställningar"; ObjectID = "eS5-Gd-2Ef"; */
+"eS5-Gd-2Ef.text" = "Inställningar";
+
+/* Class = "UINavigationItem"; title = "Läs in"; ObjectID = "elK-Yl-abI"; */
+"elK-Yl-abI.title" = "Läs in";
+
+/* Class = "UINavigationItem"; title = "Inställningar"; ObjectID = "ggR-Du-beY"; */
+"ggR-Du-beY.title" = "Inställningar";
+
+/* Class = "UITableViewController"; title = "Inställningar"; ObjectID = "kpj-vC-v4K"; */
+"kpj-vC-v4K.title" = "Inställningar";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "lY7-Nq-L4G"; */
+"lY7-Nq-L4G.text" = "State Slot 1";
+
+/* Class = "UILabel"; text = "Change Touchscreen Controller"; ObjectID = "o8N-ql-HBA"; */
+"o8N-ql-HBA.text" = "Change Touchscreen Controller";
+
+/* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "rSZ-0M-uTE"; */
+"rSZ-0M-uTE.title" = "Change Touchscreen";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
+"uVG-PZ-CTl.text" = "State Slot 1";

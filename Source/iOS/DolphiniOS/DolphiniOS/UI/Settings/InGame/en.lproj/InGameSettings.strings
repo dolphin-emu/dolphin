@@ -1,0 +1,45 @@
+
+/* Class = "UILabel"; text = "Controller Type"; ObjectID = "CkD-S7-YYh"; */
+"CkD-S7-YYh.text" = "Controller Type";
+
+/* Class = "UITableViewSection"; headerTitle = "Controllers"; ObjectID = "Hcg-Pf-vHF"; */
+"Hcg-Pf-vHF.headerTitle" = "Controllers";
+
+/* Class = "UILabel"; text = "Save"; ObjectID = "K1u-Lf-ImR"; */
+"K1u-Lf-ImR.text" = "Save";
+
+/* Class = "UILabel"; text = "Load"; ObjectID = "Kj5-6t-VLU"; */
+"Kj5-6t-VLU.text" = "Load";
+
+/* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
+"LOg-ZN-hB0.title" = "Change Controller";
+
+/* Class = "UITableViewSection"; headerTitle = "Save State"; ObjectID = "OsQ-TK-bBV"; */
+"OsQ-TK-bBV.headerTitle" = "Save State";
+
+/* Class = "UINavigationItem"; title = "Save"; ObjectID = "dYF-hp-EOu"; */
+"dYF-hp-EOu.title" = "Save";
+
+/* Class = "UILabel"; text = "Settings"; ObjectID = "eS5-Gd-2Ef"; */
+"eS5-Gd-2Ef.text" = "Settings";
+
+/* Class = "UINavigationItem"; title = "Load"; ObjectID = "elK-Yl-abI"; */
+"elK-Yl-abI.title" = "Load";
+
+/* Class = "UINavigationItem"; title = "Settings"; ObjectID = "ggR-Du-beY"; */
+"ggR-Du-beY.title" = "Settings";
+
+/* Class = "UITableViewController"; title = "Settings"; ObjectID = "kpj-vC-v4K"; */
+"kpj-vC-v4K.title" = "Settings";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "lY7-Nq-L4G"; */
+"lY7-Nq-L4G.text" = "State Slot 1";
+
+/* Class = "UILabel"; text = "Change Touchscreen Controller"; ObjectID = "o8N-ql-HBA"; */
+"o8N-ql-HBA.text" = "Change Touchscreen Controller";
+
+/* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "rSZ-0M-uTE"; */
+"rSZ-0M-uTE.title" = "Change Touchscreen";
+
+/* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
+"uVG-PZ-CTl.text" = "State Slot 1";
