@@ -219,91 +219,17 @@ void MappingIndicator::paintEvent(QPaintEvent*)
 
 void CursorIndicator::Draw()
 {
-  auto& cursor = m_cursor_group;
+  const auto adj_coord = m_cursor_group.GetState(true);
 
-  const auto center = cursor.GetCenter();
-
-  QColor tv_brush_color = CURSOR_TV_COLOR;
-  QColor tv_pen_color = tv_brush_color.darker(125);
-
-  AdjustGateColor(&tv_brush_color);
-  AdjustGateColor(&tv_pen_color);
-
-  const auto raw_coord = cursor.GetState(false);
-  const auto adj_coord = cursor.GetState(true);
-
-  UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
-
-  // Bounding box size:
-  const double scale = GetScale();
-
-  QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
-
-  // UI y-axis is opposite that of stick.
-  p.scale(1.0, -1.0);
-
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  if (IsCalibrating())
-  {
-    DrawCalibration(p, {raw_coord.x, raw_coord.y});
-    return;
-  }
-
-  // TV screen or whatever you want to call this:
-  constexpr double TV_SCALE = 0.75;
-
-  p.setPen(tv_pen_color);
-  p.setBrush(tv_brush_color);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetGateRadiusAtAngle(ang); }, scale * TV_SCALE));
-
-  // Deadzone.
-  p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush());
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
-
-  // Input shape.
-  p.setPen(GetInputShapePen());
-  p.setBrush(Qt::NoBrush);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetInputRadiusAtAngle(ang); }, scale, center));
-
-  // Center.
-  if (center.x || center.y)
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetCenterColor());
-    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-  }
-
-  // Raw stick position.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-
-  // Adjusted cursor position (if not hidden):
-  if (adj_coord.IsVisible())
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale * TV_SCALE, INPUT_DOT_RADIUS,
-                  INPUT_DOT_RADIUS);
-  }
+  DrawReshapableInput(m_cursor_group, CURSOR_TV_COLOR,
+                      adj_coord.IsVisible() ?
+                          std::make_optional(Common::DVec2(adj_coord.x, adj_coord.y)) :
+                          std::nullopt);
 }
 
 void ReshapableInputIndicator::DrawReshapableInput(
-    ControllerEmu::ReshapableInput& stick,
-    const ControllerEmu::ReshapableInput::ReshapeData& adj_coord, QColor gate_brush_color)
+    ControllerEmu::ReshapableInput& stick, QColor gate_brush_color,
+    std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord)
 {
   const auto center = stick.GetCenter();
 
@@ -372,11 +298,11 @@ void ReshapableInputIndicator::DrawReshapableInput(
   p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 
   // Adjusted stick position.
-  if (adj_coord.x || adj_coord.y)
+  if (adj_coord)
   {
     p.setPen(Qt::NoPen);
     p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.drawEllipse(QPointF{adj_coord->x, adj_coord->y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
   }
 }
 
@@ -389,16 +315,19 @@ void AnalogStickIndicator::Draw()
 
   const auto adj_coord = m_group.GetReshapableState(true);
 
-  DrawReshapableInput(m_group, adj_coord, gate_brush_color);
+  DrawReshapableInput(m_group, gate_brush_color,
+                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
 }
 
 void TiltIndicator::Draw()
 {
   WiimoteEmu::EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
+
   const auto adj_coord =
       Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
 
-  DrawReshapableInput(m_group, adj_coord, TILT_GATE_COLOR);
+  DrawReshapableInput(m_group, TILT_GATE_COLOR,
+                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
 }
 
 void MixedTriggersIndicator::Draw()

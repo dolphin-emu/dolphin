@@ -60,9 +60,8 @@ public:
   void SetCalibrationWidget(CalibrationWidget* widget);
 
 protected:
-  void DrawReshapableInput(ControllerEmu::ReshapableInput& group,
-                           const ControllerEmu::ReshapableInput::ReshapeData& adj_coord,
-                           QColor gate_color);
+  void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
+                           std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
 
   bool IsCalibrating() const;
 
