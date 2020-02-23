@@ -1,6 +1,0 @@
-This directory contains build support files such as
-
-* CMake modules
-* Build scripts
-* qmake (static build with dynamic libc only)
-
