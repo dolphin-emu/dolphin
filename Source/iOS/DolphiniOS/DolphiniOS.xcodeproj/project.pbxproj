@@ -130,7 +130,7 @@
 		B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9323FC7B830077375A /* AntiAliasingCell.m */; };
 		B9B47C9723FCBEA90077375A /* GraphicsRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9623FCBEA90077375A /* GraphicsRootViewController.mm */; };
 		B9B47C9D23FF5AE90077375A /* GraphicsHacksViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B47C9C23FF5AE80077375A /* GraphicsHacksViewController.mm */; };
-		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */; };
+		B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.mm */; };
 		B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */; };
 		B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */; };
 		B9B536D523DE609900F03106 /* DonationNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536D423DE609900F03106 /* DonationNotice.xib */; };
@@ -459,7 +459,7 @@
 		B9B47C9B23FF5AE80077375A /* GraphicsHacksViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsHacksViewController.h; sourceTree = "<group>"; };
 		B9B47C9C23FF5AE80077375A /* GraphicsHacksViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsHacksViewController.mm; sourceTree = "<group>"; };
 		B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = UpdateNoticeViewController.h; sourceTree = "<group>"; };
-		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = UpdateNoticeViewController.m; sourceTree = "<group>"; };
+		B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = UpdateNoticeViewController.mm; sourceTree = "<group>"; };
 		B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = UpdateNotice.xib; sourceTree = "<group>"; };
 		B9B536D123DE4FE400F03106 /* UnsupportedDeviceNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = UnsupportedDeviceNotice.xib; sourceTree = "<group>"; };
 		B9B536D423DE609900F03106 /* DonationNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = DonationNotice.xib; path = DolphiniOS/UI/Notices/Donation/DonationNotice.xib; sourceTree = SOURCE_ROOT; };
@@ -993,7 +993,7 @@
 			isa = PBXGroup;
 			children = (
 				B9B536C923DD8B2E00F03106 /* UpdateNoticeViewController.h */,
-				B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.m */,
+				B9B536CA23DD8B2E00F03106 /* UpdateNoticeViewController.mm */,
 				B9B536CC23DD8B8000F03106 /* UpdateNotice.xib */,
 			);
 			path = Updates;
@@ -1454,7 +1454,7 @@
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
 				B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */,
-				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.m in Sources */,
+				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.mm in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
 				B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */,
