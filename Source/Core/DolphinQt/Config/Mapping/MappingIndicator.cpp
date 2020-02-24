@@ -72,7 +72,9 @@ QBrush MappingIndicator::GetBBoxBrush() const
 
 QColor MappingIndicator::GetRawInputColor() const
 {
-  return palette().shadow().color();
+  QColor color = palette().text().color();
+  color.setAlphaF(0.5);
+  return color;
 }
 
 QPen MappingIndicator::GetInputShapePen() const
@@ -82,8 +84,6 @@ QPen MappingIndicator::GetInputShapePen() const
 
 QColor MappingIndicator::GetAdjustedInputColor() const
 {
-  // Using highlight color works (typically blue) but the contrast is pretty low.
-  // return palette().highlight().color();
   return Qt::red;
 }
 
