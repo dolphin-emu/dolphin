@@ -69,6 +69,8 @@ protected:
   void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
                            std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
 
+  virtual void DrawUnderGate(QPainter&) {}
+
   bool IsCalibrating() const;
 
   void DrawCalibration(QPainter& p, Common::DVec2 point);
@@ -130,6 +132,8 @@ public:
 
 private:
   void Draw() override;
+
+  void DrawUnderGate(QPainter& p) override;
 
   ControllerEmu::Force& m_swing_group;
   WiimoteEmu::MotionState m_motion_state{};

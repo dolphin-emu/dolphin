@@ -287,6 +287,8 @@ void ReshapableInputIndicator::DrawReshapableInput(
     return;
   }
 
+  DrawUnderGate(p);
+
   QColor gate_pen_color = gate_brush_color.darker(125);
 
   AdjustGateColor(&gate_brush_color);
@@ -450,36 +452,9 @@ void MixedTriggersIndicator::Draw()
   }
 }
 
-void SwingIndicator::Draw()
+void SwingIndicator::DrawUnderGate(QPainter& p)
 {
   auto& force = m_swing_group;
-
-  const auto center = force.GetCenter();
-
-  QColor gate_brush_color = SWING_GATE_COLOR;
-  QColor gate_pen_color = gate_brush_color.darker(125);
-
-  AdjustGateColor(&gate_brush_color);
-  AdjustGateColor(&gate_pen_color);
-
-  const auto raw_coord = force.GetState(false);
-  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
-  const auto& adj_coord = m_motion_state.position;
-
-  UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
-
-  QPainter p(this);
-  DrawBoundingBox(p);
-  TransformPainter(p);
-
-  // UI y-axis is opposite that of stick.
-  p.scale(1.0, -1.0);
-
-  if (IsCalibrating())
-  {
-    DrawCalibration(p, {raw_coord.x, raw_coord.y});
-    return;
-  }
 
   // Deadzone for Z (forward/backward):
   const double deadzone = force.GetDeadzonePercentage();
@@ -491,10 +466,12 @@ void SwingIndicator::Draw()
   }
 
   // Raw Z:
+  const auto raw_coord = force.GetState(false);
   p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS)));
   p.drawLine(QLineF(-1, raw_coord.z, 1, raw_coord.z));
 
   // Adjusted Z:
+  const auto& adj_coord = m_motion_state.position;
   const auto curve_point =
       std::max(std::abs(m_motion_state.angle.x), std::abs(m_motion_state.angle.z)) / MathUtil::TAU;
   if (adj_coord.y || curve_point)
@@ -508,42 +485,15 @@ void SwingIndicator::Draw()
     p.setPen(GetCosmeticPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS)));
     p.drawPath(path);
   }
+}
 
-  // Draw "gate" shape.
-  p.setPen(QPen(gate_pen_color, 0));
-  p.setBrush(gate_brush_color);
-  p.drawPolygon(
-      GetPolygonFromRadiusGetter([&force](double ang) { return force.GetGateRadiusAtAngle(ang); }));
+void SwingIndicator::Draw()
+{
+  auto& force = m_swing_group;
+  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
 
-  // Deadzone.
-  p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush(p));
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetDeadzoneRadiusAtAngle(ang); }, center));
-
-  // Input shape.
-  p.setPen(GetInputShapePen());
-  p.setBrush(Qt::NoBrush);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetInputRadiusAtAngle(ang); }, center));
-
-  // Center.
-  if (center.x || center.y)
-  {
-    p.setPen(GetInputDotPen(GetCenterColor()));
-    p.drawPoint(QPointF{center.x, center.y});
-  }
-
-  // Raw stick position.
-  p.setPen(GetInputDotPen(GetRawInputColor()));
-  p.drawPoint(QPointF{raw_coord.x, raw_coord.y});
-
-  // Adjusted position:
-  if (adj_coord.x || adj_coord.z)
-  {
-    p.setPen(GetInputDotPen(GetAdjustedInputColor()));
-    p.drawPoint(QPointF{-adj_coord.x, adj_coord.z});
-  }
+  DrawReshapableInput(force, SWING_GATE_COLOR,
+                      Common::DVec2{-m_motion_state.position.x, m_motion_state.position.z});
 }
 
 void ShakeMappingIndicator::Draw()
