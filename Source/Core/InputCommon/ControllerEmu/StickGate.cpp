@@ -282,10 +282,11 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
       [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
   section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
 
-  const auto center_data = fmt::format("{:.2f} {:.2f}", m_center.x * CENTER_CONFIG_SCALE,
+  // Save center value.
+  static constexpr char center_format[] = "{:.2f} {:.2f}";
+  const auto center_data = fmt::format(center_format, m_center.x * CENTER_CONFIG_SCALE,
                                        m_center.y * CENTER_CONFIG_SCALE);
-
-  section->Set(group + CENTER_CONFIG_NAME, center_data, "");
+  section->Set(group + CENTER_CONFIG_NAME, center_data, fmt::format(center_format, 0.0, 0.0));
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
