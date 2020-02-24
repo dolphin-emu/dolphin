@@ -1,4 +1,85 @@
+[submodule "Externals/cpp-optparse"]
+	path = Externals/cpp-optparse
+	url = https://github.com/weisslj/cpp-optparse.git
+[submodule "Externals/cubeb"]
+	path = Externals/cubeb
+	url = https://github.com/kinetiknz/cubeb.git
+[submodule "Externals/curl"]
+	path = Externals/curl
+	url = https://github.com/curl/curl.git
+[submodule "Externals/discord-rpc"]
+	path = Externals/discord-rpc
+	url = https://github.com/discordapp/discord-rpc.git
+[submodule "Externals/ed25519"]
+	path = Externals/ed25519
+	url = https://github.com/orlp/ed25519.git
+[submodule "Externals/enet"]
+	path = Externals/enet
+	url = https://github.com/lsalzman/enet.git
+[submodule "Externals/ffmpeg"]
+	path = Externals/ffmpeg
+	url = https://git.ffmpeg.org/ffmpeg.git
+[submodule "Externals/fmt"]
+	path = Externals/fmt
+	url = https://github.com/fmtlib/fmt.git
+[submodule "Externals/glslang"]
+	path = Externals/glslang
+	url = https://github.com/KhronosGroup/glslang.git
+[submodule "Externals/gtest"]
+	path = Externals/gtest
+	url = https://github.com/google/googletest.git
+[submodule "Externals/hidapi"]
+	path = Externals/hidapi
+	url = https://github.com/libusb/hidapi.git
+[submodule "Externals/imgui"]
+	path = Externals/imgui
+	url = https://github.com/ocornut/imgui.git
+[submodule "Externals/libiconv"]
+	path = Externals/libiconv
+	url = https://git.savannah.gnu.org/git/libiconv.git
+[submodule "Externals/libpng"]
+	path = Externals/libpng
+	url = https://github.com/glennrp/libpng.git
+[submodule "Externals/libusb"]
+	path = Externals/libusb
+	url = https://github.com/libusb/libusb.git
+[submodule "Externals/mbedtls"]
+	path = Externals/mbedtls
+	url = https://github.com/ARMmbed/mbedtls.git
+[submodule "Externals/miniupnpc"]
+	path = Externals/miniupnpc
+	url = https://github.com/miniupnp/miniupnp.git
+[submodule "Externals/minizip"]
+	path = Externals/minizip
+	url = https://github.com/nmoinvaz/minizip.git
+[submodule "Externals/MoltenVK"]
+	path = Externals/MoltenVK
+	url = https://github.com/KhronosGroup/MoltenVK.git
+[submodule "Externals/OpenAL"]
+	path = Externals/OpenAL
+	url = https://github.com/kcat/openal-soft.git
+[submodule "Externals/picojson"]
+	path = Externals/picojson
+	url = https://github.com/kazuho/picojson.git
+[submodule "Externals/pugixml"]
+	path = Externals/pugixml
+	url = https://github.com/zeux/pugixml.git
 [submodule "Externals/Qt"]
 	path = Externals/Qt
 	url = https://github.com/dolphin-emu/ext-win-qt.git
 	branch = master
+[submodule "Externals/SFML"]
+	path = Externals/SFML
+	url = https://github.com/SFML/SFML.git
+[submodule "Externals/soundtouch"]
+	path = Externals/soundtouch
+	url = https://gitlab.com/soundtouch/soundtouch.git
+[submodule "Externals/Vulkan"]
+	path = Externals/Vulkan
+	url = https://github.com/KhronosGroup/Vulkan-Headers.git
+[submodule "Externals/xxhash"]
+	path = Externals/xxhash
+	url = https://github.com/Cyan4973/xxHash.git
+[submodule "Externals/zlib"]
+	path = Externals/zlib
+	url = https://github.com/madler/zlib.git
