@@ -30,8 +30,6 @@ class CalibrationWidget;
 class MappingIndicator : public QWidget
 {
 public:
-  MappingIndicator();
-
   QPen GetBBoxPen() const;
   QBrush GetBBoxBrush() const;
   QColor GetRawInputColor() const;
@@ -40,21 +38,29 @@ public:
   QColor GetAdjustedInputColor() const;
   QColor GetDeadZoneColor() const;
   QPen GetDeadZonePen() const;
-  QBrush GetDeadZoneBrush() const;
+  QBrush GetDeadZoneBrush(QPainter&) const;
   QColor GetTextColor() const;
   QColor GetAltTextColor() const;
   void AdjustGateColor(QColor*);
 
 protected:
-  double GetScale() const;
-
   virtual void Draw() {}
 
 private:
   void paintEvent(QPaintEvent*) override;
 };
 
-class ReshapableInputIndicator : public MappingIndicator
+class SquareIndicator : public MappingIndicator
+{
+protected:
+  SquareIndicator();
+
+  qreal GetContentsScale() const;
+  void DrawBoundingBox(QPainter&);
+  void TransformPainter(QPainter&);
+};
+
+class ReshapableInputIndicator : public SquareIndicator
 {
 public:
   void SetCalibrationWidget(CalibrationWidget* widget);
@@ -129,7 +135,7 @@ private:
   WiimoteEmu::MotionState m_motion_state{};
 };
 
-class ShakeMappingIndicator : public MappingIndicator
+class ShakeMappingIndicator : public SquareIndicator
 {
 public:
   explicit ShakeMappingIndicator(ControllerEmu::Shake& shake) : m_shake_group(shake) {}
@@ -143,7 +149,7 @@ private:
   int m_grid_line_position = 0;
 };
 
-class AccelerometerMappingIndicator : public MappingIndicator
+class AccelerometerMappingIndicator : public SquareIndicator
 {
 public:
   explicit AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer& accel)
@@ -157,7 +163,7 @@ private:
   ControllerEmu::IMUAccelerometer& m_accel_group;
 };
 
-class GyroMappingIndicator : public MappingIndicator
+class GyroMappingIndicator : public SquareIndicator
 {
 public:
   explicit GyroMappingIndicator(ControllerEmu::IMUGyroscope& gyro) : m_gyro_group(gyro) {}

@@ -96,7 +96,10 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   if (indicator)
   {
-    form_layout->addRow(indicator);
+    const auto indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
+    indicator_layout->addWidget(indicator);
+    indicator_layout->setAlignment(Qt::AlignCenter);
+    form_layout->addRow(indicator_layout);
 
     connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
 
