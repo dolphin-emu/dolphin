@@ -6,6 +6,7 @@
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
-@property(strong, nonatomic) UIWindow* window;
+@property (strong, nonatomic) UIWindow* window;
+@property (nonatomic) UIBackgroundTaskIdentifier m_save_state_task;
 
 @end

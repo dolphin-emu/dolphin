@@ -256,17 +256,31 @@
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
 {
-  // Write out the configuration in case we don't get a chance later
-  Config::Save();
-  SConfig::GetInstance().SaveSettings();
-  
-  if (Core::IsRunning())
-  {
-    // Save out a save state
-    State::SaveAs(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
-  }
-}
+  std::string save_state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
 
+  self.m_save_state_task = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"Save Data" expirationHandler:^{
+    // Delete the save state - it's probably corrupt
+    File::Delete(save_state_path);
+    
+    [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
+    self.m_save_state_task = UIBackgroundTaskInvalid;
+  }];
+  
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
+    // Write out the configuration in case we don't get a chance later
+    Config::Save();
+    SConfig::GetInstance().SaveSettings();
+
+    if (Core::IsRunning())
+    {
+     // Save out a save state
+     State::SaveAs(save_state_path, true);
+    }
+
+    [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
+    self.m_save_state_task = UIBackgroundTaskInvalid;
+  });
+}
 
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
 {
