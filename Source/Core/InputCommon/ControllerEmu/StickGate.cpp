@@ -183,7 +183,8 @@ void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2
   auto& calibration_sample = data[calibration_index];
 
   // Update closest sample from provided x,y.
-  calibration_sample = std::max(calibration_sample, point.Length());
+  calibration_sample = std::clamp(point.Length(), calibration_sample,
+                                  SquareStickGate(1).GetRadiusAtAngle(calibration_angle));
 
   // Here we update all other samples in our calibration vector to maintain
   // a convex polygon containing our new calibration point.
