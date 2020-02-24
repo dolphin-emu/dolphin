@@ -54,7 +54,7 @@ constexpr int ReshapableInput::CALIBRATION_SAMPLE_COUNT;
 
 std::optional<u32> StickGate::GetIdealCalibrationSampleCount() const
 {
-  return {};
+  return std::nullopt;
 }
 
 OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
@@ -84,6 +84,12 @@ RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)
 ControlState RoundStickGate::GetRadiusAtAngle(double) const
 {
   return m_radius;
+}
+
+std::optional<u32> RoundStickGate::GetIdealCalibrationSampleCount() const
+{
+  // The "radius" is the same at every angle so a single sample is enough.
+  return 1;
 }
 
 SquareStickGate::SquareStickGate(ControlState half_width) : m_half_width(half_width)
