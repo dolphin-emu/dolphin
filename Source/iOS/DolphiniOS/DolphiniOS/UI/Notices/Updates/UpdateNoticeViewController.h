@@ -12,6 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UILabel* m_version_label;
 @property (weak, nonatomic) IBOutlet UILabel* m_changes_label;
 @property (weak, nonatomic) IBOutlet UILabel* m_save_states_warning_label;
+@property (weak, nonatomic) IBOutlet UIButton* m_see_changes_button;
 
 @end
 

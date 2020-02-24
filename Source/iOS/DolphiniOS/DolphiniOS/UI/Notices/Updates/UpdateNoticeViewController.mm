@@ -4,6 +4,8 @@
 
 #import "UpdateNoticeViewController.h"
 
+#import "Core/State.h"
+
 @interface UpdateNoticeViewController ()
 
 @end
@@ -21,12 +23,25 @@
   // Set the changes label
   [self.m_changes_label setText:self.m_update_json[@"changes"]];
   
-  // TODO: save states incompatibility label
+#ifdef PATREON
+  [self.m_see_changes_button setHidden:true];
+#endif
+  
+  if ((NSInteger)self.m_update_json[@"state_version"] != State::GetVersion())
+  {
+    [self.m_save_states_warning_label setHidden:false];
+  }
 }
 
 - (IBAction)UpdateNowTouched:(id)sender
 {
-  NSURL* url = [NSURL URLWithString:@"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios"];
+#ifndef PATREON
+  NSString* string = @"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios";
+#else
+  NSString* string = @"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios-patreon-beta";
+#endif
+  
+  NSURL* url = [NSURL URLWithString:string];
   [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 

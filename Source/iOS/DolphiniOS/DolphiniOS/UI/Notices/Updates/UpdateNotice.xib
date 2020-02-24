@@ -12,6 +12,7 @@
             <connections>
                 <outlet property="m_changes_label" destination="cRL-yG-mYd" id="iG9-ra-grN"/>
                 <outlet property="m_save_states_warning_label" destination="luA-1B-bZp" id="e9X-Sl-kCq"/>
+                <outlet property="m_see_changes_button" destination="Ddp-vN-h8U" id="6Zy-C9-ku0"/>
                 <outlet property="m_version_label" destination="G2L-KW-hUh" id="yS7-Ir-Mr1"/>
                 <outlet property="view" destination="r55-Fn-aBI" id="r9r-Zd-Dn7"/>
             </connections>
