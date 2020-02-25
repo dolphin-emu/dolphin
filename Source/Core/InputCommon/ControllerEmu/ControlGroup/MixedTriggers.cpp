@@ -74,4 +74,9 @@ ControlState MixedTriggers::GetThreshold() const
   return m_threshold_setting.GetValue() / 100;
 }
 
+size_t MixedTriggers::GetTriggerCount() const
+{
+  return controls.size() / 2;
+}
+
 }  // namespace ControllerEmu

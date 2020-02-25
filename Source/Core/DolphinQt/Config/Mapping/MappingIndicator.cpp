@@ -37,11 +37,32 @@ const QColor TILT_GATE_COLOR = 0xa2d9ce;
 const QColor SWING_GATE_COLOR = 0xcea2d9;
 
 constexpr int INPUT_DOT_RADIUS = 2;
+
+constexpr int NORMAL_INDICATOR_WIDTH = 100;
+constexpr int NORMAL_INDICATOR_HEIGHT = 100;
+constexpr int NORMAL_INDICATOR_PADDING = 2;
+
+// Per trigger.
+constexpr int TRIGGER_INDICATOR_HEIGHT = 32;
+
+QPen GetCosmeticPen(QPen pen)
+{
+  pen.setCosmetic(true);
+  return pen;
+}
+
+QPen GetInputDotPen(QPen pen)
+{
+  pen.setWidth(INPUT_DOT_RADIUS * 2);
+  pen.setCapStyle(Qt::PenCapStyle::RoundCap);
+  return GetCosmeticPen(pen);
+}
+
 }  // namespace
 
 QPen MappingIndicator::GetBBoxPen() const
 {
-  return palette().shadow().color();
+  return QPen(palette().shadow().color(), 0);
 }
 
 QBrush MappingIndicator::GetBBoxBrush() const
@@ -51,18 +72,18 @@ QBrush MappingIndicator::GetBBoxBrush() const
 
 QColor MappingIndicator::GetRawInputColor() const
 {
-  return palette().shadow().color();
+  QColor color = palette().text().color();
+  color.setAlphaF(0.5);
+  return color;
 }
 
 QPen MappingIndicator::GetInputShapePen() const
 {
-  return QPen{GetRawInputColor(), 1.0, Qt::DashLine};
+  return QPen{GetRawInputColor(), 0.0, Qt::DashLine};
 }
 
 QColor MappingIndicator::GetAdjustedInputColor() const
 {
-  // Using highlight color works (typically blue) but the contrast is pretty low.
-  // return palette().highlight().color();
   return Qt::red;
 }
 
@@ -80,12 +101,14 @@ QColor MappingIndicator::GetDeadZoneColor() const
 
 QPen MappingIndicator::GetDeadZonePen() const
 {
-  return GetDeadZoneColor();
+  return QPen(GetDeadZoneColor(), 0);
 }
 
-QBrush MappingIndicator::GetDeadZoneBrush() const
+QBrush MappingIndicator::GetDeadZoneBrush(QPainter& painter) const
 {
-  return QBrush{GetDeadZoneColor(), Qt::BDiagPattern};
+  QBrush brush{GetDeadZoneColor(), Qt::FDiagPattern};
+  brush.setTransform(painter.transform().inverted());
+  return brush;
 }
 
 QColor MappingIndicator::GetTextColor() const
@@ -105,20 +128,17 @@ void MappingIndicator::AdjustGateColor(QColor* color)
     color->setHsvF(color->hueF(), color->saturationF(), 1 - color->valueF());
 }
 
-MappingIndicator::MappingIndicator(ControllerEmu::ControlGroup* group) : m_group(group)
+SquareIndicator::SquareIndicator()
 {
-  // TODO: Make these magic numbers less ugly.
-  int required_height = 106;
-
-  if (group && ControllerEmu::GroupType::MixedTriggers == group->type)
-    required_height = 64 + 1;
-
-  setFixedHeight(required_height);
+  // Additional pixel for border.
+  setFixedWidth(NORMAL_INDICATOR_WIDTH + (NORMAL_INDICATOR_PADDING + 1) * 2);
+  setFixedHeight(NORMAL_INDICATOR_HEIGHT + (NORMAL_INDICATOR_PADDING + 1) * 2);
 }
 
-double MappingIndicator::GetScale() const
+MixedTriggersIndicator::MixedTriggersIndicator(ControllerEmu::MixedTriggers& group) : m_group(group)
 {
-  return height() / 2 - 2;
+  setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Ignored);
+  setFixedHeight(TRIGGER_INDICATOR_HEIGHT * int(group.GetTriggerCount()) + 1);
 }
 
 namespace
@@ -129,8 +149,7 @@ constexpr int SPHERE_POINT_COUNT = 200;
 
 // Constructs a polygon by querying a radius at varying angles:
 template <typename F>
-QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale,
-                                     Common::DVec2 center = {0.0, 0.0})
+QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, Common::DVec2 center = {0.0, 0.0})
 {
   // A multiple of 8 (octagon) and enough points to be visibly pleasing:
   constexpr int shape_point_count = 32;
@@ -140,10 +159,9 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, double scale,
   for (auto& point : shape)
   {
     const double angle = MathUtil::TAU * p / shape.size();
-    const double radius = radius_getter(angle) * scale;
+    const double radius = radius_getter(angle);
 
-    point = {std::cos(angle) * radius + center.x * scale,
-             std::sin(angle) * radius + center.y * scale};
+    point = {std::cos(angle) * radius + center.x, std::sin(angle) * radius + center.y};
     ++p;
   }
 
@@ -209,141 +227,59 @@ void GenerateFibonacciSphere(int point_count, F&& callback)
 
 }  // namespace
 
-void MappingIndicator::DrawCursor(ControllerEmu::Cursor& cursor)
+void MappingIndicator::paintEvent(QPaintEvent*)
 {
-  const auto center = cursor.GetCenter();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  Draw();
+}
 
-  QColor tv_brush_color = CURSOR_TV_COLOR;
-  QColor tv_pen_color = tv_brush_color.darker(125);
+void CursorIndicator::Draw()
+{
+  const auto adj_coord = m_cursor_group.GetState(true);
 
-  AdjustGateColor(&tv_brush_color);
-  AdjustGateColor(&tv_pen_color);
+  DrawReshapableInput(m_cursor_group, CURSOR_TV_COLOR,
+                      adj_coord.IsVisible() ?
+                          std::make_optional(Common::DVec2(adj_coord.x, adj_coord.y)) :
+                          std::nullopt);
+}
 
-  const auto raw_coord = cursor.GetState(false);
-  const auto adj_coord = cursor.GetState(true);
+qreal SquareIndicator::GetContentsScale() const
+{
+  return (NORMAL_INDICATOR_WIDTH - 1.0) / 2;
+}
 
-  UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
-
-  // Bounding box size:
-  const double scale = GetScale();
-
-  QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
+void SquareIndicator::DrawBoundingBox(QPainter& p)
+{
   p.setBrush(GetBBoxBrush());
   p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+  p.drawRect(QRectF{NORMAL_INDICATOR_PADDING + 0.5, NORMAL_INDICATOR_PADDING + 0.5,
+                    NORMAL_INDICATOR_WIDTH + 1.0, NORMAL_INDICATOR_HEIGHT + 1.0});
+}
 
-  // UI y-axis is opposite that of stick.
-  p.scale(1.0, -1.0);
-
-  // Enable AA after drawing bounding box.
+void SquareIndicator::TransformPainter(QPainter& p)
+{
   p.setRenderHint(QPainter::Antialiasing, true);
   p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
-  if (IsCalibrating())
-  {
-    DrawCalibration(p, {raw_coord.x, raw_coord.y});
-    return;
-  }
-
-  // TV screen or whatever you want to call this:
-  constexpr double TV_SCALE = 0.75;
-
-  p.setPen(tv_pen_color);
-  p.setBrush(tv_brush_color);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetGateRadiusAtAngle(ang); }, scale * TV_SCALE));
-
-  // Deadzone.
-  p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush());
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
-
-  // Input shape.
-  p.setPen(GetInputShapePen());
-  p.setBrush(Qt::NoBrush);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&cursor](double ang) { return cursor.GetInputRadiusAtAngle(ang); }, scale, center));
-
-  // Center.
-  if (center.x || center.y)
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetCenterColor());
-    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-  }
-
-  // Raw stick position.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-
-  // Adjusted cursor position (if not hidden):
-  if (adj_coord.IsVisible())
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale * TV_SCALE, INPUT_DOT_RADIUS,
-                  INPUT_DOT_RADIUS);
-  }
+  p.translate(width() / 2, height() / 2);
+  const auto scale = GetContentsScale();
+  p.scale(scale, scale);
 }
 
-void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick)
+void ReshapableInputIndicator::DrawReshapableInput(
+    ControllerEmu::ReshapableInput& stick, QColor gate_brush_color,
+    std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord)
 {
-  // Some hacks for pretty colors:
-  const bool is_c_stick = m_group->name == "C-Stick";
-  const bool is_tilt = m_group->name == "Tilt";
+  QPainter p(this);
+  DrawBoundingBox(p);
+  TransformPainter(p);
 
-  const auto center = stick.GetCenter();
-
-  QColor gate_brush_color = STICK_GATE_COLOR;
-
-  if (is_c_stick)
-    gate_brush_color = C_STICK_GATE_COLOR;
-  else if (is_tilt)
-    gate_brush_color = TILT_GATE_COLOR;
-
-  QColor gate_pen_color = gate_brush_color.darker(125);
-
-  AdjustGateColor(&gate_brush_color);
-  AdjustGateColor(&gate_pen_color);
+  // UI y-axis is opposite that of stick.
+  p.scale(1.0, -1.0);
 
   const auto raw_coord = stick.GetReshapableState(false);
 
-  Common::DVec2 adj_coord;
-  if (is_tilt)
-  {
-    WiimoteEmu::EmulateTilt(&m_motion_state, static_cast<ControllerEmu::Tilt*>(&stick),
-                            1.f / INDICATOR_UPDATE_FREQ);
-    adj_coord = Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
-  }
-  else
-  {
-    adj_coord = stick.GetReshapableState(true);
-  }
-
   UpdateCalibrationWidget(raw_coord);
-
-  // Bounding box size:
-  const double scale = GetScale();
-
-  QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
-
-  // UI y-axis is opposite that of stick.
-  p.scale(1.0, -1.0);
-
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
 
   if (IsCalibrating())
   {
@@ -351,52 +287,82 @@ void MappingIndicator::DrawReshapableInput(ControllerEmu::ReshapableInput& stick
     return;
   }
 
+  DrawUnderGate(p);
+
+  QColor gate_pen_color = gate_brush_color.darker(125);
+
+  AdjustGateColor(&gate_brush_color);
+  AdjustGateColor(&gate_pen_color);
+
   // Input gate. (i.e. the octagon shape)
-  p.setPen(gate_pen_color);
+  p.setPen(QPen(gate_pen_color, 0));
   p.setBrush(gate_brush_color);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, scale));
+  p.drawPolygon(
+      GetPolygonFromRadiusGetter([&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }));
+
+  const auto center = stick.GetCenter();
 
   // Deadzone.
   p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush());
+  p.setBrush(GetDeadZoneBrush(p));
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
+      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, center));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, scale, center));
+      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, center));
 
   // Center.
   if (center.x || center.y)
   {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetCenterColor());
-    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetCenterColor()));
+    p.drawPoint(QPointF{center.x, center.y});
   }
 
   // Raw stick position.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(GetInputDotPen(GetRawInputColor()));
+  p.drawPoint(QPointF{raw_coord.x, raw_coord.y});
 
   // Adjusted stick position.
-  if (adj_coord.x || adj_coord.y)
+  if (adj_coord)
   {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF{adj_coord.x, adj_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetAdjustedInputColor()));
+    p.drawPoint(QPointF{adj_coord->x, adj_coord->y});
   }
 }
 
-void MappingIndicator::DrawMixedTriggers()
+void AnalogStickIndicator::Draw()
+{
+  // Some hacks for pretty colors:
+  const bool is_c_stick = m_group.name == "C-Stick";
+
+  const auto gate_brush_color = is_c_stick ? C_STICK_GATE_COLOR : STICK_GATE_COLOR;
+
+  const auto adj_coord = m_group.GetReshapableState(true);
+
+  DrawReshapableInput(m_group, gate_brush_color,
+                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
+}
+
+void TiltIndicator::Draw()
+{
+  WiimoteEmu::EmulateTilt(&m_motion_state, &m_group, 1.f / INDICATOR_UPDATE_FREQ);
+
+  const auto adj_coord =
+      Common::DVec2{-m_motion_state.angle.y, m_motion_state.angle.x} / MathUtil::PI;
+
+  DrawReshapableInput(m_group, TILT_GATE_COLOR,
+                      (adj_coord.x || adj_coord.y) ? std::make_optional(adj_coord) : std::nullopt);
+}
+
+void MixedTriggersIndicator::Draw()
 {
   QPainter p(this);
   p.setRenderHint(QPainter::TextAntialiasing, true);
 
-  const auto& triggers = *static_cast<ControllerEmu::MixedTriggers*>(m_group);
+  const auto& triggers = m_group;
   const ControlState threshold = triggers.GetThreshold();
   const ControlState deadzone = triggers.GetDeadzone();
 
@@ -411,15 +377,15 @@ void MappingIndicator::DrawMixedTriggers()
   triggers.GetState(&button_state, button_masks.data(), adj_analog_state.data(), true);
 
   // Rectangle sizes:
-  const int trigger_height = 32;
+  const int trigger_height = TRIGGER_INDICATOR_HEIGHT;
   const int trigger_width = width() - 1;
-  const int trigger_button_width = 32;
+  const int trigger_button_width = trigger_height;
   const int trigger_analog_width = trigger_width - trigger_button_width;
 
   // Bounding box background:
   p.setPen(Qt::NoPen);
   p.setBrush(GetBBoxBrush());
-  p.drawRect(0, 0, trigger_width, trigger_height * TRIGGER_COUNT);
+  p.drawRect(QRectF(0.5, 0.5, trigger_width, trigger_height * TRIGGER_COUNT));
 
   for (int t = 0; t != TRIGGER_COUNT; ++t)
   {
@@ -429,35 +395,35 @@ void MappingIndicator::DrawMixedTriggers()
     auto const analog_name = QString::fromStdString(triggers.controls[TRIGGER_COUNT + t]->ui_name);
     auto const button_name = QString::fromStdString(triggers.controls[t]->ui_name);
 
-    const QRectF trigger_rect(0, 0, trigger_width, trigger_height);
+    const QRectF trigger_rect(0.5, 0.5, trigger_width, trigger_height);
 
-    const QRectF analog_rect(0, 0, trigger_analog_width, trigger_height);
+    const QRectF analog_rect(0.5, 0.5, trigger_analog_width, trigger_height);
 
     // Unactivated analog text:
     p.setPen(GetTextColor());
     p.drawText(analog_rect, Qt::AlignCenter, analog_name);
 
-    const QRectF adj_analog_rect(0, 0, adj_analog * trigger_analog_width, trigger_height);
+    const QRectF adj_analog_rect(0.5, 0.5, adj_analog * trigger_analog_width, trigger_height);
 
     // Trigger analog:
     p.setPen(Qt::NoPen);
-    p.setBrush(GetRawInputColor());
-    p.drawEllipse(QPoint(raw_analog * trigger_analog_width, trigger_height - INPUT_DOT_RADIUS),
-                  INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
     p.setBrush(GetAdjustedInputColor());
     p.drawRect(adj_analog_rect);
 
+    p.setPen(GetInputDotPen(GetRawInputColor()));
+    p.drawPoint(QPoint(raw_analog * trigger_analog_width, trigger_height - INPUT_DOT_RADIUS));
+
     // Deadzone:
     p.setPen(GetDeadZonePen());
-    p.setBrush(GetDeadZoneBrush());
-    p.drawRect(0, 0, trigger_analog_width * deadzone, trigger_height);
+    p.setBrush(GetDeadZoneBrush(p));
+    p.drawRect(QRectF(1.5, 1.5, trigger_analog_width * deadzone, trigger_height - 2));
 
     // Threshold setting:
     const int threshold_x = trigger_analog_width * threshold;
     p.setPen(GetInputShapePen());
     p.drawLine(threshold_x, 0, threshold_x, trigger_height);
 
-    const QRectF button_rect(trigger_analog_width, 0, trigger_button_width, trigger_height);
+    const QRectF button_rect(trigger_analog_width + 0.5, 0.5, trigger_button_width, trigger_height);
 
     // Trigger button:
     p.setPen(GetBBoxPen());
@@ -486,150 +452,51 @@ void MappingIndicator::DrawMixedTriggers()
   }
 }
 
-void MappingIndicator::DrawForce(ControllerEmu::Force& force)
+void SwingIndicator::DrawUnderGate(QPainter& p)
 {
-  const auto center = force.GetCenter();
-
-  QColor gate_brush_color = SWING_GATE_COLOR;
-  QColor gate_pen_color = gate_brush_color.darker(125);
-
-  AdjustGateColor(&gate_brush_color);
-  AdjustGateColor(&gate_pen_color);
-
-  const auto raw_coord = force.GetState(false);
-  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
-  const auto& adj_coord = m_motion_state.position;
-
-  UpdateCalibrationWidget({raw_coord.x, raw_coord.y});
-
-  // Bounding box size:
-  const double scale = GetScale();
-
-  QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
-
-  // UI y-axis is opposite that of stick.
-  p.scale(1.0, -1.0);
-
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
-  if (IsCalibrating())
-  {
-    DrawCalibration(p, {raw_coord.x, raw_coord.y});
-    return;
-  }
+  auto& force = m_swing_group;
 
   // Deadzone for Z (forward/backward):
   const double deadzone = force.GetDeadzonePercentage();
   if (deadzone > 0.0)
   {
     p.setPen(GetDeadZonePen());
-    p.setBrush(GetDeadZoneBrush());
-    p.drawRect(QRectF(-scale, -deadzone * scale, scale * 2, deadzone * scale * 2));
+    p.setBrush(GetDeadZoneBrush(p));
+    p.drawRect(QRectF(-1, -deadzone, 2, deadzone * 2));
   }
 
   // Raw Z:
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawRect(
-      QRectF(-scale, raw_coord.z * scale - INPUT_DOT_RADIUS / 2, scale * 2, INPUT_DOT_RADIUS));
+  const auto raw_coord = force.GetState(false);
+  p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS)));
+  p.drawLine(QLineF(-1, raw_coord.z, 1, raw_coord.z));
 
   // Adjusted Z:
+  const auto& adj_coord = m_motion_state.position;
   const auto curve_point =
       std::max(std::abs(m_motion_state.angle.x), std::abs(m_motion_state.angle.z)) / MathUtil::TAU;
   if (adj_coord.y || curve_point)
   {
     // Show off the angle somewhat with a curved line.
     QPainterPath path;
-    path.moveTo(-scale, (adj_coord.y + curve_point) * -scale);
-    path.quadTo({0, (adj_coord.y - curve_point) * -scale},
-                {scale, (adj_coord.y + curve_point) * -scale});
+    path.moveTo(-1.0, (adj_coord.y + curve_point) * -1);
+    path.quadTo({0, (adj_coord.y - curve_point) * -1}, {1, (adj_coord.y + curve_point) * -1});
 
     p.setBrush(Qt::NoBrush);
-    p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS));
+    p.setPen(GetCosmeticPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS)));
     p.drawPath(path);
   }
-
-  // Draw "gate" shape.
-  p.setPen(gate_pen_color);
-  p.setBrush(gate_brush_color);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetGateRadiusAtAngle(ang); }, scale));
-
-  // Deadzone.
-  p.setPen(GetDeadZoneColor());
-  p.setBrush(GetDeadZoneBrush());
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetDeadzoneRadiusAtAngle(ang); }, scale, center));
-
-  // Input shape.
-  p.setPen(GetInputShapePen());
-  p.setBrush(Qt::NoBrush);
-  p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&force](double ang) { return force.GetInputRadiusAtAngle(ang); }, scale, center));
-
-  // Center.
-  if (center.x || center.y)
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetCenterColor());
-    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-  }
-
-  // Raw stick position.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
-  p.drawEllipse(QPointF{raw_coord.x, raw_coord.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-
-  // Adjusted position:
-  if (adj_coord.x || adj_coord.z)
-  {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF{-adj_coord.x, adj_coord.z} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
-  }
 }
 
-void MappingIndicator::paintEvent(QPaintEvent*)
+void SwingIndicator::Draw()
 {
-  switch (m_group->type)
-  {
-  case ControllerEmu::GroupType::Cursor:
-    DrawCursor(*static_cast<ControllerEmu::Cursor*>(m_group));
-    break;
-  case ControllerEmu::GroupType::Stick:
-  case ControllerEmu::GroupType::Tilt:
-    DrawReshapableInput(*static_cast<ControllerEmu::ReshapableInput*>(m_group));
-    break;
-  case ControllerEmu::GroupType::MixedTriggers:
-    DrawMixedTriggers();
-    break;
-  case ControllerEmu::GroupType::Force:
-    DrawForce(*static_cast<ControllerEmu::Force*>(m_group));
-    break;
-  default:
-    break;
-  }
+  auto& force = m_swing_group;
+  WiimoteEmu::EmulateSwing(&m_motion_state, &force, 1.f / INDICATOR_UPDATE_FREQ);
+
+  DrawReshapableInput(force, SWING_GATE_COLOR,
+                      Common::DVec2{-m_motion_state.position.x, m_motion_state.position.z});
 }
 
-ShakeMappingIndicator::ShakeMappingIndicator(ControllerEmu::Shake* group)
-    : MappingIndicator(group), m_shake_group(*group)
-{
-}
-
-void ShakeMappingIndicator::paintEvent(QPaintEvent*)
-{
-  DrawShake();
-}
-
-void ShakeMappingIndicator::DrawShake()
+void ShakeMappingIndicator::Draw()
 {
   constexpr std::size_t HISTORY_COUNT = INDICATOR_UPDATE_FREQ;
 
@@ -642,37 +509,24 @@ void ShakeMappingIndicator::DrawShake()
   if (m_position_samples.size() > HISTORY_COUNT + 1)
     m_position_samples.pop_back();
 
-  // Bounding box size:
-  const double scale = GetScale();
-
   QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+  DrawBoundingBox(p);
+  TransformPainter(p);
 
   // UI y-axis is opposite that of acceleration Z.
   p.scale(1.0, -1.0);
 
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
   // Deadzone.
   p.setPen(GetDeadZonePen());
-  p.setBrush(GetDeadZoneBrush());
-  p.drawRect(-scale, 0, scale * 2, m_shake_group.GetDeadzone() * scale);
+  p.setBrush(GetDeadZoneBrush(p));
+  p.drawRect(-1.0, 0, 2, m_shake_group.GetDeadzone());
 
   // Raw input.
   const auto raw_coord = m_shake_group.GetState(false);
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
+  p.setPen(GetInputDotPen(GetRawInputColor()));
   for (std::size_t c = 0; c != raw_coord.data.size(); ++c)
   {
-    p.drawEllipse(QPointF{-0.5 + c * 0.5, raw_coord.data[c]} * scale, INPUT_DOT_RADIUS,
-                  INPUT_DOT_RADIUS);
+    p.drawPoint(QPointF{-0.5 + c * 0.5, raw_coord.data[c]});
   }
 
   // Grid line.
@@ -684,8 +538,8 @@ void ShakeMappingIndicator::DrawShake()
     m_grid_line_position = (m_grid_line_position + 1) % HISTORY_COUNT;
   }
   const double grid_line_x = 1.0 - m_grid_line_position * 2.0 / HISTORY_COUNT;
-  p.setPen(GetRawInputColor());
-  p.drawLine(QPointF{grid_line_x, -1.0} * scale, QPointF{grid_line_x, 1.0} * scale);
+  p.setPen(QPen(GetRawInputColor(), 0));
+  p.drawLine(QPointF{grid_line_x, -1.0}, QPointF{grid_line_x, 1.0});
 
   // Position history.
   const QColor component_colors[] = {Qt::blue, Qt::green, Qt::red};
@@ -697,60 +551,44 @@ void ShakeMappingIndicator::DrawShake()
     int i = 0;
     for (auto& sample : m_position_samples)
     {
-      polyline.append(QPointF{1.0 - i * 2.0 / HISTORY_COUNT, sample.data[c]} * scale);
+      polyline.append(QPointF{1.0 - i * 2.0 / HISTORY_COUNT, sample.data[c]});
       ++i;
     }
 
-    p.setPen(component_colors[c]);
+    p.setPen(QPen(component_colors[c], 0));
     p.drawPolyline(polyline);
   }
 }
 
-AccelerometerMappingIndicator::AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer* group)
-    : MappingIndicator(group), m_accel_group(*group)
-{
-}
-
-void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
+void AccelerometerMappingIndicator::Draw()
 {
   const auto accel_state = m_accel_group.GetState();
   const auto state = accel_state.value_or(Common::Vec3{});
 
-  // Bounding box size:
-  const double scale = GetScale();
-
   QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
+  p.setRenderHint(QPainter::TextAntialiasing, true);
+  DrawBoundingBox(p);
+  TransformPainter(p);
 
   // UI axes are opposite that of Wii remote accelerometer.
   p.scale(-1.0, -1.0);
 
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
-
   const auto rotation = WiimoteEmu::GetMatrixFromAcceleration(state);
 
   // Draw sphere.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
+  p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), 0.5)));
 
   GenerateFibonacciSphere(SPHERE_POINT_COUNT, [&](const Common::Vec3& point) {
     const auto pt = rotation * point;
 
     if (pt.y > 0)
-      p.drawEllipse(QPointF(pt.x, pt.z) * scale * SPHERE_SIZE, 0.5f, 0.5f);
+      p.drawPoint(QPointF(pt.x, pt.z) * SPHERE_SIZE);
   });
 
   // Sphere outline.
-  p.setPen(GetRawInputColor());
+  p.setPen(QPen(GetRawInputColor(), 0));
   p.setBrush(Qt::NoBrush);
-  p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
+  p.drawEllipse(QPointF{}, SPHERE_SIZE, SPHERE_SIZE);
 
   p.setPen(Qt::NoPen);
 
@@ -758,27 +596,32 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
   const auto point = rotation * Common::Vec3{0, 0, SPHERE_INDICATOR_DIST};
   if (point.y > 0 || Common::Vec2(point.x, point.z).Length() > SPHERE_SIZE)
   {
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF(point.x, point.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetAdjustedInputColor()));
+    p.drawPoint(QPointF(point.x, point.z));
   }
 
   // Blue dot.
   const auto point2 = -point;
   if (point2.y > 0 || Common::Vec2(point2.x, point2.z).Length() > SPHERE_SIZE)
   {
-    p.setBrush(Qt::blue);
-    p.drawEllipse(QPointF(point2.x, point2.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetCenterColor()));
+    p.drawPoint(QPointF(point2.x, point2.z));
   }
 
   p.setBrush(Qt::NoBrush);
 
+  p.resetTransform();
+  p.translate(width() / 2, height() / 2);
+
   // Red dot upright target.
-  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
-  p.drawEllipse(QPointF{0, SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(GetAdjustedInputColor());
+  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * GetContentsScale(), INPUT_DOT_RADIUS,
+                INPUT_DOT_RADIUS);
 
   // Blue dot target.
-  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
-  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(GetCenterColor());
+  p.drawEllipse(QPointF{0, SPHERE_INDICATOR_DIST} * GetContentsScale(), INPUT_DOT_RADIUS,
+                INPUT_DOT_RADIUS);
 
   // Only draw g-force text if acceleration data is present.
   if (!accel_state.has_value())
@@ -786,19 +629,14 @@ void AccelerometerMappingIndicator::paintEvent(QPaintEvent*)
 
   // G-force text:
   p.setPen(GetTextColor());
-  p.scale(-1.0, -1.0);
-  p.drawText(QRectF(-2, 0, scale, scale), Qt::AlignBottom | Qt::AlignRight,
+  p.drawText(QRect(0, 0, NORMAL_INDICATOR_WIDTH / 2 - 2, NORMAL_INDICATOR_HEIGHT / 2 - 1),
+             Qt::AlignBottom | Qt::AlignRight,
              QString::fromStdString(
                  // i18n: "g" is the symbol for "gravitational force equivalent" (g-force).
                  fmt::format("{:.2f} g", state.Length() / WiimoteEmu::GRAVITY_ACCELERATION)));
 }
 
-GyroMappingIndicator::GyroMappingIndicator(ControllerEmu::IMUGyroscope* group)
-    : MappingIndicator(group), m_gyro_group(*group), m_state(Common::Matrix33::Identity())
-{
-}
-
-void GyroMappingIndicator::paintEvent(QPaintEvent*)
+void GyroMappingIndicator::Draw()
 {
   const auto gyro_state = m_gyro_group.GetState();
   const auto raw_gyro_state = m_gyro_group.GetRawState();
@@ -825,20 +663,9 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   // Use an empty rotation matrix if gyroscope data is not present.
   const auto rotation = (gyro_state.has_value() ? m_state : Common::Matrix33{});
 
-  // Bounding box size:
-  const double scale = GetScale();
-
   QPainter p(this);
-  p.translate(width() / 2, height() / 2);
-
-  // Bounding box.
-  p.setBrush(GetBBoxBrush());
-  p.setPen(GetBBoxPen());
-  p.drawRect(-scale - 1, -scale - 1, scale * 2 + 1, scale * 2 + 1);
-
-  // Enable AA after drawing bounding box.
-  p.setRenderHint(QPainter::Antialiasing, true);
-  p.setRenderHint(QPainter::SmoothPixmapTransform, true);
+  DrawBoundingBox(p);
+  TransformPainter(p);
 
   // Deadzone.
   if (const auto deadzone_value = m_gyro_group.GetDeadzone(); deadzone_value)
@@ -847,10 +674,8 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
     static constexpr auto DEADZONE_DRAW_BOTTOM = 1;
 
     p.setPen(GetDeadZonePen());
-    p.setBrush(GetDeadZoneBrush());
-    p.scale(-1.0, 1.0);
-    p.drawRect(-scale, DEADZONE_DRAW_BOTTOM * scale, scale * 2, -scale * DEADZONE_DRAW_SIZE);
-    p.scale(-1.0, 1.0);
+    p.setBrush(GetDeadZoneBrush(p));
+    p.drawRect(QRectF{-1, DEADZONE_DRAW_BOTTOM, 2, -DEADZONE_DRAW_SIZE});
 
     if (gyro_state.has_value())
     {
@@ -858,34 +683,33 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
           std::max({std::abs(jitter.x), std::abs(jitter.y), std::abs(jitter.z)});
       const auto jitter_line_y =
           std::min(max_jitter / deadzone_value * DEADZONE_DRAW_SIZE - DEADZONE_DRAW_BOTTOM, 1.0);
-      p.setPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS));
-      p.drawLine(-scale, jitter_line_y * -scale, scale, jitter_line_y * -scale);
+      p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS)));
+      p.drawLine(-1.0, jitter_line_y * -1.0, 1.0, jitter_line_y * -1.0);
 
       // Sphere background.
       p.setPen(Qt::NoPen);
       p.setBrush(GetBBoxBrush());
-      p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
+      p.drawEllipse(QPointF{}, SPHERE_SIZE, SPHERE_SIZE);
     }
   }
 
   // Sphere dots.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetRawInputColor());
+  p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), 0.5)));
 
   GenerateFibonacciSphere(SPHERE_POINT_COUNT, [&](const Common::Vec3& point) {
     const auto pt = rotation * point;
 
     if (pt.y > 0)
-      p.drawEllipse(QPointF(pt.x, pt.z) * scale * SPHERE_SIZE, 0.5f, 0.5f);
+      p.drawPoint(QPointF(pt.x, pt.z) * SPHERE_SIZE);
   });
 
   // Sphere outline.
-  const auto outline_color = is_stable ?
-                                 (m_gyro_group.IsCalibrating() ? Qt::blue : GetRawInputColor()) :
-                                 GetAdjustedInputColor();
-  p.setPen(outline_color);
+  const auto outline_color =
+      is_stable ? (m_gyro_group.IsCalibrating() ? GetCenterColor() : GetRawInputColor()) :
+                  GetAdjustedInputColor();
+  p.setPen(QPen(outline_color, 0));
   p.setBrush(Qt::NoBrush);
-  p.drawEllipse(QPointF{}, scale * SPHERE_SIZE, scale * SPHERE_SIZE);
+  p.drawEllipse(QPointF{}, SPHERE_SIZE, SPHERE_SIZE);
 
   p.setPen(Qt::NoPen);
 
@@ -893,32 +717,35 @@ void GyroMappingIndicator::paintEvent(QPaintEvent*)
   const auto point = rotation * Common::Vec3{0, 0, -SPHERE_INDICATOR_DIST};
   if (point.y > 0 || Common::Vec2(point.x, point.z).Length() > SPHERE_SIZE)
   {
-    p.setBrush(GetAdjustedInputColor());
-    p.drawEllipse(QPointF(point.x, point.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetAdjustedInputColor()));
+    p.drawPoint(QPointF(point.x, point.z));
   }
   // Blue dot.
   const auto point2 = rotation * Common::Vec3{0, SPHERE_INDICATOR_DIST, 0};
   if (point2.y > 0 || Common::Vec2(point2.x, point2.z).Length() > SPHERE_SIZE)
   {
-    p.setBrush(Qt::blue);
-    p.drawEllipse(QPointF(point2.x, point2.z) * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetCenterColor()));
+    p.drawPoint(QPointF(point2.x, point2.z));
   }
 
   p.setBrush(Qt::NoBrush);
 
+  p.resetTransform();
+  p.translate(width() / 2, height() / 2);
+
   // Red dot upright target.
-  p.setPen(QPen(GetAdjustedInputColor(), INPUT_DOT_RADIUS / 2));
-  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(GetAdjustedInputColor());
+  p.drawEllipse(QPointF{0, -SPHERE_INDICATOR_DIST} * GetContentsScale(), INPUT_DOT_RADIUS,
+                INPUT_DOT_RADIUS);
 
   // Blue dot target.
-  p.setPen(QPen(Qt::blue, INPUT_DOT_RADIUS / 2));
+  p.setPen(GetCenterColor());
   p.drawEllipse(QPointF{}, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
 }
 
-void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
+void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
   // Bounding box size:
-  const double scale = GetScale();
   const auto center = m_calibration_widget->GetCenter();
 
   // Input shape.
@@ -926,40 +753,38 @@ void MappingIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
       [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); },
-      scale, center));
+      center));
 
   // Center.
   if (center.x || center.y)
   {
-    p.setPen(Qt::NoPen);
-    p.setBrush(GetCenterColor());
-    p.drawEllipse(QPointF{center.x, center.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+    p.setPen(GetInputDotPen(GetCenterColor()));
+    p.drawPoint(QPointF{center.x, center.y});
   }
 
   // Stick position.
-  p.setPen(Qt::NoPen);
-  p.setBrush(GetAdjustedInputColor());
-  p.drawEllipse(QPointF{point.x, point.y} * scale, INPUT_DOT_RADIUS, INPUT_DOT_RADIUS);
+  p.setPen(GetInputDotPen(GetAdjustedInputColor()));
+  p.drawPoint(QPointF{point.x, point.y});
 }
 
-void MappingIndicator::UpdateCalibrationWidget(Common::DVec2 point)
+void ReshapableInputIndicator::UpdateCalibrationWidget(Common::DVec2 point)
 {
   if (m_calibration_widget)
     m_calibration_widget->Update(point);
 }
 
-bool MappingIndicator::IsCalibrating() const
+bool ReshapableInputIndicator::IsCalibrating() const
 {
   return m_calibration_widget && m_calibration_widget->IsCalibrating();
 }
 
-void MappingIndicator::SetCalibrationWidget(CalibrationWidget* widget)
+void ReshapableInputIndicator::SetCalibrationWidget(CalibrationWidget* widget)
 {
   m_calibration_widget = widget;
 }
 
 CalibrationWidget::CalibrationWidget(ControllerEmu::ReshapableInput& input,
-                                     MappingIndicator& indicator)
+                                     ReshapableInputIndicator& indicator)
     : m_input(input), m_indicator(indicator), m_completion_action{}
 {
   m_indicator.SetCalibrationWidget(this);

@@ -71,7 +71,7 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
 
   timer->start(1000 / INDICATOR_UPDATE_FREQ);
 
-  GetController()->GetStateLock();
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
@@ -245,7 +245,7 @@ void MappingWindow::OnLoadProfilePressed()
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
   m_controller->UpdateReferences(g_controller_interface);
 
-  GetController()->GetStateLock();
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
@@ -438,7 +438,7 @@ void MappingWindow::OnDefaultFieldsPressed()
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
 
-  GetController()->GetStateLock();
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }
@@ -455,7 +455,7 @@ void MappingWindow::OnClearFieldsPressed()
 
   m_controller->UpdateReferences(g_controller_interface);
 
-  GetController()->GetStateLock();
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }

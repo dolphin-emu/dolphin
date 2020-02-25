@@ -309,7 +309,6 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
 
     for (auto& device_state : device_states)
     {
-      device_state.device->UpdateInput();
       for (auto& input_state : device_state.input_states)
       {
         // We want an input that was initially 0.0 and currently 1.0.
