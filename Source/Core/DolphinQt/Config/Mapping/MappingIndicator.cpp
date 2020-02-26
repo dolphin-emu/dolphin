@@ -825,11 +825,11 @@ void CalibrationWidget::SetupActions()
 
   connect(calibrate_action, &QAction::triggered, [this]() {
     StartCalibration();
-    m_input.SetCenter({0, 0});
+    m_new_center = Common::DVec2{};
   });
   connect(center_action, &QAction::triggered, [this]() {
     StartCalibration();
-    m_is_centering = true;
+    m_new_center = std::nullopt;
   });
   connect(reset_action, &QAction::triggered, [this]() {
     m_input.SetCalibrationToDefault();
@@ -846,7 +846,7 @@ void CalibrationWidget::SetupActions()
 
   m_completion_action = new QAction(tr("Finish Calibration"), this);
   connect(m_completion_action, &QAction::triggered, [this]() {
-    m_input.SetCenter(m_new_center);
+    m_input.SetCenter(GetCenter());
     m_input.SetCalibrationData(std::move(m_calibration_data));
     m_informative_timer->stop();
     SetupActions();
@@ -856,8 +856,6 @@ void CalibrationWidget::SetupActions()
 void CalibrationWidget::StartCalibration()
 {
   m_calibration_data.assign(m_input.CALIBRATION_SAMPLE_COUNT, 0.0);
-
-  m_new_center = {0, 0};
 
   // Cancel calibration.
   const auto cancel_action = new QAction(tr("Cancel Calibration"), this);
@@ -883,14 +881,13 @@ void CalibrationWidget::Update(Common::DVec2 point)
   QFont f = parentWidget()->font();
   QPalette p = parentWidget()->palette();
 
-  if (m_is_centering)
-  {
+  // Use current point if center is being calibrated.
+  if (!m_new_center.has_value())
     m_new_center = point;
-    m_is_centering = false;
-  }
-  else if (IsCalibrating())
+
+  if (IsCalibrating())
   {
-    m_input.UpdateCalibrationData(m_calibration_data, point - m_new_center);
+    m_input.UpdateCalibrationData(m_calibration_data, point - *m_new_center);
 
     if (IsCalibrationDataSensible(m_calibration_data))
     {
@@ -920,5 +917,5 @@ double CalibrationWidget::GetCalibrationRadiusAtAngle(double angle) const
 
 Common::DVec2 CalibrationWidget::GetCenter() const
 {
-  return m_new_center;
+  return m_new_center.value_or(Common::DVec2{});
 }
