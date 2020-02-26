@@ -200,7 +200,7 @@ void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
   m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(Qt::CTRL + Qt::Key_O));
+                                       QKeySequence::Open);
 
   file_menu->addSeparator();
 
@@ -212,7 +212,8 @@ void MenuBar::AddFileMenu()
   file_menu->addSeparator();
 
   m_exit_action =
-      file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit, QKeySequence(Qt::ALT + Qt::Key_F4));
+      file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_exit_action->setShortcuts({ QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4) });
 }
 
 void MenuBar::AddToolsMenu()
@@ -489,7 +490,7 @@ void MenuBar::AddViewMenu()
   view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   view_menu->addSeparator();
   view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch,
-                       QKeySequence(Qt::CTRL + Qt::Key_F));
+                       QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
