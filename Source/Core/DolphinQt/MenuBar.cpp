@@ -489,14 +489,14 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   view_menu->addSeparator();
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch,
-                       QKeySequence::Find);
+  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure, QKeySequence::Preferences);
+  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
+                          QKeySequence::Preferences);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
