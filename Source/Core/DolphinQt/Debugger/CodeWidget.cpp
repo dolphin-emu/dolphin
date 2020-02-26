@@ -57,7 +57,12 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
   connect(&Settings::Instance(), &Settings::DebugModeToggled,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsCodeVisible()); });
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this] {
+    if (Core::GetState() != Core::State::Paused)
+      return;
+    SetAddress(PC, CodeViewWidget::SetAddressUpdate::WithoutUpdate);
+    Update();
+  });
 
   ConnectWidgets();
 

@@ -59,12 +59,7 @@ CodeViewWidget::CodeViewWidget()
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
-
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
-    m_address = PC;
-    Update();
-  });
-
+  
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &CodeViewWidget::Update);
 }
 
