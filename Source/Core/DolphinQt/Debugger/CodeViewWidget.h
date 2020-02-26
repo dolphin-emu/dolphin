@@ -85,6 +85,8 @@ private:
   void OnReplaceInstruction();
   void OnRestoreInstruction();
 
+  void CalculateBranchIndentation();
+
   bool m_updating = false;
 
   u32 m_address = 0;

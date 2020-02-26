@@ -36,6 +36,7 @@ struct CodeViewBranch
 {
   u32 src_addr;
   u32 dst_addr;
+  u32 indentation = 0;
   bool is_link;
 };
 
@@ -60,11 +61,10 @@ private:
 
     constexpr u32 x_offset_in_branch_for_vertical_line = 10;
     const u32 addr = m_parent->AddressForRow(index.row());
-    u32 current_branch_index = 0;
     for (const CodeViewBranch& branch : m_parent->m_branches)
     {
       const int y_center = option.rect.top() + option.rect.height() / 2;
-      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * current_branch_index;
+      const int x_left = option.rect.left() + WIDTH_PER_BRANCH_ARROW * branch.indentation;
       const int x_right = x_left + x_offset_in_branch_for_vertical_line;
 
       if (branch.is_link)
@@ -108,8 +108,6 @@ private:
           }
         }
       }
-
-      ++current_branch_index;
     }
 
     painter->restore();
@@ -322,13 +320,86 @@ void CodeViewWidget::Update()
     }
   }
 
+  CalculateBranchIndentation();
+
+  u32 max_indent = 0;
+  for (const CodeViewBranch& branch : m_branches)
+    max_indent = std::max(max_indent, branch.indentation);
+
   resizeColumnsToContents();
   setColumnWidth(CODE_VIEW_COLUMN_BRANCH_ARROWS,
-                 static_cast<int>(WIDTH_PER_BRANCH_ARROW * m_branches.size()));
+                 static_cast<int>(WIDTH_PER_BRANCH_ARROW * (max_indent + 1)));
   g_symbolDB.FillInCallers();
 
   repaint();
   m_updating = false;
+}
+
+void CodeViewWidget::CalculateBranchIndentation()
+{
+  const size_t rows = rowCount();
+  const size_t columns = m_branches.size();
+  if (rows < 1 || columns < 1)
+    return;
+
+  // process in order of how much vertical space the drawn arrow would take up
+  // so shorter arrows go further to the left
+  const auto priority = [](const CodeViewBranch& b) {
+    return b.is_link ? 0 : (std::max(b.src_addr, b.dst_addr) - std::min(b.src_addr, b.dst_addr));
+  };
+  std::stable_sort(m_branches.begin(), m_branches.end(),
+                   [&priority](const CodeViewBranch& lhs, const CodeViewBranch& rhs) {
+                     return priority(lhs) < priority(rhs);
+                   });
+
+  // build a 2D lookup table representing the columns and rows the arrow could be drawn in
+  // and try to place all branch arrows in it as far left as possible
+  std::vector<bool> arrow_space_used(columns * rows, false);
+  const auto index = [&](u32 column, u32 row) { return column * rows + row; };
+  const u32 first_visible_addr = AddressForRow(0);
+  const u32 last_visible_addr = AddressForRow(static_cast<int>(rows - 1));
+  for (CodeViewBranch& branch : m_branches)
+  {
+    const u32 arrow_src_addr = branch.src_addr;
+    const u32 arrow_dst_addr = branch.is_link ? branch.src_addr : branch.dst_addr;
+    const u32 arrow_addr_lower = std::min(arrow_src_addr, arrow_dst_addr);
+    const u32 arrow_addr_higher = std::max(arrow_src_addr, arrow_dst_addr);
+    const bool is_visible =
+        last_visible_addr >= arrow_addr_lower || first_visible_addr <= arrow_addr_higher;
+    if (!is_visible)
+      continue;
+
+    const u32 arrow_first_visible_addr =
+        std::clamp(arrow_addr_lower, first_visible_addr, last_visible_addr);
+    const u32 arrow_last_visible_addr =
+        std::clamp(arrow_addr_higher, first_visible_addr, last_visible_addr);
+    const u32 arrow_first_visible_row = (arrow_first_visible_addr - first_visible_addr) / 4;
+    const u32 arrow_last_visible_row = (arrow_last_visible_addr - first_visible_addr) / 4;
+
+    const auto free_column = [&]() -> std::optional<u32> {
+      for (u32 column = 0; column < columns; ++column)
+      {
+        const bool column_is_free = [&] {
+          for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
+          {
+            if (arrow_space_used[index(column, row)])
+              return false;
+          }
+          return true;
+        }();
+        if (column_is_free)
+          return column;
+      }
+      return std::nullopt;
+    }();
+
+    if (!free_column)
+      continue;
+
+    branch.indentation = *free_column;
+    for (u32 row = arrow_first_visible_row; row <= arrow_last_visible_row; ++row)
+      arrow_space_used[index(*free_column, row)] = true;
+  }
 }
 
 u32 CodeViewWidget::GetAddress() const
