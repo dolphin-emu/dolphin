@@ -130,10 +130,12 @@ void Classic::Update()
     classic_data.SetRightStick({x, y});
   }
 
+  u16 buttons = 0;
+
   // triggers
   {
     ControlState trigs[2] = {0, 0};
-    m_triggers->GetState(&classic_data.bt.hex, classic_trigger_bitmasks.data(), trigs);
+    m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), trigs);
 
     const u8 lt = static_cast<u8>(trigs[0] * TRIGGER_RANGE);
     const u8 rt = static_cast<u8>(trigs[1] * TRIGGER_RANGE);
@@ -143,9 +145,9 @@ void Classic::Update()
   }
 
   // buttons and dpad
-  u16 buttons = 0;
   m_buttons->GetState(&buttons, classic_button_bitmasks.data());
   m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
+
   classic_data.SetButtons(buttons);
 
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = classic_data;
