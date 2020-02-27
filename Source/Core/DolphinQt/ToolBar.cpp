@@ -122,12 +122,12 @@ void ToolBar::MakeActions()
   m_pause_play_action = addAction(tr("Play"), this, &ToolBar::PlayPressed);
 
   m_stop_action = addAction(tr("Stop"), this, &ToolBar::StopPressed);
-  m_fullscreen_action = addAction(tr("FullScr"), this, &ToolBar::FullScreenPressed);
-  m_screenshot_action = addAction(tr("ScrShot"), this, &ToolBar::ScreenShotPressed);
+  m_fullscreen_action = addAction(tr("Fullscreen"), this, &ToolBar::FullScreenPressed);
+  m_screenshot_action = addAction(tr("Screenshot"), this, &ToolBar::ScreenShotPressed);
 
   addSeparator();
 
-  m_config_action = addAction(tr("Config"), this, &ToolBar::SettingsPressed);
+  m_config_action = addAction(tr("Settings"), this, &ToolBar::SettingsPressed);
   m_graphics_action = addAction(tr("Graphics"), this, &ToolBar::GraphicsPressed);
   m_controllers_action = addAction(tr("Controllers"), this, &ToolBar::ControllersPressed);
   m_controllers_action->setEnabled(true);
