@@ -229,7 +229,7 @@ void MenuBar::AddToolsMenu()
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
-  tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+  tools_menu->addAction(tr("&FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addSeparator();
 
@@ -247,14 +247,14 @@ void MenuBar::AddToolsMenu()
   m_pal_ipl =
       gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
+  tools_menu->addAction(tr("Memory Card &Manager"), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
   m_boot_sysmenu = tools_menu->addAction(QString{}, this, [this] { emit BootWiiSystemMenu(); });
-  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
-  m_manage_nand_menu = tools_menu->addMenu(tr("Manage NAND"));
+  m_wad_install_action = tools_menu->addAction(tr("Install &WAD..."), this, &MenuBar::InstallWAD);
+  m_manage_nand_menu = tools_menu->addMenu(tr("Manage &NAND"));
   m_import_backup = m_manage_nand_menu->addAction(tr("Import BootMii NAND Backup..."), this,
                                                   [this] { emit ImportNANDBackup(); });
   m_check_nand = m_manage_nand_menu->addAction(tr("Check NAND..."), this, &MenuBar::CheckNAND);
@@ -312,7 +312,7 @@ void MenuBar::AddEmulationMenu()
   m_fullscreen_action = emu_menu->addAction(tr("Toggle &Fullscreen"), this, &MenuBar::Fullscreen);
   m_frame_advance_action = emu_menu->addAction(tr("&Frame Advance"), this, &MenuBar::FrameAdvance);
 
-  m_screenshot_action = emu_menu->addAction(tr("Take Screenshot"), this, &MenuBar::Screenshot);
+  m_screenshot_action = emu_menu->addAction(tr("Take &Screenshot"), this, &MenuBar::Screenshot);
 
   emu_menu->addSeparator();
 
@@ -331,7 +331,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
   m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
   m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
-  m_state_load_menu->addAction(tr("Undo Load State"), this, &MenuBar::StateLoadUndo);
+  m_state_load_menu->addAction(tr("&Undo Load State"), this, &MenuBar::StateLoadUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -360,7 +360,7 @@ void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 
 void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
 {
-  m_state_slot_menu = emu_menu->addMenu(tr("Select State Slot"));
+  m_state_slot_menu = emu_menu->addMenu(tr("Select S&tate Slot"));
   m_state_slots = new QActionGroup(this);
 
   for (int i = 1; i <= 10; i++)
@@ -694,11 +694,11 @@ void MenuBar::AddMovieMenu()
   m_recording_start =
       movie_menu->addAction(tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
   m_recording_play =
-      movie_menu->addAction(tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
-  m_recording_stop = movie_menu->addAction(tr("Stop Playing/Recording Input"), this,
+      movie_menu->addAction(tr("P&lay Input Recording"), this, [this] { emit PlayRecording(); });
+  m_recording_stop = movie_menu->addAction(tr("S&top Playing/Recording Input"), this,
                                            [this] { emit StopRecording(); });
   m_recording_export =
-      movie_menu->addAction(tr("Export Recording..."), this, [this] { emit ExportRecording(); });
+      movie_menu->addAction(tr("E&xport Recording"), this, [this] { emit ExportRecording(); });
 
   m_recording_start->setEnabled(false);
   m_recording_play->setEnabled(false);
@@ -710,7 +710,7 @@ void MenuBar::AddMovieMenu()
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
 
-  movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
+  movie_menu->addAction(tr("TAS &Input"), this, [this] { emit ShowTASInput(); });
 
   movie_menu->addSeparator();
 
