@@ -238,7 +238,7 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
+  QMenu* gc_ipl = tools_menu->addMenu(tr("Load &GameCube Main Menu"));
 
   m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
                                   [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
@@ -247,7 +247,7 @@ void MenuBar::AddToolsMenu()
   m_pal_ipl =
       gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("Memory Card &Manager"), this, [this] { emit ShowMemcardManager(); });
+  tools_menu->addAction(tr("&Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();
 
@@ -280,17 +280,17 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  tools_menu->addAction(tr("&Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  tools_menu->addAction(tr("E&xport All Wii Saves"), this, &MenuBar::ExportWiiSaves);
 
-  QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
+  QMenu* menu = new QMenu(tr("&Connect Wii Remotes"), tools_menu);
 
   tools_menu->addSeparator();
   tools_menu->addMenu(menu);
 
   for (int i = 0; i < 4; i++)
   {
-    m_wii_remotes[i] = menu->addAction(tr("Connect Wii Remote %1").arg(i + 1), this,
+    m_wii_remotes[i] = menu->addAction(tr("Connect Wii Remote &%1").arg(i + 1), this,
                                        [this, i] { emit ConnectWiiRemote(i); });
     m_wii_remotes[i]->setCheckable(true);
   }
@@ -298,7 +298,7 @@ void MenuBar::AddToolsMenu()
   menu->addSeparator();
 
   m_wii_remotes[4] =
-      menu->addAction(tr("Connect Balance Board"), this, [this] { emit ConnectWiiRemote(4); });
+      menu->addAction(tr("Connect Balance &Board"), this, [this] { emit ConnectWiiRemote(4); });
   m_wii_remotes[4]->setCheckable(true);
 }
 
@@ -328,8 +328,8 @@ void MenuBar::AddEmulationMenu()
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 {
   m_state_load_menu = emu_menu->addMenu(tr("&Load State"));
-  m_state_load_menu->addAction(tr("Load State from File"), this, &MenuBar::StateLoad);
-  m_state_load_menu->addAction(tr("Load State from Selected Slot"), this, &MenuBar::StateLoadSlot);
+  m_state_load_menu->addAction(tr("Load State from &File"), this, &MenuBar::StateLoad);
+  m_state_load_menu->addAction(tr("Load State from &Selected Slot"), this, &MenuBar::StateLoadSlot);
   m_state_load_slots_menu = m_state_load_menu->addMenu(tr("Load State from Slot"));
   m_state_load_menu->addAction(tr("&Undo Load State"), this, &MenuBar::StateLoadUndo);
 
@@ -344,11 +344,11 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 {
   m_state_save_menu = emu_menu->addMenu(tr("Sa&ve State"));
-  m_state_save_menu->addAction(tr("Save State to File"), this, &MenuBar::StateSave);
-  m_state_save_menu->addAction(tr("Save State to Selected Slot"), this, &MenuBar::StateSaveSlot);
-  m_state_save_menu->addAction(tr("Save State to Oldest Slot"), this, &MenuBar::StateSaveOldest);
+  m_state_save_menu->addAction(tr("Save State to &File"), this, &MenuBar::StateSave);
+  m_state_save_menu->addAction(tr("Save State to &Selected Slot"), this, &MenuBar::StateSaveSlot);
+  m_state_save_menu->addAction(tr("Save State to &Oldest Slot"), this, &MenuBar::StateSaveOldest);
   m_state_save_slots_menu = m_state_save_menu->addMenu(tr("Save State to Slot"));
-  m_state_save_menu->addAction(tr("Undo Save State"), this, &MenuBar::StateSaveUndo);
+  m_state_save_menu->addAction(tr("&Undo Save State"), this, &MenuBar::StateSaveUndo);
 
   for (int i = 1; i <= 10; i++)
   {
@@ -579,10 +579,10 @@ void MenuBar::AddHelpMenu()
 
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 {
-  QAction* list_view = view_menu->addAction(tr("List View"));
+  QAction* list_view = view_menu->addAction(tr("&List View"));
   list_view->setCheckable(true);
 
-  QAction* grid_view = view_menu->addAction(tr("Grid View"));
+  QAction* grid_view = view_menu->addAction(tr("&Grid View"));
   grid_view->setCheckable(true);
 
   QActionGroup* list_group = new QActionGroup(this);
@@ -600,19 +600,19 @@ void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 {
   static const QMap<QString, bool*> columns{
-      {tr("Platform"), &SConfig::GetInstance().m_showSystemColumn},
-      {tr("Banner"), &SConfig::GetInstance().m_showBannerColumn},
-      {tr("Title"), &SConfig::GetInstance().m_showTitleColumn},
-      {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
-      {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
-      {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
-      {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
-      {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
-      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
+      {tr("&Platform"), &SConfig::GetInstance().m_showSystemColumn},
+      {tr("&Banner"), &SConfig::GetInstance().m_showBannerColumn},
+      {tr("&Title"), &SConfig::GetInstance().m_showTitleColumn},
+      {tr("&Description"), &SConfig::GetInstance().m_showDescriptionColumn},
+      {tr("&Maker"), &SConfig::GetInstance().m_showMakerColumn},
+      {tr("File &Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("Game &ID"), &SConfig::GetInstance().m_showIDColumn},
+      {tr("&Region"), &SConfig::GetInstance().m_showRegionColumn},
+      {tr("File &Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("&Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  m_cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = view_menu->addMenu(tr("List &Columns"));
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
@@ -631,10 +631,10 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
 void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
 {
   static const QMap<QString, bool*> platform_map{
-      {tr("Show Wii"), &SConfig::GetInstance().m_ListWii},
-      {tr("Show GameCube"), &SConfig::GetInstance().m_ListGC},
-      {tr("Show WAD"), &SConfig::GetInstance().m_ListWad},
-      {tr("Show ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
+      {tr("Show &Wii"), &SConfig::GetInstance().m_ListWii},
+      {tr("Show &GameCube"), &SConfig::GetInstance().m_ListGC},
+      {tr("Show W&AD"), &SConfig::GetInstance().m_ListWad},
+      {tr("Show &ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
 
   QActionGroup* platform_group = new QActionGroup(this);
   QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
@@ -656,23 +656,23 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
 void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
 {
   static const QMap<QString, bool*> region_map{
-      {tr("Show JAP"), &SConfig::GetInstance().m_ListJap},
-      {tr("Show PAL"), &SConfig::GetInstance().m_ListPal},
-      {tr("Show USA"), &SConfig::GetInstance().m_ListUsa},
-      {tr("Show Australia"), &SConfig::GetInstance().m_ListAustralia},
-      {tr("Show France"), &SConfig::GetInstance().m_ListFrance},
-      {tr("Show Germany"), &SConfig::GetInstance().m_ListGermany},
-      {tr("Show Italy"), &SConfig::GetInstance().m_ListItaly},
-      {tr("Show Korea"), &SConfig::GetInstance().m_ListKorea},
-      {tr("Show Netherlands"), &SConfig::GetInstance().m_ListNetherlands},
-      {tr("Show Russia"), &SConfig::GetInstance().m_ListRussia},
-      {tr("Show Spain"), &SConfig::GetInstance().m_ListSpain},
-      {tr("Show Taiwan"), &SConfig::GetInstance().m_ListTaiwan},
-      {tr("Show World"), &SConfig::GetInstance().m_ListWorld},
-      {tr("Show Unknown"), &SConfig::GetInstance().m_ListUnknown}};
+      {tr("Show &JAP"), &SConfig::GetInstance().m_ListJap},
+      {tr("Show &PAL"), &SConfig::GetInstance().m_ListPal},
+      {tr("Show &USA"), &SConfig::GetInstance().m_ListUsa},
+      {tr("Show &Australia"), &SConfig::GetInstance().m_ListAustralia},
+      {tr("Show &France"), &SConfig::GetInstance().m_ListFrance},
+      {tr("Show &Germany"), &SConfig::GetInstance().m_ListGermany},
+      {tr("Show &Italy"), &SConfig::GetInstance().m_ListItaly},
+      {tr("Show &Korea"), &SConfig::GetInstance().m_ListKorea},
+      {tr("Show &Netherlands"), &SConfig::GetInstance().m_ListNetherlands},
+      {tr("Show &Russia"), &SConfig::GetInstance().m_ListRussia},
+      {tr("Show &Spain"), &SConfig::GetInstance().m_ListSpain},
+      {tr("Show &Taiwan"), &SConfig::GetInstance().m_ListTaiwan},
+      {tr("Show &World"), &SConfig::GetInstance().m_ListWorld},
+      {tr("Show &Unknown"), &SConfig::GetInstance().m_ListUnknown}};
 
   QActionGroup* region_group = new QActionGroup(this);
-  QMenu* region_menu = view_menu->addMenu(tr("Show Regions"));
+  QMenu* region_menu = view_menu->addMenu(tr("Show &Regions"));
   region_group->setExclusive(false);
 
   for (const auto& key : region_map.keys())
@@ -714,31 +714,31 @@ void MenuBar::AddMovieMenu()
 
   movie_menu->addSeparator();
 
-  auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
+  auto* pause_at_end = movie_menu->addAction(tr("Pa&use at End of Movie"));
   pause_at_end->setCheckable(true);
   pause_at_end->setChecked(SConfig::GetInstance().m_PauseMovie);
   connect(pause_at_end, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
 
-  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
+  auto* lag_counter = movie_menu->addAction(tr("Show L&ag Counter"));
   lag_counter->setCheckable(true);
   lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);
   connect(lag_counter, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowLag = value; });
 
-  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
+  auto* frame_counter = movie_menu->addAction(tr("Show &Frame Counter"));
   frame_counter->setCheckable(true);
   frame_counter->setChecked(SConfig::GetInstance().m_ShowFrameCount);
   connect(frame_counter, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowFrameCount = value; });
 
-  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
+  auto* input_display = movie_menu->addAction(tr("Show &Input Display"));
   input_display->setCheckable(true);
   input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
   connect(input_display, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
 
-  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
+  auto* system_clock = movie_menu->addAction(tr("Show &System Clock"));
   system_clock->setCheckable(true);
   system_clock->setChecked(SConfig::GetInstance().m_ShowRTC);
   connect(system_clock, &QAction::toggled,
@@ -746,13 +746,13 @@ void MenuBar::AddMovieMenu()
 
   movie_menu->addSeparator();
 
-  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
+  auto* dump_frames = movie_menu->addAction(tr("Dump &Frames"));
   dump_frames->setCheckable(true);
   dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
   connect(dump_frames, &QAction::toggled,
           [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
 
-  auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
+  auto* dump_audio = movie_menu->addAction(tr("Dump &Audio"));
   dump_audio->setCheckable(true);
   dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
   connect(dump_audio, &QAction::toggled,
@@ -963,7 +963,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
         tmd.IsValid() ?
             QString::fromStdString(DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion())) :
             QString{};
-    m_boot_sysmenu->setText(tr("Load Wii System Menu %1").arg(sysmenu_version));
+    m_boot_sysmenu->setText(tr("&Load Wii System Menu %1").arg(sysmenu_version));
 
     m_boot_sysmenu->setEnabled(tmd.IsValid());
 
