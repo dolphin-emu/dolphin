@@ -155,6 +155,8 @@ void AudioPane::CreateWidgets()
   stretching_layout->addWidget(m_stretching_buffer_slider, 1, 1);
   stretching_layout->addWidget(m_stretching_buffer_indicator, 1, 2);
 
+  stretching_layout->setRowStretch(2, 1);
+
   m_main_layout = new QGridLayout;
 
   m_main_layout->setRowStretch(0, 0);

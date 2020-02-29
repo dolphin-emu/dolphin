@@ -59,8 +59,10 @@ void AdvancedPane::CreateLayout()
   {
     m_cpu_emulation_engine_combobox->addItem(tr(CPU_CORE_NAMES.at(cpu_core)));
   }
+
   cpu_emulation_layout->addWidget(cpu_emulation_engine_label, 0, 0);
-  cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1, Qt::AlignLeft);
+  cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1);
+  cpu_emulation_layout->setColumnStretch(1, 1);
   cpu_options_layout->addLayout(cpu_emulation_layout);
 
   m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));

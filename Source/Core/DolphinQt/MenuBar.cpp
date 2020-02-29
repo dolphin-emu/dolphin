@@ -233,7 +233,7 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  QMenu* ntpl_atns = tools_menu->addMenu(tr("&Netplay"));
+  QMenu* ntpl_atns = tools_menu->addMenu(tr("&NetPlay"));
 
   ntpl_atns->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
   ntpl_atns->addAction(tr("Browse &NetPlay Sessions..."), this, &MenuBar::BrowseNetPlay);
