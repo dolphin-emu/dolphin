@@ -233,8 +233,10 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addSeparator();
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
+  QMenu* ntpl_atns = tools_menu->addMenu(tr("&Netplay"));
+
+  ntpl_atns->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  ntpl_atns->addAction(tr("Browse &NetPlay Sessions..."), this, &MenuBar::BrowseNetPlay);
 
   tools_menu->addSeparator();
 
@@ -265,17 +267,17 @@ void MenuBar::AddToolsMenu()
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
 
-  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
+  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System &Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
-      tr("Current Region"), this, [this] { emit PerformOnlineUpdate(""); });
+      tr("&Current Region"), this, [this] { emit PerformOnlineUpdate(""); });
   m_perform_online_update_menu->addSeparator();
-  m_perform_online_update_menu->addAction(tr("Europe"), this,
+  m_perform_online_update_menu->addAction(tr("&Europe"), this,
                                           [this] { emit PerformOnlineUpdate("EUR"); });
-  m_perform_online_update_menu->addAction(tr("Japan"), this,
+  m_perform_online_update_menu->addAction(tr("&Japan"), this,
                                           [this] { emit PerformOnlineUpdate("JPN"); });
-  m_perform_online_update_menu->addAction(tr("Korea"), this,
+  m_perform_online_update_menu->addAction(tr("&Korea"), this,
                                           [this] { emit PerformOnlineUpdate("KOR"); });
-  m_perform_online_update_menu->addAction(tr("United States"), this,
+  m_perform_online_update_menu->addAction(tr("&United States"), this,
                                           [this] { emit PerformOnlineUpdate("USA"); });
 
   tools_menu->addSeparator();
@@ -384,9 +386,9 @@ void MenuBar::UpdateStateSlotMenu()
   {
     int slot = i + 1;
     QString info = QString::fromStdString(State::GetInfoStringOfSlot(slot));
-    actions_load.at(i)->setText(tr("Load from Slot %1 - %2").arg(slot).arg(info));
-    actions_save.at(i)->setText(tr("Save to Slot %1 - %2").arg(slot).arg(info));
-    actions_slot.at(i)->setText(tr("Select Slot %1 - %2").arg(slot).arg(info));
+    actions_load.at(i)->setText(tr("Load from Slot &%1 - %2").arg(slot).arg(info));
+    actions_save.at(i)->setText(tr("Save to Slot &%1 - %2").arg(slot).arg(info));
+    actions_slot.at(i)->setText(tr("Select Slot &%1 - %2").arg(slot).arg(info));
   }
 }
 
@@ -637,7 +639,7 @@ void MenuBar::AddShowPlatformsMenu(QMenu* view_menu)
       {tr("Show &ELF/DOL"), &SConfig::GetInstance().m_ListElfDol}};
 
   QActionGroup* platform_group = new QActionGroup(this);
-  QMenu* plat_menu = view_menu->addMenu(tr("Show Platforms"));
+  QMenu* plat_menu = view_menu->addMenu(tr("Show &Platforms"));
   platform_group->setExclusive(false);
 
   for (const auto& key : platform_map.keys())
