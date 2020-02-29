@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-22 13:59+0100\n"
-"PO-Revision-Date: 2020-02-22 12:59+0000\n"
+"POT-Creation-Date: 2020-02-29 16:07+0100\n"
+"PO-Revision-Date: 2020-02-29 15:07+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -578,7 +578,7 @@ msgstr "- 빼기"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:183
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:198
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
@@ -742,7 +742,7 @@ msgstr ""
 "종료가 이미 진행 중입니다. 저장되지 않은 데이터는 완료되기 전에 현재 에뮬레이"
 "션을 중단하면 잃을 수도 있습니다. 중지시키겠습니까?"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:360
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:371
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Wii 게임이 구동 중일 때만 동기화가 발동될 수 있습니다."
 
@@ -1085,7 +1085,7 @@ msgstr ""
 "잘 모르겠으면, 체크 해제해 두세요."
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
@@ -1134,6 +1134,11 @@ msgstr "분석"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:29
 msgid "Angle"
 msgstr "각도"
+
+#. i18n: Refers to the dead-zone setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:42
+msgid "Angular velocity to ignore."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Anisotropic Filtering:"
@@ -1327,7 +1332,7 @@ msgstr "백엔드 설정"
 msgid "Backend:"
 msgstr "백엔드:"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:208
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 msgid "Background Input"
 msgstr "백그라운드 입력"
 
@@ -1586,13 +1591,17 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:969
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:814
 msgid "Calibrate"
 msgstr "측정합니다"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:961
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:806
 msgid "Calibration"
 msgstr "측정"
+
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:46
+msgid "Calibration Period"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:105
 msgid "Callstack"
@@ -1613,7 +1622,7 @@ msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작
 msgid "Cancel"
 msgstr "취소"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1010
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:855
 msgid "Cancel Calibration"
 msgstr "측정 취소"
 
@@ -1647,7 +1656,7 @@ msgstr "GC IPL 을 찾을 수 없어서, 게임을 시작할 수 없습니다."
 msgid "Center"
 msgstr "중앙"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:970
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
 msgid "Center and Calibrate"
 msgstr "중앙과 측정"
 
@@ -1667,7 +1676,7 @@ msgstr "디스크 변경"
 msgid "Change Discs Automatically"
 msgstr "디스크 자동 교환"
 
-#: Source/Core/Core/Movie.cpp:1188
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Change the disc to %s"
 msgstr "%s 로 디스크를 변경합니다."
@@ -1793,7 +1802,7 @@ msgid "Comment"
 msgstr "주석"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
 msgid "Common"
 msgstr "공통"
 
@@ -1839,8 +1848,8 @@ msgstr "상태"
 msgid "Config"
 msgstr " 환경설정"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:90
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:184
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "Configure"
 msgstr "설정"
@@ -1919,6 +1928,10 @@ msgstr "Wii 리모트 4 연결"
 msgid "Connect Wii Remotes"
 msgstr "Wii 리모트 연결"
 
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+msgid "Connect Wii Remotes for Emulated Controllers"
+msgstr ""
+
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "인터넷에 연결하여 온라인 시스템 업데이트를 하시겠습니까?"
@@ -1932,7 +1945,7 @@ msgstr "연결 종류:"
 msgid "Content %08x is corrupt."
 msgstr "내용 %08x 는 오류입니다."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
 msgid "Continuous Scanning"
 msgstr "지속적인 스캐닝"
 
@@ -2270,7 +2283,7 @@ msgstr "D-패드"
 msgid "DJ Turntable"
 msgstr "디제이 턴테이블"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "DK Bongos"
 msgstr "DK 봉고"
 
@@ -2307,7 +2320,7 @@ msgstr ""
 "href=\"https://wiki.dolphin-emu.org/index.php?title=DSU_Client\">는 이 페이"
 "지 </a> 를 참조합니다."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Dance Mat"
 msgstr "댄스 매트"
 
@@ -2337,6 +2350,7 @@ msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 파일(*.sav)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:38
 msgid "Dead Zone"
 msgstr "데드 존"
 
@@ -2759,7 +2773,7 @@ msgstr "더블"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Down"
 msgstr "아래쪽"
 
@@ -2997,11 +3011,11 @@ msgstr "비어있음"
 msgid "Emu Thread already running"
 msgstr "에뮬 쓰레드가 이미 구동중임"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Wii 의 블루투스 어댑터를 에뮬"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Emulated Wii Remote"
 msgstr "에뮬된 Wii 리모트"
 
@@ -3011,7 +3025,7 @@ msgid "Emulation Speed"
 msgstr "에뮬레이션 속도"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:152
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr "활성"
 
@@ -3064,7 +3078,7 @@ msgstr "진동 활성화"
 msgid "Enable Screen Saver"
 msgstr "화면 보호기 활성화"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:159
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
 msgid "Enable Speaker Data"
 msgstr "스피커 데이터 활성화"
 
@@ -3738,7 +3752,7 @@ msgstr ""
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org 데이터 문법분석에 실패했습니다"
 
-#: Source/Core/Core/Movie.cpp:942
+#: Source/Core/Core/Movie.cpp:946
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s 을 읽을 수 없습니다."
@@ -3833,7 +3847,7 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1220
+#: Source/Core/Core/Movie.cpp:1224
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3933,7 +3947,7 @@ msgstr "다음 찾기(&N)"
 msgid "Find &Previous"
 msgstr "이전 찾기(&P)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:994
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:839
 msgid "Finish Calibration"
 msgstr "측정 완료"
 
@@ -3973,7 +3987,7 @@ msgstr "플로우트"
 msgid "Follow &branch"
 msgstr "분기 따라가기 (&b)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:962
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:807
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 "최고의 결과를 얻으려면 당신의 입력을 모든 가능한 곳으로 천천히 움직이세요."
@@ -4185,7 +4199,7 @@ msgstr "함수 호출"
 msgid "Functions"
 msgstr "함수들"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "GBA"
 msgstr "GBA"
 
@@ -4280,7 +4294,7 @@ msgstr "게임-상세 설정"
 msgid "GameCube"
 msgstr "게임큐브"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "GameCube Adapter for Wii U"
 msgstr "Wii U용 게임큐브 어댑터"
 
@@ -4296,7 +4310,7 @@ msgstr "게임큐브 컨트롤러"
 msgid "GameCube Controller at Port %1"
 msgstr "포트 %1 에 게임큐브 컨트롤러"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:81
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:79
 msgid "GameCube Controllers"
 msgstr "게임큐브 컨트롤러"
 
@@ -4917,7 +4931,7 @@ msgstr "부적합한 문자."
 msgid "Invalid password provided."
 msgstr "부적합한 패스워드가 제공되었습니다."
 
-#: Source/Core/Core/Movie.cpp:885
+#: Source/Core/Core/Movie.cpp:889
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -5033,7 +5047,7 @@ msgid "Keep Window on Top"
 msgstr "창을 맨위로 유지"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Keyboard"
 msgstr "키보드"
 
@@ -5106,7 +5120,7 @@ msgstr "지연: ~80ms"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Left"
 msgstr "왼쪽"
 
@@ -5122,7 +5136,7 @@ msgstr "왼쪽 스틱"
 msgid "Left Table"
 msgstr "왼쪽 테이블"
 
-#: Source/Core/DolphinQt/TAS/IRWidget.cpp:18
+#: Source/Core/DolphinQt/TAS/IRWidget.cpp:20
 msgid ""
 "Left click to set the IR value.\n"
 "Right click to re-center it."
@@ -5130,7 +5144,7 @@ msgstr ""
 "IR 값을 설정하려면 좌 클릭.\n"
 "중심-재설정은 우 클릭."
 
-#: Source/Core/DolphinQt/TAS/StickWidget.cpp:19
+#: Source/Core/DolphinQt/TAS/StickWidget.cpp:21
 msgid ""
 "Left click to set the stick value.\n"
 "Right click to re-center it."
@@ -5893,8 +5907,8 @@ msgstr ""
 msgid "No value provided."
 msgstr "제공된 값이 없습니다."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:220
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
@@ -6151,7 +6165,7 @@ msgstr "파티션 %1"
 msgid "Passive"
 msgstr "패씨브"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
 msgid "Passthrough a Bluetooth adapter"
 msgstr "블루투스 어댑터를 패스쓰루"
 
@@ -6241,11 +6255,11 @@ msgstr "디버그 폰트 고르기"
 msgid "Ping"
 msgstr "핑"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:21
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
 msgid "Pitch Down"
 msgstr "피치 내리기"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:20
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
 msgid "Pitch Up"
 msgstr "피치 올리기"
 
@@ -6285,7 +6299,7 @@ msgstr "플레이어"
 msgid "Point"
 msgstr "포인트"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:86
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:56
 msgid "Port %1"
 msgstr "포트 %1"
@@ -6311,17 +6325,17 @@ msgstr "후-처리 쉐이더 환경설정"
 msgid "Prefetch Custom Textures"
 msgstr "커스텀 텍스처 프리패치"
 
-#: Source/Core/Core/Movie.cpp:1123
+#: Source/Core/Core/Movie.cpp:1127
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "PlayController 로 무비 마무리가 미완성되었습니다. %u + %zu > %zu"
 
-#: Source/Core/Core/Movie.cpp:1234
+#: Source/Core/Core/Movie.cpp:1238
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "PlayWiimote 로 무비 마무리가 미완성되었습니다. %u + %d > %zu"
 
-#: Source/Core/Core/Movie.cpp:1209
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "PlayWiimote 로 무비 마무리가 미완성되었습니다. %u > %zu"
@@ -6535,11 +6549,11 @@ msgstr "읽거나 쓰기"
 msgid "Read-Only Mode"
 msgstr "읽기-전용 모드"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
 msgid "Real Balance Board"
 msgstr "실제 밸런스 보드"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Real Wii Remote"
 msgstr "실제 Wii 리모트"
 
@@ -6608,7 +6622,7 @@ msgid "Redump.org Status:"
 msgstr "Redump.org 상태:"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:387
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
@@ -6714,8 +6728,8 @@ msgstr "당신의 파티로 참여 요청"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:971
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:816
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "리셋"
@@ -6732,7 +6746,7 @@ msgstr "횡단 서버를 %1:%2 로 리셋합니다"
 msgid "Reset Traversal Settings"
 msgstr "횡단 설정 리셋"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 msgid "Reset all saved Wii Remote pairings"
 msgstr "저장된 모든 Wii 리모트 페어링 재설정"
 
@@ -6775,7 +6789,7 @@ msgstr "개정: %1"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Right"
 msgstr "오른쪽"
 
@@ -6805,11 +6819,11 @@ msgstr "라커 내림"
 msgid "Rocker Up"
 msgstr "라커 올림"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:22
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
 msgid "Roll Left"
 msgstr "왼쪽 구르기"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
 msgid "Roll Right"
 msgstr "오른쪽 구르기"
 
@@ -7032,7 +7046,7 @@ msgstr "슬롯 %1 - %2 에 저장"
 msgid "Save..."
 msgstr "저장..."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:342
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:353
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "저장된 Wii 리모트 페어링은 게임이 구동 중일 때만 재설정될 수 있습니다."
 
@@ -7040,7 +7054,7 @@ msgstr "저장된 Wii 리모트 페어링은 게임이 구동 중일 때만 재�
 msgid "Saved to /Wii/sd.raw (default size is 128mb)."
 msgstr "/Wii/sd.raw 에 저장되었습니다 (기본 크기는 128mb 입니다)."
 
-#: Source/Core/Core/Movie.cpp:951
+#: Source/Core/Core/Movie.cpp:955
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "상태저장 무비 %s 가 손상되었습니다, 무비 기록 중지 중..."
@@ -7867,7 +7881,7 @@ msgstr "디스크 전송율 속도 상승"
 msgid "Stable (once a year)"
 msgstr "안정적 (일년에 한 번)"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
@@ -7891,7 +7905,7 @@ msgstr "(입력) 기록 시작"
 msgid "Started game"
 msgstr "시작된 게임"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Steering Wheel"
 msgstr "운전대"
 
@@ -8181,7 +8195,7 @@ msgstr "부호 이름:"
 msgid "Symbols"
 msgstr "부호들"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
 msgid "Sync"
 msgstr "동기화"
 
@@ -8197,7 +8211,7 @@ msgstr "모든 Wii 저장 동기화"
 msgid "Sync Saves"
 msgstr "저장들 동기화"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
 msgid "Sync real Wii Remotes and pair them"
 msgstr "실제 Wii 리모트를 동기화하고 페어링"
 
@@ -8661,11 +8675,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "이 USB 장치는 이미 와이트리스트되어 있습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:898
 msgid "This WAD is not bootable."
 msgstr "이 WAD 는 부팅이 가능하지 않습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
 msgstr "이 WAD 는 적합하지 않습니다."
 
@@ -8798,7 +8812,7 @@ msgid "This software should not be used to play games you do not legally own."
 msgstr ""
 "이 소프트웨어는 합법적 소유가 아닌 게임을 플레이하기 위해 쓰여서는 안됩니다."
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
 msgstr "이 타이틀은 부팅될 수 없습니다."
 
@@ -8885,6 +8899,11 @@ msgstr "TiB"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:33
 msgid "Tilt"
 msgstr "기울기"
+
+#. i18n: Refers to the "Calibration" setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:50
+msgid "Time period of stable input to trigger calibration. (zero to disable)"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:907
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:178
@@ -9274,7 +9293,7 @@ msgstr "부호 없는 정수"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Up"
 msgstr "위쪽"
 
@@ -9614,8 +9633,8 @@ msgstr ""
 "잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/Common/MsgHandler.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:341
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:359
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
@@ -9624,7 +9643,7 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:30
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:33
 msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
@@ -9641,7 +9660,7 @@ msgstr ""
 "경고: BAT (%u) 에 의해 나타난 블록수가 파일 헤더 (%u) 의 수와 일치하지 않습니"
 "다"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:1003
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9652,7 +9671,7 @@ msgstr ""
 "력 %u > %u). 계속하기전에 다른 저장을 로드해야합니다, 그렇지 않으면 읽기-전"
 "용 모드가 꺼진 상태로 이것을 로드합니다."
 
-#: Source/Core/Core/Movie.cpp:974
+#: Source/Core/Core/Movie.cpp:978
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9662,7 +9681,7 @@ msgstr ""
 "경고: 저장 (byte %u < %u) (frame %u < %u)에서 현재 프레임 전에 무비가 끝나는 "
 "저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:1025
+#: Source/Core/Core/Movie.cpp:1029
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9673,7 +9692,7 @@ msgstr ""
 "전에 다른 저장을 로드해야 합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그렇"
 "지 않으면 아마도 싱크 문제가 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:1042
+#: Source/Core/Core/Movie.cpp:1046
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9756,7 +9775,7 @@ msgstr "Wii NAND 루트:"
 msgid "Wii Remote"
 msgstr "Wii 리모트"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:182
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:181
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
@@ -9778,7 +9797,7 @@ msgstr "Wii 리모트 진동"
 msgid "Wii Remote Settings"
 msgstr "Wii 리모트 설정"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:147
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:145
 msgid "Wii Remotes"
 msgstr "Wii 리모트"
 
@@ -9874,11 +9893,11 @@ msgstr "XF 레지스터"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:34
 msgid "Yaw Left"
 msgstr "왼쪽으로 요"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:35
 msgid "Yaw Right"
 msgstr "오른쪽으로 요"
 
@@ -10011,6 +10030,11 @@ msgstr "켜기"
 msgid "or select a device"
 msgstr "또는 장치를 선택하세요"
 
+#. i18n: "s" is the symbol for seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:48
+msgid "s"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:184
 msgid "uDraw GameTablet"
@@ -10048,6 +10072,11 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
 msgstr "°"
+
+#. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:40
+msgid "°/s"
+msgstr ""
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:54
 msgid "✔ Invite"

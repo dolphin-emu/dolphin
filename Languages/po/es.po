@@ -10,6 +10,7 @@
 # Erik Fargas <efargaspro@gmail.com>, 2015
 # Jambi <jlarrondobunop@yahoo.es>, 2015-2016
 # Katabi, 2015
+# Lander Gallastegi <landergallastegi@gmail.com>, 2020
 # Markel Ferro <markelferro@gmail.com>, 2017
 # MS-PC, 2018-2020
 # Puniasterus <puniasterus@gmail.com>, 2013-2016,2020
@@ -22,8 +23,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-22 13:59+0100\n"
-"PO-Revision-Date: 2020-02-22 12:59+0000\n"
+"POT-Creation-Date: 2020-02-29 16:07+0100\n"
+"PO-Revision-Date: 2020-02-29 15:07+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
@@ -592,7 +593,7 @@ msgstr "- Restar"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:183
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:198
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
@@ -756,7 +757,7 @@ msgstr ""
 "Ya se está deteniendo el juego. Puede que se pierdan los datos sin guardar "
 "si detienes la emulación antes de tiempo. ¿Quieres forzar la salida?"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:360
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:371
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Sólo se puede sincronizar el mando de Wii en mitad de la partida."
 
@@ -1111,7 +1112,7 @@ msgstr ""
 "Si no está seguro, deje esto sin marcar."
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
@@ -1160,6 +1161,11 @@ msgstr "Analizar"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:29
 msgid "Angle"
 msgstr "Ángulo"
+
+#. i18n: Refers to the dead-zone setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:42
+msgid "Angular velocity to ignore."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Anisotropic Filtering:"
@@ -1353,7 +1359,7 @@ msgstr "Configuración del motor"
 msgid "Backend:"
 msgstr "Motor:"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:208
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 msgid "Background Input"
 msgstr "Func. en segundo plano"
 
@@ -1615,13 +1621,17 @@ msgstr ""
 "\n"
 "Si no estás seguro, déjala sin marcar"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:969
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:814
 msgid "Calibrate"
 msgstr "Calibrar"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:961
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:806
 msgid "Calibration"
 msgstr "Calibración"
+
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:46
+msgid "Calibration Period"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:105
 msgid "Callstack"
@@ -1644,7 +1654,7 @@ msgstr "No puedes empezar el juego en red con un juego en ejecución."
 msgid "Cancel"
 msgstr "Cancelar"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1010
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:855
 msgid "Cancel Calibration"
 msgstr "Cancelar calibración"
 
@@ -1679,7 +1689,7 @@ msgstr "El juego no puede empezar porque el IPL de GC no se ha encontrado."
 msgid "Center"
 msgstr "Centrar"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:970
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
 msgid "Center and Calibrate"
 msgstr "Centrar y calibrar"
 
@@ -1699,7 +1709,7 @@ msgstr "Cambiar disco"
 msgid "Change Discs Automatically"
 msgstr "Cambiar discos automáticamente"
 
-#: Source/Core/Core/Movie.cpp:1188
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Cambiar el disco a %s"
@@ -1825,7 +1835,7 @@ msgid "Comment"
 msgstr "Comentario"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
 msgid "Common"
 msgstr "Común"
 
@@ -1872,8 +1882,8 @@ msgstr "Condición"
 msgid "Config"
 msgstr "Configuración"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:90
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:184
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "Configure"
 msgstr "Configurar"
@@ -1952,6 +1962,10 @@ msgstr "Conectar mando de Wii 4"
 msgid "Connect Wii Remotes"
 msgstr "Conectar mandos de Wii"
 
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+msgid "Connect Wii Remotes for Emulated Controllers"
+msgstr ""
+
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
 msgid "Connect to the Internet and perform an online system update?"
 msgstr ""
@@ -1966,7 +1980,7 @@ msgstr "Tipo de conexión:"
 msgid "Content %08x is corrupt."
 msgstr "El contenido %08x está corrupto."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
 msgid "Continuous Scanning"
 msgstr "Escaneo continuo"
 
@@ -2311,7 +2325,7 @@ msgstr "Cruceta direccional"
 msgid "DJ Turntable"
 msgstr "Mesa de mezcla DJ"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "DK Bongos"
 msgstr "Bongos de DK"
 
@@ -2348,7 +2362,7 @@ msgstr ""
 "instrucciones de configuración, <a href=\"https://wiki.dolphin-emu.org/index."
 "php?title=DSU_Client\">consulte esta página</a>."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Dance Mat"
 msgstr "Alfombra de baile"
 
@@ -2378,6 +2392,7 @@ msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Archivos Datel MaxDrive/Pro (*.sav)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:38
 msgid "Dead Zone"
 msgstr "Zona muerta"
 
@@ -2805,7 +2820,7 @@ msgstr "Coma flotante doble"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Down"
 msgstr "Abajo"
 
@@ -3049,11 +3064,11 @@ msgstr "Vacía"
 msgid "Emu Thread already running"
 msgstr "El hilo de emulación ya está ejecutándose"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Emular el adaptador Bluetooth de la Wii"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Emulated Wii Remote"
 msgstr "Mando Wii emulado"
 
@@ -3063,7 +3078,7 @@ msgid "Emulation Speed"
 msgstr "Velocidad de emulación"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:152
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr "Habilitar"
 
@@ -3116,7 +3131,7 @@ msgstr "Activar vibración"
 msgid "Enable Screen Saver"
 msgstr "Activar salvapantallas"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:159
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
 msgid "Enable Speaker Data"
 msgstr "Activar envío de datos al altavoz"
 
@@ -3802,7 +3817,7 @@ msgstr ""
 msgid "Failed to parse Redump.org data"
 msgstr "No se ha podido analizar los datos de redump.org"
 
-#: Source/Core/Core/Movie.cpp:942
+#: Source/Core/Core/Movie.cpp:946
 #, c-format
 msgid "Failed to read %s"
 msgstr "Error al leer %s"
@@ -3901,7 +3916,7 @@ msgstr "Rápido"
 msgid "Fast Depth Calculation"
 msgstr "Cálculo de profundidad rápido"
 
-#: Source/Core/Core/Movie.cpp:1220
+#: Source/Core/Core/Movie.cpp:1224
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -4006,7 +4021,7 @@ msgstr "Buscar &siguiente"
 msgid "Find &Previous"
 msgstr "Buscar &anterior"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:994
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:839
 msgid "Finish Calibration"
 msgstr "Finalizar calibración"
 
@@ -4046,7 +4061,7 @@ msgstr "Coma flotante"
 msgid "Follow &branch"
 msgstr "Seguir &rama"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:962
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:807
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 "Para obtener los mejores resultados, mueva lentamente su entrada a todas las "
@@ -4260,7 +4275,7 @@ msgstr "Llamadas de función"
 msgid "Functions"
 msgstr "Funciones"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "GBA"
 msgstr "GBA"
 
@@ -4359,7 +4374,7 @@ msgstr "Configuración específica del juego"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "GameCube Adapter for Wii U"
 msgstr "Adaptador de GameCube para Wii U"
 
@@ -4375,7 +4390,7 @@ msgstr "Mando de GameCube"
 msgid "GameCube Controller at Port %1"
 msgstr "Mando de GameCube en el puerto %1"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:81
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:79
 msgid "GameCube Controllers"
 msgstr "Mandos de GameCube"
 
@@ -5004,7 +5019,7 @@ msgstr "Literal no válido."
 msgid "Invalid password provided."
 msgstr "Contraseña proporcionada inválida."
 
-#: Source/Core/Core/Movie.cpp:885
+#: Source/Core/Core/Movie.cpp:889
 msgid "Invalid recording file"
 msgstr "Archivo de grabación erróneo"
 
@@ -5101,7 +5116,7 @@ msgstr "Recompilador JIT (recomendado)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "JIT Register Cache Off"
-msgstr ""
+msgstr "Registro de caché de JIT deshabilitado"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:884
 msgid "JIT SystemRegisters Off"
@@ -5121,7 +5136,7 @@ msgid "Keep Window on Top"
 msgstr "Mantener siempre en primer plano"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Keyboard"
 msgstr "Teclado"
 
@@ -5194,7 +5209,7 @@ msgstr "Latencia: ~80ms"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Left"
 msgstr "Izquierda"
 
@@ -5210,7 +5225,7 @@ msgstr "Palanca izquierda"
 msgid "Left Table"
 msgstr "Mezclador"
 
-#: Source/Core/DolphinQt/TAS/IRWidget.cpp:18
+#: Source/Core/DolphinQt/TAS/IRWidget.cpp:20
 msgid ""
 "Left click to set the IR value.\n"
 "Right click to re-center it."
@@ -5218,7 +5233,7 @@ msgstr ""
 "Clic izquierdo para establecer el valor IR.\n"
 "Clic derecho para volver a centrarlo."
 
-#: Source/Core/DolphinQt/TAS/StickWidget.cpp:19
+#: Source/Core/DolphinQt/TAS/StickWidget.cpp:21
 msgid ""
 "Left click to set the stick value.\n"
 "Right click to re-center it."
@@ -5989,8 +6004,8 @@ msgstr ""
 msgid "No value provided."
 msgstr "No se ha proporcionado ningún valor."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:220
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
@@ -6246,7 +6261,7 @@ msgstr "Partición %1"
 msgid "Passive"
 msgstr "Pasivo"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Ceder el control de un adaptador Bluetooth real"
 
@@ -6336,11 +6351,11 @@ msgstr "Elige una tipografía de depuración"
 msgid "Ping"
 msgstr "Ping"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:21
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
 msgid "Pitch Down"
 msgstr "Pitch abajo"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:20
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
 msgid "Pitch Up"
 msgstr "Pitch arriba"
 
@@ -6380,7 +6395,7 @@ msgstr "Jugadores"
 msgid "Point"
 msgstr "Punto"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:86
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:56
 msgid "Port %1"
 msgstr "Puerto %1"
@@ -6407,17 +6422,17 @@ msgstr "Configuración del sombreador de posprocesado"
 msgid "Prefetch Custom Textures"
 msgstr "Precargar texturas personalizadas"
 
-#: Source/Core/Core/Movie.cpp:1123
+#: Source/Core/Core/Movie.cpp:1127
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "Final prematuro de la grabación en PlayController. %u +  %zu > %zu"
 
-#: Source/Core/Core/Movie.cpp:1234
+#: Source/Core/Core/Movie.cpp:1238
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u + %d > %zu"
 
-#: Source/Core/Core/Movie.cpp:1209
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "Final prematuro de la grabación en PlayWiimote. %u > %zu"
@@ -6631,11 +6646,11 @@ msgstr "Leer y escribir"
 msgid "Read-Only Mode"
 msgstr "Modo de sólo lectura"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
 msgid "Real Balance Board"
 msgstr "«Balance Board» real"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Real Wii Remote"
 msgstr "Mando Wii real"
 
@@ -6704,7 +6719,7 @@ msgid "Redump.org Status:"
 msgstr "Estado de redump.org:"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:387
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
@@ -6810,8 +6825,8 @@ msgstr "Solicitud para unirse a su partida"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:971
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:816
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "Restablecer"
@@ -6828,7 +6843,7 @@ msgstr "Restablecer servidor de paso a %1:%2"
 msgid "Reset Traversal Settings"
 msgstr "Restablecer ajustes de paso"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 msgid "Reset all saved Wii Remote pairings"
 msgstr "Revierte todas las vinculaciones de mandos de Wii existentes."
 
@@ -6871,7 +6886,7 @@ msgstr "Revisión: %1"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Right"
 msgstr "Derecha"
 
@@ -6901,11 +6916,11 @@ msgstr ""
 msgid "Rocker Up"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:22
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
 msgid "Roll Left"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
 msgid "Roll Right"
 msgstr ""
 
@@ -7131,7 +7146,7 @@ msgstr "Guardar en la ranura %1 - %2"
 msgid "Save..."
 msgstr "Guardar..."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:342
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:353
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "Sólo es posible reemparejar los mandos de Wii en mitad de la partida."
 
@@ -7139,7 +7154,7 @@ msgstr "Sólo es posible reemparejar los mandos de Wii en mitad de la partida."
 msgid "Saved to /Wii/sd.raw (default size is 128mb)."
 msgstr "Guardado en /Wii/sd.raw (tamaño predeterminado de 128mb)."
 
-#: Source/Core/Core/Movie.cpp:951
+#: Source/Core/Core/Movie.cpp:955
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "El estado de la grabación %s está corrupto, deteniendo la grabación..."
@@ -7384,6 +7399,16 @@ msgid ""
 "\n"
 "If unsure, select Off."
 msgstr ""
+"Selecciona el modo estereoscópico 3D. El estereoscópio permite un mejor "
+"sentimiento de profundidad si el hardware necesitado esta presente. "
+"Gravemente baja la velocidad de emulación y algunas veces causa problemas.\n"
+"\n"
+"Lado-a-Lado y Cima-y-Fondo son usados en la mayoria de televisiones 3D.\n"
+"Anaglifo es usado para lentes 3D Rojo-Azul\n"
+"HDMI 3D es usado cuando el monitor soporta resoluciones de pantalla 3D\n"
+"Pasivo es otro tipo de 3D usado por otras TVs.\n"
+"\n"
+"Si no estas seguro, seleciona Desactivado"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:155
 msgid ""
@@ -7872,6 +7897,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Salta la presentación de fotogramas duplicadas (copias de XFB) en juegos a "
+"25fps/30fps. Puede mejorar el rendimiento en equipos de bajos recursos, "
+"causando un paso de fotogramas menos consistente. Deshabilita esta opción "
+"mientras V-Sync esté activado para obtener un paso de fotogramas óptimo.\n"
+"\n"
+"Si no estás seguro déjala marcada."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:94
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:139
@@ -7909,6 +7940,8 @@ msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
 msgstr ""
+"Algunos datos rellenados que deberían ser cero no son cero. Esto puede hacer "
+"que el juego se congele en cierto tiempo. "
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:225
 msgid ""
@@ -7957,7 +7990,7 @@ msgstr "Acelerar la transferencia de disco"
 msgid "Stable (once a year)"
 msgstr "Estable (una vez al año)"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "Standard Controller"
 msgstr "Mando de juego estándar"
 
@@ -7981,7 +8014,7 @@ msgstr "Comenzar grabación"
 msgid "Started game"
 msgstr "Juego en ejecución"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Steering Wheel"
 msgstr "Volante"
 
@@ -8271,7 +8304,7 @@ msgstr "Nombre de símbolo:"
 msgid "Symbols"
 msgstr "Símbolos"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
 msgid "Sync"
 msgstr "Sincronizar"
 
@@ -8287,7 +8320,7 @@ msgstr "Sincronizar todas las partidas guardadas de Wii"
 msgid "Sync Saves"
 msgstr "Sincronizar y guardar"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
 msgid "Sync real Wii Remotes and pair them"
 msgstr "Sincroniza y empareja mandos de Wii reales."
 
@@ -8762,11 +8795,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "Este dispositivo USB ya está en la lista."
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:898
 msgid "This WAD is not bootable."
 msgstr "No se puede arrancar desde este WAD."
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
 msgstr "Este WAD no es correcto."
 
@@ -8905,7 +8938,7 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr "No debes utilizarlo con juegos que no poseas legalmente."
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
 msgstr "Este juego no se puede arrancar."
 
@@ -8998,6 +9031,11 @@ msgstr "TiB"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:33
 msgid "Tilt"
 msgstr "Inclinar"
+
+#. i18n: Refers to the "Calibration" setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:50
+msgid "Time period of stable input to trigger calibration. (zero to disable)"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:907
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:178
@@ -9247,6 +9285,13 @@ msgid ""
 "In the best case it eliminates shader compilation stuttering while having "
 "minimal performance impact, but results depend on video driver behavior."
 msgstr ""
+"Las ubershaders seran utilizadas para prevenir bajones durante la "
+"compilación de sombras, pero sombras especializadas seran utilizadas cuando "
+"no causarán bajones.\n"
+"\n"
+"En el mejor caso elimina los bajones de compilación de sombras mientras "
+"tiene impacto de rendimiento minimo, pero los resultados dependen en el "
+"comportamiento del controlador de video"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:173
 msgid ""
@@ -9385,7 +9430,7 @@ msgstr "Entero sin signo"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Up"
 msgstr "Arriba"
 
@@ -9658,6 +9703,11 @@ msgid ""
 "mapping traditional buttons, triggers or axes. You might need to configure "
 "alternate input sources before using these controls."
 msgstr ""
+"ADVERTENCIA: Los controles abajo de Acelerometro y Giroscópio son diseñados "
+"para interactuar directamente con hardware de sensor de movimientos. No son "
+"diseñados para asignar botones tradicionales, triggers o axis. Podrias "
+"nesecitar configurar Fuentes de entrada alternativa antes de usar esos "
+"controles"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:35
 msgid ""
@@ -9698,6 +9748,11 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Espera a los espacios blancos verticales para evitar cortes.\n"
+"\n"
+"Disminuye el rendimiento si la velocidad de emulación es inferior a 100%\n"
+"\n"
+"Si no estas seguro, deja esto sin marcar"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:223
 msgid ""
@@ -9710,10 +9765,16 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"Espera hasta que el juego se sincronice con la GPU emulada antes de escribir "
+"el contenido de las copias de EFB en la RAM. Reduce la carga de la EFB en "
+"RAM, proporcionando una mejora en el rendimiento con el riesgo de romper "
+"aquellos juegos que no sincronizan con seguridad con la GPU emulada.\n"
+"\n"
+"Si no estás seguro dejala marcada."
 
 #: Source/Core/Common/MsgHandler.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:341
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:359
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
@@ -9722,7 +9783,7 @@ msgstr ""
 msgid "Warning"
 msgstr "Advertencia"
 
-#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:30
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:33
 msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
@@ -9740,7 +9801,7 @@ msgstr ""
 "Advertencia: el número de bloques indicados por el BAT (%u) no coincide con "
 "el del encabezado de archivo cargado (%u)"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:1003
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9752,7 +9813,7 @@ msgstr ""
 "partida antes de continuar, o cargar ésta sin el modo de «sólo lectura» "
 "activo."
 
-#: Source/Core/Core/Movie.cpp:974
+#: Source/Core/Core/Movie.cpp:978
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9763,7 +9824,7 @@ msgstr ""
 "cuadro actual de la partida. (byte %u < %u) (frame %u > %u). Deberías cargar "
 "otra partida guardada antes de continuar."
 
-#: Source/Core/Core/Movie.cpp:1025
+#: Source/Core/Core/Movie.cpp:1029
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9775,7 +9836,7 @@ msgstr ""
 "con el modo de solo lectura desactivado. De lo contrario probablemente "
 "obtengas una desincronización."
 
-#: Source/Core/Core/Movie.cpp:1042
+#: Source/Core/Core/Movie.cpp:1046
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9861,7 +9922,7 @@ msgstr "Raíz de la NAND de Wii:"
 msgid "Wii Remote"
 msgstr "Mando de Wii"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:182
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:181
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
@@ -9883,7 +9944,7 @@ msgstr "Vibración de mando de Wii"
 msgid "Wii Remote Settings"
 msgstr "Ajustes del mando de Wii"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:147
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:145
 msgid "Wii Remotes"
 msgstr "Mandos de Wii"
 
@@ -9979,11 +10040,11 @@ msgstr "Registro XF"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:34
 msgid "Yaw Left"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:35
 msgid "Yaw Right"
 msgstr ""
 
@@ -10004,6 +10065,10 @@ msgid ""
 "10.14 (Mojave) or newer. Please do not report any issues encountered unless "
 "they also occur on 10.14+."
 msgstr ""
+"Estas tratando de usar el motor Vulkan (Metal) en un sistema operativo no "
+"soportado. Para toda la funcionalidad, Tienes que usar macOS 10.14 (Mojave) "
+"o mas nuevo. Porfavor no reportes problemas que encuentres a no ser que "
+"tambien ocurran en 10.14+"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:539
 msgid "You are running the latest version available on this update track."
@@ -10114,18 +10179,23 @@ msgstr "sí"
 msgid "or select a device"
 msgstr "o elige un dispositivo"
 
+#. i18n: "s" is the symbol for seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:48
+msgid "s"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:184
 msgid "uDraw GameTablet"
-msgstr ""
+msgstr "uDraw GameTablet"
 
 #: Source/Core/Core/NetPlayServer.cpp:1101
 msgid "{} failed to synchronize codes."
-msgstr ""
+msgstr "{}No se ha podido sincronizar los códigos."
 
 #: Source/Core/Core/NetPlayServer.cpp:1057
 msgid "{} failed to synchronize."
-msgstr ""
+msgstr "{}No se pudo sincronizar."
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:263
 msgid "| Or"
@@ -10152,6 +10222,11 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
 msgstr "°"
+
+#. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:40
+msgid "°/s"
+msgstr ""
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:54
 msgid "✔ Invite"

@@ -20,8 +20,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-22 13:59+0100\n"
-"PO-Revision-Date: 2020-02-22 12:59+0000\n"
+"POT-Creation-Date: 2020-02-29 16:07+0100\n"
+"PO-Revision-Date: 2020-02-29 15:07+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Chinese (China) (http://www.transifex.com/delroth/dolphin-emu/"
 "language/zh_CN/)\n"
@@ -584,7 +584,7 @@ msgstr "- 减"
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:183
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:198
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
@@ -747,7 +747,7 @@ msgstr ""
 "关闭命令已在进行中。如果在程序完成前停止当前模拟则未保存的数据会丢失。强制停"
 "止？"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:360
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:371
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "只有在 Wii 游戏运行时同步才能触发。"
 
@@ -1078,7 +1078,7 @@ msgstr ""
 "如果不确定，请不要勾选此项。"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
@@ -1127,6 +1127,11 @@ msgstr "分析"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:29
 msgid "Angle"
 msgstr "角度"
+
+#. i18n: Refers to the dead-zone setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:42
+msgid "Angular velocity to ignore."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Anisotropic Filtering:"
@@ -1319,7 +1324,7 @@ msgstr "后端设置"
 msgid "Backend:"
 msgstr "后端："
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:208
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 msgid "Background Input"
 msgstr "后台输入"
 
@@ -1577,13 +1582,17 @@ msgstr ""
 "\n"
 "如果不确定，请不要勾选此项。"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:969
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:814
 msgid "Calibrate"
 msgstr "校准"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:961
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:806
 msgid "Calibration"
 msgstr "校准"
+
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:46
+msgid "Calibration Period"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:105
 msgid "Callstack"
@@ -1604,7 +1613,7 @@ msgstr "游戏运行时无法启动联机会话！"
 msgid "Cancel"
 msgstr "取消"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1010
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:855
 msgid "Cancel Calibration"
 msgstr "取消校准"
 
@@ -1638,7 +1647,7 @@ msgstr "找不到 GC IPL，无法启动游戏。"
 msgid "Center"
 msgstr "中心"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:970
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
 msgid "Center and Calibrate"
 msgstr "中心和校准"
 
@@ -1658,7 +1667,7 @@ msgstr "切换光盘"
 msgid "Change Discs Automatically"
 msgstr "自动切换光盘"
 
-#: Source/Core/Core/Movie.cpp:1188
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Change the disc to %s"
 msgstr "切换光盘至 %s"
@@ -1782,7 +1791,7 @@ msgid "Comment"
 msgstr "注释"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
 msgid "Common"
 msgstr "通用"
 
@@ -1827,8 +1836,8 @@ msgstr "条件"
 msgid "Config"
 msgstr "设置"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:90
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:184
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "Configure"
 msgstr "设置"
@@ -1907,6 +1916,10 @@ msgstr "连接 Wii 遥控器 4"
 msgid "Connect Wii Remotes"
 msgstr "连接 Wii 遥控器"
 
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+msgid "Connect Wii Remotes for Emulated Controllers"
+msgstr ""
+
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "是否连接到互联网并执行在线系统更新？"
@@ -1920,7 +1933,7 @@ msgstr "连接类型："
 msgid "Content %08x is corrupt."
 msgstr "内容 %08x 已损坏。"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
 msgid "Continuous Scanning"
 msgstr "持续扫描"
 
@@ -2242,7 +2255,7 @@ msgstr "十字键"
 msgid "DJ Turntable"
 msgstr "打碟机"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "DK Bongos"
 msgstr "DK 小对鼓"
 
@@ -2278,7 +2291,7 @@ msgstr ""
 "器的输入与体感数据。<br><br>配置方法<a href=\"https://wiki.dolphin-emu.org/"
 "index.php?title=DSU_Client\">参见此页</a>。"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Dance Mat"
 msgstr "跳舞毯"
 
@@ -2308,6 +2321,7 @@ msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 文件(*.sav)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:38
 msgid "Dead Zone"
 msgstr "死区"
 
@@ -2721,7 +2735,7 @@ msgstr "双精度"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Down"
 msgstr "下"
 
@@ -2957,11 +2971,11 @@ msgstr "空"
 msgid "Emu Thread already running"
 msgstr "模拟线程已经在运行"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "模拟 Wii 的蓝牙适配器"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Emulated Wii Remote"
 msgstr "模拟 Wii 遥控器"
 
@@ -2971,7 +2985,7 @@ msgid "Emulation Speed"
 msgstr "模拟速度"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:152
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr "启用"
 
@@ -3024,7 +3038,7 @@ msgstr "启用震动"
 msgid "Enable Screen Saver"
 msgstr "允许屏幕保护程序"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:159
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
 msgid "Enable Speaker Data"
 msgstr "启用扬声器"
 
@@ -3680,7 +3694,7 @@ msgstr ""
 msgid "Failed to parse Redump.org data"
 msgstr "解析 Redump.org 数据失败"
 
-#: Source/Core/Core/Movie.cpp:942
+#: Source/Core/Core/Movie.cpp:946
 #, c-format
 msgid "Failed to read %s"
 msgstr "读取 %s 失败"
@@ -3775,7 +3789,7 @@ msgstr "快速"
 msgid "Fast Depth Calculation"
 msgstr "快速深度计算"
 
-#: Source/Core/Core/Movie.cpp:1220
+#: Source/Core/Core/Movie.cpp:1224
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3873,7 +3887,7 @@ msgstr "查找下一个(&N)"
 msgid "Find &Previous"
 msgstr "查找上一个(&P)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:994
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:839
 msgid "Finish Calibration"
 msgstr "完成校准"
 
@@ -3913,7 +3927,7 @@ msgstr "浮点"
 msgid "Follow &branch"
 msgstr "跟随分支(&B)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:962
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:807
 msgid "For best results please slowly move your input to all possible regions."
 msgstr "为获得最佳效果，请将输入标志缓慢移至所有可能的区域。"
 
@@ -4122,7 +4136,7 @@ msgstr "函数调用"
 msgid "Functions"
 msgstr "函数"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "GBA"
 msgstr "GBA"
 
@@ -4217,7 +4231,7 @@ msgstr "特定游戏设置"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "GameCube Adapter for Wii U"
 msgstr "Wii U GameCube 适配器"
 
@@ -4233,7 +4247,7 @@ msgstr "GameCube 控制器"
 msgid "GameCube Controller at Port %1"
 msgstr "端口 %1 的 GameCube 控制器"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:81
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:79
 msgid "GameCube Controllers"
 msgstr "GameCube 控制器"
 
@@ -4845,7 +4859,7 @@ msgstr "无效字面。"
 msgid "Invalid password provided."
 msgstr "提交的密码无效。"
 
-#: Source/Core/Core/Movie.cpp:885
+#: Source/Core/Core/Movie.cpp:889
 msgid "Invalid recording file"
 msgstr "无效录制文件"
 
@@ -4941,7 +4955,7 @@ msgstr "JIT 重编译器（推荐）"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "JIT Register Cache Off"
-msgstr ""
+msgstr "关闭 JIT 寄存器缓存"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:884
 msgid "JIT SystemRegisters Off"
@@ -4961,7 +4975,7 @@ msgid "Keep Window on Top"
 msgstr "窗口置顶"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Keyboard"
 msgstr "键盘"
 
@@ -5034,7 +5048,7 @@ msgstr "延迟: ~80毫秒"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Left"
 msgstr "左"
 
@@ -5050,7 +5064,7 @@ msgstr "左摇杆"
 msgid "Left Table"
 msgstr "左碟片"
 
-#: Source/Core/DolphinQt/TAS/IRWidget.cpp:18
+#: Source/Core/DolphinQt/TAS/IRWidget.cpp:20
 msgid ""
 "Left click to set the IR value.\n"
 "Right click to re-center it."
@@ -5058,7 +5072,7 @@ msgstr ""
 "左键单击设置 IR 值。\n"
 "右键单击重新居中。"
 
-#: Source/Core/DolphinQt/TAS/StickWidget.cpp:19
+#: Source/Core/DolphinQt/TAS/StickWidget.cpp:21
 msgid ""
 "Left click to set the stick value.\n"
 "Right click to re-center it."
@@ -5816,8 +5830,8 @@ msgstr "未找到 undo.dtm 文件，为防止影片出现不同步撤销载入�
 msgid "No value provided."
 msgstr "无给出的值。"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:220
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
@@ -6073,7 +6087,7 @@ msgstr "分区 %1"
 msgid "Passive"
 msgstr "被动"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
 msgid "Passthrough a Bluetooth adapter"
 msgstr "直通蓝牙适配器"
 
@@ -6163,11 +6177,11 @@ msgstr "选择调试字体"
 msgid "Ping"
 msgstr "延迟"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:21
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
 msgid "Pitch Down"
 msgstr "下俯"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:20
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
 msgid "Pitch Up"
 msgstr "上仰"
 
@@ -6207,7 +6221,7 @@ msgstr "玩家"
 msgid "Point"
 msgstr "指向"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:86
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:56
 msgid "Port %1"
 msgstr "端口 %1"
@@ -6233,17 +6247,17 @@ msgstr "后处理着色器配置"
 msgid "Prefetch Custom Textures"
 msgstr "预读取自定义纹理"
 
-#: Source/Core/Core/Movie.cpp:1123
+#: Source/Core/Core/Movie.cpp:1127
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "在 PlayController 中提前结束影片。 %u+%zu >%zu"
 
-#: Source/Core/Core/Movie.cpp:1234
+#: Source/Core/Core/Movie.cpp:1238
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "在 PlayWiimote 中提前结束影片。 %u+%d> %zu"
 
-#: Source/Core/Core/Movie.cpp:1209
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "在PlayWiimote 中提前结束影片。 %u> %zu"
@@ -6450,11 +6464,11 @@ msgstr "读取或写入"
 msgid "Read-Only Mode"
 msgstr "只读模式"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
 msgid "Real Balance Board"
 msgstr "真实平衡板"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Real Wii Remote"
 msgstr "真实 Wii 遥控器"
 
@@ -6521,7 +6535,7 @@ msgid "Redump.org Status:"
 msgstr "Redump.org 状态："
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:387
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
@@ -6627,8 +6641,8 @@ msgstr "请求加入你的派对"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:971
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:816
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "重置"
@@ -6645,7 +6659,7 @@ msgstr "重置穿透服务器到 %1:%2"
 msgid "Reset Traversal Settings"
 msgstr "重置穿透设置"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 msgid "Reset all saved Wii Remote pairings"
 msgstr "重置所有保存的 Wii 遥控器配对"
 
@@ -6688,7 +6702,7 @@ msgstr "修订版: %1"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Right"
 msgstr "右"
 
@@ -6718,11 +6732,11 @@ msgstr "下"
 msgid "Rocker Up"
 msgstr "上"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:22
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
 msgid "Roll Left"
 msgstr "左倾"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
 msgid "Roll Right"
 msgstr "右倾"
 
@@ -6945,7 +6959,7 @@ msgstr "保存到插槽 %1 - %2"
 msgid "Save..."
 msgstr "保存..."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:342
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:353
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "只有在 Wii 游戏运行时保存的 Wii 遥控器配对才能重置。"
 
@@ -6953,7 +6967,7 @@ msgstr "只有在 Wii 游戏运行时保存的 Wii 遥控器配对才能重置�
 msgid "Saved to /Wii/sd.raw (default size is 128mb)."
 msgstr "保存至 /Wii/sd.raw (默认大小是 128MB)。"
 
-#: Source/Core/Core/Movie.cpp:951
+#: Source/Core/Core/Movie.cpp:955
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "即时存档影片 %s 被破坏, 影片录制停止..."
@@ -7769,7 +7783,7 @@ msgstr "提升光盘传输率"
 msgid "Stable (once a year)"
 msgstr "稳定版（每年一次）"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "Standard Controller"
 msgstr "标准控制器"
 
@@ -7793,7 +7807,7 @@ msgstr "开始录制"
 msgid "Started game"
 msgstr "游戏已启动"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Steering Wheel"
 msgstr "方向盘"
 
@@ -8080,7 +8094,7 @@ msgstr "符号名:"
 msgid "Symbols"
 msgstr "符号"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
 msgid "Sync"
 msgstr "同步"
 
@@ -8096,7 +8110,7 @@ msgstr "同步所有 Wii 存档"
 msgid "Sync Saves"
 msgstr "同步存档"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
 msgid "Sync real Wii Remotes and pair them"
 msgstr "同步并配对真实 Wii 遥控器"
 
@@ -8543,11 +8557,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "此 USB 设备已列入白名单。"
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:898
 msgid "This WAD is not bootable."
 msgstr "无法启动该 WAD"
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
 msgstr "此 WAD 无效。"
 
@@ -8669,7 +8683,7 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr "该软件不能用于运行你非法持有的游戏。"
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
 msgstr "无法启动该软件。"
 
@@ -8751,6 +8765,11 @@ msgstr "TiB"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:33
 msgid "Tilt"
 msgstr "倾斜"
+
+#. i18n: Refers to the "Calibration" setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:50
+msgid "Time period of stable input to trigger calibration. (zero to disable)"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:907
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:178
@@ -9129,7 +9148,7 @@ msgstr "不带符号整数"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Up"
 msgstr "上"
 
@@ -9460,8 +9479,8 @@ msgstr ""
 "如果不确定，请选中此选项。"
 
 #: Source/Core/Common/MsgHandler.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:341
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:359
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
@@ -9470,7 +9489,7 @@ msgstr ""
 msgid "Warning"
 msgstr "警告"
 
-#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:30
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:33
 msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
@@ -9485,7 +9504,7 @@ msgid ""
 "the loaded file header (%u)"
 msgstr "警告：BAT 所标示的区块数 (%u) 与已载入文件头中的 (%u) 不匹配"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:1003
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9495,7 +9514,7 @@ msgstr ""
 "警告: 您读取的存档在当前影片结束之后。 (字节 %u > %zu) (输入 %u > %u) 。您需"
 "要读取另一个存档方可继续，或关闭只读模式再读取此状态存档。"
 
-#: Source/Core/Core/Movie.cpp:974
+#: Source/Core/Core/Movie.cpp:978
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9505,7 +9524,7 @@ msgstr ""
 "警告: 您读取的存档影片已结束在存档的当前帧之前(字节%u < %u) (帧%u < %u)。您需"
 "要读取另一个存档方可继续。"
 
-#: Source/Core/Core/Movie.cpp:1025
+#: Source/Core/Core/Movie.cpp:1029
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9515,7 +9534,7 @@ msgstr ""
 "警告: 您读取的存档在 %zu (0x%zX) 字节处与影片不匹配。您需要读取另一个存档方可"
 "继续，或关闭只读模式再读取此状态存档。否则将可能发生不同步。"
 
-#: Source/Core/Core/Movie.cpp:1042
+#: Source/Core/Core/Movie.cpp:1046
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9597,7 +9616,7 @@ msgstr "Wii NAND 根目录："
 msgid "Wii Remote"
 msgstr "Wii 遥控器"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:182
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:181
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
@@ -9619,7 +9638,7 @@ msgstr "Wii 遥控器震动"
 msgid "Wii Remote Settings"
 msgstr "Wii 遥控器设置"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:147
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:145
 msgid "Wii Remotes"
 msgstr "Wii 遥控器"
 
@@ -9715,11 +9734,11 @@ msgstr "XF 寄存器"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:34
 msgid "Yaw Left"
 msgstr "左转"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:35
 msgid "Yaw Right"
 msgstr "右转"
 
@@ -9851,6 +9870,11 @@ msgstr "开"
 msgid "or select a device"
 msgstr "或选择一个设备"
 
+#. i18n: "s" is the symbol for seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:48
+msgid "s"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:184
 msgid "uDraw GameTablet"
@@ -9888,6 +9912,11 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
 msgstr "°"
+
+#. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:40
+msgid "°/s"
+msgstr ""
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:54
 msgid "✔ Invite"

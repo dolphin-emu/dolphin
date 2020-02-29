@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-02-22 13:59+0100\n"
-"PO-Revision-Date: 2020-02-22 12:59+0000\n"
+"POT-Creation-Date: 2020-02-29 16:07+0100\n"
+"PO-Revision-Date: 2020-02-29 15:07+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Malay (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ms/)\n"
@@ -566,7 +566,7 @@ msgstr ""
 msgid "--> %1"
 msgstr "--> %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:183
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:198
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
@@ -727,7 +727,7 @@ msgstr ""
 "Proses matikan sedang berlangsung. Mana-mana data belum disimpan akan hilang "
 "jika anda hentikan emulasi semasa sebelum ia dimatikan. Paksa henti?"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:360
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:371
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Segerak hanya boleh dipicu bila permainan Wii berjalan."
 
@@ -1043,7 +1043,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
@@ -1092,6 +1092,11 @@ msgstr "Analisis"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:29
 msgid "Angle"
 msgstr "Sudut"
+
+#. i18n: Refers to the dead-zone setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:42
+msgid "Angular velocity to ignore."
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Anisotropic Filtering:"
@@ -1275,7 +1280,7 @@ msgstr "Tetapan Bahagian Belakang"
 msgid "Backend:"
 msgstr "Bahagian Belakang:"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:208
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
 msgid "Background Input"
 msgstr "Input Latar Belakang"
 
@@ -1523,12 +1528,16 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:969
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:814
 msgid "Calibrate"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:961
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:806
 msgid "Calibration"
+msgstr ""
+
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:46
+msgid "Calibration Period"
 msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:105
@@ -1550,7 +1559,7 @@ msgstr "Tidak dapat memulakan Sesi NetPlay ketika permainan masih berlangsung!"
 msgid "Cancel"
 msgstr "Batal"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:1010
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:855
 msgid "Cancel Calibration"
 msgstr ""
 
@@ -1583,7 +1592,7 @@ msgstr "Tidak dapat memulakan permainan, kerana IPL GC tidak ditemui."
 msgid "Center"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:970
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
 msgid "Center and Calibrate"
 msgstr ""
 
@@ -1603,7 +1612,7 @@ msgstr "Ubah Cakera"
 msgid "Change Discs Automatically"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1188
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Change the disc to %s"
 msgstr "Ubah cakera ke %s"
@@ -1729,7 +1738,7 @@ msgid "Comment"
 msgstr "Ulasan"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:206
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
 msgid "Common"
 msgstr ""
 
@@ -1775,8 +1784,8 @@ msgstr "Keadaan:"
 msgid "Config"
 msgstr "Konfig"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:90
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:184
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:73
 msgid "Configure"
 msgstr "Konfigur"
@@ -1855,6 +1864,10 @@ msgstr "Sambung Wii Remote 4"
 msgid "Connect Wii Remotes"
 msgstr "Sambung Wii Remote"
 
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+msgid "Connect Wii Remotes for Emulated Controllers"
+msgstr ""
+
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
 msgid "Connect to the Internet and perform an online system update?"
 msgstr "Sambung ke Internet dan lakukan kemaskini sistem atas-talian?"
@@ -1868,7 +1881,7 @@ msgstr "Jenis Sambungan:"
 msgid "Content %08x is corrupt."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
 msgid "Continuous Scanning"
 msgstr "Pengimbasan Berterusan"
 
@@ -2177,7 +2190,7 @@ msgstr "Pad-D"
 msgid "DJ Turntable"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "DK Bongos"
 msgstr "DK Bongos"
 
@@ -2210,7 +2223,7 @@ msgid ""
 "title=DSU_Client\">refer to this page</a>."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Dance Mat"
 msgstr "Tikar Menari"
 
@@ -2240,6 +2253,7 @@ msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Fail Datel MaxDrive/Pro (*.sav)"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:35
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:38
 msgid "Dead Zone"
 msgstr "Zon Mati"
 
@@ -2625,7 +2639,7 @@ msgstr "Dubel"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Down"
 msgstr "Turun"
 
@@ -2846,11 +2860,11 @@ msgstr "Kosong"
 msgid "Emu Thread already running"
 msgstr "Bebenang Emu sudah berjalan"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Emulasikan penyuai Bluetooth Wii"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Emulated Wii Remote"
 msgstr "Wii Remote Teremulasi"
 
@@ -2860,7 +2874,7 @@ msgid "Emulation Speed"
 msgstr "Kelajuan Emulasi"
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:152
+#: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr ""
 
@@ -2913,7 +2927,7 @@ msgstr "Benarkan Rumble"
 msgid "Enable Screen Saver"
 msgstr "Benarkan Penyelamat Skrin"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:159
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
 msgid "Enable Speaker Data"
 msgstr "Benarkan Data Pembesar Suara"
 
@@ -3548,7 +3562,7 @@ msgstr ""
 msgid "Failed to parse Redump.org data"
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:942
+#: Source/Core/Core/Movie.cpp:946
 #, c-format
 msgid "Failed to read %s"
 msgstr "Gagal membaca %s"
@@ -3643,7 +3657,7 @@ msgstr "Pantas"
 msgid "Fast Depth Calculation"
 msgstr "Pengiraan Kedalaman Pantas"
 
-#: Source/Core/Core/Movie.cpp:1220
+#: Source/Core/Core/Movie.cpp:1224
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3735,7 +3749,7 @@ msgstr ""
 msgid "Find &Previous"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:994
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:839
 msgid "Finish Calibration"
 msgstr ""
 
@@ -3775,7 +3789,7 @@ msgstr "Apung"
 msgid "Follow &branch"
 msgstr "Ikut &cabang"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:962
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:807
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 
@@ -3972,7 +3986,7 @@ msgstr "Panggilan fungsi"
 msgid "Functions"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "GBA"
 msgstr "GBA"
 
@@ -4069,7 +4083,7 @@ msgstr "Tetapan Khusus-Permainan"
 msgid "GameCube"
 msgstr "GameCube"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "GameCube Adapter for Wii U"
 msgstr "Penyesuai GameCube untuk Wii U"
 
@@ -4085,7 +4099,7 @@ msgstr "Pengawal GameCube"
 msgid "GameCube Controller at Port %1"
 msgstr "Pengawal GameCube pada Port %1"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:81
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:79
 msgid "GameCube Controllers"
 msgstr "Kawalan GameCube"
 
@@ -4672,7 +4686,7 @@ msgstr ""
 msgid "Invalid password provided."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:885
+#: Source/Core/Core/Movie.cpp:889
 msgid "Invalid recording file"
 msgstr "Fail rakaman tidak sah"
 
@@ -4788,7 +4802,7 @@ msgid "Keep Window on Top"
 msgstr "Kekalkan Tetingkap berada Diatas"
 
 #: Source/Core/Core/HW/GCKeyboard.cpp:21
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Keyboard"
 msgstr "Papan Kekunci"
 
@@ -4861,7 +4875,7 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Left"
 msgstr "Kiri"
 
@@ -4877,13 +4891,13 @@ msgstr "Bidak Kiri"
 msgid "Left Table"
 msgstr "Jadual Kiri"
 
-#: Source/Core/DolphinQt/TAS/IRWidget.cpp:18
+#: Source/Core/DolphinQt/TAS/IRWidget.cpp:20
 msgid ""
 "Left click to set the IR value.\n"
 "Right click to re-center it."
 msgstr ""
 
-#: Source/Core/DolphinQt/TAS/StickWidget.cpp:19
+#: Source/Core/DolphinQt/TAS/StickWidget.cpp:21
 msgid ""
 "Left click to set the stick value.\n"
 "Right click to re-center it."
@@ -5623,8 +5637,8 @@ msgstr ""
 msgid "No value provided."
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:220
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
@@ -5878,7 +5892,7 @@ msgstr "Sekatan %1"
 msgid "Passive"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
 msgid "Passthrough a Bluetooth adapter"
 msgstr "Passthrough penyesuai Bluetooth"
 
@@ -5968,11 +5982,11 @@ msgstr "Ambil satu fon nyahpepijat"
 msgid "Ping"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:21
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:31
 msgid "Pitch Down"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:20
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:30
 msgid "Pitch Up"
 msgstr ""
 
@@ -6012,7 +6026,7 @@ msgstr "Pemain"
 msgid "Point"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:86
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:56
 msgid "Port %1"
 msgstr "Port %1"
@@ -6040,17 +6054,17 @@ msgstr ""
 msgid "Prefetch Custom Textures"
 msgstr "Dapatkan Tekstur Suai"
 
-#: Source/Core/Core/Movie.cpp:1123
+#: Source/Core/Core/Movie.cpp:1127
 #, c-format
 msgid "Premature movie end in PlayController. %u + %zu > %zu"
 msgstr "Penamatan cereka pramatang dalam Pengawal Main. %u + %zu > %zu"
 
-#: Source/Core/Core/Movie.cpp:1234
+#: Source/Core/Core/Movie.cpp:1238
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %zu"
 msgstr "Penamatan cereka pramatang dalam PlayWiimote. %u + %d > %zu"
 
-#: Source/Core/Core/Movie.cpp:1209
+#: Source/Core/Core/Movie.cpp:1213
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %zu"
 msgstr "Penamatan cereka dalam PlayWiimote. %u > %zu"
@@ -6253,11 +6267,11 @@ msgstr "Baca atau Tulis"
 msgid "Read-Only Mode"
 msgstr "Mod Baca-Sahaja"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
 msgid "Real Balance Board"
 msgstr "Papan Imbang Sebenar"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
 msgid "Real Wii Remote"
 msgstr "Wii Remote Sebenar"
 
@@ -6317,7 +6331,7 @@ msgid "Redump.org Status:"
 msgstr ""
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:387
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
@@ -6420,8 +6434,8 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:32
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:971
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:816
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "Tetap Semula"
@@ -6438,7 +6452,7 @@ msgstr "Tetap Semula Pelayan Traversal ke %1:%2"
 msgid "Reset Traversal Settings"
 msgstr "Tetap Semula Tetapan Traversal"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 msgid "Reset all saved Wii Remote pairings"
 msgstr "Tetap semula semua perpasangan Wii Remote tersimpan"
 
@@ -6481,7 +6495,7 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Right"
 msgstr "Kanan"
 
@@ -6511,11 +6525,11 @@ msgstr ""
 msgid "Rocker Up"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:22
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:32
 msgid "Roll Left"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:23
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:33
 msgid "Roll Right"
 msgstr ""
 
@@ -6730,7 +6744,7 @@ msgstr "Simpan ke Slot %1 - %2"
 msgid "Save..."
 msgstr "Simpan..."
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:342
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:353
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr ""
 "Perpasangan Wii Remote tersimpan hanya boleh ditetapkan semula bila "
@@ -6740,7 +6754,7 @@ msgstr ""
 msgid "Saved to /Wii/sd.raw (default size is 128mb)."
 msgstr "Disimpan ke /Wii/sd.raw (saiz lalai ialah 128mb)."
 
-#: Source/Core/Core/Movie.cpp:951
+#: Source/Core/Core/Movie.cpp:955
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Keadaan simpan cakera %s telah rosak, rakaman cereka dihentikan..."
@@ -7508,7 +7522,7 @@ msgstr "Lajukan Kadar Pemindahan Cakera"
 msgid "Stable (once a year)"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:93
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "Standard Controller"
 msgstr "Pengawal Piawai"
 
@@ -7532,7 +7546,7 @@ msgstr "Mula Rakaman"
 msgid "Started game"
 msgstr "Permainan bermula"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:94
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Steering Wheel"
 msgstr "Roda Pacu"
 
@@ -7804,7 +7818,7 @@ msgstr "Nama simbol:"
 msgid "Symbols"
 msgstr "Simbol"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
 msgid "Sync"
 msgstr "Segerak"
 
@@ -7820,7 +7834,7 @@ msgstr ""
 msgid "Sync Saves"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
 msgid "Sync real Wii Remotes and pair them"
 msgstr "Segerak Wii Remotes sebenar dan pasangankannya"
 
@@ -8260,11 +8274,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "Peranti USB sudah berada dalam senarai putih."
 
-#: Source/Core/Core/ConfigManager.cpp:896
+#: Source/Core/Core/ConfigManager.cpp:898
 msgid "This WAD is not bootable."
 msgstr "WAD ini tidak boleh dibutkan."
 
-#: Source/Core/Core/ConfigManager.cpp:891
+#: Source/Core/Core/ConfigManager.cpp:893
 msgid "This WAD is not valid."
 msgstr "WAD ini tidak sah."
 
@@ -8376,7 +8390,7 @@ msgstr ""
 "Perisian ini tidak seharusnya digunakan untuk main permainan bukan milik "
 "anda secara sah."
 
-#: Source/Core/Core/ConfigManager.cpp:913
+#: Source/Core/Core/ConfigManager.cpp:915
 msgid "This title cannot be booted."
 msgstr "Tajuk ini tidak boleh dibutkan."
 
@@ -8460,6 +8474,11 @@ msgstr "TiB"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:33
 msgid "Tilt"
 msgstr "Condong"
+
+#. i18n: Refers to the "Calibration" setting of gyroscope input.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:50
+msgid "Time period of stable input to trigger calibration. (zero to disable)"
+msgstr ""
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:907
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:178
@@ -8824,7 +8843,7 @@ msgstr "Integer Tidak Bertanda"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:21
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
 msgid "Up"
 msgstr "Naik"
 
@@ -9124,8 +9143,8 @@ msgid ""
 msgstr ""
 
 #: Source/Core/Common/MsgHandler.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:341
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:359
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
@@ -9134,7 +9153,7 @@ msgstr ""
 msgid "Warning"
 msgstr "Amaran"
 
-#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:30
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:33
 msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
@@ -9149,7 +9168,7 @@ msgstr ""
 "Amaran: Nombor blok ditunjukkan oleh BAT (%u) tidak sepadan dengan pengepala "
 "fail termuat (%u)"
 
-#: Source/Core/Core/Movie.cpp:999
+#: Source/Core/Core/Movie.cpp:1003
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -9160,7 +9179,7 @@ msgstr ""
 "(bait %u > %zu) (input %u > %u). Anda seharusnya memuatkan simpan lain "
 "sebelum diteruskan, atau muat keadaan ini dengan mod baca-sahaja dimatikan."
 
-#: Source/Core/Core/Movie.cpp:974
+#: Source/Core/Core/Movie.cpp:978
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -9171,7 +9190,7 @@ msgstr ""
 "di dalam simpan. (bait %u < %u) (bingkai %u < %u). Anda seharusnya memuatkan "
 "simpan lain sebelum diteruskan."
 
-#: Source/Core/Core/Movie.cpp:1025
+#: Source/Core/Core/Movie.cpp:1029
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -9183,7 +9202,7 @@ msgstr ""
 "muatkan keadaan ini dengan mod baca-sahaja dimatikan. Jika tidak anda "
 "berkemungkinan akan mendapat nyah-segerak."
 
-#: Source/Core/Core/Movie.cpp:1042
+#: Source/Core/Core/Movie.cpp:1046
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -9268,7 +9287,7 @@ msgstr "Root NAND Wii:"
 msgid "Wii Remote"
 msgstr "Wii Remote"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:182
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:181
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
@@ -9290,7 +9309,7 @@ msgstr "Rumble Wii Remote"
 msgid "Wii Remote Settings"
 msgstr "Tetapan Kawalan Jauh Wii"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:147
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:145
 msgid "Wii Remotes"
 msgstr "Wii Remotes"
 
@@ -9386,11 +9405,11 @@ msgstr "Daftar XF"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:24
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:34
 msgid "Yaw Left"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:25
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:35
 msgid "Yaw Right"
 msgstr ""
 
@@ -9520,6 +9539,11 @@ msgstr "hidup"
 msgid "or select a device"
 msgstr "atau pilih satu peranti"
 
+#. i18n: "s" is the symbol for seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:48
+msgid "s"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:184
 msgid "uDraw GameTablet"
@@ -9557,6 +9581,11 @@ msgstr ""
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:32
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
+msgstr ""
+
+#. i18n: "°/s" is the symbol for degrees (angular measurement) divided by seconds.
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:40
+msgid "°/s"
 msgstr ""
 
 #: Source/Core/DolphinQt/DiscordJoinRequestDialog.cpp:54
