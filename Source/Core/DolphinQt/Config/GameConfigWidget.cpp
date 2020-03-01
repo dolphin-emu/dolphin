@@ -113,8 +113,13 @@ void GameConfigWidget::CreateWidgets()
   core_layout->addWidget(m_sync_gpu, 3, 0);
   core_layout->addWidget(m_enable_fast_disc, 4, 0);
   core_layout->addWidget(m_use_dsp_hle, 5, 0);
-  core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 6, 0);
-  core_layout->addWidget(m_deterministic_dual_core, 6, 1);
+
+  auto* dual_core_layout = new QGridLayout;
+  dual_core_layout->addWidget(new QLabel(tr("Deterministic dual core:")), 0, 0);
+  dual_core_layout->addWidget(m_deterministic_dual_core, 0, 1);
+  dual_core_layout->setColumnStretch(1, 1);
+
+  core_layout->addLayout(dual_core_layout, 6, 0, 1, 1);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -139,10 +144,17 @@ void GameConfigWidget::CreateWidgets()
   m_use_monoscopic_shadows->setToolTip(
       tr("Use a single depth buffer for both eyes. Needed for a few games."));
 
-  stereoscopy_layout->addWidget(new QLabel(tr("Depth Percentage:")), 0, 0);
-  stereoscopy_layout->addWidget(m_depth_slider, 0, 1);
-  stereoscopy_layout->addWidget(new QLabel(tr("Convergence:")), 1, 0);
-  stereoscopy_layout->addWidget(m_convergence_spin, 1, 1);
+  auto* stereoscopy_slider_layout = new QGridLayout;
+
+  stereoscopy_slider_layout->addWidget(new QLabel(tr("Depth Percentage:")), 0, 0);
+  stereoscopy_slider_layout->addWidget(m_depth_slider, 0, 1);
+  stereoscopy_slider_layout->addWidget(new QLabel(tr("Convergence:")), 1, 0);
+  stereoscopy_slider_layout->addWidget(m_convergence_spin, 1, 1);
+
+  stereoscopy_slider_layout->setColumnStretch(1, 1);
+
+  stereoscopy_layout->addLayout(stereoscopy_slider_layout, 0, 0, 1, 1);
+
   stereoscopy_layout->addWidget(m_use_monoscopic_shadows, 2, 0);
 
   auto* settings_box = new QGroupBox(tr("Game-Specific Settings"));
