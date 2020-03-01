@@ -219,17 +219,17 @@ void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
-  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+  tools_menu->addAction(tr("&Resource Pack Manager..."), this,
                         [this] { emit ShowResourcePackManager(); });
 
   m_show_cheat_manager =
-      tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
+      tools_menu->addAction(tr("&Cheats Manager..."), this, [this] { emit ShowCheatsManager(); });
 
   connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
-  tools_menu->addAction(tr("&FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+  tools_menu->addAction(tr("&FIFO Player..."), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addSeparator();
 
@@ -242,14 +242,14 @@ void MenuBar::AddToolsMenu()
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load &GameCube Main Menu"));
 
-  m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
+  m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-&J"), this,
                                   [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_J); });
-  m_ntscu_ipl = gc_ipl->addAction(tr("NTSC-U"), this,
+  m_ntscu_ipl = gc_ipl->addAction(tr("NTSC-&U"), this,
                                   [this] { emit BootGameCubeIPL(DiscIO::Region::NTSC_U); });
   m_pal_ipl =
-      gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
+      gc_ipl->addAction(tr("&PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("&Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
+  tools_menu->addAction(tr("&Memory Card Manager..."), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();
 
@@ -283,7 +283,7 @@ void MenuBar::AddToolsMenu()
   tools_menu->addSeparator();
 
   tools_menu->addAction(tr("&Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("E&xport All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  tools_menu->addAction(tr("E&xport All Wii Saves..."), this, &MenuBar::ExportWiiSaves);
 
   QMenu* menu = new QMenu(tr("&Connect Wii Remotes"), tools_menu);
 
@@ -497,13 +497,13 @@ void MenuBar::AddViewMenu()
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("&Settings"), this, &MenuBar::Configure);
+  options_menu->addAction(tr("&Settings..."), this, &MenuBar::Configure);
   options_menu->addSeparator();
-  options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
-  options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
+  options_menu->addAction(tr("&Graphics Settings..."), this, &MenuBar::ConfigureGraphics);
+  options_menu->addAction(tr("&Audio Settings..."), this, &MenuBar::ConfigureAudio);
   m_controllers_action =
-      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
-  options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
+      options_menu->addAction(tr("&Controller Settings..."), this, &MenuBar::ConfigureControllers);
+  options_menu->addAction(tr("&Hotkey Settings..."), this, &MenuBar::ConfigureHotkeys);
 
   options_menu->addSeparator();
 
@@ -712,7 +712,7 @@ void MenuBar::AddMovieMenu()
   m_recording_read_only->setChecked(Movie::IsReadOnly());
   connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
 
-  movie_menu->addAction(tr("TAS &Input"), this, [this] { emit ShowTASInput(); });
+  movie_menu->addAction(tr("TAS &Input..."), this, [this] { emit ShowTASInput(); });
 
   movie_menu->addSeparator();
 

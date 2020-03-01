@@ -23,7 +23,7 @@
 #include <QProgressDialog>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
-#include <QTableView>
+#include <QTableWidget>
 #include <QUrl>
 
 #include "Common/FileUtil.h"
@@ -102,7 +102,7 @@ void GameList::MakeListView()
   m_list = new QTableView(this);
   m_list->setModel(m_list_proxy);
 
-  m_list->setTabKeyNavigation(false);
+  m_list->setTabKeyNavigation(true);
   m_list->setSelectionMode(QAbstractItemView::ExtendedSelection);
   m_list->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_list->setAlternatingRowColors(true);
@@ -146,6 +146,8 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_TAGS, QHeaderView::Interactive);
+
+
 
   // There's some odd platform-specific behavior with default minimum section size
   hor_header->setMinimumSectionSize(38);
