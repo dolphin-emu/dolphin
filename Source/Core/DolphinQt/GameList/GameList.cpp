@@ -361,7 +361,7 @@ void GameList::ShowContextMenu(const QPoint&)
     if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
     {
       menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
-      menu->addAction(tr("&Export Wii Save"), this, &GameList::ExportWiiSave);
+      menu->addAction(tr("&Export Wii Save..."), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
@@ -403,7 +403,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     menu->addSeparator();
 
-    QAction* netplay_host = new QAction(tr("Host with &NetPlay"), menu);
+    QAction* netplay_host = new QAction(tr("Host with &NetPlay..."), menu);
 
     connect(netplay_host, &QAction::triggered, [this, game] {
       emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
