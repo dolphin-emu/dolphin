@@ -298,7 +298,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform != DiscIO::Platform::ELFOrDOL)
     {
-      menu->addAction(tr("&Properties"), this, &GameList::OpenProperties);
+      menu->addAction(tr("&Properties..."), this, &GameList::OpenProperties);
       menu->addAction(tr("&Wiki"), this, &GameList::OpenWiki);
 
       menu->addSeparator();
@@ -310,9 +310,9 @@ void GameList::ShowContextMenu(const QPoint&)
       const auto blob_type = game->GetBlobType();
 
       if (blob_type == DiscIO::BlobType::GCZ)
-        menu->addAction(tr("Decompress ISO..."), this, [this] { CompressISO(true); });
+        menu->addAction(tr("&Decompress ISO..."), this, [this] { CompressISO(true); });
       else if (blob_type == DiscIO::BlobType::PLAIN)
-        menu->addAction(tr("Compress ISO..."), this, [this] { CompressISO(false); });
+        menu->addAction(tr("&Compress ISO..."), this, [this] { CompressISO(false); });
 
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
 
@@ -325,7 +325,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiDisc)
     {
-      auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
+      auto* perform_disc_update = menu->addAction(tr("Perform &Wii System Update"), this,
                                                   [this, file_path = game->GetFilePath()] {
                                                     WiiUpdate::PerformDiscUpdate(file_path, this);
                                                   });
@@ -334,8 +334,8 @@ void GameList::ShowContextMenu(const QPoint&)
 
     if (platform == DiscIO::Platform::WiiWAD)
     {
-      QAction* wad_install_action = new QAction(tr("Install to the NAND"), menu);
-      QAction* wad_uninstall_action = new QAction(tr("Uninstall from the NAND"), menu);
+      QAction* wad_install_action = new QAction(tr("&Install to the NAND"), menu);
+      QAction* wad_uninstall_action = new QAction(tr("&Uninstall from the NAND"), menu);
 
       connect(wad_install_action, &QAction::triggered, this, &GameList::InstallWAD);
       connect(wad_uninstall_action, &QAction::triggered, this, &GameList::UninstallWAD);
@@ -361,7 +361,7 @@ void GameList::ShowContextMenu(const QPoint&)
     if (platform == DiscIO::Platform::WiiWAD || platform == DiscIO::Platform::WiiDisc)
     {
       menu->addAction(tr("Open Wii &Save Folder"), this, &GameList::OpenWiiSaveFolder);
-      menu->addAction(tr("Export Wii Save"), this, &GameList::ExportWiiSave);
+      menu->addAction(tr("&Export Wii Save"), this, &GameList::ExportWiiSave);
       menu->addSeparator();
     }
 
@@ -372,13 +372,13 @@ void GameList::ShowContextMenu(const QPoint&)
     }
 
     menu->addAction(tr("Open &Containing Folder"), this, &GameList::OpenContainingFolder);
-    menu->addAction(tr("Delete File..."), this, &GameList::DeleteFile);
+    menu->addAction(tr("&Delete File..."), this, &GameList::DeleteFile);
 
     menu->addSeparator();
 
     auto* model = Settings::Instance().GetGameListModel();
 
-    auto* tags_menu = menu->addMenu(tr("Tags"));
+    auto* tags_menu = menu->addMenu(tr("&Tags"));
 
     auto path = game->GetFilePath();
     auto game_tags = model->GetGameTags(path);
@@ -398,12 +398,12 @@ void GameList::ShowContextMenu(const QPoint&)
       });
     }
 
-    menu->addAction(tr("New Tag..."), this, &GameList::NewTag);
-    menu->addAction(tr("Remove Tag..."), this, &GameList::DeleteTag);
+    tags_menu->addAction(tr("&New Tag..."), this, &GameList::NewTag);
+    tags_menu->addAction(tr("&Remove Tag..."), this, &GameList::DeleteTag);
 
     menu->addSeparator();
 
-    QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
+    QAction* netplay_host = new QAction(tr("Host with &NetPlay"), menu);
 
     connect(netplay_host, &QAction::triggered, [this, game] {
       emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
