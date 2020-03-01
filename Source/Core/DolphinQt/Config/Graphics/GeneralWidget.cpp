@@ -68,14 +68,20 @@ void GeneralWidget::CreateWidgets()
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()),
                              QVariant(QString::fromStdString(backend->GetName())));
 
-  m_video_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
-  m_video_layout->addWidget(m_backend_combo, 0, 1);
+  auto* m_combobox_layout = new QGridLayout;
 
-  m_video_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
-  m_video_layout->addWidget(m_adapter_combo, 1, 1);
+  m_combobox_layout->addWidget(new QLabel(tr("Backend:")), 0, 0);
+  m_combobox_layout->addWidget(m_backend_combo, 0, 1);
 
-  m_video_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
-  m_video_layout->addWidget(m_aspect_combo, 3, 1);
+  m_combobox_layout->addWidget(new QLabel(tr("Adapter:")), 1, 0);
+  m_combobox_layout->addWidget(m_adapter_combo, 1, 1);
+
+  m_combobox_layout->addWidget(new QLabel(tr("Aspect Ratio:")), 3, 0);
+  m_combobox_layout->addWidget(m_aspect_combo, 3, 1);
+
+  m_combobox_layout->setColumnStretch(1, 1);
+
+  m_video_layout->addLayout(m_combobox_layout, 0, 0, 1, 0);
 
   m_video_layout->addWidget(m_enable_vsync, 4, 0);
   m_video_layout->addWidget(m_enable_fullscreen, 4, 1);
