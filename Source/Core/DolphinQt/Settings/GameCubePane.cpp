@@ -70,6 +70,7 @@ void GameCubePane::CreateWidgets()
   ipl_layout->addWidget(m_skip_main_menu, 0, 0);
   ipl_layout->addWidget(new QLabel(tr("System Language:")), 1, 0);
   ipl_layout->addWidget(m_language_combo, 1, 1);
+  ipl_layout->setColumnStretch(1, 1);
 
   // Device Settings
   QGroupBox* device_box = new QGroupBox(tr("Device Settings"), this);
@@ -82,6 +83,8 @@ void GameCubePane::CreateWidgets()
     m_slot_buttons[i] = new QPushButton(tr("..."), device_box);
     m_slot_buttons[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   }
+
+  device_layout->setColumnStretch(1, 1);
 
   // Add slot devices
 

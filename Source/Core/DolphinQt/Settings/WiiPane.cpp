@@ -103,18 +103,23 @@ void WiiPane::CreateMisc()
 {
   auto* misc_settings_group = new QGroupBox(tr("Misc Settings"));
   auto* misc_settings_group_layout = new QGridLayout();
+
   misc_settings_group->setLayout(misc_settings_group_layout);
   m_main_layout->addWidget(misc_settings_group);
+
   m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new QComboBox();
+
   m_aspect_ratio_choice->addItem(tr("4:3"));
   m_aspect_ratio_choice->addItem(tr("16:9"));
+
   m_system_language_choice_label = new QLabel(tr("System Language:"));
   m_system_language_choice = new QComboBox();
+
   m_system_language_choice->addItem(tr("Japanese"));
   m_system_language_choice->addItem(tr("English"));
   m_system_language_choice->addItem(tr("German"));
@@ -137,10 +142,19 @@ void WiiPane::CreateMisc()
   misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
+
+  misc_settings_group_layout->setRowStretch(1, 1);
+
+  auto* m_aspect_system_layout = new QGridLayout;
+  // Allows stretching of comboboxes to match position of labels
+  m_aspect_system_layout->addWidget(m_aspect_ratio_choice_label, 0, 0, 1, 1);
+  m_aspect_system_layout->addWidget(m_aspect_ratio_choice, 0, 1, 1, 1);
+  m_aspect_system_layout->addWidget(m_system_language_choice_label, 1, 0, 1, 1);
+  m_aspect_system_layout->addWidget(m_system_language_choice, 1, 1, 1, 1);
+
+  m_aspect_system_layout->setColumnStretch(1, 1);
+
+  misc_settings_group_layout->addLayout(m_aspect_system_layout, 2, 0, 1, 0);
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
