@@ -135,8 +135,8 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
 void PerformOnlineUpdate(const std::string& region, QWidget* parent)
 {
   const int confirm = ModalMessageBox::question(
-      parent, QObject::tr("Confirm"),
-      QObject::tr("Connect to the Internet and perform an online system update?"));
+      parent, QObject::tr("Confirm Wii System Update"),
+      QObject::tr("Connect to the Internet and perform an online Wii system update?"));
   if (confirm != QMessageBox::Yes)
     return;
 

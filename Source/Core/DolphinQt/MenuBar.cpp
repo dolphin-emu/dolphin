@@ -267,7 +267,7 @@ void MenuBar::AddToolsMenu()
 
   connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
 
-  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System &Update"));
+  m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online Wii System &Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(
       tr("&Current Region"), this, [this] { emit PerformOnlineUpdate(""); });
   m_perform_online_update_menu->addSeparator();
