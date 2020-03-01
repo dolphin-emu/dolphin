@@ -16,6 +16,7 @@
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWindow>
+#include <QScreen>
 
 #include <future>
 #include <optional>
@@ -1649,11 +1650,21 @@ void MainWindow::OnRequestGolfControl()
 
 void MainWindow::ShowTASInput()
 {
+  // Used to position TAS windows in a more friendly way
+  QSize desktop_size = this->screen()->size();
+  int pad = 120;
+
   for (int i = 0; i < num_gc_controllers; i++)
   {
     if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
         SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
     {
+      int win_width = m_gc_tas_input_windows[i]->width();
+      int win_height = m_gc_tas_input_windows[i]->height();
+
+      int win_y = pad + (i * 15);
+
+      m_gc_tas_input_windows[i]->setGeometry(pad, win_y, win_width, win_height);
       m_gc_tas_input_windows[i]->show();
       m_gc_tas_input_windows[i]->raise();
       m_gc_tas_input_windows[i]->activateWindow();
@@ -1665,6 +1676,13 @@ void MainWindow::ShowTASInput()
     if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
+      int win_width = m_wii_tas_input_windows[i]->width();
+      int win_height = m_wii_tas_input_windows[i]->height();
+
+      int win_x = (desktop_size.width() - win_width) - pad;
+      int win_y = pad + (i * 15);
+
+      m_wii_tas_input_windows[i]->setGeometry(win_x, win_y, win_width, win_height);
       m_wii_tas_input_windows[i]->show();
       m_wii_tas_input_windows[i]->raise();
       m_wii_tas_input_windows[i]->activateWindow();
