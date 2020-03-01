@@ -96,8 +96,14 @@ void AdvancedWidget::CreateWidgets()
   dump_layout->addWidget(m_use_fullres_framedumps, 0, 0);
 #if defined(HAVE_FFMPEG)
   dump_layout->addWidget(m_dump_use_ffv1, 0, 1);
-  dump_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 1, 0);
-  dump_layout->addWidget(m_dump_bitrate, 1, 1);
+
+  auto* bitrate_layout = new QGridLayout;
+
+  bitrate_layout->addWidget(new QLabel(tr("Bitrate (kbps):")), 0, 0);
+  bitrate_layout->addWidget(m_dump_bitrate, 0, 1);
+  bitrate_layout->setColumnStretch(1, 1);
+
+  dump_layout->addLayout(bitrate_layout, 1, 0, 1, 0);
 #endif
 
   // Misc.
