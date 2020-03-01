@@ -84,6 +84,7 @@ void GameConfigWidget::CreateWidgets()
   auto* core_box = new QGroupBox(tr("Core"));
   auto* core_layout = new QGridLayout;
   core_box->setLayout(core_layout);
+  core_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   m_enable_dual_core = new QCheckBox(tr("Enable Dual Core"));
   m_enable_mmu = new QCheckBox(tr("Enable MMU"));
@@ -119,6 +120,7 @@ void GameConfigWidget::CreateWidgets()
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
   auto* stereoscopy_layout = new QGridLayout;
   stereoscopy_box->setLayout(stereoscopy_layout);
+  stereoscopy_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   m_depth_slider = new QSlider(Qt::Horizontal);
 
@@ -146,6 +148,7 @@ void GameConfigWidget::CreateWidgets()
   auto* settings_box = new QGroupBox(tr("Game-Specific Settings"));
   auto* settings_layout = new QVBoxLayout;
   settings_box->setLayout(settings_layout);
+  settings_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 
   settings_layout->addWidget(
       new QLabel(tr("These settings override core Dolphin settings.\nUndetermined means the game "
@@ -154,10 +157,9 @@ void GameConfigWidget::CreateWidgets()
   settings_layout->addWidget(stereoscopy_box);
 
   auto* general_layout = new QGridLayout;
-
   general_layout->addWidget(settings_box, 0, 0, 1, -1);
-
   general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
+  general_layout->setRowStretch(2, 1);
 
   for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                           m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
