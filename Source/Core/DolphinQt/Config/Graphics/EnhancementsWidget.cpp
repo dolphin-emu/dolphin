@@ -85,16 +85,21 @@ void EnhancementsWidget::CreateWidgets()
   m_arbitrary_mipmap_detection = new GraphicsBool(tr("Arbitrary Mipmap Detection"),
                                                   Config::GFX_ENHANCE_ARBITRARY_MIPMAP_DETECTION);
 
-  enhancements_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
-  enhancements_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
-  enhancements_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
-  enhancements_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
-  enhancements_layout->addWidget(m_af_combo, 2, 1, 1, -1);
+  auto* enhancements_combo_layout = new QGridLayout;
 
-  enhancements_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 4, 0);
-  enhancements_layout->addWidget(m_pp_effect, 4, 1);
-  enhancements_layout->addWidget(m_configure_pp_effect, 4, 2);
+  enhancements_combo_layout->addWidget(new QLabel(tr("Internal Resolution:")), 0, 0);
+  enhancements_combo_layout->addWidget(m_ir_combo, 0, 1, 1, -1);
+  enhancements_combo_layout->addWidget(new QLabel(tr("Anti-Aliasing:")), 1, 0);
+  enhancements_combo_layout->addWidget(m_aa_combo, 1, 1, 1, -1);
+  enhancements_combo_layout->addWidget(new QLabel(tr("Anisotropic Filtering:")), 2, 0);
+  enhancements_combo_layout->addWidget(m_af_combo, 2, 1, 1, -1);
+
+  enhancements_combo_layout->addWidget(new QLabel(tr("Post-Processing Effect:")), 4, 0);
+  enhancements_combo_layout->addWidget(m_pp_effect, 4, 1);
+  enhancements_combo_layout->addWidget(m_configure_pp_effect, 4, 2);
+
+  enhancements_combo_layout->setColumnStretch(1, 1);
+  enhancements_layout->addLayout(enhancements_combo_layout, 0, 0, 1, 0);
 
   enhancements_layout->addWidget(m_scaled_efb_copy, 5, 0);
   enhancements_layout->addWidget(m_per_pixel_lighting, 5, 1);
