@@ -1,5 +1,5 @@
 //
-// Copyright (C) 2016 Google, Inc.
+// Copyright (C) 2016-2018 Google, Inc.
 // Copyright (C) 2016 LunarG, Inc.
 //
 // All rights reserved.
@@ -126,8 +126,6 @@ bool HlslGrammar::acceptIdentifier(HlslToken& idToken)
 //
 bool HlslGrammar::acceptCompilationUnit()
 {
-    TIntermNode* unitNode = nullptr;
-
     if (! acceptDeclarationList(unitNode))
         return false;
 
@@ -324,7 +322,7 @@ bool HlslGrammar::acceptSamplerDeclarationDX9(TType& /*type*/)
 // node for all the initializers. Each function created is a top-level node to grow
 // into the passed-in nodeList.
 //
-// If 'nodeList' is passed in as non-null, it must an aggregate to extend for
+// If 'nodeList' is passed in as non-null, it must be an aggregate to extend for
 // each top-level node the declaration creates. Otherwise, if only one top-level
 // node in generated here, that is want is returned in nodeList.
 //
@@ -489,7 +487,7 @@ bool HlslGrammar::acceptDeclaration(TIntermNode*& nodeList)
                         // Declare the variable and add any initializer code to the AST.
                         // The top-level node is always made into an aggregate, as that's
                         // historically how the AST has been.
-                        initializers = intermediate.growAggregate(initializers,
+                        initializers = intermediate.growAggregate(initializers, 
                             parseContext.declareVariable(idToken.loc, *fullName, variableType, expressionNode),
                             idToken.loc);
                     }
@@ -506,11 +504,16 @@ bool HlslGrammar::acceptDeclaration(TIntermNode*& nodeList)
     if (initializers != nullptr)
         initializers->setOperator(EOpSequence);
 
-    // Add the initializers' aggregate to the nodeList we were handed.
-    if (nodeList)
-        nodeList = intermediate.growAggregate(nodeList, initializers);
-    else
-        nodeList = initializers;
+    // if we have a locally scoped static, it needs a globally scoped initializer
+    if (declaredType.getQualifier().storage == EvqGlobal && !parseContext.symbolTable.atGlobalLevel()) {
+        unitNode = intermediate.growAggregate(unitNode, initializers, idToken.loc);
+    } else {
+        // Add the initializers' aggregate to the nodeList we were handed.
+        if (nodeList)
+            nodeList = intermediate.growAggregate(nodeList, initializers);
+        else
+            nodeList = initializers;
+    }
 
     // SEMICOLON
     if (! acceptTokenClass(EHTokSemicolon)) {
@@ -518,13 +521,11 @@ bool HlslGrammar::acceptDeclaration(TIntermNode*& nodeList)
         // was actually an assignment such as "float = 4", where "float" is an identifier.
         // We put the token back to let further parsing happen for cases where that may
         // happen.  This errors on the side of caution, and mostly triggers the error.
-        if (peek() == EHTokAssign || peek() == EHTokLeftBracket || peek() == EHTokDot || peek() == EHTokComma) {
+        if (peek() == EHTokAssign || peek() == EHTokLeftBracket || peek() == EHTokDot || peek() == EHTokComma)
             recedeToken();
-            return false;
-        } else {
+        else
             expected(";");
-            return false;
-        }
+        return false;
     }
 
     return true;
@@ -651,7 +652,7 @@ bool HlslGrammar::acceptQualifier(TQualifier& qualifier)
     do {
         switch (peek()) {
         case EHTokStatic:
-            qualifier.storage = parseContext.symbolTable.atGlobalLevel() ? EvqGlobal : EvqTemporary;
+            qualifier.storage = EvqGlobal;
             break;
         case EHTokExtern:
             // TODO: no meaning in glslang?
@@ -1162,6 +1163,49 @@ bool HlslGrammar::acceptSubpassInputType(TType& type)
     return true;
 }
 
+// sampler_type for DX9 compatibility 
+//      : SAMPLER
+//      | SAMPLER1D
+//      | SAMPLER2D
+//      | SAMPLER3D
+//      | SAMPLERCUBE
+bool HlslGrammar::acceptSamplerTypeDX9(TType &type)
+{
+    // read sampler type
+    const EHlslTokenClass samplerType = peek();
+
+    TSamplerDim dim = EsdNone;
+    TType txType(EbtFloat, EvqUniform, 4); // default type is float4
+
+    bool isShadow = false;
+
+    switch (samplerType)
+    {
+    case EHTokSampler:		dim = Esd2D;	break;
+    case EHTokSampler1d:	dim = Esd1D;	break;
+    case EHTokSampler2d:	dim = Esd2D;	break;
+    case EHTokSampler3d:	dim = Esd3D;	break;
+    case EHTokSamplerCube:	dim = EsdCube;	break;
+    default:
+        return false; // not a dx9 sampler declaration
+    }
+
+    advanceToken(); // consume the sampler type keyword
+
+    TArraySizes *arraySizes = nullptr; // TODO: array
+
+    TSampler sampler;
+    sampler.set(txType.getBasicType(), dim, false, isShadow, false);
+
+    if (!parseContext.setTextureReturnType(sampler, txType, token.loc))
+        return false;
+
+    type.shallowCopy(TType(sampler, EvqUniform, arraySizes));
+    type.getQualifier().layoutFormat = ElfNone;
+
+    return true;
+}
+
 // sampler_type
 //      : SAMPLER
 //      | SAMPLER1D
@@ -1444,7 +1488,13 @@ bool HlslGrammar::acceptType(TType& type, TIntermNode*& nodeList)
     case EHTokSampler2d:              // ...
     case EHTokSampler3d:              // ...
     case EHTokSamplerCube:            // ...
-    case EHTokSamplerState:           // ...
+        if (parseContext.hlslDX9Compatible())
+            return acceptSamplerTypeDX9(type);
+        else
+            return acceptSamplerType(type);
+        break;
+
+    case EHTokSamplerState:           // fall through
     case EHTokSamplerComparisonState: // ...
         return acceptSamplerType(type);
         break;
@@ -3168,6 +3218,11 @@ bool HlslGrammar::acceptConstructor(TIntermTyped*& node)
             // It's possible this is a type keyword used as an identifier.  Put the token back
             // for later use.
             recedeToken();
+            return false;
+        }
+
+        if (arguments == nullptr) {
+            expected("one or more arguments");
             return false;
         }
 
