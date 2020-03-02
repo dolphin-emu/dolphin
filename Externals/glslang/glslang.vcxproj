@@ -81,7 +81,9 @@
     <ClCompile Include="SPIRV\InReadableOrder.cpp" />
     <ClCompile Include="SPIRV\Logger.cpp" />
     <ClCompile Include="SPIRV\SpvBuilder.cpp" />
+    <ClCompile Include="SPIRV\SpvPostProcess.cpp" />
     <ClCompile Include="SPIRV\SPVRemapper.cpp" />
+    <ClCompile Include="StandAlone\ResourceLimits.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="glslang\Include\arrays.h" />
@@ -92,7 +94,6 @@
     <ClInclude Include="glslang\Include\InitializeGlobals.h" />
     <ClInclude Include="glslang\Include\intermediate.h" />
     <ClInclude Include="glslang\Include\PoolAlloc.h" />
-    <ClInclude Include="glslang\Include\ResourceLimits.h" />
     <ClInclude Include="glslang\Include\revision.h" />
     <ClInclude Include="glslang\Include\ShHandle.h" />
     <ClInclude Include="glslang\Include\Types.h" />
@@ -126,6 +127,7 @@
     <ClInclude Include="SPIRV\SpvBuilder.h" />
     <ClInclude Include="SPIRV\spvIR.h" />
     <ClInclude Include="SPIRV\SPVRemapper.h" />
+    <ClInclude Include="StandAlone\ResourceLimits.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="glslang\MachineIndependent\glslang.y" />
