@@ -434,3 +434,21 @@ TEST_F(FileSystemTest, ReadDirectoryOrdering)
   ASSERT_EQ(result->size(), file_names.size());
   EXPECT_TRUE(std::equal(result->begin(), result->end(), file_names.rbegin()));
 }
+
+TEST_F(FileSystemTest, CreateFullPath)
+{
+  ASSERT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);
+
+  // Parent directories should be created by CreateFullPath.
+  for (const std::string& path : {"/tmp", "/tmp/a", "/tmp/a/b", "/tmp/a/b/c"})
+    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded());
+
+  // If parent directories already exist, the call should still succeed.
+  EXPECT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);
+
+  // If parent directories already exist and are owned by a different user,
+  // CreateFullPath should still succeed.
+  // See https://github.com/dolphin-emu/dolphin/pull/8593
+  EXPECT_EQ(m_fs->CreateFullPath(Uid{0x1000}, Gid{1}, "/shared2/wc24/mbox/Readme.txt", 0, modes),
+            ResultCode::Success);
+}

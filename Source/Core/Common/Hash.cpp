@@ -11,8 +11,12 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
 
-#if defined(_M_ARM_64) && !defined(_MSC_VER)
+#ifdef _M_ARM_64
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
 #include <arm_acle.h>
+#endif
 #endif
 
 namespace Common

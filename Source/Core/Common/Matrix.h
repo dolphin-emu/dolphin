@@ -20,6 +20,11 @@ union TVec3
   TVec3() = default;
   TVec3(T _x, T _y, T _z) : data{_x, _y, _z} {}
 
+  template <typename OtherT>
+  explicit TVec3(const TVec3<OtherT>& other) : TVec3(other.x, other.y, other.z)
+  {
+  }
+
   TVec3 Cross(const TVec3& rhs) const
   {
     return {(y * rhs.z) - (rhs.y * z), (z * rhs.x) - (rhs.z * x), (x * rhs.y) - (rhs.x * y)};
@@ -96,6 +101,11 @@ template <typename T>
 TVec3<bool> operator<(const TVec3<T>& lhs, const TVec3<T>& rhs)
 {
   return lhs.Map(std::less<T>{}, rhs);
+}
+
+inline TVec3<bool> operator!(const TVec3<bool>& vec)
+{
+  return {!vec.x, !vec.y, !vec.z};
 }
 
 template <typename T>
@@ -197,6 +207,11 @@ union TVec2
   TVec2() = default;
   TVec2(T _x, T _y) : data{_x, _y} {}
 
+  template <typename OtherT>
+  explicit TVec2(const TVec2<OtherT>& other) : TVec2(other.x, other.y)
+  {
+  }
+
   T Cross(const TVec2& rhs) const { return (x * rhs.y) - (y * rhs.x); }
   T Dot(const TVec2& rhs) const { return (x * rhs.x) + (y * rhs.y); }
   T LengthSquared() const { return Dot(*this); }
@@ -214,6 +229,20 @@ union TVec2
   {
     x -= rhs.x;
     y -= rhs.y;
+    return *this;
+  }
+
+  TVec2& operator*=(const TVec2& rhs)
+  {
+    x *= rhs.x;
+    y *= rhs.y;
+    return *this;
+  }
+
+  TVec2& operator/=(const TVec2& rhs)
+  {
+    x /= rhs.x;
+    y /= rhs.y;
     return *this;
   }
 
@@ -243,6 +272,17 @@ union TVec2
 };
 
 template <typename T>
+TVec2<bool> operator<(const TVec2<T>& lhs, const TVec2<T>& rhs)
+{
+  return {lhs.x < rhs.x, lhs.y < rhs.y};
+}
+
+inline TVec2<bool> operator!(const TVec2<bool>& vec)
+{
+  return {!vec.x, !vec.y};
+}
+
+template <typename T>
 TVec2<T> operator+(TVec2<T> lhs, const TVec2<T>& rhs)
 {
   return lhs += rhs;
@@ -255,15 +295,27 @@ TVec2<T> operator-(TVec2<T> lhs, const TVec2<T>& rhs)
 }
 
 template <typename T>
-TVec2<T> operator*(TVec2<T> lhs, T scalar)
+TVec2<T> operator*(TVec2<T> lhs, const TVec2<T>& rhs)
 {
-  return lhs *= scalar;
+  return lhs *= rhs;
 }
 
 template <typename T>
-TVec2<T> operator/(TVec2<T> lhs, T scalar)
+TVec2<T> operator/(TVec2<T> lhs, const TVec2<T>& rhs)
 {
-  return lhs /= scalar;
+  return lhs /= rhs;
+}
+
+template <typename T, typename T2>
+auto operator*(TVec2<T> lhs, T2 scalar)
+{
+  return TVec2<decltype(lhs.x * scalar)>(lhs) *= scalar;
+}
+
+template <typename T, typename T2>
+auto operator/(TVec2<T> lhs, T2 scalar)
+{
+  return TVec2<decltype(lhs.x / scalar)>(lhs) /= scalar;
 }
 
 using Vec2 = TVec2<float>;

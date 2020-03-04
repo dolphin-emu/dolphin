@@ -145,8 +145,6 @@ private:
   // This is the region exposed over bluetooth:
   static constexpr int EEPROM_FREE_SIZE = 0x1700;
 
-  static constexpr double BUTTON_THRESHOLD = 0.5;
-
   void UpdateButtonsStatus();
 
   // Returns simulated accelerometer data in m/s^2.
@@ -255,7 +253,6 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
-  ControllerEmu::Output* m_motor;
   ControllerEmu::Attachments* m_attachments;
   ControllerEmu::ControlGroup* m_options;
   ControllerEmu::ModifySettingsButton* m_hotkeys;

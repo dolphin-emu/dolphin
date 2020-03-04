@@ -191,10 +191,10 @@ void ThrottleCallback(u64 last_time, s64 cyclesLate)
     if (config.m_EmulationSpeed != 1.0f)
       next_event = u32(next_event * config.m_EmulationSpeed);
     const s64 max_fallback = config.iTimingVariance * 1000;
-    if (abs(diff) > max_fallback)
+    if (std::abs(diff) > max_fallback)
     {
       DEBUG_LOG(COMMON, "system too %s, %" PRIi64 " ms skipped", diff < 0 ? "slow" : "fast",
-                abs(diff) - max_fallback);
+                std::abs(diff) - max_fallback);
       last_time = time - max_fallback;
     }
     else if (diff > 1000)

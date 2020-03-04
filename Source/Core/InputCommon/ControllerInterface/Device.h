@@ -70,7 +70,7 @@ public:
   public:
     // Things like absolute axes/ absolute mouse position should override this to prevent
     // undesirable behavior in our mapping logic.
-    virtual bool IsDetectable() { return true; }
+    virtual bool IsDetectable() const { return true; }
 
     // Implementations should return a value from 0.0 to 1.0 across their normal range.
     // One input should be provided for each "direction". (e.g. 2 for each axis)
@@ -198,7 +198,7 @@ public:
   DetectInput(u32 wait_ms, const std::vector<std::string>& device_strings) const;
 
 protected:
-  mutable std::mutex m_devices_mutex;
+  mutable std::recursive_mutex m_devices_mutex;
   std::vector<std::shared_ptr<Device>> m_devices;
 };
 }  // namespace Core

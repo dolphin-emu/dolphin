@@ -60,11 +60,11 @@ public:
     DVDLowReadDvdDiscKey = 0x82,
     DVDLowGetLength = 0x83,
     DVDLowGetImmBuf = 0x84,  // Unconfirmed name
-    DVDLowUnmaskCoverInterrupt = 0x85,
+    DVDLowMaskCoverInterrupt = 0x85,
     DVDLowClearCoverInterrupt = 0x86,
-    // 0x87 is a dummied out command
+    DVDLowUnmaskStatusInterrupts = 0x87,  // Dummied out, ID is educated guess
     DVDLowGetCoverStatus = 0x88,
-    DVDLowEnableCoverInterrupt = 0x89,  // Unconfirmed name
+    DVDLowUnmaskCoverInterrupt = 0x89,
     DVDLowReset = 0x8a,
     DVDLowOpenPartition = 0x8b,  // ioctlv only
     DVDLowClosePartition = 0x8c,

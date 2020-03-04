@@ -93,6 +93,7 @@ void GCMemcardManager::CreateWidgets()
     m_slot_file_edit[i] = new QLineEdit;
     m_slot_file_button[i] = new QPushButton(tr("&Browse..."));
     m_slot_table[i] = new QTableWidget;
+    m_slot_table[i]->setTabKeyNavigation(false);
     m_slot_stat_label[i] = new QLabel;
 
     m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
@@ -597,7 +598,7 @@ QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode&
     sl.push_back(tr("Data in area of file that should be unused."));
 
   if (sl.empty())
-    return QStringLiteral("No errors.");
+    return tr("No errors.");
 
-  return sl.join(QStringLiteral("\n"));
+  return sl.join(QLatin1Char{'\n'});
 }

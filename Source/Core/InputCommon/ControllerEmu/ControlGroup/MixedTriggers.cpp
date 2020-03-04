@@ -46,9 +46,9 @@ void MixedTriggers::GetState(u16* const digital, const u16* bitmasks, ControlSta
   const int trigger_count = int(controls.size() / 2);
   for (int i = 0; i != trigger_count; ++i)
   {
-    const ControlState button_value = ApplyDeadzone(controls[i]->control_ref->State(), deadzone);
+    const ControlState button_value = ApplyDeadzone(controls[i]->GetState(), deadzone);
     ControlState analog_value =
-        std::min(ApplyDeadzone(controls[trigger_count + i]->control_ref->State(), deadzone), 1.0);
+        std::min(ApplyDeadzone(controls[trigger_count + i]->GetState(), deadzone), 1.0);
 
     // Apply threshold:
     if (button_value > threshold)
@@ -72,6 +72,11 @@ ControlState MixedTriggers::GetDeadzone() const
 ControlState MixedTriggers::GetThreshold() const
 {
   return m_threshold_setting.GetValue() / 100;
+}
+
+size_t MixedTriggers::GetTriggerCount() const
+{
+  return controls.size() / 2;
 }
 
 }  // namespace ControllerEmu

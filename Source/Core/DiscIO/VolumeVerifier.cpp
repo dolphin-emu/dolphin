@@ -391,27 +391,29 @@ void VolumeVerifier::Start()
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  CheckPartitions();
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
     CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
-  CheckDiscSize();
+  CheckDiscSize(CheckPartitions());
   CheckMisc();
 
   SetUpHashing();
 }
 
-void VolumeVerifier::CheckPartitions()
+std::vector<Partition> VolumeVerifier::CheckPartitions()
 {
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
+    return {};
+
   const std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
   {
-    if (m_volume.GetVolumeType() != Platform::WiiWAD &&
-        !m_volume.GetFileSystem(m_volume.GetGamePartition()))
+    if (!m_volume.GetFileSystem(m_volume.GetGamePartition()))
     {
       AddProblem(Severity::High,
                  Common::GetStringT("The filesystem is invalid or could not be read."));
+      return {};
     }
-    return;
+    return {m_volume.GetGamePartition()};
   }
 
   std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
@@ -484,8 +486,14 @@ void VolumeVerifier::CheckPartitions()
     }
   }
 
+  std::vector<Partition> valid_partitions;
   for (const Partition& partition : partitions)
-    CheckPartition(partition);
+  {
+    if (CheckPartition(partition))
+      valid_partitions.push_back(partition);
+  }
+
+  return valid_partitions;
 }
 
 bool VolumeVerifier::CheckPartition(const Partition& partition)
@@ -549,10 +557,11 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
       }
     }
 
-    // The loop above ends without breaking for discs that legitimately lack updates.
-    // No such discs have been released to end users. Most such discs are debug signed,
+    // The loop above ends without setting invalid_disc_header for discs that legitimately lack
+    // updates. No such discs have been released to end users. Most such discs are debug signed,
     // but there is apparently at least one that is retail signed, the Movie-Ch Install Disc.
-    return false;
+    if (!invalid_disc_header)
+      return false;
   }
   if (invalid_disc_header)
   {
@@ -720,12 +729,12 @@ bool VolumeVerifier::ShouldBeDualLayer() const
                             std::string_view(m_volume.GetGameID()));
 }
 
-void VolumeVerifier::CheckDiscSize()
+void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
 {
   if (!IsDisc(m_volume.GetVolumeType()))
     return;
 
-  m_biggest_referenced_offset = GetBiggestReferencedOffset();
+  m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
   if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
@@ -781,12 +790,8 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestReferencedOffset() const
+u64 VolumeVerifier::GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const
 {
-  std::vector<Partition> partitions = m_volume.GetPartitions();
-  if (partitions.empty())
-    partitions.emplace_back(m_volume.GetGamePartition());
-
   const u64 disc_header_size = m_volume.GetVolumeType() == Platform::GameCubeDisc ? 0x460 : 0x50000;
   u64 biggest_offset = disc_header_size;
   for (const Partition& partition : partitions)
@@ -1238,9 +1243,6 @@ void VolumeVerifier::Finish()
 
   WaitForAsyncOperations();
 
-  ASSERT(m_content_index == m_content_offsets.size());
-  ASSERT(m_block_index == m_blocks.size());
-
   if (m_calculating_any_hash)
   {
     if (m_hashes_to_calculate.crc32)
@@ -1267,25 +1269,32 @@ void VolumeVerifier::Finish()
   if (m_read_errors_occurred)
     AddProblem(Severity::Medium, Common::GetStringT("Some of the data could not be read."));
 
+  bool file_too_small = false;
+
+  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size())
+    file_too_small = true;
+
   if (IsDisc(m_volume.GetVolumeType()) &&
       (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
   {
     u64 volume_size = m_volume.IsSizeAccurate() ? m_volume.GetSize() : m_biggest_verified_offset;
     if (m_biggest_referenced_offset > volume_size)
-    {
-      const bool second_layer_missing =
-          m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-      std::string text =
-          second_layer_missing ?
-              Common::GetStringT("This disc image is too small and lacks some data. The problem is "
-                                 "most likely that this is a dual-layer disc that has been dumped "
-                                 "as a single-layer disc.") :
-              Common::GetStringT("This disc image is too small and lacks some data. If your "
-                                 "dumping program saved the disc image as several parts, you need "
-                                 "to merge them into one file.");
-      AddProblem(Severity::High, std::move(text));
-      return;
-    }
+      file_too_small = true;
+  }
+
+  if (file_too_small)
+  {
+    const bool second_layer_missing =
+        m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
+    std::string text =
+        second_layer_missing ?
+            Common::GetStringT("This disc image is too small and lacks some data. The problem is "
+                               "most likely that this is a dual-layer disc that has been dumped "
+                               "as a single-layer disc.") :
+            Common::GetStringT("This disc image is too small and lacks some data. If your "
+                               "dumping program saved the disc image as several parts, you need "
+                               "to merge them into one file.");
+    AddProblem(Severity::High, std::move(text));
   }
 
   for (auto [partition, blocks] : m_block_errors)

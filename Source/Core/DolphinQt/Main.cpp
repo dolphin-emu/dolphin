@@ -101,27 +101,12 @@ int main(int argc, char* argv[])
   QApplication app(argc, argv);
 
 #ifdef _WIN32
-  // Get the default system font because Qt's way of obtaining it is outdated
-  NONCLIENTMETRICSW metrics = {};
-  LOGFONTW& logfont = metrics.lfMenuFont;
-  metrics.cbSize = sizeof(metrics);
-
-  if (SystemParametersInfoW(SPI_GETNONCLIENTMETRICS, sizeof(metrics), &metrics, 0))
-  {
-    // Sadly Qt 5 doesn't support turning a native font handle into a QFont so this is the next best
-    // thing
-    QFont font = QApplication::font();
-    font.setFamily(QString::fromStdWString(logfont.lfFaceName));
-
-    font.setItalic(logfont.lfItalic);
-    font.setStrikeOut(logfont.lfStrikeOut);
-    font.setUnderline(logfont.lfUnderline);
-
-    // The default font size is a bit too small
-    font.setPointSize(QFontInfo(font).pointSize() * 1.2);
-
-    QApplication::setFont(font);
-  }
+  // On Windows, Qt 5's default system font (MS Shell Dlg 2) is outdated.
+  // Interestingly, the QMenu font is correct and comes from lfMenuFont
+  // (Segoe UI on English computers).
+  // So use it for the entire application.
+  // This code will become unnecessary and obsolete once we switch to Qt 6.
+  QApplication::setFont(QApplication::font("QMenu"));
 #endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);

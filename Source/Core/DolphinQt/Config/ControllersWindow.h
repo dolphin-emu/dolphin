@@ -27,9 +27,8 @@ public:
   explicit ControllersWindow(QWidget* parent);
 
 private:
-  void OnEmulationStateChanged(bool running);
-  void OnWiimoteModeChanged(bool passthrough);
-  void OnWiimoteTypeChanged(int state);
+  void OnWiimoteModeChanged();
+  void UpdateDisabledWiimoteControls();
   void OnGCTypeChanged(int state);
   void SaveSettings();
   void OnBluetoothPassthroughSyncPressed();
@@ -72,6 +71,7 @@ private:
   QCheckBox* m_wiimote_continuous_scanning;
   QCheckBox* m_wiimote_real_balance_board;
   QCheckBox* m_wiimote_speaker_data;
+  QCheckBox* m_wiimote_ciface;
   QPushButton* m_wiimote_refresh;
 
   // Common

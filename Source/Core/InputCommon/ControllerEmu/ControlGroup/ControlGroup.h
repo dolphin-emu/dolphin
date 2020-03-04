@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu
 {
@@ -66,6 +67,10 @@ public:
                           const std::string& base = "");
 
   void SetControlExpression(int index, const std::string& expression);
+
+  void AddInput(Translatability translate, std::string name);
+  void AddInput(Translatability translate, std::string name, std::string ui_name);
+  void AddOutput(Translatability translate, std::string name);
 
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,

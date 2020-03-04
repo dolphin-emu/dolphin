@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -30,6 +31,9 @@ public:
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual bool IsInput() const = 0;
 
+  template <typename T>
+  T GetState();
+
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
@@ -44,6 +48,25 @@ protected:
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
   ciface::ExpressionParser::ParseStatus m_parse_status;
 };
+
+template <>
+inline bool ControlReference::GetState<bool>()
+{
+  // Round to nearest of 0 or 1.
+  return std::lround(State()) > 0;
+}
+
+template <>
+inline int ControlReference::GetState<int>()
+{
+  return std::lround(State());
+}
+
+template <>
+inline ControlState ControlReference::GetState<ControlState>()
+{
+  return State();
+}
 
 //
 // InputReference

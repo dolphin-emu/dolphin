@@ -178,7 +178,7 @@ public:
     return std::string(motion_data_names[m_code]) + (m_range < 0 ? '-' : '+');
   }
 
-  bool IsDetectable() override { return false; }
+  bool IsDetectable() const override { return false; }
 };
 
 class CursorInput final : public Axis
@@ -192,7 +192,7 @@ public:
     return std::string("Cursor ") + char('X' + m_code) + (m_range < 0 ? '-' : '+');
   }
 
-  bool IsDetectable() override { return false; }
+  bool IsDetectable() const override { return false; }
 };
 
 static std::thread s_hotplug_thread;
