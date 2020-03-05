@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iomanip>
+#include <limits>
 #include <locale>
 #include <sstream>
 #include <string>
