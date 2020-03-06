@@ -268,6 +268,7 @@ struct SConfig
   bool m_showTitleColumn;
   bool m_showMakerColumn;
   bool m_showFileNameColumn;
+  bool m_showFilePathColumn;
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
