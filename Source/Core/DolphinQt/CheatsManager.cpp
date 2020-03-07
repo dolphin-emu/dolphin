@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include <QCheckbox>
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QGroupBox>
@@ -35,6 +36,8 @@
 #include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
+
+#include "Common/Logging/Log.h"
 
 constexpr u32 MAX_RESULTS = 50;
 
@@ -228,6 +231,8 @@ void CheatsManager::ConnectWidgets()
   connect(m_match_refresh, &QPushButton::clicked, this, &CheatsManager::Update);
   connect(m_match_reset, &QPushButton::clicked, this, &CheatsManager::Reset);
 
+  connect(m_match_prev, &QPushButton::clicked, this, &CheatsManager::OnPrevValueToggled);
+
   m_match_table->setContextMenuPolicy(Qt::CustomContextMenu);
   m_watch_table->setContextMenuPolicy(Qt::CustomContextMenu);
 
@@ -277,6 +282,8 @@ void CheatsManager::OnMatchContextMenu()
     m_results[index].locked_value = GetResultValue(m_results[index]);
 
     m_watch.push_back(m_results[index]);
+
+    m_prev_values[m_results[index].address] = m_results[index].locked_value;
 
     Update();
   });
@@ -363,6 +370,11 @@ void CheatsManager::OnWatchItemChanged(QTableWidgetItem* item)
   Update();
 }
 
+void CheatsManager::OnPrevValueToggled()
+{
+  m_match_value->setEnabled(!m_match_prev->isChecked());
+}
+
 QWidget* CheatsManager::CreateCheatSearch()
 {
   m_match_table = new QTableWidget;
@@ -381,6 +393,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   m_result_label = new QLabel;
   m_match_length = new QComboBox;
   m_match_operation = new QComboBox;
+  m_match_prev = new QCheckBox(tr("Previous Value"));
   m_match_value = new QLineEdit;
   m_match_new = new QPushButton(tr("New Search"));
   m_match_next = new QPushButton(tr("Next Search"));
@@ -420,6 +433,7 @@ QWidget* CheatsManager::CreateCheatSearch()
   layout->addWidget(m_match_length);
   layout->addWidget(m_match_operation);
   layout->addWidget(m_match_value);
+  layout->addWidget(m_match_prev);
   layout->addWidget(group_box);
   layout->addWidget(m_match_new);
   layout->addWidget(m_match_next);
@@ -460,9 +474,10 @@ size_t CheatsManager::GetTypeSize() const
 
 std::function<bool(u32)> CheatsManager::CreateMatchFunction()
 {
+  const bool prev = m_match_prev->isChecked();
   const QString text = m_match_value->text();
 
-  if (text.isEmpty())
+  if (!prev && text.isEmpty())
   {
     m_result_label->setText(tr("No search value entered."));
     return nullptr;
@@ -481,7 +496,9 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     u8 comparison_value = text.toUShort(&conversion_succeeded, base) & 0xFF;
     matches_func = [=](u32 addr) {
-      return Compare<u8>(PowerPC::HostRead_U8(addr), comparison_value, op);
+      u8 prev_value = m_prev_values[addr] & 0xFFF;
+      m_prev_values[addr] = PowerPC::HostRead_U8(addr);
+      return Compare<u8>(PowerPC::HostRead_U8(addr), prev ? prev_value : comparison_value, op);
     };
     break;
   }
@@ -489,7 +506,9 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     u16 comparison_value = text.toUShort(&conversion_succeeded, base);
     matches_func = [=](u32 addr) {
-      return Compare(PowerPC::HostRead_U16(addr), comparison_value, op);
+      u16 prev_value = m_prev_values[addr] & 0xFF;
+      m_prev_values[addr] = PowerPC::HostRead_U16(addr);
+      return Compare(PowerPC::HostRead_U16(addr), prev ? prev_value : comparison_value, op);
     };
     break;
   }
@@ -497,7 +516,9 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     u32 comparison_value = text.toUInt(&conversion_succeeded, base);
     matches_func = [=](u32 addr) {
-      return Compare(PowerPC::HostRead_U32(addr), comparison_value, op);
+      u32 prev_value = m_prev_values[addr];
+      m_prev_values[addr] = PowerPC::HostRead_U32(addr);
+      return Compare(PowerPC::HostRead_U32(addr), prev ? prev_value : comparison_value, op);
     };
     break;
   }
@@ -505,7 +526,9 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     float comparison_value = text.toFloat(&conversion_succeeded);
     matches_func = [=](u32 addr) {
-      return Compare(PowerPC::HostRead_F32(addr), comparison_value, op);
+      float prev_value = m_prev_values[addr];
+      m_prev_values[addr] = PowerPC::HostRead_F32(addr);
+      return Compare(PowerPC::HostRead_F32(addr), prev ? prev_value : comparison_value, op);
     };
     break;
   }
@@ -513,7 +536,9 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     double comparison_value = text.toDouble(&conversion_succeeded);
     matches_func = [=](u32 addr) {
-      return Compare(PowerPC::HostRead_F64(addr), comparison_value, op);
+      double prev_value = m_prev_values[addr];
+      m_prev_values[addr] = PowerPC::HostRead_F64(addr);
+      return Compare(PowerPC::HostRead_F64(addr), prev ? prev_value : comparison_value, op);
     };
     break;
   }
@@ -548,7 +573,7 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   }
   }
 
-  if (conversion_succeeded)
+  if (prev || conversion_succeeded)
     return matches_func;
 
   m_result_label->setText(tr("Cannot interpret the given value.\nHave you chosen the right type?"));
@@ -558,6 +583,7 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
 void CheatsManager::NewSearch()
 {
   m_results.clear();
+  m_prev_values.clear();
   const u32 base_address = 0x80000000;
 
   if (!Memory::m_pRAM)
@@ -574,8 +600,11 @@ void CheatsManager::NewSearch()
     for (u32 i = 0; i < Memory::REALRAM_SIZE - GetTypeSize(); i++)
     {
       if (PowerPC::HostIsRAMAddress(base_address + i) && matches_func(base_address + i))
-        m_results.push_back(
-            {base_address + i, static_cast<DataType>(m_match_length->currentIndex())});
+      {
+        Result result = {base_address + i, static_cast<DataType>(m_match_length->currentIndex())};
+        m_results.push_back(result);
+        m_prev_values[base_address + i] = result.locked_value;
+      }
     }
   });
 
@@ -720,6 +749,7 @@ void CheatsManager::Update()
 void CheatsManager::Reset()
 {
   m_results.clear();
+  m_prev_values.clear();
   m_watch.clear();
   m_match_next->setEnabled(false);
   m_match_table->clear();

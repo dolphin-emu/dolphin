@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 
 class ARCodeWidget;
+class QCheckBox;
 class QComboBox;
 class QDialogButtonBox;
 class QLabel;
@@ -60,8 +61,10 @@ private:
   void OnWatchContextMenu();
   void OnMatchContextMenu();
   void OnWatchItemChanged(QTableWidgetItem* item);
+  void OnPrevValueToggled();
 
   std::vector<Result> m_results;
+  std::map<u32, u32> m_prev_values;
   std::vector<Result> m_watch;
   std::shared_ptr<const UICommon::GameFile> m_game_file;
   QDialogButtonBox* m_button_box;
@@ -77,6 +80,7 @@ private:
   QSplitter* m_table_splitter;
   QComboBox* m_match_length;
   QComboBox* m_match_operation;
+  QCheckBox* m_match_prev;
   QLineEdit* m_match_value;
   QPushButton* m_match_new;
   QPushButton* m_match_next;
