@@ -21,6 +21,7 @@
 #include <QTableWidgetItem>
 #include <QWheelEvent>
 
+#include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
 #include "Core/Core.h"
 #include "Core/Debugger/PPCDebugInterface.h"
@@ -140,7 +141,14 @@ CodeViewWidget::CodeViewWidget()
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
   verticalHeader()->hide();
-  horizontalHeader()->hide();
+  horizontalHeader()->setSectionResizeMode(CODE_VIEW_COLUMN_BREAKPOINT, QHeaderView::Fixed);
+  horizontalHeader()->setStretchLastSection(true);
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_BREAKPOINT, new QTableWidgetItem());
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_ADDRESS, new QTableWidgetItem(tr("Address")));
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_INSTRUCTION, new QTableWidgetItem(tr("Instr.")));
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_PARAMETERS, new QTableWidgetItem(tr("Parameters")));
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_DESCRIPTION, new QTableWidgetItem(tr("Symbols")));
+  setHorizontalHeaderItem(CODE_VIEW_COLUMN_BRANCH_ARROWS, new QTableWidgetItem(tr("Branches")));
 
   setFont(Settings::Instance().GetDebugFont());
   setItemDelegateForColumn(CODE_VIEW_COLUMN_BRANCH_ARROWS, new BranchDisplayDelegate(this));
@@ -177,11 +185,32 @@ static u32 GetBranchFromAddress(u32 addr)
 
 void CodeViewWidget::FontBasedSizing()
 {
+  // just text width is too small with some fonts, so increase by a bit
+  constexpr int extra_text_width = 8;
+
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
   const int rowh = fm.height() + 1;
   verticalHeader()->setMaximumSectionSize(rowh);
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
+  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS, fm.width(QStringLiteral("80000000")) + extra_text_width);
+
+  // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
+  // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
+  // Similarly, the longest parameter set is 'rtoc, rtoc, r10, 10, 10 (00000800)' (0x5c425294u),
+  // but one is unlikely to encounter that in practice, so let's use a slightly more reasonable
+  // 'r31, r31, 16, 16, 31 (ffff0000)'. The user can resize the columns as necessary anyway.
+  const std::string disas = Common::GekkoDisassembler::Disassemble(0x57ff843fu, 0);
+  const auto split = disas.find('\t');
+  const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
+  const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
+  setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
+                 fm.width(QString::fromStdString(ins)) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
+                 fm.width(QString::fromStdString(param)) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION,
+                 fm.width(QStringLiteral("0")) * 25 + extra_text_width);
+
   Update();
 }
 
@@ -322,13 +351,6 @@ void CodeViewWidget::Update()
 
   CalculateBranchIndentation();
 
-  u32 max_indent = 0;
-  for (const CodeViewBranch& branch : m_branches)
-    max_indent = std::max(max_indent, branch.indentation);
-
-  resizeColumnsToContents();
-  setColumnWidth(CODE_VIEW_COLUMN_BRANCH_ARROWS,
-                 static_cast<int>(WIDTH_PER_BRANCH_ARROW * (max_indent + 1)));
   g_symbolDB.FillInCallers();
 
   repaint();
