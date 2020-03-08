@@ -496,7 +496,7 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     u8 comparison_value = text.toUShort(&conversion_succeeded, base) & 0xFF;
     matches_func = [=](u32 addr) {
-      u8 prev_value = m_prev_values[addr] & 0xFFF;
+      u8 prev_value = m_prev_values[addr];
       m_prev_values[addr] = PowerPC::HostRead_U8(addr);
       return Compare<u8>(PowerPC::HostRead_U8(addr), prev ? prev_value : comparison_value, op);
     };
@@ -506,7 +506,7 @@ std::function<bool(u32)> CheatsManager::CreateMatchFunction()
   {
     u16 comparison_value = text.toUShort(&conversion_succeeded, base);
     matches_func = [=](u32 addr) {
-      u16 prev_value = m_prev_values[addr] & 0xFF;
+      u16 prev_value = m_prev_values[addr];
       m_prev_values[addr] = PowerPC::HostRead_U16(addr);
       return Compare(PowerPC::HostRead_U16(addr), prev ? prev_value : comparison_value, op);
     };
@@ -632,6 +632,9 @@ void CheatsManager::NextSearch()
                                             !matches_func(r.address);
                                    }),
                     m_results.end());
+
+    // todo find an efficient way to cull out m_prev_values
+    // m_prev_values.clear();
   });
 
   Update();
