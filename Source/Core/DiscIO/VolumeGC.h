@@ -35,13 +35,13 @@ public:
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
+  std::string GetPublisherID(const Partition& partition = PARTITION_NONE) const override;
   std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
   std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
-  std::map<Language, std::string> GetShortMakers() const override;
-  std::map<Language, std::string> GetLongMakers() const override;
+  std::map<Language, std::string> GetShortMakerPublishers() const override;
+  std::map<Language, std::string> GetLongPublishers() const override;
   std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
   std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;

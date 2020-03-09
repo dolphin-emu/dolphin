@@ -68,7 +68,7 @@ TitleDatabase::TitleDatabase()
     m_user_title_map = LoadMap(load_directory + "titles.txt");
 
   // Custom developer ("maker") index
-  m_user_developer_map = LoadMap(load_directory + "developers.txt");
+  m_user_publisher_map = LoadMap(load_directory + "publishers.txt");
 
   // Pre-defined databases (one per language)
   AddLazyMap(DiscIO::Language::Japanese, "ja");
@@ -94,32 +94,14 @@ TitleDatabase::TitleDatabase()
 
 TitleDatabase::~TitleDatabase() = default;
 
-const std::string& TitleDatabase::GetDeveloper(const std::string& gametdb_id) const
-
-{
-  auto it = m_user_developer_map.find(gametdb_id);
-  if (it != m_user_developer_map.end())
-    return it->second;
-
-  if (!SConfig::GetInstance().m_use_builtin_title_database)
-    return EMPTY_STRING;
-
-  it = m_base_map.find(gametdb_id);
-  if (it != m_base_map.end())
-    return it->second;
-
-  return EMPTY_STRING;
-}
-
 const std::string& TitleDatabase::GetTitleName(const std::string& gametdb_id,
                                                DiscIO::Language language) const
-
 {
   auto it = m_user_title_map.find(gametdb_id);
   if (it != m_user_title_map.end())
     return it->second;
 
-  if (!SConfig::GetInstance().m_use_builtin_title_database)
+  if (!SConfig::GetInstance().m_use_builtin_metadata_database)
     return EMPTY_STRING;
 
   const Map& map = *m_title_maps.at(language);
@@ -156,5 +138,14 @@ std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Langu
   if (title_name.empty())
     return gametdb_id;
   return fmt::format("{} ({})", title_name, gametdb_id);
+}
+
+const std::string& TitleDatabase::GetPublisher(const std::string& gametdb_id) const
+{
+  auto it = m_user_publisher_map.find(gametdb_id);
+  if (it != m_user_publisher_map.end())
+    return it->second;
+
+  return EMPTY_STRING;
 }
 }  // namespace Core

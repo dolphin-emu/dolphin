@@ -109,8 +109,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 
       m_short_names = volume->GetShortNames();
       m_long_names = volume->GetLongNames();
-      m_short_makers = volume->GetShortMakers();
-      m_long_makers = volume->GetLongMakers();
+      m_short_makers = volume->GetShortMakerPublishers();
+      m_long_makers = volume->GetLongPublishers();
       m_descriptions = volume->GetDescriptions();
 
       m_region = volume->GetRegion();
@@ -123,7 +123,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_game_id = volume->GetGameID();
       m_gametdb_id = volume->GetGameTDBID();
       m_title_id = volume->GetTitleID().value_or(0);
-      m_maker_id = volume->GetMakerID();
+      m_maker_id = volume->GetPublisherID();
       m_revision = volume->GetRevision().value_or(0);
       m_disc_number = volume->GetDiscNumber().value_or(0);
       m_apploader_date = volume->GetApploaderDate();
@@ -487,22 +487,22 @@ const std::string& GameFile::GetName(Variant variant) const
   return m_file_name;
 }
 
-const std::string& GameFile::GetMaker(const Core::TitleDatabase& title_database) const
+const std::string& GameFile::GetPublisher(const Core::TitleDatabase& title_database) const
 {
   if (!m_custom_maker.empty())
     return m_custom_maker;
 
-  const std::string& database_name = title_database.GetDeveloper(m_gametdb_id);
-  return database_name.empty() ? GetMaker(Variant::LongAndPossiblyCustom) : database_name;
+  const std::string& database_name = title_database.GetPublisher(m_gametdb_id);
+  return database_name.empty() ? GetPublisher(Variant::LongAndPossiblyCustom) : database_name;
 }
 
-const std::string& GameFile::GetMaker(Variant variant) const
+const std::string& GameFile::GetPublisher(Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
     return m_custom_maker;
 
   const std::string& maker =
-      variant == Variant::ShortAndNotCustom ? GetShortMaker() : GetLongMaker();
+      variant == Variant::ShortAndNotCustom ? GetShortMakerPublisher() : GetLongPublisher();
   if (!maker.empty())
     return maker;
 

@@ -60,16 +60,16 @@ public:
   const std::string& GetFileName() const { return m_file_name; }
   const std::string& GetName(const Core::TitleDatabase& title_database) const;
   const std::string& GetName(Variant variant) const;
-  const std::string& GetMaker(const Core::TitleDatabase& title_database) const;
-  const std::string& GetMaker(Variant variant) const;
+  const std::string& GetPublisher(const Core::TitleDatabase& title_database) const;
+  const std::string& GetPublisher(Variant variant) const;
   const std::string& GetShortName(DiscIO::Language l) const { return Lookup(l, m_short_names); }
   const std::string& GetShortName() const { return LookupUsingConfigLanguage(m_short_names); }
   const std::string& GetLongName(DiscIO::Language l) const { return Lookup(l, m_long_names); }
   const std::string& GetLongName() const { return LookupUsingConfigLanguage(m_long_names); }
-  const std::string& GetShortMaker(DiscIO::Language l) const { return Lookup(l, m_short_makers); }
-  const std::string& GetShortMaker() const { return LookupUsingConfigLanguage(m_short_makers); }
-  const std::string& GetLongMaker(DiscIO::Language l) const { return Lookup(l, m_long_makers); }
-  const std::string& GetLongMaker() const { return LookupUsingConfigLanguage(m_long_makers); }
+  const std::string& GetShortMakerPublisher(DiscIO::Language l) const { return Lookup(l, m_short_makers); }
+  const std::string& GetShortMakerPublisher() const { return LookupUsingConfigLanguage(m_short_makers); }
+  const std::string& GetLongPublisher(DiscIO::Language l) const { return Lookup(l, m_long_makers); }
+  const std::string& GetLongPublisher() const { return LookupUsingConfigLanguage(m_long_makers); }
   const std::string& GetDescription(DiscIO::Language l) const { return Lookup(l, m_descriptions); }
   const std::string& GetDescription(Variant variant) const;
   std::vector<DiscIO::Language> GetLanguages() const;
@@ -77,7 +77,7 @@ public:
   const std::string& GetGameID() const { return m_game_id; }
   const std::string& GetGameTDBID() const { return m_gametdb_id; }
   u64 GetTitleID() const { return m_title_id; }
-  const std::string& GetMakerID() const { return m_maker_id; }
+  const std::string& GetPublisherID() const { return m_maker_id; }
   u16 GetRevision() const { return m_revision; }
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }

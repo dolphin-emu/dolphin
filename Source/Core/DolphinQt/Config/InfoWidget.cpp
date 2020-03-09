@@ -73,11 +73,11 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
-  const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
+  const std::string game_maker = m_game.GetPublisher(UICommon::GameFile::Variant::LongAndNotCustom);
 
   QLineEdit* maker =
       CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +
-                         m_game.GetMakerID() + ")");
+                         m_game.GetPublisherID() + ")");
 
   layout->addRow(tr("Name:"), internal_name);
   layout->addRow(tr("File:"), file_path);
@@ -190,7 +190,7 @@ void InfoWidget::ChangeLanguage()
     m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
 
   if (m_maker)
-    m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
+    m_maker->setText(QString::fromStdString(m_game.GetLongPublisher(language)));
 
   if (m_description)
     m_description->setText(QString::fromStdString(m_game.GetDescription(language)));

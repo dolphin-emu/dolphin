@@ -342,7 +342,7 @@ Country VolumeWii::GetCountry(const Partition& partition) const
   return CountryCodeToCountry(country_byte, Platform::WiiDisc, region, revision);
 }
 
-std::string VolumeWii::GetMakerID(const Partition& partition) const
+std::string VolumeWii::GetPublisherID(const Partition& partition) const
 {
   char maker_id[2];
 

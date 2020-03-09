@@ -253,7 +253,7 @@ std::string VolumeWAD::GetGameTDBID(const Partition& partition) const
   return m_tmd.GetGameTDBID();
 }
 
-std::string VolumeWAD::GetMakerID(const Partition& partition) const
+std::string VolumeWAD::GetPublisherID(const Partition& partition) const
 {
   char temp[2];
   if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp, partition))

@@ -32,7 +32,7 @@ private:
   QComboBox* m_combobox_userstyle;
   QLabel* m_label_userstyle;
   QCheckBox* m_checkbox_top_window;
-  QCheckBox* m_checkbox_use_builtin_title_database;
+  QCheckBox* m_checkbox_use_builtin_metadata_database;
   QCheckBox* m_checkbox_use_userstyle;
   QCheckBox* m_checkbox_show_debugging_ui;
   QCheckBox* m_checkbox_use_covers;

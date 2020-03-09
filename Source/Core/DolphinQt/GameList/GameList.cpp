@@ -712,7 +712,7 @@ void GameList::OpenGCSaveFolder()
       QDir dir(QString::fromStdString(path));
 
       if (!dir.entryList({QStringLiteral("%1-%2-*.gci")
-                              .arg(QString::fromStdString(game->GetMakerID()))
+                              .arg(QString::fromStdString(game->GetPublisherID()))
                               .arg(QString::fromStdString(game->GetGameID().substr(0, 4)))})
                .empty())
       {
