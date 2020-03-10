@@ -153,6 +153,7 @@ private:
   void GenerateSymbolsFromAddress();
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
+  void GenerateSymbolsFromRSOAuto();
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
   void LoadBadSymbolMap();

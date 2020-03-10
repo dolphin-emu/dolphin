@@ -25,6 +25,7 @@
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/AddressSpace.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
@@ -1196,6 +1197,12 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
 
 void MenuBar::GenerateSymbolsFromRSO()
 {
+  // i18n: RSO refers to a proprietary format for shared objects (like DLL files).
+  const int ret =
+      ModalMessageBox::question(this, tr("RSO auto-detection"), tr("Auto-detect RSO modules?"));
+  if (ret == QMessageBox::Yes)
+    return GenerateSymbolsFromRSOAuto();
+
   QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
   bool good;
   uint address = text.toUInt(&good, 16);
@@ -1215,6 +1222,79 @@ void MenuBar::GenerateSymbolsFromRSO()
   else
   {
     ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(text));
+  }
+}
+
+void MenuBar::GenerateSymbolsFromRSOAuto()
+{
+  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+  std::vector<std::pair<u32, std::string>> matches;
+
+  // Find filepath to elf/plf commonly used by RSO modules
+  for (const auto& str : search_for)
+  {
+    u32 next = 0;
+    while (true)
+    {
+      auto found_addr =
+          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+
+      if (!found_addr.has_value())
+        break;
+      next = *found_addr + 1;
+
+      // Get the beginning of the string
+      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
+      if (!found_addr.has_value())
+        continue;
+
+      // Get the string reference
+      const u32 ref_addr = *found_addr + 1;
+      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
+                                     static_cast<u8>(ref_addr >> 16),
+                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
+      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
+      if (!found_addr.has_value() || *found_addr < 16)
+        continue;
+
+      // Go to the beginning of the RSO header
+      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
+    }
+  }
+
+  QStringList items;
+  for (const auto& match : matches)
+  {
+    const QString item = QLatin1String("%1 %2");
+
+    items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
+  }
+
+  if (items.empty())
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Unable to auto-detect RSO module"));
+    return;
+  }
+
+  bool ok;
+  const QString item = QInputDialog::getItem(
+      this, tr("Input"), tr("Select the RSO module address:"), items, 0, false, &ok);
+
+  if (!ok)
+    return;
+
+  RSOChainView rso_chain;
+  const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
+  if (rso_chain.Load(address))
+  {
+    rso_chain.Apply(&g_symbolDB);
+    emit NotifySymbolsUpdated();
+  }
+  else
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(address));
   }
 }
 
