@@ -304,7 +304,7 @@ static bool IsRunningOnMojaveOrHigher()
 }
 #endif
 
-void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
+void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 {
 #if defined(VK_USE_PLATFORM_MACOS_MVK)
   // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
