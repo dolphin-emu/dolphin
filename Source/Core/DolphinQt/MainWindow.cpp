@@ -162,14 +162,16 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
 
   // Our Win32 Qt external doesn't have the private API.
 #if defined(WIN32) || defined(__APPLE__)
-  wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_surface = wsi.render_window;
 #else
   QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
   wsi.display_connection = pni->nativeResourceForWindow("display", window);
   if (wsi.type == WindowSystemType::Wayland)
-    wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
+    wsi.render_window = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
   else
-    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+    wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_surface = wsi.render_window;
 #endif
   wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
 
