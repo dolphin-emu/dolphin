@@ -13,10 +13,11 @@
 
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_main"
+            android:background="?colorPrimary"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             app:layout_scrollFlags="scroll|enterAlways"
-            app:popupTheme="@style/ThemeOverlay.AppCompat.Light" />
+            app:popupTheme="@style/ThemeOverlay.AppCompat.DayNight"/>
 
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabs_platforms"
