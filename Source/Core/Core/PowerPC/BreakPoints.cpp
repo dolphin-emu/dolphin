@@ -196,6 +196,15 @@ void MemChecks::Remove(u32 address)
   });
 }
 
+void MemChecks::Clear()
+{
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.clear();
+    JitInterface::ClearCache();
+    PowerPC::DBATUpdated();
+  });
+}
+
 TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
   const auto iter =
