@@ -82,8 +82,8 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_prefer_list = Settings::Instance().GetPreferredView();
   ConsiderViewChange();
 
-  auto* zoom_in = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Plus), this);
-  auto* zoom_out = new QShortcut(QKeySequence(Qt::CTRL + Qt::Key_Minus), this);
+  auto* zoom_in = new QShortcut(QKeySequence::ZoomIn, this);
+  auto* zoom_out = new QShortcut(QKeySequence::ZoomOut, this);
 
   connect(zoom_in, &QShortcut::activated, this, &GameList::ZoomIn);
   connect(zoom_out, &QShortcut::activated, this, &GameList::ZoomOut);
