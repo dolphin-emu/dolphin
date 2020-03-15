@@ -1338,9 +1338,6 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
-  if (server != nullptr)
-    server->SetNetPlayUI(m_netplay_dialog);
-
   m_netplay_setup_dialog->close();
   m_netplay_dialog->show(nickname, is_traversal);
 
@@ -1378,7 +1375,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   // Create Server
   Settings::Instance().ResetNetPlayServer(new NetPlay::NetPlayServer(
-      host_port, use_upnp,
+      host_port, use_upnp, m_netplay_dialog,
       NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
