@@ -1056,11 +1056,10 @@ void DoFrameStep()
   }
 }
 
-void UpdateInputGate()
+void UpdateInputGate(bool require_focus)
 {
-  ControlReference::SetInputGate(
-      (SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus()) &&
-      !Host_UIBlocksControllerState());
+  ControlReference::SetInputGate((!require_focus || Host_RendererHasFocus()) &&
+                                 !Host_UIBlocksControllerState());
 }
 
 }  // namespace Core

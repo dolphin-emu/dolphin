@@ -12,4 +12,6 @@ const ConfigInfo<bool> MAIN_USE_DISCORD_PRESENCE{{System::Main, "General", "UseD
                                                  true};
 const ConfigInfo<bool> MAIN_USE_GAME_COVERS{{System::Main, "General", "UseGameCovers"}, false};
 
+const ConfigInfo<bool> MAIN_FOCUSED_HOTKEYS{{System::Main, "General", "HotkeysRequireFocus"}, true};
+
 }  // namespace Config

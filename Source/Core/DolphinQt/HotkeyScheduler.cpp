@@ -16,8 +16,10 @@
 #include "Common/Thread.h"
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -143,8 +145,8 @@ void HotkeyScheduler::Run()
 
     if (Core::GetState() != Core::State::Stopping)
     {
-      // Obey window focus before checking hotkeys.
-      Core::UpdateInputGate();
+      // Obey window focus (config permitting) before checking hotkeys.
+      Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
 
       HotkeyManagerEmu::GetStatus();
 
