@@ -203,7 +203,5 @@ private:
   QAction* m_completion_action;
   ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
   QTimer* m_informative_timer;
-
-  bool m_is_centering = false;
-  Common::DVec2 m_new_center;
+  std::optional<Common::DVec2> m_new_center;
 };

@@ -149,7 +149,7 @@ constexpr int SPHERE_POINT_COUNT = 200;
 
 // Constructs a polygon by querying a radius at varying angles:
 template <typename F>
-QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, Common::DVec2 center = {0.0, 0.0})
+QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter)
 {
   // A multiple of 8 (octagon) and enough points to be visibly pleasing:
   constexpr int shape_point_count = 32;
@@ -161,7 +161,7 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter, Common::DVec2 center = {
     const double angle = MathUtil::TAU * p / shape.size();
     const double radius = radius_getter(angle);
 
-    point = {std::cos(angle) * radius + center.x, std::sin(angle) * radius + center.y};
+    point = {std::cos(angle) * radius, std::sin(angle) * radius};
     ++p;
   }
 
@@ -302,24 +302,29 @@ void ReshapableInputIndicator::DrawReshapableInput(
 
   const auto center = stick.GetCenter();
 
+  p.save();
+  p.translate(center.x, center.y);
+
   // Deadzone.
   p.setPen(GetDeadZonePen());
   p.setBrush(GetDeadZoneBrush(p));
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }, center));
+      [&stick](double ang) { return stick.GetDeadzoneRadiusAtAngle(ang); }));
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }, center));
+      [&stick](double ang) { return stick.GetInputRadiusAtAngle(ang); }));
 
   // Center.
   if (center.x || center.y)
   {
     p.setPen(GetInputDotPen(GetCenterColor()));
-    p.drawPoint(QPointF{center.x, center.y});
+    p.drawPoint(QPointF{});
   }
+
+  p.restore();
 
   // Raw stick position.
   p.setPen(GetInputDotPen(GetRawInputColor()));
@@ -745,22 +750,25 @@ void GyroMappingIndicator::Draw()
 
 void ReshapableInputIndicator::DrawCalibration(QPainter& p, Common::DVec2 point)
 {
-  // Bounding box size:
   const auto center = m_calibration_widget->GetCenter();
+
+  p.save();
+  p.translate(center.x, center.y);
 
   // Input shape.
   p.setPen(GetInputShapePen());
   p.setBrush(Qt::NoBrush);
   p.drawPolygon(GetPolygonFromRadiusGetter(
-      [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); },
-      center));
+      [this](double angle) { return m_calibration_widget->GetCalibrationRadiusAtAngle(angle); }));
 
   // Center.
   if (center.x || center.y)
   {
     p.setPen(GetInputDotPen(GetCenterColor()));
-    p.drawPoint(QPointF{center.x, center.y});
+    p.drawPoint(QPointF{});
   }
+
+  p.restore();
 
   // Stick position.
   p.setPen(GetInputDotPen(GetAdjustedInputColor()));
@@ -817,11 +825,11 @@ void CalibrationWidget::SetupActions()
 
   connect(calibrate_action, &QAction::triggered, [this]() {
     StartCalibration();
-    m_input.SetCenter({0, 0});
+    m_new_center = Common::DVec2{};
   });
   connect(center_action, &QAction::triggered, [this]() {
     StartCalibration();
-    m_is_centering = true;
+    m_new_center = std::nullopt;
   });
   connect(reset_action, &QAction::triggered, [this]() {
     m_input.SetCalibrationToDefault();
@@ -838,7 +846,7 @@ void CalibrationWidget::SetupActions()
 
   m_completion_action = new QAction(tr("Finish Calibration"), this);
   connect(m_completion_action, &QAction::triggered, [this]() {
-    m_input.SetCenter(m_new_center);
+    m_input.SetCenter(GetCenter());
     m_input.SetCalibrationData(std::move(m_calibration_data));
     m_informative_timer->stop();
     SetupActions();
@@ -848,8 +856,6 @@ void CalibrationWidget::SetupActions()
 void CalibrationWidget::StartCalibration()
 {
   m_calibration_data.assign(m_input.CALIBRATION_SAMPLE_COUNT, 0.0);
-
-  m_new_center = {0, 0};
 
   // Cancel calibration.
   const auto cancel_action = new QAction(tr("Cancel Calibration"), this);
@@ -875,14 +881,13 @@ void CalibrationWidget::Update(Common::DVec2 point)
   QFont f = parentWidget()->font();
   QPalette p = parentWidget()->palette();
 
-  if (m_is_centering)
-  {
+  // Use current point if center is being calibrated.
+  if (!m_new_center.has_value())
     m_new_center = point;
-    m_is_centering = false;
-  }
-  else if (IsCalibrating())
+
+  if (IsCalibrating())
   {
-    m_input.UpdateCalibrationData(m_calibration_data, point - m_new_center);
+    m_input.UpdateCalibrationData(m_calibration_data, point - *m_new_center);
 
     if (IsCalibrationDataSensible(m_calibration_data))
     {
@@ -912,5 +917,5 @@ double CalibrationWidget::GetCalibrationRadiusAtAngle(double angle) const
 
 Common::DVec2 CalibrationWidget::GetCenter() const
 {
-  return m_new_center;
+  return m_new_center.value_or(Common::DVec2{});
 }
