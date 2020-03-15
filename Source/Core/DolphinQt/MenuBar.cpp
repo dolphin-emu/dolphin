@@ -199,8 +199,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(Qt::CTRL + Qt::Key_O));
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open, QKeySequence::Open);
 
   file_menu->addSeparator();
 
@@ -211,8 +210,8 @@ void MenuBar::AddFileMenu()
 
   file_menu->addSeparator();
 
-  m_exit_action =
-      file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit, QKeySequence(Qt::ALT + Qt::Key_F4));
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
 }
 
 void MenuBar::AddToolsMenu()
@@ -488,14 +487,14 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   view_menu->addSeparator();
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch,
-                       QKeySequence(Qt::CTRL + Qt::Key_F));
+  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
+  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
+                          QKeySequence::Preferences);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);

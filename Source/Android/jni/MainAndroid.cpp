@@ -680,7 +680,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   s_have_wm_user_stop = false;
   std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(paths, savestate_path);
   boot->delete_savestate = delete_savestate;
-  WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf);
+  WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf, s_surf);
   wsi.render_surface_scale = GetRenderSurfaceScale(env);
   if (BootManager::BootCore(std::move(boot), wsi))
   {

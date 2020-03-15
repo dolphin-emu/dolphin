@@ -134,6 +134,7 @@ WindowSystemInfo PlatformWin32::GetWindowSystemInfo() const
 {
   WindowSystemInfo wsi;
   wsi.type = WindowSystemType::Windows;
+  wsi.render_window = reinterpret_cast<void*>(m_hwnd);
   wsi.render_surface = reinterpret_cast<void*>(m_hwnd);
   return wsi;
 }

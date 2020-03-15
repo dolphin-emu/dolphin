@@ -50,14 +50,14 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init(wsi.render_surface);
+  ciface::Win32::Init(wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
-    ciface::OSX::Init(wsi.render_surface);
+    ciface::OSX::Init(wsi.render_window);
 // nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
@@ -84,7 +84,8 @@ void ControllerInterface::ChangeWindow(void* hwnd)
   if (!m_is_init)
     return;
 
-  m_wsi.render_surface = hwnd;
+  // This shouldn't use render_surface so no need to update it.
+  m_wsi.render_window = hwnd;
   RefreshDevices();
 }
 

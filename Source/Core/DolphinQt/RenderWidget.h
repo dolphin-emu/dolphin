@@ -33,7 +33,6 @@ private:
   void HandleCursorTimer();
   void OnHideCursorChanged();
   void OnKeepOnTopChanged(bool top);
-  void SetFillBackground(bool fill);
   void OnFreeLookMouseMove(QMouseEvent* event);
   void PassEventToImGui(const QEvent* event);
   void SetImGuiKeyMap();

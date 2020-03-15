@@ -48,6 +48,7 @@ class RoundStickGate : public StickGate
 public:
   explicit RoundStickGate(ControlState radius);
   ControlState GetRadiusAtAngle(double ang) const override final;
+  std::optional<u32> GetIdealCalibrationSampleCount() const override final;
 
 private:
   const ControlState m_radius;
