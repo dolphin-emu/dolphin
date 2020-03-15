@@ -15,6 +15,7 @@ import android.preference.PreferenceManager;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,7 +35,7 @@ public final class DirectoryInitialization
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
   public static final String EXTRA_STATE = "directoryState";
-  private static final int WiimoteNewVersion = 3;  // Last changed in PR 8439
+  private static final int WiimoteNewVersion = 4;  // Last changed in PR 8503
   private static volatile DirectoryInitializationState directoryState = null;
   private static String userPath;
   private static String internalPath;
@@ -152,6 +153,7 @@ public final class DirectoryInitialization
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     if (prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion)
     {
+      EmulationActivity.clearWiimoteNewIniLinkedPreferences(context);
       copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), true, context);
       SharedPreferences.Editor sPrefsEditor = prefs.edit();
       sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);
