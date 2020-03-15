@@ -41,7 +41,7 @@ void SettingsHandler::SetBytes(Buffer&& buffer)
 
 std::string SettingsHandler::GetValue(std::string_view key) const
 {
-  constexpr char delim[] = "\r\n";
+  constexpr char delim[] = "\n";
   std::string toFind = std::string(delim).append(key).append("=");
   size_t found = decoded.find(toFind);
 
@@ -80,6 +80,14 @@ void SettingsHandler::Decrypt()
     str++;
     m_key = (m_key >> 31) | (m_key << 1);
   }
+
+  // Decryption done. Now get rid of all CR in the output.
+  // The decoded file is supposed to contain Windows line endings
+  // (CR-LF), but sometimes also contains CR-LF-LF endings which
+  // confuse the parsing code, so let's just get rid of all CR
+  // line endings.
+
+  decoded.erase(std::remove(decoded.begin(), decoded.end(), '\x0d'), decoded.end());
 }
 
 void SettingsHandler::Reset()
