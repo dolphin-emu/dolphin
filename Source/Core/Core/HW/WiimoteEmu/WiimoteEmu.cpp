@@ -516,8 +516,15 @@ void Wiimote::SendDataReport()
       const u8 camera_data_offset =
           CameraLogic::REPORT_DATA_OFFSET + rpt_builder.GetIRDataFormatOffset();
 
-      m_i2c_bus.BusRead(CameraLogic::I2C_ADDR, camera_data_offset, rpt_builder.GetIRDataSize(),
-                        rpt_builder.GetIRDataPtr());
+      u8* ir_data = rpt_builder.GetIRDataPtr();
+      const u8 ir_size = rpt_builder.GetIRDataSize();
+
+      if (ir_size != m_i2c_bus.BusRead(CameraLogic::I2C_ADDR, camera_data_offset, ir_size, ir_data))
+      {
+        // This happens when IR reporting is enabled but the camera hardware is disabled.
+        // It commonly occurs when changing IR sensitivity.
+        std::fill_n(ir_data, ir_size, u8(0xff));
+      }
     }
 
     // Extension port:
@@ -541,7 +548,7 @@ void Wiimote::SendDataReport()
                                         ExtensionPort::REPORT_I2C_ADDR, ext_size, ext_data))
       {
         // Real wiimote seems to fill with 0xff on failed bus read
-        std::fill_n(ext_data, ext_size, 0xff);
+        std::fill_n(ext_data, ext_size, u8(0xff));
       }
     }
 
