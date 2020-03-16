@@ -278,6 +278,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
 
   Common::SettingsHandler gen;
   std::string serno;
+  std::string model = "RVL-001(" + region_setting.area + ")";
   CreateSystemMenuTitleDirs();
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
                                        "/" WII_SETTING);
@@ -291,6 +292,7 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     {
       gen.SetBytes(std::move(data));
       serno = gen.GetValue("SERNO");
+      model = gen.GetValue("MODEL");
 
       bool region_matches = false;
       if (SConfig::GetInstance().bOverrideRegionSettings)
@@ -308,6 +310,12 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
       {
         region_setting = RegionSetting{gen.GetValue("AREA"), gen.GetValue("VIDEO"),
                                        gen.GetValue("GAME"), gen.GetValue("CODE")};
+      }
+      else
+      {
+        const size_t parenthesis_pos = model.find('(');
+        if (parenthesis_pos != std::string::npos)
+          model = model.substr(0, parenthesis_pos) + '(' + region_setting.area + ')';
       }
 
       gen.Reset();
@@ -328,7 +336,6 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
   }
 
-  std::string model = "RVL-001(" + region_setting.area + ")";
   gen.AddSetting("AREA", region_setting.area);
   gen.AddSetting("MODEL", model);
   gen.AddSetting("DVD", "0");
