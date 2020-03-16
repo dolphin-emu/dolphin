@@ -45,6 +45,7 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/WiiRoot.h"
 
 #include "DiscIO/Enums.h"
 
@@ -439,7 +440,10 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   // Ensure any new settings are written to the SYSCONF
   if (StartUp.bWii)
+  {
+    Core::BackupWiiSettings();
     ConfigLoaders::SaveToSYSCONF(Config::LayerType::Meta);
+  }
 
   const bool load_ipl = !StartUp.bWii && !StartUp.bHLE_BS2 &&
                         std::holds_alternative<BootParameters::Disc>(boot->parameters);
@@ -487,6 +491,7 @@ static void RestoreSYSCONF()
 
 void RestoreConfig()
 {
+  Core::RestoreWiiSettings(Core::RestoreReason::EmulationEnd);
   RestoreSYSCONF();
   Config::ClearCurrentRunLayer();
   Config::RemoveLayer(Config::LayerType::Movie);
