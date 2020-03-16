@@ -97,11 +97,9 @@ GameFile::GameFile() = default;
 
 GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 {
-  {
-    std::string name, extension;
-    SplitPath(m_file_path, nullptr, &name, &extension);
-    m_file_name = name + extension;
+  m_file_name = PathToFileName(m_file_path);
 
+  {
     std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
     {
