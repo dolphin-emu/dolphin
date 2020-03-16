@@ -159,6 +159,8 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
 bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
                std::string* extension);
 
+std::string PathToFileName(std::string_view path);
+
 void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
                            std::string_view filename);
 

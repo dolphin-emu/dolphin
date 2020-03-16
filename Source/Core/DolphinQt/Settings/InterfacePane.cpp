@@ -119,12 +119,9 @@ void InterfacePane::CreateUI()
   // List avalable themes
   auto theme_search_results =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& filename : theme_search_results)
+  for (const std::string& path : theme_search_results)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-    name += ext;
-    QString qt_name = QString::fromStdString(name);
+    const QString qt_name = QString::fromStdString(PathToFileName(path));
     m_combobox_theme->addItem(qt_name);
   }
 
@@ -137,12 +134,12 @@ void InterfacePane::CreateUI()
 
   m_combobox_userstyle->addItem(tr("(None)"), QString{});
 
-  for (const std::string& filename : userstyle_search_results)
+  for (const std::string& path : userstyle_search_results)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-    QString qt_name = QString::fromStdString(name);
-    m_combobox_userstyle->addItem(qt_name, QString::fromStdString(filename));
+    std::string name;
+    SplitPath(path, nullptr, &name, nullptr);
+    const QString qt_name = QString::fromStdString(name);
+    m_combobox_userstyle->addItem(qt_name, QString::fromStdString(path));
   }
 
   // Checkboxes
