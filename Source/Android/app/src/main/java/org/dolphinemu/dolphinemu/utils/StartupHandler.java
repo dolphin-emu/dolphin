@@ -27,6 +27,10 @@ public final class StartupHandler
     // Ask the user if he wants to enable analytics if we haven't yet.
     Analytics.checkAnalyticsInit(parent);
 
+    // Set up and/or sync Android TV channels
+    if (TvUtil.isLeanback(parent))
+      TvUtil.scheduleSyncingChannel(parent);
+
     String[] start_files = null;
     Bundle extras = parent.getIntent().getExtras();
     if (extras != null)
