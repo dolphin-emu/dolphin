@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <libusb.h>
 
 #include "Common/ChunkFile.h"
@@ -81,6 +82,7 @@ IPCCommandResult BluetoothReal::Open(const OpenRequest& request)
   if (!m_context.IsValid())
     return GetDefaultReply(IPC_EACCES);
 
+  m_last_open_error.clear();
   m_context.GetDeviceList([this](libusb_device* device) {
     libusb_device_descriptor device_descriptor;
     libusb_get_device_descriptor(device, &device_descriptor);
@@ -115,8 +117,19 @@ IPCCommandResult BluetoothReal::Open(const OpenRequest& request)
 
   if (m_handle == nullptr)
   {
-    PanicAlertT("Bluetooth passthrough mode is enabled, "
-                "but no usable Bluetooth USB device was found. Aborting.");
+    if (m_last_open_error.empty())
+    {
+      CriticalAlertT(
+          "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n\n"
+          "The emulated console will now stop.");
+    }
+    else
+    {
+      CriticalAlertT("Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.\n"
+                     "The following error occurred when Dolphin tried to use an adapter:\n%s\n\n"
+                     "The emulated console will now stop.",
+                     m_last_open_error.c_str());
+    }
     Core::QueueHostJob(Core::Stop);
     return GetDefaultReply(IPC_ENOENT);
   }
@@ -547,7 +560,8 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
   const int ret = libusb_open(m_device, &m_handle);
   if (ret != 0)
   {
-    PanicAlertT("Failed to open Bluetooth device: %s", libusb_error_name(ret));
+    m_last_open_error = fmt::format(Common::GetStringT("Failed to open Bluetooth device: {}"),
+                                    libusb_error_name(ret));
     return false;
   }
 
@@ -560,15 +574,16 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
     result = libusb_detach_kernel_driver(m_handle, INTERFACE);
     if (result < 0 && result != LIBUSB_ERROR_NOT_FOUND && result != LIBUSB_ERROR_NOT_SUPPORTED)
     {
-      PanicAlertT("Failed to detach kernel driver for BT passthrough: %s",
-                  libusb_error_name(result));
+      m_last_open_error =
+          fmt::format(Common::GetStringT("Failed to detach kernel driver for BT passthrough: {}"),
+                      libusb_error_name(result));
       return false;
     }
   }
 #endif
   if (libusb_claim_interface(m_handle, INTERFACE) < 0)
   {
-    PanicAlertT("Failed to claim interface for BT passthrough");
+    m_last_open_error = Common::GetStringT("Failed to claim interface for BT passthrough");
     return false;
   }
 
