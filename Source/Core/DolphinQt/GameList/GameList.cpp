@@ -329,6 +329,9 @@ void GameList::ShowContextMenu(const QPoint&)
       auto* perform_disc_update = menu->addAction(tr("Perform System Update"), this,
                                                   [this, file_path = game->GetFilePath()] {
                                                     WiiUpdate::PerformDiscUpdate(file_path, this);
+                                                    // Since the update may have installed a newer
+                                                    // system menu, trigger a refresh.
+                                                    Settings::Instance().NANDRefresh();
                                                   });
       perform_disc_update->setEnabled(!Core::IsRunning() || !SConfig::GetInstance().bWii);
     }
