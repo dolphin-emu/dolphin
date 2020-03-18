@@ -485,6 +485,15 @@ const std::string& GameFile::GetName(Variant variant) const
   return m_file_name;
 }
 
+const std::string& GameFile::GetMaker(const Core::TitleDatabase& title_database) const
+{
+  if (!m_custom_maker.empty())
+    return m_custom_maker;
+
+  const std::string& database_name = title_database.GetDeveloper(m_gametdb_id);
+  return database_name.empty() ? GetMaker(Variant::LongAndPossiblyCustom) : database_name;
+}
+
 const std::string& GameFile::GetMaker(Variant variant) const
 {
   if (variant == Variant::LongAndPossiblyCustom && !m_custom_maker.empty())
