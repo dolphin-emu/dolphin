@@ -689,7 +689,7 @@ void GyroMappingIndicator::Draw()
       const auto jitter_line_y =
           std::min(max_jitter / deadzone_value * DEADZONE_DRAW_SIZE - DEADZONE_DRAW_BOTTOM, 1.0);
       p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), INPUT_DOT_RADIUS)));
-      p.drawLine(-1.0, jitter_line_y * -1.0, 1.0, jitter_line_y * -1.0);
+      p.drawLine(QLineF(-1.0, jitter_line_y * -1.0, 1.0, jitter_line_y * -1.0));
 
       // Sphere background.
       p.setPen(Qt::NoPen);
