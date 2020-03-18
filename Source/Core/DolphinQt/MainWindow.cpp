@@ -1245,8 +1245,8 @@ void MainWindow::SetStateSlot(int slot)
 void MainWindow::PerformOnlineUpdate(const std::string& region)
 {
   WiiUpdate::PerformOnlineUpdate(region, this);
-  // Since the update may have installed a newer system menu, refresh the tools menu.
-  m_menu_bar->UpdateToolsMenu(false);
+  // Since the update may have installed a newer system menu, trigger a refresh.
+  Settings::Instance().NANDRefresh();
 }
 
 void MainWindow::BootWiiSystemMenu()
