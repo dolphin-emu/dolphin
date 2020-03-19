@@ -145,7 +145,8 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_FILE_PATH:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
-      QString file_path = QFileInfo(QString::fromStdString(game.GetFilePath())).canonicalPath();
+      QString file_path = QDir::toNativeSeparators(
+          QFileInfo(QString::fromStdString(game.GetFilePath())).canonicalPath());
       if (!file_path.endsWith(QDir::separator()))
         file_path.append(QDir::separator());
       return file_path;
