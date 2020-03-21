@@ -86,6 +86,18 @@ enum class XCheckTLBFlag
   OpcodeNoException
 };
 
+static bool EvaluateTranslateFlagMSRDR(TranslateFlag flag)
+{
+  return flag == TranslateFlag::AlwaysTranslate ||
+         (flag != TranslateFlag::NeverTranslate && MSR.DR);
+}
+
+static bool EvaluateTranslateFlagMSRIR(TranslateFlag flag)
+{
+  return flag == TranslateFlag::AlwaysTranslate ||
+         (flag != TranslateFlag::NeverTranslate && MSR.IR);
+}
+
 static bool IsOpcodeFlag(XCheckTLBFlag flag)
 {
   return flag == XCheckTLBFlag::Opcode || flag == XCheckTLBFlag::OpcodeNoException;
@@ -421,9 +433,9 @@ TryReadInstResult TryReadInstruction(u32 address)
   return TryReadInstResult{true, from_bat, hex, address};
 }
 
-u32 HostRead_Instruction(const u32 address)
+u32 HostRead_Instruction(const u32 address, TranslateFlag translate_flag)
 {
-  UGeckoInstruction inst = HostRead_U32(address);
+  UGeckoInstruction inst = HostRead_U32(address, translate_flag);
   return inst.hex;
 }
 
@@ -555,82 +567,90 @@ void Write_F64(const double var, const u32 address)
   Write_U64(integral, address);
 }
 
-u8 HostRead_U8(const u32 address)
+u8 HostRead_U8(const u32 address, TranslateFlag translate_flag)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(address, MSR.DR);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u8>(
+      address, EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-u16 HostRead_U16(const u32 address)
+u16 HostRead_U16(const u32 address, TranslateFlag translate_flag)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(address, MSR.DR);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u16>(
+      address, EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-u32 HostRead_U32(const u32 address)
+u32 HostRead_U32(const u32 address, TranslateFlag translate_flag)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(address, MSR.DR);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u32>(
+      address, EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-u64 HostRead_U64(const u32 address)
+u64 HostRead_U64(const u32 address, TranslateFlag translate_flag)
 {
-  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(address, MSR.DR);
+  return ReadFromHardware<XCheckTLBFlag::NoException, u64>(
+      address, EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-float HostRead_F32(const u32 address)
+float HostRead_F32(const u32 address, TranslateFlag translate_flag)
 {
-  const u32 integral = HostRead_U32(address);
+  const u32 integral = HostRead_U32(address, translate_flag);
 
   return Common::BitCast<float>(integral);
 }
 
-double HostRead_F64(const u32 address)
+double HostRead_F64(const u32 address, TranslateFlag translate_flag)
 {
-  const u64 integral = HostRead_U64(address);
+  const u64 integral = HostRead_U64(address, translate_flag);
 
   return Common::BitCast<double>(integral);
 }
 
-void HostWrite_U8(const u8 var, const u32 address)
+void HostWrite_U8(const u8 var, const u32 address, TranslateFlag translate_flag)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var, MSR.DR);
+  WriteToHardware<XCheckTLBFlag::NoException, u8>(address, var,
+                                                  EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-void HostWrite_U16(const u16 var, const u32 address)
+void HostWrite_U16(const u16 var, const u32 address, TranslateFlag translate_flag)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var, MSR.DR);
+  WriteToHardware<XCheckTLBFlag::NoException, u16>(address, var,
+                                                   EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-void HostWrite_U32(const u32 var, const u32 address)
+void HostWrite_U32(const u32 var, const u32 address, TranslateFlag translate_flag)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var, MSR.DR);
+  WriteToHardware<XCheckTLBFlag::NoException, u32>(address, var,
+                                                   EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-void HostWrite_U64(const u64 var, const u32 address)
+void HostWrite_U64(const u64 var, const u32 address, TranslateFlag translate_flag)
 {
-  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var, MSR.DR);
+  WriteToHardware<XCheckTLBFlag::NoException, u64>(address, var,
+                                                   EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-void HostWrite_F32(const float var, const u32 address)
+void HostWrite_F32(const float var, const u32 address, TranslateFlag translate_flag)
 {
   const u32 integral = Common::BitCast<u32>(var);
 
-  HostWrite_U32(integral, address);
+  HostWrite_U32(integral, address, translate_flag);
 }
 
-void HostWrite_F64(const double var, const u32 address)
+void HostWrite_F64(const double var, const u32 address, TranslateFlag translate_flag)
 {
   const u64 integral = Common::BitCast<u64>(var);
 
-  HostWrite_U64(integral, address);
+  HostWrite_U64(integral, address, translate_flag);
 }
 
-std::string HostGetString(u32 address, size_t size)
+std::string HostGetString(u32 address, size_t size, TranslateFlag translate_flag)
 {
   std::string s;
   do
   {
-    if (!HostIsRAMAddress(address))
+    if (!HostIsRAMAddress(address, translate_flag))
       break;
-    u8 res = HostRead_U8(address);
+    u8 res = HostRead_U8(address, translate_flag);
     if (!res)
       break;
     s += static_cast<char>(res);
@@ -678,15 +698,17 @@ static bool IsRAMAddress(u32 address, bool translate)
   return false;
 }
 
-bool HostIsRAMAddress(u32 address)
+bool HostIsRAMAddress(u32 address, TranslateFlag translate_flag)
 {
-  return IsRAMAddress<XCheckTLBFlag::NoException>(address, MSR.DR);
+  return IsRAMAddress<XCheckTLBFlag::NoException>(address,
+                                                  EvaluateTranslateFlagMSRDR(translate_flag));
 }
 
-bool HostIsInstructionRAMAddress(u32 address)
+bool HostIsInstructionRAMAddress(u32 address, TranslateFlag translate_flag)
 {
   // Instructions are always 32bit aligned.
-  return !(address & 3) && IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(address, MSR.IR);
+  return !(address & 3) && IsRAMAddress<XCheckTLBFlag::OpcodeNoException>(
+                               address, EvaluateTranslateFlagMSRIR(translate_flag));
 }
 
 void DMA_LCToMemory(const u32 mem_address, const u32 cache_address, const u32 num_blocks)

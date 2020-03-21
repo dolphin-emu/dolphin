@@ -13,32 +13,41 @@
 
 namespace PowerPC
 {
+enum class TranslateFlag
+{
+  CheckMSR,
+  AlwaysTranslate,
+  NeverTranslate,
+};
+
 // Routines for debugger UI, cheats, etc. to access emulated memory from the
 // perspective of the CPU.  Not for use by core emulation routines.
 // Use "Host_" prefix.
-u8 HostRead_U8(u32 address);
-u16 HostRead_U16(u32 address);
-u32 HostRead_U32(u32 address);
-u64 HostRead_U64(u32 address);
-float HostRead_F32(u32 address);
-double HostRead_F64(u32 address);
-u32 HostRead_Instruction(u32 address);
+u8 HostRead_U8(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+u16 HostRead_U16(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+u32 HostRead_U32(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+u64 HostRead_U64(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+float HostRead_F32(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+double HostRead_F64(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+u32 HostRead_Instruction(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
 
-void HostWrite_U8(u8 var, u32 address);
-void HostWrite_U16(u16 var, u32 address);
-void HostWrite_U32(u32 var, u32 address);
-void HostWrite_U64(u64 var, u32 address);
-void HostWrite_F32(float var, u32 address);
-void HostWrite_F64(double var, u32 address);
+void HostWrite_U8(u8 var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+void HostWrite_U16(u16 var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+void HostWrite_U32(u32 var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+void HostWrite_U64(u64 var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+void HostWrite_F32(float var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
+void HostWrite_F64(double var, u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
 
-std::string HostGetString(u32 address, size_t size = 0);
+std::string HostGetString(u32 address, size_t size = 0,
+                          TranslateFlag translate_flag = TranslateFlag::CheckMSR);
 
 // Returns whether a read or write to the given address will resolve to a RAM
 // access given the current CPU state.
-bool HostIsRAMAddress(u32 address);
+bool HostIsRAMAddress(u32 address, TranslateFlag translate_flag = TranslateFlag::CheckMSR);
 
 // Same as HostIsRAMAddress, but uses IBAT instead of DBAT.
-bool HostIsInstructionRAMAddress(u32 address);
+bool HostIsInstructionRAMAddress(u32 address,
+                                 TranslateFlag translate_flag = TranslateFlag::CheckMSR);
 
 // Routines for the CPU core to access memory.
 
