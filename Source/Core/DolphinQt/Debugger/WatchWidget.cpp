@@ -348,4 +348,5 @@ void WatchWidget::AddWatchBreakpoint(int row)
 void WatchWidget::AddWatch(QString name, u32 addr)
 {
   PowerPC::debug_interface.SetWatch(addr, name.toStdString());
+  Update();
 }

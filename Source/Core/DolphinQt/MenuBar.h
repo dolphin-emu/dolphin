@@ -233,6 +233,7 @@ private:
   // View
   QAction* m_show_code;
   QAction* m_show_registers;
+  QAction* m_show_threads;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
   QAction* m_show_memory;

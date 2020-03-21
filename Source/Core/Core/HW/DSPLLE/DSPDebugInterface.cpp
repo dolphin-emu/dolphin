@@ -140,6 +140,11 @@ void DSPDebugInterface::ClearPatches()
   m_patches.ClearPatches();
 }
 
+Common::Debug::Threads DSPDebugInterface::GetThreads() const
+{
+  return {};
+}
+
 std::string DSPDebugInterface::Disassemble(u32 address) const
 {
   // we'll treat addresses as line numbers.

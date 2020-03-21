@@ -364,6 +364,20 @@ void Settings::SetRegistersVisible(bool enabled)
   }
 }
 
+bool Settings::IsThreadsVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/showthreads")).toBool();
+}
+
+void Settings::SetThreadsVisible(bool enabled)
+{
+  if (IsThreadsVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showthreads"), enabled);
+  emit ThreadsVisibilityChanged(enabled);
+}
+
 bool Settings::IsRegistersVisible() const
 {
   return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();

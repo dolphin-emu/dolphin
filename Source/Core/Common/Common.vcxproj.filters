@@ -274,6 +274,12 @@
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Debug\OSThread.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\Threads.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
     <ClInclude Include="GL\GLContext.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
@@ -357,6 +363,9 @@
     </ClCompile>
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\OSThread.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
     <ClCompile Include="GL\GLContext.cpp">

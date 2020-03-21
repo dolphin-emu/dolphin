@@ -118,6 +118,8 @@ public:
   bool IsDebugModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
+  void SetThreadsVisible(bool enabled);
+  bool IsThreadsVisible() const;
   void SetWatchVisible(bool enabled);
   bool IsWatchVisible() const;
   void SetBreakpointsVisible(bool enabled);
@@ -161,6 +163,7 @@ signals:
   void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);
+  void ThreadsVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void ToolBarVisibilityChanged(bool visible);
