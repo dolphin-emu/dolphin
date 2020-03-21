@@ -74,7 +74,7 @@ CodeWidget::~CodeWidget()
   settings.setValue(QStringLiteral("codewidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("codewidget/floating"), isFloating());
   settings.setValue(QStringLiteral("codewidget/codesplitter"), m_code_splitter->saveState());
-  settings.setValue(QStringLiteral("codewidget/boxplitter"), m_box_splitter->saveState());
+  settings.setValue(QStringLiteral("codewidget/boxsplitter"), m_box_splitter->saveState());
 }
 
 void CodeWidget::closeEvent(QCloseEvent*)
