@@ -325,7 +325,7 @@ bool ExportDOL(const Volume& volume, const Partition& partition, const std::stri
 std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition)
 {
   const Platform volume_type = volume.GetVolumeType();
-  if (IsDisc(volume_type))
+  if (!IsDisc(volume_type))
     return std::nullopt;
 
   return volume.ReadSwappedAndShifted(0x424, partition);
