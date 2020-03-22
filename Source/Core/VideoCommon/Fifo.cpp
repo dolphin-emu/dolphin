@@ -516,7 +516,7 @@ void UpdateWantDeterminism(bool want)
     {
       // These haven't been updated in non-deterministic mode.
       s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
-      CopyPreprocessCPStateFromMain();
+      g_main_cp_state = g_preprocess_cp_state;
       VertexLoaderManager::MarkAllDirty();
     }
   }

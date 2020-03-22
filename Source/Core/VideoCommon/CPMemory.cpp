@@ -22,12 +22,7 @@ void DoCPState(PointerWrap& p)
   p.DoMarker("CP Memory");
   if (p.mode == PointerWrap::MODE_READ)
   {
-    CopyPreprocessCPStateFromMain();
+    g_main_cp_state = g_preprocess_cp_state;
     g_main_cp_state.bases_dirty = true;
   }
-}
-
-void CopyPreprocessCPStateFromMain()
-{
-  memcpy(&g_preprocess_cp_state, &g_main_cp_state, sizeof(CPState));
 }

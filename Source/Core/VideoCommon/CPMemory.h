@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <cstring>
+
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
@@ -255,6 +257,46 @@ struct CPState final
   bool bases_dirty;
   VertexLoaderBase* vertex_loaders[8];
   int last_id;
+
+  CPState & operator=(std::nullptr_t)
+  {
+      memset(array_bases, 0, sizeof(array_bases));
+      memset(array_strides, 0, sizeof(array_strides));
+      matrix_index_a = {0};
+      matrix_index_b = {0};
+      vtx_desc = {0};
+      for(auto &v : vtx_attr)
+      {
+          v = {0};
+      }
+      attr_dirty = {0};
+      bases_dirty = false;
+      last_id = 0;
+      for(auto &l : vertex_loaders)
+      {
+          l = nullptr;
+      }
+
+      return *this;
+  }
+
+  CPState & operator=(const CPState& new_state)
+  {
+      memcpy(array_bases, new_state.array_bases, sizeof(array_bases));
+      memcpy(array_strides, new_state.array_strides, sizeof(array_strides));
+      matrix_index_a = new_state.matrix_index_a;
+      matrix_index_b = new_state.matrix_index_b;
+      vtx_desc = new_state.vtx_desc;
+      for(size_t i = 0; i < 8; i++)
+        vtx_attr[i] = new_state.vtx_attr[i];
+      attr_dirty = new_state.attr_dirty;
+      bases_dirty = new_state.bases_dirty;
+      last_id = new_state.last_id;
+      for(size_t i = 0; i < 8; i++)
+        vertex_loaders[i] = new_state.vertex_loaders[i];
+
+      return *this;
+  }
 };
 
 class PointerWrap;
@@ -269,5 +311,3 @@ void LoadCPReg(u32 SubCmd, u32 Value, bool is_preprocess = false);
 void FillCPMemoryArray(u32* memory);
 
 void DoCPState(PointerWrap& p);
-
-void CopyPreprocessCPStateFromMain();
