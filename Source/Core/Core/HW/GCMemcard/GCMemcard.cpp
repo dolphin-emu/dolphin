@@ -928,7 +928,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
   // was. Determine when exactly this happens and if this is neccessary for anything.
 
-  memset(&(UpdatedDir.m_dir_entries[index]), 0xFF, DENTRY_SIZE);
+  memset(static_cast<void*>(&(UpdatedDir.m_dir_entries[index])), 0xFF, DENTRY_SIZE);
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
 
@@ -1108,6 +1108,8 @@ GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& file
     return GCMemcardExportFileRetVal::FAIL;
   case GCMemcardGetSaveDataRetVal::NOMEMCARD:
     return GCMemcardExportFileRetVal::NOMEMCARD;
+  case GCMemcardGetSaveDataRetVal::SUCCESS:
+    break;
   }
   gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
   for (unsigned int i = 0; i < size; ++i)

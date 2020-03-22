@@ -50,7 +50,7 @@ bool CEXIETHERNET::Activate()
   const int MAX_INTERFACES = 32;
   for (int i = 0; i < MAX_INTERFACES; ++i)
   {
-    strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ);
+    strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ - 1);
 
     int err;
     if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0)
