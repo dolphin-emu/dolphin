@@ -420,9 +420,9 @@ static CertECC MakeBlankEccCert(const std::string& issuer, const std::string& na
 {
   CertECC cert{};
   cert.signature.type = SignatureType(Common::swap32(u32(SignatureType::ECC)));
-  std::strncpy(cert.signature.issuer, issuer.c_str(), 0x40);
+  memcpy(cert.signature.issuer, issuer.c_str(), 0x40);
   cert.header.public_key_type = PublicKeyType(Common::swap32(u32(PublicKeyType::ECC)));
-  std::strncpy(cert.header.name, name.c_str(), 0x40);
+  memcpy(cert.header.name, name.c_str(), 0x40);
   cert.header.id = Common::swap32(key_id);
   cert.public_key = Common::ec::PrivToPub(private_key);
   return cert;
