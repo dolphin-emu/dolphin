@@ -17,17 +17,9 @@
 
 class JitBase;
 
-// A JitBlock is block of compiled code which corresponds to the PowerPC
-// code at a given address.
-//
-// The notion of the address of a block is a bit complicated because of the
-// way address translation works, but basically it's the combination of an
-// effective address, the address translation bits in MSR, and the physical
-// address.
-struct JitBlock
+#pragma pack(push, 1)
+struct JitBlockData
 {
-  bool OverlapsPhysicalRange(u32 address, u32 length) const;
-
   // A special entry point for block linking; usually used to check the
   // downcount.
   u8* checkedEntry;
@@ -49,6 +41,22 @@ struct JitBlock
   // The number of PPC instructions represented by this block. Mostly
   // useful for logging.
   u32 originalSize;
+  // This tracks the position if this block within the fast block cache.
+  // We allow each block to have only one map entry.
+  size_t fast_block_map_index;
+};
+#pragma pack(pop)
+
+// A JitBlock is block of compiled code which corresponds to the PowerPC
+// code at a given address.
+//
+// The notion of the address of a block is a bit complicated because of the
+// way address translation works, but basically it's the combination of an
+// effective address, the address translation bits in MSR, and the physical
+// address.
+struct JitBlock : public JitBlockData
+{
+  bool OverlapsPhysicalRange(u32 address, u32 length) const;
 
   // Information about exits to a known address from this block.
   // This is used to implement block linking.
@@ -73,10 +81,6 @@ struct JitBlock
     u64 ticStart;
     u64 ticStop;
   } profile_data = {};
-
-  // This tracks the position if this block within the fast block cache.
-  // We allow each block to have only one map entry.
-  size_t fast_block_map_index;
 };
 
 typedef void (*CompiledCode)();
