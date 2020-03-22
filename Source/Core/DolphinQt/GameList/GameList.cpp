@@ -727,6 +727,7 @@ void GameList::OpenGCSaveFolder()
       break;
     }
     case ExpansionInterface::EXIDEVICE_MEMORYCARD:
+    {
       std::string memcard_path = i == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
                                           Config::Get(Config::MAIN_MEMCARD_B_PATH);
 
@@ -734,6 +735,9 @@ void GameList::OpenGCSaveFolder()
 
       SplitPath(memcard_path, &memcard_dir, nullptr, nullptr);
       url = QUrl::fromLocalFile(QString::fromStdString(memcard_dir));
+      break;
+    }
+    default:
       break;
     }
 
