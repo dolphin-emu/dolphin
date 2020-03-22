@@ -92,6 +92,10 @@ int main(int argc, char* argv[])
   }
 #endif
 
+  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
+  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const std::vector<std::string> args = parser->args();
+
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
   QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
   QCoreApplication::setOrganizationName(QStringLiteral("Dolphin Emulator"));
@@ -108,10 +112,6 @@ int main(int argc, char* argv[])
   // This code will become unnecessary and obsolete once we switch to Qt 6.
   QApplication::setFont(QApplication::font("QMenu"));
 #endif
-
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
-  const std::vector<std::string> args = parser->args();
 
 #ifdef _WIN32
   FreeConsole();
