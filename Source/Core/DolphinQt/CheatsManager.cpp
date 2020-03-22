@@ -37,8 +37,6 @@
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
 
-#include "Common/Logging/Log.h"
-
 constexpr u32 MAX_RESULTS = 50;
 
 constexpr int INDEX_ROLE = Qt::UserRole;
@@ -632,9 +630,6 @@ void CheatsManager::NextSearch()
                                             !matches_func(r.address);
                                    }),
                     m_results.end());
-
-    // todo find an efficient way to cull out m_prev_values
-    // m_prev_values.clear();
   });
 
   Update();
