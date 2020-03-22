@@ -163,7 +163,6 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   SelectEventsForDevice(DefaultRootWindow(m_display), &mask, keyboard_deviceid);
 
   // Keyboard Keys
-  memset(&m_state.keyboard, 0, sizeof(m_state.keyboard));
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
     Key* temp_key = new Key(m_display, i, m_state.keyboard);
@@ -174,17 +173,14 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   }
 
   // Mouse Buttons
-  m_state.buttons = 0;
   for (int i = 0; i < 32; i++)
     AddInput(new Button(i, &m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+
-  m_state.cursor.x = m_state.cursor.y = .0f;
   for (int i = 0; i != 4; ++i)
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
 
   // Mouse Axis, X-/+ and Y-/+
-  m_state.axis.x = m_state.axis.y = .0f;
   for (int i = 0; i != 4; ++i)
     AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
 }

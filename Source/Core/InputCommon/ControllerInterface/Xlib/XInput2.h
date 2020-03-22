@@ -105,7 +105,7 @@ public:
 private:
   Window m_window;
   Display* m_display;
-  State m_state;
+  State m_state{};
   int xi_opcode;
   const int pointer_deviceid, keyboard_deviceid;
   std::string name;
