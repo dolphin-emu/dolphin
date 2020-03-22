@@ -312,6 +312,7 @@ private:
       break;
 
     case MODE_WRITE:
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
       memcpy(*ptr, data, size);
       break;
 
