@@ -291,7 +291,7 @@ void CEXIIPL::TransferByte(u8& data)
     DEBUG_LOG(EXPANSIONINTERFACE, "IPL-DEV data %s %08x %02x",
               m_command.is_write() ? "write" : "read", address, data);
 
-#define IN_RANGE(x) (address >= x##_BASE && address < x##_BASE + x##_SIZE)
+#define IN_RANGE(x) (address < x##_BASE + x##_SIZE)
 #define DEV_ADDR(x) (address - x##_BASE)
 #define DEV_ADDR_CURSOR(x) (DEV_ADDR(x) + m_cursor++)
 
