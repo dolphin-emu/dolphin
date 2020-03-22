@@ -344,7 +344,7 @@ private:
   const ControlState m_value{};
 };
 
-ParseResult MakeLiteralExpression(Token token)
+static ParseResult MakeLiteralExpression(Token token)
 {
   ControlState val{};
   if (TryParse(token.data, &val))

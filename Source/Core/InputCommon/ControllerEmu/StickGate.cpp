@@ -109,8 +109,8 @@ std::optional<u32> SquareStickGate::GetIdealCalibrationSampleCount() const
   return 8;
 }
 
-ReshapableInput::ReshapableInput(std::string name, std::string ui_name, GroupType type)
-    : ControlGroup(std::move(name), std::move(ui_name), type)
+ReshapableInput::ReshapableInput(std::string _name, std::string _ui_name, GroupType _type)
+    : ControlGroup(std::move(_name), std::move(_ui_name), _type)
 {
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 }

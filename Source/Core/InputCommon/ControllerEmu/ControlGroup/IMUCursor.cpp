@@ -16,8 +16,8 @@
 
 namespace ControllerEmu
 {
-IMUCursor::IMUCursor(std::string name, std::string ui_name)
-    : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUCursor,
+IMUCursor::IMUCursor(std::string _name, std::string _ui_name)
+    : ControlGroup(std::move(_name), std::move(_ui_name), GroupType::IMUCursor,
                    ControlGroup::CanBeDisabled::Yes)
 {
   AddInput(Translate, _trans("Recenter"));

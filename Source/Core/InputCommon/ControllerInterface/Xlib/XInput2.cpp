@@ -131,8 +131,6 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int 
 KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
     : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
 {
-  memset(&m_state, 0, sizeof(m_state));
-
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
   // which it can individually filter to get just the events it's interested
@@ -165,6 +163,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   SelectEventsForDevice(DefaultRootWindow(m_display), &mask, keyboard_deviceid);
 
   // Keyboard Keys
+  memset(&m_state.keyboard, 0, sizeof(m_state.keyboard));
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
     Key* temp_key = new Key(m_display, i, m_state.keyboard);
@@ -175,14 +174,17 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   }
 
   // Mouse Buttons
+  m_state.buttons = 0;
   for (int i = 0; i < 32; i++)
     AddInput(new Button(i, &m_state.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+
+  m_state.cursor.x = m_state.cursor.y = .0f;
   for (int i = 0; i != 4; ++i)
     AddInput(new Cursor(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.cursor.y : &m_state.cursor.x));
 
   // Mouse Axis, X-/+ and Y-/+
+  m_state.axis.x = m_state.axis.y = .0f;
   for (int i = 0; i != 4; ++i)
     AddInput(new Axis(!!(i & 2), !!(i & 1), (i & 2) ? &m_state.axis.y : &m_state.axis.x));
 }

@@ -14,8 +14,8 @@
 
 namespace ControllerEmu
 {
-IMUAccelerometer::IMUAccelerometer(std::string name, std::string ui_name)
-    : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUAccelerometer)
+IMUAccelerometer::IMUAccelerometer(std::string _name, std::string _ui_name)
+    : ControlGroup(std::move(_name), std::move(_ui_name), GroupType::IMUAccelerometer)
 {
   AddInput(Translate, _trans("Up"));
   AddInput(Translate, _trans("Down"));

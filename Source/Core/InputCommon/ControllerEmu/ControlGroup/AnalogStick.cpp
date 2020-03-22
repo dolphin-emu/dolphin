@@ -56,14 +56,14 @@ ControlState AnalogStick::GetGateRadiusAtAngle(double ang) const
   return m_stick_gate->GetRadiusAtAngle(ang);
 }
 
-OctagonAnalogStick::OctagonAnalogStick(const char* name, ControlState gate_radius)
-    : OctagonAnalogStick(name, name, gate_radius)
+OctagonAnalogStick::OctagonAnalogStick(const char* _name, ControlState _gate_radius)
+    : OctagonAnalogStick(_name, _name, _gate_radius)
 {
 }
 
-OctagonAnalogStick::OctagonAnalogStick(const char* name, const char* ui_name,
-                                       ControlState gate_radius)
-    : AnalogStick(name, ui_name, std::make_unique<ControllerEmu::OctagonStickGate>(gate_radius))
+OctagonAnalogStick::OctagonAnalogStick(const char* _name, const char* _ui_name,
+                                       ControlState _gate_radius)
+    : AnalogStick(_name, _ui_name, std::make_unique<ControllerEmu::OctagonStickGate>(_gate_radius))
 {
 }
 
