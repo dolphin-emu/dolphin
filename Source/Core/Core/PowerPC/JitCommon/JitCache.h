@@ -17,7 +17,6 @@
 
 class JitBase;
 
-#pragma pack(push, 1)
 struct JitBlockData
 {
   // A special entry point for block linking; usually used to check the
@@ -45,7 +44,6 @@ struct JitBlockData
   // We allow each block to have only one map entry.
   size_t fast_block_map_index;
 };
-#pragma pack(pop)
 
 // A JitBlock is block of compiled code which corresponds to the PowerPC
 // code at a given address.
