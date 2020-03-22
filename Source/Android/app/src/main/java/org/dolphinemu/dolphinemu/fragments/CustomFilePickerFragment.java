@@ -10,19 +10,14 @@ import android.view.View;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 import com.nononsenseapps.filepicker.FilePickerFragment;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class CustomFilePickerFragment extends FilePickerFragment
 {
-  private static final Set<String> extensions = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wad", "dol", "elf", "dff"));
-
   @NonNull
   @Override
   public Uri toUri(@NonNull final File file)
@@ -56,7 +51,8 @@ public class CustomFilePickerFragment extends FilePickerFragment
 
     return (showHiddenItems || !file.isHidden()) &&
             (file.isDirectory() ||
-                    extensions.contains(fileExtension(file.getName()).toLowerCase()));
+                    SettingsAdapter.getExtensions()
+                            .contains(fileExtension(file.getName()).toLowerCase()));
   }
 
   @Override

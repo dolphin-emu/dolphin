@@ -15,8 +15,9 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 
 public final class MainPresenter
 {
-  public static final int REQUEST_ADD_DIRECTORY = 1;
-  public static final int REQUEST_OPEN_FILE = 2;
+  public static final int REQUEST_DIRECTORY = 1;
+  public static final int REQUEST_GAME_FILE = 2;
+  public static final int REQUEST_SD_FILE = 3;
 
   private final MainView mView;
   private final Context mContext;

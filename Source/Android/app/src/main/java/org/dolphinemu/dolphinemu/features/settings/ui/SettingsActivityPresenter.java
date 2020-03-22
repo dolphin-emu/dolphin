@@ -70,7 +70,7 @@ public final class SettingsActivityPresenter
       }
     }
 
-    mView.showSettingsFragment(menuTag, null, false, gameId);
+    mView.showSettingsFragment(menuTag, null, false, true, gameId);
     mView.onSettingsFileLoaded(mSettings);
   }
 
@@ -184,13 +184,18 @@ public final class SettingsActivityPresenter
     outState.putBoolean(KEY_SHOULD_SAVE, mShouldSave);
   }
 
+  public boolean shouldSave()
+  {
+    return mShouldSave;
+  }
+
   public void onGcPadSettingChanged(MenuTag key, int value)
   {
     if (value != 0) // Not disabled
     {
       Bundle bundle = new Bundle();
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
-      mView.showSettingsFragment(key, bundle, true, gameId);
+      mView.showSettingsFragment(key, bundle, true, true, gameId);
     }
   }
 
@@ -199,7 +204,7 @@ public final class SettingsActivityPresenter
     switch (value)
     {
       case 1:
-        mView.showSettingsFragment(menuTag, null, true, gameId);
+        mView.showSettingsFragment(menuTag, null, true, true, gameId);
         break;
 
       case 2:
@@ -214,7 +219,12 @@ public final class SettingsActivityPresenter
     {
       Bundle bundle = new Bundle();
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-      mView.showSettingsFragment(menuTag, bundle, true, gameId);
+      mView.showSettingsFragment(menuTag, bundle, true, true, gameId);
     }
+  }
+
+  public void onFileConfirmed(String file)
+  {
+    SettingsAdapter.onFilePickerConfirmation(file);
   }
 }

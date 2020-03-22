@@ -5,6 +5,7 @@ public enum MenuTag
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
+  CONFIG_PATHS("config_paths"),
   CONFIG_GAME_CUBE("config_gamecube"),
   CONFIG_WII("config_wii"),
   WIIMOTE("wiimote"),
@@ -26,7 +27,8 @@ public enum MenuTag
   WIIMOTE_EXTENSION_1("wiimote_extension", 4),
   WIIMOTE_EXTENSION_2("wiimote_extension", 5),
   WIIMOTE_EXTENSION_3("wiimote_extension", 6),
-  WIIMOTE_EXTENSION_4("wiimote_extension", 7);
+  WIIMOTE_EXTENSION_4("wiimote_extension", 7),
+  BLANK("Blank");
 
   private String tag;
   private int subType = -1;

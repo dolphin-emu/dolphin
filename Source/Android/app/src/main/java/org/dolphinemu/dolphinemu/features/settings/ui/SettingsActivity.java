@@ -19,8 +19,10 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
@@ -103,13 +105,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   @Override
   public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
-          String gameID)
+          boolean customAnimations, String gameID)
   {
     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
     if (addToStack)
     {
-      if (areSystemAnimationsEnabled())
+      if (areSystemAnimationsEnabled() && customAnimations)
       {
         transaction.setCustomAnimations(
                 R.animator.settings_enter,
@@ -152,6 +154,35 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
   {
     LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent result)
+  {
+    super.onActivityResult(requestCode, resultCode, result);
+
+    // Save modified non-FilePicker settings beforehand since finish() won't save them.
+    // onStop() must come before handling the resultCode to properly save FilePicker selection.
+    mPresenter.onStop(true);
+
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
+    {
+      mPresenter.onFileConfirmed(FileBrowserHelper.getSelectedPath(result));
+
+      // Prevent duplicate Toasts.
+      if (!mPresenter.shouldSave())
+      {
+        Toast.makeText(this, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
+      }
+    }
+    // Clear static variables for File Picker activities that don't set extensions.
+    SettingsAdapter.sFilePicker = null;
+    SettingsAdapter.sItem = null;
+
+    // TODO: After result of FilePicker, duplicate SettingsActivity appears.
+    //  Finish to avoid this. Is there a better method?
+    finish();
   }
 
   @Override

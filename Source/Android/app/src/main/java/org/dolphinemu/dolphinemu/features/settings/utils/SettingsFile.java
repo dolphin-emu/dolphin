@@ -55,6 +55,11 @@ public final class SettingsFile
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
   public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
   public static final String KEY_DEFAULT_ISO = "DefaultISO";
+  public static final String KEY_NAND_ROOT_PATH = "NANDRootPath";
+  public static final String KEY_DUMP_PATH = "DumpPath";
+  public static final String KEY_LOAD_PATH = "LoadPath";
+  public static final String KEY_RESOURCE_PACK_PATH = "ResourcePackPath";
+  public static final String KEY_WII_SD_CARD_PATH = "WiiSDCardPath";
 
   public static final String KEY_ANALYTICS_ENABLED = "Enabled";
   public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";

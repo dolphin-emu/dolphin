@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -21,6 +20,7 @@ import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
@@ -39,6 +39,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     titles.put(MenuTag.CONFIG, R.string.preferences_settings);
     titles.put(MenuTag.CONFIG_GENERAL, R.string.general_submenu);
     titles.put(MenuTag.CONFIG_INTERFACE, R.string.interface_submenu);
+    titles.put(MenuTag.CONFIG_PATHS, R.string.paths_submenu);
     titles.put(MenuTag.CONFIG_GAME_CUBE, R.string.gamecube_submenu);
     titles.put(MenuTag.CONFIG_WII, R.string.wii_submenu);
     titles.put(MenuTag.WIIMOTE, R.string.grid_menu_wiimote_settings);
@@ -179,7 +180,18 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   @Override
   public void loadSubMenu(MenuTag menuKey)
   {
-    mActivity.showSettingsFragment(menuKey, null, true, getArguments().getString(ARGUMENT_GAME_ID));
+    mActivity
+            .showSettingsFragment(menuKey, null, true, true,
+                    getArguments().getString(ARGUMENT_GAME_ID));
+  }
+
+  @Override
+  public void reloadSubMenu()
+  {
+    mActivity
+            .showSettingsFragment(MenuTag.BLANK, null, true, false,
+                    getArguments().getString(ARGUMENT_GAME_ID));
+    Objects.requireNonNull(getActivity()).onBackPressed();
   }
 
   @Override
@@ -217,5 +229,4 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   {
     mActivity.onExtensionSettingChanged(menuTag, value);
   }
-
 }

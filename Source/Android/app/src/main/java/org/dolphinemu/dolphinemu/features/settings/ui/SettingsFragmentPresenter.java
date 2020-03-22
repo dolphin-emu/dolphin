@@ -3,7 +3,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.os.Bundle;
 import android.text.TextUtils;
 
-import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -13,6 +12,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.ConfirmRunnable;
+import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
@@ -23,10 +24,10 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -135,6 +136,10 @@ public final class SettingsFragmentPresenter
         addInterfaceSettings(sl);
         break;
 
+      case CONFIG_PATHS:
+        addPathsSettings(sl);
+        break;
+
       case CONFIG_GAME_CUBE:
         addGameCubeSettings(sl);
         break;
@@ -192,6 +197,9 @@ public final class SettingsFragmentPresenter
         addStereoSettings(sl);
         break;
 
+      case BLANK:
+        break;
+
       default:
         mView.showToastMessage("Unimplemented menu");
         return;
@@ -205,6 +213,7 @@ public final class SettingsFragmentPresenter
   {
     sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
     sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
+    sl.add(new SubmenuSetting(null, null, R.string.paths_submenu, 0, MenuTag.CONFIG_PATHS));
 
     sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
     sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, 0, MenuTag.CONFIG_WII));
@@ -305,6 +314,47 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, Settings.SECTION_INI_INTERFACE,
             R.string.osd_messages, R.string.osd_messages_description, true,
             onScreenDisplayMessages));
+  }
+
+  private void addPathsSettings(ArrayList<SettingsItem> sl)
+  {
+    Setting defaultISO = null;
+    Setting NANDRootPath = null;
+    Setting dumpPath = null;
+    Setting loadPath = null;
+    Setting resourcePackPath = null;
+    Setting wiiSDCardPath = null;
+
+    SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    SettingSection generalSection = mSettings.getSection(Settings.SECTION_INI_GENERAL);
+    defaultISO = coreSection.getSetting(SettingsFile.KEY_DEFAULT_ISO);
+    NANDRootPath = generalSection.getSetting(SettingsFile.KEY_NAND_ROOT_PATH);
+    dumpPath = generalSection.getSetting(SettingsFile.KEY_DUMP_PATH);
+    loadPath = generalSection.getSetting(SettingsFile.KEY_LOAD_PATH);
+    resourcePackPath = generalSection.getSetting(SettingsFile.KEY_RESOURCE_PACK_PATH);
+    wiiSDCardPath = generalSection.getSetting(SettingsFile.KEY_WII_SD_CARD_PATH);
+
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_DEFAULT_ISO,
+            Settings.SECTION_INI_CORE, R.string.default_ISO, 0, "",
+            MainPresenter.REQUEST_GAME_FILE, defaultISO));
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_NAND_ROOT_PATH,
+            Settings.SECTION_INI_GENERAL, R.string.wii_NAND_root, 0, getDefaultNANDRootPath(),
+            MainPresenter.REQUEST_DIRECTORY, NANDRootPath));
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_DUMP_PATH,
+            Settings.SECTION_INI_GENERAL, R.string.dump_path, 0, getDefaultDumpPath(),
+            MainPresenter.REQUEST_DIRECTORY, dumpPath));
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_LOAD_PATH,
+            Settings.SECTION_INI_GENERAL, R.string.load_path, 0, getDefaultLoadPath(),
+            MainPresenter.REQUEST_DIRECTORY, loadPath));
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_RESOURCE_PACK_PATH,
+            Settings.SECTION_INI_GENERAL, R.string.resource_pack_path, 0,
+            getDefaultResourcePackPath(),
+            MainPresenter.REQUEST_DIRECTORY, resourcePackPath));
+    sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_WII_SD_CARD_PATH,
+            Settings.SECTION_INI_GENERAL, R.string.SD_card_path, 0, getDefaultSDPath(),
+            MainPresenter.REQUEST_SD_FILE, wiiSDCardPath));
+    sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation,
+            R.string.reset_paths_complete, () -> SettingsAdapter.resetPaths()));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -1544,5 +1594,30 @@ public final class SettingsFragmentPresenter
     }
 
     return extensionValue;
+  }
+
+  public static String getDefaultNANDRootPath()
+  {
+    return DirectoryInitialization.getUserDirectory() + "/Wii";
+  }
+
+  public static String getDefaultDumpPath()
+  {
+    return DirectoryInitialization.getUserDirectory() + "/Dump";
+  }
+
+  public static String getDefaultLoadPath()
+  {
+    return DirectoryInitialization.getUserDirectory() + "/Load";
+  }
+
+  public static String getDefaultResourcePackPath()
+  {
+    return DirectoryInitialization.getUserDirectory() + "/ResourcePacks";
+  }
+
+  public static String getDefaultSDPath()
+  {
+    return DirectoryInitialization.getUserDirectory() + "/Wii/sd.raw";
   }
 }

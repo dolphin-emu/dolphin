@@ -28,7 +28,7 @@ public final class FileBrowserHelper
     i.putExtra(FilePickerActivity.EXTRA_START_PATH,
             Environment.getExternalStorageDirectory().getPath());
 
-    activity.startActivityForResult(i, MainPresenter.REQUEST_ADD_DIRECTORY);
+    activity.startActivityForResult(i, MainPresenter.REQUEST_DIRECTORY);
   }
 
   public static void openFilePicker(FragmentActivity activity, int requestCode, boolean allowMulti)
@@ -45,7 +45,7 @@ public final class FileBrowserHelper
   }
 
   @Nullable
-  public static String getSelectedDirectory(Intent result)
+  public static String getSelectedPath(Intent result)
   {
     // Use the provided utility method to parse the result
     List<Uri> files = Utils.getSelectedFilesFromResult(result);

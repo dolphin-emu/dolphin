@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
@@ -22,6 +23,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
@@ -31,6 +33,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.ConfirmRunnableViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RumbleBindingViewHolder;
@@ -39,9 +43,15 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceVie
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
@@ -56,6 +66,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private AlertDialog mDialog;
   private TextView mTextSliderValue;
+
+  public static FilePicker sFilePicker;
+  public static SettingsItem sItem;
+
+  private static final Set<String> gameExtensions = new HashSet<>(Arrays.asList(
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wad", "dol", "elf", "dff"));
+
+  private static final Set<String> SDExtensions = new HashSet<>(Collections.singletonList("raw"));
 
   public SettingsAdapter(SettingsFragmentView view, Context context)
   {
@@ -101,6 +119,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case SettingsItem.TYPE_RUMBLE_BINDING:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
         return new RumbleBindingViewHolder(view, this, mContext);
+
+      case SettingsItem.TYPE_FILE_PICKER:
+        view = inflater.inflate(R.layout.list_item_setting, parent, false);
+        return new FilePickerViewHolder(view, this);
+
+      case SettingsItem.TYPE_CONFIRM_RUNNABLE:
+        view = inflater.inflate(R.layout.list_item_setting, parent, false);
+        return new ConfirmRunnableViewHolder(view, this, mContext, mView);
 
       default:
         Log.error("[SettingsAdapter] Invalid view type: " + viewType);
@@ -272,6 +298,65 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
+  }
+
+  public void onFilePickerDirectoryClick(SettingsItem item)
+  {
+    sFilePicker = (FilePicker) item;
+    sItem = item;
+
+    FileBrowserHelper.openDirectoryPicker(mView.getActivity());
+  }
+
+  public void onFilePickerFileClick(SettingsItem item)
+  {
+    sFilePicker = (FilePicker) item;
+    sItem = item;
+
+    FileBrowserHelper.openFilePicker(mView.getActivity(), sFilePicker.getRequestType(), false);
+  }
+
+  public static void onFilePickerConfirmation(String file)
+  {
+    NativeLibrary.SetConfig(sFilePicker.getFile(), sItem.getSection(), sItem.getKey(), file);
+    NativeLibrary.ReloadConfig();
+  }
+
+  public static void resetPaths()
+  {
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+            SettingsFile.KEY_DEFAULT_ISO, "");
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_NAND_ROOT_PATH, SettingsFragmentPresenter.getDefaultNANDRootPath());
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_DUMP_PATH, SettingsFragmentPresenter.getDefaultDumpPath());
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_LOAD_PATH, SettingsFragmentPresenter.getDefaultLoadPath());
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_RESOURCE_PACK_PATH,
+            SettingsFragmentPresenter.getDefaultResourcePackPath());
+    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_WII_SD_CARD_PATH, SettingsFragmentPresenter.getDefaultSDPath());
+    NativeLibrary.ReloadConfig();
+  }
+
+  public static Set<String> getExtensions()
+  {
+    try
+    {
+      if (sFilePicker.getRequestType() == MainPresenter.REQUEST_SD_FILE)
+      {
+        return SDExtensions;
+      }
+      else
+      {
+        return gameExtensions;
+      }
+    }
+    catch (NullPointerException ex)
+    {
+      return gameExtensions;
+    }
   }
 
   @Override

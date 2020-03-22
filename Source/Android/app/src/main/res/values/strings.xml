@@ -162,6 +162,18 @@
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
 
+    <!-- Path Settings -->
+    <string name="paths_submenu">Paths</string>
+    <string name="default_ISO">Default ISO</string>
+    <string name="wii_NAND_root">Wii NAND Root</string>
+    <string name="dump_path">Dump Path</string>
+    <string name="load_path">Load Path</string>
+    <string name="resource_pack_path">Resource Pack Path</string>
+    <string name="SD_card_path">SD Card Path</string>
+    <string name="reset_paths">Reset Paths to Default Settings</string>
+    <string name="reset_paths_confirmation">Are you sure you want to reset Paths to default settings?</string>
+    <string name="reset_paths_complete">Paths reset</string>
+
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>
     <string name="graphics_enhancements_and_hacks">Enhancements &amp; Hacks</string>

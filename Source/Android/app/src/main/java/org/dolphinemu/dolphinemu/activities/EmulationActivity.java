@@ -24,7 +24,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -402,7 +401,7 @@ public final class EmulationActivity extends AppCompatActivity
         // If the user picked a file, as opposed to just backing out.
         if (resultCode == MainActivity.RESULT_OK)
         {
-          String newDiscPath = FileBrowserHelper.getSelectedDirectory(result);
+          String newDiscPath = FileBrowserHelper.getSelectedPath(result);
           if (!TextUtils.isEmpty(newDiscPath))
           {
             NativeLibrary.ChangeDisc(newDiscPath);
