@@ -59,7 +59,7 @@ void EmulatedController::UpdateReferences(ciface::ExpressionParser::ControlEnvir
       setting->GetInputReference().UpdateReference(env);
 
     // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
+    if (ctrlGroup->m_type == GroupType::Attachments)
     {
       auto* const attachments = static_cast<Attachments*>(ctrlGroup.get());
 
@@ -102,7 +102,7 @@ void EmulatedController::SetDefaultDevice(ciface::Core::DeviceQualifier devq)
   for (auto& ctrlGroup : groups)
   {
     // Attachments:
-    if (ctrlGroup->type == GroupType::Attachments)
+    if (ctrlGroup->m_type == GroupType::Attachments)
     {
       for (auto& ai : static_cast<Attachments*>(ctrlGroup.get())->GetAttachmentList())
       {

@@ -16,15 +16,15 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(std::string name_, const GroupType type_, CanBeDisabled can_be_disabled_)
-    : name(name_), ui_name(std::move(name_)), type(type_),
+ControlGroup::ControlGroup(std::string name, const GroupType type, CanBeDisabled can_be_disabled_)
+    : m_name(name), m_ui_name(std::move(name)), m_type(type),
       can_be_disabled(can_be_disabled_ == CanBeDisabled::Yes)
 {
 }
 
-ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupType type_,
+ControlGroup::ControlGroup(std::string name, std::string ui_name, const GroupType type,
                            CanBeDisabled can_be_disabled_)
-    : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_),
+    : m_name(std::move(name)), m_ui_name(std::move(ui_name)), m_type(type),
       can_be_disabled(can_be_disabled_ == CanBeDisabled::Yes)
 {
 }
@@ -45,7 +45,7 @@ ControlGroup::~ControlGroup() = default;
 void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
-  const std::string group(base + name + "/");
+  const std::string group(base + m_name + "/");
 
   // enabled
   if (can_be_disabled)
@@ -69,14 +69,14 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GroupType::Attachments)
+  if (m_type == GroupType::Attachments)
   {
     auto* const ext = static_cast<Attachments*>(this);
 
     ext->SetSelectedAttachment(0);
     u32 n = 0;
     std::string attachment_text;
-    sec->Get(base + name, &attachment_text, "");
+    sec->Get(base + m_name, &attachment_text, "");
 
     // First assume attachment string is a valid expression.
     // If it instead matches one of the names of our attachments it is overridden below.
@@ -98,7 +98,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
 void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)
 {
-  const std::string group(base + name + "/");
+  const std::string group(base + m_name + "/");
 
   // enabled
   sec->Set(group + "Enabled", enabled, true);
@@ -116,18 +116,18 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
   }
 
   // extensions
-  if (type == GroupType::Attachments)
+  if (m_type == GroupType::Attachments)
   {
     auto* const ext = static_cast<Attachments*>(this);
 
     if (ext->GetSelectionSetting().IsSimpleValue())
     {
-      sec->Set(base + name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
+      sec->Set(base + m_name, ext->GetAttachmentList()[ext->GetSelectedAttachment()]->GetName(),
                "None");
     }
     else
     {
-      sec->Set(base + name, ext->GetSelectionSetting().GetInputReference().GetExpression(), "None");
+      sec->Set(base + m_name, ext->GetSelectionSetting().GetInputReference().GetExpression(), "None");
     }
 
     for (auto& ai : ext->GetAttachmentList())

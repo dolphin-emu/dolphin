@@ -89,9 +89,9 @@ public:
     return std::copysign(std::max(T{0}, std::abs(input) - deadzone) / (T{1} - deadzone), input);
   }
 
-  const std::string name;
-  const std::string ui_name;
-  const GroupType type;
+  const std::string m_name;
+  const std::string m_ui_name;
+  const GroupType m_type;
   const bool can_be_disabled;
 
   bool enabled = true;

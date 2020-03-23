@@ -241,7 +241,7 @@ void ReshapableInput::LoadConfig(IniFile::Section* section, const std::string& d
 {
   ControlGroup::LoadConfig(section, default_device, base_name);
 
-  const std::string group(base_name + name + '/');
+  const std::string group(base_name + m_name + '/');
   std::string load_str;
   section->Get(group + CALIBRATION_CONFIG_NAME, &load_str, "");
   const auto load_data = SplitString(load_str, ' ');
@@ -275,7 +275,7 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
 {
   ControlGroup::SaveConfig(section, default_device, base_name);
 
-  const std::string group(base_name + name + '/');
+  const std::string group(base_name + m_name + '/');
   std::vector<std::string> save_data(m_calibration.size());
   std::transform(
       m_calibration.begin(), m_calibration.end(), save_data.begin(),

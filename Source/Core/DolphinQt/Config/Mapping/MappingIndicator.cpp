@@ -341,7 +341,7 @@ void ReshapableInputIndicator::DrawReshapableInput(
 void AnalogStickIndicator::Draw()
 {
   // Some hacks for pretty colors:
-  const bool is_c_stick = m_group.name == "C-Stick";
+  const bool is_c_stick = m_group.m_name == "C-Stick";
 
   const auto gate_brush_color = is_c_stick ? C_STICK_GATE_COLOR : STICK_GATE_COLOR;
 
