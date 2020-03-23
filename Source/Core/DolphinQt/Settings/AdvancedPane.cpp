@@ -177,10 +177,10 @@ void AdvancedPane::Update()
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
-  for (int i = 0; i < available_cpu_cores.size(); ++i)
+  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(i);
+      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
