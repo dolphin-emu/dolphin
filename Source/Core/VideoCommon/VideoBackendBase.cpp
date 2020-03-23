@@ -277,10 +277,8 @@ void VideoBackendBase::DoState(PointerWrap& p)
 
 void VideoBackendBase::InitializeShared()
 {
-  // Initialize cp state
-  g_main_cp_state = nullptr;
-  g_preprocess_cp_state = nullptr;
-
+  g_main_cp_state = {};
+  g_preprocess_cp_state = {};
   memset(texMem, 0, TMEM_SIZE);
 
   // do not initialize again for the config window
