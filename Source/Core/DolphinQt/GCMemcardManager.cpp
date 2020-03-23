@@ -230,8 +230,6 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     auto* icon = new QTableWidgetItem;
     icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
 
-    std::optional<DEntry> entry = memcard->GetDEntry(file_index);
-
     m_slot_active_icons[slot].emplace_back(std::move(icon_data));
 
     table->setItem(i, 0, banner);
@@ -531,7 +529,7 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
   if (decoded_data && !decoded_data->empty())
   {
     frame_data.m_frames.reserve(decoded_data->size());
-    const u32 per_frame_offset = MEMORY_CARD_ICON_WIDTH * MEMORY_CARD_ICON_HEIGHT;
+
     for (size_t f = 0; f < decoded_data->size(); ++f)
     {
       QImage img(reinterpret_cast<const u8*>((*decoded_data)[f].image_data.data()),
