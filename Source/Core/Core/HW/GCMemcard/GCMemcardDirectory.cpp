@@ -31,7 +31,6 @@
 #include "Core/Core.h"
 #include "Core/NetPlayProto.h"
 
-const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
 bool GCMemcardDirectory::LoadGCI(GCIFile gci)
