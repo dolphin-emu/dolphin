@@ -266,7 +266,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
 {
   const Platform volume_type = volume.GetVolumeType();
   if (!IsDisc(volume_type))
-    return {};
+    return std::nullopt;
 
   std::optional<u64> dol_offset = volume.ReadSwappedAndShifted(0x420, partition);
 
@@ -280,7 +280,7 @@ std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& parti
 std::optional<u32> GetBootDOLSize(const Volume& volume, const Partition& partition, u64 dol_offset)
 {
   if (!IsDisc(volume.GetVolumeType()))
-    return {};
+    return std::nullopt;
 
   u32 dol_size = 0;
 
@@ -326,7 +326,7 @@ std::optional<u64> GetFSTOffset(const Volume& volume, const Partition& partition
 {
   const Platform volume_type = volume.GetVolumeType();
   if (!IsDisc(volume_type))
-    return {};
+    return std::nullopt;
 
   return volume.ReadSwappedAndShifted(0x424, partition);
 }
@@ -335,7 +335,7 @@ std::optional<u64> GetFSTSize(const Volume& volume, const Partition& partition)
 {
   const Platform volume_type = volume.GetVolumeType();
   if (!IsDisc(volume_type))
-    return {};
+    return std::nullopt;
 
   return volume.ReadSwappedAndShifted(0x428, partition);
 }
