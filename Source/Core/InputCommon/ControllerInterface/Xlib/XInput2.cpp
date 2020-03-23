@@ -131,8 +131,6 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int 
 KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
     : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
 {
-  memset(&m_state, 0, sizeof(m_state));
-
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
   // which it can individually filter to get just the events it's interested
