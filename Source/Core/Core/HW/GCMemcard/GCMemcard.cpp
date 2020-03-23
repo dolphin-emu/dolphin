@@ -926,9 +926,8 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
 
   // TODO: Deleting a file via the GC BIOS sometimes leaves behind an extra updated directory block
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
-  // was. Determine when exactly this happens and if this is neccessary for anything.
-
-  memset(static_cast<void*>(&(UpdatedDir.m_dir_entries[index])), 0xFF, DENTRY_SIZE);
+  // was. Determine when exactly this happens and if this is necessary for anything.
+  UpdatedDir.m_dir_entries[index].m_gamecode = DEntry::UNINITIALIZED_GAMECODE;
   UpdatedDir.m_update_counter = UpdatedDir.m_update_counter + 1;
   UpdateDirectory(UpdatedDir);
 
@@ -1581,9 +1580,11 @@ std::pair<u32, u32> Header::CalculateSerial() const
   return std::make_pair(serial1, serial2);
 }
 
-DEntry::DEntry()
+DEntry::DEntry() :
+  m_gamecode(UNINITIALIZED_GAMECODE),
+  m_unused_1(0xff),
+  m_unused_2({0xff, 0xff})
 {
-  memset(this, 0xFF, DENTRY_SIZE);
 }
 
 std::string DEntry::GCI_FileName() const
