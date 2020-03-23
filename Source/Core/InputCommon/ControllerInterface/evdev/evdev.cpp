@@ -204,7 +204,7 @@ static int s_wakeup_eventfd;
 // sysfs is not stable, so this is probably the easiest way to get a name for a node.
 static std::map<std::string, std::weak_ptr<evdevDevice>> s_devnode_objects;
 
-std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
+static std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
 {
   if (!unique_id)
     return nullptr;
@@ -223,7 +223,7 @@ std::shared_ptr<evdevDevice> FindDeviceWithUniqueID(const char* unique_id)
   return nullptr;
 }
 
-void AddDeviceNode(const char* devnode)
+static void AddDeviceNode(const char* devnode)
 {
   // Unfortunately udev gives us no way to filter out the non event device interfaces.
   // So we open it and see if it works with evdev ioctls or not.
