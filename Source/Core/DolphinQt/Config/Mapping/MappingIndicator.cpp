@@ -13,6 +13,7 @@
 #include <QAction>
 #include <QDateTime>
 #include <QPainter>
+#include <QPainterPath>
 #include <QTimer>
 
 #include "Common/MathUtil.h"
