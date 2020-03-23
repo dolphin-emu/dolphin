@@ -69,9 +69,9 @@ struct WiimotePoolEntry
 
 // Connected wii remotes are placed here when no open slot is set to "Real".
 // They are then automatically disconnected after some time.
-std::vector<WiimotePoolEntry> g_wiimote_pool;
+static std::vector<WiimotePoolEntry> g_wiimote_pool;
 
-WiimoteScanner g_wiimote_scanner;
+static WiimoteScanner g_wiimote_scanner;
 
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
 static void TryToFillWiimoteSlot(u32 index)
