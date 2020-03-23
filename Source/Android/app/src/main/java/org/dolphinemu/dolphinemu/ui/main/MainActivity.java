@@ -145,13 +145,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
   @Override
   public void launchFileListActivity()
   {
-    FileBrowserHelper.openDirectoryPicker(this);
+    FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   @Override
   public void launchOpenFileActivity()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_GAME_FILE, false);
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_GAME_FILE, false,
+            FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   /**

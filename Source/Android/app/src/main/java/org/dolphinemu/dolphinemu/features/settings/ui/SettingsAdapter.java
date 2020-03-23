@@ -47,11 +47,9 @@ import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.security.InvalidParameterException;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
@@ -67,13 +65,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   private AlertDialog mDialog;
   private TextView mTextSliderValue;
 
-  public static FilePicker sFilePicker;
-  public static SettingsItem sItem;
-
-  private static final Set<String> gameExtensions = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wad", "dol", "elf", "dff"));
-
-  private static final Set<String> SDExtensions = new HashSet<>(Collections.singletonList("raw"));
+  // TODO: Properly restore these two on activity recreation
+  private static FilePicker sFilePicker;
+  private static SettingsItem sItem;
 
   public SettingsAdapter(SettingsFragmentView view, Context context)
   {
@@ -305,7 +299,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     sFilePicker = (FilePicker) item;
     sItem = item;
 
-    FileBrowserHelper.openDirectoryPicker(mView.getActivity());
+    FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   public void onFilePickerFileClick(SettingsItem item)
@@ -313,7 +307,21 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     sFilePicker = (FilePicker) item;
     sItem = item;
 
-    FileBrowserHelper.openFilePicker(mView.getActivity(), sFilePicker.getRequestType(), false);
+    HashSet<String> extensions;
+    switch (sFilePicker.getRequestType())
+    {
+      case MainPresenter.REQUEST_SD_FILE:
+        extensions = FileBrowserHelper.RAW_EXTENSION;
+        break;
+      case MainPresenter.REQUEST_GAME_FILE:
+        extensions = FileBrowserHelper.GAME_EXTENSIONS;
+        break;
+      default:
+        throw new InvalidParameterException("Unhandled request code");
+    }
+
+    FileBrowserHelper.openFilePicker(mView.getActivity(), sFilePicker.getRequestType(), false,
+            extensions);
   }
 
   public static void onFilePickerConfirmation(String file)
@@ -338,25 +346,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
             SettingsFile.KEY_WII_SD_CARD_PATH, SettingsFragmentPresenter.getDefaultSDPath());
     NativeLibrary.ReloadConfig();
-  }
-
-  public static Set<String> getExtensions()
-  {
-    try
-    {
-      if (sFilePicker.getRequestType() == MainPresenter.REQUEST_SD_FILE)
-      {
-        return SDExtensions;
-      }
-      else
-      {
-        return gameExtensions;
-      }
-    }
-    catch (NullPointerException ex)
-    {
-      return gameExtensions;
-    }
   }
 
   @Override

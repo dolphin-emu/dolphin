@@ -633,7 +633,8 @@ public final class EmulationActivity extends AppCompatActivity
         return;
 
       case MENU_ACTION_CHANGE_DISC:
-        FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false);
+        FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false,
+                FileBrowserHelper.GAME_EXTENSIONS);
         return;
 
       case MENU_SET_IR_SENSITIVITY:

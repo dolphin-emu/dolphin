@@ -176,9 +176,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
         Toast.makeText(this, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
       }
     }
-    // Clear static variables for File Picker activities that don't set extensions.
-    SettingsAdapter.sFilePicker = null;
-    SettingsAdapter.sItem = null;
 
     // TODO: After result of FilePicker, duplicate SettingsActivity appears.
     //  Finish to avoid this. Is there a better method?
