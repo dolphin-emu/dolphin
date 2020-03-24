@@ -6,6 +6,7 @@
 
 #include "Common/SettingsHandler.h"
 
+#include <algorithm>
 #include <cstddef>
 #include <ctime>
 #include <iomanip>
@@ -79,12 +80,10 @@ void SettingsHandler::Decrypt()
     m_key = (m_key >> 31) | (m_key << 1);
   }
 
-  // Decryption done. Now get rid of all CR in the output.
-  // The decoded file is supposed to contain Windows line endings
-  // (CR-LF), but sometimes also contains CR-LF-LF endings which
-  // confuse the parsing code, so let's just get rid of all CR
-  // line endings.
-
+  // The decoded data normally uses CRLF line endings, but occasionally
+  // (see the comment in WriteLine), lines can be separated by CRLFLF.
+  // To handle this, we remove every CR and treat LF as the line ending.
+  // (We ignore empty lines.)
   decoded.erase(std::remove(decoded.begin(), decoded.end(), '\x0d'), decoded.end());
 }
 
@@ -96,22 +95,33 @@ void SettingsHandler::Reset()
   m_buffer = {};
 }
 
-void SettingsHandler::AddSetting(std::string_view key, std::string_view value)
+void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
 {
-  for (const char& c : key)
-  {
+  WriteLine(key + '=' + value + "\r\n");
+}
+
+void SettingsHandler::WriteLine(const std::string& str)
+{
+  const u32 old_position = m_position;
+  const u32 old_key = m_key;
+
+  // Encode and write the line
+  for (char c : str)
     WriteByte(c);
-  }
 
-  WriteByte('=');
-
-  for (const char& c : value)
+  // If the encoded data contains a null byte, Nintendo's decoder will stop at that null byte
+  // instead of decoding all the data. To avoid this: If the data we just wrote contains
+  // a null byte, add an LF right before the line to prod the values into being different,
+  // just like Nintendo does. Due to the chosen key, LF itself never encodes into a null byte.
+  const auto begin = m_buffer.cbegin() + old_position;
+  const auto end = m_buffer.cbegin() + m_position;
+  if (std::find(begin, end, 0) != end)
   {
-    WriteByte(c);
+    m_key = old_key;
+    m_position = old_position;
+    WriteByte('\n');
+    WriteLine(str);
   }
-
-  WriteByte(13);
-  WriteByte(10);
 }
 
 void SettingsHandler::WriteByte(u8 b)
