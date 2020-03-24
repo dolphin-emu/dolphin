@@ -19,7 +19,7 @@ class QPlainTextEdit;
 class QPushButton;
 class QTimer;
 
-class LogWidget final : public QDockWidget, LogListener
+class LogWidget final : public QDockWidget, Common::Log::LogListener
 {
   Q_OBJECT
 public:
@@ -37,7 +37,7 @@ private:
   void LoadSettings();
   void SaveSettings();
 
-  void Log(LogTypes::LOG_LEVELS level, const char* text) override;
+  void Log(Common::Log::LOG_LEVELS level, const char* text) override;
 
   // Log
   QCheckBox* m_log_wrap;
@@ -47,7 +47,7 @@ private:
 
   QTimer* m_timer;
 
-  using LogEntry = std::pair<std::string, LogTypes::LOG_LEVELS>;
+  using LogEntry = std::pair<std::string, Common::Log::LOG_LEVELS>;
 
   // Maximum number of lines to show in log viewer
   static constexpr int MAX_LOG_LINES = 5000;

@@ -1,12 +1,9 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;
@@ -15,6 +12,8 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+
+import androidx.appcompat.app.AlertDialog;
 
 public class Analytics
 {

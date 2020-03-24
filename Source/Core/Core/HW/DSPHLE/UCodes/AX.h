@@ -12,7 +12,9 @@
 
 #pragma once
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 namespace DSP::HLE
@@ -108,7 +110,25 @@ protected:
   AXMixControl ConvertMixerControl(u32 mixer_control);
 
   // Apply updates to a PB. Generic, used in AX GC and AX Wii.
-  void ApplyUpdatesForMs(int curr_ms, u16* pb, u16* num_updates, u16* updates);
+  template <typename PBType>
+  void ApplyUpdatesForMs(int curr_ms, PBType& pb, u16* num_updates, u16* updates)
+  {
+    auto pb_mem = Common::BitCastToArray<u16>(pb);
+
+    u32 start_idx = 0;
+    for (int i = 0; i < curr_ms; ++i)
+      start_idx += num_updates[i];
+
+    for (u32 i = start_idx; i < start_idx + num_updates[curr_ms]; ++i)
+    {
+      u16 update_off = Common::swap16(updates[2 * i]);
+      u16 update_val = Common::swap16(updates[2 * i + 1]);
+
+      pb_mem[update_off] = update_val;
+    }
+
+    Common::BitCastFromArray<u16>(pb_mem, pb);
+  }
 
   virtual void HandleCommandList();
   void SignalWorkEnd();

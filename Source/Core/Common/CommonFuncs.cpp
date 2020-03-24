@@ -49,4 +49,27 @@ std::string GetLastErrorString()
                  MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), error_message, BUFFER_SIZE, nullptr);
   return std::string(error_message);
 }
+
+// Obtains a full path to the specified module.
+std::optional<std::wstring> GetModuleName(void* hInstance)
+{
+  DWORD max_size = 50;  // Start with space for 50 characters and grow if needed
+  std::wstring name(max_size, L'\0');
+
+  DWORD size;
+  while ((size = GetModuleFileNameW(static_cast<HMODULE>(hInstance), name.data(), max_size)) ==
+             max_size &&
+         GetLastError() == ERROR_INSUFFICIENT_BUFFER)
+  {
+    max_size *= 2;
+    name.resize(max_size);
+  }
+
+  if (size == 0)
+  {
+    return std::nullopt;
+  }
+  name.resize(size);
+  return name;
+}
 #endif

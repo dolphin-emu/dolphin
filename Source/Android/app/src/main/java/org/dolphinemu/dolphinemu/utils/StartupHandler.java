@@ -1,11 +1,12 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.content.Context;
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentActivity;
+
+import androidx.fragment.app.FragmentActivity;
+
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -25,6 +26,10 @@ public final class StartupHandler
 
     // Ask the user if he wants to enable analytics if we haven't yet.
     Analytics.checkAnalyticsInit(parent);
+
+    // Set up and/or sync Android TV channels
+    if (TvUtil.isLeanback(parent))
+      TvUtil.scheduleSyncingChannel(parent);
 
     String[] start_files = null;
     Bundle extras = parent.getIntent().getExtras();

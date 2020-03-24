@@ -16,6 +16,8 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -32,11 +34,42 @@ namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
 
+static bool CopyBackupFile(const std::string& path_from, const std::string& path_to)
+{
+  if (!File::Exists(path_from))
+    return false;
+
+  return File::Copy(path_from, path_to);
+}
+
+static void DeleteBackupFile(const std::string& file_name)
+{
+  File::Delete(File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name);
+}
+
+static void BackupFile(const std::string& path_in_nand)
+{
+  const std::string file_name = PathToFileName(path_in_nand);
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+
+  CopyBackupFile(original_path, backup_path);
+}
+
+static void RestoreFile(const std::string& path_in_nand)
+{
+  const std::string file_name = PathToFileName(path_in_nand);
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+
+  if (CopyBackupFile(backup_path, original_path))
+    DeleteBackupFile(file_name);
+}
+
 static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 title_id)
 {
-  dest->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id), 0,
-                        {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                         IOS::HLE::FS::Mode::ReadWrite});
+  dest->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id) + '/',
+                       0, {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
   const auto source_save = WiiSave::MakeNandStorage(source, title_id);
   const auto dest_save = WiiSave::MakeNandStorage(dest, title_id);
   WiiSave::Copy(source_save.get(), dest_save.get());
@@ -49,9 +82,8 @@ static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_fi
   if (last_slash != std::string::npos && last_slash > 0)
   {
     const std::string dir = dest_file.substr(0, last_slash);
-    dest_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, dir, 0,
-                             {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                              IOS::HLE::FS::Mode::ReadWrite});
+    dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dir + '/', 0,
+                            {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
   }
 
   auto source_handle =
@@ -175,6 +207,29 @@ void ShutdownWiiRoot()
   }
 }
 
+void BackupWiiSettings()
+{
+  // Back up files which Dolphin can modify at boot, so that we can preserve the original contents.
+  // For SYSCONF, the backup is only needed in case Dolphin crashes or otherwise exists unexpectedly
+  // during emulation, since the config system will restore the SYSCONF settings at emulation end.
+  // For setting.txt, there is no other code that restores the original values for us.
+
+  BackupFile(Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
+  BackupFile("/shared2/sys/SYSCONF");
+}
+
+void RestoreWiiSettings(RestoreReason reason)
+{
+  RestoreFile(Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
+
+  // We must not restore the SYSCONF backup when ending emulation cleanly, since the user may have
+  // edited the SYSCONF file in the NAND using the emulated software (e.g. the Wii Menu settings).
+  if (reason == RestoreReason::CrashRecovery)
+    RestoreFile("/shared2/sys/SYSCONF");
+  else
+    DeleteBackupFile("SYSCONF");
+}
+
 /// Copy a directory from host_source_path (on the host FS) to nand_target_path on the NAND.
 ///
 /// Both paths should not have trailing slashes. To specify the NAND root, use "".
@@ -259,12 +314,8 @@ void CleanUpWiiFileSystemContents()
 
     // FS won't write the save if the directory doesn't exist
     const std::string title_path = Common::GetTitleDataPath(title_id);
-    if (!configured_fs->GetMetadata(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path))
-    {
-      configured_fs->CreateDirectory(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path, 0,
-                                     {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
-                                      IOS::HLE::FS::Mode::ReadWrite});
-    }
+    configured_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, title_path + '/', 0,
+                                  {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
 
     const auto user_save = WiiSave::MakeNandStorage(configured_fs.get(), title_id);
 

@@ -6,16 +6,17 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControlReference/FunctionExpression.h"
 
-namespace ciface
+namespace ciface::ExpressionParser
 {
-namespace ExpressionParser
-{
+constexpr ControlState CONDITION_THRESHOLD = 0.5;
+
 class FunctionExpression : public Expression
 {
 public:
@@ -49,7 +50,6 @@ private:
   std::vector<std::unique_ptr<Expression>> m_args;
 };
 
-std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string name);
+std::unique_ptr<FunctionExpression> MakeFunctionExpression(std::string_view name);
 
-}  // namespace ExpressionParser
-}  // namespace ciface
+}  // namespace ciface::ExpressionParser

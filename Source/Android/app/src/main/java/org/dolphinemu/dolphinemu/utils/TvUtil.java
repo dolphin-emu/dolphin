@@ -18,10 +18,12 @@ import android.media.tv.TvContract;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;
-import android.support.annotation.AnyRes;
-import android.support.annotation.NonNull;
-import android.support.media.tv.Channel;
-import android.support.media.tv.TvContractCompat;
+
+import androidx.annotation.AnyRes;
+import androidx.annotation.NonNull;
+import androidx.tvprovider.media.tv.Channel;
+import androidx.tvprovider.media.tv.TvContractCompat;
+
 import android.util.Log;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
@@ -35,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION;
-import static android.support.v4.content.FileProvider.getUriForFile;
+import static androidx.core.content.FileProvider.getUriForFile;
 
 /**
  * Assists in TV related services, e.g., home screen channels

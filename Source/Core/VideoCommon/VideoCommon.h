@@ -6,9 +6,6 @@
 
 #include "Common/CommonTypes.h"
 
-// Global flag to signal if FifoRecorder is active.
-extern bool g_bRecordFifoData;
-
 // These are accurate (disregarding AA modes).
 constexpr u32 EFB_WIDTH = 640;
 constexpr u32 EFB_HEIGHT = 528;

@@ -14,10 +14,10 @@ constexpr int WIDGET_MAX_WIDTH = 112;
 
 class ControlGroupBox;
 class InputConfig;
-class IOWindow;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
+class QPushButton;
 class QGroupBox;
 
 namespace ControllerEmu
@@ -25,12 +25,8 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class EmulatedController;
+class NumericSettingBase;
 }  // namespace ControllerEmu
-
-namespace ciface::Core
-{
-class Device;
-}  // namespace ciface::Core
 
 constexpr int INDICATOR_UPDATE_FREQ = 30;
 
@@ -57,9 +53,8 @@ protected:
 
   QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
+  QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
   MappingWindow* m_parent;
-  bool m_first = true;
-  std::vector<MappingButton*> m_buttons;
 };

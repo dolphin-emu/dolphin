@@ -166,8 +166,16 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wiimote\Emu\Extension">
       <UniqueIdentifier>{68c09d7e-4f5a-435d-a0d2-7eb7a74d7054}</UniqueIdentifier>
     </Filter>
+<<<<<<< HEAD
     <Filter Include="RNO">
       <UniqueIdentifier>{2d1a5f5f-e640-4e3a-90d3-3a859070f7ac}</UniqueIdentifier>
+=======
+    <Filter Include="PowerPC\JitArmCommon">
+      <UniqueIdentifier>{132cd43e-84be-4939-9f0c-0e7f26794598}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="PowerPC\JitArm64">
+      <UniqueIdentifier>{9e91e72c-e432-4e02-8e03-c45c2b6f6957}</UniqueIdentifier>
+>>>>>>> 76b97a4183653eda583adcac732853c07b251c81
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -710,6 +718,9 @@
     <ClCompile Include="IOS\DeviceStub.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\DolphinDevice.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
@@ -881,9 +892,6 @@
     <ClCompile Include="Config\UISettings.cpp">
       <Filter>Config</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp" />
-    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp" />
     <ClCompile Include="HW\WiimoteEmu\I2CBus.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote\Emu</Filter>
     </ClCompile>
@@ -936,11 +944,67 @@
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\ConditionRegister.cpp" />
+<<<<<<< HEAD
     <ClCompile Include="Discord.cpp">
       <Filter>RNO</Filter>
     </ClCompile>
     <ClCompile Include="Gamestate.cpp">
       <Filter>RNO</Filter>
+=======
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Integer.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStore.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStoreFloating.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_LoadStorePaired.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Paired.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_RegCache.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_SystemRegisters.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Tables.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64Cache.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitAsm.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\Jit_Util.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_BackPatch.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_Branch.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\JitArm64\JitArm64_FloatingPoint.cpp">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\JitRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\GPRRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+>>>>>>> 76b97a4183653eda583adcac732853c07b251c81
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1445,6 +1509,9 @@
     <ClInclude Include="IOS\DeviceStub.h">
       <Filter>IOS</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\DolphinDevice.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\DI\DI.h">
       <Filter>IOS\DI</Filter>
     </ClInclude>
@@ -1671,11 +1738,28 @@
     <ClInclude Include="HW\AddressSpace.h">
       <Filter>HW %28Flipper/Hollywood%29</Filter>
     </ClInclude>
+<<<<<<< HEAD
     <ClInclude Include="Discord.h">
       <Filter>RNO</Filter>
     </ClInclude>
     <ClInclude Include="Gamestate.h">
       <Filter>RNO</Filter>
+=======
+    <ClInclude Include="PowerPC\JitArm64\JitArm64_RegCache.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\JitArm64Cache.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArm64\Jit_Util.h">
+      <Filter>PowerPC\JitArm64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\JitArmCommon\BackPatch.h">
+      <Filter>PowerPC\JitArmCommon</Filter>
+>>>>>>> 76b97a4183653eda583adcac732853c07b251c81
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

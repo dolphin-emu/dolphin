@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/IOS/IOS.h"
@@ -97,7 +98,11 @@ static u32 ppc_irq_masks;
 static u32 arm_irq_flags;
 static u32 arm_irq_masks;
 
-static u32 sensorbar_power;  // do we need to care about this?
+// Indicates which pins are accessible by broadway.  Writable by starlet only.
+static constexpr Common::Flags<GPIO> gpio_owner = {GPIO::SLOT_LED, GPIO::SLOT_IN, GPIO::SENSOR_BAR,
+                                                   GPIO::DO_EJECT, GPIO::AVE_SCL, GPIO::AVE_SDA};
+static Common::Flags<GPIO> gpio_dir;
+Common::Flags<GPIO> g_gpio_out;
 
 static CoreTiming::EventType* updateInterrupts;
 static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
@@ -111,7 +116,7 @@ void DoState(PointerWrap& p)
   p.Do(ppc_irq_masks);
   p.Do(arm_irq_flags);
   p.Do(arm_irq_masks);
-  p.Do(sensorbar_power);
+  p.Do(g_gpio_out);
 }
 
 static void InitState()
@@ -125,7 +130,9 @@ static void InitState()
   arm_irq_flags = 0;
   arm_irq_masks = 0;
 
-  sensorbar_power = 0;
+  // The only input broadway has is SLOT_IN; all the others it has access to are outputs
+  gpio_dir = {GPIO::SLOT_LED, GPIO::SENSOR_BAR, GPIO::DO_EJECT, GPIO::AVE_SCL, GPIO::AVE_SDA};
+  g_gpio_out = {};
 
   ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
 }
@@ -181,14 +188,29 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    CoreTiming::ScheduleEvent(0, updateInterrupts, 0);
                  }));
 
-  mmio->Register(base | GPIOB_OUT, MMIO::Constant<u32>(0),
-                 MMIO::DirectWrite<u32>(&sensorbar_power));
+  mmio->Register(base | GPIOB_OUT, MMIO::DirectRead<u32>(&g_gpio_out.m_hex),
+                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                   g_gpio_out.m_hex = val & gpio_owner.m_hex;
+                   if (g_gpio_out[GPIO::DO_EJECT])
+                   {
+                     INFO_LOG(WII_IPC, "Ejecting disc due to GPIO write");
+                     DVDInterface::EjectDisc(DVDInterface::EjectCause::Software);
+                   }
+                   // SENSOR_BAR is checked by WiimoteEmu::CameraLogic
+                   // TODO: AVE, SLOT_LED
+                 }));
+  mmio->Register(base | GPIOB_DIR, MMIO::DirectRead<u32>(&gpio_dir.m_hex),
+                 MMIO::DirectWrite<u32>(&gpio_dir.m_hex));
+  mmio->Register(base | GPIOB_IN, MMIO::ComplexRead<u32>([](u32) {
+                   Common::Flags<GPIO> gpio_in;
+                   gpio_in[GPIO::SLOT_IN] = DVDInterface::IsDiscInside();
+                   return gpio_in.m_hex;
+                 }),
+                 MMIO::Nop<u32>());
 
   // Register some stubbed/unknown MMIOs required to make Wii games work.
   mmio->Register(base | PPCSPEED, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
   mmio->Register(base | VISOLID, MMIO::InvalidRead<u32>(), MMIO::Nop<u32>());
-  mmio->Register(base | GPIOB_DIR, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
-  mmio->Register(base | GPIOB_IN, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_180, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1CC, MMIO::Constant<u32>(0), MMIO::Nop<u32>());
   mmio->Register(base | UNK_1D0, MMIO::Constant<u32>(0), MMIO::Nop<u32>());

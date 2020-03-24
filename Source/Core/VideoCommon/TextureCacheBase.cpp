@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/TextureCacheBase.h"
+
 #include <algorithm>
 #include <cmath>
 #include <cstring>
@@ -13,6 +15,8 @@
 #include <pmmintrin.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -22,7 +26,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
-#include "Common/StringUtil.h"
 
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
@@ -35,12 +38,12 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/HiresTextures.h"
+#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/ShaderCache.h"
 #include "VideoCommon/Statistics.h"
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureConverterShaderGen.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -917,13 +920,14 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
 
   if (level > 0)
   {
-    basename += StringFromFormat("_mip%i", level);
+    basename += fmt::format("_mip{}", level);
   }
 
-  std::string filename = szDir + "/" + basename + ".png";
+  const std::string filename = fmt::format("{}/{}.png", szDir, basename);
+  if (File::Exists(filename))
+    return;
 
-  if (!File::Exists(filename))
-    entry->texture->Save(filename, level);
+  entry->texture->Save(filename, level);
 }
 
 static u32 CalculateLevelSize(u32 level_0_size, u32 level)
@@ -1257,9 +1261,11 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   // If we are recording a FifoLog, keep track of what memory we read. FifoRecorder does
   // its own memory modification tracking independent of the texture hashing below.
-  if (g_bRecordFifoData && !from_tmem)
+  if (OpcodeDecoder::g_record_fifo_data && !from_tmem)
+  {
     FifoRecorder::GetInstance().UseMemory(address, texture_size + additional_mips_size,
                                           MemoryUpdate::TEXTURE_MAP);
+  }
 
   // TODO: This doesn't hash GB tiles for preloaded RGBA8 textures (instead, it's hashing more data
   // from the low tmem bank than it should)
@@ -1751,10 +1757,8 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   {
     // While this isn't really an xfb copy, we can treat it as such for dumping purposes
     static int xfb_count = 0;
-    entry->texture->Save(StringFromFormat("%sxfb_loaded_%i.png",
-                                          File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                          xfb_count++),
-                         0);
+    entry->texture->Save(
+        fmt::format("{}xfb_loaded_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++), 0);
   }
 
   GetDisplayRectForXFBEntry(entry, width, height, display_rect);
@@ -2164,19 +2168,17 @@ void TextureCacheBase::CopyRenderTargetToTexture(
       if (g_ActiveConfig.bDumpEFBTarget && !is_xfb_copy)
       {
         static int efb_count = 0;
-        entry->texture->Save(StringFromFormat("%sefb_frame_%i.png",
-                                              File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                              efb_count++),
-                             0);
+        entry->texture->Save(
+            fmt::format("{}efb_frame_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), efb_count++),
+            0);
       }
 
       if (g_ActiveConfig.bDumpXFBTarget && is_xfb_copy)
       {
         static int xfb_count = 0;
-        entry->texture->Save(StringFromFormat("%sxfb_copy_%i.png",
-                                              File::GetUserPath(D_DUMPTEXTURES_IDX).c_str(),
-                                              xfb_count++),
-                             0);
+        entry->texture->Save(
+            fmt::format("{}xfb_copy_{}.png", File::GetUserPath(D_DUMPTEXTURES_IDX), xfb_count++),
+            0);
       }
     }
   }
@@ -2295,7 +2297,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     ++iter.first;
   }
 
-  if (g_bRecordFifoData)
+  if (OpcodeDecoder::g_record_fifo_data)
   {
     // Mark the memory behind this efb copy as dynamicly generated for the Fifo log
     u32 address = dstAddr;

@@ -1,5 +1,9 @@
 if (NOT Qt5_DIR AND MSVC)
-set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.13.1/5.13.1/msvc2017_64/lib/cmake/Qt5")
+  if(_M_ARM_64)
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_arm64/lib/cmake/Qt5")
+  else()
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_64/lib/cmake/Qt5")
+  endif()
 endif()
 
 find_package(Qt5 5.9 REQUIRED COMPONENTS Gui Widgets)
@@ -140,6 +144,10 @@ add_executable(dolphin-emu
   Config/Mapping/MappingWindow.h
   Config/Mapping/WiimoteEmuExtension.cpp
   Config/Mapping/WiimoteEmuExtension.h
+  Config/Mapping/WiimoteEmuExtensionMotionInput.cpp
+  Config/Mapping/WiimoteEmuExtensionMotionInput.h
+  Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp
+  Config/Mapping/WiimoteEmuExtensionMotionSimulation.h
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuGeneral.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
@@ -288,6 +296,14 @@ PRIVATE
   imgui
 )
 
+if (WIN32)
+  target_link_libraries(dolphin-emu
+  PRIVATE
+	  gdi32.lib
+		shell32.lib
+  )
+endif()
+
 if(WIN32)
   target_sources(dolphin-emu PRIVATE DolphinQt.manifest DolphinQt.rc)
 
@@ -433,6 +449,11 @@ if(APPLE)
   # Update library references to make the bundle portable
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(dolphin-emu)
+  # Fix rpath
+  add_custom_command(TARGET dolphin-emu 
+    POST_BUILD COMMAND 
+    ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
+    $<TARGET_FILE:dolphin-emu>)
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()

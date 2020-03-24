@@ -4,9 +4,6 @@
 
 #include "UICommon/DiscordPresence.h"
 
-#include "Common/Hash.h"
-#include "Common/StringUtil.h"
-
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
@@ -16,8 +13,13 @@
 #include <algorithm>
 #include <cctype>
 #include <ctime>
-#include <discord-rpc/include/discord_rpc.h>
+#include <set>
 #include <string>
+
+#include <discord-rpc/include/discord_rpc.h>
+#include <fmt/format.h>
+
+#include "Common/Hash.h"
 
 #endif
 
@@ -39,7 +41,7 @@ void HandleDiscordJoinRequest(const DiscordUser* user)
   if (event_handler == nullptr)
     return;
 
-  const std::string discord_tag = StringFromFormat("%s#%s", user->username, user->discriminator);
+  const std::string discord_tag = fmt::format("{}#{}", user->username, user->discriminator);
   event_handler->DiscordJoinRequest(user->userId, discord_tag, user->avatar);
 }
 

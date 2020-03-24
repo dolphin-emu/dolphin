@@ -11,7 +11,8 @@
 #include <string>
 #include <tuple>
 
-#include "Common/StringUtil.h"
+#include <fmt/format.h>
+
 #include "Common/Thread.h"
 
 namespace ciface::Core
@@ -47,7 +48,7 @@ void Device::AddOutput(Device::Output* const o)
 
 std::string Device::GetQualifiedName() const
 {
-  return StringFromFormat("%s/%i/%s", this->GetSource().c_str(), GetId(), this->GetName().c_str());
+  return fmt::format("{}/{}/{}", GetSource(), GetId(), GetName());
 }
 
 Device::Input* Device::FindInput(std::string_view name) const
@@ -179,7 +180,7 @@ bool DeviceQualifier::operator!=(const DeviceQualifier& devq) const
 
 std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq) const
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   for (const auto& d : m_devices)
   {
     if (devq == d.get())
@@ -191,7 +192,7 @@ std::shared_ptr<Device> DeviceContainer::FindDevice(const DeviceQualifier& devq)
 
 std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
 
   std::vector<std::string> device_strings;
   DeviceQualifier device_qualifier;
@@ -207,7 +208,7 @@ std::vector<std::string> DeviceContainer::GetAllDeviceStrings() const
 
 std::string DeviceContainer::GetDefaultDeviceString() const
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   if (m_devices.empty())
     return "";
 
@@ -225,7 +226,7 @@ Device::Input* DeviceContainer::FindInput(std::string_view name, const Device* d
       return inp;
   }
 
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  std::lock_guard lk(m_devices_mutex);
   for (const auto& d : m_devices)
   {
     Device::Input* const i = d->FindInput(name);
@@ -308,7 +309,6 @@ DeviceContainer::DetectInput(u32 wait_ms, const std::vector<std::string>& device
 
     for (auto& device_state : device_states)
     {
-      device_state.device->UpdateInput();
       for (auto& input_state : device_state.input_states)
       {
         // We want an input that was initially 0.0 and currently 1.0.

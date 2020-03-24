@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -163,8 +165,7 @@ void LogCompiledInstructions()
 {
   static unsigned int time = 0;
 
-  File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-                 "w");
+  File::IOFile f(fmt::format("{}inst_log{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
@@ -175,7 +176,7 @@ void LogCompiledInstructions()
     }
   }
 
-  f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+  f.Open(fmt::format("{}inst_not{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
@@ -187,8 +188,7 @@ void LogCompiledInstructions()
   }
 
 #ifdef OPLOG
-  f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-         "w");
+  f.Open(fmt::format("{}" OP_TO_LOG "_at{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (auto& rsplocation : rsplocations)
   {
     fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);

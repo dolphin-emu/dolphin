@@ -42,6 +42,7 @@ namespace Memory
 // Store the MemArena here
 u8* physical_base = nullptr;
 u8* logical_base = nullptr;
+static bool is_fastmem_arena_initialized = false;
 
 // The MemArena class
 static Common::MemArena g_arena;
@@ -131,7 +132,7 @@ struct LogicalMemoryView
 // other devices, like the GPU, use other rules, approximated by
 // Memory::GetPointer.) This memory is laid out as follows:
 // [0x00000000, 0x02000000) - 32MB RAM
-// [0x02000000, 0x08000000) - Mirrors of 32MB RAM
+// [0x02000000, 0x08000000) - Mirrors of 32MB RAM (not handled here)
 // [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
 // [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
 // [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
@@ -155,6 +156,7 @@ struct LogicalMemoryView
 //
 // TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
 // be backed by actual memory.
+// TODO: Do we want to handle the mirrors of the GC RAM?
 static PhysicalMemoryRegion physical_regions[] = {
     {&m_pRAM, 0x00000000, RAM_SIZE, PhysicalMemoryRegion::ALWAYS},
     {&m_pL1Cache, 0xE0000000, L1_CACHE_SIZE, PhysicalMemoryRegion::ALWAYS},
@@ -164,7 +166,7 @@ static PhysicalMemoryRegion physical_regions[] = {
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
 
-void Init()
+static u32 GetFlags()
 {
   bool wii = SConfig::GetInstance().bWii;
   bool bMMU = SConfig::GetInstance().bMMU;
@@ -181,6 +183,14 @@ void Init()
     flags |= PhysicalMemoryRegion::WII_ONLY;
   if (bFakeVMEM)
     flags |= PhysicalMemoryRegion::FAKE_VMEM;
+
+  return flags;
+}
+
+void Init()
+{
+  bool wii = SConfig::GetInstance().bWii;
+  u32 flags = GetFlags();
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : physical_regions)
   {
@@ -190,15 +200,14 @@ void Init()
     mem_size += region.size;
   }
   g_arena.GrabSHMSegment(mem_size);
-  physical_base = Common::MemArena::FindMemoryBase();
 
+  // Create an anonymous view of the physical memory
   for (PhysicalMemoryRegion& region : physical_regions)
   {
     if ((flags & region.flags) != region.flags)
       continue;
 
-    u8* base = physical_base + region.physical_address;
-    *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
+    *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size);
 
     if (!*region.out_pointer)
     {
@@ -206,10 +215,6 @@ void Init()
       exit(0);
     }
   }
-
-#ifndef _ARCH_32
-  logical_base = physical_base + 0x200000000;
-#endif
 
   if (wii)
     mmio_mapping = InitMMIOWii();
@@ -222,8 +227,41 @@ void Init()
   m_IsInitialized = true;
 }
 
+bool InitFastmemArena()
+{
+  u32 flags = GetFlags();
+  physical_base = Common::MemArena::FindMemoryBase();
+
+  if (!physical_base)
+    return false;
+
+  for (PhysicalMemoryRegion& region : physical_regions)
+  {
+    if ((flags & region.flags) != region.flags)
+      continue;
+
+    u8* base = physical_base + region.physical_address;
+    u8* view = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
+
+    if (base != view)
+    {
+      return false;
+    }
+  }
+
+#ifndef _ARCH_32
+  logical_base = physical_base + 0x200000000;
+#endif
+
+  is_fastmem_arena_initialized = true;
+  return true;
+}
+
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
+  if (!is_fastmem_arena_initialized)
+    return;
+
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
@@ -279,12 +317,10 @@ void DoState(PointerWrap& p)
 
 void Shutdown()
 {
+  ShutdownFastmemArena();
+
   m_IsInitialized = false;
-  u32 flags = 0;
-  if (SConfig::GetInstance().bWii)
-    flags |= PhysicalMemoryRegion::WII_ONLY;
-  if (m_pFakeVMEM)
-    flags |= PhysicalMemoryRegion::FAKE_VMEM;
+  u32 flags = GetFlags();
   for (PhysicalMemoryRegion& region : physical_regions)
   {
     if ((flags & region.flags) != region.flags)
@@ -292,16 +328,36 @@ void Shutdown()
     g_arena.ReleaseView(*region.out_pointer, region.size);
     *region.out_pointer = nullptr;
   }
+  g_arena.ReleaseSHMSegment();
+  mmio_mapping.reset();
+  INFO_LOG(MEMMAP, "Memory system shut down.");
+}
+
+void ShutdownFastmemArena()
+{
+  if (!is_fastmem_arena_initialized)
+    return;
+
+  u32 flags = GetFlags();
+  for (PhysicalMemoryRegion& region : physical_regions)
+  {
+    if ((flags & region.flags) != region.flags)
+      continue;
+
+    u8* base = physical_base + region.physical_address;
+    g_arena.ReleaseView(base, region.size);
+  }
+
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  g_arena.ReleaseSHMSegment();
+
   physical_base = nullptr;
   logical_base = nullptr;
-  mmio_mapping.reset();
-  INFO_LOG(MEMMAP, "Memory system shut down.");
+
+  is_fastmem_arena_initialized = false;
 }
 
 void Clear()

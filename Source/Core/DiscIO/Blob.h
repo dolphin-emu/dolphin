@@ -53,7 +53,7 @@ public:
   {
     T temp;
     if (!Read(offset, sizeof(T), reinterpret_cast<u8*>(&temp)))
-      return {};
+      return std::nullopt;
     return Common::FromBigEndian(temp);
   }
 

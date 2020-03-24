@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <array>
 #include <bitset>
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -23,11 +24,6 @@ namespace File
 class IOFile;
 }
 
-#define BE64(x) (Common::swap64(x))
-#define BE32(x) (Common::swap32(x))
-#define BE16(x) (Common::swap16(x))
-#define ArrayByteSwap(a) (ByteSwap(a, a + sizeof(u8)));
-
 enum
 {
   SLOT_A = 0,
@@ -35,10 +31,6 @@ enum
   GCI = 0,
   SAV = 0x80,
   GCS = 0x110,
-
-  CI8SHARED = 1,
-  RGB5A3,
-  CI8,
 };
 
 enum class GCMemcardGetSaveDataRetVal
@@ -105,6 +97,12 @@ private:
   std::bitset<static_cast<size_t>(GCMemcardValidityIssues::COUNT)> m_errors;
 };
 
+struct GCMemcardAnimationFrameRGBA8
+{
+  std::vector<u32> image_data;
+  u8 delay;
+};
+
 // size of a single memory card block in bytes
 constexpr u32 BLOCK_SIZE = 0x2000;
 
@@ -117,7 +115,7 @@ constexpr u32 MC_FST_BLOCKS = 0x05;
 // maximum number of saves that can be stored on a single memory card
 constexpr u8 DIRLEN = 0x7F;
 
-// maximum size of memory card file comment in bytes
+// maximum size of a single memory card file comment in bytes
 constexpr u32 DENTRY_STRLEN = 0x20;
 
 // size of a single entry in the Directory in bytes
@@ -135,6 +133,30 @@ constexpr u16 MBIT_SIZE_MEMORY_CARD_251 = 0x10;
 constexpr u16 MBIT_SIZE_MEMORY_CARD_507 = 0x20;
 constexpr u16 MBIT_SIZE_MEMORY_CARD_1019 = 0x40;
 constexpr u16 MBIT_SIZE_MEMORY_CARD_2043 = 0x80;
+
+// width and height of a save file's banner in pixels
+constexpr u32 MEMORY_CARD_BANNER_WIDTH = 96;
+constexpr u32 MEMORY_CARD_BANNER_HEIGHT = 32;
+
+// color format of banner as stored in the lowest two bits of m_banner_and_icon_flags
+constexpr u8 MEMORY_CARD_BANNER_FORMAT_CI8 = 1;
+constexpr u8 MEMORY_CARD_BANNER_FORMAT_RGB5A3 = 2;
+
+// width and height of a save file's icon in pixels
+constexpr u32 MEMORY_CARD_ICON_WIDTH = 32;
+constexpr u32 MEMORY_CARD_ICON_HEIGHT = 32;
+
+// maximum number of frames a save file's icon animation can have
+constexpr u32 MEMORY_CARD_ICON_ANIMATION_MAX_FRAMES = 8;
+
+// color format of icon frame as stored in m_icon_format (two bits per frame)
+constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_SHARED_PALETTE = 1;
+constexpr u8 MEMORY_CARD_ICON_FORMAT_RGB5A3 = 2;
+constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
+
+// number of palette entries in a CI8 palette of a banner or icon
+// each palette entry is 16 bits in RGB5A3 format
+constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
 
 class MemoryCardBase
 {
@@ -243,15 +265,13 @@ struct DEntry
   u8 m_unused_1;
 
   // 1 byte at 0x07: banner gfx format and icon animation (Image Key)
-  //      Bit(s)  Description
-  //      2       Icon Animation 0: forward 1: ping-pong
-  //      1       [--0: No Banner 1: Banner present--] WRONG! YAGCD LIES!
-  //      0       [--Banner Color 0: RGB5A3 1: CI8--]  WRONG! YAGCD LIES!
-  //      bits 0 and 1: image format
-  //      00 no banner
-  //      01 CI8 banner
-  //      10 RGB5A3 banner
-  //      11 ? maybe ==00? Time Splitters 2 and 3 have it and don't have banner
+  // First two bits are used for the banner format.
+  // YAGCD is wrong about the meaning of these.
+  // '0' and '3' both mean no banner.
+  // '1' means paletted (8 bits per pixel palette entry + 16 bit color palette in RGB5A3)
+  // '2' means direct color (16 bits per pixel in RGB5A3)
+  // Third bit is icon animation frame order, 0 for loop (abcabcabc), 1 for ping-pong (abcbabcba).
+  // Remaining bits seem unused.
   u8 m_banner_and_icon_flags;
 
   // 0x20 bytes at 0x08: Filename
@@ -450,9 +470,15 @@ public:
   u16 DEntry_FirstBlock(u8 index) const;
   // get file length in blocks
   u16 DEntry_BlockCount(u8 index) const;
-  u32 DEntry_CommentsAddress(u8 index) const;
-  std::string GetSaveComment1(u8 index) const;
-  std::string GetSaveComment2(u8 index) const;
+
+  std::optional<std::vector<u8>>
+  GetSaveDataBytes(u8 save_index, size_t offset = 0,
+                   size_t length = std::numeric_limits<size_t>::max()) const;
+
+  // Returns, if available, the two strings shown on the save file in the GC BIOS, in UTF8.
+  // The first is the big line on top, usually the game title, and the second is the smaller line
+  // next to the block size, often a progress indicator or subtitle.
+  std::optional<std::pair<std::string, std::string>> GetSaveComments(u8 index) const;
 
   // Fetches a DEntry from the given file index.
   std::optional<DEntry> GetDEntry(u8 index) const;
@@ -480,8 +506,8 @@ public:
   static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
-  bool ReadBannerRGBA8(u8 index, u32* buffer) const;
+  std::optional<std::vector<u32>> ReadBannerRGBA8(u8 index) const;
 
   // reads the animation frames
-  u32 ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const;
+  std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> ReadAnimRGBA8(u8 index) const;
 };

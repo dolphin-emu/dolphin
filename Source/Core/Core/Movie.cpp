@@ -44,6 +44,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -160,7 +161,7 @@ std::string GetInputDisplay()
     {
       if (SerialInterface::GetDeviceType(i) != SerialInterface::SIDEVICE_NONE)
         s_controllers |= (1 << i);
-      if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+      if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
         s_controllers |= (1 << (i + 4));
     }
   }
@@ -185,7 +186,7 @@ std::string GetRTCDisplay()
   const time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
   const tm* const gm_time = gmtime(&current_time);
 
-  std::stringstream format_time;
+  std::ostringstream format_time;
   format_time << std::put_time(gm_time, "Date/Time: %c\n");
   return format_time.str();
 }
@@ -463,7 +464,7 @@ void ChangeWiiPads(bool instantly)
   int controllers = 0;
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
-    if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << i);
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
@@ -478,7 +479,7 @@ void ChangeWiiPads(bool instantly)
   {
     const bool is_using_wiimote = IsUsingWiimote(i);
 
-    g_wiimote_sources[i] = is_using_wiimote ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
+    WiimoteCommon::SetSource(i, is_using_wiimote ? WiimoteSource::Emulated : WiimoteSource::None);
     if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
       bt->AccessWiimoteByIndex(i)->Activate(is_using_wiimote);
   }
@@ -678,12 +679,13 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
 
   if (rpt.HasAccel())
   {
-    DataReportBuilder::AccelData accel_data;
+    AccelData accel_data;
     rpt.GetAccelData(&accel_data);
 
     // FYI: This will only print partial data for interleaved reports.
 
-    display_str += fmt::format(" ACC:{},{},{}", accel_data.x, accel_data.y, accel_data.z);
+    display_str +=
+        fmt::format(" ACC:{},{},{}", accel_data.value.x, accel_data.value.y, accel_data.value.z);
   }
 
   if (rpt.HasIR())
@@ -707,9 +709,8 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     key.Decrypt((u8*)&nunchuk, 0, sizeof(nunchuk));
     nunchuk.bt.hex = nunchuk.bt.hex ^ 0x3;
 
-    const std::string accel = fmt::format(
-        " N-ACC:{},{},{}", (nunchuk.ax << 2) | nunchuk.bt.acc_x_lsb,
-        (nunchuk.ay << 2) | nunchuk.bt.acc_y_lsb, (nunchuk.az << 2) | nunchuk.bt.acc_z_lsb);
+    const std::string accel = fmt::format(" N-ACC:{},{},{}", nunchuk.GetAccelX(),
+                                          nunchuk.GetAccelY(), nunchuk.GetAccelZ());
 
     if (nunchuk.bt.c)
       display_str += " C";
@@ -756,10 +757,14 @@ static void SetWiiInputDisplayString(int remoteID, const DataReportBuilder& rpt,
     if (cc.bt.home)
       display_str += " HOME";
 
-    display_str += Analog1DToString(cc.lt1 | (cc.lt2 << 3), " L", 31);
-    display_str += Analog1DToString(cc.rt, " R", 31);
-    display_str += Analog2DToString(cc.lx, cc.ly, " ANA", 63);
-    display_str += Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31);
+    display_str += Analog1DToString(cc.GetLeftTrigger().value, " L", 31);
+    display_str += Analog1DToString(cc.GetRightTrigger().value, " R", 31);
+
+    const auto left_stick = cc.GetLeftStick().value;
+    display_str += Analog2DToString(left_stick.x, left_stick.y, " ANA", 63);
+
+    const auto right_stick = cc.GetRightStick().value;
+    display_str += Analog2DToString(right_stick.x, right_stick.y, " R-ANA", 31);
   }
 
   std::lock_guard<std::mutex> guard(s_input_display_lock);
@@ -1375,6 +1380,15 @@ void SetGraphicsConfig()
 // NOTE: EmuThread / Host Thread
 void GetSettings()
 {
+  const bool slot_a_has_raw_memcard =
+      SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD;
+  const bool slot_a_has_gci_folder =
+      SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+  const bool slot_b_has_raw_memcard =
+      SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD;
+  const bool slot_b_has_gci_folder =
+      SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+
   s_bSaveConfig = true;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
@@ -1385,16 +1399,21 @@ void GetSettings()
   }
   else
   {
-    s_bClearSave = !File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH));
+    const auto gci_folder_has_saves = [](int card_index) {
+      const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
+          card_index, ExpansionInterface::AllowMovieFolder::No);
+      const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;
+      return number_of_saves > 0;
+    };
+
+    s_bClearSave =
+        !(slot_a_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH))) &&
+        !(slot_b_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_B_PATH))) &&
+        !(slot_a_has_gci_folder && gci_folder_has_saves(0)) &&
+        !(slot_b_has_gci_folder && gci_folder_has_saves(1));
   }
-  s_memcards |=
-      (SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-       SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
-      << 0;
-  s_memcards |=
-      (SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-       SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
-      << 1;
+  s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
+  s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;
 
   s_revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
 

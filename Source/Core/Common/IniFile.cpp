@@ -176,6 +176,11 @@ bool IniFile::DeleteSection(std::string_view section_name)
   return false;
 }
 
+bool IniFile::Exists(std::string_view section_name) const
+{
+  return GetSection(section_name) != nullptr;
+}
+
 bool IniFile::Exists(std::string_view section_name, std::string_view key) const
 {
   const Section* section = GetSection(section_name);
@@ -185,13 +190,7 @@ bool IniFile::Exists(std::string_view section_name, std::string_view key) const
   return section->Exists(key);
 }
 
-void IniFile::SetLines(std::string_view section_name, const std::vector<std::string>& lines)
-{
-  Section* section = GetOrCreateSection(section_name);
-  section->SetLines(lines);
-}
-
-void IniFile::SetLines(std::string_view section_name, std::vector<std::string>&& lines)
+void IniFile::SetLines(std::string_view section_name, std::vector<std::string> lines)
 {
   Section* section = GetOrCreateSection(section_name);
   section->SetLines(std::move(lines));

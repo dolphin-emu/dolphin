@@ -162,7 +162,10 @@ private:
   void OnBootGameCubeIPL(DiscIO::Region region);
   void OnImportNANDBackup();
   void OnConnectWiiRemote(int id);
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   void OnSignal();
+#endif
 
   void OnUpdateProgressDialog(QString label, int progress, int total);
 
@@ -198,6 +201,7 @@ private:
   GameList* m_game_list;
   RenderWidget* m_render_widget = nullptr;
   bool m_rendering_to_main;
+  bool m_stop_confirm_showing = false;
   bool m_stop_requested = false;
   bool m_exit_requested = false;
   bool m_fullscreen_requested = false;

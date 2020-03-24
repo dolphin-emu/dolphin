@@ -94,15 +94,15 @@ bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t 
          std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
 }
 
-void IOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
-                       LogTypes::LOG_LEVELS verbosity) const
+void IOCtlRequest::Log(const std::string& device_name, Common::Log::LOG_TYPE type,
+                       Common::Log::LOG_LEVELS verbosity) const
 {
   GENERIC_LOG(type, verbosity, "%s (fd %u) - IOCtl 0x%x (in_size=0x%x, out_size=0x%x)",
               device_name.c_str(), fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOCtlRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
-                        LogTypes::LOG_LEVELS level) const
+void IOCtlRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
+                        Common::Log::LOG_LEVELS level) const
 {
   Log("===== " + description, type, level);
   GENERIC_LOG(type, level, "In buffer\n%s",
@@ -111,14 +111,14 @@ void IOCtlRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
               HexDump(Memory::GetPointer(buffer_out), buffer_out_size).c_str());
 }
 
-void IOCtlRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
-                               LogTypes::LOG_LEVELS level) const
+void IOCtlRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
+                               Common::Log::LOG_LEVELS level) const
 {
   Dump("Unknown IOCtl - " + description, type, level);
 }
 
-void IOCtlVRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
-                         LogTypes::LOG_LEVELS level) const
+void IOCtlVRequest::Dump(const std::string& description, Common::Log::LOG_TYPE type,
+                         Common::Log::LOG_LEVELS level) const
 {
   GENERIC_LOG(type, level, "===== %s (fd %u) - IOCtlV 0x%x (%zu in, %zu io)", description.c_str(),
               fd, request, in_vectors.size(), io_vectors.size());
@@ -133,8 +133,8 @@ void IOCtlVRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type
     GENERIC_LOG(type, level, "io[%zu] (size=0x%x)", i++, vector.size);
 }
 
-void IOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
-                                LogTypes::LOG_LEVELS level) const
+void IOCtlVRequest::DumpUnknown(const std::string& description, Common::Log::LOG_TYPE type,
+                                Common::Log::LOG_LEVELS level) const
 {
   Dump("Unknown IOCtlV - " + description, type, level);
 }

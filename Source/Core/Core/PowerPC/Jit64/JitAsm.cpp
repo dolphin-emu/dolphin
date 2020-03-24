@@ -4,6 +4,8 @@
 
 #include "Core/PowerPC/Jit64/JitAsm.h"
 
+#include <climits>
+
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -236,6 +238,8 @@ void Jit64AsmRoutineManager::GenerateCommon()
   GenFres();
   mfcr = AlignCode4();
   GenMfcr();
+  cdts = AlignCode4();
+  GenConvertDoubleToSingle();
 
   GenQuantizedLoads();
   GenQuantizedSingleLoads();

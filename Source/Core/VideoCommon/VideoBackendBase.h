@@ -47,7 +47,9 @@ public:
 
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
-  virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
+  virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+
+  static std::string BadShaderFilename(const char* shader_stage, int counter);
 
   void Video_ExitLoop();
 

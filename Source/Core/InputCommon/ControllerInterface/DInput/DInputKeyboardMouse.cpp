@@ -125,9 +125,11 @@ void KeyboardMouse::UpdateCursorInput()
   const auto win_width = rect.right - rect.left;
   const auto win_height = rect.bottom - rect.top;
 
+  const auto window_scale = g_controller_interface.GetWindowInputScale();
+
   // Convert the cursor position to a range from -1 to 1.
-  m_state_in.cursor.x = ControlState(point.x) / win_width * 2 - 1;
-  m_state_in.cursor.y = ControlState(point.y) / win_height * 2 - 1;
+  m_state_in.cursor.x = (ControlState(point.x) / win_width * 2 - 1) * window_scale.x;
+  m_state_in.cursor.y = (ControlState(point.y) / win_height * 2 - 1) * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()

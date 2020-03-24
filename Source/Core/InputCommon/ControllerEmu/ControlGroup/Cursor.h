@@ -47,8 +47,6 @@ private:
   static constexpr int AUTO_HIDE_MS = 2500;
   static constexpr double AUTO_HIDE_DEADZONE = 0.001;
 
-  static constexpr double BUTTON_THRESHOLD = 0.5;
-
   // Not adjusted by width/height/center:
   StateData m_state;
 

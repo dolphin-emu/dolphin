@@ -18,12 +18,12 @@ namespace ControllerEmu
 {
 Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Tilt)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Right")));
+  AddInput(Translate, _trans("Forward"));
+  AddInput(Translate, _trans("Backward"));
+  AddInput(Translate, _trans("Left"));
+  AddInput(Translate, _trans("Right"));
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+  AddInput(Translate, _trans("Modifier"));
 
   AddSetting(&m_max_angle_setting,
              {_trans("Angle"),
@@ -44,14 +44,14 @@ Tilt::Tilt(const std::string& name_) : ReshapableInput(name_, name_, GroupType::
 
 Tilt::ReshapeData Tilt::GetReshapableState(bool adjusted)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->GetState() - controls[1]->GetState();
+  const ControlState x = controls[3]->GetState() - controls[2]->GetState();
 
   // Return raw values. (used in UI)
   if (!adjusted)
     return {x, y};
 
-  const ControlState modifier = controls[4]->control_ref->State();
+  const ControlState modifier = controls[4]->GetState();
 
   return Reshape(x, y, modifier);
 }

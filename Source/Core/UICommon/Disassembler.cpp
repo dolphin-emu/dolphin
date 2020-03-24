@@ -1,20 +1,23 @@
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include "UICommon/Disassembler.h"
+
+#include <sstream>
+
 #if defined(HAVE_LLVM)
 // PowerPC.h defines PC.
 // This conflicts with a function that has an argument named PC
 #undef PC
+#include <fmt/format.h>
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
 #elif defined(_M_X86)
 #include <disasm.h>  // Bochs
 #endif
 
-#include "Common/StringUtil.h"
-
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitInterface.h"
-
-#include "UICommon/Disassembler.h"
 
 #if defined(HAVE_LLVM)
 class HostDisassemblerLLVM : public HostDisassembler
@@ -85,7 +88,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
         // We can continue onward past this bad instruction.
         std::string inst_str;
         for (int i = 0; i < m_instruction_size; ++i)
-          inst_str += StringFromFormat("%02x", disasmPtr[i]);
+          inst_str += fmt::format("{:02x}", disasmPtr[i]);
 
         x86_disasm << inst_str << std::endl;
         disasmPtr += m_instruction_size;
@@ -96,7 +99,7 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
         // Dump the rest of the block instead
         std::string code_block;
         for (int i = 0; (disasmPtr + i) < end; ++i)
-          code_block += StringFromFormat("%02x", disasmPtr[i]);
+          code_block += fmt::format("{:02x}", disasmPtr[i]);
 
         x86_disasm << code_block << std::endl;
         break;

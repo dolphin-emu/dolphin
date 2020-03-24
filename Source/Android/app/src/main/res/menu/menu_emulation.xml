@@ -114,6 +114,11 @@
     </item>
 
     <item
+        android:id="@+id/menu_screen_orientation"
+        app:showAsAction="never"
+        android:title="@string/emulation_screen_orientation"/>
+
+    <item
         android:id="@+id/menu_change_disc"
         app:showAsAction="never"
         android:title="@string/emulation_change_disc"/>

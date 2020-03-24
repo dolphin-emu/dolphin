@@ -1,9 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
     </ProjectConfiguration>
     <ProjectConfiguration Include="Release|x64">
       <Configuration>Release</Configuration>
@@ -12,13 +20,17 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FA3FA62B-6F58-4B86-9453-4D149940A066}</ProjectGuid>
+<<<<<<< HEAD
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
+=======
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+>>>>>>> 76b97a4183653eda583adcac732853c07b251c81
     <ProjectName>Dolphin</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
@@ -39,9 +51,17 @@
   <PropertyGroup Label="UserMacros">
   </PropertyGroup>
   <ItemDefinitionGroup>
+    <ClCompile>
+      <!-- 5054  operator '+': deprecated between enumerations of different types (in Qt headers) -->
+      <DisableSpecificWarnings>5054;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup>
     <Link>
-      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(IntDir)..\discord-rpc\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;Shlwapi.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>avrt.lib;iphlpapi.lib;winmm.lib;setupapi.lib;rpcrt4.lib;comctl32.lib;Shlwapi.lib;discord-rpc.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(IntDir)..\discord-rpc\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Platform)'=='x64'">opengl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories Condition="'$(Platform)'=='x64'">$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <ClCompile>
       <AdditionalIncludeDirectories>$(ProjectDir)VideoInterface;$(ProjectDir)GameList;$(ProjectDir)Debugger;$(ProjectDir)Settings;$(ProjectDir)Config;$(ProjectDir)Config\Mapping;$(ProjectDir)Config\Graphics;$(ProjectDir)Config\ControllerInterface;$(ProjectDir)NetPlay;$(ProjectDir)QtUtils;$(ProjectDir)TAS;$(ProjectDir)FIFO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -87,6 +107,8 @@
     <QtMoc Include="Config\Mapping\MappingWidget.h" />
     <QtMoc Include="Config\Mapping\MappingWindow.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuExtension.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionInput.h" />
+    <QtMoc Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuGeneral.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControl.h" />
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
@@ -286,6 +308,8 @@
     <ClCompile Include="$(QtMocOutPrefix)WiiPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiiTASInputWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtension.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtensionMotionInput.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuExtensionMotionSimulation.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuGeneral.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)WiimoteEmuMotionControlIMU.cpp" />
@@ -338,6 +362,8 @@
     <ClCompile Include="Config\Mapping\MappingWidget.cpp" />
     <ClCompile Include="Config\Mapping\MappingWindow.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuExtension.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionInput.cpp" />
+    <ClCompile Include="Config\Mapping\WiimoteEmuExtensionMotionSimulation.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuGeneral.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControl.cpp" />
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
@@ -473,10 +499,10 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
       <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
+    <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj" Condition="'$(Platform)'!='ARM64'">
       <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj">
+    <ProjectReference Include="$(CoreDir)VideoBackends\Software\Software.vcxproj" Condition="'$(Platform)'!='ARM64'">
       <Project>{a4c423aa-f57c-46c7-a172-d1a777017d29}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">

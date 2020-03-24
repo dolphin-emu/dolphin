@@ -5,22 +5,23 @@
 #include "VideoCommon/HiresTextures.h"
 
 #include <algorithm>
-#include <cinttypes>
-#include <cstring>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <unordered_map>
 #include <utility>
 #include <vector>
 #include <xxhash.h>
 
+#include <fmt/format.h>
+
+#include "Common/CommonPaths.h"
 #include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
-#include "Common/Hash.h"
 #include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
@@ -39,14 +40,14 @@ struct DiskTexture
   bool has_arbitrary_mipmaps;
 };
 
+constexpr std::string_view s_format_prefix{"tex1_"};
+
 static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
 static Common::Flag s_textureCacheAbortLoading;
 
 static std::thread s_prefetcher;
-
-static const std::string s_format_prefix = "tex1_";
 
 void HiresTexture::Init()
 {
@@ -86,26 +87,40 @@ void HiresTexture::Update()
   }
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::string texture_directory = GetTextureDirectory(game_id);
+  const std::set<std::string> texture_directories = GetTextureDirectories(game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
-  const std::vector<std::string> texture_paths =
-      Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
-
-  const std::string code = game_id + "_";
-
-  for (auto& path : texture_paths)
+  for (const auto& texture_directory : texture_directories)
   {
-    std::string filename;
-    SplitPath(path, nullptr, &filename, nullptr);
+    const auto texture_paths =
+        Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
-    if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
+    bool failed_insert = false;
+    for (auto& path : texture_paths)
     {
-      const size_t arb_index = filename.rfind("_arb");
-      const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
-      if (has_arbitrary_mipmaps)
-        filename.erase(arb_index, 4);
-      s_textureMap[filename] = {path, has_arbitrary_mipmaps};
+      std::string filename;
+      SplitPath(path, nullptr, &filename, nullptr);
+
+      if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
+      {
+        const size_t arb_index = filename.rfind("_arb");
+        const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
+        if (has_arbitrary_mipmaps)
+          filename.erase(arb_index, 4);
+
+        const auto [it, inserted] =
+            s_textureMap.try_emplace(filename, DiskTexture{path, has_arbitrary_mipmaps});
+        if (!inserted)
+        {
+          failed_insert = true;
+        }
+      }
+    }
+
+    if (failed_insert)
+    {
+      ERROR_LOG(VIDEO, "One or more textures at path '%s' were already inserted",
+                texture_directory.c_str());
     }
   }
 
@@ -135,12 +150,13 @@ void HiresTexture::Prefetch()
   Common::SetCurrentThreadName("Prefetcher");
 
   size_t size_sum = 0;
-  size_t sys_mem = Common::MemPhysical();
-  size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
+  const size_t sys_mem = Common::MemPhysical();
+  const size_t recommended_min_mem = 2 * size_t(1024 * 1024 * 1024);
   // keep 2GB memory for system stability if system RAM is 4GB+ - use half of memory in other cases
-  size_t max_mem =
+  const size_t max_mem =
       (sys_mem / 2 < recommended_min_mem) ? (sys_mem / 2) : (sys_mem - recommended_min_mem);
-  u32 starttime = Common::Timer::GetTimeMs();
+
+  const u32 start_time = Common::Timer::GetTimeMs();
   for (const auto& entry : s_textureMap)
   {
     const std::string& base_filename = entry.first;
@@ -180,16 +196,17 @@ void HiresTexture::Prefetch()
       Config::SetCurrent(Config::GFX_HIRES_TEXTURES, false);
 
       OSD::AddMessage(
-          StringFromFormat(
-              "Custom Textures prefetching after %.1f MB aborted, not enough RAM available",
+          fmt::format(
+              "Custom Textures prefetching after {:.1f} MB aborted, not enough RAM available",
               size_sum / (1024.0 * 1024.0)),
           10000);
       return;
     }
   }
-  u32 stoptime = Common::Timer::GetTimeMs();
-  OSD::AddMessage(StringFromFormat("Custom Textures loaded, %.1f MB in %.1f s",
-                                   size_sum / (1024.0 * 1024.0), (stoptime - starttime) / 1000.0),
+
+  const u32 stop_time = Common::Timer::GetTimeMs();
+  OSD::AddMessage(fmt::format("Custom Textures loaded, {:.1f} MB in {:.1f}s",
+                              size_sum / (1024.0 * 1024.0), (stop_time - start_time) / 1000.0),
                   10000);
 }
 
@@ -244,22 +261,26 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     tlut += 2 * min;
   }
 
-  u64 tex_hash = XXH64(texture, texture_size, 0);
-  u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
+  const u64 tex_hash = XXH64(texture, texture_size, 0);
+  const u64 tlut_hash = tlut_size ? XXH64(tlut, tlut_size, 0) : 0;
 
-  std::string basename = s_format_prefix + StringFromFormat("%dx%d%s_%016" PRIx64, width, height,
-                                                            has_mipmaps ? "_m" : "", tex_hash);
-  std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
-  std::string formatname = StringFromFormat("_%d", static_cast<int>(format));
-  std::string fullname = basename + tlutname + formatname;
+  const std::string base_name = fmt::format("{}{}x{}{}_{:016x}", s_format_prefix, width, height,
+                                            has_mipmaps ? "_m" : "", tex_hash);
+  const std::string tlut_name = tlut_size ? fmt::format("_{:016x}", tlut_hash) : "";
+  const std::string format_name = fmt::format("_{}", static_cast<int>(format));
+  const std::string full_name = base_name + tlut_name + format_name;
 
   // try to match a wildcard template
-  if (!dump && s_textureMap.find(basename + "_$" + formatname) != s_textureMap.end())
-    return basename + "_$" + formatname;
+  if (!dump)
+  {
+    const std::string texture_name = fmt::format("{}_${}", base_name, format_name);
+    if (s_textureMap.find(texture_name) != s_textureMap.end())
+      return texture_name;
+  }
 
   // else generate the complete texture
-  if (dump || s_textureMap.find(fullname) != s_textureMap.end())
-    return fullname;
+  if (dump || s_textureMap.find(full_name) != s_textureMap.end())
+    return full_name;
 
   return "";
 }
@@ -326,7 +347,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
   {
     std::string filename = base_filename;
     if (mip_level != 0)
-      filename += StringFromFormat("_mip%u", mip_level);
+      filename += fmt::format("_mip{}", mip_level);
 
     filename_iter = s_textureMap.find(filename);
     if (filename_iter == s_textureMap.end())
@@ -433,15 +454,51 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
   return true;
 }
 
-std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
+std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& game_id)
 {
+  std::set<std::string> result;
   const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
 
-  // If there's no directory with the region-specific ID, look for a 3-character region-free one
-  if (!File::Exists(texture_directory))
-    return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+  if (File::Exists(texture_directory))
+  {
+    result.insert(texture_directory);
+  }
+  else
+  {
+    // If there's no directory with the region-specific ID, look for a 3-character region-free one
+    const std::string region_free_directory =
+        File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
 
-  return texture_directory;
+    if (File::Exists(region_free_directory))
+    {
+      result.insert(region_free_directory);
+    }
+  }
+
+  const auto match_gameid = [game_id](const std::string& filename) {
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    return basename == game_id || basename == game_id.substr(0, 3);
+  };
+
+  // Look for any other directories that might be specific to the given gameid
+  const auto root_directory = File::GetUserPath(D_HIRESTEXTURES_IDX);
+  const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
+  for (const auto& file : files)
+  {
+    if (match_gameid(file))
+    {
+      // The following code is used to calculate the top directory
+      // of a found gameid.txt file
+      // ex:  <dolphin dir>/Load/Textures/My folder/gameids/<gameid>.txt
+      // would insert "<dolphin dir>/Load/Textures/My folder"
+      const auto directory_path = file.substr(root_directory.size());
+      const std::size_t first_path_separator_position = directory_path.find_first_of(DIR_SEP_CHR);
+      result.insert(root_directory + directory_path.substr(0, first_path_separator_position));
+    }
+  }
+
+  return result;
 }
 
 HiresTexture::~HiresTexture()

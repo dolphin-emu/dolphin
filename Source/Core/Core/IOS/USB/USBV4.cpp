@@ -5,10 +5,11 @@
 #include "Core/IOS/USB/USBV4.h"
 
 #include <algorithm>
-#include <locale>
+#include <functional>
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
@@ -75,10 +76,8 @@ V4GetUSStringMessage::V4GetUSStringMessage(Kernel& ios, const IOCtlRequest& ioct
 
 void V4GetUSStringMessage::OnTransferComplete(s32 return_value) const
 {
-  const std::locale& c_locale = std::locale::classic();
   std::string message = Memory::GetString(data_address);
-  std::replace_if(message.begin(), message.end(),
-                  [&c_locale](char c) { return !std::isprint(c, c_locale); }, '?');
+  std::replace_if(message.begin(), message.end(), std::not_fn(IsPrintableCharacter), '?');
   Memory::CopyToEmu(data_address, message.c_str(), message.size());
   TransferCommand::OnTransferComplete(return_value);
 }

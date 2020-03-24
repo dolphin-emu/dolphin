@@ -67,7 +67,7 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
 
     DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmp_bd[0], tmp_bd[1],
               tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
-    m_wiimotes.emplace_back(this, i, tmp_bd, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
+    m_wiimotes.emplace_back(this, i, tmp_bd, WiimoteCommon::GetSource(i) != WiimoteSource::None);
     i++;
   }
 
@@ -206,7 +206,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   }
 
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_WIIMOTE);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_WIIMOTE);
   }
 
   return send_reply ? GetDefaultReply(IPC_SUCCESS) : GetNoReply();
@@ -1726,7 +1726,7 @@ void BluetoothEmu::CommandVendorSpecific_FC4F(const u8* input, u32 size)
   INFO_LOG(IOS_WIIMOTE, "Command: CommandVendorSpecific_FC4F: (callstack WUDiRemovePatch)");
   DEBUG_LOG(IOS_WIIMOTE, "Input (size 0x%x):", size);
 
-  Dolphin_Debugger::PrintDataBuffer(LogTypes::IOS_WIIMOTE, input, size, "Data: ");
+  Dolphin_Debugger::PrintDataBuffer(Common::Log::IOS_WIIMOTE, input, size, "Data: ");
 
   SendEventCommandComplete(0xFC4F, &reply, sizeof(hci_status_rp));
 }
@@ -1738,7 +1738,7 @@ void BluetoothEmu::CommandVendorSpecific_FC4C(const u8* input, u32 size)
 
   DEBUG_LOG(IOS_WIIMOTE, "Command: CommandVendorSpecific_FC4C:");
   DEBUG_LOG(IOS_WIIMOTE, "Input (size 0x%x):", size);
-  Dolphin_Debugger::PrintDataBuffer(LogTypes::IOS_WIIMOTE, input, size, "Data: ");
+  Dolphin_Debugger::PrintDataBuffer(Common::Log::IOS_WIIMOTE, input, size, "Data: ");
 
   SendEventCommandComplete(0xFC4C, &reply, sizeof(hci_status_rp));
 }

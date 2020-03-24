@@ -52,13 +52,12 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
     if (!Config::Get(Config::MAIN_RENDER_WINDOW_AUTOSIZE) || isFullScreen() || isMaximized())
       return;
 
-    resize(w, h);
+    const auto dpr = window()->windowHandle()->screen()->devicePixelRatio();
+
+    resize(w / dpr, h / dpr);
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    // Stop filling the background once emulation starts, but fill it until then (Bug 10958)
-    SetFillBackground(Config::Get(Config::MAIN_RENDER_TO_MAIN) &&
-                      state == Core::State::Uninitialized);
     if (state == Core::State::Running)
       SetImGuiKeyMap();
   });
@@ -89,21 +88,12 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
-
-  SetFillBackground(true);
-}
-
-void RenderWidget::SetFillBackground(bool fill)
-{
-  setAutoFillBackground(fill);
-  setAttribute(Qt::WA_OpaquePaintEvent, !fill);
-  setAttribute(Qt::WA_NoSystemBackground, !fill);
-  setAttribute(Qt::WA_PaintOnScreen, !fill);
+  setAttribute(Qt::WA_PaintOnScreen);
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
 {
-  return autoFillBackground() ? QWidget::paintEngine() : nullptr;
+  return nullptr;
 }
 
 void RenderWidget::dragEnterEvent(QDragEnterEvent* event)
@@ -176,8 +166,6 @@ bool RenderWidget::event(QEvent* event)
 
   switch (event->type())
   {
-  case QEvent::Paint:
-    return !autoFillBackground();
   case QEvent::KeyPress:
   {
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);

@@ -12,8 +12,11 @@
 #include <string>
 #ifndef _WIN32
 #include <unistd.h>
+#else
+#include <Windows.h>
 #endif
 
+#include "Common/StringUtil.h"
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
@@ -82,11 +85,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-bool Host_UINeedsControllerState()
-{
-  return false;
-}
-
 bool Host_RendererHasFocus()
 {
   return s_platform->IsWindowFocused();
@@ -126,6 +124,11 @@ static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
     return Platform::CreateFBDevPlatform();
 #endif
 
+#ifdef _WIN32
+  if (platform_name == "win32" || platform_name.empty())
+    return Platform::CreateWin32Platform();
+#endif
+
   if (platform_name == "headless" || platform_name.empty())
     return Platform::CreateHeadlessPlatform();
 
@@ -147,6 +150,10 @@ int main(int argc, char* argv[])
 #if HAVE_X11
             ,
             "x11"
+#endif
+#ifdef _WIN32
+            ,
+            "win32"
 #endif
       });
 
@@ -203,6 +210,10 @@ int main(int argc, char* argv[])
       s_platform->Stop();
   });
 
+#ifdef _WIN32
+  signal(SIGINT, signal_handler);
+  signal(SIGTERM, signal_handler);
+#else
   // Shut down cleanly on SIGINT and SIGTERM
   struct sigaction sa;
   sa.sa_handler = signal_handler;
@@ -210,6 +221,7 @@ int main(int argc, char* argv[])
   sa.sa_flags = SA_RESETHAND;
   sigaction(SIGINT, &sa, nullptr);
   sigaction(SIGTERM, &sa, nullptr);
+#endif
 
   DolphinAnalytics::Instance().ReportDolphinStart("nogui");
 

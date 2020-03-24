@@ -12,6 +12,8 @@
 #include <unordered_map>
 #include <utility>
 
+#include <fmt/format.h>
+
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
@@ -132,6 +134,6 @@ std::string TitleDatabase::Describe(const std::string& gametdb_id, DiscIO::Langu
   const std::string& title_name = GetTitleName(gametdb_id, language);
   if (title_name.empty())
     return gametdb_id;
-  return StringFromFormat("%s (%s)", title_name.c_str(), gametdb_id.c_str());
+  return fmt::format("{} ({})", title_name, gametdb_id);
 }
 }  // namespace Core

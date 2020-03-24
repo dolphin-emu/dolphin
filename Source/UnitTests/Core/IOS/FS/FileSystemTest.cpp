@@ -2,8 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <memory>
+#include <optional>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -39,6 +41,41 @@ private:
   std::string m_profile_path;
 };
 
+TEST(FileSystem, BasicPathValidity)
+{
+  EXPECT_TRUE(IsValidPath("/"));
+  EXPECT_FALSE(IsValidNonRootPath("/"));
+
+  EXPECT_TRUE(IsValidNonRootPath("/shared2/sys/SYSCONF"));
+  EXPECT_TRUE(IsValidNonRootPath("/shared2/sys"));
+  EXPECT_TRUE(IsValidNonRootPath("/shared2"));
+
+  // Paths must start with /.
+  EXPECT_FALSE(IsValidNonRootPath("\\test"));
+  // Paths must not end with /.
+  EXPECT_FALSE(IsValidNonRootPath("/shared2/sys/"));
+  // Paths must not be longer than 64 characters.
+  EXPECT_FALSE(IsValidPath(
+      "/abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz"));
+}
+
+TEST(FileSystem, PathSplitting)
+{
+  SplitPathResult result;
+
+  result = {"/shared1", "00000042.app"};
+  EXPECT_EQ(SplitPathAndBasename("/shared1/00000042.app"), result);
+
+  result = {"/shared2/sys", "SYSCONF"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2/sys/SYSCONF"), result);
+
+  result = {"/shared2", "sys"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2/sys"), result);
+
+  result = {"/", "shared2"};
+  EXPECT_EQ(SplitPathAndBasename("/shared2"), result);
+}
+
 TEST_F(FileSystemTest, EssentialDirectories)
 {
   for (const std::string& path :
@@ -52,41 +89,59 @@ TEST_F(FileSystemTest, CreateFile)
 {
   const std::string PATH = "/tmp/f";
 
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
+  constexpr u8 ArbitraryAttribute = 0xE1;
+
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes), ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_TRUE(stats->is_file);
   EXPECT_EQ(stats->size, 0u);
-  // TODO: After we start saving metadata correctly, check the UID, GID, permissions
-  // as well (issue 10234).
+  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->gid, 0);
+  EXPECT_EQ(stats->modes, modes);
+  EXPECT_EQ(stats->attribute, ArbitraryAttribute);
 
   ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
 
   const Result<std::vector<std::string>> tmp_files = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp");
   ASSERT_TRUE(tmp_files.Succeeded());
   EXPECT_EQ(std::count(tmp_files->begin(), tmp_files->end(), "f"), 1u);
+
+  // Test invalid paths
+  // Unprintable characters
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/tes\1t", 0, modes), ResultCode::Invalid);
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/te\x7fst", 0, modes), ResultCode::Invalid);
+  // Paths with too many components are not rejected for files.
+  EXPECT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/1/2/3/4/5/6/7/8/9", 0, modes), ResultCode::NotFound);
 }
 
 TEST_F(FileSystemTest, CreateDirectory)
 {
   const std::string PATH = "/tmp/d";
 
-  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::Success);
+  constexpr u8 ArbitraryAttribute = 0x20;
+
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, ArbitraryAttribute, modes),
+            ResultCode::Success);
 
   const Result<Metadata> stats = m_fs->GetMetadata(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(stats.Succeeded());
   EXPECT_FALSE(stats->is_file);
-  // TODO: After we start saving metadata correctly, check the UID, GID, permissions
-  // as well (issue 10234).
+  EXPECT_EQ(stats->uid, 0);
+  EXPECT_EQ(stats->gid, 0);
+  EXPECT_EQ(stats->modes, modes);
+  EXPECT_EQ(stats->attribute, ArbitraryAttribute);
 
   const Result<std::vector<std::string>> children = m_fs->ReadDirectory(Uid{0}, Gid{0}, PATH);
   ASSERT_TRUE(children.Succeeded());
   EXPECT_TRUE(children->empty());
 
-  // TODO: uncomment this after the FS code is fixed to return AlreadyExists.
-  // EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, Mode::Read, Mode::None, Mode::None),
-  //           ResultCode::AlreadyExists);
+  EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, PATH, 0, modes), ResultCode::AlreadyExists);
+
+  // Paths with too many components should be rejected.
+  EXPECT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/1/2/3/4/5/6/7/8/9", 0, modes),
+            ResultCode::TooManyPathComponents);
 }
 
 TEST_F(FileSystemTest, Delete)
@@ -94,6 +149,25 @@ TEST_F(FileSystemTest, Delete)
   EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Succeeded());
   EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/tmp"), ResultCode::Success);
   EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
+
+  // Test recursive directory deletion.
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/sys/1", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/sys/1/2", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/sys/1/2/3", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/sys/1/2/4", 0, modes), ResultCode::Success);
+
+  // Leave a file open. Deletion should fail while the file is in use.
+  auto handle = std::make_optional(m_fs->OpenFile(Uid{0}, Gid{0}, "/sys/1/2/3", Mode::Read));
+  ASSERT_TRUE(handle->Succeeded());
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1/2/3"), ResultCode::InUse);
+  // A directory that contains a file that is in use is considered to be in use,
+  // so this should fail too.
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1"), ResultCode::InUse);
+
+  // With the handle closed, both of these should work:
+  handle.reset();
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1/2/3"), ResultCode::Success);
+  EXPECT_EQ(m_fs->Delete(Uid{0}, Gid{0}, "/sys/1"), ResultCode::Success);
 }
 
 TEST_F(FileSystemTest, Rename)
@@ -104,6 +178,14 @@ TEST_F(FileSystemTest, Rename)
 
   EXPECT_EQ(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp").Error(), ResultCode::NotFound);
   EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, "/test").Succeeded());
+
+  // Rename /test back to /tmp.
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/test", "/tmp"), ResultCode::Success);
+
+  // Create a file called /tmp/f1, and rename it to /tmp/f2.
+  // This should not work; file name changes are not allowed for files.
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, modes), ResultCode::Success);
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Invalid);
 }
 
 TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
@@ -124,26 +206,29 @@ TEST_F(FileSystemTest, RenameWithExistingTargetDirectory)
 
 TEST_F(FileSystemTest, RenameWithExistingTargetFile)
 {
+  const std::string source_path = "/sys/f2";
+  const std::string dest_path = "/tmp/f2";
+
   // Create the test source file and write some data (so that we can check its size later on).
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f1", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, source_path, 0, modes), ResultCode::Success);
   const std::vector<u8> TEST_DATA{{0, 1, 2, 3, 4, 5, 6, 7, 8, 9}};
   std::vector<u8> read_buffer(TEST_DATA.size());
   {
-    const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, "/tmp/f1", Mode::ReadWrite);
+    const Result<FileHandle> file = m_fs->OpenFile(Uid{0}, Gid{0}, source_path, Mode::ReadWrite);
     ASSERT_TRUE(file.Succeeded());
     ASSERT_TRUE(file->Write(TEST_DATA.data(), TEST_DATA.size()).Succeeded());
   }
 
   // Create the test target file and leave it empty.
-  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/f2", 0, modes), ResultCode::Success);
+  ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, dest_path, 0, modes), ResultCode::Success);
 
-  // Rename f1 to f2 and check that f1 replaced f2.
-  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, "/tmp/f1", "/tmp/f2"), ResultCode::Success);
+  // Rename /sys/f2 to /tmp/f2 and check that f1 replaced f2.
+  EXPECT_EQ(m_fs->Rename(Uid{0}, Gid{0}, source_path, dest_path), ResultCode::Success);
 
-  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Succeeded());
-  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f1").Error(), ResultCode::NotFound);
+  ASSERT_FALSE(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Succeeded());
+  EXPECT_EQ(m_fs->GetMetadata(Uid{0}, Gid{0}, source_path).Error(), ResultCode::NotFound);
 
-  const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, "/tmp/f2");
+  const Result<Metadata> metadata = m_fs->GetMetadata(Uid{0}, Gid{0}, dest_path);
   ASSERT_TRUE(metadata.Succeeded());
   EXPECT_TRUE(metadata->is_file);
   EXPECT_EQ(metadata->size, TEST_DATA.size());
@@ -324,4 +409,46 @@ TEST_F(FileSystemTest, ReadDirectoryOnFile)
   const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/f");
   ASSERT_FALSE(result.Succeeded());
   EXPECT_EQ(result.Error(), ResultCode::Invalid);
+}
+
+TEST_F(FileSystemTest, ReadDirectoryOrdering)
+{
+  ASSERT_EQ(m_fs->CreateDirectory(Uid{0}, Gid{0}, "/tmp/o", 0, modes), ResultCode::Success);
+
+  // Randomly generated file names in no particular order.
+  const std::array<std::string, 5> file_names{{
+      "Rkj62lGwHp",
+      "XGDQTDJMea",
+      "1z5M43WeFw",
+      "YAY39VuMRd",
+      "hxJ86nkoBX",
+  }};
+  // Create the files.
+  for (const auto& name : file_names)
+    ASSERT_EQ(m_fs->CreateFile(Uid{0}, Gid{0}, "/tmp/o/" + name, 0, modes), ResultCode::Success);
+
+  // Verify that ReadDirectory returns a file list that is ordered by descending creation date
+  // (issue 10234).
+  const Result<std::vector<std::string>> result = m_fs->ReadDirectory(Uid{0}, Gid{0}, "/tmp/o");
+  ASSERT_TRUE(result.Succeeded());
+  ASSERT_EQ(result->size(), file_names.size());
+  EXPECT_TRUE(std::equal(result->begin(), result->end(), file_names.rbegin()));
+}
+
+TEST_F(FileSystemTest, CreateFullPath)
+{
+  ASSERT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);
+
+  // Parent directories should be created by CreateFullPath.
+  for (const std::string& path : {"/tmp", "/tmp/a", "/tmp/a/b", "/tmp/a/b/c"})
+    EXPECT_TRUE(m_fs->ReadDirectory(Uid{0}, Gid{0}, path).Succeeded());
+
+  // If parent directories already exist, the call should still succeed.
+  EXPECT_EQ(m_fs->CreateFullPath(Uid{0}, Gid{0}, "/tmp/a/b/c/d", 0, modes), ResultCode::Success);
+
+  // If parent directories already exist and are owned by a different user,
+  // CreateFullPath should still succeed.
+  // See https://github.com/dolphin-emu/dolphin/pull/8593
+  EXPECT_EQ(m_fs->CreateFullPath(Uid{0x1000}, Gid{1}, "/shared2/wc24/mbox/Readme.txt", 0, modes),
+            ResultCode::Success);
 }

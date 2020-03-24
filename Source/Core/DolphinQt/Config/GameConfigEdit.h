@@ -34,8 +34,6 @@ private:
   void OnAutoComplete(const QString& completion);
   void OpenExternalEditor();
 
-  void SetReadOnly(bool read_only);
-
   QString GetTextUnderCursor();
 
   void AddBoolOption(QMenu* menu, const QString& name, const QString& section, const QString& key);

@@ -17,12 +17,22 @@ void Attachments::AddAttachment(std::unique_ptr<EmulatedController> att)
 
 u32 Attachments::GetSelectedAttachment() const
 {
-  return m_selected_attachment;
+  const u32 value = m_selection_value.GetValue();
+
+  if (value < m_attachments.size())
+    return value;
+
+  return 0;
 }
 
 void Attachments::SetSelectedAttachment(u32 val)
 {
-  m_selected_attachment = val;
+  m_selection_setting.SetValue(val);
+}
+
+NumericSetting<int>& Attachments::GetSelectionSetting()
+{
+  return m_selection_setting;
 }
 
 const std::vector<std::unique_ptr<EmulatedController>>& Attachments::GetAttachmentList() const

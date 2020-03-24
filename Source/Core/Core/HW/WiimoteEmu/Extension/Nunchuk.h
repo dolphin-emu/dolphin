@@ -27,7 +27,8 @@ enum class NunchukGroup
   Stick,
   Tilt,
   Swing,
-  Shake
+  Shake,
+  IMUAccelerometer,
 };
 
 class Nunchuk : public Extension1stParty
@@ -50,24 +51,102 @@ public:
   };
   static_assert(sizeof(ButtonFormat) == 1, "Wrong size");
 
-  union DataFormat
+  struct DataFormat
   {
-    struct
+    using StickType = Common::TVec2<u8>;
+    using StickRawValue = ControllerEmu::RawValue<StickType, 8>;
+
+    using AccelType = WiimoteCommon::AccelType;
+    using AccelData = WiimoteCommon::AccelData;
+
+    auto GetStick() const { return StickRawValue(StickType(jx, jy)); }
+
+    // Components have 10 bits of precision.
+    u16 GetAccelX() const { return ax << 2 | bt.acc_x_lsb; }
+    u16 GetAccelY() const { return ay << 2 | bt.acc_y_lsb; }
+    u16 GetAccelZ() const { return az << 2 | bt.acc_z_lsb; }
+    auto GetAccel() const { return AccelData{AccelType{GetAccelX(), GetAccelY(), GetAccelZ()}}; }
+
+    void SetAccelX(u16 val)
     {
-      // joystick x, y
-      u8 jx;
-      u8 jy;
+      ax = val >> 2;
+      bt.acc_x_lsb = val & 0b11;
+    }
+    void SetAccelY(u16 val)
+    {
+      ay = val >> 2;
+      bt.acc_y_lsb = val & 0b11;
+    }
+    void SetAccelZ(u16 val)
+    {
+      az = val >> 2;
+      bt.acc_z_lsb = val & 0b11;
+    }
+    void SetAccel(const AccelType& accel)
+    {
+      SetAccelX(accel.x);
+      SetAccelY(accel.y);
+      SetAccelZ(accel.z);
+    }
 
-      // accelerometer
-      u8 ax;
-      u8 ay;
-      u8 az;
+    u8 GetButtons() const
+    {
+      // 0 == pressed.
+      return ~bt.hex & (BUTTON_C | BUTTON_Z);
+    }
+    void SetButtons(u8 value)
+    {
+      // 0 == pressed.
+      bt.hex |= (BUTTON_C | BUTTON_Z);
+      bt.hex ^= value & (BUTTON_C | BUTTON_Z);
+    }
 
-      // buttons + accelerometer LSBs
-      ButtonFormat bt;
-    };
+    // joystick x, y
+    u8 jx;
+    u8 jy;
+
+    // accelerometer
+    u8 ax;
+    u8 ay;
+    u8 az;
+
+    // buttons + accelerometer LSBs
+    ButtonFormat bt;
   };
   static_assert(sizeof(DataFormat) == 6, "Wrong size");
+
+  struct CalibrationData
+  {
+    using StickType = DataFormat::StickType;
+    using StickCalibration = ControllerEmu::ThreePointCalibration<StickType, 8>;
+
+    using AccelType = WiimoteCommon::AccelType;
+    using AccelCalibration = ControllerEmu::TwoPointCalibration<AccelType, 10>;
+
+    struct Stick
+    {
+      u8 max;
+      u8 min;
+      u8 center;
+    };
+
+    auto GetStick() const
+    {
+      return StickCalibration(StickType{stick_x.min, stick_y.min},
+                              StickType{stick_x.center, stick_y.center},
+                              StickType{stick_x.max, stick_y.max});
+    }
+    auto GetAccel() const { return AccelCalibration(accel_zero_g.Get(), accel_one_g.Get()); }
+
+    WiimoteCommon::AccelCalibrationPoint accel_zero_g;
+    WiimoteCommon::AccelCalibrationPoint accel_one_g;
+
+    Stick stick_x;
+    Stick stick_y;
+
+    std::array<u8, 2> checksum;
+  };
+  static_assert(sizeof(CalibrationData) == 16, "Wrong size");
 
   Nunchuk();
 
@@ -81,12 +160,13 @@ public:
   static constexpr u8 BUTTON_C = 0x02;
   static constexpr u8 BUTTON_Z = 0x01;
 
+  // Typical values pulled from physical Nunchuk.
   static constexpr u8 ACCEL_ZERO_G = 0x80;
   static constexpr u8 ACCEL_ONE_G = 0xB3;
+  static constexpr u8 STICK_GATE_RADIUS = 0x60;
 
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
-  static constexpr u8 STICK_GATE_RADIUS = 0x52;
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
@@ -96,6 +176,7 @@ private:
   ControllerEmu::Shake* m_shake;
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_stick;
+  ControllerEmu::IMUAccelerometer* m_imu_accelerometer;
 
   // Dynamics:
   MotionState m_swing_state;

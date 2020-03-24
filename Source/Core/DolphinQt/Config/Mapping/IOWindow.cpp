@@ -295,6 +295,8 @@ void IOWindow::CreateMainLayout()
 
   // Options (Buttons, Outputs) and action buttons
 
+  m_option_list->setTabKeyNavigation(false);
+
   if (m_type == Type::Input)
   {
     m_option_list->setColumnCount(2);
@@ -323,12 +325,24 @@ void IOWindow::CreateMainLayout()
   hbox->addLayout(button_vbox, 1);
 
   button_vbox->addWidget(m_select_button);
-  button_vbox->addWidget(m_type == Type::Input ? m_detect_button : m_test_button);
-  button_vbox->addWidget(m_operators_combo);
+
   if (m_type == Type::Input)
   {
-    button_vbox->addWidget(m_functions_combo);
+    m_test_button->hide();
+    button_vbox->addWidget(m_detect_button);
   }
+  else
+  {
+    m_detect_button->hide();
+    button_vbox->addWidget(m_test_button);
+  }
+
+  button_vbox->addWidget(m_operators_combo);
+
+  if (m_type == Type::Input)
+    button_vbox->addWidget(m_functions_combo);
+  else
+    m_functions_combo->hide();
 
   m_main_layout->addLayout(hbox, 2);
   m_main_layout->addWidget(m_expression_text, 1);
@@ -530,7 +544,7 @@ void InputStateDelegate::paint(QPainter* painter, const QStyleOptionViewItem& op
   rect.setWidth(rect.width() * std::clamp(state, 0.0, 1.0));
 
   // Create a temporary indicator object to retreive color constants.
-  MappingIndicator indicator(nullptr);
+  MappingIndicator indicator;
 
   painter->save();
 

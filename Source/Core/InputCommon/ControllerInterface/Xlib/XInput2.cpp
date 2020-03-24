@@ -10,6 +10,8 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
 
 #include "Common/StringUtil.h"
@@ -129,8 +131,6 @@ void KeyboardMouse::SelectEventsForDevice(Window window, XIEventMask* mask, int 
 KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboard)
     : m_window(window), xi_opcode(opcode), pointer_deviceid(pointer), keyboard_deviceid(keyboard)
 {
-  memset(&m_state, 0, sizeof(m_state));
-
   // The cool thing about each KeyboardMouse object having its own Display
   // is that each one gets its own separate copy of the X11 event stream,
   // which it can individually filter to get just the events it's interested
@@ -210,9 +210,11 @@ void KeyboardMouse::UpdateCursor()
   XWindowAttributes win_attribs;
   XGetWindowAttributes(m_display, m_window, &win_attribs);
 
+  const auto window_scale = g_controller_interface.GetWindowInputScale();
+
   // the mouse position as a range from -1 to 1
-  m_state.cursor.x = win_x / (float)win_attribs.width * 2 - 1;
-  m_state.cursor.y = win_y / (float)win_attribs.height * 2 - 1;
+  m_state.cursor.x = (win_x / win_attribs.width * 2 - 1) * window_scale.x;
+  m_state.cursor.y = (win_y / win_attribs.height * 2 - 1) * window_scale.y;
 }
 
 void KeyboardMouse::UpdateInput()
@@ -338,7 +340,7 @@ ControlState KeyboardMouse::Key::GetState() const
 KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
     : m_buttons(buttons), m_index(index)
 {
-  name = StringFromFormat("Click %d", m_index + 1);
+  name = fmt::format("Click {}", m_index + 1);
 }
 
 ControlState KeyboardMouse::Button::GetState() const
@@ -349,7 +351,7 @@ ControlState KeyboardMouse::Button::GetState() const
 KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)
     : m_cursor(cursor), m_index(index), m_positive(positive)
 {
-  name = std::string("Cursor ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+  name = fmt::format("Cursor {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
 ControlState KeyboardMouse::Cursor::GetState() const
@@ -360,7 +362,7 @@ ControlState KeyboardMouse::Cursor::GetState() const
 KeyboardMouse::Axis::Axis(u8 index, bool positive, const float* axis)
     : m_axis(axis), m_index(index), m_positive(positive)
 {
-  name = std::string("Axis ") + (char)('X' + m_index) + (m_positive ? '+' : '-');
+  name = fmt::format("Axis {}{}", static_cast<char>('X' + m_index), (m_positive ? '+' : '-'));
 }
 
 ControlState KeyboardMouse::Axis::GetState() const

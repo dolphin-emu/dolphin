@@ -61,6 +61,7 @@ void NetPlayBrowser::CreateWidgets()
   auto* layout = new QVBoxLayout;
 
   m_table_widget = new QTableWidget;
+  m_table_widget->setTabKeyNavigation(false);
 
   m_table_widget->setSelectionBehavior(QAbstractItemView::SelectRows);
   m_table_widget->setSelectionMode(QAbstractItemView::SingleSelection);

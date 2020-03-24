@@ -6,6 +6,8 @@
 
 #include <memory>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -100,10 +102,12 @@ public:
         layer->Set(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE, path + "Card A");
         layer->Set(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE, path + "Card B");
 
-        const std::string file = File::GetUserPath(D_GCUSER_IDX) + GC_MEMCARD_NETPLAY + "%c." +
-                                 m_settings.m_SaveDataRegion + ".raw";
-        layer->Set(Config::MAIN_MEMCARD_A_PATH, StringFromFormat(file.c_str(), 'A'));
-        layer->Set(Config::MAIN_MEMCARD_B_PATH, StringFromFormat(file.c_str(), 'B'));
+        const auto make_memcard_path = [this](char letter) {
+          return fmt::format("{}{}{}.{}.raw", File::GetUserPath(D_GCUSER_IDX), GC_MEMCARD_NETPLAY,
+                             letter, m_settings.m_SaveDataRegion);
+        };
+        layer->Set(Config::MAIN_MEMCARD_A_PATH, make_memcard_path('A'));
+        layer->Set(Config::MAIN_MEMCARD_B_PATH, make_memcard_path('B'));
       }
 
       layer->Set(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY, true);

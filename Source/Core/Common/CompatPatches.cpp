@@ -4,12 +4,14 @@
 
 #include <Windows.h>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 #include <winternl.h>
 
 #include <fmt/format.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
@@ -162,37 +164,26 @@ struct Version
   }
 };
 
-static bool GetModulePath(const wchar_t* name, std::wstring* path)
+static std::optional<std::wstring> GetModulePath(const wchar_t* name)
 {
   auto module = GetModuleHandleW(name);
   if (module == nullptr)
-    return false;
-  DWORD path_len = MAX_PATH;
-retry:
-  path->resize(path_len);
-  path_len = GetModuleFileNameW(module, const_cast<wchar_t*>(path->data()),
-                                static_cast<DWORD>(path->size()));
-  if (!path_len)
-    return false;
-  auto error = GetLastError();
-  if (error == ERROR_SUCCESS)
-    return true;
-  if (error == ERROR_INSUFFICIENT_BUFFER)
-    goto retry;
-  return false;
+    return std::nullopt;
+
+  return GetModuleName(module);
 }
 
 static bool GetModuleVersion(const wchar_t* name, Version* version)
 {
-  std::wstring path;
-  if (!GetModulePath(name, &path))
+  auto path = GetModulePath(name);
+  if (!path)
     return false;
   DWORD handle;
-  DWORD data_len = GetFileVersionInfoSizeW(path.c_str(), &handle);
+  DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
   if (!data_len)
     return false;
   std::vector<u8> block(data_len);
-  if (!GetFileVersionInfoW(path.c_str(), handle, data_len, block.data()))
+  if (!GetFileVersionInfoW(path->c_str(), handle, data_len, block.data()))
     return false;
   void* buf;
   UINT buf_len;
@@ -240,15 +231,14 @@ void CompatPatchesInstall(LdrWatcher* watcher)
              return;
          }
          // If we reach here, the version is buggy (afaik) and patching failed
-         const auto msg =
-             fmt::format("You are running {} version {}.{}.{}.{}.\n"
-                         "An important fix affecting Dolphin was introduced in build {}.\n"
-                         "You can use Dolphin, but there will be known bugs.\n"
-                         "Please update this file by installing the latest Universal C Runtime.\n",
-                         UTF16ToUTF8(event.name), version.major, version.minor, version.build,
-                         version.qfe, fixed_build);
+         const auto msg = fmt::format(
+             L"You are running {} version {}.{}.{}.{}.\n"
+             L"An important fix affecting Dolphin was introduced in build {}.\n"
+             L"You can use Dolphin, but there will be known bugs.\n"
+             L"Please update this file by installing the latest Universal C Runtime.\n",
+             event.name, version.major, version.minor, version.build, version.qfe, fixed_build);
          // Use MessageBox for maximal user annoyance
-         MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
+         MessageBoxW(nullptr, msg.c_str(), L"WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
        }});
 }
 

@@ -216,7 +216,8 @@ void LogVulkanResult(int level, const char* func_name, VkResult res, const char*
   real_msg = StringFromFormat("(%s) %s (%d: %s)", func_name, real_msg.c_str(),
                               static_cast<int>(res), VkResultToString(res));
 
-  GENERIC_LOG(LogTypes::VIDEO, static_cast<LogTypes::LOG_LEVELS>(level), "%s", real_msg.c_str());
+  GENERIC_LOG(Common::Log::VIDEO, static_cast<Common::Log::LOG_LEVELS>(level), "%s",
+              real_msg.c_str());
 }
 
 }  // namespace Vulkan

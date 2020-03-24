@@ -22,6 +22,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+namespace Common::Log
+{
 constexpr size_t MAX_MSGLEN = 1024;
 
 const Config::ConfigInfo<bool> LOGGER_WRITE_TO_FILE{
@@ -41,7 +43,7 @@ public:
     SetEnable(true);
   }
 
-  void Log(LogTypes::LOG_LEVELS, const char* msg) override
+  void Log(LOG_LEVELS, const char* msg) override
   {
     if (!IsEnabled() || !IsValid())
       return;
@@ -60,8 +62,7 @@ private:
   bool m_enable;
 };
 
-void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
-                const char* fmt, ...)
+void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, const char* fmt, ...)
 {
   va_list args;
   va_start(args, fmt);
@@ -92,55 +93,55 @@ static size_t DeterminePathCutOffPoint()
 LogManager::LogManager()
 {
   // create log containers
-  m_log[LogTypes::ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
-  m_log[LogTypes::AUDIO] = {"Audio", "Audio Emulator"};
-  m_log[LogTypes::AUDIO_INTERFACE] = {"AI", "Audio Interface"};
-  m_log[LogTypes::BOOT] = {"BOOT", "Boot"};
-  m_log[LogTypes::COMMANDPROCESSOR] = {"CP", "CommandProc"};
-  m_log[LogTypes::COMMON] = {"COMMON", "Common"};
-  m_log[LogTypes::CONSOLE] = {"CONSOLE", "Dolphin Console"};
-  m_log[LogTypes::CORE] = {"CORE", "Core"};
-  m_log[LogTypes::DISCIO] = {"DIO", "Disc IO"};
-  m_log[LogTypes::DSPHLE] = {"DSPHLE", "DSP HLE"};
-  m_log[LogTypes::DSPLLE] = {"DSPLLE", "DSP LLE"};
-  m_log[LogTypes::DSP_MAIL] = {"DSPMails", "DSP Mails"};
-  m_log[LogTypes::DSPINTERFACE] = {"DSP", "DSPInterface"};
-  m_log[LogTypes::DVDINTERFACE] = {"DVD", "DVD Interface"};
-  m_log[LogTypes::DYNA_REC] = {"JIT", "Dynamic Recompiler"};
-  m_log[LogTypes::EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
-  m_log[LogTypes::FILEMON] = {"FileMon", "File Monitor"};
-  m_log[LogTypes::GDB_STUB] = {"GDB_STUB", "GDB Stub"};
-  m_log[LogTypes::GPFIFO] = {"GP", "GPFifo"};
-  m_log[LogTypes::HOST_GPU] = {"Host GPU", "Host GPU"};
-  m_log[LogTypes::IOS] = {"IOS", "IOS"};
-  m_log[LogTypes::IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
-  m_log[LogTypes::IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
-  m_log[LogTypes::IOS_FS] = {"IOS_FS", "IOS - Filesystem Services"};
-  m_log[LogTypes::IOS_SD] = {"IOS_SD", "IOS - SDIO"};
-  m_log[LogTypes::IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
-  m_log[LogTypes::IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
-  m_log[LogTypes::IOS_NET] = {"IOS_NET", "IOS - Network"};
-  m_log[LogTypes::IOS_USB] = {"IOS_USB", "IOS - USB"};
-  m_log[LogTypes::IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
-  m_log[LogTypes::IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
-  m_log[LogTypes::IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
-  m_log[LogTypes::MASTER_LOG] = {"MASTER", "Master Log"};
-  m_log[LogTypes::MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
-  m_log[LogTypes::MEMMAP] = {"MI", "MI & memmap"};
-  m_log[LogTypes::NETPLAY] = {"NETPLAY", "Netplay"};
-  m_log[LogTypes::OSHLE] = {"HLE", "HLE"};
-  m_log[LogTypes::OSREPORT] = {"OSREPORT", "OSReport"};
-  m_log[LogTypes::PAD] = {"PAD", "Pad"};
-  m_log[LogTypes::PIXELENGINE] = {"PE", "PixelEngine"};
-  m_log[LogTypes::PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
-  m_log[LogTypes::POWERPC] = {"PowerPC", "IBM CPU"};
-  m_log[LogTypes::SERIALINTERFACE] = {"SI", "Serial Interface"};
-  m_log[LogTypes::SP1] = {"SP1", "Serial Port 1"};
-  m_log[LogTypes::SYMBOLS] = {"SYMBOLS", "Symbols"};
-  m_log[LogTypes::VIDEO] = {"Video", "Video Backend"};
-  m_log[LogTypes::VIDEOINTERFACE] = {"VI", "Video Interface"};
-  m_log[LogTypes::WIIMOTE] = {"Wiimote", "Wiimote"};
-  m_log[LogTypes::WII_IPC] = {"WII_IPC", "WII IPC"};
+  m_log[ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
+  m_log[AUDIO] = {"Audio", "Audio Emulator"};
+  m_log[AUDIO_INTERFACE] = {"AI", "Audio Interface"};
+  m_log[BOOT] = {"BOOT", "Boot"};
+  m_log[COMMANDPROCESSOR] = {"CP", "CommandProc"};
+  m_log[COMMON] = {"COMMON", "Common"};
+  m_log[CONSOLE] = {"CONSOLE", "Dolphin Console"};
+  m_log[CORE] = {"CORE", "Core"};
+  m_log[DISCIO] = {"DIO", "Disc IO"};
+  m_log[DSPHLE] = {"DSPHLE", "DSP HLE"};
+  m_log[DSPLLE] = {"DSPLLE", "DSP LLE"};
+  m_log[DSP_MAIL] = {"DSPMails", "DSP Mails"};
+  m_log[DSPINTERFACE] = {"DSP", "DSPInterface"};
+  m_log[DVDINTERFACE] = {"DVD", "DVD Interface"};
+  m_log[DYNA_REC] = {"JIT", "Dynamic Recompiler"};
+  m_log[EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
+  m_log[FILEMON] = {"FileMon", "File Monitor"};
+  m_log[GDB_STUB] = {"GDB_STUB", "GDB Stub"};
+  m_log[GPFIFO] = {"GP", "GPFifo"};
+  m_log[HOST_GPU] = {"Host GPU", "Host GPU"};
+  m_log[IOS] = {"IOS", "IOS"};
+  m_log[IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
+  m_log[IOS_ES] = {"IOS_ES", "IOS - ETicket Services"};
+  m_log[IOS_FS] = {"IOS_FS", "IOS - Filesystem Services"};
+  m_log[IOS_SD] = {"IOS_SD", "IOS - SDIO"};
+  m_log[IOS_SSL] = {"IOS_SSL", "IOS - SSL"};
+  m_log[IOS_STM] = {"IOS_STM", "IOS - State Transition Manager"};
+  m_log[IOS_NET] = {"IOS_NET", "IOS - Network"};
+  m_log[IOS_USB] = {"IOS_USB", "IOS - USB"};
+  m_log[IOS_WC24] = {"IOS_WC24", "IOS - WiiConnect24"};
+  m_log[IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
+  m_log[IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
+  m_log[MASTER_LOG] = {"MASTER", "Master Log"};
+  m_log[MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
+  m_log[MEMMAP] = {"MI", "MI & memmap"};
+  m_log[NETPLAY] = {"NETPLAY", "Netplay"};
+  m_log[OSHLE] = {"HLE", "HLE"};
+  m_log[OSREPORT] = {"OSREPORT", "OSReport"};
+  m_log[PAD] = {"PAD", "Pad"};
+  m_log[PIXELENGINE] = {"PE", "PixelEngine"};
+  m_log[PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
+  m_log[POWERPC] = {"PowerPC", "IBM CPU"};
+  m_log[SERIALINTERFACE] = {"SI", "Serial Interface"};
+  m_log[SP1] = {"SP1", "Serial Port 1"};
+  m_log[SYMBOLS] = {"SYMBOLS", "Symbols"};
+  m_log[VIDEO] = {"Video", "Video Backend"};
+  m_log[VIDEOINTERFACE] = {"VI", "Video Interface"};
+  m_log[WIIMOTE] = {"Wiimote", "Wiimote"};
+  m_log[WII_IPC] = {"WII_IPC", "WII IPC"};
 
   RegisterListener(LogListener::FILE_LISTENER,
                    new FileLogListener(File::GetUserPath(F_MAINLOG_IDX)));
@@ -155,7 +156,7 @@ LogManager::LogManager()
   if (verbosity > MAX_LOGLEVEL)
     verbosity = MAX_LOGLEVEL;
 
-  SetLogLevel(static_cast<LogTypes::LOG_LEVELS>(verbosity));
+  SetLogLevel(static_cast<LOG_LEVELS>(verbosity));
   EnableListener(LogListener::FILE_LISTENER, Config::Get(LOGGER_WRITE_TO_FILE));
   EnableListener(LogListener::CONSOLE_LISTENER, Config::Get(LOGGER_WRITE_TO_CONSOLE));
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
@@ -195,14 +196,14 @@ void LogManager::SaveSettings()
   Config::Save();
 }
 
-void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
-                     int line, const char* format, va_list args)
+void LogManager::Log(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                     const char* format, va_list args)
 {
   return LogWithFullPath(level, type, file + m_path_cutoff_point, line, format, args);
 }
 
-void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type,
-                                 const char* file, int line, const char* format, va_list args)
+void LogManager::LogWithFullPath(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                                 const char* format, va_list args)
 {
   if (!IsEnabled(type, level) || !static_cast<bool>(m_listener_ids))
     return;
@@ -212,39 +213,39 @@ void LogManager::LogWithFullPath(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE 
 
   const std::string msg =
       fmt::format("{} {}:{} {}[{}]: {}\n", Common::Timer::GetTimeFormatted(), file, line,
-                  LogTypes::LOG_LEVEL_TO_CHAR[(int)level], GetShortName(type), temp);
+                  LOG_LEVEL_TO_CHAR[static_cast<int>(level)], GetShortName(type), temp);
 
   for (auto listener_id : m_listener_ids)
     if (m_listeners[listener_id])
       m_listeners[listener_id]->Log(level, msg.c_str());
 }
 
-LogTypes::LOG_LEVELS LogManager::GetLogLevel() const
+LOG_LEVELS LogManager::GetLogLevel() const
 {
   return m_level;
 }
 
-void LogManager::SetLogLevel(LogTypes::LOG_LEVELS level)
+void LogManager::SetLogLevel(LOG_LEVELS level)
 {
   m_level = level;
 }
 
-void LogManager::SetEnable(LogTypes::LOG_TYPE type, bool enable)
+void LogManager::SetEnable(LOG_TYPE type, bool enable)
 {
   m_log[type].m_enable = enable;
 }
 
-bool LogManager::IsEnabled(LogTypes::LOG_TYPE type, LogTypes::LOG_LEVELS level) const
+bool LogManager::IsEnabled(LOG_TYPE type, LOG_LEVELS level) const
 {
   return m_log[type].m_enable && GetLogLevel() >= level;
 }
 
-const char* LogManager::GetShortName(LogTypes::LOG_TYPE type) const
+const char* LogManager::GetShortName(LOG_TYPE type) const
 {
   return m_log[type].m_short_name;
 }
 
-const char* LogManager::GetFullName(LogTypes::LOG_TYPE type) const
+const char* LogManager::GetFullName(LOG_TYPE type) const
 {
   return m_log[type].m_full_name;
 }
@@ -284,3 +285,4 @@ void LogManager::Shutdown()
   delete s_log_manager;
   s_log_manager = nullptr;
 }
+}  // namespace Common::Log

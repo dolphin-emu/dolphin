@@ -26,6 +26,7 @@ bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
+void FrameUpdate();
 
 enum class State
 {
@@ -110,5 +111,7 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop = false);
 void HostDispatchJobs();
 
 void DoFrameStep();
+
+void UpdateInputGate(bool require_focus);
 
 }  // namespace Core

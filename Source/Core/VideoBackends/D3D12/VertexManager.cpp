@@ -31,6 +31,9 @@ VertexManager::~VertexManager() = default;
 
 bool VertexManager::Initialize()
 {
+  if (!VertexManagerBase::Initialize())
+    return false;
+
   if (!m_vertex_stream_buffer.AllocateBuffer(VERTEX_STREAM_BUFFER_SIZE) ||
       !m_index_stream_buffer.AllocateBuffer(INDEX_STREAM_BUFFER_SIZE) ||
       !m_uniform_stream_buffer.AllocateBuffer(UNIFORM_STREAM_BUFFER_SIZE) ||
@@ -96,7 +99,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   m_base_buffer_pointer = m_vertex_stream_buffer.GetHostPointer();
   m_end_buffer_pointer = m_vertex_stream_buffer.GetCurrentHostPointer() + MAXVBUFFERSIZE;
   m_cur_buffer_pointer = m_vertex_stream_buffer.GetCurrentHostPointer();
-  IndexGenerator::Start(reinterpret_cast<u16*>(m_index_stream_buffer.GetCurrentHostPointer()));
+  m_index_generator.Start(reinterpret_cast<u16*>(m_index_stream_buffer.GetCurrentHostPointer()));
 }
 
 void VertexManager::CommitBuffer(u32 num_vertices, u32 vertex_stride, u32 num_indices,

@@ -62,6 +62,8 @@ extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
 bool IsInitialized();
 void Init();
 void Shutdown();
+bool InitFastmemArena();
+void ShutdownFastmemArena();
 void DoState(PointerWrap& p);
 
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);

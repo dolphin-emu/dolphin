@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <string>
+#include <string_view>
+
+#include <fmt/format.h>
+
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -22,9 +27,9 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, const char* world_po
 
 // bitfieldExtract generator for BitField types
 template <typename T>
-std::string BitfieldExtract(const std::string& source, T type)
+std::string BitfieldExtract(std::string_view source, T type)
 {
-  return StringFromFormat("bitfieldExtract(%s, %u, %u)", source.c_str(),
-                          static_cast<u32>(type.StartBit()), static_cast<u32>(type.NumBits()));
+  return fmt::format("bitfieldExtract({}, {}, {})", source, static_cast<u32>(type.StartBit()),
+                     static_cast<u32>(type.NumBits()));
 }
 }  // namespace UberShader

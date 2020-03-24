@@ -34,6 +34,8 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
+  CreateWidgets();
+
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("codewidget/geometry")).toByteArray());
@@ -57,7 +59,6 @@ CodeWidget::CodeWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &CodeWidget::Update);
 
-  CreateWidgets();
   ConnectWidgets();
 
   m_code_splitter->restoreState(
@@ -73,7 +74,7 @@ CodeWidget::~CodeWidget()
   settings.setValue(QStringLiteral("codewidget/geometry"), saveGeometry());
   settings.setValue(QStringLiteral("codewidget/floating"), isFloating());
   settings.setValue(QStringLiteral("codewidget/codesplitter"), m_code_splitter->saveState());
-  settings.setValue(QStringLiteral("codewidget/boxplitter"), m_box_splitter->saveState());
+  settings.setValue(QStringLiteral("codewidget/boxsplitter"), m_box_splitter->saveState());
 }
 
 void CodeWidget::closeEvent(QCloseEvent*)

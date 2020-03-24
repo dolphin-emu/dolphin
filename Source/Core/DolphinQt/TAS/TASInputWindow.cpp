@@ -17,6 +17,7 @@
 
 #include "DolphinQt/QtUtils/AspectRatioWidget.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
+#include "DolphinQt/Resources.h"
 #include "DolphinQt/TAS/StickWidget.h"
 #include "DolphinQt/TAS/TASCheckBox.h"
 #include "DolphinQt/TAS/TASInputWindow.h"
@@ -26,6 +27,8 @@
 TASInputWindow::TASInputWindow(QWidget* parent) : QDialog(parent)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setWindowIcon(Resources::GetAppIcon());
+
   m_use_controller = new QCheckBox(QStringLiteral("Enable Controller Inpu&t"));
   m_use_controller->setToolTip(tr("Warning: Analog inputs may reset to controller values at "
                                   "random. In some cases this can be fixed by adding a deadzone."));

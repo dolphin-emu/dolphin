@@ -56,7 +56,7 @@ IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_STM);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_STM);
   }
 
   return GetDefaultReply(return_value);

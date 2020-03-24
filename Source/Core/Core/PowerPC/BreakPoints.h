@@ -88,7 +88,7 @@ public:
   bool OverlapsMemcheck(u32 address, u32 length) const;
   void Remove(u32 address);
 
-  void Clear() { m_mem_checks.clear(); }
+  void Clear();
   bool HasAny() const { return !m_mem_checks.empty(); }
 
 private:

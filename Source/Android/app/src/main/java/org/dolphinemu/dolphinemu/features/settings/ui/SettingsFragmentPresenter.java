@@ -220,13 +220,14 @@ public final class SettingsFragmentPresenter
     Setting overclock = null;
     Setting speedLimit = null;
     Setting audioStretch = null;
+    Setting audioVolume = null;
     Setting overrideRegionSettings = null;
     Setting autoDiscChange = null;
     Setting analytics = null;
     Setting enableSaveState;
-    Setting lockToLandscape;
 
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    SettingSection dspSection = mSettings.getSection(Settings.SECTION_INI_DSP);
     SettingSection analyticsSection = mSettings.getSection(Settings.SECTION_ANALYTICS);
     cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
     dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
@@ -234,11 +235,11 @@ public final class SettingsFragmentPresenter
     overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
     speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
     audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    audioVolume = dspSection.getSetting(SettingsFile.KEY_AUDIO_VOLUME);
     overrideRegionSettings = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS);
     autoDiscChange = coreSection.getSetting(SettingsFile.KEY_AUTO_DISC_CHANGE);
     analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
     enableSaveState = coreSection.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
-    lockToLandscape = coreSection.getSetting(SettingsFile.KEY_LOCK_LANDSCAPE);
 
     // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
     // The proper solution would be to have one emuCoresEntries and one emuCoresValues
@@ -275,6 +276,8 @@ public final class SettingsFragmentPresenter
             R.string.speed_limit, 0, 200, "%", 100, speedLimit));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
             R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+    sl.add(new SliderSetting(SettingsFile.KEY_AUDIO_VOLUME, Settings.SECTION_INI_DSP,
+            R.string.audio_volume, 0, 100, "%", 100, audioVolume));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS,
             Settings.SECTION_INI_CORE, R.string.override_region_settings, 0, false,
             overrideRegionSettings));
@@ -283,12 +286,6 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
             R.string.enable_save_states, R.string.enable_save_states_description, false,
             enableSaveState));
-    if (!TvUtil.isLeanback(DolphinApplication.getAppContext()))
-    {
-      sl.add(new CheckBoxSetting(SettingsFile.KEY_LOCK_LANDSCAPE, Settings.SECTION_INI_CORE,
-              R.string.lock_emulation_landscape, R.string.lock_emulation_landscape_desc, true,
-              lockToLandscape));
-    }
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
             R.string.analytics, 0, false, analytics));
   }
@@ -588,6 +585,7 @@ public final class SettingsFragmentPresenter
     Setting gpuTextureDecoding = gfxSection.getSetting(SettingsFile.KEY_GPU_TEXTURE_DECODING);
     Setting xfbToTexture = hacksSection.getSetting(SettingsFile.KEY_XFB_TEXTURE);
     Setting immediateXfb = hacksSection.getSetting(SettingsFile.KEY_IMMEDIATE_XFB);
+    Setting skipDuplicateXfbs = hacksSection.getSetting(SettingsFile.KEY_SKIP_DUPLICATE_XFBS);
     Setting fastDepth = gfxSection.getSetting(SettingsFile.KEY_FAST_DEPTH);
 
     sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
@@ -616,6 +614,9 @@ public final class SettingsFragmentPresenter
             R.string.xfb_copy_method, R.string.xfb_copy_method_description, true, xfbToTexture));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_IMMEDIATE_XFB, Settings.SECTION_GFX_HACKS,
             R.string.immediate_xfb, R.string.immediate_xfb_description, false, immediateXfb));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_DUPLICATE_XFBS, Settings.SECTION_GFX_HACKS,
+            R.string.skip_duplicate_xfbs, R.string.skip_duplicate_xfbs_description, true,
+            skipDuplicateXfbs));
 
     sl.add(new HeaderSetting(null, null, R.string.other, 0));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_SETTINGS,
@@ -640,6 +641,8 @@ public final class SettingsFragmentPresenter
     Setting jitSystemRegistersOff =
             debugSection.getSetting(SettingsFile.KEY_DEBUG_JITSYSTEMREGISTEROFF);
     Setting jitBranchOff = debugSection.getSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF);
+    Setting jitRegisterCacheOff =
+            debugSection.getSetting(SettingsFile.KEY_DEBUG_JITREGISTERCACHEOFF);
 
     sl.add(new HeaderSetting(null, null, R.string.debug_warning, 0));
 
@@ -672,6 +675,9 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITBRANCHOFF, Settings.SECTION_DEBUG,
             R.string.debug_jitbranchoff, 0, false,
             jitBranchOff));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_DEBUG_JITREGISTERCACHEOFF, Settings.SECTION_DEBUG,
+            R.string.debug_jitregistercacheoff, 0, false,
+            jitRegisterCacheOff));
   }
 
   private void addStereoSettings(ArrayList<SettingsItem> sl)

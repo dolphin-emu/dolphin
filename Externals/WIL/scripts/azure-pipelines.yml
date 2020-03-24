@@ -1,0 +1,41 @@
+# Windows Implementation Library Pipeline
+
+trigger:
+- master
+
+jobs:
+- job: BuildAndTest
+  timeoutInMinutes: 360
+
+  pool:
+    vmImage: 'windows-2019'
+
+  steps:
+  - script: |
+      choco install llvm
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      echo ##vso[task.setvariable variable=PATH]%PATH%;C:\Program Files\LLVM\bin
+    displayName: 'Install Clang'
+
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\init_all.cmd --fast
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\build_all.cmd
+    displayName: 'Build x86'
+
+  - script: |
+      call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\init_all.cmd --fast
+      if %ERRORLEVEL% NEQ 0 goto :eof
+      
+      call scripts\build_all.cmd
+    displayName: 'Build x64'
+
+  - script: call scripts\runtests.cmd
+    displayName: 'Run Tests'

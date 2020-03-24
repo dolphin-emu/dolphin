@@ -9,6 +9,7 @@
 #include <string_view>
 #include <vector>
 
+#include "AudioCommon/Enums.h"
 #include "AudioCommon/SoundStream.h"
 
 class Mixer;
@@ -21,6 +22,7 @@ void InitSoundStream();
 void ShutdownSoundStream();
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();
+DPL2Quality GetDefaultDPL2Quality();
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);

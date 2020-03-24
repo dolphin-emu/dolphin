@@ -236,10 +236,6 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
 
-  // Based on testing, old WiiLi.org docs, and WiiUse library:
-  // Max battery level seems to be 0xc8 (decimal 200)
-  constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
-
   m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
 
   if (Core::WantsDeterminism())
@@ -258,7 +254,12 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
 
 void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
 {
-  // TODO: Are writes ignored during an active read request?
+  if (m_read_request.size)
+  {
+    // FYI: Writes during an active read will occasionally produce a "busy" (0x4) ack.
+    // We won't simulate that as it often does work. Poorly programmed games may rely on it.
+    WARN_LOG(WIIMOTE, "WriteData: write during active read request.");
+  }
 
   u16 address = Common::swap16(wd.address);
 
@@ -286,18 +287,7 @@ void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
     else
     {
       std::copy_n(wd.data, wd.size, m_eeprom.data.data() + address);
-
-      // Write mii data to file
-      if (address >= 0x0FCA && address < 0x12C0)
-      {
-        // TODO: Only write parts of the Mii block.
-        // TODO: Use different files for different wiimote numbers.
-        std::ofstream file;
-        File::OpenFStream(file, File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin",
-                          std::ios::binary | std::ios::out);
-        file.write((char*)m_eeprom.data.data() + 0x0FCA, 0x02f0);
-        file.close();
-      }
+      m_eeprom_dirty = true;
     }
   }
   break;
@@ -416,9 +406,11 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
 {
   if (m_read_request.size)
   {
-    // There is already an active read request.
-    // A real wiimote ignores the new one.
-    WARN_LOG(WIIMOTE, "ReadData: ignoring read during active request.");
+    // There is already an active read being processed.
+    WARN_LOG(WIIMOTE, "ReadData: attempting read during active request.");
+
+    // A real wm+ sends a busy ack in this situation.
+    SendAck(OutputReportID::ReadData, ErrorCode::Busy);
     return;
   }
 
@@ -437,7 +429,7 @@ void Wiimote::HandleReadData(const OutputReportReadData& rd)
   // TODO: should this be removed and let Update() take care of it?
   ProcessReadDataRequest();
 
-  // FYI: No "ACK" is sent.
+  // FYI: No "ACK" is sent under normal situations.
 }
 
 bool Wiimote::ProcessReadDataRequest()
@@ -479,18 +471,6 @@ bool Wiimote::ProcessReadDataRequest()
     }
     else
     {
-      // Mii block handling:
-      // TODO: different filename for each wiimote?
-      if (m_read_request.address >= 0x0FCA && m_read_request.address < 0x12C0)
-      {
-        // TODO: Only read the Mii block parts required
-        std::ifstream file;
-        File::OpenFStream(file, (File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/mii.bin").c_str(),
-                          std::ios::binary | std::ios::in);
-        file.read((char*)m_eeprom.data.data() + 0x0FCA, 0x02f0);
-        file.close();
-      }
-
       // Read memory to be sent to Wii
       std::copy_n(m_eeprom.data.data() + m_read_request.address, bytes_to_read, reply.data);
       reply.size_minus_one = bytes_to_read - 1;
@@ -610,6 +590,9 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_tilt_state);
   p.Do(m_cursor_state);
   p.Do(m_shake_state);
+
+  // We'll consider the IMU state part of the user's physical controller state and not sync it.
+  // (m_imu_cursor_state)
 
   p.DoMarker("Wiimote");
 }

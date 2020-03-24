@@ -34,10 +34,6 @@ void Host_UpdateMainFrame()
 void Host_RequestRenderWindowSize(int, int)
 {
 }
-bool Host_UINeedsControllerState()
-{
-  return false;
-}
 bool Host_RendererHasFocus()
 {
   return false;

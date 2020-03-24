@@ -162,6 +162,9 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
   if (partition == PARTITION_NONE)
     return m_reader->Read(offset, length, buffer);
 
+  if (m_reader->SupportsReadWiiDecrypted())
+    return m_reader->ReadWiiDecrypted(offset, length, buffer, partition.offset);
+
   auto it = m_partitions.find(partition);
   if (it == m_partitions.end())
     return false;
@@ -172,9 +175,6 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     return m_reader->Read(partition.offset + *partition_details.data_offset + offset, length,
                           buffer);
   }
-
-  if (m_reader->SupportsReadWiiDecrypted())
-    return m_reader->ReadWiiDecrypted(offset, length, buffer, partition.offset);
 
   mbedtls_aes_context* aes_context = partition_details.key->get();
   if (!aes_context)

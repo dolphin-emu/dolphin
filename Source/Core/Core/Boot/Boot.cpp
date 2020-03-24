@@ -244,6 +244,17 @@ bool CBoot::DVDRead(const DiscIO::VolumeDisc& disc, u64 dvd_offset, u32 output_a
   return true;
 }
 
+bool CBoot::DVDReadDiscID(const DiscIO::VolumeDisc& disc, u32 output_address)
+{
+  std::array<u8, 0x20> buffer;
+  if (!disc.Read(0, buffer.size(), buffer.data(), DiscIO::PARTITION_NONE))
+    return false;
+  Memory::CopyToEmu(output_address, buffer.data(), buffer.size());
+  // Clear ERROR_NO_DISKID_L, probably should check if that's currently set
+  DVDInterface::SetLowError(DVDInterface::ERROR_READY);
+  return true;
+}
+
 void CBoot::UpdateDebugger_MapLoaded()
 {
   Host_NotifyMapLoaded();

@@ -11,12 +11,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/SPSCQueue.h"
-#include "Common/StringUtil.h"
-#include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -396,8 +396,7 @@ std::string GetScheduledEventsSummary()
   std::sort(clone.begin(), clone.end());
   for (const Event& ev : clone)
   {
-    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", ev.type->name->c_str(), ev.time,
-                             ev.userdata);
+    text += fmt::format("{} : {} {:016x}\n", *ev.type->name, ev.time, ev.userdata);
   }
   return text;
 }

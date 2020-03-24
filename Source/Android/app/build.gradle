@@ -1,7 +1,7 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 29
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -22,7 +22,7 @@ android {
         // TODO If this is ever modified, change application_id in strings.xml
         applicationId "org.dolphinemu.dolphinemu"
         minSdkVersion 21
-        targetSdkVersion 27
+        targetSdkVersion 28
 
         versionCode(getBuildVersionCode())
 
@@ -75,28 +75,25 @@ android {
     }
 }
 
-ext {
-    androidSupportVersion = '27.1.1'
-}
-
 dependencies {
-    implementation "com.android.support:support-v13:$androidSupportVersion"
-    implementation "com.android.support:exifinterface:$androidSupportVersion"
-    implementation "com.android.support:cardview-v7:$androidSupportVersion"
-    implementation "com.android.support:recyclerview-v7:$androidSupportVersion"
-    implementation "com.android.support:design:$androidSupportVersion"
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.exifinterface:exifinterface:1.1.0'
+    implementation 'androidx.cardview:cardview:1.0.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    implementation 'com.google.android.material:material:1.0.0'
 
     // Android TV UI libraries.
-    implementation "com.android.support:leanback-v17:$androidSupportVersion"
-    implementation "com.android.support:support-tv-provider:$androidSupportVersion"
+    implementation 'androidx.leanback:leanback:1.0.0'
+    implementation 'androidx.tvprovider:tvprovider:1.0.0'
 
     // For REST calls
-    implementation 'com.android.volley:volley:1.1.0'
+    implementation 'com.android.volley:volley:1.1.1'
 
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.71828'
 
-    implementation 'com.nononsenseapps:filepicker:4.1.0'
+    implementation 'com.nononsenseapps:filepicker:4.2.1'
 }
 
 def getVersion() {

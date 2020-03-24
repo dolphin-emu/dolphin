@@ -5,9 +5,11 @@
 #include "DiscIO/VolumeVerifier.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cinttypes>
 #include <future>
 #include <limits>
+#include <memory>
 #include <mutex>
 #include <optional>
 #include <string>
@@ -86,11 +88,9 @@ void RedumpVerifier::Start(const Volume& volume)
       return {};
     }
 
-    DownloadStatus status;
     {
       std::lock_guard lk(download_state->mutex);
       download_state->status = DownloadDatfile(system, download_state->status);
-      status = download_state->status;
     }
 
     switch (download_state->status)
@@ -391,27 +391,29 @@ void VolumeVerifier::Start()
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  CheckPartitions();
   if (m_volume.GetVolumeType() == Platform::WiiWAD)
     CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
-  CheckDiscSize();
+  CheckDiscSize(CheckPartitions());
   CheckMisc();
 
   SetUpHashing();
 }
 
-void VolumeVerifier::CheckPartitions()
+std::vector<Partition> VolumeVerifier::CheckPartitions()
 {
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
+    return {};
+
   const std::vector<Partition> partitions = m_volume.GetPartitions();
   if (partitions.empty())
   {
-    if (m_volume.GetVolumeType() != Platform::WiiWAD &&
-        !m_volume.GetFileSystem(m_volume.GetGamePartition()))
+    if (!m_volume.GetFileSystem(m_volume.GetGamePartition()))
     {
       AddProblem(Severity::High,
                  Common::GetStringT("The filesystem is invalid or could not be read."));
+      return {};
     }
-    return;
+    return {m_volume.GetGamePartition()};
   }
 
   std::optional<u32> partitions_in_first_table = m_volume.ReadSwapped<u32>(0x40000, PARTITION_NONE);
@@ -484,8 +486,14 @@ void VolumeVerifier::CheckPartitions()
     }
   }
 
+  std::vector<Partition> valid_partitions;
   for (const Partition& partition : partitions)
-    CheckPartition(partition);
+  {
+    if (CheckPartition(partition))
+      valid_partitions.push_back(partition);
+  }
+
+  return valid_partitions;
 }
 
 bool VolumeVerifier::CheckPartition(const Partition& partition)
@@ -549,10 +557,11 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
       }
     }
 
-    // The loop above ends without breaking for discs that legitimately lack updates.
-    // No such discs have been released to end users. Most such discs are debug signed,
+    // The loop above ends without setting invalid_disc_header for discs that legitimately lack
+    // updates. No such discs have been released to end users. Most such discs are debug signed,
     // but there is apparently at least one that is retail signed, the Movie-Ch Install Disc.
-    return false;
+    if (!invalid_disc_header)
+      return false;
   }
   if (invalid_disc_header)
   {
@@ -677,46 +686,55 @@ bool VolumeVerifier::IsDebugSigned() const
 
 bool VolumeVerifier::ShouldHaveChannelPartition() const
 {
-  const std::unordered_set<std::string> channel_discs{
+  static constexpr std::array<std::string_view, 18> channel_discs = {
       "RFNE01", "RFNJ01", "RFNK01", "RFNP01", "RFNW01", "RFPE01", "RFPJ01", "RFPK01", "RFPP01",
       "RFPW01", "RGWE41", "RGWJ41", "RGWP41", "RGWX41", "RMCE01", "RMCJ01", "RMCK01", "RMCP01",
   };
+  assert(std::is_sorted(channel_discs.cbegin(), channel_discs.cend()));
 
-  return channel_discs.find(m_volume.GetGameID()) != channel_discs.end();
+  return std::binary_search(channel_discs.cbegin(), channel_discs.cend(),
+                            std::string_view(m_volume.GetGameID()));
 }
 
 bool VolumeVerifier::ShouldHaveInstallPartition() const
 {
-  const std::unordered_set<std::string> dragon_quest_x{"S4MJGD", "S4SJGD", "S6TJGD", "SDQJGD"};
-  return dragon_quest_x.find(m_volume.GetGameID()) != dragon_quest_x.end();
+  static constexpr std::array<std::string_view, 4> dragon_quest_x = {"S4MJGD", "S4SJGD", "S6TJGD",
+                                                                     "SDQJGD"};
+  const std::string& game_id = m_volume.GetGameID();
+  return std::any_of(dragon_quest_x.cbegin(), dragon_quest_x.cend(),
+                     [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldHaveMasterpiecePartitions() const
 {
-  const std::unordered_set<std::string> ssbb{"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
-  return ssbb.find(m_volume.GetGameID()) != ssbb.end();
+  static constexpr std::array<std::string_view, 4> ssbb = {"RSBE01", "RSBJ01", "RSBK01", "RSBP01"};
+  const std::string& game_id = m_volume.GetGameID();
+  return std::any_of(ssbb.cbegin(), ssbb.cend(),
+                     [&game_id](std::string_view x) { return x == game_id; });
 }
 
 bool VolumeVerifier::ShouldBeDualLayer() const
 {
   // The Japanese versions of Xenoblade and The Last Story are single-layer
   // (unlike the other versions) and must not be added to this list.
-  const std::unordered_set<std::string> dual_layer_discs{
+  static constexpr std::array<std::string_view, 33> dual_layer_discs = {
       "R3ME01", "R3MP01", "R3OE01", "R3OJ01", "R3OP01", "RSBE01", "RSBJ01", "RSBK01", "RSBP01",
-      "RXMJ8P", "S59E01", "S59JC8", "S59P01", "S5QJC8", "SK8X52", "SAKENS", "SAKPNS", "SK8V52",
-      "SK8X52", "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41",
-      "SUOP41", "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
+      "RXMJ8P", "S59E01", "S59JC8", "S59P01", "S5QJC8", "SAKENS", "SAKPNS", "SK8V52", "SK8X52",
+      "SLSEXJ", "SLSP01", "SQIE4Q", "SQIP4Q", "SQIY4Q", "SR5E41", "SR5P41", "SUOE41", "SUOP41",
+      "SVXX52", "SVXY52", "SX4E01", "SX4P01", "SZ3EGT", "SZ3PGT",
   };
+  assert(std::is_sorted(dual_layer_discs.cbegin(), dual_layer_discs.cend()));
 
-  return dual_layer_discs.find(m_volume.GetGameID()) != dual_layer_discs.end();
+  return std::binary_search(dual_layer_discs.cbegin(), dual_layer_discs.cend(),
+                            std::string_view(m_volume.GetGameID()));
 }
 
-void VolumeVerifier::CheckDiscSize()
+void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
 {
   if (!IsDisc(m_volume.GetVolumeType()))
     return;
 
-  m_biggest_referenced_offset = GetBiggestReferencedOffset();
+  m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
   if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
@@ -772,12 +790,8 @@ void VolumeVerifier::CheckDiscSize()
   }
 }
 
-u64 VolumeVerifier::GetBiggestReferencedOffset() const
+u64 VolumeVerifier::GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const
 {
-  std::vector<Partition> partitions = m_volume.GetPartitions();
-  if (partitions.empty())
-    partitions.emplace_back(m_volume.GetGamePartition());
-
   const u64 disc_header_size = m_volume.GetVolumeType() == Platform::GameCubeDisc ? 0x460 : 0x50000;
   u64 biggest_offset = disc_header_size;
   for (const Partition& partition : partitions)
@@ -972,6 +986,39 @@ void VolumeVerifier::CheckMisc()
                              "The CRC32 of this file might match the CRC32 of a good dump even "
                              "though the files are not identical."));
     }
+
+    if (StringBeginsWith(game_id_unencrypted, "R8P"))
+      CheckSuperPaperMario();
+  }
+}
+
+void VolumeVerifier::CheckSuperPaperMario()
+{
+  // When Super Paper Mario (any region/revision) reads setup/aa1_01.dat when starting a new game,
+  // it also reads a few extra bytes so that the read length is divisible by 0x20. If these extra
+  // bytes are zeroes like in good dumps, the game works correctly, but otherwise it can freeze
+  // (depending on the exact values of the extra bytes). https://bugs.dolphin-emu.org/issues/11900
+
+  const DiscIO::Partition partition = m_volume.GetGamePartition();
+  const FileSystem* fs = m_volume.GetFileSystem(partition);
+  if (!fs)
+    return;
+
+  std::unique_ptr<FileInfo> file_info = fs->FindFileInfo("setup/aa1_01.dat");
+  if (!file_info)
+    return;
+
+  const u64 offset = file_info->GetOffset() + file_info->GetSize();
+  const u64 length = Common::AlignUp(offset, 0x20) - offset;
+  std::vector<u8> data(length);
+  if (!m_volume.Read(offset, length, data.data(), partition))
+    return;
+
+  if (std::any_of(data.cbegin(), data.cend(), [](u8 x) { return x != 0; }))
+  {
+    AddProblem(Severity::High,
+               Common::GetStringT("Some padding data that should be zero is not zero. "
+                                  "This can make the game freeze at certain points."));
   }
 }
 
@@ -1072,36 +1119,38 @@ void VolumeVerifier::Process()
   const bool is_data_needed = m_calculating_any_hash || content_read || block_read;
   const bool read_succeeded = is_data_needed && ReadChunkAndWaitForAsyncOperations(bytes_to_read);
 
+  if (!read_succeeded)
+  {
+    ERROR_LOG(DISCIO, "Read failed at 0x%" PRIx64 " to 0x%" PRIx64, m_progress,
+              m_progress + bytes_to_read);
+
+    m_read_errors_occurred = true;
+    m_calculating_any_hash = false;
+  }
+
   if (m_calculating_any_hash)
   {
-    if (!read_succeeded)
+    if (m_hashes_to_calculate.crc32)
     {
-      m_calculating_any_hash = false;
+      m_crc32_future = std::async(std::launch::async, [this] {
+        // It would be nice to use crc32_z here instead of crc32, but it isn't available on Android
+        m_crc32_context =
+            crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(m_data.size()));
+      });
     }
-    else
+
+    if (m_hashes_to_calculate.md5)
     {
-      if (m_hashes_to_calculate.crc32)
-      {
-        m_crc32_future = std::async(std::launch::async, [this] {
-          // Would be nice to use crc32_z here instead of crc32, but it isn't available on Android
-          m_crc32_context =
-              crc32(m_crc32_context, m_data.data(), static_cast<unsigned int>(m_data.size()));
-        });
-      }
+      m_md5_future = std::async(std::launch::async, [this] {
+        mbedtls_md5_update_ret(&m_md5_context, m_data.data(), m_data.size());
+      });
+    }
 
-      if (m_hashes_to_calculate.md5)
-      {
-        m_md5_future = std::async(std::launch::async, [this] {
-          mbedtls_md5_update_ret(&m_md5_context, m_data.data(), m_data.size());
-        });
-      }
-
-      if (m_hashes_to_calculate.sha1)
-      {
-        m_sha1_future = std::async(std::launch::async, [this] {
-          mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), m_data.size());
-        });
-      }
+    if (m_hashes_to_calculate.sha1)
+    {
+      m_sha1_future = std::async(std::launch::async, [this] {
+        mbedtls_sha1_update_ret(&m_sha1_context, m_data.data(), m_data.size());
+      });
     }
   }
 
@@ -1122,7 +1171,7 @@ void VolumeVerifier::Process()
   if (m_block_index < m_blocks.size() &&
       m_blocks[m_block_index].offset < m_progress + bytes_to_read)
   {
-    m_md5_future = std::async(
+    m_block_future = std::async(
         std::launch::async,
         [this, read_succeeded, bytes_to_read](size_t block_index, u64 progress) {
           while (block_index < m_blocks.size() &&
@@ -1194,9 +1243,6 @@ void VolumeVerifier::Finish()
 
   WaitForAsyncOperations();
 
-  ASSERT(m_content_index == m_content_offsets.size());
-  ASSERT(m_block_index == m_blocks.size());
-
   if (m_calculating_any_hash)
   {
     if (m_hashes_to_calculate.crc32)
@@ -1220,25 +1266,35 @@ void VolumeVerifier::Finish()
     }
   }
 
+  if (m_read_errors_occurred)
+    AddProblem(Severity::Medium, Common::GetStringT("Some of the data could not be read."));
+
+  bool file_too_small = false;
+
+  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size())
+    file_too_small = true;
+
   if (IsDisc(m_volume.GetVolumeType()) &&
       (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
   {
     u64 volume_size = m_volume.IsSizeAccurate() ? m_volume.GetSize() : m_biggest_verified_offset;
     if (m_biggest_referenced_offset > volume_size)
-    {
-      const bool second_layer_missing =
-          m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-      std::string text =
-          second_layer_missing ?
-              Common::GetStringT("This disc image is too small and lacks some data. The problem is "
-                                 "most likely that this is a dual-layer disc that has been dumped "
-                                 "as a single-layer disc.") :
-              Common::GetStringT("This disc image is too small and lacks some data. If your "
-                                 "dumping program saved the disc image as several parts, you need "
-                                 "to merge them into one file.");
-      AddProblem(Severity::High, std::move(text));
-      return;
-    }
+      file_too_small = true;
+  }
+
+  if (file_too_small)
+  {
+    const bool second_layer_missing =
+        m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
+    std::string text =
+        second_layer_missing ?
+            Common::GetStringT("This disc image is too small and lacks some data. The problem is "
+                               "most likely that this is a dual-layer disc that has been dumped "
+                               "as a single-layer disc.") :
+            Common::GetStringT("This disc image is too small and lacks some data. If your "
+                               "dumping program saved the disc image as several parts, you need "
+                               "to merge them into one file.");
+    AddProblem(Severity::High, std::move(text));
   }
 
   for (auto [partition, blocks] : m_block_errors)

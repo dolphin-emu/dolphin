@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.utils;
 
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.widget.ImageView;
 
 import com.squareup.picasso.Callback;
@@ -15,6 +16,22 @@ import java.io.File;
 public class PicassoUtils
 {
   public static void loadGameBanner(ImageView imageView, GameFile gameFile)
+  {
+    Picasso picassoInstance = new Picasso.Builder(imageView.getContext())
+            .addRequestHandler(new GameBannerRequestHandler(gameFile))
+            .build();
+
+    picassoInstance
+            .load(Uri.parse("iso:/" + gameFile.getPath()))
+            .fit()
+            .noFade()
+            .noPlaceholder()
+            .config(Bitmap.Config.RGB_565)
+            .error(R.drawable.no_banner)
+            .into(imageView);
+  }
+
+  public static void loadGameCover(ImageView imageView, GameFile gameFile)
   {
     File cover = new File(gameFile.getCustomCoverPath());
     if (cover.exists())
@@ -41,10 +58,8 @@ public class PicassoUtils
               .error(R.drawable.no_banner)
               .into(imageView);
     }
-    /**
-     * GameTDB has a pretty close to complete collection for US/EN covers. First pass at getting
-     * the cover will be by the disk's region, second will be the US cover, and third EN.
-     */
+    // GameTDB has a pretty close to complete collection for US/EN covers. First pass at getting
+    // the cover will be by the disk's region, second will be the US cover, and third EN.
     else
     {
       Picasso.get()

@@ -7,6 +7,7 @@ add_library(audiocommon
   CubebStream.h
   CubebUtils.cpp
   CubebUtils.h
+  Enums.h
   Mixer.cpp
   Mixer.h
   SurroundDecoder.cpp

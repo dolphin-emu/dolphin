@@ -71,7 +71,7 @@ std::string HexDump(const u8* data, size_t size)
       if (row_start + i < size)
       {
         char c = static_cast<char>(data[row_start + i]);
-        out += std::isprint(c, std::locale::classic()) ? c : '.';
+        out += IsPrintableCharacter(c) ? c : '.';
       }
     }
     out += "\n";
@@ -235,51 +235,6 @@ std::string_view StripQuotes(std::string_view s)
     return s;
 }
 
-bool TryParse(const std::string& str, u16* const output)
-{
-  u64 value;
-  if (!TryParse(str, &value))
-    return false;
-
-  if (value >= 0x10000ull && value <= 0xFFFFFFFFFFFF0000ull)
-    return false;
-
-  *output = static_cast<u16>(value);
-  return true;
-}
-
-bool TryParse(const std::string& str, u32* const output)
-{
-  u64 value;
-  if (!TryParse(str, &value))
-    return false;
-
-  if (value >= 0x100000000ull && value <= 0xFFFFFFFF00000000ull)
-    return false;
-
-  *output = static_cast<u32>(value);
-  return true;
-}
-
-bool TryParse(const std::string& str, u64* const output)
-{
-  char* end_ptr = nullptr;
-
-  // Set errno to a clean slate
-  errno = 0;
-
-  u64 value = strtoull(str.c_str(), &end_ptr, 0);
-
-  if (end_ptr == nullptr || *end_ptr != '\0')
-    return false;
-
-  if (errno == ERANGE)
-    return false;
-
-  *output = value;
-  return true;
-}
-
 bool TryParse(const std::string& str, bool* const output)
 {
   float value;
@@ -367,6 +322,13 @@ bool SplitPath(std::string_view full_path, std::string* path, std::string* filen
   return true;
 }
 
+std::string PathToFileName(std::string_view path)
+{
+  std::string file_name, extension;
+  SplitPath(path, nullptr, &file_name, &extension);
+  return file_name + extension;
+}
+
 void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
                            std::string_view filename)
 {
@@ -398,7 +360,7 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
   if (strings.empty())
     return "";
 
-  std::stringstream res;
+  std::ostringstream res;
   std::copy(strings.begin(), strings.end(),
             std::ostream_iterator<std::string>(res, delimiter.c_str()));
 
@@ -478,7 +440,7 @@ std::string UTF16ToCP(u32 code_page, std::wstring_view input)
   {
     // "If cchWideChar [input buffer size] is set to 0, the function fails." -MSDN
     auto const size = WideCharToMultiByte(
-        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, false);
+        code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0, nullptr, nullptr);
 
     output.resize(size);
 

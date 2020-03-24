@@ -13,8 +13,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
-import java.util.HashMap;
-
 public class Rumble
 {
   private static Vibrator phoneVibrator;

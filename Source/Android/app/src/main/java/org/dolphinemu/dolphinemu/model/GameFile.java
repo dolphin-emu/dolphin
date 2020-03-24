@@ -54,11 +54,4 @@ public class GameFile
   {
     return getPath().substring(0, getPath().lastIndexOf(".")) + ".cover.png";
   }
-
-  public String getScreenshotPath()
-  {
-    String gameId = getGameId();
-    return "file://" + Environment.getExternalStorageDirectory().getPath() +
-            "/dolphin-emu/ScreenShots/" + gameId + "/" + gameId + "-1.png";
-  }
 }

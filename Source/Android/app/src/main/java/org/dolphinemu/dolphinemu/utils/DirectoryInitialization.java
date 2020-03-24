@@ -11,9 +11,11 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.support.v4.content.LocalBroadcastManager;
+
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 
 /**
  * A service that spawns its own thread in order to copy several binary and shader files
@@ -34,7 +35,7 @@ public final class DirectoryInitialization
           "org.dolphinemu.dolphinemu.DIRECTORY_INITIALIZATION";
 
   public static final String EXTRA_STATE = "directoryState";
-  private static final Integer WiimoteNewVersion = 2;
+  private static final int WiimoteNewVersion = 4;  // Last changed in PR 8503
   private static volatile DirectoryInitializationState directoryState = null;
   private static String userPath;
   private static String internalPath;
@@ -152,6 +153,7 @@ public final class DirectoryInitialization
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     if (prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion)
     {
+      EmulationActivity.clearWiimoteNewIniLinkedPreferences(context);
       copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), true, context);
       SharedPreferences.Editor sPrefsEditor = prefs.edit();
       sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);

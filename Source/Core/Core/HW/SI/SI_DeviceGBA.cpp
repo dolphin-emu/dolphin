@@ -338,10 +338,10 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
       return sizeof(reply);
     }
 #ifdef _DEBUG
-    LogTypes::LOG_LEVELS log_level = (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ?
-                                         LogTypes::LERROR :
-                                         LogTypes::LWARNING;
-    GENERIC_LOG(LogTypes::SERIALINTERFACE, log_level,
+    const Common::Log::LOG_LEVELS log_level =
+        (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ? Common::Log::LERROR :
+                                                                Common::Log::LWARNING;
+    GENERIC_LOG(Common::Log::SERIALINTERFACE, log_level,
                 "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
                 buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], num_data_received);
 #endif

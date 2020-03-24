@@ -16,6 +16,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/FS/FileSystem.h"
+#include "Core/IOS/Uids.h"
 
 namespace IOS::HLE::Device
 {
@@ -37,6 +38,11 @@ constexpr size_t CLUSTER_DATA_SIZE = 0x4000;
 
 FS::FS(Kernel& ios, const std::string& device_name) : Device(ios, device_name)
 {
+  if (ios.GetFS()->Delete(PID_KERNEL, PID_KERNEL, "/tmp") == ResultCode::Success)
+  {
+    ios.GetFS()->CreateDirectory(PID_KERNEL, PID_KERNEL, "/tmp", 0,
+                                 {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite});
+  }
 }
 
 void FS::DoState(PointerWrap& p)
@@ -51,7 +57,8 @@ template <typename... Args>
 static void LogResult(ResultCode code, std::string_view format, Args&&... args)
 {
   const std::string command = fmt::format(format, std::forward<Args>(args)...);
-  GENERIC_LOG(LogTypes::IOS_FS, (code == ResultCode::Success ? LogTypes::LINFO : LogTypes::LERROR),
+  GENERIC_LOG(Common::Log::IOS_FS,
+              (code == ResultCode::Success ? Common::Log::LINFO : Common::Log::LERROR),
               "%s: result %d", command.c_str(), ConvertResult(code));
 }
 

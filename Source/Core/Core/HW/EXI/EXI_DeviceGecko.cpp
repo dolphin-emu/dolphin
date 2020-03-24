@@ -11,10 +11,11 @@
 #include <thread>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 
@@ -66,7 +67,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   if (!server_running.IsSet())
     return;
 
-  Core::DisplayMessage(StringFromFormat("USBGecko: Listening on TCP port %u", server_port), 5000);
+  Core::DisplayMessage(fmt::format("USBGecko: Listening on TCP port {}", server_port), 5000);
 
   server.setBlocking(false);
 

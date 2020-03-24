@@ -7,6 +7,7 @@
 #include <algorithm>
 
 #include "Common/Logging/Log.h"
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 #ifdef CIFACE_USE_WIN32
 #include "InputCommon/ControllerInterface/Win32/Win32.h"
@@ -49,14 +50,14 @@ void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
   m_is_populating_devices = true;
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::Init(wsi.render_surface);
+  ciface::Win32::Init(wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
 // nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
-    ciface::OSX::Init(wsi.render_surface);
+    ciface::OSX::Init(wsi.render_window);
 // nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
@@ -83,7 +84,8 @@ void ControllerInterface::ChangeWindow(void* hwnd)
   if (!m_is_init)
     return;
 
-  m_wsi.render_surface = hwnd;
+  // This shouldn't use render_surface so no need to update it.
+  m_wsi.render_window = hwnd;
   RefreshDevices();
 }
 
@@ -93,7 +95,7 @@ void ControllerInterface::RefreshDevices()
     return;
 
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    std::lock_guard lk(m_devices_mutex);
     m_devices.clear();
   }
 
@@ -132,6 +134,8 @@ void ControllerInterface::RefreshDevices()
   ciface::DualShockUDPClient::PopulateDevices();
 #endif
 
+  WiimoteReal::ProcessWiimotePool();
+
   m_is_populating_devices = false;
   InvokeDevicesChangedCallbacks();
 }
@@ -146,7 +150,7 @@ void ControllerInterface::Shutdown()
   m_is_init = false;
 
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    std::lock_guard lk(m_devices_mutex);
 
     for (const auto& d : m_devices)
     {
@@ -193,7 +197,7 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
     return;
 
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    std::lock_guard lk(m_devices_mutex);
 
     const auto is_id_in_use = [&device, this](int id) {
       return std::any_of(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
@@ -229,7 +233,7 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
 void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
 {
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    std::lock_guard lk(m_devices_mutex);
     auto it = std::remove_if(m_devices.begin(), m_devices.end(), [&callback](const auto& dev) {
       if (callback(dev.get()))
       {
@@ -251,10 +255,25 @@ void ControllerInterface::UpdateInput()
   // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
   if (m_devices_mutex.try_lock())
   {
-    std::lock_guard<std::mutex> lk(m_devices_mutex, std::adopt_lock);
+    std::lock_guard lk(m_devices_mutex, std::adopt_lock);
     for (const auto& d : m_devices)
       d->UpdateInput();
   }
+}
+
+void ControllerInterface::SetAspectRatioAdjustment(float value)
+{
+  m_aspect_ratio_adjustment = value;
+}
+
+Common::Vec2 ControllerInterface::GetWindowInputScale() const
+{
+  const auto ar = m_aspect_ratio_adjustment.load();
+
+  if (ar > 1)
+    return {1.f, ar};
+  else
+    return {1 / ar, 1.f};
 }
 
 // Register a callback to be called when a device is added or removed (as from the input backends'

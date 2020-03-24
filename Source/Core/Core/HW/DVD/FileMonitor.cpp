@@ -10,12 +10,13 @@
 #include <string>
 #include <unordered_set>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 
-#include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
@@ -53,8 +54,11 @@ static bool IsSoundFile(const std::string& filename)
 void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 offset)
 {
   // Do nothing if the log isn't selected
-  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
+  if (!Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::FILEMON,
+                                                         Common::Log::LWARNING))
+  {
     return;
+  }
 
   const DiscIO::FileSystem* file_system = volume.GetFileSystem(partition);
 
@@ -76,7 +80,7 @@ void Log(const DiscIO::Volume& volume, const DiscIO::Partition& partition, u64 o
 
   const std::string size_string = ThousandSeparate(file_info->GetSize() / 1000, 7);
   const std::string path = file_info->GetPath();
-  const std::string log_string = StringFromFormat("%s kB %s", size_string.c_str(), path.c_str());
+  const std::string log_string = fmt::format("{} kB {}", size_string, path);
   if (IsSoundFile(path))
     INFO_LOG(FILEMON, "%s", log_string.c_str());
   else

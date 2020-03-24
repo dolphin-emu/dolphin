@@ -63,6 +63,9 @@ void AdvancedPane::CreateLayout()
   cpu_emulation_layout->addWidget(m_cpu_emulation_engine_combobox, 0, 1, Qt::AlignLeft);
   cpu_options_layout->addLayout(cpu_emulation_layout);
 
+  m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));
+  cpu_options_layout->addWidget(m_enable_mmu_checkbox);
+
   auto* clock_override = new QGroupBox(tr("Clock Override"));
   auto* clock_override_layout = new QVBoxLayout();
   clock_override->setLayout(clock_override_layout);
@@ -134,6 +137,9 @@ void AdvancedPane::ConnectLayout()
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
+  connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
+          [this](bool checked) { SConfig::GetInstance().bMMU = checked; });
+
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
     SConfig::GetInstance().m_OCEnable = enable_clock_override;
@@ -177,6 +183,9 @@ void AdvancedPane::Update()
       m_cpu_emulation_engine_combobox->setCurrentIndex(i);
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
+
+  m_enable_mmu_checkbox->setChecked(SConfig::GetInstance().bMMU);
+  m_enable_mmu_checkbox->setEnabled(!running);
 
   QFont bf = font();
   bf.setBold(Config::GetActiveLayerForConfig(Config::MAIN_OVERCLOCK_ENABLE) !=

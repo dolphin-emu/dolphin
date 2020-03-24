@@ -110,14 +110,15 @@ void Jit64::stfXXX(UGeckoInstruction inst)
       RCOpArg Rs = fpr.Use(s, RCMode::Read);
       RegCache::Realize(Rs);
       CVTSD2SS(XMM0, Rs);
+      MOVD_xmm(R(RSCRATCH), XMM0);
     }
     else
     {
       RCX64Reg Rs = fpr.Bind(s, RCMode::Read);
       RegCache::Realize(Rs);
-      ConvertDoubleToSingle(XMM0, Rs);
+      MOVAPD(XMM0, Rs);
+      CALL(asm_routines.cdts);
     }
-    MOVD_xmm(R(RSCRATCH), XMM0);
   }
   else
   {

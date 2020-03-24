@@ -701,9 +701,7 @@ void DSPEmitter::addi(const UDSPInstruction opc)
   //	s64 imm = (s16)dsp_fetch_code();
   s16 imm = dsp_imem_read(m_compile_pc + 1);
   // imm <<= 16;
-  MOV(16, R(RDX), Imm16(imm));
-  MOVSX(64, 16, RDX, R(RDX));
-  SHL(64, R(RDX), Imm8(16));
+  MOV(64, R(RDX), Imm32(imm << 16));
   //	s64 res = acc + imm;
   ADD(64, R(RAX), R(RDX));
   //	dsp_set_long_acc(areg, res);
@@ -737,9 +735,8 @@ void DSPEmitter::addis(const UDSPInstruction opc)
   MOV(64, R(RAX), R(tmp1));
   //	s64 imm = (s8)(u8)opc;
   //	imm <<= 16;
-  MOV(8, R(RDX), Imm8((u8)opc));
-  MOVSX(64, 8, RDX, R(RDX));
-  SHL(64, R(RDX), Imm8(16));
+  s32 imm = static_cast<u8>(opc) << 24 >> 8;
+  MOV(64, R(RDX), Imm32(imm));
   //	s64 res = acc + imm;
   ADD(64, R(RAX), R(RDX));
   //	dsp_set_long_acc(dreg, res);

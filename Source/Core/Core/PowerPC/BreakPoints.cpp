@@ -37,7 +37,7 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
   {
     if (!bp.is_temporary)
     {
-      std::stringstream ss;
+      std::ostringstream ss;
       ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "");
       bp_strings.push_back(ss.str());
     }
@@ -130,7 +130,7 @@ MemChecks::TMemChecksStr MemChecks::GetStrings() const
   TMemChecksStr mc_strings;
   for (const TMemCheck& mc : m_mem_checks)
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << std::hex << mc.start_address;
     ss << " " << (mc.is_ranged ? mc.end_address : mc.start_address) << " "
        << (mc.is_ranged ? "n" : "") << (mc.is_break_on_read ? "r" : "")
@@ -192,6 +192,15 @@ void MemChecks::Remove(u32 address)
     m_mem_checks.erase(iter);
     if (!HasAny())
       JitInterface::ClearCache();
+    PowerPC::DBATUpdated();
+  });
+}
+
+void MemChecks::Clear()
+{
+  Core::RunAsCPUThread([&] {
+    m_mem_checks.clear();
+    JitInterface::ClearCache();
     PowerPC::DBATUpdated();
   });
 }

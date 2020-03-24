@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include <fmt/format.h>
 #include <lzo/lzo1x.h>
 
 #include "Common/CommonPaths.h"
@@ -100,8 +101,9 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
+NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI* dialog,
                              const NetTraversalConfig& traversal_config)
+    : m_dialog(dialog)
 {
   //--use server time
   if (enet_initialize() != 0)
@@ -168,8 +170,11 @@ static void ClearPeerPlayerId(ENetPeer* peer)
 
 void NetPlayServer::SetupIndex()
 {
-  if (!Config::Get(Config::NETPLAY_USE_INDEX))
+  if (!Config::Get(Config::NETPLAY_USE_INDEX) || Config::Get(Config::NETPLAY_INDEX_NAME).empty() ||
+      Config::Get(Config::NETPLAY_INDEX_REGION).empty())
+  {
     return;
+  }
 
   NetPlaySession session;
 
@@ -205,11 +210,9 @@ void NetPlayServer::SetupIndex()
 
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
 
+  bool success = m_index.Add(session);
   if (m_dialog != nullptr)
-  {
-    bool success = m_index.Add(session);
     m_dialog->OnIndexAdded(success, success ? "" : m_index.GetLastError());
-  }
 
   m_index.SetErrorCallback([this] {
     if (m_dialog != nullptr)
@@ -425,21 +428,6 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   spac.clear();
   spac << static_cast<MessageId>(NP_MSG_HOST_INPUT_AUTHORITY);
   spac << m_host_input_authority;
-  Send(player.socket, spac);
-
-  // sync GC SRAM with new client
-  if (!g_SRAM_netplay_initialized)
-  {
-    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
-    InitSRAM();
-    g_SRAM_netplay_initialized = true;
-  }
-  spac.clear();
-  spac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
-  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
-  {
-    spac << g_SRAM[offsetof(Sram, settings) + i];
-  }
   Send(player.socket, spac);
 
   // sync values with new client
@@ -1061,8 +1049,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_SAVE_DATA_FAILURE:
     {
-      m_dialog->AppendChat(StringFromFormat(Common::GetStringT("%s failed to synchronize.").c_str(),
-                                            player.name.c_str()));
+      m_dialog->AppendChat(
+          fmt::format(Common::GetStringT("{} failed to synchronize."), player.name));
       m_dialog->OnGameStartAborted();
       ChunkedDataAbort();
       m_start_pending = false;
@@ -1105,8 +1093,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_CODES_FAILURE:
     {
-      m_dialog->AppendChat(StringFromFormat(
-          Common::GetStringT("%s failed to synchronize codes.").c_str(), player.name.c_str()));
+      m_dialog->AppendChat(
+          fmt::format(Common::GetStringT("{} failed to synchronize codes."), player.name));
       m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }
@@ -1267,6 +1255,21 @@ bool NetPlayServer::StartGame()
 
   const std::string region = SConfig::GetDirectoryForRegion(
       SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
+
+  // sync GC SRAM with clients
+  if (!g_SRAM_netplay_initialized)
+  {
+    SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+    InitSRAM();
+    g_SRAM_netplay_initialized = true;
+  }
+  sf::Packet srampac;
+  srampac << static_cast<MessageId>(NP_MSG_SYNC_GC_SRAM);
+  for (size_t i = 0; i < sizeof(g_SRAM) - offsetof(Sram, settings); ++i)
+  {
+    srampac << g_SRAM[offsetof(Sram, settings) + i];
+  }
+  SendAsyncToClients(std::move(srampac), 1);
 
   // tell clients to start game
   sf::Packet spac;
@@ -1452,15 +1455,14 @@ bool NetPlayServer::SyncSaveData()
         pac << sf::Uint64{0};
       }
 
-      SendChunkedToClients(
-          std::move(pac), 1,
-          StringFromFormat("Memory Card %c Synchronization", is_slot_a ? 'A' : 'B'));
+      SendChunkedToClients(std::move(pac), 1,
+                           fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
     else if (SConfig::GetInstance().m_EXIDevice[i] ==
              ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
     {
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
-                               StringFromFormat("Card %c", is_slot_a ? 'A' : 'B');
+                               fmt::format("Card {}", is_slot_a ? 'A' : 'B');
 
       sf::Packet pac;
       pac << static_cast<MessageId>(NP_MSG_SYNC_SAVE_DATA);
@@ -1486,9 +1488,8 @@ bool NetPlayServer::SyncSaveData()
         pac << static_cast<u8>(0);
       }
 
-      SendChunkedToClients(
-          std::move(pac), 1,
-          StringFromFormat("GCI Folder %c Synchronization", is_slot_a ? 'A' : 'B'));
+      SendChunkedToClients(std::move(pac), 1,
+                           fmt::format("GCI Folder {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
   }
 
@@ -1926,11 +1927,6 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 u16 NetPlayServer::GetPort() const
 {
   return m_server->address.port;
-}
-
-void NetPlayServer::SetNetPlayUI(NetPlayUI* dialog)
-{
-  m_dialog = dialog;
 }
 
 // called from ---GUI--- thread

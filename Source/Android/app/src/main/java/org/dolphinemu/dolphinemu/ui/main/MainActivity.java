@@ -3,12 +3,16 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
+
+import androidx.annotation.Nullable;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.tabs.TabLayout;
+
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -108,10 +112,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
   // TODO: Replace with a ButterKnife injection.
   private void findViews()
   {
-    mToolbar = (Toolbar) findViewById(R.id.toolbar_main);
-    mViewPager = (ViewPager) findViewById(R.id.pager_platforms);
-    mTabLayout = (TabLayout) findViewById(R.id.tabs_platforms);
-    mFab = (FloatingActionButton) findViewById(R.id.button_add_directory);
+    mToolbar = findViewById(R.id.toolbar_main);
+    mViewPager = findViewById(R.id.pager_platforms);
+    mTabLayout = findViewById(R.id.tabs_platforms);
+    mFab = findViewById(R.id.button_add_directory);
   }
 
   @Override

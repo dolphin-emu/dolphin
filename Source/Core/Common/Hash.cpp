@@ -12,7 +12,11 @@
 #include "Common/Intrinsics.h"
 
 #ifdef _M_ARM_64
+#ifdef _MSC_VER
+#include <intrin.h>
+#else
 #include <arm_acle.h>
+#endif
 #endif
 
 namespace Common

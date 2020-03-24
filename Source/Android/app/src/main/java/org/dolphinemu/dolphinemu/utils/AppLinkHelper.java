@@ -1,7 +1,8 @@
 package org.dolphinemu.dolphinemu.utils;
 
 import android.net.Uri;
-import android.support.annotation.StringDef;
+
+import androidx.annotation.StringDef;
 
 import java.util.List;
 

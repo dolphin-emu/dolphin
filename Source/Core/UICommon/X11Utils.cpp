@@ -13,6 +13,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <fmt/format.h>
+
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/Config/MainSettings.h"
@@ -156,7 +158,7 @@ void XRRConfiguration::Update()
             output_name = strdup(output_info->name);
             Config::SetBaseOrCurrent(
                 Config::MAIN_FULLSCREEN_DISPLAY_RES,
-                StringFromFormat("%s: %ux%u", output_info->name, fullWidth, fullHeight));
+                fmt::format("{}: {}x{}", output_info->name, fullWidth, fullHeight));
           }
           outputInfo = output_info;
           crtcInfo = crtc_info;

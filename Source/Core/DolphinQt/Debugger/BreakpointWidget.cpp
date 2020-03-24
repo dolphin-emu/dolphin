@@ -31,14 +31,14 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
+  CreateWidgets();
+
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
   // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
   // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
-
-  CreateWidgets();
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
     UpdateButtonsEnabled();
@@ -76,6 +76,7 @@ void BreakpointWidget::CreateWidgets()
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
   m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);

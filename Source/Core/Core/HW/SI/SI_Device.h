@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <iosfwd>
 #include <memory>
 #include "Common/CommonTypes.h"
 
@@ -62,6 +63,9 @@ enum SIDevices : int
   // Not a valid device. Used for checking whether enum values are valid.
   SIDEVICE_COUNT,
 };
+
+std::ostream& operator<<(std::ostream& stream, SIDevices device);
+std::istream& operator>>(std::istream& stream, SIDevices& device);
 
 class ISIDevice
 {

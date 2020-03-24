@@ -13,6 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
 
 namespace ControllerEmu
 {
@@ -48,8 +49,16 @@ enum class GroupType
 class ControlGroup
 {
 public:
-  explicit ControlGroup(std::string name, GroupType type = GroupType::Other);
-  ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other);
+  enum class CanBeDisabled
+  {
+    No,
+    Yes,
+  };
+
+  explicit ControlGroup(std::string name, GroupType type = GroupType::Other,
+                        CanBeDisabled can_be_disabled = CanBeDisabled::No);
+  ControlGroup(std::string name, std::string ui_name, GroupType type = GroupType::Other,
+               CanBeDisabled can_be_disabled = CanBeDisabled::No);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
@@ -58,6 +67,10 @@ public:
                           const std::string& base = "");
 
   void SetControlExpression(int index, const std::string& expression);
+
+  void AddInput(Translatability translate, std::string name);
+  void AddInput(Translatability translate, std::string name, std::string ui_name);
+  void AddOutput(Translatability translate, std::string name);
 
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
@@ -79,7 +92,9 @@ public:
   const std::string name;
   const std::string ui_name;
   const GroupType type;
+  const bool can_be_disabled;
 
+  bool enabled = true;
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSettingBase>> numeric_settings;
 };

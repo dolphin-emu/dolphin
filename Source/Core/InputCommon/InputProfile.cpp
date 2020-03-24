@@ -2,6 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/InputProfile.h"
+
+#include <algorithm>
+#include <iterator>
+
+#include <fmt/format.h>
+
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -13,10 +20,6 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
-#include "InputCommon/InputProfile.h"
-
-#include <algorithm>
-#include <iterator>
 
 namespace InputProfile
 {
@@ -180,7 +183,7 @@ std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
   const IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
 
   std::string result;
-  control_section->Get(StringFromFormat("WiimoteProfile%d", controller_index + 1), &result);
+  control_section->Get(fmt::format("WiimoteProfile{}", controller_index + 1), &result);
   return result;
 }
 

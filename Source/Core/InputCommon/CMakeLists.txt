@@ -50,6 +50,8 @@ add_library(inputcommon
   ControllerInterface/ControllerInterface.h
   ControllerInterface/Device.cpp
   ControllerInterface/Device.h
+  ControllerInterface/Wiimote/Wiimote.cpp
+  ControllerInterface/Wiimote/Wiimote.h
   ControlReference/ControlReference.cpp
   ControlReference/ControlReference.h
   ControlReference/ExpressionParser.cpp
@@ -58,8 +60,12 @@ add_library(inputcommon
   ControlReference/FunctionExpression.h
 )
 
-target_link_libraries(inputcommon PUBLIC
+target_link_libraries(inputcommon
+PUBLIC
   common
+
+PRIVATE
+  fmt::fmt
 )
 
 if(WIN32)
@@ -116,6 +122,10 @@ elseif(ANDROID)
   target_sources(inputcommon PRIVATE
     ControllerInterface/Android/Android.cpp
     ControllerInterface/Android/Android.h
+    ControllerInterface/Touch/ButtonManager.cpp
+    ControllerInterface/Touch/ButtonManager.h
+    ControllerInterface/Touch/Touchscreen.cpp
+    ControllerInterface/Touch/Touchscreen.h
   )
 endif()
 

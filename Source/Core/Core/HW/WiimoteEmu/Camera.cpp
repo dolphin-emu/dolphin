@@ -12,20 +12,21 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 
+#include "Core/HW/WII_IPC.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
 
 namespace WiimoteEmu
 {
 void CameraLogic::Reset()
 {
-  reg_data = {};
+  m_reg_data = {};
 
   m_is_enabled = false;
 }
 
 void CameraLogic::DoState(PointerWrap& p)
 {
-  p.Do(reg_data);
+  p.Do(m_reg_data);
 
   // FYI: m_is_enabled is handled elsewhere.
 }
@@ -38,7 +39,7 @@ int CameraLogic::BusRead(u8 slave_addr, u8 addr, int count, u8* data_out)
   if (!m_is_enabled)
     return 0;
 
-  return RawRead(&reg_data, addr, count, data_out);
+  return RawRead(&m_reg_data, addr, count, data_out);
 }
 
 int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
@@ -49,23 +50,30 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   if (!m_is_enabled)
     return 0;
 
-  return RawWrite(&reg_data, addr, count, data_in);
+  return RawWrite(&m_reg_data, addr, count, data_in);
 }
 
 void CameraLogic::Update(const Common::Matrix44& transform)
 {
+  // IR data is read from offset 0x37 on real hardware.
+  auto& data = m_reg_data.camera_data;
+  data.fill(0xff);
+
+  constexpr u8 OBJECT_TRACKING_ENABLE = 0x08;
+
+  // If Address 0x30 is not 0x08 the camera will return 0xFFs.
+  // The Wii seems to write 0x01 here before changing modes/sensitivities.
+  if (m_reg_data.enable_object_tracking != OBJECT_TRACKING_ENABLE)
+    return;
+
+  // If the sensor bar is off the camera will see no LEDs and return 0xFFs.
+  if (!IOS::g_gpio_out[IOS::GPIO::SENSOR_BAR])
+    return;
+
   using Common::Matrix33;
   using Common::Matrix44;
   using Common::Vec3;
   using Common::Vec4;
-
-  constexpr int CAMERA_WIDTH = 1024;
-  constexpr int CAMERA_HEIGHT = 768;
-
-  // Wiibrew claims the camera FOV is about 33 deg by 23 deg.
-  // Unconfirmed but it seems to work well enough.
-  constexpr int CAMERA_FOV_X_DEG = 33;
-  constexpr int CAMERA_FOV_Y_DEG = 23;
 
   constexpr auto CAMERA_FOV_Y = float(CAMERA_FOV_Y_DEG * MathUtil::TAU / 360);
   constexpr auto CAMERA_ASPECT_RATIO = float(CAMERA_FOV_X_DEG) / CAMERA_FOV_Y_DEG;
@@ -93,133 +101,98 @@ void CameraLogic::Update(const Common::Matrix44& transform)
 
   struct CameraPoint
   {
-    u16 x;
-    u16 y;
+    IRBasic::IRObject position;
     u8 size;
   };
-
-  // 0xFFFFs are interpreted as "not visible".
-  constexpr CameraPoint INVISIBLE_POINT{0xffff, 0xffff, 0xff};
 
   std::array<CameraPoint, leds.size()> camera_points;
 
   std::transform(leds.begin(), leds.end(), camera_points.begin(), [&](const Vec3& v) {
     const auto point = camera_view * Vec4(v, 1.0);
 
+    // Check if LED is behind camera.
     if (point.z > 0)
     {
       // FYI: Casting down vs. rounding seems to produce more symmetrical output.
-      const auto x = s32((1 - point.x / point.w) * CAMERA_WIDTH / 2);
-      const auto y = s32((1 - point.y / point.w) * CAMERA_HEIGHT / 2);
+      const auto x = s32((1 - point.x / point.w) * CAMERA_RES_X / 2);
+      const auto y = s32((1 - point.y / point.w) * CAMERA_RES_Y / 2);
 
       const auto point_size = std::lround(MAX_POINT_SIZE / point.w / 2);
 
-      if (x >= 0 && y >= 0 && x < CAMERA_WIDTH && y < CAMERA_HEIGHT)
-        return CameraPoint{u16(x), u16(y), u8(point_size)};
+      if (x >= 0 && y >= 0 && x < CAMERA_RES_X && y < CAMERA_RES_Y)
+        return CameraPoint{{u16(x), u16(y)}, u8(point_size)};
     }
 
-    return INVISIBLE_POINT;
+    // 0xFFFFs are interpreted as "not visible".
+    return CameraPoint{{0xffff, 0xffff}, 0xff};
   });
 
-  // IR data is read from offset 0x37 on real hardware
-  auto& data = reg_data.camera_data;
-  // A maximum of 36 bytes:
-  std::fill(std::begin(data), std::end(data), 0xff);
-
-  // Fill report with valid data when full handshake was done
-  // TODO: kill magic number:
-  if (reg_data.data[0x30])
+  switch (m_reg_data.mode)
   {
-    switch (reg_data.mode)
+  case IR_MODE_BASIC:
+    for (std::size_t i = 0; i != camera_points.size() / 2; ++i)
     {
-    case IR_MODE_BASIC:
-      for (std::size_t i = 0; i != camera_points.size() / 2; ++i)
-      {
-        IRBasic irdata = {};
+      IRBasic irdata = {};
 
-        const auto& p1 = camera_points[i * 2];
-        irdata.x1 = p1.x;
-        irdata.x1hi = p1.x >> 8;
-        irdata.y1 = p1.y;
-        irdata.y1hi = p1.y >> 8;
+      irdata.SetObject1(camera_points[i * 2].position);
+      irdata.SetObject2(camera_points[i * 2 + 1].position);
 
-        const auto& p2 = camera_points[i * 2 + 1];
-        irdata.x2 = p2.x;
-        irdata.x2hi = p2.x >> 8;
-        irdata.y2 = p2.y;
-        irdata.y2hi = p2.y >> 8;
-
-        Common::BitCastPtr<IRBasic>(data + i * sizeof(IRBasic)) = irdata;
-      }
-      break;
-    case IR_MODE_EXTENDED:
-      for (std::size_t i = 0; i != camera_points.size(); ++i)
-      {
-        const auto& p = camera_points[i];
-        if (p.x < CAMERA_WIDTH)
-        {
-          IRExtended irdata = {};
-
-          // TODO: Move this logic into IRExtended class?
-          irdata.x = p.x;
-          irdata.xhi = p.x >> 8;
-
-          irdata.y = p.y;
-          irdata.yhi = p.y >> 8;
-
-          irdata.size = p.size;
-
-          Common::BitCastPtr<IRExtended>(data + i * sizeof(IRExtended)) = irdata;
-        }
-      }
-      break;
-    case IR_MODE_FULL:
-      for (std::size_t i = 0; i != camera_points.size(); ++i)
-      {
-        const auto& p = camera_points[i];
-        if (p.x < CAMERA_WIDTH)
-        {
-          IRFull irdata = {};
-
-          irdata.x = p.x;
-          irdata.xhi = p.x >> 8;
-
-          irdata.y = p.y;
-          irdata.yhi = p.y >> 8;
-
-          irdata.size = p.size;
-
-          // TODO: does size need to be scaled up?
-          // E.g. does size 15 cover the entire sensor range?
-
-          irdata.xmin = std::max(p.x - p.size, 0);
-          irdata.ymin = std::max(p.y - p.size, 0);
-          irdata.xmax = std::min(p.x + p.size, CAMERA_WIDTH);
-          irdata.ymax = std::min(p.y + p.size, CAMERA_HEIGHT);
-
-          // TODO: Is this maybe MSbs of the "intensity" value?
-          irdata.zero = 0;
-
-          constexpr int SUBPIXEL_RESOLUTION = 8;
-          constexpr long MAX_INTENSITY = 0xff;
-
-          // This is apparently the number of pixels the point takes up at 128x96 resolution.
-          // We simulate a circle that shrinks at sensor edges.
-          const auto intensity =
-              std::lround((irdata.xmax - irdata.xmin) * (irdata.ymax - irdata.ymin) /
-                          SUBPIXEL_RESOLUTION / SUBPIXEL_RESOLUTION * MathUtil::TAU / 8);
-
-          irdata.intensity = u8(std::min(MAX_INTENSITY, intensity));
-
-          Common::BitCastPtr<IRFull>(data + i * sizeof(IRFull)) = irdata;
-        }
-      }
-      break;
-    default:
-      // This seems to be fairly common, 0xff data is sent in this case:
-      // WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
-      break;
+      Common::BitCastPtr<IRBasic>(&data[i * sizeof(IRBasic)]) = irdata;
     }
+    break;
+  case IR_MODE_EXTENDED:
+    for (std::size_t i = 0; i != camera_points.size(); ++i)
+    {
+      const auto& p = camera_points[i];
+      if (p.position.x < CAMERA_RES_X)
+      {
+        IRExtended irdata = {};
+
+        irdata.SetPosition(p.position);
+        irdata.size = p.size;
+
+        Common::BitCastPtr<IRExtended>(&data[i * sizeof(IRExtended)]) = irdata;
+      }
+    }
+    break;
+  case IR_MODE_FULL:
+    for (std::size_t i = 0; i != camera_points.size(); ++i)
+    {
+      const auto& p = camera_points[i];
+      if (p.position.x < CAMERA_RES_X)
+      {
+        IRFull irdata = {};
+
+        irdata.SetPosition(p.position);
+        irdata.size = p.size;
+
+        // TODO: does size need to be scaled up?
+        // E.g. does size 15 cover the entire sensor range?
+
+        irdata.xmin = std::max(p.position.x - p.size, 0);
+        irdata.ymin = std::max(p.position.y - p.size, 0);
+        irdata.xmax = std::min(p.position.x + p.size, CAMERA_RES_X);
+        irdata.ymax = std::min(p.position.y + p.size, CAMERA_RES_Y);
+
+        constexpr int SUBPIXEL_RESOLUTION = 8;
+        constexpr long MAX_INTENSITY = 0xff;
+
+        // This is apparently the number of pixels the point takes up at 128x96 resolution.
+        // We simulate a circle that shrinks at sensor edges.
+        const auto intensity =
+            std::lround((irdata.xmax - irdata.xmin) * (irdata.ymax - irdata.ymin) /
+                        SUBPIXEL_RESOLUTION / SUBPIXEL_RESOLUTION * MathUtil::TAU / 8);
+
+        irdata.intensity = u8(std::min(MAX_INTENSITY, intensity));
+
+        Common::BitCastPtr<IRFull>(&data[i * sizeof(IRFull)]) = irdata;
+      }
+    }
+    break;
+  default:
+    // This seems to be fairly common, 0xff data is sent in this case:
+    // WARN_LOG(WIIMOTE, "Game is requesting IR data before setting IR mode.");
+    break;
   }
 }
 

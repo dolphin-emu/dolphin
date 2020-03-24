@@ -4,10 +4,12 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 
-#include <disasm.h>
 #include <map>
 #include <sstream>
 #include <string>
+
+#include <disasm.h>
+#include <fmt/format.h>
 
 // for the PROFILER stuff
 #ifdef _WIN32
@@ -331,6 +333,7 @@ void Jit64::Init()
   InitializeInstructionTables();
   EnableBlockLink();
 
+  jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();
   jo.optimizeGatherPipe = true;
   jo.accurateSinglePrecision = true;
   UpdateMemoryOptions();
@@ -390,6 +393,8 @@ void Jit64::Shutdown()
 {
   FreeStack();
   FreeCodeSpace();
+
+  Memory::ShutdownFastmemArena();
 
   blocks.Shutdown();
   m_far_code.Shutdown();
@@ -697,16 +702,16 @@ void Jit64::Trace()
   std::string fregs;
 
 #ifdef JIT_LOG_GPR
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.gpr); i++)
   {
-    regs += StringFromFormat("r%02d: %08x ", i, PowerPC::ppcState.gpr[i]);
+    regs += fmt::format("r{:02d}: {:08x} ", i, PowerPC::ppcState.gpr[i]);
   }
 #endif
 
 #ifdef JIT_LOG_FPR
-  for (int i = 0; i < 32; i++)
+  for (size_t i = 0; i < std::size(PowerPC::ppcState.ps); i++)
   {
-    fregs += StringFromFormat("f%02d: %016x ", i, rPS(i).PS0AsU64());
+    fregs += fmt::format("f{:02d}: {:016x} ", i, PowerPC::ppcState.ps[i].PS0AsU64());
   }
 #endif
 
@@ -997,15 +1002,23 @@ u8* Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         SetJumpTarget(noBreakpoint);
       }
 
-      // If we have an input register that is going to be used again, load it pre-emptively,
-      // even if the instruction doesn't strictly need it in a register, to avoid redundant
-      // loads later. Of course, don't do this if we're already out of registers.
-      // As a bit of a heuristic, make sure we have at least one register left over for the
-      // output, which needs to be bound in the actual instruction compilation.
-      // TODO: make this smarter in the case that we're actually register-starved, i.e.
-      // prioritize the more important registers.
-      gpr.PreloadRegisters(op.regsIn & op.gprInReg);
-      fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
+      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      {
+        gpr.Flush();
+        fpr.Flush();
+      }
+      else
+      {
+        // If we have an input register that is going to be used again, load it pre-emptively,
+        // even if the instruction doesn't strictly need it in a register, to avoid redundant
+        // loads later. Of course, don't do this if we're already out of registers.
+        // As a bit of a heuristic, make sure we have at least one register left over for the
+        // output, which needs to be bound in the actual instruction compilation.
+        // TODO: make this smarter in the case that we're actually register-starved, i.e.
+        // prioritize the more important registers.
+        gpr.PreloadRegisters(op.regsIn & op.gprInReg);
+        fpr.PreloadRegisters(op.fregsIn & op.fprInXmm);
+      }
 
       CompileInstruction(op);
 
@@ -1191,7 +1204,7 @@ void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer& code_buffer, con
 
   if (b->codeSize <= 250)
   {
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << std::hex;
     for (u8 i = 0; i <= b->codeSize; i++)
     {

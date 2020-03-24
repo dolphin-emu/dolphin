@@ -144,28 +144,35 @@ static void APIENTRY ClearDepthf(GLfloat depthval)
 
 static void InitDriverInfo()
 {
-  std::string svendor = std::string(g_ogl_config.gl_vendor);
-  std::string srenderer = std::string(g_ogl_config.gl_renderer);
-  std::string sversion = std::string(g_ogl_config.gl_version);
+  const std::string_view svendor(g_ogl_config.gl_vendor);
+  const std::string_view srenderer(g_ogl_config.gl_renderer);
+  const std::string_view sversion(g_ogl_config.gl_version);
   DriverDetails::Vendor vendor = DriverDetails::VENDOR_UNKNOWN;
   DriverDetails::Driver driver = DriverDetails::DRIVER_UNKNOWN;
   DriverDetails::Family family = DriverDetails::Family::UNKNOWN;
   double version = 0.0;
 
   // Get the vendor first
-  if (svendor == "NVIDIA Corporation" && srenderer != "NVIDIA Tegra")
+  if (svendor == "NVIDIA Corporation")
   {
-    vendor = DriverDetails::VENDOR_NVIDIA;
+    if (srenderer != "NVIDIA Tegra")
+    {
+      vendor = DriverDetails::VENDOR_NVIDIA;
+    }
+    else
+    {
+      vendor = DriverDetails::VENDOR_TEGRA;
+    }
   }
   else if (svendor == "ATI Technologies Inc." || svendor == "Advanced Micro Devices, Inc.")
   {
     vendor = DriverDetails::VENDOR_ATI;
   }
-  else if (std::string::npos != sversion.find("Mesa"))
+  else if (sversion.find("Mesa") != std::string::npos)
   {
     vendor = DriverDetails::VENDOR_MESA;
   }
-  else if (std::string::npos != svendor.find("Intel"))
+  else if (svendor.find("Intel") != std::string::npos)
   {
     vendor = DriverDetails::VENDOR_INTEL;
   }
@@ -185,10 +192,6 @@ static void InitDriverInfo()
   else if (svendor == "Imagination Technologies")
   {
     vendor = DriverDetails::VENDOR_IMGTEC;
-  }
-  else if (svendor == "NVIDIA Corporation" && srenderer == "NVIDIA Tegra")
-  {
-    vendor = DriverDetails::VENDOR_TEGRA;
   }
   else if (svendor == "Vivante Corporation")
   {
@@ -238,8 +241,8 @@ static void InitDriverInfo()
       else if (srenderer.find("Ivybridge") != std::string::npos)
         family = DriverDetails::Family::INTEL_IVY;
     }
-    else if (std::string::npos != srenderer.find("AMD") ||
-             std::string::npos != srenderer.find("ATI"))
+    else if (srenderer.find("AMD") != std::string::npos ||
+             srenderer.find("ATI") != std::string::npos)
     {
       driver = DriverDetails::DRIVER_R600;
     }
@@ -702,7 +705,8 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
       glDebugMessageControlARB(GL_DONT_CARE, GL_DONT_CARE, GL_DONT_CARE, 0, nullptr, true);
       glDebugMessageCallbackARB(ErrorCallback, nullptr);
     }
-    if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                          Common::Log::LERROR))
     {
       glEnable(GL_DEBUG_OUTPUT);
     }
@@ -785,7 +789,6 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
     GLUtil::EnablePrimitiveRestart(m_main_gl_context.get());
-  IndexGenerator::Init();
 
   UpdateActiveConfig();
 }
@@ -1053,10 +1056,15 @@ void Renderer::PresentBackbuffer()
 {
   if (g_ogl_config.bSupportsDebug)
   {
-    if (LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR))
+    if (Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                          Common::Log::LERROR))
+    {
       glEnable(GL_DEBUG_OUTPUT);
+    }
     else
+    {
       glDisable(GL_DEBUG_OUTPUT);
+    }
   }
 
   // Swap the back and front buffers, presenting the image.

@@ -5,7 +5,10 @@ cmake_minimum_required(VERSION 3.10)
 set(CMAKE_OSX_ARCHITECTURES "x86_64")
 # Minimum OS X version.
 # This is inserted into the Info.plist as well.
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.10.0" CACHE STRING "")
+
+# MacOS prior to 10.12 did not fully support C++17, which is used to
+# handle configuration options
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.12.0" CACHE STRING "")
 
 project(dolphin-emu)
 
@@ -109,6 +112,11 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 
 if (WIN32)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
+
+	if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+	  string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
+  endif()
+
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_MINSIZEREL ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -198,9 +206,7 @@ elseif(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
   add_definitions(-D_M_X86_64=1)
   check_and_add_flag(HAVE_SSE2 -msse2)
 elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-  set(_M_ARM 1)
   set(_M_ARM_64 1)
-  add_definitions(-D_M_ARM=1)
   add_definitions(-D_M_ARM_64=1)
   # CRC instruction set is used in the CRC32 hash function
   check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
@@ -370,11 +376,6 @@ if(ENABLE_VTUNE)
   )
 endif()
 
-if(WIN32)
-  message(STATUS "Building for Windows, disabling NoGUI frontend.")
-  set(ENABLE_NOGUI OFF)
-endif()
-
 if(ANDROID)
   message(STATUS "Building for Android")
   if(NOT ENABLE_HEADLESS)
@@ -459,7 +460,7 @@ if(ENABLE_EGL)
 endif()
 
 if(ENCODE_FRAMEDUMPS)
-  if(WIN32)
+  if(WIN32 AND _M_X86_64)
     set(FFMPEG_DIR Externals/ffmpeg)
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
@@ -532,7 +533,13 @@ if (_M_X86)
   add_subdirectory(Externals/Bochs_disasm)
 endif()
 add_subdirectory(Externals/cpp-optparse)
-add_subdirectory(Externals/fmt EXCLUDE_FROM_ALL)
+find_package(fmt 6.0)
+if(fmt_FOUND)
+  message(STATUS "Using shared fmt ${fmt_VERSION}")
+else()
+  message(STATUS "Using static fmt from Externals")
+  add_subdirectory(Externals/fmt EXCLUDE_FROM_ALL)
+endif()
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/imgui)
 
@@ -582,8 +589,14 @@ else()
   add_subdirectory(Externals/zlib)
 endif()
 
-add_subdirectory(Externals/minizip)
-include_directories(External/minizip)
+pkg_check_modules(MINIZIP minizip)
+if(MINIZIP_FOUND)
+  message(STATUS "Using shared minizip")
+else()
+  message(STATUS "Shared minizip not found, falling back to the static library")
+  add_subdirectory(Externals/minizip)
+  include_directories(External/minizip)
+endif()
 
 if(NOT APPLE)
   check_lib(LZO "(no .pc for lzo2)" lzo2 lzo/lzo1x.h QUIET)

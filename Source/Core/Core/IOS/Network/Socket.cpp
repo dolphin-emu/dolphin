@@ -268,7 +268,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         ReturnValue = WiiSockMan::GetInstance().AddSocket(ret, true);
 
-        ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::IOS_NET);
+        ioctl.Log("IOCTL_SO_ACCEPT", Common::Log::IOS_NET);
         break;
       }
       default:

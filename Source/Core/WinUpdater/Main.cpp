@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonFuncs.h"
 #include "Common/StringUtil.h"
 
 #include "UpdaterCommon/UI.h"
@@ -32,28 +33,6 @@ std::vector<std::string> CommandLineToUtf8Argv(PCWSTR command_line)
 
   LocalFree(tokenized);
   return argv;
-}
-
-std::optional<std::wstring> GetModuleName(HINSTANCE hInstance)
-{
-  std::wstring name;
-  DWORD max_size = 50;  // Start with space for 50 characters and grow if needed
-  name.resize(max_size);
-
-  DWORD size;
-  while ((size = GetModuleFileNameW(hInstance, name.data(), max_size)) == max_size &&
-         GetLastError() == ERROR_INSUFFICIENT_BUFFER)
-  {
-    max_size *= 2;
-    name.resize(max_size);
-  }
-
-  if (size == 0)
-  {
-    return {};
-  }
-  name.resize(size);
-  return name;
 }
 };  // namespace
 

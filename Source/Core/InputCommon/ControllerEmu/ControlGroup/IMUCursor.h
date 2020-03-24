@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <chrono>
 #include <string>
 
-#include "InputCommon/ControllerEmu/StickGate.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu

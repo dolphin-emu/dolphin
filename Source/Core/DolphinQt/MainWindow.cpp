@@ -30,6 +30,7 @@
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
+#include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -114,6 +115,8 @@
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "UICommon/X11Utils.h"
+// This #define within X11/X.h conflicts with our WiimoteSource enum.
+#undef None
 #endif
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
@@ -159,14 +162,16 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
 
   // Our Win32 Qt external doesn't have the private API.
 #if defined(WIN32) || defined(__APPLE__)
-  wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_surface = wsi.render_window;
 #else
   QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
   wsi.display_connection = pni->nativeResourceForWindow("display", window);
   if (wsi.type == WindowSystemType::Wayland)
-    wsi.render_surface = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
+    wsi.render_window = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
   else
-    wsi.render_surface = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+    wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
+  wsi.render_surface = wsi.render_window;
 #endif
   wsi.render_surface_scale = window ? static_cast<float>(window->devicePixelRatio()) : 1.0f;
 
@@ -685,7 +690,7 @@ void MainWindow::ChangeDisc()
 
 void MainWindow::EjectDisc()
 {
-  Core::RunAsCPUThread(DVDInterface::EjectDisc);
+  Core::RunAsCPUThread([] { DVDInterface::EjectDisc(DVDInterface::EjectCause::User); });
 }
 
 void MainWindow::Open()
@@ -785,6 +790,11 @@ bool MainWindow::RequestStop()
 
   if (SConfig::GetInstance().bConfirmStop)
   {
+    if (std::exchange(m_stop_confirm_showing, true))
+      return true;
+
+    Common::ScopeGuard confirm_lock([this] { m_stop_confirm_showing = false; });
+
     const Core::State state = Core::GetState();
 
     // Only pause the game, if NetPlay is not running
@@ -798,7 +808,8 @@ bool MainWindow::RequestStop()
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
-                           tr("Do you want to stop the current emulation?"));
+                           tr("Do you want to stop the current emulation?"),
+        QMessageBox::Yes | QMessageBox::No, QMessageBox::NoButton, Qt::ApplicationModal);
 
     if (confirm != QMessageBox::Yes)
     {
@@ -1234,8 +1245,8 @@ void MainWindow::SetStateSlot(int slot)
 void MainWindow::PerformOnlineUpdate(const std::string& region)
 {
   WiiUpdate::PerformOnlineUpdate(region, this);
-  // Since the update may have installed a newer system menu, refresh the tools menu.
-  m_menu_bar->UpdateToolsMenu(false);
+  // Since the update may have installed a newer system menu, trigger a refresh.
+  Settings::Instance().NANDRefresh();
 }
 
 void MainWindow::BootWiiSystemMenu()
@@ -1327,9 +1338,6 @@ bool MainWindow::NetPlayJoin()
     return false;
   }
 
-  if (server != nullptr)
-    server->SetNetPlayUI(m_netplay_dialog);
-
   m_netplay_setup_dialog->close();
   m_netplay_dialog->show(nickname, is_traversal);
 
@@ -1367,7 +1375,7 @@ bool MainWindow::NetPlayHost(const QString& game_id)
 
   // Create Server
   Settings::Instance().ResetNetPlayServer(new NetPlay::NetPlayServer(
-      host_port, use_upnp,
+      host_port, use_upnp, m_netplay_dialog,
       NetPlay::NetTraversalConfig{is_traversal, traversal_host, traversal_port}));
 
   if (!Settings::Instance().GetNetPlayServer()->is_connected)
@@ -1586,7 +1594,7 @@ void MainWindow::OnStartRecording()
     if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
 
-    if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
+    if (WiimoteCommon::GetSource(i) != WiimoteSource::None)
       controllers |= (1 << (i + 4));
   }
 
@@ -1653,7 +1661,7 @@ void MainWindow::ShowTASInput()
 
   for (int i = 0; i < num_wii_controllers; i++)
   {
-    if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
+    if (WiimoteCommon::GetSource(i) == WiimoteSource::Emulated &&
         (!Core::IsRunning() || SConfig::GetInstance().bWii))
     {
       m_wii_tas_input_windows[i]->show();

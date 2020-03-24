@@ -254,7 +254,7 @@ bool StreamBuffer::WaitForClearSpace(u32 num_bytes)
   u32 new_gpu_position = 0;
 
   auto iter = m_tracked_fences.begin();
-  for (; iter != m_tracked_fences.end(); iter++)
+  for (; iter != m_tracked_fences.end(); ++iter)
   {
     // Would this fence bring us in line with the GPU?
     // This is the "last resort" case, where a command buffer execution has been forced

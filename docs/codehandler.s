@@ -387,7 +387,7 @@ _savecounter:
 
 #CT2============================================================================
 
-#load base adress    (0): 40TYZ00N XXXXXXXX = (load/add:T) ba from [(ba/po:Y)+XXXXXXXX(+rN:Z)]
+#load base address    (0): 40TYZ00N XXXXXXXX = (load/add:T) ba from [(ba/po:Y)+XXXXXXXX(+rN:Z)]
 
 #set base address    (1): 42TYZ00N XXXXXXXX = (set/add:T) ba to (ba/po:Y)+XXXXXXXX(+rN:Z)
 
@@ -580,13 +580,13 @@ _load:
   bgt+ cr6,+24
   beq- cr6,+12
 
-  lbz r4,0(r12)  #load byte at address
+  lbz r4,0(r4)  #load byte at address
   b _store_reg
 
-  lhz r4,0(r12)  #load halfword at address
+  lhz r4,0(r4)  #load halfword at address
   b _store_reg
 
-  lwz r4,0(r12)  #load word at address
+  lwz r4,0(r4)  #load word at address
   b _store_reg
 
 _store:

@@ -155,12 +155,10 @@ class SignedBlobReader
 {
 public:
   SignedBlobReader() = default;
-  explicit SignedBlobReader(const std::vector<u8>& bytes);
-  explicit SignedBlobReader(std::vector<u8>&& bytes);
+  explicit SignedBlobReader(std::vector<u8> bytes);
 
   const std::vector<u8>& GetBytes() const;
-  void SetBytes(const std::vector<u8>& bytes);
-  void SetBytes(std::vector<u8>&& bytes);
+  void SetBytes(std::vector<u8> bytes);
 
   /// Get the SHA1 hash for this signed blob (starting at the issuer).
   std::array<u8, 20> GetSha1() const;
@@ -187,8 +185,7 @@ class TMDReader final : public SignedBlobReader
 {
 public:
   TMDReader() = default;
-  explicit TMDReader(const std::vector<u8>& bytes);
-  explicit TMDReader(std::vector<u8>&& bytes);
+  explicit TMDReader(std::vector<u8> bytes);
 
   bool IsValid() const;
 
@@ -224,8 +221,7 @@ class TicketReader final : public SignedBlobReader
 {
 public:
   TicketReader() = default;
-  explicit TicketReader(const std::vector<u8>& bytes);
-  explicit TicketReader(std::vector<u8>&& bytes);
+  explicit TicketReader(std::vector<u8> bytes);
 
   bool IsValid() const;
 
