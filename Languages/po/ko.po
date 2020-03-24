@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-18 14:04+0100\n"
-"PO-Revision-Date: 2020-03-18 13:04+0000\n"
+"POT-Creation-Date: 2020-03-24 23:35+0100\n"
+"PO-Revision-Date: 2020-03-24 22:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -149,7 +149,7 @@ msgstr ""
 "%2 메모리 바이트\n"
 "%3 프레임"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:246
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:244
 msgid "%1 Free Blocks; %2 Free Dir Entries"
 msgstr "%1 빈 블록; %2 빈 디렉토리 목록"
 
@@ -275,7 +275,7 @@ msgstr "메모리 중단점 추가 (&A)"
 msgid "&Add New Code..."
 msgstr "새로운 코드 추가... (&A)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:463
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:485
 msgid "&Add function"
 msgstr "함수 추가 (&A)"
 
@@ -339,7 +339,7 @@ msgstr "코드 (&C)"
 msgid "&Controller Settings"
 msgstr "컨트롤러 설정(&C)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:442
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:464
 msgid "&Copy address"
 msgstr "주소 복사 (&C)"
 
@@ -411,7 +411,7 @@ msgstr "단축키 설정(&H)"
 msgid "&Import..."
 msgstr "가져오기... (&I)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:465
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:487
 msgid "&Insert blr"
 msgstr "blr 삽입 (&I)"
 
@@ -484,7 +484,7 @@ msgstr "제거 (&R)"
 msgid "&Remove Code"
 msgstr "코드 제거 (&R)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:454
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:476
 msgid "&Rename symbol"
 msgstr "부호 이름 바꾸기 (&R)"
 
@@ -574,7 +574,7 @@ msgstr ", 쉼표"
 msgid "- Subtract"
 msgstr "- 빼기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:295
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:324
 msgid "--> %1"
 msgstr "--> %1"
 
@@ -948,6 +948,7 @@ msgstr "추가..."
 #: Source/Core/DolphinQt/CheatsManager.cpp:643
 #: Source/Core/DolphinQt/CheatsManager.cpp:644
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:159
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:147
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:79
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:49
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:164
@@ -1019,7 +1020,7 @@ msgstr "고급"
 msgid "Africa"
 msgstr "아프리카"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:293
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:291
 msgid "All Files (*)"
 msgstr "모든 파일 (*)"
 
@@ -1311,7 +1312,7 @@ msgstr "보조"
 msgid "B"
 msgstr "B"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:568
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:567
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT가 올바르지 않습니다. 돌핀이 종료됩니다."
 
@@ -1355,7 +1356,7 @@ msgid "Bad value provided."
 msgstr "안 좋은 값이 제공되었습니다."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:912
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:193
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:194
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:191
 #: Source/Core/DolphinQt/MenuBar.cpp:603
 msgid "Banner"
@@ -1450,6 +1451,10 @@ msgstr "아래"
 #: Source/Core/DolphinQt/AboutDialog.cpp:53
 msgid "Branch: %1"
 msgstr "분기: %1"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
+msgid "Branches"
+msgstr ""
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -1583,11 +1588,11 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:822
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:823
 msgid "Calibrate"
 msgstr "측정합니다"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:814
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
 msgid "Calibration"
 msgstr "측정"
 
@@ -1614,7 +1619,7 @@ msgstr "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작
 msgid "Cancel"
 msgstr "취소"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:861
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:862
 msgid "Cancel Calibration"
 msgstr "측정 취소"
 
@@ -1648,7 +1653,7 @@ msgstr "GC IPL 을 찾을 수 없어서, 게임을 시작할 수 없습니다."
 msgid "Center"
 msgstr "중앙"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:823
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:824
 msgid "Center and Calibrate"
 msgstr "중앙과 측정"
 
@@ -2042,11 +2047,11 @@ msgstr "수렴:"
 msgid "Copy"
 msgstr "복사"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:444
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:466
 msgid "Copy &function"
 msgstr "함수 복사 (&f)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:447
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:469
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
@@ -2058,12 +2063,12 @@ msgstr "주소 복사"
 msgid "Copy Hex"
 msgstr "헥스 복사"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:446
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:468
 msgid "Copy code &line"
 msgstr "코드 줄 복사 (&l)"
 
 #: Source/Core/Core/HW/GCMemcard/GCMemcardRaw.cpp:111
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:394
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:392
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
 
@@ -2204,11 +2209,11 @@ msgstr ""
 msgid "Couldn't look up central server"
 msgstr "중앙 서버를 찾을 수 없습니다"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:577
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:575
 msgid "Couldn't open file."
 msgstr "파일을 열 수 없습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:580
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:578
 msgid "Couldn't read file."
 msgstr "파일을 읽을 수 없습니다."
 
@@ -2345,7 +2350,7 @@ msgstr "데이터 전송"
 msgid "Data Type"
 msgstr "데이터 타입"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:598
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:596
 msgid "Data in area of file that should be unused."
 msgstr "사용되면 안되는 파일의 구역에 있는 데이터"
 
@@ -2353,8 +2358,8 @@ msgstr "사용되면 안되는 파일의 구역에 있는 데이터"
 msgid "Data received!"
 msgstr "데이터를 받았습니다!"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:323
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:359
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:321
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:357
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro 파일(*.sav)"
 
@@ -2492,7 +2497,7 @@ msgstr "깊이:"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:41
 #: Source/Core/DolphinQt/GameList/GameList.cpp:914
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:195
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:196
 #: Source/Core/DolphinQt/MenuBar.cpp:605
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Description"
@@ -2680,11 +2685,11 @@ msgstr "\"%1\" 를 게임 경로들의 목록에 추가하고 싶습니까?"
 msgid "Do you want to clear the list of symbol names?"
 msgstr "부호 이름 목록을 청소할까요?"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:418
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:416
 msgid "Do you want to delete the %1 selected save files?"
 msgstr "선택된 저장 파일 %1 을 삭제하고 싶습니까?"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:417
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:415
 msgid "Do you want to delete the selected save file?"
 msgstr "선택된 저장 파일을 삭제하고 싶습니까?"
 
@@ -3294,7 +3299,7 @@ msgstr "같은"
 #: Source/Core/DolphinQt/Debugger/RegisterColumn.cpp:87
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:324
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:279
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:277
 #: Source/Core/DolphinQt/Main.cpp:157 Source/Core/DolphinQt/Main.cpp:172
 #: Source/Core/DolphinQt/MainWindow.cpp:249
 #: Source/Core/DolphinQt/MainWindow.cpp:256
@@ -3463,7 +3468,7 @@ msgstr "입력 기록 내보내기"
 msgid "Export Recording..."
 msgstr "입력 기록 내보내기..."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:318
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:316
 msgid "Export Save File"
 msgstr "저장 파일 내보내기"
 
@@ -3539,7 +3544,7 @@ msgstr "디렉토리 압축 풀기..."
 msgid "FIFO Player"
 msgstr "FIFO 플레이어"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:280
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:278
 msgid ""
 "Failed opening memory card:\n"
 "%1"
@@ -3567,7 +3572,7 @@ msgstr "Redump.org 연결에 실패했습니다"
 msgid "Failed to connect to server: %1"
 msgstr "서버 연결에 실패했습니다: %1"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:394
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:392
 msgid "Failed to copy file"
 msgstr "파일 복사에 실패했습니다"
 
@@ -3620,7 +3625,7 @@ msgstr "파일 압축 풀기에 실패했습니다."
 msgid "Failed to extract system data."
 msgstr "시스템 데이터 압축 풀기에 실패했습니다."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:619
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:618
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3635,7 +3640,7 @@ msgstr ""
 msgid "Failed to find one or more D3D symbols"
 msgstr "하나 이상의 D3D 부호 찾기에 실패했습니다"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:368
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:366
 msgid "Failed to import \"%1\"."
 msgstr "\"%1\" 가져오기에 실패했습니다."
 
@@ -3768,7 +3773,7 @@ msgstr "%s 을 읽을 수 없습니다."
 msgid "Failed to read unique ID from disc image"
 msgstr "디스크 이미지의 ID를 읽기에 실패했습니다"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:438
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:436
 msgid "Failed to remove file"
 msgstr "파일 삭제에 실패했습니다"
 
@@ -3867,13 +3872,13 @@ msgid "File Info"
 msgstr "파일 정보"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:916
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:199
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:200
 #: Source/Core/DolphinQt/MenuBar.cpp:607
 msgid "File Name"
 msgstr "파일 이름"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:917
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:201
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:202
 #: Source/Core/DolphinQt/MenuBar.cpp:608
 msgid "File Path"
 msgstr ""
@@ -3891,10 +3896,10 @@ msgstr "파일에 코드가 없습니다."
 msgid "File not compressed"
 msgstr "파일이 압축되지 않었습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:373
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:401
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:444
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:461
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:371
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:399
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:442
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:459
 msgid "File write failed"
 msgstr "파일을 쓰지 못했습니다."
 
@@ -3915,11 +3920,11 @@ msgstr ""
 "M3U 파일 \"%s\" 에 기술된 파일들은 발견되지 않음:\n"
 "%s"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:583
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:581
 msgid "Filesize does not match any known GameCube Memory Card size."
 msgstr "파일크기가 어떤 알려진 게임큐브 메모리 카트 크기와도 맞지 않습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:586
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:584
 msgid "Filesize in header mismatches actual card size."
 msgstr "헤더안 파일크기가 실제 카드 크기와 맞지 않습니다."
 
@@ -3960,7 +3965,7 @@ msgstr "다음 찾기(&N)"
 msgid "Find &Previous"
 msgstr "이전 찾기(&P)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:847
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:848
 msgid "Finish Calibration"
 msgstr "측정 완료"
 
@@ -3996,11 +4001,11 @@ msgstr "플래그"
 msgid "Float"
 msgstr "플로우트"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:438
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:460
 msgid "Follow &branch"
 msgstr "분기 따라가기 (&b)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:815
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:816
 msgid "For best results please slowly move your input to all possible regions."
 msgstr ""
 "최고의 결과를 얻으려면 당신의 입력을 모든 가능한 곳으로 천천히 움직이세요."
@@ -4228,7 +4233,7 @@ msgstr "GC 포트 %1"
 msgid "GCI Folder"
 msgstr "GCI 폴더"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:396
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:395
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블록"
 
@@ -4297,7 +4302,7 @@ msgstr "게임이 \"%1\" 로 변경되었습니다"
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:466
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:465
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -4343,7 +4348,7 @@ msgstr "포트 %1 에 겜임큐브 키보드"
 msgid "GameCube Memory Card Manager"
 msgstr "게임큐브 메모리 카드 매니저"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:293
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:291
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:176
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "게임큐브 메모리 카드 (*.raw *.gcp)"
@@ -4570,7 +4575,7 @@ msgstr ""
 msgid "Hz"
 msgstr "Hz"
 
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:191
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:192
 msgid "ID"
 msgstr "아이디"
 
@@ -4724,7 +4729,7 @@ msgstr ""
 msgid "Import BootMii NAND Backup..."
 msgstr "BootMii NAND 백업 가져오기..."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:357
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:355
 msgid "Import Save File"
 msgstr "저장 파일 가져오기"
 
@@ -4732,7 +4737,7 @@ msgstr "저장 파일 가져오기"
 msgid "Import Wii Save..."
 msgstr "Wii 저장 가져오기"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:368
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:366
 msgid "Import failed"
 msgstr "가져오기 실패"
 
@@ -4812,7 +4817,7 @@ msgstr "활성에 필요한 힘을 입력하세요."
 msgid "Input strength to ignore."
 msgstr "무시할 힘을 입력하세요."
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:466
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:488
 msgid "Insert &nop"
 msgstr "nop 삽입 (&n)"
 
@@ -4836,6 +4841,10 @@ msgstr "WAD 설치..."
 #: Source/Core/DolphinQt/GameList/GameList.cpp:341
 msgid "Install to the NAND"
 msgstr "NAND 에 설치"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:148
+msgid "Instr."
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
@@ -4927,7 +4936,7 @@ msgstr "부적합한 토큰."
 msgid "Invalid callstack"
 msgstr "부적합한 스텍호출"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:589
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:587
 msgid "Invalid checksums."
 msgstr "부적합 체크섬"
 
@@ -5455,8 +5464,8 @@ msgstr "MD5:"
 msgid "MMU"
 msgstr "MMU"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:322
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:358
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:320
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:356
 msgid "MadCatz Gameshark files(*.gcs)"
 msgstr "MadCatz 게임샤크 파일(*.gcs)"
 
@@ -5465,7 +5474,7 @@ msgid "Main Stick"
 msgstr "메인 스틱"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:915
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:197
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:198
 #: Source/Core/DolphinQt/MenuBar.cpp:606
 msgid "Maker"
 msgstr "제작사"
@@ -5613,11 +5622,11 @@ msgstr "기타"
 msgid "Misc Settings"
 msgstr "기타 설정"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:592
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:590
 msgid "Mismatch between free block count in header and actually unused blocks."
 msgstr "헤더안 빈 블락 숫자와 실제 사용되지 않은 블락수가 맞지 않습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:595
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:593
 msgid "Mismatch between internal data structures."
 msgstr "내부 데이터 구조들끼리 맞지 않습니다."
 
@@ -5732,8 +5741,8 @@ msgstr "이름:"
 msgid "Native (640x528)"
 msgstr "원본 (640x528)"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:321
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:358
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:319
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:356
 msgid "Native GCI File (*.gci)"
 msgstr "원본 GCI 파일 (*.gci)"
 
@@ -5867,7 +5876,7 @@ msgstr "주어진 값 없음"
 msgid "No description available"
 msgstr "적합한 상세 설명 없음"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:601
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:599
 msgid "No errors."
 msgstr "에러가 없습니다."
 
@@ -6160,7 +6169,7 @@ msgstr "PNG 이미지 파일 (*.png);; 모든 파일 (*)"
 msgid "PPC Size"
 msgstr "PPC 크기"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:464
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:486
 msgid "PPC vs Host"
 msgstr "PPC 대 호스트"
 
@@ -6172,6 +6181,10 @@ msgstr "패드"
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:79
 msgid "Pads"
 msgstr "패드"
+
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:149
+msgid "Parameters"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
@@ -6507,7 +6520,7 @@ msgid "Quality of the DPLII decoder. Audio latency increases with quality."
 msgstr "DPLII 디코더의 품질. 오디오 지연이 품질로 증가합니다."
 
 #: Source/Core/Common/MsgHandler.cpp:90
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:420
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:418
 #: Source/Core/DolphinQt/MainWindow.cpp:1497
 msgid "Question"
 msgstr "질문"
@@ -6538,7 +6551,7 @@ msgstr "RSO 모듈"
 msgid "Range"
 msgstr "범위"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:468
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:490
 msgid "Re&place instruction"
 msgstr "명령 바꾸기 (&p)"
 
@@ -6699,7 +6712,7 @@ msgstr "제거"
 msgid "Remove Tag..."
 msgstr "태그 제거..."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:438
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:436
 msgid "Remove failed"
 msgstr "삭제 실패했음"
 
@@ -6711,8 +6724,8 @@ msgstr "관찰에서 제거"
 msgid "Remove tag"
 msgstr "태그 제거"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:634
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:656
 msgid "Rename symbol"
 msgstr "부호 이름 바꾸기"
 
@@ -6738,7 +6751,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:376
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:375
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "알림: GCIFolder가 할당되지 않은 블록 0x%x 에 씀"
@@ -6750,7 +6763,7 @@ msgstr "당신의 파티로 참여 요청"
 #: Source/Core/Core/HotkeyManager.cpp:34
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
-#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:824
+#: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:825
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "리셋"
@@ -6783,7 +6796,7 @@ msgstr "리소스 팩 경로:"
 msgid "Restart Required"
 msgstr "재시작이 요구됩니다"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:470
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:492
 msgid "Restore instruction"
 msgstr "명령 복구"
 
@@ -6879,7 +6892,7 @@ msgstr ""
 msgid "Rumble"
 msgstr "진동"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:461
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:483
 msgid "Run &To Here"
 msgstr "여기까지 실행 (&T)"
 
@@ -7442,27 +7455,27 @@ msgstr "PC 설정"
 msgid "Set as &Default ISO"
 msgstr "기본 ISO로 설정(&D)"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:291
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:289
 msgid "Set memory card file for Slot A"
 msgstr "슬롯 A 용 메모리 카드 파일 설정"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:291
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:289
 msgid "Set memory card file for Slot B"
 msgstr "슬롯 B 용 메모리 카드 파일 설정"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:458
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:480
 msgid "Set symbol &end address"
 msgstr "부호 끝 주소 설정 (&e)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:456
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:478
 msgid "Set symbol &size"
 msgstr "부호 크기 설정 (&s)"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:679
 msgid "Set symbol end address"
 msgstr "부호 끝 주소 설정"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:635
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:657
 msgid "Set symbol size (%1):"
 msgstr "부호 크기 (%1) 설정:"
 
@@ -7492,7 +7505,7 @@ msgstr ""
 msgid "Settings"
 msgstr "설정"
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:308
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:353
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 
@@ -7672,7 +7685,7 @@ msgstr "Wii"
 msgid "Show World"
 msgstr "세계"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:449
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:471
 msgid "Show in &memory"
 msgstr "메모리로 보기 (&m)"
 
@@ -7770,7 +7783,7 @@ msgid "Simulate DK Bongos"
 msgstr "DK 봉고 시뮬"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:203
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
 msgid "Size"
 msgstr "크기"
 
@@ -8095,8 +8108,8 @@ msgstr "스타일러스"
 #: Source/Core/DolphinQt/GameList/GameList.cpp:611
 #: Source/Core/DolphinQt/GameList/GameList.cpp:628
 #: Source/Core/DolphinQt/GameList/GameList.cpp:656
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:344
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:448
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:342
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:446
 #: Source/Core/DolphinQt/MenuBar.cpp:1003
 #: Source/Core/DolphinQt/MenuBar.cpp:1117
 msgid "Success"
@@ -8124,7 +8137,7 @@ msgstr "성공적으로 %n 이미지(들)을 압축해제했습니다."
 msgid "Successfully deleted '%1'."
 msgstr "'%1' 를 성공적으로 삭제했습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:448
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:446
 msgid "Successfully deleted files."
 msgstr "성공적으로 파일을 삭제했습니다."
 
@@ -8132,11 +8145,11 @@ msgstr "성공적으로 파일을 삭제했습니다."
 msgid "Successfully exported save files"
 msgstr "저장 파일들을 성공적으로 내보냈습니다"
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:343
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:341
 msgid "Successfully exported the %1 save files."
 msgstr "%1 저장 파일들을 성공적으로 내보냈습니다."
 
-#: Source/Core/DolphinQt/GCMemcardManager.cpp:342
+#: Source/Core/DolphinQt/GCMemcardManager.cpp:340
 msgid "Successfully exported the save file."
 msgstr "저장 파일을 성공적으로 내보냈습니다."
 
@@ -8203,14 +8216,15 @@ msgstr "B로 스위치"
 msgid "Symbol"
 msgstr "부호"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:658
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:680
 msgid "Symbol (%1) end address:"
 msgstr "부호 (%1) 끝 주소:"
 
-#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:599
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:621
 msgid "Symbol name:"
 msgstr "부호 이름:"
 
+#: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:150
 #: Source/Core/DolphinQt/Debugger/CodeWidget.cpp:113
 #: Source/Core/DolphinQt/MenuBar.cpp:911
 msgid "Symbols"
@@ -8285,7 +8299,7 @@ msgstr "TAS 도구"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:385
 #: Source/Core/DolphinQt/GameList/GameList.cpp:921
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:205
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:206
 #: Source/Core/DolphinQt/MenuBar.cpp:612
 msgid "Tags"
 msgstr "태그"
@@ -8927,7 +8941,7 @@ msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr "측정을 작동시키기 위한 안정적 입력 기간. (제로는 비활성)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:913
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:189
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:190
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:191
 #: Source/Core/DolphinQt/MenuBar.cpp:604
 msgid "Title"
@@ -9672,7 +9686,7 @@ msgstr ""
 "경고: 아날로그 입력들은 컨트롤러 값들을 랜덤하게 재설정할지 모릅니다. 일부의 "
 "경우 이것은 데드존을 추가해서 고쳐질 수 있습니다."
 
-#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:577
+#: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:576
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
