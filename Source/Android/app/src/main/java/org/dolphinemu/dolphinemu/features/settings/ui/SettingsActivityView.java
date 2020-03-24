@@ -14,12 +14,10 @@ public interface SettingsActivityView
   /**
    * Show a new SettingsFragment.
    *
-   * @param menuTag          Identifier for the settings group that should be displayed.
-   * @param addToStack       Whether or not this fragment should replace a previous one.
-   * @param customAnimations Custom animations are used if true while system animations are enabled.
+   * @param menuTag    Identifier for the settings group that should be displayed.
+   * @param addToStack Whether or not this fragment should replace a previous one.
    */
-  void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
-          boolean customAnimations, String gameId);
+  void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
 
   /**
    * Called by a contained Fragment to get access to the Setting HashMap

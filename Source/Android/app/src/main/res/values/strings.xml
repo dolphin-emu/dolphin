@@ -172,7 +172,6 @@
     <string name="SD_card_path">SD Card Path</string>
     <string name="reset_paths">Reset Paths to Default Settings</string>
     <string name="reset_paths_confirmation">Are you sure you want to reset Paths to default settings?</string>
-    <string name="reset_paths_complete">Paths reset</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>

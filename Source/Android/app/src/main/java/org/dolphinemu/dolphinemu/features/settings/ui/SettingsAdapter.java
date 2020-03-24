@@ -55,6 +55,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
   private SettingsFragmentView mView;
+  private static SettingsFragmentView sView;
   private Context mContext;
   private ArrayList<SettingsItem> mSettings;
 
@@ -72,6 +73,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   public SettingsAdapter(SettingsFragmentView view, Context context)
   {
     mView = view;
+    sView = view;
     mContext = context;
     mClickedPosition = -1;
   }
@@ -332,20 +334,32 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public static void resetPaths()
   {
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-            SettingsFile.KEY_DEFAULT_ISO, "");
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-            SettingsFile.KEY_NAND_ROOT_PATH, SettingsFragmentPresenter.getDefaultNANDRootPath());
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-            SettingsFile.KEY_DUMP_PATH, SettingsFragmentPresenter.getDefaultDumpPath());
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-            SettingsFile.KEY_LOAD_PATH, SettingsFragmentPresenter.getDefaultLoadPath());
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-            SettingsFile.KEY_RESOURCE_PACK_PATH,
-            SettingsFragmentPresenter.getDefaultResourcePackPath());
-    NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-            SettingsFile.KEY_WII_SD_CARD_PATH, SettingsFragmentPresenter.getDefaultSDPath());
-    NativeLibrary.ReloadConfig();
+    StringSetting defaultISO =
+            new StringSetting(SettingsFile.KEY_DEFAULT_ISO, Settings.SECTION_INI_CORE, "");
+    StringSetting NANDRootPath =
+            new StringSetting(SettingsFile.KEY_NAND_ROOT_PATH, Settings.SECTION_INI_GENERAL,
+                    SettingsFragmentPresenter.getDefaultNANDRootPath());
+    StringSetting dumpPath =
+            new StringSetting(SettingsFile.KEY_DUMP_PATH, Settings.SECTION_INI_GENERAL,
+                    SettingsFragmentPresenter.getDefaultDumpPath());
+    StringSetting loadPath =
+            new StringSetting(SettingsFile.KEY_LOAD_PATH, Settings.SECTION_INI_GENERAL,
+                    SettingsFragmentPresenter.getDefaultLoadPath());
+    StringSetting resourcePackPath =
+            new StringSetting(SettingsFile.KEY_RESOURCE_PACK_PATH, Settings.SECTION_INI_GENERAL,
+                    SettingsFragmentPresenter.getDefaultResourcePackPath());
+    StringSetting sdPath =
+            new StringSetting(SettingsFile.KEY_WII_SD_CARD_PATH, Settings.SECTION_INI_GENERAL,
+                    SettingsFragmentPresenter.getDefaultSDPath());
+
+    sView.putSetting(defaultISO);
+    sView.putSetting(NANDRootPath);
+    sView.putSetting(dumpPath);
+    sView.putSetting(loadPath);
+    sView.putSetting(resourcePackPath);
+    sView.putSetting(sdPath);
+
+    sView.onSettingChanged();
   }
 
   @Override

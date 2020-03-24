@@ -70,7 +70,7 @@ public final class SettingsActivityPresenter
       }
     }
 
-    mView.showSettingsFragment(menuTag, null, false, true, gameId);
+    mView.showSettingsFragment(menuTag, null, false, gameId);
     mView.onSettingsFileLoaded(mSettings);
   }
 
@@ -195,7 +195,7 @@ public final class SettingsActivityPresenter
     {
       Bundle bundle = new Bundle();
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value / 6);
-      mView.showSettingsFragment(key, bundle, true, true, gameId);
+      mView.showSettingsFragment(key, bundle, true, gameId);
     }
   }
 
@@ -204,7 +204,7 @@ public final class SettingsActivityPresenter
     switch (value)
     {
       case 1:
-        mView.showSettingsFragment(menuTag, null, true, true, gameId);
+        mView.showSettingsFragment(menuTag, null, true, gameId);
         break;
 
       case 2:
@@ -219,7 +219,7 @@ public final class SettingsActivityPresenter
     {
       Bundle bundle = new Bundle();
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
-      mView.showSettingsFragment(menuTag, bundle, true, true, gameId);
+      mView.showSettingsFragment(menuTag, bundle, true, gameId);
     }
   }
 

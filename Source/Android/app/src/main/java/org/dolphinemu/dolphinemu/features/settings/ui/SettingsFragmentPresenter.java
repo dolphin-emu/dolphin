@@ -197,9 +197,6 @@ public final class SettingsFragmentPresenter
         addStereoSettings(sl);
         break;
 
-      case BLANK:
-        break;
-
       default:
         mView.showToastMessage("Unimplemented menu");
         return;
@@ -353,8 +350,8 @@ public final class SettingsFragmentPresenter
     sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_WII_SD_CARD_PATH,
             Settings.SECTION_INI_GENERAL, R.string.SD_card_path, 0, getDefaultSDPath(),
             MainPresenter.REQUEST_SD_FILE, wiiSDCardPath));
-    sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation,
-            R.string.reset_paths_complete, () -> SettingsAdapter.resetPaths()));
+    sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
+            SettingsAdapter::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)

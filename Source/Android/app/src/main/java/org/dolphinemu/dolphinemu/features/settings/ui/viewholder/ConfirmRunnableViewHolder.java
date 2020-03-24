@@ -57,7 +57,6 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
   {
     String alertTitle = mContext.getString(mItem.getNameId());
     String alertText = mContext.getString(mItem.getAlertText());
-    String confirmationText = mContext.getString(mItem.getConfirmationText());
 
     AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
             .setTitle(alertTitle)
@@ -70,10 +69,13 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
 
               if (mItem.getConfirmationText() > 0)
               {
+                String confirmationText = mContext.getString(mItem.getConfirmationText());
                 Toast.makeText(mContext, confirmationText, Toast.LENGTH_SHORT).show();
               }
               dialog.dismiss();
-              mView.reloadSubMenu();
+
+              // TODO: Remove finish and properly update dynamic settings descriptions.
+              mView.getActivity().finish();
             })
             .setNegativeButton("No", (dialog, whichButton) ->
             {

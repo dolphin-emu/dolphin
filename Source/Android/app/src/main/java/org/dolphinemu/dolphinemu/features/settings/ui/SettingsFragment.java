@@ -20,7 +20,6 @@ import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public final class SettingsFragment extends Fragment implements SettingsFragmentView
 {
@@ -180,18 +179,7 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   @Override
   public void loadSubMenu(MenuTag menuKey)
   {
-    mActivity
-            .showSettingsFragment(menuKey, null, true, true,
-                    getArguments().getString(ARGUMENT_GAME_ID));
-  }
-
-  @Override
-  public void reloadSubMenu()
-  {
-    mActivity
-            .showSettingsFragment(MenuTag.BLANK, null, true, false,
-                    getArguments().getString(ARGUMENT_GAME_ID));
-    Objects.requireNonNull(getActivity()).onBackPressed();
+    mActivity.showSettingsFragment(menuKey, null, true, getArguments().getString(ARGUMENT_GAME_ID));
   }
 
   @Override

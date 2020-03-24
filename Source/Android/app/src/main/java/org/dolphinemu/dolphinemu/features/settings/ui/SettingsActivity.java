@@ -105,13 +105,13 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   @Override
   public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
-          boolean customAnimations, String gameID)
+          String gameID)
   {
     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
     if (addToStack)
     {
-      if (areSystemAnimationsEnabled() && customAnimations)
+      if (areSystemAnimationsEnabled())
       {
         transaction.setCustomAnimations(
                 R.animator.settings_enter,

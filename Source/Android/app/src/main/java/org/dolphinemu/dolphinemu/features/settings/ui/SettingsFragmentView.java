@@ -58,12 +58,6 @@ public interface SettingsFragmentView
   void loadSubMenu(MenuTag menuKey);
 
   /**
-   * Show a new blank submenu and then immediately back out of it.
-   * Useful for updating dynamic setting descriptions.
-   */
-  void reloadSubMenu();
-
-  /**
    * Tell the Fragment to tell the containing activity to display a toast message.
    *
    * @param message Text to be shown in the Toast

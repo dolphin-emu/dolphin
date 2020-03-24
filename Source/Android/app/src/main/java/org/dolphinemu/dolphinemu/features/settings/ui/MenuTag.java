@@ -27,8 +27,7 @@ public enum MenuTag
   WIIMOTE_EXTENSION_1("wiimote_extension", 4),
   WIIMOTE_EXTENSION_2("wiimote_extension", 5),
   WIIMOTE_EXTENSION_3("wiimote_extension", 6),
-  WIIMOTE_EXTENSION_4("wiimote_extension", 7),
-  BLANK("Blank");
+  WIIMOTE_EXTENSION_4("wiimote_extension", 7);
 
   private String tag;
   private int subType = -1;
