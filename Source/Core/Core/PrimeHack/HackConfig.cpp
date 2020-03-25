@@ -26,7 +26,6 @@ static float camera_fov;
 static std::string device_name, device_source;
 static bool inverted_y = false;
 static bool inverted_x = false;
-static bool camera_culling = false;
 static HackManager hack_mgr;
 bool isRunning = false;
 
@@ -69,7 +68,6 @@ bool CheckBeamScrollCtl(bool direction)
   return Wiimote::CheckBeamScroll(direction);
 }
 
-
 bool CheckSpringBallCtl()
 {
   return Wiimote::CheckSpringBall();
@@ -82,7 +80,7 @@ void SetEFBToTexture(bool toggle)
 
 bool UseMPAutoEFB()
 {
-  return Config::Get(Config::AutoEFBMP);
+  return Config::Get(Config::AUTO_EFB);
 }
 
 bool GetEFBTexture()
@@ -90,11 +88,34 @@ bool GetEFBTexture()
   return Config::Get(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM);
 }
 
+bool GetBloom()
+{
+  return Config::Get(Config::DISABLE_BLOOM_PRIME3);
+}
+
+bool GetAutoArmAdjust()
+{
+  return Config::Get(Config::ARMPOSITION_MODE) == 0;
+}
+
+bool GetToggleArmAdjust()
+{
+  return Config::Get(Config::TOGGLE_ARM_REPOSITION);
+}
+
+std::tuple<float, float, float> GetArmXYZ() {
+  float x = Config::Get(Config::ARMPOSITION_LEFTRIGHT) / 100.f;
+  float y = Config::Get(Config::ARMPOSITION_FORWARDBACK) / 100.f;
+  float z = Config::Get(Config::ARMPOSITION_UPDOWN) / 100.f;
+
+  return std::make_tuple(x, y, z);
+}
+
 void UpdateHackSettings()
 {
   double camera, cursor, fov;
-  bool invertx, inverty, culling;
-  std::tie<double, double, double, bool, bool, bool>(camera, cursor, fov, invertx, inverty, culling) =
+  bool invertx, inverty;
+  std::tie<double, double, double, bool, bool>(camera, cursor, fov, invertx, inverty) =
       Wiimote::PrimeSettings();
 
   SetSensitivity((float)camera);
@@ -102,7 +123,6 @@ void UpdateHackSettings()
   SetFov((float)fov);
   SetInvertedX(invertx);
   SetInvertedY(inverty);
-  SetCulling(culling);
 }
 
 float GetSensitivity()
@@ -140,16 +160,6 @@ bool InvertedY()
   return inverted_y;
 }
 
-void SetCulling(bool culling)
-{
-  camera_culling = culling; 
-}
-
-bool Culling()
-{
-  return camera_culling;
-}
-
 void SetInvertedY(bool inverted)
 {
   inverted_y = inverted;
@@ -173,6 +183,11 @@ std::string const& GetCtlDeviceName()
 std::string const& GetCtlDeviceSource()
 {
   return device_source;
+}
+
+bool GetCulling()
+{
+  return Config::Get(Config::TOGGLE_CULLING);
 }
 
 HackManager* GetHackManager()

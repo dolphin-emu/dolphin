@@ -153,14 +153,27 @@ namespace prime
       PowerPC::HostRead_U32(
         PowerPC::HostRead_U32(PowerPC::HostRead_U32(camera_pointer_address()) + 0x1010) + 0x24) +
       0x178);
+
     const float fov = std::min(GetFov(), 170.f);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_fov + 0x1c);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_fov_tp + 0x1c);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_fov + 0x18);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_fov_tp + 0x18);
 
-    if (Culling() || GetFov() > 96.f)
+    u32 cgame_camera = PowerPC::HostRead_U32(
+      PowerPC::HostRead_U32(
+        PowerPC::HostRead_U32(
+          PowerPC::HostRead_U32(camera_fov + 0x68) + 0x0c) + 0x18) + 0x14);
+
+    adjust_viewmodel(fov, armpos_address(), cgame_camera + 0x8C);
+
+    if (GetCulling() || GetFov() > 96.f)
       disable_culling(culling_address(), &code_changes);
+
+    if (GetBloom())
+      PowerPC::HostWrite_U32(0x4e800020, bloom_address());
+    else
+      PowerPC::HostWrite_U32(0x9421fe00, bloom_address());
   }
 
   uint32_t MP3NTSC::camera_ctl_address() const
@@ -205,6 +218,14 @@ namespace prime
   uint32_t MP3NTSC::culling_address() const
   {
     return 0x8031490C;
+  }
+  uint32_t MP3NTSC::bloom_address() const
+  {
+    return 0x804852cc; 
+  }
+  uint32_t MP3NTSC::armpos_address() const
+  {
+    return 0x809f3b00; 
   }
 
   MP3NTSC::MP3NTSC()
@@ -291,7 +312,15 @@ namespace prime
   }
   uint32_t MP3PAL::culling_address() const
   {
-    return 0x805ca0e8;
+    return 0x80314038;
+  }
+  uint32_t MP3PAL::bloom_address() const
+  {
+    return 0x804849E8;
+  }
+  uint32_t MP3PAL::armpos_address() const
+  {
+    return 0x809EACE0;
   }
 
   MP3PAL::MP3PAL()

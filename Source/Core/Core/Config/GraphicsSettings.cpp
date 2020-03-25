@@ -138,7 +138,6 @@ const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE{
     {System::GFX, "Stereoscopy", "StereoDepthPercentage"}, 100};
 
 // Graphics.Hacks
-const ConfigInfo<bool> AutoEFBMP{{System::GFX, "Hacks", "AutoEFBMP"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE{{System::GFX, "Hacks", "EFBAccessEnable"}, true};
 const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION{
     {System::GFX, "Hacks", "EFBAccessDeferInvalidation"}, false};
@@ -165,4 +164,16 @@ const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING{{System::GFX, "Hacks", "VertexRou
 
 const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE{{System::GFX, "GameSpecific", "PerfQueriesEnable"},
                                                false};
+
+// Graphics.PrimeHack
+const ConfigInfo<bool> AUTO_EFB{{System::GFX, "PrimeHack Misc", "AutoEFBMP"}, true};
+const ConfigInfo<bool> DISABLE_BLOOM_PRIME3{{System::GFX, "PrimeHack Misc", "DisableBloomPrime3"}, false};
+const ConfigInfo<bool> TOGGLE_ARM_REPOSITION{{System::GFX, "PrimeHack Misc", "ToggleArmRePosition"}, true};
+const ConfigInfo<bool> TOGGLE_CULLING{{System::GFX, "PrimeHack Misc", "ToggleCulling"}, false};
+
+const ConfigInfo<int> ARMPOSITION_MODE{{System::GFX, "PrimeHack Misc", "ArmPosition_Mode"}, 0};
+const ConfigInfo<int> ARMPOSITION_LEFTRIGHT{{System::GFX, "PrimeHack Misc", "ArmPosition_LEFTRIGHT"}, 25};
+const ConfigInfo<int> ARMPOSITION_UPDOWN{{System::GFX, "PrimeHack Misc", "ArmPosition_UPDOWN"}, 30};
+const ConfigInfo<int> ARMPOSITION_FORWARDBACK{{System::GFX, "PrimeHack Misc", "ArmPosition_FORWARDBACK"}, -35};
+
 }  // namespace Config

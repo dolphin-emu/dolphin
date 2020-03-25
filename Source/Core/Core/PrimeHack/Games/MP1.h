@@ -30,6 +30,7 @@ protected:
   virtual uint32_t global_fov1() const = 0;
   virtual uint32_t global_fov2() const = 0;
   virtual uint32_t culling_address() const = 0;
+  virtual uint32_t gunpos_address() const = 0;
 
   void beam_change_code(uint32_t base_offset);
 
@@ -62,6 +63,7 @@ protected:
   uint32_t global_fov1() const override;
   uint32_t global_fov2() const override;
   uint32_t culling_address() const override;
+  uint32_t gunpos_address() const override;
 };
 
 class MP1PAL : public MP1
@@ -89,6 +91,7 @@ protected:
   uint32_t global_fov1() const override;
   uint32_t global_fov2() const override;
   uint32_t culling_address() const override;
+  uint32_t gunpos_address() const override;
 };
 
 }

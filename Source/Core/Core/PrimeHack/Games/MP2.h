@@ -27,6 +27,7 @@ protected:
   virtual uint32_t camera_ptr_address() const = 0;
   virtual uint32_t camera_offset_address() const = 0;
   virtual uint32_t culling_address() const = 0;
+  virtual uint32_t armpos_address() const = 0;
 
 private:
   float pitch = 0;
@@ -50,6 +51,7 @@ protected:
   uint32_t camera_ptr_address() const override;
   uint32_t camera_offset_address() const override;
   uint32_t culling_address() const override;
+  uint32_t armpos_address() const override;
 };
 
 class MP2PAL : public MP2
@@ -70,6 +72,7 @@ protected:
   uint32_t camera_ptr_address() const override;
   uint32_t camera_offset_address() const override;
   uint32_t culling_address() const override;
+  uint32_t armpos_address() const override;
 };
 
 }

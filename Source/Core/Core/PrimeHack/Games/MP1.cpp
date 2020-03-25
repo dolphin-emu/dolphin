@@ -78,9 +78,11 @@ namespace prime
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base + 0x164);
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov1());
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov2());
+
+      adjust_viewmodel(fov, gunpos_address(), camera_base + 0x168);
     }
 
-    if (Culling() || GetFov() > 101.f)
+    if (GetCulling() || GetFov() > 101.f)
       disable_culling(culling_address(), &code_changes);
   }
 
@@ -162,6 +164,10 @@ namespace prime
   {
     return 0x802C7DBC;
   }
+  uint32_t MP1NTSC::gunpos_address() const
+  {
+    return 0x804DDAE4;
+  }
 
   MP1PAL::MP1PAL()
   {
@@ -233,5 +239,9 @@ namespace prime
   uint32_t MP1PAL::culling_address() const
   {
     return 0x802C8024;
+  }
+  uint32_t MP1PAL::gunpos_address() const
+  {
+    return 0x804E1A24;
   }
 }

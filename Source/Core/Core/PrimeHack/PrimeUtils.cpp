@@ -1,5 +1,7 @@
 #include "Core/PrimeHack/PrimeUtils.h"
 
+#include <Windows.h>
+
 std::string cplayer_str;
 
 namespace prime
@@ -164,6 +166,38 @@ namespace prime
   bool mem_check(u32 address)
   {
     return (address >= 0x80000000) && (address < 0x81800000);
+  }
+
+  void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address)
+  {
+    float left = 0.25f;
+    float forward = 0.30f;
+    float up = -0.35f;
+
+    if (GetToggleArmAdjust())
+    {
+      if (GetAutoArmAdjust()) {
+        if (fov > 125)
+        {
+          left = 0.22f;
+          forward = -0.02f;
+        }
+        else if (fov >= 75)
+        {
+          left = -0.00020000000000000017f * fov + 0.265f;
+          forward = -0.005599999999999999f * fov + 0.72f;
+        }
+      }
+      else {
+        std::tie<float, float, float>(left, forward, up) = GetArmXYZ();
+      }
+
+      PowerPC::HostWrite_U32(0x3d000000, znear_address);
+    }
+
+    PowerPC::HostWrite_F32(left, arm_address);
+    PowerPC::HostWrite_F32(forward, arm_address + 0x4);
+    PowerPC::HostWrite_F32(up, arm_address + 0x8);
   }
 
   float getAspectRatio()

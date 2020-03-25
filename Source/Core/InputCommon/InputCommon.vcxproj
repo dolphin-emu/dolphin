@@ -78,7 +78,7 @@
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="DInputMouseAbsolute.cpp" />
-	<ClCompile Include="GCAdapter.cpp">
+    <ClCompile Include="GCAdapter.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
       which is hit in libusb.h.

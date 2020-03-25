@@ -135,7 +135,7 @@
     <ClCompile Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.cpp">
       <Filter>ControllerInterface\DualShockUDPClient</Filter>
     </ClCompile>
-	<ClCompile Include="DInputMouseAbsolute.cpp" />
+    <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GenericMouse.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -230,6 +230,14 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Attachments.h">
       <Filter>ControllerEmu\ControlGroup</Filter>
     </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPClient.h" />
+    <ClInclude Include="ControllerInterface\DualShockUDPClient\DualShockUDPProto.h" />
+    <ClInclude Include="ControlReference\FunctionExpression.h" />
+    <ClInclude Include="DInputMouseAbsolute.h" />
+    <ClInclude Include="GenericMouse.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

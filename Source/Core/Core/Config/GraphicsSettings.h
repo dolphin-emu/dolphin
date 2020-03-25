@@ -100,7 +100,6 @@ extern const ConfigInfo<bool> GFX_STEREO_EFB_MONO_DEPTH;
 extern const ConfigInfo<int> GFX_STEREO_DEPTH_PERCENTAGE;
 
 // Graphics.Hacks
-extern const ConfigInfo<bool> AutoEFBMP;
 extern const ConfigInfo<bool> GFX_HACK_EFB_ACCESS_ENABLE;
 extern const ConfigInfo<bool> GFX_HACK_EFB_DEFER_INVALIDATION;
 extern const ConfigInfo<int> GFX_HACK_EFB_ACCESS_TILE_SIZE;
@@ -119,5 +118,17 @@ extern const ConfigInfo<bool> GFX_HACK_VERTEX_ROUDING;
 // Graphics.GameSpecific
 
 extern const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE;
+
+// Graphics.PrimeHack
+extern const ConfigInfo<bool> AUTO_EFB;
+extern const ConfigInfo<bool> DISABLE_BLOOM_PRIME3;
+extern const ConfigInfo<bool> TOGGLE_ARM_REPOSITION;
+extern const ConfigInfo<bool> TOGGLE_CULLING;
+
+extern const ConfigInfo<int> ARMPOSITION_MODE;
+extern const ConfigInfo<int> ARMPOSITION_LEFTRIGHT;
+extern const ConfigInfo<int> ARMPOSITION_UPDOWN;
+extern const ConfigInfo<int> ARMPOSITION_FORWARDBACK;
+
 
 }  // namespace Config

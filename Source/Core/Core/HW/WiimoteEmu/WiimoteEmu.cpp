@@ -315,9 +315,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                                  {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
                                  1, 170);
 
-  m_primehack_camera->AddSetting(&m_primehack_toggle_culling,
-    {"Disable Culling", nullptr, nullptr, _trans("Disable Culling")}, false);
-
   m_primehack_camera->AddSetting(
       &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
 
@@ -752,12 +749,12 @@ bool Wiimote::CheckSpringBallCtrl()
   return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
 }
 
-std::tuple<double, double, double, bool, bool, bool> Wiimote::GetPrimeSettings()
+std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
 {
   std::tuple t =
       std::make_tuple(m_primehack_camera_sensitivity.GetValue(),
                       m_primehack_cursor_sensitivity.GetValue(), m_primehack_fieldofview.GetValue(),
-                      m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue(), m_primehack_toggle_culling.GetValue());
+                      m_primehack_invert_x.GetValue(), m_primehack_invert_y.GetValue());
 
   return t;
 }

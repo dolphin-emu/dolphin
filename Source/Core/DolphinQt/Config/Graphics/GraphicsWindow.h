@@ -10,6 +10,7 @@
 class AdvancedWidget;
 class EnhancementsWidget;
 class HacksWidget;
+class PrimeWidget;
 class GeneralWidget;
 class GraphicsWidget;
 class MainWindow;
@@ -46,12 +47,14 @@ private:
   AdvancedWidget* m_advanced_widget;
   EnhancementsWidget* m_enhancements_widget;
   HacksWidget* m_hacks_widget;
+  PrimeWidget* m_prime_widget;
   GeneralWidget* m_general_widget;
   SoftwareRendererWidget* m_software_renderer;
 
   QWidget* m_wrapped_advanced;
   QWidget* m_wrapped_enhancements;
   QWidget* m_wrapped_hacks;
+  QWidget* m_wrapped_prime;
   QWidget* m_wrapped_general;
   QWidget* m_wrapped_software;
 

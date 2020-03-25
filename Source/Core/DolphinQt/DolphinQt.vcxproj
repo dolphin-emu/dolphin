@@ -380,6 +380,7 @@
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
+    <ClCompile Include="Config\Graphics\PrimeWidget.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
@@ -444,6 +445,7 @@
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\PrimeHackEmuGeneral.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
+    <ClInclude Include="Config\Graphics\PrimeWidget.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
