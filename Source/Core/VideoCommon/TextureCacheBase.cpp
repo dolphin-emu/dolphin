@@ -523,7 +523,7 @@ void TextureCacheBase::DoSaveState(PointerWrap& p)
     // Storing them would duplicate data in the save state file, adding to decompression time.
     return entry->IsCopy();
   };
-  auto AddCacheEntryToMap = [&entry_map, &entries_to_save, &p](TCacheEntry* entry) -> u32 {
+  auto AddCacheEntryToMap = [&entry_map, &entries_to_save](TCacheEntry* entry) -> u32 {
     auto iter = entry_map.find(entry);
     if (iter != entry_map.end())
       return iter->second;
