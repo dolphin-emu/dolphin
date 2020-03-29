@@ -14,7 +14,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QMenu>
-#include <QProgressDialog>
 #include <QPushButton>
 #include <QSignalBlocker>
 #include <QSpinBox>

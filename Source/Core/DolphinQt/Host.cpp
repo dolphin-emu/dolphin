@@ -6,7 +6,6 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QProgressDialog>
 
 #include <imgui.h>
 

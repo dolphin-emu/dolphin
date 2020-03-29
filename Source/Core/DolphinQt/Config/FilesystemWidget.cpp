@@ -10,7 +10,6 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
-#include <QProgressDialog>
 #include <QStandardItemModel>
 #include <QStyleFactory>
 #include <QTreeView>
@@ -23,6 +22,7 @@
 #include "DiscIO/Volume.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -282,28 +282,34 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
   u32 size = info->GetTotalChildren();
 
-  QProgressDialog* dialog = new QProgressDialog(this);
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  dialog->setMinimum(0);
-  dialog->setMaximum(size);
-  dialog->show();
-  dialog->setWindowTitle(tr("Progress"));
+  ParallelProgressDialog dialog(this);
+  dialog.GetRaw()->setMinimum(0);
+  dialog.GetRaw()->setMaximum(size);
+  dialog.GetRaw()->setWindowTitle(tr("Progress"));
 
-  bool all = path.isEmpty();
+  const bool all = path.isEmpty();
 
-  DiscIO::ExportDirectory(
-      *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
-      [all, dialog](const std::string& current) {
-        dialog->setLabelText(
-            (all ? QObject::tr("Extracting All Files...") : QObject::tr("Extracting Directory..."))
-                .append(QStringLiteral(" %1").arg(QString::fromStdString(current))));
-        dialog->setValue(dialog->value() + 1);
+  std::future<void> future = std::async(std::launch::async, [&] {
+    int progress = 0;
 
-        QCoreApplication::processEvents();
-        return dialog->wasCanceled();
-      });
+    DiscIO::ExportDirectory(
+        *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
+        [all, &dialog, &progress](const std::string& current) {
+          dialog.SetLabelText(
+              (all ? QObject::tr("Extracting All Files...") :
+                     QObject::tr("Extracting Directory..."))
+                  .append(QStringLiteral(" %1").arg(QString::fromStdString(current))));
+          dialog.SetValue(++progress);
 
-  dialog->close();
+          QCoreApplication::processEvents();
+          return dialog.WasCanceled();
+        });
+
+    dialog.Reset();
+  });
+
+  dialog.GetRaw()->exec();
+  future.get();
 }
 
 void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QString& path,
