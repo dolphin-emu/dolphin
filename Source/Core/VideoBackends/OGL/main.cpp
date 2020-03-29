@@ -73,6 +73,19 @@ std::string VideoBackend::GetDisplayName() const
     return _trans("OpenGL");
 }
 
+std::optional<std::string> VideoBackend::GetWarningMessage() const
+{
+  std::optional<std::string> result;
+
+#ifdef IPHONEOS
+  result = _trans("The OpenGL backend is slower than the Vulkan backend "
+                 "and is only recommended for debugging purposes.\n\nDo you "
+                 "really want to use OpenGL? If unsure, select 'No'.");
+#endif
+
+  return result;
+}
+
 void VideoBackend::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::OpenGL;
