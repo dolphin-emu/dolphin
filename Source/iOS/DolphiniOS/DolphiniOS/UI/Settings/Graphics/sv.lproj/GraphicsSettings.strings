@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Avancerat"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Avancerat";
+
+/* Class = "UILabel"; text = "Aktivera Progressive scan"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Aktivera Progressive scan";
+
+/* Class = "UITableViewSection"; headerTitle = "Felsökning"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Felsökning";
+
+/* Class = "UILabel"; text = "Visa statistik"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Visa statistik";
+
+/* Class = "UILabel"; text = "Inaktivera EFB-VRAM-kopior"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Inaktivera EFB-VRAM-kopior";
+
+/* Class = "UILabel"; text = "Dumpa texturer"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Dumpa texturer";
+
+/* Class = "UILabel"; text = "Aktivera Wireframe"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Aktivera Wireframe";
+
+/* Class = "UILabel"; text = "Fördröj EFB-cacheinvalidering"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Fördröj EFB-cacheinvalidering";
+
+/* Class = "UILabel"; text = "Överlägg för texturformat"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Överlägg för texturformat";
+
+/* Class = "UILabel"; text = "Flertrådning i backend"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Flertrådning i backend";
+
+/* Class = "UILabel"; text = "Läs in anpassade texturer"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Läs in anpassade texturer";
+
+/* Class = "UITableViewSection"; headerTitle = "Experimentell"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Experimentell";
+
+/* Class = "UILabel"; text = "Läs in anpassade texturer i förhand"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Läs in anpassade texturer i förhand";
+
+/* Class = "UITableViewSection"; headerTitle = "Hjälpprogram"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Hjälpprogram";
+
+/* Class = "UILabel"; text = "Beskär"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Beskär";
+
+/* Class = "UILabel"; text = "Aktivera API-valideringslager"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Aktivera API-valideringslager";
+
+/* Class = "UITableViewSection"; headerTitle = "Övrigt"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Övrigt";
+
+/* Class = "UILabel"; text = "Dumpa EFB-mål"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Dumpa EFB-mål";

@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Erweitert"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Erweitert";
+
+/* Class = "UILabel"; text = "Progressiven Scan aktivieren"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Progressiven Scan aktivieren";
+
+/* Class = "UITableViewSection"; headerTitle = "Debug"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Debug";
+
+/* Class = "UILabel"; text = "Statistiken anzeigen"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Statistiken anzeigen";
+
+/* Class = "UILabel"; text = "EFB VRAM-Kopien deaktivieren"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "EFB VRAM-Kopien deaktivieren";
+
+/* Class = "UILabel"; text = "Texturen dumpen"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Texturen dumpen";
+
+/* Class = "UILabel"; text = "Drahtgittermodell aktivieren"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Drahtgittermodell aktivieren";
+
+/* Class = "UILabel"; text = "EFB-Cache-Invalidierung zurückstellen"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "EFB-Cache-Invalidierung zurückstellen";
+
+/* Class = "UILabel"; text = "Texturenformat-Überlagerung"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Texturenformat-Überlagerung";
+
+/* Class = "UILabel"; text = "Backend Multithreading"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Backend Multithreading";
+
+/* Class = "UILabel"; text = "Lade benutzerdefinierte Texturen"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Lade benutzerdefinierte Texturen";
+
+/* Class = "UITableViewSection"; headerTitle = "Experimentell"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Experimentell";
+
+/* Class = "UILabel"; text = "Benutzerdefinierte Texturen vorladen"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Benutzerdefinierte Texturen vorladen";
+
+/* Class = "UITableViewSection"; headerTitle = "Hilfsmittel"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Hilfsmittel";
+
+/* Class = "UILabel"; text = "Zuschneiden"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Zuschneiden";
+
+/* Class = "UILabel"; text = "API-Validierungsschichten aktivieren"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "API-Validierungsschichten aktivieren";
+
+/* Class = "UITableViewSection"; headerTitle = "Sonstiges"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Sonstiges";
+
+/* Class = "UILabel"; text = "EFB-Target dumpen"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "EFB-Target dumpen";

@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Advanced";
+
+/* Class = "UILabel"; text = "Enable Progressive Scan"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Enable Progressive Scan";
+
+/* Class = "UITableViewSection"; headerTitle = "Debugging"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Debugging";
+
+/* Class = "UILabel"; text = "Show Statistics"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Show Statistics";
+
+/* Class = "UILabel"; text = "Disable EFB VRAM Copies"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Disable EFB VRAM Copies";
+
+/* Class = "UILabel"; text = "Dump Textures"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Dump Textures";
+
+/* Class = "UILabel"; text = "Enable Wireframe"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Enable Wireframe";
+
+/* Class = "UILabel"; text = "Defer EFB Cache Invalidation"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Defer EFB Cache Invalidation";
+
+/* Class = "UILabel"; text = "Texture Format Overlay"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Texture Format Overlay";
+
+/* Class = "UILabel"; text = "Backend Multithreading"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Backend Multithreading";
+
+/* Class = "UILabel"; text = "Load Custom Textures"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Load Custom Textures";
+
+/* Class = "UITableViewSection"; headerTitle = "Experimental"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Experimental";
+
+/* Class = "UILabel"; text = "Prefetch Custom Textures"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Prefetch Custom Textures";
+
+/* Class = "UITableViewSection"; headerTitle = "Utility"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Utility";
+
+/* Class = "UILabel"; text = "Crop"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Crop";
+
+/* Class = "UILabel"; text = "Enable API Validation Layers"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Enable API Validation Layers";
+
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Misc";
+
+/* Class = "UILabel"; text = "Dump EFB Target"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Dump EFB Target";

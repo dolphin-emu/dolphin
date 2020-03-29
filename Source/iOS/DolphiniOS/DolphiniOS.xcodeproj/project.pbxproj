@@ -19,6 +19,7 @@
 		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
 		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
+		B92C380324142B960023D808 /* GraphicsAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */; };
 		B945A3752362908500B21680 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.mm */; };
 		B945A37E2362908500B21680 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A37C2362908500B21680 /* Main.storyboard */; };
 		B945A3802362909500B21680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B945A37F2362909500B21680 /* Assets.xcassets */; };
@@ -285,6 +286,8 @@
 		B924DCA823DA890800831A1A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Settings.strings; sourceTree = "<group>"; };
 		B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtensions.swift; sourceTree = "<group>"; };
 		B928112523C0A24700B53145 /* TCClassicWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCClassicWiiPad.xib; sourceTree = "<group>"; };
+		B92C380124142B960023D808 /* GraphicsAdvancedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsAdvancedViewController.h; sourceTree = "<group>"; };
+		B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsAdvancedViewController.mm; sourceTree = "<group>"; };
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B945A3732362908500B21680 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B945A3742362908500B21680 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -647,6 +650,15 @@
 			path = Notices;
 			sourceTree = "<group>";
 		};
+		B92C380024142B740023D808 /* Advanced */ = {
+			isa = PBXGroup;
+			children = (
+				B92C380124142B960023D808 /* GraphicsAdvancedViewController.h */,
+				B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */,
+			);
+			path = Advanced;
+			sourceTree = "<group>";
+		};
 		B945A3672362908400B21680 = {
 			isa = PBXGroup;
 			children = (
@@ -925,6 +937,7 @@
 		B99D362F23E8017B005627CE /* Graphics */ = {
 			isa = PBXGroup;
 			children = (
+				B92C380024142B740023D808 /* Advanced */,
 				B9B47C8423FB5D010077375A /* Enhancements */,
 				B99D363423E810DC005627CE /* General */,
 				B9B47C9A23FF5A820077375A /* Hacks */,
@@ -1476,6 +1489,7 @@
 				B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */,
 				B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */,
 				B9F03CAF23B0264200423AE6 /* ControllerGroupCell.m in Sources */,
+				B92C380324142B960023D808 /* GraphicsAdvancedViewController.mm in Sources */,
 				B9B536DB23DE649A00F03106 /* NoticeNavigationViewController.m in Sources */,
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B99D361D23E3F405005627CE /* WiiAspectRatioViewController.mm in Sources */,
