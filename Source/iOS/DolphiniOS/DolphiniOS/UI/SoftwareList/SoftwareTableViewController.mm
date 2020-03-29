@@ -10,6 +10,8 @@
 
 #import "MainiOS.h"
 
+#import "Common/FileUtil.h"
+
 #import "UICommon/GameFile.h"
 
 @interface SoftwareTableViewController ()
@@ -180,6 +182,24 @@
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   [self performSegueWithIdentifier:@"toEmulation" sender:nil];
+}
+
+- (UISwipeActionsConfiguration*)tableView:(UITableView*)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  UIContextualAction* delete_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:DOLocalizedString(@"Delete") handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
+    std::shared_ptr<const UICommon::GameFile> file = self.m_cache->Get(indexPath.row);
+    if (File::Delete(file->GetFilePath()))
+    {
+      [self rescanGameFilesWithRefreshing:false];
+    }
+    
+    completion_handler(false);
+  }];
+
+  UISwipeActionsConfiguration* actions = [UISwipeActionsConfiguration configurationWithActions:@[ delete_action ]];
+  actions.performsFirstActionWithFullSwipe = false;
+  
+  return actions;
 }
 
 #pragma mark - Document picker delegate methods
