@@ -131,7 +131,7 @@
 
 - (UISwipeActionsConfiguration*)tableView:(UITableView*)tableView trailingSwipeActionsConfigurationForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  if (indexPath.section == SECTION_BUTTONS)
+  if (indexPath.section == SECTION_BUTTONS && ![ControllerSettingsUtils IsControllerConnectedToTouchscreen:self.m_controller])
   {
     UIContextualAction* clear_action = [UIContextualAction contextualActionWithStyle:UIContextualActionStyleDestructive title:DOLocalizedString(@"Clear") handler:^(UIContextualAction* action, __kindof UIView* source_view, void (^completion_handler)(bool)) {
       ControllerGroupButtonCell* cell = [self.tableView cellForRowAtIndexPath:indexPath];
