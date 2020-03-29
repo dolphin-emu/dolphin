@@ -227,4 +227,25 @@
   [[UIApplication sharedApplication] endIgnoringInteractionEvents];
 }
 
+#pragma mark - Send inputs to GameController always
+
+// Do nothing - the super for these methods should not be called, as it will
+// send the event to UIKit, instead of GameController
+
+- (void)pressesBegan:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
+{
+}
+
+- (void)pressesEnded:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
+{
+}
+
+- (void)pressesChanged:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
+{
+}
+
+- (void)pressesCancelled:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
+{
+}
+
 @end
