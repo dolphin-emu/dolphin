@@ -8,13 +8,13 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 public class Settings
 {
+  public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
   public static final String SECTION_INI_INTERFACE = "Interface";
   public static final String SECTION_INI_DSP = "DSP";
@@ -42,7 +42,8 @@ public class Settings
   static
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
-            Arrays.asList(SECTION_INI_CORE, SECTION_INI_INTERFACE, SECTION_INI_DSP,
+            Arrays.asList(SECTION_INI_GENERAL, SECTION_INI_CORE, SECTION_INI_INTERFACE,
+                    SECTION_INI_DSP,
                     SECTION_BINDINGS, SECTION_ANALYTICS, SECTION_DEBUG));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
             Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS,
