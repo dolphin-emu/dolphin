@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Geavanceerd"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Geavanceerd";
+
+/* Class = "UILabel"; text = "Activeer Progressieve Scan"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Activeer Progressieve Scan";
+
+/* Class = "UITableViewSection"; headerTitle = "Debugging"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Debugging";
+
+/* Class = "UILabel"; text = "Toon Statistieken"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Toon Statistieken";
+
+/* Class = "UILabel"; text = "Schakel EFB VRAM Kopieën uit"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Schakel EFB VRAM Kopieën uit";
+
+/* Class = "UILabel"; text = "Dump Texturen"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Dump Texturen";
+
+/* Class = "UILabel"; text = "Activeer Wireframe"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Activeer Wireframe";
+
+/* Class = "UILabel"; text = "Stel EFB Cache Invalidatie uit"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Stel EFB Cache Invalidatie uit";
+
+/* Class = "UILabel"; text = "Texture Formaat Overlay"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Texture Formaat Overlay";
+
+/* Class = "UILabel"; text = "Backend Multi-threading"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Backend Multi-threading";
+
+/* Class = "UILabel"; text = "Laad Aangepaste Texturen"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Laad Aangepaste Texturen";
+
+/* Class = "UITableViewSection"; headerTitle = "Experimenteel"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Experimenteel";
+
+/* Class = "UILabel"; text = "Prefetch Aangepaste Texturen"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Prefetch Aangepaste Texturen";
+
+/* Class = "UITableViewSection"; headerTitle = "Hulpprogramma"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Hulpprogramma";
+
+/* Class = "UILabel"; text = "Bijsnijden"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Bijsnijden";
+
+/* Class = "UILabel"; text = "Activeer API Validatielagen"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Activeer API Validatielagen";
+
+/* Class = "UITableViewSection"; headerTitle = "Overig"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Overig";
+
+/* Class = "UILabel"; text = "Dump EFB Doel"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Dump EFB Doel";

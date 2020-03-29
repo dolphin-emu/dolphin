@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Avanzate"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Avanzate";
+
+/* Class = "UILabel"; text = "Abilita Scansione Progressiva"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Abilita Scansione Progressiva";
+
+/* Class = "UITableViewSection"; headerTitle = "Debugging"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Debugging";
+
+/* Class = "UILabel"; text = "Mostra Informazioni"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Mostra Informazioni";
+
+/* Class = "UILabel"; text = "Disattiva Copie EFB VRAM"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Disattiva Copie EFB VRAM";
+
+/* Class = "UILabel"; text = "Dump delle Texture"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Dump delle Texture";
+
+/* Class = "UILabel"; text = "Abilita Wireframe"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Abilita Wireframe";
+
+/* Class = "UILabel"; text = "Posponi Invalidazione Cache EFB"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Posponi Invalidazione Cache EFB";
+
+/* Class = "UILabel"; text = "Overlay Formato Texture"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Overlay Formato Texture";
+
+/* Class = "UILabel"; text = "Multithreading Backend"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Multithreading Backend";
+
+/* Class = "UILabel"; text = "Carica Texture Personalizzate"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Carica Texture Personalizzate";
+
+/* Class = "UITableViewSection"; headerTitle = "Sperimentale"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Sperimentale";
+
+/* Class = "UILabel"; text = "Precarica Texture Personalizzate"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Precarica Texture Personalizzate";
+
+/* Class = "UITableViewSection"; headerTitle = "Utilità"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Utilità";
+
+/* Class = "UILabel"; text = "Taglia Immagine lungo i Bordi"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Taglia Immagine lungo i Bordi";
+
+/* Class = "UILabel"; text = "Abilita Layer di Validazione API"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Abilita Layer di Validazione API";
+
+/* Class = "UITableViewSection"; headerTitle = "Varie"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Varie";
+
+/* Class = "UILabel"; text = "Dump del Target EFB"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Dump del Target EFB";

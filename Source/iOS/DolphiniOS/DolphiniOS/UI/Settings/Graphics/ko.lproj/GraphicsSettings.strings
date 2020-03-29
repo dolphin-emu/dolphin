@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "고급"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "고급";
+
+/* Class = "UILabel"; text = "프로그레시브 스캔 활성화"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "프로그레시브 스캔 활성화";
+
+/* Class = "UITableViewSection"; headerTitle = "디버깅"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "디버깅";
+
+/* Class = "UILabel"; text = "통계 보기"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "통계 보기";
+
+/* Class = "UILabel"; text = "EFB 비디오램 복사 비활성"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "EFB 비디오램 복사 비활성";
+
+/* Class = "UILabel"; text = "텍스처 덤프"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "텍스처 덤프";
+
+/* Class = "UILabel"; text = "와이어프레임 활성화"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "와이어프레임 활성화";
+
+/* Class = "UILabel"; text = "EFB 캐시 무효화를 연기"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "EFB 캐시 무효화를 연기";
+
+/* Class = "UILabel"; text = "텍스처 포맷 오버레이"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "텍스처 포맷 오버레이";
+
+/* Class = "UILabel"; text = "백엔드 멀티쓰레딩"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "백엔드 멀티쓰레딩";
+
+/* Class = "UILabel"; text = "커스텀 텍스처 로드"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "커스텀 텍스처 로드";
+
+/* Class = "UITableViewSection"; headerTitle = "실험적"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "실험적";
+
+/* Class = "UILabel"; text = "커스텀 텍스처 프리패치"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "커스텀 텍스처 프리패치";
+
+/* Class = "UITableViewSection"; headerTitle = "유틸리티"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "유틸리티";
+
+/* Class = "UILabel"; text = "자르기"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "자르기";
+
+/* Class = "UILabel"; text = "API 검증 레이어 활성화"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "API 검증 레이어 활성화";
+
+/* Class = "UITableViewSection"; headerTitle = "기타"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "기타";
+
+/* Class = "UILabel"; text = "EFB 타겟 덤프"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "EFB 타겟 덤프";

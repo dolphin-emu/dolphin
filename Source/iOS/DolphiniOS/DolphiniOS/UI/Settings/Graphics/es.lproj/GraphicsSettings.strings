@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "x4"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "x4";
+
+/* Class = "UINavigationItem"; title = "Avanzado"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Avanzado";
+
+/* Class = "UILabel"; text = "Activar escaneo progresivo"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Activar escaneo progresivo";
+
+/* Class = "UITableViewSection"; headerTitle = "Depuración"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Depuración";
+
+/* Class = "UILabel"; text = "Mostrar estadísticas"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Mostrar estadísticas";
+
+/* Class = "UILabel"; text = "Activar copias de EFB VRAM"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Activar copias de EFB VRAM";
+
+/* Class = "UILabel"; text = "Volcar texturas"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Volcar texturas";
+
+/* Class = "UILabel"; text = "Ver alambrado de polígonos"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Ver alambrado de polígonos";
+
+/* Class = "UILabel"; text = "Retrazar invalidación de caché EFB"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Retrazar invalidación de caché EFB";
+
+/* Class = "UILabel"; text = "Superponer formato de textura"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Superponer formato de textura";
+
+/* Class = "UILabel"; text = "Motor Multihilo"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Motor Multihilo";
+
+/* Class = "UILabel"; text = "Cargar texturas personalizadas"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Cargar texturas personalizadas";
+
+/* Class = "UITableViewSection"; headerTitle = "Experimental"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Experimental";
+
+/* Class = "UILabel"; text = "Precargar texturas personalizadas"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Precargar texturas personalizadas";
+
+/* Class = "UITableViewSection"; headerTitle = "Opciones útiles para el desarrollo"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Opciones útiles para el desarrollo";
+
+/* Class = "UILabel"; text = "Recortar"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Recortar";
+
+/* Class = "UILabel"; text = "Activar capas de validación de la API"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Activar capas de validación de la API";
+
+/* Class = "UITableViewSection"; headerTitle = "Varios"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Varios";
+
+/* Class = "UILabel"; text = "Volcar superficie EFB"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Volcar superficie EFB";

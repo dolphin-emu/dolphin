@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "Расширенные"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "Расширенные";
+
+/* Class = "UILabel"; text = "Включить прогрессивную развёртку"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "Включить прогрессивную развёртку";
+
+/* Class = "UITableViewSection"; headerTitle = "Отладка"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "Отладка";
+
+/* Class = "UILabel"; text = "Показывать статистику"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "Показывать статистику";
+
+/* Class = "UILabel"; text = "Отключить копии EFB в VRAM"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Отключить копии EFB в VRAM";
+
+/* Class = "UILabel"; text = "Дампить текстуры"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "Дампить текстуры";
+
+/* Class = "UILabel"; text = "Включить каркас моделей"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "Включить каркас моделей";
+
+/* Class = "UILabel"; text = "Отложить инвалидацию кэша EFB"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Отложить инвалидацию кэша EFB";
+
+/* Class = "UILabel"; text = "Наложение форматов текстур"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "Наложение форматов текстур";
+
+/* Class = "UILabel"; text = "Многопоточный бэкенд"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Многопоточный бэкенд";
+
+/* Class = "UILabel"; text = "Загружать свои текстуры"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "Загружать свои текстуры";
+
+/* Class = "UITableViewSection"; headerTitle = "Экспериментальные"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "Экспериментальные";
+
+/* Class = "UILabel"; text = "Предзагружать свои текстуры"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "Предзагружать свои текстуры";
+
+/* Class = "UITableViewSection"; headerTitle = "Полезные"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "Полезные";
+
+/* Class = "UILabel"; text = "Обрезка"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "Обрезка";
+
+/* Class = "UILabel"; text = "Включить слои проверки API"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Включить слои проверки API";
+
+/* Class = "UITableViewSection"; headerTitle = "Разное"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "Разное";
+
+/* Class = "UILabel"; text = "Дампить конечный EFB"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "Дампить конечный EFB";

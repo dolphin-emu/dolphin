@@ -238,3 +238,57 @@
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
+
+/* Class = "UINavigationItem"; title = "高度な設定"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "高度な設定";
+
+/* Class = "UILabel"; text = "プログレッシブ表示を有効化"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "プログレッシブ表示を有効化";
+
+/* Class = "UITableViewSection"; headerTitle = "デバッグ用"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "デバッグ用";
+
+/* Class = "UILabel"; text = "統計情報を表示"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "統計情報を表示";
+
+/* Class = "UILabel"; text = "Disable EFB VRAM Copies"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "Disable EFB VRAM Copies";
+
+/* Class = "UILabel"; text = "テクスチャのダンプを行う"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "テクスチャのダンプを行う";
+
+/* Class = "UILabel"; text = "ワイヤーフレームを有効化"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "ワイヤーフレームを有効化";
+
+/* Class = "UILabel"; text = "Defer EFB Cache Invalidation"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "Defer EFB Cache Invalidation";
+
+/* Class = "UILabel"; text = "テクスチャフォーマット情報表示"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "テクスチャフォーマット情報表示";
+
+/* Class = "UILabel"; text = "Backend Multithreading"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "Backend Multithreading";
+
+/* Class = "UILabel"; text = "カスタムテクスチャを読み込む"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "カスタムテクスチャを読み込む";
+
+/* Class = "UITableViewSection"; headerTitle = "実験的"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "実験的";
+
+/* Class = "UILabel"; text = "カスタムテクスチャの事前読込"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "カスタムテクスチャの事前読込";
+
+/* Class = "UITableViewSection"; headerTitle = "ユーティリティ"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "ユーティリティ";
+
+/* Class = "UILabel"; text = "クロッピング"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "クロッピング";
+
+/* Class = "UILabel"; text = "Enable API Validation Layers"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "Enable API Validation Layers";
+
+/* Class = "UITableViewSection"; headerTitle = "その他"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "その他";
+
+/* Class = "UILabel"; text = "EFBターゲットをダンプ"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "EFBターゲットをダンプ";
