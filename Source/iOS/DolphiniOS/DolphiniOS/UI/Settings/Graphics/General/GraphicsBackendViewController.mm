@@ -18,7 +18,7 @@
 {
   [super viewDidLoad];
   
-  self->m_backends.push_back("OpenGL");
+  self->m_backends.push_back("OGL");
   self->m_backends.push_back("Vulkan");
   self->m_backends.push_back("Software Renderer");
   self->m_backends.push_back("Null");
