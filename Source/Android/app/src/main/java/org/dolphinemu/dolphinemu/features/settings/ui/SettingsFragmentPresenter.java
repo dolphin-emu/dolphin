@@ -216,14 +216,14 @@ public final class SettingsFragmentPresenter
 
   private void addConfigSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
-    sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
-    sl.add(new SubmenuSetting(null, null, R.string.audio_submenu, 0, MenuTag.CONFIG_AUDIO));
-    sl.add(new SubmenuSetting(null, null, R.string.paths_submenu, 0, MenuTag.CONFIG_PATHS));
-    sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
-    sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, 0, MenuTag.CONFIG_WII));
-    sl.add(new SubmenuSetting(null, null, R.string.advanced_submenu, 0, MenuTag.CONFIG_ADVANCED));
-    sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, 0, MenuTag.DEBUG));
+    sl.add(new SubmenuSetting(null, null, R.string.general_submenu, MenuTag.CONFIG_GENERAL));
+    sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, MenuTag.CONFIG_INTERFACE));
+    sl.add(new SubmenuSetting(null, null, R.string.audio_submenu, MenuTag.CONFIG_AUDIO));
+    sl.add(new SubmenuSetting(null, null, R.string.paths_submenu, MenuTag.CONFIG_PATHS));
+    sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE));
+    sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, MenuTag.CONFIG_WII));
+    sl.add(new SubmenuSetting(null, null, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
+    sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, MenuTag.DEBUG));
     sl.add(new HeaderSetting(null, null, R.string.gametdb_thanks, 0));
   }
 
@@ -499,8 +499,8 @@ public final class SettingsFragmentPresenter
             R.array.aspectRatioValues, 0, aspectRatio));
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
-    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
-    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
+    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
+    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, MenuTag.HACKS));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -589,7 +589,7 @@ public final class SettingsFragmentPresenter
                     helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
     {
       sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu,
-              R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
+              MenuTag.STEREOSCOPY));
     }
   }
 
