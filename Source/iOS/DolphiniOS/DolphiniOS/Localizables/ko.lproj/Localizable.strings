@@ -22,4 +22,6 @@
 
 "The profile has been saved." = "The profile has been saved.";
 
+"These settings will disable parts of the JIT CPU emulator and force Dolphin to use the more accurate interpreter CPU emulator instead.\n\nWARNING: Disabling parts of the JIT could bypass game bugs and emulation errors at the cost of performance (FPS).\n\nIf unsure, leave all settings unchecked." = "These settings will disable parts of the JIT CPU emulator and force Dolphin to use the more accurate interpreter CPU emulator instead.\n\nWARNING: Disabling parts of the JIT could bypass game bugs and emulation errors at the cost of performance (FPS).\n\nIf unsure, leave all settings unchecked.";
 
+"This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked." = "This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked.";

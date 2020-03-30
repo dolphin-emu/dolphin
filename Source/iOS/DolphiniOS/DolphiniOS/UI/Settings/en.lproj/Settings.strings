@@ -58,3 +58,48 @@
 
 /* Class = "UILabel"; text = "Graphics"; ObjectID = "6BT-cH-KPV"; */
 "6BT-cH-KPV.text" = "Graphics";
+
+/* Class = "UILabel"; text = "Debug"; ObjectID = "6JD-gF-g10"; */
+"6JD-gF-g10.text" = "Debug";
+
+/* Class = "UILabel"; text = "Register Cache Disabled"; ObjectID = "9xh-DU-gOm"; */
+"9xh-DU-gOm.text" = "Register Cache Disabled";
+
+/* Class = "UILabel"; text = "Paired Disabled"; ObjectID = "G79-OZ-WTs"; */
+"G79-OZ-WTs.text" = "Paired Disabled";
+
+/* Class = "UILabel"; text = "System Registers Disabled"; ObjectID = "H8K-qf-aQf"; */
+"H8K-qf-aQf.text" = "System Registers Disabled";
+
+/* Class = "UILabel"; text = "Floating Point Disabled"; ObjectID = "L2G-aP-P6r"; */
+"L2G-aP-P6r.text" = "Floating Point Disabled";
+
+/* Class = "UILabel"; text = "Sync on Skip Idle"; ObjectID = "NGt-fz-75k"; */
+"NGt-fz-75k.text" = "Sync on Skip Idle";
+
+/* Class = "UILabel"; text = "Branch Disabled"; ObjectID = "NdS-eA-YTG"; */
+"NdS-eA-YTG.text" = "Branch Disabled";
+
+/* Class = "UILabel"; text = "Integer Disabled"; ObjectID = "bxk-99-Snh"; */
+"bxk-99-Snh.text" = "Integer Disabled";
+
+/* Class = "UILabel"; text = "Help"; ObjectID = "gtb-Ne-ddc"; */
+"gtb-Ne-ddc.text" = "Help";
+
+/* Class = "UINavigationItem"; title = "Debug"; ObjectID = "ico-l1-GvZ"; */
+"ico-l1-GvZ.title" = "Debug";
+
+/* Class = "UILabel"; text = "Load Store Floating Point Disabled"; ObjectID = "li5-FM-I1H"; */
+"li5-FM-I1H.text" = "Load Store Floating Point Disabled";
+
+/* Class = "UITableViewSection"; headerTitle = "JIT"; ObjectID = "p0Y-AI-hYS"; */
+"p0Y-AI-hYS.headerTitle" = "JIT";
+
+/* Class = "UILabel"; text = "Load Store Paired Disabled"; ObjectID = "pYP-Ko-kX7"; */
+"pYP-Ko-kX7.text" = "Load Store Paired Disabled";
+
+/* Class = "UILabel"; text = "Load Store Disabled"; ObjectID = "s98-qA-2g6"; */
+"s98-qA-2g6.text" = "Load Store Disabled";
+
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "ssc-yG-eeX"; */
+"ssc-yG-eeX.headerTitle" = "Misc";
