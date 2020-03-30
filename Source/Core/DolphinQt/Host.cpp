@@ -125,11 +125,6 @@ void Host_UpdateDisasmDialog()
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
 }
 
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-  emit Host::GetInstance()->UpdateProgressDialog(QString::fromUtf8(caption), position, total);
-}
-
 void Host::RequestNotifyMapLoaded()
 {
   QueueOnObject(QApplication::instance(), [this] { emit NotifyMapLoaded(); });

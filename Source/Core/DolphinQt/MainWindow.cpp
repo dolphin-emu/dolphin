@@ -12,7 +12,6 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
-#include <QProgressDialog>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -616,8 +615,6 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectHost()
 {
-  connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
-          &MainWindow::OnUpdateProgressDialog);
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
 }
 
@@ -1700,28 +1697,6 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
-}
-
-void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
-{
-  if (!m_progress_dialog)
-  {
-    m_progress_dialog = new QProgressDialog(m_render_widget, Qt::WindowTitleHint);
-    m_progress_dialog->show();
-    m_progress_dialog->setCancelButton(nullptr);
-    m_progress_dialog->setWindowTitle(tr("Dolphin"));
-  }
-
-  m_progress_dialog->setValue(progress);
-  m_progress_dialog->setLabelText(title);
-  m_progress_dialog->setMaximum(total);
-
-  if (total < 0 || progress >= total)
-  {
-    m_progress_dialog->hide();
-    m_progress_dialog->deleteLater();
-    m_progress_dialog = nullptr;
-  }
 }
 
 void MainWindow::Show()

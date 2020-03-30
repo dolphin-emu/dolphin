@@ -11,7 +11,6 @@
 #include <optional>
 #include <string>
 
-class QProgressDialog;
 class QStackedWidget;
 class QString;
 
@@ -167,8 +166,6 @@ private:
   void OnSignal();
 #endif
 
-  void OnUpdateProgressDialog(QString label, int progress, int total);
-
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
@@ -193,7 +190,6 @@ private:
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
 #endif
 
-  QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
   MenuBar* m_menu_bar;
