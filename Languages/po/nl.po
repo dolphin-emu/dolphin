@@ -21,9 +21,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 23:35+0100\n"
-"PO-Revision-Date: 2020-03-24 22:35+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-03-31 23:13+0200\n"
+"PO-Revision-Date: 2020-03-25 08:10+0000\n"
+"Last-Translator: Boris Peeters\n"
 "Language-Team: Dutch (http://www.transifex.com/delroth/dolphin-emu/language/"
 "nl/)\n"
 "Language: nl\n"
@@ -128,7 +128,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:208
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -1478,7 +1478,7 @@ msgstr "Branch: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 msgid "Branches"
-msgstr ""
+msgstr "Branches"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -2157,6 +2157,9 @@ msgid ""
 "\n"
 "The emulated console will now stop."
 msgstr ""
+"Kan geen bruikbare Bluetooth USB-adapter vinden voor Bluetooth Passthrough.\n"
+"\n"
+"De geëmuleerde console stopt nu."
 
 #: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:128
 #, c-format

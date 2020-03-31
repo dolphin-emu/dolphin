@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 23:35+0100\n"
-"PO-Revision-Date: 2020-03-24 22:35+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-03-31 23:13+0200\n"
+"PO-Revision-Date: 2020-03-25 15:36+0000\n"
+"Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
 "Language: it\n"
@@ -116,7 +116,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:208
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -1469,7 +1469,7 @@ msgstr "Branch: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 msgid "Branches"
-msgstr ""
+msgstr "Branch"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -4914,7 +4914,7 @@ msgstr "Installa su NAND"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:148
 msgid "Instr."
-msgstr ""
+msgstr "Istr."
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
@@ -6269,7 +6269,7 @@ msgstr "Pad"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:149
 msgid "Parameters"
-msgstr ""
+msgstr "Parametri"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
