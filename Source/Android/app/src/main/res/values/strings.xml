@@ -138,6 +138,8 @@
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="insert_sd_card">Insert SD Card</string>
+    <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>

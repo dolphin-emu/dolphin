@@ -130,7 +130,7 @@ void WiiPane::CreateMisc()
                                        "(576i) for PAL games.\nMay not work for all games."));
   m_screensaver_checkbox->setToolTip(tr("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->setToolTip(tr("Sets the Wii system language."));
-  m_sd_card_checkbox->setToolTip(tr("Saved to /Wii/sd.raw (default size is 128mb)."));
+  m_sd_card_checkbox->setToolTip(tr("Supports SD and SDHC. Default size is 128 MB."));
   m_connect_keyboard_checkbox->setToolTip(tr("May cause slow down in Wii Menu and some games."));
 
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
