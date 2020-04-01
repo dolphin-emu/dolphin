@@ -31,6 +31,9 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
+#include <OptionParser.h>
+#include <UICommon/UICommon.h>
+#include <UICommon/CommandLineParse.h>
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
 
@@ -56,6 +59,73 @@ u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
+
+static u32 get_MEM1Size()
+{
+  u32 MEM1_Size;
+  // I need to initialize some stuff that is normally initialized in
+  // int main(), because this funtion will be run before any of that.
+  optparse::Values options_temp;
+  UICommon::SetUserDirectory(static_cast<const char*>(options_temp.get("user")));
+  UICommon::CreateDirectories();
+  SConfig::Init();
+
+  if (SConfig::GetInstance().m_RAMOverrideEnable == true)
+  {
+    // Configurable MEM1 Size
+    MEM1_Size = SConfig::GetInstance().m_MEM1Size;
+  }
+  else
+  {
+    // Retail MEM1 Size
+    MEM1_Size = 0x01800000;
+  }
+
+  SConfig::Shutdown();
+  return MEM1_Size;
+}
+static u32 get_MEM2Size()
+{
+  u32 MEM2_Size;
+  // I need to initialize some stuff that is normally initialized in
+  // int main(), because this funtion will be run before any of that.
+  optparse::Values options_temp;
+  UICommon::SetUserDirectory(static_cast<const char*>(options_temp.get("user")));
+  UICommon::CreateDirectories();
+  SConfig::Init();
+
+  if (SConfig::GetInstance().m_RAMOverrideEnable == true)
+  {
+    // Configurable MEM2 Size
+    MEM2_Size = SConfig::GetInstance().m_MEM2Size;
+  }
+  else
+  {
+    // Retail MEM2 Size
+    MEM2_Size = 0x04000000;
+  }
+
+  SConfig::Shutdown();
+  return MEM2_Size;
+}
+
+// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
+// what will be reported in lowmem, and thus used by emulated software.
+// Essentially the same also holds true for EXRAM_SIZE vs REALEXRAM_SIZE.
+// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+// always be set to 24MB.
+u32 REALRAM_SIZE = get_MEM1Size();
+u32 RAM_SIZE = MathUtil::NextPowerOf2(REALRAM_SIZE);
+u32 RAM_MASK = RAM_SIZE - 1;
+u32 FAKEVMEM_SIZE = 0x02000000;
+u32 FAKEVMEM_MASK = FAKEVMEM_SIZE - 1;
+u32 L1_CACHE_SIZE = 0x00040000;
+u32 L1_CACHE_MASK = L1_CACHE_SIZE - 1;
+u32 IO_SIZE = 0x00010000;
+u32 REALEXRAM_SIZE = get_MEM2Size();
+u32 EXRAM_SIZE = MathUtil::NextPowerOf2(REALEXRAM_SIZE);
+u32 EXRAM_MASK = EXRAM_SIZE - 1;
+
 
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
@@ -375,7 +445,7 @@ void Clear()
 static inline u8* GetPointerForRange(u32 address, size_t size)
 {
   // Make sure we don't have a range spanning 2 separate banks
-  if (size >= EXRAM_SIZE)
+  if (size >= REALEXRAM_SIZE)
     return nullptr;
 
   // Check that the beginning and end of the range are valid
@@ -455,7 +525,7 @@ u8* GetPointer(u32 address)
 
   if (m_pEXRAM)
   {
-    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < REALEXRAM_SIZE)
       return m_pEXRAM + (address & EXRAM_MASK);
   }
 

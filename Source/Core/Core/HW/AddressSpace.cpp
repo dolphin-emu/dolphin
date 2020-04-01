@@ -366,7 +366,7 @@ struct NullAccessors : Accessors
 static EffectiveAddressSpaceAccessors s_effective_address_space_accessors;
 static AuxiliaryAddressSpaceAccessors s_auxiliary_address_space_accessors;
 static SmallBlockAccessors s_mem1_address_space_accessors{&Memory::m_pRAM, Memory::REALRAM_SIZE};
-static SmallBlockAccessors s_mem2_address_space_accessors{&Memory::m_pEXRAM, Memory::EXRAM_SIZE};
+static SmallBlockAccessors s_mem2_address_space_accessors{&Memory::m_pEXRAM, Memory::REALEXRAM_SIZE};
 static SmallBlockAccessors s_fake_address_space_accessors{&Memory::m_pFakeVMEM,
                                                           Memory::FAKEVMEM_SIZE};
 static CompositeAddressSpaceAccessors s_physical_address_space_accessors_gcn{

@@ -234,6 +234,9 @@ struct SConfig
   float m_EmulationSpeed;
   bool m_OCEnable;
   float m_OCFactor;
+  bool m_RAMOverrideEnable;
+  u32 m_MEM1Size;
+  u32 m_MEM2Size;
   // other interface settings
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
