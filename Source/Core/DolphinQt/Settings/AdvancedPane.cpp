@@ -96,6 +96,30 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_description->setWordWrap(true);
   clock_override_layout->addWidget(cpu_clock_override_description);
 
+  auto* mem1_override = new QGroupBox(tr("Memory Override"));
+  auto* mem1_override_layout = new QVBoxLayout();
+  mem1_override->setLayout(mem1_override_layout);
+  main_layout->addWidget(mem1_override);
+
+  m_mem1_override_checkbox = new QCheckBox(tr("Enable Memory Override"));
+  mem1_override_layout->addWidget(m_mem1_override_checkbox);
+
+  auto* mem1_override_slider_layout = new QHBoxLayout();
+  mem1_override_slider_layout->setContentsMargins(0, 0, 0, 0);
+  mem1_override_layout->addLayout(mem1_override_slider_layout);
+
+  m_mem1_override_slider = new QSlider(Qt::Horizontal);
+  m_mem1_override_slider->setRange(0, 150);
+  mem1_override_slider_layout->addWidget(m_mem1_override_slider);
+
+  m_mem1_override_slider_label = new QLabel();
+  mem1_override_slider_layout->addWidget(m_mem1_override_slider_label);
+
+  auto* mem1_override_description =
+      new QLabel(tr("WIP Memory Override"));
+  mem1_override_description->setWordWrap(true);
+  mem1_override_layout->addWidget(mem1_override_description);
+
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
   rtc_options->setLayout(new QVBoxLayout());
   main_layout->addWidget(rtc_options);
