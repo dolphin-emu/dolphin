@@ -344,6 +344,17 @@ void VertexManagerBase::Flush()
 
   m_is_flushed = true;
 
+  if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens ||
+      xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
+  {
+    ERROR_LOG(VIDEO,
+              "Mismatched configuration between XF and BP stages - %u/%u texgens, %u/%u colors. "
+              "Skipping draw. Please report on the issue tracker.",
+              xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value(),
+              xfmem.numChan.numColorChans, bpmem.genMode.numcolchans.Value());
+    return;
+  }
+
 #if defined(_DEBUG) || defined(DEBUGFAST)
   PRIM_LOG("frame%d:\n texgen=%u, numchan=%u, dualtex=%u, ztex=%u, cole=%u, alpe=%u, ze=%u",
            g_ActiveConfig.iSaveTargetId, xfmem.numTexGen.numTexGens, xfmem.numChan.numColorChans,
