@@ -234,7 +234,7 @@ void AudioPane::LoadSettings()
   m_dolby_quality_slider->setValue(int(Config::Get(Config::MAIN_DPL2_QUALITY)));
   m_dolby_quality_latency_label->setText(
       GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-  if (AudioCommon::SupportsDPL2Decoder(current))
+  if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())
   {
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isChecked());
   }
