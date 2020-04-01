@@ -16,9 +16,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 23:35+0100\n"
-"PO-Revision-Date: 2020-03-24 22:35+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-03-31 23:13+0200\n"
+"PO-Revision-Date: 2020-03-29 08:48+0000\n"
+"Last-Translator: DanbSky <danbsky@live.jp>\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
 "Language: ja\n"
@@ -121,7 +121,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:208
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -195,7 +195,7 @@ msgstr "%1 が退室しました"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1009
 msgid "%1 is now golfing"
-msgstr ""
+msgstr "%1 がゴルフ中"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:250
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:320
@@ -262,7 +262,7 @@ msgstr ""
 #: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:215
 #, c-format
 msgid "%s was not a directory, moved to *.original"
-msgstr ""
+msgstr "%s はフォルダでなかったので、*.original へ移動させました"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:260
 msgid "& And"
@@ -802,7 +802,7 @@ msgstr "Dolphinについて"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:50
 msgid "Accelerometer"
-msgstr ""
+msgstr "加速度"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:73
 msgid "Accuracy:"
@@ -1065,7 +1065,7 @@ msgstr "すべてのプレイヤーのセーブデータは同期されました
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:132
 msgid "Allow Mismatched Region Settings"
-msgstr ""
+msgstr "コンソール上の言語設定の不一致を許可"
 
 #: Source/Core/DolphinQt/Main.cpp:198
 msgid "Allow Usage Statistics Reporting"
@@ -1097,7 +1097,7 @@ msgstr ""
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
-msgstr "他の入力方法を使う"
+msgstr "外部入力設定"
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
@@ -1146,7 +1146,7 @@ msgstr "角度"
 #. i18n: Refers to the dead-zone setting of gyroscope input.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.cpp:42
 msgid "Angular velocity to ignore."
-msgstr ""
+msgstr "設定値以下の運動速度を無視します"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:92
 msgid "Anisotropic Filtering:"
@@ -1395,7 +1395,7 @@ msgstr "バスドラム"
 
 #: Source/Core/DolphinQt/Main.cpp:173
 msgid "Batch mode cannot be used without specifying a game to launch."
-msgstr ""
+msgstr "バッチモードの使用にはタイトルの指定が必須です"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:256
 msgid "Battery"
@@ -1462,7 +1462,7 @@ msgstr "Branch: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 msgid "Branches"
-msgstr ""
+msgstr "Branches"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -1647,6 +1647,8 @@ msgid ""
 "Cannot interpret the given value.\n"
 "Have you chosen the right type?"
 msgstr ""
+"与えられた値の解釈ができませんでした。\n"
+"正しい形式が選択されていますか？"
 
 #: Source/Core/Core/Boot/Boot.cpp:503
 msgid "Cannot start the game, because the GC IPL could not be found."
@@ -1768,7 +1770,7 @@ msgstr "Clear Cache"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:69
 msgid "Clock Override"
-msgstr ""
+msgstr "Clock Override を有効化"
 
 #: Source/Core/DolphinQt/Config/ARCodeWidget.cpp:146
 msgid "Clone and &Edit Code..."
@@ -1930,7 +1932,7 @@ msgstr "Wiiリモコンの接続"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
 msgid "Connect Wii Remotes for Emulated Controllers"
-msgstr ""
+msgstr "実機Wiiリモコンをエミュレートされたコントローラとして扱う"
 
 #: Source/Core/DolphinQt/WiiUpdate.cpp:139
 msgid "Connect to the Internet and perform an online system update?"
@@ -2019,6 +2021,8 @@ msgid ""
 "Controls whether or not Dual Core should be enabled. Can improve performance "
 "but can also cause issues. Defaults to <b>True</b>"
 msgstr ""
+"デュアルコアで処理を行うかの設定です。有効化すると処理速度が向上しますが、"
+"様々なバグを引き起こすこともあります。デフォルトは <b>True</b>（有効）です。"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:44
 msgid ""
@@ -2552,6 +2556,12 @@ msgid ""
 "\n"
 "Do you really want to switch to Direct3D 11? If unsure, select 'No'."
 msgstr ""
+"Direct3D 11 レンダラは、使用中のシステムではサポートされていない機能を必要と"
+"しています。これは主に Windows 7 を使用していることが原因である可能性が高いで"
+"す。このまま使用することはできますが、描画に問題が発生する場合があります。\n"
+"\n"
+"本当に Direct3D 11 を使いますか？\n"
+"よく分からない場合、「いいえ」を選択してください。"
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:104
 msgid "Disable Bounding Box"
@@ -2641,7 +2651,7 @@ msgstr ""
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:29
 msgid "Distance"
-msgstr ""
+msgstr "距離"
 
 #. i18n: Refering to emulated wii remote swing movement.
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:33
@@ -2693,11 +2703,11 @@ msgstr "Dolphin Map File (*.map)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:63
 msgid "Dolphin Signature CSV File"
-msgstr ""
+msgstr "Dolphin Signature CSV File"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:63
 msgid "Dolphin Signature File"
-msgstr ""
+msgstr "Dolphin Signature File"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1556
 #: Source/Core/DolphinQt/MainWindow.cpp:1627
@@ -2879,7 +2889,7 @@ msgstr "テクスチャのダンプを行う"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:91
 msgid "Dump at Internal Resolution"
-msgstr ""
+msgstr "Dump at Internal Resolution"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:165
 msgid ""
@@ -2953,6 +2963,8 @@ msgid ""
 "Suitable for competitive games where fairness and minimal latency are most "
 "important."
 msgstr ""
+"ホストが設定したバッファサイズですべてのプレイヤーの入力を受け付けます。\n"
+"公平性が重要な対戦ゲーム向けの設定です。"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:113
 msgid "Early Memory Updates"
@@ -3014,7 +3026,7 @@ msgstr "エミュレーション速度"
 #: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
-msgstr ""
+msgstr "有効"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:56
 msgid "Enable API Validation Layers"
@@ -3129,6 +3141,16 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"いくつかのタイトルで特別な距離ベースエフェクトのために使用される、任意のミッ"
+"プマップの検出を可能にします。\n"
+"\n"
+"非常に低解像度なミップマップを使用しているタイトルでは、内部解像度を上げても"
+"誤検知によりテクスチャがぼやけたままになる可能性があります。\n"
+"無効にした場合は、頻繁に新しいテクスチャを読み込むタイトルでカクつきを減らす"
+"可能性があります。\n"
+"この機能は「GPUテクスチャデコーディング」と互換性がありません。\n"
+"\n"
+"よく分からなければ、チェックを外さないでください。"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:223
 msgid ""
@@ -3393,7 +3415,7 @@ msgstr "Dolphinを終了"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:557
 msgid "Expected arguments: "
-msgstr ""
+msgstr "入力値の検証：変数の入力待ち"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:681
 msgid "Expected closing paren."
@@ -3405,11 +3427,11 @@ msgstr ""
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:476
 msgid "Expected end of expression."
-msgstr ""
+msgstr "入力値の検証：演算子に続く入力待ち"
 
 #: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:611
 msgid "Expected start of expression."
-msgstr ""
+msgstr "入力値の検証：入力待ち"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:124
 msgid "Experimental"
@@ -3437,7 +3459,7 @@ msgstr "セーブファイルをエクスポート"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:368
 msgid "Export Wii Save"
-msgstr ""
+msgstr "セーブデータをエクスポート"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:289
 msgid "Export Wii Saves"
@@ -3456,11 +3478,11 @@ msgstr "拡張コントローラ"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
 msgid "Extension Motion Input"
-msgstr ""
+msgstr "拡張コントローラ モーション（外部入力）"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
 msgid "Extension Motion Simulation"
-msgstr ""
+msgstr "拡張コントローラ モーション"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:540
 msgid "External"
@@ -4343,7 +4365,7 @@ msgstr "一般"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:366
 msgid "General and Options"
-msgstr "一般設定"
+msgstr "全般"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:260
 msgid "Generate Action Replay Code"
@@ -4434,7 +4456,7 @@ msgstr "ギターコントローラ"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:218
 msgid "Gyroscope"
-msgstr ""
+msgstr "ジャイロスコープ"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:114
 msgid "HDMI 3D"
@@ -4526,7 +4548,7 @@ msgstr "ホットキー"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:151
 msgid "Hotkeys Require Window Focus"
-msgstr ""
+msgstr "フォーカスがあるときのみホットキーを動作させる"
 
 #. i18n: The symbol/abbreviation for hertz (cycles per second).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:154
@@ -4673,6 +4695,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"通常の排他的フルスクリーン表示ではなく、枠のないウィンドウを全画面に広げる形"
+"でフルスクリーン表示します。\n"
+"他のウィンドウとの表示切替が高速になりますが、代わりに若干の操作遅延、動作速"
+"度の低下などのデメリットも発生します。\n"
+"\n"
+"よく分からなければ、チェックを入れないでください。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:257
 msgid "Import BootMii NAND Backup..."
@@ -4788,7 +4816,7 @@ msgstr "NANDへインストール"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:148
 msgid "Instr."
-msgstr ""
+msgstr "Instr."
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
@@ -5001,7 +5029,7 @@ msgstr "JIT Recompiler (推奨)"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:900
 msgid "JIT Register Cache Off"
-msgstr ""
+msgstr "JIT Register Cache Off"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:884
 msgid "JIT SystemRegisters Off"
@@ -5613,11 +5641,11 @@ msgstr "次の値より大きい"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:368
 msgid "Motion Input"
-msgstr ""
+msgstr "モーション（外部入力）"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:367
 msgid "Motion Simulation"
-msgstr ""
+msgstr "モーション"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:85
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:237
@@ -6132,7 +6160,7 @@ msgstr "パッド"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:149
 msgid "Parameters"
-msgstr ""
+msgstr "Parameters"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
@@ -9471,6 +9499,8 @@ msgid ""
 "mapping traditional buttons, triggers or axes. You might need to configure "
 "alternate input sources before using these controls."
 msgstr ""
+"注意：このページの加速度欄およびジャイロスコープ欄は、モーションセンサーを持"
+"つ外部入力装置のためのものです。事前に外部入力設定が必要です。"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:35
 msgid ""
@@ -9479,6 +9509,8 @@ msgid ""
 "triggers or axes. You might need to configure alternate input sources before "
 "using these controls."
 msgstr ""
+"注意：このページはモーションセンサーを持つ外部入力装置のためのものです。事前"
+"に外部入力設定が必要です。"
 
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
@@ -9788,6 +9820,9 @@ msgid ""
 "10.14 (Mojave) or newer. Please do not report any issues encountered unless "
 "they also occur on 10.14+."
 msgstr ""
+"Vulkan (Metal) API をサポートしていないOSで有効にしようとしています。\n"
+"すべての機能を有効化するには macOS 10.14 (Mojave) 以降のOSが必要です。\n"
+"これより前のOSで問題が発生してもバグ報告はしないでください。"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:538
 msgid "You are running the latest version available on this update track."

@@ -16,9 +16,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 23:35+0100\n"
-"PO-Revision-Date: 2020-03-24 22:35+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-03-31 23:13+0200\n"
+"PO-Revision-Date: 2020-03-29 10:13+0000\n"
+"Last-Translator: Pascal <pascal2j-language@yahoo.com>\n"
 "Language-Team: French (http://www.transifex.com/delroth/dolphin-emu/language/"
 "fr/)\n"
 "Language: fr\n"
@@ -123,7 +123,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:208
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -1475,7 +1475,7 @@ msgstr "Branche : %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 msgid "Branches"
-msgstr ""
+msgstr "Branches"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -1829,7 +1829,7 @@ msgstr "Commentaire"
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
 msgid "Common"
-msgstr "Partagé"
+msgstr "Tous"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:125
 msgid "Compile Shaders Before Starting"
@@ -4937,7 +4937,7 @@ msgstr "Installer dans la NAND"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:148
 msgid "Instr."
-msgstr ""
+msgstr "Instr."
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
@@ -6293,7 +6293,7 @@ msgstr "Manettes"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:149
 msgid "Parameters"
-msgstr ""
+msgstr "Paramètres"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
@@ -7153,7 +7153,7 @@ msgstr "Sauvegarder la carte des symboles &sous..."
 
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:107
 msgid "Save Texture Cache to State"
-msgstr "Sauvegarder le cache de texture dans la sauvegarde de l'état"
+msgstr "Enreg. le cache de texture dans la sauveg. de l'état"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:393
 msgid "Save and Load State"
@@ -9797,12 +9797,12 @@ msgid ""
 "\n"
 "Otherwise, if unsure, leave this unchecked."
 msgstr ""
-"Attend que la compilation de tous les shaders ait terminé avant de démarrer "
-"le jeu. Activer cette option peut réduire les saccades pendant quelques "
-"instants après le démarrage du jeu, au prix d'une attente plus longue avant "
-"le démarrage du jeu. Pour les configurations avec un ou deux cœurs, il est "
-"recommandé d'activer cette option, car une grande quantité de shaders à "
-"compiler peut ralentir le jeu.\n"
+"Attend que la compilation de tous les shaders soit terminée avant de "
+"démarrer le jeu. Activer cette option peut réduire les saccades pendant "
+"quelques instants après le démarrage du jeu, au prix d'une attente plus "
+"longue avant le démarrage du jeu. Pour les configurations avec un ou deux "
+"cœurs, il est recommandé d'activer cette option, car une grande quantité de "
+"shaders à compiler peut ralentir le jeu.\n"
 "\n"
 "Dans le cas contraire et dans le doute, décochez cette case."
 

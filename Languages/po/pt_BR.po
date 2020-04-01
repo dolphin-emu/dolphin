@@ -24,7 +24,7 @@
 # JohnCorsi <jjcorsif@hotmail.com>, 2018
 # JohnCorsi <jjcorsif@hotmail.com>, 2018
 # Laete Meireles <laetemn@hotmail.com>, 2016-2017
-# Lucas Miranda <Liddack@outlook.com>, 2018-2019
+# Lucas Miranda <Liddack@outlook.com>, 2018-2020
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
 # Mateus B. Cassiano <inactive+Jhonn@transifex.com>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2016
@@ -40,9 +40,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-03-24 23:35+0100\n"
-"PO-Revision-Date: 2020-03-24 22:35+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-03-31 23:13+0200\n"
+"PO-Revision-Date: 2020-03-25 12:14+0000\n"
+"Last-Translator: Lucas Miranda <Liddack@outlook.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -144,7 +144,7 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:209
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:208
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
@@ -1494,7 +1494,7 @@ msgstr "Branch: %1"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:151
 msgid "Branches"
-msgstr ""
+msgstr "Branches"
 
 #. i18n: This is a selectable action when adding a breakpoint
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:67
@@ -2171,7 +2171,7 @@ msgid ""
 "The emulated console will now stop."
 msgstr ""
 "Não foi possível localizar nenhum adaptador Bluetooth compatível para "
-"Passagem Direta Bluetooth.\n"
+"passagem direta Bluetooth.\n"
 "\n"
 "O console emulado irá parar agora."
 
@@ -2185,7 +2185,7 @@ msgid ""
 "The emulated console will now stop."
 msgstr ""
 "Não foi possível localizar nenhum adaptador Bluetooth compatível para "
-"Passagem Direta Bluetooth.\n"
+"passagem direta Bluetooth.\n"
 "O seguinte erro ocorreu quando o Dolphin tentou usar um adaptador:\n"
 "%s\n"
 "\n"
@@ -3952,7 +3952,7 @@ msgstr "Nome do Arquivo"
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:202
 #: Source/Core/DolphinQt/MenuBar.cpp:608
 msgid "File Path"
-msgstr "Caminho do Arquivo"
+msgstr "Caminho do arquivo"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:920
 #: Source/Core/DolphinQt/MenuBar.cpp:611
@@ -4244,7 +4244,7 @@ msgstr "Resetar Velocidade (Olhar Livre)"
 
 #: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Freelook Toggle"
-msgstr "Alternar Freelook"
+msgstr "Alternar olhar livre"
 
 #: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Freelook Zoom In"
@@ -4650,7 +4650,7 @@ msgstr "Teclas de Atalho"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:151
 msgid "Hotkeys Require Window Focus"
-msgstr "Teclas de Atalho Requerem Foco do Windows"
+msgstr "Teclas de atalho requerem foco do Windows"
 
 #. i18n: The symbol/abbreviation for hertz (cycles per second).
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:154
@@ -4931,7 +4931,7 @@ msgstr "Instalar na NAND"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:148
 msgid "Instr."
-msgstr ""
+msgstr "Instr."
 
 #: Source/Core/DolphinQt/Debugger/PatchInstructionDialog.cpp:20
 msgid "Instruction"
@@ -6276,7 +6276,7 @@ msgstr "Pads"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:149
 msgid "Parameters"
-msgstr ""
+msgstr "Parâmetros"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:172
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:258
