@@ -14,6 +14,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
+#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
@@ -352,6 +353,20 @@ void VertexManagerBase::Flush()
               "Skipping draw. Please report on the issue tracker.",
               xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value(),
               xfmem.numChan.numColorChans, bpmem.genMode.numcolchans.Value());
+
+    // Analytics reporting so we can discover which games have this problem, that way when we
+    // eventually simulate the behavior we have test cases for it.
+    if (xfmem.numTexGen.numTexGens != bpmem.genMode.numtexgens)
+    {
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
+    }
+    if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
+    {
+      DolphinAnalytics::Instance().ReportGameQuirk(
+          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
+    }
+
     return;
   }
 
