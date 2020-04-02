@@ -36,7 +36,7 @@ struct NetSettings
   bool m_OCEnable;
   float m_OCFactor;
   bool m_MEM1OverrideEnable;
-  int m_MEM1Size;
+  u32 m_MEM1Size;
   std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;

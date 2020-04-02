@@ -235,7 +235,7 @@ struct SConfig
   bool m_OCEnable;
   float m_OCFactor;
   bool m_MEM1OverrideEnable;
-  int m_MEM1Size;
+  u32 m_MEM1Size;
   // other interface settings
   bool m_InterfaceExtendedFPSInfo;
   bool m_show_active_title = false;
@@ -335,9 +335,10 @@ struct SConfig
   static void Init();
   static void Shutdown();
 
-private:
   SConfig();
   ~SConfig();
+  
+private:
 
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);

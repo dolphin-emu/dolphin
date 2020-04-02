@@ -57,6 +57,19 @@ u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
 
+static u32 Init_MEM1Size() {
+  // I am breaking the rules by declaring a temporary SConfig, but since this function will be called
+  // before the quasi-global SConfig is initialized, I have no other means of accessing the config values.
+  SConfig temp_config;
+  if (temp_config.m_MEM1OverrideEnable == true) {
+   return temp_config.m_MEM1Size;  // Configurable MEM1 Size
+  }
+  else {
+    return 0x01800000;  // Retail MEM1 Size
+  }
+}
+u32 REALRAM_SIZE = Init_MEM1Size();
+
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
 

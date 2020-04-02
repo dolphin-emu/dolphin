@@ -11,6 +11,7 @@
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/ConfigManager.h"
 
 // Global declarations
 class PointerWrap;
@@ -37,14 +38,16 @@ extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
 extern u8* m_pFakeVMEM;
 
+extern u32 REALRAM_SIZE;
+
 enum
 {
   // RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
   // what will be reported in lowmem, and thus used by emulated software.
   // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
   // always be set to 24MB.
-  REALRAM_SIZE = 0x01800000,
-  RAM_SIZE = MathUtil::NextPowerOf2(REALRAM_SIZE),
+//  REALRAM_SIZE = 0x01800000,
+  RAM_SIZE = 0x08000000,
   RAM_MASK = RAM_SIZE - 1,
   FAKEVMEM_SIZE = 0x02000000,
   FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,

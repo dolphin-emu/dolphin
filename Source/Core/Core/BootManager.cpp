@@ -95,7 +95,7 @@ private:
   float m_EmulationSpeed;
   float m_OCFactor;
   bool m_OCEnable;
-  int m_MEM1Size;
+  u32 m_MEM1Size;
   bool m_MEM1OverrideEnable;
   bool m_bt_passthrough_enabled;
   std::string strBackend;

@@ -76,7 +76,7 @@ extern const ConfigInfo<bool> MAIN_ACCURATE_NANS;
 extern const ConfigInfo<float> MAIN_EMULATION_SPEED;
 extern const ConfigInfo<float> MAIN_OVERCLOCK;
 extern const ConfigInfo<bool> MAIN_OVERCLOCK_ENABLE;
-extern const ConfigInfo<int> MAIN_MEM1_SIZE;
+extern const ConfigInfo<u32> MAIN_MEM1_SIZE;
 extern const ConfigInfo<bool> MAIN_MEM1_OVERRIDE_ENABLE;
 // Should really be part of System::GFX, but again, we're stuck with past mistakes.
 extern const ConfigInfo<std::string> MAIN_GFX_BACKEND;
