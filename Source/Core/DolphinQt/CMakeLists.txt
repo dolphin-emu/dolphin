@@ -97,6 +97,8 @@ add_executable(dolphin-emu
   Config/Graphics/PostProcessingConfigWindow.h
   Config/Graphics/SoftwareRendererWidget.cpp
   Config/Graphics/SoftwareRendererWidget.h
+  Config/Graphics/PrimeWidget.cpp
+  Config/Graphics/PrimeWidget.h
   Config/InfoWidget.cpp
   Config/InfoWidget.h
   Config/LogConfigWidget.cpp
@@ -150,7 +152,7 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuExtensionMotionSimulation.h
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuGeneral.h
-	Config/Mapping/PrimeHackEmuGeneral.cpp
+  Config/Mapping/PrimeHackEmuGeneral.cpp
   Config/Mapping/PrimeHackEmuGeneral.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/Mapping/WiimoteEmuMotionControl.h
