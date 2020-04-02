@@ -44,7 +44,7 @@ public class Analytics
     sPrefsEditor.putBoolean(analyticsAsked, true);
     sPrefsEditor.apply();
 
-    new AlertDialog.Builder(context, R.style.Theme_AppCompat_Dialog_Alert)
+    new AlertDialog.Builder(context, R.style.DolphinDialogBase)
             .setTitle(context.getString(R.string.analytics))
             .setMessage(context.getString(R.string.analytics_desc))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
