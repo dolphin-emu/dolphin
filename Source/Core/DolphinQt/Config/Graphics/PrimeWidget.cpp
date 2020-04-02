@@ -22,7 +22,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
-#include <Core\Core.h>
+#include <Core/Core.h>
 
 PrimeWidget::PrimeWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {
