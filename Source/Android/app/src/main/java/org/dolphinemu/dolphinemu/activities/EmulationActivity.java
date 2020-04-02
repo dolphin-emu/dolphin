@@ -738,7 +738,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     final SharedPreferences.Editor editor = mPreferences.edit();
     boolean[] enabledButtons = new boolean[14];
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
     if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0)
     {
@@ -795,7 +795,7 @@ public final class EmulationActivity extends AppCompatActivity
   public void chooseDoubleTapButton()
   {
     final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
 
     int currentController =
             mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUCK);
@@ -857,7 +857,7 @@ public final class EmulationActivity extends AppCompatActivity
     value.setText(String.valueOf(seekbar.getProgress() + 50));
     units.setText("%");
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_control_scale);
     builder.setView(view);
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
@@ -876,7 +876,7 @@ public final class EmulationActivity extends AppCompatActivity
   private void chooseController()
   {
     final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_choose_controller);
     builder.setSingleChoiceItems(R.array.controllersEntries,
             mPreferences.getInt("wiiController", 3),
@@ -902,7 +902,7 @@ public final class EmulationActivity extends AppCompatActivity
   private void showMotionControlsOptions()
   {
     final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_motion_controls);
     builder.setSingleChoiceItems(R.array.motionControlsEntries,
             mPreferences.getInt("motionControlsEnabled", 0),
@@ -938,7 +938,7 @@ public final class EmulationActivity extends AppCompatActivity
     }
 
     final SharedPreferences.Editor editor = mPreferences.edit();
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_screen_orientation);
     builder.setSingleChoiceItems(R.array.orientationEntries, initialIndex,
             (dialog, indexSelected) ->
@@ -1055,7 +1055,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(getString(R.string.emulation_ir_sensitivity));
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
@@ -1090,7 +1090,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void resetOverlay()
   {
-    new AlertDialog.Builder(this)
+    new AlertDialog.Builder(this, R.style.DolphinDialogBase)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
             {

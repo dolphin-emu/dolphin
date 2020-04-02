@@ -137,7 +137,7 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
 
     if (gameId.isEmpty())
     {
-      AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+      AlertDialog.Builder builder = new AlertDialog.Builder(activity, R.style.DolphinDialogBase);
       builder.setTitle("Game Settings");
       builder.setMessage("Files without game IDs don't support game-specific settings.");
 
