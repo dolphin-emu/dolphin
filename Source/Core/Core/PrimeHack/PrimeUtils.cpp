@@ -1,7 +1,5 @@
 #include "Core/PrimeHack/PrimeUtils.h"
 
-#include <Windows.h>
-
 std::string cplayer_str;
 
 namespace prime

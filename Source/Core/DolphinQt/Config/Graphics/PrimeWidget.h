@@ -30,11 +30,6 @@ private:
   QCheckBox* m_autoefb;
   QCheckBox* m_toggle_culling;
 
-  // Viewmodel position
-  QLabel* x_label;
-  QLabel* y_label;
-  QLabel* z_label;
-
   QSpinBox* x_counter;
   QSpinBox* y_counter;
   QSpinBox* z_counter;
