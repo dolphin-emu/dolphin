@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::ConfigLocation*, 93> s_setting_saveable = {
+  static constexpr std::array<const Config::ConfigLocation*, 101> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -148,6 +148,16 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       // UI.General
 
       &Config::MAIN_USE_DISCORD_PRESENCE.location,
+
+      // PrimeHack
+      &Config::TOGGLE_ARM_REPOSITION.location,
+      &Config::AUTO_EFB.location,
+      &Config::ARMPOSITION_MODE.location,
+      &Config::ARMPOSITION_LEFTRIGHT.location,
+      &Config::ARMPOSITION_UPDOWN.location,
+      &Config::ARMPOSITION_FORWARDBACK.location,
+      &Config::TOGGLE_CULLING.location,
+      &Config::DISABLE_BLOOM_PRIME3.location,
   };
 
   return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),
