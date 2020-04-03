@@ -50,8 +50,8 @@ extern u32 FAKEVMEM_MASK;
 extern u32 L1_CACHE_SIZE;
 extern u32 L1_CACHE_MASK;
 extern u32 IO_SIZE;
+extern u32 REALEXRAM_SIZE;
 extern u32 EXRAM_SIZE;
-//extern u32 EXRAM_SIZE;
 extern u32 EXRAM_MASK;
 
 // MMIO mapping object.

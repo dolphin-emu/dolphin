@@ -218,7 +218,7 @@ static T ReadFromHardware(u32 em_address)
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+      (em_address & 0x0FFFFFFF) < Memory::REALEXRAM_SIZE)
   {
     T value;
     std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
@@ -307,7 +307,7 @@ static void WriteToHardware(u32 em_address, const T data)
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+      (em_address & 0x0FFFFFFF) < Memory::REALEXRAM_SIZE)
   {
     const T swapped_data = bswap(data);
     std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
@@ -669,7 +669,7 @@ static bool IsRAMAddress(u32 address, bool translate)
   u32 segment = address >> 28;
   if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
     return true;
-  else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+  else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::REALEXRAM_SIZE)
     return true;
   else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
     return true;
@@ -1215,7 +1215,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         else if (physical_address < Memory::REALRAM_SIZE)
           valid_bit |= BAT_PHYSICAL_BIT;
         else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                 (physical_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+                 (physical_address & 0x0FFFFFFF) < Memory::REALEXRAM_SIZE)
           valid_bit |= BAT_PHYSICAL_BIT;
         else if (physical_address >> 28 == 0xE &&
                  physical_address < 0xE0000000 + Memory::L1_CACHE_SIZE)

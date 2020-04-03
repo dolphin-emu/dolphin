@@ -97,7 +97,7 @@ private:
   bool m_OCEnable;
   bool m_RAMOverrideEnable;
   u32 m_MEM1Size;
-  bool m_MEM1OverrideEnable;
+  u32 m_MEM2Size;
   bool m_bt_passthrough_enabled;
   std::string strBackend;
   std::string sBackend;

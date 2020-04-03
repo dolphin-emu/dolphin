@@ -193,7 +193,7 @@ void Reinit(bool hle)
   if (SConfig::GetInstance().bWii)
   {
     s_ARAM.wii_mode = true;
-    s_ARAM.size = Memory::EXRAM_SIZE;
+    s_ARAM.size = Memory::REALEXRAM_SIZE;
     s_ARAM.mask = Memory::EXRAM_MASK;
     s_ARAM.ptr = Memory::m_pEXRAM;
   }

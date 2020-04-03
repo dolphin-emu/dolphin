@@ -114,8 +114,8 @@ u32 FAKEVMEM_MASK = FAKEVMEM_SIZE - 1;
 u32 L1_CACHE_SIZE = 0x00040000;
 u32 L1_CACHE_MASK = L1_CACHE_SIZE - 1;
 u32 IO_SIZE = 0x00010000;
-u32 EXRAM_SIZE = get_MEM2Size();
-//u32 EXRAM_SIZE = MathUtil::NextPowerOf2(REALEXRAM_SIZE);
+u32 REALEXRAM_SIZE = get_MEM2Size();
+u32 EXRAM_SIZE = MathUtil::NextPowerOf2(REALEXRAM_SIZE);
 u32 EXRAM_MASK = EXRAM_SIZE - 1;
 
 
@@ -437,7 +437,7 @@ void Clear()
 static inline u8* GetPointerForRange(u32 address, size_t size)
 {
   // Make sure we don't have a range spanning 2 separate banks
-  if (size >= EXRAM_SIZE)
+  if (size >= REALEXRAM_SIZE)
     return nullptr;
 
   // Check that the beginning and end of the range are valid
@@ -517,7 +517,7 @@ u8* GetPointer(u32 address)
 
   if (m_pEXRAM)
   {
-    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < REALEXRAM_SIZE)
       return m_pEXRAM + (address & EXRAM_MASK);
   }
 
