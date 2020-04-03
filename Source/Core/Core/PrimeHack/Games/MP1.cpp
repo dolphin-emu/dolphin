@@ -83,7 +83,7 @@ namespace prime
     }
 
     if (GetCulling() || GetFov() > 101.f)
-      disable_culling(culling_address(), &code_changes);
+      disable_culling(culling_address());
 
     if (GetEnableSecondaryGunFX())
       EnableSecondaryGunFX(gunfx_address());

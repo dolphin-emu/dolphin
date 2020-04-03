@@ -34,7 +34,7 @@ float getAspectRatio();
 void set_beam_owned(int index, bool owned);
 void set_cursor_pos(float x, float y);
 
-void disable_culling(u32 address, std::vector<CodeChange>* code_changes);
+void disable_culling(u32 address);
 void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address);
 
 class MenuNTSC : public PrimeMod

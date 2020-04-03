@@ -41,7 +41,7 @@ namespace prime
     cursor_y = y;
   }
 
-  void disable_culling(u32 address, std::vector<CodeChange>* code_changes)
+  void disable_culling(u32 address)
   {
     write_invalidate(address, 0x38600001);
     write_invalidate(address + 0x4, 0x4E800020);

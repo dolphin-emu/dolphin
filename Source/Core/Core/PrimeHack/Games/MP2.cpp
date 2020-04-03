@@ -103,7 +103,7 @@ namespace prime
     adjust_viewmodel(fov, armpos_address(), camera_base + 0x1C4);
 
     if (GetCulling() || GetFov() > 101.f)
-      disable_culling(culling_address(), &code_changes);
+      disable_culling(culling_address());
   }
 
   MP2NTSC::MP2NTSC()

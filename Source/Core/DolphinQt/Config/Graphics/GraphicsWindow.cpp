@@ -11,8 +11,6 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
-#include "Core/ConfigManager.h"
-
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
@@ -24,6 +22,10 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "Core/ConfigManager.h"
+#include <Common\Config\Config.h>
+#include <Settings.h>
+#include <ModalMessageBox.h>
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
@@ -45,6 +47,16 @@ void GraphicsWindow::CreateMainLayout()
       new QLabel(tr("Move the mouse pointer over an option to display a detailed description."));
   m_tab_widget = new QTabWidget();
   m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+
+  connect(m_tab_widget, &QTabWidget::currentChanged, this, [=] {
+    if (m_tab_widget->currentIndex() == 4)
+    {
+      if (!Settings::Instance().GetPrimeEnabled())
+      {
+        ModalMessageBox::warning(this, tr("PrimeHack Settings"), tr("PrimeHack has not been enabled. None of the settings in the PrimeHack Misc tab will work until it is enabled in the Config window."));
+      }
+    }
+  });
 
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
 

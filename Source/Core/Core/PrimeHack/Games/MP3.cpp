@@ -168,7 +168,7 @@ namespace prime
     adjust_viewmodel(fov, armpos_address(), cgame_camera + 0x8C);
 
     if (GetCulling() || GetFov() > 96.f)
-      disable_culling(culling_address(), &code_changes);
+      disable_culling(culling_address());
 
     if (GetBloom())
       PowerPC::HostWrite_U32(0x4e800020, bloom_address());
