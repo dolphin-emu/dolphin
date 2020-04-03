@@ -18,6 +18,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
 #include "Common/Swap.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -30,13 +31,11 @@
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/PixelEngine.h"
-
-#include "Core/ConfigManager.h"
+#include <OptionParser.h>
 #include <UICommon/UICommon.h>
 #include <UICommon/CommandLineParse.h>
-#include <OptionParser.h>
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/PixelEngine.h"
 
 namespace Memory
 {

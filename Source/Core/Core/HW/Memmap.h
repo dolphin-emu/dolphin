@@ -11,7 +11,6 @@
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/PowerPC/MMU.h"
-#include "Core/ConfigManager.h"
 
 // Global declarations
 class PointerWrap;
