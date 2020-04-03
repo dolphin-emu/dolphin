@@ -84,6 +84,9 @@ namespace prime
 
     if (GetCulling() || GetFov() > 101.f)
       disable_culling(culling_address(), &code_changes);
+
+    if (GetEnableSecondaryGunFX())
+      EnableSecondaryGunFX(gunfx_address());
   }
 
   MP1NTSC::MP1NTSC()
@@ -168,6 +171,10 @@ namespace prime
   {
     return 0x804DDAE4;
   }
+  uint32_t MP1NTSC::gunfx_address() const
+  {
+    return 0x8018C410;
+  }
 
   MP1PAL::MP1PAL()
   {
@@ -243,5 +250,73 @@ namespace prime
   uint32_t MP1PAL::gunpos_address() const
   {
     return 0x804E1A24;
+  }
+  uint32_t MP1PAL::gunfx_address() const
+  {
+    return 0x8018C6A8;
+  }
+
+  void MP1::EnableSecondaryGunFX(u32 address)
+  {
+    const u32 address1 = 0x80004A74;
+    const u32 address2 = 0x80004968;
+
+    if (PowerPC::HostRead_U32(address) == 0x4BE78558)
+      return;
+
+    write_invalidate(address1, 0x9421FFA8);
+    write_invalidate(address1 + 0x4, 0x7C0802A6);
+    write_invalidate(address1 + 0x8, 0x9001001C);
+    write_invalidate(address1 + 0xc, 0x93A10010);
+    write_invalidate(address1 + 0x10, 0x93C10018);
+    write_invalidate(address1 + 0x14, 0x93E10014);
+    write_invalidate(address1 + 0x18, 0xD3E1000C);
+    write_invalidate(address1 + 0x1c, 0x7C7F1B78);
+    write_invalidate(address1 + 0x20, 0x7C9E2378);
+    write_invalidate(address1 + 0x24, 0x7CBD2B78);
+    write_invalidate(address1 + 0x28, 0xFFE00890);
+    write_invalidate(address1 + 0x2c, 0x38610020);
+    write_invalidate(address1 + 0x30, 0x389F04B0);
+    write_invalidate(address1 + 0x34, 0x48344291);
+    write_invalidate(address1 + 0x38, 0x7FA3EB78);
+    write_invalidate(address1 + 0x3c, 0x38810020);
+    write_invalidate(address1 + 0x40, 0x7FE5FB78);
+    write_invalidate(address1 + 0x44, 0x48134DC5);
+    write_invalidate(address1 + 0x48, 0xC03F0384);
+    write_invalidate(address1 + 0x4c, 0x38800000);
+    write_invalidate(address1 + 0x50, 0xC002CDF8);
+    write_invalidate(address1 + 0x54, 0x807F0734);
+    write_invalidate(address1 + 0x58, 0xFC010040);
+    write_invalidate(address1 + 0x5c, 0x40810018);
+    write_invalidate(address1 + 0x60, 0xC03F037C);
+    write_invalidate(address1 + 0x64, 0xC002D078);
+    write_invalidate(address1 + 0x68, 0xFC010040);
+    write_invalidate(address1 + 0x6c, 0x40810008);
+    write_invalidate(address1 + 0x70, 0x38800001);
+    write_invalidate(address1 + 0x74, 0x81830000);
+    write_invalidate(address1 + 0x78, 0x7FC5F378);
+    write_invalidate(address1 + 0x7c, 0x38DF0510);
+    write_invalidate(address1 + 0x80, 0xFC20F890);
+    write_invalidate(address1 + 0x84, 0x818C001C);
+    write_invalidate(address1 + 0x88, 0x7D8903A6);
+    write_invalidate(address1 + 0x8c, 0x4E800421);
+    write_invalidate(address1 + 0x90, 0x83A10010);
+    write_invalidate(address1 + 0x94, 0x83C10018);
+    write_invalidate(address1 + 0x98, 0x83E10014);
+    write_invalidate(address1 + 0x9c, 0x8001001C);
+    write_invalidate(address1 + 0xa0, 0xC3E1000C);
+    write_invalidate(address1 + 0xa4, 0x7C0803A6);
+    write_invalidate(address1 + 0xa8, 0x38210058);
+    write_invalidate(address1 + 0xac, 0x4E800020);
+
+    write_invalidate(address2, 0x7F03C378);
+    write_invalidate(address2 + 0x4, 0x7F24CB78);
+    write_invalidate(address2 + 0x8, 0x7F65DB78);
+    write_invalidate(address2 + 0xc, 0xFC20F890);
+    write_invalidate(address2 + 0x10, 0x480000F1);
+    write_invalidate(address2 + 0x14, 0x386100B0);
+    write_invalidate(address2 + 0x18, 0x48187A94);
+
+    write_invalidate(address, 0x4BE78558);
   }
 }

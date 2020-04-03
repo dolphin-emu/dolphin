@@ -93,6 +93,11 @@ bool GetBloom()
   return Config::Get(Config::DISABLE_BLOOM_PRIME3);
 }
 
+bool GetEnableSecondaryGunFX()
+{
+  return Config::Get(Config::ENABLE_SECONDARY_GUNFX);
+}
+
 bool GetAutoArmAdjust()
 {
   return Config::Get(Config::ARMPOSITION_MODE) == 0;

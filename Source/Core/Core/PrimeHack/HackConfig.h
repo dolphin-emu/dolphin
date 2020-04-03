@@ -20,6 +20,8 @@ namespace prime
   bool GetEFBTexture();
   bool GetBloom();
 
+  bool GetEnableSecondaryGunFX();
+
   bool GetAutoArmAdjust();
   bool GetToggleArmAdjust();
   std::tuple<float, float, float> GetArmXYZ();

@@ -29,6 +29,7 @@ private:
   QCheckBox* m_prime3_bloom;
   QCheckBox* m_autoefb;
   QCheckBox* m_toggle_culling;
+  QCheckBox* m_toggle_secondaryFX;
 
   QSpinBox* x_counter;
   QSpinBox* y_counter;

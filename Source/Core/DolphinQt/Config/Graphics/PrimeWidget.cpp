@@ -22,6 +22,7 @@
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
+#include "Core/PrimeHack/HackConfig.h"
 #include <Core/Core.h>
 
 PrimeWidget::PrimeWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
@@ -47,11 +48,19 @@ void PrimeWidget::CreateWidgets()
   m_prime3_bloom = new GraphicsBool(tr("Disable Bloom In Prime 3 [TheHatedGravity, dreamsyntax]"), Config::DISABLE_BLOOM_PRIME3);
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
+  m_toggle_secondaryFX = new GraphicsBool(tr("Enable Original Gamecube Gun Effects"), Config::ENABLE_SECONDARY_GUNFX);
+
+  if (prime::GetFov() > 96)
+    m_toggle_culling->setEnabled(false);
+
+  if (prime::GetEnableSecondaryGunFX())
+    m_toggle_secondaryFX->setEnabled(false);
 
   graphics_layout->addWidget(m_autoefb, 0, 0);
-  graphics_layout->addWidget(m_prime3_bloom, 1, 0);
-  graphics_layout->addWidget(m_toggle_arm_position, 2, 0);
-  graphics_layout->addWidget(m_toggle_culling, 3, 0);
+  graphics_layout->addWidget(m_toggle_secondaryFX, 1, 0);
+  graphics_layout->addWidget(m_prime3_bloom, 2, 0);
+  graphics_layout->addWidget(m_toggle_arm_position, 3, 0);
+  graphics_layout->addWidget(m_toggle_culling, 4, 0);
 
   // Viewmodel Position
   auto* viewmodel_box = new QGroupBox(tr("Viewmodel Position"));
@@ -130,6 +139,26 @@ void PrimeWidget::ConnectWidgets()
       m_auto_arm_position->setEnabled(checked); 
       m_manual_arm_position->setEnabled(checked); 
       PrimeWidget::ArmPositionModeChanged(m_manual_arm_position->isChecked());
+    });
+  connect(m_toggle_secondaryFX, &QCheckBox::clicked, this,
+    [=](bool checked)
+    {
+      if (Core::GetState() != Core::State::Uninitialized) {
+        if (m_toggle_secondaryFX->isChecked())
+          m_toggle_secondaryFX->setEnabled(false);
+      }
+    });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+    [=](Core::State state)
+    {
+      if (state != Core::State::Uninitialized) {
+        if (prime::GetEnableSecondaryGunFX())
+          m_toggle_secondaryFX->setEnabled(false);
+      }
+      else {
+        m_toggle_secondaryFX->setEnabled(true);
+        m_toggle_culling->setEnabled(true);
+      }
     });
 }
 
