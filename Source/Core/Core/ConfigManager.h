@@ -336,10 +336,9 @@ struct SConfig
   static void Init();
   static void Shutdown();
 
+private:
   SConfig();
   ~SConfig();
-
-private:
 
   void SaveGeneralSettings(IniFile& ini);
   void SaveInterfaceSettings(IniFile& ini);

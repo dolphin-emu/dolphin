@@ -63,6 +63,7 @@ u8* m_pFakeVMEM;
 
 static u32 get_MEM1Size()
 {
+  u32 MEM1_Size;
   // I need to initialize some stuff that is normally initialized in
   // int main(), because this funtion will be run before any of that.
   optparse::Values options_temp;
@@ -73,16 +74,20 @@ static u32 get_MEM1Size()
   if (SConfig::GetInstance().m_RAMOverrideEnable == true)
   {
     // Configurable MEM1 Size
-    return SConfig::GetInstance().m_MEM1Size;
+    MEM1_Size = SConfig::GetInstance().m_MEM1Size;
   }
   else
   {
     // Retail MEM1 Size
-    return 0x01800000;
+    MEM1_Size = 0x01800000;
   }
+
+  SConfig::Shutdown();
+  return MEM1_Size;
 }
 static u32 get_MEM2Size()
 {
+  u32 MEM2_Size;
   // I need to initialize some stuff that is normally initialized in
   // int main(), because this funtion will be run before any of that.
   optparse::Values options_temp;
@@ -93,17 +98,21 @@ static u32 get_MEM2Size()
   if (SConfig::GetInstance().m_RAMOverrideEnable == true)
   {
     // Configurable MEM2 Size
-    return SConfig::GetInstance().m_MEM2Size;
+    MEM2_Size = SConfig::GetInstance().m_MEM2Size;
   }
   else
   {
     // Retail MEM2 Size
-    return 0x04000000;
+    MEM2_Size = 0x04000000;
   }
+
+  SConfig::Shutdown();
+  return MEM2_Size;
 }
 
 // RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
 // what will be reported in lowmem, and thus used by emulated software.
+// Essentially the same also holds true for EXRAM_SIZE vs REALEXRAM_SIZE.
 // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
 // always be set to 24MB.
 u32 REALRAM_SIZE = get_MEM1Size();
