@@ -18,7 +18,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
 #include "Common/Swap.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVD/DVDInterface.h"
@@ -33,6 +32,11 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/PixelEngine.h"
+
+#include "Core/ConfigManager.h"
+#include <UICommon/UICommon.h>
+#include <UICommon/CommandLineParse.h>
+#include <OptionParser.h>
 
 namespace Memory
 {
@@ -57,18 +61,63 @@ u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
 
-static u32 Init_MEM1Size() {
-  // I am breaking the rules by declaring a temporary SConfig, but since this function will be called
-  // before the quasi-global SConfig is initialized, I have no other means of accessing the config values.
-  SConfig temp_config;
-  if (temp_config.m_MEM1OverrideEnable == true) {
-   return temp_config.m_MEM1Size;  // Configurable MEM1 Size
+static u32 get_MEM1Size()
+{
+  // I need to initialize some stuff that is normally initialized in
+  // int main(), because this funtion will be run before any of that.
+  optparse::Values options_temp;
+  UICommon::SetUserDirectory(static_cast<const char*>(options_temp.get("user")));
+  UICommon::CreateDirectories();
+  SConfig::Init();
+
+  if (SConfig::GetInstance().m_RAMOverrideEnable == true)
+  {
+    // Configurable MEM1 Size
+    return SConfig::GetInstance().m_MEM1Size;
   }
-  else {
-    return 0x01800000;  // Retail MEM1 Size
+  else
+  {
+    // Retail MEM1 Size
+    return 0x01800000;
   }
 }
-u32 REALRAM_SIZE = Init_MEM1Size();
+static u32 get_MEM2Size()
+{
+  // I need to initialize some stuff that is normally initialized in
+  // int main(), because this funtion will be run before any of that.
+  optparse::Values options_temp;
+  UICommon::SetUserDirectory(static_cast<const char*>(options_temp.get("user")));
+  UICommon::CreateDirectories();
+  SConfig::Init();
+
+  if (SConfig::GetInstance().m_RAMOverrideEnable == true)
+  {
+    // Configurable MEM2 Size
+    return SConfig::GetInstance().m_MEM2Size;
+  }
+  else
+  {
+    // Retail MEM2 Size
+    return 0x04000000;
+  }
+}
+
+// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
+// what will be reported in lowmem, and thus used by emulated software.
+// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+// always be set to 24MB.
+u32 REALRAM_SIZE = get_MEM1Size();
+u32 RAM_SIZE = MathUtil::NextPowerOf2(REALRAM_SIZE);
+u32 RAM_MASK = RAM_SIZE - 1;
+u32 FAKEVMEM_SIZE = 0x02000000;
+u32 FAKEVMEM_MASK = FAKEVMEM_SIZE - 1;
+u32 L1_CACHE_SIZE = 0x00040000;
+u32 L1_CACHE_MASK = L1_CACHE_SIZE - 1;
+u32 IO_SIZE = 0x00010000;
+u32 EXRAM_SIZE = get_MEM2Size();
+//u32 EXRAM_SIZE = MathUtil::NextPowerOf2(REALEXRAM_SIZE);
+u32 EXRAM_MASK = EXRAM_SIZE - 1;
+
 
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;

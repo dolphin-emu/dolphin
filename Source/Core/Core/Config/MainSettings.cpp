@@ -98,8 +98,9 @@ const ConfigInfo<bool> MAIN_ACCURATE_NANS{{System::Main, "Core", "AccurateNaNs"}
 const ConfigInfo<float> MAIN_EMULATION_SPEED{{System::Main, "Core", "EmulationSpeed"}, 1.0f};
 const ConfigInfo<float> MAIN_OVERCLOCK{{System::Main, "Core", "Overclock"}, 1.0f};
 const ConfigInfo<bool> MAIN_OVERCLOCK_ENABLE{{System::Main, "Core", "OverclockEnable"}, false};
+const ConfigInfo<bool> MAIN_RAM_OVERRIDE_ENABLE{{System::Main, "Core", "RAMOverrideEnable"}, false};
 const ConfigInfo<u32> MAIN_MEM1_SIZE{{System::Main, "Core", "MEM1Size"}, 0x01800000};
-const ConfigInfo<bool> MAIN_MEM1_OVERRIDE_ENABLE{{System::Main, "Core", "MEM1OverrideEnable"}, false};
+const ConfigInfo<u32> MAIN_MEM2_SIZE{{System::Main, "Core", "MEM2Size"}, 0x04000000};
 const ConfigInfo<std::string> MAIN_GFX_BACKEND{{System::Main, "Core", "GFXBackend"}, ""};
 const ConfigInfo<std::string> MAIN_GPU_DETERMINISM_MODE{
     {System::Main, "Core", "GPUDeterminismMode"}, "auto"};

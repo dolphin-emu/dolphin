@@ -95,6 +95,7 @@ private:
   float m_EmulationSpeed;
   float m_OCFactor;
   bool m_OCEnable;
+  bool m_RAMOverrideEnable;
   u32 m_MEM1Size;
   bool m_MEM1OverrideEnable;
   bool m_bt_passthrough_enabled;
@@ -134,8 +135,9 @@ void ConfigCache::SaveConfig(const SConfig& config)
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_OCFactor = config.m_OCFactor;
   m_OCEnable = config.m_OCEnable;
+  m_RAMOverrideEnable = config.m_RAMOverrideEnable;
   m_MEM1Size = config.m_MEM1Size;
-  m_MEM1OverrideEnable = config.m_MEM1OverrideEnable;
+  m_MEM2Size = config.m_MEM2Size;
   m_bt_passthrough_enabled = config.m_bt_passthrough_enabled;
 
   for (int i = 0; i != MAX_BBMOTES; ++i)
@@ -211,8 +213,9 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
+  config->m_RAMOverrideEnable = m_RAMOverrideEnable;
   config->m_MEM1Size = m_MEM1Size;
-  config->m_MEM1OverrideEnable = m_MEM1OverrideEnable;
+  config->m_MEM2Size = m_MEM2Size;
   config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
   VideoBackendBase::ActivateBackend(config->m_strVideoBackend);
 }
@@ -291,8 +294,9 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
                       StartUp.m_strGPUDeterminismMode);
     core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);
     core_section->Get("OverclockEnable", &StartUp.m_OCEnable, StartUp.m_OCEnable);
+    core_section->Get("RAMOverrideEnable", &StartUp.m_RAMOverrideEnable, StartUp.m_RAMOverrideEnable);
     core_section->Get("MEM1Size", &StartUp.m_MEM1Size, StartUp.m_MEM1Size);
-    core_section->Get("MEM1OverrideEnable", &StartUp.m_MEM1OverrideEnable, StartUp.m_MEM1OverrideEnable);
+    core_section->Get("MEM2Size", &StartUp.m_MEM2Size, StartUp.m_MEM2Size);
 
     for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
@@ -377,8 +381,9 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     StartUp.m_DSPEnableJIT = netplay_settings.m_DSPEnableJIT;
     StartUp.m_OCEnable = netplay_settings.m_OCEnable;
     StartUp.m_OCFactor = netplay_settings.m_OCFactor;
-    StartUp.m_MEM1OverrideEnable = netplay_settings.m_MEM1OverrideEnable;
+    StartUp.m_RAMOverrideEnable = netplay_settings.m_RAMOverrideEnable;
     StartUp.m_MEM1Size = netplay_settings.m_MEM1Size;
+    StartUp.m_MEM2Size = netplay_settings.m_MEM2Size;
     StartUp.m_EXIDevice[0] = netplay_settings.m_EXIDevice[0];
     StartUp.m_EXIDevice[1] = netplay_settings.m_EXIDevice[1];
     StartUp.m_EXIDevice[2] = netplay_settings.m_EXIDevice[2];

@@ -38,25 +38,21 @@ extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
 extern u8* m_pFakeVMEM;
 
+// RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
+// what will be reported in lowmem, and thus used by emulated software.
+// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+// always be set to 24MB.
 extern u32 REALRAM_SIZE;
-
-enum
-{
-  // RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
-  // what will be reported in lowmem, and thus used by emulated software.
-  // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-  // always be set to 24MB.
-//  REALRAM_SIZE = 0x01800000,
-  RAM_SIZE = 0x08000000,
-  RAM_MASK = RAM_SIZE - 1,
-  FAKEVMEM_SIZE = 0x02000000,
-  FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,
-  L1_CACHE_SIZE = 0x00040000,
-  L1_CACHE_MASK = L1_CACHE_SIZE - 1,
-  IO_SIZE = 0x00010000,
-  EXRAM_SIZE = 0x04000000,
-  EXRAM_MASK = EXRAM_SIZE - 1,
-};
+extern u32 RAM_SIZE;
+extern u32 RAM_MASK;
+extern u32 FAKEVMEM_SIZE;
+extern u32 FAKEVMEM_MASK;
+extern u32 L1_CACHE_SIZE;
+extern u32 L1_CACHE_MASK;
+extern u32 IO_SIZE;
+extern u32 EXRAM_SIZE;
+//extern u32 EXRAM_SIZE;
+extern u32 EXRAM_MASK;
 
 // MMIO mapping object.
 extern std::unique_ptr<MMIO::Mapping> mmio_mapping;

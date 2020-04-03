@@ -35,8 +35,9 @@ struct NetSettings
   bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
-  bool m_MEM1OverrideEnable;
+  bool m_RAMOverrideEnable;
   u32 m_MEM1Size;
+  u32 m_MEM2Size;
   std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice;
   bool m_EFBAccessEnable;
   bool m_BBoxEnable;
