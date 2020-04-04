@@ -595,8 +595,8 @@ void GameList::CompressISO(bool decompress)
       }
 
       good = std::async(std::launch::async, [&] {
-        const bool good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(),
-                                                       &CompressCB, &progress_dialog);
+        const bool good = DiscIO::ConvertToPlain(original_path, dst_path.toStdString(), &CompressCB,
+                                                 &progress_dialog);
         progress_dialog.Reset();
         return good;
       });
@@ -612,9 +612,9 @@ void GameList::CompressISO(bool decompress)
 
       good = std::async(std::launch::async, [&] {
         const bool good =
-            DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
-                                       file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
-                                       16384, &CompressCB, &progress_dialog);
+            DiscIO::ConvertToGCZ(original_path, dst_path.toStdString(),
+                                 file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, 16384,
+                                 &CompressCB, &progress_dialog);
         progress_dialog.Reset();
         return good;
       });

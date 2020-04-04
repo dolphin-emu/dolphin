@@ -52,6 +52,7 @@ public:
   u64 GetRawSize() const override { return m_file_size; }
   u64 GetDataSize() const override { return m_header.data_size; }
   bool IsDataSizeAccurate() const override { return true; }
+  u64 GetBlockSize() const override { return m_header.block_size; }
   u64 GetBlockCompressedSize(u64 block_num) const;
   bool GetBlock(u64 block_num, u8* out_ptr) override;
 

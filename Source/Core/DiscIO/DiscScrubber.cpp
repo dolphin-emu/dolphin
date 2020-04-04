@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
@@ -29,19 +30,11 @@ constexpr size_t CLUSTER_SIZE = 0x8000;
 DiscScrubber::DiscScrubber() = default;
 DiscScrubber::~DiscScrubber() = default;
 
-bool DiscScrubber::SetupScrub(const Volume* disc, int block_size)
+bool DiscScrubber::SetupScrub(const Volume* disc)
 {
   if (!disc)
     return false;
   m_disc = disc;
-  m_block_size = block_size;
-
-  if (CLUSTER_SIZE % m_block_size != 0)
-  {
-    ERROR_LOG(DISCIO, "Block size %u is not a factor of 0x8000, scrubbing not possible",
-              m_block_size);
-    return false;
-  }
 
   m_file_size = m_disc->GetSize();
 
@@ -54,32 +47,8 @@ bool DiscScrubber::SetupScrub(const Volume* disc, int block_size)
   // Fill out table of free blocks
   const bool success = ParseDisc();
 
-  m_block_count = 0;
-
   m_is_scrubbing = success;
   return success;
-}
-
-size_t DiscScrubber::GetNextBlock(File::IOFile& in, u8* buffer)
-{
-  const u64 current_offset = m_block_count * m_block_size;
-
-  size_t read_bytes = 0;
-  if (CanBlockBeScrubbed(current_offset))
-  {
-    DEBUG_LOG(DISCIO, "Freeing 0x%016" PRIx64, current_offset);
-    std::fill(buffer, buffer + m_block_size, 0x00);
-    in.Seek(m_block_size, SEEK_CUR);
-    read_bytes = m_block_size;
-  }
-  else
-  {
-    DEBUG_LOG(DISCIO, "Used    0x%016" PRIx64, current_offset);
-    in.ReadArray(buffer, m_block_size, &read_bytes);
-  }
-
-  m_block_count++;
-  return read_bytes;
 }
 
 bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const

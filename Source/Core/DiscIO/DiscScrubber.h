@@ -34,8 +34,9 @@ public:
   DiscScrubber();
   ~DiscScrubber();
 
-  bool SetupScrub(const Volume* disc, int block_size);
-  size_t GetNextBlock(File::IOFile& in, u8* buffer);
+  bool SetupScrub(const Volume* disc);
+
+  // Returns true if the specified 32 KiB block only contains unused data
   bool CanBlockBeScrubbed(u64 offset) const;
 
 private:
@@ -72,8 +73,6 @@ private:
 
   std::vector<u8> m_free_table;
   u64 m_file_size = 0;
-  u64 m_block_count = 0;
-  u32 m_block_size = 0;
   bool m_is_scrubbing = false;
 };
 
