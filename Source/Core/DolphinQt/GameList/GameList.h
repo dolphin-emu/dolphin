@@ -94,5 +94,5 @@ private:
   bool m_prefer_list;
 
 protected:
-  void keyReleaseEvent(QKeyEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 };

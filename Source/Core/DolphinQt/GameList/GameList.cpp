@@ -897,12 +897,12 @@ void GameList::ConsiderViewChange()
     setCurrentWidget(m_empty);
   }
 }
-void GameList::keyReleaseEvent(QKeyEvent* event)
+void GameList::keyPressEvent(QKeyEvent* event)
 {
   if (event->key() == Qt::Key_Return && GetSelectedGame() != nullptr)
     emit GameSelected();
   else
-    QStackedWidget::keyReleaseEvent(event);
+    QStackedWidget::keyPressEvent(event);
 }
 
 void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
