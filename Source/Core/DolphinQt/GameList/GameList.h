@@ -64,7 +64,7 @@ private:
   void InstallWAD();
   void UninstallWAD();
   void ExportWiiSave();
-  void CompressISO(bool decompress);
+  void ConvertFile();
   void ChangeDisc();
   void NewTag();
   void DeleteTag();
