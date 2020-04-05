@@ -1,0 +1,2 @@
+#include <QtPlugin>
+Q_IMPORT_PLUGIN($$CMAKE_PLUGIN_NAME)

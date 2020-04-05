@@ -1,0 +1,2 @@
+win32: CONFIG *= console
+macos: CONFIG -= app_bundle

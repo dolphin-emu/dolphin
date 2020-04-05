@@ -1,0 +1,19 @@
+
+# Let every project have a standard GNU `check' target
+!contains(QMAKE_EXTRA_TARGETS, check) {
+    contains(TEMPLATE, subdirs): \
+        prepareRecursiveTarget(check)
+    else: \
+        check.depends = first # `make check' implies build
+    QMAKE_EXTRA_TARGETS += check
+}
+
+# ... and the same for benchmarks, too.
+!contains(QMAKE_EXTRA_TARGETS, benchmark) {
+    contains(TEMPLATE, subdirs): \
+        prepareRecursiveTarget(benchmark)
+    else: \
+        benchmark.depends = first # `make benchmark' implies build
+    QMAKE_EXTRA_TARGETS += benchmark
+}
+

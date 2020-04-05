@@ -1,0 +1,11 @@
+!macx-xcode {
+    msvc {
+        QMAKE_CC = @$$QMAKE_CC
+        QMAKE_CXX = @$$QMAKE_CXX
+    } else {
+        QMAKE_CC = @echo compiling $< && $$QMAKE_CC
+        QMAKE_CXX = @echo compiling $< && $$QMAKE_CXX
+    }
+    !contains(QMAKE_LINK, "@:"):QMAKE_LINK = @echo linking $@ && $$QMAKE_LINK
+    QMAKE_LINK_SHLIB = @echo linking $@ && $$QMAKE_LINK_SHLIB
+}

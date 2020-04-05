@@ -1,0 +1,33 @@
+
+qt_depends = $$resolve_depends(QT, "QT.")
+!watchos:equals(TEMPLATE, app):contains(qt_depends, gui(-private)?) {
+    LIBS *= -L$$[QT_INSTALL_PLUGINS/get]/platforms
+
+    lib_name = qios
+    lib_path_and_base = $$[QT_INSTALL_PLUGINS/get]/platforms/lib$${lib_name}$$qtPlatformTargetSuffix()
+    LIBS += -l$${lib_name}$$qtPlatformTargetSuffix() $$fromfile($${lib_path_and_base}.prl, QMAKE_PRL_LIBS)
+
+    !bitcode {
+        # By marking qt_registerPlatformPlugin as undefined, we ensure that
+        # the plugin.o translation unit is considered for inclusion in
+        # the final binary, which in turn ensures that the plugin's
+        # static initializer is included and run.
+        QMAKE_LFLAGS += -u _qt_registerPlatformPlugin
+
+        # We do link and dependency resolution for the platform plugin
+        # manually, since we know we always need the plugin, so we don't
+        # need to generate an import for it.
+        QTPLUGIN.platforms = -
+    }
+
+    !no_main_wrapper {
+        # The LC_MAIN load command available in iOS 6.0 and above allows dyld to
+        # directly call the entrypoint instead of going through _start in crt.o.
+        # Passing -e to the linker changes the entrypoint from _main to our custom
+        # wrapper that calls UIApplicationMain and dispatches back to main() once
+        # the application has started up and is ready to initialize QApplication.
+        QMAKE_LFLAGS += -Wl,-e,_qt_main_wrapper
+    }
+}
+
+load(qt)

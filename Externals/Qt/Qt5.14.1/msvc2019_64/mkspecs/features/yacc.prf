@@ -1,0 +1,62 @@
+#
+# Yacc extra-compiler for handling files specified in the YACCSOURCES variable
+#
+
+isEmpty(YACC_DIR): YACC_DIR = .
+
+defineReplace(yaccCommands) {
+    input = $$relative_path($$absolute_path($$1, $$OUT_PWD), $$OUT_PWD/$$YACC_DIR)
+    input_base = $$basename(1)
+    input_base ~= s/\.[^.]*$//
+    hpp_output = $$2
+    cpp_output = $$hpp_output
+    cpp_output ~= s/$$re_escape($$first(QMAKE_EXT_H))$/$$first(QMAKE_EXT_CPP)/
+
+    isEmpty(QMAKE_YACCFLAGS_MANGLE) {
+        QMAKE_YACCFLAGS_MANGLE = -p $${input_base} -b $${input_base}
+        QMAKE_YACC_HEADER      = $${input_base}.tab.h
+        QMAKE_YACC_SOURCE      = $${input_base}.tab.c
+    } else {
+        QMAKE_YACCFLAGS_MANGLE ~= s/\\$base/$${input_base}/g #backwards compat
+        QMAKE_YACC_HEADER      ~= s/\\$base/$${input_base}/g
+        QMAKE_YACC_SOURCE      ~= s/\\$base/$${input_base}/g
+    }
+    QMAKE_YACCDECLFLAGS = $$QMAKE_YACCFLAGS
+    !yacc_no_name_mangle: QMAKE_YACCDECLFLAGS += $$QMAKE_YACCFLAGS_MANGLE
+
+    !equals(YACC_DIR, .): yacc_call = cd $$YACC_DIR &&
+    yacc_call += $$QMAKE_YACC $$QMAKE_YACCDECLFLAGS $${input}
+
+    commands = \
+        -$(DEL_FILE) $${hpp_output} $${cpp_output}$$escape_expand(\\n\\t) \
+        $${yacc_call}$$escape_expand(\\n\\t) \
+        $(MOVE) $$shell_path($${YACC_DIR}/$${QMAKE_YACC_HEADER}) $${hpp_output}$$escape_expand(\\n\\t) \
+        $(MOVE) $$shell_path($${YACC_DIR}/$${QMAKE_YACC_SOURCE}) $${cpp_output}$$escape_expand(\\n\\t)
+
+    silent: commands = @echo Yacc $$1 && $$commands
+    return($$commands)
+}
+
+yacc_output_base = $${YACC_DIR}/$${QMAKE_CPP_MOD_MOC}${QMAKE_FILE_BASE}$${QMAKE_MOD_YACC}
+
+{
+    yacc_decl.name = Yacc header
+    yacc_decl.input = YACCSOURCES
+    yacc_decl.variable_out = GENERATED_FILES
+    yacc_decl.commands = ${QMAKE_FUNC_yaccCommands}
+    yacc_decl.output = $${yacc_output_base}$$first(QMAKE_EXT_H)
+    QMAKE_EXTRA_COMPILERS += yacc_decl
+}
+
+{
+    yacc_impl.name = source for ${QMAKE_FILE_IN}
+    yacc_impl.input = YACCSOURCES
+    yacc_impl.variable_out = GENERATED_SOURCES
+    yacc_impl.dependency_type = TYPE_C
+    yacc_impl.commands = $$escape_expand(\\n)        # We don't want any commands where, but if command is empty no rules are created
+    yacc_impl.depends += $${yacc_output_base}$$first(QMAKE_EXT_H)    # Make sure we depend on the step above
+    yacc_impl.output = $${yacc_output_base}$$first(QMAKE_EXT_CPP)    # Faked output from this step, output really created in step above
+    QMAKE_EXTRA_COMPILERS += yacc_impl
+}
+
+unset(yacc_output_base)

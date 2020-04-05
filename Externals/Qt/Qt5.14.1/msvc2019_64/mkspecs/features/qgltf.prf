@@ -1,0 +1,12 @@
+qtPrepareTool(QMAKE_QGLTF, qgltf)
+
+isEmpty(QGLTF_DIR): QGLTF_DIR = .
+
+qgltf.input = QT3D_MODELS
+qgltf.output = $$QGLTF_DIR/${QMAKE_FILE_BASE}.qrc
+qgltf.variable_out += RESOURCES
+qgltf.depends += $$QMAKE_QGLTF_EXE
+qgltf.commands = $$QMAKE_QGLTF -d $$QGLTF_DIR $$QGLTF_PARAMS ${QMAKE_FILE_NAME}
+silent: qgltf.commands = @echo qgltf ${QMAKE_FILE_IN} && $$qgltf.commands -s
+qgltf.CONFIG += no_link
+QMAKE_EXTRA_COMPILERS += qgltf

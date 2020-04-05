@@ -1,0 +1,84 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+equals(TEMPLATE, app): TEMPLATE = aux
+
+isEmpty(TARGETPATH): error("Must set TARGETPATH (QML import name)")
+
+!isEmpty(DYNAMIC_QMLDIR) {
+    qmldir_path = $$OUT_PWD
+    write_file($${qmldir_path}/qmldir, DYNAMIC_QMLDIR)|error("Aborting.")
+} else {
+    qmldir_path = $$_PRO_FILE_PWD_
+}
+
+qmldir_file = $${qmldir_path}/qmldir
+
+fq_qml_files =
+for(qmlf, QML_FILES): fq_qml_files += $$absolute_path($$qmlf, $$_PRO_FILE_PWD_)
+
+fq_aux_qml_files =
+for(qmlf, AUX_QML_FILES): fq_aux_qml_files += $$absolute_path($$qmlf, $$_PRO_FILE_PWD_)
+
+load(qt_build_paths)
+
+DESTDIR = $$MODULE_BASE_OUTDIR/qml/$$TARGETPATH
+
+static: \
+    CONFIG += builtin_resources
+else: \
+    CONFIG += install_qml_files
+
+builtin_resources {
+    URITARGET = $$replace(URI, "\\.", "_")
+    # In static builds, the QML engine reads also the qmldir file from the resources.
+    static: $${URITARGET}.files = $$qmldir_file
+    # Ensure the QML files are included in the resources.
+    $${URITARGET}.files += $$fq_qml_files
+    # qt-project.org/imports is the path used for locating imports inside the resources
+    $${URITARGET}.prefix = /qt-project.org/imports/$$TARGETPATH
+    RESOURCES += $${URITARGET}
+}
+
+# Install rules
+qmldir.base = $$qmldir_path
+qmldir.files = $$qmldir_file
+qmldir.path = $$[QT_INSTALL_QML]/$$TARGETPATH
+
+qmlfiles.base = $$_PRO_FILE_PWD_
+qmlfiles.files = $$fq_aux_qml_files
+install_qml_files: qmlfiles.files += $$fq_qml_files
+qmlfiles.path = $${qmldir.path}
+
+INSTALL_QML_FILES = false
+
+android {
+    build_pass {
+        isEmpty(ANDROID_ABIS): ANDROID_ABIS = $$ALL_ANDROID_ABIS
+        ABI = $$first(ANDROID_ABIS)
+        equals(ABI,  $$QT_ARCH): INSTALL_QML_FILES = true
+    }
+} else: !debug_and_release|!build_all|CONFIG(release, debug|release): INSTALL_QML_FILES = true
+
+equals(INSTALL_QML_FILES, true) {
+    INSTALLS += qmldir
+    INSTALLS += qmlfiles
+
+    !prefix_build {
+        COPIES += qmldir qmlfiles
+    } else {
+        # For non-installed static builds, tools need qmldir and plugins.qmltypes
+        # files in the build dir
+        qml2build.files = $$qmldir_file $$fq_aux_qml_files
+        qml2build.path = $$DESTDIR
+        COPIES += qml2build
+    }
+}

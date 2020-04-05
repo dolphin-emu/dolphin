@@ -1,0 +1,65 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+TEMPLATE = app
+
+load(qt_build_paths)
+DESTDIR = $$MODULE_BASE_OUTDIR/bin
+
+isEmpty(VERSION): VERSION = $$MODULE_VERSION
+isEmpty(QMAKE_TARGET_DESCRIPTION): \
+    QMAKE_TARGET_DESCRIPTION = "Qt $$title($$TARGET)"
+
+isEmpty(QMAKE_INFO_PLIST): CONFIG -= app_bundle
+
+host_build: QT -= gui   # no host tool will ever use gui
+host_build:force_bootstrap {
+    !build_pass:qtConfig(release_tools): CONFIG += release
+    contains(QT, core(-private)?|xml) {
+        QT -= core core-private xml
+        QT += bootstrap-private
+    }
+    target.path = $$[QT_HOST_BINS]
+} else {
+    !build_pass:qtConfig(debug_and_release): CONFIG += release
+    target.path = $$[QT_INSTALL_BINS]
+    CONFIG += relative_qt_rpath  # Qt's tools and apps should be relocatable
+}
+INSTALLS += target
+
+load(qt_targets)
+load(qt_common)
+
+qtSetQmlPath()
+
+no_launch_target: return()
+
+load(resolve_target)
+launch.commands = $$shell_quote($$shell_path($$QMAKE_RESOLVED_TARGET))
+QMAKE_EXTRA_TARGETS += launch
+
+# Add environment for non-installed builds.
+QT_TOOL_NAME = target
+qtAddTargetEnv(launch.commands, QT)
+
+isEmpty(BUILDS)|build_pass {
+    launch.depends = first
+} else {
+    # For exclusive builds, run the app only once.
+    launch.CONFIG = recursive
+    launch.target = launch_all
+    launch.recurse_target = launch
+    launch.commands =
+
+    launch_first.depends = $$eval($$first(BUILDS).target)-launch
+    launch_first.target = launch
+    QMAKE_EXTRA_TARGETS += launch_first
+}

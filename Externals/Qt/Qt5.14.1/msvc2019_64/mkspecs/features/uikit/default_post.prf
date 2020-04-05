@@ -1,0 +1,62 @@
+equals(TEMPLATE, app):qt {
+    # If the application uses Qt, it needs to be an application bundle
+    # to be able to deploy and run on iOS. The only exception to this
+    # is if you're working with a jailbroken device and can run the
+    # resulting binary from the console/over SSH, but that's not a
+    # use-case we care about, so no need to complicate the logic.
+    CONFIG *= app_bundle
+
+    # For Qt applications we want Xcode project files as the generated output,
+    # but since qmake doesn't handle the transition between makefiles and Xcode
+    # project files (which happens when using subdirs), we can't just override
+    # MAKEFILE_GENERATOR. Instead, we generate the Xcode project by spawning a
+    # child qmake process with -spec macx-xcode and let the top level qmake
+    # process generate a wrapper makefile that forwards everything to xcodebuild.
+    equals(MAKEFILE_GENERATOR, UNIX): \
+        CONFIG = xcodebuild $$CONFIG
+}
+
+load(default_post)
+
+macx-xcode {
+    ios:!isEmpty(QMAKE_IOS_TARGETED_DEVICE_FAMILY) {
+        warning("QMAKE_IOS_TARGETED_DEVICE_FAMILY is deprecated; use QMAKE_APPLE_TARGETED_DEVICE_FAMILY")
+        QMAKE_APPLE_TARGETED_DEVICE_FAMILY = $$QMAKE_IOS_TARGETED_DEVICE_FAMILY
+    }
+
+    device_family.name = TARGETED_DEVICE_FAMILY
+    device_family.value = $$QMAKE_APPLE_TARGETED_DEVICE_FAMILY
+    QMAKE_MAC_XCODE_SETTINGS += device_family
+
+    ios {
+        # Set up default 4-inch iPhone/iPod launch image so that our apps
+        # support the full screen resolution of those devices.
+        qmake_launch_image = Default-568h@2x.png
+        qmake_copy_image.input = $$QMAKESPEC/$$qmake_launch_image
+        qmake_copy_image.output = $$OUT_PWD/$${TARGET}.xcodeproj/$$qmake_launch_image
+        qmake_copy_image.CONFIG = verbatim
+        QMAKE_SUBSTITUTES += qmake_copy_image
+        qmake_launch_images.files = $$qmake_copy_image.output
+        QMAKE_BUNDLE_DATA += qmake_launch_images
+
+        !versionAtLeast(QMAKE_XCODE_VERSION, 6.0) {
+            warning("You need to update Xcode to version 6 or newer to fully support iPhone6/6+")
+        } else {
+            # Set up default LaunchScreen to support iPhone6/6+
+            qmake_launch_screen = LaunchScreen.xib
+            qmake_copy_launch_screen.input = $$QMAKESPEC/$$qmake_launch_screen
+            qmake_copy_launch_screen.output = $$OUT_PWD/$${TARGET}.xcodeproj/$$qmake_launch_screen
+            QMAKE_SUBSTITUTES += qmake_copy_launch_screen
+            qmake_launch_screens.files = $$qmake_copy_launch_screen.output
+            QMAKE_BUNDLE_DATA += qmake_launch_screens
+        }
+    }
+}
+
+!xcodebuild:equals(TEMPLATE, app):!isEmpty(QMAKE_INFO_PLIST) {
+    # Only link in photo library support if Info.plist contains
+    # NSPhotoLibraryUsageDescription. Otherwise it will be rejected from AppStore.
+    plist_path = $$absolute_path($$QMAKE_INFO_PLIST, $$_PRO_FILE_PWD_)
+    system("/usr/libexec/PlistBuddy -c 'Print NSPhotoLibraryUsageDescription' $$system_quote($$plist_path) &>/dev/null"): \
+        QTPLUGIN += qiosnsphotolibrarysupport
+}

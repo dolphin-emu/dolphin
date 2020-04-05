@@ -1,0 +1,50 @@
+#
+# Lex extra-compiler for handling files specified in the LEXSOURCES variable
+#
+
+isEmpty(LEX_DIR): LEX_DIR = .
+
+defineReplace(lexCommands) {
+    input = $$relative_path($$absolute_path($$1, $$OUT_PWD), $$OUT_PWD/$$LEX_DIR)
+    output = $$basename(2)
+    input_base = $$basename(1)
+    input_base ~= s/\.[^.]*$//
+
+    isEmpty(QMAKE_LEXFLAGS_MANGLE): QMAKE_LEXFLAGS_MANGLE = -P$${input_base}
+    QMAKE_LEXEXTRAFLAGS = $$QMAKE_LEXFLAGS
+    !yacc_no_name_mangle: QMAKE_LEXEXTRAFLAGS += $$QMAKE_LEXFLAGS_MANGLE
+
+    contains(QMAKE_LEX, .*flex) {
+        # GNU flex, we can use -o outfile
+        commands = $$QMAKE_LEX $$QMAKE_LEXEXTRAFLAGS --nounistd -o $$output $$input
+    } else {
+        # stupid POSIX lex, it only generates a file called lex.yy.c
+        # or lex.prefix.c if the -P<prefix> option is active
+        intermediate_file = lex.yy.c
+        QMAKE_LEXEXTRAFLAGS = $$QMAKE_LEXFLAGS $$QMAKE_LEXFLAGS_MANGLE
+
+        commands = \
+            -$(DEL_FILE) $${output}$$escape_expand(\\n\\t) \
+            $$QMAKE_LEX $$QMAKE_LEXEXTRAFLAGS $${input}$$escape_expand(\\n\\t) \
+            $(MOVE) $$intermediate_file $$output $$escape_expand(\\n\\t)
+    }
+    !equals(LEX_DIR, .): \
+        commands = cd $$LEX_DIR && $$commands
+    silent: commands = @echo Lex $$1 && $$commands
+    return($$commands)
+}
+
+{
+    lex.name = Lex ${QMAKE_FILE_IN}
+    lex.input = LEXSOURCES
+    lex.dependency_type = TYPE_C
+    lex_included {
+        lex.CONFIG += no_link
+    } else {
+        lex.variable_out = GENERATED_SOURCES
+    }
+
+    lex.commands = ${QMAKE_FUNC_lexCommands}
+    lex.output = $$LEX_DIR/$${QMAKE_CPP_MOD_MOC}${QMAKE_FILE_BASE}$${QMAKE_MOD_LEX}$${first(QMAKE_EXT_CPP)}
+    QMAKE_EXTRA_COMPILERS += lex
+}

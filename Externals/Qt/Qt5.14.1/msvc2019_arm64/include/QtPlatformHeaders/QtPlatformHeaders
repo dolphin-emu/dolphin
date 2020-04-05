@@ -1,0 +1,17 @@
+#ifndef QT_QTPLATFORMHEADERS_MODULE_H
+#define QT_QTPLATFORMHEADERS_MODULE_H
+#include <QtPlatformHeaders/QtPlatformHeadersDepends>
+#include "qcocoanativecontext.h"
+#include "qcocoawindowfunctions.h"
+#include "qeglfsfunctions.h"
+#include "qeglnativecontext.h"
+#include "qglxnativecontext.h"
+#include "qlinuxfbfunctions.h"
+#include "qplatformheaderhelper.h"
+#include "qwaylandwindowfunctions.h"
+#include "qwglnativecontext.h"
+#include "qwindowswindowfunctions.h"
+#include "qxcbscreenfunctions.h"
+#include "qxcbwindowfunctions.h"
+#include "qtplatformheadersversion.h"
+#endif

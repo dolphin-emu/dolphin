@@ -1,0 +1,102 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+load(resolve_config)
+
+exclusive_builds: load(exclusive_builds_post)
+
+QMAKE_RESOLVED_TARGET = $$absolute_path($$DESTDIR, $$OUT_PWD)/
+
+win32 {
+    contains(TEMPLATE, .*lib) {
+        !skip_target_version_ext:isEmpty(TARGET_VERSION_EXT):!isEmpty(VERSION) {
+            TARGET_VERSION_EXT = $$section(VERSION, ., 0, 0)
+        }
+        static:TARGET_EXT = .lib
+        else:TARGET_EXT = .dll
+    } else {
+        TARGET_EXT = .exe
+    }
+    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${TARGET}$${TARGET_VERSION_EXT}$${TARGET_EXT}
+} else {
+    contains(TEMPLATE, .*lib):!if(plugin:no_plugin_name_prefix): LIBPREFIX = lib
+
+    mac {
+        equals(TEMPLATE, lib) {
+            plugin:plugin_bundle {
+                !isEmpty(QMAKE_PLUGIN_BUNDLE_NAME): \
+                    plugin_target = $$QMAKE_PLUGIN_BUNDLE_NAME
+                else: \
+                    plugin_target = $$TARGET
+                QMAKE_RESOLVED_BUNDLE = $${QMAKE_RESOLVED_TARGET}$${plugin_target}.plugin
+                !shallow_bundle: \
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}/Contents/MacOS/$${TARGET}
+                else: \
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}$${TARGET}
+            } else: !plugin:lib_bundle {
+                !isEmpty(QMAKE_FRAMEWORK_BUNDLE_NAME): \
+                    framework_target = $$QMAKE_FRAMEWORK_BUNDLE_NAME
+                else: \
+                    framework_target = $$TARGET
+                QMAKE_RESOLVED_BUNDLE = $${QMAKE_RESOLVED_TARGET}$${framework_target}.framework
+                !shallow_bundle {
+                    TEMP_VERSION = $$section(VERSION, ., 0, 0)
+                    isEmpty(TEMP_VERSION):TEMP_VERSION = A
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}/Versions/$${TEMP_VERSION}/$${TARGET}
+                } else {
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}/$${TARGET}
+                }
+            } else {
+                QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${LIBPREFIX}$${TARGET}
+                !plugin {
+                    TEMP_VERSION = $$section(VERSION, ., 0, 0)
+                    isEmpty(TEMP_VERSION):TEMP_VERSION = 1
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}.$${TEMP_VERSION}
+                }
+                static:QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}.$${QMAKE_EXTENSION_STATICLIB}
+                else:QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}.$${QMAKE_EXTENSION_SHLIB}
+            }
+        } else {
+            app_bundle {
+                !isEmpty(QMAKE_APPLICATION_BUNDLE_NAME): \
+                    app_target = $$QMAKE_APPLICATION_BUNDLE_NAME
+                else: \
+                    app_target = $$TARGET
+                QMAKE_RESOLVED_BUNDLE = $${QMAKE_RESOLVED_TARGET}$${app_target}.app
+                !shallow_bundle: \
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}/Contents/MacOS/$${TARGET}
+                else: \
+                    QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_BUNDLE}/$${TARGET}
+            } else {
+                QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${TARGET}
+            }
+        }
+    } else {
+        equals(TEMPLATE, lib) {
+            static {
+                QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${LIBPREFIX}$${TARGET}.$${QMAKE_EXTENSION_STATICLIB}
+            } else: plugin|unversioned_libname {
+                QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${LIBPREFIX}$${TARGET}.$${QMAKE_EXTENSION_SHLIB}
+            } else {
+                TEMP_VERSION = $$VERSION
+                isEmpty(TEMP_VERSION):TEMP_VERSION = 1.0.0
+                QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${LIBPREFIX}$${TARGET}.$${QMAKE_EXTENSION_SHLIB}.$${TEMP_VERSION}
+            }
+        } else {
+            QMAKE_RESOLVED_TARGET = $${QMAKE_RESOLVED_TARGET}$${TARGET}
+        }
+    }
+}
+
+unset(TARGET_EXT)
+unset(LIBPREFIX)
+unset(TEMP_VERSION)
+

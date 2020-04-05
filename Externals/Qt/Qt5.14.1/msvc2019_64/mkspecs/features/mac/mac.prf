@@ -1,0 +1,18 @@
+
+# Embed plist file via linker if we're not building a bundle
+!isEmpty(QMAKE_INFO_PLIST) {
+    add_plist = false
+    equals(TEMPLATE, lib) {
+        plugin:!plugin_bundle: \
+            add_plist = true
+        else: !plugin:!lib_bundle: \
+            add_plist = true
+    } else: equals(TEMPLATE, app) {
+        !app_bundle: \
+            add_plist = true
+    }
+
+    $$add_plist: \
+        QMAKE_LFLAGS += -Wl,-sectcreate,__TEXT,__info_plist,$$shell_quote( \
+            $$relative_path($$absolute_path($$QMAKE_INFO_PLIST, $$_PRO_FILE_PWD_), $$OUT_PWD))
+}

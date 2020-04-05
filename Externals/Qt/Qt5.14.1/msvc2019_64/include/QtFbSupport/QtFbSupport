@@ -1,0 +1,5 @@
+#ifndef QT_QTFBSUPPORT_MODULE_H
+#define QT_QTFBSUPPORT_MODULE_H
+#include <QtFbSupport/QtFbSupportDepends>
+#include "qtfbsupportversion.h"
+#endif

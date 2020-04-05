@@ -1,0 +1,15 @@
+# CoreText is documented to be available on watchOS, but the headers aren't present
+# in the watchOS Simulator SDK like they are supposed to be. Work around the problem
+# by adding the device SDK's headers to the search path as a fallback.
+# rdar://25314492, rdar://27844864
+simulator_system_frameworks = $$xcodeSDKInfo(Path, $${simulator.sdk})/System/Library/Frameworks
+watchos:simulator:!exists($$simulator_system_frameworks/CoreText.framework/Headers/CoreText.h) {
+    device_system_frameworks = $$xcodeSDKInfo(Path, $${device.sdk})/System/Library/Frameworks
+    for (arch, QMAKE_APPLE_SIMULATOR_ARCHS) {
+        QMAKE_CXXFLAGS += \
+            -Xarch_$${arch} \
+            -F$$simulator_system_frameworks \
+            -Xarch_$${arch} \
+            -F$$device_system_frameworks
+    }
+}

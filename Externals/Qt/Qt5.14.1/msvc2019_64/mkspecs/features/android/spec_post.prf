@@ -1,0 +1,6 @@
+load(spec_post)
+
+# Work around idiosyncracy in Android NDK's make executable
+# which tries to call the shell-builtin "move" as direct process
+equals(QMAKE_HOST.os, Windows):equals(QMAKE_MOVE, move): \
+    QMAKE_MOVE = cmd /c move

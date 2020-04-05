@@ -1,0 +1,18 @@
+have_target:!static:!isEmpty(QMAKE_OBJCOPY) {
+    load(resolve_target)
+    QMAKE_TARGET_DEBUG_INFO = $${QMAKE_RESOLVED_TARGET}.debug
+
+    shell_target = $$shell_quote($$relative_path($$QMAKE_RESOLVED_TARGET, $$OUT_PWD))
+    shell_target_debug_info = $$shell_quote($$relative_path($$QMAKE_TARGET_DEBUG_INFO, $$OUT_PWD))
+    copy_debug_info = $$QMAKE_OBJCOPY --only-keep-debug $$shell_target $$shell_target_debug_info
+    link_debug_info = $$QMAKE_OBJCOPY --add-gnu-debuglink=$$shell_target_debug_info $$shell_target
+    strip_debug_info = $$QMAKE_OBJCOPY --strip-debug $$shell_target
+
+    !isEmpty(QMAKE_POST_LINK):QMAKE_POST_LINK = $$escape_expand(\\n\\t)$$QMAKE_POST_LINK
+
+    QMAKE_POST_LINK = $$copy_debug_info && $$strip_debug_info && $$link_debug_info $$QMAKE_POST_LINK
+    silent:QMAKE_POST_LINK = @echo creating $@.debug && $$QMAKE_POST_LINK
+
+    target.targets += $$QMAKE_TARGET_DEBUG_INFO
+    QMAKE_DISTCLEAN += $$QMAKE_TARGET_DEBUG_INFO
+}

@@ -1,0 +1,4 @@
+module QtQml
+plugin qmlplugin
+classname QtQmlPlugin
+typeinfo plugins.qmltypes

@@ -1,0 +1,2 @@
+# Override mkspec default which creates a shared library
+mac: QMAKE_LFLAGS_PLUGIN = -bundle

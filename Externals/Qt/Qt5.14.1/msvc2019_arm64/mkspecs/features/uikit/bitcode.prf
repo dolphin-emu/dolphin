@@ -1,0 +1,21 @@
+!versionAtLeast(QMAKE_XCODE_VERSION, 7.0) {
+    warning("You need to update Xcode to version 7 or newer to support bitcode")
+} else: !macx-xcode {
+    # Simulator builds and all debug builds SHOULD use -fembed-bitcode-marker,
+    # but unfortunately the -fembed-bitcode and -fembed-bitcode-marker driver
+    # flags do not work in conjunction with -Xarch, so we'll have to let it use
+    # the "wrong" flags for now (note that this issue affects only the Makefile
+    # generator). We also don't want the flags to be passed in Xcode builds, as
+    # the Xcode ENABLE_BITCODE setting will take care of that for us.
+    release {
+        QMAKE_CFLAGS           += -fembed-bitcode
+        QMAKE_CXXFLAGS         += -fembed-bitcode
+        QMAKE_OBJECTIVE_CFLAGS += -fembed-bitcode
+        QMAKE_LFLAGS           += -fembed-bitcode
+    } else {
+        QMAKE_CFLAGS           += -fembed-bitcode-marker
+        QMAKE_CXXFLAGS         += -fembed-bitcode-marker
+        QMAKE_OBJECTIVE_CFLAGS += -fembed-bitcode-marker
+        QMAKE_LFLAGS           += -fembed-bitcode-marker
+    }
+}

@@ -1,0 +1,77 @@
+load(default_pre)
+
+build_pass:armeabi-v7a {
+    QT_ARCH = armeabi-v7a
+} else:build_pass:arm64-v8a {
+    QT_ARCH = arm64-v8a
+} else:build_pass:x86 {
+    QT_ARCH = x86
+} else:build_pass:x86_64 {
+    QT_ARCH = x86_64
+} else {
+    # default architecture
+    QT_ARCH = arm64-v8a
+}
+
+DEFAULT_ANDROID_TARGET_ARCH=$${QT_ARCH}
+
+ANDROID_TARGET_ARCH = $$(ANDROID_TARGET_ARCH)
+isEmpty(ANDROID_TARGET_ARCH): ANDROID_TARGET_ARCH = $$DEFAULT_ANDROID_TARGET_ARCH
+
+# Follow https://android.googlesource.com/platform/ndk/+/ndk-release-r20/docs/BuildSystemMaintainers.md
+
+equals(ANDROID_TARGET_ARCH, armeabi-v7a): \
+    QMAKE_CFLAGS = -target armv7a-linux-androideabi$$replace(ANDROID_PLATFORM, "android-", "")
+else: equals(ANDROID_TARGET_ARCH, arm64-v8a): \
+    QMAKE_CFLAGS = -target aarch64-linux-android$$replace(ANDROID_PLATFORM, "android-", "")
+else: equals(ANDROID_TARGET_ARCH, x86): \
+    QMAKE_CFLAGS = -target i686-linux-android$$replace(ANDROID_PLATFORM, "android-", "") -mstackrealign
+else: equals(ANDROID_TARGET_ARCH, x86_64): \
+    QMAKE_CFLAGS = -target x86_64-linux-android$$replace(ANDROID_PLATFORM, "android-", "")
+
+QMAKE_CFLAGS += -fno-limit-debug-info
+
+QMAKE_LINK    = $$QMAKE_CXX $$QMAKE_CFLAGS
+
+ANDROID_STDCPP_PATH = $$NDK_LLVM_PATH/sysroot/usr/lib/
+
+# -fstack-protector-strong offers good protection against stack smashing attacks.
+# It is (currently) enabled only on Android because we know for sure that Android compilers supports it
+QMAKE_CFLAGS += -fPIC -fstack-protector-strong -DANDROID
+
+
+equals(ANDROID_TARGET_ARCH, armeabi-v7a) | equals(ANDROID_TARGET_ARCH, armeabi) {
+    CONFIG               += optimize_size
+    QMAKE_CFLAGS_DEBUG    = -g -marm -O0
+    QMAKE_CFLAGS_RELEASE += -mthumb
+    QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO += -mthumb
+}
+
+QMAKE_CXXFLAGS_RELEASE_WITH_DEBUGINFO = $$QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO
+
+QMAKE_CXXFLAGS          = $$QMAKE_CFLAGS
+QMAKE_CXXFLAGS_WARN_ON  = $$QMAKE_CFLAGS_WARN_ON
+QMAKE_CXXFLAGS_WARN_OFF = $$QMAKE_CFLAGS_WARN_OFF
+QMAKE_CXXFLAGS_RELEASE  = $$QMAKE_CFLAGS_RELEASE
+QMAKE_CXXFLAGS_DEBUG    = $$QMAKE_CFLAGS_DEBUG
+QMAKE_CXXFLAGS_SHLIB    = $$QMAKE_CFLAGS_SHLIB
+QMAKE_CXXFLAGS_YACC     = $$QMAKE_CFLAGS_YACC
+QMAKE_CXXFLAGS_THREAD   = $$QMAKE_CFLAGS_THREAD
+
+QMAKE_LIBS_EGL          = -lEGL
+QMAKE_LIBS_OPENGL_ES2   = -lGLESv2
+
+QMAKE_STRIP             =
+#$${CROSS_COMPILE}strip
+
+
+equals(QT_ARCH, x86): CROSS_COMPILE = $$NDK_LLVM_PATH/bin/i686-linux-android-
+else: equals(QT_ARCH, x86_64): CROSS_COMPILE = $$NDK_LLVM_PATH/bin/x86_64-linux-android-
+else: equals(QT_ARCH, arm64-v8a): CROSS_COMPILE = $$NDK_LLVM_PATH/bin/aarch64-linux-android-
+else: CROSS_COMPILE = $$NDK_LLVM_PATH/bin/arm-linux-androideabi-
+
+QMAKE_RANLIB            = $${CROSS_COMPILE}ranlib
+QMAKE_LINK_SHLIB        = $$QMAKE_LINK
+QMAKE_LFLAGS            =
+
+QMAKE_LIBS_PRIVATE      = -llog -lz -lm -ldl -lc

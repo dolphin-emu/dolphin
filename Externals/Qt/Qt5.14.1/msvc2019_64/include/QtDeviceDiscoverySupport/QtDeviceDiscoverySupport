@@ -1,0 +1,5 @@
+#ifndef QT_QTDEVICEDISCOVERYSUPPORT_MODULE_H
+#define QT_QTDEVICEDISCOVERYSUPPORT_MODULE_H
+#include <QtDeviceDiscoverySupport/QtDeviceDiscoverySupportDepends>
+#include "qtdevicediscoverysupportversion.h"
+#endif

@@ -1,0 +1,12 @@
+# Pretend we have a target, even though our template is aux
+xcodebuild: \
+    CONFIG += have_target
+
+load(testcase)
+
+# We provide our own check logic
+xcodebuild {
+    check.depends =
+    check.commands =
+    QMAKE_EXTRA_TARGETS *= check
+}

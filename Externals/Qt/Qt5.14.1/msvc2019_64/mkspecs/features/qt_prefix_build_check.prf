@@ -1,0 +1,21 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+defineTest(qtIsPrefixBuild) {
+    prefixdir = $$1
+    # qtbase non-prefix build?
+    exists($$prefixdir/.qmake.cache): \
+        return(false)
+    # top-level non-prefix build?
+    contains(prefixdir, .*/qtbase):exists($$dirname(prefixdir)/.qmake.super): \
+        return(false)
+    return(true)
+}

@@ -1,0 +1,12 @@
+# This file is loaded by some qmakespecs to get early configuration data.
+
+# Some of these qmakespecs can be used also in host mode, but they are not
+# supposed to be influenced by -device-option then.
+host_build: return()
+
+DEVICE_PRI = $$[QT_HOST_DATA/get]/mkspecs/qdevice.pri
+exists($$DEVICE_PRI):include($$DEVICE_PRI)
+unset(DEVICE_PRI)
+
+# this variable can be persisted via qmake -set CROSS_COMPILE /foo
+isEmpty(CROSS_COMPILE): CROSS_COMPILE = $$[CROSS_COMPILE]

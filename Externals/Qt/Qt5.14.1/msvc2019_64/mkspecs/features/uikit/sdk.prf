@@ -1,0 +1,17 @@
+load(sdk)
+
+macx-xcode {
+    sdk_path_device.name = "QMAKE_MAC_SDK_PATH[sdk=$${device.sdk}*]"
+    sdk_path_device.value = $$xcodeSDKInfo(Path, $${device.sdk})
+    sdk_path_simulator.name = "QMAKE_MAC_SDK_PATH[sdk=$${simulator.sdk}*]"
+    sdk_path_simulator.value = $$xcodeSDKInfo(Path, $${simulator.sdk})
+    QMAKE_MAC_XCODE_SETTINGS += sdk_path_device sdk_path_simulator
+    QMAKE_MAC_SDK_PATH = "$(QMAKE_MAC_SDK_PATH)"
+
+    sdk_platform_path_device.name = "QMAKE_MAC_SDK_PLATFORM_PATH[sdk=$${device.sdk}*]"
+    sdk_platform_path_device.value = $$xcodeSDKInfo(PlatformPath, $${device.sdk})
+    sdk_platform_path_simulator.name = "QMAKE_MAC_SDK_PLATFORM_PATH[sdk=$${simulator.sdk}*]"
+    sdk_platform_path_simulator.value = $$xcodeSDKInfo(PlatformPath, $${simulator.sdk})
+    QMAKE_MAC_XCODE_SETTINGS += sdk_platform_path_device sdk_platform_path_simulator
+    QMAKE_MAC_SDK_PLATFORM_PATH = "$(QMAKE_MAC_SDK_PLATFORM_PATH)"
+}

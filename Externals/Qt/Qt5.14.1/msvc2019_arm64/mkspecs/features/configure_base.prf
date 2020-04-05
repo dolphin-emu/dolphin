@@ -1,0 +1,68 @@
+equals(QMAKE_HOST.os, Windows) {
+    SETENV_PFX = "set "
+    SETENV_SFX = "&"
+} else {
+    SETENV_PFX =
+    SETENV_SFX =
+}
+
+QMAKE_MAKE = $$(MAKE)
+!isEmpty(QMAKE_MAKE) {
+    # We were called recursively. Use the same make.
+} else: if(equals(MAKEFILE_GENERATOR, UNIX)|equals(MAKEFILE_GENERATOR, MINGW)) {
+    !equals(QMAKE_HOST.os, Windows): \
+        QMAKE_MAKE = make
+    else: \
+        QMAKE_MAKE = mingw32-make
+} else: if(equals(MAKEFILE_GENERATOR, MSVC.NET)|equals(MAKEFILE_GENERATOR, MSBUILD)) {
+    QMAKE_MAKE = nmake
+} else {
+    error("Configure tests are not supported with the $$MAKEFILE_GENERATOR Makefile generator.")
+}
+QMAKE_MAKE_NAME = $$basename(QMAKE_MAKE)
+# Make sure we don't inherit MAKEFLAGS - -i in particular is fatal.
+QMAKE_MAKE = "$${SETENV_PFX}MAKEFLAGS=$$SETENV_SFX $$QMAKE_MAKE"
+
+QMAKE_PERSIST_LOG = false
+QMAKE_PERSISTED_LOG =
+
+defineTest(qtLog) {
+    write_file($$QMAKE_CONFIG_LOG, 1, append)
+    $$QMAKE_CONFIG_VERBOSE: for (l, 1): log("$$l$$escape_expand(\\n)")
+    $$QMAKE_PERSIST_LOG {
+        QMAKE_PERSISTED_LOG += $$1
+        export(QMAKE_PERSISTED_LOG)
+    }
+}
+
+defineTest(qtPersistLog) {
+    QMAKE_PERSIST_LOG = true
+    QMAKE_PERSISTED_LOG =
+    export(QMAKE_PERSIST_LOG)
+    export(QMAKE_PERSISTED_LOG)
+}
+
+defineReplace(qtPersistedLog) {
+    QMAKE_PERSIST_LOG = false
+    export(QMAKE_PERSIST_LOG)
+    return($$QMAKE_PERSISTED_LOG)
+}
+
+defineTest(qtRunLoggedCommand) {
+    qtLog("+ $$1")
+
+    !equals(3, false): \
+        1 = "( $$1 ) 2>&1"
+    output = $$system("$$1", lines, result)
+    lg =
+    for (l, output): \
+        lg += "> $$l"
+    qtLog($$lg)
+    !isEmpty(2) {
+        $$2 = $$output
+        export($$2)
+    }
+
+    !equals(result, 0): return(false)
+    return(true)
+}

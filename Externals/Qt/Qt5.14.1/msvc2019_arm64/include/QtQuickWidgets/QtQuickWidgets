@@ -1,0 +1,7 @@
+#ifndef QT_QTQUICKWIDGETS_MODULE_H
+#define QT_QTQUICKWIDGETS_MODULE_H
+#include <QtQuickWidgets/QtQuickWidgetsDepends>
+#include "qtquickwidgetsglobal.h"
+#include "qquickwidget.h"
+#include "qtquickwidgetsversion.h"
+#endif

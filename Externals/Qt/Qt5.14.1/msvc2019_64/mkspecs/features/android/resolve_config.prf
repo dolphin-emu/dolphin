@@ -1,0 +1,10 @@
+load(resolve_config)
+
+!equals(TEMPLATE, aux):!host_build:!single_arch:!java:android {
+    isEmpty(ANDROID_ABIS): ANDROID_ABIS = $$ALL_ANDROID_ABIS
+
+    ALL_ABIS = $$join(ANDROID_ABIS, _and_)
+    CONFIG += $$ALL_ABIS build_all
+    addExclusiveBuildsProper($$ALL_ABIS, $$ANDROID_ABIS)
+    unset(ALL_ABIS)
+}

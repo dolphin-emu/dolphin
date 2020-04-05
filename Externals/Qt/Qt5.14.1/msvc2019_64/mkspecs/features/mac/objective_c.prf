@@ -1,0 +1,12 @@
+
+# Objective-C/C++ sources go in SOURCES, like all other sources
+SOURCES += $$OBJECTIVE_SOURCES
+unset(OBJECTIVE_SOURCES)
+
+# Strip C/C++ flags from QMAKE_OBJECTIVE_CFLAGS just in case
+QMAKE_OBJECTIVE_CFLAGS -= $$QMAKE_CFLAGS $$QMAKE_CXXFLAGS
+
+# Add Objective-C/C++ flags to C/C++ flags, the compiler can handle it
+QMAKE_CFLAGS += $$QMAKE_OBJECTIVE_CFLAGS
+QMAKE_CXXFLAGS += $$QMAKE_OBJECTIVE_CFLAGS
+unset(QMAKE_OBJECTIVE_CFLAGS)

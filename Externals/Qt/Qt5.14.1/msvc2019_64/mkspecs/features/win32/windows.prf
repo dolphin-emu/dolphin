@@ -1,0 +1,16 @@
+CONFIG -= console
+QMAKE_LFLAGS += $$QMAKE_LFLAGS_WINDOWS
+contains(TEMPLATE, ".*app") {
+    QMAKE_LFLAGS += $$QMAKE_LFLAGS_EXE
+    mingw:DEFINES += QT_NEEDS_QMAIN
+
+    qt:for(entryLib, $$list($$unique(QMAKE_LIBS_QT_ENTRY))) {
+        isEqual(entryLib, -lqtmain) {
+            lib = $$QT.core.libs/$${QMAKE_PREFIX_STATICLIB}qtmain$$QT_LIBINFIX$$qtPlatformTargetSuffix().$$QMAKE_EXTENSION_STATICLIB
+            PRE_TARGETDEPS += $$lib
+            QMAKE_LIBS += $$lib
+        } else {
+            QMAKE_LIBS += $${entryLib}
+        }
+    }
+}

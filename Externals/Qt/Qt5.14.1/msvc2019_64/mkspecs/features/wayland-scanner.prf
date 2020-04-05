@@ -1,0 +1,81 @@
+#
+# Extra-compilers for handling files specified in
+# the WAYLANDSERVERSOURCES and WAYLANDCLIENTSOURCES variables.
+#
+# WAYLANDSERVERSOURCES_SYSTEM and WAYLANDCLIENTSOURCES_SYSTEM
+# are for protocols where the wayland-scanner output is already
+# included in the system libraries. In that case, .c files must
+# not be generated, to avoid the Qt version replacing driver-specific
+# functions. These files are therefore omitted from wayland_code.input.
+# Header files are still generated because they are used to build QtWayland.
+#
+# qtwaylandscanner must be used even in the _SYSTEM case, since the system
+# Wayland libraries do not contain Qt code.
+
+isEmpty(QMAKE_WAYLAND_SCANNER):error("QMAKE_WAYLAND_SCANNER not defined for this mkspec")
+
+!isEmpty(MODULE_INCNAME) {
+    WAYLAND_INCLUDE_DIR = $$MODULE_INCNAME/private
+}
+
+wayland_server_header.name = wayland ${QMAKE_FILE_BASE}
+wayland_server_header.input = WAYLANDSERVERSOURCES WAYLANDSERVERSOURCES_SYSTEM
+wayland_server_header.variable_out = HEADERS
+wayland_server_header.output = wayland-${QMAKE_FILE_BASE}-server-protocol$${first(QMAKE_EXT_H)}
+wayland_server_header.commands = $$QMAKE_WAYLAND_SCANNER --include-core-only server-header < ${QMAKE_FILE_IN} > ${QMAKE_FILE_OUT}
+silent:wayland_server_header.commands = @echo Wayland server header ${QMAKE_FILE_IN} && $$wayland_server_header.commands
+QMAKE_EXTRA_COMPILERS += wayland_server_header
+
+wayland_client_header.name = wayland ${QMAKE_FILE_BASE}
+wayland_client_header.input = WAYLANDCLIENTSOURCES WAYLANDCLIENTSOURCES_SYSTEM
+wayland_client_header.variable_out = HEADERS
+wayland_client_header.output = wayland-${QMAKE_FILE_BASE}-client-protocol$${first(QMAKE_EXT_H)}
+wayland_client_header.commands = $$QMAKE_WAYLAND_SCANNER --include-core-only client-header < ${QMAKE_FILE_IN} > ${QMAKE_FILE_OUT}
+silent:wayland_client_header.commands = @echo Wayland client header ${QMAKE_FILE_IN} && $$wayland_client_header.commands
+QMAKE_EXTRA_COMPILERS += wayland_client_header
+
+wayland_code.name = wayland ${QMAKE_FILE_BASE}
+wayland_code.input = WAYLANDCLIENTSOURCES WAYLANDSERVERSOURCES
+wayland_code.variable_out = SOURCES
+wayland_code.output = wayland-${QMAKE_FILE_BASE}-protocol.c
+wayland_code.commands = $$QMAKE_WAYLAND_SCANNER --include-core-only code < ${QMAKE_FILE_IN} > ${QMAKE_FILE_OUT}
+silent:wayland_code.commands = @echo Wayland code header ${QMAKE_FILE_IN} && $$wayland_code.commands
+QMAKE_EXTRA_COMPILERS += wayland_code
+
+qtPrepareTool(QMAKE_QTWAYLANDSCANNER, qtwaylandscanner)
+
+qtwayland_client_header.name = qtwayland ${QMAKE_FILE_BASE}
+qtwayland_client_header.input = WAYLANDCLIENTSOURCES WAYLANDCLIENTSOURCES_SYSTEM
+qtwayland_client_header.variable_out = HEADERS
+qtwayland_client_header.depends += $$QMAKE_QTWAYLANDSCANNER_EXE wayland-${QMAKE_FILE_BASE}-client-protocol$${first(QMAKE_EXT_H)}
+qtwayland_client_header.output = qwayland-${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qtwayland_client_header.commands = $$QMAKE_QTWAYLANDSCANNER client-header ${QMAKE_FILE_IN} $$WAYLAND_INCLUDE_DIR > ${QMAKE_FILE_OUT}
+silent:qtwayland_client_header.commands = @echo QtWayland client header ${QMAKE_FILE_IN} && $$qtwayland_client_header.commands
+QMAKE_EXTRA_COMPILERS += qtwayland_client_header
+
+qtwayland_client_code.name = qtwayland ${QMAKE_FILE_BASE}
+qtwayland_client_code.input = WAYLANDCLIENTSOURCES WAYLANDCLIENTSOURCES_SYSTEM
+qtwayland_client_code.variable_out = SOURCES
+qtwayland_client_code.depends += $$QMAKE_QTWAYLANDSCANNER_EXE qwayland-${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qtwayland_client_code.output = qwayland-${QMAKE_FILE_BASE}.cpp
+qtwayland_client_code.commands = $$QMAKE_QTWAYLANDSCANNER client-code ${QMAKE_FILE_IN} $$WAYLAND_INCLUDE_DIR > ${QMAKE_FILE_OUT}
+silent:qtwayland_client_code.commands = @echo QtWayland client code ${QMAKE_FILE_IN} && $$qtwayland_client_code.commands
+QMAKE_EXTRA_COMPILERS += qtwayland_client_code
+
+qtwayland_server_header.name = qtwayland ${QMAKE_FILE_BASE}
+qtwayland_server_header.input = WAYLANDSERVERSOURCES WAYLANDSERVERSOURCES_SYSTEM
+qtwayland_server_header.variable_out = HEADERS
+qtwayland_server_header.depends += $$QMAKE_QTWAYLANDSCANNER_EXE wayland-${QMAKE_FILE_BASE}-server-protocol$${first(QMAKE_EXT_H)}
+qtwayland_server_header.output = qwayland-server-${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qtwayland_server_header.commands = $$QMAKE_QTWAYLANDSCANNER server-header ${QMAKE_FILE_IN} $$WAYLAND_INCLUDE_DIR > ${QMAKE_FILE_OUT}
+silent:qtwayland_server_header.commands = @echo QtWayland server header ${QMAKE_FILE_IN} && $$qtwayland_server_header.commands
+QMAKE_EXTRA_COMPILERS += qtwayland_server_header
+
+qtwayland_server_code.name = qtwayland ${QMAKE_FILE_BASE}
+qtwayland_server_code.input = WAYLANDSERVERSOURCES WAYLANDSERVERSOURCES_SYSTEM
+qtwayland_server_code.variable_out = SOURCES
+qtwayland_server_code.depends += $$QMAKE_QTWAYLANDSCANNER_EXE qwayland-server-${QMAKE_FILE_BASE}$${first(QMAKE_EXT_H)}
+qtwayland_server_code.output = qwayland-server-${QMAKE_FILE_BASE}.cpp
+qtwayland_server_code.commands = $$QMAKE_QTWAYLANDSCANNER server-code ${QMAKE_FILE_IN} $$WAYLAND_INCLUDE_DIR > ${QMAKE_FILE_OUT}
+silent:qtwayland_server_code.commands = @echo QtWayland server code ${QMAKE_FILE_IN} && $$qtwayland_server_code.commands
+QMAKE_EXTRA_COMPILERS += qtwayland_server_code

@@ -1,0 +1,160 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+QMAKE_DIR_REPLACE_SANE += DESTDIR
+CONFIG -= debug_and_release_target
+
+DEFINES *= QT_NO_NARROWING_CONVERSIONS_IN_CONNECT
+
+qtConfig(c++11): CONFIG += c++11 strict_c++
+qtConfig(c++14): CONFIG += c++14
+qtConfig(c++1z): CONFIG += c++1z
+qtConfig(c++2a): CONFIG += c++2a
+qtConfig(c99): CONFIG += c99
+qtConfig(c11): CONFIG += c11
+qtConfig(stack-protector-strong): CONFIG += stack_protector_strong
+contains(TEMPLATE, .*lib) {
+    # module and plugins
+    if(!host_build|!cross_compile):qtConfig(reduce_exports): CONFIG += hide_symbols
+    unix:qtConfig(reduce_relocations): CONFIG += bsymbolic_functions
+    qtConfig(separate_debug_info): CONFIG += separate_debug_info
+
+    !isEmpty(_QMAKE_SUPER_CACHE_): \
+        rplbase = $$dirname(_QMAKE_SUPER_CACHE_)/[^/][^/]*
+    else: \
+        rplbase = $$MODULE_BASE_OUTDIR
+    host_build {
+        qqt_libdir = \$\$\$\$[QT_HOST_LIBS]
+        qt_libdir = $$[QT_HOST_LIBS]
+    } else {
+        qqt_libdir = \$\$\$\$[QT_INSTALL_LIBS]
+        qt_libdir = $$[QT_INSTALL_LIBS]
+    }
+    contains(QMAKE_DEFAULT_LIBDIRS, $$qt_libdir) {
+        lib_replace0.match = $$rplbase/lib/
+        lib_replace0.replace = $$qqt_libdir/
+        lib_replace0.CONFIG = path
+        QMAKE_PRL_INSTALL_REPLACE += lib_replace0
+        lib_replace.match = "[^ ']*$$rplbase/lib"
+        lib_replace.replace =
+    } else {
+        lib_replace.match = $$rplbase/lib
+        lib_replace.replace = $$qqt_libdir
+    }
+    lib_replace.CONFIG = path
+    QMAKE_PRL_INSTALL_REPLACE += lib_replace
+    !equals(qt_libdir, $$rplbase/lib) {
+        qtlibdir_replace.match = $$qt_libdir
+        qtlibdir_replace.replace = $$qqt_libdir
+        qtlibdir_replace.CONFIG = path
+        QMAKE_PRL_INSTALL_REPLACE += qtlibdir_replace
+    }
+}
+
+# The remainder of this file must not apply to host tools/libraries,
+# as the host compiler's version and capabilities are not checked.
+host_build:cross_compile: return()
+
+# Extra warnings for Qt non-example code, to ensure cleanliness of the sources.
+# The block below may turn these warnings into errors for some Qt targets.
+# -Wdate-time: warn if we use __DATE__ or __TIME__ (we want to be able to reproduce the exact same binary)
+# -Wvla: use of variable-length arrays (an extension to C++)
+clang {
+    clang_ver = $${QT_CLANG_MAJOR_VERSION}.$${QT_CLANG_MINOR_VERSION}
+    apple_ver = $${QT_APPLE_CLANG_MAJOR_VERSION}.$${QT_APPLE_CLANG_MINOR_VERSION}
+    versionAtLeast(clang_ver, 3.5): \
+        QMAKE_CXXFLAGS_WARN_ON += -Wdate-time
+
+    versionAtLeast(clang_ver, 3.6)|versionAtLeast(apple_ver, 6.3): \
+        QMAKE_CXXFLAGS_WARN_ON += -Winconsistent-missing-override
+
+    darwin {
+        QMAKE_CXXFLAGS_WARN_ON += \
+            -Wobjc-interface-ivars \
+            -Wobjc-method-access \
+            -Wobjc-multiple-method-names
+
+        # Clang/LLVM 5.0 and Xcode 9.0 introduced unguarded availability warnings.
+        # The same construct has been a hard error in Swift from the very beginning.
+        versionAtLeast(clang_ver, 5.0)|versionAtLeast(apple_ver, 9.0): \
+            QMAKE_CXXFLAGS_WARN_ON += \
+                -Werror=unguarded-availability \
+                -Werror=unguarded-availability-new \
+                -Werror=unsupported-availability-guard
+    }
+} else: gcc:!intel_icc {
+    QMAKE_CXXFLAGS_WARN_ON += -Wvla
+    # GCC 5 fixed -Wmissing-field-initializers for when there are no initializers
+    lessThan(QT_GCC_MAJOR_VERSION, 5): QMAKE_CXXFLAGS_WARN_ON += -Wno-missing-field-initializers
+    # GCC 5 introduced -Wdate-time
+    greaterThan(QT_GCC_MAJOR_VERSION, 4): QMAKE_CXXFLAGS_WARN_ON += -Wdate-time
+    # GCC 6 introduced these
+    greaterThan(QT_GCC_MAJOR_VERSION, 5): QMAKE_CXXFLAGS_WARN_ON += -Wshift-overflow=2 -Wduplicated-cond
+    # GCC 7 has a lot of false positives relating to this, so disable completely
+    greaterThan(QT_GCC_MAJOR_VERSION, 6): QMAKE_CXXFLAGS_WARN_ON += -Wno-stringop-overflow
+    # GCC 9 introduced -Wformat-overflow in -Wall, but it is buggy:
+    greaterThan(QT_GCC_MAJOR_VERSION, 8): QMAKE_CXXFLAGS_WARN_ON += -Wno-format-overflow
+}
+
+warnings_are_errors:warning_clean {
+    # If the module declares that it has does its clean-up of warnings, enable -Werror.
+    # This setting is compiler-dependent anyway because it depends on the version of the
+    # compiler.
+    clang {
+        # Apple clang 4.0-4.2,5.0-5.1,6.0-6.4,7.0-7.3,8.0-8.3,9.0-9.2
+        # Regular clang 3.x-7.0
+        apple_ver = $${QT_APPLE_CLANG_MAJOR_VERSION}.$${QT_APPLE_CLANG_MINOR_VERSION}
+        reg_ver = $${QT_CLANG_MAJOR_VERSION}.$${QT_CLANG_MINOR_VERSION}
+        contains(apple_ver, "4\\.[012]|5\\.[01]|6\\.[01234]|7\\.[0123]|8\\.[0123]|9\\.[012]")|contains(reg_ver, "[345]\\.|[67]\\.0") {
+            QMAKE_CXXFLAGS_WARN_ON += -Werror -Wno-error=\\$${LITERAL_HASH}warnings -Wno-error=deprecated-declarations $$WERROR
+        }
+    } else:intel_icc:linux {
+        # Intel CC 13.0 - 18.0, on Linux only
+        ver = $${QT_ICC_MAJOR_VERSION}.$${QT_ICC_MINOR_VERSION}
+        linux:contains(ver, "(1[345678]\\.|19\\.0)") {
+            # 177: function "entity" was declared but never referenced
+            #      (too aggressive; ICC reports even for functions created due to template instantiation)
+            # 1224: #warning directive
+            # 1478: function "entity" (declared at line N) was declared deprecated
+            # 1786: function "entity" (declared at line N of "file") was declared deprecated ("message")
+            # 1881: argument must be a constant null pointer value
+            #      (NULL in C++ is usually a literal 0)
+            QMAKE_CXXFLAGS_WARN_ON += -Werror -ww177,1224,1478,1786,1881 $$WERROR
+        }
+    } else:gcc:!clang:!intel_icc:!rim_qcc {
+        # GCC 4.6-4.9, 5.x, ...
+        ver = $${QT_GCC_MAJOR_VERSION}.$${QT_GCC_MINOR_VERSION}
+        contains(ver, "(4\\.[6789]|[5-9]\\..)") {
+            QMAKE_CXXFLAGS_WARN_ON += -Werror -Wno-error=cpp -Wno-error=deprecated-declarations $$WERROR
+
+            # GCC prints this bogus warning, after it has inlined a lot of code
+            # error: assuming signed overflow does not occur when assuming that (X + c) < X is always false
+            QMAKE_CXXFLAGS_WARN_ON += -Wno-error=strict-overflow
+
+            # GCC 7 includes -Wimplicit-fallthrough in -Wextra, but Qt is not yet free of implicit fallthroughs.
+            greaterThan(QT_GCC_MAJOR_VERSION, 6): QMAKE_CXXFLAGS_WARN_ON += -Wno-error=implicit-fallthrough
+            # GCC 9 introduced -Wdeprecated-copy in -Wextra, but we are not clean for it.
+            greaterThan(QT_GCC_MAJOR_VERSION, 8): QMAKE_CXXFLAGS_WARN_ON += -Wno-error=deprecated-copy
+            # GCC 9 introduced this
+            greaterThan(QT_GCC_MAJOR_VERSION, 8): QMAKE_CXXFLAGS_WARN_ON += -Wno-error=redundant-move
+            # GCC 9 introduced this
+            greaterThan(QT_GCC_MAJOR_VERSION, 8): QMAKE_CXXFLAGS_WARN_ON += -Wno-error=init-list-lifetime
+
+            # Work-around for bug https://code.google.com/p/android/issues/detail?id=58135
+            android: QMAKE_CXXFLAGS_WARN_ON += -Wno-error=literal-suffix
+        }
+    } else:msvc:!intel_icl {
+        # enable for MSVC 2015, MSVC 2017
+        contains(MSVC_VER, "1[45].0"): QMAKE_CXXFLAGS_WARN_ON += -WX
+    }
+    unset(ver)
+}
+

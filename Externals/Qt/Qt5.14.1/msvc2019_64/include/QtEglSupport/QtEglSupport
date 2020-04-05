@@ -1,0 +1,5 @@
+#ifndef QT_QTEGLSUPPORT_MODULE_H
+#define QT_QTEGLSUPPORT_MODULE_H
+#include <QtEglSupport/QtEglSupportDepends>
+#include "qteglsupportversion.h"
+#endif

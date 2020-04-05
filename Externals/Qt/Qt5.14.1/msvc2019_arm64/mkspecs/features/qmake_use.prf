@@ -1,0 +1,38 @@
+suffix =
+for(ever) {
+    CC_USES =
+    LD_USES =
+    for (use, QMAKE_USE$${suffix}) {
+        use = $$split(use, /)
+        name = $$take_first(use)
+        nu = $$upper($$replace(name, -, _))
+        !contains(use, linkonly): CC_USES += $$nu
+        !contains(use, nolink): LD_USES += $$nu
+    }
+    CC_USES = $$resolve_depends(CC_USES, QMAKE_DEPENDS_, _CC)
+    for (nu, CC_USES) {
+        !defined(QMAKE_LIBS_$$nu, var): \
+            error("Library '$$lower($$replace(nu, _, -))' is not defined.")
+
+        DEFINES += $$eval(QMAKE_DEFINES_$${nu})
+        INCLUDEPATH += $$eval(QMAKE_INCDIR_$${nu})
+    }
+    LD_USES = $$resolve_depends(LD_USES, QMAKE_DEPENDS_, _LD)
+    for (nu, LD_USES) {
+        !defined(QMAKE_LIBS_$$nu, var): \
+            error("Library '$$lower($$replace(nu, _, -))' is not defined.")
+
+        QMAKE_LIBDIR += $$eval(QMAKE_LIBDIR_$$nu)
+
+        android {
+            ABI_LIBS = $$eval(QMAKE_LIBS_$${nu}_$${QT_ARCH})
+            isEmpty(ABI_LIBS): ABI_LIBS = $$eval(QMAKE_LIBS_$${nu})
+            LIBS$${suffix} += $$ABI_LIBS
+        } else: debug: \
+            LIBS$${suffix} += $$eval(QMAKE_LIBS_$${nu}_DEBUG) $$eval(QMAKE_LIBS_$$nu)
+        else: \
+            LIBS$${suffix} += $$eval(QMAKE_LIBS_$${nu}_RELEASE) $$eval(QMAKE_LIBS_$$nu)
+    }
+    !isEmpty(suffix): break()
+    suffix = "_PRIVATE"
+}

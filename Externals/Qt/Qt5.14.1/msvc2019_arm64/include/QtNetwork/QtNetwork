@@ -1,0 +1,66 @@
+#ifndef QT_QTNETWORK_MODULE_H
+#define QT_QTNETWORK_MODULE_H
+#include <QtNetwork/QtNetworkDepends>
+#include "qtnetworkglobal.h"
+#include "qabstractnetworkcache.h"
+#include "qabstractsocket.h"
+#include "qauthenticator.h"
+#if QT_CONFIG(dnslookup)
+#include "qdnslookup.h"
+#endif
+#if QT_CONFIG(dtls)
+#include "qdtls.h"
+#endif
+#include "qhostaddress.h"
+#include "qhostinfo.h"
+#include "qhstspolicy.h"
+#if QT_CONFIG(http)
+#include "qhttp2configuration.h"
+#endif
+#if QT_CONFIG(http)
+#include "qhttpmultipart.h"
+#endif
+#if QT_CONFIG(localserver)
+#include "qlocalserver.h"
+#endif
+#if QT_CONFIG(localserver)
+#include "qlocalsocket.h"
+#endif
+#include "qnetworkaccessmanager.h"
+#include "qnetworkconfigmanager.h"
+#include "qnetworkconfiguration.h"
+#include "qnetworkcookie.h"
+#include "qnetworkcookiejar.h"
+#include "qnetworkdatagram.h"
+#if QT_CONFIG(networkdiskcache)
+#include "qnetworkdiskcache.h"
+#endif
+#include "qnetworkinterface.h"
+#include "qnetworkproxy.h"
+#include "qnetworkreply.h"
+#include "qnetworkrequest.h"
+#include "qnetworksession.h"
+#if QT_CONFIG(ssl)
+#include "qocspresponse.h"
+#endif
+#include "qpassworddigestor.h"
+#include "qsctpserver.h"
+#include "qsctpsocket.h"
+#include "qssl.h"
+#include "qsslcertificate.h"
+#include "qsslcertificateextension.h"
+#include "qsslcipher.h"
+#include "qsslconfiguration.h"
+#include "qssldiffiehellmanparameters.h"
+#include "qsslellipticcurve.h"
+#include "qsslerror.h"
+#include "qsslkey.h"
+#if QT_CONFIG(ssl)
+#include "qsslpresharedkeyauthenticator.h"
+#endif
+#include "qsslsocket.h"
+#include "qtcpserver.h"
+#include "qtcpsocket.h"
+#include "qudpsocket.h"
+#include "qtnetworkversion.h"
+#endif

@@ -1,0 +1,19 @@
+macx-xcode: return()
+
+darwin: load(sdk)
+
+ccache_prefix = ccache
+
+precompile_header {
+    CCACHE_SLOPPINESS += pch_defines time_macros
+
+    ccache_prefix = \
+        CCACHE_SLOPPINESS=\"$$join(CCACHE_SLOPPINESS, ',')\$${CCACHE_SLOPPINESS+,\$$CCACHE_SLOPPINESS}\" \
+        # Make sure we build sources directly, not from their preprocessed version,
+        # otherwise precompiled headers will not be used during cache misses.
+        CCACHE_CPP2=true \
+        $$ccache_prefix
+}
+
+for(tool, $$list(QMAKE_CC QMAKE_CXX QMAKE_LINK QMAKE_LINK_SHLIB QMAKE_LINK_C)): \
+    $$tool = $$ccache_prefix $$eval($$tool)

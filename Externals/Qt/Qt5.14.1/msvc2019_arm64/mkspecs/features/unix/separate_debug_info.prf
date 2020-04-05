@@ -1,0 +1,111 @@
+have_target:!static:if(darwin|!isEmpty(QMAKE_OBJCOPY)) {
+    darwin {
+        debug_info_copy_bin = $$QMAKE_DSYMUTIL
+        debug_info_strip_bin = $$QMAKE_STRIP
+        debug_info_suffix = dSYM
+        debug_info_out = --flat -o
+        debug_info_strip = -S
+    } else {
+        debug_info_copy_bin = $$QMAKE_OBJCOPY
+        debug_info_strip_bin = $$QMAKE_OBJCOPY
+        qnx {
+            debug_info_suffix = sym
+            debug_info_keep = --keep-file-symbols
+            debug_info_strip = --strip-debug -R.ident
+        } else {
+            debug_info_suffix = debug
+            debug_info_keep = --only-keep-debug
+            debug_info_strip = --strip-debug
+        }
+    }
+    load(resolve_target)
+    debug_info_target = $$QMAKE_RESOLVED_TARGET
+
+    darwin {
+        !isEmpty(QMAKE_RESOLVED_BUNDLE) {
+            debug_info_target = $$QMAKE_RESOLVED_BUNDLE
+            CONFIG += any_bundle
+        }
+
+        debug_info_target_rel = $$section(debug_info_target, /, -1, -1)
+
+        debug_info_target_dir_suffix = .$$debug_info_suffix/Contents/Resources/DWARF
+
+        debug_info_target_dir = $${debug_info_target}$${debug_info_target_dir_suffix}
+        debug_info_target_dir_rel = $${debug_info_target_rel}$${debug_info_target_dir_suffix}
+        !isEmpty(QMAKE_RESOLVED_BUNDLE): \
+            QMAKE_TARGET_DEBUG_INFO = $$debug_info_target_dir/$$TARGET
+        else: \
+            QMAKE_TARGET_DEBUG_INFO = $$debug_info_target_dir/$$section(QMAKE_RESOLVED_TARGET, /, -1, -1)
+
+        if(any_bundle:!build_pass)|if(!any_bundle:if(build_pass|isEmpty(BUILDS))) {
+            equals(TEMPLATE, lib):lib_bundle:!isEmpty(QMAKE_FRAMEWORK_BUNDLE_NAME): \
+                BUNDLEIDENTIFIER = $$replace(QMAKE_FRAMEWORK_BUNDLE_NAME, \\.framework$, )
+            else: equals(TEMPLATE, app):app_bundle:!isEmpty(QMAKE_APPLICATION_BUNDLE_NAME): \
+                BUNDLEIDENTIFIER = $$replace(QMAKE_APPLICATION_BUNDLE_NAME, \\.app$, )
+            else: \
+                BUNDLEIDENTIFIER = $${TARGET}
+
+            !isEmpty(QMAKE_TARGET_BUNDLE_PREFIX): \
+                BUNDLEIDENTIFIER = $$replace(QMAKE_TARGET_BUNDLE_PREFIX, \\.$, ).$${BUNDLEIDENTIFIER}
+            else: \
+                BUNDLEIDENTIFIER = com.yourcompany.$${BUNDLEIDENTIFIER}
+
+            BUNDLEIDENTIFIER ~= s,_,-,
+
+            debug_info_plist.input = $$QMAKESPEC/Info.plist.dSYM.in
+            debug_info_plist.output = $${debug_info_target}.$$debug_info_suffix/Contents/Info.plist
+            QMAKE_SUBSTITUTES += debug_info_plist
+
+            !isEmpty(QMAKE_DSYM_DEBUG_SCRIPT) {
+                debug_script.input = $$QMAKE_DSYM_DEBUG_SCRIPT
+                debug_script.output = $${debug_info_target}.$$debug_info_suffix/Contents/Resources/Python/$${TARGET}.py
+                debug_script.CONFIG = verbatim
+                QMAKE_SUBSTITUTES += debug_script
+            }
+        }
+
+        contains(INSTALLS, target):isEmpty(target.files):isEmpty(target.commands):isEmpty(target.extra) {
+            !build_pass|release {
+                debug_info_plist_target.CONFIG += no_check_exist
+                debug_info_plist_target.files = $${debug_info_target}.$$debug_info_suffix/Contents/Info.plist
+                debug_info_plist_target.path += $${target.path}/$${debug_info_target_rel}.$$debug_info_suffix/Contents
+                INSTALLS += debug_info_plist_target
+
+                !isEmpty(debug_script.output) {
+                    debug_script_target.CONFIG += no_check_exist
+                    debug_script_target.files = $${debug_script.output}
+                    debug_script_target.path += $${target.path}/$${debug_info_target_rel}.$$debug_info_suffix/Contents/Resources/Python
+                    INSTALLS += debug_script_target
+                }
+            }
+
+            debug_info_target.CONFIG += no_check_exist
+            debug_info_target.files = $$QMAKE_TARGET_DEBUG_INFO
+            debug_info_target.path += $${target.path}/$${debug_info_target_dir_rel}
+            INSTALLS += debug_info_target
+        }
+    } else {
+        QMAKE_TARGET_DEBUG_INFO = $${QMAKE_RESOLVED_TARGET}.$$debug_info_suffix
+        target.targets += $$QMAKE_TARGET_DEBUG_INFO
+    }
+
+    shell_target = $$shell_quote($$relative_path($$QMAKE_RESOLVED_TARGET, $$OUT_PWD))
+    shell_target_debug_info = $$shell_quote($$relative_path($$QMAKE_TARGET_DEBUG_INFO, $$OUT_PWD))
+    copy_debug_info = $$debug_info_copy_bin $$debug_info_keep $$shell_target $$debug_info_out $$shell_target_debug_info
+    strip_debug_info = $$debug_info_strip_bin $$debug_info_strip $$shell_target
+
+    !isEmpty(QMAKE_POST_LINK):QMAKE_POST_LINK = $$escape_expand(\\n\\t)$$QMAKE_POST_LINK
+    darwin {
+        mkdir_debug_info = $$QMAKE_MKDIR $$shell_quote($$debug_info_target_dir)
+        QMAKE_POST_LINK = $$mkdir_debug_info && $$copy_debug_info && $$strip_debug_info $$QMAKE_POST_LINK
+    } else {
+        link_debug_info = $$QMAKE_OBJCOPY --add-gnu-debuglink=$$shell_target_debug_info $$shell_target
+        !contains(QMAKE_HOST.os, Windows): \
+            QMAKE_POST_LINK = && chmod -x $$shell_target_debug_info $$QMAKE_POST_LINK
+        QMAKE_POST_LINK = $$copy_debug_info && $$strip_debug_info && $$link_debug_info $$QMAKE_POST_LINK
+    }
+    silent:QMAKE_POST_LINK = @echo creating $@.$$debug_info_suffix && $$QMAKE_POST_LINK
+
+    QMAKE_DISTCLEAN += $$QMAKE_TARGET_DEBUG_INFO
+}

@@ -1,0 +1,6 @@
+module QtWinExtras
+plugin qml_winextras
+JumpListLink 1.0 JumpListLink.qml
+JumpListDestination 1.0 JumpListDestination.qml
+JumpListSeparator 1.0 JumpListSeparator.qml
+classname QWinExtrasQmlPlugin

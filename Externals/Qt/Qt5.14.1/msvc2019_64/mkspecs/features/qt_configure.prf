@@ -1,0 +1,2471 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+QT_CONFIGURE_REPORT =
+QT_CONFIGURE_NOTES =
+QT_CONFIGURE_WARNINGS =
+QT_CONFIGURE_ERRORS =
+
+defineTest(qtConfAddReport) {
+    QT_CONFIGURE_REPORT += "$$join(1, $$escape_expand(\\n))"
+    export(QT_CONFIGURE_REPORT)
+}
+
+defineTest(qtConfAddNote) {
+    QT_CONFIGURE_NOTES += "Note: $$join(1, $$escape_expand(\\n))"
+    export(QT_CONFIGURE_NOTES)
+}
+
+defineTest(qtConfAddWarning) {
+    QT_CONFIGURE_WARNINGS += "WARNING: $$join(1, $$escape_expand(\\n))"
+    export(QT_CONFIGURE_WARNINGS)
+}
+
+defineTest(qtConfAddError) {
+    QT_CONFIGURE_ERRORS += "ERROR: $$join(1, $$escape_expand(\\n))"
+    export(QT_CONFIGURE_ERRORS)
+    equals(2, log):qt_conf_tests_allowed {
+        CONFIG += mention_config_log
+        export(CONFIG)
+    }
+}
+
+defineTest(qtConfFatalError) {
+    qtConfAddError($$1, $$2)
+    qtConfPrintReport()
+    error()
+}
+
+# Return a string list for the specified JSON path, which may be either a
+# single string or an array of strings.
+# Note that this returns a variable name, so it can be directly iterated over.
+defineReplace(qtConfScalarOrList) {
+    defined($$1, var): return($$1)
+    vals = $$list()
+    for (i, $${1}._KEYS_): \
+        $$vals += $$eval($${1}.$$i)
+    export($$vals)
+    return($$vals)
+}
+
+defineTest(qtConfCommandlineSetInput) {
+    arg = $${1}
+    val = $${2}
+    !isEmpty($${currentConfig}.commandline.options.$${arg}.name): \
+        arg = $$eval($${currentConfig}.commandline.options.$${arg}.name)
+    !isEmpty(config.input.$$arg) {
+        oldval = $$eval(config.input.$$arg)
+        equals(oldval, $$val): \
+            qtConfAddNote("Option '$$arg' with value '$$val' was specified twice")
+        else: \
+            qtConfAddNote("Overriding option '$$arg' with '$$val' (was: '$$oldval')")
+    }
+
+    config.input.$$arg = $$val
+    export(config.input.$$arg)
+}
+
+defineReplace(qtConfGetNextCommandlineArg) {
+    c = $$take_first(QMAKE_EXTRA_ARGS)
+    export(QMAKE_EXTRA_ARGS)
+    return($$c)
+}
+
+defineReplace(qtConfPeekNextCommandlineArg) {
+    return($$first(QMAKE_EXTRA_ARGS))
+}
+
+defineTest(qtConfCommandline_boolean) {
+    opt = $${1}
+    val = $${2}
+    isEmpty(val): val = yes
+
+    !equals(val, yes):!equals(val, no) {
+        qtConfAddError("Invalid value given for boolean command line option '$$opt'.")
+        return()
+    }
+
+    qtConfCommandlineSetInput($$opt, $$val)
+}
+
+defineTest(qtConfCommandline_void) {
+    opt = $${1}
+    val = $${2}
+    !isEmpty(val) {
+        qtConfAddError("Command line option '$$opt' expects no argument ('$$val' given).")
+        return()
+    }
+
+    val = $$eval($${currentConfig}.commandline.options.$${opt}.value)
+    isEmpty(val): val = yes
+
+    qtConfCommandlineSetInput($$opt, $$val)
+}
+
+defineTest(qtConfCommandline_enum) {
+    opt = $${1}
+    val = $${2}
+    isEmpty(val): val = yes
+
+    # validate and map value
+    mapped = $$eval($${currentConfig}.commandline.options.$${opt}.values.$${val})
+    isEmpty(mapped) {
+        # just a list of allowed values
+        for (i, $${currentConfig}.commandline.options.$${opt}.values._KEYS_) {
+            equals($${currentConfig}.commandline.options.$${opt}.values.$${i}, $$val) {
+                mapped = $$val
+                break()
+            }
+        }
+    }
+    isEmpty(mapped) {
+        qtConfAddError("Invalid value '$$val' supplied to command line option '$$opt'.")
+        return()
+    }
+
+    qtConfCommandlineSetInput($$opt, $$mapped)
+}
+
+defineTest(qtConfValidateValue) {
+    opt = $${1}
+    val = $${2}
+
+    validValues = $$eval($${currentConfig}.commandline.options.$${opt}.values._KEYS_)
+    isEmpty(validValues): \
+        return(true)
+
+    for (i, validValues) {
+        equals($${currentConfig}.commandline.options.$${opt}.values.$${i}, $$val): \
+            return(true)
+    }
+
+    qtConfAddError("Invalid value '$$val' supplied to command line option '$$opt'.")
+    return(false)
+}
+
+defineTest(qtConfCommandline_string) {
+    opt = $${1}
+    val = $${2}
+    nextok = $${3}
+    isEmpty(val):$$nextok: val = $$qtConfGetNextCommandlineArg()
+
+    # Note: Arguments which are variable assignments are legit here.
+    contains(val, "^-.*")|isEmpty(val) {
+        qtConfAddError("No value supplied to command line option '$$opt'.")
+        return()
+    }
+
+    !qtConfValidateValue($$opt, $$val): \
+        return()
+
+    qtConfCommandlineSetInput($$opt, $$val)
+}
+
+defineTest(qtConfCommandline_optionalString) {
+    opt = $${1}
+    val = $${2}
+    nextok = $${3}
+    isEmpty(val) {
+        $$nextok: val = $$qtConfPeekNextCommandlineArg()
+        contains(val, "^-.*|[A-Z0-9_]+=.*")|isEmpty(val): \
+            val = "yes"
+        else: \
+            val = $$qtConfGetNextCommandlineArg()
+    }
+
+    !qtConfValidateValue($$opt, $$val): \
+        return()
+
+    qtConfCommandlineSetInput($$opt, $$val)
+}
+
+
+defineTest(qtConfCommandline_addString) {
+    opt = $${1}
+    val = $${2}
+    nextok = $${3}
+    isEmpty(val):$$nextok: val = $$qtConfGetNextCommandlineArg()
+
+    # Note: Arguments which are variable assignments are legit here.
+    contains(val, "^-.*")|isEmpty(val) {
+        qtConfAddError("No value supplied to command line option '$$opt'.")
+        return()
+    }
+
+    !qtConfValidateValue($$opt, $$val): \
+        return()
+
+    !isEmpty($${currentConfig}.commandline.options.$${opt}.name): \
+        opt = $$eval($${currentConfig}.commandline.options.$${opt}.name)
+
+    config.input.$$opt += $$val
+    export(config.input.$$opt)
+}
+
+defineTest(qtConfCommandline_redo) {
+    !exists($$OUT_PWD/config.opt) {
+        qtConfAddError("No config.opt present - cannot redo configuration.")
+        return()
+    }
+    QMAKE_EXTRA_REDO_ARGS = $$cat($$OUT_PWD/config.opt, lines)
+    export(QMAKE_EXTRA_REDO_ARGS)  # just for config.log
+    QMAKE_EXTRA_ARGS = $$QMAKE_EXTRA_REDO_ARGS $$QMAKE_EXTRA_ARGS
+    export(QMAKE_EXTRA_ARGS)
+    QMAKE_REDO_CONFIG = true
+    export(QMAKE_REDO_CONFIG)
+}
+
+defineTest(qtConfParseCommandLine) {
+    customCalls =
+    for (cc, allConfigs) {
+        custom = $$eval($${cc}.commandline.custom)
+
+        !isEmpty(custom) {
+            customCall = qtConfCommandline_$$custom
+            !defined($$customCall, test): \
+                error("Custom command line callback '$$custom' is undefined.")
+            customCalls += $$customCall
+        }
+    }
+
+    for (ever) {
+        c = $$qtConfGetNextCommandlineArg()
+        isEmpty(c): break()
+
+        didCustomCall = false
+        for (customCall, customCalls) {
+            $${customCall}($$c) {
+                didCustomCall = true
+                break()
+            }
+        }
+        $$didCustomCall: \
+            next()
+
+        contains(c, "([A-Z0-9_]+)=(.*)") {
+            opt = $$replace(c, "^([A-Z0-9_]+)=(.*)", "\\1")
+            val = $$replace(c, "^([A-Z0-9_]+)=(.*)", "\\2")
+            for (cc, allConfigs) {
+                var = $$eval($${cc}.commandline.assignments.$${opt})
+                !isEmpty(var): \
+                    break()
+            }
+            isEmpty(var) {
+                qtConfAddError("Assigning unknown variable '$$opt' on command line.")
+                return()
+            }
+            config.input.$$var = $$val
+            export(config.input.$$var)
+            next()
+        }
+
+        # parse out opt and val
+        nextok = false
+        contains(c, "^--?enable-(.*)") {
+            opt = $$replace(c, "^--?enable-(.*)", "\\1")
+            val = yes
+        } else: contains(c, "^--?(disable|no)-(.*)") {
+            opt = $$replace(c, "^--?(disable|no)-(.*)", "\\2")
+            val = no
+        } else: contains(c, "^--([^=]+)=(.*)") {
+            opt = $$replace(c, "^--([^=]+)=(.*)", "\\1")
+            val = $$replace(c, "^--([^=]+)=(.*)", "\\2")
+        } else: contains(c, "^--(.*)") {
+            opt = $$replace(c, "^--(.*)", "\\1")
+            val =
+        } else: contains(c, "^-(.*)") {
+            opt = $$replace(c, "^-(.*)", "\\1")
+            val =
+            nextok = true
+            for (cc, allConfigs) {
+                type = $$eval($${cc}.commandline.options.$${opt})
+                !isEmpty(type): break()
+                type = $$eval($${cc}.commandline.options.$${opt}.type)
+                !isEmpty(type): break()
+            }
+            isEmpty(type):contains(opt, "(qt|system)-.*") {
+                val = $$replace(opt, "(qt|system)-(.*)", "\\1")
+                opt = $$replace(opt, "(qt|system)-(.*)", "\\2")
+            }
+        } else {
+            qtConfAddError("Invalid command line parameter '$$c'.")
+            return()
+        }
+
+        for (cc, allConfigs) {
+            type = $$eval($${cc}.commandline.options.$${opt})
+            isEmpty(type): \
+                type = $$eval($${cc}.commandline.options.$${opt}.type)
+            isEmpty(type) {
+                # no match in the regular options, try matching the prefixes
+                for (p, $${cc}.commandline.prefix._KEYS_) {
+                    e = "^-$${p}(.*)"
+                    contains(c, $$e) {
+                        opt = $$eval($${cc}.commandline.prefix.$${p})
+                        val = $$replace(c, $$e, "\\1")
+                        nextok = true
+                        type = "addString"
+                        break()
+                    }
+                }
+            }
+            !isEmpty(type) {
+                currentConfig = $$cc
+                break()
+            }
+        }
+        # handle builtin [-no]-feature-xxx
+        isEmpty(type):contains(opt, "feature-(.*)") {
+            opt ~= s,^feature-,,
+            found = false
+            for (cc, allConfigs) {
+                contains($${cc}.features._KEYS_, $$opt) {
+                    found = true
+                    break()
+                }
+            }
+            !$$found {
+                qtConfAddError("Enabling/Disabling unknown feature '$$opt'.")
+                return()
+            }
+            # this is a boolean enabling/disabling the corresponding feature
+            type = boolean
+        }
+
+        isEmpty(type):contains(opt, "skip") {
+            isEmpty(skipOptionWarningAdded) {
+                qtConfAddWarning("Command line option -skip is only effective in top-level builds.")
+                skipOptionWarningAdded = 1
+            }
+            val = $$qtConfGetNextCommandlineArg()
+            next()
+        }
+
+        isEmpty(type) {
+            qtConfAddError("Unknown command line option '$$c'.")
+            equals(config.input.continue, yes): \
+                next()
+            else: \
+                return()
+        }
+
+        call = "qtConfCommandline_$${type}"
+        !defined($$call, test): \
+            error("Command line option '$$c' has unknown type '$$type'.")
+
+        # now that we have opt and value, process it
+        $${call}($$opt, $$val, $$nextok)
+    }
+}
+
+defineReplace(qtConfToolchainSupportsFlag) {
+    test_out_dir = $$OUT_PWD/$$basename(QMAKE_CONFIG_TESTS_DIR)
+    test_cmd_base = "$$QMAKE_CD $$system_quote($$system_path($$test_out_dir)) &&"
+
+    conftest = "int main() { return 0; }"
+    write_file("$$test_out_dir/conftest.cpp", conftest)|error()
+
+    qtRunLoggedCommand("$$test_cmd_base $$QMAKE_CXX $$QMAKE_CXXFLAGS $${1} -o conftest-out conftest.cpp"): \
+        return(true)
+    return(false)
+}
+
+defineTest(qtConfTest_compilerSupportsFlag) {
+    flag = $$eval($${1}.flag)
+
+    return($$qtConfToolchainSupportsFlag($$flag))
+}
+
+defineTest(qtConfTest_linkerSupportsFlag) {
+    flag = $$eval($${1}.flag)
+
+    use_bfd_linker: \
+        LFLAGS = -fuse-ld=bfd
+    use_gold_linker: \
+        LFLAGS = -fuse-ld=gold
+    use_lld_linker: \
+        LFLAGS = -fuse-ld=lld
+
+    return($$qtConfToolchainSupportsFlag($$LFLAGS "-Wl,$$flag"))
+}
+
+defineReplace(qtConfFindInPathList) {
+    # This nesting is consistent with Apple ld -search_paths_first,
+    # and presumably with GNU ld (no actual documentation found).
+    for (dir, 2) {
+        for (file, 1) {
+            exists("$$dir/$$file"): \
+                return("$$dir/$$file")
+        }
+    }
+    return()
+}
+
+defineReplace(qtConfFindInPath) {
+    ensurePathEnv()
+    equals(QMAKE_HOST.os, Windows):!contains(1, .*\\.exe): 1 = $${1}.exe
+    return($$qtConfFindInPathList($$1, $$2 $$QMAKE_PATH_ENV))
+}
+
+defineReplace(qtConfPkgConfigEnv) {
+    env =
+    !isEmpty(PKG_CONFIG_SYSROOT_DIR): env = "$${SETENV_PFX}PKG_CONFIG_SYSROOT_DIR=$${PKG_CONFIG_SYSROOT_DIR}$${SETENV_SFX} "
+    !isEmpty(PKG_CONFIG_LIBDIR): env = "$$env$${SETENV_PFX}PKG_CONFIG_LIBDIR=$${PKG_CONFIG_LIBDIR}$${SETENV_SFX} "
+    return($$env)
+}
+
+defineReplace(qtConfPkgConfig) {
+    host = $$1
+    isEmpty(host): host = false
+
+    $$host {
+        pkg_config = $$qtConfFindInPath("pkg-config")
+    } else {
+        pkg_config = "$$qtConfPkgConfigEnv()$$PKG_CONFIG_EXECUTABLE"
+    }
+
+    return($$pkg_config)
+}
+
+defineTest(qtConfPkgConfigPackageExists) {
+    isEmpty(1)|isEmpty(2): \
+        return(false)
+
+    !qtRunLoggedCommand("$${1} --exists --silence-errors $${2}"): \
+        return(false)
+
+    return(true)
+}
+
+defineReplace(qtSystemQuote) {
+    args =
+    for (a, 1): \
+        args += $$system_quote($$a)
+    return($$args)
+}
+
+defineReplace(qtConfPrepareArgs) {
+    return($$qtSystemQuote($$split(1)))
+}
+
+defineTest(qtConfSetupLibraries) {
+    asspfx = $${currentConfig}.commandline.assignments
+    for (l, $${currentConfig}.libraries._KEYS_) {
+        lpfx = $${currentConfig}.libraries.$${l}
+        # 'export' may be omitted, in which case it falls back to the library's name
+        !defined($${lpfx}.export, var) {
+            $${lpfx}.export = $$replace(l, -, _)
+            export($${lpfx}.export)
+        }
+        # 'export' may also be empty, but we need a derived identifier
+        alias = $$eval($${lpfx}.export)
+        isEmpty(alias): alias = $$replace(l, -, _)
+        $${lpfx}.alias = $$alias
+        export($${lpfx}.alias)
+        # make it easy to refer to the library by its export name.
+        $${currentConfig}.exports._KEYS_ += $$alias
+        $${currentConfig}.exports.$$alias += $$l
+        export($${currentConfig}.exports.$$alias)
+        isEmpty($${lpfx}.sources._KEYS_): \
+            error("Library $$l defines no sources")
+        for (s, $${lpfx}.sources._KEYS_) {
+            spfx = $${lpfx}.sources.$${s}
+            # link back to parent object
+            $${spfx}.library = $$l
+            export($${spfx}.library)
+            # a plain string is transformed into a structure
+            isEmpty($${spfx}._KEYS_) {
+                $${spfx}.libs = $$eval($${spfx})
+                export($${spfx}.libs)
+            }
+            # if the type is missing (implicitly in the case of plain strings), assume 'inline'
+            isEmpty($${spfx}.type) {
+                $${spfx}.type = inline
+                export($${spfx}.type)
+            }
+        }
+    }
+    $${currentConfig}.exports._KEYS_ = $$unique($${currentConfig}.exports._KEYS_)
+    export($${currentConfig}.exports._KEYS_)
+
+    for (alias, $${currentConfig}.exports._KEYS_) {
+        ua = $$upper($$alias)
+        $${asspfx}._KEYS_ += \
+            $${ua}_PREFIX $${ua}_INCDIR $${ua}_LIBDIR \
+            $${ua}_LIBS $${ua}_LIBS_DEBUG $${ua}_LIBS_RELEASE
+        uapfx = $${asspfx}.$${ua}
+        $${uapfx}_PREFIX = $${alias}.prefix
+        $${uapfx}_INCDIR = $${alias}.incdir
+        $${uapfx}_LIBDIR = $${alias}.libdir
+        $${uapfx}_LIBS = $${alias}.libs
+        $${uapfx}_LIBS_DEBUG = $${alias}.libs.debug
+        $${uapfx}_LIBS_RELEASE = $${alias}.libs.release
+        export($${uapfx}_PREFIX)
+        export($${uapfx}_INCDIR)
+        export($${uapfx}_LIBDIR)
+        export($${uapfx}_LIBS)
+        export($${uapfx}_LIBS_DEBUG)
+        export($${uapfx}_LIBS_RELEASE)
+    }
+    export($${asspfx}._KEYS_)
+
+    # reverse mapping for assignments on command line.
+    for (a, $${asspfx}._KEYS_) {
+        apfx = $${asspfx}.$${a}
+        ra = config.commandline.rev_assignments.$$eval($$apfx)
+        $$ra = $$a
+        export($$ra)
+    }
+}
+
+defineReplace(qtGccSysrootifiedPath) {
+    return($$replace(1, ^=, $$[QT_SYSROOT]))
+}
+
+defineReplace(qtGccSysrootifiedPaths) {
+    sysrootified =
+    for (path, 1): \
+        sysrootified += $$qtGccSysrootifiedPath($$path)
+    return($$sysrootified)
+}
+
+# libs-var, libs, in-paths
+defineTest(qtConfResolveLibs) {
+    for (path, 3): \
+        pre_lflags += -L$$path
+    $$1 = $$pre_lflags $$2
+    export($$1)
+    return(true)
+}
+
+# libs-var, in-paths, libs
+defineTest(qtConfResolvePathLibs) {
+    ret = true
+    gcc: \
+        local_paths = $$qtGccSysrootifiedPaths($$2)
+    else: \
+        local_paths = $$2
+    for (libdir, local_paths) {
+        !exists($$libdir/.) {
+            qtLog("Library path $$val_escape(libdir) is invalid.")
+            ret = false
+        }
+    }
+    !qtConfResolveLibs($$1, $$3, $$2): \
+        ret = false
+    return($$ret)
+}
+
+defineReplace(qtConfGetTestSourceList) {
+    result =
+    !isEmpty($${1}.test.inherit) {
+        base = $$section(1, ., 0, -2)
+        for (i, $${1}.test.inherit): \
+            result += $$qtConfGetTestSourceList($${base}.$$i)
+    }
+    return($$result $$1)
+}
+
+defineReplace(qtConfGetTestIncludes) {
+    defined($${1}._KEYS_, var) {
+        1st = $$first($${1}._KEYS_)
+        equals(1st, 0) {
+            # array; recurse for every element
+            ret =
+            for (k, $${1}._KEYS_): \
+                ret += $$qtConfGetTestIncludes($${1}.$$k)
+            return($$ret)
+        }
+        # object; try condition and recurse
+        !defined($${1}.headers, var):!defined($${1}.headers._KEYS_, var): \  # just plain broken without it
+            error("headers object '$$1' has no nested headers entry")
+        cond = $$eval($${1}.condition)
+        isEmpty(cond): \  # would be pointless otherwise
+            error("headers object '$$1' has no condition")
+        !$$qtConfEvaluate($$cond) {
+            qtLog("header entry '$$1' failed condition '$$cond'.")
+            return()
+        }
+        qtLog("header entry '$$1' passed condition.")
+        return($$qtConfGetTestIncludes($${1}.headers))
+    }
+    return($$eval($$1))  # plain string - or nothing (can happen for top-level call only)
+}
+
+# includes-var, in-paths, test-object-var
+defineTest(qtConfResolvePathIncs) {
+    ret = true
+    gcc: \
+        local_paths = $$qtGccSysrootifiedPaths($$2)
+    else: \
+        local_paths = $$2
+    for (incdir, local_paths) {
+        !exists($$incdir/.) {
+            qtLog("Include path $$val_escape(incdir) is invalid.")
+            ret = false
+        }
+    }
+    2 -= $$QMAKE_DEFAULT_INCDIRS
+    $$1 = $$2
+    export($$1)
+    wasm {
+        # FIXME: emcc downloads pre-built libraries and adds their include
+        # path to the clang call dynamically. it would be possible to parse
+        # the emcc -s USE_xyz=1 --cflags output to populate xzy_INCDIR and
+        # thus make the code below work.
+        return($$ret)
+    }
+    tests = $$qtConfGetTestSourceList($$3)
+    hdrs =
+    for (test, tests): \
+        hdrs += $$qtConfGetTestIncludes($${test}.headers)
+    for (hdr, hdrs) {
+        h = $$qtConfFindInPathList($$hdr, $$2 $$EXTRA_INCLUDEPATH $$QMAKE_DEFAULT_INCDIRS)
+        isEmpty(h) {
+            qtLog("$$hdr not found in [$$val_escape(2)] and global paths.")
+            ret = false
+        }
+    }
+    return($$ret)
+}
+
+# the library is specified inline in a 'libs' field.
+# overrides from the command line are accepted.
+defineTest(qtConfLibrary_inline) {
+    lib = $$eval($${1}.library)
+    !defined($${1}.libs, var):isEmpty($${1}.builds._KEYS_): \
+        error("'inline' source in library '$$lib' specifies neither 'libs' nor 'builds'.")
+
+    # library lists are specified as strings in the json sources for
+    # readability, but it's a pain to work with that, so expand it now.
+    eval($${1}.libs = $$eval($${1}.libs))
+    export($${1}.libs)
+    for (b, $${1}.builds._KEYS_) {
+        eval($${1}.builds.$${b} = $$eval($${1}.builds.$${b}))
+        export($${1}.builds.$${b})
+    }
+
+    # if multiple libraries provide the same export, it makes sense
+    # to make them recognize the same input variables.
+    input = $$eval($${2}.alias)
+
+    # build-specific direct libs. overwrites inline libs.
+    vars =
+    any = false
+    all = true
+    for (b, $$list(debug release)) {
+        iv = $${input}.libs.$${b}
+        vars += $$eval(config.commandline.rev_assignments.$${iv})
+        defined(config.input.$${iv}, var) {
+            eval($${1}.builds.$${b} = $$eval(config.input.$${iv}))
+            export($${1}.builds.$${b})
+            $${1}.builds._KEYS_ *= $${b}
+            any = true
+        } else {
+            all = false
+        }
+    }
+    $$any {
+        !$$all {
+            qtConfAddError("Either none or all of $$join(vars, ", ", [, ]) must be specified.")
+            return(false)
+        }
+        export($${1}.builds._KEYS_)
+        # we also reset the generic libs, to avoid surprises.
+        $${1}.libs =
+        export($${1}.libs)
+    }
+
+    # direct libs. overwrites inline libs.
+    defined(config.input.$${input}.libs, var) {
+        eval($${1}.libs = $$eval(config.input.$${input}.libs))
+        export($${1}.libs)
+    }
+
+    includes = $$eval(config.input.$${input}.incdir)
+
+    # prefix. prepends to (possibly overwritten) inline libs.
+    prefix = $$eval(config.input.$${input}.prefix)
+    !isEmpty(prefix) {
+        includes += $$prefix/include
+        $${1}.libs = -L$$prefix/lib $$eval($${1}.libs)
+        export($${1}.libs)
+    }
+
+    libdir = $$eval(config.input.$${input}.libdir)
+    !isEmpty(libdir) {
+        libs =
+        for (ld, libdir): \
+            libs += -L$$ld
+        $${1}.libs = $$libs $$eval($${1}.libs)
+        export($${1}.libs)
+    }
+
+    !qtConfResolvePathIncs($${1}.includedir, $$includes, $$2): \
+        return(false)
+
+    return(true)
+}
+
+# the library is provided by the qmake spec.
+# this source type cannot fail.
+defineTest(qtConfLibrary_makeSpec) {
+    spec = $$eval($${1}.spec)
+    isEmpty(spec): \
+        error("makeSpec source in library '$$eval($${1}.library)' does not specify 'spec'.")
+
+    !qtConfResolvePathLibs($${1}.libs, $$eval(QMAKE_LIBDIR_$$spec), $$eval(QMAKE_LIBS_$$spec)): \
+        return(false)
+
+    !qtConfResolvePathIncs($${1}.includedir, $$eval(QMAKE_INCDIR_$$spec), $$2): \
+        return(false)
+
+    !isEmpty(QMAKE_EXPORT_INCDIR_$$spec) {
+        $${1}.exportincludedir = $$eval(QMAKE_EXPORT_INCDIR_$$spec)
+        export($${1}.exportincludedir)
+    }
+
+    # note that the object is re-exported, because we resolve the libraries.
+
+    return(true)
+}
+
+# the library is found via pkg-config.
+defineTest(qtConfLibrary_pkgConfig) {
+    pkg_config = $$qtConfPkgConfig($$eval($${1}.host))
+    isEmpty(pkg_config) {
+        qtLog("pkg-config use disabled globally.")
+        return(false)
+    }
+    args = $$qtConfPrepareArgs($$eval($${1}.args))
+
+    !qtConfPkgConfigPackageExists($$pkg_config, $$args) {
+        qtLog("pkg-config did not find package.")
+        return(false)
+    }
+
+    qtRunLoggedCommand("$$pkg_config --modversion $$args", version)|return(false)
+    version ~= s/[^0-9.].*$//
+    $${1}.version = $$first(version)
+    export($${1}.version)
+
+    qtRunLoggedCommand("$$pkg_config --libs-only-L $$args", libpaths)|return(false)
+    qtRunLoggedCommand("$$pkg_config --libs-only-l $$args", libs)|return(false)
+    eval(libs = $$libpaths $$libs)
+    !qtConfResolveLibs($${1}.libs, $$libs): \
+        return(false)
+    contains($${1}.libs, ".*\\.$${QMAKE_EXTENSION_STATICLIB}$") {
+        qtRunLoggedCommand("$$pkg_config --static --libs $$args", libs)|return(false)
+        # Split by space
+        eval(libs = $$libs)
+        !qtConfResolveLibs($${1}.libs, $$libs): \
+            return(false)
+    }
+
+    qtRunLoggedCommand("$$pkg_config --cflags $$args", $${1}.cflags)|return(false)
+    # Split CFLAGS into stuff that goes into DEFINES, INCLUDEPATH, and other stuff.
+    # The compound variable is still set in case something wants to use it outside
+    # regular library exports.
+    defines =
+    includes =
+    ignored =
+    eval(cflags = $$eval($${1}.cflags))
+    for (i, cflags) {
+        contains(i, "-I.*") {
+            i ~= s/^-I//
+            includes += $$i
+        } else: contains(i, "-D.*") {
+            i ~= s/^-D//
+            defines += $$i
+        } else {
+            # Sometimes, pkg-config files include other flags
+            # we really don't need and shouldn't add.
+            ignored += $$i
+        }
+    }
+    !isEmpty(ignored): \
+        qtLog("Note: Dropped compiler flags '$$ignored'.")
+    !qtConfResolvePathIncs($${1}.includedir, $$includes, $$2): \
+        return(false)
+    $${1}.defines = $$defines
+
+    # now remove the content of the transitive deps we know about.
+    largs = $$qtConfAllLibraryArgs($$eval($${2}.dependencies))
+    for (la, largs): \
+        eval("$$la")
+    USES = $$eval($$list($$upper($$replace(QMAKE_USE, -, _))))
+    # _CC == _LD for configure's library sources, so pick first arbitrarily.
+    DEPS = $$resolve_depends(USES, QMAKE_DEPENDS_, _CC)
+    for (DEP, DEPS) {
+        $${1}.libs -= $$eval(QMAKE_LIBS_$${DEP})
+        $${1}.includedir -= $$eval(QMAKE_INCDIR_$${DEP})
+        $${1}.defines -= $$eval(QMAKE_DEFINES_$${DEP})
+    }
+    export($${1}.libs)
+    export($${1}.includedir)
+    export($${1}.defines)
+
+    return(true)
+}
+
+defineTest(qtConfTest_getPkgConfigVariable) {
+    pkg_config = $$qtConfPkgConfig($$eval($${1}.host))
+    isEmpty(pkg_config): \
+        return(false)
+    args = $$qtConfPrepareArgs($$eval($${1}.pkg-config-args))
+
+    !qtConfPkgConfigPackageExists($$pkg_config, $$args): \
+        return(false)
+
+    variable = $$eval($${1}.pkg-config-variable)
+    qtRunLoggedCommand("$$pkg_config --variable=$$variable $$args", $${1}.value)|return(false)
+    export($${1}.value)
+    $${1}.cache += value
+    export($${1}.cache)
+    return(true)
+}
+
+defineReplace(qtConfLibraryArgs) {
+    NAME = $$upper($$replace($${1}.library, -, _))
+    qmake_args = "QMAKE_LIBS_$${NAME} = $$val_escape($${1}.libs)"
+    for (b, $${1}.builds._KEYS_): \
+        qmake_args += "QMAKE_LIBS_$${NAME}_$$upper($$b) = $$val_escape($${1}.builds.$${b})"
+    includedir = $$eval($${1}.includedir)
+    !isEmpty(includedir): \
+        qmake_args += "QMAKE_INCDIR_$${NAME} = $$val_escape(includedir)"
+    defines = $$eval($${1}.defines)
+    !isEmpty(defines): \
+        qmake_args += "QMAKE_DEFINES_$${NAME} = $$val_escape(defines)"
+    depends = $$eval($${2}.dependencies)
+    !isEmpty(depends) {
+        dep_uses =
+        for (use, depends): \
+            dep_uses += $$section(use, :, 1, 1)
+        qmake_args += \
+            "QMAKE_DEPENDS_$${NAME}_CC = $$upper($$replace(dep_uses, -, _))" \
+            "QMAKE_DEPENDS_$${NAME}_LD = $$upper($$replace(dep_uses, -, _))"
+    }
+    return($$qmake_args)
+}
+
+defineReplace(qtConfAllLibraryArgs) {
+    isEmpty(1): return()
+    dep_uses =
+    for (use, 1): \
+        dep_uses += $$section(use, :, 1, 1)
+    dep_args =
+    seen =
+    for(ever) {
+        isEmpty(1): break()
+        use = $$take_last(1)
+        contains(seen, $$use): next()
+        seen += $$use
+        use_cfg = $$section(use, :, 0, 0)
+        !isEmpty(use_cfg) {
+            use_lib = $$section(use, :, 1, 1)
+            lpfx = $${use_cfg}.libraries.$$use_lib
+            dep_args += $$qtConfLibraryArgs($${lpfx}.sources.$$eval($${lpfx}.source), $$lpfx)
+            1 += $$eval($${lpfx}.dependencies)
+        }
+    }
+    return("QMAKE_USE += $$dep_uses" $$dep_args)
+}
+
+defineTest(qtConfExportLibrary) {
+    lpfx = $${currentConfig}.libraries.$$1
+    alias = $$eval($${lpfx}.alias)
+    $${currentConfig}.found.$$alias = $$1
+    export($${currentConfig}.found.$$alias)
+    name = $$eval($${lpfx}.export)
+    isEmpty(name): return()
+    spfx = $${lpfx}.sources.$$eval($${lpfx}.source)
+    !$$qtConfEvaluate($$eval($${spfx}.export)): return()
+
+    output = privatePro
+    NAME = $$upper($$name)
+    # LIBS is emitted even if empty, as this allows the library to be "seen".
+    libs = $$eval($${spfx}.libs)
+    qtConfOutputVar(assign, $$output, QMAKE_LIBS_$$NAME, $$libs)
+    for (b, $${spfx}.builds._KEYS_) {
+        blibs = $$eval($${spfx}.builds.$${b})
+        qtConfOutputVar(assign, $$output, QMAKE_LIBS_$${NAME}_$$upper($$b), $$blibs)
+    }
+    defines = $$eval($${spfx}.defines)
+    !isEmpty(defines): qtConfOutputVar(assign, $$output, QMAKE_DEFINES_$$NAME, $$defines)
+    includes = $$eval($${spfx}.exportincludedir)
+    !equals(includes, -) {
+        isEmpty(includes): includes = $$eval($${spfx}.includedir)
+        !isEmpty(includes): qtConfOutputVar(assign, $$output, QMAKE_INCDIR_$$NAME, $$includes)
+    }
+    uses = $$eval($${lpfx}.dependencies)
+    !isEmpty(uses) {
+        # FIXME: ideally, we would export transitive deps only for static
+        # libs, to not extend the link interface unduly. however, the system
+        # does currently not differentiate between public and private deps.
+        depends =
+        for (use, uses) {
+            use_cfg = $$section(use, :, 0, 0)
+            use_lib = $$section(use, :, 1, 1)
+            !isEmpty(use_cfg): \
+                depends += $$upper($$eval($${use_cfg}.libraries.$${use_lib}.export))
+            else: \
+                depends += $$upper($$replace(use_lib, -, _))
+        }
+        # we use suffixes instead of infixes, because $$resolve_depends() demands it.
+        qtConfOutputVar(assign, $$output, QMAKE_DEPENDS_$${NAME}_CC, $$depends)
+        qtConfOutputVar(assign, $$output, QMAKE_DEPENDS_$${NAME}_LD, $$depends)
+    }
+    !isEmpty($${currentConfig}.module): \
+        qtConfExtendVar($$output, "QT.$${currentModule}_private.libraries", $$name)
+}
+
+defineTest(qtConfHandleLibrary) {
+    lpfx = $${currentConfig}.libraries.$$1
+    defined($${lpfx}.result, var): return()
+
+    alias = $$eval($${lpfx}.alias)
+    !isEmpty($${currentConfig}.found.$$alias) {
+        # this happening indicates a logic error in the conditions
+        # of the feature(s) referring to this library.
+        # note that this does not look across module boundaries, as
+        # multiple modules may know the same libraries; de-duplication
+        # happens via the cache (obviously, this assumes identical
+        # definitions and logic).
+        error("A library exporting '$$alias' was already found.")
+    }
+
+    qtConfEnsureTestTypeDeps("library")
+    !qtConfTestPrepare_compile($$lpfx) {
+        $${lpfx}.result = false
+        export($${lpfx}.result)
+        return()
+    }
+    $${lpfx}.dependencies = $$eval($${lpfx}.resolved_uses)
+    export($${lpfx}.dependencies)
+
+    qtConfLoadResult($${lpfx}, $$1, "library") {
+        $$eval($${lpfx}.result): \
+            qtConfExportLibrary($$1)
+        return()
+    }
+
+    qtLogTestIntro($${lpfx}, "looking for library $${1}")
+    qtPersistLog()
+
+    result = false
+    for (s, $${lpfx}.sources._KEYS_) {
+        spfx = $${lpfx}.sources.$${s}
+
+        t = $$eval($${spfx}.type)
+        call = qtConfLibrary_$$t
+        !defined($$call, test): \
+            error("Library $${1} source $${s} has unknown type '$$t'")
+
+        qtLog("Trying source $$s (type $$t) of library $${1} ...")
+
+        cond = $$eval($${spfx}.condition)
+        !$$qtConfEvaluate($$cond) {
+            qtLog("  => source failed condition '$$cond'.")
+            next()
+        }
+
+        !$${call}($$spfx, $$lpfx) {
+            qtLog("  => source produced no result.")
+            next()
+        }
+
+        $${lpfx}.source = $$s
+        export($${lpfx}.source)
+
+        # if the library defines a test, use it to verify the source.
+        defined($${lpfx}.test, var)|defined($${lpfx}.test._KEYS_, var) {
+            $${lpfx}.resolved_uses = $$currentConfig:$$1
+            $${lpfx}.host = $$eval($${spfx}.host)
+            !qtConfTest_compile($$lpfx) {
+                qtLog(" => source failed verification.")
+                next()
+            }
+        }
+
+        qtLog(" => source accepted.")
+
+        $${lpfx}.cache += source
+        for (v, $$list(libs includedir cflags version export)): \
+            $${lpfx}.cache += sources.$${s}.$${v}
+        for (b, $${spfx}.builds._KEYS_): \
+            $${lpfx}.cache += sources.$${s}.builds.$${b}
+
+        # immediately output the library as well.
+        qtConfExportLibrary($$1)
+
+        result = true
+        break()
+    }
+
+    $${lpfx}.msgs = $$qtPersistedLog()
+    export($${lpfx}.msgs)
+
+    qtLogTestResult($${lpfx}, $$result)
+
+    $${lpfx}.result = $$result
+    export($${lpfx}.result)
+    qtConfSaveResult($${lpfx}, $$1)
+}
+
+# This is a fake test type for the test dependency system.
+defineTest(qtConfTest_library) {
+    error("The test type 'library' may not be instantiated.")
+}
+
+defineTest(qtConfTestPrepare_compile) {
+    !isEmpty($${1}.use._KEYS_) {
+        uses =
+        for (k, $${1}.use._KEYS_) {
+            use = $$eval($${1}.use.$${k}.lib)
+            isEmpty(use): \
+                error("'use' entry $$k in test $$1 lacks 'lib' field.")
+            !$$qtConfEvaluate($$eval($${1}.use.$${k}.condition)): \
+                next()
+            uses += $$use
+        }
+    } else {
+        uses = $$split($${1}.use)
+    }
+    for (u, uses) {
+        libConfig =
+        exports = $$eval($${currentConfig}.exports.$$u)
+        !isEmpty(exports) {
+            # using a local library by exported name.
+            ru = $$eval($${currentConfig}.found.$$u)
+            !isEmpty(ru) {
+                # if it was already found, all is good.
+                u = $$ru
+            } else: count(exports, 1) {
+                # otherwise, if there is only one option, ensure it's resolved.
+                u = $$exports
+                qtConfHandleLibrary($$u)
+            } else {
+                # otherwise, verify that all options were resolved.
+                for (x, exports) {
+                    isEmpty($${currentConfig}.libraries.$${x}.result) {
+                        # the higher-level logic is in the features, which we cannot
+                        # infer from here. so the only option is failing.
+                        error("Test $$1 refers to yet unresolved library export '$$u'")
+                    }
+                }
+                return(false)
+            }
+            libConfig = $$currentConfig
+        } else: contains($${currentConfig}.libraries._KEYS_, $$u) {
+            # using a local library by real name. this should be the exception.
+            qtConfHandleLibrary($$u)
+            libConfig = $$currentConfig
+        } else {
+            for (d, QMAKE_LIBRARY_DEPS) {
+                exports = $$eval($${d}.exports.$$u)
+                !isEmpty(exports) {
+                    # using a foreign library by exported name.
+                    # foreign libraries may be external (if they are from a different
+                    # repository and the build is modular), and using these by real
+                    # name is impossible. so for consistency, uses by real name are
+                    # limited to local libraries.
+                    ru = $$eval($${d}.found.$$u)
+                    !isEmpty(ru) {
+                        u = $$ru
+                        libConfig = $$d
+                        break()
+                    }
+                    for (x, exports) {
+                        isEmpty($${d}.libraries.$${x}.result): \
+                            error("Test $$1 refers to unresolved library export '$$u' in '$$d'")
+                    }
+                    return(false)
+                }
+            }
+        }
+        isEmpty(libConfig) {
+            nu = $$upper($$replace(u, -, _))
+            !defined(QMAKE_LIBS_$$nu, var): \
+                error("Test $$1 tries to use undeclared library '$$u'")
+            # using an external library by exported name.
+            $${1}.resolved_uses += :$$u
+        } else {
+            lpfx = $${libConfig}.libraries.$${u}
+            !equals($${lpfx}.result, true): \
+                return(false)
+            $${1}.resolved_uses += $$libConfig:$$u
+        }
+    }
+    export($${1}.resolved_uses)
+    return(true)
+}
+
+defineTest(qtConfPrepareCompileTestSource) {
+    test_dir = $$2
+
+    tests = $$qtConfGetTestSourceList($$1)
+
+    test_lang = "c++"
+    for (test, tests): \
+        test_lang += $$eval($${test}.test.lang)
+    test_lang = $$last(test_lang)  # Last non-empty, that is.
+
+    equals(test_lang, "c++"): suffix = "cpp"
+    else: equals(test_lang, "c"): suffix = "c"
+    else: equals(test_lang, "objc"): suffix = "m"
+    else: equals(test_lang, "objc++"): suffix = "mm"
+    else: error("Unknown language '$$test_lang' in compile test $$1")
+
+    # Create source code
+    contents = "/* Generated by configure */"
+    # Custom code before includes
+    for (test, tests): \
+        for (ent, $$qtConfScalarOrList($${test}.test.head)): \
+            contents += $$ent
+    # Includes
+    for (test, tests) {
+        hdrs = $$qtConfGetTestIncludes($${test}.test.include)
+        isEmpty(hdrs): \
+            hdrs = $$qtConfGetTestIncludes($${test}.headers)
+        for (ent, hdrs): \
+            contents += "$${LITERAL_HASH}include <$$ent>"
+    }
+    # Custom code after includes
+    for (test, tests): \
+        for (ent, $$qtConfScalarOrList($${test}.test.tail)): \
+            contents += $$ent
+    # And finally the custom code inside main()
+    contents += \
+        "int main(int argc, char **argv)" \
+        "{" \
+        "    (void)argc; (void)argv;" \
+        "    /* BEGIN TEST: */"
+    for (test, tests): \
+        for (ent, $$qtConfScalarOrList($${test}.test.main)): \
+            contents += "    $$ent"
+    contents += \
+        "    /* END TEST */" \
+        "    return 0;" \
+        "}"
+    write_file($$test_dir/main.$$suffix, contents)|error()
+
+    for (test, tests) {
+        for (file, $$qtConfScalarOrList($${test}.test.files._KEYS_)): \
+            write_file($$test_dir/$$file, $$qtConfScalarOrList($${test}.test.files.$${file}))|error()
+    }
+
+    # Create stub .pro file
+    contents = "SOURCES = main.$$suffix"
+    # Custom project code
+    pwd = $$val_escape($${currentConfig}.dir)
+    for (test, tests): \
+        for (ent, $$qtConfScalarOrList($${test}.test.qmake)): \
+            contents += $$replace(ent, "@PWD@", $$pwd)
+    write_file($$test_dir/$$basename(test_dir).pro, contents)|error()
+}
+
+defineTest(qtConfTest_compile) {
+    test = $$eval($${1}.test)
+    host = $$eval($${1}.host)
+    isEmpty(host): host = false
+
+    test_base_out_dir = $$OUT_PWD/$$basename(QMAKE_CONFIG_TESTS_DIR)
+    isEmpty(test) {
+        test_dir = $$test_base_out_dir/$$section(1, ".", -1)
+        test_out_dir = $$test_dir
+        qtConfPrepareCompileTestSource($$1, $$test_dir)
+    } else {
+        test_dir = $$QMAKE_CONFIG_TESTS_DIR/$$test
+        test_out_dir = $$test_base_out_dir/$$test
+        !isEmpty($${1}.pro): \
+            test_dir = $$test_dir/$$eval($${1}.pro)
+    }
+    test_cmd_base = "$$QMAKE_CD $$system_quote($$system_path($$test_out_dir)) &&"
+
+    qmake_args = $$qtConfPkgConfigEnv()$$system_quote($$system_path($$QMAKE_QMAKE))
+    !isEmpty(QMAKE_QTCONF): \
+        qmake_args += -qtconf $$system_quote($$QMAKE_QTCONF)
+
+    # Disable qmake features which are typically counterproductive for tests
+    qmake_args += "\"CONFIG -= qt debug_and_release app_bundle lib_bundle\""
+
+    # allow tests to behave differently depending on the type of library
+    # being built (shared/static). e.g. see config.tests/unix/icu
+    shared: \
+        qmake_configs = "shared"
+    else: \
+        qmake_configs = "static"
+
+    use_bfd_linker: \
+        qmake_configs += "use_bfd_linker"
+    use_gold_linker: \
+        qmake_configs += "use_gold_linker"
+    use_lld_linker: \
+        qmake_configs += "use_lld_linker"
+
+    # disable warnings from the builds, since they're just noise at this point.
+    qmake_configs += "warn_off"
+
+    # add console to the CONFIG variable when running the tests, so that they
+    # can work with a regular main() entry point on Windows.
+    qmake_configs += "console"
+
+    # for platforms with multiple architectures (macOS, iOS, tvOS, watchOS),
+    # make sure tests are only built for a single architecture
+    qmake_configs += "single_arch"
+
+    qmake_args += "\"CONFIG += $$qmake_configs\""
+
+    !$$host|!cross_compile {
+        # On WinRT we need to change the entry point as we cannot create windows
+        # applications
+        winrt: \
+            qmake_args += " \"QMAKE_LFLAGS += /ENTRY:main\""
+
+        # add compiler flags, these are set for the target and should not be applied to host tests
+        !isEmpty(EXTRA_DEFINES): \
+            qmake_args += $$system_quote(DEFINES += $$val_escape(EXTRA_DEFINES))
+        !isEmpty(EXTRA_LIBDIR): \
+            qmake_args += $$system_quote(QMAKE_LIBDIR += $$val_escape(EXTRA_LIBDIR))
+        !isEmpty(EXTRA_FRAMEWORKPATH): \
+            qmake_args += $$system_quote(QMAKE_FRAMEWORKPATH += $$val_escape(EXTRA_FRAMEWORKPATH))
+        !isEmpty(EXTRA_INCLUDEPATH): \
+            qmake_args += $$system_quote(INCLUDEPATH += $$val_escape(EXTRA_INCLUDEPATH))
+        qmake_args += $$EXTRA_QMAKE_ARGS
+    }
+
+    # make sure to make this the last override (because of -early)
+    cross_compile {
+        # must be done before loading default_pre.prf.
+        qmake_args += -early "\"CONFIG += cross_compile\""
+    }
+
+    # Clean up after previous run
+    exists($$test_out_dir/Makefile): \
+        QMAKE_MAKE = "$$QMAKE_MAKE clean && $$QMAKE_MAKE"
+
+    mkpath($$test_out_dir)|error()
+    cont = "CONFIG += QTDIR_build"
+    write_file($$test_base_out_dir/.qmake.cache, cont)|error()
+
+    $${1}.literal_args += $$qtConfAllLibraryArgs($$eval($${1}.resolved_uses))
+
+    # add possible command line args
+    qmake_args += \
+        $$qtConfPrepareArgs($$eval($${1}.args)) \
+        $$qtSystemQuote($$eval($${1}.literal_args))
+
+    qtRunLoggedCommand("$$test_cmd_base $$qmake_args $$system_quote($$test_dir)") {
+        qtRunLoggedCommand("$$test_cmd_base $$QMAKE_MAKE"): \
+            return(true)
+    }
+
+    return(false)
+}
+
+defineTest(qtConfTest_files) {
+    for(i, $${1}.files._KEYS_) {
+        f = $$eval($${1}.files.$${i})
+        qtLog("Searching for file $${f}.")
+        contains(f, ".*\\.h") {
+            file = $$qtConfFindInPathList($$f, $$EXTRA_INCLUDEPATH $$QMAKE_DEFAULT_INCDIRS)
+        } else: contains(f, ".*\\.(lib|so|a)") {
+            file = $$qtConfFindInPathList($$f, $$EXTRA_LIBDIR $$QMAKE_DEFAULT_LIBDIRS)
+        } else {
+            # assume we're looking for an executable
+            file = $$qtConfFindInPath($$f, $$EXTRA_PATH)
+        }
+        isEmpty(file) {
+            qtLog("    Not found.");
+            return(false)
+        }
+        qtLog("    Found at $${file}.")
+    }
+    return(true)
+}
+
+defineTest(logn) {
+    log("$${1}$$escape_expand(\\n)")
+}
+
+defineTest(qtLogTestIntro) {
+    label = $$eval($${1}.label)
+    isEmpty(label): return()
+
+    isEmpty(3): log("Checking for $${label}... ")
+    $$QMAKE_CONFIG_VERBOSE: log("$$escape_expand(\\n)")
+    write_file($$QMAKE_CONFIG_LOG, 2, append)
+}
+
+defineTest(qtLogTestResult) {
+    isEmpty($${1}.label): return()
+
+    !isEmpty($${1}.log) {
+        field = $$eval($${1}.log)
+        log_msg = $$eval($${1}.$$field)
+        msg = "test $$1 gave result $$log_msg"
+    } else: $${2} {
+        log_msg = yes
+        msg = "test $$1 succeeded"
+    } else {
+        log_msg = no
+        msg = "test $$1 FAILED"
+    }
+    $$QMAKE_CONFIG_VERBOSE: log_msg = $$msg
+    isEmpty(3): logn("$$log_msg")
+    write_file($$QMAKE_CONFIG_LOG, msg, append)
+}
+
+defineTest(qtConfSaveResult) {
+    equals($${1}.cache, -): \
+        return()
+    keys = result msgs $$eval($${1}.cache)
+    cont = "cache.$${2}._KEYS_ = $$keys"
+    cache.$${2}._KEYS_ = $$keys
+    export(cache.$${2}._KEYS_)
+    for (k, keys) {
+        cont += "cache.$${2}.$${k} = $$val_escape($${1}.$${k})"
+        cache.$${2}.$${k} = $$eval($${1}.$${k})
+        export(cache.$${2}.$${k})
+    }
+    write_file($$QMAKE_CONFIG_CACHE, cont, append)|error()
+}
+
+defineTest(qtConfLoadResult) {
+    equals(QMAKE_CONFIG_CACHE_USE, none): \
+        return(false)
+    isEmpty(cache.$${2}._KEYS_): \
+        return(false)
+    equals(QMAKE_CONFIG_CACHE_USE, positive):!$$eval(cache.$${2}.result): \
+        return(false)
+    for (k, cache.$${2}._KEYS_) {
+        $${1}.$${k} = $$eval(cache.$${2}.$${k})
+        export($${1}.$${k})
+    }
+    # we could print the cached result, but that's basically just noise -
+    # the explicitly generated summary is supposed to contain all relevant
+    # information.
+    qtLogTestIntro($$1, "loaded result for $$3 $$1", false)
+    qtLog($$eval($${1}.msgs))
+    qtLogTestResult($$1, $$eval($${1}.result), false)
+    return(true)
+}
+
+defineTest(qtConfIsBoolean) {
+    equals(1, "true")|equals(1, "false"): \
+        return(true)
+    return(false)
+}
+
+defineTest(qtConfSetupTestTypeDeps) {
+    for (tt, $${currentConfig}.testTypeDependencies._KEYS_) {
+        !defined(qtConfTest_$${tt}, test): \
+            error("Declaring dependency for undefined test type '$$tt'.")
+        for (f, $${currentConfig}.testTypeDependencies.$${tt}._KEYS_) {
+            feature = $$eval($${currentConfig}.testTypeDependencies.$${tt}.$${f})
+            isEmpty($${currentConfig}.features.$${feature}._KEYS_): \
+                error("Test type '$$tt' depends on undefined feature '$$feature'.")
+        }
+    }
+    # Test type aliasing means that one test type's callback is called by
+    # another test type's callback. Put differently, one callback forwards
+    # the call to another one. The former representation is more natural
+    # (and concise) to write, while the latter is more efficient to process.
+    # Hence, this function inverts the mapping.
+    for (tt, $${currentConfig}.testTypeAliases._KEYS_) {
+        !defined(qtConfTest_$${tt}, test): \
+            error("Aliasing undefined test type '$$tt'.")
+        for (tta, $${currentConfig}.testTypeAliases.$${tt}._KEYS_) {
+            type = $$eval($${currentConfig}.testTypeAliases.$${tt}.$${tta})
+            !defined(qtConfTest_$${type}, test): \
+                error("Aliasing '$$tt' to undefined test type '$$type'.")
+            $${currentConfig}.testTypeForwards.$${type} += $$tt
+            export($${currentConfig}.testTypeForwards.$${type})
+        }
+    }
+}
+
+defineTest(qtConfEnsureTestTypeDepsOne) {
+    depsn = $${currentConfig}.testTypeDependencies.$${1}._KEYS_
+    !isEmpty($$depsn) {
+        for (dep, $$depsn) {
+            feature = $$eval($${currentConfig}.testTypeDependencies.$${1}.$${dep})
+            !qtConfCheckFeature($$feature): \
+                error("Test type '$$1' depends on non-emitted feature $${feature}.")
+        }
+        $$depsn =
+        export($$depsn)
+    }
+    fwdsn = $${currentConfig}.testTypeForwards.$${1}
+    !isEmpty($$fwdsn) {
+        for (fwd, $$fwdsn): \
+           qtConfEnsureTestTypeDepsOne($$fwd)
+        $$fwdsn =
+        export($$fwdsn)
+    }
+}
+
+defineTest(qtConfEnsureTestTypeDeps) {
+    qtConfEnsureTestTypeDepsOne($$1)
+    currentConfig = config.builtins
+    qtConfEnsureTestTypeDepsOne($$1)
+}
+
+defineTest(qtRunSingleTest) {
+    tpfx = $${currentConfig}.tests.$${1}
+    defined($${tpfx}.result, var): \
+        return()
+
+    type = $$eval($${tpfx}.type)
+    call = "qtConfTest_$$type"
+    !defined($$call, test): \
+        error("Configure test $${1} refers to nonexistent type $$type")
+
+    qtConfEnsureTestTypeDeps($$type)
+
+    preCall = "qtConfTestPrepare_$$type"
+    defined($$preCall, test):!$${preCall}($${tpfx}) {
+        $${tpfx}.result = false
+        export($${tpfx}.result)
+        # don't cache the result; the pre-deps have their own caches.
+        return()
+    }
+
+    # note: we do this only after resolving the dependencies and the
+    # preparation (which may resolve libraries), so that caching does
+    # not alter the execution order (and thus the output).
+    qtConfLoadResult($${tpfx}, $$1, "config test"): \
+        return()
+
+    qtLogTestIntro($${tpfx}, "executing config test $${1}")
+    qtPersistLog()
+
+    result = false
+    $${call}($${tpfx}): result = true
+
+    $${tpfx}.msgs = $$qtPersistedLog()
+    export($${tpfx}.msgs)
+
+    qtLogTestResult($${tpfx}, $$result)
+
+    $${tpfx}.result = $$result
+    export($${tpfx}.result)
+    qtConfSaveResult($${tpfx}, $$1)
+}
+
+defineTest(qtConfHaveModule) {
+    module = $$replace(1, -, _)
+    !isEmpty(QT.$${module}.skip):$$eval(QT.$${module}.skip): \
+        return(false)
+    !isEmpty(QT.$${module}.name): \
+        return(true)
+    return(false)
+}
+
+defineReplace(qtConfEvaluate) {
+    isEmpty(1): return(true)
+
+    1 ~= s/$$escape_expand(\\t)/ /g
+    1 ~= s/$$escape_expand(\\r)//g
+    1 ~= s/$$escape_expand(\\n) */ /g
+    expr = $${1}
+    expr ~= s/&&/ && /g
+    expr ~= s/\\|\\|/ || /g
+    expr ~= s/!/ ! /g
+    expr ~= s/\\(/ ( /g
+    expr ~= s/\\)/ ) /g
+    expr ~= s/ *== */==/g
+    expr ~= s/ *! = */!=/g
+    expr_list = $$eval($$list($$expr))
+    return($$qtConfEvaluateSubExpression($${1}, $$expr_list, 0))
+}
+
+defineReplace(qtConfEvaluateSingleExpression) {
+    e = $${2}
+
+    equals(e, true) {
+        result = true
+    } else: equals(e, false) {
+        result = false
+    } else: contains(e, "^[0-9]+$") {
+        # numbers
+        result = $$e
+    } else: contains(e, "^'.*'$") {
+        # quoted literals
+        result = $$replace(e, "^'(.*)'$", "\\1")
+    } else: contains(e, "^tests\\..*") {
+        !qt_conf_tests_allowed: \
+            error("Expression '$${1}' refers to a test, which is not allowed at this stage of configuring.")
+        test = $$section(e, ".", 1, 1)
+        var = $$section(e, ".", 2, -1)
+        isEmpty(var): \
+            var = result
+        !contains($${currentConfig}.tests._KEYS_, $$test): \
+            error("Unknown test object $${test} in expression '$${1}'.")
+        qtRunSingleTest($$test)
+        result = $$eval($${currentConfig}.tests.$${test}.$${var})
+    } else: contains(e, "^libs\\..*") {
+        !qt_conf_tests_allowed: \
+            error("Expression '$${1}' refers to a library, which is not allowed at this stage of configuring.")
+        lib = $$section(e, ".", 1, 1)
+        var = $$section(e, ".", 2, -1)
+        isEmpty(var): \
+            var = result
+        !contains($${currentConfig}.libraries._KEYS_, $$lib): \
+            error("Unknown library object $${lib} in expression '$${1}'.")
+        qtConfHandleLibrary($$lib)
+        !defined($${currentConfig}.libraries.$${lib}.$${var}, var): \
+            var = sources.$$eval($${currentConfig}.libraries.$${lib}.source).$$var
+        result = $$eval($${currentConfig}.libraries.$${lib}.$${var})
+    } else: contains(e, "^features\\..*") {
+        feature = $$section(e, ".", 1, 1)
+        var = $$section(e, ".", 2, -1)
+        isEmpty(var): \
+            var = available
+        !contains($${currentConfig}.features._KEYS_, $$feature) {
+            # this is basically a copy of what qtConfig() in qt_build_config.prf
+            # does, but we produce a nicer error message.
+            for (module, QMAKE_CONFIG_DEPS) {
+                contains(QT.$${module}.enabled_features, $$feature): \
+                    result = true
+                else: contains(QT.$${module}.disabled_features, $$feature): \
+                    result = false
+                else: \
+                    next()
+                !equals(var, available): \
+                    error("Expression '$$1' is accessing field '$$var' of non-local feature $${feature}.")
+                return($$result)
+            }
+            error("Unknown feature object $${feature} in expression '$${1}'.")
+        }
+        !qtConfCheckFeature($$feature): \
+            error("Expression '$$1' is accessing non-emitted feature $${feature}.")
+        result = $$eval($${currentConfig}.features.$${feature}.$${var})
+    } else: contains(e, "^config\\..*") {
+        var = $$replace(e, "^config\\.", "")
+        result = false
+        contains(CONFIG, $$var): result = true
+    } else: contains(e, "^module\\..*") {
+        var = $$replace(e, "^module\\.", "")
+        result = false
+        qtConfHaveModule($$var): result = true
+    } else: contains(e, "^arch\\..*") {
+        var = $$replace(e, "^arch\\.", "")
+        result = false
+        isEmpty(QT_ARCH): \
+            qtConfCheckFeature(architecture)
+        contains(QT_ARCH, $$var): result = true
+    } else: contains(e, "^subarch\\..*") {
+        var = $$replace(e, "^subarch\\.", "")
+        result = false
+        isEmpty(QT_ARCH): \
+            qtConfCheckFeature(architecture)
+        contains(QT_CPU_FEATURES.$$QT_ARCH, $$var): result = true
+    } else: contains(e, "^input\\..*") {
+        result = $$eval(config.$$e)
+    } else: contains(e, "^var\\..*") {
+        var = $$replace(e, "^var\\.", "")
+        result = $$eval($$var)
+    } else: contains(e, "^call\\..*") {
+        call = $$replace(e, "^call\\.", "qtConfFunc_")
+        !defined($$call, replace): \
+            error("Call $$call referenced in expression '$${1}' does not exist")
+        eval(result = \$\$"$$call"())
+    } else {
+        error("Unrecognized token $$e in expression '$${1}'")
+    }
+    return($$result)
+}
+
+defineReplace(qtConfEvaluateSubExpression) {
+    expr_list = $${2}
+    result = true
+    negate = false
+    runSubExpression = false
+    nesting_level = 0
+    for (n, $${3}..$$num_add($$size(expr_list), -1)) {
+        e = $$member(expr_list, $$n)
+        $$runSubExpression {
+            runSubExpression = false
+            result = $$qtConfEvaluateSubExpression($${1}, $$expr_list, $$n)
+        } else: isEqual(e, "(") {
+            isEqual(nesting_level, 0): runSubExpression = true
+            nesting_level = $$num_add($$nesting_level, 1)
+            next()
+        } else: isEqual(e, ")") {
+            nesting_level = $$num_add($$nesting_level, -1)
+            lessThan(nesting_level, 0): break()
+            next()
+        } else: greaterThan(nesting_level, 0) {
+            next()
+        } else: isEqual(e, "!") {
+            negate = true
+            next()
+        } else: isEqual(e, "&&") {
+            !qtConfIsBoolean($$result): \
+                error("Left hand side of && is non-boolean value '$$result' in expression '$${1}'")
+            !$$result: return(false)
+        } else: isEqual(e, "||") {
+            !qtConfIsBoolean($$result): \
+                error("Left hand side of || is non-boolean value '$$result' in expression '$${1}'")
+            $$result: return(true)
+        } else {
+            contains(e, ".*==.*") {
+                lhs = $$qtConfEvaluateSingleExpression($${1}, $$replace(e, "==.*", ""))
+                rhs = $$qtConfEvaluateSingleExpression($${1}, $$replace(e, ".*==", ""))
+                result = false
+                equals(lhs, $$rhs): result = true
+            } else: contains(e, ".*!=.*") {
+                lhs = $$qtConfEvaluateSingleExpression($${1}, $$replace(e, "!=.*", ""))
+                rhs = $$qtConfEvaluateSingleExpression($${1}, $$replace(e, ".*!=", ""))
+                result = false
+                !equals(lhs, $$rhs): result = true
+            } else {
+                result = $$qtConfEvaluateSingleExpression($${1}, $$e)
+            }
+        }
+        $$negate {
+            !qtConfIsBoolean($$result): \
+                error("Attempting to negate a non-boolean value '$$result' in expression '$${1}'")
+            $$result: \
+                result = false
+            else: \
+                result = true
+            negate = false
+        }
+    }
+    return($$result)
+}
+
+defineReplace(qtIsFeatureEnabled) {
+    enable = $$eval($${currentConfig}.features.$${1}.enable)
+    !isEmpty(enable) {
+        $$qtConfEvaluate($$enable): \
+            return(true)
+    } else {
+        equals(config.input.$${1}, "yes"): \
+            return(true)
+    }
+
+    return(false)
+}
+
+defineReplace(qtIsFeatureDisabled) {
+    disable = $$eval($${currentConfig}.features.$${1}.disable)
+    !isEmpty(disable) {
+        $$qtConfEvaluate($$disable): \
+            return(true)
+    } else {
+        equals(config.input.$${1}, "no"): \
+            return(true)
+    }
+
+    return(false)
+}
+
+defineReplace(qtConfCheckSingleCondition) {
+    result = $$qtConfEvaluate($$2)
+
+    !qtConfIsBoolean($$result): \
+        error("Evaluation of condition '$$2' yielded non-boolean value '$$result' in feature '$${1}'.")
+
+    !$$result {
+        $${3} {
+            qtConfAddError("Feature '$${1}' was enabled, but the pre-condition '$$2' failed.", log)
+            $$result = true
+        }
+    }
+    return($$result)
+}
+
+defineTest(qtConfCheckFeature) {
+    fpfx = $${currentConfig}.features.$${1}
+
+    available = $$eval($${fpfx}.available)
+    !isEmpty(available): return(true)
+
+    # skip features that will not get emitted anyway
+    emitIf = $$qtConfEvaluate($$eval($${fpfx}.emitIf))
+    enabled = $$qtIsFeatureEnabled($$1)
+    disabled = $$qtIsFeatureDisabled($$1)
+
+    !$$emitIf {
+        $$enabled|$$disabled: \
+            qtConfAddWarning("Feature $${1} is insignificant in this configuration, ignoring related command line option(s).")
+        return(false)
+    }
+
+    $$disabled {
+        result = false
+    } else: !$$enabled:!$$qtConfEvaluate($$eval($${fpfx}.autoDetect)) {
+        # feature not auto-detected and not explicitly enabled
+        result = false
+    } else {
+        result = true
+        for (condition, $$qtConfScalarOrList($${fpfx}.condition)) {
+            result = $$qtConfCheckSingleCondition($$1, $$condition, $$enabled)
+            !$$result: break()
+        }
+    }
+    $${fpfx}.available = $$result
+    export($${fpfx}.available)
+
+    for (i, $${fpfx}.output._KEYS_): \
+        qtConfProcessOneOutput($${1}, $$i)
+
+    return(true)
+}
+
+defineTest(qtConfCheckModuleCondition) {
+    QT.$${currentModule}.skip = false
+    !$$qtConfEvaluate($$eval($${currentConfig}.condition)): \
+        QT.$${currentModule}.skip = true
+    export(QT.$${currentModule}.skip)
+
+    # ensure qtConfHaveModule() works
+    QT.$${currentModule}.name = -
+    export(QT.$${currentModule}.name)
+}
+
+
+defineTest(qtConfProcessFeatures) {
+    for (feature, $${currentConfig}.features._KEYS_): \
+        qtConfCheckFeature($$feature)
+}
+
+#
+# reporting
+#
+
+defineReplace(qtConfPadCols) {
+    pad = $$num_add($$str_size($$2), -$$str_size($${1}))
+    lessThan(pad, 0): pad = 0
+    return("$$1 $$str_member($$2, 0, $$pad) $$3")
+}
+
+defineTest(qtConfReportPadded) {
+    qtConfAddReport($$qtConfPadCols($$1, "........................................", $$2))
+}
+
+defineReplace(qtConfCollectFeatures) {
+    l =
+    for (feature, $$list($${1})) {
+        $$eval($${currentConfig}.features.$${feature}.available): \
+            l += $$eval($${currentConfig}.features.$${feature}.label)
+    }
+
+    isEmpty(l): return("<none>")
+    return($$join(l, ' '))
+}
+
+defineTest(qtConfReport_featureList) {
+    qtConfReportPadded($${1}, $$qtConfCollectFeatures($${2}))
+}
+
+defineReplace(qtConfFindFirstAvailableFeature) {
+    for (feature, $$list($${1})) {
+        isEmpty($${currentConfig}.features.$${feature}._KEYS_): \
+            error("Asking for a report on undefined feature $${2}.")
+        $$eval($${currentConfig}.features.$${feature}.available): \
+            return($$eval($${currentConfig}.features.$${feature}.label))
+    }
+
+    return("<none>")
+}
+
+defineTest(qtConfReport_firstAvailableFeature) {
+    qtConfReportPadded($${1}, $$qtConfFindFirstAvailableFeature($${2}))
+}
+
+defineTest(qtConfReport_feature) {
+    !contains($${currentConfig}.features._KEYS_, $$2): \
+        error("Asking for a report on undefined feature $${2}.")
+
+    # hide report for not emitted features
+    isEmpty($${currentConfig}.features.$${2}.available): \
+        return()
+
+    $$eval($${currentConfig}.features.$${2}.available) {
+        result = "yes"
+        !isEmpty(3): result = "$${3}"
+    } else {
+        result = "no"
+        !isEmpty(4): result = "$${4}"
+    }
+
+    text = $$eval($${currentConfig}.features.$${2}.label)
+
+    qtConfReportPadded($${1}$$text, $$result)
+}
+
+defineTest(qtConfReport_note) {
+    qtConfAddNote($${1})
+}
+
+defineTest(qtConfReport_warning) {
+    qtConfAddWarning($${1})
+}
+
+defineTest(qtConfReport_error) {
+    qtConfAddError($${1}, log)
+}
+
+defineTest(qtConfReport_fatal) {
+    qtConfFatalError($${1})
+}
+
+defineTest(qtConfCreateReportRecurse) {
+    equals(2, false) {
+        indent = ""
+        recurse = false
+    } else {
+        indent = $${2}
+        recurse = true
+    }
+
+    keys = $$eval($${1}._KEYS_)
+    for (n, keys) {
+        entry = $${1}.$$n
+        subKeys = $$eval($${entry}._KEYS_)
+        contains(subKeys, condition) {
+            r = true
+            for (condition, $$qtConfScalarOrList($${entry}.condition)) {
+                r = $$qtConfEvaluate($$condition)
+                !$$r: break()
+            }
+            !qtConfIsBoolean($$r): \
+                error("Evaluation of condition '$$condition' in report entry $${entry} yielded non-boolean value '$$r'.")
+            !$$r: next()
+        }
+        contains(subKeys, "section") {
+            !$$recurse: \
+                error("Report type 'section' is not allowed in '$$1'.")
+            section = $$eval($${entry}.section)
+            qtConfAddReport("$$indent$$section:")
+            qtConfCreateReportRecurse("$${entry}.entries", "$$indent  ")
+        } else: !isEmpty($${entry}) {
+            feature = $$eval($${entry})
+            qtConfReport_feature($$indent, $$feature)
+        } else {
+            text = $$eval($${entry}.message)
+            isEmpty($${entry}.type): \
+                error("Report entry $${entry} doesn't define a type.")
+            r = "qtConfReport_$$eval($${entry}.type)"
+            !defined($$r, test): \
+                error("Undefined report type $$eval($${entry}.type) used in report entry $${entry}.")
+            args = $$eval($${entry}.args)
+            $${r}($$indent$${text}, $$args)
+        }
+    }
+}
+
+defineTest(qtConfProcessEarlyChecks) {
+    qtConfCreateReportRecurse($${currentConfig}.earlyReport, false)
+}
+
+defineTest(qtConfCreateReport) {
+    qtConfCreateReportRecurse($${currentConfig}.report, false)
+}
+
+defineTest(qtConfCreateSummary) {
+    qtConfCreateReportRecurse($${currentConfig}.summary, "")
+}
+
+defineTest(qtConfPrintReport) {
+    blocks = \
+        "$$join(QT_CONFIGURE_REPORT, $$escape_expand(\\n))" \
+        "$$join(QT_CONFIGURE_NOTES, $$escape_expand(\\n\\n))" \
+        "$$join(QT_CONFIGURE_WARNINGS, $$escape_expand(\\n\\n))"
+
+    !isEmpty(QT_CONFIGURE_ERRORS) {
+        blocks += "$$join(QT_CONFIGURE_ERRORS, $$escape_expand(\\n\\n))"
+        mention_config_log:!$$QMAKE_CONFIG_VERBOSE: \
+            blocks += "Check config.log for details."
+    }
+    blocks = "$$join(blocks, $$escape_expand(\\n\\n))"
+    logn($$blocks)
+    !isEmpty(QT_CONFIGURE_ERRORS):!equals(config.input.continue, yes): \
+        error()
+    write_file($$OUT_PWD/config.summary, blocks)|error()
+}
+
+defineTest(qtConfCheckErrors) {
+    !isEmpty(QT_CONFIGURE_ERRORS):!equals(config.input.continue, yes): \
+        qtConfPrintReport()
+}
+
+#
+# output generation
+#
+
+defineTest(qtConfOutput_libraryPaths) {
+    qtLog("Global lib dirs: [$$val_escape(EXTRA_LIBDIR)] [$$val_escape(QMAKE_DEFAULT_LIBDIRS)]")
+    qtLog("Global inc dirs: [$$val_escape(EXTRA_INCLUDEPATH)] [$$val_escape(QMAKE_DEFAULT_INCDIRS)]")
+}
+
+# qtConfOutputVar(modifier, output, name, value)
+defineTest(qtConfOutputVar) {
+    modifier = $$1
+    output = $$2
+    name = $$3
+    value = $$val_escape(4)
+
+    defined($${currentConfig}.output.$${output}.assign.$${name}, var): \
+        error("Trying to overwrite assigned variable '$$name' in '$$output' using modifier '$$modifier'.")
+
+    equals(modifier, assign) {
+        !isEmpty($${currentConfig}.output.$${output}.append.$${name})|!isEmpty($${currentConfig}.output.$${output}.remove.$${name}): \
+            error("Trying to assign variable '$$name' in '$$output', which has already appended or removed parts.")
+        $${currentConfig}.output.$${output}.assign.$${name} = $$value
+    } else: equals(modifier, append) {
+        contains($${currentConfig}.output.$${output}.remove.$${name}, $$value): \
+            error("Trying to append removed '$$value' to variable '$$name' in '$$output'.")
+        $${currentConfig}.output.$${output}.append.$${name} += $$value
+    } else: equals(modifier, remove) {
+        contains($${currentConfig}.output.$${output}.append.$${name}, $$value): \
+            error("Trying to remove appended '$$value' to variable '$$name' in '$$output'.")
+        $${currentConfig}.output.$${output}.remove.$${name} += $$value
+    } else {
+        error("Invalid modifier '$$modifier' passed to qtConfOutputVar.")
+    }
+    $${currentConfig}.output.$${output}.$${modifier}._KEYS_ *= $${name}
+    export($${currentConfig}.output.$${output}.$${modifier}.$${name})
+    export($${currentConfig}.output.$${output}.$${modifier}._KEYS_)
+}
+
+# qtConfExtendVar(output, name, value)
+defineTest(qtConfExtendVar) {
+    output = $$1
+    name = $$2
+    value = $$val_escape(3)
+
+    !defined($${currentConfig}.output.$${output}.assign.$${name}, var): \
+        error("Trying to extend undefined variable '$$name' in '$$output'.")
+
+    $${currentConfig}.output.$${output}.assign.$${name} += $$value
+    export($${currentConfig}.output.$${output}.assign.$${name})
+}
+
+defineTest(qtConfOutputVarHelper) {
+    !isEmpty($${2}.public):$$eval($${2}.public) {
+        output = "publicPro"
+    } else {
+        output = "privatePro"
+    }
+
+    negative = $$eval($${2}.negative)
+    isEmpty(negative): negative = false
+    equals(3, $$negative): return()
+
+    name = $$eval($${2}.name)
+    isEmpty(name): \
+        error("Output type 'var$$title($$1)' used in feature '$$eval($${2}.feature)' without a 'name' entry.")
+
+    value = $$qtConfEvaluate($$eval($${2}.value))
+    !isEmpty($${2}.eval):$$qtConfEvaluate($$eval($${2}.eval)): \
+        eval(value = $$value)
+    qtConfOutputVar($$1, $$output, $$name, $$value)
+    equals(output, "publicPro"):!isEmpty($${currentConfig}.module): \
+        qtConfExtendVar($$output, "QT.$${currentModule}.exports", $$name)
+}
+
+defineTest(qtConfOutput_varAssign) {
+    qtConfOutputVarHelper(assign, $$1, $$2)
+}
+
+defineTest(qtConfOutput_varAppend) {
+    qtConfOutputVarHelper(append, $$1, $$2)
+}
+
+defineTest(qtConfOutput_varRemove) {
+    qtConfOutputVarHelper(remove, $$1, $$2)
+}
+
+defineTest(qtConfOutputConfigVar) {
+    pro = $$3
+    var = $$4
+    modular = $$5
+
+    negative = $$eval($${1}.negative)
+    isEmpty(negative): negative = false
+    equals(2, $$negative): return()
+
+    val = $$eval($${1}.name)
+    isEmpty(val) {
+        val = $$eval($${1}.feature)
+        $$negative: val = no-$$val
+    }
+
+    isEmpty($${currentConfig}.module)|!$$modular: \
+        qtConfOutputVar(append, $$pro, $$var, $$val)
+    else: \
+        qtConfExtendVar($$pro, "QT.$${currentModule}.$$var", $$val)
+}
+
+defineTest(qtConfOutput_publicQtConfig) {
+    qtConfOutputConfigVar($$1, $$2, "publicPro", "QT_CONFIG", true)
+}
+
+defineTest(qtConfOutput_publicConfig) {
+    !isEmpty($${currentConfig}.module): \
+        error("Cannot use output type 'publicConfig' in module-local feature '$$eval($${1}.feature)'.")
+    qtConfOutputConfigVar($$1, $$2, "publicPro", "CONFIG", false)
+}
+
+defineTest(qtConfOutput_privateConfig) {
+    qtConfOutputConfigVar($$1, $$2, "privatePro", "CONFIG", false)
+}
+
+defineTest(qtConfOutputSetDefine) {
+    $${currentConfig}.output.$${1}.$${2} = $${3}
+    $${currentConfig}.output.$${1}._KEYS_ *= $${2}
+    export($${currentConfig}.output.$${1}.$${2})
+    export($${currentConfig}.output.$${1}._KEYS_)
+}
+
+defineTest(qtConfOutput_define) {
+    output = publicHeader
+    define = $$eval($${1}.name)
+    value = $$qtConfEvaluate($$eval($${1}.value))
+    isEmpty(define): \
+        error("Output type 'define' used in feature '$$eval($${1}.feature)' without a 'name' entry.")
+
+    negative = $$eval($${1}.negative)
+    isEmpty(negative): negative = false
+    equals(2, $$negative): return()
+
+    qtConfOutputSetDefine($$output, $$define, $$value)
+}
+
+defineTest(qtConfOutput_feature) {
+    name = "$$eval($${1}.name)"
+    isEmpty(name): \
+        name = $$eval($${1}.feature)
+
+    $${2} {
+        isEmpty($${currentConfig}.module): \
+            qtConfOutputVar(append, "publicPro", "QT_CONFIG", $$name)
+        else: \
+            qtConfExtendVar("publicPro", "QT.$${currentModule}.QT_CONFIG", $$name)
+    } else {
+        f = $$upper($$replace(name, -, _))
+        qtConfOutputSetDefine("publicHeader", "QT_NO_$$f")
+    }
+}
+
+defineTest(qtConfSetModuleName) {
+    currentModule = $$eval($${currentConfig}.module)
+    isEmpty(currentModule): \
+        currentModule = global
+    export(currentModule)
+}
+
+defineTest(qtConfSetupModuleOutputs) {
+    qtConfOutputVar(assign, "publicPro", "QT.$${currentModule}.enabled_features", )
+    qtConfOutputVar(assign, "publicPro", "QT.$${currentModule}.disabled_features", )
+    qtConfOutputVar(assign, "privatePro", "QT.$${currentModule}_private.enabled_features", )
+    qtConfOutputVar(assign, "privatePro", "QT.$${currentModule}_private.disabled_features", )
+    !isEmpty($${currentConfig}.module) {
+        qtConfOutputVar(assign, "publicPro", "QT.$${currentModule}.QT_CONFIG", )
+        qtConfOutputVar(assign, "publicPro", "QT.$${currentModule}.exports", )
+        qtConfOutputVar(assign, "privatePro", "QT.$${currentModule}_private.libraries", )
+    }
+}
+
+defineTest(qtConfOutput_publicFeature) {
+    name = "$$eval($${1}.name)"
+    isEmpty(name): \
+        name = $$eval($${1}.feature)
+    feature = $$replace(name, [-+.], _)
+
+    $${2} {
+        qtConfExtendVar("publicPro", "QT.$${currentModule}.enabled_features", $$name)
+        QT.$${currentModule}.enabled_features += $$name
+        export(QT.$${currentModule}.enabled_features)
+        qtConfOutputSetDefine("publicHeader", "QT_FEATURE_$$feature", 1)
+    } else {
+        qtConfExtendVar("publicPro", "QT.$${currentModule}.disabled_features", $$name)
+        QT.$${currentModule}.disabled_features += $$name
+        export(QT.$${currentModule}.disabled_features)
+        qtConfOutputSetDefine("publicHeader", "QT_FEATURE_$$feature", -1)
+    }
+}
+
+defineTest(qtConfOutput_privateFeature) {
+    name = "$$eval($${1}.name)"
+    isEmpty(name): \
+        name = $$eval($${1}.feature)
+    feature = $$replace(name, [-+.], _)
+
+    $${2} {
+        qtConfExtendVar("privatePro", "QT.$${currentModule}_private.enabled_features", $$name)
+        QT.$${currentModule}_private.enabled_features += $$name
+        export(QT.$${currentModule}_private.enabled_features)
+        qtConfOutputSetDefine("privateHeader", "QT_FEATURE_$$feature", 1)
+    } else {
+        qtConfExtendVar("privatePro", "QT.$${currentModule}_private.disabled_features", $$name)
+        QT.$${currentModule}_private.disabled_features += $$name
+        export(QT.$${currentModule}_private.disabled_features)
+        qtConfOutputSetDefine("privateHeader", "QT_FEATURE_$$feature", -1)
+    }
+}
+
+defineTest(qtConfProcessOneOutput) {
+    feature = $${1}
+    fpfx = $${currentConfig}.features.$${feature}
+    opfx = $${fpfx}.output.$${2}
+
+    call = $$eval($${opfx}.type)
+    isEmpty(call) {
+        # output is just a string, not an object
+        call = $$eval($$opfx)
+    }
+    !defined("qtConfOutput_$$call", test): \
+        error("Undefined type '$$call' in output '$$2' of feature '$$feature'.")
+
+    !$$qtConfEvaluate($$eval($${opfx}.condition)): \
+        return()
+
+    $${opfx}.feature = $$feature
+    qtConfOutput_$${call}($$opfx, $$eval($${fpfx}.available))
+}
+
+defineTest(qtConfProcessOutput) {
+    !contains($${currentConfig}._KEYS_, "features"): \
+        return()
+
+    basedir = $$shadowed($$eval($${currentConfig}.dir))
+    module = $$eval($${currentConfig}.module)
+
+    # write it to the output files
+    !defined($${currentConfig}.files._KEYS_, var) {
+        # set defaults that should work for most Qt modules
+        isEmpty(module): \
+            error("Neither module nor files section specified in configuration file.")
+
+        $${currentConfig}.files._KEYS_ = publicPro privatePro publicHeader privateHeader
+        $${currentConfig}.files.publicPro = qt$${module}-config.pri
+        $${currentConfig}.files.privatePro = qt$${module}-config.pri  # sic!
+        $${currentConfig}.files.publicHeader = qt$${module}-config.h
+        $${currentConfig}.files.privateHeader = qt$${module}-config_p.h
+    }
+
+    for (type, $${currentConfig}.files._KEYS_) {
+        contains(type, ".*Pro") {
+            for (k, $${currentConfig}.output.$${type}.assign._KEYS_): \
+                $${currentConfig}.output.$$type += "$$k = $$eval($${currentConfig}.output.$${type}.assign.$$k)"
+            for (k, $${currentConfig}.output.$${type}.remove._KEYS_): \
+                $${currentConfig}.output.$$type += "$$k -= $$eval($${currentConfig}.output.$${type}.remove.$$k)"
+            for (k, $${currentConfig}.output.$${type}.append._KEYS_): \
+                $${currentConfig}.output.$$type += "$$k += $$eval($${currentConfig}.output.$${type}.append.$$k)"
+        } else: contains(type, ".*Header") {
+            for (define, $${currentConfig}.output.$${type}._KEYS_) {
+                value = $$eval($${currentConfig}.output.$${type}.$${define})
+                $${currentConfig}.output.$$type += "$${LITERAL_HASH}define $$define $$value"
+            }
+        }
+
+        content = $$eval($${currentConfig}.output.$${type})
+
+        !isEmpty(module): \
+            call = qtConfOutputPostProcess_$${module}_$${type}
+        else: \
+            call = qtConfOutputPostProcess_$${type}
+        defined($$call, replace): \
+            eval(content = \$\$"$$call"(\$\$content))
+
+        file = $$eval($${currentConfig}.files.$${type})
+        fileCont.$$file += $$content
+        fileCont._KEYS_ *= $$file
+    }
+
+    for (file, fileCont._KEYS_): \
+        write_file($$basedir/$$file, fileCont.$$file)|error()
+}
+
+#
+# tie it all together
+#
+
+!isEmpty(_QMAKE_SUPER_CACHE_):!equals(OUT_PWD, $$dirname(_QMAKE_SUPER_CACHE_)) {
+    # sub-repo within a top-level build; no need to configure anything.
+    !isEmpty(QMAKE_EXTRA_ARGS) {
+        # sub-projects don't get the extra args passed down automatically,
+        # so we can use their presence to detect misguided attempts to
+        # configure the repositories separately.
+        # caveat: a plain qmake call is indistinguishable from a recursion
+        # (by design), so we cannot detect this case.
+        error("You cannot configure $$TARGET separately within a top-level build.")
+    }
+    return()
+}
+
+config.$${TARGET}.dir = $$_PRO_FILE_PWD_
+cfgs = $$TARGET
+!isEmpty(_QMAKE_SUPER_CACHE_) {
+    for (s, SUBDIRS) {
+        config.$${s}.dir = $$_PRO_FILE_PWD_/$${s}
+        cfgs += $$s
+    }
+}
+configsToProcess =
+for (c, cfgs) {
+    s = $$eval(config.$${c}.dir)
+    exists($$s/configure.json): \
+        configsToProcess += $$c
+}
+isEmpty(configsToProcess) {
+    !isEmpty(QMAKE_EXTRA_ARGS): \
+        error("This module does not accept configure command line arguments.")
+    return()
+}
+
+load(configure_base)
+
+QMAKE_POST_CONFIGURE =
+config.builtins.dir = $$PWD/data
+configsToProcess = builtins $$configsToProcess
+allConfigs =
+for(ever) {
+    isEmpty(configsToProcess): \
+        break()
+
+    thisConfig = $$take_first(configsToProcess)
+    currentConfig = config.$$thisConfig
+    thisDir = $$eval($${currentConfig}.dir)
+    jsonFile = $$thisDir/configure.json
+    priFile = $$thisDir/configure.pri
+
+    # load configuration data
+    configure_data = $$cat($$jsonFile, blob)
+    !parseJson(configure_data, $$currentConfig): \
+        error("Invalid or non-existent file $${jsonFile}.")
+    exists($$priFile): \
+        !include($$priFile): error()
+
+    # only configs which contain more than just subconfigs are saved for later.
+    $${currentConfig}._KEYS_ -= subconfigs
+    !isEmpty($${currentConfig}._KEYS_) {
+        allConfigs += $$currentConfig
+        contains($${currentConfig}._KEYS_, libraries) {
+            qtConfSetupLibraries()
+            # this ensures that references in QMAKE_LIBRARY_DEPS are unique.
+            qtConfSetModuleName()
+            ex = $$eval(config.modules.$${currentModule})
+            !isEmpty(ex): \
+                error("Module $$currentModule is claimed by both $$currentConfig and $${ex}.")
+            config.modules.$${currentModule} = $$currentConfig
+        }
+    }
+
+    # prepend all subconfigs to files to keep a depth first search order
+    subconfigs =
+    for(n, $${currentConfig}.subconfigs._KEYS_) {
+        subconfig = $$eval($${currentConfig}.subconfigs.$${n})
+        name = $${thisConfig}_$$basename(subconfig)
+        ex = $$eval(config.$${name}.dir)
+        !isEmpty(ex): \
+            error("Basename clash between $$thisDir/$$subconfig and $${ex}.")
+        config.$${name}.dir = $$thisDir/$$subconfig
+        subconfigs += $$name
+    }
+    configsToProcess = $$subconfigs $$configsToProcess
+}
+# 'builtins' is used for command line parsing and test type dependency
+# injection, but its features must not be processed regularly.
+allModuleConfigs = $$member(allConfigs, 1, -1)
+
+QMAKE_SAVED_ARGS = $$QMAKE_EXTRA_ARGS
+QMAKE_REDO_CONFIG = false
+qtConfParseCommandLine()
+qtConfCheckErrors()
+
+!isEmpty(config.input.list-features) {
+    all_ft =
+    for (currentConfig, allModuleConfigs) {
+        for (k, $${currentConfig}.features._KEYS_) {
+            pp = $$eval($${currentConfig}.features.$${k}.purpose)
+            !isEmpty(pp) {
+                pfx = $$eval($${currentConfig}.features.$${k}.section)
+                !isEmpty(pfx): pfx = "$$pfx: "
+                all_ft += $$qtConfPadCols($$k, ".......................", \
+                                          $$pfx$$section(pp, $$escape_expand(\\n), 0, 0))
+            }
+        }
+    }
+    all_ft = $$sorted(all_ft)
+    logn()
+    for (ft, all_ft): \
+        logn($$ft)
+    error()
+}
+
+!isEmpty(config.input.list-libraries) {
+    logn()
+    for (currentConfig, allModuleConfigs) {
+        !isEmpty($${currentConfig}.exports._KEYS_) {
+            !isEmpty($${currentConfig}.module): \
+                logn($$eval($${currentConfig}.module):)
+            else: \
+                logn($$section(currentConfig, ., -1):)
+            all_xp =
+            for (xport, $${currentConfig}.exports._KEYS_) {
+                libs = $$eval($${currentConfig}.exports.$$xport)
+                isEqual($${currentConfig}.libraries.$$first(libs).export, "") {  # not isEmpty()!
+                    !isEmpty(config.input.verbose): \
+                        all_xp += "$$xport!"
+                } else {
+                    out = "$$xport"
+                    !isEmpty(config.input.verbose):!isEqual(xport, $$libs): \
+                        out += "($$libs)"
+                    all_xp += "$$out"
+                }
+            }
+            all_xp = $$sorted(all_xp)
+            all_xp ~= s,^([^!]*)!$,(\\1),g
+            for (xp, all_xp): \
+                logn("  $$xp")
+        }
+    }
+    error()
+}
+
+QMAKE_CONFIG_VERBOSE = $$eval(config.input.verbose)
+isEmpty(QMAKE_CONFIG_VERBOSE): \
+    QMAKE_CONFIG_VERBOSE = false
+QMAKE_CONFIG_LOG = $$OUT_PWD/config.log
+write_file($$QMAKE_CONFIG_LOG, "")
+qtLog("Command line: $$qtSystemQuote($$QMAKE_SAVED_ARGS)")
+$$QMAKE_REDO_CONFIG: \
+    qtLog("config.opt: $$qtSystemQuote($$QMAKE_EXTRA_REDO_ARGS)")
+
+for (currentConfig, allModuleConfigs) {
+    qtConfSetModuleName()
+    qtConfSetupModuleOutputs()
+    # do early checks, mainly to validate the command line
+    qtConfProcessEarlyChecks()
+}
+qtConfCheckErrors()
+
+QMAKE_CONFIG_CACHE = $$OUT_PWD/config.cache
+QMAKE_CONFIG_CACHE_USE = $$eval(config.input.cache_use)
+cache_recheck = $$eval(config.input.cache_recheck)
+equals(cache_recheck, yes) {
+    QMAKE_CONFIG_CACHE_USE = positive
+    cache_recheck =
+}
+isEmpty(QMAKE_CONFIG_CACHE_USE): \
+    QMAKE_CONFIG_CACHE_USE = all
+!equals(QMAKE_CONFIG_CACHE_USE, none) {
+    include($$QMAKE_CONFIG_CACHE, , true)
+    # this crudely determines when to discard the cache. this also catches the case
+    # of no cache being there in the first place.
+    !equals(cache.platform, $$[QMAKE_SPEC])|!equals(cache.xplatform, $$[QMAKE_XSPEC]) {
+        QMAKE_CONFIG_CACHE_USE = none
+    } else: !isEmpty(cache_recheck) {
+        for (cr, $$list($$split(cache_recheck, ","))) {
+            !isEmpty(cache.$${cr}._KEYS_) {
+                cache.$${cr}._KEYS_ =
+            } else {
+                qtConfAddWarning("Attempting to discard non-cached result '$$cr'.")
+            }
+        }
+    }
+}
+equals(QMAKE_CONFIG_CACHE_USE, none) {
+    cont = \
+        "cache.platform = $$[QMAKE_SPEC]" \
+        "cache.xplatform = $$[QMAKE_XSPEC]"
+    write_file($$QMAKE_CONFIG_CACHE, cont)
+}
+
+CONFIG += qt_conf_tests_allowed
+logn()
+logn("Running configuration tests...")
+
+for (currentConfig, allModuleConfigs) {
+    tdir = $$eval($${currentConfig}.testDir)
+    isEmpty(tdir): tdir = config.tests
+    QMAKE_CONFIG_TESTS_DIR = $$absolute_path($$tdir, $$eval($${currentConfig}.dir))
+
+    qtConfSetModuleName()
+
+    qtConfSetupTestTypeDeps()
+
+    # correctly setup dependencies
+    QMAKE_CONFIG_DEPS = global global_private
+    QMAKE_LIBRARY_DEPS = $$eval(config.modules.global)
+    !isEmpty($${currentConfig}.module) {
+        for (d, $${currentConfig}.depends._KEYS_) {
+            dep = $$replace($${currentConfig}.depends.$$d, -private$, _private)
+            gdep = $$replace(dep, _private$, )
+            dep *= $$gdep
+            QMAKE_CONFIG_DEPS += $$dep
+            !isEqual(gdep, $$dep): \  # libraries are in the private module.
+                QMAKE_LIBRARY_DEPS += $$eval(config.modules.$$gdep)
+        }
+    }
+
+    qtConfCheckModuleCondition()
+
+    qtConfHaveModule($$currentModule) {
+        # process all features
+        qtConfProcessFeatures()
+    } else {
+        qtConfOutputVar(assign, "privatePro", "QT.$${currentModule}.skip", "true")
+    }
+
+    # generate files and reports
+    qtConfProcessOutput()
+    qtConfHaveModule($$currentModule) {
+        qtConfCreateReport()
+        qtConfCreateSummary()
+    } else {
+        QT_CONFIGURE_SKIPPED_MODULES += "    $$currentModule"
+    }
+}
+
+!isEmpty(QT_CONFIGURE_SKIPPED_MODULES): \
+    qtConfAddNote("The following modules are not being compiled in this configuration:" $$QT_CONFIGURE_SKIPPED_MODULES)
+
+logn("Done running configuration tests.")
+logn()
+
+!$$QMAKE_REDO_CONFIG {
+    write_file($$OUT_PWD/config.opt, QMAKE_SAVED_ARGS)|error()
+}
+
+# these come from the pri files loaded above.
+for (p, QMAKE_POST_CONFIGURE): \
+    eval($$p)
+
+logn("Configure summary:")
+logn()
+qtConfPrintReport()
+
+load(qt_prefix_build_check)
+
+# final notes for the user
+logn()
+logn("Qt is now configured for building. Just run '$$QMAKE_MAKE_NAME'.")
+pfx = $$[QT_INSTALL_PREFIX]
+qtIsPrefixBuild($$pfx) {
+    logn("Once everything is built, you must run '$$QMAKE_MAKE_NAME install'.")
+    logn("Qt will be installed into '$$system_path($$pfx)'.")
+} else {
+    logn("Once everything is built, Qt is installed.")
+    logn("You should NOT run '$$QMAKE_MAKE_NAME install'.")
+    logn("Note that this build cannot be deployed to other machines or devices.")
+}
+logn()
+logn("Prior to reconfiguration, make sure you remove any leftovers from")
+logn("the previous build.")
+logn()

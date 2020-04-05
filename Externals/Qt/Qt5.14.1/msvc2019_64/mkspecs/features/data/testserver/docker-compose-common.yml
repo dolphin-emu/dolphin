@@ -1,0 +1,38 @@
+version: '2.1'
+
+# This is a template docker-compose file shared with all modules. It is based
+# on 'extending services' feature of compose file version 2.1.
+# See https://docs.docker.com/compose/extends/#extending-services for details.
+#
+# Example: testserver/docker-compose.yml
+# services:
+#     foo:
+#         extends:
+#             file: ${SHARED_DATA}/docker-compose-common.yml
+#             service: ${SHARED_SERVICE}
+#         container_name: qt-test-server-foo
+#         hostname: ${HOST_NAME:-foo}
+#         build:
+#             context: .
+#             args:
+#                 provisioningImage: qt-test-server-foo:537fe302f61851d1663...
+#                 serviceDir: ./foo
+#         command: service/foo.sh
+
+x-services:
+    &default-service
+    domainname: ${TEST_DOMAIN}
+    build:
+        context: .
+        dockerfile: ${SHARED_DATA}/Dockerfile
+        args:
+            test_domain: ${TEST_DOMAIN}
+    entrypoint: ./startup.sh
+
+services:
+    bridge-network: *default-service
+    host-network:
+        << : *default-service
+        network_mode: "host"
+        extra_hosts:
+            - "qt-test-server.${TEST_DOMAIN}:${MACHINE_IP}"

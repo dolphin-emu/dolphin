@@ -1,0 +1,6 @@
+# bitcode (release mode) is incompatible with splitting sections.
+# We have to explicitly exclude Xcode, as that supports both debug
+# and release builds in the same project. Xcode already has a settting
+# for dead code stripping which is enabled by default, so we'll still
+# strip any libraries build with split sections.
+!bitcode|if(!macx-xcode:!release): load(gc_binaries)

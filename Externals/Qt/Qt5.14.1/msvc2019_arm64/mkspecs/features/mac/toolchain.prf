@@ -1,0 +1,5 @@
+# Ensure that we process sdk.prf first, as it will update QMAKE_CXX,
+# which the default path determination uses.
+sdk: load(sdk)
+
+load(toolchain)

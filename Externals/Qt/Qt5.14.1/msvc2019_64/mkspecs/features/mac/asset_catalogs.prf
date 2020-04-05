@@ -1,0 +1,124 @@
+# QMAKE_ASSET_CATALOGS
+# Paths to xcassets directories to be compiled
+#
+# QMAKE_ASSET_CATALOGS_BUILD_PATH
+# Location which asset catalogs will be compiled to.
+# If the current target is an app bundle, defaults to its Resources directory.
+# Otherwise, this value must be set manually.
+#
+# QMAKE_ASSET_CATALOGS_APP_ICON
+# Name of the icon resource in the asset catalogs that will be used as the app icon.
+# Defaults to AppIcon.
+#
+# QMAKE_ASSET_CATALOGS_LAUNCH_IMAGE
+# Name of the launch image resource in the asset catalogs that will be used as the launch image.
+#
+# QMAKE_ASSET_CATALOGS_INSTALL_PATH
+# Base path to install files to. Falls back to a path relative to the target install path,
+# based on QMAKE_ASSET_CATALOGS_BUILD_PATH.
+
+!have_target|if(!build_pass:!isEmpty(BUILDS)): \
+    return()
+
+!isEmpty(QMAKE_ASSET_CATALOGS) {
+    load(resolve_target)
+
+    isEmpty(QMAKE_ASSET_CATALOGS_BUILD_PATH) {
+        !isEmpty(QMAKE_RESOLVED_BUNDLE):equals(TEMPLATE, app):app_bundle {
+            macos: \
+                QMAKE_ASSET_CATALOGS_BUILD_PATH = $$QMAKE_RESOLVED_BUNDLE/Contents/Resources
+            else: \
+                QMAKE_ASSET_CATALOGS_BUILD_PATH = $$QMAKE_RESOLVED_BUNDLE
+        } else {
+            error("QMAKE_ASSET_CATALOGS_BUILD_PATH must be set when using QMAKE_ASSET_CATALOGS.")
+        }
+    }
+
+    QMAKE_ASSET_CATALOGS_BUILD_PATH = $$clean_path($$QMAKE_ASSET_CATALOGS_BUILD_PATH)
+
+    macx-xcode {
+        !isEmpty(QMAKE_ASSET_CATALOGS_APP_ICON) {
+            asset_catalog_appicon.name = "ASSETCATALOG_COMPILER_APPICON_NAME"
+            asset_catalog_appicon.value = $$QMAKE_ASSET_CATALOGS_APP_ICON
+            QMAKE_MAC_XCODE_SETTINGS += asset_catalog_appicon
+        }
+
+        !isEmpty(QMAKE_ASSET_CATALOGS_LAUNCH_IMAGE) {
+            asset_catalog_launchimage.name = "ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME"
+            asset_catalog_launchimage.value = $$QMAKE_ASSET_CATALOGS_LAUNCH_IMAGE
+            QMAKE_MAC_XCODE_SETTINGS += asset_catalog_launchimage
+        }
+
+        asset_catalog_compiler.files = $$QMAKE_ASSET_CATALOGS
+        macos: asset_catalog_compiler.path = Contents/Resources
+        QMAKE_BUNDLE_DATA += asset_catalog_compiler
+    } else {
+        !isEmpty(QMAKE_ASSET_CATALOGS_APP_ICON) {
+            asset_catalog_app_icon_arg = \
+                --app-icon $$shell_quote($$QMAKE_ASSET_CATALOGS_APP_ICON)
+        }
+
+        !isEmpty(QMAKE_ASSET_CATALOGS_LAUNCH_IMAGE) {
+            asset_catalog_launch_image_arg = \
+                --launch-image $$shell_quote($$QMAKE_ASSET_CATALOGS_LAUNCH_IMAGE)
+        }
+
+        asset_catalog_compiler.target = $$OUT_PWD/asset_catalog_compiler.Info.plist
+        asset_catalog_compiler.commands = $$shell_quote($$QMAKE_ACTOOL) \
+            $$asset_catalog_app_icon_arg \
+            $$asset_catalog_launch_image_arg \
+            --output-partial-info-plist $$shell_quote($$asset_catalog_compiler.target) \
+            --platform $${version_identifier} \
+            --minimum-deployment-target $${deployment_target} \
+            --compile $$shell_quote($$QMAKE_ASSET_CATALOGS_BUILD_PATH)
+
+        for (catalog, QMAKE_ASSET_CATALOGS) {
+            asset_catalog_compiler.commands += $${catalog}
+            asset_catalog_compiler.depends += $$files($$catalog/*, true)
+        }
+
+        actool_output_files = $$system(\
+                mkdir -p $$system_quote($$QMAKE_ASSET_CATALOGS_BUILD_PATH) && \
+                /usr/libexec/PlistBuddy -c \'Print :com.apple.actool.compilation-results:output-files\' \
+                    /dev/stdin <<< $($${asset_catalog_compiler.commands} 2>/dev/null) | sed -Ene \'s/^ +//p\', lines)
+
+        for (output_file, actool_output_files) {
+            !equals(output_file, $$asset_catalog_compiler.target): \
+                actool_output_files_rel += $$relative_path($$output_file, $$QMAKE_ASSET_CATALOGS_BUILD_PATH)
+        }
+
+        QMAKE_EXTRA_TARGETS += asset_catalog_compiler
+        PRE_TARGETDEPS += $$asset_catalog_compiler.target
+
+        isEmpty(QMAKE_ASSET_CATALOGS_INSTALL_PATH) {
+            !isEmpty(target.path): \
+                QMAKE_ASSET_CATALOGS_INSTALL_PATH = $${target.path}/
+            QMAKE_ASSET_CATALOGS_INSTALL_PATH = $${QMAKE_ASSET_CATALOGS_INSTALL_PATH}$$relative_path(\
+                    $$QMAKE_ASSET_CATALOGS_BUILD_PATH, $$absolute_path($$DESTDIR, $$OUT_PWD))
+        }
+
+        for (ac_install_file, actool_output_files_rel) {
+            asset_catalogs_files.files += \
+                $$QMAKE_ASSET_CATALOGS_BUILD_PATH/$$ac_install_file
+        }
+        contains(INSTALLS, target): asset_catalogs_files.depends += install_target
+        asset_catalogs_files.path = $$QMAKE_ASSET_CATALOGS_INSTALL_PATH
+        asset_catalogs_files.CONFIG += no_check_exist
+        INSTALLS += asset_catalogs_files
+    }
+} else: macx-xcode {
+    # Backwards compatibility
+    for (bundle_data, QMAKE_BUNDLE_DATA) {
+        for (bundle_file, $${bundle_data}.files) {
+            !contains(bundle_file, .*\\.xcassets$): next()
+            warning("*.xcassets in QMAKE_BUNDLE_DATA is deprecated. Use QMAKE_ASSET_CATALOGS instead.")
+            !exists($$absolute_path($$bundle_file/AppIcon.appiconset, $$_PRO_FILE_PWD_)): next()
+
+            asset_catalog_appicon.name = "ASSETCATALOG_COMPILER_APPICON_NAME"
+            asset_catalog_appicon.value = "AppIcon"
+            QMAKE_MAC_XCODE_SETTINGS += asset_catalog_appicon
+            break()
+        }
+        !isEmpty(asset_catalog_appicon.name): break()
+    }
+}

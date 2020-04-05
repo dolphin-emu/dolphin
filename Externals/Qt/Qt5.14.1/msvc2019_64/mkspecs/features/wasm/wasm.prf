@@ -1,0 +1,130 @@
+
+
+# DESTDIR will be empty if not set in the app .pro file; make sure it has a value
+isEmpty(DESTDIR): DESTDIR = $$OUT_PWD
+
+exists($$QMAKE_QT_CONFIG) {
+## this may be subject to change
+
+    qtConfig(thread) {
+
+        EMCC_THREAD_LFLAGS += -s USE_PTHREADS=1
+
+        # Create worker threads at startup. This is supposed to be an optimization,
+        # however exceeding the pool size has been obesverved to hang the application.
+        POOL_SIZE = 4
+        !isEmpty(QMAKE_WASM_PTHREAD_POOL_SIZE) {
+            POOL_SIZE = $$QMAKE_WASM_PTHREAD_POOL_SIZE
+        }
+
+        message("Setting PTHREAD_POOL_SIZE to" $$POOL_SIZE)
+        EMCC_THREAD_LFLAGS += -s PTHREAD_POOL_SIZE=$$POOL_SIZE
+    } else {
+        EMCC_THREAD_LFLAGS += -s ALLOW_MEMORY_GROWTH=1
+    }
+
+     qtConfig(thread) | !isEmpty(QMAKE_WASM_TOTAL_MEMORY) {
+
+            # Hardcode wasm memory size. Emscripten does not currently support memory growth
+            # (ALLOW_MEMORY_GROWTH) in pthreads mode, and requires specifying the memory size
+            # at build time. Further, browsers limit the maximum initial memory size to 1GB.
+            # QMAKE_WASM_TOTAL_MEMORY must be a multiple of 64KB
+            TOTAL_MEMORY = 1GB
+            !isEmpty(QMAKE_WASM_TOTAL_MEMORY) {
+                TOTAL_MEMORY = $$QMAKE_WASM_TOTAL_MEMORY
+            }
+            message("Setting TOTAL_MEMORY to" $$TOTAL_MEMORY)
+            EMCC_THREAD_LFLAGS += -s TOTAL_MEMORY=$$TOTAL_MEMORY
+    }
+    QMAKE_LFLAGS       += $$EMCC_THREAD_LFLAGS
+    QMAKE_LFLAGS_DEBUG += $$EMCC_THREAD_LFLAGS
+    QMAKE_CFLAGS += $$EMCC_THREAD_LFLAGS
+    QMAKE_CXXFLAGS += $$EMCC_THREAD_LFLAGS
+}
+
+# Create js and wasm files for applications
+contains(TEMPLATE, .*app) {
+    TARGET_BASE = $${TARGET}
+    TARGET_HTML = $${TARGET}.html
+    TARGET_JS = $${TARGET}.js
+
+    # Make the emscripten compiler generate a js file
+    TARGET = $$TARGET_JS
+
+    QMAKE_INCDIR += $$(HOME)/.emscripten_ports/openssl/include
+
+    CONFIG += static
+    js_file.files = $$TARGET_JS
+    js_file.path  = $$target.path
+    isEmpty(js_file.path): \
+        js_file.path += ./
+    INSTALLS += js_file
+
+    # Copy hosting html and javascript to the application build directory.
+    exists($$[QT_INSTALL_PLUGINS]/platforms/wasm_shell.html) {
+        # don't pass this until it's installed somewhere
+        # otherwise makespec test fails during qt configure
+        WASM_PLUGIN_PATH = $$[QT_INSTALL_PLUGINS]/platforms
+    } else {
+        ## internal build. not installed
+        WASM_PLUGIN_PATH = $$PWD/../../../src/plugins/platforms/wasm
+    }
+
+    # Copy/Generate main .html file (e.g. myapp.html) from the webassembly_shell.html by
+    # replacing the app name placeholder with the actual app name.
+    apphtml.name = application main html file
+    apphtml.output = $$DESTDIR/$$TARGET_HTML
+    apphtml.commands = $$QMAKE_STREAM_EDITOR -e s/@APPNAME@/$$TARGET_BASE/g $$WASM_PLUGIN_PATH/wasm_shell.html > $$DESTDIR/$$TARGET_HTML
+    apphtml.input = $$WASM_PLUGIN_PATH/wasm_shell.html
+    apphtml.depends = $$apphtml.input
+    QMAKE_EXTRA_COMPILERS += apphtml
+
+    appjs.name = application qtloader.js
+    appjs.output = $$DESTDIR/qtloader.js
+    appjs.commands = $$QMAKE_COPY $$shell_path($$WASM_PLUGIN_PATH/qtloader.js) $$shell_path($$DESTDIR)
+    appjs.input = $$WASM_PLUGIN_PATH/qtloader.js
+    appjs.depends = $$appjs.input
+    QMAKE_EXTRA_COMPILERS += appjs
+
+    appsvg.name = application qtlogo.svg
+    appsvg.output = $$DESTDIR/qtlogo.svg
+    appsvg.commands = $$QMAKE_COPY $$shell_path($$WASM_PLUGIN_PATH/qtlogo.svg) $$shell_path($$DESTDIR)
+    appsvg.input = $$WASM_PLUGIN_PATH/qtlogo.svg
+    appsvg.depends = $$appsvg.input
+    QMAKE_EXTRA_COMPILERS += appsvg
+
+    QMAKE_EXTRA_TARGETS += apphtml appjs appsvg
+    POST_TARGETDEPS += apphtml appjs appsvg
+
+    # Add manual target to make "make -B shellfiles" work.
+    shellfiles.target = shellfiles
+    shellfiles.depends = apphtml appjs appsvg
+    QMAKE_EXTRA_TARGETS += shellfiles
+
+    # emscripten ports are linked into the main module (this app), not the Qt
+    # libs which reference them
+    qt {
+        qt_depends = $$resolve_depends(QT, "QT.")
+        contains(qt_depends, core(-private)?): QMAKE_LFLAGS += \
+            $$QMAKE_LIBS_THREAD $$QMAKE_LIBS_ZLIB
+        contains(qt_depends, gui(-private)?): QMAKE_LFLAGS += \
+            $$QMAKE_LIBS_FREETYPE $$QMAKE_LIBS_LIBPNG
+    }
+}
+
+qtConfTest_emccVersion()
+
+# Pass --source-map-base on the linker line. This informs the
+# browser where to find the source files when debugging.
+WASM_SOURCE_MAP_BASE = http://localhost:8000/
+!isEmpty(QMAKE_WASM_SOURCE_MAP_BASE):\
+    WASM_SOURCE_MAP_BASE = $$QMAKE_WASM_SOURCE_MAP_BASE
+CONFIG(debug): QMAKE_LFLAGS += --source-map-base $$WASM_SOURCE_MAP_BASE
+
+# Creates the stand-alone version of the library from bitcode
+!static:contains(TEMPLATE, .*lib): {
+    load(resolve_target)
+    QMAKE_POST_LINK += $$QMAKE_LINK_SHLIB $$QMAKE_RESOLVED_TARGET -o $${QMAKE_RESOLVED_TARGET}.js
+
+    QMAKE_INCDIR += $$(HOME)/.emscripten_ports/openssl/include
+}

@@ -1,0 +1,71 @@
+
+# For Qt applications we want Xcode project files as the generated output,
+# but since qmake doesn't handle the transition between makefiles and Xcode
+# project files (which happens when using subdirs), we can't just override
+# MAKEFILE_GENERATOR. Instead, we generate the Xcode project by spawing a
+# child qmake process with -spec macx-xcode and let the top level qmake
+# process generate a wrapper makefile that forwards everything to xcodebuild.
+
+TEMPLATE = aux
+
+SOURCES =
+OBJECTIVE_SOURCES =
+RESOURCES =
+INSTALLS =
+QMAKE_EXTRA_COMPILERS =
+
+!mkpath($$OUT_PWD): \
+    error("Failed to create $$OUT_PWD")
+
+args =
+prev_arg =
+for(arg, QMAKE_ARGS) {
+    !equals(arg, "-spec"):!equals(prev_arg, "-spec"): \
+        args += $$system_quote($$arg)
+    prev_arg = $$arg
+}
+
+cmd = "$$QMAKE_QMAKE $$system_quote($$_PRO_FILE_) -spec macx-xcode $$args"
+debug(1, "Generating Xcode project in $$OUT_PWD using '$$cmd'")
+system("$$QMAKE_CD $$system_quote($$OUT_PWD) && $$cmd")
+
+QMAKE_EXTRA_VARIABLES += PRE_TARGETDEPS
+
+# Subtargets
+
+for(build, BUILDS): \
+    SUBTARGETS += $$eval($${build}.target)
+QMAKE_EXTRA_VARIABLES += SUBTARGETS
+
+CONFIG += no_default_goal_deps
+
+DEVICE_SDK = $${device.sdk}
+SIMULATOR_SDK = $${simulator.sdk}
+ios {
+    DEVICE_FILTER = --platform iOS --minimum-deployment-target $$QMAKE_IOS_DEPLOYMENT_TARGET
+    GENERIC_DEVICE_DESTINATION = "generic/platform=iOS"
+}
+tvos {
+    DEVICE_FILTER = --platform tvOS --minimum-deployment-target $$QMAKE_TVOS_DEPLOYMENT_TARGET
+    GENERIC_DEVICE_DESTINATION = "generic/platform=tvOS"
+}
+watchos {
+    DEVICE_FILTER = --platform watchOS --minimum-deployment-target $$QMAKE_WATCHOS_DEPLOYMENT_TARGET
+    GENERIC_DEVICE_DESTINATION = "generic/platform=watchOS"
+}
+QMAKE_EXTRA_VARIABLES += DEVICE_SDK SIMULATOR_SDK DEVICE_FILTER GENERIC_DEVICE_DESTINATION
+
+QMAKE_EXTRA_INCLUDES += $$shell_quote($$PWD/xcodebuild.mk)
+
+# Distclean
+
+distfiles = $${TARGET}.xcodeproj
+for(build, BUILDS): \
+    distfiles += $$title($$eval($${build}.target))
+distclean_xcodebuild.commands = -$(DEL_FILE) -R $$distfiles
+
+distclean.depends += clean_all distclean_xcodebuild
+QMAKE_EXTRA_TARGETS += distclean distclean_xcodebuild
+
+# Empty exclusive builds, we've set them up manually
+BUILDS =

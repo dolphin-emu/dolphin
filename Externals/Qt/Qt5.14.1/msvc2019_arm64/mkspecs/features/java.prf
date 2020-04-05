@@ -1,0 +1,44 @@
+TEMPLATE = lib
+android {
+    load(sdk)
+
+    # FIXME: This is a hack to work around some hardcoded values in the android.prf. The
+    # android.prf should be fixed and this should be removed.
+    CONFIG += android_app
+}
+
+isEmpty(CLASS_DIR): \
+    CLASS_DIR = .classes
+
+CONFIG -= qt
+
+# Without these, qmake adds a name prefix and versioning postfixes (as well as file
+# links) to the target. This is hardcoded in the qmake code, so for now we use
+# the plugin configs to get what we want.
+CONFIG += plugin no_plugin_name_prefix
+
+javac.input = JAVASOURCES
+javac.output = $$CLASS_DIR
+javac.CONFIG += combine
+javac.commands = javac -source 6 -target 6 -Xlint:unchecked -bootclasspath $$ANDROID_JAR_FILE -cp $$shell_quote($$system_path($$join(JAVACLASSPATH, $$DIRLIST_SEPARATOR))) -d $$shell_quote($$CLASS_DIR) ${QMAKE_FILE_IN}
+# Force rebuild every time, because we don't know the paths of the destination files
+# as they depend on the code.
+javac.depends = FORCE
+QMAKE_EXTRA_COMPILERS += javac
+
+mkpath($$absolute_path($$CLASS_DIR, $$OUT_PWD))|error()
+
+# Disable all linker flags since we are overriding the regular linker
+QMAKE_LFLAGS =
+QMAKE_CFLAGS =
+QMAKE_LFLAGS_RPATH =
+QMAKE_LFLAGS_PLUGIN =
+QMAKE_LIBS =
+QMAKE_LIBS_OPENGL_ES2 =
+QMAKE_LIBDIR =
+QMAKE_EXTENSION_SHLIB = jar
+QMAKE_LINK_SHLIB_CMD = jar cf $(TARGET) -C $$CLASS_DIR .
+
+# Force link step to always happen, since we are always updating the
+# .class files
+PRE_TARGETDEPS += FORCE

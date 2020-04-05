@@ -1,0 +1,50 @@
+APK_PATH = $$shell_path($$OUT_PWD/android-build/$${TARGET}.apk)
+!contains(TEMPLATE, subdirs): {
+    apk_install_target.target = apk_install_target
+    apk_install_target.depends = first
+    apk_install_target.commands = $(MAKE) -f $(MAKEFILE) INSTALL_ROOT=$$OUT_PWD/android-build install
+
+    qtPrepareTool(ANDROIDDEPLOYQT, androiddeployqt)
+    isEmpty(ANDROID_DEPLOYMENT_SETTINGS_FILE): ANDROID_DEPLOYMENT_SETTINGS_FILE = $$OUT_PWD/android-$$TARGET-deployment-settings.json
+    contains(QMAKE_HOST.os, Windows): extension = .exe
+
+    apk.target = apk
+    apk.depends = apk_install_target
+    apk.commands = $$ANDROIDDEPLOYQT --input $$ANDROID_DEPLOYMENT_SETTINGS_FILE --output $$OUT_PWD/android-build --apk $$APK_PATH
+
+    aab.target = aab
+    aab.depends = apk_install_target
+    aab.commands = $$ANDROIDDEPLOYQT --input $$ANDROID_DEPLOYMENT_SETTINGS_FILE --output $$OUT_PWD/android-build --aab --apk $$APK_PATH
+} else {
+    prepareRecursiveTarget(aab)
+    prepareRecursiveTarget(apk)
+    prepareRecursiveTarget(apk_install_target)
+}
+
+build_pass {
+    contains(TEMPLATE, ".*app") {
+        !android_app {
+            !contains(TARGET, ".so") {
+                single_arch:TARGET = lib$${TARGET}.so
+                       else:TARGET = lib$${TARGET}_$${QT_ARCH}.so
+            }
+            QMAKE_LFLAGS += -Wl,-soname,$$shell_quote($$TARGET)
+
+            android_install {
+                target.path=/libs/$$ANDROID_TARGET_ARCH/
+                INSTALLS *= target
+            }
+        }
+    } else: contains(TEMPLATE, "lib"):!static:!QTDIR_build:android_install {
+        tmpvar = $$str_member($$TARGET, -$$str_size($${QT_ARCH}), -1)
+        !equals(tmpvar, $${QT_ARCH}): TARGET = $${TARGET}_$${QT_ARCH}
+        target.path = /libs/$$ANDROID_TARGET_ARCH/
+        INSTALLS *= target
+    }
+} else {
+    android-build-distclean.commands = \
+        $$QMAKE_DEL_TREE $$shell_quote($$shell_path($$OUT_PWD/android-build))
+    QMAKE_EXTRA_TARGETS *= android-build-distclean
+    CLEAN_DEPS += android-build-distclean
+}
+QMAKE_EXTRA_TARGETS *= aab apk apk_install_target

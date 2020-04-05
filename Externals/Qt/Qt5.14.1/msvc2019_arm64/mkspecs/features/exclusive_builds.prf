@@ -1,0 +1,45 @@
+
+defineTest(addExclusiveBuildsProper) {
+    !$$1:!fix_output_dirs: \
+        return(true)
+
+    for(build, 2) {
+        isEmpty($${build}.name) {
+            $${build}.name = $$title($$build)
+            export($${build}.name)
+        }
+        isEmpty($${build}.target) {
+            $${build}.target = $$lower($$build)
+            export($${build}.target)
+        }
+        isEmpty($${build}.dir_affix) {
+            $${build}.dir_affix = $$lower($$build)
+            export($${build}.dir_affix)
+        }
+
+        $${build}.exclusive = $$2
+        export($${build}.exclusive)
+
+        QMAKE_EXCLUSIVE_BUILDS += $$build
+    }
+
+    CONFIG *= exclusive_builds
+    export(CONFIG)
+
+    export(QMAKE_EXCLUSIVE_BUILDS)
+    return(true)
+}
+
+defineTest(addExclusiveBuilds) {
+    lessThan(ARGC, 2): \
+        error("addExclusiveBuilds() requires at least two arguments")
+
+    addExclusiveBuildsProper($$join(ARGS, _and_), $$ARGS)
+}
+
+QMAKE_DEFAULT_DIRS_TO_PROCESS = QGLTF_DIR TRACEGEN_DIR QMLCACHE_DIR LRELEASE_DIR LEX_DIR YACC_DIR
+QMAKE_DIR_REPLACE_SANE += $$QMAKE_DEFAULT_DIRS_TO_PROCESS
+QMAKE_DIR_REPLACE = \
+    OBJECTS_DIR MOC_DIR RCC_DIR PRECOMPILED_DIR DESTDIR \
+    $$QMAKE_DEFAULT_DIRS_TO_PROCESS
+unset(QMAKE_DEFAULT_DIRS_TO_PROCESS)

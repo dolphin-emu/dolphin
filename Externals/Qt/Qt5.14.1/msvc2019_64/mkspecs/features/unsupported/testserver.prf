@@ -1,0 +1,231 @@
+# Integrating docker-based test servers into Qt Test framework
+#
+# This file adds support for docker-based test servers built by testcase
+# projects that need them. To enable this feature, any automated test can
+# include testserver.pri in its project file. This instructs qmake to insert
+# additional targets into the generated Makefile. The 'check' target then brings
+# up test servers before running the testcase, and shuts them down afterwards.
+#
+# TESTSERVER_COMPOSE_FILE
+# - Contains the path of docker-compose file
+# This configuration file defines the services used for autotests. It tells the
+# docker engine how to build up the docker images and containers. In qtbase, a
+# shared docker-compose file is located in the tests folder.
+# Example: TESTSERVER_COMPOSE_FILE = \
+#              $$dirname(_QMAKE_CONF_)/tests/testserver/docker-compose.yml
+#
+# The user must run the provisioning scripts in advance before attempting to
+# build the test servers. The docker_testserver.sh script is used to build up
+# the docker images into the docker-cache. It handles the immutable parts of the
+# server installation that rarely need adjustment, such as downloading packages.
+# Example: qt5/coin/provisioning/.../testserver/docker_testserver.sh
+#
+# QT_TEST_SERVER_LIST
+# - A list of test servers to bring up for this testcase
+# These test servers should be defined in $$TESTSERVER_COMPOSE_FILE. Each
+# testcase can define the test servers it depends on.
+# Example: QT_TEST_SERVER_LIST = apache2 squid vsftpd ftp-proxy danted
+#
+# Pre-processor defines needed for the application:
+# QT_TEST_SERVER
+# - A preprocessor macro used for testcase to change testing parameters at
+#   compile time
+# This macro is predefined for docker-based test servers and is passed as a
+# compiler option (-DQT_TEST_SERVER). The testcase can then check whether
+# docker-based servers are in use and change the testing parameters, such as
+# host name or port number, at compile time. An example can be found in
+# network-settings.h.
+#
+# Example:
+# #if defined(QT_TEST_SERVER)
+#     Change the testing parameters at compile time
+# #endif
+#
+# QT_TEST_SERVER_DOMAIN
+# - A preprocessor macro that holds the server domain name
+# Provided for the helper functions in network-settings.h. Use function
+# serverDomainName() in your application instead.
+#
+# Additional make targets:
+# 1. check_network - A renamed target from the check target of testcase feature.
+# 2. testserver_clean - Clean up server containers/images and tidy away related
+#    files.
+
+# The docker test server should only be integrated in the leaf Makefile.
+# If debug_and_release option is in use, skip the meta-Makefile except for
+# Makefile.Debug and Makefile.Release.
+debug_and_release:!build_pass: return()
+
+DOCKER_ENABLED = 1
+
+equals(QMAKE_HOST.os, Darwin) {
+    DOCKER_ENABLED = 0
+    message("Not using docker network test server on macOS, see QTQAINFRA-2717 and QTQAINFRA-2750")
+}
+
+TESTSERVER_VERSION = ""
+
+equals(DOCKER_ENABLED, 1) {
+    TESTSERVER_VERSION = $$system(docker-compose --version)
+}
+
+isEmpty(TESTSERVER_VERSION) {
+    # Make check with server "qt-test-server.qt-test-net" as a fallback
+} else {
+    # Make check with docker test servers
+    equals(QMAKE_HOST.os, Linux) {
+        # For the platform supporting docker bridge network, each container is
+        # assigned a unique hostname and connected to the same network domain
+        # to communicate with the others.
+        DEFINES += QT_TEST_SERVER_NAME
+        DNSDOMAIN = test-net.qt.local
+    } else {
+        # For the others, the containers are deployed into a virtual machine
+        # using the host network. All the containers share the same hostname of
+        # the virtual machine, and they are connected to the same network domain.
+        # NOTE: In Windows, Apple Bonjour only works within a single local domain.
+        DNSDOMAIN = local
+    }
+
+    equals(QMAKE_HOST.os, Darwin) {
+        # There is no docker bridge on macOS. It is impossible to ping a container.
+        # Docker docs recommends using port mapping to connect to a container;
+        # but it causes a port conflict if the user is running a service that
+        # binds the same port on the host. An alternative solution is to deploy
+        # the docker environment into VirtualBox using docker-machine.
+        isEmpty(TESTSERVER_COMPOSE_FILE): TESTSERVER_COMPOSE_FILE = \
+            $$dirname(_QMAKE_CONF_)/tests/testserver/docker-compose-host-network.yml
+
+        # The connection configuration for the target machine
+        MACHINE_CONFIG = $(shell docker-machine config qt-test-server)
+
+        # The environment variables passed to the docker-compose file
+        TEST_ENV = 'MACHINE_IP=$(shell docker-machine ip qt-test-server)'
+        TEST_ENV += 'HOST_NAME=qt-test-server'
+        TEST_ENV += 'TEST_DOMAIN=$$DNSDOMAIN'
+        TEST_ENV += 'SHARED_DATA=$$PWD/../data/testserver'
+        TEST_ENV += 'SHARED_SERVICE=host-network'
+        TEST_CMD = env
+    } else:equals(QMAKE_HOST.os, Windows) {
+        # There is no docker bridge on Windows. It is impossible to ping a container.
+        # Use docker-machine to deploy the docker environment into VirtualBox.
+        isEmpty(TESTSERVER_COMPOSE_FILE): TESTSERVER_COMPOSE_FILE = \
+            $$dirname(_QMAKE_CONF_)/tests/testserver/docker-compose-host-network.yml
+
+        # The connection configuration for the target machine
+        MACHINE_CONFIG = (docker-machine config qt-test-server)
+
+        # The environment variables passed to the docker-compose file
+        TEST_ENV = '\$\$env:MACHINE_IP = docker-machine ip qt-test-server;'
+        TEST_ENV += '\$\$env:HOST_NAME = $$shell_quote(\"qt-test-server\");'
+        TEST_ENV += '\$\$env:TEST_DOMAIN = $$shell_quote(\"$$DNSDOMAIN\");'
+        TEST_ENV += '\$\$env:SHARED_DATA = $$shell_quote(\"$$PWD/../data/testserver\");'
+        TEST_ENV += '\$\$env:SHARED_SERVICE = $$shell_quote(\"host-network\");'
+
+        # Docker-compose CLI environment variables:
+        # Enable path conversion from Windows-style to Unix-style in volume definitions.
+        TEST_ENV += '\$\$env:COMPOSE_CONVERT_WINDOWS_PATHS = $$shell_quote(\"true\");'
+
+        TEST_CMD = 'PowerShell -noprofile'
+        CONFIG += PowerShell
+    } else {
+        isEmpty(TESTSERVER_COMPOSE_FILE): TESTSERVER_COMPOSE_FILE = \
+            $$dirname(_QMAKE_CONF_)/tests/testserver/docker-compose-bridge-network.yml
+        # The environment variables passed to the docker-compose file
+        TEST_ENV = 'TEST_DOMAIN=$$DNSDOMAIN'
+        TEST_ENV += 'SHARED_DATA=$$PWD/../data/testserver'
+        TEST_ENV += 'SHARED_SERVICE=bridge-network'
+        TEST_CMD = env
+    }
+
+    # If $$TESTSERVER_COMPOSE_FILE defined by platform doesn't exist, the default
+    # docker-compose.yml is used as a fallback.
+    !exists($$TESTSERVER_COMPOSE_FILE): TESTSERVER_COMPOSE_FILE = \
+        $$dirname(_QMAKE_CONF_)/tests/testserver/docker-compose.yml
+    !exists($$TESTSERVER_COMPOSE_FILE): error("Invalid TESTSERVER_COMPOSE_FILE specified")
+
+
+    # The domain name is relevant to https keycert (qnetworkreply/crts/qt-test-net-cacert.pem).
+    DEFINES += QT_TEST_SERVER QT_TEST_SERVER_DOMAIN=$$shell_quote(\"$${DNSDOMAIN}\")
+
+    # Ensure that the docker-compose file is provided. It is a configuration
+    # file which is mandatory for all docker-compose commands. You can get more
+    # detail from the description of TESTSERVER_COMPOSE_FILE above. There is
+    # also an example showing how to configure it manually.
+    FILE_PRETEST_MSG = "Project variable 'TESTSERVER_COMPOSE_FILE' is not set"
+    PowerShell {
+        testserver_pretest.commands = echo $$TESTSERVER_VERSION &&
+        testserver_pretest.commands += \
+            $$TEST_CMD if ([String]::IsNullOrEmpty($$shell_quote(\"$$TESTSERVER_COMPOSE_FILE\"))) \
+                {Write-Error $$shell_quote(\"$$FILE_PRETEST_MSG\")} &&
+    } else {
+        testserver_pretest.commands = $(info "testserver:" $$TESTSERVER_VERSION)
+        testserver_pretest.commands += $(if $$TESTSERVER_COMPOSE_FILE,,$(error $$FILE_PRETEST_MSG))
+    }
+
+    # Make sure docker-machine is both created and running. The docker_machine
+    # script is used to deploy the docker environment into VirtualBox.
+    # Example: qt5/coin/provisioning/common/shared/testserver/docker_machine.sh
+    !isEmpty(MACHINE_CONFIG) {
+        MACHINE_LIST_CMD = docker-machine ls -q --filter "Name=^qt-test-server\$\$"
+        MACHINE_LIST_MSG = "Docker machine qt-test-server not found"
+        PowerShell {
+            testserver_pretest.commands += $$TEST_CMD if (!($$MACHINE_LIST_CMD)) \
+                {Write-Error $$shell_quote(\"$$MACHINE_LIST_MSG\")} &&
+        } else {
+            testserver_pretest.commands += \
+                $(if $(shell $$MACHINE_LIST_CMD),,$(error $$MACHINE_LIST_MSG))
+        }
+
+        MACHINE_STATE_CMD = \
+            docker-machine ls -q --filter "State=Running" --filter "Name=^qt-test-server\$\$"
+        MACHINE_START_CMD = docker-machine start qt-test-server
+        MACHINE_RECERT = docker-machine regenerate-certs -f qt-test-server
+        PowerShell {
+            testserver_pretest.commands += \
+                $$TEST_CMD if (!($$MACHINE_STATE_CMD)) {$$MACHINE_START_CMD; $$MACHINE_RECERT} &&
+        } else {
+            testserver_pretest.commands += \
+                $(if $(shell $$MACHINE_STATE_CMD),,\
+                $(shell $$MACHINE_START_CMD > /dev/null && $$MACHINE_RECERT > /dev/null))
+        }
+    }
+
+    # Before starting the test servers, it requires the user to run the setup
+    # script (coin/provisioning/.../testserver/docker_testserver.sh) in advance.
+    IMAGE_PRETEST_CMD = docker $$MACHINE_CONFIG images -aq "qt-test-server-*"
+    IMAGE_PRETEST_MSG = "Docker image qt-test-server-* not found"
+    PowerShell {
+        testserver_pretest.commands += $$TEST_CMD if (!($$IMAGE_PRETEST_CMD)) \
+            {Write-Error $$shell_quote(\"$$IMAGE_PRETEST_MSG\")}
+    } else {
+        testserver_pretest.commands += \
+            $(if $(shell $$IMAGE_PRETEST_CMD),,$(error $$IMAGE_PRETEST_MSG))
+    }
+
+    # Rename the check target of testcase feature
+    check.target = check_network
+    testserver_test.target = check
+
+    # Pretesting test servers environment
+    testserver_test.depends = testserver_pretest
+
+    # Bring up test servers and make sure the services are ready.
+    !isEmpty(TEST_CMD): testserver_test.commands = $$TEST_CMD $$TEST_ENV
+    testserver_test.commands += docker-compose $$MACHINE_CONFIG -f $$TESTSERVER_COMPOSE_FILE up \
+                                --build -d --force-recreate --timeout 1 $${QT_TEST_SERVER_LIST} &&
+
+    # Check test cases with docker-based test servers.
+    testserver_test.commands += $(MAKE) -f $(MAKEFILE) check_network &&
+
+    # Stop and remove test servers after testing.
+    !isEmpty(TEST_CMD): testserver_test.commands += $$TEST_CMD $$TEST_ENV
+    testserver_test.commands += docker-compose $$MACHINE_CONFIG -f $$TESTSERVER_COMPOSE_FILE down \
+                                --timeout 1
+
+    # Destroy test servers and tidy away related files.
+    testserver_clean.commands = docker-compose $$MACHINE_CONFIG -f $$TESTSERVER_COMPOSE_FILE down \
+                                --rmi all
+
+    QMAKE_EXTRA_TARGETS += testserver_pretest testserver_test testserver_clean
+}

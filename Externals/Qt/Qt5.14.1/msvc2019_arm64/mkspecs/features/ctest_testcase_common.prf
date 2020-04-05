@@ -1,0 +1,84 @@
+
+cmake_version_output = $$system(cmake --version 2>$$QMAKE_SYSTEM_NULL_DEVICE, lines)
+# First line
+cmake_version_output = $$first(cmake_version_output)
+# Format is "cmake version X.Y.Z"
+cmake_version_output = $$split(cmake_version_output)
+CMAKE_VERSION = $$last(cmake_version_output)
+
+check.commands =
+QMAKE_EXTRA_TARGETS *= check
+
+isEmpty(CMAKE_VERSION) {
+    message("cmake executable not found. Not running CMake unit tests")
+    return()
+}
+
+CTEST_VERSION = $$system(ctest --version 2>$$QMAKE_SYSTEM_NULL_DEVICE)
+isEmpty(CTEST_VERSION) {
+    message("ctest executable not found. Not running CMake unit tests")
+    return()
+}
+
+!versionAtLeast(CMAKE_VERSION, 3.1.0) {
+    message("cmake $$CMAKE_VERSION is too old for this test.")
+    return()
+}
+
+load(cmake_functions)
+
+CMAKE_BUILD_TYPE = Debug
+CONFIG(release, debug|release):CMAKE_BUILD_TYPE = Release
+win32: CMAKE_GENERATOR = -G \"NMake Makefiles\"
+mingw:isEmpty(CROSS_COMPILE):CMAKE_GENERATOR = -G \"MinGW Makefiles\"
+
+BUILD_DIR = $$replace($$list($$OUT_PWD/build), /, $$QMAKE_DIR_SEP)
+
+!qtHaveModule(gui): CMAKE_MODULE_DEFINES += -DNO_GUI=True
+!qtHaveModule(widgets): CMAKE_MODULE_DEFINES += -DNO_WIDGETS=True
+!qtHaveModule(dbus): CMAKE_MODULE_DEFINES += -DNO_DBUS=True
+
+dependentmodules = $$resolve_depends(CMAKE_QT_MODULES_UNDER_TEST, "QT.")
+dependentmodules -= $$CMAKE_QT_MODULES_UNDER_TEST
+
+mod_deps =
+for (dep, dependentmodules): \
+    !contains(QT.$${dep}.module_config, no_link): \
+        mod_deps += $$cmakeModuleName($$dep)
+dependentmodules = $$join(mod_deps, ";")
+
+QT_FOR_CONFIG += gui-private
+qtHaveModule(gui):qtConfig(angle): CMAKE_GL_DEFINES = -DQT_WITH_ANGLE=True
+qtHaveModule(gui):!qtConfig(egl): CMAKE_GL_DEFINES += -DNO_EGL=True
+
+CMAKE_MODULE_VERSIONS =
+CMAKE_MODULES_UNDER_TEST =
+for (MODULE_UNDER_TEST, CMAKE_QT_MODULES_UNDER_TEST) {
+    CMAKE_NAME = $$cmakeModuleName($$MODULE_UNDER_TEST)
+    ver = $$eval(QT.$${MODULE_UNDER_TEST}.VERSION)
+    CMAKE_MODULE_VERSIONS += \
+        -DCMAKE_$${CMAKE_NAME}_MODULE_MAJOR_VERSION=$$section(ver, ., 0, 0) \
+        -DCMAKE_$${CMAKE_NAME}_MODULE_MINOR_VERSION=$$section(ver, ., 1, 1) \
+        -DCMAKE_$${CMAKE_NAME}_MODULE_PATCH_VERSION=$$section(ver, ., 2, 2)
+    CMAKE_MODULES_UNDER_TEST += $$CMAKE_NAME
+}
+CMAKE_MODULES_UNDER_TEST = $$join(CMAKE_MODULES_UNDER_TEST, ;)
+
+check.commands = \
+    $$sprintf($$QMAKE_MKDIR_CMD, $$BUILD_DIR) $$escape_expand(\\n\\t) \
+    $$QMAKE_CD $$BUILD_DIR && \
+    cmake $$CMAKE_TEST_LOCATION $$CMAKE_GENERATOR \
+        -DCMAKE_C_COMPILER=$$QMAKE_CC \
+        -DCMAKE_CXX_COMPILER=$$QMAKE_CXX \
+        -DCMAKE_VERBOSE_MAKEFILE=1 \
+        $$CMAKE_MODULE_DEFINES \
+        $$CMAKE_GL_DEFINES \
+        -DCMAKE_BUILD_TYPE=$${CMAKE_BUILD_TYPE} \
+        -DCMAKE_PREFIX_PATH=$$CMAKE_PREFIX_PATH \
+        -DQt5_MODULE_TEST_DEPENDS=\"$${dependentmodules}\" \
+        $${CMAKE_MODULE_VERSIONS} \
+        -DCMAKE_MODULES_UNDER_TEST=\"$$CMAKE_MODULES_UNDER_TEST\" && \
+    $(TESTRUNNER) ctest --output-on-failure
+
+insignificant_test:!isEmpty(check.commands): \
+    check.commands = -$${check.commands}

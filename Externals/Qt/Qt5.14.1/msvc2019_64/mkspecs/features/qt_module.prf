@@ -1,0 +1,341 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+isEmpty(MODULE):MODULE = $$section($$list($$basename(_PRO_FILE_)), ., 0, 0)
+isEmpty(VERSION): VERSION = $$MODULE_VERSION
+isEmpty(VERSION): error("Module does not define version.")
+
+isEmpty(MODULE_CFG_FILE): MODULE_CFG_FILE = qt$${MODULE}-config
+exists($$OUT_PWD/$${MODULE_CFG_FILE}.pri) {
+    include($$OUT_PWD/$${MODULE_CFG_FILE}.pri)
+    CONFIG += generated_privates
+}
+
+skip = $$eval(QT.$${MODULE}.skip)
+isEmpty(skip): skip = false
+requires(!$$skip)
+
+# Compile as shared/DLL or static according to the option given to configure
+# unless overridden. Host builds are always static
+host_build|staticlib: CONFIG += static
+
+host_build {
+    QT -= gui   # no host module will ever use gui
+    force_bootstrap {
+        !build_pass:qtConfig(release_tools): CONFIG += release
+        contains(QT, core(-private)?|xml) {
+            QT -= core core-private xml
+            QT += bootstrap-private
+        }
+    } else {
+        !build_pass:qtConfig(debug_and_release): CONFIG += release
+    }
+}
+
+qtConfig(framework) {
+    minimal_syncqt: \
+        CONFIG += module_frameworks
+    else: CONFIG(shared, static|shared): \
+        CONFIG += module_frameworks lib_bundle
+}
+
+CONFIG += relative_qt_rpath  # Qt libraries should be relocatable
+
+# Qt libraries should only use Application Extension safe APIs
+darwin:!no_app_extension_api_only: CONFIG += app_extension_api_only
+
+ucmodule = $$upper($$MODULE)
+
+isEmpty(MODULE_INCNAME): MODULE_INCNAME = $$TARGET
+
+internal_module: \
+    MODULE_DEPENDS = $$replace(QT, -private$, _private)
+else: \
+    MODULE_DEPENDS = $$replace(QT, -private$, )
+MODULE_DEPENDS = $$unique(MODULE_DEPENDS)
+contains(MODULE_DEPENDS, $$MODULE): \
+    error("$$TARGET depends on itself.")
+
+contains(TARGET, QtAddOn.*): \
+    MODULE_DEFINE = QT_ADDON_$${ucmodule}_LIB
+else: \
+    MODULE_DEFINE = QT_$${ucmodule}_LIB
+MODULE_DEFINES = $$MODULE_DEFINE $$MODULE_DEFINES
+
+# Make sure that the supporting runtime is linked into the application when
+# the module is built with exceptions enabled.
+integrity:CONFIG(exceptions, exceptions|exceptions_off): \
+    MODULE_CONFIG += exceptions
+
+load(qt_build_paths)
+
+header_module {
+    TEMPLATE     = aux
+    CONFIG      += force_qt  # Needed for the headers_clean tests.
+    !lib_bundle: \
+        CONFIG  += qt_no_install_library
+
+    # Allow creation of .prl, .la and .pc files.
+    target.path = $$[QT_INSTALL_LIBS]
+    target.CONFIG += dummy_install
+    INSTALLS    += target
+} else {
+    TEMPLATE     = lib
+}
+DESTDIR          = $$MODULE_BASE_OUTDIR/lib
+DLLDESTDIR       = $$MODULE_BASE_OUTDIR/bin
+
+CONFIG          += target_qt
+
+QMAKE_DOCS_TARGETDIR = qt$${MODULE}
+
+load(qt_common)
+!no_module_headers: load(qt_module_headers)
+load(qt_module_pris)
+
+INCLUDEPATH *= $$eval(QT.$${MODULE}.includes) $$eval(QT.$${MODULE}_private.includes)
+
+# If Qt was configured with -debug-and-release then build the module the same way
+# - unless this is a host library
+!host_build:if(win32|mac):!macx-xcode {
+    qtConfig(debug_and_release): CONFIG += debug_and_release
+    qtConfig(build_all): CONFIG += build_all
+}
+
+QMAKE_LFLAGS += $$QMAKE_LFLAGS_NOUNDEF
+
+QT_PRIVATE += $$QT_FOR_PRIVATE
+unset(QT_FOR_PRIVATE)
+QMAKE_USE_PRIVATE += $$QMAKE_USE_FOR_PRIVATE
+unset(QMAKE_USE_FOR_PRIVATE)
+
+CONFIG += create_cmake
+
+contains(TARGET, QtAddOn.*): \
+    DEFINES += QT_BUILD_ADDON_$${ucmodule}_LIB
+else: \
+    DEFINES += QT_BUILD_$${ucmodule}_LIB
+
+# OS X and iOS frameworks
+lib_bundle {
+   # Set the CFBundleIdentifier prefix for Qt frameworks
+   QMAKE_TARGET_BUNDLE_PREFIX = org.qt-project
+   #QMAKE_FRAMEWORK_VERSION = 4.0
+   CONFIG += sliced_bundle
+   header_module {
+        CONFIG += bundle
+        QMAKE_BUNDLE_NAME = $$TARGET
+        QMAKE_BUNDLE_EXTENSION = .framework
+        QMAKE_INFO_PLIST = $$QMAKESPEC/Info.plist.lib
+   }
+   !build_all| \
+           if(if(!debug_and_release|CONFIG(release, debug|release))) {
+        FRAMEWORK_HEADERS.version = Versions
+        FRAMEWORK_HEADERS.files = \
+            $$SYNCQT.HEADER_FILES $$SYNCQT.GENERATED_HEADER_FILES $$SYNCQT.INJECTED_HEADER_FILES
+        FRAMEWORK_HEADERS.path = Headers
+        FRAMEWORK_PRIVATE_HEADERS.version = Versions
+        FRAMEWORK_PRIVATE_HEADERS.files = \
+            $$SYNCQT.PRIVATE_HEADER_FILES $$SYNCQT.INJECTED_PRIVATE_HEADER_FILES
+        FRAMEWORK_PRIVATE_HEADERS.path = Headers/$$VERSION/$$MODULE_INCNAME/private
+        FRAMEWORK_QPA_HEADERS.version = Versions
+        FRAMEWORK_QPA_HEADERS.files = $$SYNCQT.QPA_HEADER_FILES
+        FRAMEWORK_QPA_HEADERS.path = Headers/$$VERSION/$$MODULE_INCNAME/qpa
+        QMAKE_BUNDLE_DATA += FRAMEWORK_HEADERS FRAMEWORK_PRIVATE_HEADERS FRAMEWORK_QPA_HEADERS
+   }
+}
+
+mac {
+   macx-g++ {
+       QMAKE_CFLAGS += -fconstant-cfstrings
+       QMAKE_CXXFLAGS += -fconstant-cfstrings
+   }
+
+   qtConfig(rpath): \
+       QMAKE_SONAME_PREFIX = @rpath
+   else: \
+       CONFIG += absolute_library_soname
+}
+
+DEFINES += QT_BUILDING_QT
+win32 {
+    INCLUDEPATH += tmp
+    CONFIG += skip_target_version_ext
+    # If the code is really "unsafe" then it is unsafe on
+    # other platforms as well; so fixing these warnings just
+    # for MSVC builds, would clutter the code and wouldn't help
+    # in fixing issues that might exist on other platforms.
+    # Using the same functions across all supported platforms
+    # keeps the code clean and helps in writing code that is
+    # safe across all platforms.
+    DEFINES *= _CRT_SECURE_NO_WARNINGS
+
+    DEFINES += _USE_MATH_DEFINES
+}
+
+aix-g++* {
+     QMAKE_CFLAGS   += -mminimal-toc
+     QMAKE_CXXFLAGS += -mminimal-toc
+}
+
+sse2:!contains(QT_CPU_FEATURES.$$QT_ARCH, sse2):!host_build:!if(static:qtConfig(shared)) {
+    # If the compiler supports SSE2, enable it unconditionally in all of Qt shared libraries
+    # (and only the libraries). This is not expected to be a problem because:
+    # - on Windows, sharing of libraries is uncommon
+    # - on Mac OS X, all x86 CPUs already have SSE2 support (we won't even reach here)
+    # - on Linux, the dynamic loader can find the libraries on LIBDIR/sse2/
+    # The last guarantee does not apply to executables and plugins, so we can't enable for them.
+    QT_CPU_FEATURES.$$QT_ARCH += sse sse2
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_SSE2
+    QMAKE_CXXFLAGS += $$QMAKE_CFLAGS_SSE2
+}
+
+clang {
+    apple_clang_ver = $${QT_APPLE_CLANG_MAJOR_VERSION}.$${QT_APPLE_CLANG_MINOR_VERSION}
+    reg_clang_ver = $${QT_CLANG_MAJOR_VERSION}.$${QT_CLANG_MINOR_VERSION}
+    versionAtLeast(apple_clang_ver, 5.1)|versionAtLeast(reg_clang_ver, 3.4): \
+        CONFIG += compiler_supports_fpmath
+} else: gcc {
+    CONFIG += compiler_supports_fpmath
+}
+
+equals(QT_ARCH, i386):contains(QT_CPU_FEATURES.$$QT_ARCH, sse2):compiler_supports_fpmath {
+    # Turn on SSE-based floating-point math
+    QMAKE_CFLAGS += -mfpmath=sse
+    QMAKE_CXXFLAGS += -mfpmath=sse
+}
+
+android: CONFIG += qt_android_deps no_linker_version_script
+
+!header_module:unix:!isEmpty(QMAKE_LFLAGS_VERSION_SCRIPT):!no_linker_version_script:!static {
+    verscript = $${TARGET}.version
+    QMAKE_LFLAGS += $${QMAKE_LFLAGS_VERSION_SCRIPT}$$verscript
+
+    internal_module {
+        verscript_content = "Qt_$${QT_MAJOR_VERSION}_PRIVATE_API { *; };"
+    } else {
+        verscript_content = "Qt_$${QT_MAJOR_VERSION}_PRIVATE_API {" \
+                            "    qt_private_api_tag*;"
+
+        private_api_headers = $$SYNCQT.PRIVATE_HEADER_FILES $$SYNCQT.QPA_HEADER_FILES
+
+        for(header, private_api_headers): \
+            verscript_content += "    @FILE:$$header@"
+        verscript_content += "};"
+
+        current = Qt_$$QT_MAJOR_VERSION
+        verscript_content += "$$current { *; };"
+        isEmpty(QT_NAMESPACE): tag_symbol = qt_version_tag
+        else:                  tag_symbol = qt_version_tag_$$QT_NAMESPACE
+
+        for(i, 0..$$QT_MINOR_VERSION) {
+            previous = $$current
+            current = Qt_$${QT_MAJOR_VERSION}.$$i
+            equals(i, $$QT_MINOR_VERSION): verscript_content += "$$current { $$tag_symbol; } $$previous;"
+            else:                          verscript_content += "$$current {} $$previous;"
+        }
+
+        # Add a post-processing step to replace the @FILE:filename@
+        verscript_in = $${verscript}.in
+        verscriptprocess.name = linker version script ${QMAKE_FILE_BASE}
+        verscriptprocess.input = verscript_in
+        verscriptprocess.CONFIG += no_link target_predeps
+        verscriptprocess.depends = $$private_api_headers
+        verscriptprocess.output = $$verscript
+        verscriptprocess.commands = perl $${PWD}/data/unix/findclasslist.pl < ${QMAKE_FILE_IN} > $@
+        silent:verscriptprocess.commands = @echo creating linker version script ${QMAKE_FILE_BASE} && $$verscriptprocess.commands
+        QMAKE_EXTRA_COMPILERS += verscriptprocess
+
+        verscript = $$verscript_in
+    }
+    write_file($$OUT_PWD/$$verscript, verscript_content)|error()
+    unset(current)
+    unset(previous)
+    unset(verscript)
+    unset(verscript_content)
+}
+
+#install directives
+load(qt_installs)
+
+load(qt_targets)
+
+# this builds on top of qt_common
+!internal_module:if(unix|mingw):!if(darwin:debug_and_release:CONFIG(debug, debug|release)) {
+    CONFIG += create_pc
+    QMAKE_PKGCONFIG_DESTDIR = pkgconfig
+    host_build: \
+        QMAKE_PKGCONFIG_LIBDIR = $$[QT_HOST_LIBS]
+    else: \
+        QMAKE_PKGCONFIG_LIBDIR = $$[QT_INSTALL_LIBS/raw]
+    lib_bundle {
+        QMAKE_PKGCONFIG_INCDIR = $$[QT_INSTALL_LIBS/raw]/$${MODULE_INCNAME}.framework/Headers
+        QMAKE_PKGCONFIG_CFLAGS = -D$$MODULE_DEFINE
+    } else {
+        QMAKE_PKGCONFIG_INCDIR = $$[QT_INSTALL_HEADERS/raw]
+        QMAKE_PKGCONFIG_CFLAGS = -D$$MODULE_DEFINE -I${includedir}/$$MODULE_INCNAME
+        for(inc, MODULE_AUX_INCLUDES): \
+            QMAKE_PKGCONFIG_CFLAGS += -I${includedir}/$$section(inc, /, 1, 1)
+    }
+    QMAKE_PKGCONFIG_NAME = $$replace(TARGET, ^Qt, "Qt$$QT_MAJOR_VERSION ")
+    QMAKE_PKGCONFIG_FILE = $$replace(TARGET, ^Qt, Qt$$QT_MAJOR_VERSION)$$qtPlatformTargetSuffix()
+    for(i, MODULE_DEPENDS): \
+        QMAKE_PKGCONFIG_REQUIRES += $$replace(QT.$${i}.name, ^Qt, Qt$$section(QT.$${i}.VERSION, ., 0, 0))$$qtPlatformTargetSuffix()
+    isEmpty(QMAKE_PKGCONFIG_DESCRIPTION): \
+        QMAKE_PKGCONFIG_DESCRIPTION = $$replace(TARGET, ^Qt, "Qt ") module
+    !isEmpty(lib_replace0.match) {
+        pclib_replace0.match = $$lib_replace0.match
+        pclib_replace0.replace = $$QMAKE_PKGCONFIG_LIBDIR/
+        pclib_replace0.CONFIG = path
+        QMAKE_PKGCONFIG_INSTALL_REPLACE += pclib_replace0
+    }
+    pclib_replace.match = $$lib_replace.match
+    !isEmpty(lib_replace.replace): \
+        pclib_replace.replace = $$QMAKE_PKGCONFIG_LIBDIR
+    pclib_replace.CONFIG = path
+    QMAKE_PKGCONFIG_INSTALL_REPLACE += pclib_replace
+}
+!lib_bundle:unix {
+    CONFIG += create_libtool
+    host_build: \
+        QMAKE_LIBTOOL_LIBDIR = $$[QT_HOST_LIBS]
+    else: \
+        QMAKE_LIBTOOL_LIBDIR = "=$$[QT_INSTALL_LIBS/raw]"
+    !isEmpty(lib_replace0.match) {
+        ltlib_replace0.match = $$lib_replace0.match
+        ltlib_replace0.replace = $$QMAKE_LIBTOOL_LIBDIR/
+        ltlib_replace0.CONFIG = path
+        QMAKE_LIBTOOL_INSTALL_REPLACE += ltlib_replace0
+    }
+    ltlib_replace.match = $$lib_replace.match
+    !isEmpty(lib_replace.replace): \
+        ltlib_replace.replace = $$QMAKE_LIBTOOL_LIBDIR
+    ltlib_replace.CONFIG = path
+    QMAKE_LIBTOOL_INSTALL_REPLACE += ltlib_replace
+}
+
+contains(QT_PRODUCT, OpenSource.*):DEFINES *= QT_OPENSOURCE
+DEFINES *= QT_NO_CAST_TO_ASCII QT_ASCII_CAST_WARNINGS
+DEFINES *= QT_MOC_COMPAT #we don't need warnings from calling moc code in our generated code
+DEFINES *= QT_USE_QSTRINGBUILDER
+DEFINES *= QT_DEPRECATED_WARNINGS
+
+win32 {
+    # On Windows, due to the way DLLs work, we need to export all functions,
+    # including the inlines
+    DEFINES *= QT_DISABLE_DEPRECATED_BEFORE=0x040800
+} else {
+    # On other platforms, Qt's own compilation goes needs to compile the Qt 5.0 API
+    DEFINES *= QT_DISABLE_DEPRECATED_BEFORE=0x050000
+}
+DEFINES *= QT_DEPRECATED_WARNINGS_SINCE=0x060000
+
+TARGET = $$qt5LibraryTarget($$TARGET$$QT_LIBINFIX)  # Do this towards the end

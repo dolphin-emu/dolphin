@@ -1,0 +1,247 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+load(qt_build_paths)
+force_independent|split_incpath: \
+    CONFIG += need_fwd_pri
+mod_work_pfx = $$MODULE_QMAKE_OUTDIR/mkspecs/modules
+need_fwd_pri: \
+    mod_inst_pfx = $$MODULE_QMAKE_OUTDIR/mkspecs/modules-inst
+else: \
+    mod_inst_pfx = $$mod_work_pfx
+!internal_module {
+    MODULE_ID = $$MODULE
+    mods_to_load = $$MODULE
+    !no_private_module {
+        MODULE_PRIVATE_PRI = $$mod_inst_pfx/qt_lib_$${MODULE}_private.pri
+        mods_to_load += $${MODULE}_private
+    }
+} else {
+    MODULE_ID = $${MODULE}_private
+    mods_to_load = $${MODULE}_private
+}
+need_fwd_pri: \
+    pris_to_load = $$MODULE_ID
+else: \
+    pris_to_load = $$mods_to_load
+MODULE_PRI = $$mod_inst_pfx/qt_lib_$${MODULE_ID}.pri
+MODULE_FWD_PRI = $$mod_work_pfx/qt_lib_$${MODULE_ID}.pri
+
+defineReplace(qtGetFeaturesForModule) {
+    enabled = $$unique(QT.$${1}.enabled_features)
+    disabled = $$unique(QT.$${1}.disabled_features)
+    result = \
+        "QT.$${1}.enabled_features =$$join(enabled, " ", " ")" \
+        "QT.$${1}.disabled_features =$$join(disabled, " ", " ")"
+    return($$result)
+}
+
+defineReplace(qtGetExportsForModule) {
+    result =
+    for (var, QT.$${1}.exports): \
+        result += "$$var = $$val_escape($$var)"
+    return($$result)
+}
+
+defineReplace(qtExportDepsForModule) {
+    result =
+    for (lib, QT.$${1}.libraries) {
+        NAME = $$upper($$lib)
+        vars = \
+            QMAKE_DEPENDS_$${NAME}_CC QMAKE_DEPENDS_$${NAME}_LD \
+            QMAKE_DEFINES_$$NAME QMAKE_INCDIR_$$NAME
+        for (var, vars) {
+            expvar = $$var
+            expvar ~= s/^QMAKE_/QMAKE_EXPORT_/
+            defined($$expvar, var):equals($$expvar, -): next()
+            !defined($$expvar, var): expvar = $$var
+            defined($$expvar, var): \
+                result += "$$var = $$val_escape($$expvar)"
+        }
+    }
+    return($$result)
+}
+
+defineReplace(qtExportLibsForModule) {
+    result =
+    for (lib, QT.$${1}.libraries) {
+        NAME = $$upper($$lib)
+        vars = \
+            QMAKE_LIBS_$$NAME QMAKE_LIBS_$${NAME}_DEBUG QMAKE_LIBS_$${NAME}_RELEASE
+        for (var, vars) {
+            expvar = $$var
+            expvar ~= s/^QMAKE_/QMAKE_EXPORT_/
+            defined($$expvar, var):equals($$expvar, -): next()
+            !defined($$expvar, var): expvar = $$var
+            defined($$expvar, var): \
+                result += "$$var$${2} = $$val_escape($$expvar)"
+        }
+    }
+    return($$result)
+}
+
+!build_pass {
+
+    # Create a module .pri file
+    host_build: \
+        module_libs = "\$\$QT_MODULE_HOST_LIB_BASE"
+    else: \
+        module_libs = "\$\$QT_MODULE_LIB_BASE"
+    # In addition to the library's private deps, the private module's deps
+    # are logically runtime deps of the public module.
+    runtime_deps = $$QT_PRIVATE $$QT_FOR_PRIVATE
+    !isEmpty(runtime_deps): \
+        module_rundep = "QT.$${MODULE_ID}.run_depends = $$replace(runtime_deps, -private$, _private)"
+    else: \
+        module_rundep =
+    module_build_type = v2
+    static: \
+        module_build_type += staticlib
+    lib_bundle: \
+        module_build_type += lib_bundle
+    module_frameworks: \
+        MODULE_FRAMEWORKS = " \$\$QT_MODULE_LIB_BASE"
+    internal_module: \
+        module_build_type += internal_module
+    ltcg: \
+        module_build_type += ltcg
+    module_module =
+    !equals(TEMPLATE, aux) {
+        module_module = $$TARGET$$QT_LIBINFIX
+        !lib_bundle: module_module ~= s,^Qt,Qt$$QT_MAJOR_VERSION,
+    }
+    !isEmpty(MODULE_CONFIG): \
+        module_config = "QT.$${MODULE_ID}.CONFIG = $$MODULE_CONFIG"
+    else: \
+        module_config =
+    !isEmpty(MODULE_PLUGIN_TYPES): \
+        module_plugtypes = "QT.$${MODULE_ID}.plugin_types = $$replace(MODULE_PLUGIN_TYPES, /[^.]+\\.[^.]+$, )"
+    else: \
+        module_plugtypes =
+    !isEmpty(MODULE_MASTER_HEADER): \
+        module_master = "QT.$${MODULE_ID}.master_header = $$MODULE_MASTER_HEADER"
+    else: \
+        module_master =
+    MODULE_PRI_CONT = \
+        "QT.$${MODULE_ID}.VERSION = $${VERSION}" \
+        "" \
+        "QT.$${MODULE_ID}.name = $$TARGET" \
+        "QT.$${MODULE_ID}.module = $$module_module" \
+        "QT.$${MODULE_ID}.libs = $$module_libs" \
+        $$module_master \
+        "QT.$${MODULE_ID}.includes = $$MODULE_INCLUDES" \
+        "QT.$${MODULE_ID}.frameworks =$$MODULE_FRAMEWORKS"
+    !host_build: MODULE_PRI_CONT += \
+        "QT.$${MODULE_ID}.bins = \$\$QT_MODULE_BIN_BASE" \
+        $$module_plugtypes
+    MODULE_PRI_CONT += \
+        "QT.$${MODULE_ID}.depends =$$join(MODULE_DEPENDS, " ", " ")" \
+        $$module_rundep \
+        "QT.$${MODULE_ID}.uses =$$join(QMAKE_USE, " ", " ")" \
+        "QT.$${MODULE_ID}.module_config =$$join(module_build_type, " ", " ")" \
+        $$module_config \
+        "QT.$${MODULE_ID}.DEFINES = $$val_escape(MODULE_DEFINES)" \
+        $$qtGetFeaturesForModule($$MODULE_ID) \
+        $$qtGetExportsForModule($$MODULE_ID) \
+        "QT_CONFIG +=$$join(QT.$${MODULE_ID}.QT_CONFIG, " ", " ")" \
+        "" \
+        "QT_MODULES += $$MODULE"
+    winrt: MODULE_PRI_CONT += \
+        "QT.$${MODULE_ID}.winrt_capabilities =$$join(MODULE_WINRT_CAPABILITIES, " ", " ")" \
+        "QT.$${MODULE_ID}.winrt_capabilities_device =$$join(MODULE_WINRT_CAPABILITIES_DEVICE, " ", " ")"
+    write_file($$MODULE_PRI, MODULE_PRI_CONT)|error()
+    !internal_module:!no_private_module {
+        module_build_type += internal_module
+        private_deps = $$QT
+        private_deps -= $$MODULE_DEPENDS
+        private_deps += $$MODULE $$QT_FOR_PRIVATE
+        private_deps ~= s,-private$,_private,g
+        MODULE_PRIVATE_PRI_CONT = \
+            "QT.$${MODULE}_private.VERSION = $${VERSION}" \
+            "" \
+            "QT.$${MODULE}_private.name = $${TARGET}" \   # Same name as base module
+            "QT.$${MODULE}_private.module =" \
+            "QT.$${MODULE}_private.libs = $$module_libs" \
+            "QT.$${MODULE}_private.includes = $$MODULE_PRIVATE_INCLUDES" \
+            "QT.$${MODULE}_private.frameworks =" \
+            "QT.$${MODULE}_private.depends = $$private_deps" \
+            "QT.$${MODULE}_private.uses =$$join(QMAKE_USE_FOR_PRIVATE, " ", " ")" \
+            "QT.$${MODULE}_private.module_config =$$join(module_build_type, " ", " ")" \
+            $$qtGetFeaturesForModule($${MODULE}_private) \
+            "" \
+            $$qtExportDepsForModule($${MODULE}_private) \
+            $$qtExportLibsForModule($${MODULE}_private)
+        write_file($$MODULE_PRIVATE_PRI, MODULE_PRIVATE_PRI_CONT)|error()
+    }
+    MODULE_PRI_FILES = $$MODULE_PRI $$MODULE_PRIVATE_PRI
+
+    need_fwd_pri {
+
+        !git_build: \
+            MODULE_BASE_INCDIR = $$MODULE_BASE_INDIR
+        else: \
+            MODULE_BASE_INCDIR = $$MODULE_BASE_OUTDIR
+
+        # Create a forwarding module .pri file
+        MODULE_FWD_PRI_CONT = \
+            "QT_MODULE_BIN_BASE = $$val_escape(MODULE_BASE_OUTDIR)/bin" \
+            "QT_MODULE_INCLUDE_BASE = $$val_escape(MODULE_BASE_INCDIR)/include" \
+            "QT_MODULE_LIB_BASE = $$val_escape(MODULE_BASE_OUTDIR)/lib" \
+            "QT_MODULE_HOST_LIB_BASE = $$val_escape(MODULE_BASE_OUTDIR)/lib" \
+            "include($$val_escape(MODULE_PRI))" \
+            "QT.$${MODULE_ID}.priority = 1"
+        !internal_module:!no_private_module: MODULE_FWD_PRI_CONT += \
+            "include($$val_escape(MODULE_PRIVATE_PRI))" \
+            "QT.$${MODULE}_private.priority = 1"
+        !isEmpty(MODULE_FWD_INCLUDES) {
+            !lib_bundle: \
+                pls = +
+            MODULE_FWD_PRI_CONT += \
+                "QT.$${MODULE_ID}.includes $$pls= $$MODULE_FWD_INCLUDES"
+            !internal_module: \
+                MODULE_FWD_PRI_CONT += \
+                    "QT.$${MODULE}_private.includes $$pls= $$MODULE_FWD_PRIVATE_INCLUDES"
+        }
+        write_file($$MODULE_FWD_PRI, MODULE_FWD_PRI_CONT)|error()
+        touch($$MODULE_FWD_PRI, $$MODULE_PRI)
+        MODULE_PRI_FILES += $$MODULE_FWD_PRI
+
+    } else {
+
+        # This is needed for the direct include() below. Mirrors qt_config.prf
+        QT_MODULE_BIN_BASE = $$[QT_INSTALL_BINS]
+        QT_MODULE_INCLUDE_BASE = $$[QT_INSTALL_HEADERS]
+        QT_MODULE_LIB_BASE = $$[QT_INSTALL_LIBS]
+        QT_MODULE_HOST_LIB_BASE = $$[QT_HOST_LIBS]
+
+    }
+
+    # Then, inject the new module into the current cache state
+    !contains(QMAKE_INTERNAL_INCLUDED_FILES, $$MODULE_PRI): \ # before the actual include()!
+        cache(QMAKE_INTERNAL_INCLUDED_FILES, add transient, MODULE_PRI_FILES)
+    for(pri, pris_to_load): \
+        include($$mod_work_pfx/qt_lib_$${pri}.pri)
+    for(mod, mods_to_load) {
+        for(var, $$list(VERSION MAJOR_VERSION MINOR_VERSION PATCH_VERSION \
+                        name module depends run_depends plugin_types module_config CONFIG DEFINES \
+                        priority includes bins libs frameworks \
+                        winrt_capabilities winrt_capabilities_device \
+                )):defined(QT.$${mod}.$$var, var):cache(QT.$${mod}.$$var, transient)
+    }
+    cache(QT_MODULES, transient)
+
+} else:android:!no_private_module:!internal_module {
+    MODULE_PRIVATE_PRI_CONT = $$qtExportLibsForModule($${MODULE}_private, _$${QT_ARCH})
+    write_file($$MODULE_PRIVATE_PRI, MODULE_PRIVATE_PRI_CONT, append)|error()
+}
+
+# Schedule the regular .pri file for installation
+CONFIG += qt_install_module

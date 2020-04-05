@@ -1,0 +1,8 @@
+
+xcodebuild {
+    # Prevent qmake from generating empty output dirs for each exclusive build,
+    # as Xcode will do this by itself, and with a different name.
+    QMAKE_DIR_REPLACE =
+}
+
+load(exclusive_builds_post)
