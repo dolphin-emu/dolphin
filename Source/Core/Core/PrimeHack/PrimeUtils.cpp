@@ -53,6 +53,12 @@ namespace prime
     PowerPC::ScheduleInvalidateCacheThreadSafe(address);
   }
 
+  void write_if_different(u32 address, u32 value)
+  {
+    if (PowerPC::HostRead_U32(address) != value)
+      write_invalidate(address, value);
+  }
+
   std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4> const& visors, bool combat_visor)
   {
     static bool pressing_button = false;

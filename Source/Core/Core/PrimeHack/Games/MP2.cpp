@@ -104,6 +104,11 @@ namespace prime
 
     if (GetCulling() || GetFov() > 101.f)
       disable_culling(culling_address());
+
+    if (GetBloom())
+      write_if_different(bloom_address(), 0x4e800020);
+    else
+      write_if_different(bloom_address(), 0x3c03c406);
   }
 
   MP2NTSC::MP2NTSC()
@@ -159,6 +164,10 @@ namespace prime
   {
     return 0x80840108;
   }
+  uint32_t MP2NTSC::bloom_address() const
+  {
+    return 0x80292204;
+  }
 
   MP2PAL::MP2PAL()
   {
@@ -212,5 +221,9 @@ namespace prime
   uint32_t MP2PAL::armpos_address() const
   {
     return 0x80847748;
+  }
+  uint32_t MP2PAL::bloom_address() const
+  {
+    return 0x80294A40;
   }
 }
