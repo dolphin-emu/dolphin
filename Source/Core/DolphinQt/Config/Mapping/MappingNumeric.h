@@ -21,6 +21,7 @@ private:
   void fixup(QString& input) const override;
 
   void ConfigChanged();
+  void Update();
 
   ControllerEmu::NumericSetting<double>& m_setting;
 };
@@ -32,6 +33,7 @@ public:
 
 private:
   void ConfigChanged();
+  void Update();
 
   ControllerEmu::NumericSetting<bool>& m_setting;
 };

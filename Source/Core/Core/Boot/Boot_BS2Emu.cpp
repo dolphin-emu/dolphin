@@ -242,18 +242,43 @@ bool CBoot::EmulatedBS2_GC(const DiscIO::VolumeDisc& volume)
   return RunApploader(/*is_wii*/ false, volume);
 }
 
+static DiscIO::Region CodeRegion(char c)
+{
+  switch (c)
+  {
+  case 'J':  // Japan
+  case 'T':  // Taiwan
+    return DiscIO::Region::NTSC_J;
+  case 'B':  // Brazil
+  case 'M':  // Middle East
+  case 'R':  // Argentina
+  case 'S':  // ???
+  case 'U':  // USA
+  case 'W':  // ???
+    return DiscIO::Region::NTSC_U;
+  case 'A':  // Australia
+  case 'E':  // Europe
+    return DiscIO::Region::PAL;
+  case 'K':  // Korea
+    return DiscIO::Region::NTSC_K;
+  default:
+    return DiscIO::Region::Unknown;
+  }
+}
+
 bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
 {
   static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
-      {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
+      {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJH"}},
       {DiscIO::Region::NTSC_U, {"USA", "NTSC", "US", "LU"}},
-      {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LE"}},
+      {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LEH"}},
       {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
   auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
   RegionSetting region_setting = entryPos->second;
 
   Common::SettingsHandler gen;
   std::string serno;
+  std::string model = "RVL-001(" + region_setting.area + ")";
   CreateSystemMenuTitleDirs();
   const std::string settings_file_path(Common::GetTitleDataPath(Titles::SYSTEM_MENU) +
                                        "/" WII_SETTING);
@@ -267,11 +292,32 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     {
       gen.SetBytes(std::move(data));
       serno = gen.GetValue("SERNO");
+      model = gen.GetValue("MODEL");
+
+      bool region_matches = false;
       if (SConfig::GetInstance().bOverrideRegionSettings)
+      {
+        region_matches = true;
+      }
+      else
+      {
+        const std::string code = gen.GetValue("CODE");
+        if (code.size() >= 2 && CodeRegion(code[1]) == SConfig::GetInstance().m_region)
+          region_matches = true;
+      }
+
+      if (region_matches)
       {
         region_setting = RegionSetting{gen.GetValue("AREA"), gen.GetValue("VIDEO"),
                                        gen.GetValue("GAME"), gen.GetValue("CODE")};
       }
+      else
+      {
+        const size_t parenthesis_pos = model.find('(');
+        if (parenthesis_pos != std::string::npos)
+          model = model.substr(0, parenthesis_pos) + '(' + region_setting.area + ')';
+      }
+
       gen.Reset();
     }
   }
@@ -290,7 +336,6 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
     INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
   }
 
-  std::string model = "RVL-001(" + region_setting.area + ")";
   gen.AddSetting("AREA", region_setting.area);
   gen.AddSetting("MODEL", model);
   gen.AddSetting("DVD", "0");

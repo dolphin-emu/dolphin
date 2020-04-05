@@ -31,6 +31,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/WiiRoot.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -88,6 +89,8 @@ static void InitCustomPaths()
 
 void Init()
 {
+  Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
+
   Config::Init();
   Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());

@@ -12,8 +12,8 @@
 #include <utility>
 #include <variant>
 
+#include <fmt/chrono.h>
 #include <fmt/format.h>
-#include <fmt/time.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -233,12 +233,13 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
   // Issue any API calls which must occur on the main thread for the graphics backend.
-  g_video_backend->PrepareWindow(wsi);
+  WindowSystemInfo prepared_wsi(wsi);
+  g_video_backend->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
   s_done_booting.Reset();
   s_is_booting.Set();
-  s_emu_thread = std::thread(EmuThread, std::move(boot), wsi);
+  s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
   return true;
 }
 
@@ -434,7 +435,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   s_frame_step = false;
 
   Movie::Init(*boot);
-  Common::ScopeGuard movie_guard{Movie::Shutdown};
+  Common::ScopeGuard movie_guard{&Movie::Shutdown};
 
   HW::Init();
 
@@ -468,6 +469,11 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     return;
   }
   Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
+
+  // Render a single frame without anything on it to clear the screen.
+  // This avoids the game list being displayed while the core is finishing initializing.
+  g_renderer->BeginUIFrame();
+  g_renderer->EndUIFrame();
 
   if (cpu_info.HTT)
     SConfig::GetInstance().bDSPThread = cpu_info.num_cores > 4;
@@ -539,7 +545,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }};
 
   AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{AudioCommon::ShutdownSoundStream};
+  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -565,7 +571,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // Initialise Wii filesystem contents.
   // This is done here after Boot and not in HW to ensure that we operate
   // with the correct title context since save copying requires title directories to exist.
-  Common::ScopeGuard wiifs_guard{Core::CleanUpWiiFileSystemContents};
+  Common::ScopeGuard wiifs_guard{&Core::CleanUpWiiFileSystemContents};
   if (SConfig::GetInstance().bWii)
     Core::InitializeWiiFileSystemContents();
   else
@@ -1050,11 +1056,10 @@ void DoFrameStep()
   }
 }
 
-void UpdateInputGate()
+void UpdateInputGate(bool require_focus)
 {
-  ControlReference::SetInputGate(
-      (SConfig::GetInstance().m_BackgroundInput || Host_RendererHasFocus()) &&
-      !Host_UIBlocksControllerState());
+  ControlReference::SetInputGate((!require_focus || Host_RendererHasFocus()) &&
+                                 !Host_UIBlocksControllerState());
 }
 
 }  // namespace Core

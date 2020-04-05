@@ -87,14 +87,14 @@ private:
   {
   public:
     using AnalogInput::AnalogInput;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
   };
 
   class MotionInput final : public AnalogInput<float>
   {
   public:
     using AnalogInput::AnalogInput;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
   };
 
   using AccelerometerInput = MotionInput;
@@ -121,7 +121,7 @@ private:
       }
     }
 
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
 
   private:
     const BatteryState& m_battery;

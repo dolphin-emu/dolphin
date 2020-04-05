@@ -73,6 +73,7 @@ void JITWidget::CreateWidgets()
 {
   m_table_widget = new QTableWidget;
 
+  m_table_widget->setTabKeyNavigation(false);
   m_table_widget->setColumnCount(7);
   m_table_widget->setHorizontalHeaderLabels(
       {tr("Address"), tr("PPC Size"), tr("Host Size"),

@@ -19,8 +19,8 @@ namespace ControllerEmu
 Slider::Slider(const std::string& name_, const std::string& ui_name_)
     : ControlGroup(name_, ui_name_, GroupType::Slider)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Right")));
+  AddInput(Translate, _trans("Left"));
+  AddInput(Translate, _trans("Right"));
 
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 }
@@ -32,7 +32,7 @@ Slider::Slider(const std::string& name_) : Slider(name_, name_)
 Slider::StateData Slider::GetState()
 {
   const ControlState deadzone = m_deadzone_setting.GetValue() / 100;
-  const ControlState state = controls[1]->control_ref->State() - controls[0]->control_ref->State();
+  const ControlState state = controls[1]->GetState() - controls[0]->GetState();
 
   return {std::clamp(ApplyDeadzone(state, deadzone), -1.0, 1.0)};
 }

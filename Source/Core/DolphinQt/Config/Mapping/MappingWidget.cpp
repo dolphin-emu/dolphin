@@ -9,8 +9,8 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QPushButton>
-#include <QTimer>
 
+#include "DolphinQt/Config/Mapping/IOWindow.h"
 #include "DolphinQt/Config/Mapping/MappingButton.h"
 #include "DolphinQt/Config/Mapping/MappingIndicator.h"
 #include "DolphinQt/Config/Mapping/MappingNumeric.h"
@@ -19,6 +19,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerEmu/StickGate.h"
@@ -28,14 +29,6 @@ MappingWidget::MappingWidget(MappingWindow* parent) : m_parent(parent)
   connect(parent, &MappingWindow::Update, this, &MappingWidget::Update);
   connect(parent, &MappingWindow::Save, this, &MappingWidget::SaveSettings);
   connect(parent, &MappingWindow::ConfigChanged, this, &MappingWidget::ConfigChanged);
-
-  const auto timer = new QTimer(this);
-  connect(timer, &QTimer::timeout, this, [this] {
-    const auto lock = m_parent->GetController()->GetStateLock();
-    emit Update();
-  });
-
-  timer->start(1000 / INDICATOR_UPDATE_FREQ);
 }
 
 MappingWindow* MappingWidget::GetParent() const
@@ -60,52 +53,66 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   group_box->setLayout(form_layout);
 
-  const bool need_indicator = group->type == ControllerEmu::GroupType::Cursor ||
-                              group->type == ControllerEmu::GroupType::Stick ||
-                              group->type == ControllerEmu::GroupType::Tilt ||
-                              group->type == ControllerEmu::GroupType::MixedTriggers ||
-                              group->type == ControllerEmu::GroupType::Force ||
-                              group->type == ControllerEmu::GroupType::IMUAccelerometer ||
-                              group->type == ControllerEmu::GroupType::IMUGyroscope ||
-                              group->type == ControllerEmu::GroupType::Shake;
+  MappingIndicator* indicator = nullptr;
 
-  const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
-                                group->type == ControllerEmu::GroupType::Stick ||
-                                group->type == ControllerEmu::GroupType::Tilt ||
-                                group->type == ControllerEmu::GroupType::Force;
-
-  if (need_indicator)
+  switch (group->type)
   {
-    MappingIndicator* indicator;
+  case ControllerEmu::GroupType::Shake:
+    indicator = new ShakeMappingIndicator(*static_cast<ControllerEmu::Shake*>(group));
+    break;
 
-    switch (group->type)
-    {
-    case ControllerEmu::GroupType::Shake:
-      indicator = new ShakeMappingIndicator(static_cast<ControllerEmu::Shake*>(group));
-      break;
+  case ControllerEmu::GroupType::MixedTriggers:
+    indicator = new MixedTriggersIndicator(*static_cast<ControllerEmu::MixedTriggers*>(group));
+    break;
 
-    case ControllerEmu::GroupType::IMUAccelerometer:
-      indicator =
-          new AccelerometerMappingIndicator(static_cast<ControllerEmu::IMUAccelerometer*>(group));
-      break;
+  case ControllerEmu::GroupType::Tilt:
+    indicator = new TiltIndicator(*static_cast<ControllerEmu::Tilt*>(group));
+    break;
 
-    case ControllerEmu::GroupType::IMUGyroscope:
-      indicator = new GyroMappingIndicator(static_cast<ControllerEmu::IMUGyroscope*>(group));
-      break;
+  case ControllerEmu::GroupType::Cursor:
+    indicator = new CursorIndicator(*static_cast<ControllerEmu::Cursor*>(group));
+    break;
 
-    default:
-      indicator = new MappingIndicator(group);
-      break;
-    }
+  case ControllerEmu::GroupType::Force:
+    indicator = new SwingIndicator(*static_cast<ControllerEmu::Force*>(group));
+    break;
 
-    form_layout->addRow(indicator);
+  case ControllerEmu::GroupType::IMUAccelerometer:
+    indicator =
+        new AccelerometerMappingIndicator(*static_cast<ControllerEmu::IMUAccelerometer*>(group));
+    break;
+
+  case ControllerEmu::GroupType::IMUGyroscope:
+    indicator = new GyroMappingIndicator(*static_cast<ControllerEmu::IMUGyroscope*>(group));
+    break;
+
+  case ControllerEmu::GroupType::Stick:
+    indicator = new AnalogStickIndicator(*static_cast<ControllerEmu::ReshapableInput*>(group));
+    break;
+
+  default:
+    break;
+  }
+
+  if (indicator)
+  {
+    const auto indicator_layout = new QBoxLayout(QBoxLayout::Direction::Down);
+    indicator_layout->addWidget(indicator);
+    indicator_layout->setAlignment(Qt::AlignCenter);
+    form_layout->addRow(indicator_layout);
 
     connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
+
+    const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
+                                  group->type == ControllerEmu::GroupType::Stick ||
+                                  group->type == ControllerEmu::GroupType::Tilt ||
+                                  group->type == ControllerEmu::GroupType::Force;
 
     if (need_calibration)
     {
       const auto calibrate =
-          new CalibrationWidget(*static_cast<ControllerEmu::ReshapableInput*>(group), *indicator);
+          new CalibrationWidget(*static_cast<ControllerEmu::ReshapableInput*>(group),
+                                *static_cast<ReshapableInputIndicator*>(indicator));
 
       form_layout->addRow(calibrate);
     }
@@ -113,7 +120,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 
   for (auto& control : group->controls)
   {
-    auto* button = new MappingButton(this, control->control_ref.get(), !need_indicator);
+    auto* button = new MappingButton(this, control->control_ref.get(), !indicator);
 
     button->setMinimumWidth(100);
     button->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
@@ -121,8 +128,6 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     const QString translated_name =
         translate ? tr(control->ui_name.c_str()) : QString::fromStdString(control->ui_name);
     form_layout->addRow(translated_name, button);
-
-    m_buttons.push_back(button);
   }
 
   for (auto& setting : group->numeric_settings)
@@ -140,10 +145,21 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
       setting_widget =
           new MappingBool(this, static_cast<ControllerEmu::NumericSetting<bool>*>(setting.get()));
       break;
+
+    default:
+      // FYI: Widgets for additional types can be implemented as needed.
+      break;
     }
 
     if (setting_widget)
-      form_layout->addRow(tr(setting->GetUIName()), setting_widget);
+    {
+      const auto hbox = new QHBoxLayout;
+
+      hbox->addWidget(setting_widget);
+      hbox->addWidget(CreateSettingAdvancedMappingButton(*setting));
+
+      form_layout->addRow(tr(setting->GetUIName()), hbox);
+    }
   }
 
   if (group->can_be_disabled)
@@ -174,4 +190,26 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
 ControllerEmu::EmulatedController* MappingWidget::GetController() const
 {
   return m_parent->GetController();
+}
+
+QPushButton*
+MappingWidget::CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting)
+{
+  const auto button = new QPushButton(tr("..."));
+  button->setFixedWidth(QFontMetrics(font()).boundingRect(button->text()).width() * 2);
+
+  button->connect(button, &QPushButton::clicked, [this, &setting]() {
+    if (setting.IsSimpleValue())
+      setting.SetExpressionFromValue();
+
+    IOWindow io(this, GetController(), &setting.GetInputReference(), IOWindow::Type::Input);
+    io.exec();
+
+    setting.SimplifyIfPossible();
+
+    ConfigChanged();
+    SaveSettings();
+  });
+
+  return button;
 }

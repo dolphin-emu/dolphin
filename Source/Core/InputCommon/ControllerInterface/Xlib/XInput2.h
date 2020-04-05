@@ -63,7 +63,7 @@ private:
   {
   public:
     std::string GetName() const override { return name; }
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     Cursor(u8 index, bool positive, const float* cursor);
     ControlState GetState() const override;
 
@@ -78,7 +78,7 @@ private:
   {
   public:
     std::string GetName() const override { return name; }
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     Axis(u8 index, bool positive, const float* axis);
     ControlState GetState() const override;
 
@@ -105,7 +105,7 @@ public:
 private:
   Window m_window;
   Display* m_display;
-  State m_state;
+  State m_state{};
   int xi_opcode;
   const int pointer_deviceid, keyboard_deviceid;
   std::string name;

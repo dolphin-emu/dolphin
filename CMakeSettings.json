@@ -1,4 +1,4 @@
-﻿{
+{
   "configurations": [
     {
       "name": "Release",
@@ -11,7 +11,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.13.1\\5.13.1\\msvc2017_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_64\\lib\\cmake\\Qt5"
         }
       ]
     },
@@ -26,7 +26,53 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.13.1\\5.13.1\\msvc2017_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_64\\lib\\cmake\\Qt5"
+        }
+      ]
+    },
+    {
+      "name": "Release (arm64)",
+      "configurationType": "Release",
+      "generator": "Ninja",
+      "inheritEnvironments": [ "msvc_arm64_x64" ],
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_arm64\\lib\\cmake\\Qt5"
+        },
+        {
+          "name": "CMAKE_SYSTEM_NAME",
+          "value": "Windows"
+        },
+        {
+          "name": "CMAKE_SYSTEM_PROCESSOR",
+          "value": "aarch64"
+        }
+      ]
+    },
+    {
+      "name": "Debug (arm64)",
+      "configurationType": "Debug",
+      "generator": "Ninja",
+      "inheritEnvironments": [ "msvc_arm64_x64" ],
+      "buildCommandArgs": "",
+      "buildRoot": "${workspaceRoot}\\Build\\${name}",
+      "cmakeCommandArgs": "",
+      "variables": [
+        {
+          "name": "Qt5_DIR",
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_arm64\\lib\\cmake\\Qt5"
+        },
+        {
+          "name": "CMAKE_SYSTEM_NAME",
+          "value": "Windows"
+        },
+        {
+          "name": "CMAKE_SYSTEM_PROCESSOR",
+          "value": "aarch64"
         }
       ]
     }

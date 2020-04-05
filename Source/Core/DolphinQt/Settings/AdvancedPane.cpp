@@ -131,14 +131,13 @@ void AdvancedPane::CreateLayout()
 void AdvancedPane::ConnectLayout()
 {
   connect(m_cpu_emulation_engine_combobox,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int index) {
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
             SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [this](bool checked) { SConfig::GetInstance().bMMU = checked; });
+          [](bool checked) { SConfig::GetInstance().bMMU = checked; });
 
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {

@@ -337,7 +337,8 @@ void AudioPane::OnDspChanged()
 
   m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
                                 !m_dsp_hle->isChecked());
-  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked());
+  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() &&
+                            m_dolby_pro_logic->isChecked());
 }
 
 void AudioPane::OnBackendChanged()
@@ -346,7 +347,8 @@ void AudioPane::OnBackendChanged()
 
   m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
                                 !m_dsp_hle->isChecked());
-  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked());
+  EnableDolbyQualityWidgets(AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked() &&
+                            m_dolby_pro_logic->isChecked());
   if (m_latency_control_supported)
   {
     m_latency_label->setEnabled(AudioCommon::SupportsLatencyControl(backend));
@@ -382,7 +384,7 @@ void AudioPane::OnEmulationStateChanged(bool running)
   if (AudioCommon::SupportsDPL2Decoder(SConfig::GetInstance().sBackend) && !m_dsp_hle->isChecked())
   {
     m_dolby_pro_logic->setEnabled(!running);
-    EnableDolbyQualityWidgets(!running);
+    EnableDolbyQualityWidgets(!running && m_dolby_pro_logic->isChecked());
   }
   if (m_latency_control_supported)
   {

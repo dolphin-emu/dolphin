@@ -132,11 +132,9 @@ void MappingButton::UpdateIndicator()
   if (!isActiveWindow())
     return;
 
-  const auto state = m_reference->State();
-
   QFont f = m_parent->font();
 
-  if (state > ControllerEmu::Buttons::ACTIVATION_THRESHOLD)
+  if (m_reference->GetState<bool>())
     f.setBold(true);
 
   setFont(f);

@@ -18,12 +18,12 @@ namespace ControllerEmu
 {
 Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType::Force)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Up")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Down")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Left")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Right")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Forward")));
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Backward")));
+  AddInput(Translate, _trans("Up"));
+  AddInput(Translate, _trans("Down"));
+  AddInput(Translate, _trans("Left"));
+  AddInput(Translate, _trans("Right"));
+  AddInput(Translate, _trans("Forward"));
+  AddInput(Translate, _trans("Backward"));
 
   AddSetting(&m_distance_setting,
              {_trans("Distance"),
@@ -67,8 +67,8 @@ Force::Force(const std::string& name_) : ReshapableInput(name_, name_, GroupType
 
 Force::ReshapeData Force::GetReshapableState(bool adjusted)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->GetState() - controls[1]->GetState();
+  const ControlState x = controls[3]->GetState() - controls[2]->GetState();
 
   // Return raw values. (used in UI)
   if (!adjusted)
@@ -80,7 +80,7 @@ Force::ReshapeData Force::GetReshapableState(bool adjusted)
 Force::StateData Force::GetState(bool adjusted)
 {
   const auto state = GetReshapableState(adjusted);
-  ControlState z = controls[4]->control_ref->State() - controls[5]->control_ref->State();
+  ControlState z = controls[4]->GetState() - controls[5]->GetState();
 
   if (adjusted)
   {
@@ -127,11 +127,11 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
     : ControlGroup(name_, name_, GroupType::Shake)
 {
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("X")));
+  AddInput(ControllerEmu::Translate, _trans("X"));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Y")));
+  AddInput(ControllerEmu::Translate, _trans("Y"));
   // i18n: Refers to a 3D axis (used when mapping motion controls)
-  controls.emplace_back(new ControllerEmu::Input(ControllerEmu::Translate, _trans("Z")));
+  AddInput(ControllerEmu::Translate, _trans("Z"));
 
   AddDeadzoneSetting(&m_deadzone_setting, 50);
 
@@ -159,9 +159,9 @@ Shake::Shake(const std::string& name_, ControlState default_intensity_scale)
 
 Shake::StateData Shake::GetState(bool adjusted) const
 {
-  const float x = controls[0]->control_ref->State();
-  const float y = controls[1]->control_ref->State();
-  const float z = controls[2]->control_ref->State();
+  const float x = controls[0]->GetState();
+  const float y = controls[1]->GetState();
+  const float z = controls[2]->GetState();
 
   StateData result = {x, y, z};
 

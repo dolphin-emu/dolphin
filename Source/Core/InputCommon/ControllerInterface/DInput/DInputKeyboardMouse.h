@@ -69,7 +69,7 @@ private:
     {
     }
     std::string GetName() const override;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
 
   private:

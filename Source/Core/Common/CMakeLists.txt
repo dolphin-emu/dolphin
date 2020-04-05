@@ -156,9 +156,11 @@ elseif(WIN32)
   PRIVATE
     kernel32.lib
     shlwapi.lib
-    opengl32.lib
     winmm.lib
   )
+  if (_M_X86_64)
+	  target_link_libraries(common PRIVATE opengl32.lib)
+  endif()
 endif()
 
 if(ANDROID)

@@ -134,13 +134,13 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getGameT
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumber(JNIEnv* env,
                                                                                    jobject obj)
 {
-  return env, GetRef(env, obj)->GetDiscNumber();
+  return GetRef(env, obj)->GetDiscNumber();
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision(JNIEnv* env,
                                                                                  jobject obj)
 {
-  return env, GetRef(env, obj)->GetRevision();
+  return GetRef(env, obj)->GetRevision();
 }
 
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,

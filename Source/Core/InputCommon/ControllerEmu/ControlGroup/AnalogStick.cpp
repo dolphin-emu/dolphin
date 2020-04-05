@@ -27,21 +27,21 @@ AnalogStick::AnalogStick(const char* const name_, const char* const ui_name_,
     : ReshapableInput(name_, ui_name_, GroupType::Stick), m_stick_gate(std::move(stick_gate))
 {
   for (auto& named_direction : named_directions)
-    controls.emplace_back(std::make_unique<Input>(Translate, named_direction));
+    AddInput(Translate, named_direction);
 
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Modifier")));
+  AddInput(Translate, _trans("Modifier"));
 }
 
 AnalogStick::ReshapeData AnalogStick::GetReshapableState(bool adjusted)
 {
-  const ControlState y = controls[0]->control_ref->State() - controls[1]->control_ref->State();
-  const ControlState x = controls[3]->control_ref->State() - controls[2]->control_ref->State();
+  const ControlState y = controls[0]->GetState() - controls[1]->GetState();
+  const ControlState x = controls[3]->GetState() - controls[2]->GetState();
 
   // Return raw values. (used in UI)
   if (!adjusted)
     return {x, y};
 
-  const ControlState modifier = controls[4]->control_ref->State();
+  const ControlState modifier = controls[4]->GetState();
 
   return Reshape(x, y, modifier);
 }

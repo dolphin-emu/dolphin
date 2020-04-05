@@ -257,12 +257,13 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 @implementation SearchBT
 - (void)deviceInquiryComplete:(IOBluetoothDeviceInquiry*)sender
                         error:(IOReturn)error
-                      aborted:(BOOL)aborted {
+                      aborted:(BOOL)aborted
+{
   done = true;
 }
 
-- (void)deviceInquiryDeviceFound:(IOBluetoothDeviceInquiry*)sender
-                          device:(IOBluetoothDevice*)device {
+- (void)deviceInquiryDeviceFound:(IOBluetoothDeviceInquiry*)sender device:(IOBluetoothDevice*)device
+{
   NOTICE_LOG(WIIMOTE, "Discovered Bluetooth device at %s: %s", [[device addressString] UTF8String],
              [[device name] UTF8String]);
 
@@ -274,11 +275,12 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
 @implementation ConnectBT
 - (void)l2capChannelData:(IOBluetoothL2CAPChannel*)l2capChannel
                     data:(unsigned char*)data
-                  length:(NSUInteger)length {
+                  length:(NSUInteger)length
+{
   IOBluetoothDevice* device = [l2capChannel device];
   WiimoteReal::WiimoteDarwin* wm = nullptr;
 
-  std::lock_guard<std::mutex> lk(WiimoteReal::g_wiimotes_mutex);
+  std::lock_guard lk(WiimoteReal::g_wiimotes_mutex);
 
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {
@@ -314,11 +316,12 @@ void WiimoteDarwin::DisablePowerAssertionInternal()
   CFRunLoopStop(CFRunLoopGetCurrent());
 }
 
-- (void)l2capChannelClosed:(IOBluetoothL2CAPChannel*)l2capChannel {
+- (void)l2capChannelClosed:(IOBluetoothL2CAPChannel*)l2capChannel
+{
   IOBluetoothDevice* device = [l2capChannel device];
   WiimoteReal::WiimoteDarwin* wm = nullptr;
 
-  std::lock_guard<std::mutex> lk(WiimoteReal::g_wiimotes_mutex);
+  std::lock_guard lk(WiimoteReal::g_wiimotes_mutex);
 
   for (int i = 0; i < MAX_WIIMOTES; i++)
   {

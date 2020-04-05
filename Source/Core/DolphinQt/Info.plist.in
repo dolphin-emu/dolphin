@@ -50,7 +50,5 @@
     <true/>
     <key>CSResourcesFileMapped</key>
     <true/>
-    <key>NSRequiresAquaSystemAppearance</key>
-    <true/>
 </dict>
 </plist>

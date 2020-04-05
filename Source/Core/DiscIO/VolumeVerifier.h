@@ -145,7 +145,7 @@ private:
     u64 block_index;
   };
 
-  void CheckPartitions();
+  std::vector<Partition> CheckPartitions();
   bool CheckPartition(const Partition& partition);  // Returns false if partition should be ignored
   std::string GetPartitionName(std::optional<u32> type) const;
   void CheckCorrectlySigned(const Partition& partition, std::string error_text);
@@ -154,8 +154,8 @@ private:
   bool ShouldHaveInstallPartition() const;
   bool ShouldHaveMasterpiecePartitions() const;
   bool ShouldBeDualLayer() const;
-  void CheckDiscSize();
-  u64 GetBiggestReferencedOffset() const;
+  void CheckDiscSize(const std::vector<Partition>& partitions);
+  u64 GetBiggestReferencedOffset(const std::vector<Partition>& partitions) const;
   u64 GetBiggestReferencedOffset(const FileInfo& file_info) const;
   void CheckMisc();
   void CheckSuperPaperMario();

@@ -14,11 +14,20 @@ import org.dolphinemu.dolphinemu.activities.CustomFilePickerActivity;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 
 public final class FileBrowserHelper
 {
-  public static void openDirectoryPicker(FragmentActivity activity)
+  public static final HashSet<String> GAME_EXTENSIONS = new HashSet<>(Arrays.asList(
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wad", "dol", "elf", "dff"));
+
+  public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
+          "raw"));
+
+  public static void openDirectoryPicker(FragmentActivity activity, HashSet<String> extensions)
   {
     Intent i = new Intent(activity, CustomFilePickerActivity.class);
 
@@ -27,11 +36,13 @@ public final class FileBrowserHelper
     i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_DIR);
     i.putExtra(FilePickerActivity.EXTRA_START_PATH,
             Environment.getExternalStorageDirectory().getPath());
+    i.putExtra(CustomFilePickerActivity.EXTRA_EXTENSIONS, extensions);
 
-    activity.startActivityForResult(i, MainPresenter.REQUEST_ADD_DIRECTORY);
+    activity.startActivityForResult(i, MainPresenter.REQUEST_DIRECTORY);
   }
 
-  public static void openFilePicker(FragmentActivity activity, int requestCode, boolean allowMulti)
+  public static void openFilePicker(FragmentActivity activity, int requestCode, boolean allowMulti,
+          HashSet<String> extensions)
   {
     Intent i = new Intent(activity, CustomFilePickerActivity.class);
 
@@ -40,12 +51,13 @@ public final class FileBrowserHelper
     i.putExtra(FilePickerActivity.EXTRA_MODE, FilePickerActivity.MODE_FILE);
     i.putExtra(FilePickerActivity.EXTRA_START_PATH,
             Environment.getExternalStorageDirectory().getPath());
+    i.putExtra(CustomFilePickerActivity.EXTRA_EXTENSIONS, extensions);
 
     activity.startActivityForResult(i, requestCode);
   }
 
   @Nullable
-  public static String getSelectedDirectory(Intent result)
+  public static String getSelectedPath(Intent result)
   {
     // Use the provided utility method to parse the result
     List<Uri> files = Utils.getSelectedFilesFromResult(result);

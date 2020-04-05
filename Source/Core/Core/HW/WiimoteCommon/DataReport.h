@@ -8,9 +8,11 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/Matrix.h"
 #include "Core/HW/WiimoteCommon/WiimoteConstants.h"
 #include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/HW/WiimoteCommon/WiimoteReport.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace WiimoteCommon
 {
@@ -20,12 +22,6 @@ class DataReportManipulator
 {
 public:
   virtual ~DataReportManipulator() = default;
-
-  // Accel data handled as if there were always 10 bits of precision.
-  struct AccelData
-  {
-    u16 x, y, z;
-  };
 
   using CoreData = ButtonData;
 
@@ -66,7 +62,6 @@ public:
   explicit DataReportBuilder(InputReportID rpt_id);
 
   using CoreData = ButtonData;
-  using AccelData = DataReportManipulator::AccelData;
 
   void SetMode(InputReportID rpt_id);
   InputReportID GetMode() const;
@@ -99,11 +94,10 @@ public:
 
   u32 GetDataSize() const;
 
-private:
   static constexpr int HEADER_SIZE = 2;
-
   static constexpr int MAX_DATA_SIZE = MAX_PAYLOAD - 2;
 
+private:
   TypedHIDInputData<std::array<u8, MAX_DATA_SIZE>> m_data;
 
   std::unique_ptr<DataReportManipulator> m_manip;

@@ -15,6 +15,8 @@
 
 namespace ciface::ExpressionParser
 {
+constexpr ControlState CONDITION_THRESHOLD = 0.5;
+
 class FunctionExpression : public Expression
 {
 public:

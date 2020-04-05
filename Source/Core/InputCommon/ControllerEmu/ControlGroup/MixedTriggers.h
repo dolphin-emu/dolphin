@@ -22,6 +22,8 @@ public:
   ControlState GetDeadzone() const;
   ControlState GetThreshold() const;
 
+  size_t GetTriggerCount() const;
+
 private:
   SettingValue<double> m_threshold_setting;
   SettingValue<double> m_deadzone_setting;

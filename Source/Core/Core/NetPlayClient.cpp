@@ -2045,6 +2045,18 @@ bool NetPlayClient::PollLocalPad(const int local_pad, sf::Packet& packet)
 
 void NetPlayClient::SendPadHostPoll(const PadIndex pad_num)
 {
+  // Here we handle polling for the Host Input Authority and Golf modes. Pad data is "polled" from
+  // the most recent data received for the given pad. Passing pad_num < 0 will poll all assigned
+  // pads (used for batched polls), while 0..3 will poll the respective pad (used for MMIO polls).
+  // See GetNetPads for more details.
+  //
+  // If the local buffer is non-empty, we skip actually buffering and sending new pad data, this way
+  // don't end up with permanent local latency. It does create a period of time where no inputs are
+  // accepted, but under typical circumstances this is not noticeable.
+  //
+  // Additionally, we wait until some actual pad data has been received before buffering and sending
+  // it, otherwise controllers get calibrated wrongly with the default values of GCPadStatus.
+
   if (m_local_player->pid != m_current_golfer)
     return;
 

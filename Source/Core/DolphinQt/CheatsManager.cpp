@@ -368,6 +368,9 @@ QWidget* CheatsManager::CreateCheatSearch()
   m_match_table = new QTableWidget;
   m_watch_table = new QTableWidget;
 
+  m_match_table->setTabKeyNavigation(false);
+  m_watch_table->setTabKeyNavigation(false);
+
   m_match_table->verticalHeader()->hide();
   m_watch_table->verticalHeader()->hide();
 

@@ -27,6 +27,8 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
+  CreateWidgets();
+
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("registerwidget/geometry")).toByteArray());
@@ -34,7 +36,6 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
   // according to Settings
   setFloating(settings.value(QStringLiteral("registerwidget/floating")).toBool());
 
-  CreateWidgets();
   PopulateTable();
   ConnectWidgets();
 
@@ -69,6 +70,7 @@ void RegisterWidget::showEvent(QShowEvent* event)
 void RegisterWidget::CreateWidgets()
 {
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
 
   m_table->setColumnCount(9);
 

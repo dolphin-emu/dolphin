@@ -176,6 +176,11 @@ bool IniFile::DeleteSection(std::string_view section_name)
   return false;
 }
 
+bool IniFile::Exists(std::string_view section_name) const
+{
+  return GetSection(section_name) != nullptr;
+}
+
 bool IniFile::Exists(std::string_view section_name, std::string_view key) const
 {
   const Section* section = GetSection(section_name);

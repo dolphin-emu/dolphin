@@ -35,7 +35,7 @@ public:
   void SetTitle(const std::string& string) override;
   void MainLoop() override;
 
-  WindowSystemInfo GetWindowSystemInfo() const;
+  WindowSystemInfo GetWindowSystemInfo() const override;
 
 private:
   bool OpenFramebuffer();
@@ -91,6 +91,7 @@ WindowSystemInfo PlatformFBDev::GetWindowSystemInfo() const
   WindowSystemInfo wsi;
   wsi.type = WindowSystemType::FBDev;
   wsi.display_connection = nullptr;  // EGL_DEFAULT_DISPLAY
+  wsi.render_window = nullptr;
   wsi.render_surface = nullptr;
   return wsi;
 }

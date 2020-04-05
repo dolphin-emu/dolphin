@@ -5,6 +5,7 @@
 #include <cassert>
 
 #include "Common/BitUtils.h"
+#include "Common/MathUtil.h"
 #include "Core/HW/WiimoteCommon/DataReport.h"
 
 namespace WiimoteCommon
@@ -75,40 +76,35 @@ struct IncludeAccel : virtual DataReportManipulator
   void GetAccelData(AccelData* result) const override
   {
     const AccelMSB accel = Common::BitCastPtr<AccelMSB>(data_ptr + 2);
-    result->x = accel.x << 2;
-    result->y = accel.y << 2;
-    result->z = accel.z << 2;
-
-    // LSBs
     const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    result->x |= core.acc_bits & 0b11;
-    result->y |= (core.acc_bits2 & 0b1) << 1;
-    result->z |= core.acc_bits2 & 0b10;
+
+    // X has 10 bits of precision.
+    result->value.x = accel.x << 2;
+    result->value.x |= core.acc_bits & 0b11;
+
+    // Y and Z only have 9 bits of precision. (convert them to 10)
+    result->value.y =
+        Common::ExpandValue<u16>(accel.y << 1 | Common::ExtractBit<0>(core.acc_bits2), 1);
+    result->value.z =
+        Common::ExpandValue<u16>(accel.z << 1 | Common::ExtractBit<1>(core.acc_bits2), 1);
   }
 
   void SetAccelData(const AccelData& new_accel) override
   {
-    AccelMSB accel = {};
-    accel.x = new_accel.x >> 2;
-    accel.y = new_accel.y >> 2;
-    accel.z = new_accel.z >> 2;
-    Common::BitCastPtr<AccelMSB>(data_ptr + 2) = accel;
+    Common::BitCastPtr<AccelMSB>(data_ptr + 2) = AccelMSB(new_accel.value / 4);
 
     // LSBs
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (new_accel.x >> 0) & 0b11;
-    core.acc_bits2 = (new_accel.y >> 1) & 0x1;
-    core.acc_bits2 |= (new_accel.z & 0xb10);
+    core.acc_bits = (new_accel.value.x >> 0) & 0b11;
+    core.acc_bits2 = (new_accel.value.y >> 1) & 0x1;
+    core.acc_bits2 |= (new_accel.value.z & 0xb10);
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
   bool HasAccel() const override { return true; }
 
 private:
-  struct AccelMSB
-  {
-    u8 x, y, z;
-  };
+  using AccelMSB = Common::TVec3<u8>;
   static_assert(sizeof(AccelMSB) == 3, "Wrong size");
 };
 
@@ -195,26 +191,28 @@ struct ReportExt21 : NoCore, NoAccel, NoIR, IncludeExt<0, 21>
 struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
 {
   // FYI: Only 8-bits of precision in this report, and no Y axis.
-  // Only contains 4 MSB of Z axis.
-
   void GetAccelData(AccelData* accel) const override
   {
-    accel->x = data_ptr[2] << 2;
+    // X axis only has 8 bits of precision. (converted to 10)
+    accel->value.x = Common::ExpandValue<u16>(data_ptr[2], 2);
 
-    // Retain lower 6 bits.
-    accel->z &= 0b111111;
+    // Y axis is not contained in this report. (provided by "Interleave2")
 
+    // Clear upper bits, retain lower bits. (provided by "Interleave2")
+    accel->value.z &= 0b111111;
+
+    // Report only contains 4 MSB of Z axis.
     const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    accel->z |= (core.acc_bits << 6) | (core.acc_bits2 << 8);
+    accel->value.z |= (core.acc_bits << 6) | (core.acc_bits2 << 8);
   }
 
   void SetAccelData(const AccelData& accel) override
   {
-    data_ptr[2] = accel.x >> 2;
+    data_ptr[2] = accel.value.x >> 2;
 
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (accel.z >> 6) & 0b11;
-    core.acc_bits2 = (accel.z >> 8) & 0b11;
+    core.acc_bits = (accel.value.z >> 6) & 0b11;
+    core.acc_bits2 = (accel.value.z >> 8) & 0b11;
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 
@@ -226,26 +224,28 @@ struct ReportInterleave1 : IncludeCore, IncludeIR<3, 18, 0>, NoExt
 struct ReportInterleave2 : IncludeCore, IncludeIR<3, 18, 18>, NoExt
 {
   // FYI: Only 8-bits of precision in this report, and no X axis.
-  // Only contains 4 LSB of Z axis.
-
   void GetAccelData(AccelData* accel) const override
   {
-    accel->y = data_ptr[2] << 2;
+    // X axis is not contained in this report. (provided by "Interleave1")
 
-    // Retain upper 4 bits.
-    accel->z &= ~0b111111;
+    // Y axis only has 8 bits of precision. (converted to 10)
+    accel->value.y = Common::ExpandValue<u16>(data_ptr[2], 2);
 
+    // Clear lower bits, retain upper bits. (provided by "Interleave1")
+    accel->value.z &= ~0b111111;
+
+    // Report only contains 4 LSBs of Z axis. (converted to 6)
     const CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    accel->z |= (core.acc_bits << 2) | (core.acc_bits2 << 4);
+    accel->value.z |= Common::ExpandValue<u16>(core.acc_bits | core.acc_bits2 << 2, 2);
   }
 
   void SetAccelData(const AccelData& accel) override
   {
-    data_ptr[2] = accel.y >> 2;
+    data_ptr[2] = accel.value.y >> 2;
 
     CoreData core = Common::BitCastPtr<CoreData>(data_ptr);
-    core.acc_bits = (accel.z >> 2) & 0b11;
-    core.acc_bits2 = (accel.z >> 4) & 0b11;
+    core.acc_bits = (accel.value.z >> 2) & 0b11;
+    core.acc_bits2 = (accel.value.z >> 4) & 0b11;
     Common::BitCastPtr<CoreData>(data_ptr) = core;
   }
 

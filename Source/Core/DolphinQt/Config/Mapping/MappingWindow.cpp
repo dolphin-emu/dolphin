@@ -11,6 +11,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QTabWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 
 #include "Core/Core.h"
@@ -63,6 +64,15 @@ MappingWindow::MappingWindow(QWidget* parent, Type type, int port_num)
   ConnectWidgets();
   SetMappingType(type);
 
+  const auto timer = new QTimer(this);
+  connect(timer, &QTimer::timeout, this, [this] {
+    const auto lock = GetController()->GetStateLock();
+    emit Update();
+  });
+
+  timer->start(1000 / INDICATOR_UPDATE_FREQ);
+
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
@@ -246,6 +256,7 @@ void MappingWindow::OnLoadProfilePressed()
   m_controller->LoadConfig(ini.GetOrCreateSection("Profile"));
   m_controller->UpdateReferences(g_controller_interface);
 
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
 }
 
@@ -445,6 +456,8 @@ void MappingWindow::OnDefaultFieldsPressed()
 {
   m_controller->LoadDefaults(g_controller_interface);
   m_controller->UpdateReferences(g_controller_interface);
+
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }
@@ -460,6 +473,8 @@ void MappingWindow::OnClearFieldsPressed()
   m_controller->SetDefaultDevice(default_device);
 
   m_controller->UpdateReferences(g_controller_interface);
+
+  const auto lock = GetController()->GetStateLock();
   emit ConfigChanged();
   emit Save();
 }

@@ -20,7 +20,7 @@ IMUCursor::IMUCursor(std::string name, std::string ui_name)
     : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUCursor,
                    ControlGroup::CanBeDisabled::Yes)
 {
-  controls.emplace_back(std::make_unique<Input>(Translate, _trans("Recenter")));
+  AddInput(Translate, _trans("Recenter"));
 
   // Default values are optimized for "Super Mario Galaxy 2".
   // This seems to be acceptable for a good number of games.

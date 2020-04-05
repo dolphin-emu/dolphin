@@ -15,6 +15,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace Arm64Gen
 {
 namespace

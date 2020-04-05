@@ -24,82 +24,23 @@ void Init();
 void PopulateDevices();
 void DeInit();
 
-class Device : public Core::Device
+class Device final : public Core::Device
 {
-private:
-  class Button : public Core::Device::Input
-  {
-  public:
-    Button(u8 index, const WORD& buttons) : m_buttons(buttons), m_index(index) {}
-    std::string GetName() const override;
-    ControlState GetState() const override;
-
-  private:
-    const WORD& m_buttons;
-    u8 m_index;
-  };
-
-  class Axis : public Core::Device::Input
-  {
-  public:
-    Axis(u8 index, const SHORT& axis, SHORT range) : m_axis(axis), m_range(range), m_index(index) {}
-    std::string GetName() const override;
-    ControlState GetState() const override;
-
-  private:
-    const SHORT& m_axis;
-    const SHORT m_range;
-    const u8 m_index;
-  };
-
-  class Trigger : public Core::Device::Input
-  {
-  public:
-    Trigger(u8 index, const BYTE& trigger, BYTE range)
-        : m_trigger(trigger), m_range(range), m_index(index)
-    {
-    }
-    std::string GetName() const override;
-    ControlState GetState() const override;
-
-  private:
-    const BYTE& m_trigger;
-    const BYTE m_range;
-    const u8 m_index;
-  };
-
-  class Motor : public Core::Device::Output
-  {
-  public:
-    Motor(u8 index, Device* parent, WORD& motor, WORD range)
-        : m_motor(motor), m_range(range), m_index(index), m_parent(parent)
-    {
-    }
-    std::string GetName() const override;
-    void SetState(ControlState state) override;
-
-  private:
-    WORD& m_motor;
-    const WORD m_range;
-    const u8 m_index;
-    Device* m_parent;
-  };
-
 public:
-  void UpdateInput() override;
-
   Device(const XINPUT_CAPABILITIES& capabilities, u8 index);
 
-  std::string GetName() const final override;
-  std::string GetSource() const final override;
-  std::optional<int> GetPreferredId() const final override;
+  std::string GetName() const override;
+  std::string GetSource() const override;
+  std::optional<int> GetPreferredId() const override;
+
+  void UpdateInput() override;
 
   void UpdateMotors();
 
 private:
-  XINPUT_STATE m_state_in;
+  XINPUT_STATE m_state_in{};
   XINPUT_VIBRATION m_state_out{};
-  XINPUT_VIBRATION m_current_state_out{};
+  ControlState m_battery_level{};
   const BYTE m_subtype;
   const u8 m_index;
 };

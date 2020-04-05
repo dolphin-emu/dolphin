@@ -142,7 +142,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
        {m_jit_off, m_jit_loadstore_off, m_jit_loadstore_lbzx_off, m_jit_loadstore_lxz_off,
         m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
         m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off,
-        m_jit_branch_off})
+        m_jit_branch_off, m_jit_register_cache_off})
   {
     action->setEnabled(running && !playing);
   }
@@ -199,8 +199,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(Qt::CTRL + Qt::Key_O));
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open, QKeySequence::Open);
 
   file_menu->addSeparator();
 
@@ -211,8 +210,8 @@ void MenuBar::AddFileMenu()
 
   file_menu->addSeparator();
 
-  m_exit_action =
-      file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit, QKeySequence(Qt::ALT + Qt::Key_F4));
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
 }
 
 void MenuBar::AddToolsMenu()
@@ -488,14 +487,14 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   view_menu->addSeparator();
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch,
-                       QKeySequence(Qt::CTRL + Qt::Key_F));
+  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
+  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
+                          QKeySequence::Preferences);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
@@ -606,6 +605,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("File Path"), &SConfig::GetInstance().m_showFilePathColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
       {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
@@ -894,6 +894,14 @@ void MenuBar::AddJITMenu()
   m_jit_branch_off->setChecked(SConfig::GetInstance().bJITBranchOff);
   connect(m_jit_branch_off, &QAction::toggled, [this](bool enabled) {
     SConfig::GetInstance().bJITBranchOff = enabled;
+    ClearCache();
+  });
+
+  m_jit_register_cache_off = m_jit->addAction(tr("JIT Register Cache Off"));
+  m_jit_register_cache_off->setCheckable(true);
+  m_jit_register_cache_off->setChecked(SConfig::GetInstance().bJITRegisterCacheOff);
+  connect(m_jit_register_cache_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITRegisterCacheOff = enabled;
     ClearCache();
   });
 }

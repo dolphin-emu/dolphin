@@ -10,6 +10,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
@@ -630,7 +631,7 @@ void Init(const std::string& game_id)
       config << CONFIG_STRINGS[a] << "_" << pad_id;
       BindType type;
       int bindnum;
-      char dev[128];
+      char dev[128]{};
       bool hasbind = false;
       char modifier = '+';
       std::string value;
@@ -641,13 +642,19 @@ void Init(const std::string& game_id)
       {
         hasbind = true;
         type = BIND_AXIS;
-        sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
+        if (StringBeginsWith(value, "Device ''"))
+          sscanf(value.c_str(), "Device ''-Axis %d%c", &bindnum, &modifier);
+        else
+          sscanf(value.c_str(), "Device '%127[^\']'-Axis %d%c", dev, &bindnum, &modifier);
       }
       else if (std::string::npos != value.find("Button"))
       {
         hasbind = true;
         type = BIND_BUTTON;
-        sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
+        if (StringBeginsWith(value, "Device ''"))
+          sscanf(value.c_str(), "Device ''-Button %d", &bindnum);
+        else
+          sscanf(value.c_str(), "Device '%127[^\']'-Button %d", dev, &bindnum);
       }
       if (hasbind)
         AddBind(std::string(dev),

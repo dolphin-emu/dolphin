@@ -188,6 +188,7 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ColumnTitle", m_showTitleColumn);
   gamelist->Set("ColumnNotes", m_showMakerColumn);
   gamelist->Set("ColumnFileName", m_showFileNameColumn);
+  gamelist->Set("ColumnFilePath", m_showFilePathColumn);
   gamelist->Set("ColumnID", m_showIDColumn);
   gamelist->Set("ColumnRegion", m_showRegionColumn);
   gamelist->Set("ColumnSize", m_showSizeColumn);
@@ -235,6 +236,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("WiiKeyboard", m_WiiKeyboard);
   core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
   core->Set("WiimoteEnableSpeaker", m_WiimoteEnableSpeaker);
+  core->Set("WiimoteControllerInterface", connect_wiimotes_for_ciface);
   core->Set("RunCompareServer", bRunCompareServer);
   core->Set("RunCompareClient", bRunCompareClient);
   core->Set("MMU", bMMU);
@@ -356,6 +358,7 @@ void SConfig::SaveJitDebugSettings(IniFile& ini)
   section->Set("JitPairedOff", bJITPairedOff);
   section->Set("JitSystemRegistersOff", bJITSystemRegistersOff);
   section->Set("JitBranchOff", bJITBranchOff);
+  section->Set("JitRegisterCacheOff", bJITRegisterCacheOff);
 }
 
 void SConfig::LoadSettings()
@@ -465,6 +468,7 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
   gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
   gamelist->Get("ColumnFileName", &m_showFileNameColumn, false);
+  gamelist->Get("ColumnFilePath", &m_showFilePathColumn, false);
   gamelist->Get("ColumnID", &m_showIDColumn, false);
   gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
   gamelist->Get("ColumnSize", &m_showSizeColumn, true);
@@ -514,6 +518,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
   core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
+  core->Get("WiimoteControllerInterface", &connect_wiimotes_for_ciface, false);
   core->Get("RunCompareServer", &bRunCompareServer, false);
   core->Get("RunCompareClient", &bRunCompareClient, false);
   core->Get("MMU", &bMMU, bMMU);
@@ -653,6 +658,7 @@ void SConfig::LoadJitDebugSettings(IniFile& ini)
   section->Get("JitPairedOff", &bJITPairedOff, false);
   section->Get("JitSystemRegistersOff", &bJITSystemRegistersOff, false);
   section->Get("JitBranchOff", &bJITBranchOff, false);
+  section->Get("JitRegisterCacheOff", &bJITRegisterCacheOff, false);
 }
 
 void SConfig::ResetRunningGameMetadata()
@@ -806,6 +812,7 @@ void SConfig::LoadDefaults()
   bJITPairedOff = false;
   bJITSystemRegistersOff = false;
   bJITBranchOff = false;
+  bJITRegisterCacheOff = false;
 
   ResetRunningGameMetadata();
 }

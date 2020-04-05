@@ -75,7 +75,7 @@ void LogWidget::UpdateLog()
     elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_ring_buffer.size()));
 
     for (size_t i = 0; !m_log_ring_buffer.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
-      elements_to_push.push_back(std::move(m_log_ring_buffer.pop_front()));
+      elements_to_push.push_back(m_log_ring_buffer.pop_front());
   }
 
   for (auto& line : elements_to_push)
@@ -184,6 +184,8 @@ void LogWidget::LoadSettings()
   m_log_wrap->setChecked(settings.value(QStringLiteral("logging/wraplines")).toBool());
   m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
                                                         QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
+                                                                     Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   // Currently "Debugger Font" is not supported as there is no Qt Debugger, defaulting to Monospace
@@ -202,6 +204,8 @@ void LogWidget::SaveSettings()
   settings.setValue(QStringLiteral("logging/wraplines"), m_log_wrap->isChecked());
   m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
                                                         QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
+                                                                     Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   settings.setValue(QStringLiteral("logging/font"), m_log_font->currentIndex());

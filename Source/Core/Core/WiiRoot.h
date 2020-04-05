@@ -6,8 +6,17 @@
 
 namespace Core
 {
+enum class RestoreReason
+{
+  EmulationEnd,
+  CrashRecovery,
+};
+
 void InitializeWiiRoot(bool use_temporary);
 void ShutdownWiiRoot();
+
+void BackupWiiSettings();
+void RestoreWiiSettings(RestoreReason reason);
 
 // Initialize or clean up the filesystem contents.
 void InitializeWiiFileSystemContents();

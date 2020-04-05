@@ -72,6 +72,7 @@ struct SConfig
   bool m_WiiKeyboard;
   bool m_WiimoteContinuousScanning;
   bool m_WiimoteEnableSpeaker;
+  bool connect_wiimotes_for_ciface;
 
   // ISO folder
   std::vector<std::string> m_ISOFolder;
@@ -105,6 +106,7 @@ struct SConfig
   bool bJITPairedOff = false;
   bool bJITSystemRegistersOff = false;
   bool bJITBranchOff = false;
+  bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
   bool bFPRF = false;
@@ -267,6 +269,7 @@ struct SConfig
   bool m_showTitleColumn;
   bool m_showMakerColumn;
   bool m_showFileNameColumn;
+  bool m_showFilePathColumn;
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
