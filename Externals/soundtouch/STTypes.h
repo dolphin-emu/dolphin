@@ -162,7 +162,7 @@ namespace soundtouch
 };
 
 // define ST_NO_EXCEPTION_HANDLING switch to disable throwing std exceptions:
-// #define ST_NO_EXCEPTION_HANDLING    1
+#define ST_NO_EXCEPTION_HANDLING    1
 #ifdef ST_NO_EXCEPTION_HANDLING
     // Exceptions disabled. Throw asserts instead if enabled.
     #include <assert.h>
