@@ -111,7 +111,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
   if (wsi.type == WindowSystemType::MacOS)
   {
     VkMacOSSurfaceCreateInfoMVK surface_create_info = {
-        VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
+        VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_window};
 
     VkSurfaceKHR surface;
     VkResult res = vkCreateMacOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
