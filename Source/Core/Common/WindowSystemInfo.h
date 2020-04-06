@@ -19,9 +19,9 @@ struct WindowSystemInfo
 {
   WindowSystemInfo() = default;
   WindowSystemInfo(WindowSystemType type_, void* display_connection_, void* render_window_,
-                   void* render_surface_)
+                   void* render_surface_, int width_, int height_)
       : type(type_), display_connection(display_connection_), render_window(render_window_),
-        render_surface(render_surface_)
+        render_surface(render_surface_), width(width_), height(height_)
   {
   }
 
@@ -40,6 +40,12 @@ struct WindowSystemInfo
   // This is kept seperate as input may require a different handle to rendering, and
   // during video backend startup the surface pointer may change (MoltenVK).
   void* render_surface = nullptr;
+
+  // Width and height of the render surface. This is necessary on Wayland as
+  // vkGetPhysicalDeviceSurfaceCapabilitiesKHR does not return the size of
+  // the VkSurfaceKHR created with vkCreateWaylandSurfaceKHR
+  int width = -1;
+  int height = -1;
 
   // Scale of the render surface. For hidpi systems, this will be >1.
   float render_surface_scale = 1.0f;

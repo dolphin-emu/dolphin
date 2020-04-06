@@ -234,7 +234,8 @@ public:
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   void ChangeSurface(void* new_surface_handle);
-  void ResizeSurface();
+  void ResizeSurface(int width, int height);
+  void ResizeSurface() { ResizeSurface(-1, -1); }
   bool UseVertexDepthRange() const;
   void DoState(PointerWrap& p);
 
@@ -329,6 +330,10 @@ protected:
   std::unique_ptr<AbstractPipeline> m_imgui_pipeline;
   std::mutex m_imgui_mutex;
   u64 m_imgui_last_frame_time;
+
+  // Set when we receive a window resize event. Useful on Wayland
+  int m_new_width = -1;
+  int m_new_height = -1;
 
 private:
   void RunFrameDumps();

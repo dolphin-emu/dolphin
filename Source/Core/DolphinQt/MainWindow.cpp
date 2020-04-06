@@ -168,7 +168,12 @@ static WindowSystemInfo GetWindowSystemInfo(QWindow* window)
   QPlatformNativeInterface* pni = QGuiApplication::platformNativeInterface();
   wsi.display_connection = pni->nativeResourceForWindow("display", window);
   if (wsi.type == WindowSystemType::Wayland)
+  {
     wsi.render_window = window ? pni->nativeResourceForWindow("surface", window) : nullptr;
+    QSize size = window->size();
+    wsi.width = size.width();
+    wsi.height = size.height();
+  }
   else
     wsi.render_window = window ? reinterpret_cast<void*>(window->winId()) : nullptr;
   wsi.render_surface = wsi.render_window;
@@ -1137,8 +1142,12 @@ void MainWindow::ShowGraphicsWindow()
           static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
               "display", windowHandle())),
           winId());
+      m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
     }
-    m_graphics_window = new GraphicsWindow(m_xrr_config.get(), this);
+    else
+    {
+      m_graphics_window = new GraphicsWindow(nullptr, this);
+    }
 #else
     m_graphics_window = new GraphicsWindow(nullptr, this);
 #endif
