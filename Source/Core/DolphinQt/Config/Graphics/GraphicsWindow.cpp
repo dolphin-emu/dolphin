@@ -23,7 +23,6 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "Core/ConfigManager.h"
-#include <Common\Config\Config.h>
 #include <Settings.h>
 #include <ModalMessageBox.h>
 

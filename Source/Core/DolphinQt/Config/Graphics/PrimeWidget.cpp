@@ -53,9 +53,6 @@ void PrimeWidget::CreateWidgets()
   if (prime::GetFov() > 96)
     m_toggle_culling->setEnabled(false);
 
-  if (prime::GetEnableSecondaryGunFX())
-    m_toggle_secondaryFX->setEnabled(false);
-
   graphics_layout->addWidget(m_autoefb, 0, 0);
   graphics_layout->addWidget(m_toggle_secondaryFX, 1, 0);
   graphics_layout->addWidget(m_prime3_bloom, 2, 0);
