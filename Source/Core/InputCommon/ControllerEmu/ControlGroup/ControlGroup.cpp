@@ -16,16 +16,15 @@
 
 namespace ControllerEmu
 {
-ControlGroup::ControlGroup(std::string name_, const GroupType type_, CanBeDisabled can_be_disabled_)
-    : name(name_), ui_name(std::move(name_)), type(type_),
-      can_be_disabled(can_be_disabled_ == CanBeDisabled::Yes)
+ControlGroup::ControlGroup(std::string name_, const GroupType type_, DefaultValue default_value_)
+    : name(name_), ui_name(std::move(name_)), type(type_), default_value(default_value_)
 {
 }
 
 ControlGroup::ControlGroup(std::string name_, std::string ui_name_, const GroupType type_,
-                           CanBeDisabled can_be_disabled_)
+                           DefaultValue default_value_)
     : name(std::move(name_)), ui_name(std::move(ui_name_)), type(type_),
-      can_be_disabled(can_be_disabled_ == CanBeDisabled::Yes)
+      default_value(default_value_)
 {
 }
 
@@ -48,8 +47,8 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   const std::string group(base + name + "/");
 
   // enabled
-  if (can_be_disabled)
-    sec->Get(group + "Enabled", &enabled, true);
+  if (default_value != DefaultValue::AlwaysEnabled)
+    sec->Get(group + "Enabled", &enabled, default_value == DefaultValue::Enabled);
 
   for (auto& setting : numeric_settings)
     setting->LoadFromIni(*sec, group);

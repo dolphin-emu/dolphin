@@ -905,7 +905,7 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog.Builder builder = new AlertDialog.Builder(this);
     builder.setTitle(R.string.emulation_motion_controls);
     builder.setSingleChoiceItems(R.array.motionControlsEntries,
-            mPreferences.getInt("motionControlsEnabled", 0),
+            mPreferences.getInt("motionControlsEnabled", 1),
             (dialog, indexSelected) ->
             {
               editor.putInt("motionControlsEnabled", indexSelected);
