@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
@@ -62,7 +61,6 @@ public final class EmulationActivity extends AppCompatActivity
   private static final String BACKSTACK_NAME_SUBMENU = "submenu";
   public static final int REQUEST_CHANGE_DISC = 1;
 
-  private View mDecorView;
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
@@ -85,7 +83,6 @@ public final class EmulationActivity extends AppCompatActivity
   private int mPlatform;
   private String[] mPaths;
   private static boolean sUserPausedEmulation;
-  private boolean backPressedOnce = false;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
@@ -317,33 +314,10 @@ public final class EmulationActivity extends AppCompatActivity
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
 
-    int themeId;
-    if (mDeviceHasTouchScreen)
-    {
-      themeId = R.style.DolphinEmulationBase;
+    // Set these options now so that the SurfaceView the game renders into is the right size.
+    enableFullscreenImmersive();
 
-      // Get a handle to the Window containing the UI.
-      mDecorView = getWindow().getDecorView();
-      mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
-      {
-        if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-        {
-          // Go back to immersive fullscreen mode in 3s
-          Handler handler = new Handler(getMainLooper());
-          handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
-        }
-      });
-      // Set these options now so that the SurfaceView the game renders into is the right size.
-      enableFullscreenImmersive();
-      Toast.makeText(this, getString(R.string.emulation_touch_button_help), Toast.LENGTH_LONG)
-              .show();
-    }
-    else
-    {
-      themeId = R.style.DolphinEmulationTvBase;
-    }
-
-    setTheme(themeId);
+    Toast.makeText(this, getString(R.string.emulation_menu_help), Toast.LENGTH_LONG).show();
 
     Rumble.initRumble(this);
 
@@ -360,10 +334,7 @@ public final class EmulationActivity extends AppCompatActivity
               .commit();
     }
 
-    if (mDeviceHasTouchScreen)
-    {
-      setTitle(mSelectedTitle);
-    }
+    setTitle(mSelectedTitle);
   }
 
   @Override
@@ -391,9 +362,19 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   @Override
+  public void onWindowFocusChanged(boolean hasFocus)
+  {
+    if (hasFocus)
+    {
+      enableFullscreenImmersive();
+    }
+  }
+
+  @Override
   protected void onResume()
   {
     super.onResume();
+
     if (!sIsGameCubeGame && mPreferences.getInt("motionControlsEnabled", 0) != 2)
       mMotionListener.enable();
   }
@@ -414,28 +395,11 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public void onBackPressed()
   {
-    if (!mDeviceHasTouchScreen)
+    boolean popResult = getSupportFragmentManager().popBackStackImmediate(
+            BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+    if (!popResult)
     {
-      boolean popResult = getSupportFragmentManager().popBackStackImmediate(
-              BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-      if (!popResult)
-      {
-        toggleMenu();
-      }
-    }
-    else
-    {
-      if (backPressedOnce)
-      {
-        mEmulationFragment.stopEmulation();
-        finish();
-      }
-      else
-      {
-        backPressedOnce = true;
-        Toast.makeText(this, "Press back again to exit", Toast.LENGTH_LONG).show();
-        new Handler().postDelayed(() -> backPressedOnce = false, 3000);
-      }
+      toggleMenu();
     }
   }
 
@@ -459,14 +423,13 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void enableFullscreenImmersive()
   {
-    // It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
-    mDecorView.setSystemUiVisibility(
+    getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_FULLSCREEN |
-                    View.SYSTEM_UI_FLAG_IMMERSIVE);
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
   }
 
   private void updateOrientation()
@@ -631,19 +594,12 @@ public final class EmulationActivity extends AppCompatActivity
         NativeLibrary.LoadState(9);
         return;
 
-      // TV Menu only
       case MENU_ACTION_SAVE_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
-        }
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
         return;
 
       case MENU_ACTION_LOAD_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
-        }
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
         return;
 
       // Save state slots
@@ -718,9 +674,9 @@ public final class EmulationActivity extends AppCompatActivity
         return;
 
       case MENU_ACTION_EXIT:
-        // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
-        if (TvUtil.isLeanback(getApplicationContext()))
-          toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
+        // Hide the menu (it will be showing since we just clicked it)
+        toggleMenu();
+
         mEmulationFragment.stopEmulation();
         finish();
         return;
