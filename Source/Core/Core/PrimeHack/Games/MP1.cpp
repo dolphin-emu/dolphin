@@ -8,7 +8,8 @@ namespace prime
 
   static std::array<std::tuple<int, int>, 4> prime_one_visors = {
     std::make_tuple<int, int>(0, 0x11), std::make_tuple<int, int>(2, 0x05),
-    std::make_tuple<int, int>(3, 0x09), std::make_tuple<int, int>(1, 0x0d)};
+    std::make_tuple<int, int>(3, 0x09), std::make_tuple<int, int>(1, 0x0d)
+  };
 
   void MP1::beam_change_code(uint32_t base_offset)
   {
@@ -45,9 +46,10 @@ namespace prime
     PowerPC::HostWrite_U32(0, avel_limiter_address());
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&yaw_vel), yaw_vel_address());
 
+    u32 powerup_base = PowerPC::HostRead_U32(powerups_base_address());
+
     for (int i = 0; i < 4; i++) {
-      u32 beam_base = PowerPC::HostRead_U32(powerups_base_address());
-      set_beam_owned(i , PowerPC::HostRead_U32(beam_base + (prime_one_beams[i] * 0x08) + 0x30) ? true : false);
+      set_beam_owned(i , PowerPC::HostRead_U32(powerup_base + (prime_one_beams[i] * 0x08) + 0x30) ? true : false);
     }
 
     int beam_id = get_beam_switch(prime_one_beams);
@@ -59,14 +61,13 @@ namespace prime
 
     springball_check(cplayer() + 0x2f4, cplayer() + 0x25C);
 
-    u32 visor_base = PowerPC::HostRead_U32(powerups_base_address());
     int visor_id, visor_off;
-    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(visor_base + 0x1c) == 0);
+    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(powerup_base + 0x1c) == 0);
     if (visor_id != -1)
     {
-      if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x08) + 0x30))
+      if (PowerPC::HostRead_U32(powerup_base + (visor_off * 0x08) + 0x30))
       {
-        PowerPC::HostWrite_U32(visor_id, visor_base + 0x1c);
+        PowerPC::HostWrite_U32(visor_id, powerup_base + 0x1c);
       }
     }
     {
@@ -86,7 +87,7 @@ namespace prime
       disable_culling(culling_address());
 
     if (GetEnableSecondaryGunFX())
-      EnableSecondaryGunFX(gunfx_address());
+      EnableSecondaryGunFX();
   }
 
   MP1NTSC::MP1NTSC()
@@ -171,9 +172,17 @@ namespace prime
   {
     return 0x804DDAE4;
   }
-  uint32_t MP1NTSC::gunfx_address() const
+  uint32_t MP1NTSC::gunfx_offset() const
   {
-    return 0x8018C410;
+    return 0x8018C410 - 0x8018C6A8;
+  }
+  uint32_t MP1NTSC::transform_ctor_offset() const
+  {
+    return 0x80348D2C - 0x80348C80;
+  }
+  uint32_t MP1NTSC::advance_particles_offset() const
+  {
+    return  0x80139870 - 0x801399C0;
   }
 
   MP1PAL::MP1PAL()
@@ -251,17 +260,25 @@ namespace prime
   {
     return 0x804E1A24;
   }
-  uint32_t MP1PAL::gunfx_address() const
+  uint32_t MP1PAL::gunfx_offset() const
   {
-    return 0x8018C6A8;
+    return 0;
+  }
+  uint32_t MP1PAL::transform_ctor_offset() const
+  {
+    return 0;
+  }
+  uint32_t MP1PAL::advance_particles_offset() const
+  {
+    return 0;
   }
 
-  void MP1::EnableSecondaryGunFX(u32 address)
+  void MP1::EnableSecondaryGunFX()
   {
-    const u32 address1 = 0x80004A74;
+    const u32 address1 = 0x80004A68;
     const u32 address2 = 0x80004968;
 
-    if (PowerPC::HostRead_U32(address) == 0x4BE78558)
+    if (PowerPC::HostRead_U32(0x8018C6A8 + gunfx_offset()) == 0x4BE782C0 + gunfx_offset())
       return;
 
     write_invalidate(address1, 0x9421FFA8);
@@ -277,11 +294,11 @@ namespace prime
     write_invalidate(address1 + 0x28, 0xFFE00890);
     write_invalidate(address1 + 0x2c, 0x38610020);
     write_invalidate(address1 + 0x30, 0x389F04B0);
-    write_invalidate(address1 + 0x34, 0x48344291);
+    write_invalidate(address1 + 0x34, 0x483441E5 + transform_ctor_offset());
     write_invalidate(address1 + 0x38, 0x7FA3EB78);
     write_invalidate(address1 + 0x3c, 0x38810020);
     write_invalidate(address1 + 0x40, 0x7FE5FB78);
-    write_invalidate(address1 + 0x44, 0x48134DC5);
+    write_invalidate(address1 + 0x44, 0x48134F15 + advance_particles_offset());
     write_invalidate(address1 + 0x48, 0xC03F0384);
     write_invalidate(address1 + 0x4c, 0x38800000);
     write_invalidate(address1 + 0x50, 0xC002CDF8);
@@ -315,8 +332,8 @@ namespace prime
     write_invalidate(address2 + 0xc, 0xFC20F890);
     write_invalidate(address2 + 0x10, 0x480000F1);
     write_invalidate(address2 + 0x14, 0x386100B0);
-    write_invalidate(address2 + 0x18, 0x48187A94);
+    write_invalidate(address2 + 0x18, 0x48187D2C + gunfx_offset());
 
-    write_invalidate(address, 0x4BE78558);
+    write_invalidate(0x8018C6A8 + gunfx_offset(), 0x4BE782C0 - gunfx_offset());
   }
 }
