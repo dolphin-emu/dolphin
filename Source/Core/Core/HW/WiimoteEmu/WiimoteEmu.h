@@ -139,6 +139,7 @@ public:
   bool CheckVisorCtrl(int visor_count);
   bool CheckBeamCtrl(int beam_count);
   bool CheckBeamScrollCtrl(bool direction);
+  bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
   std::tuple <double, double, double, bool, bool> GetPrimeSettings();
 

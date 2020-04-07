@@ -49,6 +49,10 @@ namespace prime
     u32 powerup_base = PowerPC::HostRead_U32(powerups_base_address());
 
     for (int i = 0; i < 4; i++) {
+      set_visor_owned(i , PowerPC::HostRead_U32(powerup_base + (std::get<1>(prime_one_visors[i]) * 0x8) + 0x30) ? true : false);
+    }
+
+    for (int i = 0; i < 4; i++) {
       set_beam_owned(i , PowerPC::HostRead_U32(powerup_base + (prime_one_beams[i] * 0x08) + 0x30) ? true : false);
     }
 

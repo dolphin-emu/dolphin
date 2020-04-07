@@ -17,7 +17,9 @@ namespace prime
 
   static float cursor_x = 0, cursor_y = 0;
   static int current_beam = 0;
+  static int current_visor = 0;
   static std::array<bool, 4> beam_owned = {false, false, false, false};
+  static std::array<bool, 4> visor_owned = {false, false, false, false};
 
   void MenuNTSC::run_mod()
   {
@@ -33,6 +35,11 @@ namespace prime
   void set_beam_owned(int index, bool owned)
   {
     beam_owned[index] = owned;
+  }
+
+  void set_visor_owned(int index, bool owned)
+  {
+    visor_owned[index] = owned;
   }
 
   void set_cursor_pos(float x, float y)
@@ -94,6 +101,28 @@ namespace prime
       {
         pressing_button = true;
         return visors[3];
+      }
+    }
+    else if (CheckVisorScrollCtl(true))
+    {
+      if (!pressing_button)
+      {
+        pressing_button = true;
+        for (int i = 0; i < 4; i++) {
+          if (visor_owned[current_visor = (current_visor + 1) % 4]) break;
+        }
+        return visors[current_visor];
+      }
+    }
+    else if (CheckVisorScrollCtl(false))
+    {
+      if (!pressing_button)
+      {
+        pressing_button = true;
+        for (int i = 0; i < 4; i++) {
+          if (visor_owned[current_visor = (current_visor + 3) % 4]) break;
+        }
+        return visors[current_visor];
       }
     }
     else

@@ -33,6 +33,7 @@ void write_if_different(u32 address, u32 value);
 float getAspectRatio();
 
 void set_beam_owned(int index, bool owned);
+void set_visor_owned(int index, bool owned);
 void set_cursor_pos(float x, float y);
 
 void disable_culling(u32 address);
