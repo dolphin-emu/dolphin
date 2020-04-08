@@ -127,6 +127,11 @@ namespace prime
     PowerPC::HostWrite_U32(*reinterpret_cast<u32*>(&pitch), base_address + 0x784);
 
     u32 visor_base = PowerPC::HostRead_U32(base_address + 0x35a8);
+
+    for (int i = 0; i < 4; i++) {
+      set_visor_owned(i , PowerPC::HostRead_U32(visor_base + (std::get<1>(prime_three_visors[i]) * 0x0c) + 0x58) ? true : false);
+    }
+
     int visor_id, visor_off;
     std::tie(visor_id, visor_off) = get_visor_switch(prime_three_visors, PowerPC::HostRead_U32(visor_base + 0x34) == 0);
     if (visor_id != -1)
@@ -320,7 +325,7 @@ namespace prime
   }
   uint32_t MP3PAL::armpos_address() const
   {
-    return 0x809EACE0;
+    return 0x809F74E0;
   }
 
   MP3PAL::MP3PAL()
