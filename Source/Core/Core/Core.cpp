@@ -858,15 +858,15 @@ void VideoThrottle()
 
 // --- Callbacks for backends / engine ---
 
-// Should be called from GPU thread when a frame is drawn
-void Callback_VideoCopiedToXFB(bool video_update)
+// Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
+// frame is presented to the host screen
+void Callback_FramePresented()
 {
-  if (video_update)
-    s_drawn_frame++;
+  s_drawn_frame++;
 }
 
-// Called at field boundaries in `VideoInterface::Update()`
-void FrameUpdate()
+// Called from VideoInterface::Update (CPU thread) at emulated field boundaries
+void Callback_NewField()
 {
   Movie::FrameUpdate();
   if (s_frame_step)

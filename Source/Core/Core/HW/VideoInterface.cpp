@@ -820,7 +820,7 @@ void Update(u64 ticks)
   // and/or update movie state before dealing with anything else
 
   if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
-    Core::FrameUpdate();
+    Core::Callback_NewField();
 
   // If an SI poll is scheduled to happen on this half-line, do it!
 
