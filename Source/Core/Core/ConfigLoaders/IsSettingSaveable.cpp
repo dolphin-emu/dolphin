@@ -158,7 +158,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       &Config::ARMPOSITION_UPDOWN.location,
       &Config::ARMPOSITION_FORWARDBACK.location,
       &Config::TOGGLE_CULLING.location,
-      &Config::DISABLE_BLOOM_PRIME3.location,
+      &Config::DISABLE_BLOOM.location,
       &Config::ENABLE_SECONDARY_GUNFX.location,
   };
 

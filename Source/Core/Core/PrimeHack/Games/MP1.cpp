@@ -92,6 +92,11 @@ namespace prime
 
     if (GetEnableSecondaryGunFX())
       EnableSecondaryGunFX();
+
+    if (GetBloom())
+      write_if_different(bloom_address(), 0x4e800020);
+    else
+      write_if_different(bloom_address(), 0x3c03ea72);
   }
 
   MP1NTSC::MP1NTSC()
@@ -188,6 +193,10 @@ namespace prime
   {
     return  0x80139870 - 0x801399C0;
   }
+  uint32_t MP1NTSC::bloom_address() const
+  {
+    return 0x80290edc;
+  }
 
   MP1PAL::MP1PAL()
   {
@@ -275,6 +284,10 @@ namespace prime
   uint32_t MP1PAL::advance_particles_offset() const
   {
     return 0;
+  }
+  uint32_t MP1PAL::bloom_address() const
+  {
+    return 0x80291258;
   }
 
   void MP1::EnableSecondaryGunFX()

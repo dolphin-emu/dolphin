@@ -167,7 +167,7 @@ const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE{{System::GFX, "GameSpecific", "Pe
 
 // Graphics.PrimeHack
 const ConfigInfo<bool> AUTO_EFB{{System::GFX, "PrimeHack Misc", "AutoEFBMP"}, true};
-const ConfigInfo<bool> DISABLE_BLOOM_PRIME3{{System::GFX, "PrimeHack Misc", "DisableBloomPrime3"}, false};
+const ConfigInfo<bool> DISABLE_BLOOM{{System::GFX, "PrimeHack Misc", "DisableBloom"}, false};
 const ConfigInfo<bool> TOGGLE_ARM_REPOSITION{{System::GFX, "PrimeHack Misc", "ToggleArmRePosition"}, true};
 const ConfigInfo<bool> TOGGLE_CULLING{{System::GFX, "PrimeHack Misc", "ToggleCulling"}, false};
 const ConfigInfo<bool> ENABLE_SECONDARY_GUNFX{{System::GFX, "PrimeHack Misc", "EnableSecondaryGunFX"}, false};

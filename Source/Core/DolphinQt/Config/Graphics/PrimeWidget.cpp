@@ -45,7 +45,7 @@ void PrimeWidget::CreateWidgets()
   graphics_box->setLayout(graphics_layout);
 
   m_autoefb = new GraphicsBool(tr("Auto Toggle \"EFB to Texture\" While Scanning"), Config::AUTO_EFB);
-  m_prime3_bloom = new GraphicsBool(tr("Disable Bloom In Prime 2 and 3 [TheHatedGravity, dreamsyntax]"), Config::DISABLE_BLOOM_PRIME3);
+  m_disable_bloom = new GraphicsBool(tr("Disable Bloom [TheHatedGravity, dreamsyntax]"), Config::DISABLE_BLOOM);
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
   m_toggle_secondaryFX = new GraphicsBool(tr("Enable Original Gamecube Gun Effects"), Config::ENABLE_SECONDARY_GUNFX);
@@ -55,7 +55,7 @@ void PrimeWidget::CreateWidgets()
 
   graphics_layout->addWidget(m_autoefb, 0, 0);
   graphics_layout->addWidget(m_toggle_secondaryFX, 1, 0);
-  graphics_layout->addWidget(m_prime3_bloom, 2, 0);
+  graphics_layout->addWidget(m_disable_bloom, 2, 0);
   graphics_layout->addWidget(m_toggle_arm_position, 3, 0);
   graphics_layout->addWidget(m_toggle_culling, 4, 0);
 
@@ -171,7 +171,7 @@ void PrimeWidget::AddDescriptions()
       "While 'Store EFB Copies to Texture Only' may improve performance, having it "
       "enabled will break the scan visor in Metroid Prime 2 and Metroid Prime 3.");
   static const char TR_BLOOM[] =
-    QT_TR_NOOP("Disables Bloom in Metroid Prime 2 and Metroid Prime 3.\n\nSource: TheHatedGravity and dreamsyntax.");
+    QT_TR_NOOP("Disables Bloom.\n\nSource: TheHatedGravity and dreamsyntax.");
   static const char TR_TOGGLE_ARM_POSITION[] =
     QT_TR_NOOP("Toggles repositioning of Samus's arms in the viewmodel. Repositioning her arms is visually beneficial for high Field Of Views.");
   static const char TR_TOGGLE_CULL[] =
@@ -188,7 +188,7 @@ void PrimeWidget::AddDescriptions()
     QT_TR_NOOP("Modifies the arm position on the Z axis. This is back and forward.");
 
   AddDescription(m_autoefb, TR_AUTO_EFB);
-  AddDescription(m_prime3_bloom, TR_BLOOM);
+  AddDescription(m_disable_bloom, TR_BLOOM);
   AddDescription(m_toggle_culling, TR_TOGGLE_CULL);
   AddDescription(m_toggle_arm_position, TR_TOGGLE_ARM_POSITION);
   AddDescription(m_manual_arm_position, TR_MANUAL_POSITION);

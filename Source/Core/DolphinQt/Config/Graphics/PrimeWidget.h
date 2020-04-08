@@ -26,7 +26,7 @@ private:
   void ArmPositionModeChanged(bool mode);
 
   // Misc
-  QCheckBox* m_prime3_bloom;
+  QCheckBox* m_disable_bloom;
   QCheckBox* m_autoefb;
   QCheckBox* m_toggle_culling;
   QCheckBox* m_toggle_secondaryFX;

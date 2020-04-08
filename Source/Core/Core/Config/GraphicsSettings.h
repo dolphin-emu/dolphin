@@ -125,7 +125,7 @@ extern const ConfigInfo<bool> GFX_PERF_QUERIES_ENABLE;
 
 // Graphics.PrimeHack
 extern const ConfigInfo<bool> AUTO_EFB;
-extern const ConfigInfo<bool> DISABLE_BLOOM_PRIME3;
+extern const ConfigInfo<bool> DISABLE_BLOOM;
 extern const ConfigInfo<bool> TOGGLE_ARM_REPOSITION;
 extern const ConfigInfo<bool> TOGGLE_CULLING;
 extern const ConfigInfo<bool> ENABLE_SECONDARY_GUNFX;
