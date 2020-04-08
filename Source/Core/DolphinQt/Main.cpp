@@ -15,6 +15,7 @@
 #include <QWidget>
 
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
@@ -36,7 +37,23 @@
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
 {
+  const bool called_from_cpu_thread = Core::IsCPUThread();
+
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
+    Common::ScopeGuard scope_guard(&Core::UndeclareAsCPUThread);
+    if (called_from_cpu_thread)
+    {
+      // Temporarily declare this as the CPU thread to avoid getting a deadlock if any DolphinQt
+      // code calls RunAsCPUThread while the CPU thread is blocked on this function returning.
+      // Notably, if the panic alert steals focus from RenderWidget, Host::SetRenderFocus gets
+      // called, which can attempt to use RunAsCPUThread to get us out of exclusive fullscreen.
+      Core::DeclareAsCPUThread();
+    }
+    else
+    {
+      scope_guard.Dismiss();
+    }
+
     ModalMessageBox message_box(QApplication::activeWindow(), Qt::ApplicationModal);
     message_box.setWindowTitle(QString::fromUtf8(caption));
     message_box.setText(QString::fromUtf8(text));
