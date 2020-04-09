@@ -311,7 +311,7 @@ void CodeDiffDialog::InfoDisp()
           "You want to find a function that runs when HP is modified.\n1.  Start recording and "
           "play "
           "the game without letting HP be modified, then press Exclude.\n2.  Immediately "
-          "gain/lose HP and press Include.\n3.  Repeat 1 or 2 to narrow down the
+          "gain/lose HP and press Include.\n3.  Repeat 1 or 2 to narrow down the "
           "results.\nIncludes should "
           "have short recordings focusing on what you want.\nAlso note, pressing include multiple "
           "times will never increase the include list's size.\n   Pressing include twice will only "
