@@ -191,11 +191,8 @@ std::string GetRTCDisplay()
   return format_time.str();
 }
 
-// NOTE: GPU Thread
 void FrameUpdate()
 {
-  // TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
-  // state directly.  That's super sketchy.
   s_currentFrame++;
   if (!s_bPolled)
     s_currentLagCount++;
