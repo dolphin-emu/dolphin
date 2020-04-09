@@ -33,7 +33,7 @@ bool DSP::Host::IsWiiHost()
 {
   return false;
 }
-void DSP::Host::CodeLoaded(const u8* ptr, int size)
+void DSP::Host::CodeLoaded(const u8* ptr, size_t size)
 {
 }
 void DSP::Host::InterruptRequest()

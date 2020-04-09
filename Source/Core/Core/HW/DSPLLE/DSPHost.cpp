@@ -57,7 +57,7 @@ void InterruptRequest()
   DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void CodeLoaded(const u8* ptr, int size)
+void CodeLoaded(const u8* ptr, size_t size)
 {
   if (SConfig::GetInstance().m_DumpUCode)
   {
