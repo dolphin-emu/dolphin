@@ -295,7 +295,8 @@ void CodeDiffDialog::InfoDisp()
 {
   new QListWidgetItem(
       QStringLiteral(
-          "Used to find functions based on when they should be running. Similar to Cheat Engine Ultimap.\n"
+          "Used to find functions based on when they should be running. Similar to Cheat Engine "
+          "Ultimap.\n"
           "A symbol map must be loaded prior to use.\n\nRecord Functions: will "
           "keep track of what functions run. Stop and start again to reset current "
           "recording.\nExclude: will add recorded functions to an exclude "
@@ -310,8 +311,8 @@ void CodeDiffDialog::InfoDisp()
           "You want to find a function that runs when HP is modified.\n1.  Start recording and "
           "play "
           "the game without letting HP be modified, then press Exclude.\n2.  Immediately "
-          "gain/lose HP and press Include.\n3.  Repeat 1 or 2 to narrow down the results.\nIncludes "
-          "should "
+          "gain/lose HP and press Include.\n3.  Repeat 1 or 2 to narrow down the
+          "results.\nIncludes should "
           "have short recordings focusing on what you want.\nAlso note, pressing include multiple "
           "times will never increase the include list's size.\n   Pressing include twice will only "
           "keep functions that ran for both recordings.\n\nRight click -> blr will attempt to skip "
