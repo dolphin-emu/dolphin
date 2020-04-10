@@ -143,6 +143,13 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     // if ya set the IOS version to a very high value this happens ...
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
     break;
+          
+   case IOCTL_NWC24_DOWNLOAD_NOW_EX:
+    // Writing a non-zero return value to this ioctl prevents Nintendo Channel crashing.
+    // For more information, see https://bugs.dolphin-emu.org/issues/11978.
+    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI");
+    WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
+    break;
 
   default:
     request.Log(GetDeviceName(), Common::Log::IOS_WC24);
