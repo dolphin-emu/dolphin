@@ -343,9 +343,12 @@ void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
   {
     m_dsp_thread_mutex.unlock();
 
-    // Signal the DSP thread so it can perform any outstanding work now (if any)
-    s_ppc_event.Wait();
-    s_dsp_event.Set();
+    if (m_is_dsp_on_thread)
+    {
+      // Signal the DSP thread so it can perform any outstanding work now (if any)
+      s_ppc_event.Wait();
+      s_dsp_event.Set();
+    }
   }
 }
 }  // namespace DSP::LLE
