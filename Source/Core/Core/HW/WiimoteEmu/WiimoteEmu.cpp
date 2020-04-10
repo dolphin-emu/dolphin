@@ -294,9 +294,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   }
 
   m_primehack_beams->controls.emplace_back(
-    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Next Beam", "Next Beam"));
+    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Beam"), "Next Beam"));
   m_primehack_beams->controls.emplace_back(
-    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Previous Beam", "Previous Beam"));
+    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Beam"), "Previous Beam"));
 
   groups.emplace_back(m_primehack_visors = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   for (const char* prime_button : prime_visors)
@@ -307,9 +307,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   }
 
   m_primehack_visors->controls.emplace_back(
-    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Next Visor", "Next Visor"));
+    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Visor"), "Next Visor"));
   m_primehack_visors->controls.emplace_back(
-    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Previous Visor", "Previous Visor"));
+    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Visor"), "Previous Visor"));
 
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_camera->AddSetting(
@@ -854,6 +854,9 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_beams->SetControlExpression(1, "`2` & !E");
   m_primehack_beams->SetControlExpression(2, "`3` & !E");
   m_primehack_beams->SetControlExpression(3, "`4` & !E");
+  m_primehack_beams->SetControlExpression(4, "Axis Z+"); // Next beam
+  m_primehack_beams->SetControlExpression(5, "Axis Z-"); // Previous beam
+
   // Visors (Combination keys strongly recommended)
   m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
   m_primehack_visors->SetControlExpression(1, "E & `1`");
@@ -861,8 +864,6 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   m_primehack_visors->SetControlExpression(3, "E & `3`");
   // Misc. Defaults
   m_primehack_misc->SetControlExpression(0, "LMENU"); // Spring Ball
-  m_primehack_misc->SetControlExpression(1, "Axis Z+"); // Next beam
-  m_primehack_misc->SetControlExpression(2, "Axis Z-"); // Previous beam
 }
 
 Extension* Wiimote::GetNoneExtension() const
