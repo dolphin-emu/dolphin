@@ -18,13 +18,13 @@
 #include "DolphinQt/Config/Graphics/PrimeWidget.h"
 #include "DolphinQt/Config/Graphics/SoftwareRendererWidget.h"
 #include "DolphinQt/MainWindow.h"
+#include "DolphinQt/Settings.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "Core/ConfigManager.h"
-#include <Settings.h>
 
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
