@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <future>
+#include <memory>
 #include <utility>
 
 #include <QComboBox>
@@ -21,6 +22,7 @@
 
 #include "Common/Assert.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/ScrubbedBlob.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
@@ -179,34 +181,68 @@ void ConvertDialog::Convert()
           QFileInfo(QString::fromStdString(original_path)).fileName());
     }
 
-    std::future<bool> good;
+    std::unique_ptr<DiscIO::BlobReader> blob_reader;
+    bool scrub_current_file = scrub_wii && file->GetPlatform() == DiscIO::Platform::WiiDisc;
 
-    if (format == DiscIO::BlobType::PLAIN)
+    if (scrub_current_file)
     {
-      good = std::async(std::launch::async, [&] {
-        const bool good = DiscIO::ConvertToPlain(original_path, dst_path.toStdString(), &CompressCB,
-                                                 &progress_dialog);
-        progress_dialog.Reset();
-        return good;
-      });
-    }
-    else if (format == DiscIO::BlobType::GCZ)
-    {
-      good = std::async(std::launch::async, [&] {
-        const bool good =
-            DiscIO::ConvertToGCZ(original_path, dst_path.toStdString(),
-                                 file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, 16384,
-                                 &CompressCB, &progress_dialog);
-        progress_dialog.Reset();
-        return good;
-      });
+      blob_reader = DiscIO::ScrubbedBlob::Create(original_path);
+      if (!blob_reader)
+      {
+        const int result =
+            ModalMessageBox::warning(this, tr("Question"),
+                                     tr("Failed to remove junk data from file \"%1\".\n\n"
+                                        "Would you like to convert it without removing junk data?")
+                                         .arg(QString::fromStdString(original_path)),
+                                     QMessageBox::Ok | QMessageBox::Abort);
+
+        if (result == QMessageBox::Ok)
+          scrub_current_file = false;
+        else
+          return;
+      }
     }
 
-    progress_dialog.GetRaw()->exec();
-    if (!good.get())
+    if (!scrub_current_file)
+      blob_reader = DiscIO::CreateBlobReader(original_path);
+
+    if (!blob_reader)
     {
-      QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
-      return;
+      QErrorMessage(this).showMessage(
+          tr("Failed to open the input file \"%1\".").arg(QString::fromStdString(original_path)));
+    }
+    else
+    {
+      std::future<bool> good;
+
+      if (format == DiscIO::BlobType::PLAIN)
+      {
+        good = std::async(std::launch::async, [&] {
+          const bool good =
+              DiscIO::ConvertToPlain(blob_reader.get(), original_path, dst_path.toStdString(),
+                                     &CompressCB, &progress_dialog);
+          progress_dialog.Reset();
+          return good;
+        });
+      }
+      else if (format == DiscIO::BlobType::GCZ)
+      {
+        good = std::async(std::launch::async, [&] {
+          const bool good =
+              DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
+                                   file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, 16384,
+                                   &CompressCB, &progress_dialog);
+          progress_dialog.Reset();
+          return good;
+        });
+      }
+
+      progress_dialog.GetRaw()->exec();
+      if (!good.get())
+      {
+        QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
+        return;
+      }
     }
   }
 

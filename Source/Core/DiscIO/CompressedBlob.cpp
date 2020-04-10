@@ -154,19 +154,11 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   return true;
 }
 
-bool ConvertToGCZ(const std::string& infile_path, const std::string& outfile_path, u32 sub_type,
-                  int block_size, CompressCB callback, void* arg)
+bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, u32 sub_type, int block_size,
+                  CompressCB callback, void* arg)
 {
-  bool scrubbing = false;
-
-  std::unique_ptr<VolumeDisc> infile = CreateDisc(infile_path);
-  if (!infile)
-  {
-    PanicAlertT("Failed to open the input file \"%s\".", infile_path.c_str());
-    return false;
-  }
-
-  ASSERT(infile->IsSizeAccurate());
+  ASSERT(infile->IsDataSizeAccurate());
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -176,19 +168,6 @@ bool ConvertToGCZ(const std::string& infile_path, const std::string& outfile_pat
                 "be written.",
                 outfile_path.c_str());
     return false;
-  }
-
-  DiscScrubber disc_scrubber;
-  if (sub_type == 1)
-  {
-    if (!disc_scrubber.SetupScrub(infile.get()))
-    {
-      PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",
-                  infile_path.c_str());
-      return false;
-    }
-
-    scrubbing = true;
   }
 
   z_stream z = {};
@@ -201,7 +180,7 @@ bool ConvertToGCZ(const std::string& infile_path, const std::string& outfile_pat
   header.magic_cookie = GCZ_MAGIC;
   header.sub_type = sub_type;
   header.block_size = block_size;
-  header.data_size = infile->GetSize();
+  header.data_size = infile->GetDataSize();
 
   // round upwards!
   header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
@@ -245,11 +224,9 @@ bool ConvertToGCZ(const std::string& infile_path, const std::string& outfile_pat
 
     offsets[i] = position;
 
-    const u64 bytes_to_read = scrubbing && disc_scrubber.CanBlockBeScrubbed(inpos) ?
-                                  0 :
-                                  std::min<u64>(block_size, header.data_size - inpos);
+    const u64 bytes_to_read = std::min<u64>(block_size, header.data_size - inpos);
 
-    success = infile->Read(inpos, bytes_to_read, in_buf.data(), PARTITION_NONE);
+    success = infile->Read(inpos, bytes_to_read, in_buf.data());
     if (!success)
     {
       PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());

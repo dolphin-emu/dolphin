@@ -165,9 +165,11 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
-bool ConvertToGCZ(const std::string& infile_path, const std::string& outfile_path, u32 sub_type = 0,
-                  int sector_size = 16384, CompressCB callback = nullptr, void* arg = nullptr);
-bool ConvertToPlain(const std::string& infile_path, const std::string& outfile_path,
-                    CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, u32 sub_type, int sector_size = 16384,
+                  CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
+                    const std::string& outfile_path, CompressCB callback = nullptr,
+                    void* arg = nullptr);
 
 }  // namespace DiscIO

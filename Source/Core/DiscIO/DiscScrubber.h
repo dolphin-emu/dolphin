@@ -35,6 +35,8 @@ public:
   // Returns true if the specified 32 KiB block only contains unused data
   bool CanBlockBeScrubbed(u64 offset) const;
 
+  static constexpr size_t CLUSTER_SIZE = 0x8000;
+
 private:
   void MarkAsUsed(u64 offset, u64 size);
   void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);

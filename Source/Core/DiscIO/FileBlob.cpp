@@ -41,17 +41,10 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   }
 }
 
-bool ConvertToPlain(const std::string& infile_path, const std::string& outfile_path,
-                    CompressCB callback, void* arg)
+bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
+                    const std::string& outfile_path, CompressCB callback, void* arg)
 {
-  std::unique_ptr<BlobReader> reader = CreateBlobReader(infile_path);
-  if (!reader)
-  {
-    PanicAlertT("Failed to open the input file \"%s\".", infile_path.c_str());
-    return false;
-  }
-
-  ASSERT(reader->IsDataSizeAccurate());
+  ASSERT(infile->IsDataSizeAccurate());
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -64,7 +57,7 @@ bool ConvertToPlain(const std::string& infile_path, const std::string& outfile_p
   }
 
   constexpr size_t DESIRED_BUFFER_SIZE = 0x80000;
-  u64 buffer_size = reader->GetBlockSize();
+  u64 buffer_size = infile->GetBlockSize();
   if (buffer_size == 0)
   {
     buffer_size = DESIRED_BUFFER_SIZE;
@@ -76,7 +69,7 @@ bool ConvertToPlain(const std::string& infile_path, const std::string& outfile_p
   }
 
   std::vector<u8> buffer(buffer_size);
-  const u64 num_buffers = (reader->GetDataSize() + buffer_size - 1) / buffer_size;
+  const u64 num_buffers = (infile->GetDataSize() + buffer_size - 1) / buffer_size;
   int progress_monitor = std::max<int>(1, num_buffers / 100);
   bool success = true;
 
@@ -93,8 +86,8 @@ bool ConvertToPlain(const std::string& infile_path, const std::string& outfile_p
       }
     }
     const u64 inpos = i * buffer_size;
-    const u64 sz = std::min(buffer_size, reader->GetDataSize() - inpos);
-    if (!reader->Read(inpos, sz, buffer.data()))
+    const u64 sz = std::min(buffer_size, infile->GetDataSize() - inpos);
+    if (!infile->Read(inpos, sz, buffer.data()))
     {
       PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
       success = false;

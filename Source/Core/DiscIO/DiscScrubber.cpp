@@ -25,8 +25,6 @@
 
 namespace DiscIO
 {
-constexpr size_t CLUSTER_SIZE = 0x8000;
-
 DiscScrubber::DiscScrubber() = default;
 DiscScrubber::~DiscScrubber() = default;
 
