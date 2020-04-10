@@ -58,8 +58,8 @@ bool DiscScrubber::CanBlockBeScrubbed(u64 offset) const
 
 void DiscScrubber::MarkAsUsed(u64 offset, u64 size)
 {
-  u64 current_offset = offset;
-  const u64 end_offset = current_offset + size;
+  u64 current_offset = Common::AlignDown(offset, CLUSTER_SIZE);
+  const u64 end_offset = offset + size;
 
   DEBUG_LOG(DISCIO, "Marking 0x%016" PRIx64 " - 0x%016" PRIx64 " as used", offset, end_offset);
 
