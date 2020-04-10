@@ -23,11 +23,13 @@
 #include <QVBoxLayout>
 
 #include "Common/Assert.h"
+#include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/ScrubbedBlob.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
+#include "UICommon/UICommon.h"
 
 static bool CompressCB(const std::string& text, float percent, void* ptr)
 {
@@ -58,9 +60,13 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Format:")), 0, 0);
   grid_layout->addWidget(m_format, 0, 1);
 
+  m_block_size = new QComboBox;
+  grid_layout->addWidget(new QLabel(tr("Block Size:")), 1, 0);
+  grid_layout->addWidget(m_block_size, 1, 1);
+
   m_scrub = new QCheckBox;
-  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 1, 0);
-  grid_layout->addWidget(m_scrub, 1, 1);
+  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 2, 0);
+  grid_layout->addWidget(m_scrub, 2, 1);
   m_scrub->setEnabled(
       std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc)));
 
@@ -72,7 +78,11 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   setLayout(main_layout);
 
+  connect(m_format, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &ConvertDialog::OnFormatChanged);
   connect(convert_button, &QPushButton::clicked, this, &ConvertDialog::Convert);
+
+  OnFormatChanged();
 }
 
 void ConvertDialog::AddToFormatComboBox(const QString& name, DiscIO::BlobType format)
@@ -84,6 +94,71 @@ void ConvertDialog::AddToFormatComboBox(const QString& name, DiscIO::BlobType fo
   }
 
   m_format->addItem(name, static_cast<int>(format));
+}
+
+void ConvertDialog::AddToBlockSizeComboBox(int size)
+{
+  m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
+}
+
+void ConvertDialog::OnFormatChanged()
+{
+  // Because DVD timings are emulated as if we can't read less than an entire ECC block at once
+  // (32 KiB - 0x8000), there is little reason to use a block size smaller than that.
+  constexpr int MIN_BLOCK_SIZE = 0x8000;
+
+  // For performance reasons, blocks shouldn't be too large.
+  // 2 MiB (0x200000) was picked because it is the smallest block size supported by WIA.
+  constexpr int MAX_BLOCK_SIZE = 0x200000;
+
+  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+
+  m_block_size->clear();
+  switch (format)
+  {
+  case DiscIO::BlobType::GCZ:
+  {
+    m_block_size->setEnabled(true);
+
+    // In order for versions of Dolphin prior to 5.0-11893 to be able to convert a GCZ file
+    // to ISO without messing up the final part of the file in some way, the file size
+    // must be an integer multiple of the block size (fixed in 3aa463c) and must not be
+    // an integer multiple of the block size multiplied by 32 (fixed in 26b21e3).
+
+    const auto block_size_ok = [this](int block_size) {
+      return std::all_of(m_files.begin(), m_files.end(), [block_size](const auto& file) {
+        constexpr u64 BLOCKS_PER_BUFFER = 32;
+        const u64 file_size = file->GetVolumeSize();
+        return file_size % block_size == 0 && file_size % (block_size * BLOCKS_PER_BUFFER) != 0;
+      });
+    };
+
+    // Add all block sizes in the normal range that do not cause problems
+    for (int block_size = MIN_BLOCK_SIZE; block_size <= MAX_BLOCK_SIZE; block_size *= 2)
+    {
+      if (block_size_ok(block_size))
+        AddToBlockSizeComboBox(block_size);
+    }
+
+    // If we didn't find a good block size, pick the block size which was hardcoded
+    // in older versions of Dolphin. That way, at least we're not worse than older versions.
+    if (m_block_size->count() == 0)
+    {
+      constexpr int FALLBACK_BLOCK_SIZE = 0x4000;
+      if (!block_size_ok(FALLBACK_BLOCK_SIZE))
+      {
+        ERROR_LOG(MASTER_LOG, "Failed to find a block size which does not cause problems "
+                              "when decompressing using an old version of Dolphin");
+      }
+      AddToBlockSizeComboBox(FALLBACK_BLOCK_SIZE);
+    }
+
+    break;
+  }
+  default:
+    m_block_size->setEnabled(false);
+    break;
+  }
 }
 
 bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
@@ -101,6 +176,7 @@ bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
 void ConvertDialog::Convert()
 {
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const int block_size = m_block_size->currentData().toInt();
   const bool scrub = m_scrub->isChecked();
 
   if (scrub && format == DiscIO::BlobType::PLAIN)
@@ -255,8 +331,8 @@ void ConvertDialog::Convert()
         good = std::async(std::launch::async, [&] {
           const bool good =
               DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
-                                   file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0, 16384,
-                                   &CompressCB, &progress_dialog);
+                                   file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
+                                   block_size, &CompressCB, &progress_dialog);
           progress_dialog.Reset();
           return good;
         });

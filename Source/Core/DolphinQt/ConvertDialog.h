@@ -28,14 +28,17 @@ public:
                          QWidget* parent = nullptr);
 
 private slots:
+  void OnFormatChanged();
   void Convert();
 
 private:
   void AddToFormatComboBox(const QString& name, DiscIO::BlobType format);
+  void AddToBlockSizeComboBox(int size);
 
   bool ShowAreYouSureDialog(const QString& text);
 
   QComboBox* m_format;
+  QComboBox* m_block_size;
   QCheckBox* m_scrub;
   QList<std::shared_ptr<const UICommon::GameFile>> m_files;
 };
