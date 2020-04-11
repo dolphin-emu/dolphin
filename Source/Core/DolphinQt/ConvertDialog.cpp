@@ -15,6 +15,7 @@
 #include <QErrorMessage>
 #include <QFileDialog>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QList>
 #include <QMessageBox>
@@ -72,9 +73,28 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   QPushButton* convert_button = new QPushButton(tr("Convert"));
 
+  QVBoxLayout* options_layout = new QVBoxLayout;
+  options_layout->addLayout(grid_layout);
+  options_layout->addWidget(convert_button);
+  QGroupBox* options_group = new QGroupBox(tr("Options"));
+  options_group->setLayout(options_layout);
+
+  QLabel* info_text =
+      new QLabel(tr("ISO: A simple and robust format which is supported by many programs. "
+                    "It takes up more space than any other format.\n\n"
+                    "GCZ: A basic compressed format which is compatible with most versions of "
+                    "Dolphin and some other programs. It can't efficiently compress junk data "
+                    "(unless removed) or encrypted Wii data."));
+  info_text->setWordWrap(true);
+
+  QVBoxLayout* info_layout = new QVBoxLayout;
+  info_layout->addWidget(info_text);
+  QGroupBox* info_group = new QGroupBox(tr("Info"));
+  info_group->setLayout(info_layout);
+
   QVBoxLayout* main_layout = new QVBoxLayout;
-  main_layout->addLayout(grid_layout);
-  main_layout->addWidget(convert_button);
+  main_layout->addWidget(options_group);
+  main_layout->addWidget(info_group);
 
   setLayout(main_layout);
 
