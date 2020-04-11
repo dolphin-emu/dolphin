@@ -89,7 +89,7 @@ static Common::SPSCQueue<ReadRequest, false> s_request_queue;
 static Common::SPSCQueue<ReadResult, false> s_result_queue;
 static std::map<u64, ReadResult> s_result_map;
 
-static std::unique_ptr<DiscIO::Volume> s_disc;
+static std::unique_ptr<DiscIO::VolumeDisc> s_disc;
 static std::map<u64, std::vector<u8>> s_disc_patches;
 
 void Start()
@@ -178,13 +178,13 @@ void DoState(PointerWrap& p)
   // was made. Handling that properly may be more effort than it's worth.
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc)
 {
   // Apply any file patches
   auto filePatches = PatchEngine::GetFilePatches();
   if (!filePatches.empty() && disc)
   {
-    disc = std::make_unique<DiscIO::OverlayVolume>(std::move(disc), filePatches);
+    disc = std::make_unique<DiscIO::OverlayVolumeDisc>(std::move(disc), filePatches);
   }
 
   WaitUntilIdle();
@@ -192,7 +192,7 @@ void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
 }
 
 // UGLY, but at least this makes it obvious what is actually happening.
-DiscIO::Volume* GetDiscVolume()
+DiscIO::VolumeDisc* GetDiscVolume()
 {
   return s_disc.get();
 }

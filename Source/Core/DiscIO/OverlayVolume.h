@@ -16,10 +16,11 @@ struct Patch;
 
 namespace DiscIO
 {
-class OverlayVolume : public Volume
+class OverlayVolumeDisc : public VolumeDisc
 {
 public:
-  OverlayVolume(std::unique_ptr<Volume> innerVolume, std::vector<PatchEngine::Patch>& patches)
+  OverlayVolumeDisc(std::unique_ptr<VolumeDisc> innerVolume,
+                    std::vector<PatchEngine::Patch>& patches)
       : inner(std::move(innerVolume))
   {
     patchOffsets = CalculateDiscOffsets(*inner, patches);
@@ -28,7 +29,7 @@ public:
   virtual bool Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const;
 
 private:
-  std::unique_ptr<Volume> inner;
+  std::unique_ptr<VolumeDisc> inner;
   std::map<u64, std::vector<u8>> patchOffsets;
 
   static std::map<u64, std::vector<u8>>
@@ -107,9 +108,13 @@ public:
   }
   virtual Platform GetVolumeType() const { return inner->GetVolumeType(); }
   virtual bool SupportsIntegrityCheck() const { return inner->SupportsIntegrityCheck(); }
-  virtual bool CheckIntegrity(const Partition& partition) const
+  virtual bool CheckH3TableIntegrity(const Partition& partition) const
   {
-    return inner->CheckIntegrity(partition);
+    return inner->CheckH3TableIntegrity(partition);
+  }
+  virtual bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const
+  {
+    return inner->CheckBlockIntegrity(block_index, partition);
   }
   virtual Region GetRegion() const { return inner->GetRegion(); }
   virtual Country GetCountry(const Partition& partition = PARTITION_NONE) const
@@ -119,6 +124,7 @@ public:
   virtual BlobType GetBlobType() const { return inner->GetBlobType(); }
   // Size of virtual disc (may be inaccurate depending on the blob type)
   virtual u64 GetSize() const { return inner->GetSize(); }
+  virtual bool IsSizeAccurate() const { return inner->IsSizeAccurate(); }
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const { return inner->GetRawSize(); }
   virtual u32 GetOffsetShift() const { return inner->GetOffsetShift(); }

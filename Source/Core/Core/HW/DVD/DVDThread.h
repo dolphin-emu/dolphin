@@ -24,7 +24,7 @@ enum class ReplyType : u32;
 namespace DiscIO
 {
 enum class Platform;
-class Volume;
+class VolumeDisc;
 }  // namespace DiscIO
 
 namespace IOS::ES
@@ -39,8 +39,8 @@ void Start();
 void Stop();
 void DoState(PointerWrap& p);
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc);
-DiscIO::Volume* GetDiscVolume();
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc);
+DiscIO::VolumeDisc* GetDiscVolume();
 bool HasDisc();
 
 bool IsEncryptedAndHashed();

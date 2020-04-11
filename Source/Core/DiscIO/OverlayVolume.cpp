@@ -12,7 +12,7 @@
 namespace DiscIO
 {
 std::map<u64, std::vector<u8>>
-OverlayVolume::CalculateDiscOffsets(Volume& disc, std::vector<PatchEngine::Patch>& patches)
+OverlayVolumeDisc::CalculateDiscOffsets(Volume& disc, std::vector<PatchEngine::Patch>& patches)
 {
   auto partition = disc.GetGamePartition();
   const DiscIO::FileSystem* fs = disc.GetFileSystem(partition);
@@ -96,7 +96,7 @@ static void applyPatchesToBuffer(u64 offset, u64 length, u8* buffer,
   }
 }
 
-bool OverlayVolume::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
+bool OverlayVolumeDisc::Read(u64 offset, u64 length, u8* buffer, const Partition& partition) const
 {
   if (inner->Read(offset, length, buffer, partition))
   {
