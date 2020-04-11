@@ -11,6 +11,7 @@
 
 #include "DiscIO/Blob.h"
 
+class QCheckBox;
 class QComboBox;
 
 namespace UICommon
@@ -32,6 +33,9 @@ private slots:
 private:
   void AddToFormatComboBox(const QString& name, DiscIO::BlobType format);
 
+  bool ShowAreYouSureDialog(const QString& text);
+
   QComboBox* m_format;
+  QCheckBox* m_scrub;
   QList<std::shared_ptr<const UICommon::GameFile>> m_files;
 };

@@ -5,10 +5,12 @@
 #include "DolphinQt/ConvertDialog.h"
 
 #include <algorithm>
+#include <functional>
 #include <future>
 #include <memory>
 #include <utility>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QErrorMessage>
 #include <QFileDialog>
@@ -56,6 +58,12 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Format:")), 0, 0);
   grid_layout->addWidget(m_format, 0, 1);
 
+  m_scrub = new QCheckBox;
+  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 1, 0);
+  grid_layout->addWidget(m_scrub, 1, 1);
+  m_scrub->setEnabled(
+      std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc)));
+
   QPushButton* convert_button = new QPushButton(tr("Convert"));
 
   QVBoxLayout* main_layout = new QVBoxLayout;
@@ -78,27 +86,44 @@ void ConvertDialog::AddToFormatComboBox(const QString& name, DiscIO::BlobType fo
   m_format->addItem(name, static_cast<int>(format));
 }
 
+bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
+{
+  ModalMessageBox warning(this);
+  warning.setIcon(QMessageBox::Warning);
+  warning.setWindowTitle(tr("Confirm"));
+  warning.setText(tr("Are you sure?"));
+  warning.setInformativeText(text);
+  warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+
+  return warning.exec() == QMessageBox::Yes;
+}
+
 void ConvertDialog::Convert()
 {
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
+  const bool scrub = m_scrub->isChecked();
 
-  const bool scrub_wii = format == DiscIO::BlobType::GCZ;
+  if (scrub && format == DiscIO::BlobType::PLAIN)
+  {
+    if (!ShowAreYouSureDialog(tr("Removing junk data does not save any space when converting to "
+                                 "ISO (unless you package the ISO file in a compressed file format "
+                                 "such as ZIP afterwards). Do you want to continue anyway?")))
+    {
+      return;
+    }
+  }
 
-  if (scrub_wii && std::any_of(m_files.begin(), m_files.end(), [](const auto& file) {
-        return file->GetPlatform() == DiscIO::Platform::WiiDisc;
+  if (!scrub && format == DiscIO::BlobType::GCZ &&
+      std::any_of(m_files.begin(), m_files.end(), [](const auto& file) {
+        return file->GetPlatform() == DiscIO::Platform::WiiDisc && !file->IsDatelDisc();
       }))
   {
-    ModalMessageBox wii_warning(this);
-    wii_warning.setIcon(QMessageBox::Warning);
-    wii_warning.setWindowTitle(tr("Confirm"));
-    wii_warning.setText(tr("Are you sure?"));
-    wii_warning.setInformativeText(
-        tr("Compressing a Wii disc image will irreversibly change the compressed copy by removing "
-           "padding data. Your disc image will still work. Continue?"));
-    wii_warning.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-
-    if (wii_warning.exec() == QMessageBox::No)
+    if (!ShowAreYouSureDialog(tr("Converting Wii disc images to GCZ without removing junk data "
+                                 "does not save any noticeable amount of space compared to "
+                                 "converting to ISO. Do you want to continue anyway?")))
+    {
       return;
+    }
   }
 
   QString extension;
@@ -182,7 +207,7 @@ void ConvertDialog::Convert()
     }
 
     std::unique_ptr<DiscIO::BlobReader> blob_reader;
-    bool scrub_current_file = scrub_wii && file->GetPlatform() == DiscIO::Platform::WiiDisc;
+    bool scrub_current_file = scrub;
 
     if (scrub_current_file)
     {
