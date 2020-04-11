@@ -42,7 +42,7 @@ void AddCode(ARCode new_code);
 void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
 
 std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+void SaveCodes(IniFile& local_ini, const std::vector<ARCode>& codes);
 
 void EnableSelfLogging(bool enable);
 std::vector<std::string> GetSelfLog();

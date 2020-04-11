@@ -12,7 +12,7 @@
 
 #include "Common/CommonTypes.h"
 
-class ARCodeWidget;
+class CheatList;
 class QComboBox;
 class QDialogButtonBox;
 class QLabel;
@@ -68,7 +68,7 @@ private:
   QTabWidget* m_tab_widget = nullptr;
 
   QWidget* m_cheat_search;
-  ARCodeWidget* m_ar_code = nullptr;
+  CheatList* m_ar_code = nullptr;
 
   QLabel* m_result_label;
   QTableWidget* m_match_table;

@@ -15,9 +15,9 @@
 
 #include "DolphinQt/Settings.h"
 
-CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool restart_required,
+CheatWarningWidget::CheatWarningWidget(const std::string& game_id, bool is_cheat, bool restart_required,
                                        QWidget* parent)
-    : QWidget(parent), m_game_id(game_id), m_restart_required(restart_required)
+    : QWidget(parent), m_game_id(game_id), m_is_cheat(is_cheat), m_restart_required(restart_required)
 {
   CreateWidgets();
   ConnectWidgets();
@@ -67,7 +67,7 @@ void CheatWarningWidget::Update(bool running)
     m_text->setText(tr("Changing cheats will only take effect when the game is restarted."));
   }
 
-  if (!Settings::Instance().GetCheatsEnabled())
+  if (m_is_cheat && !Settings::Instance().GetCheatsEnabled())
   {
     hide_widget = false;
     hide_config_button = false;

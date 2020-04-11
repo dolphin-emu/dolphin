@@ -21,6 +21,11 @@ namespace Gecko
 class GeckoCode;
 }
 
+namespace PatchEngine
+{
+class Patch;
+}
+
 class CheatCodeEditor : public QDialog
 {
 public:
@@ -28,6 +33,7 @@ public:
 
   void SetARCode(ActionReplay::ARCode* code);
   void SetGeckoCode(Gecko::GeckoCode* code);
+  void SetDolphinPatch(PatchEngine::Patch* code);
 
 private:
   void CreateWidgets();
@@ -35,6 +41,7 @@ private:
 
   bool AcceptAR();
   bool AcceptGecko();
+  bool AcceptPatch();
 
   void accept() override;
 
@@ -49,4 +56,5 @@ private:
 
   ActionReplay::ARCode* m_ar_code = nullptr;
   Gecko::GeckoCode* m_gecko_code = nullptr;
+  PatchEngine::Patch* m_patch = nullptr;
 };

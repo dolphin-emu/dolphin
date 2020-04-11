@@ -48,9 +48,10 @@ const char* PatchTypeAsString(PatchType type);
 
 int GetSpeedhackCycles(const u32 addr);
 std::vector<Patch>& GetFilePatches();
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni);
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, const IniFile& globalIni,
+                      const IniFile& localIni);
 void LoadPatches();
+void SavePatches(IniFile& inifile, const std::vector<Patch>& patches);
 bool ApplyFramePatches();
 void Shutdown();
 void Reload();

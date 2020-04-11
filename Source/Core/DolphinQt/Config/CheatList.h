@@ -28,12 +28,21 @@ namespace UICommon
 class GameFile;
 }
 
-class GeckoCodeWidget : public QWidget
+enum CheatType {
+  DolphinPatch,
+  ARCode,
+  GeckoCode
+};
+
+class CheatList : public QWidget
 {
   Q_OBJECT
 public:
-  explicit GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required = true);
-  ~GeckoCodeWidget() override;
+  explicit CheatList(const UICommon::GameFile& game, CheatType type, bool restart_required = true);
+  ~CheatList() override;
+
+  template<typename T>
+  void AddCode(T code);
 
 signals:
   void OpenGeneralSettings();
@@ -41,19 +50,21 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
-  void OnListReordered();
   void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
-  void UpdateList();
-  void AddCode();
+  void AddCodeClicked();
   void EditCode();
   void RemoveCode();
   void DownloadCodes();
   void SaveCodes();
   void SortAlphabetically();
 
+  template<typename T>
+  std::vector<T> GetList();
+
+  CheatType m_cheat_type;
   const UICommon::GameFile& m_game;
   std::string m_game_id;
   std::string m_gametdb_id;
@@ -69,6 +80,5 @@ private:
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
   QPushButton* m_download_codes;
-  std::vector<Gecko::GeckoCode> m_gecko_codes;
   bool m_restart_required;
 };

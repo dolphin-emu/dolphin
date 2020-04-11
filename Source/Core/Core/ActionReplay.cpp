@@ -284,7 +284,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
   return codes;
 }
 
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
+void SaveCodes(IniFile& local_ini, const std::vector<ARCode>& codes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabled_lines;
@@ -302,8 +302,8 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
       }
     }
   }
-  local_ini->SetLines("ActionReplay_Enabled", enabled_lines);
-  local_ini->SetLines("ActionReplay", lines);
+  local_ini.SetLines("ActionReplay_Enabled", enabled_lines);
+  local_ini.SetLines("ActionReplay", lines);
 }
 
 static void VLogInfo(std::string_view format, fmt::format_args args)

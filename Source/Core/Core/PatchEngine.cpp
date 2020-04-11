@@ -53,8 +53,8 @@ const char* PatchTypeAsString(PatchType type)
   return s_patch_type_strings.at(static_cast<int>(type));
 }
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, const IniFile& globalIni,
+                      const IniFile& localIni)
 {
   // Load the name of all enabled patches
   std::string enabledSectionName = section + "_Enabled";
@@ -199,6 +199,32 @@ void LoadPatches()
   }
 
   LoadSpeedhacks("Speedhacks", merged);
+}
+
+void SavePatches(IniFile& inifile, const std::vector<Patch>& patches)
+{
+  std::vector<std::string> lines;
+  std::vector<std::string> lines_enabled;
+
+  for (const auto& patch : patches)
+  {
+    if (patch.active)
+      lines_enabled.push_back("$" + patch.name);
+
+    if (!patch.user_defined)
+      continue;
+
+    lines.push_back("$" + patch.name);
+
+    for (const auto& entry : patch.entries)
+    {
+      lines.push_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
+                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
+    }
+  }
+
+  inifile.SetLines("OnFrame_Enabled", lines_enabled);
+  inifile.SetLines("OnFrame", lines);
 }
 
 static void ApplyPatches(const std::vector<Patch>& patches)

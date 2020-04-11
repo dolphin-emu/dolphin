@@ -12,12 +12,10 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-#include "DolphinQt/Config/ARCodeWidget.h"
+#include "DolphinQt/Config/CheatList.h"
 #include "DolphinQt/Config/FilesystemWidget.h"
 #include "DolphinQt/Config/GameConfigWidget.h"
-#include "DolphinQt/Config/GeckoCodeWidget.h"
 #include "DolphinQt/Config/InfoWidget.h"
-#include "DolphinQt/Config/PatchesWidget.h"
 #include "DolphinQt/Config/PropertiesDialog.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
@@ -38,15 +36,15 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   QTabWidget* tab_widget = new QTabWidget(this);
   InfoWidget* info = new InfoWidget(game);
 
-  ARCodeWidget* ar = new ARCodeWidget(game);
-  GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
-  PatchesWidget* patches = new PatchesWidget(game);
+  CheatList* ar = new CheatList(game, CheatType::ARCode);
+  CheatList* gecko = new CheatList(game, CheatType::GeckoCode);
+  CheatList* patches = new CheatList(game, CheatType::DolphinPatch);
   GameConfigWidget* game_config = new GameConfigWidget(game);
 
-  connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
+  connect(gecko, &CheatList::OpenGeneralSettings, this,
           &PropertiesDialog::OpenGeneralSettings);
 
-  connect(ar, &ARCodeWidget::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
+  connect(ar, &CheatList::OpenGeneralSettings, this, &PropertiesDialog::OpenGeneralSettings);
 
   const int padding_width = 120;
   const int padding_height = 100;
