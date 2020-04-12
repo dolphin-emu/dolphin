@@ -2,8 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import <AppCenter/AppCenter.h>
+#import <AppCenterAnalytics/AppCenterAnalytics.h>
+#import <AppCenterCrashes/AppCenterCrashes.h>
+
 #import "AppDelegate.h"
-#import "DolphiniOS-Swift.h"
 
 #import "Common/Config/Config.h"
 #import "Common/FileUtil.h"
@@ -20,11 +23,15 @@
 #import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
+#import "DolphiniOS-Swift.h"
+
 #import "DonationNoticeViewController.h"
 
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
+
+#import <Keys/DolphiniOSKeys.h>
 
 #import "MainiOS.h"
 
@@ -69,6 +76,13 @@
     }
   }
 #endif
+  
+  // Activate AppCenter analytics
+  DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
+  [MSAppCenter start:[keys appCenterSecret] withServices:@[
+    [MSAnalytics class],
+    [MSCrashes class]
+  ]];
   
   // Default settings values should be set in DefaultPreferences.plist in the future
   NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];

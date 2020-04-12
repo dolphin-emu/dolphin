@@ -1,5 +1,12 @@
 platform :ios, '12.0'
 
+plugin 'cocoapods-keys', {
+  :project => "DolphiniOS",
+  :keys => [
+    "AppCenterSecret"
+  ]
+}
+
 target 'DolphiniOS' do
     pod 'AppCenter'
 end
