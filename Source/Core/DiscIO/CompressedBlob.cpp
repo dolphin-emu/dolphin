@@ -372,6 +372,8 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
   static const size_t BUFFER_BLOCKS = 32;
   size_t buffer_size = header.block_size * BUFFER_BLOCKS;
   size_t last_buffer_size = header.block_size * (header.num_blocks % BUFFER_BLOCKS);
+  if (last_buffer_size == 0)
+    last_buffer_size = buffer_size;
   std::vector<u8> buffer(buffer_size);
   u32 num_buffers = (header.num_blocks + BUFFER_BLOCKS - 1) / BUFFER_BLOCKS;
   int progress_monitor = std::max<int>(1, num_buffers / 100);
