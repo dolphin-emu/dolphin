@@ -598,7 +598,6 @@
 				34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */,
 				90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -1894,6 +1893,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -2045,6 +2045,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
