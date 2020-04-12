@@ -371,7 +371,7 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
   const CompressedBlobHeader& header = reader->GetHeader();
   static const size_t BUFFER_BLOCKS = 32;
   size_t buffer_size = header.block_size * BUFFER_BLOCKS;
-  size_t last_buffer_size = header.block_size * (header.num_blocks % BUFFER_BLOCKS);
+  size_t last_buffer_size = header.data_size % buffer_size;
   if (last_buffer_size == 0)
     last_buffer_size = buffer_size;
   std::vector<u8> buffer(buffer_size);
