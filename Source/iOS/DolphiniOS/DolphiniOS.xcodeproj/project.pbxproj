@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */; };
+		B5E6E0156064FBDB272325D7 /* libPods-DolphiniOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9320BE8B0931BC7AAE9E780B /* libPods-DolphiniOS.a */; };
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
 		B91BF371236B3FE500199BA7 /* SoftwareTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B91BF370236B3FE500199BA7 /* SoftwareTableViewController.mm */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
@@ -181,7 +182,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (jailbroken).xcconfig"; sourceTree = "<group>"; };
 		4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultPreferences.plist; sourceTree = "<group>"; };
+		90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (patreon).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (patreon).xcconfig"; sourceTree = "<group>"; };
+		9320BE8B0931BC7AAE9E780B /* libPods-DolphiniOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DolphiniOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9947C9A8DBECF6F311652A3C /* Pods-DolphiniOS.debug (jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.debug (jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.debug (jailbroken).xcconfig"; sourceTree = "<group>"; };
 		B91BF36C236B3FCE00199BA7 /* SoftwareTableViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewCell.h; sourceTree = "<group>"; };
 		B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareTableViewCell.m; sourceTree = "<group>"; };
 		B91BF36F236B3FE500199BA7 /* SoftwareTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareTableViewController.h; sourceTree = "<group>"; };
@@ -529,6 +534,7 @@
 		B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupButtonCell.mm; sourceTree = "<group>"; };
 		B9F03CBB23B0627100423AE6 /* ControllerGroupCheckboxCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupCheckboxCell.h; sourceTree = "<group>"; };
 		B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupCheckboxCell.mm; sourceTree = "<group>"; };
+		E89268912BDEE8DCA445B6FB /* Pods-DolphiniOS.debug (non-jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.debug (non-jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.debug (non-jailbroken).xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -577,12 +583,25 @@
 				B945A3D92362DB9800B21680 /* libvideosoftware.a in Frameworks */,
 				B945A3DA2362DB9800B21680 /* libaudiocommon.a in Frameworks */,
 				B945A3DB2362DB9800B21680 /* libinputcommon.a in Frameworks */,
+				B5E6E0156064FBDB272325D7 /* libPods-DolphiniOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		28EE4B28EFD2E9A43F361397 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				9947C9A8DBECF6F311652A3C /* Pods-DolphiniOS.debug (jailbroken).xcconfig */,
+				E89268912BDEE8DCA445B6FB /* Pods-DolphiniOS.debug (non-jailbroken).xcconfig */,
+				34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */,
+				90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
+			sourceTree = "<group>";
+		};
 		B91BF35F236B390900199BA7 /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -678,6 +697,7 @@
 				B945A3722362908500B21680 /* DolphiniOS */,
 				B945A3712362908500B21680 /* Products */,
 				B945A3932362D98300B21680 /* Frameworks */,
+				28EE4B28EFD2E9A43F361397 /* Pods */,
 			);
 			sourceTree = "<group>";
 		};
@@ -758,6 +778,7 @@
 				B945A3982362DA7A00B21680 /* DolphiniOS */,
 				B945A3962362D99000B21680 /* libz.tbd */,
 				B945A3942362D98400B21680 /* OpenGLES.framework */,
+				9320BE8B0931BC7AAE9E780B /* libPods-DolphiniOS.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -1224,6 +1245,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = B945A3892362909500B21680 /* Build configuration list for PBXNativeTarget "DolphiniOS" */;
 			buildPhases = (
+				831437B18C9B985ADFB76FA5 /* [CP] Check Pods Manifest.lock */,
 				B988D80B23BA8BBB0092CB6C /* Pre-Build Tasks */,
 				B945A38C2362AEB900B21680 /* Build Dolphin */,
 				B9766AF023A4964B00FF7F17 /* Build csdbgd */,
@@ -1332,6 +1354,28 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXShellScriptBuildPhase section */
+		831437B18C9B985ADFB76FA5 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-DolphiniOS-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
 		B945A38C2362AEB900B21680 /* Build Dolphin */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
@@ -1838,6 +1882,7 @@
 		};
 		B945A38A2362909500B21680 /* Debug (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9947C9A8DBECF6F311652A3C /* Pods-DolphiniOS.debug (jailbroken).xcconfig */;
 			buildSettings = {
 				APP_NAME = "DiOS (Debug)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1881,6 +1926,7 @@
 		};
 		B945A38B2362909500B21680 /* Release (Jailbroken) */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */;
 			buildSettings = {
 				APP_NAME = DolphiniOS;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -1988,6 +2034,7 @@
 		};
 		B9DCAC9223AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = E89268912BDEE8DCA445B6FB /* Pods-DolphiniOS.debug (non-jailbroken).xcconfig */;
 			buildSettings = {
 				APP_NAME = "DiOS (Debug)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
@@ -2092,6 +2139,7 @@
 		};
 		B9DCAC9423AB384F002B95C8 /* Release (Patreon) */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */;
 			buildSettings = {
 				APP_NAME = "DiOS (Patreon)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
