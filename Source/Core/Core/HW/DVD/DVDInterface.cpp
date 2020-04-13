@@ -855,11 +855,7 @@ void ExecuteCommand(ReplyType reply_type)
 
     case 0x40:  // Read DiscID
       INFO_LOG(DVDINTERFACE, "Read DiscID: buffer %08x", s_DIMAR);
-      // TODO: It doesn't make sense to include DiscChangeDetected here, as it implies that the
-      // drive is not spinning and reading the disc ID shouldn't change it.  However, the Wii Menu
-      // breaks without it.
-      if (s_drive_state == DriveState::DiscIdNotRead ||
-          s_drive_state == DriveState::DiscChangeDetected)
+      if (s_drive_state == DriveState::DiscIdNotRead)
       {
         SetDriveState(DriveState::ReadyNoReadsMade);
       }
