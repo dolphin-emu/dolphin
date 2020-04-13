@@ -5,3 +5,4 @@
 #pragma once
 
 #import "LocalizerUtils.h"
+#import "StringUtils.h"
