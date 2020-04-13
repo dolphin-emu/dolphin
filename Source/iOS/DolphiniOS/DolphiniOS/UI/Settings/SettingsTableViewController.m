@@ -18,6 +18,9 @@
   NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
   NSString* version_str = [info objectForKey:@"CFBundleShortVersionString"];
   version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+#ifdef DEBUG
+  version_str = [version_str stringByAppendingString:@" (Debug)"];
+#endif
 #ifdef PATREON
   version_str = [version_str stringByAppendingString:@" (Patreon)"];
 #endif
