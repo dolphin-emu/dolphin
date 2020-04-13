@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/IOS.h"
@@ -111,8 +112,18 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>(
                      [](u32, u32 val) { WARN_LOG(PROCESSORINTERFACE, "Fifo reset (%08x)", val); }));
 
-  mmio->Register(base | PI_RESET_CODE, MMIO::DirectRead<u32>(&m_ResetCode),
-                 MMIO::DirectWrite<u32>(&m_ResetCode));
+  mmio->Register(base | PI_RESET_CODE, MMIO::ComplexRead<u32>([](u32) {
+                   DEBUG_LOG(PROCESSORINTERFACE, "Read PI_RESET_CODE: %08x", m_ResetCode);
+                   return m_ResetCode;
+                 }),
+                 MMIO::ComplexWrite<u32>([](u32, u32 val) {
+                   m_ResetCode = val;
+                   INFO_LOG(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: %08x", m_ResetCode);
+                   if (~m_ResetCode & 0x4)
+                   {
+                     DVDInterface::ResetDrive(true);
+                   }
+                 }));
 
   mmio->Register(base | PI_FLIPPER_REV, MMIO::DirectRead<u32>(&m_FlipperRev),
                  MMIO::InvalidWrite<u32>());
