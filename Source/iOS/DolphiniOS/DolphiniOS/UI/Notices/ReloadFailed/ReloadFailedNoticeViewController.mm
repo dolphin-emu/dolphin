@@ -19,6 +19,15 @@
   NSString* game_name = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_title"];
   NSString* message = [NSString stringWithFormat:@"You were playing \"%@\" before DolphiniOS was quit.", game_name];
   [self.m_game_name_label setText:message];
+  
+  if (self.m_reason == DOLReloadFailedReasonOld)
+  {
+    [self.m_reason_label setText:@"While DolphiniOS automatically made a save state before closing, this version of DolphiniOS can not load save states from previous versions."];
+  }
+  else if (self.m_reason == DOLReloadFailedReasonFileGone)
+  {
+    [self.m_reason_label setText:@"While DolphiniOS automatically made a save state before closing, the game file cannot be found, so the save state cannot be loaded."];
+  }
 }
 
 - (IBAction)OKPressed:(id)sender
