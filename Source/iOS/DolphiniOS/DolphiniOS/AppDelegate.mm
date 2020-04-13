@@ -117,13 +117,27 @@
   // Check if the background save state exists
   if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"))
   {
-    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"] == State::GetVersion())
+    DOLReloadFailedReason reload_fail_reason = DOLReloadFailedReasonNone;
+    
+    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"] != State::GetVersion())
+    {
+      reload_fail_reason = DOLReloadFailedReasonOld;
+    }
+    else if (!File::Exists(FoundationToCppString([[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_path"])))
+    {
+      reload_fail_reason = DOLReloadFailedReasonFileGone;
+    }
+    
+    if (reload_fail_reason == DOLReloadFailedReasonNone)
     {
       [nav_controller pushViewController:[[ReloadStateNoticeViewController alloc] initWithNibName:@"ReloadStateNotice" bundle:nil] animated:true];
     }
     else
     {
-      [nav_controller pushViewController:[[ReloadFailedNoticeViewController alloc] initWithNibName:@"ReloadFailedNotice" bundle:nil] animated:true];
+      ReloadFailedNoticeViewController* view_controller = [[ReloadFailedNoticeViewController alloc] initWithNibName:@"ReloadFailedNotice" bundle:nil];
+      view_controller.m_reason = reload_fail_reason;
+      
+      [nav_controller pushViewController:view_controller animated:true];
     }
   }
   

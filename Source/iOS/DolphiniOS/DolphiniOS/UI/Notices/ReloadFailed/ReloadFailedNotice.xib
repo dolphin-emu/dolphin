@@ -11,6 +11,7 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ReloadFailedNoticeViewController">
             <connections>
                 <outlet property="m_game_name_label" destination="G2L-KW-hUh" id="rW9-5G-uqe"/>
+                <outlet property="m_reason_label" destination="4Lp-si-dj1" id="T6Y-OP-BhQ"/>
                 <outlet property="view" destination="r55-Fn-aBI" id="r9r-Zd-Dn7"/>
             </connections>
         </placeholder>
@@ -48,9 +49,8 @@
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Lp-si-dj1" userLabel="State Info Text">
-                                    <rect key="frame" x="8" y="60.66666666666665" width="319" height="81.333333333333314"/>
-                                    <string key="text">While DolphiniOS automatically made a save state before exiting, this version of DolphiniOS can not load save states from previous versions.</string>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="While DolphiniOS automatically made a save state before closing, DolphiniOS cannot load this save state for unknown reasons." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Lp-si-dj1" userLabel="State Info Text">
+                                    <rect key="frame" x="14" y="60.66666666666665" width="307.33333333333331" height="81.333333333333314"/>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
