@@ -397,6 +397,7 @@
 		B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TouchWiimoteProfile.ini; path = BundleResources/TouchWiimoteProfile.ini; sourceTree = "<group>"; };
 		B988D80623B83AB40092CB6C /* ControllerDsuClientViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDsuClientViewController.h; sourceTree = "<group>"; };
 		B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDsuClientViewController.mm; sourceTree = "<group>"; };
+		B989119E244451D300A24522 /* StringUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StringUtils.h; sourceTree = "<group>"; };
 		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
 		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
 		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
@@ -719,6 +720,7 @@
 				B91BF364236B3DFF00199BA7 /* UI */,
 				B945A3732362908500B21680 /* AppDelegate.h */,
 				B945A3742362908500B21680 /* AppDelegate.mm */,
+				B989119E244451D300A24522 /* StringUtils.h */,
 				4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */,
 				B945A37C2362908500B21680 /* Main.storyboard */,
 				B945A37F2362909500B21680 /* Assets.xcassets */,
