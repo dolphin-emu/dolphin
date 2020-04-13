@@ -186,19 +186,19 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
-void SetLidOpen();
+static void SetLidOpen();
 
-void UpdateInterrupts();
-void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
+static void UpdateInterrupts();
+static void GenerateDIInterrupt(DIInterruptType dvd_interrupt);
 
-bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
-                        const DiscIO::Partition& partition, ReplyType reply_type,
-                        DIInterruptType* interrupt_type);
+static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length,
+                               u32 output_length, const DiscIO::Partition& partition,
+                               ReplyType reply_type, DIInterruptType* interrupt_type);
 
-u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type);
+static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type);
 
-void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u32 output_address,
-                   ReplyType reply_type);
+static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
+                          u32 output_address, ReplyType reply_type);
 
 void DoState(PointerWrap& p)
 {
@@ -542,7 +542,7 @@ bool AutoChangeDisc()
   return true;
 }
 
-void SetLidOpen()
+static void SetLidOpen()
 {
   u32 old_value = s_DICVR.CVR;
   s_DICVR.CVR = IsDiscInside() ? 0 : 1;
@@ -631,7 +631,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::InvalidWrite<u32>());
 }
 
-void UpdateInterrupts()
+static void UpdateInterrupts()
 {
   const bool set_mask = (s_DISR.DEINT & s_DISR.DEINTMASK) || (s_DISR.TCINT & s_DISR.TCINTMASK) ||
                         (s_DISR.BRKINT & s_DISR.BRKINTMASK) ||
@@ -643,7 +643,7 @@ void UpdateInterrupts()
   CoreTiming::ForceExceptionCheck(50);
 }
 
-void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
+static void GenerateDIInterrupt(DIInterruptType dvd_interrupt)
 {
   switch (dvd_interrupt)
   {
@@ -735,9 +735,9 @@ static bool CheckReadPreconditions()
 }
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
-bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length, u32 output_length,
-                        const DiscIO::Partition& partition, ReplyType reply_type,
-                        DIInterruptType* interrupt_type)
+static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length,
+                               u32 output_length, const DiscIO::Partition& partition,
+                               ReplyType reply_type, DIInterruptType* interrupt_type)
 {
   if (!CheckReadPreconditions())
   {
@@ -1244,7 +1244,7 @@ void AudioBufferConfig(bool enable_dtk, u8 dtk_buffer_length)
     INFO_LOG(DVDINTERFACE, "DTK disabled");
 }
 
-u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type)
+static u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type)
 {
   return (static_cast<u64>(reply_type) << 32) + static_cast<u32>(interrupt_type);
 }
@@ -1317,8 +1317,8 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
 // Determines from a given read request how much of the request is buffered,
 // and how much is required to be read from disc.
-void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition, u32 output_address,
-                   ReplyType reply_type)
+static void ScheduleReads(u64 offset, u32 length, const DiscIO::Partition& partition,
+                          u32 output_address, ReplyType reply_type)
 {
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned
