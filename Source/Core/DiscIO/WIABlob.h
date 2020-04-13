@@ -44,6 +44,18 @@ public:
   bool SupportsReadWiiDecrypted() const override;
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
+  enum class ConversionResult
+  {
+    Success,
+    Canceled,
+    ReadFailed,
+    WriteFailed,
+    InternalError,
+  };
+
+  static ConversionResult ConvertToWIA(BlobReader* infile, File::IOFile* outfile, int chunk_size,
+                                       CompressCB callback, void* arg);
+
 private:
   using SHA1 = std::array<u8, 20>;
   using WiiKey = std::array<u8, 16>;
@@ -274,6 +286,8 @@ private:
                             u32 exception_lists);
 
   static std::string VersionToString(u32 version);
+
+  static bool PadTo4(File::IOFile* file, u64* bytes_written);
 
   bool m_valid;
   CompressionType m_compression_type;

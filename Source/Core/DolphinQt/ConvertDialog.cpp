@@ -57,6 +57,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_format = new QComboBox;
   m_format->addItem(QStringLiteral("ISO"), static_cast<int>(DiscIO::BlobType::PLAIN));
   m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
+  m_format->addItem(QStringLiteral("WIA"), static_cast<int>(DiscIO::BlobType::WIA));
   if (std::all_of(m_files.begin(), m_files.end(),
                   [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
   {
@@ -88,7 +89,10 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
                     "It takes up more space than any other format.\n\n"
                     "GCZ: A basic compressed format which is compatible with most versions of "
                     "Dolphin and some other programs. It can't efficiently compress junk data "
-                    "(unless removed) or encrypted Wii data."));
+                    "(unless removed) or encrypted Wii data.\n\n"
+                    "WIA: An advanced compressed format which is compatible with recent versions "
+                    "of Dolphin and a few other programs. It can efficiently compress encrypted "
+                    "Wii data, but not junk data (unless removed)."));
   info_text->setWordWrap(true);
 
   QVBoxLayout* info_layout = new QVBoxLayout;
@@ -166,6 +170,13 @@ void ConvertDialog::OnFormatChanged()
 
     break;
   }
+  case DiscIO::BlobType::WIA:
+    m_block_size->setEnabled(true);
+
+    // This is the smallest block size supported by WIA. For performance, larger sizes are avoided.
+    AddToBlockSizeComboBox(0x200000);
+
+    break;
   default:
     break;
   }
@@ -224,7 +235,11 @@ void ConvertDialog::Convert()
     break;
   case DiscIO::BlobType::GCZ:
     extension = QStringLiteral(".gcz");
-    filter = tr("Compressed GC/Wii images (*.gcz)");
+    filter = tr("GCZ GC/Wii images (*.gcz)");
+    break;
+  case DiscIO::BlobType::WIA:
+    extension = QStringLiteral(".wia");
+    filter = tr("WIA GC/Wii images (*.wia)");
     break;
   default:
     ASSERT(false);
@@ -346,6 +361,16 @@ void ConvertDialog::Convert()
           const bool good =
               DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
                                    file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
+                                   block_size, &CompressCB, &progress_dialog);
+          progress_dialog.Reset();
+          return good;
+        });
+      }
+      else if (format == DiscIO::BlobType::WIA)
+      {
+        good = std::async(std::launch::async, [&] {
+          const bool good =
+              DiscIO::ConvertToWIA(blob_reader.get(), original_path, dst_path.toStdString(),
                                    block_size, &CompressCB, &progress_dialog);
           progress_dialog.Reset();
           return good;

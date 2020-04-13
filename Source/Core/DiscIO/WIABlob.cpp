@@ -17,12 +17,16 @@
 #include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -885,6 +889,197 @@ bool WIAFileReader::Chunk::ApplyHashExceptions(
   }
 
   return true;
+}
+
+bool WIAFileReader::PadTo4(File::IOFile* file, u64* bytes_written)
+{
+  constexpr u32 ZEROES = 0;
+  const u64 bytes_to_write = Common::AlignUp(*bytes_written, 4) - *bytes_written;
+  if (bytes_to_write == 0)
+    return true;
+
+  *bytes_written += bytes_to_write;
+  return file->WriteBytes(&ZEROES, bytes_to_write);
+}
+
+WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
+                                                            File::IOFile* outfile, int chunk_size,
+                                                            CompressCB callback, void* arg)
+{
+  ASSERT(infile->IsDataSizeAccurate());
+  ASSERT(chunk_size > 0);
+
+  const u64 iso_size = infile->GetDataSize();
+
+  u64 bytes_read = 0;
+  u64 bytes_written = 0;
+
+  // These two headers will be filled in with proper values at the very end
+  WIAHeader1 header_1;
+  WIAHeader2 header_2;
+  if (!outfile->WriteArray(&header_1, 1) || !outfile->WriteArray(&header_2, 1))
+    return ConversionResult::WriteFailed;
+  bytes_written += sizeof(WIAHeader1) + sizeof(WIAHeader2);
+  if (!PadTo4(outfile, &bytes_written))
+    return ConversionResult::WriteFailed;
+
+  std::vector<GroupEntry> group_entries;
+  group_entries.resize(Common::AlignUp(iso_size, chunk_size) / chunk_size);
+
+  std::vector<RawDataEntry> raw_data_entries;
+  raw_data_entries.emplace_back(
+      RawDataEntry{Common::swap64(header_2.disc_header.size()),
+                   Common::swap64(iso_size - header_2.disc_header.size()), 0,
+                   Common::swap32(static_cast<u32>(group_entries.size()))});
+
+  std::vector<PartitionEntry> partition_entries;
+
+  const auto run_callback = [&](size_t groups_written) {
+    int ratio = 0;
+    if (bytes_read != 0)
+      ratio = static_cast<int>(100 * bytes_written / bytes_read);
+
+    const std::string temp =
+        StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
+                         groups_written, group_entries.size(), ratio);
+    return callback(temp, static_cast<float>(groups_written) / group_entries.size(), arg);
+  };
+
+  if (!infile->Read(0, header_2.disc_header.size(), header_2.disc_header.data()))
+    return ConversionResult::ReadFailed;
+  // We intentially do not increment bytes_read here, since these bytes will be read again
+
+  if (!run_callback(0))
+    return ConversionResult::Canceled;
+
+  std::vector<u8> buffer(chunk_size);
+  for (size_t i = 0; i < group_entries.size(); ++i)
+  {
+    const u64 bytes_to_read = std::min<u64>(chunk_size, iso_size - bytes_read);
+
+    if (bytes_written >> 2 > std::numeric_limits<u32>::max())
+      return ConversionResult::InternalError;
+
+    ASSERT((bytes_written & 3) == 0);
+    group_entries[i] = GroupEntry{Common::swap32(static_cast<u32>(bytes_written >> 2)),
+                                  Common::swap32(static_cast<u32>(bytes_to_read))};
+
+    if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
+      return ConversionResult::ReadFailed;
+    if (!outfile->WriteArray(buffer.data(), bytes_to_read))
+      return ConversionResult::WriteFailed;
+
+    bytes_read += bytes_to_read;
+    bytes_written += bytes_to_read;
+    if (!PadTo4(outfile, &bytes_written))
+      return ConversionResult::WriteFailed;
+
+    if (!run_callback(i))
+      return ConversionResult::Canceled;
+  }
+
+  const u64 partition_entries_offset = bytes_written;
+  const u64 partition_entries_size = partition_entries.size() * sizeof(PartitionEntry);
+  if (!outfile->WriteArray(partition_entries.data(), partition_entries.size()))
+    return ConversionResult::WriteFailed;
+  bytes_written += partition_entries_size;
+  if (!PadTo4(outfile, &bytes_written))
+    return ConversionResult::WriteFailed;
+
+  const u64 raw_data_entries_offset = bytes_written;
+  const u64 raw_data_entries_size = raw_data_entries.size() * sizeof(RawDataEntry);
+  if (!outfile->WriteArray(raw_data_entries.data(), raw_data_entries.size()))
+    return ConversionResult::WriteFailed;
+  bytes_written += raw_data_entries_size;
+  if (!PadTo4(outfile, &bytes_written))
+    return ConversionResult::WriteFailed;
+
+  const u64 group_entries_offset = bytes_written;
+  const u64 group_entries_size = group_entries.size() * sizeof(GroupEntry);
+  if (!outfile->WriteArray(group_entries.data(), group_entries.size()))
+    return ConversionResult::WriteFailed;
+  bytes_written += group_entries_size;
+  if (!PadTo4(outfile, &bytes_written))
+    return ConversionResult::WriteFailed;
+
+  header_2.disc_type = 0;  // TODO
+  header_2.compression_type = Common::swap32(static_cast<u32>(CompressionType::None));
+  header_2.compression_level = 0;
+  header_2.chunk_size = Common::swap32(static_cast<u32>(chunk_size));
+
+  header_2.number_of_partition_entries = Common::swap32(static_cast<u32>(partition_entries.size()));
+  header_2.partition_entry_size = Common::swap32(sizeof(PartitionEntry));
+  header_2.partition_entries_offset = Common::swap64(partition_entries_offset);
+
+  if (partition_entries.data() == nullptr)
+    partition_entries.reserve(1);  // Avoid a crash in mbedtls_sha1_ret
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(partition_entries.data()), partition_entries_size,
+                   header_2.partition_entries_hash.data());
+
+  header_2.number_of_raw_data_entries = Common::swap32(static_cast<u32>(raw_data_entries.size()));
+  header_2.raw_data_entries_offset = Common::swap64(raw_data_entries_offset);
+  header_2.raw_data_entries_size = Common::swap32(static_cast<u32>(raw_data_entries_size));
+
+  header_2.number_of_group_entries = Common::swap32(static_cast<u32>(group_entries.size()));
+  header_2.group_entries_offset = Common::swap64(group_entries_offset);
+  header_2.group_entries_size = Common::swap32(static_cast<u32>(group_entries_size));
+
+  header_2.compressor_data_size = 0;
+  std::fill(std::begin(header_2.compressor_data), std::end(header_2.compressor_data), 0);
+
+  header_1.magic = WIA_MAGIC;
+  header_1.version = Common::swap32(WIA_VERSION);
+  header_1.version_compatible = Common::swap32(WIA_VERSION_WRITE_COMPATIBLE);
+  header_1.header_2_size = Common::swap32(sizeof(WIAHeader2));
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_2), sizeof(header_2),
+                   header_1.header_2_hash.data());
+  header_1.iso_file_size = Common::swap64(infile->GetDataSize());
+  header_1.wia_file_size = Common::swap64(bytes_written);
+  mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_1), offsetof(WIAHeader1, header_1_hash),
+                   header_1.header_1_hash.data());
+
+  if (!outfile->Seek(0, SEEK_SET))
+    return ConversionResult::WriteFailed;
+  if (!outfile->WriteArray(&header_1, 1) || !outfile->WriteArray(&header_2, 1))
+    return ConversionResult::WriteFailed;
+
+  return ConversionResult::Success;
+}
+
+bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, int chunk_size, CompressCB callback, void* arg)
+{
+  File::IOFile outfile(outfile_path, "wb");
+  if (!outfile)
+  {
+    PanicAlertT("Failed to open the output file \"%s\".\n"
+                "Check that you have permissions to write the target folder and that the media can "
+                "be written.",
+                outfile_path.c_str());
+    return false;
+  }
+
+  WIAFileReader::ConversionResult result =
+      WIAFileReader::ConvertToWIA(infile, &outfile, chunk_size, callback, arg);
+
+  if (result == WIAFileReader::ConversionResult::ReadFailed)
+    PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+
+  if (result == WIAFileReader::ConversionResult::WriteFailed)
+  {
+    PanicAlertT("Failed to write the output file \"%s\".\n"
+                "Check that you have enough space available on the target drive.",
+                outfile_path.c_str());
+  }
+
+  if (result != WIAFileReader::ConversionResult::Success)
+  {
+    // Remove the incomplete output file
+    outfile.Close();
+    File::Delete(outfile_path);
+  }
+
+  return result == WIAFileReader::ConversionResult::Success;
 }
 
 }  // namespace DiscIO
