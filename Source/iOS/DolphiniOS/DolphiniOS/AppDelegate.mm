@@ -77,12 +77,14 @@
   }
 #endif
   
+#ifndef DEBUG
   // Activate AppCenter analytics
   DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
   [MSAppCenter start:[keys appCenterSecret] withServices:@[
     [MSAnalytics class],
     [MSCrashes class]
   ]];
+#endif
   
   // Default settings values should be set in DefaultPreferences.plist in the future
   NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];
