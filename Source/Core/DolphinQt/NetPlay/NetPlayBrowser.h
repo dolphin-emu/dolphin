@@ -46,6 +46,9 @@ private:
 
   void OnSelectionChanged();
 
+  void SaveSettings() const;
+  void RestoreSettings();
+
   QComboBox* m_region_combo;
   QLabel* m_status_label;
   QPushButton* m_button_refresh;
