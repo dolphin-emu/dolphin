@@ -266,7 +266,7 @@ std::optional<DI::DIResult> DI::StartIOCtl(const IOCtlRequest& request)
     return DIResult::Success;
   case DIIoctl::DVDLowReset:
   {
-    const bool spinup = Memory::Read_U32(request.address + 4);
+    const bool spinup = Memory::Read_U32(request.buffer_in + 4);
     INFO_LOG(IOS_DI, "DVDLowReset %s spinup", spinup ? "with" : "without");
     DVDInterface::ResetDrive(spinup);
     ResetDIRegisters();
