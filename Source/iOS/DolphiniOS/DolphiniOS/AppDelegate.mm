@@ -92,8 +92,7 @@
   [[NSUserDefaults standardUserDefaults] registerDefaults:defaultPrefs];
   
   Common::RegisterStringTranslator([](const char* text) -> std::string {
-    NSString* localized_text = DOLocalizedString([NSString stringWithUTF8String:text]);
-    return std::string([localized_text UTF8String]);
+    return FoundationToCppString(DOLocalizedString(CToFoundationString(text)));
   });
   
   [MainiOS applicationStart];

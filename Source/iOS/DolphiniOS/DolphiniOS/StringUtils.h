@@ -13,3 +13,5 @@
 #define CppToFoundationString(x) [NSString stringWithUTF8String:x.c_str()]
 
 #endif
+
+#define CToFoundationString(x) [NSString stringWithUTF8String:x]
