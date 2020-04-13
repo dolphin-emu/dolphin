@@ -67,16 +67,26 @@ constexpr std::array<PrimitiveType, 8> primitive_from_gx_pr{{
 // by ~9% in opposite directions.
 // Just in case any game decides to take this into account, we do both these
 // tests with a large amount of slop.
-static bool AspectIs4_3(float width, float height)
+static constexpr float ASPECT_RATIO_SLOP = 0.11f;
+
+static bool IsAnamorphicProjection(const Projection::Raw& projection, const Viewport& viewport)
 {
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11;  // within 11% of 4:3
+  // If ratio between our projection and viewport aspect ratios is similar to 16:9 / 4:3
+  // we have an anamorphic projection.
+  static constexpr float IDEAL_RATIO = (16 / 9.f) / (4 / 3.f);
+
+  const float projection_ar = projection[2] / projection[0];
+  const float viewport_ar = viewport.wd / viewport.ht;
+
+  return std::abs(std::abs(projection_ar / viewport_ar) - IDEAL_RATIO) <
+         IDEAL_RATIO * ASPECT_RATIO_SLOP;
 }
 
-static bool AspectIs16_9(float width, float height)
+static bool IsNormalProjection(const Projection::Raw& projection, const Viewport& viewport)
 {
-  float aspect = fabsf(width / height);
-  return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11;  // within 11% of 16:9
+  const float projection_ar = projection[2] / projection[0];
+  const float viewport_ar = viewport.wd / viewport.ht;
+  return std::abs(std::abs(projection_ar / viewport_ar) - 1) < ASPECT_RATIO_SLOP;
 }
 
 VertexManagerBase::VertexManagerBase()
@@ -227,12 +237,11 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive) const
   }
 }
 
-std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
+auto VertexManagerBase::ResetFlushAspectRatioCount() -> FlushStatistics
 {
-  std::pair<size_t, size_t> val = std::make_pair(m_flush_count_4_3, m_flush_count_anamorphic);
-  m_flush_count_4_3 = 0;
-  m_flush_count_anamorphic = 0;
-  return val;
+  const auto result = m_flush_statistics;
+  m_flush_statistics = {};
+  return result;
 }
 
 void VertexManagerBase::ResetBuffer(u32 vertex_stride)
@@ -387,18 +396,25 @@ void VertexManagerBase::Flush()
   // Track some stats used elsewhere by the anamorphic widescreen heuristic.
   if (!SConfig::GetInstance().bWii)
   {
-    const auto& raw_projection = xfmem.projection.rawProjection;
-    const bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
-    if (AspectIs16_9(raw_projection[2], raw_projection[0]) && viewport_is_4_3)
+    const bool is_perspective = xfmem.projection.type == GX_PERSPECTIVE;
+
+    auto& counts =
+        is_perspective ? m_flush_statistics.perspective : m_flush_statistics.orthographic;
+
+    if (IsAnamorphicProjection(xfmem.projection.rawProjection, xfmem.viewport))
     {
-      // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic
-      // widescreen picture.
-      m_flush_count_anamorphic++;
+      ++counts.anamorphic_flush_count;
+      counts.anamorphic_vertex_count += m_index_generator.GetIndexLen();
     }
-    else if (AspectIs4_3(raw_projection[2], raw_projection[0]) && viewport_is_4_3)
+    else if (IsNormalProjection(xfmem.projection.rawProjection, xfmem.viewport))
     {
-      // Projection and viewports are both 4:3, we are rendering a normal image.
-      m_flush_count_4_3++;
+      ++counts.normal_flush_count;
+      counts.normal_vertex_count += m_index_generator.GetIndexLen();
+    }
+    else
+    {
+      ++counts.other_flush_count;
+      counts.other_vertex_count += m_index_generator.GetIndexLen();
     }
   }
 
