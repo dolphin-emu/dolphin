@@ -27,7 +27,7 @@ bartycrouch update -x
 
 # Update the strings
 /usr/local/bin/python3 $PROJECT_DIR/DolphiniOS/BuildResources/Tools/UpdateDolphinStrings.py $ROOT_DOLPHIN_DIR/Languages/po $PROJECT_DIR/DolphiniOS/Localizables/
-/usr/local/bin/python3 $PROJECT_DIR/DolphiniOS/BuildResources/Tools/UpdateUIStrings.py $ROOT_DOLPHIN_DIR/Languages/po $PROJECT_DIR/DolphiniOS/UI/
+/usr/local/bin/python3 $PROJECT_DIR/DolphiniOS/BuildResources/Tools/UpdateUIStrings.py $ROOT_DOLPHIN_DIR/Languages/po $PROJECT_DIR/DolphiniOS/
 
 # Increment the build number
 INFO_FILE=$PROJECT_DIR/DolphiniOS/Info.plist
