@@ -38,9 +38,9 @@ fi
 rm -f $GENERIC_BUILD_DIR/libs/Dolphin/*.a
 rm -f $GENERIC_BUILD_DIR/libs/Externals/*.a
 
-find Source/ -name '*.a' -exec cp -prv '{}' "$GENERIC_BUILD_DIR/libs/Dolphin/" ';'
+find Source/ -name '*.a' -exec ln '{}' "$GENERIC_BUILD_DIR/libs/Dolphin/" ';'
 
-find Externals/ -name '*.a' -exec cp -prv '{}' "$GENERIC_BUILD_DIR/libs/Externals/" ';'
+find Externals/ -name '*.a' -exec ln '{}' "$GENERIC_BUILD_DIR/libs/Externals/" ';'
 
 if [ -f "$GENERIC_BUILD_DIR/libs/Externals/libfmtd.a" ]; then
     rm $GENERIC_BUILD_DIR/libs/Externals/libfmt.a || true
