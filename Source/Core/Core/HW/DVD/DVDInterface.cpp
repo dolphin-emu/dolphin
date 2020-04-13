@@ -345,26 +345,8 @@ void Init()
 
   DVDThread::Start();
 
-  Reset();
-  s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
-
-  s_auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
-  s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
-  s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
-
-  s_finish_executing_command =
-      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
-
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
-  CoreTiming::ScheduleEvent(0, s_finish_executing_command, userdata);
-}
-
-// This doesn't reset any inserted disc or the cover state.
-void Reset(bool spinup)
-{
-  INFO_LOG(DVDINTERFACE, "Reset %s spinup", spinup ? "with" : "without");
-
   s_DISR.Hex = 0;
+  s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
   s_DICMDBUF[0] = 0;
   s_DICMDBUF[1] = 0;
   s_DICMDBUF[2] = 0;
@@ -375,7 +357,17 @@ void Reset(bool spinup)
   s_DICFG.Hex = 0;
   s_DICFG.CONFIG = 1;  // Disable bootrom descrambler
 
-  ResetDrive(spinup);
+  ResetDrive(false);
+
+  s_auto_change_disc = CoreTiming::RegisterEvent("AutoChangeDisc", AutoChangeDiscCallback);
+  s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
+  s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
+
+  s_finish_executing_command =
+      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
+
+  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::TCINT);
+  CoreTiming::ScheduleEvent(0, s_finish_executing_command, userdata);
 }
 
 // Resets state on the MN102 chip in the drive itself, but not the DI registers exposed on the
