@@ -201,18 +201,9 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
       if (!m_reader->Read(block_offset_on_disc, BLOCK_TOTAL_SIZE, read_buffer.data()))
         return false;
 
-      // Decrypt the block's data.
-      // 0x3D0 - 0x3DF in read_buffer will be overwritten,
-      // but that won't affect anything, because we won't
-      // use the content of read_buffer anymore after this
-      mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, &read_buffer[0x3D0],
-                            &read_buffer[BLOCK_HEADER_SIZE], m_last_decrypted_block_data);
+      // Decrypt the block's data
+      DecryptBlockData(read_buffer.data(), m_last_decrypted_block_data, aes_context);
       m_last_decrypted_block = block_offset_on_disc;
-
-      // The only thing we currently use from the 0x000 - 0x3FF part
-      // of the block is the IV (at 0x3D0), but it also contains SHA-1
-      // hashes that IOS uses to check that discs aren't tampered with.
-      // http://wiibrew.org/wiki/Wii_Disc#Encrypted
     }
 
     // Copy the decrypted data
@@ -487,9 +478,7 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encr
                         encrypted_data.data(), reinterpret_cast<u8*>(&hashes));
 
   u8 cluster_data[BLOCK_DATA_SIZE];
-  std::memcpy(iv, encrypted_data.data() + 0x3D0, 16);
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(cluster_data), iv,
-                        encrypted_data.data() + sizeof(HashBlock), cluster_data);
+  DecryptBlockData(encrypted_data.data(), cluster_data, aes_context);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
@@ -669,6 +658,14 @@ bool VolumeWii::EncryptGroup(
     future.get();
 
   return true;
+}
+
+void VolumeWii::DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context)
+{
+  std::array<u8, 16> iv;
+  std::copy(&in[0x3d0], &in[0x3e0], iv.data());
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, iv.data(),
+                        &in[BLOCK_HEADER_SIZE], out);
 }
 
 }  // namespace DiscIO

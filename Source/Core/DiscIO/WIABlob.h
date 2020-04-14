@@ -22,6 +22,8 @@
 
 namespace DiscIO
 {
+class VolumeDisc;
+
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
 
 class WIAFileReader : public BlobReader
@@ -53,8 +55,9 @@ public:
     InternalError,
   };
 
-  static ConversionResult ConvertToWIA(BlobReader* infile, File::IOFile* outfile, int chunk_size,
-                                       CompressCB callback, void* arg);
+  static ConversionResult ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
+                                       File::IOFile* outfile, int chunk_size, CompressCB callback,
+                                       void* arg);
 
 private:
   using SHA1 = std::array<u8, 20>;
@@ -158,6 +161,20 @@ private:
   };
   static_assert(sizeof(PurgeSegment) == 0x08, "Wrong size for WIA purge segment");
 #pragma pack(pop)
+
+  struct DataEntry
+  {
+    u32 index;
+    bool is_partition;
+    u8 partition_data_index;
+
+    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
+    DataEntry(size_t index_, size_t partition_data_index_)
+        : index(static_cast<u32>(index_)), is_partition(true),
+          partition_data_index(static_cast<u8>(partition_data_index_))
+    {
+    }
+  };
 
   struct DecompressionBuffer
   {
@@ -288,6 +305,18 @@ private:
   static std::string VersionToString(u32 version);
 
   static bool PadTo4(File::IOFile* file, u64* bytes_written);
+  static void AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
+                              std::vector<RawDataEntry>* raw_data_entries,
+                              std::vector<DataEntry>* data_entries);
+  static PartitionDataEntry
+  CreatePartitionDataEntry(u64 offset, u64 size, u32 index, int chunk_size, u32* total_groups,
+                           const std::vector<PartitionEntry>& partition_entries,
+                           std::vector<DataEntry>* data_entries);
+  static ConversionResult SetUpDataEntriesForWriting(const VolumeDisc* volume, int chunk_size,
+                                                     u64 iso_size, u32* total_groups,
+                                                     std::vector<PartitionEntry>* partition_entries,
+                                                     std::vector<RawDataEntry>* raw_data_entries,
+                                                     std::vector<DataEntry>* data_entries);
 
   bool m_valid;
   CompressionType m_compression_type;
@@ -302,20 +331,6 @@ private:
   std::vector<PartitionEntry> m_partition_entries;
   std::vector<RawDataEntry> m_raw_data_entries;
   std::vector<GroupEntry> m_group_entries;
-
-  struct DataEntry
-  {
-    u32 index;
-    bool is_partition;
-    u8 partition_data_index;
-
-    DataEntry(size_t index_) : index(static_cast<u32>(index_)), is_partition(false) {}
-    DataEntry(size_t index_, size_t partition_data_index_)
-        : index(static_cast<u32>(index_)), is_partition(true),
-          partition_data_index(static_cast<u8>(partition_data_index_))
-    {
-    }
-  };
 
   std::map<u64, DataEntry> m_data_entries;
 

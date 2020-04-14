@@ -6,10 +6,12 @@
 
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstring>
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include <bzlib.h>
@@ -27,6 +29,8 @@
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -902,7 +906,161 @@ bool WIAFileReader::PadTo4(File::IOFile* file, u64* bytes_written)
   return file->WriteBytes(&ZEROES, bytes_to_write);
 }
 
+void WIAFileReader::AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
+                                    std::vector<RawDataEntry>* raw_data_entries,
+                                    std::vector<DataEntry>* data_entries)
+{
+  constexpr size_t SKIP_SIZE = sizeof(WIAHeader2::disc_header);
+  const u64 skip = offset < SKIP_SIZE ? std::min(SKIP_SIZE - offset, size) : 0;
+
+  offset += skip;
+  size -= skip;
+
+  if (size == 0)
+    return;
+
+  const u32 group_index = *total_groups;
+  const u32 groups = static_cast<u32>(Common::AlignUp(size, chunk_size) / chunk_size);
+  *total_groups += groups;
+
+  data_entries->emplace_back(raw_data_entries->size());
+  raw_data_entries->emplace_back(RawDataEntry{Common::swap64(offset), Common::swap64(size),
+                                              Common::swap32(group_index), Common::swap32(groups)});
+}
+
+WIAFileReader::PartitionDataEntry WIAFileReader::CreatePartitionDataEntry(
+    u64 offset, u64 size, u32 index, int chunk_size, u32* total_groups,
+    const std::vector<PartitionEntry>& partition_entries, std::vector<DataEntry>* data_entries)
+{
+  const u32 group_index = *total_groups;
+  const u64 rounded_size = Common::AlignDown(size, VolumeWii::BLOCK_TOTAL_SIZE);
+  const u32 groups = static_cast<u32>(Common::AlignUp(rounded_size, chunk_size) / chunk_size);
+  *total_groups += groups;
+
+  data_entries->emplace_back(partition_entries.size(), index);
+  return PartitionDataEntry{Common::swap32(offset / VolumeWii::BLOCK_TOTAL_SIZE),
+                            Common::swap32(size / VolumeWii::BLOCK_TOTAL_SIZE),
+                            Common::swap32(group_index), Common::swap32(groups)};
+}
+
+WIAFileReader::ConversionResult WIAFileReader::SetUpDataEntriesForWriting(
+    const VolumeDisc* volume, int chunk_size, u64 iso_size, u32* total_groups,
+    std::vector<PartitionEntry>* partition_entries, std::vector<RawDataEntry>* raw_data_entries,
+    std::vector<DataEntry>* data_entries)
+{
+  std::vector<Partition> partitions;
+  if (volume && volume->IsEncryptedAndHashed())
+    partitions = volume->GetPartitions();
+
+  std::sort(partitions.begin(), partitions.end(),
+            [](const Partition& a, const Partition& b) { return a.offset < b.offset; });
+
+  *total_groups = 0;
+
+  u64 last_partition_end_offset = 0;
+
+  const auto add_raw_data_entry = [&](u64 offset, u64 size) {
+    return AddRawDataEntry(offset, size, chunk_size, total_groups, raw_data_entries, data_entries);
+  };
+
+  const auto create_partition_data_entry = [&](u64 offset, u64 size, u32 index) {
+    return CreatePartitionDataEntry(offset, size, index, chunk_size, total_groups,
+                                    *partition_entries, data_entries);
+  };
+
+  for (const Partition& partition : partitions)
+  {
+    // If a partition is odd in some way that prevents us from encoding it as a partition,
+    // we encode it as raw data instead by skipping the current loop iteration.
+    // Partitions can always be encoded as raw data, but it is less space efficient.
+
+    if (partition.offset < last_partition_end_offset)
+    {
+      WARN_LOG(DISCIO, "Overlapping partitions at %" PRIx64, partition.offset);
+      continue;
+    }
+
+    if (volume->ReadSwapped<u32>(partition.offset, PARTITION_NONE) != u32(0x10001))
+    {
+      // This looks more like garbage data than an actual partition.
+      // The values of data_offset and data_size will very likely also be garbage.
+      // Some WBFS writing programs scrub the SSBB Masterpiece partitions without
+      // removing them from the partition table, causing this problem.
+      WARN_LOG(DISCIO, "Invalid partition at %" PRIx64, partition.offset);
+      continue;
+    }
+
+    std::optional<u64> data_offset =
+        volume->ReadSwappedAndShifted(partition.offset + 0x2b8, PARTITION_NONE);
+    std::optional<u64> data_size =
+        volume->ReadSwappedAndShifted(partition.offset + 0x2bc, PARTITION_NONE);
+
+    if (!data_offset || !data_size)
+      return ConversionResult::ReadFailed;
+
+    const u64 data_start = partition.offset + *data_offset;
+    const u64 data_end = data_start + *data_size;
+
+    if (data_start % VolumeWii::BLOCK_TOTAL_SIZE != 0)
+    {
+      WARN_LOG(DISCIO, "Misaligned partition at %" PRIx64, partition.offset);
+      continue;
+    }
+
+    if (*data_size < VolumeWii::BLOCK_TOTAL_SIZE)
+    {
+      WARN_LOG(DISCIO, "Very small partition at %" PRIx64, partition.offset);
+      continue;
+    }
+
+    if (data_end > iso_size)
+    {
+      WARN_LOG(DISCIO, "Too large partition at %" PRIx64, partition.offset);
+      *data_size = iso_size - *data_offset - partition.offset;
+    }
+
+    const std::optional<u64> fst_offset = GetFSTOffset(*volume, partition);
+    const std::optional<u64> fst_size = GetFSTSize(*volume, partition);
+
+    if (!fst_offset || !fst_size)
+      return ConversionResult::ReadFailed;
+
+    const IOS::ES::TicketReader& ticket = volume->GetTicket(partition);
+    if (!ticket.IsValid())
+      return ConversionResult::ReadFailed;
+
+    add_raw_data_entry(last_partition_end_offset, partition.offset - last_partition_end_offset);
+
+    add_raw_data_entry(partition.offset, *data_offset);
+
+    const u64 fst_end = volume->PartitionOffsetToRawOffset(*fst_offset + *fst_size, partition);
+    const u64 split_point = std::min(
+        data_end, Common::AlignUp(fst_end - data_start, VolumeWii::GROUP_TOTAL_SIZE) + data_start);
+
+    PartitionEntry partition_entry;
+    partition_entry.partition_key = ticket.GetTitleKey();
+    partition_entry.data_entries[0] =
+        create_partition_data_entry(data_start, split_point - data_start, 0);
+    partition_entry.data_entries[1] =
+        create_partition_data_entry(split_point, data_end - split_point, 1);
+
+    // Note: We can't simply set last_partition_end_offset to data_end,
+    // because construct_partition_data_entry may have rounded it
+    last_partition_end_offset =
+        (Common::swap32(partition_entry.data_entries[1].first_sector) +
+         Common::swap32(partition_entry.data_entries[1].number_of_sectors)) *
+        VolumeWii::BLOCK_TOTAL_SIZE;
+
+    partition_entries->emplace_back(std::move(partition_entry));
+  }
+
+  add_raw_data_entry(last_partition_end_offset, iso_size - last_partition_end_offset);
+
+  return ConversionResult::Success;
+}
+
 WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
+                                                            const VolumeDisc* infile_volume,
                                                             File::IOFile* outfile, int chunk_size,
                                                             CompressCB callback, void* arg)
 {
@@ -913,6 +1071,7 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
 
   u64 bytes_read = 0;
   u64 bytes_written = 0;
+  size_t groups_written = 0;
 
   // These two headers will be filled in with proper values at the very end
   WIAHeader1 header_1;
@@ -923,18 +1082,11 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
   if (!PadTo4(outfile, &bytes_written))
     return ConversionResult::WriteFailed;
 
-  std::vector<GroupEntry> group_entries;
-  group_entries.resize(Common::AlignUp(iso_size, chunk_size) / chunk_size);
-
-  std::vector<RawDataEntry> raw_data_entries;
-  raw_data_entries.emplace_back(
-      RawDataEntry{Common::swap64(header_2.disc_header.size()),
-                   Common::swap64(iso_size - header_2.disc_header.size()), 0,
-                   Common::swap32(static_cast<u32>(group_entries.size()))});
-
   std::vector<PartitionEntry> partition_entries;
+  std::vector<RawDataEntry> raw_data_entries;
+  std::vector<GroupEntry> group_entries;
 
-  const auto run_callback = [&](size_t groups_written) {
+  const auto run_callback = [&] {
     int ratio = 0;
     if (bytes_read != 0)
       ratio = static_cast<int>(100 * bytes_written / bytes_read);
@@ -942,41 +1094,151 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
     const std::string temp =
         StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
                          groups_written, group_entries.size(), ratio);
-    return callback(temp, static_cast<float>(groups_written) / group_entries.size(), arg);
+
+    float completion = 0.0f;
+    if (group_entries.size() != 0)
+      completion = static_cast<float>(groups_written) / group_entries.size();
+
+    return callback(temp, completion, arg);
   };
+
+  if (!run_callback())
+    return ConversionResult::Canceled;
+
+  u32 total_groups;
+  std::vector<DataEntry> data_entries;
+
+  const ConversionResult set_up_data_entries_result =
+      SetUpDataEntriesForWriting(infile_volume, chunk_size, iso_size, &total_groups,
+                                 &partition_entries, &raw_data_entries, &data_entries);
+  if (set_up_data_entries_result != ConversionResult::Success)
+    return set_up_data_entries_result;
+
+  group_entries.resize(total_groups);
 
   if (!infile->Read(0, header_2.disc_header.size(), header_2.disc_header.data()))
     return ConversionResult::ReadFailed;
   // We intentially do not increment bytes_read here, since these bytes will be read again
 
-  if (!run_callback(0))
-    return ConversionResult::Canceled;
-
   std::vector<u8> buffer(chunk_size);
-  for (size_t i = 0; i < group_entries.size(); ++i)
+  std::vector<u8> decryption_buffer(VolumeWii::BLOCK_DATA_SIZE);
+  for (const DataEntry& data_entry : data_entries)
   {
-    const u64 bytes_to_read = std::min<u64>(chunk_size, iso_size - bytes_read);
+    if (data_entry.is_partition)
+    {
+      const PartitionEntry& partition_entry = partition_entries[data_entry.index];
+      const PartitionDataEntry& partition_data_entry =
+          partition_entry.data_entries[data_entry.partition_data_index];
 
-    if (bytes_written >> 2 > std::numeric_limits<u32>::max())
-      return ConversionResult::InternalError;
+      const u32 first_group = Common::swap32(partition_data_entry.group_index);
+      const u32 last_group = first_group + Common::swap32(partition_data_entry.number_of_groups);
 
-    ASSERT((bytes_written & 3) == 0);
-    group_entries[i] = GroupEntry{Common::swap32(static_cast<u32>(bytes_written >> 2)),
-                                  Common::swap32(static_cast<u32>(bytes_to_read))};
+      const u64 data_offset =
+          Common::swap32(partition_data_entry.first_sector) * VolumeWii::BLOCK_TOTAL_SIZE;
+      const u64 data_size =
+          Common::swap32(partition_data_entry.number_of_sectors) * VolumeWii::BLOCK_TOTAL_SIZE;
 
-    if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
-      return ConversionResult::ReadFailed;
-    if (!outfile->WriteArray(buffer.data(), bytes_to_read))
-      return ConversionResult::WriteFailed;
+      ASSERT(groups_written == first_group);
+      ASSERT(bytes_read == data_offset);
 
-    bytes_read += bytes_to_read;
-    bytes_written += bytes_to_read;
-    if (!PadTo4(outfile, &bytes_written))
-      return ConversionResult::WriteFailed;
+      mbedtls_aes_context aes_context;
+      mbedtls_aes_setkey_dec(&aes_context, partition_entry.partition_key.data(), 128);
 
-    if (!run_callback(i))
-      return ConversionResult::Canceled;
+      for (u32 i = first_group; i < last_group; ++i)
+      {
+        const u64 bytes_to_read = std::min<u64>(chunk_size, data_offset + data_size - bytes_read);
+
+        ASSERT(bytes_to_read % VolumeWii::BLOCK_TOTAL_SIZE == 0);
+        const u64 bytes_to_write =
+            bytes_to_read / VolumeWii::BLOCK_TOTAL_SIZE * VolumeWii::BLOCK_DATA_SIZE;
+
+        if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
+          return ConversionResult::ReadFailed;
+
+        const u64 exception_lists = Common::AlignUp(bytes_to_read, VolumeWii::GROUP_TOTAL_SIZE) /
+                                    VolumeWii::GROUP_TOTAL_SIZE;
+
+        const u64 exceptions_size = Common::AlignUp(exception_lists * sizeof(u16), 4);
+        const u64 total_size = exceptions_size + bytes_to_write;
+        ASSERT((bytes_written & 3) == 0);
+        group_entries[i].data_offset = Common::swap32(static_cast<u32>(bytes_written >> 2));
+        group_entries[i].data_size = Common::swap32(static_cast<u32>(total_size));
+
+        for (u64 j = 0; j < exception_lists; ++j)
+        {
+          const u16 exceptions = 0;
+          if (!outfile->WriteArray(&exceptions, 1))
+            return ConversionResult::WriteFailed;
+          bytes_written += sizeof(u16);
+        }
+
+        if (!PadTo4(outfile, &bytes_written))
+          return ConversionResult::WriteFailed;
+
+        for (u64 j = 0; j < bytes_to_read; j += VolumeWii::BLOCK_TOTAL_SIZE)
+        {
+          VolumeWii::DecryptBlockData(buffer.data() + j, decryption_buffer.data(), &aes_context);
+          if (!outfile->WriteArray(decryption_buffer.data(), VolumeWii::BLOCK_DATA_SIZE))
+            return ConversionResult::WriteFailed;
+        }
+
+        bytes_read += bytes_to_read;
+        bytes_written += bytes_to_write;
+        ++groups_written;
+        if (!PadTo4(outfile, &bytes_written))
+          return ConversionResult::WriteFailed;
+
+        if (!run_callback())
+          return ConversionResult::Canceled;
+      }
+    }
+    else
+    {
+      const RawDataEntry& raw_data_entry = raw_data_entries[data_entry.index];
+
+      const u32 first_group = Common::swap32(raw_data_entry.group_index);
+      const u32 last_group = first_group + Common::swap32(raw_data_entry.number_of_groups);
+
+      u64 data_offset = Common::swap64(raw_data_entry.data_offset);
+      u64 data_size = Common::swap64(raw_data_entry.data_size);
+
+      const u64 skipped_data = data_offset % VolumeWii::BLOCK_TOTAL_SIZE;
+      data_offset -= skipped_data;
+      data_size += skipped_data;
+
+      ASSERT(groups_written == first_group);
+      ASSERT(bytes_read == data_offset);
+
+      for (u32 i = first_group; i < last_group; ++i)
+      {
+        const u64 bytes_to_read = std::min<u64>(chunk_size, data_offset + data_size - bytes_read);
+
+        if (bytes_written >> 2 > std::numeric_limits<u32>::max())
+          return ConversionResult::InternalError;
+
+        ASSERT((bytes_written & 3) == 0);
+        group_entries[i].data_offset = Common::swap32(static_cast<u32>(bytes_written >> 2));
+        group_entries[i].data_size = Common::swap32(static_cast<u32>(bytes_to_read));
+
+        if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
+          return ConversionResult::ReadFailed;
+        if (!outfile->WriteArray(buffer.data(), bytes_to_read))
+          return ConversionResult::WriteFailed;
+
+        bytes_read += bytes_to_read;
+        bytes_written += bytes_to_read;
+        ++groups_written;
+        if (!PadTo4(outfile, &bytes_written))
+          return ConversionResult::WriteFailed;
+
+        if (!run_callback())
+          return ConversionResult::Canceled;
+      }
+    }
   }
+
+  ASSERT(groups_written == total_groups);
+  ASSERT(bytes_read == iso_size);
 
   const u64 partition_entries_offset = bytes_written;
   const u64 partition_entries_size = partition_entries.size() * sizeof(PartitionEntry);
@@ -1002,7 +1264,16 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
   if (!PadTo4(outfile, &bytes_written))
     return ConversionResult::WriteFailed;
 
-  header_2.disc_type = 0;  // TODO
+  u32 disc_type = 0;
+  if (infile_volume)
+  {
+    if (infile_volume->GetVolumeType() == Platform::GameCubeDisc)
+      disc_type = 1;
+    else if (infile_volume->GetVolumeType() == Platform::WiiDisc)
+      disc_type = 2;
+  }
+
+  header_2.disc_type = Common::swap32(disc_type);
   header_2.compression_type = Common::swap32(static_cast<u32>(CompressionType::None));
   header_2.compression_level = 0;
   header_2.chunk_size = Common::swap32(static_cast<u32>(chunk_size));
@@ -1059,8 +1330,10 @@ bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
     return false;
   }
 
+  std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
+
   WIAFileReader::ConversionResult result =
-      WIAFileReader::ConvertToWIA(infile, &outfile, chunk_size, callback, arg);
+      WIAFileReader::ConvertToWIA(infile, infile_volume.get(), &outfile, chunk_size, callback, arg);
 
   if (result == WIAFileReader::ConversionResult::ReadFailed)
     PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
