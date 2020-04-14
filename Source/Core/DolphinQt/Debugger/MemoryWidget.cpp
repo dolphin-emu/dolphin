@@ -25,6 +25,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/AddressSpace.h"
 #include "DolphinQt/Debugger/MemoryViewWidget.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 
@@ -54,6 +55,7 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &MemoryWidget::Update);
 
   LoadSettings();
 

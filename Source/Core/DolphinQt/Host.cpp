@@ -19,6 +19,7 @@
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/State.h"
 
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
@@ -30,7 +31,15 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-Host::Host() = default;
+Host::Host()
+{
+  State::SetOnAfterLoadCallback([this] { Host_UpdateDisasmDialog(); });
+}
+
+Host::~Host()
+{
+  State::SetOnAfterLoadCallback(nullptr);
+}
 
 Host* Host::GetInstance()
 {

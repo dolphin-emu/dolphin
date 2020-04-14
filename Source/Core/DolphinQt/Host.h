@@ -18,6 +18,8 @@ class Host final : public QObject
   Q_OBJECT
 
 public:
+  ~Host();
+
   static Host* GetInstance();
 
   bool GetRenderFocus();
