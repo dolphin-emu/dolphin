@@ -98,12 +98,21 @@ public:
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const;
 
+  // The in parameter can either contain all the data to begin with,
+  // or read_function can write data into the in parameter when called.
+  // The latter lets reading run in parallel with hashing.
+  // This function returns false iff read_function returns false.
+  static bool HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GROUP],
+                        HashBlock out[BLOCKS_PER_GROUP],
+                        const std::function<bool(size_t block)>& read_function = {});
+
   static bool EncryptGroup(u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
                            const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
                            std::array<u8, GROUP_TOTAL_SIZE>* out,
                            const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
                                hash_exception_callback = {});
 
+  static void DecryptBlockHashes(const u8* in, HashBlock* out, mbedtls_aes_context* aes_context);
   static void DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context);
 
 protected:

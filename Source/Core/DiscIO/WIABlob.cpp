@@ -1068,6 +1068,7 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
+  const u64 exception_lists_per_chunk = chunk_size / VolumeWii::GROUP_TOTAL_SIZE;
 
   u64 bytes_read = 0;
   u64 bytes_written = 0;
@@ -1120,8 +1121,12 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
     return ConversionResult::ReadFailed;
   // We intentially do not increment bytes_read here, since these bytes will be read again
 
+  using WiiBlockData = std::array<u8, VolumeWii::BLOCK_DATA_SIZE>;
+
   std::vector<u8> buffer(chunk_size);
-  std::vector<u8> decryption_buffer(VolumeWii::BLOCK_DATA_SIZE);
+  std::vector<WiiBlockData> decryption_buffer(VolumeWii::BLOCKS_PER_GROUP);
+  std::vector<VolumeWii::HashBlock> hash_buffer(VolumeWii::BLOCKS_PER_GROUP);
+
   for (const DataEntry& data_entry : data_entries)
   {
     if (data_entry.is_partition)
@@ -1148,45 +1153,119 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
       {
         const u64 bytes_to_read = std::min<u64>(chunk_size, data_offset + data_size - bytes_read);
 
+        const u64 groups = Common::AlignUp(bytes_to_read, VolumeWii::GROUP_TOTAL_SIZE) /
+                           VolumeWii::GROUP_TOTAL_SIZE;
+
         ASSERT(bytes_to_read % VolumeWii::BLOCK_TOTAL_SIZE == 0);
-        const u64 bytes_to_write =
-            bytes_to_read / VolumeWii::BLOCK_TOTAL_SIZE * VolumeWii::BLOCK_DATA_SIZE;
+        const u64 blocks = bytes_to_read / VolumeWii::BLOCK_TOTAL_SIZE;
+        const u64 bytes_to_write = blocks * VolumeWii::BLOCK_DATA_SIZE;
 
         if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
           return ConversionResult::ReadFailed;
 
-        const u64 exception_lists = Common::AlignUp(bytes_to_read, VolumeWii::GROUP_TOTAL_SIZE) /
-                                    VolumeWii::GROUP_TOTAL_SIZE;
+        std::vector<std::vector<HashExceptionEntry>> exception_lists(exception_lists_per_chunk);
 
-        const u64 exceptions_size = Common::AlignUp(exception_lists * sizeof(u16), 4);
-        const u64 total_size = exceptions_size + bytes_to_write;
-        ASSERT((bytes_written & 3) == 0);
-        group_entries[i].data_offset = Common::swap32(static_cast<u32>(bytes_written >> 2));
-        group_entries[i].data_size = Common::swap32(static_cast<u32>(total_size));
-
-        for (u64 j = 0; j < exception_lists; ++j)
+        for (u64 j = 0; j < groups; ++j)
         {
-          const u16 exceptions = 0;
+          const u64 offset_of_group = j * VolumeWii::GROUP_TOTAL_SIZE;
+          const u64 write_offset_of_group = j * VolumeWii::GROUP_DATA_SIZE;
+
+          const u64 blocks_in_this_group =
+              std::min<u64>(VolumeWii::BLOCKS_PER_GROUP, blocks - j * VolumeWii::BLOCKS_PER_GROUP);
+
+          for (u32 k = 0; k < VolumeWii::BLOCKS_PER_GROUP; ++k)
+          {
+            if (k < blocks_in_this_group)
+            {
+              const u64 offset_of_block = offset_of_group + k * VolumeWii::BLOCK_TOTAL_SIZE;
+              VolumeWii::DecryptBlockData(buffer.data() + offset_of_block,
+                                          decryption_buffer[k].data(), &aes_context);
+            }
+            else
+            {
+              decryption_buffer[k].fill(0);
+            }
+          }
+
+          VolumeWii::HashGroup(decryption_buffer.data(), hash_buffer.data());
+
+          for (u64 k = 0; k < blocks_in_this_group; ++k)
+          {
+            const u64 offset_of_block = offset_of_group + k * VolumeWii::BLOCK_TOTAL_SIZE;
+            const u64 hash_offset_of_block = k * VolumeWii::BLOCK_HEADER_SIZE;
+
+            VolumeWii::HashBlock hashes;
+            VolumeWii::DecryptBlockHashes(buffer.data() + offset_of_block, &hashes, &aes_context);
+
+            const auto compare_hash = [&](size_t offset_in_block) {
+              ASSERT(offset_in_block + sizeof(SHA1) <= VolumeWii::BLOCK_HEADER_SIZE);
+
+              const u8* desired_hash = reinterpret_cast<u8*>(&hashes) + offset_in_block;
+              const u8* computed_hash = reinterpret_cast<u8*>(&hash_buffer[k]) + offset_in_block;
+
+              if (!std::equal(desired_hash, desired_hash + sizeof(SHA1), computed_hash))
+              {
+                const u64 hash_offset = hash_offset_of_block + offset_in_block;
+                ASSERT(hash_offset <= std::numeric_limits<u16>::max());
+
+                HashExceptionEntry& exception = exception_lists[j].emplace_back();
+                exception.offset = static_cast<u16>(Common::swap16(hash_offset));
+                std::memcpy(exception.hash.data(), desired_hash, sizeof(SHA1));
+              }
+            };
+
+            const auto compare_hashes = [&compare_hash](size_t offset, size_t size) {
+              for (size_t l = 0; l < size; l += sizeof(SHA1))
+                // The std::min is to ensure that we don't go beyond the end of HashBlock with
+                // padding_2, which is 32 bytes long (not divisible by sizeof(SHA1), which is 20).
+                compare_hash(offset + std::min(l, size - sizeof(SHA1)));
+            };
+
+            using HashBlock = VolumeWii::HashBlock;
+            compare_hashes(offsetof(HashBlock, h0), sizeof(HashBlock::h0));
+            compare_hashes(offsetof(HashBlock, padding_0), sizeof(HashBlock::padding_0));
+            compare_hashes(offsetof(HashBlock, h1), sizeof(HashBlock::h1));
+            compare_hashes(offsetof(HashBlock, padding_1), sizeof(HashBlock::padding_1));
+            compare_hashes(offsetof(HashBlock, h2), sizeof(HashBlock::h2));
+            compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
+          }
+
+          for (u64 k = 0; k < blocks_in_this_group; ++k)
+          {
+            std::memcpy(buffer.data() + write_offset_of_group + k * VolumeWii::BLOCK_DATA_SIZE,
+                        decryption_buffer[k].data(), VolumeWii::BLOCK_DATA_SIZE);
+          }
+        }
+
+        const u64 write_offset = bytes_written;
+
+        for (const std::vector<HashExceptionEntry>& exception_list : exception_lists)
+        {
+          const u16 exceptions = Common::swap16(static_cast<u16>(exception_list.size()));
           if (!outfile->WriteArray(&exceptions, 1))
             return ConversionResult::WriteFailed;
-          bytes_written += sizeof(u16);
+
+          if (!outfile->WriteArray(exception_list.data(), exception_list.size()))
+            return ConversionResult::WriteFailed;
+
+          bytes_written += sizeof(u16) + exception_list.size() * sizeof(HashExceptionEntry);
         }
 
         if (!PadTo4(outfile, &bytes_written))
           return ConversionResult::WriteFailed;
 
-        for (u64 j = 0; j < bytes_to_read; j += VolumeWii::BLOCK_TOTAL_SIZE)
-        {
-          VolumeWii::DecryptBlockData(buffer.data() + j, decryption_buffer.data(), &aes_context);
-          if (!outfile->WriteArray(decryption_buffer.data(), VolumeWii::BLOCK_DATA_SIZE))
-            return ConversionResult::WriteFailed;
-        }
+        if (!outfile->WriteArray(buffer.data(), bytes_to_write))
+          return ConversionResult::WriteFailed;
 
         bytes_read += bytes_to_read;
         bytes_written += bytes_to_write;
         ++groups_written;
         if (!PadTo4(outfile, &bytes_written))
           return ConversionResult::WriteFailed;
+
+        ASSERT((write_offset & 3) == 0);
+        group_entries[i].data_offset = Common::swap32(static_cast<u32>(write_offset >> 2));
+        group_entries[i].data_size = Common::swap32(static_cast<u32>(bytes_written - write_offset));
 
         if (!run_callback())
           return ConversionResult::Canceled;
