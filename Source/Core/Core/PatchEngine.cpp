@@ -28,6 +28,9 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Filesystem.h"
+#include "DiscIO/Volume.h"
+
 namespace PatchEngine
 {
 constexpr std::array<const char*, 3> s_patch_type_strings{{
@@ -37,15 +40,21 @@ constexpr std::array<const char*, 3> s_patch_type_strings{{
 }};
 
 static std::vector<Patch> s_on_frame;
+static std::vector<Patch> s_file_patches;
 static std::map<u32, int> s_speed_hacks;
+
+std::vector<Patch>& GetFilePatches()
+{
+  return s_file_patches;
+}
 
 const char* PatchTypeAsString(PatchType type)
 {
   return s_patch_type_strings.at(static_cast<int>(type));
 }
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, const IniFile& globalIni,
+                      const IniFile& localIni)
 {
   // Load the name of all enabled patches
   std::string enabledSectionName = section + "_Enabled";
@@ -87,6 +96,16 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
         currentPatch.name = line.substr(1, line.size() - 1);
         currentPatch.active = enabledNames.find(currentPatch.name) != enabledNames.end();
         currentPatch.user_defined = (ini == &localIni);
+      }
+      else if (line[0] == '/')
+      {
+        // Split multi-file patches
+        if (!currentPatch.path.empty())
+        {
+          patches.push_back(currentPatch);
+        }
+        currentPatch.entries.clear();
+        currentPatch.path = line.substr(1, line.size() - 1);
       }
       else
       {
@@ -165,6 +184,7 @@ void LoadPatches()
   IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
 
   LoadPatchSection("OnFrame", s_on_frame, globalIni, localIni);
+  LoadPatchSection("FilePatch", s_file_patches, globalIni, localIni);
 
   // Check if I'm syncing Codes
   if (Config::Get(Config::MAIN_CODE_SYNC_OVERRIDE))
@@ -179,6 +199,32 @@ void LoadPatches()
   }
 
   LoadSpeedhacks("Speedhacks", merged);
+}
+
+void SavePatches(IniFile& inifile, const std::vector<Patch>& patches)
+{
+  std::vector<std::string> lines;
+  std::vector<std::string> lines_enabled;
+
+  for (const auto& patch : patches)
+  {
+    if (patch.active)
+      lines_enabled.push_back("$" + patch.name);
+
+    if (!patch.user_defined)
+      continue;
+
+    lines.push_back("$" + patch.name);
+
+    for (const auto& entry : patch.entries)
+    {
+      lines.push_back(StringFromFormat("0x%08X:%s:0x%08X", entry.address,
+                                       PatchEngine::PatchTypeAsString(entry.type), entry.value));
+    }
+  }
+
+  inifile.SetLines("OnFrame_Enabled", lines_enabled);
+  inifile.SetLines("OnFrame", lines);
 }
 
 static void ApplyPatches(const std::vector<Patch>& patches)
@@ -261,6 +307,7 @@ bool ApplyFramePatches()
 void Shutdown()
 {
   s_on_frame.clear();
+  s_file_patches.clear();
   s_speed_hacks.clear();
   ActionReplay::ApplyCodes({});
   Gecko::Shutdown();

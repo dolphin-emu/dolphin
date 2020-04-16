@@ -49,10 +49,12 @@ add_executable(dolphin-emu
   Translation.h
   WiiUpdate.cpp
   WiiUpdate.h
-  Config/ARCodeWidget.cpp
-  Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
   Config/CheatCodeEditor.h
+  Config/CheatItem.cpp
+  Config/CheatItem.h
+  Config/CheatList.cpp
+  Config/CheatList.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp
@@ -69,8 +71,6 @@ add_executable(dolphin-emu
   Config/GameConfigHighlighter.h
   Config/GameConfigWidget.cpp
   Config/GameConfigWidget.h
-  Config/GeckoCodeWidget.cpp
-  Config/GeckoCodeWidget.h
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/AdvancedWidget.h
   Config/Graphics/EnhancementsWidget.cpp
@@ -154,10 +154,6 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuMotionControl.h
   Config/Mapping/WiimoteEmuMotionControlIMU.cpp
   Config/Mapping/WiimoteEmuMotionControlIMU.h
-  Config/NewPatchDialog.cpp
-  Config/NewPatchDialog.h
-  Config/PatchesWidget.cpp
-  Config/PatchesWidget.h
   Config/PropertiesDialog.cpp
   Config/PropertiesDialog.h
   Config/SettingsWindow.cpp
@@ -450,8 +446,8 @@ if(APPLE)
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(dolphin-emu)
   # Fix rpath
-  add_custom_command(TARGET dolphin-emu 
-    POST_BUILD COMMAND 
+  add_custom_command(TARGET dolphin-emu
+    POST_BUILD COMMAND
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
 else()

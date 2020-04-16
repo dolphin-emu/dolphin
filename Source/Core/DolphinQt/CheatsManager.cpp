@@ -31,8 +31,7 @@
 
 #include "UICommon/GameFile.h"
 
-#include "DolphinQt/Config/ARCodeWidget.h"
-#include "DolphinQt/Config/GeckoCodeWidget.h"
+#include "DolphinQt/Config/CheatList.h"
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
 
@@ -195,9 +194,9 @@ void CheatsManager::OnStateChanged(Core::State state)
         if (m_ar_code)
           m_ar_code->deleteLater();
 
-        m_ar_code = new ARCodeWidget(*m_game_file, false);
+        m_ar_code = new CheatList(*m_game_file, CheatType::ARCode, false);
         m_tab_widget->insertTab(0, m_ar_code, tr("AR Code"));
-        m_tab_widget->insertTab(1, new GeckoCodeWidget(*m_game_file, false), tr("Gecko Codes"));
+        m_tab_widget->insertTab(1, new CheatList(*m_game_file, CheatType::GeckoCode, false), tr("Gecko Codes"));
       }
     }
   }

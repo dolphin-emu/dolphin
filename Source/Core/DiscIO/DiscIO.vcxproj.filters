@@ -57,6 +57,9 @@
     <ClCompile Include="VolumeFileBlobReader.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
+    <ClCompile Include="OverlayVolume.cpp">
+      <Filter>Volume</Filter>
+    </ClCompile>
     <ClCompile Include="VolumeGC.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
@@ -115,6 +118,9 @@
     </ClInclude>
     <ClInclude Include="WbfsBlob.h">
       <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="OverlayVolume.h">
+      <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="Volume.h">
       <Filter>Volume</Filter>

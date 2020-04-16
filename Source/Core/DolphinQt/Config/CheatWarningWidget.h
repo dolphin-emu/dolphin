@@ -15,7 +15,7 @@ class CheatWarningWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit CheatWarningWidget(const std::string& game_id, bool restart_required, QWidget* parent);
+  explicit CheatWarningWidget(const std::string& game_id, bool is_cheat, bool restart_required, QWidget* parent);
 
 signals:
   void OpenCheatEnableSettings();
@@ -30,4 +30,5 @@ private:
   QPushButton* m_config_button;
   const std::string m_game_id;
   bool m_restart_required;
+  bool m_is_cheat;
 };

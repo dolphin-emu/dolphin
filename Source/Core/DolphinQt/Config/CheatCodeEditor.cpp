@@ -9,12 +9,14 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QString>
 #include <QStringList>
 #include <QTextEdit>
 
 #include "Core/ARDecrypt.h"
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCodeConfig.h"
+#include "Core/PatchEngine.h"
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
@@ -49,6 +51,7 @@ void CheatCodeEditor::SetARCode(ActionReplay::ARCode* code)
 
   m_ar_code = code;
   m_gecko_code = nullptr;
+  m_patch = nullptr;
 }
 
 void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
@@ -78,6 +81,40 @@ void CheatCodeEditor::SetGeckoCode(Gecko::GeckoCode* code)
 
   m_gecko_code = code;
   m_ar_code = nullptr;
+  m_patch = nullptr;
+}
+
+QStringList s_patch_types = { QStringLiteral("byte"), QStringLiteral("word"), QStringLiteral("dword") };
+
+void CheatCodeEditor::SetDolphinPatch(PatchEngine::Patch* patch)
+{
+  m_name_edit->setText(QString::fromStdString(patch->name));
+
+  QString code_string;
+
+  //QString type[] = { QStringLiteral("byte"), QStringLiteral("word"), QStringLiteral("dword") };
+  int length[] = { 2, 4, 8 };
+
+  for (const auto& e : patch->entries)
+  {
+    size_t idx = static_cast<size_t>(e.type);
+    assert(idx <= 3);
+    code_string += QStringLiteral("0x%1:%2:0x%3\n")
+                       .arg(e.address, 8, 16, QLatin1Char('0'))
+                       .arg(s_patch_types[idx])
+                       .arg(e.value, length[idx], 16, QLatin1Char('0'));
+  }
+
+  m_code_edit->setText(code_string);
+
+  m_creator_label->setHidden(true);
+  m_creator_edit->setHidden(true);
+  m_notes_label->setHidden(true);
+  m_notes_edit->setHidden(true);
+
+  m_gecko_code = nullptr;
+  m_ar_code = nullptr;
+  m_patch = patch;
 }
 
 void CheatCodeEditor::CreateWidgets()
@@ -297,9 +334,77 @@ bool CheatCodeEditor::AcceptGecko()
   return true;
 }
 
+bool CheatCodeEditor::AcceptPatch()
+{
+  std::vector<PatchEngine::PatchEntry> entries;
+
+  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
+
+  for (int i = 0; i < lines.size(); i++) {
+    QString line = lines[i];
+
+    if (line.isEmpty())
+      continue;
+
+    QStringList values = line.split(QLatin1Char{':'});
+
+    bool good = values.size() == 3;
+
+    u32 addr = 0;
+    int type = -1;
+    u32 value = 0;
+
+    if (good)
+      addr = values[0].toUInt(&good, 16);
+
+    if (good)
+    {
+      type = s_patch_types.indexOf(values[1].toLower());
+      good = type != -1;
+    }
+
+    if (good)
+      value = values[2].toUInt(&good, 16);
+
+    if (!good)
+    {
+      auto result = ModalMessageBox::warning(
+          this, tr("Parsing Error"),
+          tr("Unable to parse line %1 the patch as valid. Make sure you"
+             "typed it correctly.\n\n"
+             "Would you like to ignore this line and continue parsing?")
+              .arg(i + 1),
+          QMessageBox::Ok | QMessageBox::Abort);
+
+      if (result == QMessageBox::Abort)
+        return false;
+    }
+    else
+    {
+      entries.emplace_back(PatchEngine::PatchType(type), addr, value);
+    }
+
+  }
+
+  if (entries.empty())
+  {
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The patch doesn't contain any lines."));
+    return false;
+  }
+
+  m_patch->name = m_name_edit->text().toStdString();
+  m_patch->entries = entries;
+  m_patch->user_defined = true;
+
+  return true;
+}
+
 void CheatCodeEditor::accept()
 {
-  bool success = m_gecko_code != nullptr ? AcceptGecko() : AcceptAR();
+  bool success = (m_gecko_code != nullptr && AcceptGecko())
+              || (m_ar_code != nullptr && AcceptAR())
+              || (m_patch != nullptr && AcceptPatch());
 
   if (success)
     QDialog::accept();

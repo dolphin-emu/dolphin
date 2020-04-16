@@ -31,8 +31,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/PatchEngine.h"
 
 #include "DiscIO/Enums.h"
+#include "DiscIO/OverlayVolume.h"
 #include "DiscIO/Volume.h"
 
 namespace DVDThread
@@ -87,7 +89,8 @@ static Common::SPSCQueue<ReadRequest, false> s_request_queue;
 static Common::SPSCQueue<ReadResult, false> s_result_queue;
 static std::map<u64, ReadResult> s_result_map;
 
-static std::unique_ptr<DiscIO::Volume> s_disc;
+static std::unique_ptr<DiscIO::VolumeDisc> s_disc;
+static std::map<u64, std::vector<u8>> s_disc_patches;
 
 void Start()
 {
@@ -175,10 +178,23 @@ void DoState(PointerWrap& p)
   // was made. Handling that properly may be more effort than it's worth.
 }
 
-void SetDisc(std::unique_ptr<DiscIO::Volume> disc)
+void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc)
 {
+  // Apply any file patches
+  auto filePatches = PatchEngine::GetFilePatches();
+  if (!filePatches.empty() && disc)
+  {
+    disc = std::make_unique<DiscIO::OverlayVolumeDisc>(std::move(disc), filePatches);
+  }
+
   WaitUntilIdle();
   s_disc = std::move(disc);
+}
+
+// UGLY, but at least this makes it obvious what is actually happening.
+DiscIO::VolumeDisc* GetDiscVolume()
+{
+  return s_disc.get();
 }
 
 bool HasDisc()

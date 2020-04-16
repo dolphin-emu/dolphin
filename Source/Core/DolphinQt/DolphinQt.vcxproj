@@ -75,14 +75,14 @@
     <QtMoc Include="AboutDialog.h" />
     <QtMoc Include="CheatsManager.h" />
     <QtMoc Include="Config\CheatCodeEditor.h" />
-    <QtMoc Include="Config\ARCodeWidget.h" />
+    <QtMoc Include="Config\CheatItem.h" />
+    <QtMoc Include="Config\CheatList.h" />
     <QtMoc Include="Config\CheatWarningWidget.h" />
     <QtMoc Include="Config\ControllersWindow.h" />
     <QtMoc Include="Config\FilesystemWidget.h" />
     <QtMoc Include="Config\GameConfigEdit.h" />
     <QtMoc Include="Config\GameConfigHighlighter.h" />
     <QtMoc Include="Config\GameConfigWidget.h" />
-    <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Mapping\GCKeyboardEmu.h" />
     <QtMoc Include="Config\Mapping\GCMicrophone.h" />
     <QtMoc Include="Config\Mapping\GCPadEmu.h" />
@@ -110,7 +110,6 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
     <QtMoc Include="Config\LogConfigWidget.h" />
     <QtMoc Include="Config\LogWidget.h" />
-    <QtMoc Include="Config\NewPatchDialog.h" />
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
@@ -127,7 +126,6 @@
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\InfoWidget.h" />
-    <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
     <QtMoc Include="Config\VerifyWidget.h" />
@@ -193,7 +191,6 @@
   </ItemGroup>
   <!--TODO figure out how to get QtMoc to add outputs to ClCompile's inputs...-->
   <ItemGroup>
-    <ClCompile Include="$(QtMocOutPrefix)ARCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AboutDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)AdvancedWidget.cpp" />
@@ -202,6 +199,8 @@
     <ClCompile Include="$(QtMocOutPrefix)BlockUserInputFilter.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)BreakpointWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatCodeEditor.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CheatItem.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)CheatList.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatWarningWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CheatsManager.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
@@ -234,7 +233,6 @@
     <ClCompile Include="$(QtMocOutPrefix)GameListDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameListModel.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GameTracker.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)GeckoCodeWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GeneralWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)GraphicsBool.cpp" />
@@ -280,9 +278,7 @@
     <ClCompile Include="$(QtMocOutPrefix)NetPlayDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewBreakpointDialog.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)NewPatchDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
-    <ClCompile Include="$(QtMocOutPrefix)PatchesWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PatchInstructionDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathPane.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PostProcessingConfigWindow.cpp" />
@@ -313,7 +309,8 @@
     <ClCompile Include="AboutDialog.cpp" />
     <ClCompile Include="CheatsManager.cpp" />
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
-    <ClCompile Include="Config\ARCodeWidget.cpp" />
+    <ClCompile Include="Config\CheatItem.cpp" />
+    <ClCompile Include="Config\CheatList.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
@@ -322,7 +319,6 @@
     <ClCompile Include="Config\GameConfigEdit.cpp" />
     <ClCompile Include="Config\GameConfigHighlighter.cpp" />
     <ClCompile Include="Config\GameConfigWidget.cpp" />
-    <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
@@ -365,8 +361,6 @@
     <ClCompile Include="Config\Mapping\WiimoteEmuMotionControlIMU.cpp" />
     <ClCompile Include="Config\LogConfigWidget.cpp" />
     <ClCompile Include="Config\LogWidget.cpp" />
-    <ClCompile Include="Config\NewPatchDialog.cpp" />
-    <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
     <ClCompile Include="Config\VerifyWidget.cpp" />

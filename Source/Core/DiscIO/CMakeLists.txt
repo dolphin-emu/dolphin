@@ -23,6 +23,8 @@ add_library(discio
   Filesystem.h
   NANDImporter.cpp
   NANDImporter.h
+  OverlayVolume.cpp
+  OverlayVolume.h
   TGCBlob.cpp
   TGCBlob.h
   Volume.cpp
