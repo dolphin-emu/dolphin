@@ -1309,7 +1309,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         // Remove stale EFB/XFB copies.
         g_texture_cache->Cleanup(m_frame_count);
-        Core::Callback_VideoCopiedToXFB(true);
+        Core::Callback_FramePresented();
       }
 
       // Handle any config changes, this gets propogated to the backend.
