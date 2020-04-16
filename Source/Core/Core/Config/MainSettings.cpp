@@ -74,7 +74,7 @@ ConfigInfo<bool> GetInfoForSimulateKonga(u32 channel)
   return {{System::Main, "Core", fmt::format("SimulateKonga{}", channel)}, false};
 }
 
-const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, false};
+const ConfigInfo<bool> MAIN_WII_SD_CARD{{System::Main, "Core", "WiiSDCard"}, true};
 const ConfigInfo<bool> MAIN_WII_SD_CARD_WRITABLE{{System::Main, "Core", "WiiSDCardWritable"}, true};
 const ConfigInfo<bool> MAIN_WII_KEYBOARD{{System::Main, "Core", "WiiKeyboard"}, false};
 const ConfigInfo<bool> MAIN_WIIMOTE_CONTINUOUS_SCANNING{

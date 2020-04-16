@@ -510,7 +510,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
     core->Get(fmt::format("AdapterRumble{}", i), &m_AdapterRumble[i], true);
     core->Get(fmt::format("SimulateKonga{}", i), &m_AdapterKonga[i], false);
   }
-  core->Get("WiiSDCard", &m_WiiSDCard, false);
+  core->Get("WiiSDCard", &m_WiiSDCard, true);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
   core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);
   core->Get("WiimoteEnableSpeaker", &m_WiimoteEnableSpeaker, false);
