@@ -44,10 +44,10 @@
   [self.m_cheats_switch setEnabled:!running];
   [self.m_mismatched_region_switch setEnabled:!running];
   
-/*#ifdef DEBUG
+#ifdef DEBUG
   [self.m_statistics_switch setEnabled:false];
   [self.m_crash_report_switch setEnabled:false];
-#endif*/
+#endif
 }
 
 - (IBAction)DualCoreChanged:(id)sender
