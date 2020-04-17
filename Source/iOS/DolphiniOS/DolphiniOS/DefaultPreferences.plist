@@ -20,5 +20,7 @@
 	<string>/tmp/dummy</string>
 	<key>last_game_state_version</key>
 	<integer>0</integer>
+	<key>crash_reporting_enabled</key>
+	<true/>
 </dict>
 </plist>
