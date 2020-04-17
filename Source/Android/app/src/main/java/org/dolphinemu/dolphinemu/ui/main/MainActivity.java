@@ -155,6 +155,13 @@ public final class MainActivity extends AppCompatActivity implements MainView
             FileBrowserHelper.GAME_EXTENSIONS);
   }
 
+  @Override
+  public void launchInstallWAD()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
+            FileBrowserHelper.WAD_EXTENSION);
+  }
+
   /**
    * @param requestCode An int describing whether the Activity that is returning did so successfully.
    * @param resultCode  An int describing what Activity is giving us this callback.
@@ -179,6 +186,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_WAD_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
         }
         break;
     }

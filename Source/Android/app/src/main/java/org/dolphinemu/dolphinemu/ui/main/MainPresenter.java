@@ -4,10 +4,12 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.widget.Toast;
 
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
@@ -18,6 +20,7 @@ public final class MainPresenter
   public static final int REQUEST_DIRECTORY = 1;
   public static final int REQUEST_GAME_FILE = 2;
   public static final int REQUEST_SD_FILE = 3;
+  public static final int REQUEST_WAD_FILE = 4;
 
   private final MainView mView;
   private final Context mContext;
@@ -92,6 +95,10 @@ public final class MainPresenter
       case R.id.menu_open_file:
         mView.launchOpenFileActivity();
         return true;
+
+      case R.id.menu_install_wad:
+        mView.launchInstallWAD();
+        return true;
     }
 
     return false;
@@ -110,5 +117,17 @@ public final class MainPresenter
   public void onDirectorySelected(String dir)
   {
     mDirToAdd = dir;
+  }
+
+  public void installWAD(String file)
+  {
+    if (NativeLibrary.InstallWAD(file))
+    {
+      Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT).show();
+    }
+    else
+    {
+      Toast.makeText(mContext, R.string.wad_install_failure, Toast.LENGTH_SHORT).show();
+    }
   }
 }
