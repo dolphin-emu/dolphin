@@ -6,6 +6,8 @@
 #import <AppCenterAnalytics/AppCenterAnalytics.h>
 #import <AppCenterCrashes/AppCenterCrashes.h>
 
+#import "AnalyticsNoticeViewController.h"
+
 #import "AppDelegate.h"
 
 #import "Common/Config/Config.h"
@@ -75,15 +77,6 @@
       return true;
     }
   }
-#endif
-  
-#ifndef DEBUG
-  // Activate AppCenter analytics
-  DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
-  [MSAppCenter start:[keys appCenterSecret] withServices:@[
-    [MSAnalytics class],
-    [MSCrashes class]
-  ]];
 #endif
   
   // Default settings values should be set in DefaultPreferences.plist in the future
@@ -191,6 +184,11 @@
 #endif
   }
   
+  if (!SConfig::GetInstance().m_analytics_permission_asked)
+  {
+    [nav_controller pushViewController:[[AnalyticsNoticeViewController alloc] initWithNibName:@"AnalyticsNotice" bundle:nil] animated:true];
+  }
+  
   // Present if the navigation controller isn't empty
   if ([[nav_controller viewControllers] count] != 0)
   {
@@ -247,6 +245,18 @@
   
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
+  
+#ifndef DEBUG
+  // Activate AppCenter analytics
+  DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
+  [MSAppCenter start:[keys appCenterSecret] withServices:@[
+    [MSAnalytics class],
+    [MSCrashes class]
+  ]];
+  
+  [MSAnalytics setEnabled:SConfig::GetInstance().m_analytics_enabled];
+  [MSCrashes setEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
+#endif
   
   return YES;
 }

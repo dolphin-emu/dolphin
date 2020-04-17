@@ -96,6 +96,8 @@
 		B988D80423B801F40092CB6C /* TouchGCPadProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D80223B801F40092CB6C /* TouchGCPadProfile.ini */; };
 		B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */ = {isa = PBXBuildFile; fileRef = B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */; };
 		B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */; };
+		B98911A12444F12200A24522 /* AnalyticsNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B98911A02444F12200A24522 /* AnalyticsNotice.xib */; };
+		B98911A4244521E400A24522 /* AnalyticsNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98911A3244521E400A24522 /* AnalyticsNoticeViewController.mm */; };
 		B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */; };
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
@@ -398,6 +400,9 @@
 		B988D80623B83AB40092CB6C /* ControllerDsuClientViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDsuClientViewController.h; sourceTree = "<group>"; };
 		B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerDsuClientViewController.mm; sourceTree = "<group>"; };
 		B989119E244451D300A24522 /* StringUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StringUtils.h; sourceTree = "<group>"; };
+		B98911A02444F12200A24522 /* AnalyticsNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = AnalyticsNotice.xib; path = DolphiniOS/UI/Notices/Analytics/AnalyticsNotice.xib; sourceTree = SOURCE_ROOT; };
+		B98911A2244521E400A24522 /* AnalyticsNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AnalyticsNoticeViewController.h; sourceTree = "<group>"; };
+		B98911A3244521E400A24522 /* AnalyticsNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AnalyticsNoticeViewController.mm; sourceTree = "<group>"; };
 		B989DFC423B48B7D005C7773 /* ControllerGroupDoubleCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerGroupDoubleCell.h; sourceTree = "<group>"; };
 		B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerGroupDoubleCell.mm; sourceTree = "<group>"; };
 		B989DFC823B4ADF0005C7773 /* ControllerExtensionsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionsViewController.h; sourceTree = "<group>"; };
@@ -660,6 +665,7 @@
 		B924DCA923DAD40700831A1A /* Notices */ = {
 			isa = PBXGroup;
 			children = (
+				B989119F2444F0F900A24522 /* Analytics */,
 				B9B536D323DE604A00F03106 /* Donation */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
@@ -882,6 +888,16 @@
 				B988D7FC23B604AB0092CB6C /* ControllerProfileCell.m */,
 			);
 			path = Profile;
+			sourceTree = "<group>";
+		};
+		B989119F2444F0F900A24522 /* Analytics */ = {
+			isa = PBXGroup;
+			children = (
+				B98911A2244521E400A24522 /* AnalyticsNoticeViewController.h */,
+				B98911A3244521E400A24522 /* AnalyticsNoticeViewController.mm */,
+				B98911A02444F12200A24522 /* AnalyticsNotice.xib */,
+			);
+			path = Analytics;
 			sourceTree = "<group>";
 		};
 		B989DFC723B4ADA7005C7773 /* Extensions */ = {
@@ -1319,6 +1335,7 @@
 				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
+				B98911A12444F12200A24522 /* AnalyticsNotice.xib in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
 				B988D80423B801F40092CB6C /* TouchGCPadProfile.ini in Resources */,
 				B945A3832362909500B21680 /* LaunchScreen.storyboard in Resources */,
@@ -1539,6 +1556,7 @@
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
 				B9B47C8B23FB86B40077375A /* InternalResolutionViewController.mm in Sources */,
+				B98911A4244521E400A24522 /* AnalyticsNoticeViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
 				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,
 				B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */,
