@@ -4,6 +4,8 @@
 
 #import "EmulationViewController.h"
 
+#import <AppCenterAnalytics/AppCenterAnalytics.h>
+
 #import "ControllerSettingsUtils.h"
 
 #import "Common/FileUtil.h"
@@ -103,6 +105,10 @@
 
 - (void)StartEmulation
 {
+  [MSAnalytics trackEvent:@"game-start" withProperties:@{
+    @"game-uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier())
+  }];
+
   [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
   [[TCDeviceMotion shared] stopMotionUpdates];
