@@ -156,11 +156,18 @@
     PowerPC::CPUCore core_type;
     dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
     
-    if (core_type != PowerPC::CPUCore::JITARM64)
+    PowerPC::CPUCore correct_core;
+#if !TARGET_OS_SIMULATOR
+    correct_core = PowerPC::CPUCore::JITARM64;
+#else
+    correct_core = PowerPC::CPUCore::JIT64;
+#endif
+    
+    if (core_type != correct_core)
     {
       // Reset the CPUCore
-      SConfig::GetInstance().cpu_core = PowerPC::CPUCore::JITARM64;
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::CPUCore::JITARM64);
+      SConfig::GetInstance().cpu_core = correct_core;
+      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
       
       [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
     }
