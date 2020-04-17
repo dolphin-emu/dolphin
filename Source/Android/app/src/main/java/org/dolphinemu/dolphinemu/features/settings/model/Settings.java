@@ -181,6 +181,7 @@ public class Settings
 
       // Notify the native code of the changes
       NativeLibrary.ReloadConfig();
+      NativeLibrary.ReloadWiimoteConfig();
     }
     else
     {
