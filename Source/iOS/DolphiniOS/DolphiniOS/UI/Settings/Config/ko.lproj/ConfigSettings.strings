@@ -235,3 +235,18 @@
 
 /* Class = "UINavigationItem"; title = "인터페이스"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "인터페이스";
+
+/* Class = "UITableViewSection"; headerTitle = "사용 통계 보고 설정"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "사용 통계 보고 설정";
+
+/* Class = "UILabel"; text = "사용 통계 보고 활성화"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "사용 통계 보고 활성화";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "새로운 통계 식별자 생성"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "새로운 통계 식별자 생성";
+
+/* Class = "UITableViewSection"; headerTitle = "기본 설정"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "기본 설정";

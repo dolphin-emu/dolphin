@@ -4,6 +4,11 @@
 
 #import "ConfigGeneralViewController.h"
 
+#import <AppCenterAnalytics/MSAnalytics.h>
+
+#import <AppCenterCrashes/MSCrashes.h>
+
+#import "Core/Analytics.h"
 #import "Core/Config/MainSettings.h"
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
@@ -17,7 +22,6 @@
 // Skipped settings:
 // "Show Current Game on Discord" - no Discord integration on iOS
 // "Auto Update Settings" (all) - auto-update not supported with Cydia
-// "Usage Statistics Reporting Settings" - no analytics server available for iOS
 
 - (void)viewDidLoad
 {
@@ -32,11 +36,18 @@
   [self.m_cheats_switch setOn:SConfig::GetInstance().bEnableCheats];
   [self.m_mismatched_region_switch setOn:SConfig::GetInstance().bOverrideRegionSettings];
   [self.m_change_discs_switch setOn:Config::Get(Config::MAIN_AUTO_DISC_CHANGE)];
+  [self.m_statistics_switch setOn:SConfig::GetInstance().m_analytics_enabled];
+  [self.m_crash_report_switch setOn:[MSCrashes isEnabled]];
   
   bool running = Core::GetState() != Core::State::Uninitialized;
   [self.m_dual_core_switch setEnabled:!running];
   [self.m_cheats_switch setEnabled:!running];
   [self.m_mismatched_region_switch setEnabled:!running];
+  
+/*#ifdef DEBUG
+  [self.m_statistics_switch setEnabled:false];
+  [self.m_crash_report_switch setEnabled:false];
+#endif*/
 }
 
 - (IBAction)DualCoreChanged:(id)sender
@@ -61,6 +72,32 @@
 - (IBAction)ChangeDiscsChanged:(id)sender
 {
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, [self.m_change_discs_switch isOn]);
+}
+
+- (IBAction)StatisticsChanged:(id)sender
+{
+  SConfig::GetInstance().m_analytics_enabled = [self.m_statistics_switch isOn];
+  DolphinAnalytics::Instance().ReloadConfig();
+  [MSAnalytics setEnabled:[self.m_statistics_switch isOn]];
+}
+
+- (IBAction)CrashReportingChanged:(id)sender
+{
+  [MSCrashes setEnabled:[self.m_crash_report_switch isOn]];
+}
+
+- (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  if (indexPath.section == 1 && indexPath.row == 2)
+  {
+    DolphinAnalytics::Instance().GenerateNewIdentity();
+    DolphinAnalytics::Instance().ReloadConfig();
+    
+    UIAlertController* alert_controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Identity Generation") message:DOLocalizedString(@"New identity generated.") preferredStyle:UIAlertControllerStyleAlert];
+    [alert_controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [self presentViewController:alert_controller animated:true completion:nil];
+  }
 }
 
 @end
