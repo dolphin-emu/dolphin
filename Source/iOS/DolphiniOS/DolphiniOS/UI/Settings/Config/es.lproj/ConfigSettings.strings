@@ -235,3 +235,18 @@
 
 /* Class = "UINavigationItem"; title = "Interfaz"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Interfaz";
+
+/* Class = "UITableViewSection"; headerTitle = "Ajustes de envíos estadísticos"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "Ajustes de envíos estadísticos";
+
+/* Class = "UILabel"; text = "Informar de estadísticas de uso"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "Informar de estadísticas de uso";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "Generar un nuevo identificador para estadísticas"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "Generar un nuevo identificador para estadísticas";
+
+/* Class = "UITableViewSection"; headerTitle = "Configuración básica"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "Configuración básica";

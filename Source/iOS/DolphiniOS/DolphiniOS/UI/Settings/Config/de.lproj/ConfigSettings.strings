@@ -235,3 +235,18 @@
 
 /* Class = "UINavigationItem"; title = "Benutzeroberfläche"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Benutzeroberfläche";
+
+/* Class = "UITableViewSection"; headerTitle = "Einstellungen zur Berichterstattung von Nutzungsdaten"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "Einstellungen zur Berichterstattung von Nutzungsdaten";
+
+/* Class = "UILabel"; text = "Berichterstattung für Nutzungsdaten aktivieren"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "Berichterstattung für Nutzungsdaten aktivieren";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "Neue Statistikidentität erzeugen"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "Neue Statistikidentität erzeugen";
+
+/* Class = "UITableViewSection"; headerTitle = "Grundeinstellungen"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "Grundeinstellungen";

@@ -235,3 +235,18 @@
 
 /* Class = "UINavigationItem"; title = "Interface"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Interface";
+
+/* Class = "UITableViewSection"; headerTitle = "Gebruiksstatistieken Rapportageinstellingen"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "Gebruiksstatistieken Rapportageinstellingen";
+
+/* Class = "UILabel"; text = "Activeer Gebruiksstatistieken Rapportering"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "Activeer Gebruiksstatistieken Rapportering";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "Genereer een nieuwe statistieken identiteit"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "Genereer een nieuwe statistieken identiteit";
+
+/* Class = "UITableViewSection"; headerTitle = "Basis Instellingen"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "Basis Instellingen";

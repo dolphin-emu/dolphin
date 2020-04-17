@@ -12,6 +12,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UISwitch* m_cheats_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_mismatched_region_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_change_discs_switch;
+@property (weak, nonatomic) IBOutlet UISwitch* m_statistics_switch;
+@property (weak, nonatomic) IBOutlet UISwitch* m_crash_report_switch;
 
 @end
 

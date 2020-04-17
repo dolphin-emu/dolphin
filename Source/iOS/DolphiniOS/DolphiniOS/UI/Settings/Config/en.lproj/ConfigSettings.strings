@@ -235,3 +235,18 @@
 
 /* Class = "UILabel"; text = "Cached Interpreter (slower)"; ObjectID = "s3k-Uc-UWw"; */
 "s3k-Uc-UWw.text" = "Cached Interpreter (slower)";
+
+/* Class = "UITableViewSection"; headerTitle = "Usage Statistics Reporting Settings"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "Usage Statistics Reporting Settings";
+
+/* Class = "UILabel"; text = "Enable Usage Statistics Reporting"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "Enable Usage Statistics Reporting";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "Generate a New Statistics Identity"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "Generate a New Statistics Identity";
+
+/* Class = "UITableViewSection"; headerTitle = "Basic Settings"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "Basic Settings";
