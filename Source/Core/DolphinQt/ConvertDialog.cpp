@@ -26,6 +26,7 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/ScrubbedBlob.h"
+#include "DiscIO/WIABlob.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "UICommon/GameFile.h"
@@ -70,9 +71,17 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Block Size:")), 1, 0);
   grid_layout->addWidget(m_block_size, 1, 1);
 
+  m_compression = new QComboBox;
+  grid_layout->addWidget(new QLabel(tr("Compression:")), 2, 0);
+  grid_layout->addWidget(m_compression, 2, 1);
+
+  m_compression_level = new QComboBox;
+  grid_layout->addWidget(new QLabel(tr("Compression Level:")), 3, 0);
+  grid_layout->addWidget(m_compression_level, 3, 1);
+
   m_scrub = new QCheckBox;
-  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 2, 0);
-  grid_layout->addWidget(m_scrub, 2, 1);
+  grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
+  grid_layout->addWidget(m_scrub, 4, 1);
   m_scrub->setEnabled(
       std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc)));
 
@@ -108,14 +117,27 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 
   connect(m_format, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
           &ConvertDialog::OnFormatChanged);
+  connect(m_compression, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+          &ConvertDialog::OnCompressionChanged);
   connect(convert_button, &QPushButton::clicked, this, &ConvertDialog::Convert);
 
   OnFormatChanged();
+  OnCompressionChanged();
 }
 
 void ConvertDialog::AddToBlockSizeComboBox(int size)
 {
   m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
+}
+
+void ConvertDialog::AddToCompressionComboBox(const QString& name, DiscIO::WIACompressionType type)
+{
+  m_compression->addItem(name, static_cast<int>(type));
+}
+
+void ConvertDialog::AddToCompressionLevelComboBox(int level)
+{
+  m_compression_level->addItem(QString::number(level), level);
 }
 
 void ConvertDialog::OnFormatChanged()
@@ -131,6 +153,9 @@ void ConvertDialog::OnFormatChanged()
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
 
   m_block_size->clear();
+  m_compression->clear();
+
+  // Populate m_block_size
   switch (format)
   {
   case DiscIO::BlobType::GCZ:
@@ -181,7 +206,57 @@ void ConvertDialog::OnFormatChanged()
     break;
   }
 
+  // Populate m_compression
+  switch (format)
+  {
+  case DiscIO::BlobType::GCZ:
+    m_compression->setEnabled(true);
+    AddToCompressionComboBox(QStringLiteral("Deflate"), DiscIO::WIACompressionType::None);
+    break;
+  case DiscIO::BlobType::WIA:
+  {
+    m_compression->setEnabled(true);
+
+    // i18n: %1 is the name of a compression method (e.g. LZMA)
+    const QString slow = tr("%1 (slow)");
+
+    AddToCompressionComboBox(tr("No Compression"), DiscIO::WIACompressionType::None);
+    AddToCompressionComboBox(QStringLiteral("Purge"), DiscIO::WIACompressionType::Purge);
+    AddToCompressionComboBox(slow.arg(QStringLiteral("bzip2")), DiscIO::WIACompressionType::Bzip2);
+    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA")), DiscIO::WIACompressionType::LZMA);
+    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA2")), DiscIO::WIACompressionType::LZMA2);
+
+    break;
+  }
+  default:
+    m_compression->setEnabled(false);
+    break;
+  }
+
   m_block_size->setEnabled(m_block_size->count() > 1);
+  m_compression->setEnabled(m_compression->count() > 1);
+}
+
+void ConvertDialog::OnCompressionChanged()
+{
+  m_compression_level->clear();
+
+  switch (static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt()))
+  {
+  case DiscIO::WIACompressionType::Bzip2:
+  case DiscIO::WIACompressionType::LZMA:
+  case DiscIO::WIACompressionType::LZMA2:
+    for (int i = 1; i <= 9; ++i)
+      AddToCompressionLevelComboBox(i);
+
+    m_compression_level->setCurrentIndex(4);
+
+    break;
+  default:
+    break;
+  }
+
+  m_compression_level->setEnabled(m_compression_level->count() > 1);
 }
 
 bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
@@ -200,6 +275,9 @@ void ConvertDialog::Convert()
 {
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
   const int block_size = m_block_size->currentData().toInt();
+  const DiscIO::WIACompressionType compression =
+      static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt());
+  const int compression_level = m_compression_level->currentData().toInt();
   const bool scrub = m_scrub->isChecked();
 
   if (scrub && format == DiscIO::BlobType::PLAIN)
@@ -369,9 +447,9 @@ void ConvertDialog::Convert()
       else if (format == DiscIO::BlobType::WIA)
       {
         good = std::async(std::launch::async, [&] {
-          const bool good =
-              DiscIO::ConvertToWIA(blob_reader.get(), original_path, dst_path.toStdString(),
-                                   block_size, &CompressCB, &progress_dialog);
+          const bool good = DiscIO::ConvertToWIA(
+              blob_reader.get(), original_path, dst_path.toStdString(), compression,
+              compression_level, block_size, &CompressCB, &progress_dialog);
           progress_dialog.Reset();
           return good;
         });

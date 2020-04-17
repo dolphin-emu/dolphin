@@ -24,6 +24,15 @@ namespace DiscIO
 {
 class VolumeDisc;
 
+enum class WIACompressionType : u32
+{
+  None = 0,
+  Purge = 1,
+  Bzip2 = 2,
+  LZMA = 3,
+  LZMA2 = 4,
+};
+
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
 
 class WIAFileReader : public BlobReader
@@ -56,21 +65,13 @@ public:
   };
 
   static ConversionResult ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
-                                       File::IOFile* outfile, int chunk_size, CompressCB callback,
+                                       File::IOFile* outfile, WIACompressionType compression_type,
+                                       int compression_level, int chunk_size, CompressCB callback,
                                        void* arg);
 
 private:
   using SHA1 = std::array<u8, 20>;
   using WiiKey = std::array<u8, 16>;
-
-  enum class CompressionType : u32
-  {
-    None = 0,
-    Purge = 1,
-    Bzip2 = 2,
-    LZMA = 3,
-    LZMA2 = 4,
-  };
 
   // See docs/WIA.md for details about the format
 
@@ -253,6 +254,88 @@ private:
     bool m_error_occurred = false;
   };
 
+  class Compressor
+  {
+  public:
+    virtual ~Compressor();
+
+    // First call Start, then AddDataOnlyForPurgeHashing/Compress any number of times,
+    // then End, then GetData/GetSize any number of times.
+
+    virtual bool Start() = 0;
+    virtual bool AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size) { return true; }
+    virtual bool Compress(const u8* data, size_t size) = 0;
+    virtual bool End() = 0;
+
+    virtual const u8* GetData() const = 0;
+    virtual size_t GetSize() const = 0;
+  };
+
+  class PurgeCompressor final : public Compressor
+  {
+  public:
+    PurgeCompressor();
+    ~PurgeCompressor();
+
+    bool Start() override;
+    bool AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size) override;
+    bool Compress(const u8* data, size_t size) override;
+    bool End() override;
+
+    const u8* GetData() const override;
+    size_t GetSize() const override;
+
+  private:
+    std::vector<u8> m_buffer;
+    size_t m_bytes_written;
+    mbedtls_sha1_context m_sha1_context;
+  };
+
+  class Bzip2Compressor final : public Compressor
+  {
+  public:
+    Bzip2Compressor(int compression_level);
+    ~Bzip2Compressor();
+
+    bool Start() override;
+    bool Compress(const u8* data, size_t size) override;
+    bool End() override;
+
+    const u8* GetData() const override;
+    size_t GetSize() const override;
+
+  private:
+    void ExpandBuffer(size_t bytes_to_add);
+
+    bz_stream m_stream = {};
+    std::vector<u8> m_buffer;
+    int m_compression_level;
+  };
+
+  class LZMACompressor final : public Compressor
+  {
+  public:
+    LZMACompressor(bool lzma2, int compression_level, u8 compressor_data_out[7],
+                   u8* compressor_data_size_out);
+    ~LZMACompressor();
+
+    bool Start() override;
+    bool Compress(const u8* data, size_t size) override;
+    bool End() override;
+
+    const u8* GetData() const override;
+    size_t GetSize() const override;
+
+  private:
+    void ExpandBuffer(size_t bytes_to_add);
+
+    lzma_stream m_stream = LZMA_STREAM_INIT;
+    lzma_options_lzma m_options = {};
+    lzma_filter m_filters[2];
+    std::vector<u8> m_buffer;
+    bool m_initialization_failed = false;
+  };
+
   class Chunk
   {
   public:
@@ -304,6 +387,8 @@ private:
 
   static std::string VersionToString(u32 version);
 
+  static u32 LZMA2DictionarySize(u8 p);
+
   static bool PadTo4(File::IOFile* file, u64* bytes_written);
   static void AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
                               std::vector<RawDataEntry>* raw_data_entries,
@@ -317,9 +402,27 @@ private:
                                                      std::vector<PartitionEntry>* partition_entries,
                                                      std::vector<RawDataEntry>* raw_data_entries,
                                                      std::vector<DataEntry>* data_entries);
+  static ConversionResult CompressAndWriteGroup(File::IOFile* file, u64* bytes_written,
+                                                std::vector<GroupEntry>* group_entries,
+                                                size_t* groups_written, Compressor* compressor,
+                                                bool compressed_exception_lists,
+                                                const std::vector<u8>& exception_lists,
+                                                const std::vector<u8>& main_data);
+  static ConversionResult CompressAndWrite(File::IOFile* file, u64* bytes_written,
+                                           Compressor* compressor, const u8* data, size_t size,
+                                           size_t* size_out);
+
+  template <typename T>
+  static void PushBack(std::vector<u8>* vector, const T& x)
+  {
+    const size_t offset_in_vector = vector->size();
+    vector->resize(offset_in_vector + sizeof(T));
+    const u8* x_ptr = reinterpret_cast<const u8*>(&x);
+    std::copy(x_ptr, x_ptr + sizeof(T), vector->data() + offset_in_vector);
+  }
 
   bool m_valid;
-  CompressionType m_compression_type;
+  WIACompressionType m_compression_type;
 
   File::IOFile m_file;
   Chunk m_cached_chunk;

@@ -25,6 +25,8 @@
 
 namespace DiscIO
 {
+enum class WIACompressionType : u32;
+
 // Increment CACHE_REVISION (GameFileCache.cpp) if the enum below is modified
 enum class BlobType
 {
@@ -174,7 +176,8 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
                     const std::string& outfile_path, CompressCB callback = nullptr,
                     void* arg = nullptr);
 bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, int chunk_size, CompressCB callback = nullptr,
+                  const std::string& outfile_path, WIACompressionType compression_type,
+                  int compression_level, int chunk_size, CompressCB callback = nullptr,
                   void* arg = nullptr);
 
 }  // namespace DiscIO

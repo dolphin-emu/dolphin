@@ -100,8 +100,8 @@ bool WIAFileReader::Initialize(const std::string& path)
     return false;
 
   const u32 compression_type = Common::swap32(m_header_2.compression_type);
-  m_compression_type = static_cast<CompressionType>(compression_type);
-  if (m_compression_type > CompressionType::LZMA2)
+  m_compression_type = static_cast<WIACompressionType>(compression_type);
+  if (m_compression_type > WIACompressionType::LZMA2)
   {
     ERROR_LOG(DISCIO, "Unsupported WIA compression type %u in %s", compression_type, path.c_str());
     return false;
@@ -429,26 +429,26 @@ WIAFileReader::Chunk& WIAFileReader::ReadCompressedData(u64 offset_in_file, u64 
   std::unique_ptr<Decompressor> decompressor;
   switch (m_compression_type)
   {
-  case CompressionType::None:
+  case WIACompressionType::None:
     decompressor = std::make_unique<NoneDecompressor>();
     break;
-  case CompressionType::Purge:
+  case WIACompressionType::Purge:
     decompressor = std::make_unique<PurgeDecompressor>(decompressed_size);
     break;
-  case CompressionType::Bzip2:
+  case WIACompressionType::Bzip2:
     decompressor = std::make_unique<Bzip2Decompressor>();
     break;
-  case CompressionType::LZMA:
+  case WIACompressionType::LZMA:
     decompressor = std::make_unique<LZMADecompressor>(false, m_header_2.compressor_data,
                                                       m_header_2.compressor_data_size);
     break;
-  case CompressionType::LZMA2:
+  case WIACompressionType::LZMA2:
     decompressor = std::make_unique<LZMADecompressor>(true, m_header_2.compressor_data,
                                                       m_header_2.compressor_data_size);
     break;
   }
 
-  const bool compressed_exception_lists = m_compression_type > CompressionType::Purge;
+  const bool compressed_exception_lists = m_compression_type > WIACompressionType::Purge;
 
   m_cached_chunk = Chunk(&m_file, offset_in_file, compressed_size, decompressed_size,
                          exception_lists, compressed_exception_lists, std::move(decompressor));
@@ -467,6 +467,11 @@ std::string WIAFileReader::VersionToString(u32 version)
     return StringFromFormat("%u.%02x.%02x", a, b, c);
   else
     return StringFromFormat("%u.%02x.%02x.beta%u", a, b, c, d);
+}
+
+u32 WIAFileReader::LZMA2DictionarySize(u8 p)
+{
+  return (static_cast<u32>(2) | (p & 1)) << (p / 2 + 11);
 }
 
 WIAFileReader::Decompressor::~Decompressor() = default;
@@ -659,7 +664,7 @@ WIAFileReader::LZMADecompressor::LZMADecompressor(bool lzma2, const u8* filter_o
     if (d > 40)
       m_error_occurred = true;
     else
-      m_options.dict_size = d == 40 ? 0xFFFFFFFF : (static_cast<u32>(2) | (d & 1)) << (d / 2 + 11);
+      m_options.dict_size = d == 40 ? 0xFFFFFFFF : LZMA2DictionarySize(d);
   }
   else
   {
@@ -704,6 +709,303 @@ bool WIAFileReader::LZMADecompressor::Decompress(const DecompressionBuffer& in,
 
   m_done = result == LZMA_STREAM_END;
   return result == LZMA_OK || result == LZMA_STREAM_END;
+}
+
+WIAFileReader::Compressor::~Compressor() = default;
+
+WIAFileReader::PurgeCompressor::PurgeCompressor()
+{
+  mbedtls_sha1_init(&m_sha1_context);
+}
+
+WIAFileReader::PurgeCompressor::~PurgeCompressor() = default;
+
+bool WIAFileReader::PurgeCompressor::Start()
+{
+  m_buffer.clear();
+  m_bytes_written = 0;
+
+  mbedtls_sha1_starts_ret(&m_sha1_context);
+
+  return true;
+}
+
+bool WIAFileReader::PurgeCompressor::AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size)
+{
+  mbedtls_sha1_update_ret(&m_sha1_context, data, size);
+  return true;
+}
+
+bool WIAFileReader::PurgeCompressor::Compress(const u8* data, size_t size)
+{
+  // We could add support for calling this twice if we're fine with
+  // making the code more complicated, but there's no need to support it
+  ASSERT_MSG(DISCIO, m_bytes_written == 0,
+             "Calling PurgeCompressor::Compress() twice is not supported");
+
+  m_buffer.resize(size + sizeof(PurgeSegment) + sizeof(SHA1));
+
+  size_t bytes_read = 0;
+
+  while (true)
+  {
+    const auto first_non_zero =
+        std::find_if(data + bytes_read, data + size, [](u8 x) { return x != 0; });
+
+    const u32 non_zero_data_start = static_cast<u32>(first_non_zero - data);
+    if (non_zero_data_start == size)
+      break;
+
+    size_t non_zero_data_end = non_zero_data_start;
+    size_t sequence_length = 0;
+    for (size_t i = non_zero_data_start; i < size; ++i)
+    {
+      if (data[i] == 0)
+      {
+        ++sequence_length;
+      }
+      else
+      {
+        sequence_length = 0;
+        non_zero_data_end = i + 1;
+      }
+
+      // To avoid wasting space, only count runs of zeroes that are of a certain length
+      // (unless there is nothing after the run of zeroes, then we might as well always count it)
+      if (sequence_length > sizeof(PurgeSegment))
+        break;
+    }
+
+    const u32 non_zero_data_length = static_cast<u32>(non_zero_data_end - non_zero_data_start);
+
+    const PurgeSegment segment{Common::swap32(non_zero_data_start),
+                               Common::swap32(non_zero_data_length)};
+    std::memcpy(m_buffer.data() + m_bytes_written, &segment, sizeof(segment));
+    m_bytes_written += sizeof(segment);
+
+    std::memcpy(m_buffer.data() + m_bytes_written, data + non_zero_data_start,
+                non_zero_data_length);
+    m_bytes_written += non_zero_data_length;
+
+    bytes_read = non_zero_data_end;
+  }
+
+  return true;
+}
+
+bool WIAFileReader::PurgeCompressor::End()
+{
+  mbedtls_sha1_update_ret(&m_sha1_context, m_buffer.data(), m_bytes_written);
+
+  mbedtls_sha1_finish_ret(&m_sha1_context, m_buffer.data() + m_bytes_written);
+  m_bytes_written += sizeof(SHA1);
+
+  ASSERT(m_bytes_written <= m_buffer.size());
+
+  return true;
+}
+
+const u8* WIAFileReader::PurgeCompressor::GetData() const
+{
+  return m_buffer.data();
+}
+
+size_t WIAFileReader::PurgeCompressor::GetSize() const
+{
+  return m_bytes_written;
+}
+
+WIAFileReader::Bzip2Compressor::Bzip2Compressor(int compression_level)
+    : m_compression_level(compression_level)
+{
+}
+
+WIAFileReader::Bzip2Compressor::~Bzip2Compressor()
+{
+  BZ2_bzCompressEnd(&m_stream);
+}
+
+bool WIAFileReader::Bzip2Compressor::Start()
+{
+  ASSERT_MSG(DISCIO, m_stream.state == nullptr,
+             "Called Bzip2Compressor::Start() twice without calling Bzip2Compressor::End()");
+
+  m_buffer.clear();
+  m_stream.next_out = reinterpret_cast<char*>(m_buffer.data());
+
+  return BZ2_bzCompressInit(&m_stream, m_compression_level, 0, 0) == BZ_OK;
+}
+
+bool WIAFileReader::Bzip2Compressor::Compress(const u8* data, size_t size)
+{
+  m_stream.next_in = reinterpret_cast<char*>(const_cast<u8*>(data));
+  m_stream.avail_in = static_cast<unsigned int>(size);
+
+  ExpandBuffer(size);
+
+  while (m_stream.avail_in != 0)
+  {
+    if (m_stream.avail_out == 0)
+      ExpandBuffer(0x100);
+
+    if (BZ2_bzCompress(&m_stream, BZ_RUN) != BZ_RUN_OK)
+      return false;
+  }
+
+  return true;
+}
+
+bool WIAFileReader::Bzip2Compressor::End()
+{
+  bool success = true;
+
+  while (true)
+  {
+    if (m_stream.avail_out == 0)
+      ExpandBuffer(0x100);
+
+    const int result = BZ2_bzCompress(&m_stream, BZ_FINISH);
+    if (result != BZ_FINISH_OK && result != BZ_STREAM_END)
+      success = false;
+    if (result != BZ_FINISH_OK)
+      break;
+  }
+
+  if (BZ2_bzCompressEnd(&m_stream) != BZ_OK)
+    success = false;
+
+  return success;
+}
+
+void WIAFileReader::Bzip2Compressor::ExpandBuffer(size_t bytes_to_add)
+{
+  const size_t bytes_written = GetSize();
+  m_buffer.resize(m_buffer.size() + bytes_to_add);
+  m_stream.next_out = reinterpret_cast<char*>(m_buffer.data()) + bytes_written;
+  m_stream.avail_out = static_cast<unsigned int>(m_buffer.size() - bytes_written);
+}
+
+const u8* WIAFileReader::Bzip2Compressor::GetData() const
+{
+  return m_buffer.data();
+}
+
+size_t WIAFileReader::Bzip2Compressor::GetSize() const
+{
+  return static_cast<size_t>(reinterpret_cast<u8*>(m_stream.next_out) - m_buffer.data());
+}
+
+WIAFileReader::LZMACompressor::LZMACompressor(bool lzma2, int compression_level,
+                                              u8 compressor_data_out[7],
+                                              u8* compressor_data_size_out)
+{
+  // lzma_lzma_preset returns false on success for some reason
+  if (lzma_lzma_preset(&m_options, static_cast<uint32_t>(compression_level)))
+  {
+    m_initialization_failed = true;
+    return;
+  }
+
+  if (!lzma2)
+  {
+    *compressor_data_size_out = 5;
+
+    ASSERT(m_options.lc < 9);
+    ASSERT(m_options.lp < 5);
+    ASSERT(m_options.pb < 5);
+    compressor_data_out[0] = static_cast<u8>((m_options.pb * 5 + m_options.lp) * 9 + m_options.lc);
+
+    // The dictionary size is stored as a 32-bit little endian unsigned integer
+    static_assert(sizeof(m_options.dict_size) == sizeof(u32));
+    std::memcpy(compressor_data_out + 1, &m_options.dict_size, sizeof(u32));
+  }
+  else
+  {
+    *compressor_data_size_out = 1;
+
+    u8 encoded_dict_size = 0;
+    while (encoded_dict_size < 40 && m_options.dict_size > LZMA2DictionarySize(encoded_dict_size))
+      ++encoded_dict_size;
+
+    compressor_data_out[0] = encoded_dict_size;
+  }
+
+  m_filters[0].id = lzma2 ? LZMA_FILTER_LZMA2 : LZMA_FILTER_LZMA1;
+  m_filters[0].options = &m_options;
+  m_filters[1].id = LZMA_VLI_UNKNOWN;
+  m_filters[1].options = nullptr;
+}
+
+WIAFileReader::LZMACompressor::~LZMACompressor()
+{
+  lzma_end(&m_stream);
+}
+
+bool WIAFileReader::LZMACompressor::Start()
+{
+  if (m_initialization_failed)
+    return false;
+
+  m_buffer.clear();
+  m_stream.next_out = m_buffer.data();
+
+  return lzma_raw_encoder(&m_stream, m_filters) == LZMA_OK;
+}
+
+bool WIAFileReader::LZMACompressor::Compress(const u8* data, size_t size)
+{
+  m_stream.next_in = data;
+  m_stream.avail_in = size;
+
+  ExpandBuffer(size);
+
+  while (m_stream.avail_in != 0)
+  {
+    if (m_stream.avail_out == 0)
+      ExpandBuffer(0x100);
+
+    if (lzma_code(&m_stream, LZMA_RUN) != LZMA_OK)
+      return false;
+  }
+
+  return true;
+}
+
+bool WIAFileReader::LZMACompressor::End()
+{
+  while (true)
+  {
+    if (m_stream.avail_out == 0)
+      ExpandBuffer(0x100);
+
+    switch (lzma_code(&m_stream, LZMA_FINISH))
+    {
+    case LZMA_OK:
+      break;
+    case LZMA_STREAM_END:
+      return true;
+    default:
+      return false;
+    }
+  }
+}
+
+void WIAFileReader::LZMACompressor::ExpandBuffer(size_t bytes_to_add)
+{
+  const size_t bytes_written = GetSize();
+  m_buffer.resize(m_buffer.size() + bytes_to_add);
+  m_stream.next_out = m_buffer.data() + bytes_written;
+  m_stream.avail_out = m_buffer.size() - bytes_written;
+}
+
+const u8* WIAFileReader::LZMACompressor::GetData() const
+{
+  return m_buffer.data();
+}
+
+size_t WIAFileReader::LZMACompressor::GetSize() const
+{
+  return static_cast<size_t>(m_stream.next_out - m_buffer.data());
 }
 
 WIAFileReader::Chunk::Chunk() = default;
@@ -1059,29 +1361,161 @@ WIAFileReader::ConversionResult WIAFileReader::SetUpDataEntriesForWriting(
   return ConversionResult::Success;
 }
 
-WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
-                                                            const VolumeDisc* infile_volume,
-                                                            File::IOFile* outfile, int chunk_size,
-                                                            CompressCB callback, void* arg)
+WIAFileReader::ConversionResult WIAFileReader::CompressAndWriteGroup(
+    File::IOFile* file, u64* bytes_written, std::vector<GroupEntry>* group_entries,
+    size_t* groups_written, Compressor* compressor, bool compressed_exception_lists,
+    const std::vector<u8>& exception_lists, const std::vector<u8>& main_data)
+{
+  const u64 data_offset = *bytes_written;
+
+  if (compressor)
+  {
+    if (!compressor->Start())
+      return ConversionResult::InternalError;
+  }
+
+  if (!exception_lists.empty())
+  {
+    if (compressed_exception_lists && compressor)
+    {
+      if (!compressor->Compress(exception_lists.data(), exception_lists.size()))
+        return ConversionResult::InternalError;
+    }
+    else
+    {
+      *bytes_written += exception_lists.size();
+      if (!file->WriteArray(exception_lists.data(), exception_lists.size()))
+        return ConversionResult::WriteFailed;
+
+      const u64 offset_of_padding = *bytes_written;
+      if (!compressed_exception_lists)
+      {
+        if (!PadTo4(file, bytes_written))
+          return ConversionResult::WriteFailed;
+      }
+      const u64 padding_written = *bytes_written - offset_of_padding;
+
+      // Some extra stuff we have to do because Purge for some reason is supposed to hash
+      // the exception lists and the following padding but not actually compress them...
+      if (compressor)
+      {
+        if (!compressor->AddPrecedingDataOnlyForPurgeHashing(exception_lists.data(),
+                                                             exception_lists.size()))
+        {
+          return ConversionResult::InternalError;
+        }
+
+        constexpr u32 ZEROES = 0;
+        if (!compressor->AddPrecedingDataOnlyForPurgeHashing(reinterpret_cast<u8*>(ZEROES),
+                                                             padding_written))
+        {
+          return ConversionResult::InternalError;
+        }
+      }
+    }
+  }
+
+  if (compressor)
+  {
+    if (!compressor->Compress(main_data.data(), main_data.size()))
+      return ConversionResult::InternalError;
+    if (!compressor->End())
+      return ConversionResult::InternalError;
+  }
+
+  const u8* data = compressor ? compressor->GetData() : main_data.data();
+  const size_t size = compressor ? compressor->GetSize() : main_data.size();
+
+  *bytes_written += size;
+  if (!file->WriteArray(data, size))
+    return ConversionResult::WriteFailed;
+
+  if (*bytes_written >> 2 > std::numeric_limits<u32>::max())
+    return ConversionResult::InternalError;
+
+  ASSERT((data_offset & 3) == 0);
+  GroupEntry& group_entry = (*group_entries)[*groups_written];
+  group_entry.data_offset = Common::swap32(static_cast<u32>(data_offset >> 2));
+  group_entry.data_size = Common::swap32(static_cast<u32>(*bytes_written - data_offset));
+  ++*groups_written;
+
+  if (!PadTo4(file, bytes_written))
+    return ConversionResult::WriteFailed;
+
+  return ConversionResult::Success;
+}
+
+WIAFileReader::ConversionResult
+WIAFileReader::CompressAndWrite(File::IOFile* file, u64* bytes_written, Compressor* compressor,
+                                const u8* data, size_t size, size_t* size_out)
+{
+  if (compressor)
+  {
+    if (!compressor->Start() || !compressor->Compress(data, size) || !compressor->End())
+      return ConversionResult::InternalError;
+
+    data = compressor->GetData();
+    size = compressor->GetSize();
+  }
+
+  *size_out = size;
+
+  *bytes_written += size;
+  if (!file->WriteArray(data, size))
+    return ConversionResult::WriteFailed;
+
+  if (!PadTo4(file, bytes_written))
+    return ConversionResult::WriteFailed;
+
+  return ConversionResult::Success;
+}
+
+WIAFileReader::ConversionResult
+WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
+                            File::IOFile* outfile, WIACompressionType compression_type,
+                            int compression_level, int chunk_size, CompressCB callback, void* arg)
 {
   ASSERT(infile->IsDataSizeAccurate());
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
   const u64 exception_lists_per_chunk = chunk_size / VolumeWii::GROUP_TOTAL_SIZE;
+  const bool compressed_exception_lists = compression_type > WIACompressionType::Purge;
 
   u64 bytes_read = 0;
   u64 bytes_written = 0;
   size_t groups_written = 0;
 
-  // These two headers will be filled in with proper values at the very end
-  WIAHeader1 header_1;
-  WIAHeader2 header_2;
+  // These two headers will be filled in with proper values later
+  WIAHeader1 header_1{};
+  WIAHeader2 header_2{};
   if (!outfile->WriteArray(&header_1, 1) || !outfile->WriteArray(&header_2, 1))
     return ConversionResult::WriteFailed;
   bytes_written += sizeof(WIAHeader1) + sizeof(WIAHeader2);
   if (!PadTo4(outfile, &bytes_written))
     return ConversionResult::WriteFailed;
+
+  std::unique_ptr<Compressor> compressor;
+  switch (compression_type)
+  {
+  case WIACompressionType::None:
+    compressor = nullptr;
+    break;
+  case WIACompressionType::Purge:
+    compressor = std::make_unique<PurgeCompressor>();
+    break;
+  case WIACompressionType::Bzip2:
+    compressor = std::make_unique<Bzip2Compressor>(compression_level);
+    break;
+  case WIACompressionType::LZMA:
+    compressor = std::make_unique<LZMACompressor>(
+        false, compression_level, header_2.compressor_data, &header_2.compressor_data_size);
+    break;
+  case WIACompressionType::LZMA2:
+    compressor = std::make_unique<LZMACompressor>(true, compression_level, header_2.compressor_data,
+                                                  &header_2.compressor_data_size);
+    break;
+  }
 
   std::vector<PartitionEntry> partition_entries;
   std::vector<RawDataEntry> raw_data_entries;
@@ -1123,9 +1557,16 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
 
   using WiiBlockData = std::array<u8, VolumeWii::BLOCK_DATA_SIZE>;
 
-  std::vector<u8> buffer(chunk_size);
-  std::vector<WiiBlockData> decryption_buffer(VolumeWii::BLOCKS_PER_GROUP);
-  std::vector<VolumeWii::HashBlock> hash_buffer(VolumeWii::BLOCKS_PER_GROUP);
+  std::vector<u8> buffer;
+  std::vector<u8> exceptions_buffer;
+  std::vector<WiiBlockData> decryption_buffer;
+  std::vector<VolumeWii::HashBlock> hash_buffer;
+
+  if (!partition_entries.empty())
+  {
+    decryption_buffer.resize(VolumeWii::BLOCKS_PER_GROUP);
+    hash_buffer.resize(VolumeWii::BLOCKS_PER_GROUP);
+  }
 
   for (const DataEntry& data_entry : data_entries)
   {
@@ -1160,8 +1601,10 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
         const u64 blocks = bytes_to_read / VolumeWii::BLOCK_TOTAL_SIZE;
         const u64 bytes_to_write = blocks * VolumeWii::BLOCK_DATA_SIZE;
 
+        buffer.resize(bytes_to_read);
         if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
           return ConversionResult::ReadFailed;
+        bytes_read += bytes_to_read;
 
         std::vector<std::vector<HashExceptionEntry>> exception_lists(exception_lists_per_chunk);
 
@@ -1237,35 +1680,23 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
           }
         }
 
-        const u64 write_offset = bytes_written;
-
+        exceptions_buffer.clear();
         for (const std::vector<HashExceptionEntry>& exception_list : exception_lists)
         {
           const u16 exceptions = Common::swap16(static_cast<u16>(exception_list.size()));
-          if (!outfile->WriteArray(&exceptions, 1))
-            return ConversionResult::WriteFailed;
-
-          if (!outfile->WriteArray(exception_list.data(), exception_list.size()))
-            return ConversionResult::WriteFailed;
-
-          bytes_written += sizeof(u16) + exception_list.size() * sizeof(HashExceptionEntry);
+          PushBack(&exceptions_buffer, exceptions);
+          for (const HashExceptionEntry& exception : exception_list)
+            PushBack(&exceptions_buffer, exception);
         }
 
-        if (!PadTo4(outfile, &bytes_written))
-          return ConversionResult::WriteFailed;
+        buffer.resize(bytes_to_write);
 
-        if (!outfile->WriteArray(buffer.data(), bytes_to_write))
-          return ConversionResult::WriteFailed;
+        const ConversionResult write_result = CompressAndWriteGroup(
+            outfile, &bytes_written, &group_entries, &groups_written, compressor.get(),
+            compressed_exception_lists, exceptions_buffer, buffer);
 
-        bytes_read += bytes_to_read;
-        bytes_written += bytes_to_write;
-        ++groups_written;
-        if (!PadTo4(outfile, &bytes_written))
-          return ConversionResult::WriteFailed;
-
-        ASSERT((write_offset & 3) == 0);
-        group_entries[i].data_offset = Common::swap32(static_cast<u32>(write_offset >> 2));
-        group_entries[i].data_size = Common::swap32(static_cast<u32>(bytes_written - write_offset));
+        if (write_result != ConversionResult::Success)
+          return write_result;
 
         if (!run_callback())
           return ConversionResult::Canceled;
@@ -1288,27 +1719,24 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
       ASSERT(groups_written == first_group);
       ASSERT(bytes_read == data_offset);
 
+      exceptions_buffer.clear();
+
       for (u32 i = first_group; i < last_group; ++i)
       {
         const u64 bytes_to_read = std::min<u64>(chunk_size, data_offset + data_size - bytes_read);
 
-        if (bytes_written >> 2 > std::numeric_limits<u32>::max())
-          return ConversionResult::InternalError;
-
-        ASSERT((bytes_written & 3) == 0);
-        group_entries[i].data_offset = Common::swap32(static_cast<u32>(bytes_written >> 2));
-        group_entries[i].data_size = Common::swap32(static_cast<u32>(bytes_to_read));
+        buffer.resize(bytes_to_read);
 
         if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
           return ConversionResult::ReadFailed;
-        if (!outfile->WriteArray(buffer.data(), bytes_to_read))
-          return ConversionResult::WriteFailed;
-
         bytes_read += bytes_to_read;
-        bytes_written += bytes_to_read;
-        ++groups_written;
-        if (!PadTo4(outfile, &bytes_written))
-          return ConversionResult::WriteFailed;
+
+        const ConversionResult write_result = CompressAndWriteGroup(
+            outfile, &bytes_written, &group_entries, &groups_written, compressor.get(),
+            compressed_exception_lists, exceptions_buffer, buffer);
+
+        if (write_result != ConversionResult::Success)
+          return write_result;
 
         if (!run_callback())
           return ConversionResult::Canceled;
@@ -1328,20 +1756,16 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
     return ConversionResult::WriteFailed;
 
   const u64 raw_data_entries_offset = bytes_written;
-  const u64 raw_data_entries_size = raw_data_entries.size() * sizeof(RawDataEntry);
-  if (!outfile->WriteArray(raw_data_entries.data(), raw_data_entries.size()))
-    return ConversionResult::WriteFailed;
-  bytes_written += raw_data_entries_size;
-  if (!PadTo4(outfile, &bytes_written))
-    return ConversionResult::WriteFailed;
+  size_t raw_data_entries_size = raw_data_entries.size() * sizeof(RawDataEntry);
+  const ConversionResult raw_data_result = CompressAndWrite(
+      outfile, &bytes_written, compressor.get(), reinterpret_cast<u8*>(raw_data_entries.data()),
+      raw_data_entries_size, &raw_data_entries_size);
 
   const u64 group_entries_offset = bytes_written;
-  const u64 group_entries_size = group_entries.size() * sizeof(GroupEntry);
-  if (!outfile->WriteArray(group_entries.data(), group_entries.size()))
-    return ConversionResult::WriteFailed;
-  bytes_written += group_entries_size;
-  if (!PadTo4(outfile, &bytes_written))
-    return ConversionResult::WriteFailed;
+  size_t group_entries_size = group_entries.size() * sizeof(GroupEntry);
+  const ConversionResult groups_result = CompressAndWrite(
+      outfile, &bytes_written, compressor.get(), reinterpret_cast<u8*>(group_entries.data()),
+      group_entries_size, &group_entries_size);
 
   u32 disc_type = 0;
   if (infile_volume)
@@ -1353,8 +1777,8 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
   }
 
   header_2.disc_type = Common::swap32(disc_type);
-  header_2.compression_type = Common::swap32(static_cast<u32>(CompressionType::None));
-  header_2.compression_level = 0;
+  header_2.compression_type = Common::swap32(static_cast<u32>(compression_type));
+  header_2.compression_level = Common::swap32(static_cast<u32>(compression_level));
   header_2.chunk_size = Common::swap32(static_cast<u32>(chunk_size));
 
   header_2.number_of_partition_entries = Common::swap32(static_cast<u32>(partition_entries.size()));
@@ -1373,9 +1797,6 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
   header_2.number_of_group_entries = Common::swap32(static_cast<u32>(group_entries.size()));
   header_2.group_entries_offset = Common::swap64(group_entries_offset);
   header_2.group_entries_size = Common::swap32(static_cast<u32>(group_entries_size));
-
-  header_2.compressor_data_size = 0;
-  std::fill(std::begin(header_2.compressor_data), std::end(header_2.compressor_data), 0);
 
   header_1.magic = WIA_MAGIC;
   header_1.version = Common::swap32(WIA_VERSION);
@@ -1397,7 +1818,8 @@ WIAFileReader::ConversionResult WIAFileReader::ConvertToWIA(BlobReader* infile,
 }
 
 bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, int chunk_size, CompressCB callback, void* arg)
+                  const std::string& outfile_path, WIACompressionType compression_type,
+                  int compression_level, int chunk_size, CompressCB callback, void* arg)
 {
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -1411,8 +1833,9 @@ bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
 
   std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
 
-  WIAFileReader::ConversionResult result =
-      WIAFileReader::ConvertToWIA(infile, infile_volume.get(), &outfile, chunk_size, callback, arg);
+  const WIAFileReader::ConversionResult result =
+      WIAFileReader::ConvertToWIA(infile, infile_volume.get(), &outfile, compression_type,
+                                  compression_level, chunk_size, callback, arg);
 
   if (result == WIAFileReader::ConversionResult::ReadFailed)
     PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
