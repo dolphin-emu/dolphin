@@ -24,6 +24,10 @@
   [super viewWillDisappear:animated];
   
   EmulationViewController* emulation_controller = (EmulationViewController*)[MainiOS getEmulationViewController];
+  if (!emulation_controller)
+  {
+    return;
+  }
   
   bool was_dict_empty = emulation_controller->m_controllers.size() == 0;
   [emulation_controller PopulatePortDictionary];
