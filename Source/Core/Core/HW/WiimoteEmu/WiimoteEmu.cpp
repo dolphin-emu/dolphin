@@ -823,9 +823,9 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
 
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(
-             extra_rotation * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
-                                                  m_cursor_state.angle)) *
+         Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
+                                        GetRotationalMatrix(-m_cursor_state.angle) *
+                                        GetRotationalMatrix(-m_swing_state.angle)) *
          Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
 }
 
