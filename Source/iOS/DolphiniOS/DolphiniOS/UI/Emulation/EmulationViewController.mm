@@ -53,8 +53,8 @@
   {
     // Save the last game information
     NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:[NSString stringWithCString:self.m_game_file->GetLongName().c_str() encoding:NSUTF8StringEncoding] forKey:@"last_game_title"];
-    [defaults setObject:[NSString stringWithCString:self.m_game_file->GetFilePath().c_str() encoding:NSUTF8StringEncoding] forKey:@"last_game_path"];
+    [defaults setObject:CppToFoundationString(self.m_game_file->GetLongName()) forKey:@"last_game_title"];
+    [defaults setObject:CppToFoundationString(self.m_game_file->GetFilePath()) forKey:@"last_game_path"];
     [defaults setInteger:State::GetVersion() forKey:@"last_game_state_version"];
   }
   
