@@ -296,7 +296,7 @@ private:
   // Dynamics:
   MotionState m_swing_state;
   RotationalState m_tilt_state;
-  MotionState m_cursor_state;
+  MotionState m_point_state;
   PositionalState m_shake_state;
 
   IMUCursorState m_imu_cursor_state;

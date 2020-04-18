@@ -216,7 +216,7 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
        u16(std::clamp(std::lround(scaled_accel.z + zero_g), 0l, MAX_VALUE))});
 }
 
-void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
 {
   const auto cursor = ir_group->GetState(true);
 
