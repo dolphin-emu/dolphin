@@ -36,10 +36,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong, nonatomic) IBOutlet UIScreenEdgePanGestureRecognizer* m_edge_pan_recognizer;
 
+@property (weak, nonatomic) IBOutlet UINavigationItem* m_navigation_item;
+
 @property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
 @property(nonatomic) int m_ts_active_port;
 @property(weak, nonatomic) TCView* m_ts_active_view;
+@property(nonatomic) UIBarButtonItem* m_stop_button;
+@property(nonatomic) UIBarButtonItem* m_pause_button;
+@property(nonatomic) UIBarButtonItem* m_play_button;
 
 - (void)PopulatePortDictionary;
 - (void)ChangeVisibleTouchControllerToPort:(int)port;

@@ -11,6 +11,7 @@
 #import "Common/FileUtil.h"
 
 #import "Core/ConfigManager.h"
+#import "Core/Core.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
 #import "Core/HW/WiimoteEmu/Extension/Classic.h"
@@ -99,6 +100,16 @@
   {
     [self.m_edge_pan_recognizer setEnabled:false];
   }
+  
+  // Create right bar button items
+  self.m_stop_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(StopButtonPressed:)];
+  self.m_pause_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause target:self action:@selector(PauseButtonPressed:)];
+  self.m_play_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPlay target:self action:@selector(PlayButtonPressed:)];
+  
+  self.m_navigation_item.rightBarButtonItems = @[
+    self.m_stop_button,
+    self.m_pause_button
+  ];
   
   [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
 }
@@ -198,7 +209,27 @@
   }
 }
 
-#pragma mark - Stop button
+#pragma mark - Bar buttons
+
+- (IBAction)PauseButtonPressed:(id)sender
+{
+  Core::SetState(Core::State::Paused);
+  
+  self.m_navigation_item.rightBarButtonItems = @[
+    self.m_stop_button,
+    self.m_play_button
+  ];
+}
+
+- (IBAction)PlayButtonPressed:(id)sender
+{
+  Core::SetState(Core::State::Running);
+  
+  self.m_navigation_item.rightBarButtonItems = @[
+    self.m_stop_button,
+    self.m_pause_button
+  ];
+}
 
 - (IBAction)StopButtonPressed:(id)sender
 {
