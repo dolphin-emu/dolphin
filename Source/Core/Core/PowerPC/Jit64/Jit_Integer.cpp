@@ -932,6 +932,10 @@ void Jit64::subfx(UGeckoInstruction inst)
       MOV(32, Rd, Rb);
       SUB(32, Rd, R(RSCRATCH));
     }
+    else if (Rb.IsSimpleReg() && Ra.IsImm() && !inst.OE)
+    {
+      LEA(32, Rd, MDisp(Rb.GetSimpleReg(), -Ra.SImm32()));
+    }
     else
     {
       MOV(32, Rd, Rb);
