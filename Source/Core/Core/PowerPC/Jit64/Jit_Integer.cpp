@@ -1333,7 +1333,10 @@ void Jit64::addx(UGeckoInstruction inst)
     if ((d == a) || (d == b))
     {
       RCOpArg& Rnotd = (d == a) ? Rb : Ra;
-      ADD(32, Rd, Rnotd);
+      if (!Rnotd.IsZero() || inst.OE)
+      {
+        ADD(32, Rd, Rnotd);
+      }
     }
     else if (Ra.IsSimpleReg() && Rb.IsSimpleReg() && !inst.OE)
     {
