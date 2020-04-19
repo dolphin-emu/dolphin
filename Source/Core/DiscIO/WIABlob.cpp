@@ -1481,29 +1481,39 @@ WIAFileReader::ConversionResult WIAFileReader::CompressAndWriteGroup(
   return ConversionResult::Success;
 }
 
-WIAFileReader::ConversionResult
-WIAFileReader::CompressAndWrite(File::IOFile* file, u64* bytes_written, Compressor* compressor,
-                                const u8* data, size_t size, size_t* size_out)
+std::optional<std::vector<u8>> WIAFileReader::Compress(Compressor* compressor, const u8* data,
+                                                       size_t size)
 {
   if (compressor)
   {
     if (!compressor->Start() || !compressor->Compress(data, size) || !compressor->End())
-      return ConversionResult::InternalError;
+      return std::nullopt;
 
     data = compressor->GetData();
     size = compressor->GetSize();
   }
 
-  *size_out = size;
+  return std::vector<u8>(data, data + size);
+}
 
-  *bytes_written += size;
+bool WIAFileReader::WriteHeader(File::IOFile* file, const u8* data, size_t size, u64 upper_bound,
+                                u64* bytes_written, u64* offset_out)
+{
+  // The first part of the check is to prevent this from running more than once. If *bytes_written
+  // is past the upper bound, we are already at the end of the file, so we don't need to do anything
+  if (*bytes_written <= upper_bound && *bytes_written + size > upper_bound)
+  {
+    WARN_LOG(DISCIO, "Headers did not fit in the allocated space. Writing to end of file instead");
+    if (!file->Seek(0, SEEK_END))
+      return false;
+    *bytes_written = file->Tell();
+  }
+
+  *offset_out = *bytes_written;
   if (!file->WriteArray(data, size))
-    return ConversionResult::WriteFailed;
-
-  if (!PadTo4(file, bytes_written))
-    return ConversionResult::WriteFailed;
-
-  return ConversionResult::Success;
+    return false;
+  *bytes_written += size;
+  return PadTo4(file, bytes_written);
 }
 
 WIAFileReader::ConversionResult
@@ -1522,14 +1532,8 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   u64 bytes_written = 0;
   size_t groups_written = 0;
 
-  // These two headers will be filled in with proper values later
   WIAHeader1 header_1{};
   WIAHeader2 header_2{};
-  if (!outfile->WriteArray(&header_1, 1) || !outfile->WriteArray(&header_2, 1))
-    return ConversionResult::WriteFailed;
-  bytes_written += sizeof(WIAHeader1) + sizeof(WIAHeader2);
-  if (!PadTo4(outfile, &bytes_written))
-    return ConversionResult::WriteFailed;
 
   std::unique_ptr<Compressor> compressor;
   switch (compression_type)
@@ -1587,6 +1591,24 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 
   group_entries.resize(total_groups);
 
+  const size_t partition_entries_size = partition_entries.size() * sizeof(PartitionEntry);
+  const size_t raw_data_entries_size = raw_data_entries.size() * sizeof(RawDataEntry);
+  const size_t group_entries_size = group_entries.size() * sizeof(GroupEntry);
+
+  // Conservative estimate for how much space will be taken up by headers.
+  // The compression methods None and Purge have very predictable overhead,
+  // and the other methods are able to compress group entries well
+  const u64 headers_size_upper_bound =
+      Common::AlignUp(sizeof(WIAHeader1) + sizeof(WIAHeader2) + partition_entries_size +
+                          raw_data_entries_size + group_entries_size + 0x100,
+                      VolumeWii::BLOCK_TOTAL_SIZE);
+
+  std::vector<u8> buffer;
+
+  buffer.resize(headers_size_upper_bound);
+  outfile->WriteBytes(buffer.data(), buffer.size());
+  bytes_written = headers_size_upper_bound;
+
   if (!infile->Read(0, header_2.disc_header.size(), header_2.disc_header.data()))
     return ConversionResult::ReadFailed;
   // We intentially do not increment bytes_read here, since these bytes will be read again
@@ -1598,7 +1620,6 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 
   using WiiBlockData = std::array<u8, VolumeWii::BLOCK_DATA_SIZE>;
 
-  std::vector<u8> buffer;
   std::vector<u8> exceptions_buffer;
   std::vector<WiiBlockData> decryption_buffer;
   std::vector<VolumeWii::HashBlock> hash_buffer;
@@ -1815,25 +1836,41 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   ASSERT(groups_written == total_groups);
   ASSERT(bytes_read == iso_size);
 
-  const u64 partition_entries_offset = bytes_written;
-  const u64 partition_entries_size = partition_entries.size() * sizeof(PartitionEntry);
-  if (!outfile->WriteArray(partition_entries.data(), partition_entries.size()))
-    return ConversionResult::WriteFailed;
-  bytes_written += partition_entries_size;
-  if (!PadTo4(outfile, &bytes_written))
+  const std::optional<std::vector<u8>> compressed_raw_data_entries = Compress(
+      compressor.get(), reinterpret_cast<u8*>(raw_data_entries.data()), raw_data_entries_size);
+  if (!compressed_raw_data_entries)
+    return ConversionResult::InternalError;
+
+  const std::optional<std::vector<u8>> compressed_group_entries =
+      Compress(compressor.get(), reinterpret_cast<u8*>(group_entries.data()), group_entries_size);
+  if (!compressed_group_entries)
+    return ConversionResult::InternalError;
+
+  bytes_written = sizeof(WIAHeader1) + sizeof(WIAHeader2);
+  if (!outfile->Seek(sizeof(WIAHeader1) + sizeof(WIAHeader2), SEEK_SET))
     return ConversionResult::WriteFailed;
 
-  const u64 raw_data_entries_offset = bytes_written;
-  size_t raw_data_entries_size = raw_data_entries.size() * sizeof(RawDataEntry);
-  const ConversionResult raw_data_result = CompressAndWrite(
-      outfile, &bytes_written, compressor.get(), reinterpret_cast<u8*>(raw_data_entries.data()),
-      raw_data_entries_size, &raw_data_entries_size);
+  u64 partition_entries_offset;
+  if (!WriteHeader(outfile, reinterpret_cast<u8*>(partition_entries.data()), partition_entries_size,
+                   headers_size_upper_bound, &bytes_written, &partition_entries_offset))
+  {
+    return ConversionResult::WriteFailed;
+  }
 
-  const u64 group_entries_offset = bytes_written;
-  size_t group_entries_size = group_entries.size() * sizeof(GroupEntry);
-  const ConversionResult groups_result = CompressAndWrite(
-      outfile, &bytes_written, compressor.get(), reinterpret_cast<u8*>(group_entries.data()),
-      group_entries_size, &group_entries_size);
+  u64 raw_data_entries_offset;
+  if (!WriteHeader(outfile, compressed_raw_data_entries->data(),
+                   compressed_raw_data_entries->size(), headers_size_upper_bound, &bytes_written,
+                   &raw_data_entries_offset))
+  {
+    return ConversionResult::WriteFailed;
+  }
+
+  u64 group_entries_offset;
+  if (!WriteHeader(outfile, compressed_group_entries->data(), compressed_group_entries->size(),
+                   headers_size_upper_bound, &bytes_written, &group_entries_offset))
+  {
+    return ConversionResult::WriteFailed;
+  }
 
   u32 disc_type = 0;
   if (infile_volume)
@@ -1860,11 +1897,12 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 
   header_2.number_of_raw_data_entries = Common::swap32(static_cast<u32>(raw_data_entries.size()));
   header_2.raw_data_entries_offset = Common::swap64(raw_data_entries_offset);
-  header_2.raw_data_entries_size = Common::swap32(static_cast<u32>(raw_data_entries_size));
+  header_2.raw_data_entries_size =
+      Common::swap32(static_cast<u32>(compressed_raw_data_entries->size()));
 
   header_2.number_of_group_entries = Common::swap32(static_cast<u32>(group_entries.size()));
   header_2.group_entries_offset = Common::swap64(group_entries_offset);
-  header_2.group_entries_size = Common::swap32(static_cast<u32>(group_entries_size));
+  header_2.group_entries_size = Common::swap32(static_cast<u32>(compressed_group_entries->size()));
 
   header_1.magic = WIA_MAGIC;
   header_1.version = Common::swap32(WIA_VERSION);
@@ -1873,13 +1911,16 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_2), sizeof(header_2),
                    header_1.header_2_hash.data());
   header_1.iso_file_size = Common::swap64(infile->GetDataSize());
-  header_1.wia_file_size = Common::swap64(bytes_written);
+  header_1.wia_file_size = Common::swap64(outfile->GetSize());
   mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_1), offsetof(WIAHeader1, header_1_hash),
                    header_1.header_1_hash.data());
 
   if (!outfile->Seek(0, SEEK_SET))
     return ConversionResult::WriteFailed;
-  if (!outfile->WriteArray(&header_1, 1) || !outfile->WriteArray(&header_2, 1))
+
+  if (!outfile->WriteArray(&header_1, 1))
+    return ConversionResult::WriteFailed;
+  if (!outfile->WriteArray(&header_2, 1))
     return ConversionResult::WriteFailed;
 
   return ConversionResult::Success;

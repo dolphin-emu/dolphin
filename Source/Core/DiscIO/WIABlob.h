@@ -438,9 +438,10 @@ private:
       size_t* groups_written, Compressor* compressor, bool compressed_exception_lists,
       const std::vector<u8>& exception_lists, const std::vector<u8>& main_data,
       std::map<ReuseID, GroupEntry>* reusable_groups, std::optional<ReuseID> reuse_id);
-  static ConversionResult CompressAndWrite(File::IOFile* file, u64* bytes_written,
-                                           Compressor* compressor, const u8* data, size_t size,
-                                           size_t* size_out);
+  static std::optional<std::vector<u8>> Compress(Compressor* compressor, const u8* data,
+                                                 size_t size);
+  static bool WriteHeader(File::IOFile* file, const u8* data, size_t size, u64 upper_bound,
+                          u64* bytes_written, u64* offset_out);
 
   template <typename T>
   static void PushBack(std::vector<u8>* vector, const T& x)
