@@ -246,7 +246,7 @@
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
-#ifndef DEBUG
+#if !defined(DEBUG) && !TARGET_OS_SIMULATOR
   // Activate AppCenter analytics
   DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
   [MSAppCenter start:[keys appCenterSecret] withServices:@[
