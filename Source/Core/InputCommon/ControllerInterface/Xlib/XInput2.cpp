@@ -13,6 +13,7 @@
 #include <fmt/format.h>
 
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
+#include "InputCommon/XInput2Mouse.h"
 
 #include "Common/StringUtil.h"
 
@@ -53,6 +54,8 @@ namespace ciface::XInput2
 // This function will add zero or more KeyboardMouse objects to devices.
 void PopulateDevices(void* const hwnd)
 {
+  prime::InitXInput2Mouse(hwnd);
+      
   Display* dpy = XOpenDisplay(nullptr);
 
   // xi_opcode is important; it will be used to identify XInput events by
