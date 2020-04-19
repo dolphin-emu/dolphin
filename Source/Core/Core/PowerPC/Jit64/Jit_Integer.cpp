@@ -1365,7 +1365,10 @@ void Jit64::addx(UGeckoInstruction inst)
       if (imm >= -128 && imm <= 127)
       {
         MOV(32, Rd, Rother);
-        ADD(32, Rd, Rimm);
+        if (imm != 0 || inst.OE)
+        {
+          ADD(32, Rd, Rimm);
+        }
       }
       else
       {
