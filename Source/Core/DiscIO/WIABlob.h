@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <optional>
 #include <utility>
 
 #include <bzlib.h>
@@ -389,6 +390,33 @@ private:
 
   static u32 LZMA2DictionarySize(u8 p);
 
+  struct ReuseID
+  {
+    bool operator==(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, decrypted, value) ==
+             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+    }
+    bool operator<(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, decrypted, value) <
+             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+    }
+    bool operator>(const ReuseID& other) const
+    {
+      return std::tie(partition_key, data_size, decrypted, value) >
+             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+    }
+    bool operator!=(const ReuseID& other) const { return !operator==(other); }
+    bool operator>=(const ReuseID& other) const { return !operator<(other); }
+    bool operator<=(const ReuseID& other) const { return !operator>(other); }
+
+    const WiiKey* partition_key;
+    u64 data_size;
+    bool decrypted;
+    u8 value;
+  };
+
   static bool PadTo4(File::IOFile* file, u64* bytes_written);
   static void AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
                               std::vector<RawDataEntry>* raw_data_entries,
@@ -402,12 +430,14 @@ private:
                                                      std::vector<PartitionEntry>* partition_entries,
                                                      std::vector<RawDataEntry>* raw_data_entries,
                                                      std::vector<DataEntry>* data_entries);
-  static ConversionResult CompressAndWriteGroup(File::IOFile* file, u64* bytes_written,
-                                                std::vector<GroupEntry>* group_entries,
-                                                size_t* groups_written, Compressor* compressor,
-                                                bool compressed_exception_lists,
-                                                const std::vector<u8>& exception_lists,
-                                                const std::vector<u8>& main_data);
+  static bool TryReuseGroup(std::vector<GroupEntry>* group_entries, size_t* groups_written,
+                            std::map<ReuseID, GroupEntry>* reusable_groups,
+                            std::optional<ReuseID> reuse_id);
+  static ConversionResult CompressAndWriteGroup(
+      File::IOFile* file, u64* bytes_written, std::vector<GroupEntry>* group_entries,
+      size_t* groups_written, Compressor* compressor, bool compressed_exception_lists,
+      const std::vector<u8>& exception_lists, const std::vector<u8>& main_data,
+      std::map<ReuseID, GroupEntry>* reusable_groups, std::optional<ReuseID> reuse_id);
   static ConversionResult CompressAndWrite(File::IOFile* file, u64* bytes_written,
                                            Compressor* compressor, const u8* data, size_t size,
                                            size_t* size_out);
