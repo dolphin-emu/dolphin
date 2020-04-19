@@ -1366,6 +1366,17 @@ WIAFileReader::ConversionResult WIAFileReader::CompressAndWriteGroup(
     size_t* groups_written, Compressor* compressor, bool compressed_exception_lists,
     const std::vector<u8>& exception_lists, const std::vector<u8>& main_data)
 {
+  const auto all_zero = [](const std::vector<u8>& data) {
+    return std::all_of(data.begin(), data.end(), [](u8 x) { return x == 0; });
+  };
+
+  if (all_zero(exception_lists) && all_zero(main_data))
+  {
+    (*group_entries)[*groups_written] = GroupEntry{0, 0};
+    ++*groups_written;
+    return ConversionResult::Success;
+  }
+
   const u64 data_offset = *bytes_written;
 
   if (compressor)
