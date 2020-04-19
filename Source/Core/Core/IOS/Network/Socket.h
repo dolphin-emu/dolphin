@@ -57,6 +57,8 @@ typedef struct pollfd pollfd_t;
 
 namespace IOS::HLE
 {
+constexpr int WII_SOCKET_FD_MAX = 24;
+
 enum
 {
   SO_MSG_OOB = 0x01,

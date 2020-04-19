@@ -34,6 +34,7 @@ class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
 class NetPlaySetupDialog;
+class NetworkWidget;
 class RegisterWidget;
 class RenderWidget;
 class SearchBar;
@@ -225,6 +226,7 @@ private:
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   MemoryWidget* m_memory_widget;
+  NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;

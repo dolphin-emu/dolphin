@@ -24,11 +24,7 @@
 
 namespace IOS::HLE
 {
-#define NET_SSL_MAXINSTANCES 4
-
-// TODO: remove this macro.
-#define SSLID_VALID(x)                                                                             \
-  (x >= 0 && x < NET_SSL_MAXINSTANCES && ::IOS::HLE::Device::NetSSL::_SSL[x].active)
+constexpr int NET_SSL_MAXINSTANCES = 4;
 
 enum ssl_err_t : s32
 {
@@ -103,5 +99,10 @@ public:
 private:
   bool m_cert_error_shown = false;
 };
+
+constexpr bool IsSSLIDValid(int id)
+{
+  return (id >= 0 && id < NET_SSL_MAXINSTANCES && IOS::HLE::Device::NetSSL::_SSL[id].active);
+}
 }  // namespace Device
 }  // namespace IOS::HLE

@@ -71,6 +71,7 @@
 #include "DolphinQt/Debugger/CodeWidget.h"
 #include "DolphinQt/Debugger/JITWidget.h"
 #include "DolphinQt/Debugger/MemoryWidget.h"
+#include "DolphinQt/Debugger/NetworkWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
@@ -389,6 +390,7 @@ void MainWindow::CreateComponents()
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_memory_widget = new MemoryWidget(this);
+  m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
@@ -643,6 +645,7 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_network_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
@@ -651,6 +654,7 @@ void MainWindow::ConnectStack()
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
+  tabifyDockWidget(m_log_widget, m_network_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);
 }
 
