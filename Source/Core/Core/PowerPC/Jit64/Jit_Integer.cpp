@@ -1356,6 +1356,23 @@ void Jit64::addx(UGeckoInstruction inst)
         LEA(32, Rd, MDisp(Rreg.GetSimpleReg(), Rimm.SImm32()));
       }
     }
+    else if (Ra.IsImm() || Rb.IsImm())
+    {
+      RCOpArg& Rimm = Ra.IsImm() ? Ra : Rb;
+      RCOpArg& Rother = Ra.IsImm() ? Rb : Ra;
+
+      s32 imm = Rimm.SImm32();
+      if (imm >= -128 && imm <= 127)
+      {
+        MOV(32, Rd, Rother);
+        ADD(32, Rd, Rimm);
+      }
+      else
+      {
+        MOV(32, Rd, Rimm);
+        ADD(32, Rd, Rother);
+      }
+    }
     else
     {
       MOV(32, Rd, Ra);
