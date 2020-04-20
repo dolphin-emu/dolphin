@@ -270,7 +270,7 @@ void CEXIETHERNET::TAPPhysicalNetworkInterface::ReadThreadHandler(TAPPhysicalNet
     DWORD transferred;
 
     // Read from TAP into internal buffer.
-    if (ReadFile(self->mHAdapter, self->ethRef->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
+    if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
                  &self->mReadOverlapped))
     {
       // Returning immediately is not likely to happen, but if so, reset the event state manually.
@@ -303,8 +303,8 @@ void CEXIETHERNET::TAPPhysicalNetworkInterface::ReadThreadHandler(TAPPhysicalNet
               ArrayToString(self->mRecvBuffer.get(), transferred, 0x10).c_str());
     if (self->readEnabled.IsSet())
     {
-      self->ethRef->mRecvBufferLength = transferred;
-      self->ethRef->RecvHandlePacket();
+      self->m_eth_ref->mRecvBufferLength = transferred;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }
@@ -345,7 +345,7 @@ bool CEXIETHERNET::TAPPhysicalNetworkInterface::SendFrame(const u8* frame, u32 s
   }
 
   // Always report the packet as being sent successfully, even though it might be a lie
-  ethRef->SendComplete();
+  m_eth_ref->SendComplete();
   return true;
 }
 

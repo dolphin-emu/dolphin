@@ -199,7 +199,7 @@ enum RecvStatus
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  CEXIETHERNET(bool tap);
+  explicit CEXIETHERNET(bool tap);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;
@@ -300,34 +300,36 @@ private:
   class PhysicalNetworkInterface
   {
   protected:
-    CEXIETHERNET* ethRef = nullptr;
+    CEXIETHERNET* m_eth_ref = nullptr;
+    explicit PhysicalNetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
 
   public:
-    virtual bool Activate() { return false; };
-    virtual void Deactivate(){};
-    virtual bool IsActivated() { return false; };
-    virtual bool SendFrame(const u8* frame, u32 size) { return false; };
-    virtual bool RecvInit() { return false; };
-    virtual void RecvStart(){};
-    virtual void RecvStop(){};
+    virtual bool Activate() { return false; }
+    virtual void Deactivate() {}
+    virtual bool IsActivated() { return false; }
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
+    virtual bool RecvInit() { return false; }
+    virtual void RecvStart() {}
+    virtual void RecvStop() {}
+
+    virtual ~PhysicalNetworkInterface() = default;
   };
 
   class TAPPhysicalNetworkInterface : public PhysicalNetworkInterface
   {
   public:
-    TAPPhysicalNetworkInterface(CEXIETHERNET* ethRef)
+    explicit TAPPhysicalNetworkInterface(CEXIETHERNET* eth_ref) : PhysicalNetworkInterface(eth_ref)
     {
-      PhysicalNetworkInterface::ethRef = ethRef;
-    };
+    }
 
   public:
-    virtual bool Activate() override;
-    virtual void Deactivate() override;
-    virtual bool IsActivated() override;
-    virtual bool SendFrame(const u8* frame, u32 size) override;
-    virtual bool RecvInit() override;
-    virtual void RecvStart() override;
-    virtual void RecvStop() override;
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
@@ -351,25 +353,26 @@ private:
   class UDPPhysicalNetworkInterface : public PhysicalNetworkInterface
   {
   public:
-    UDPPhysicalNetworkInterface(CEXIETHERNET* ethRef, std::string destIp, int destPort, int inPort)
-        : destIp(destIp), destPort(destPort), inPort(inPort)
+    UDPPhysicalNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                                int in_port)
+        : PhysicalNetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
+          m_in_port(in_port)
     {
-      PhysicalNetworkInterface::ethRef = ethRef;
-    };
+    }
 
   public:
-    virtual bool Activate() override;
-    virtual void Deactivate() override;
-    virtual bool IsActivated() override;
-    virtual bool SendFrame(const u8* frame, u32 size) override;
-    virtual bool RecvInit() override;
-    virtual void RecvStart() override;
-    virtual void RecvStop() override;
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
 
   private:
-    std::string destIp;
-    int destPort;
-    int inPort;
+    std::string m_dest_ip;
+    int m_dest_port;
+    int m_in_port;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
     std::thread readThread;
@@ -380,8 +383,8 @@ private:
 #if defined(_WIN32)
     // TODO: Win32 UDP Sockets
 #elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-    int writeFD = -1;
-    int readFD = -1;
+    int m_write_fd = -1;
+    int m_read_fd = -1;
 #endif
   };
 

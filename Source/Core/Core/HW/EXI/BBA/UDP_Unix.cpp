@@ -23,44 +23,48 @@ bool CEXIETHERNET::UDPPhysicalNetworkInterface::Activate()
   if (IsActivated())
     return true;
 
-  if ((readFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+  if ((m_read_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
     ERROR_LOG(SP1, "Couldn't open udp read socket, unable to init BBA");
     return false;
   }
 
-  if ((writeFD = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
+  if ((m_write_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0)
   {
     ERROR_LOG(SP1, "Couldn't open udp write socket, unable to init BBA");
-    close(readFD);
+    close(m_read_fd);
     return false;
   }
 
-  struct sockaddr_in recvaddr, sendaddr;
-  memset(&recvaddr, 0, sizeof(recvaddr));
-  memset(&sendaddr, 0, sizeof(sendaddr));
+  struct sockaddr_in recvaddr
+  {
+  };
+  struct sockaddr_in sendaddr
+  {
+  };
 
   recvaddr.sin_family = AF_INET;
   recvaddr.sin_addr.s_addr = INADDR_ANY;
-  recvaddr.sin_port = htons(inPort);
+  recvaddr.sin_port = htons(m_in_port);
 
   sendaddr.sin_family = AF_INET;
-  sendaddr.sin_addr.s_addr = inet_addr(destIp.c_str());
-  sendaddr.sin_port = htons(destPort);
+  sendaddr.sin_addr.s_addr = inet_addr(m_dest_ip.c_str());
+  sendaddr.sin_port = htons(m_dest_port);
 
-  if (bind(readFD, (const struct sockaddr*)&recvaddr, sizeof(recvaddr)) < 0)
+  if (bind(m_read_fd, reinterpret_cast<const struct sockaddr*>(&recvaddr), sizeof(recvaddr)) < 0)
   {
     ERROR_LOG(SP1, "Couldn't bind udp socket, unable to init BBA");
-    close(readFD);
-    close(writeFD);
+    close(m_read_fd);
+    close(m_write_fd);
     return false;
   }
 
-  if (connect(writeFD, (const struct sockaddr*)&sendaddr, sizeof(sendaddr)) < 0)
+  if (connect(m_write_fd, reinterpret_cast<const struct sockaddr*>(&sendaddr), sizeof(sendaddr)) <
+      0)
   {
     ERROR_LOG(SP1, "Couldn't connect udp socket, unable to init BBA");
-    close(readFD);
-    close(writeFD);
+    close(m_read_fd);
+    close(m_write_fd);
     return false;
   }
 
@@ -71,10 +75,10 @@ bool CEXIETHERNET::UDPPhysicalNetworkInterface::Activate()
 
 void CEXIETHERNET::UDPPhysicalNetworkInterface::Deactivate()
 {
-  close(readFD);
-  close(writeFD);
-  readFD = -1;
-  writeFD = -1;
+  close(m_read_fd);
+  close(m_write_fd);
+  m_read_fd = -1;
+  m_write_fd = -1;
 
   readEnabled.Clear();
   readThreadShutdown.Set();
@@ -84,23 +88,23 @@ void CEXIETHERNET::UDPPhysicalNetworkInterface::Deactivate()
 
 bool CEXIETHERNET::UDPPhysicalNetworkInterface::IsActivated()
 {
-  return readFD != -1 && writeFD == -1;
+  return m_read_fd != -1 && m_write_fd == -1;
 }
 
 bool CEXIETHERNET::UDPPhysicalNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
-  int writtenBytes = write(writeFD, frame, size);
-  if ((u32)writtenBytes != size)
+  const int written_bytes = write(m_write_fd, frame, size);
+  if (u32(written_bytes) != size)
   {
     ERROR_LOG(SP1, "SendFrame(): expected to write %d bytes, instead wrote %d, errno %d", size,
-              writtenBytes, errno);
+              written_bytes, errno);
     return false;
   }
   else
   {
-    ethRef->SendComplete();
+    m_eth_ref->SendComplete();
     return true;
   }
 }
@@ -110,21 +114,21 @@ void CEXIETHERNET::UDPPhysicalNetworkInterface::ReadThreadHandler(
 {
   while (!self->readThreadShutdown.IsSet())
   {
-    if (self->readFD < 0)
+    if (self->m_read_fd < 0)
       break;
 
-    int readBytes = read(self->readFD, self->ethRef->mRecvBuffer.get(), BBA_RECV_SIZE);
+    const int read_bytes = read(self->m_read_fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
 
-    if (readBytes < 0)
+    if (read_bytes < 0)
     {
-      ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
+      ERROR_LOG(SP1, "Failed to read from BBA, err=%d", read_bytes);
     }
     else if (self->readEnabled.IsSet())
     {
       INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->ethRef->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->ethRef->mRecvBufferLength = readBytes;
-      self->ethRef->RecvHandlePacket();
+               ArrayToString(self->m_eth_ref->mRecvBuffer.get(), read_bytes, 0x10).c_str());
+      self->m_eth_ref->mRecvBufferLength = read_bytes;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }

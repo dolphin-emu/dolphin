@@ -58,7 +58,7 @@ bool CEXIETHERNET::TAPPhysicalNetworkInterface::SendFrame(const u8* frame, u32 s
   }
   else
   {
-    ethRef->SendComplete();
+    m_eth_ref->SendComplete();
     return true;
   }
 }
@@ -77,7 +77,7 @@ void CEXIETHERNET::TAPPhysicalNetworkInterface::ReadThreadHandler(TAPPhysicalNet
     if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
       continue;
 
-    int readBytes = read(self->fd, self->ethRef->mRecvBuffer.get(), BBA_RECV_SIZE);
+    int readBytes = read(self->fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
     if (readBytes < 0)
     {
       ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
@@ -85,9 +85,9 @@ void CEXIETHERNET::TAPPhysicalNetworkInterface::ReadThreadHandler(TAPPhysicalNet
     else if (self->readEnabled.IsSet())
     {
       INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->ethRef->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->ethRef->mRecvBufferLength = readBytes;
-      self->ethRef->RecvHandlePacket();
+               ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10).c_str());
+      self->m_eth_ref->mRecvBufferLength = readBytes;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }

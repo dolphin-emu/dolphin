@@ -32,17 +32,17 @@ CEXIETHERNET::CEXIETHERNET(bool tap)
   }
   else
   {
-    std::string destStr = SConfig::GetInstance().m_bba_udp_dest;
+    const std::string& dest_str = SConfig::GetInstance().m_bba_udp_dest;
 
-    int colonPos = destStr.find(':');
-    if (colonPos < 0)
-      colonPos = destStr.length() - 1;
+    size_t colon_pos = dest_str.find(':');
+    if (colon_pos == std::string::npos)
+      colon_pos = dest_str.length() - 1;
 
-    std::string ip = destStr.substr(0, colonPos);
-    int port = atoi(destStr.substr(colonPos + 1).c_str());
+    std::string ip = dest_str.substr(0, colon_pos);
+    int port = atoi(dest_str.substr(colon_pos + 1).c_str());
 
     physical_network_interface = std::make_unique<UDPPhysicalNetworkInterface>(
-        this, ip, port, SConfig::GetInstance().m_bba_udp_port);
+        this, std::move(ip), port, SConfig::GetInstance().m_bba_udp_port);
     INFO_LOG(SP1, "Created UDP physical network interface on port %d, to dest %s:%d.",
              SConfig::GetInstance().m_bba_udp_port, ip.c_str(), port);
   }
