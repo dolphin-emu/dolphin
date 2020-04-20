@@ -199,7 +199,7 @@ enum RecvStatus
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  CEXIETHERNET();
+  CEXIETHERNET(bool tap);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;
@@ -297,34 +297,97 @@ private:
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
 
-  // TAP interface
-  static void ReadThreadHandler(CEXIETHERNET* self);
-  bool Activate();
-  void Deactivate();
-  bool IsActivated();
-  bool SendFrame(const u8* frame, u32 size);
-  bool RecvInit();
-  void RecvStart();
-  void RecvStop();
+  class PhysicalNetworkInterface
+  {
+  protected:
+    CEXIETHERNET* ethRef = nullptr;
+
+  public:
+    virtual bool Activate() { return false; };
+    virtual void Deactivate(){};
+    virtual bool IsActivated() { return false; };
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; };
+    virtual bool RecvInit() { return false; };
+    virtual void RecvStart(){};
+    virtual void RecvStop(){};
+  };
+
+  class TAPPhysicalNetworkInterface : public PhysicalNetworkInterface
+  {
+  public:
+    TAPPhysicalNetworkInterface(CEXIETHERNET* ethRef)
+    {
+      PhysicalNetworkInterface::ethRef = ethRef;
+    };
+
+  public:
+    virtual bool Activate() override;
+    virtual void Deactivate() override;
+    virtual bool IsActivated() override;
+    virtual bool SendFrame(const u8* frame, u32 size) override;
+    virtual bool RecvInit() override;
+    virtual void RecvStart() override;
+    virtual void RecvStop() override;
+
+  private:
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__)
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
+    static void ReadThreadHandler(TAPPhysicalNetworkInterface* self);
+#endif
+#if defined(_WIN32)
+    HANDLE mHAdapter = INVALID_HANDLE_VALUE;
+    OVERLAPPED mReadOverlapped = {};
+    OVERLAPPED mWriteOverlapped = {};
+    std::vector<u8> mWriteBuffer;
+    bool mWritePending = false;
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    int fd = -1;
+#endif
+  };
+
+  class UDPPhysicalNetworkInterface : public PhysicalNetworkInterface
+  {
+  public:
+    UDPPhysicalNetworkInterface(CEXIETHERNET* ethRef, std::string destIp, int destPort, int inPort)
+        : destIp(destIp), destPort(destPort), inPort(inPort)
+    {
+      PhysicalNetworkInterface::ethRef = ethRef;
+    };
+
+  public:
+    virtual bool Activate() override;
+    virtual void Deactivate() override;
+    virtual bool IsActivated() override;
+    virtual bool SendFrame(const u8* frame, u32 size) override;
+    virtual bool RecvInit() override;
+    virtual void RecvStart() override;
+    virtual void RecvStop() override;
+
+  private:
+    std::string destIp;
+    int destPort;
+    int inPort;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__)
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
+    static void ReadThreadHandler(UDPPhysicalNetworkInterface* self);
+#endif
+#if defined(_WIN32)
+    // TODO: Win32 UDP Sockets
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    int writeFD = -1;
+    int readFD = -1;
+#endif
+  };
+
+  std::unique_ptr<PhysicalNetworkInterface> physical_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;
-
-#if defined(_WIN32)
-  HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-  OVERLAPPED mReadOverlapped = {};
-  OVERLAPPED mWriteOverlapped = {};
-  std::vector<u8> mWriteBuffer;
-  bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-  int fd = -1;
-#endif
-
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
-  std::thread readThread;
-  Common::Flag readEnabled;
-  Common::Flag readThreadShutdown;
-#endif
 };
 }  // namespace ExpansionInterface

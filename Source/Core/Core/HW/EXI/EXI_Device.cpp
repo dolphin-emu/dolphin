@@ -132,7 +132,11 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
     break;
 
   case EXIDEVICE_ETH:
-    result = std::make_unique<CEXIETHERNET>();
+    result = std::make_unique<CEXIETHERNET>(true);
+    break;
+
+  case EXIDEVICE_ETHUDP:
+    result = std::make_unique<CEXIETHERNET>(false);
     break;
 
   case EXIDEVICE_GECKO:

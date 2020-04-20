@@ -23,8 +23,30 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET()
+CEXIETHERNET::CEXIETHERNET(bool tap)
 {
+  if (tap)
+  {
+    physical_network_interface = std::make_unique<TAPPhysicalNetworkInterface>(this);
+    INFO_LOG(SP1, "Created TAP physical network interface.");
+  }
+  else
+  {
+    std::string destStr = SConfig::GetInstance().m_bba_udp_dest;
+
+    int colonPos = destStr.find(':');
+    if (colonPos < 0)
+      colonPos = destStr.length() - 1;
+
+    std::string ip = destStr.substr(0, colonPos);
+    int port = atoi(destStr.substr(colonPos + 1).c_str());
+
+    physical_network_interface = std::make_unique<UDPPhysicalNetworkInterface>(
+        this, ip, port, SConfig::GetInstance().m_bba_udp_port);
+    INFO_LOG(SP1, "Created UDP physical network interface on port %d, to dest %s:%d.",
+             SConfig::GetInstance().m_bba_udp_port, ip.c_str(), port);
+  }
+
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
   mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
   mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
@@ -33,7 +55,7 @@ CEXIETHERNET::CEXIETHERNET()
 
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+  std::string& mac_addr_setting = SConfig::GetInstance().m_bba_tap_mac;
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
 
   if (!mac_addr)
@@ -52,7 +74,7 @@ CEXIETHERNET::CEXIETHERNET()
 
 CEXIETHERNET::~CEXIETHERNET()
 {
-  Deactivate();
+  physical_network_interface->Deactivate();
 }
 
 void CEXIETHERNET::SetCS(int cs)
@@ -303,7 +325,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
     {
       INFO_LOG(SP1, "Software reset");
       // MXSoftReset();
-      Activate();
+      physical_network_interface->Activate();
     }
 
     if ((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR))
@@ -311,9 +333,9 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       DEBUG_LOG(SP1, "%s rx", (data & NCRA_SR) ? "start" : "stop");
 
       if (data & NCRA_SR)
-        RecvStart();
+        physical_network_interface->RecvStart();
       else
-        RecvStop();
+        physical_network_interface->RecvStop();
     }
 
     // Only start transfer if there isn't one currently running
@@ -386,7 +408,7 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 
 void CEXIETHERNET::SendFromDirectFIFO()
 {
-  SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
+  physical_network_interface->SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -579,7 +601,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 wait_for_next:
   if (mBbaMem[BBA_NCRA] & NCRA_SR)
-    RecvStart();
+    physical_network_interface->RecvStart();
 
   return true;
 }

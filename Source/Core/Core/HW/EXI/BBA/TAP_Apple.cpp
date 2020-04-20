@@ -12,7 +12,7 @@
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::Activate()
+bool CEXIETHERNET::TAPPhysicalNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -30,7 +30,7 @@ bool CEXIETHERNET::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::Deactivate()
+void CEXIETHERNET::TAPPhysicalNetworkInterface::Deactivate()
 {
   close(fd);
   fd = -1;
@@ -41,12 +41,12 @@ void CEXIETHERNET::Deactivate()
     readThread.join();
 }
 
-bool CEXIETHERNET::IsActivated()
+bool CEXIETHERNET::TAPPhysicalNetworkInterface::IsActivated()
 {
   return fd != -1;
 }
 
-bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPPhysicalNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
@@ -58,12 +58,12 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   }
   else
   {
-    SendComplete();
+    ethRef->SendComplete();
     return true;
   }
 }
 
-void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
+void CEXIETHERNET::TAPPhysicalNetworkInterface::ReadThreadHandler(TAPPhysicalNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
@@ -77,7 +77,7 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
     if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
       continue;
 
-    int readBytes = read(self->fd, self->mRecvBuffer.get(), BBA_RECV_SIZE);
+    int readBytes = read(self->fd, self->ethRef->mRecvBuffer.get(), BBA_RECV_SIZE);
     if (readBytes < 0)
     {
       ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
@@ -85,25 +85,25 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
     else if (self->readEnabled.IsSet())
     {
       INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->mRecvBufferLength = readBytes;
-      self->RecvHandlePacket();
+               ArrayToString(self->ethRef->mRecvBuffer.get(), readBytes, 0x10).c_str());
+      self->ethRef->mRecvBufferLength = readBytes;
+      self->ethRef->RecvHandlePacket();
     }
   }
 }
 
-bool CEXIETHERNET::RecvInit()
+bool CEXIETHERNET::TAPPhysicalNetworkInterface::RecvInit()
 {
   readThread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::RecvStart()
+void CEXIETHERNET::TAPPhysicalNetworkInterface::RecvStart()
 {
   readEnabled.Set();
 }
 
-void CEXIETHERNET::RecvStop()
+void CEXIETHERNET::TAPPhysicalNetworkInterface::RecvStop()
 {
   readEnabled.Clear();
 }
