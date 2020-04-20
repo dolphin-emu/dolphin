@@ -23,15 +23,15 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET(bool tap)
+CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 {
-  if (tap)
+  switch (type)
   {
+  case BBADeviceType::BBA_TAP:
     physical_network_interface = std::make_unique<TAPPhysicalNetworkInterface>(this);
     INFO_LOG(SP1, "Created TAP physical network interface.");
-  }
-  else
-  {
+    break;
+  case BBADeviceType::BBA_UDP:
     const std::string& dest_str = SConfig::GetInstance().m_bba_udp_dest;
 
     size_t colon_pos = dest_str.find(':');
@@ -45,6 +45,7 @@ CEXIETHERNET::CEXIETHERNET(bool tap)
         this, std::move(ip), port, SConfig::GetInstance().m_bba_udp_port);
     INFO_LOG(SP1, "Created UDP physical network interface on port %d, to dest %s:%d.",
              SConfig::GetInstance().m_bba_udp_port, ip.c_str(), port);
+    break;
   }
 
   tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);

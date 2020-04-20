@@ -196,10 +196,16 @@ enum RecvStatus
 
 #define BBA_RECV_SIZE 0x800
 
+enum class BBADeviceType
+{
+  BBA_TAP,
+  BBA_UDP
+};
+
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  explicit CEXIETHERNET(bool tap);
+  explicit CEXIETHERNET(BBADeviceType type);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;
