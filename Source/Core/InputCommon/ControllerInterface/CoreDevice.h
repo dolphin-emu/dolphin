@@ -93,6 +93,12 @@ public:
     virtual bool IsChild(const Input*) const { return false; }
   };
 
+  class RelativeInput : public Input
+  {
+  public:
+    bool IsDetectable() const override { return false; }
+  };
+
   //
   // Output
   //

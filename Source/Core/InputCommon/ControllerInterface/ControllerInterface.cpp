@@ -37,6 +37,8 @@
 
 ControllerInterface g_controller_interface;
 
+static thread_local ciface::InputChannel tls_input_channel = ciface::InputChannel::Host;
+
 void ControllerInterface::Initialize(const WindowSystemInfo& wsi)
 {
   if (m_is_init)
@@ -272,6 +274,16 @@ void ControllerInterface::UpdateInput()
     for (const auto& d : m_devices)
       d->UpdateInput();
   }
+}
+
+void ControllerInterface::SetCurrentInputChannel(ciface::InputChannel input_channel)
+{
+  tls_input_channel = input_channel;
+}
+
+ciface::InputChannel ControllerInterface::GetCurrentInputChannel()
+{
+  return tls_input_channel;
 }
 
 void ControllerInterface::SetAspectRatioAdjustment(float value)
