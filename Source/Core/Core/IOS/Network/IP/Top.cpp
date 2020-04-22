@@ -408,7 +408,8 @@ IPCCommandResult NetIPTop::HandleShutdownRequest(const IOCtlRequest& request)
 
   u32 fd = Memory::Read_U32(request.buffer_in);
   u32 how = Memory::Read_U32(request.buffer_in + 4);
-  int ret = shutdown(WiiSockMan::GetInstance().GetHostSocket(fd), how);
+  WiiSockMan& sm = WiiSockMan::GetInstance();
+  int ret = sm.ShutdownSocket(fd, how);
 
   return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_SHUTDOWN", false));
 }

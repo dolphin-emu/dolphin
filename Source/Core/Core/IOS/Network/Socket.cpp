@@ -157,6 +157,16 @@ void WiiSocket::SetWiiFd(s32 s)
   wii_fd = s;
 }
 
+s32 WiiSocket::Shutdown(s32 how)
+{
+  for (auto it = pending_sockops.begin(); it != pending_sockops.end();)
+  {
+    GetIOS()->EnqueueIPCReply(it->request, -SO_ENOTCONN);
+    it = pending_sockops.erase(it);
+  }
+  return shutdown(fd, how);
+}
+
 s32 WiiSocket::CloseFd()
 {
   s32 ReturnValue = 0;
@@ -700,6 +710,14 @@ s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
   if (WiiSockets.count(wii_fd) > 0)
     return WiiSockets.at(wii_fd).fd;
   return -EBADF;
+}
+
+s32 WiiSockMan::ShutdownSocket(s32 s, s32 how)
+{
+  auto socket_entry = WiiSockets.find(s);
+  if (socket_entry != WiiSockets.end())
+    return socket_entry->second.Shutdown(how);
+  return -SO_EBADF;
 }
 
 s32 WiiSockMan::DeleteSocket(s32 s)
