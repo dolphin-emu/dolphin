@@ -61,6 +61,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 
   case IOCTL_NWC24_CLEANUP_SOCKET:
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_CLEANUP_SOCKET - NI");
+    WiiSockMan::GetInstance().Clean();
     break;
 
   case IOCTL_NWC24_LOCK_SOCKET:  // WiiMenu
