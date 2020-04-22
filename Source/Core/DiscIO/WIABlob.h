@@ -8,6 +8,7 @@
 #include <limits>
 #include <map>
 #include <memory>
+#include <mutex>
 #include <optional>
 #include <utility>
 
@@ -19,6 +20,7 @@
 #include "Common/File.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
 namespace DiscIO
@@ -56,19 +58,11 @@ public:
   bool SupportsReadWiiDecrypted() const override;
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
-  enum class ConversionResult
-  {
-    Success,
-    Canceled,
-    ReadFailed,
-    WriteFailed,
-    InternalError,
-  };
-
-  static ConversionResult ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
-                                       File::IOFile* outfile, WIACompressionType compression_type,
-                                       int compression_level, int chunk_size, CompressCB callback,
-                                       void* arg);
+  static ConversionResultCode ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
+                                           File::IOFile* outfile,
+                                           WIACompressionType compression_type,
+                                           int compression_level, int chunk_size,
+                                           CompressCB callback, void* arg);
 
 private:
   using SHA1 = std::array<u8, 20>;
@@ -417,6 +411,38 @@ private:
     u8 value;
   };
 
+  struct CompressThreadState
+  {
+    using WiiBlockData = std::array<u8, VolumeWii::BLOCK_DATA_SIZE>;
+
+    std::unique_ptr<Compressor> compressor;
+
+    std::vector<WiiBlockData> decryption_buffer =
+        std::vector<WiiBlockData>(VolumeWii::BLOCKS_PER_GROUP);
+
+    std::vector<VolumeWii::HashBlock> hash_buffer =
+        std::vector<VolumeWii::HashBlock>(VolumeWii::BLOCKS_PER_GROUP);
+
+    std::vector<u8> exceptions_buffer;
+  };
+
+  struct CompressParameters
+  {
+    std::vector<u8> data;
+    const DataEntry* data_entry;
+    u64 bytes_read;
+    size_t group_index;
+  };
+
+  struct OutputParameters
+  {
+    std::vector<u8> exception_lists;
+    std::vector<u8> main_data;
+    std::optional<ReuseID> reuse_id;
+    u64 bytes_read;
+    size_t group_index;
+  };
+
   static bool PadTo4(File::IOFile* file, u64* bytes_written);
   static void AddRawDataEntry(u64 offset, u64 size, int chunk_size, u32* total_groups,
                               std::vector<RawDataEntry>* raw_data_entries,
@@ -425,23 +451,33 @@ private:
   CreatePartitionDataEntry(u64 offset, u64 size, u32 index, int chunk_size, u32* total_groups,
                            const std::vector<PartitionEntry>& partition_entries,
                            std::vector<DataEntry>* data_entries);
-  static ConversionResult SetUpDataEntriesForWriting(const VolumeDisc* volume, int chunk_size,
-                                                     u64 iso_size, u32* total_groups,
-                                                     std::vector<PartitionEntry>* partition_entries,
-                                                     std::vector<RawDataEntry>* raw_data_entries,
-                                                     std::vector<DataEntry>* data_entries);
-  static bool TryReuseGroup(std::vector<GroupEntry>* group_entries, size_t* groups_written,
-                            std::map<ReuseID, GroupEntry>* reusable_groups,
-                            std::optional<ReuseID> reuse_id);
-  static ConversionResult CompressAndWriteGroup(
-      File::IOFile* file, u64* bytes_written, std::vector<GroupEntry>* group_entries,
-      size_t* groups_written, Compressor* compressor, bool compressed_exception_lists,
-      const std::vector<u8>& exception_lists, const std::vector<u8>& main_data,
-      std::map<ReuseID, GroupEntry>* reusable_groups, std::optional<ReuseID> reuse_id);
+  static ConversionResultCode
+  SetUpDataEntriesForWriting(const VolumeDisc* volume, int chunk_size, u64 iso_size,
+                             u32* total_groups, std::vector<PartitionEntry>* partition_entries,
+                             std::vector<RawDataEntry>* raw_data_entries,
+                             std::vector<DataEntry>* data_entries);
   static std::optional<std::vector<u8>> Compress(Compressor* compressor, const u8* data,
                                                  size_t size);
   static bool WriteHeader(File::IOFile* file, const u8* data, size_t size, u64 upper_bound,
                           u64* bytes_written, u64* offset_out);
+
+  static void SetUpCompressor(std::unique_ptr<Compressor>* compressor,
+                              WIACompressionType compression_type, int compression_level,
+                              WIAHeader2* header_2);
+  static ConversionResult<OutputParameters>
+  ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
+                     const std::vector<PartitionEntry>& partition_entries,
+                     const std::vector<DataEntry>& data_entries,
+                     std::map<ReuseID, GroupEntry>* reusable_groups,
+                     std::mutex* reusable_groups_mutex, u64 exception_lists_per_chunk,
+                     bool compressed_exception_lists);
+  static ConversionResultCode Output(const OutputParameters& parameters, File::IOFile* outfile,
+                                     std::map<ReuseID, GroupEntry>* reusable_groups,
+                                     std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
+                                     u64* bytes_written);
+  static ConversionResultCode RunCallback(size_t groups_written, u64 bytes_read, u64 bytes_written,
+                                          u32 total_groups, u64 iso_size, CompressCB callback,
+                                          void* arg);
 
   template <typename T>
   static void PushBack(std::vector<u8>* vector, const T& x)
