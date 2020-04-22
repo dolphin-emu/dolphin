@@ -42,8 +42,10 @@ typedef struct pollfd pollfd_t;
 #endif
 
 #include <algorithm>
+#include <chrono>
 #include <cstdio>
 #include <list>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -197,14 +199,21 @@ private:
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
+  bool HasTimeout();
+  void ResetTimeout();
+
   void DoSock(Request request, NET_IOCTL type);
   void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
+
   s32 fd = -1;
   s32 wii_fd = -1;
   bool nonBlock = false;
   std::list<sockop> pending_sockops;
+
+  using timeout_t = std::chrono::time_point<std::chrono::system_clock>;
+  std::optional<timeout_t> timeout;
 };
 
 class WiiSockMan

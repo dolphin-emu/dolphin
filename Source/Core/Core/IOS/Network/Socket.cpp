@@ -282,11 +282,24 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
 
       // Fix blocking error codes
-      if (!nonBlock)
+      if (!nonBlock && it->net_type == IOCTL_SO_CONNECT)
       {
-        if (it->net_type == IOCTL_SO_CONNECT && ReturnValue == -SO_EISCONN)
+        switch (ReturnValue)
         {
+        case -SO_EAGAIN:
+        case -SO_EALREADY:
+        case -SO_EINPROGRESS:
+          if (HasTimeout())
+          {
+            ReturnValue = -SO_ENETUNREACH;
+            ResetTimeout();
+          }
+          break;
+        case -SO_EISCONN:
           ReturnValue = SO_SUCCESS;
+          [[fallthrough]];
+        default:
+          ResetTimeout();
         }
       }
     }
@@ -605,6 +618,22 @@ void WiiSocket::Update(bool read, bool write, bool except)
       ++it;
     }
   }
+}
+
+bool WiiSocket::HasTimeout()
+{
+  if (!timeout.has_value())
+  {
+    timeout = std::chrono::system_clock::now() +
+              std::chrono::seconds(SConfig::GetInstance().m_NetworkTimeout);
+    return false;
+  }
+  return std::chrono::system_clock::now() > *timeout;
+}
+
+void WiiSocket::ResetTimeout()
+{
+  timeout.reset();
 }
 
 void WiiSocket::DoSock(Request request, NET_IOCTL type)

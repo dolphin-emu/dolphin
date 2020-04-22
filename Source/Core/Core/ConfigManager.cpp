@@ -301,6 +301,7 @@ void SConfig::SaveNetworkSettings(IniFile& ini)
   network->Set("SSLVerifyCertificates", m_SSLVerifyCert);
   network->Set("SSLDumpRootCA", m_SSLDumpRootCA);
   network->Set("SSLDumpPeerCert", m_SSLDumpPeerCert);
+  network->Set("NetworkTimeout", m_NetworkTimeout);
 }
 
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
@@ -592,6 +593,7 @@ void SConfig::LoadNetworkSettings(IniFile& ini)
   network->Get("SSLVerifyCertificates", &m_SSLVerifyCert, true);
   network->Get("SSLDumpRootCA", &m_SSLDumpRootCA, false);
   network->Get("SSLDumpPeerCert", &m_SSLDumpPeerCert, false);
+  network->Get("NetworkTimeout", &m_NetworkTimeout, 190);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)

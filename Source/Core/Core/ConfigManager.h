@@ -312,6 +312,7 @@ struct SConfig
   bool m_SSLVerifyCert;
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
+  s32 m_NetworkTimeout;
 
   // Auto-update settings
   std::string m_auto_update_track;
