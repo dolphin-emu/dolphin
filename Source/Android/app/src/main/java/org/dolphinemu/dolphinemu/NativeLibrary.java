@@ -463,7 +463,8 @@ public final class NativeLibrary
     {
       // Create object used for waiting.
       final Object lock = new Object();
-      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
+      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
+              R.style.DolphinDialogBase)
               .setTitle(caption)
               .setMessage(text);
 

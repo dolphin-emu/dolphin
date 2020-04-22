@@ -27,7 +27,7 @@
 
     <!-- Themes for Dialogs -->
 
-    <!-- Inherit from the Base Dolphin Dialog Theme -->
+    <style name="DolphinDialogBase" parent="Theme.AppCompat.DayNight.Dialog.Alert" />
 
     <style name="DolphinEmulationBase" parent="Theme.AppCompat.DayNight.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>

@@ -58,7 +58,7 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
     String alertTitle = mContext.getString(mItem.getNameId());
     String alertText = mContext.getString(mItem.getAlertText());
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(mContext)
+    AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
             .setTitle(alertTitle)
             .setMessage(alertText);
 
