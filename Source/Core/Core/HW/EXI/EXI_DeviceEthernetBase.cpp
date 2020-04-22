@@ -2,11 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/EXI/EXI_DeviceEthernet.h"
-
-#include <memory>
-#include <optional>
-#include <string>
+#include "Core/HW/EXI/EXI_DeviceEthernetBase.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -22,40 +18,42 @@ namespace ExpansionInterface
 // XXX: The BBA stores multi-byte elements as little endian.
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
-
-CEXIETHERNET::CEXIETHERNET()
+CEXIEthernetBase::CEXIEthernetBase()
 {
-  tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
-  mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
-  mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
-
   MXHardReset();
 
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
-  std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
-  std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
+  const std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
+  Common::MACAddress mac_addr;
 
-  if (!mac_addr)
+  if (mac_addr_setting.empty())
   {
     mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
-    mac_addr_setting = Common::MacAddressToString(mac_addr.value());
-    SConfig::GetInstance().SaveSettings();
+  }
+  else
+  {
+    std::optional<Common::MACAddress> parsed = Common::StringToMacAddress(mac_addr_setting);
+
+    if (!parsed)
+    {
+      mac_addr = Common::GenerateMacAddress(Common::MACConsumer::BBA);
+      ERROR_LOG(SP1, "Invalid mac address (%s), generated a temporary one (%s)",
+                mac_addr_setting.c_str(), Common::MacAddressToString(mac_addr).c_str());
+    }
+    else
+    {
+      mac_addr = parsed.value();
+    }
   }
 
-  const auto& mac = mac_addr.value();
-  memcpy(&mBbaMem[BBA_NAFR_PAR0], mac.data(), mac.size());
+  memcpy(&m_bba_mem.nafr_par, mac_addr.data(), mac_addr.size());
 
   // HACK: .. fully established 100BASE-T link
-  mBbaMem[BBA_NWAYS] = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
+  m_bba_mem.nways = NWAYS_LS100 | NWAYS_LPNWAY | NWAYS_100TXF | NWAYS_ANCLPT;
 }
 
-CEXIETHERNET::~CEXIETHERNET()
-{
-  Deactivate();
-}
-
-void CEXIETHERNET::SetCS(int cs)
+void CEXIEthernetBase::SetCS(int cs)
 {
   if (cs)
   {
@@ -64,17 +62,17 @@ void CEXIETHERNET::SetCS(int cs)
   }
 }
 
-bool CEXIETHERNET::IsPresent() const
+bool CEXIEthernetBase::IsPresent() const
 {
   return true;
 }
 
-bool CEXIETHERNET::IsInterruptSet()
+bool CEXIEthernetBase::IsInterruptSet()
 {
   return !!(exi_status.interrupt & exi_status.interrupt_mask);
 }
 
-void CEXIETHERNET::ImmWrite(u32 data, u32 size)
+void CEXIEthernetBase::ImmWrite(u32 data, u32 size)
 {
   data >>= (4 - size) * 8;
 
@@ -125,7 +123,7 @@ void CEXIETHERNET::ImmWrite(u32 data, u32 size)
   }
 }
 
-u32 CEXIETHERNET::ImmRead(u32 size)
+u32 CEXIEthernetBase::ImmRead(u32 size)
 {
   u32 ret = 0;
 
@@ -155,7 +153,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   else
   {
     for (int i = size - 1; i >= 0; i--)
-      ret |= mBbaMem[transfer.address++] << (i * 8);
+      ret |= m_bba_mem.raw[transfer.address++] << (i * 8);
   }
 
   DEBUG_LOG(SP1, "imm r%i: %0*x", size, size * 2, ret);
@@ -165,7 +163,7 @@ u32 CEXIETHERNET::ImmRead(u32 size)
   return ret;
 }
 
-void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
+void CEXIEthernetBase::DMAWrite(u32 addr, u32 size)
 {
   DEBUG_LOG(SP1, "DMA write: %08x %x", addr, size);
 
@@ -182,32 +180,32 @@ void CEXIETHERNET::DMAWrite(u32 addr, u32 size)
   }
 }
 
-void CEXIETHERNET::DMARead(u32 addr, u32 size)
+void CEXIEthernetBase::DMARead(u32 addr, u32 size)
 {
   DEBUG_LOG(SP1, "DMA read: %08x %x", addr, size);
 
-  Memory::CopyToEmu(addr, &mBbaMem[transfer.address], size);
+  Memory::CopyToEmu(addr, &m_bba_mem.raw[transfer.address], size);
 
   transfer.address += size;
 }
 
-void CEXIETHERNET::DoState(PointerWrap& p)
+void CEXIEthernetBase::DoState(PointerWrap& p)
 {
-  p.DoArray(tx_fifo.get(), BBA_TXFIFO_SIZE);
-  p.DoArray(mBbaMem.get(), BBA_MEM_SIZE);
+  p.DoArray(&m_tx_fifo, BBA_TXFIFO_SIZE);
+  p.DoArray(&m_bba_mem.raw, BBA_MEM_SIZE);
 }
 
-bool CEXIETHERNET::IsMXCommand(u32 const data)
+bool CEXIEthernetBase::IsMXCommand(u32 const data)
 {
   return !!(data & (1 << 31));
 }
 
-bool CEXIETHERNET::IsWriteCommand(u32 const data)
+bool CEXIEthernetBase::IsWriteCommand(u32 const data)
 {
   return IsMXCommand(data) ? !!(data & (1 << 30)) : !!(data & (1 << 14));
 }
 
-const char* CEXIETHERNET::GetRegisterName() const
+const char* CEXIEthernetBase::GetRegisterName() const
 {
 #define STR_RETURN(x)                                                                              \
   case x:                                                                                          \
@@ -285,16 +283,16 @@ const char* CEXIETHERNET::GetRegisterName() const
 #undef STR_RETURN
 }
 
-void CEXIETHERNET::MXHardReset()
+void CEXIEthernetBase::MXHardReset()
 {
-  memset(mBbaMem.get(), 0, BBA_MEM_SIZE);
+  memset(&m_bba_mem.raw, 0, BBA_MEM_SIZE);
 
-  mBbaMem[BBA_NCRB] = NCRB_PR;
-  mBbaMem[BBA_NWAYC] = NWAYC_LTE | NWAYC_ANE;
-  mBbaMem[BBA_MISC] = MISC1_TPF | MISC1_TPH | MISC1_TXF | MISC1_TXH;
+  m_bba_mem.ncrb = NCRB_PR;
+  m_bba_mem.nwayc = NWAYC_LTE | NWAYC_ANE;
+  m_bba_mem.misc = MISC1_TPF | MISC1_TPH | MISC1_TXF | MISC1_TXH;
 }
 
-void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
+void CEXIEthernetBase::MXCommandHandler(u32 data, u32 size)
 {
   switch (transfer.address)
   {
@@ -306,7 +304,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       Activate();
     }
 
-    if ((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR))
+    if ((m_bba_mem.ncra & NCRA_SR) ^ (data & NCRA_SR))
     {
       DEBUG_LOG(SP1, "%s rx", (data & NCRA_SR) ? "start" : "stop");
 
@@ -317,7 +315,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
     }
 
     // Only start transfer if there isn't one currently running
-    if (!(mBbaMem[BBA_NCRA] & (NCRA_ST0 | NCRA_ST1)))
+    if (!(m_bba_mem.ncra & (NCRA_ST0 | NCRA_ST1)))
     {
       // Technically transfer DMA status is kept in TXDMA - not implemented
 
@@ -362,55 +360,57 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   default:
     for (int i = size - 1; i >= 0; i--)
     {
-      mBbaMem[transfer.address++] = (data >> (i * 8)) & 0xff;
+      m_bba_mem.raw[transfer.address++] = (data >> (i * 8)) & 0xff;
     }
     return;
   }
 }
 
-void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
+void CEXIEthernetBase::DirectFIFOWrite(const u8* data, u32 size)
 {
   // In direct mode, the hardware handles creating the state required by the
   // GMAC instead of finagling with packet descriptors and such
 
-  u16* tx_fifo_count = (u16*)&mBbaMem[BBA_TXFIFOCNT];
+  memcpy(&m_tx_fifo[0] + m_bba_mem.txfifocnt, data, size);
 
-  memcpy(tx_fifo.get() + *tx_fifo_count, data, size);
-
-  *tx_fifo_count += size;
+  m_bba_mem.txfifocnt += size;
   // TODO: not sure this mask is correct.
   // However, BBA_TXFIFOCNT should never get even close to this amount,
   // so it shouldn't matter
-  *tx_fifo_count &= (1 << 12) - 1;
+  m_bba_mem.txfifocnt &= (1 << 12) - 1;
 }
 
-void CEXIETHERNET::SendFromDirectFIFO()
+void CEXIEthernetBase::SendFromDirectFIFO()
 {
-  SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
+  const auto size = m_bba_mem.txfifocnt;
+  const auto frame = &m_tx_fifo[0];
+  INFO_LOG(SP1, "SendFrame %x", size);
+  DEBUG_LOG(SP1, "%s", ArrayToString(frame, size, 0x10).c_str());
+  SendFrame(frame, size);
 }
 
-void CEXIETHERNET::SendFromPacketBuffer()
+void CEXIEthernetBase::SendFromPacketBuffer()
 {
   ERROR_LOG(SP1, "tx packet buffer not implemented.");
 }
 
-void CEXIETHERNET::SendComplete()
+void CEXIEthernetBase::SendComplete()
 {
-  mBbaMem[BBA_NCRA] &= ~(NCRA_ST0 | NCRA_ST1);
-  *(u16*)&mBbaMem[BBA_TXFIFOCNT] = 0;
+  m_bba_mem.ncra &= ~(NCRA_ST0 | NCRA_ST1);
+  m_bba_mem.txfifocnt = 0;
 
-  if (mBbaMem[BBA_IMR] & INT_T)
+  if (m_bba_mem.imr & INT_T)
   {
-    mBbaMem[BBA_IR] |= INT_T;
+    m_bba_mem.ir |= INT_T;
 
     exi_status.interrupt |= exi_status.TRANSFER;
     ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
   }
 
-  mBbaMem[BBA_LTPS] = 0;
+  m_bba_mem.ltps = 0;
 }
 
-inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
+inline u8 CEXIEthernetBase::HashIndex(const u8* dest_eth_addr) const
 {
   // Calculate CRC
   u32 crc = 0xffffffff;
@@ -432,25 +432,25 @@ inline u8 CEXIETHERNET::HashIndex(const u8* dest_eth_addr)
   return crc >> 26;
 }
 
-inline bool CEXIETHERNET::RecvMACFilter()
+inline bool CEXIEthernetBase::RecvMACFilter() const
 {
   static u8 const broadcast[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
   // Accept all destination addrs?
-  if (mBbaMem[BBA_NCRB] & NCRB_PR)
+  if (m_bba_mem.ncrb & NCRB_PR)
     return true;
 
   // Unicast?
-  if ((mRecvBuffer[0] & 0x01) == 0)
+  if ((m_recv_buffer[0] & 0x01) == 0)
   {
-    return memcmp(mRecvBuffer.get(), &mBbaMem[BBA_NAFR_PAR0], 6) == 0;
+    return memcmp(&m_recv_buffer, &m_bba_mem.nafr_par, 6) == 0;
   }
-  else if (memcmp(mRecvBuffer.get(), broadcast, 6) == 0)
+  else if (memcmp(&m_recv_buffer, broadcast, 6) == 0)
   {
     // Accept broadcast?
-    return !!(mBbaMem[BBA_NCRB] & NCRB_AB);
+    return !!(m_bba_mem.ncrb & NCRB_AB);
   }
-  else if (mBbaMem[BBA_NCRB] & NCRB_PM)
+  else if (m_bba_mem.ncrb & NCRB_PM)
   {
     // Accept all multicast
     return true;
@@ -458,25 +458,26 @@ inline bool CEXIETHERNET::RecvMACFilter()
   else
   {
     // Lookup the dest eth address in the hashmap
-    u16 index = HashIndex(mRecvBuffer.get());
-    return !!(mBbaMem[BBA_NAFR_MAR0 + index / 8] & (1 << (index % 8)));
+    u16 index = HashIndex(&m_recv_buffer[0]);
+    return !!(m_bba_mem.nafr_mar[index / 8] & (1 << (index % 8)));
   }
 }
 
-inline void CEXIETHERNET::inc_rwp()
+inline void CEXIEthernetBase::inc_rwp()
 {
-  u16* rwp = (u16*)&mBbaMem[BBA_RWP];
-
-  if (*rwp + 1 == page_ptr(BBA_RHBP))
-    *rwp = page_ptr(BBA_BP);
+  if (m_bba_mem.rwp + 1 == page_ptr(BBA_RHBP))
+    m_bba_mem.rwp = page_ptr(BBA_BP);
   else
-    (*rwp)++;
+    m_bba_mem.rwp++;
 }
 
 // This function is on the critical path for receiving data.
 // Be very careful about calling into the logger and other slow things
-bool CEXIETHERNET::RecvHandlePacket()
+bool CEXIEthernetBase::RecvHandlePacket()
 {
+  INFO_LOG(SP1, "RecvHandlePacket: %x", m_recv_buffer_length);
+  DEBUG_LOG(SP1, "%s", ArrayToString(&m_recv_buffer[0], m_recv_buffer_length, 0x10).c_str());
+
   u8* write_ptr;
   u8* end_ptr;
   u8* read_ptr;
@@ -488,23 +489,23 @@ bool CEXIETHERNET::RecvHandlePacket()
     goto wait_for_next;
 
 #ifdef BBA_TRACK_PAGE_PTRS
-  INFO_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
-           ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());
+  INFO_LOG(SP1, "RecvHandlePacket %x\n%s", m_recv_buffer_length,
+           ArrayToString(m_recv_buffer, m_recv_buffer_length, 0x100).c_str());
 
   INFO_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
            page_ptr(BBA_RHBP));
 #endif
 
-  write_ptr = ptr_from_page_ptr(BBA_RWP);
-  end_ptr = ptr_from_page_ptr(BBA_RHBP);
-  read_ptr = ptr_from_page_ptr(BBA_RRP);
+  write_ptr = PtrFromPagePtr(BBA_RWP);
+  end_ptr = PtrFromPagePtr(BBA_RHBP);
+  read_ptr = PtrFromPagePtr(BBA_RRP);
 
   descriptor = (Descriptor*)write_ptr;
   write_ptr += 4;
 
-  for (u32 i = 0, off = 4; i < mRecvBufferLength; ++i, ++off)
+  for (u32 i = 0, off = 4; i < m_recv_buffer_length; ++i, ++off)
   {
-    *write_ptr++ = mRecvBuffer[i];
+    *write_ptr++ = m_recv_buffer[i];
 
     if (off == 0xff)
     {
@@ -513,7 +514,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     }
 
     if (write_ptr == end_ptr)
-      write_ptr = ptr_from_page_ptr(BBA_BP);
+      write_ptr = PtrFromPagePtr(BBA_BP);
 
     if (write_ptr == read_ptr)
     {
@@ -529,13 +530,13 @@ bool CEXIETHERNET::RecvHandlePacket()
         inc MPC instead of receiving packets
       */
       status |= DESC_FO | DESC_BF;
-      mBbaMem[BBA_IR] |= mBbaMem[BBA_IMR] & INT_RBF;
+      m_bba_mem.ir |= m_bba_mem.imr & INT_RBF;
       break;
     }
   }
 
   // Align up to next page
-  if ((mRecvBufferLength + 4) % 256)
+  if ((m_recv_buffer_length + 4) % 256)
     inc_rwp();
 
 #ifdef BBA_TRACK_PAGE_PTRS
@@ -544,14 +545,14 @@ bool CEXIETHERNET::RecvHandlePacket()
 #endif
 
   // Is the current frame multicast?
-  if (mRecvBuffer[0] & 0x01)
+  if (m_recv_buffer[0] & 0x01)
     status |= DESC_MF;
 
   if (status & DESC_BF)
   {
-    if (mBbaMem[BBA_MISC2] & MISC2_AUTORCVR)
+    if (m_bba_mem.misc2 & MISC2_AUTORCVR)
     {
-      *(u16*)&mBbaMem[BBA_RWP] = rwp_initial;
+      m_bba_mem.rwp = rwp_initial;
     }
     else
     {
@@ -559,14 +560,14 @@ bool CEXIETHERNET::RecvHandlePacket()
     }
   }
 
-  descriptor->set(*(u16*)&mBbaMem[BBA_RWP], 4 + mRecvBufferLength, status);
+  descriptor->set(m_bba_mem.rwp, 4 + m_recv_buffer_length, status);
 
-  mBbaMem[BBA_LRPS] = status;
+  m_bba_mem.lrps = status;
 
   // Raise interrupt
-  if (mBbaMem[BBA_IMR] & INT_R)
+  if (m_bba_mem.imr & INT_R)
   {
-    mBbaMem[BBA_IR] |= INT_R;
+    m_bba_mem.ir |= INT_R;
 
     exi_status.interrupt |= exi_status.TRANSFER;
     ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
@@ -578,7 +579,7 @@ bool CEXIETHERNET::RecvHandlePacket()
   }
 
 wait_for_next:
-  if (mBbaMem[BBA_NCRA] & NCRA_SR)
+  if (m_bba_mem.ncra & NCRA_SR)
     RecvStart();
 
   return true;

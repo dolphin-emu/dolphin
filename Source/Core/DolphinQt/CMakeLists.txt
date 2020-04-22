@@ -52,6 +52,8 @@ add_executable(dolphin-emu
   Config/ARCodeWidget.cpp
   Config/ARCodeWidget.h
   Config/CheatCodeEditor.cpp
+  Config/ARCodeWidget.cpp
+  Config/BBAConfigWidget.cpp
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
