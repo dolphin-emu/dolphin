@@ -402,13 +402,19 @@ IPCCommandResult NetIPTop::HandleDoSockRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandleShutdownRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
+  if (request.buffer_in == 0 || request.buffer_in_size < 8)
+  {
+    ERROR_LOG(IOS_NET, "IOCTL_SO_SHUTDOWN = EINVAL, BufferIn: (%08x, %i)", request.buffer_in,
+              request.buffer_in_size);
+    return GetDefaultReply(-SO_EINVAL);
+  }
 
-  u32 fd = Memory::Read_U32(request.buffer_in);
-  u32 how = Memory::Read_U32(request.buffer_in + 4);
-  int ret = shutdown(WiiSockMan::GetInstance().GetHostSocket(fd), how);
-
-  return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_SHUTDOWN", false));
+  const u32 fd = Memory::Read_U32(request.buffer_in);
+  const u32 how = Memory::Read_U32(request.buffer_in + 4);
+  WiiSockMan& sm = WiiSockMan::GetInstance();
+  const s32 return_value = sm.ShutdownSocket(fd, how);
+  INFO_LOG(IOS_NET, "IOCTL_SO_SHUTDOWN(fd=%d, how=%d) = %d", fd, how, return_value);
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult NetIPTop::HandleListenRequest(const IOCtlRequest& request)

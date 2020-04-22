@@ -156,6 +156,54 @@ void WiiSocket::SetWiiFd(s32 s)
   wii_fd = s;
 }
 
+s32 WiiSocket::Shutdown(u32 how)
+{
+  if (how > 2)
+    return -SO_EINVAL;
+
+  // The Wii does nothing and returns 0 for IP_PROTO_UDP
+  int so_type;
+  socklen_t opt_len = sizeof(so_type);
+  if (getsockopt(fd, SOL_SOCKET, SO_TYPE, reinterpret_cast<char*>(&so_type), &opt_len) != 0 ||
+      (so_type != SOCK_STREAM && so_type != SOCK_DGRAM))
+    return -SO_EBADF;
+  if (so_type == SOCK_DGRAM)
+    return SO_SUCCESS;
+
+  // Adjust pending operations
+  // Values based on https://dolp.in/pr8758 hwtest
+  const s32 ret = WiiSockMan::GetNetErrorCode(shutdown(fd, how), "SO_SHUTDOWN", false);
+  const bool shut_read = how == 0 || how == 2;
+  const bool shut_write = how == 1 || how == 2;
+  for (auto& op : pending_sockops)
+  {
+    // TODO: Create hwtest for SSL
+    if (op.is_ssl)
+      continue;
+
+    switch (op.net_type)
+    {
+    case IOCTL_SO_ACCEPT:
+      if (shut_write)
+        op.Abort(-SO_EINVAL);
+      break;
+    case IOCTL_SO_CONNECT:
+      if (shut_write && !nonBlock)
+        op.Abort(-SO_ENETUNREACH);
+      break;
+    case IOCTLV_SO_RECVFROM:
+      if (shut_read)
+        op.Abort(-SO_ENOTCONN);
+      break;
+    case IOCTLV_SO_SENDTO:
+      if (shut_write)
+        op.Abort(-SO_ENOTCONN);
+      break;
+    }
+  }
+  return ret;
+}
+
 s32 WiiSocket::CloseFd()
 {
   s32 ReturnValue = 0;
@@ -586,6 +634,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
     }
 
+    if (it->is_aborted)
+    {
+      it = pending_sockops.erase(it);
+      continue;
+    }
+
     if (nonBlock || forceNonBlock ||
         (!it->is_ssl && ReturnValue != -SO_EAGAIN && ReturnValue != -SO_EINPROGRESS &&
          ReturnValue != -SO_EALREADY) ||
@@ -679,10 +733,18 @@ s32 WiiSockMan::GetHostSocket(s32 wii_fd) const
   return -EBADF;
 }
 
-s32 WiiSockMan::DeleteSocket(s32 s)
+s32 WiiSockMan::ShutdownSocket(s32 wii_fd, u32 how)
+{
+  auto socket_entry = WiiSockets.find(wii_fd);
+  if (socket_entry != WiiSockets.end())
+    return socket_entry->second.Shutdown(how);
+  return -SO_EBADF;
+}
+
+s32 WiiSockMan::DeleteSocket(s32 wii_fd)
 {
   s32 ReturnValue = -SO_EBADF;
-  auto socket_entry = WiiSockets.find(s);
+  auto socket_entry = WiiSockets.find(wii_fd);
   if (socket_entry != WiiSockets.end())
   {
     ReturnValue = socket_entry->second.CloseFd();
@@ -913,6 +975,11 @@ void WiiSockMan::UpdateWantDeterminism(bool want)
     Clean();
 }
 
+void WiiSocket::sockop::Abort(s32 value)
+{
+  is_aborted = true;
+  GetIOS()->EnqueueIPCReply(request, value);
+}
 #undef ERRORCODE
 #undef EITHER
 }  // namespace IOS::HLE
