@@ -224,6 +224,7 @@ add_executable(dolphin-emu
   QtUtils/FlowLayout.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
+  QtUtils/ParallelProgressDialog.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/WindowActivationEventFilter.cpp

@@ -6,7 +6,6 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QProgressDialog>
 
 #include <imgui.h>
 
@@ -124,11 +123,6 @@ void Host_YieldToUI()
 void Host_UpdateDisasmDialog()
 {
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
-}
-
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-  emit Host::GetInstance()->UpdateProgressDialog(QString::fromUtf8(caption), position, total);
 }
 
 void Host::RequestNotifyMapLoaded()

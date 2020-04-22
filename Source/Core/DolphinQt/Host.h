@@ -33,7 +33,6 @@ signals:
   void RequestTitle(const QString& title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
-  void UpdateProgressDialog(QString label, int position, int maximum);
   void UpdateDisasmDialog();
   void NotifyMapLoaded();
 

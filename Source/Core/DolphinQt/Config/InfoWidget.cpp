@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProgressDialog>
 #include <QPushButton>
 #include <QTextEdit>
 

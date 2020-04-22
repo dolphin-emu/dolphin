@@ -12,7 +12,6 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
-#include <QProgressDialog>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -87,6 +86,7 @@
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -615,8 +615,6 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectHost()
 {
-  connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
-          &MainWindow::OnUpdateProgressDialog);
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
 }
 
@@ -1510,23 +1508,21 @@ void MainWindow::OnImportNANDBackup()
   if (file.isEmpty())
     return;
 
-  QProgressDialog* dialog = new QProgressDialog(this);
-  dialog->setMinimum(0);
-  dialog->setMaximum(0);
-  dialog->setLabelText(tr("Importing NAND backup"));
-  dialog->setCancelButton(nullptr);
+  ParallelProgressDialog dialog(this);
+  dialog.GetRaw()->setMinimum(0);
+  dialog.GetRaw()->setMaximum(0);
+  dialog.GetRaw()->setLabelText(tr("Importing NAND backup"));
+  dialog.GetRaw()->setCancelButton(nullptr);
 
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-  auto result = std::async(std::launch::async, [&] {
+  std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
         [&dialog, beginning] {
-          QueueOnObject(dialog, [&dialog, beginning] {
-            dialog->setLabelText(
-                tr("Importing NAND backup\n Time elapsed: %1s")
-                    .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
-          });
+          dialog.SetLabelText(
+              tr("Importing NAND backup\n Time elapsed: %1s")
+                  .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
@@ -1540,10 +1536,10 @@ void MainWindow::OnImportNANDBackup()
             return *keys_file;
           return std::string("");
         });
-    QueueOnObject(dialog, &QProgressDialog::close);
+    dialog.Reset();
   });
 
-  dialog->exec();
+  dialog.GetRaw()->exec();
 
   result.wait();
 
@@ -1701,28 +1697,6 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
-}
-
-void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
-{
-  if (!m_progress_dialog)
-  {
-    m_progress_dialog = new QProgressDialog(m_render_widget, Qt::WindowTitleHint);
-    m_progress_dialog->show();
-    m_progress_dialog->setCancelButton(nullptr);
-    m_progress_dialog->setWindowTitle(tr("Dolphin"));
-  }
-
-  m_progress_dialog->setValue(progress);
-  m_progress_dialog->setLabelText(title);
-  m_progress_dialog->setMaximum(total);
-
-  if (total < 0 || progress >= total)
-  {
-    m_progress_dialog->hide();
-    m_progress_dialog->deleteLater();
-    m_progress_dialog = nullptr;
-  }
 }
 
 void MainWindow::Show()

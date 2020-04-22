@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <future>
 
 #include <QDesktopServices>
 #include <QDir>
@@ -20,7 +21,6 @@
 #include <QListView>
 #include <QMap>
 #include <QMenu>
-#include <QProgressDialog>
 #include <QShortcut>
 #include <QSortFilterProxyModel>
 #include <QTableView>
@@ -46,6 +46,7 @@
 #include "DolphinQt/MenuBar.h"
 #include "DolphinQt/QtUtils/DoubleClickEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/WiiUpdate.h"
@@ -577,34 +578,50 @@ void GameList::CompressISO(bool decompress)
       }
     }
 
-    QProgressDialog progress_dialog(decompress ? tr("Decompressing...") : tr("Compressing..."),
-                                    tr("Abort"), 0, 100, this);
-    progress_dialog.setWindowModality(Qt::WindowModal);
-    progress_dialog.setWindowFlags(progress_dialog.windowFlags() &
-                                   ~Qt::WindowContextHelpButtonHint);
-    progress_dialog.setWindowTitle(tr("Progress"));
+    ParallelProgressDialog progress_dialog(
+        decompress ? tr("Decompressing...") : tr("Compressing..."), tr("Abort"), 0, 100, this);
+    progress_dialog.GetRaw()->setWindowModality(Qt::WindowModal);
+    progress_dialog.GetRaw()->setWindowTitle(tr("Progress"));
 
-    bool good;
+    std::future<bool> good;
 
     if (decompress)
     {
       if (files.size() > 1)
-        progress_dialog.setLabelText(tr("Decompressing...") + QLatin1Char{'\n'} +
-                                     QFileInfo(QString::fromStdString(original_path)).fileName());
-      good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(), &CompressCB,
-                                          &progress_dialog);
+      {
+        progress_dialog.GetRaw()->setLabelText(
+            tr("Decompressing...") + QLatin1Char{'\n'} +
+            QFileInfo(QString::fromStdString(original_path)).fileName());
+      }
+
+      good = std::async(std::launch::async, [&] {
+        const bool good = DiscIO::DecompressBlobToFile(original_path, dst_path.toStdString(),
+                                                       &CompressCB, &progress_dialog);
+        progress_dialog.Reset();
+        return good;
+      });
     }
     else
     {
       if (files.size() > 1)
-        progress_dialog.setLabelText(tr("Compressing...") + QLatin1Char{'\n'} +
-                                     QFileInfo(QString::fromStdString(original_path)).fileName());
-      good = DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
-                                        file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
-                                        16384, &CompressCB, &progress_dialog);
+      {
+        progress_dialog.GetRaw()->setLabelText(
+            tr("Compressing...") + QLatin1Char{'\n'} +
+            QFileInfo(QString::fromStdString(original_path)).fileName());
+      }
+
+      good = std::async(std::launch::async, [&] {
+        const bool good =
+            DiscIO::CompressFileToBlob(original_path, dst_path.toStdString(),
+                                       file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
+                                       16384, &CompressCB, &progress_dialog);
+        progress_dialog.Reset();
+        return good;
+      });
     }
 
-    if (!good)
+    progress_dialog.GetRaw()->exec();
+    if (!good.get())
     {
       QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
       return;
@@ -937,10 +954,10 @@ static bool CompressCB(const std::string& text, float percent, void* ptr)
   if (ptr == nullptr)
     return false;
 
-  auto* progress_dialog = static_cast<QProgressDialog*>(ptr);
+  auto* progress_dialog = static_cast<ParallelProgressDialog*>(ptr);
 
-  progress_dialog->setValue(percent * 100);
-  return !progress_dialog->wasCanceled();
+  progress_dialog->SetValue(percent * 100);
+  return !progress_dialog->WasCanceled();
 }
 
 void GameList::OnSectionResized(int index, int, int)
