@@ -21,6 +21,7 @@ add_library(discio
   FileSystemGCWii.h
   Filesystem.cpp
   Filesystem.h
+  MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
   ScrubbedBlob.cpp

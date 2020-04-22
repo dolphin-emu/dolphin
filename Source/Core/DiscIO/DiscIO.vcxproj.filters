@@ -161,6 +161,9 @@
     <ClInclude Include="ScrubbedBlob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
+    <ClInclude Include="MultithreadedCompressor.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
