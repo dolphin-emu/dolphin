@@ -511,7 +511,7 @@ public final class NativeLibrary
       }
 
       // Show the AlertDialog on the main thread.
-      emulationActivity.runOnUiThread(() -> builder.show());
+      emulationActivity.runOnUiThread(builder::show);
 
       // Wait for the lock to notify that it is complete.
       synchronized (lock)

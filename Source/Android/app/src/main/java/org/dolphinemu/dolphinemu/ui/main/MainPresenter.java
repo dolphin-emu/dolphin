@@ -1,11 +1,13 @@
 package org.dolphinemu.dolphinemu.ui.main;
 
+import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
@@ -121,13 +123,30 @@ public final class MainPresenter
 
   public void installWAD(String file)
   {
-    if (NativeLibrary.InstallWAD(file))
+    final Activity mainPresenterActivity = (Activity) mContext;
+
+    AlertDialog dialog = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase).create();
+    dialog.setTitle("Installing WAD");
+    dialog.setMessage("Installing...");
+    dialog.setCancelable(false);
+    dialog.show();
+
+    Thread installWADThread = new Thread(() ->
     {
-      Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT).show();
-    }
-    else
-    {
-      Toast.makeText(mContext, R.string.wad_install_failure, Toast.LENGTH_SHORT).show();
-    }
+      if (NativeLibrary.InstallWAD(file))
+      {
+        mainPresenterActivity.runOnUiThread(
+                () -> Toast.makeText(mContext, R.string.wad_install_success, Toast.LENGTH_SHORT)
+                        .show());
+      }
+      else
+      {
+        mainPresenterActivity.runOnUiThread(
+                () -> Toast.makeText(mContext, R.string.wad_install_failure, Toast.LENGTH_SHORT)
+                        .show());
+      }
+      mainPresenterActivity.runOnUiThread(dialog::dismiss);
+    }, "InstallWAD");
+    installWADThread.start();
   }
 }

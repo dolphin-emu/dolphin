@@ -262,7 +262,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     }
 
     private final String[] mGamePaths;
-    private Thread mEmulationThread;
     private State state;
     private Surface mSurface;
     private boolean mRunWhenSurfaceIsValid;
@@ -399,7 +398,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       mRunWhenSurfaceIsValid = false;
       if (state == State.STOPPED)
       {
-        mEmulationThread = new Thread(() ->
+        Thread emulationThread = new Thread(() ->
         {
           NativeLibrary.SurfaceChanged(mSurface);
           if (loadPreviousTemporaryState)
@@ -413,8 +412,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             NativeLibrary.Run(mGamePaths);
           }
         }, "NativeEmulation");
-        mEmulationThread.start();
-
+        emulationThread.start();
       }
       else if (state == State.PAUSED)
       {
