@@ -41,20 +41,31 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
                               Common::MsgType style)
 {
   const bool called_from_cpu_thread = Core::IsCPUThread();
+  const bool called_from_gpu_thread = Core::IsGPUThread();
 
   std::optional<bool> r = RunOnObject(QApplication::instance(), [&] {
-    Common::ScopeGuard scope_guard(&Core::UndeclareAsCPUThread);
+    Common::ScopeGuard cpu_scope_guard(&Core::UndeclareAsCPUThread);
+    Common::ScopeGuard gpu_scope_guard(&Core::UndeclareAsGPUThread);
+
+    if (!called_from_cpu_thread)
+      cpu_scope_guard.Dismiss();
+    if (!called_from_gpu_thread)
+      gpu_scope_guard.Dismiss();
+
     if (called_from_cpu_thread)
     {
-      // Temporarily declare this as the CPU thread to avoid getting a deadlock if any DolphinQt
-      // code calls RunAsCPUThread while the CPU thread is blocked on this function returning.
-      // Notably, if the panic alert steals focus from RenderWidget, Host::SetRenderFocus gets
-      // called, which can attempt to use RunAsCPUThread to get us out of exclusive fullscreen.
+      // If the panic alert that we are about to create steals the focus from RenderWidget,
+      // Host::SetRenderFocus gets called, which can attempt to use RunAsCPUThread to get us out
+      // of exclusive fullscreen. If we don't declare ourselves as the CPU thread, RunAsCPUThread
+      // calls PauseAndLock, which causes a deadlock if the CPU thread is waiting on us returning.
       Core::DeclareAsCPUThread();
     }
-    else
+    if (called_from_gpu_thread)
     {
-      scope_guard.Dismiss();
+      // We also need to avoid getting a deadlock when the GPU thread is waiting on us returning.
+      // Declaring ourselves as the GPU thread does not alter the behavior of RunAsCPUThread or
+      // PauseAndLock, but it does make Host::SetRenderFocus not call RunAsCPUThread.
+      Core::DeclareAsGPUThread();
     }
 
     ModalMessageBox message_box(QApplication::activeWindow(), Qt::ApplicationModal);

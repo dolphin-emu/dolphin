@@ -3,6 +3,8 @@
 
 #include "DolphinQt/Host.h"
 
+#include <functional>
+
 #include <QAbstractEventDispatcher>
 #include <QApplication>
 #include <QLocale>
@@ -85,6 +87,19 @@ void Host::SetMainWindowHandle(void* handle)
   m_main_window_handle = handle;
 }
 
+static void RunWithGPUThreadInactive(std::function<void()> f)
+{
+  // If we are the GPU thread in dual core mode, we cannot safely call
+  // RunAsCPUThread, since RunAsCPUThread will need to pause the GPU thread
+  // and the GPU thread is waiting for us to finish. Fortunately, if we know
+  // that the GPU thread is waiting for us, we can just run f directly.
+
+  if (Core::IsGPUThread())
+    f();
+  else
+    Core::RunAsCPUThread(std::move(f));
+}
+
 bool Host::GetRenderFocus()
 {
 #ifdef _WIN32
@@ -107,10 +122,12 @@ void Host::SetRenderFocus(bool focus)
 {
   m_render_focus = focus;
   if (g_renderer && m_render_fullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled())
-    Core::RunAsCPUThread([focus] {
+  {
+    RunWithGPUThreadInactive([focus] {
       if (!Config::Get(Config::MAIN_RENDER_TO_MAIN))
         g_renderer->SetFullscreen(focus);
     });
+  }
 }
 
 void Host::SetRenderFullFocus(bool focus)
@@ -138,7 +155,9 @@ void Host::SetRenderFullscreen(bool fullscreen)
 
   if (g_renderer && g_renderer->IsFullscreen() != fullscreen &&
       g_ActiveConfig.ExclusiveFullscreenEnabled())
-    Core::RunAsCPUThread([fullscreen] { g_renderer->SetFullscreen(fullscreen); });
+  {
+    RunWithGPUThreadInactive([fullscreen] { g_renderer->SetFullscreen(fullscreen); });
+  }
 }
 
 void Host::ResizeSurface(int new_width, int new_height)
