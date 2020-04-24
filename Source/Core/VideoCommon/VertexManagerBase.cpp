@@ -373,7 +373,7 @@ void VertexManagerBase::Flush()
     if (xfmem.numChan.numColorChans != bpmem.genMode.numcolchans)
     {
       DolphinAnalytics::Instance().ReportGameQuirk(
-          GameQuirk::MISMATCHED_GPU_TEXGENS_BETWEEN_XF_AND_BP);
+          GameQuirk::MISMATCHED_GPU_COLORS_BETWEEN_XF_AND_BP);
     }
 
     return;
