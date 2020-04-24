@@ -371,7 +371,6 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
   const CompressedBlobHeader& header = reader->GetHeader();
   static const size_t BUFFER_BLOCKS = 32;
   size_t buffer_size = header.block_size * BUFFER_BLOCKS;
-  size_t last_buffer_size = header.block_size * (header.num_blocks % BUFFER_BLOCKS);
   std::vector<u8> buffer(buffer_size);
   u32 num_buffers = (header.num_blocks + BUFFER_BLOCKS - 1) / BUFFER_BLOCKS;
   int progress_monitor = std::max<int>(1, num_buffers / 100);
@@ -389,8 +388,9 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
         break;
       }
     }
-    const size_t sz = i == num_buffers - 1 ? last_buffer_size : buffer_size;
-    reader->Read(i * buffer_size, sz, buffer.data());
+    const u64 inpos = i * buffer_size;
+    const u64 sz = std::min<u64>(buffer_size, header.data_size - inpos);
+    reader->Read(inpos, sz, buffer.data());
     if (!outfile.WriteBytes(buffer.data(), sz))
     {
       PanicAlertT("Failed to write the output file \"%s\".\n"
