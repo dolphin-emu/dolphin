@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>unique_games</key>
+	<array/>
 	<key>tscontroller_stick_recentering</key>
 	<false/>
 	<key>did_deliberately_change_cpu_core</key>
