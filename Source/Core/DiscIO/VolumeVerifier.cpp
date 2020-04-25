@@ -735,7 +735,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     return;
 
   m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
-  if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
+  const bool should_be_dual_layer = ShouldBeDualLayer();
+  if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
                Common::GetStringT(
@@ -753,7 +754,7 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
   else if (!m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
-    const bool is_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
+    const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
     const u64 size = m_volume.GetSize();
 
     const bool valid_gamecube = size == MINI_DVD_SIZE;
@@ -761,8 +762,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     const bool valid_debug_wii = size == SL_DVD_R_SIZE || size == DL_DVD_R_SIZE;
 
     const bool debug = IsDebugSigned();
-    if ((is_gc_size && !valid_gamecube) ||
-        (!is_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
+    if ((should_be_gc_size && !valid_gamecube) ||
+        (!should_be_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
     {
       if (debug && valid_retail_wii)
       {
@@ -772,7 +773,15 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
       }
       else
       {
-        if ((is_gc_size && size < MINI_DVD_SIZE) || (!is_gc_size && size < SL_DVD_SIZE))
+        u64 normal_size;
+        if (should_be_gc_size)
+          normal_size = MINI_DVD_SIZE;
+        else if (!should_be_dual_layer)
+          normal_size = SL_DVD_SIZE;
+        else
+          normal_size = DL_DVD_SIZE;
+
+        if (size < normal_size)
         {
           AddProblem(
               Severity::Low,
