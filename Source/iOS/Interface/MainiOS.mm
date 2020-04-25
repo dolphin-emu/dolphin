@@ -362,8 +362,6 @@ void UpdateWiiPointer()
     }
   }
 
-  ButtonManager::Shutdown();
-
   s_view_controller = nullptr;
 }
 
