@@ -36,6 +36,7 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#include "VideoCommon/Fifo.cpp"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -89,15 +90,40 @@ void Host::SetMainWindowHandle(void* handle)
 
 static void RunWithGPUThreadInactive(std::function<void()> f)
 {
-  // If we are the GPU thread in dual core mode, we cannot safely call
-  // RunAsCPUThread, since RunAsCPUThread will need to pause the GPU thread
-  // and the GPU thread is waiting for us to finish. Fortunately, if we know
-  // that the GPU thread is waiting for us, we can just run f directly.
+  // Potentially any thread which shows panic alerts can be blocked on this returning.
+  // This means that, in order to avoid deadlocks, we need to be careful with how we
+  // synchronize with other threads. Note that the panic alert handler temporarily declares
+  // us as the CPU and/or GPU thread if the panic alert was requested by that thread.
+
+  // TODO: What about the unlikely case where the GPU thread calls the panic alert handler
+  // while the panic alert handler is processing a panic alert from the CPU thread?
 
   if (Core::IsGPUThread())
+  {
+    // If we are the GPU thread, we can't call Core::PauseAndLock without getting a deadlock,
+    // since it would try to pause the GPU thread while that thread is waiting for us.
+    // However, since we know that the GPU thread is inactive, we can just run f directly.
+
     f();
+  }
+  else if (Core::IsCPUThread())
+  {
+    // If we are the CPU thread in dual core mode, we can't call Core::PauseAndLock, for the
+    // same reason as above. Instead, we use Fifo::PauseAndLock to pause the GPU thread only.
+    // (Note that this case cannot be reached in single core mode, because in single core mode,
+    // the CPU and GPU threads are the same thread, and we already checked for the GPU thread.)
+
+    const bool was_running = Core::GetState() == Core::State::Running;
+    Fifo::PauseAndLock(true, was_running);
+    f();
+    Fifo::PauseAndLock(false, was_running);
+  }
   else
+  {
+    // If we reach here, we can call Core::PauseAndLock (which we do using RunAsCPUThread).
+
     Core::RunAsCPUThread(std::move(f));
+  }
 }
 
 bool Host::GetRenderFocus()
