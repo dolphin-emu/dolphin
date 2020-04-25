@@ -116,9 +116,24 @@
 
 - (void)StartEmulation
 {
+  NSString* uid = CppToFoundationString(self.m_game_file->GetUniqueIdentifier());
+  
   [MSAnalytics trackEvent:@"game-start" withProperties:@{
-    @"game-uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier())
+    @"game-uid" : uid
   }];
+  
+  NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
+  if (![games_array containsObject:uid])
+  {
+    [MSAnalytics trackEvent:@"unique-game-start" withProperties:@{
+      @"game-uid" : uid
+    }];
+    
+    NSMutableArray* mutable_games_array = [games_array mutableCopy];
+    [mutable_games_array addObject:uid];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:mutable_games_array forKey:@"unique_games"];
+  }
 
   [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
