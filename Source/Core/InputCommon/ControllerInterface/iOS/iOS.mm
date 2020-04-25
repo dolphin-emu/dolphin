@@ -89,6 +89,24 @@ Controller::Controller(GCController* controller) : m_controller(controller)
       }
     }
   }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+  else if (controller.gamepad != nil)
+  {
+    // Deprecated in iOS 10, but needed for some older controllers
+    GCGamepad* gamepad = controller.gamepad;
+    AddInput(new Button(gamepad.buttonA, "Button A"));
+    AddInput(new Button(gamepad.buttonB, "Button B"));
+    AddInput(new Button(gamepad.buttonX, "Button X"));
+    AddInput(new Button(gamepad.buttonY, "Button Y"));
+    AddInput(new Button(gamepad.dpad.up, "D-Pad Up"));
+    AddInput(new Button(gamepad.dpad.down, "D-Pad Down"));
+    AddInput(new Button(gamepad.dpad.left, "D-Pad Left"));
+    AddInput(new Button(gamepad.dpad.right, "D-Pad Right"));
+    AddInput(new PressureSensitiveButton(gamepad.leftShoulder, "L Shoulder"));
+    AddInput(new PressureSensitiveButton(gamepad.rightShoulder, "R Shoulder"));
+  }
+#pragma clang diagnostic pop
   else if (controller.microGamepad != nil)  // Siri Remote
   {
     GCMicroGamepad* gamepad = controller.microGamepad;
