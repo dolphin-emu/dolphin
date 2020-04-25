@@ -30,6 +30,7 @@
 #import "DonationNoticeViewController.h"
 
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
+#import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
@@ -272,6 +273,7 @@
   }
   
   [[TCDeviceMotion shared] stopMotionUpdates];
+  ButtonManager::Shutdown();
   Pad::Shutdown();
   Keyboard::Shutdown();
   Wiimote::Shutdown();
