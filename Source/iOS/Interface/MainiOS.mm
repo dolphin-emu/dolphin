@@ -269,6 +269,7 @@ void UpdateWiiPointer()
   Pad::Initialize();
   Keyboard::Initialize();
   Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+  ButtonManager::Init("AAAA01"); // Dummy GameID
 }
 
 + (NSString*)getUserFolder
@@ -343,7 +344,6 @@ void UpdateWiiPointer()
 
   if (BootManager::BootCore(std::move(boot), wsi))
   {
-    ButtonManager::Init(SConfig::GetInstance().GetGameID());
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;
     int time_waited = 0;
