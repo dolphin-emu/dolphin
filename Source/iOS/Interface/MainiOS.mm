@@ -144,16 +144,16 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
 
       if (yes_no)
       {
-        [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault
-          handler:^(UIAlertAction * action) {
-            yes_pressed = true;
+        [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
+          handler:^(UIAlertAction* action) {
+            yes_pressed = false;
 
             [condition signal];
         }]];
 
-        [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault
-          handler:^(UIAlertAction* action) {
-            yes_pressed = false;
+        [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDefault
+          handler:^(UIAlertAction * action) {
+            yes_pressed = true;
 
             [condition signal];
         }]];
