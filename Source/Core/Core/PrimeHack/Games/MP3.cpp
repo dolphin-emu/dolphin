@@ -170,7 +170,7 @@ namespace prime
         PowerPC::HostRead_U32(
           PowerPC::HostRead_U32(camera_fov + 0x68) + 0x0c) + 0x18) + 0x14);
 
-    adjust_viewmodel(fov, armpos_address(), cgame_camera + 0x8C);
+    adjust_viewmodel(fov, PowerPC::HostRead_U32(PowerPC::HostRead_U32(tweakgun_address())) + 0xE0, cgame_camera + 0x8C);
 
     if (GetCulling() || GetFov() > 96.f)
       disable_culling(culling_address());
@@ -228,9 +228,9 @@ namespace prime
   {
     return 0x804852cc; 
   }
-  uint32_t MP3NTSC::armpos_address() const
+  uint32_t MP3NTSC::tweakgun_address() const
   {
-    return 0x809f3b00; 
+    return 0x8066F87C;
   }
 
   MP3NTSC::MP3NTSC()
@@ -323,9 +323,9 @@ namespace prime
   {
     return 0x804849E8;
   }
-  uint32_t MP3PAL::armpos_address() const
+  uint32_t MP3PAL::tweakgun_address() const
   {
-    return 0x809F74E0;
+    return 0x806730FC;
   }
 
   MP3PAL::MP3PAL()

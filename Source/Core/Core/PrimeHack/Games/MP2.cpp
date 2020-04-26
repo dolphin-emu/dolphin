@@ -105,7 +105,7 @@ namespace prime
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base + 0x1e8);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base_tp + 0x1e8);
 
-    adjust_viewmodel(fov, armpos_address(), camera_base + 0x1C4);
+    adjust_viewmodel(fov, PowerPC::HostRead_U32(PowerPC::HostRead_U32(tweakgun_address())) + 0x4c, camera_base + 0x1C4);
 
     if (GetCulling() || GetFov() > 101.f)
       disable_culling(culling_address());
@@ -165,9 +165,9 @@ namespace prime
   {
     return 0x802C8114;
   }
-  uint32_t MP2NTSC::armpos_address() const
+  uint32_t MP2NTSC::tweakgun_address() const
   {
-    return 0x80840108;
+    return 0x805CB274;
   }
   uint32_t MP2NTSC::bloom_address() const
   {
@@ -223,9 +223,9 @@ namespace prime
   {
     return 0x802CA730;
   }
-  uint32_t MP2PAL::armpos_address() const
+  uint32_t MP2PAL::tweakgun_address() const
   {
-    return 0x80847748;
+    return 0x805D2CDC;
   }
   uint32_t MP2PAL::bloom_address() const
   {

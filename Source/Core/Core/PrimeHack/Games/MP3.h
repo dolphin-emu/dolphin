@@ -13,7 +13,6 @@ namespace prime
     void run_mod() override;
 
     bool should_apply_changes() const { return !fighting_ridley && PrimeMod::should_apply_changes(); }
-    uint32_t get_cgame_camera(u32 addr);
 
     virtual ~MP3() {}
 
@@ -32,7 +31,7 @@ namespace prime
     virtual void apply_normal_instructions() = 0;
     virtual uint32_t culling_address() const = 0;
     virtual uint32_t bloom_address() const = 0;
-    virtual uint32_t armpos_address() const = 0;
+    virtual uint32_t tweakgun_address() const = 0;
 
     void control_state_hook(u32 base_offset, Region region);
     void grapple_slide_no_lookat(u32 base_offset);
@@ -64,7 +63,7 @@ namespace prime
     uint32_t camera_pointer_address() const override;
     uint32_t culling_address() const override;
     uint32_t bloom_address() const override;
-    uint32_t armpos_address() const override;
+    uint32_t tweakgun_address() const override;
 
     void apply_mod_instructions() override;
     void apply_normal_instructions() override;
@@ -92,7 +91,7 @@ namespace prime
     uint32_t camera_pointer_address() const override;
     uint32_t culling_address() const override;
     uint32_t bloom_address() const override;
-    uint32_t armpos_address() const override;
+    uint32_t tweakgun_address() const override;
 
     void apply_mod_instructions() override;
     void apply_normal_instructions() override;
