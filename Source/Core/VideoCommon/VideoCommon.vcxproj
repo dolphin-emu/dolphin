@@ -63,6 +63,7 @@
     <ClCompile Include="FPSCounter.cpp" />
     <ClCompile Include="FramebufferManager.cpp" />
     <ClCompile Include="FramebufferShaderGen.cpp" />
+    <ClCompile Include="FreeLookCamera.cpp" />
     <ClCompile Include="HiresTextures.cpp" />
     <ClCompile Include="HiresTextures_DDSLoader.cpp" />
     <ClCompile Include="ImageWrite.cpp" />
@@ -141,6 +142,7 @@
     <ClInclude Include="FPSCounter.h" />
     <ClInclude Include="FramebufferManager.h" />
     <ClInclude Include="FramebufferShaderGen.h" />
+    <ClInclude Include="FreeLookCamera.h" />
     <ClInclude Include="GXPipelineTypes.h" />
     <ClInclude Include="NetPlayChatUI.h" />
     <ClInclude Include="NetPlayGolfUI.h" />
