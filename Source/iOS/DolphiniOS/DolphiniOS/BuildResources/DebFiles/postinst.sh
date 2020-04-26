@@ -2,12 +2,6 @@
 
 set -e
 
-echo "Setting csdbgd permissions"
-chown root:wheel /Library/LaunchDaemons/me.oatmealdome.csdbgd.plist
-
-echo "Loading csdbgd"
-launchctl load -w /Library/LaunchDaemons/me.oatmealdome.csdbgd.plist
-
 # Seriously, WTF is going on here? I'm really curious what app/tweak
 # does this and why.
 echo "Checking if Documents is a file"

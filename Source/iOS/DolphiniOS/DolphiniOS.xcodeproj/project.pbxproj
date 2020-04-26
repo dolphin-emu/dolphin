@@ -381,8 +381,6 @@
 		B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSoundViewController.h; sourceTree = "<group>"; };
 		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
-		B9766AF223A4A31C00FF7F17 /* preinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = preinst.sh; path = BuildResources/DebFiles/preinst.sh; sourceTree = "<group>"; };
-		B9766AF323A4A33B00FF7F17 /* prerm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = prerm.sh; path = BuildResources/DebFiles/prerm.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
 		B98584C523CEDFB800BE94B0 /* ConfigInterfaceViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigInterfaceViewController.h; sourceTree = "<group>"; };
@@ -1153,8 +1151,6 @@
 				B99B05AA23A09DDF0076C7D8 /* control.in */,
 				B9DCAC9523AB38F4002B95C8 /* control-patreon.in */,
 				B9766AF123A4A26900FF7F17 /* postinst.sh */,
-				B9766AF223A4A31C00FF7F17 /* preinst.sh */,
-				B9766AF323A4A33B00FF7F17 /* prerm.sh */,
 				B9E1ACB623B355050072EDF0 /* postrm.sh */,
 			);
 			name = "Deb FIles";

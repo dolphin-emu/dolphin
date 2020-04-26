@@ -1,0 +1,12 @@
+Package: me.oatmealdome.csdbgd
+Name: csdbgd
+Version: VERSION_NUMBER
+Architecture: iphoneos-arm
+Description: Sets processes as debugged on request.
+Homepage: https://oatmealdome.me/
+Depiction: https://cydia.oatmealdome.me/depictions/?p=me.oatmealdome.csdbgd
+Maintainer: OatmealDome <julian@oatmealdome.me>
+Author: OatmealDome <julian@oatmealdome.me>
+Sponsor: OatmealDome's Patrons <https://patreon.com/oatmealdome>
+Section: Utilities
+Conflicts: me.oatmealdome.dolphinios (<= 2.0.2-3), me.oatmealdome.dolphinios-patreon-beta (<= 2.1.0-230)
