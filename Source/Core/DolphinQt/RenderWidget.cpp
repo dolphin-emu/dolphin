@@ -32,6 +32,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -238,12 +239,12 @@ void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
   if (event->buttons() & Qt::RightButton)
   {
     // Camera Pitch and Yaw:
-    VertexShaderManager::RotateView(mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f);
+    g_freelook_camera.Rotate(Common::Vec3{mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f});
   }
   else if (event->buttons() & Qt::MidButton)
   {
     // Camera Roll:
-    VertexShaderManager::RotateView(0.f, 0.f, mouse_move.x() / 200.f);
+    g_freelook_camera.Rotate({0.f, 0.f, mouse_move.x() / 200.f});
   }
 }
 

@@ -30,6 +30,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -545,25 +546,25 @@ void HotkeyScheduler::Run()
       fl_speed = 1.0;
 
     if (IsHotkey(HK_FREELOOK_UP, true))
-      VertexShaderManager::TranslateView(0.0, 0.0, -fl_speed);
+      g_freelook_camera.MoveVertical(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_DOWN, true))
-      VertexShaderManager::TranslateView(0.0, 0.0, fl_speed);
+      g_freelook_camera.MoveVertical(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_LEFT, true))
-      VertexShaderManager::TranslateView(fl_speed, 0.0);
+      g_freelook_camera.MoveHorizontal(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_RIGHT, true))
-      VertexShaderManager::TranslateView(-fl_speed, 0.0);
+      g_freelook_camera.MoveHorizontal(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_ZOOM_IN, true))
-      VertexShaderManager::TranslateView(0.0, fl_speed);
+      g_freelook_camera.Zoom(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_ZOOM_OUT, true))
-      VertexShaderManager::TranslateView(0.0, -fl_speed);
+      g_freelook_camera.Zoom(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_RESET, true))
-      VertexShaderManager::ResetView();
+      g_freelook_camera.Reset();
 
     // Savestates
     for (u32 i = 0; i < State::NUM_STATES; i++)
