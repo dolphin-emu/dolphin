@@ -8,6 +8,7 @@
 
 class GraphicsWindow;
 class QCheckBox;
+class QComboBox;
 class QSpinBox;
 
 class AdvancedWidget final : public GraphicsWidget
@@ -39,6 +40,7 @@ private:
   QCheckBox* m_disable_vram_copies;
   QCheckBox* m_load_custom_textures;
   QCheckBox* m_enable_freelook;
+  QComboBox* m_freelook_control_type;
 
   // Frame dumping
   QCheckBox* m_dump_use_ffv1;
