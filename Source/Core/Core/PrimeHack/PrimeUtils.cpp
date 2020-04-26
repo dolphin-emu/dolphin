@@ -75,11 +75,12 @@ namespace prime
       {
         if (!pressing_button)
         {
+          pressing_button = true;
           return visors[0];
         }
       }
     }
-    else if (CheckVisorCtl(1))
+    if (CheckVisorCtl(1))
     {
       if (!pressing_button)
       {
