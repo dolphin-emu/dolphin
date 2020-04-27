@@ -189,7 +189,7 @@ void Wiimote::Reset()
   // Dynamics:
   m_swing_state = {};
   m_tilt_state = {};
-  m_cursor_state = {};
+  m_point_state = {};
   m_shake_state = {};
 
   m_imu_cursor_state = {};
@@ -793,7 +793,7 @@ void Wiimote::StepDynamics()
 {
   EmulateSwing(&m_swing_state, m_swing, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateTilt(&m_tilt_state, m_tilt, 1.f / ::Wiimote::UPDATE_FREQ);
-  EmulateCursor(&m_cursor_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
+  EmulatePoint(&m_point_state, m_ir, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateShake(&m_shake_state, m_shake, 1.f / ::Wiimote::UPDATE_FREQ);
   EmulateIMUCursor(&m_imu_cursor_state, m_imu_ir, m_imu_accelerometer, m_imu_gyroscope,
                    1.f / ::Wiimote::UPDATE_FREQ);
@@ -813,7 +813,7 @@ Common::Vec3 Wiimote::GetAcceleration(Common::Vec3 extra_acceleration)
 Common::Vec3 Wiimote::GetAngularVelocity(Common::Vec3 extra_angular_velocity)
 {
   return GetOrientation() * (m_tilt_state.angular_velocity + m_swing_state.angular_velocity +
-                             m_cursor_state.angular_velocity + extra_angular_velocity);
+                             m_point_state.angular_velocity + extra_angular_velocity);
 }
 
 Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotation) const
@@ -823,10 +823,10 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
 
   // TODO: Think about and clean up matrix order + make nunchuk match.
   return Common::Matrix44::Translate(-m_shake_state.position) *
-         Common::Matrix44::FromMatrix33(
-             extra_rotation * GetRotationalMatrix(-m_tilt_state.angle - m_swing_state.angle -
-                                                  m_cursor_state.angle)) *
-         Common::Matrix44::Translate(-m_swing_state.position - m_cursor_state.position);
+         Common::Matrix44::FromMatrix33(extra_rotation * GetRotationalMatrix(-m_tilt_state.angle) *
+                                        GetRotationalMatrix(-m_point_state.angle) *
+                                        GetRotationalMatrix(-m_swing_state.angle)) *
+         Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
 }
 
 Common::Matrix33 Wiimote::GetOrientation() const
