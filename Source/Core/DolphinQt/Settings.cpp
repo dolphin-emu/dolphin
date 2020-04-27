@@ -422,6 +422,20 @@ bool Settings::IsMemoryVisible() const
   return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
 }
 
+void Settings::SetNetworkVisible(bool enabled)
+{
+  if (IsNetworkVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/shownetwork"), enabled);
+  emit NetworkVisibilityChanged(enabled);
+}
+
+bool Settings::IsNetworkVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/shownetwork")).toBool();
+}
+
 void Settings::SetJITVisible(bool enabled)
 {
   if (IsJITVisible() == enabled)

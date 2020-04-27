@@ -23,7 +23,7 @@
 
 namespace IOS::HLE::Device
 {
-WII_SSL NetSSL::_SSL[NET_SSL_MAXINSTANCES];
+WII_SSL NetSSL::_SSL[IOS::HLE::NET_SSL_MAXINSTANCES];
 
 static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     /* Hashes from SHA-1 and above */
@@ -247,7 +247,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_SHUTDOWN:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
 
@@ -292,7 +292,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       int ret =
@@ -333,7 +333,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
@@ -380,7 +380,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_x509_crt_free(&ssl->clicert);
@@ -399,7 +399,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_SETBUILTINROOTCA:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       const std::string cert_base_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
@@ -437,7 +437,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_CONNECT:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
@@ -464,7 +464,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_DOHANDSHAKE:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_DOHANDSHAKE);
@@ -479,7 +479,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_WRITE:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_WRITE);
@@ -503,7 +503,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   {
     int ret = 0;
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WiiSockMan& sm = WiiSockMan::GetInstance();
       sm.DoSock(_SSL[sslID].sockfd, request, IOCTLV_NET_SSL_READ);
@@ -526,7 +526,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_NET_SSL_SETROOTCADEFAULT:
   {
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WriteReturnValue(SSL_OK, BufferIn);
     }
@@ -554,7 +554,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
     int sslID = Memory::Read_U32(BufferOut) - 1;
-    if (SSLID_VALID(sslID))
+    if (IsSSLIDValid(sslID))
     {
       WriteReturnValue(SSL_OK, BufferIn);
     }

@@ -169,6 +169,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
   m_show_memory->setVisible(enabled);
+  m_show_network->setVisible(enabled);
   m_show_jit->setVisible(enabled);
 
   if (enabled)
@@ -467,6 +468,14 @@ void MenuBar::AddViewMenu()
 
   connect(m_show_memory, &QAction::toggled, &Settings::Instance(), &Settings::SetMemoryVisible);
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
+          &QAction::setChecked);
+
+  m_show_network = view_menu->addAction(tr("&Network"));
+  m_show_network->setCheckable(true);
+  m_show_network->setChecked(Settings::Instance().IsNetworkVisible());
+
+  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::SetNetworkVisible);
+  connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, m_show_network,
           &QAction::setChecked);
 
   m_show_jit = view_menu->addAction(tr("&JIT"));

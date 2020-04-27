@@ -176,6 +176,8 @@ add_executable(dolphin-emu
   Debugger/MemoryViewWidget.h
   Debugger/MemoryWidget.cpp
   Debugger/MemoryWidget.h
+  Debugger/NetworkWidget.cpp
+  Debugger/NetworkWidget.h
   Debugger/NewBreakpointDialog.cpp
   Debugger/NewBreakpointDialog.h
   Debugger/PatchInstructionDialog.cpp
