@@ -30,6 +30,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -162,6 +163,10 @@ CodeViewWidget::CodeViewWidget()
           &CodeViewWidget::FontBasedSizing);
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
+    m_address = PC;
+    Update();
+  });
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
     m_address = PC;
     Update();
   });

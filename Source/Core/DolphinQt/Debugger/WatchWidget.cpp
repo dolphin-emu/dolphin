@@ -17,6 +17,7 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -48,6 +49,8 @@ WatchWidget::WatchWidget(QWidget* parent) : QDockWidget(parent)
     if (state != Core::State::Starting)
       Update();
   });
+
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &WatchWidget::Update);
 
   connect(&Settings::Instance(), &Settings::WatchVisibilityChanged,
           [this](bool visible) { setHidden(!visible); });

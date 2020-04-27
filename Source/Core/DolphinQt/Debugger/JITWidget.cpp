@@ -15,6 +15,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "UICommon/Disassembler.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
 JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
@@ -47,6 +48,7 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &JITWidget::Update);
 
   ConnectWidgets();
 
