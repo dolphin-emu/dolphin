@@ -151,6 +151,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
+  public void launchInstallWAD()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
+            FileBrowserHelper.WAD_EXTENSION);
+  }
+
+  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -185,6 +192,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_WAD_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
         }
         break;
     }

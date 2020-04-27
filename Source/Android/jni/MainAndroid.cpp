@@ -43,6 +43,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 #include "Core/State.h"
+#include "Core/WiiUtils.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
@@ -731,6 +732,14 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(J
   const std::string path = GetJString(env, jFile);
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallWAD(JNIEnv* env,
+                                                                                   jobject obj,
+                                                                                   jstring jFile)
+{
+  const std::string path = GetJString(env, jFile);
+  return static_cast<jboolean>(WiiUtils::InstallWAD(path));
 }
 
 #ifdef __cplusplus
