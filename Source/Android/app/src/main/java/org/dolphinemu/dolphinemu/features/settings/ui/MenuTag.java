@@ -5,7 +5,7 @@ public enum MenuTag
   CONFIG("config"),
   CONFIG_GENERAL("config_general"),
   CONFIG_INTERFACE("config_interface"),
-  CONFIG_AUDIO("audio"),
+  CONFIG_AUDIO("config_audio"),
   CONFIG_PATHS("config_paths"),
   CONFIG_GAME_CUBE("config_gamecube"),
   CONFIG_WII("config_wii"),
