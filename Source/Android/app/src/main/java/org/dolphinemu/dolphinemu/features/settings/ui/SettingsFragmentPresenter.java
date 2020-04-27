@@ -136,6 +136,10 @@ public final class SettingsFragmentPresenter
         addInterfaceSettings(sl);
         break;
 
+      case CONFIG_AUDIO:
+        addAudioSettings(sl);
+        break;
+
       case CONFIG_PATHS:
         addPathsSettings(sl);
         break;
@@ -146,6 +150,10 @@ public final class SettingsFragmentPresenter
 
       case CONFIG_WII:
         addWiiSettings(sl);
+        break;
+
+      case CONFIG_ADVANCED:
+        addAdvancedSettings(sl);
         break;
 
       case GRAPHICS:
@@ -208,92 +216,49 @@ public final class SettingsFragmentPresenter
 
   private void addConfigSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new SubmenuSetting(null, null, R.string.general_submenu, 0, MenuTag.CONFIG_GENERAL));
-    sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, 0, MenuTag.CONFIG_INTERFACE));
-    sl.add(new SubmenuSetting(null, null, R.string.paths_submenu, 0, MenuTag.CONFIG_PATHS));
-
-    sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, 0, MenuTag.CONFIG_GAME_CUBE));
-    sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, 0, MenuTag.CONFIG_WII));
-    sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, 0, MenuTag.DEBUG));
+    sl.add(new SubmenuSetting(null, null, R.string.general_submenu, MenuTag.CONFIG_GENERAL));
+    sl.add(new SubmenuSetting(null, null, R.string.interface_submenu, MenuTag.CONFIG_INTERFACE));
+    sl.add(new SubmenuSetting(null, null, R.string.audio_submenu, MenuTag.CONFIG_AUDIO));
+    sl.add(new SubmenuSetting(null, null, R.string.paths_submenu, MenuTag.CONFIG_PATHS));
+    sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE));
+    sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, MenuTag.CONFIG_WII));
+    sl.add(new SubmenuSetting(null, null, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
+    sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, MenuTag.DEBUG));
     sl.add(new HeaderSetting(null, null, R.string.gametdb_thanks, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
   {
-    Setting cpuCore = null;
     Setting dualCore = null;
-    Setting overclockEnable = null;
-    Setting overclock = null;
-    Setting speedLimit = null;
-    Setting audioStretch = null;
-    Setting audioVolume = null;
     Setting overrideRegionSettings = null;
     Setting autoDiscChange = null;
+    Setting speedLimit = null;
     Setting analytics = null;
-    Setting enableSaveState;
+    Setting enableSaveState = null;
 
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-    SettingSection dspSection = mSettings.getSection(Settings.SECTION_INI_DSP);
     SettingSection analyticsSection = mSettings.getSection(Settings.SECTION_ANALYTICS);
-    cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
     dualCore = coreSection.getSetting(SettingsFile.KEY_DUAL_CORE);
-    overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
-    overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
-    speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
-    audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
-    audioVolume = dspSection.getSetting(SettingsFile.KEY_AUDIO_VOLUME);
     overrideRegionSettings = coreSection.getSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS);
     autoDiscChange = coreSection.getSetting(SettingsFile.KEY_AUTO_DISC_CHANGE);
+    speedLimit = coreSection.getSetting(SettingsFile.KEY_SPEED_LIMIT);
     analytics = analyticsSection.getSetting(SettingsFile.KEY_ANALYTICS_ENABLED);
     enableSaveState = coreSection.getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
 
-    // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
-    // The proper solution would be to have one emuCoresEntries and one emuCoresValues
-    // and exclude the values that aren't present in PowerPC::AvailableCPUCores().
-    int defaultCpuCore = NativeLibrary.DefaultCPUCore();
-    int emuCoresEntries;
-    int emuCoresValues;
-    if (defaultCpuCore == 1)  // x86-64
-    {
-      emuCoresEntries = R.array.emuCoresEntriesX86_64;
-      emuCoresValues = R.array.emuCoresValuesX86_64;
-    }
-    else if (defaultCpuCore == 4)  // AArch64
-    {
-      emuCoresEntries = R.array.emuCoresEntriesARM64;
-      emuCoresValues = R.array.emuCoresValuesARM64;
-    }
-    else
-    {
-      emuCoresEntries = R.array.emuCoresEntriesGeneric;
-      emuCoresValues = R.array.emuCoresValuesGeneric;
-    }
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, Settings.SECTION_INI_CORE,
-            R.string.cpu_core, 0, emuCoresEntries, emuCoresValues, defaultCpuCore, cpuCore));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, Settings.SECTION_INI_CORE,
             R.string.dual_core, R.string.dual_core_description, true, dualCore));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, Settings.SECTION_INI_CORE,
-            R.string.overclock_enable, R.string.overclock_enable_description, false,
-            overclockEnable));
-    sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, Settings.SECTION_INI_CORE,
-            R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100,
-            overclock));
-    sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, Settings.SECTION_INI_CORE,
-            R.string.speed_limit, 0, 200, "%", 100, speedLimit));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
-            R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
-    sl.add(new SliderSetting(SettingsFile.KEY_AUDIO_VOLUME, Settings.SECTION_INI_DSP,
-            R.string.audio_volume, 0, 100, "%", 100, audioVolume));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERRIDE_REGION_SETTINGS,
             Settings.SECTION_INI_CORE, R.string.override_region_settings, 0, false,
             overrideRegionSettings));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUTO_DISC_CHANGE, Settings.SECTION_INI_CORE,
             R.string.auto_disc_change, 0, false, autoDiscChange));
+    sl.add(new SliderSetting(SettingsFile.KEY_SPEED_LIMIT, Settings.SECTION_INI_CORE,
+            R.string.speed_limit, 0, 200, "%", 100, speedLimit));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
+            R.string.analytics, 0, false, analytics));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_SAVE_STATES, Settings.SECTION_INI_CORE,
             R.string.enable_save_states, R.string.enable_save_states_description, false,
             enableSaveState));
-    sl.add(new CheckBoxSetting(SettingsFile.KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
-            R.string.analytics, 0, false, analytics));
   }
 
   private void addInterfaceSettings(ArrayList<SettingsItem> sl)
@@ -311,6 +276,22 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_OSD_MESSAGES, Settings.SECTION_INI_INTERFACE,
             R.string.osd_messages, R.string.osd_messages_description, true,
             onScreenDisplayMessages));
+  }
+
+  private void addAudioSettings(ArrayList<SettingsItem> sl)
+  {
+    Setting audioStretch = null;
+    Setting audioVolume = null;
+
+    SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    SettingSection dspSection = mSettings.getSection(Settings.SECTION_INI_DSP);
+    audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
+    audioVolume = dspSection.getSetting(SettingsFile.KEY_AUDIO_VOLUME);
+
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,
+            R.string.audio_stretch, R.string.audio_stretch_description, false, audioStretch));
+    sl.add(new SliderSetting(SettingsFile.KEY_AUDIO_VOLUME, Settings.SECTION_INI_DSP,
+            R.string.audio_volume, 0, 100, "%", 100, audioVolume));
   }
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
@@ -394,6 +375,48 @@ public final class SettingsFragmentPresenter
             continuousScan));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE,
             R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
+  }
+
+  private void addAdvancedSettings(ArrayList<SettingsItem> sl)
+  {
+    Setting cpuCore = null;
+    Setting overclockEnable = null;
+    Setting overclock = null;
+
+    SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    cpuCore = coreSection.getSetting(SettingsFile.KEY_CPU_CORE);
+    overclockEnable = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_ENABLE);
+    overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
+
+    // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
+    // The proper solution would be to have one emuCoresEntries and one emuCoresValues
+    // and exclude the values that aren't present in PowerPC::AvailableCPUCores().
+    int defaultCpuCore = NativeLibrary.DefaultCPUCore();
+    int emuCoresEntries;
+    int emuCoresValues;
+    if (defaultCpuCore == 1)  // x86-64
+    {
+      emuCoresEntries = R.array.emuCoresEntriesX86_64;
+      emuCoresValues = R.array.emuCoresValuesX86_64;
+    }
+    else if (defaultCpuCore == 4)  // AArch64
+    {
+      emuCoresEntries = R.array.emuCoresEntriesARM64;
+      emuCoresValues = R.array.emuCoresValuesARM64;
+    }
+    else
+    {
+      emuCoresEntries = R.array.emuCoresEntriesGeneric;
+      emuCoresValues = R.array.emuCoresValuesGeneric;
+    }
+    sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, Settings.SECTION_INI_CORE,
+            R.string.cpu_core, 0, emuCoresEntries, emuCoresValues, defaultCpuCore, cpuCore));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, Settings.SECTION_INI_CORE,
+            R.string.overclock_enable, R.string.overclock_enable_description, false,
+            overclockEnable));
+    sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, Settings.SECTION_INI_CORE,
+            R.string.overclock_title, R.string.overclock_title_description, 400, "%", 100,
+            overclock));
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -480,8 +503,8 @@ public final class SettingsFragmentPresenter
             R.array.aspectRatioValues, 0, aspectRatio));
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_enhancements_and_hacks, 0));
-    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, 0, MenuTag.ENHANCEMENTS));
-    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, 0, MenuTag.HACKS));
+    sl.add(new SubmenuSetting(null, null, R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
+    sl.add(new SubmenuSetting(null, null, R.string.hacks_submenu, MenuTag.HACKS));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)
@@ -570,7 +593,7 @@ public final class SettingsFragmentPresenter
                     helper.SupportsExtension("GL_ANDROID_extension_pack_es31a")))
     {
       sl.add(new SubmenuSetting(SettingsFile.KEY_STEREO_MODE, null, R.string.stereoscopy_submenu,
-              R.string.stereoscopy_submenu_description, MenuTag.STEREOSCOPY));
+              MenuTag.STEREOSCOPY));
     }
   }
 

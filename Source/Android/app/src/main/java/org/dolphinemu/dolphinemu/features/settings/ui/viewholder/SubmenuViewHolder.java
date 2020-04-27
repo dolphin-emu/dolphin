@@ -13,7 +13,6 @@ public final class SubmenuViewHolder extends SettingViewHolder
   private SubmenuSetting mItem;
 
   private TextView mTextSettingName;
-  private TextView mTextSettingDescription;
 
   public SubmenuViewHolder(View itemView, SettingsAdapter adapter)
   {
@@ -24,7 +23,6 @@ public final class SubmenuViewHolder extends SettingViewHolder
   protected void findViews(View root)
   {
     mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
   }
 
   @Override
@@ -33,11 +31,6 @@ public final class SubmenuViewHolder extends SettingViewHolder
     mItem = (SubmenuSetting) item;
 
     mTextSettingName.setText(item.getNameId());
-
-    if (item.getDescriptionId() > 0)
-    {
-      mTextSettingDescription.setText(item.getDescriptionId());
-    }
   }
 
   @Override

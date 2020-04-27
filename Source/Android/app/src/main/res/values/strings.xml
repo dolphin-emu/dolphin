@@ -123,14 +123,8 @@
 
     <!-- General Preference Fragment -->
     <string name="general_submenu">General</string>
-    <string name="cpu_core">CPU Core</string>
-    <string name="cpu_core_description">%s</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
-    <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
-    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
-    <string name="overclock_title">Emulated CPU Clock Speed</string>
-    <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
     <string name="speed_limit">Speed Limit</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
@@ -144,8 +138,6 @@
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
-    <string name="audio_stretch">Audio Stretching</string>
-    <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
     <string name="override_region_settings">Allow Mismatched Region Settings</string>
     <string name="auto_disc_change">Change Discs Automatically</string>
     <string name="enable_save_states">Enable Savestates</string>
@@ -155,7 +147,6 @@
     <string name="analytics">Enable usage statistics reporting</string>
     <string name="analytics_desc">If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system\'s hardware and operating system.\n\nNo private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues. This authorization can be revoked at any time through Dolphin\'s settings.</string>
     <string name="gametdb_thanks">Thanks to GameTDB.com for providing GameCube and Wii covers!</string>
-    <string name="audio_volume">Audio Volume</string>
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
@@ -163,6 +154,12 @@
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
     <string name="osd_messages_description">Display messages over the emulation screen area. These messages include memory card writes, video backend and CPU information, and JIT cache clearing.</string>
+
+    <!-- Audio Settings -->
+    <string name="audio_submenu">Audio</string>
+    <string name="audio_stretch">Audio Stretching</string>
+    <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
+    <string name="audio_volume">Audio Volume</string>
 
     <!-- Path Settings -->
     <string name="paths_submenu">Paths</string>
@@ -256,6 +253,14 @@
     <string name="shader_compilation_mode">Shader Compilation Mode</string>
     <string name="wait_for_shaders">Compile Shaders Before Starting</string>
     <string name="wait_for_shaders_description">This causes a delay when launching games, but will reduce stuttering early on.</string>
+
+    <!-- Advanced Settings -->
+    <string name="advanced_submenu">Advanced</string>
+    <string name="cpu_core">CPU Core</string>
+    <string name="overclock_enable">Override Emulated CPU Clock Speed</string>
+    <string name="overclock_enable_description">Higher values can make variable-framerate games run at a higher framerate, requiring a powerful device. Lower values make games run at a lower framerate, increasing emulation speed, but reducing the emulated console\'s performance.</string>
+    <string name="overclock_title">Emulated CPU Clock Speed</string>
+    <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
 
     <!-- Debug -->
     <string name="debug_submenu">Debug</string>
