@@ -162,7 +162,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
   }
 
-  if (group->can_be_disabled)
+  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
   {
     QLabel* group_enable_label = new QLabel(tr("Enable"));
     QCheckBox* group_enable_checkbox = new QCheckBox();
