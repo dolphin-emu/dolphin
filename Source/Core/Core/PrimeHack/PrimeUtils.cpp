@@ -78,8 +78,12 @@ namespace prime
           pressing_button = true;
           return visors[0];
         }
+        else {
+          return std::make_tuple(-1, 0);
+        }
       }
     }
+
     if (CheckVisorCtl(1))
     {
       if (!pressing_button)
