@@ -860,10 +860,13 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
       }
     }
 #elif defined(__linux__) && !defined(__ANDROID__)
-    if (res_init() == 0)
-      address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
-    else
-      WARN_LOG(IOS_NET, "Call to res_init failed");
+    if (!Core::WantsDeterminism())
+    {
+      if (res_init() == 0)
+        address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+      else
+        WARN_LOG(IOS_NET, "Call to res_init failed");
+    }
 #endif
     if (address == 0)
       address = default_main_dns_resolver;
