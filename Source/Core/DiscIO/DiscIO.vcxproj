@@ -56,6 +56,7 @@
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
     <ClCompile Include="NANDImporter.cpp" />
+    <ClCompile Include="ScrubbedBlob.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
     <ClCompile Include="VolumeFileBlobReader.cpp" />
@@ -80,6 +81,7 @@
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
     <ClInclude Include="NANDImporter.h" />
+    <ClInclude Include="ScrubbedBlob.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />
     <ClInclude Include="VolumeFileBlobReader.h" />

@@ -17,6 +17,7 @@
 #include <vector>
 #include <zlib.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -153,23 +154,11 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   return true;
 }
 
-bool CompressFileToBlob(const std::string& infile_path, const std::string& outfile_path,
-                        u32 sub_type, int block_size, CompressCB callback, void* arg)
+bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, u32 sub_type, int block_size,
+                  CompressCB callback, void* arg)
 {
-  bool scrubbing = false;
-
-  File::IOFile infile(infile_path, "rb");
-  if (IsGCZBlob(infile))
-  {
-    PanicAlertT("\"%s\" is already compressed! Cannot compress it further.", infile_path.c_str());
-    return false;
-  }
-
-  if (!infile)
-  {
-    PanicAlertT("Failed to open the input file \"%s\".", infile_path.c_str());
-    return false;
-  }
+  ASSERT(infile->IsDataSizeAccurate());
 
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -179,21 +168,6 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
                 "be written.",
                 outfile_path.c_str());
     return false;
-  }
-
-  DiscScrubber disc_scrubber;
-  std::unique_ptr<VolumeDisc> volume;
-  if (sub_type == 1)
-  {
-    volume = CreateDisc(infile_path);
-    if (!volume || !disc_scrubber.SetupScrub(volume.get(), block_size))
-    {
-      PanicAlertT("\"%s\" failed to be scrubbed. Probably the image is corrupt.",
-                  infile_path.c_str());
-      return false;
-    }
-
-    scrubbing = true;
   }
 
   z_stream z = {};
@@ -206,7 +180,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   header.magic_cookie = GCZ_MAGIC;
   header.sub_type = sub_type;
   header.block_size = block_size;
-  header.data_size = infile.GetSize();
+  header.data_size = infile->GetDataSize();
 
   // round upwards!
   header.num_blocks = (u32)((header.data_size + (block_size - 1)) / block_size);
@@ -220,10 +194,9 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   outfile.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
   // seek past the offset and hash tables (we will write them at the end)
   outfile.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
-  // seek to the start of the input file to make sure we get everything
-  infile.Seek(0, SEEK_SET);
 
   // Now we are ready to write compressed data!
+  u64 inpos = 0;
   u64 position = 0;
   int num_compressed = 0;
   int num_stored = 0;
@@ -234,7 +207,6 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   {
     if (i % progress_monitor == 0)
     {
-      const u64 inpos = infile.Tell();
       int ratio = 0;
       if (inpos != 0)
         ratio = (int)(100 * position / inpos);
@@ -252,13 +224,16 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
 
     offsets[i] = position;
 
-    size_t read_bytes;
-    if (scrubbing)
-      read_bytes = disc_scrubber.GetNextBlock(infile, in_buf.data());
-    else
-      infile.ReadArray(in_buf.data(), header.block_size, &read_bytes);
-    if (read_bytes < header.block_size)
-      std::fill(in_buf.begin() + read_bytes, in_buf.begin() + header.block_size, 0);
+    const u64 bytes_to_read = std::min<u64>(block_size, header.data_size - inpos);
+
+    success = infile->Read(inpos, bytes_to_read, in_buf.data());
+    if (!success)
+    {
+      PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+      break;
+    }
+
+    std::fill(in_buf.begin() + bytes_to_read, in_buf.begin() + header.block_size, 0);
 
     int retval = deflateReset(&z);
     z.next_in = in_buf.data();
@@ -305,6 +280,7 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
       break;
     }
 
+    inpos += block_size;
     position += write_size;
 
     hashes[i] = Common::HashAdler32(write_buf, write_size);
@@ -334,84 +310,6 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   {
     callback(Common::GetStringT("Done compressing disc image."), 1.0f, arg);
   }
-  return success;
-}
-
-bool DecompressBlobToFile(const std::string& infile_path, const std::string& outfile_path,
-                          CompressCB callback, void* arg)
-{
-  std::unique_ptr<CompressedBlobReader> reader;
-  {
-    File::IOFile infile(infile_path, "rb");
-    if (!IsGCZBlob(infile))
-    {
-      PanicAlertT("File not compressed");
-      return false;
-    }
-
-    reader = CompressedBlobReader::Create(std::move(infile), infile_path);
-  }
-
-  if (!reader)
-  {
-    PanicAlertT("Failed to open the input file \"%s\".", infile_path.c_str());
-    return false;
-  }
-
-  File::IOFile outfile(outfile_path, "wb");
-  if (!outfile)
-  {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
-    return false;
-  }
-
-  const CompressedBlobHeader& header = reader->GetHeader();
-  static const size_t BUFFER_BLOCKS = 32;
-  size_t buffer_size = header.block_size * BUFFER_BLOCKS;
-  std::vector<u8> buffer(buffer_size);
-  u32 num_buffers = (header.num_blocks + BUFFER_BLOCKS - 1) / BUFFER_BLOCKS;
-  int progress_monitor = std::max<int>(1, num_buffers / 100);
-  bool success = true;
-
-  for (u64 i = 0; i < num_buffers; i++)
-  {
-    if (i % progress_monitor == 0)
-    {
-      const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
-      if (was_cancelled)
-      {
-        success = false;
-        break;
-      }
-    }
-    const u64 inpos = i * buffer_size;
-    const u64 sz = std::min<u64>(buffer_size, header.data_size - inpos);
-    reader->Read(inpos, sz, buffer.data());
-    if (!outfile.WriteBytes(buffer.data(), sz))
-    {
-      PanicAlertT("Failed to write the output file \"%s\".\n"
-                  "Check that you have enough space available on the target drive.",
-                  outfile_path.c_str());
-      success = false;
-      break;
-    }
-  }
-
-  if (!success)
-  {
-    // Remove the incomplete output file.
-    outfile.Close();
-    File::Delete(outfile_path);
-  }
-  else
-  {
-    outfile.Resize(header.data_size);
-  }
-
   return success;
 }
 

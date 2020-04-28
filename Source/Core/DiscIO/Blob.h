@@ -41,10 +41,15 @@ class BlobReader
 {
 public:
   virtual ~BlobReader() {}
+
   virtual BlobType GetBlobType() const = 0;
+
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
   virtual bool IsDataSizeAccurate() const = 0;
+
+  // Returns 0 if the format does not use blocks
+  virtual u64 GetBlockSize() const { return 0; }
 
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
@@ -160,10 +165,11 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
-bool CompressFileToBlob(const std::string& infile_path, const std::string& outfile_path,
-                        u32 sub_type = 0, int sector_size = 16384, CompressCB callback = nullptr,
-                        void* arg = nullptr);
-bool DecompressBlobToFile(const std::string& infile_path, const std::string& outfile_path,
-                          CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, u32 sub_type, int sector_size = 16384,
+                  CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
+                    const std::string& outfile_path, CompressCB callback = nullptr,
+                    void* arg = nullptr);
 
 }  // namespace DiscIO

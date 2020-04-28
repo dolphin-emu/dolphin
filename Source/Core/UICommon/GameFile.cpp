@@ -38,6 +38,7 @@
 #include "Core/TitleDatabase.h"
 
 #include "DiscIO/Blob.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/WiiSaveBanner.h"
@@ -116,6 +117,9 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_blob_type = volume->GetBlobType();
       m_file_size = volume->GetRawSize();
       m_volume_size = volume->GetSize();
+      m_volume_size_is_accurate = volume->IsSizeAccurate();
+      m_is_datel_disc = DiscIO::IsDisc(m_platform) &&
+                        !DiscIO::GetBootDOLOffset(*volume, volume->GetGamePartition());
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
@@ -136,6 +140,8 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
   {
     m_valid = true;
     m_file_size = m_volume_size = File::GetSize(m_file_path);
+    m_volume_size_is_accurate = true;
+    m_is_datel_disc = false;
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
@@ -296,6 +302,8 @@ void GameFile::DoState(PointerWrap& p)
 
   p.Do(m_file_size);
   p.Do(m_volume_size);
+  p.Do(m_volume_size_is_accurate);
+  p.Do(m_is_datel_disc);
 
   p.Do(m_short_names);
   p.Do(m_long_names);

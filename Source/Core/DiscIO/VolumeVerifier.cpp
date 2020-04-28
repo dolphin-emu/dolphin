@@ -1040,7 +1040,7 @@ void VolumeVerifier::SetUpHashing()
   else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
-    m_scrubber.SetupScrub(&m_volume, VolumeWii::BLOCK_TOTAL_SIZE);
+    m_scrubber.SetupScrub(&m_volume);
   }
 
   std::sort(m_blocks.begin(), m_blocks.end(),

@@ -87,6 +87,9 @@
     <ClCompile Include="WiiEncryptionCache.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
+    <ClCompile Include="ScrubbedBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -153,6 +156,9 @@
       <Filter>Volume</Filter>
     </ClInclude>
     <ClInclude Include="WiiEncryptionCache.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrubbedBlob.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
   </ItemGroup>
