@@ -1108,6 +1108,8 @@ GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& file
     return GCMemcardExportFileRetVal::FAIL;
   case GCMemcardGetSaveDataRetVal::NOMEMCARD:
     return GCMemcardExportFileRetVal::NOMEMCARD;
+  case GCMemcardGetSaveDataRetVal::SUCCESS:
+    break;
   }
   gci.Seek(DENTRY_SIZE + offset, SEEK_SET);
   for (unsigned int i = 0; i < size; ++i)

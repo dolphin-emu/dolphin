@@ -7,6 +7,8 @@
 #include <sstream>
 #include <string_view>
 
+#include "Common/Logging/Log.h"
+
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderGen.h"
@@ -570,6 +572,15 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
   }
   break;
 
+  case TextureFormat::I4:
+  {
+    ss << "  float4 temp_value = ";
+    EmitTextureLoad(ss, 0, "coords");
+    ss << ";\n"
+          "  raw_value = uint(temp_value.r * 15.0);\n";
+  }
+  break;
+
   case TextureFormat::IA4:
   {
     ss << "  float4 temp_value = ";
@@ -605,6 +616,10 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
           "  }\n";
   }
   break;
+
+  default:
+    WARN_LOG(VIDEO, "From format %u is not supported", static_cast<u32>(from_format));
+    return "{}\n";
   }
 
   // Now convert it to its new representation.
@@ -654,6 +669,9 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
           "  }\n";
   }
   break;
+  default:
+    WARN_LOG(VIDEO, "To format %u is not supported", static_cast<u32>(to_format));
+    return "{}\n";
   }
 
   ss << "}\n";

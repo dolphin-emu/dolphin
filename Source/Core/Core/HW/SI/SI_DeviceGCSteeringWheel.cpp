@@ -38,9 +38,9 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* buffer, int request_length)
     std::memcpy(buffer, &id, sizeof(id));
     return sizeof(id);
   }
+  default:
+    return CSIDevice_GCController::RunBuffer(buffer, request_length);
   }
-
-  return CSIDevice_GCController::RunBuffer(buffer, request_length);
 }
 
 bool CSIDevice_GCSteeringWheel::GetData(u32& hi, u32& low)
