@@ -193,8 +193,8 @@ void Reinit(bool hle)
   if (SConfig::GetInstance().bWii)
   {
     s_ARAM.wii_mode = true;
-    s_ARAM.size = Memory::EXRAM_SIZE;
-    s_ARAM.mask = Memory::EXRAM_MASK;
+    s_ARAM.size = Memory::GetExRamSizeReal();
+    s_ARAM.mask = Memory::GetExRamMask();
     s_ARAM.ptr = Memory::m_pEXRAM;
   }
   else
@@ -589,7 +589,7 @@ u8 ReadARAM(u32 address)
     if (address & 0x10000000)
       return s_ARAM.ptr[address & s_ARAM.mask];
     else
-      return Memory::Read_U8(address & Memory::RAM_MASK);
+      return Memory::Read_U8(address & Memory::GetRamMask());
   }
   else
   {

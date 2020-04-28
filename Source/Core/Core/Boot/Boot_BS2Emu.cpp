@@ -172,7 +172,7 @@ void CBoot::SetupGCMemory()
   PowerPC::HostWrite_U32(0x0D15EA5E, 0x80000020);
 
   // Physical Memory Size (24MB on retail)
-  PowerPC::HostWrite_U32(Memory::REALRAM_SIZE, 0x80000028);
+  PowerPC::HostWrite_U32(Memory::GetRamSizeReal(), 0x80000028);
 
   // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
   // TODO: determine why some games fail when using a retail ID.
@@ -369,26 +369,26 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
   0x80000060  Copyright code
   */
 
-  Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
-  Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
-  Memory::Write_U32(Memory::REALRAM_SIZE, 0x00000028);  // MEM1 size 24MB
+  Memory::Write_U32(0x0D15EA5E, 0x00000020);                // Another magic word
+  Memory::Write_U32(0x00000001, 0x00000024);                // Unknown
+  Memory::Write_U32(Memory::GetRamSizeReal(), 0x00000028);  // MEM1 size 24MB
   u32 board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ? 0x10000021 : 0x00000023;
   Memory::Write_U32(board_model, 0x0000002c);  // Board Model
   Memory::Write_U32(0x00000000, 0x00000030);   // Init
   Memory::Write_U32(0x817FEC60, 0x00000034);   // Init
   // 38, 3C should get start, size of FST through apploader
-  Memory::Write_U32(0x8008f7b8, 0x000000e4);            // Thread Init
-  Memory::Write_U32(Memory::REALRAM_SIZE, 0x000000f0);  // "Simulated memory size" (debug mode?)
-  Memory::Write_U32(0x8179b500, 0x000000f4);            // __start
-  Memory::Write_U32(0x0e7be2c0, 0x000000f8);            // Bus speed
-  Memory::Write_U32(0x2B73A840, 0x000000fc);            // CPU speed
-  Memory::Write_U16(0x0000, 0x000030e6);                // Console type
-  Memory::Write_U32(0x00000000, 0x000030c0);            // EXI
-  Memory::Write_U32(0x00000000, 0x000030c4);            // EXI
-  Memory::Write_U32(0x00000000, 0x000030dc);            // Time
-  Memory::Write_U32(0xffffffff, 0x000030d8);            // Unknown, set by any official NAND title
-  Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
-  Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
+  Memory::Write_U32(0x8008f7b8, 0x000000e4);                // Thread Init
+  Memory::Write_U32(Memory::GetRamSizeReal(), 0x000000f0);  // "Simulated memory size" (debug mode?)
+  Memory::Write_U32(0x8179b500, 0x000000f4);                // __start
+  Memory::Write_U32(0x0e7be2c0, 0x000000f8);                // Bus speed
+  Memory::Write_U32(0x2B73A840, 0x000000fc);                // CPU speed
+  Memory::Write_U16(0x0000, 0x000030e6);                    // Console type
+  Memory::Write_U32(0x00000000, 0x000030c0);                // EXI
+  Memory::Write_U32(0x00000000, 0x000030c4);                // EXI
+  Memory::Write_U32(0x00000000, 0x000030dc);                // Time
+  Memory::Write_U32(0xffffffff, 0x000030d8);  // Unknown, set by any official NAND title
+  Memory::Write_U16(0x8201, 0x000030e6);      // Dev console / debug capable
+  Memory::Write_U32(0x00000000, 0x000030f0);  // Apploader
 
   // During the boot process, 0x315c is first set to 0xdeadbeef by IOS
   // in the boot_ppc syscall. The value is then partly overwritten by SDK titles.
@@ -492,6 +492,9 @@ bool CBoot::EmulatedBS2_Wii(const DiscIO::VolumeDisc& volume)
 
   if (!RunApploader(/*is_wii*/ true, volume))
     return false;
+
+  // The Apploader probably just overwrote values needed for RAM Override.  Run this again!
+  IOS::HLE::RAMOverrideForIOSMemoryValues(IOS::HLE::MemorySetupType::IOSReload);
 
   // Warning: This call will set incorrect running game metadata if our volume parameter
   // doesn't point to the same disc as the one that's inserted in the emulated disc drive!

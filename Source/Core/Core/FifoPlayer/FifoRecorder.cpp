@@ -36,8 +36,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   //   - Global variables suck
   //   - Multithreading with the above two sucks
   //
-  m_Ram.resize(Memory::RAM_SIZE);
-  m_ExRam.resize(Memory::EXRAM_SIZE);
+  m_Ram.resize(Memory::GetRamSize());
+  m_ExRam.resize(Memory::GetExRamSize());
 
   std::fill(m_Ram.begin(), m_Ram.end(), 0);
   std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
@@ -121,13 +121,13 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
   u8* newData;
   if (address & 0x10000000)
   {
-    curData = &m_ExRam[address & Memory::EXRAM_MASK];
-    newData = &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
+    curData = &m_ExRam[address & Memory::GetExRamMask()];
+    newData = &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
   }
   else
   {
-    curData = &m_Ram[address & Memory::RAM_MASK];
-    newData = &Memory::m_pRAM[address & Memory::RAM_MASK];
+    curData = &m_Ram[address & Memory::GetRamMask()];
+    newData = &Memory::m_pRAM[address & Memory::GetRamMask()];
   }
 
   if (!dynamicUpdate && memcmp(curData, newData, size) != 0)

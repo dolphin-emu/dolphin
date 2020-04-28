@@ -102,7 +102,7 @@ bool DolReader::LoadIntoMemory(bool only_in_mem1) const
   for (size_t i = 0; i < m_text_sections.size(); ++i)
     if (!m_text_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.textAddress[i] + m_text_sections[i].size() >= Memory::REALRAM_SIZE))
+          m_dolheader.textAddress[i] + m_text_sections[i].size() >= Memory::GetRamSizeReal()))
     {
       Memory::CopyToEmu(m_dolheader.textAddress[i], m_text_sections[i].data(),
                         m_text_sections[i].size());
@@ -112,7 +112,7 @@ bool DolReader::LoadIntoMemory(bool only_in_mem1) const
   for (size_t i = 0; i < m_data_sections.size(); ++i)
     if (!m_data_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= Memory::REALRAM_SIZE))
+          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= Memory::GetRamSizeReal()))
     {
       Memory::CopyToEmu(m_dolheader.dataAddress[i], m_data_sections[i].data(),
                         m_data_sections[i].size());

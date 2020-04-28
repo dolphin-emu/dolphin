@@ -47,4 +47,6 @@ struct Accessors
 
 Accessors* GetAccessors(Type address_space);
 
+void Init();
+
 }  // namespace AddressSpace

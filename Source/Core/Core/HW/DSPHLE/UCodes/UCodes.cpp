@@ -39,17 +39,17 @@ constexpr bool ExramRead(u32 address)
 u8 HLEMemory_Read_U8(u32 address)
 {
   if (ExramRead(address))
-    return Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
+    return Memory::m_pEXRAM[address & Memory::GetExRamMask()];
 
-  return Memory::m_pRAM[address & Memory::RAM_MASK];
+  return Memory::m_pRAM[address & Memory::GetRamMask()];
 }
 
 void HLEMemory_Write_U8(u32 address, u8 value)
 {
   if (ExramRead(address))
-    Memory::m_pEXRAM[address & Memory::EXRAM_MASK] = value;
+    Memory::m_pEXRAM[address & Memory::GetExRamMask()] = value;
   else
-    Memory::m_pRAM[address & Memory::RAM_MASK] = value;
+    Memory::m_pRAM[address & Memory::GetRamMask()] = value;
 }
 
 u16 HLEMemory_Read_U16LE(u32 address)
@@ -57,9 +57,9 @@ u16 HLEMemory_Read_U16LE(u32 address)
   u16 value;
 
   if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u16));
+    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::GetExRamMask()], sizeof(u16));
   else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u16));
+    std::memcpy(&value, &Memory::m_pRAM[address & Memory::GetRamMask()], sizeof(u16));
 
   return value;
 }
@@ -72,9 +72,9 @@ u16 HLEMemory_Read_U16(u32 address)
 void HLEMemory_Write_U16LE(u32 address, u16 value)
 {
   if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::EXRAM_MASK], &value, sizeof(u16));
+    std::memcpy(&Memory::m_pEXRAM[address & Memory::GetExRamMask()], &value, sizeof(u16));
   else
-    std::memcpy(&Memory::m_pRAM[address & Memory::RAM_MASK], &value, sizeof(u16));
+    std::memcpy(&Memory::m_pRAM[address & Memory::GetRamMask()], &value, sizeof(u16));
 }
 
 void HLEMemory_Write_U16(u32 address, u16 value)
@@ -87,9 +87,9 @@ u32 HLEMemory_Read_U32LE(u32 address)
   u32 value;
 
   if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u32));
+    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::GetExRamMask()], sizeof(u32));
   else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u32));
+    std::memcpy(&value, &Memory::m_pRAM[address & Memory::GetRamMask()], sizeof(u32));
 
   return value;
 }
@@ -102,9 +102,9 @@ u32 HLEMemory_Read_U32(u32 address)
 void HLEMemory_Write_U32LE(u32 address, u32 value)
 {
   if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::EXRAM_MASK], &value, sizeof(u32));
+    std::memcpy(&Memory::m_pEXRAM[address & Memory::GetExRamMask()], &value, sizeof(u32));
   else
-    std::memcpy(&Memory::m_pRAM[address & Memory::RAM_MASK], &value, sizeof(u32));
+    std::memcpy(&Memory::m_pRAM[address & Memory::GetRamMask()], &value, sizeof(u32));
 }
 
 void HLEMemory_Write_U32(u32 address, u32 value)
@@ -115,9 +115,9 @@ void HLEMemory_Write_U32(u32 address, u32 value)
 void* HLEMemory_Get_Pointer(u32 address)
 {
   if (ExramRead(address))
-    return &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
+    return &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
 
-  return &Memory::m_pRAM[address & Memory::RAM_MASK];
+  return &Memory::m_pRAM[address & Memory::GetRamMask()];
 }
 
 UCodeInterface::UCodeInterface(DSPHLE* dsphle, u32 crc)

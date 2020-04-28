@@ -29,8 +29,8 @@ struct MemoryValues
   u32 ipc_buffer_end;
   u32 hollywood_revision;
   u32 ram_vendor;
-  u32 unknown_begin;
-  u32 unknown_end;
+  u32 ios_reserved_begin;
+  u32 ios_reserved_end;
   u32 sysmenu_sync;
 };
 
