@@ -50,6 +50,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
 
 #include "Core/PrimeHack/HackConfig.h"
 
@@ -312,6 +313,16 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
     new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Visor"), "Previous Visor"));
 
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_controller, {"Controller Mode", nullptr, nullptr, _trans("Controller Mode")}, false);
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_invert_y, {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+
   m_primehack_camera->AddSetting(
       &m_primehack_camera_sensitivity,
       {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
@@ -324,11 +335,9 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                                  {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
                                  1, 170);
 
-  m_primehack_camera->AddSetting(
-      &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
-
-  m_primehack_camera->AddSetting(
-      &m_primehack_invert_y, {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / RIGHT_STICK_RADIUS;
+  groups.emplace_back(m_primehack_stick =
+    new ControllerEmu::OctagonAnalogStick(_trans("Controller Stick"), gate_radius));
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_misc->controls.emplace_back(
@@ -382,6 +391,8 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
 	  return m_primehack_misc;
   case WiimoteGroup::Camera:
 	  return m_primehack_camera;
+  case WiimoteGroup::ControlStick:
+    return m_primehack_stick;
   default:
     assert(false);
     return nullptr;
@@ -764,6 +775,21 @@ bool Wiimote::CheckVisorScrollCtrl(bool direction)
 bool Wiimote::CheckSpringBallCtrl()
 {
   return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
+}
+
+double Wiimote::GetPrimeStickX()
+{
+  return m_primehack_stick->GetState().x * 15;
+}
+
+double Wiimote::GetPrimeStickY()
+{
+  return m_primehack_stick->GetState().y * -15;
+}
+
+bool Wiimote::PrimeControllerMode()
+{
+  return m_primehack_controller.GetValue();
 }
 
 std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()

@@ -41,6 +41,9 @@ namespace prime
   void SetInvertedX(bool inverted);
   bool GetCulling();
 
+  double GetHorizontalAxis();
+  double GetVerticalAxis();
+
   std::string const& GetCtlDeviceName();
   std::string const& GetCtlDeviceSource();
 

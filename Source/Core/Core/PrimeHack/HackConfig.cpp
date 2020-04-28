@@ -200,6 +200,22 @@ bool GetCulling()
   return Config::Get(Config::TOGGLE_CULLING);
 }
 
+double GetHorizontalAxis()
+{
+  if (Wiimote::PrimeUseController())
+    return Wiimote::GetPrimeStickX();
+  else
+    return g_mouse_input->GetDeltaHorizontalAxis();
+}
+
+double GetVerticalAxis()
+{
+  if (Wiimote::PrimeUseController())
+    return Wiimote::GetPrimeStickY();
+  else
+    return g_mouse_input->GetDeltaVerticalAxis();
+}
+
 HackManager* GetHackManager()
 {
   return &hack_mgr;

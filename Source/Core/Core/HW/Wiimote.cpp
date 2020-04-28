@@ -278,6 +278,27 @@ bool CheckBeamScroll(bool direction)
   return wiimote->CheckBeamScrollCtrl(direction);
 }
 
+bool PrimeUseController()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->PrimeControllerMode();
+}
+
+double GetPrimeStickX()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetPrimeStickX();
+}
+
+double GetPrimeStickY()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetPrimeStickY();
+}
+
 std::tuple<double, double, double, bool, bool> PrimeSettings()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));

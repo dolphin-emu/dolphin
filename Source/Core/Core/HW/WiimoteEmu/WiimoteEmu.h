@@ -33,6 +33,7 @@ class IMUGyroscope;
 class IMUCursor;
 class ModifySettingsButton;
 class Output;
+class AnalogStick;
 class Tilt;
 }  // namespace ControllerEmu
 
@@ -57,7 +58,8 @@ enum class WiimoteGroup
   Beams,
   Visors,
   Camera,
-  Misc
+  Misc,
+  ControlStick
 };
 
 enum class NunchukGroup;
@@ -141,6 +143,10 @@ public:
   bool CheckBeamScrollCtrl(bool direction);
   bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
+  bool PrimeControllerMode();
+  double GetPrimeStickX();
+  double GetPrimeStickY();
+
   std::tuple <double, double, double, bool, bool> GetPrimeSettings();
 
   void Reset();
@@ -278,6 +284,7 @@ private:
   ControllerEmu::ControlGroup* m_primehack_motionhacks;
   ControllerEmu::ControlGroup* m_primehack_misc;
   ControllerEmu::ControlGroup* m_primehack_camera;
+  ControllerEmu::AnalogStick* m_primehack_stick;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
@@ -290,6 +297,18 @@ private:
   ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
+  ControllerEmu::SettingValue<bool> m_primehack_controller;
+
+  static constexpr int CAL_STICK_BITS = 8;
+
+  static constexpr u8 STICK_GATE_RADIUS = 0x61;
+  static constexpr int RIGHT_STICK_BITS = 5;
+
+  static constexpr u8 CAL_STICK_CENTER = 0x80;
+  static constexpr u8 CAL_STICK_RANGE = 0x7f;
+
+  static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;

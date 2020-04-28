@@ -15,6 +15,7 @@ public:
   explicit PrimeHackEmuGeneral(MappingWindow* window);
 
   InputConfig* GetConfig() override;
+  QGroupBox* controller_box;
 
 private:
   void LoadSettings() override;

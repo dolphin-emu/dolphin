@@ -248,8 +248,8 @@ namespace prime
 
   void handle_cursor(u32 x_address, u32 y_address, float right_bound, float bottom_bound)
   {
-    int dx = prime::g_mouse_input->GetDeltaHorizontalAxis(),
-      dy = prime::g_mouse_input->GetDeltaVerticalAxis();
+    int dx = prime::GetHorizontalAxis(), dy = prime::GetVerticalAxis();
+
     float aspect_ratio = getAspectRatio();
     if (std::isnan(aspect_ratio))
       return;
