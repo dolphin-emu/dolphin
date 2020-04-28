@@ -176,12 +176,10 @@
     
     [cell.m_user_setting_label setText:@"[...]"];
     
-    [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
+    [self.navigationController.view setUserInteractionEnabled:false];
+    [self.tabBarController.tabBar setUserInteractionEnabled:false];
     
     dispatch_async(dispatch_get_global_queue(QOS_CLASS_BACKGROUND, 0), ^{
-      dispatch_sync(dispatch_get_main_queue(), ^{
-      });
-      
       const auto [device, input] = g_controller_interface.DetectInput(3000, {self.m_controller->GetDefaultDevice().ToString()});
         
       if (!input)
@@ -224,7 +222,8 @@
   
   [self.tableView deselectRowAtIndexPath:[self.tableView indexPathForCell:cell] animated:true];
   
-  [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+  [self.navigationController.view setUserInteractionEnabled:true];
+  [self.tabBarController.tabBar setUserInteractionEnabled:true];
 }
 
 #pragma mark - Send inputs to GameController always
