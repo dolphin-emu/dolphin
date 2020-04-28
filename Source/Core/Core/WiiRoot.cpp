@@ -39,6 +39,8 @@ static bool CopyBackupFile(const std::string& path_from, const std::string& path
   if (!File::Exists(path_from))
     return false;
 
+  File::CreateFullPath(path_to);
+
   return File::Copy(path_from, path_to);
 }
 
