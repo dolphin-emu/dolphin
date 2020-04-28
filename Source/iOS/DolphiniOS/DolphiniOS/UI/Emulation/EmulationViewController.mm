@@ -91,16 +91,6 @@
   [self.m_metal_bottom_constraint setActive:do_not_raise];
   [self.m_eagl_bottom_constraint setActive:do_not_raise];
   
-  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"])
-  {
-    // Hide navigation bar
-    [self.navigationController setNavigationBarHidden:true animated:true];
-  }
-  else
-  {
-    [self.m_edge_pan_recognizer setEnabled:false];
-  }
-  
   // Create right bar button items
   self.m_stop_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(StopButtonPressed:)];
   self.m_pause_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause target:self action:@selector(PauseButtonPressed:)];
@@ -169,7 +159,7 @@
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-  return UIRectEdgeTop;
+  return self.m_should_disable_edge_pan ? UIRectEdgeNone : UIRectEdgeTop;
 }
 
 - (bool)prefersStatusBarHidden
@@ -267,6 +257,7 @@
 - (void)PopulatePortDictionary
 {
   self->m_controllers.clear();
+  bool has_gccontroller_connected = false;
   
   if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
   {
@@ -281,6 +272,7 @@
       ControllerEmu::EmulatedController* controller = wii_input_config->GetController(i);
       if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
       {
+        has_gccontroller_connected = true;
         continue;
       }
       
@@ -318,6 +310,7 @@
     ControllerEmu::EmulatedController* controller = gc_input_config->GetController(i);
     if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
     {
+      has_gccontroller_connected = true;
       continue;
     }
     
@@ -330,6 +323,12 @@
         continue;
     }
   }
+  
+  self.m_should_disable_edge_pan = [[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"] || has_gccontroller_connected;
+  
+  [self.navigationController setNavigationBarHidden:!self.m_should_disable_edge_pan animated:true];
+  [self.m_edge_pan_recognizer setEnabled:!self.m_should_disable_edge_pan];
+  [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
 }
 
 - (void)ChangeVisibleTouchControllerToPort:(int)port
@@ -403,27 +402,6 @@
     
     [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
   }
-}
-
-#pragma mark - Send inputs to GameController always
-
-// Do nothing - the super for these methods should not be called, as it will
-// send the event to UIKit, instead of GameController
-
-- (void)pressesBegan:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
-}
-
-- (void)pressesEnded:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
-}
-
-- (void)pressesChanged:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
-}
-
-- (void)pressesCancelled:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
 }
 
 #pragma mark - Rewind segue

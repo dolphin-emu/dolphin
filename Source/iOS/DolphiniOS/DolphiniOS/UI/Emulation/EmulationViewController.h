@@ -40,6 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
+@property(nonatomic) bool m_should_disable_edge_pan;
 @property(nonatomic) int m_ts_active_port;
 @property(weak, nonatomic) TCView* m_ts_active_view;
 @property(nonatomic) UIBarButtonItem* m_stop_button;
