@@ -14,8 +14,7 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigI
     : m_setting(setting)
 {
   addItems(options);
-  connect(this, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-          &GraphicsChoice::Update);
+  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &GraphicsChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {

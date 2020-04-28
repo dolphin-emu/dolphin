@@ -255,7 +255,7 @@ void NetPlayDialog::CreatePlayersLayout()
 void NetPlayDialog::ConnectWidgets()
 {
   // Players
-  connect(m_room_box, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_room_box, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &NetPlayDialog::UpdateGUI);
   connect(m_hostcode_action_button, &QPushButton::clicked, [this] {
     if (m_is_copy_button_retry && m_room_box->currentIndex() == 0)
@@ -286,18 +286,17 @@ void NetPlayDialog::ConnectWidgets()
           [this] { m_chat_send_button->setEnabled(!m_chat_type_edit->text().isEmpty()); });
 
   // Other
-  connect(m_buffer_size_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
-          [this](int value) {
-            if (value == m_buffer_size)
-              return;
+  connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), [this](int value) {
+    if (value == m_buffer_size)
+      return;
 
-            auto client = Settings::Instance().GetNetPlayClient();
-            auto server = Settings::Instance().GetNetPlayServer();
-            if (server && !m_host_input_authority)
-              server->AdjustPadBufferSize(value);
-            else
-              client->AdjustPadBufferSize(value);
-          });
+    auto client = Settings::Instance().GetNetPlayClient();
+    auto server = Settings::Instance().GetNetPlayServer();
+    if (server && !m_host_input_authority)
+      server->AdjustPadBufferSize(value);
+    else
+      client->AdjustPadBufferSize(value);
+  });
 
   const auto hia_function = [this](bool enable) {
     if (m_host_input_authority != enable)
@@ -345,7 +344,7 @@ void NetPlayDialog::ConnectWidgets()
 
   // SaveSettings() - Save Hosting-Dialog Settings
 
-  connect(m_buffer_size_box, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_buffer_size_box, qOverload<int>(&QSpinBox::valueChanged), this,
           &NetPlayDialog::SaveSettings);
   connect(m_save_sd_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);
   connect(m_load_wii_action, &QAction::toggled, this, &NetPlayDialog::SaveSettings);

@@ -19,7 +19,7 @@ MappingDouble::MappingDouble(MappingWidget* parent, ControllerEmu::NumericSettin
   if (const auto ui_description = m_setting.GetUIDescription())
     setToolTip(tr(ui_description));
 
-  connect(this, QOverload<double>::of(&QDoubleSpinBox::valueChanged), this,
+  connect(this, qOverload<double>(&QDoubleSpinBox::valueChanged), this,
           [this, parent](double value) {
             m_setting.SetValue(value);
             ConfigChanged();

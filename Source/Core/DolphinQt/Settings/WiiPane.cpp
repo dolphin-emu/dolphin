@@ -64,11 +64,9 @@ void WiiPane::CreateLayout()
 void WiiPane::ConnectLayout()
 {
   // Misc Settings
-  connect(m_aspect_ratio_choice,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_aspect_ratio_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &WiiPane::OnSaveConfig);
-  connect(m_system_language_choice,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_system_language_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &WiiPane::OnSaveConfig);
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
@@ -87,8 +85,7 @@ void WiiPane::ConnectLayout()
           &WiiPane::OnUSBWhitelistRemoveButton);
 
   // Wii Remote Settings
-  connect(m_wiimote_ir_sensor_position,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_wiimote_ir_sensor_position, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &WiiPane::OnSaveConfig);
   connect(m_wiimote_ir_sensitivity, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);
   connect(m_wiimote_speaker_volume, &QSlider::valueChanged, this, &WiiPane::OnSaveConfig);

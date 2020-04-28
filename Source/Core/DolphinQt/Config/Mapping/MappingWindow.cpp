@@ -153,8 +153,8 @@ void MappingWindow::ConnectWidgets()
   connect(&Settings::Instance(), &Settings::DevicesChanged, this,
           &MappingWindow::OnGlobalDevicesChanged);
   connect(this, &MappingWindow::ConfigChanged, this, &MappingWindow::OnGlobalDevicesChanged);
-  connect(m_devices_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &MappingWindow::OnSelectDevice);
+  connect(m_devices_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &MappingWindow::OnSelectDevice);
 
   connect(m_devices_refresh, &QPushButton::clicked, this, &MappingWindow::RefreshDevices);
 

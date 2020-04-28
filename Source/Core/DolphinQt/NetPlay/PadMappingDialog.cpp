@@ -48,11 +48,11 @@ void PadMappingDialog::CreateWidgets()
 void PadMappingDialog::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
-  for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
+  for (const auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
-    for (auto& combo : combo_group)
+    for (const auto& combo : combo_group)
     {
-      connect(combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+      connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
               &PadMappingDialog::OnMappingChanged);
     }
   }

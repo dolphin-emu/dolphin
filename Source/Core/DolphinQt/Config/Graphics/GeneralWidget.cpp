@@ -138,13 +138,12 @@ void GeneralWidget::CreateWidgets()
 void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
-  connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &GeneralWidget::SaveSettings);
-  connect(m_adapter_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, [](int index) {
-            g_Config.iAdapter = index;
-            Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
-          });
+  connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &GeneralWidget::SaveSettings);
+  connect(m_adapter_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [](int index) {
+    g_Config.iAdapter = index;
+    Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+  });
 }
 
 void GeneralWidget::LoadSettings()
