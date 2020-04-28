@@ -4,8 +4,8 @@
 
 #include "DolphinQt/Config/Mapping/HotkeyControllerProfile.h"
 
+#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 
 #include "Core/HotkeyManager.h"
 
@@ -16,12 +16,29 @@ HotkeyControllerProfile::HotkeyControllerProfile(MappingWindow* window) : Mappin
 
 void HotkeyControllerProfile::CreateMainLayout()
 {
-  m_main_layout = new QHBoxLayout();
+  const auto main_layout = new QGridLayout;
 
-  m_main_layout->addWidget(CreateGroupBox(
-      tr("Controller Profile"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE)));
+  main_layout->addWidget(
+      CreateGroupBox(tr("Wii Remote %1").arg(1),
+                     HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE_1)),
+      0, 0);
 
-  setLayout(m_main_layout);
+  main_layout->addWidget(
+      CreateGroupBox(tr("Wii Remote %1").arg(2),
+                     HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE_2)),
+      0, 1);
+
+  main_layout->addWidget(
+      CreateGroupBox(tr("Wii Remote %1").arg(3),
+                     HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE_3)),
+      1, 0);
+
+  main_layout->addWidget(
+      CreateGroupBox(tr("Wii Remote %1").arg(4),
+                     HotkeyManagerEmu::GetHotkeyGroup(HKGP_CONTROLLER_PROFILE_4)),
+      1, 1);
+
+  setLayout(main_layout);
 }
 
 InputConfig* HotkeyControllerProfile::GetConfig()
