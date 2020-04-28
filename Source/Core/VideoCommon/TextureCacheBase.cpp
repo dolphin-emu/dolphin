@@ -945,13 +945,19 @@ static void SetSamplerState(u32 index, float custom_tex_scale, bool custom_tex,
   state.Generate(bpmem, index);
 
   // Force texture filtering config option.
-  if (g_ActiveConfig.bForceFiltering)
+  if (g_ActiveConfig.iForceFiltering == 1)
   {
     state.min_filter = SamplerState::Filter::Linear;
     state.mag_filter = SamplerState::Filter::Linear;
     state.mipmap_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ?
                               SamplerState::Filter::Linear :
                               SamplerState::Filter::Point;
+  }
+  else if (g_ActiveConfig.iForceFiltering == 2)
+  {
+    state.min_filter = SamplerState::Filter::Point;
+    state.mag_filter = SamplerState::Filter::Point;
+    state.mipmap_filter = SamplerState::Filter::Point;
   }
 
   // Custom textures may have a greater number of mips

@@ -84,7 +84,10 @@ void EnhancementsWidget::CreateWidgets()
   m_per_pixel_lighting =
       new GraphicsBool(tr("Per-Pixel Lighting"), Config::GFX_ENABLE_PIXEL_LIGHTING);
   m_force_texture_filtering =
-      new GraphicsBool(tr("Force Texture Filtering"), Config::GFX_ENHANCE_FORCE_FILTERING);
+      new GraphicsChoice({tr("Default"),
+                          tr("Force"),
+                          tr("None")},
+                         Config::GFX_ENHANCE_FORCE_FILTERING);
   m_widescreen_hack = new GraphicsBool(tr("Widescreen Hack"), Config::GFX_WIDESCREEN_HACK);
   m_disable_fog = new GraphicsBool(tr("Disable Fog"), Config::GFX_DISABLE_FOG);
   m_force_24bit_color =
@@ -105,14 +108,16 @@ void EnhancementsWidget::CreateWidgets()
   enhancements_layout->addWidget(m_pp_effect, 4, 1);
   enhancements_layout->addWidget(m_configure_pp_effect, 4, 2);
 
-  enhancements_layout->addWidget(m_scaled_efb_copy, 5, 0);
-  enhancements_layout->addWidget(m_per_pixel_lighting, 5, 1);
-  enhancements_layout->addWidget(m_force_texture_filtering, 6, 0);
-  enhancements_layout->addWidget(m_widescreen_hack, 6, 1);
-  enhancements_layout->addWidget(m_disable_fog, 7, 0);
-  enhancements_layout->addWidget(m_force_24bit_color, 7, 1);
-  enhancements_layout->addWidget(m_disable_copy_filter, 8, 0);
-  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, 8, 1);
+  enhancements_layout->addWidget(new QLabel(tr("Texture Filtering:")), 5, 0);
+  enhancements_layout->addWidget(m_force_texture_filtering, 5, 1, 1, -1);
+
+  enhancements_layout->addWidget(m_scaled_efb_copy, 6, 0);
+  enhancements_layout->addWidget(m_per_pixel_lighting, 6, 1);
+  enhancements_layout->addWidget(m_widescreen_hack, 7, 0);
+  enhancements_layout->addWidget(m_disable_fog, 7, 1);
+  enhancements_layout->addWidget(m_force_24bit_color, 8, 0);
+  enhancements_layout->addWidget(m_disable_copy_filter, 8, 1);
+  enhancements_layout->addWidget(m_arbitrary_mipmap_detection, 9, 0);
 
   // Stereoscopy
   auto* stereoscopy_box = new QGroupBox(tr("Stereoscopy"));
@@ -352,7 +357,7 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_FORCE_TEXTURE_FILTERING_DESCRIPTION[] =
       QT_TR_NOOP("Filters all textures, including any that the game explicitly set as "
                  "unfiltered.\n\nMay improve quality of certain textures in some games, but "
-                 "will cause issues in others.\n\nIf unsure, leave this unchecked.");
+                 "will cause issues in others.\n\nIf unsure, select Default.");
   static const char TR_DISABLE_COPY_FILTER_DESCRIPTION[] =
       QT_TR_NOOP("Disables the blending of adjacent rows when copying the EFB. This is known in "
                  "some games as \"deflickering\" or \"smoothing\". \n\nDisabling the filter has no "

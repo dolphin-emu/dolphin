@@ -33,10 +33,10 @@ private:
   QComboBox* m_aa_combo;
   QComboBox* m_af_combo;
   QComboBox* m_pp_effect;
+  QComboBox* m_force_texture_filtering;
   QPushButton* m_configure_pp_effect;
   QCheckBox* m_scaled_efb_copy;
   QCheckBox* m_per_pixel_lighting;
-  QCheckBox* m_force_texture_filtering;
   QCheckBox* m_widescreen_hack;
   QCheckBox* m_disable_fog;
   QCheckBox* m_force_24bit_color;
