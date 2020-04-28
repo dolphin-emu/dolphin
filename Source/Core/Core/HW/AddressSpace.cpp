@@ -68,8 +68,8 @@ Accessors::iterator Accessors::end() const
   return nullptr;
 }
 
-std::optional<u32> Accessors::Search(u32 haystack_start, u8* needle_start, u32 needle_size,
-                                     bool forwards) const
+std::optional<u32> Accessors::Search(u32 haystack_start, const u8* needle_start,
+                                     std::size_t needle_size, bool forwards) const
 {
   return std::nullopt;
 }
@@ -91,7 +91,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
   void WriteU64(u32 address, u64 value) override { PowerPC::HostWrite_U64(value, address); }
   float ReadF32(u32 address) const override { return PowerPC::HostRead_F32(address); };
 
-  bool Matches(u32 haystack_start, u8* needle_start, u32 needle_size) const
+  bool Matches(u32 haystack_start, const u8* needle_start, std::size_t needle_size) const
   {
     u32 page_base = haystack_start & 0xfffff000;
     u32 offset = haystack_start & 0x0000fff;
@@ -121,7 +121,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
         return false;
       }
 
-      u32 chunk_size = std::min(0x1000 - offset, needle_size);
+      std::size_t chunk_size = std::min<std::size_t>(0x1000 - offset, needle_size);
       if (memcmp(needle_start, page_ptr + offset, chunk_size) != 0)
       {
         return false;
@@ -134,7 +134,7 @@ struct EffectiveAddressSpaceAccessors : Accessors
     return (needle_size == 0);
   }
 
-  std::optional<u32> Search(u32 haystack_start, u8* needle_start, u32 needle_size,
+  std::optional<u32> Search(u32 haystack_start, const u8* needle_start, std::size_t needle_size,
                             bool forward) const override
   {
     u32 haystack_address = haystack_start;
@@ -190,7 +190,7 @@ struct AuxiliaryAddressSpaceAccessors : Accessors
 
   iterator end() const override { return DSP::GetARAMPtr() + GetSize(); }
 
-  std::optional<u32> Search(u32 haystack_offset, u8* needle_start, u32 needle_size,
+  std::optional<u32> Search(u32 haystack_offset, const u8* needle_start, std::size_t needle_size,
                             bool forward) const override
   {
     if (!IsValidAddress(haystack_offset))
@@ -264,7 +264,7 @@ struct CompositeAddressSpaceAccessors : Accessors
     return it->accessors->WriteU8(address, value);
   }
 
-  std::optional<u32> Search(u32 haystack_offset, u8* needle_start, u32 needle_size,
+  std::optional<u32> Search(u32 haystack_offset, const u8* needle_start, std::size_t needle_size,
                             bool forward) const override
   {
     for (const AccessorMapping& mapping : m_accessor_mappings)
@@ -320,10 +320,11 @@ struct SmallBlockAccessors : Accessors
     return (*alloc_base == nullptr) ? nullptr : (*alloc_base + size);
   }
 
-  std::optional<u32> Search(u32 haystack_offset, u8* needle_start, u32 needle_size,
+  std::optional<u32> Search(u32 haystack_offset, const u8* needle_start, std::size_t needle_size,
                             bool forward) const override
   {
-    if (!IsValidAddress(haystack_offset) || !IsValidAddress(haystack_offset + needle_size - 1))
+    if (!IsValidAddress(haystack_offset) ||
+        !IsValidAddress(haystack_offset + static_cast<u32>(needle_size) - 1))
     {
       return std::nullopt;
     }
