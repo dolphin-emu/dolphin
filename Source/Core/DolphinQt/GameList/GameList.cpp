@@ -259,10 +259,7 @@ void GameList::ShowContextMenu(const QPoint&)
     const auto selected_games = GetSelectedGames();
 
     if (std::all_of(selected_games.begin(), selected_games.end(), [](const auto& game) {
-          // Converting from TGC is temporarily disabled because PR #8738 was merged prematurely.
-          // The TGC check will be removed by PR #8644.
-          return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate() &&
-                 game->GetBlobType() != DiscIO::BlobType::TGC;
+          return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate();
         }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
