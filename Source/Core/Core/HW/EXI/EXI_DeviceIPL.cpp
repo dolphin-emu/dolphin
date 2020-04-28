@@ -314,7 +314,7 @@ void CEXIIPL::TransferByte(u8& data)
       }
     };
 
-    if (IN_RANGE(ROM))
+    if (address < ROM_BASE + ROM_SIZE)
     {
       if (!m_command.is_write())
       {
