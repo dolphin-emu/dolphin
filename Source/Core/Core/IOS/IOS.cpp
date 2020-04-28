@@ -22,6 +22,7 @@
 #include "Core/Boot/DolReader.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/CommonTitles.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -85,8 +86,8 @@ constexpr u32 ADDR_HOLLYWOOD_REVISION = 0x3138;
 constexpr u32 ADDR_PH3 = 0x313c;
 constexpr u32 ADDR_IOS_VERSION = 0x3140;
 constexpr u32 ADDR_IOS_DATE = 0x3144;
-constexpr u32 ADDR_UNKNOWN_BEGIN = 0x3148;
-constexpr u32 ADDR_UNKNOWN_END = 0x314c;
+constexpr u32 ADDR_IOS_RESERVED_BEGIN = 0x3148;
+constexpr u32 ADDR_IOS_RESERVED_END = 0x314c;
 constexpr u32 ADDR_PH4 = 0x3150;
 constexpr u32 ADDR_PH5 = 0x3154;
 constexpr u32 ADDR_RAM_VENDOR = 0x3158;
@@ -95,12 +96,6 @@ constexpr u32 ADDR_APPLOADER_FLAG = 0x315d;
 constexpr u32 ADDR_DEVKIT_BOOT_PROGRAM_VERSION = 0x315e;
 constexpr u32 ADDR_SYSMENU_SYNC = 0x3160;
 constexpr u32 PLACEHOLDER = 0xDEADBEEF;
-
-enum class MemorySetupType
-{
-  IOSReload,
-  Full,
-};
 
 static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
 {
@@ -134,8 +129,10 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
     Memory::Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
     Memory::Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
     Memory::Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
-    Memory::Write_U32(target_imv->unknown_begin, ADDR_UNKNOWN_BEGIN);
-    Memory::Write_U32(target_imv->unknown_end, ADDR_UNKNOWN_END);
+    Memory::Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+    Memory::Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
+
+    RAMOverrideForIOSMemoryValues(setup_type);
 
     return true;
   }
@@ -158,8 +155,8 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   Memory::Write_U32(PLACEHOLDER, ADDR_PH3);
   Memory::Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
   Memory::Write_U32(target_imv->ios_date, ADDR_IOS_DATE);
-  Memory::Write_U32(target_imv->unknown_begin, ADDR_UNKNOWN_BEGIN);
-  Memory::Write_U32(target_imv->unknown_end, ADDR_UNKNOWN_END);
+  Memory::Write_U32(target_imv->ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+  Memory::Write_U32(target_imv->ios_reserved_end, ADDR_IOS_RESERVED_END);
   Memory::Write_U32(PLACEHOLDER, ADDR_PH4);
   Memory::Write_U32(PLACEHOLDER, ADDR_PH5);
   Memory::Write_U32(target_imv->ram_vendor, ADDR_RAM_VENDOR);
@@ -167,7 +164,57 @@ static bool SetupMemory(u64 ios_title_id, MemorySetupType setup_type)
   Memory::Write_U8(0xAD, ADDR_APPLOADER_FLAG);
   Memory::Write_U16(0xBEEF, ADDR_DEVKIT_BOOT_PROGRAM_VERSION);
   Memory::Write_U32(target_imv->sysmenu_sync, ADDR_SYSMENU_SYNC);
+
+  RAMOverrideForIOSMemoryValues(setup_type);
+
   return true;
+}
+
+void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type)
+{
+  // Don't touch anything if the feature isn't enabled.
+  if (!Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+    return;
+
+  // Some unstated constants that can be inferred.
+  const u32 ipc_buffer_size =
+      Memory::Read_U32(ADDR_IPC_BUFFER_END) - Memory::Read_U32(ADDR_IPC_BUFFER_BEGIN);
+  const u32 ios_reserved_size =
+      Memory::Read_U32(ADDR_IOS_RESERVED_END) - Memory::Read_U32(ADDR_IOS_RESERVED_BEGIN);
+
+  const u32 mem1_physical_size = Memory::GetRamSizeReal();
+  const u32 mem1_simulated_size = Memory::GetRamSizeReal();
+  const u32 mem1_end = Memory::MEM1_BASE_ADDR + mem1_simulated_size;
+  const u32 mem1_arena_begin = 0;
+  const u32 mem1_arena_end = mem1_end;
+  const u32 mem2_physical_size = Memory::GetExRamSizeReal();
+  const u32 mem2_simulated_size = Memory::GetExRamSizeReal();
+  const u32 mem2_end = Memory::MEM2_BASE_ADDR + mem2_simulated_size - ios_reserved_size;
+  const u32 mem2_arena_begin = Memory::MEM2_BASE_ADDR + 0x800U;
+  const u32 mem2_arena_end = mem2_end - ipc_buffer_size;
+  const u32 ipc_buffer_begin = mem2_arena_end;
+  const u32 ipc_buffer_end = mem2_end;
+  const u32 ios_reserved_begin = mem2_end;
+  const u32 ios_reserved_end = Memory::MEM2_BASE_ADDR + mem2_simulated_size;
+
+  if (setup_type == MemorySetupType::Full)
+  {
+    // Overwriting these after the game's apploader sets them would be bad
+    Memory::Write_U32(mem1_physical_size, ADDR_MEM1_SIZE);
+    Memory::Write_U32(mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
+    Memory::Write_U32(mem1_end, ADDR_MEM1_END);
+    Memory::Write_U32(mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
+    Memory::Write_U32(mem1_arena_end, ADDR_MEM1_ARENA_END);
+  }
+  Memory::Write_U32(mem2_physical_size, ADDR_MEM2_SIZE);
+  Memory::Write_U32(mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+  Memory::Write_U32(mem2_end, ADDR_MEM2_END);
+  Memory::Write_U32(mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+  Memory::Write_U32(mem2_arena_end, ADDR_MEM2_ARENA_END);
+  Memory::Write_U32(ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+  Memory::Write_U32(ipc_buffer_end, ADDR_IPC_BUFFER_END);
+  Memory::Write_U32(ios_reserved_begin, ADDR_IOS_RESERVED_BEGIN);
+  Memory::Write_U32(ios_reserved_end, ADDR_IOS_RESERVED_END);
 }
 
 void WriteReturnValue(s32 value, u32 address)

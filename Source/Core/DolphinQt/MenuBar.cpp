@@ -26,6 +26,7 @@
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/AddressSpace.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
@@ -1178,13 +1179,15 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
@@ -1315,7 +1318,8 @@ void MenuBar::LoadSymbolMap()
   if (!map_exists)
   {
     g_symbolDB.Clear();
-    PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
+    PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR + 0x1300000,
+                              Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
     if (db.Load(File::GetSysDirectory() + TOTALDB))
       db.Apply(&g_symbolDB);
@@ -1554,7 +1558,8 @@ void MenuBar::SearchInstruction()
     return;
 
   bool found = false;
-  for (u32 addr = 0x80000000; addr < 0x81800000; addr += 4)
+  for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal();
+       addr += 4)
   {
     auto ins_name =
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));

@@ -151,7 +151,7 @@ bool ElfReader::LoadIntoMemory(bool only_in_mem1) const
       u32 srcSize = p->p_filesz;
       u32 dstSize = p->p_memsz;
 
-      if (only_in_mem1 && p->p_vaddr >= Memory::REALRAM_SIZE)
+      if (only_in_mem1 && p->p_vaddr >= Memory::GetRamSizeReal())
         continue;
 
       Memory::CopyToEmu(writeAddr, src, srcSize);
