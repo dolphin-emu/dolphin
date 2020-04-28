@@ -19,6 +19,7 @@ enum TEXIDevices : int
   EXIDEVICE_AD16,
   EXIDEVICE_MIC,
   EXIDEVICE_ETH,
+  EXIDEVICE_ETHUDP,
   // Was used for Triforce in the past, but the implementation is no longer in Dolphin.
   // It's kept here so that values below will stay constant.
   EXIDEVICE_AM_BASEBOARD,

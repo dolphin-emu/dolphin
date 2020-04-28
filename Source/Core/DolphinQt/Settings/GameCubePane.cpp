@@ -103,7 +103,8 @@ void GameCubePane::CreateWidgets()
   for (const auto& entry :
        {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
         std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
-        std::make_pair(tr("Broadband Adapter"), ExpansionInterface::EXIDEVICE_ETH)})
+        std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH),
+        std::make_pair(tr("Broadband Adapter (UDP)"), ExpansionInterface::EXIDEVICE_ETHUDP)})
   {
     m_slot_combos[2]->addItem(entry.first, entry.second);
   }
@@ -158,7 +159,8 @@ void GameCubePane::UpdateButton(int slot)
          value == ExpansionInterface::EXIDEVICE_AGP || value == ExpansionInterface::EXIDEVICE_MIC);
     break;
   case SLOT_SP1_INDEX:
-    has_config = (value == ExpansionInterface::EXIDEVICE_ETH);
+    has_config = (value == ExpansionInterface::EXIDEVICE_ETH ||
+                  value == ExpansionInterface::EXIDEVICE_ETHUDP);
     break;
   }
 
@@ -186,10 +188,35 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     bool ok;
     const auto new_mac = QInputDialog::getText(
-        this, tr("Broadband Adapter MAC address"), tr("Enter new Broadband Adapter MAC address:"),
-        QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_mac), &ok);
+        this, tr("Broadband Adapter (TAP) MAC address"),
+        tr("Enter new Broadband Adapter (TAP) MAC address:"), QLineEdit::Normal,
+        QString::fromStdString(SConfig::GetInstance().m_bba_tap_mac), &ok);
     if (ok)
-      SConfig::GetInstance().m_bba_mac = new_mac.toStdString();
+      SConfig::GetInstance().m_bba_tap_mac = new_mac.toStdString();
+    return;
+  }
+  case ExpansionInterface::EXIDEVICE_ETHUDP:
+  {
+    bool ok;
+    const auto new_dest = QInputDialog::getText(
+        this, tr("Broadband Adapter (UDP) Destination Address"),
+        tr("Enter new Broadband Adapter (UDP) <ip>:<port> destination:"), QLineEdit::Normal,
+        QString::fromStdString(SConfig::GetInstance().m_bba_udp_dest), &ok);
+
+    if (!ok)
+      return;
+
+    SConfig::GetInstance().m_bba_udp_dest = new_dest.toStdString();
+
+    int new_port = QInputDialog::getInt(this, tr("Broadband Adapter (UDP) Receiving Port"),
+                                        tr("Enter new Broadband Adapter (UDP) receiving port:"),
+                                        SConfig::GetInstance().m_bba_udp_port, 1025, 65535, 1, &ok);
+
+    if (!ok)
+      return;
+
+    SConfig::GetInstance().m_bba_udp_port = new_port;
+
     return;
   }
   default:

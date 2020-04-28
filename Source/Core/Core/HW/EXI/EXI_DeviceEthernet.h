@@ -196,10 +196,16 @@ enum RecvStatus
 
 #define BBA_RECV_SIZE 0x800
 
+enum class BBADeviceType
+{
+  BBA_TAP,
+  BBA_UDP
+};
+
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  CEXIETHERNET();
+  explicit CEXIETHERNET(BBADeviceType type);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;
@@ -297,34 +303,100 @@ private:
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
 
-  // TAP interface
-  static void ReadThreadHandler(CEXIETHERNET* self);
-  bool Activate();
-  void Deactivate();
-  bool IsActivated();
-  bool SendFrame(const u8* frame, u32 size);
-  bool RecvInit();
-  void RecvStart();
-  void RecvStop();
+  class PhysicalNetworkInterface
+  {
+  protected:
+    CEXIETHERNET* m_eth_ref = nullptr;
+    explicit PhysicalNetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
+
+  public:
+    virtual bool Activate() { return false; }
+    virtual void Deactivate() {}
+    virtual bool IsActivated() { return false; }
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
+    virtual bool RecvInit() { return false; }
+    virtual void RecvStart() {}
+    virtual void RecvStop() {}
+
+    virtual ~PhysicalNetworkInterface() = default;
+  };
+
+  class TAPPhysicalNetworkInterface : public PhysicalNetworkInterface
+  {
+  public:
+    explicit TAPPhysicalNetworkInterface(CEXIETHERNET* eth_ref) : PhysicalNetworkInterface(eth_ref)
+    {
+    }
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__)
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
+    static void ReadThreadHandler(TAPPhysicalNetworkInterface* self);
+#endif
+#if defined(_WIN32)
+    HANDLE mHAdapter = INVALID_HANDLE_VALUE;
+    OVERLAPPED mReadOverlapped = {};
+    OVERLAPPED mWriteOverlapped = {};
+    std::vector<u8> mWriteBuffer;
+    bool mWritePending = false;
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    int fd = -1;
+#endif
+  };
+
+  class UDPPhysicalNetworkInterface : public PhysicalNetworkInterface
+  {
+  public:
+    UDPPhysicalNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                                int in_port)
+        : PhysicalNetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
+          m_in_port(in_port)
+    {
+    }
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    std::string m_dest_ip;
+    int m_dest_port;
+    int m_in_port;
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__)
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
+    static void ReadThreadHandler(UDPPhysicalNetworkInterface* self);
+#endif
+#if defined(_WIN32)
+    // TODO: Win32 UDP Sockets
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    int m_write_fd = -1;
+    int m_read_fd = -1;
+#endif
+  };
+
+  std::unique_ptr<PhysicalNetworkInterface> physical_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;
-
-#if defined(_WIN32)
-  HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-  OVERLAPPED mReadOverlapped = {};
-  OVERLAPPED mWriteOverlapped = {};
-  std::vector<u8> mWriteBuffer;
-  bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-  int fd = -1;
-#endif
-
-#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
-    defined(__OpenBSD__)
-  std::thread readThread;
-  Common::Flag readEnabled;
-  Common::Flag readThreadShutdown;
-#endif
 };
 }  // namespace ExpansionInterface
