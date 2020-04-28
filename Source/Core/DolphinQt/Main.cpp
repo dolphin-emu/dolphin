@@ -4,6 +4,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <QDir>
 #include <cstdio>
 #endif
 
@@ -107,6 +108,8 @@ int main(int argc, char* argv[])
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
   }
+
+  Q_INIT_RESOURCE(Resources);
 #endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);

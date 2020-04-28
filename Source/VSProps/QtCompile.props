@@ -29,6 +29,9 @@
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtGui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(QtIncludeDir)QtWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories Condition="'$(Platform)'=='ARM64'">$(QtIncludeDir)QtANGLE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtQml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtQuick;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(QtIncludeDir)QtQuickWidgets;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <!--
       Negate the previously enabled warning (set in Base.props). Not compatible with QtCore\qtmap.h
       This isn't too bad since we live with the fact that Qt-using projects will have different compiler args already.
@@ -37,7 +40,7 @@
     </ClCompile>
     <Link>
       <AdditionalLibraryDirectories>$(QtLibDir);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>qtmain$(QtLibSuffix).lib;Qt5Core$(QtLibSuffix).lib;Qt5Gui$(QtLibSuffix).lib;Qt5Widgets$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>qtmain$(QtLibSuffix).lib;Qt5Core$(QtLibSuffix).lib;Qt5Gui$(QtLibSuffix).lib;Qt5Widgets$(QtLibSuffix).lib;Qt5Quick$(QtLibSuffix).lib;Qt5QuickWidgets$(QtLibSuffix).lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Windows</SubSystem>
       <!--
       <AdditionalOptions>"/manifestdependency:type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\" %(AdditionalOptions)</AdditionalOptions>
@@ -58,7 +61,7 @@
         "-I$(SomeDir)"
         in order to prevent the trailing slash from escaping the doublequote after value replacement.
         -->
-    <MocIncludes>"-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " -I.</MocIncludes>
+    <MocIncludes>"-I$(QtIncludeDir)QtWidgets" "-I$(QtIncludeDir)QtGui" "-I$(QtIncludeDir)QtCore" "-I$(QtIncludeDir) " "-I$(QtToolOutDir) " "-I$(QtIncludeDir)QtQML" "-I$(QtIncludeDir)QtQuick" "-I$(QtIncludeDir)QtQuickWidgets" -I.</MocIncludes>
     <MocIncludes>"-I$(ExternalsDir)xxhash" "-I$(ExternalsDir)zlib" "-I$(ExternalsDir)SFML\include" "-I$(ExternalsDir)mbedtls\include" "-I$(ExternalsDir)miniupnpc\src" "-I$(ExternalsDir)LZO" "-I$(ExternalsDir)libusbx\libusb" "-I$(ExternalsDir)libpng" "-I$(ExternalsDir)GL" "-I$(ExternalsDir)Bochs_disasm" "-I$(ExternalsDir) " "-I$(CoreDir) " $(MocIncludes)</MocIncludes>
   </PropertyGroup>
   <Target Name="QtMoc"
@@ -72,11 +75,29 @@
     <Exec Command="&quot;$(QtBinDir)moc.exe&quot; &quot;%(QtMoc.FullPath)&quot; -o &quot;$(QtToolOutDir)moc_%(QtMoc.Filename).cpp&quot; -f%(QtMoc.Filename)%(QtMoc.Extension) $(MocDefines) $(MocIncludes)" />
   </Target>
 
+  <Target Name="QtResource"
+    BeforeTargets="ClCompile"
+    Condition="'@(QtResource)'!=''"
+    Inputs="%(QtResource.Identity);$(MSBuildProjectFile)"
+    Outputs="$(QtToolOutDir)res_%(QtResource.Filename).cpp">
+    <Message Text="rcc %(QtResource.Filename)" Importance="High" />
+    <Error Condition="!$(QtDirValid)" Text="QTDIR not set or non-existent (pull the submodule?)" />
+    <MakeDir Directories="$(QtToolOutDir)" />
+    <Exec Command="&quot;$(QtBinDir)rcc.exe&quot; &quot;%(QtResource.FullPath)&quot; -o &quot;$(QtToolOutDir)res_%(QtResource.Filename).cpp&quot; --name &quot;%(QtResource.Filename)&quot;" />
+  </Target>
+
   <ItemGroup>
     <MocOutputs Include="$(QtToolOutDir)moc_*.cpp" />
   </ItemGroup>
   <Target Name="QtMocClean">
     <Delete Files="@(MocOutputs)" />
+  </Target>
+
+  <ItemGroup>
+    <ResourceOutputs Include="$(QtToolOutDir)res*.cpp" />
+  </ItemGroup>
+  <Target Name="QtResourceClean">
+    <Delete Files="@(ResourceOutputs)" />
   </Target>
 
   <!--Expose the new targets to VS-->
@@ -85,11 +106,14 @@
     <AvailableItemName Include="QtMoc">
       <Targets>QtMoc</Targets>
     </AvailableItemName>
+	<AvailableItemName Include="QtResource">
+      <Targets>QtResource</Targets>
+    </AvailableItemName>
   </ItemGroup>
 
   <!--Copy the needed dlls-->
   <ItemGroup>
-    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
+    <QtLibNames Include="Qt5Core$(QtLibSuffix);Qt5Gui$(QtLibSuffix);Qt5Network$(QtLibSuffix);Qt5Qml$(QtLibSuffix);Qt5QmlModels$(QtLibSuffix);Qt5Quick$(QtLibSuffix);Qt5QuickWidgets$(QtLibSuffix);Qt5Widgets$(QtLibSuffix)" />
 
     <!-- Include ANGLE for ARM64 since there is no native OpenGL -->
     <QtLibNames Condition="'$(Platform)'=='ARM64'" Include="$(QtLibNames);libEGL$(QtLibSuffix);libGLESv2$(QtLibSuffix)" />

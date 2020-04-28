@@ -1,0 +1,27 @@
+<!DOCTYPE RCC><RCC version="1.0">
+<qresource>
+  <!-- QML -->
+  <file>Controller/Controller.qml</file>
+  <file>Controller/Button.qml</file>
+  <file>Controller/Stick.qml</file>
+  <file>Controller/Trigger.qml</file>
+  <file>GCPad/GCPad.qml</file>
+  <file>GCPad/GCPadView.qml</file>
+  <!-- Images -->
+  <file>GCPad/base.svg</file>
+  <file>GCPad/A.svg</file>
+  <file>GCPad/B.svg</file>
+  <file>GCPad/X.svg</file>
+  <file>GCPad/Y.svg</file>
+  <file>GCPad/Z.svg</file>
+  <file>GCPad/Start.svg</file>
+  <file>GCPad/Trigger_L.svg</file>
+  <file>GCPad/Trigger_R.svg</file>
+  <file>GCPad/Stick_Main.svg</file>
+  <file>GCPad/Stick_C.svg</file>
+  <file>GCPad/DPad_Up.svg</file>
+  <file>GCPad/DPad_Down.svg</file>
+  <file>GCPad/DPad_Left.svg</file>
+  <file>GCPad/DPad_Right.svg</file>
+</qresource>
+</RCC>

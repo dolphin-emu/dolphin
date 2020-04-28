@@ -13,6 +13,7 @@
 #include <QTimer>
 
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
+#include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -49,18 +50,16 @@ QString GetExpressionForControl(const QString& control_name,
   return expr;
 }
 
-QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& device_container,
+QString DetectExpression(QWidget* widget, ciface::Core::DeviceContainer& device_container,
                          const std::vector<std::string>& device_strings,
                          const ciface::Core::DeviceQualifier& default_device, Quote quote)
 {
-  const auto filter = new BlockUserInputFilter(button);
-
-  button->installEventFilter(filter);
-  button->grabKeyboard();
-  button->grabMouse();
-
-  const auto old_text = button->text();
-  button->setText(QStringLiteral("..."));
+  const auto filter = new BlockUserInputFilter(widget);
+  QueueOnObject(widget, [widget, filter] {
+    widget->installEventFilter(filter);
+    widget->grabKeyboard();
+    widget->grabMouse();
+  });
 
   // The button text won't be updated if we don't process events here
   QApplication::processEvents();
@@ -70,18 +69,16 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   const auto [device, input] = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
 
-  const auto timer = new QTimer(button);
+  const auto timer = new QTimer(widget);
 
-  button->connect(timer, &QTimer::timeout, [button, filter] {
-    button->releaseMouse();
-    button->releaseKeyboard();
-    button->removeEventFilter(filter);
+  widget->connect(timer, &QTimer::timeout, [widget, filter] {
+    widget->releaseMouse();
+    widget->releaseKeyboard();
+    widget->removeEventFilter(filter);
   });
 
   // Prevent mappings of "space", "return", or mouse clicks from re-activating detection.
   timer->start(500);
-
-  button->setText(old_text);
 
   if (!input)
     return {};
