@@ -157,6 +157,7 @@
 
     <!-- Audio Settings -->
     <string name="audio_submenu">Audio</string>
+    <string name="dsp_emulation_engine">DSP Emulation Engine</string>
     <string name="audio_stretch">Audio Stretching</string>
     <string name="audio_stretch_description">Stretches audio to reduce stuttering. Increases latency.</string>
     <string name="audio_volume">Audio Volume</string>
