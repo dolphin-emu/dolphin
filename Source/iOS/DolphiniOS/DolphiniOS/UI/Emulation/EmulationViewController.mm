@@ -19,6 +19,8 @@
 #import "Core/State.h"
 
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
+#import <FirebaseCrashlytics/FirebaseCrashlytics.h>
+
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
@@ -136,6 +138,8 @@
     @"connected_controllers" : [controller_list count] != 0 ? [controller_list componentsJoinedByString:@", "] : @"none"
   }];
   
+  [[FIRCrashlytics crashlytics] setCustomValue:uid forKey:@"current-game"];
+  
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
   if (![games_array containsObject:uid])
   {
@@ -152,6 +156,8 @@
   [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
   [[TCDeviceMotion shared] stopMotionUpdates];
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
   
   dispatch_sync(dispatch_get_main_queue(), ^{
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
