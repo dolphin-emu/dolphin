@@ -25,6 +25,8 @@
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
 
+#import <mach/mach.h>
+
 #import "MainiOS.h"
 
 #import "UICommon/GameFile.h"
@@ -432,6 +434,23 @@
     
     [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
   }
+}
+
+#pragma mark - Memory warning
+
+- (void)didReceiveMemoryWarning
+{
+  // Attempt to get the process's VM info
+  // https://github.com/WebKit/webkit/blob/master/Source/WTF/wtf/cocoa/MemoryFootprintCocoa.cpp
+  task_vm_info_data_t vm_info;
+  mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+  kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
+  
+  [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
+    @"game_uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier()),
+    @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
+    @"system_free_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
+  }];
 }
 
 #pragma mark - Rewind segue
