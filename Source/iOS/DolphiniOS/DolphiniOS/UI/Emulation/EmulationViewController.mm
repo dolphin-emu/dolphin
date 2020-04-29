@@ -4,8 +4,6 @@
 
 #import "EmulationViewController.h"
 
-#import <AppCenterAnalytics/AppCenterAnalytics.h>
-
 #import "ControllerSettingsUtils.h"
 
 #import "Common/FileUtil.h"
@@ -20,6 +18,7 @@
 #import "Core/HW/SI/SI_Device.h"
 #import "Core/State.h"
 
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
@@ -108,15 +107,16 @@
 {
   NSString* uid = CppToFoundationString(self.m_game_file->GetUniqueIdentifier());
   
-  [MSAnalytics trackEvent:@"game-start" withProperties:@{
-    @"game-uid" : uid
+  
+  [FIRAnalytics logEventWithName:@"game_start" parameters:@{
+    @"game_uid" : uid
   }];
   
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
   if (![games_array containsObject:uid])
   {
-    [MSAnalytics trackEvent:@"unique-game-start" withProperties:@{
-      @"game-uid" : uid
+    [FIRAnalytics logEventWithName:@"unique_game_start" parameters:@{
+      @"game_uid" : uid
     }];
     
     NSMutableArray* mutable_games_array = [games_array mutableCopy];

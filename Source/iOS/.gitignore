@@ -84,3 +84,6 @@ Dolphin.strings
 
 # CocoaPods
 Pods/
+
+# Firebase
+GoogleService-Info.plist
