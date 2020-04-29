@@ -767,6 +767,10 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
+if (WIN32)
+  include_directories(Externals/OpenAL/include)
+endif()
+
 include_directories(Externals/picojson)
 
 ########################################
