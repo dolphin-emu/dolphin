@@ -449,7 +449,7 @@
   [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
     @"game_uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier()),
     @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
-    @"system_free_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
+    @"system_total_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
   }];
 }
 
