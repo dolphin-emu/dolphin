@@ -24,24 +24,19 @@
   [self.m_changes_label setText:self.m_update_json[@"changes"]];
   
 #ifdef PATREON
+  [self.m_update_now_button setHidden:true];
   [self.m_see_changes_button setHidden:true];
+  [self.m_not_now_button setHidden:true];
+#else
+  [self.m_ok_button setHidden:true];
 #endif
   
-  if ((NSInteger)self.m_update_json[@"state_version"] != State::GetVersion())
-  {
-    [self.m_save_states_warning_label setHidden:false];
-  }
+  [self.m_save_states_warning_label setHidden:(NSInteger)self.m_update_json[@"state_version"] != State::GetVersion()];
 }
 
 - (IBAction)UpdateNowTouched:(id)sender
 {
-#ifndef PATREON
-  NSString* string = @"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios";
-#else
-  NSString* string = @"cydia://url/https://cydia.saurik.com/api/share#?source=http://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios-patreon-beta";
-#endif
-  
-  NSURL* url = [NSURL URLWithString:string];
+  NSURL* url = [NSURL URLWithString:@"cydia://url/https://cydia.saurik.com/api/share#?source=https://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios"];
   [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 
