@@ -284,6 +284,8 @@
   {
     Core::SetState(Core::State::Running);
   }
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"active" forKey:@"app-state"];
 }
 
 - (void)applicationWillResignActive:(UIApplication*)application
@@ -292,6 +294,8 @@
   {
     Core::SetState(Core::State::Paused);
   }
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"inactive" forKey:@"app-state"];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
