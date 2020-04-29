@@ -152,18 +152,18 @@ static void XFRegWritten(int transferSize, u32 baseAddress, DataReader src)
       nextAddress = XFMEM_SETTEXMTXINFO + 8;
       break;
 
-    case XFMEM_SETPOSMTXINFO:
-    case XFMEM_SETPOSMTXINFO + 1:
-    case XFMEM_SETPOSMTXINFO + 2:
-    case XFMEM_SETPOSMTXINFO + 3:
-    case XFMEM_SETPOSMTXINFO + 4:
-    case XFMEM_SETPOSMTXINFO + 5:
-    case XFMEM_SETPOSMTXINFO + 6:
-    case XFMEM_SETPOSMTXINFO + 7:
+    case XFMEM_SETPOSTMTXINFO:
+    case XFMEM_SETPOSTMTXINFO + 1:
+    case XFMEM_SETPOSTMTXINFO + 2:
+    case XFMEM_SETPOSTMTXINFO + 3:
+    case XFMEM_SETPOSTMTXINFO + 4:
+    case XFMEM_SETPOSTMTXINFO + 5:
+    case XFMEM_SETPOSTMTXINFO + 6:
+    case XFMEM_SETPOSTMTXINFO + 7:
       g_vertex_manager->Flush();
-      VertexShaderManager::SetTexMatrixInfoChanged(address - XFMEM_SETPOSMTXINFO);
+      VertexShaderManager::SetTexMatrixInfoChanged(address - XFMEM_SETPOSTMTXINFO);
 
-      nextAddress = XFMEM_SETPOSMTXINFO + 8;
+      nextAddress = XFMEM_SETPOSTMTXINFO + 8;
       break;
 
     // --------------
