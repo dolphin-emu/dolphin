@@ -107,9 +107,33 @@
 {
   NSString* uid = CppToFoundationString(self.m_game_file->GetUniqueIdentifier());
   
+  NSMutableArray<NSString*>* controller_list = [[NSMutableArray alloc] init];
+  for (GCController* controller in [GCController controllers])
+  {
+    NSString* controller_type = @"Unknown";
+    if (controller.extendedGamepad != nil)
+    {
+      controller_type = @"Extended";
+    }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    else if (controller.gamepad != nil)
+#pragma clang diagnostic pop
+    {
+      controller_type = @"Normal";
+    }
+    else if (controller.microGamepad != nil)
+    {
+      controller_type = @"Micro";
+    }
+    
+    [controller_list addObject:[NSString stringWithFormat:@"%@ (%@)", [controller vendorName], controller_type]];
+  }
   
   [FIRAnalytics logEventWithName:@"game_start" parameters:@{
-    @"game_uid" : uid
+    @"game_uid" : uid,
+    @"is_returning" : File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav") ? @"true" : @"false",
+    @"connected_controllers" : [controller_list count] != 0 ? [controller_list componentsJoinedByString:@", "] : @"none"
   }];
   
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
