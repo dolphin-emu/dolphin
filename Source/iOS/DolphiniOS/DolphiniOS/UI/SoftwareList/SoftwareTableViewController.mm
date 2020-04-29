@@ -81,24 +81,6 @@
   });
 }
 
-- (void)showAlertWithTitle:(NSString*)title text:(NSString*)text isFatal:(bool)isFatal
-{
-  UIAlertController* alert = [UIAlertController alertControllerWithTitle:title
-                                 message:text
-                                 preferredStyle:UIAlertControllerStyleAlert];
-   
-  UIAlertAction* okayAction = [UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault
-     handler:^(UIAlertAction * action) {
-    if (isFatal)
-    {
-      exit(0);
-    }
-  }];
-   
-  [alert addAction:okayAction];
-  [self.navigationController presentViewController:alert animated:YES completion:nil];
-}
-
 - (void)viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
