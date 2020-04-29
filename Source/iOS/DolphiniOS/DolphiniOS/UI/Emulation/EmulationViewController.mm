@@ -270,18 +270,29 @@
 
 - (IBAction)StopButtonPressed:(id)sender
 {
-  UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Do you want to stop the current emulation?") preferredStyle:UIAlertControllerStyleAlert];
-  
-  [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
-  
-  [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+  void (^stop)() = ^{
     [MainiOS stopEmulation];
     
     // Delete the automatic save state
     File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
-  }]];
+  };
   
-  [self presentViewController:alert animated:true completion:nil];
+  if (SConfig::GetInstance().bConfirmStop)
+  {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Do you want to stop the current emulation?") preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+      stop();
+    }]];
+    
+    [self presentViewController:alert animated:true completion:nil];
+  }
+  else
+  {
+    stop();
+  }
 }
 
 #pragma mark - Touchscreen Controller Switcher
