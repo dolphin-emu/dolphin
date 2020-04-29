@@ -2,10 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#import <AppCenter/AppCenter.h>
-#import <AppCenterAnalytics/AppCenterAnalytics.h>
-#import <AppCenterCrashes/AppCenterCrashes.h>
-
 #import "AnalyticsNoticeViewController.h"
 
 #import "AppDelegate.h"
@@ -29,12 +25,14 @@
 
 #import "DonationNoticeViewController.h"
 
+#import <Firebase/Firebase.h>
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
+#import <FirebaseCrashlytics/FirebaseCrashlytics.h>
+
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
-
-#import <Keys/DolphiniOSKeys.h>
 
 #import "MainiOS.h"
 
@@ -248,17 +246,11 @@
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
 #if !defined(DEBUG) && !TARGET_OS_SIMULATOR
-  // Activate AppCenter analytics
-  DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
-  [MSAppCenter start:[keys appCenterSecret] withServices:@[
-    [MSAnalytics class],
-    [MSCrashes class]
-  ]];
-  
-  [MSAnalytics setEnabled:SConfig::GetInstance().m_analytics_enabled];
-  [MSCrashes setEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
+  [FIRApp configure];
+  [FIRAnalytics setAnalyticsCollectionEnabled:SConfig::GetInstance().m_analytics_enabled];
+  [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
 #endif
-  
+ 
   return YES;
 }
 
