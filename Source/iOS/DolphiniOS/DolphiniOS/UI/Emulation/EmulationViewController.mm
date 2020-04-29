@@ -4,8 +4,6 @@
 
 #import "EmulationViewController.h"
 
-#import <AppCenterAnalytics/AppCenterAnalytics.h>
-
 #import "ControllerSettingsUtils.h"
 
 #import "Common/FileUtil.h"
@@ -20,9 +18,14 @@
 #import "Core/HW/SI/SI_Device.h"
 #import "Core/State.h"
 
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
+#import <FirebaseCrashlytics/FirebaseCrashlytics.h>
+
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
+
+#import <mach/mach.h>
 
 #import "MainiOS.h"
 
@@ -91,16 +94,6 @@
   [self.m_metal_bottom_constraint setActive:do_not_raise];
   [self.m_eagl_bottom_constraint setActive:do_not_raise];
   
-  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"])
-  {
-    // Hide navigation bar
-    [self.navigationController setNavigationBarHidden:true animated:true];
-  }
-  else
-  {
-    [self.m_edge_pan_recognizer setEnabled:false];
-  }
-  
   // Create right bar button items
   self.m_stop_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemStop target:self action:@selector(StopButtonPressed:)];
   self.m_pause_button = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemPause target:self action:@selector(PauseButtonPressed:)];
@@ -118,15 +111,42 @@
 {
   NSString* uid = CppToFoundationString(self.m_game_file->GetUniqueIdentifier());
   
-  [MSAnalytics trackEvent:@"game-start" withProperties:@{
-    @"game-uid" : uid
+  NSMutableArray<NSString*>* controller_list = [[NSMutableArray alloc] init];
+  for (GCController* controller in [GCController controllers])
+  {
+    NSString* controller_type = @"Unknown";
+    if (controller.extendedGamepad != nil)
+    {
+      controller_type = @"Extended";
+    }
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-declarations"
+    else if (controller.gamepad != nil)
+#pragma clang diagnostic pop
+    {
+      controller_type = @"Normal";
+    }
+    else if (controller.microGamepad != nil)
+    {
+      controller_type = @"Micro";
+    }
+    
+    [controller_list addObject:[NSString stringWithFormat:@"%@ (%@)", [controller vendorName], controller_type]];
+  }
+  
+  [FIRAnalytics logEventWithName:@"game_start" parameters:@{
+    @"game_uid" : uid,
+    @"is_returning" : File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav") ? @"true" : @"false",
+    @"connected_controllers" : [controller_list count] != 0 ? [controller_list componentsJoinedByString:@", "] : @"none"
   }];
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:uid forKey:@"current-game"];
   
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
   if (![games_array containsObject:uid])
   {
-    [MSAnalytics trackEvent:@"unique-game-start" withProperties:@{
-      @"game-uid" : uid
+    [FIRAnalytics logEventWithName:@"unique_game_start" parameters:@{
+      @"game_uid" : uid
     }];
     
     NSMutableArray* mutable_games_array = [games_array mutableCopy];
@@ -138,6 +158,8 @@
   [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
   [[TCDeviceMotion shared] stopMotionUpdates];
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
   
   dispatch_sync(dispatch_get_main_queue(), ^{
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
@@ -169,7 +191,7 @@
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-  return UIRectEdgeTop;
+  return self.m_should_disable_edge_pan ? UIRectEdgeNone : UIRectEdgeTop;
 }
 
 - (bool)prefersStatusBarHidden
@@ -248,18 +270,29 @@
 
 - (IBAction)StopButtonPressed:(id)sender
 {
-  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Stop Emulation" message:@"Do you really want to stop the emulation? All unsaved data will be lost." preferredStyle:UIAlertControllerStyleAlert];
-  
-  [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault handler:nil]];
-  
-  [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+  void (^stop)() = ^{
     [MainiOS stopEmulation];
     
     // Delete the automatic save state
     File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
-  }]];
+  };
   
-  [self presentViewController:alert animated:true completion:nil];
+  if (SConfig::GetInstance().bConfirmStop)
+  {
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Do you want to stop the current emulation?") preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+      stop();
+    }]];
+    
+    [self presentViewController:alert animated:true completion:nil];
+  }
+  else
+  {
+    stop();
+  }
 }
 
 #pragma mark - Touchscreen Controller Switcher
@@ -267,6 +300,7 @@
 - (void)PopulatePortDictionary
 {
   self->m_controllers.clear();
+  bool has_gccontroller_connected = false;
   
   if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
   {
@@ -281,6 +315,7 @@
       ControllerEmu::EmulatedController* controller = wii_input_config->GetController(i);
       if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
       {
+        has_gccontroller_connected = true;
         continue;
       }
       
@@ -318,6 +353,7 @@
     ControllerEmu::EmulatedController* controller = gc_input_config->GetController(i);
     if (![ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
     {
+      has_gccontroller_connected = true;
       continue;
     }
     
@@ -330,6 +366,12 @@
         continue;
     }
   }
+  
+  self.m_should_disable_edge_pan = [[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"] || has_gccontroller_connected;
+  
+  [self.navigationController setNavigationBarHidden:!self.m_should_disable_edge_pan animated:true];
+  [self.m_edge_pan_recognizer setEnabled:!self.m_should_disable_edge_pan];
+  [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
 }
 
 - (void)ChangeVisibleTouchControllerToPort:(int)port
@@ -405,25 +447,21 @@
   }
 }
 
-#pragma mark - Send inputs to GameController always
+#pragma mark - Memory warning
 
-// Do nothing - the super for these methods should not be called, as it will
-// send the event to UIKit, instead of GameController
-
-- (void)pressesBegan:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
+- (void)didReceiveMemoryWarning
 {
-}
-
-- (void)pressesEnded:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
-}
-
-- (void)pressesChanged:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
-}
-
-- (void)pressesCancelled:(NSSet<UIPress*>*)presses withEvent:(UIPressesEvent*)event
-{
+  // Attempt to get the process's VM info
+  // https://github.com/WebKit/webkit/blob/master/Source/WTF/wtf/cocoa/MemoryFootprintCocoa.cpp
+  task_vm_info_data_t vm_info;
+  mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
+  kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
+  
+  [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
+    @"game_uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier()),
+    @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
+    @"system_total_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
+  }];
 }
 
 #pragma mark - Rewind segue

@@ -2,10 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#import <AppCenter/AppCenter.h>
-#import <AppCenterAnalytics/AppCenterAnalytics.h>
-#import <AppCenterCrashes/AppCenterCrashes.h>
-
 #import "AnalyticsNoticeViewController.h"
 
 #import "AppDelegate.h"
@@ -29,12 +25,14 @@
 
 #import "DonationNoticeViewController.h"
 
+#import <Firebase/Firebase.h>
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
+#import <FirebaseCrashlytics/FirebaseCrashlytics.h>
+
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
-
-#import <Keys/DolphiniOSKeys.h>
 
 #import "MainiOS.h"
 
@@ -248,17 +246,11 @@
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
 #if !defined(DEBUG) && !TARGET_OS_SIMULATOR
-  // Activate AppCenter analytics
-  DolphiniOSKeys* keys = [[DolphiniOSKeys alloc] init];
-  [MSAppCenter start:[keys appCenterSecret] withServices:@[
-    [MSAnalytics class],
-    [MSCrashes class]
-  ]];
-  
-  [MSAnalytics setEnabled:SConfig::GetInstance().m_analytics_enabled];
-  [MSCrashes setEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
+  [FIRApp configure];
+  [FIRAnalytics setAnalyticsCollectionEnabled:SConfig::GetInstance().m_analytics_enabled];
+  [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
 #endif
-  
+ 
   return YES;
 }
 
@@ -292,6 +284,8 @@
   {
     Core::SetState(Core::State::Running);
   }
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"active" forKey:@"app-state"];
 }
 
 - (void)applicationWillResignActive:(UIApplication*)application
@@ -300,6 +294,8 @@
   {
     Core::SetState(Core::State::Paused);
   }
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"inactive" forKey:@"app-state"];
 }
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
@@ -328,6 +324,25 @@
     [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
     self.m_save_state_task = UIBackgroundTaskInvalid;
   });
+}
+
+- (void)applicationDidReceiveMemoryWarning:(UIApplication*)application
+{
+  // Write out the configuration
+  Config::Save();
+  SConfig::GetInstance().SaveSettings();
+  
+  // Create a "background" save state just in case
+  std::string state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
+  File::Delete(state_path);
+  
+  if (Core::IsRunning())
+  {
+    State::SaveAs(state_path, true);
+  }
+  
+  // Send out an alert if we are in-game
+  CriticalAlert("iOS has detected that the available system RAM is running low.\n\nDolphiniOS may be forcibly quit at any time to free up RAM, since it is using a significant amount of RAM for emulation.\n\nAn automatic save state has been made which can be restored when the app is reopened, but you should still save your progress in-game immediately.");
 }
 
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options

@@ -157,6 +157,7 @@
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
+		B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9E983E524592A6800119883 /* GoogleService-Info.plist */; };
 		B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9EEFBF823DA261600EAF92A /* AboutViewController.m */; };
 		B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA223AF582400593A20 /* ControllerDetailsViewController.mm */; };
 		B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9EFBFA523AF7BB400593A20 /* ControllerDevicesViewController.mm */; };
@@ -516,6 +517,7 @@
 		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9E1ACB623B355050072EDF0 /* postrm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postrm.sh; path = BuildResources/DebFiles/postrm.sh; sourceTree = "<group>"; };
 		B9E1ACB723B355860072EDF0 /* BuildDebs.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDebs.sh; path = BuildResources/BuildScripts/BuildDebs.sh; sourceTree = "<group>"; };
+		B9E983E524592A6800119883 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B9EEFBF723DA261600EAF92A /* AboutViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AboutViewController.h; sourceTree = "<group>"; };
 		B9EEFBF823DA261600EAF92A /* AboutViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AboutViewController.m; sourceTree = "<group>"; };
 		B9EFBFA123AF582400593A20 /* ControllerDetailsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerDetailsViewController.h; sourceTree = "<group>"; };
@@ -731,6 +733,7 @@
 				B95A093D2384E82D00DBBB01 /* DolphinImages.xcassets */,
 				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
 				B945A3842362909500B21680 /* Info.plist */,
+				B9E983E524592A6800119883 /* GoogleService-Info.plist */,
 				B945A3852362909500B21680 /* main.m */,
 			);
 			path = DolphiniOS;
@@ -1269,6 +1272,7 @@
 				B945A36E2362908400B21680 /* Resources */,
 				B91BF385236BFA9A00199BA7 /* CopyFiles */,
 				B9E1ACB423B34F540072EDF0 /* Clean Bundle */,
+				B9E983E72459475900119883 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -1356,6 +1360,7 @@
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
+				B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
@@ -1479,6 +1484,25 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "$PROJECT_DIR/DolphiniOS/BuildResources/BuildScripts/CleanBundle.sh\n";
+		};
+		B9E983E72459475900119883 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TARGET_NAME}",
+				"${BUILT_PRODUCTS_DIR}/${INFOPLIST_PATH}",
+			);
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -1909,7 +1933,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
@@ -2061,7 +2085,7 @@
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;

@@ -4,14 +4,13 @@
 
 #import "ConfigGeneralViewController.h"
 
-#import <AppCenterAnalytics/MSAnalytics.h>
-
-#import <AppCenterCrashes/MSCrashes.h>
-
 #import "Core/Analytics.h"
 #import "Core/Config/MainSettings.h"
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
+
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
+#import <FirebaseCrashlytics/FirebaseCrashlytics.h>
 
 @interface ConfigGeneralViewController ()
 
@@ -37,7 +36,7 @@
   [self.m_mismatched_region_switch setOn:SConfig::GetInstance().bOverrideRegionSettings];
   [self.m_change_discs_switch setOn:Config::Get(Config::MAIN_AUTO_DISC_CHANGE)];
   [self.m_statistics_switch setOn:SConfig::GetInstance().m_analytics_enabled];
-  [self.m_crash_report_switch setOn:[MSCrashes isEnabled]];
+  [self.m_crash_report_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
   
   bool running = Core::GetState() != Core::State::Uninitialized;
   [self.m_dual_core_switch setEnabled:!running];
@@ -78,12 +77,13 @@
 {
   SConfig::GetInstance().m_analytics_enabled = [self.m_statistics_switch isOn];
   DolphinAnalytics::Instance().ReloadConfig();
-  [MSAnalytics setEnabled:[self.m_statistics_switch isOn]];
+  [FIRAnalytics setAnalyticsCollectionEnabled:[self.m_statistics_switch isOn]];
 }
 
 - (IBAction)CrashReportingChanged:(id)sender
 {
-  [MSCrashes setEnabled:[self.m_crash_report_switch isOn]];
+  [[NSUserDefaults standardUserDefaults] setBool:[self.m_crash_report_switch isOn] forKey:@"crash_reporting_enabled"];
+  [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:[self.m_crash_report_switch isOn]];
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
@@ -92,12 +92,16 @@
   {
     DolphinAnalytics::Instance().GenerateNewIdentity();
     DolphinAnalytics::Instance().ReloadConfig();
+    [FIRAnalytics resetAnalyticsData];
+    [[NSUserDefaults standardUserDefaults] setObject:[[NSArray alloc] init] forKey:@"unique_games"];
     
     UIAlertController* alert_controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Identity Generation") message:DOLocalizedString(@"New identity generated.") preferredStyle:UIAlertControllerStyleAlert];
     [alert_controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
     
     [self presentViewController:alert_controller animated:true completion:nil];
   }
+  
+  [self.tableView deselectRowAtIndexPath:indexPath animated:true];
 }
 
 @end
