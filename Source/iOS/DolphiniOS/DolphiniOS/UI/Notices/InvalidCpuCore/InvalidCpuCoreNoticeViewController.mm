@@ -4,6 +4,8 @@
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
+#import <FirebaseAnalytics/FirebaseAnalytics.h>
+
 @interface InvalidCpuCoreNoticeViewController ()
 
 @end
@@ -16,6 +18,7 @@
 }
 - (IBAction)OKPressed:(id)sender
 {
+  [FIRAnalytics logEventWithName:@"cpucore_reset" parameters:@{}];
   [self.navigationController popViewControllerAnimated:true];
 }
 
