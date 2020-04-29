@@ -755,6 +755,7 @@ endif()
 if(USE_DISCORD_PRESENCE)
   message(STATUS "Using static DiscordRPC from Externals")
   add_subdirectory(Externals/discord-rpc)
+  include_directories(Externals/discord-rpc/include)
 endif()
 
 find_package(Libsystemd)
@@ -764,6 +765,8 @@ if(SYSTEMD_FOUND)
 else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
+
+include_directories(Externals/picojson)
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header

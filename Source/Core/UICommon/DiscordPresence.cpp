@@ -16,7 +16,7 @@
 #include <set>
 #include <string>
 
-#include <discord-rpc/include/discord_rpc.h>
+#include <discord_rpc.h>
 #include <fmt/format.h>
 
 #include "Common/Hash.h"

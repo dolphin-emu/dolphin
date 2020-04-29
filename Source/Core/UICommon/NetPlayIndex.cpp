@@ -8,7 +8,7 @@
 #include <numeric>
 #include <string>
 
-#include <picojson/picojson.h>
+#include <picojson.h>
 
 #include "Common/Common.h"
 #include "Common/HttpRequest.h"

@@ -4,7 +4,7 @@
 
 #include "UICommon/ResourcePack/Manifest.h"
 
-#include <picojson/picojson.h>
+#include <picojson.h>
 
 namespace ResourcePack
 {
