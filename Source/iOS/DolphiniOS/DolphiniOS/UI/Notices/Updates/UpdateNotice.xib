@@ -11,8 +11,11 @@
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="UpdateNoticeViewController">
             <connections>
                 <outlet property="m_changes_label" destination="cRL-yG-mYd" id="iG9-ra-grN"/>
+                <outlet property="m_not_now_button" destination="gmF-1y-bUR" id="qnr-gl-T62"/>
+                <outlet property="m_ok_button" destination="Qkk-bg-6CS" id="EJv-mg-KuY"/>
                 <outlet property="m_save_states_warning_label" destination="luA-1B-bZp" id="e9X-Sl-kCq"/>
                 <outlet property="m_see_changes_button" destination="Ddp-vN-h8U" id="6Zy-C9-ku0"/>
+                <outlet property="m_update_now_button" destination="jPS-qP-47c" id="SyK-NG-rgV"/>
                 <outlet property="m_version_label" destination="G2L-KW-hUh" id="yS7-Ir-Mr1"/>
                 <outlet property="view" destination="r55-Fn-aBI" id="r9r-Zd-Dn7"/>
             </connections>
@@ -85,13 +88,13 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                     <viewLayoutGuide key="frameLayoutGuide" id="BUq-vD-SSA"/>
                 </scrollView>
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="o40-Qv-36o">
-                    <rect key="frame" x="0.0" y="583" width="375" height="195"/>
+                    <rect key="frame" x="0.0" y="528" width="375" height="250"/>
                     <subviews>
                         <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fA2-eu-kzr">
-                            <rect key="frame" x="0.0" y="0.0" width="375" height="195"/>
+                            <rect key="frame" x="0.0" y="0.0" width="375" height="250"/>
                             <subviews>
                                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="fillEqually" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="np2-xh-cqO">
-                                    <rect key="frame" x="20" y="20" width="335" height="155"/>
+                                    <rect key="frame" x="20" y="20" width="335" height="210"/>
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPS-qP-47c">
                                             <rect key="frame" x="0.0" y="0.0" width="335" height="45"/>
@@ -124,6 +127,25 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                                             <state key="normal" title="Not Now"/>
                                             <connections>
                                                 <action selector="NotNowTouched:" destination="-1" eventType="touchUpInside" id="0DW-FT-gYw"/>
+                                            </connections>
+                                        </button>
+                                        <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Qkk-bg-6CS">
+                                            <rect key="frame" x="0.0" y="165" width="335" height="45"/>
+                                            <color key="backgroundColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            <constraints>
+                                                <constraint firstAttribute="height" constant="45" id="Flt-p5-KhZ"/>
+                                            </constraints>
+                                            <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                            <state key="normal" title="OK">
+                                                <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                            </state>
+                                            <userDefinedRuntimeAttributes>
+                                                <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                                    <integer key="value" value="10"/>
+                                                </userDefinedRuntimeAttribute>
+                                            </userDefinedRuntimeAttributes>
+                                            <connections>
+                                                <action selector="NotNowTouched:" destination="-1" eventType="touchUpInside" id="Sfu-nz-6Ku"/>
                                             </connections>
                                         </button>
                                     </subviews>
