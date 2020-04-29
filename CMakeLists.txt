@@ -654,7 +654,7 @@ endif()
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
 add_subdirectory(Externals/soundtouch)
-include_directories(Externals)
+include_directories(Externals/soundtouch)
 
 find_package(Cubeb)
 if(CUBEB_FOUND)
