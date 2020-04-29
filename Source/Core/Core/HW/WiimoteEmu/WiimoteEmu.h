@@ -294,6 +294,9 @@ private:
 
   ControllerEmu::SettingValue<double> m_primehack_camera_sensitivity;
   ControllerEmu::SettingValue<double> m_primehack_cursor_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_horizontal_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_vertical_sensitivity;
+
   ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
@@ -302,13 +305,13 @@ private:
   static constexpr int CAL_STICK_BITS = 8;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x61;
-  static constexpr int RIGHT_STICK_BITS = 5;
+  static constexpr int STICK_BITS = 5;
 
   static constexpr u8 CAL_STICK_CENTER = 0x80;
   static constexpr u8 CAL_STICK_RANGE = 0x7f;
 
-  static constexpr u8 RIGHT_STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
-  static constexpr u8 RIGHT_STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - RIGHT_STICK_BITS);
+  static constexpr u8 STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - STICK_BITS);
+  static constexpr u8 STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - STICK_BITS);
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;

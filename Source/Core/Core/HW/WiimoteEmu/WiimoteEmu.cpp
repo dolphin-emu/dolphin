@@ -335,9 +335,12 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                                  {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
                                  1, 170);
 
-  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / RIGHT_STICK_RADIUS;
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
   groups.emplace_back(m_primehack_stick =
-    new ControllerEmu::OctagonAnalogStick(_trans("Controller Stick"), gate_radius));
+    new ControllerEmu::OctagonAnalogStick(_trans("Camera Control"), gate_radius));
+
+  m_primehack_stick->AddSetting(&m_primehack_horizontal_sensitivity, {"Horizontal Sensitivity", nullptr, nullptr, _trans("Horizontal Sensitivity")}, 45, 1, 100);
+  m_primehack_stick->AddSetting(&m_primehack_vertical_sensitivity, {"Vertical Sensitivity", nullptr, nullptr, _trans("Vertical Sensitivity")}, 35, 1, 100);
 
   groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
   m_primehack_misc->controls.emplace_back(
@@ -779,12 +782,12 @@ bool Wiimote::CheckSpringBallCtrl()
 
 double Wiimote::GetPrimeStickX()
 {
-  return m_primehack_stick->GetState().x * 15;
+  return m_primehack_stick->GetState().x * m_primehack_horizontal_sensitivity.GetValue();
 }
 
 double Wiimote::GetPrimeStickY()
 {
-  return m_primehack_stick->GetState().y * -15;
+  return m_primehack_stick->GetState().y * -m_primehack_vertical_sensitivity.GetValue();
 }
 
 bool Wiimote::PrimeControllerMode()
