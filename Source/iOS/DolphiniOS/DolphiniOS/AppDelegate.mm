@@ -330,6 +330,25 @@
   });
 }
 
+- (void)applicationDidReceiveMemoryWarning:(UIApplication*)application
+{
+  // Write out the configuration
+  Config::Save();
+  SConfig::GetInstance().SaveSettings();
+  
+  // Create a "background" save state just in case
+  std::string state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
+  File::Delete(state_path);
+  
+  if (Core::IsRunning())
+  {
+    State::SaveAs(state_path, true);
+  }
+  
+  // Send out an alert if we are in-game
+  CriticalAlert("iOS has detected that the available system RAM is running low.\n\nDolphiniOS may be forcibly quit at any time to free up RAM, since it is using a significant amount of RAM for emulation.\n\nAn automatic save state has been made which can be restored when the app is reopened, but you should still save your progress in-game immediately.");
+}
+
 - (BOOL)application:(UIApplication*)app openURL:(NSURL*)url options:(NSDictionary<UIApplicationOpenURLOptionsKey,id>*)options
 {
   [MainiOS importFiles:[NSSet setWithObject:url]];
