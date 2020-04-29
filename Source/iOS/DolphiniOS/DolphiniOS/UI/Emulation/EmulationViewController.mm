@@ -270,11 +270,11 @@
 
 - (IBAction)StopButtonPressed:(id)sender
 {
-  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Stop Emulation" message:@"Do you really want to stop the emulation? All unsaved data will be lost." preferredStyle:UIAlertControllerStyleAlert];
+  UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Do you want to stop the current emulation?") preferredStyle:UIAlertControllerStyleAlert];
   
-  [alert addAction:[UIAlertAction actionWithTitle:@"No" style:UIAlertActionStyleDefault handler:nil]];
+  [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
   
-  [alert addAction:[UIAlertAction actionWithTitle:@"Yes" style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
+  [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction* action) {
     [MainiOS stopEmulation];
     
     // Delete the automatic save state
