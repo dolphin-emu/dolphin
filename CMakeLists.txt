@@ -649,12 +649,13 @@ add_subdirectory(Externals/FreeSurround)
 if (APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
   add_subdirectory(Externals/ed25519)
+  include_directories(Externals/ed25519)
 endif()
 
 # Using static soundtouch from Externals
 # Unable to use system soundtouch library: We require shorts, not floats.
 add_subdirectory(Externals/soundtouch)
-include_directories(Externals)
+include_directories(Externals/soundtouch)
 
 find_package(Cubeb)
 if(CUBEB_FOUND)
@@ -755,6 +756,7 @@ endif()
 if(USE_DISCORD_PRESENCE)
   message(STATUS "Using static DiscordRPC from Externals")
   add_subdirectory(Externals/discord-rpc)
+  include_directories(Externals/discord-rpc/include)
 endif()
 
 find_package(Libsystemd)
@@ -764,6 +766,12 @@ if(SYSTEMD_FOUND)
 else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
+
+if (WIN32)
+  include_directories(Externals/OpenAL/include)
+endif()
+
+include_directories(Externals/picojson)
 
 ########################################
 # Pre-build events: Define configuration variables and write SCM info header

@@ -297,7 +297,7 @@
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)curl\curl.vcxproj">
       <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
     </ProjectReference>
     <ProjectReference Include="SCMRevGen.vcxproj">

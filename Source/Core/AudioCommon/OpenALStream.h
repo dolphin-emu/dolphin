@@ -13,9 +13,9 @@
 #include "Core/HW/SystemTimers.h"
 
 #ifdef _WIN32
-#include <OpenAL/include/al.h>
-#include <OpenAL/include/alc.h>
-#include <OpenAL/include/alext.h>
+#include <al.h>
+#include <alc.h>
+#include <alext.h>
 
 // OpenAL requires a minimum of two buffers, three or more recommended
 #define OAL_BUFFERS 3

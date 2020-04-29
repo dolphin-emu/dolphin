@@ -4,7 +4,7 @@
 
 #include "UICommon/AutoUpdate.h"
 
-#include <picojson/picojson.h>
+#include <picojson.h>
 #include <string>
 
 #include "Common/CommonPaths.h"
