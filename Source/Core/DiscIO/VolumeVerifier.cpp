@@ -18,8 +18,8 @@
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
-#include <minizip/unzip.h>
 #include <pugixml.hpp>
+#include <unzip.h>
 #include <zlib.h>
 
 #include "Common/Align.h"
