@@ -92,12 +92,15 @@
   {
     DolphinAnalytics::Instance().GenerateNewIdentity();
     DolphinAnalytics::Instance().ReloadConfig();
+    [FIRAnalytics resetAnalyticsData];
     
     UIAlertController* alert_controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Identity Generation") message:DOLocalizedString(@"New identity generated.") preferredStyle:UIAlertControllerStyleAlert];
     [alert_controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
     
     [self presentViewController:alert_controller animated:true completion:nil];
   }
+  
+  [self.tableView deselectRowAtIndexPath:indexPath animated:true];
 }
 
 @end
