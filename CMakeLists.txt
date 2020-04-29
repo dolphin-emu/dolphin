@@ -649,6 +649,7 @@ add_subdirectory(Externals/FreeSurround)
 if (APPLE OR WIN32)
   message(STATUS "Using ed25519 from Externals")
   add_subdirectory(Externals/ed25519)
+  include_directories(Externals/ed25519)
 endif()
 
 # Using static soundtouch from Externals
