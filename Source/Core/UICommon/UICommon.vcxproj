@@ -50,7 +50,7 @@
     <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\picojson\picojson.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)picojson\picojson.vcxproj">
       <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
