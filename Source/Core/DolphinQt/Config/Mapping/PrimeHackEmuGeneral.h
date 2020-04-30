@@ -5,9 +5,11 @@
 #pragma once
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
 
-class QComboBox;
-class WiimoteEmuExtension;
+class QRadioButton;
+class QLabel;
+class PrimeHackMisc;
 
 class PrimeHackEmuGeneral final : public MappingWidget
 {
@@ -15,7 +17,10 @@ public:
   explicit PrimeHackEmuGeneral(MappingWindow* window);
 
   InputConfig* GetConfig() override;
+
   QGroupBox* controller_box;
+  QRadioButton* m_radio_button;
+  QRadioButton* m_radio_controller;
 
 private:
   void LoadSettings() override;
@@ -23,8 +28,8 @@ private:
 
   void CreateMainLayout();
   void Connect(MappingWindow* window);
-  void OnAttachmentChanged(int index);
+  void OnDeviceSelected();
+  void OnDeviceChanged(bool toggled);
   void ConfigChanged();
-
-  WiimoteEmuExtension* m_extension_widget;
+  void Update();
 };

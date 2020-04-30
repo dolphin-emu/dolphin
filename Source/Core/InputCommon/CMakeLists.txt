@@ -16,6 +16,8 @@ add_library(inputcommon
   ControllerEmu/Control/Input.h
   ControllerEmu/Control/Output.cpp
   ControllerEmu/Control/Output.h
+	ControllerEmu/ControlGroup/PrimeHackMisc.cpp
+  ControllerEmu/ControlGroup/PrimeHackMisc.h
   ControllerEmu/ControlGroup/AnalogStick.cpp
   ControllerEmu/ControlGroup/AnalogStick.h
   ControllerEmu/ControlGroup/Attachments.cpp

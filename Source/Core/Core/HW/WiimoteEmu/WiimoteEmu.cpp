@@ -41,6 +41,7 @@
 #include "InputCommon/ControllerEmu/Control/Input.h"
 #include "InputCommon/ControllerEmu/Control/Output.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
@@ -315,9 +316,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
 
   m_primehack_camera->AddSetting(
-    &m_primehack_controller, {"Controller Mode", nullptr, nullptr, _trans("Controller Mode")}, false);
-
-  m_primehack_camera->AddSetting(
     &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
 
   m_primehack_camera->AddSetting(
@@ -342,7 +340,10 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   m_primehack_stick->AddSetting(&m_primehack_horizontal_sensitivity, {"Horizontal Sensitivity", nullptr, nullptr, _trans("Horizontal Sensitivity")}, 45, 1, 100);
   m_primehack_stick->AddSetting(&m_primehack_vertical_sensitivity, {"Vertical Sensitivity", nullptr, nullptr, _trans("Vertical Sensitivity")}, 35, 1, 100);
 
-  groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+  groups.emplace_back(m_primehack_misc = new ControllerEmu::PrimeHackMisc(_trans("PrimeHack")));
+  //m_primehack_misc->AddDeviceOption("Mouse");
+  //m_primehack_misc->AddDeviceOption("Controller");
+
   m_primehack_misc->controls.emplace_back(
       new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Spring Ball", "Spring Ball"));
 
@@ -792,7 +793,7 @@ double Wiimote::GetPrimeStickY()
 
 bool Wiimote::PrimeControllerMode()
 {
-  return m_primehack_controller.GetValue();
+  return m_primehack_misc->GetSelectedDevice();
 }
 
 std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
@@ -809,92 +810,79 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-// Button defaults
-#if defined HAVE_X11 && HAVE_X11
-  // A
-  m_buttons->SetControlExpression(0, "Click 1");
-  // B
-  m_buttons->SetControlExpression(1, "Click 3");
-#else
-  // Fire
-  m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
-  // Jump
-  m_buttons->SetControlExpression(1, "SPACE");
-#endif
-  // Map screen
-  m_buttons->SetControlExpression(2, "TAB");
-  // Pause menu
-  m_buttons->SetControlExpression(3, "ESCAPE");
-  // Beam menu
-  //m_buttons->SetControlExpression(4, "Q");
-  // Visor menu
-  m_buttons->SetControlExpression(5, "R");
+  if (!m_primehack_controller.GetValue())
+  {
+    // Fire
+    m_buttons->SetControlExpression(0, "`Click 0` | RETURN");
+    // Jump
+    m_buttons->SetControlExpression(1, "SPACE");
 
-  // Shake (Only used in Prime 3, may need revision)
-  m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
-  // Springball
-  m_shake->SetControlExpression(2, "LMENU");
+    // Map screen
+    m_buttons->SetControlExpression(2, "TAB");
+    // Pause menu
+    m_buttons->SetControlExpression(3, "ESCAPE");
+    // Beam menu
+    //m_buttons->SetControlExpression(4, "Q");
+    // Visor menu
+    m_buttons->SetControlExpression(5, "R");
 
-// DPad
-#ifdef _WIN32
-  // Missiles
-  m_dpad->SetControlExpression(1, "F");
+    // Shake (Only used in Prime 3, may need revision)
+    m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
+    // Springball
+    m_shake->SetControlExpression(2, "LMENU");
 
-#elif __APPLE__
-  m_dpad->SetControlExpression(0, "Up Arrow");     // Up
-  m_dpad->SetControlExpression(1, "Down Arrow");   // Down
-  m_dpad->SetControlExpression(2, "Left Arrow");   // Left
-  m_dpad->SetControlExpression(3, "Right Arrow");  // Right
-#else
-  m_dpad->SetControlExpression(0, "Up");     // Up
-  m_dpad->SetControlExpression(1, "Down");   // Down
-  m_dpad->SetControlExpression(2, "Left");   // Left
-  m_dpad->SetControlExpression(3, "Right");  // Right
-#endif
+    // DPad
+    // Missiles
+    m_dpad->SetControlExpression(1, "F");
 
-  // Motion Source
-  m_imu_accelerometer->SetControlExpression(0, "Accel Up");
-  m_imu_accelerometer->SetControlExpression(1, "Accel Down");
-  m_imu_accelerometer->SetControlExpression(2, "Accel Left");
-  m_imu_accelerometer->SetControlExpression(3, "Accel Right");
-  m_imu_accelerometer->SetControlExpression(4, "Accel Forward");
-  m_imu_accelerometer->SetControlExpression(5, "Accel Backward");
-  m_imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
-  m_imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
-  m_imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
-  m_imu_gyroscope->SetControlExpression(3, "Gyro Roll Right");
-  m_imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
-  m_imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
+    // Motion Source
+    m_imu_accelerometer->SetControlExpression(0, "Accel Up");
+    m_imu_accelerometer->SetControlExpression(1, "Accel Down");
+    m_imu_accelerometer->SetControlExpression(2, "Accel Left");
+    m_imu_accelerometer->SetControlExpression(3, "Accel Right");
+    m_imu_accelerometer->SetControlExpression(4, "Accel Forward");
+    m_imu_accelerometer->SetControlExpression(5, "Accel Backward");
+    m_imu_gyroscope->SetControlExpression(0, "Gyro Pitch Up");
+    m_imu_gyroscope->SetControlExpression(1, "Gyro Pitch Down");
+    m_imu_gyroscope->SetControlExpression(2, "Gyro Roll Left");
+    m_imu_gyroscope->SetControlExpression(3, "Gyro Roll Right");
+    m_imu_gyroscope->SetControlExpression(4, "Gyro Yaw Left");
+    m_imu_gyroscope->SetControlExpression(5, "Gyro Yaw Right");
 
-  // Enable Nunchuk:
-  // Motion puzzle controls
-  m_tilt->SetControlExpression(0, "LSHIFT & W");   // Push
-  m_tilt->SetControlExpression(1, "LSHIFT & S");   // Pull
-  m_tilt->SetControlExpression(2, "LSHIFT & A");   // Rotate left
-  m_tilt->SetControlExpression(3, "LSHIFT & D");   // Rotate right
-  m_swing->SetControlExpression(4, "LSHIFT & W");  // Thrust forward
-  m_swing->SetControlExpression(5, "LSHIFT & S");  // Pull back
-  // Enable Nunchuk
-  constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
-  m_attachments->SetSelectedAttachment(DEFAULT_EXT);
-  m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
-  // Beams
-  m_primehack_beams->SetControlExpression(0, "`1` & !E");
-  m_primehack_beams->SetControlExpression(1, "`2` & !E");
-  m_primehack_beams->SetControlExpression(2, "`3` & !E");
-  m_primehack_beams->SetControlExpression(3, "`4` & !E");
-  m_primehack_beams->SetControlExpression(4, "!LSHIFT & Axis Z+"); // Next beam
-  m_primehack_beams->SetControlExpression(5, "!LSHIFT & Axis Z+"); // Previous beam
+    // Enable Nunchuk:
+    // Motion puzzle controls
+    m_tilt->SetControlExpression(0, "LSHIFT & W");   // Push
+    m_tilt->SetControlExpression(1, "LSHIFT & S");   // Pull
+    m_tilt->SetControlExpression(2, "LSHIFT & A");   // Rotate left
+    m_tilt->SetControlExpression(3, "LSHIFT & D");   // Rotate right
+    m_swing->SetControlExpression(4, "LSHIFT & W");  // Thrust forward
+    m_swing->SetControlExpression(5, "LSHIFT & S");  // Pull back
 
-  // Visors (Combination keys strongly recommended)
-  m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
-  m_primehack_visors->SetControlExpression(1, "E & `1`");
-  m_primehack_visors->SetControlExpression(2, "E & `2`");
-  m_primehack_visors->SetControlExpression(3, "E & `3`");
-  m_primehack_visors->SetControlExpression(4, "LSHIFT & Axis Z+"); // Next visor
-  m_primehack_visors->SetControlExpression(5, "LSHIFT & Axis Z+"); // Previous visor
-  // Misc. Defaults
-  m_primehack_misc->SetControlExpression(0, "LMENU"); // Spring Ball
+                                                     // Enable Nunchuk
+    constexpr ExtensionNumber DEFAULT_EXT = ExtensionNumber::NUNCHUK;
+    m_attachments->SetSelectedAttachment(DEFAULT_EXT);
+    m_attachments->GetAttachmentList()[DEFAULT_EXT]->LoadDefaults(ciface);
+    // Beams
+    m_primehack_beams->SetControlExpression(0, "`1` & !E");
+    m_primehack_beams->SetControlExpression(1, "`2` & !E");
+    m_primehack_beams->SetControlExpression(2, "`3` & !E");
+    m_primehack_beams->SetControlExpression(3, "`4` & !E");
+    m_primehack_beams->SetControlExpression(4, "!LSHIFT & Axis Z+"); // Next beam
+    m_primehack_beams->SetControlExpression(5, "!LSHIFT & Axis Z+"); // Previous beam
+
+                                                                     // Visors (Combination keys strongly recommended)
+    m_primehack_visors->SetControlExpression(0, "E & (!`1` & !`2` & !`3`)");
+    m_primehack_visors->SetControlExpression(1, "E & `1`");
+    m_primehack_visors->SetControlExpression(2, "E & `2`");
+    m_primehack_visors->SetControlExpression(3, "E & `3`");
+    m_primehack_visors->SetControlExpression(4, "LSHIFT & Axis Z+"); // Next visor
+    m_primehack_visors->SetControlExpression(5, "LSHIFT & Axis Z+"); // Previous visor
+                                                                     // Misc. Defaults
+    m_primehack_misc->SetControlExpression(0, "LMENU"); // Spring Ball
+  } else
+  {
+    // Controller Defaults
+  }
 }
 
 Extension* Wiimote::GetNoneExtension() const

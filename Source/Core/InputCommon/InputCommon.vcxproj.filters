@@ -110,9 +110,6 @@
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp">
       <Filter>ControllerInterface\Win32</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp">
-      <Filter>ControllerInterface\Wiimote</Filter>
-    </ClCompile>
     <ClCompile Include="ControlReference\ExpressionParser.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
@@ -140,6 +137,10 @@
     </ClCompile>
     <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GenericMouse.cpp" />
+    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackMisc.cpp">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -223,9 +224,6 @@
     <ClInclude Include="ControllerInterface\Win32\Win32.h">
       <Filter>ControllerInterface\Win32</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h">
-      <Filter>ControllerInterface\Wiimote</Filter>
-    </ClInclude>
     <ClInclude Include="ControlReference\ExpressionParser.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
@@ -244,6 +242,10 @@
     <ClInclude Include="ControlReference\FunctionExpression.h" />
     <ClInclude Include="DInputMouseAbsolute.h" />
     <ClInclude Include="GenericMouse.h" />
+    <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackMisc.h">
+      <Filter>ControllerEmu\ControlGroup</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -37,7 +37,7 @@ void set_visor_owned(int index, bool owned);
 void set_cursor_pos(float x, float y);
 
 void disable_culling(u32 address);
-void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address);
+void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value);
 
 class MenuNTSC : public PrimeMod
 {

@@ -23,6 +23,7 @@ class PointerWrap;
 namespace ControllerEmu
 {
 class Attachments;
+class PrimeHackMisc;
 class Buttons;
 class ControlGroup;
 class Cursor;
@@ -282,8 +283,8 @@ private:
   ControllerEmu::ControlGroup* m_primehack_beams;
   ControllerEmu::ControlGroup* m_primehack_visors;
   ControllerEmu::ControlGroup* m_primehack_motionhacks;
-  ControllerEmu::ControlGroup* m_primehack_misc;
   ControllerEmu::ControlGroup* m_primehack_camera;
+  ControllerEmu::PrimeHackMisc* m_primehack_misc;
   ControllerEmu::AnalogStick* m_primehack_stick;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
@@ -302,16 +303,10 @@ private:
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
   ControllerEmu::SettingValue<bool> m_primehack_controller;
 
-  static constexpr int CAL_STICK_BITS = 8;
+  static constexpr u8 STICK_GATE_RADIUS = 0x60;
 
-  static constexpr u8 STICK_GATE_RADIUS = 0x61;
-  static constexpr int STICK_BITS = 5;
-
-  static constexpr u8 CAL_STICK_CENTER = 0x80;
-  static constexpr u8 CAL_STICK_RANGE = 0x7f;
-
-  static constexpr u8 STICK_CENTER = CAL_STICK_CENTER >> (CAL_STICK_BITS - STICK_BITS);
-  static constexpr u8 STICK_RADIUS = CAL_STICK_RANGE >> (CAL_STICK_BITS - STICK_BITS);
+  static constexpr u8 STICK_CENTER = 0x80;
+  static constexpr u8 STICK_RADIUS = 0x7F;
 
   SpeakerLogic m_speaker_logic;
   MotionPlus m_motion_plus;

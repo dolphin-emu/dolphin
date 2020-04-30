@@ -76,6 +76,8 @@ namespace prime
         if (!pressing_button)
         {
           pressing_button = true;
+          current_visor = std::get<0>(visors[0]);
+
           return visors[0];
         }
         else {
@@ -89,6 +91,8 @@ namespace prime
       if (!pressing_button)
       {
         pressing_button = true;
+        current_visor = std::get<0>(visors[1]);
+
         return visors[1];
       }
     }
@@ -97,6 +101,8 @@ namespace prime
       if (!pressing_button)
       {
         pressing_button = true;
+        current_visor = std::get<0>(visors[2]);
+
         return visors[2];
       }
     }
@@ -105,6 +111,8 @@ namespace prime
       if (!pressing_button)
       {
         pressing_button = true;
+        current_visor = std::get<0>(visors[3]);
+
         return visors[3];
       }
     }
@@ -142,11 +150,11 @@ namespace prime
     static bool pressing_button = false;
     if (CheckBeamCtl(0))
     {
-      if (!pressing_button)
-      {
-        pressing_button = true;
-        return current_beam = beams[0];
-      }
+        if (!pressing_button)
+        {
+          pressing_button = true;
+          return current_beam = beams[0];
+        }
     }
     else if (CheckBeamCtl(1))
     {
@@ -206,11 +214,12 @@ namespace prime
     return (address >= 0x80000000) && (address < 0x81800000);
   }
 
-  void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address)
+  void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value)
   {
     float left = 0.25f;
     float forward = 0.30f;
     float up = -0.35f;
+    bool apply_znear = false;
 
     if (GetToggleArmAdjust())
     {
@@ -219,19 +228,25 @@ namespace prime
         {
           left = 0.22f;
           forward = -0.02f;
+
+          apply_znear = true;
         }
         else if (fov >= 75)
         {
           left = -0.00020000000000000017f * fov + 0.265f;
           forward = -0.005599999999999999f * fov + 0.72f;
+
+          apply_znear = true;
         }
       }
       else {
         std::tie<float, float, float>(left, forward, up) = GetArmXYZ();
+        apply_znear = true;
       }
-
-      PowerPC::HostWrite_U32(0x3d000000, znear_address);
     }
+
+    if (apply_znear)
+      PowerPC::HostWrite_U32(znear_value, znear_address);
 
     PowerPC::HostWrite_F32(left, arm_address);
     PowerPC::HostWrite_F32(forward, arm_address + 0x4);

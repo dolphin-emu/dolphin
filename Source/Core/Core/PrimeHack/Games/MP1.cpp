@@ -84,7 +84,7 @@ namespace prime
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov1());
       PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), global_fov2());
 
-      adjust_viewmodel(fov, gunpos_address(), camera_base + 0x168);
+      adjust_viewmodel(fov, gunpos_address(), camera_base + 0x168, 0x3d200000);
     }
 
     if (GetCulling() || GetFov() > 101.f)
@@ -112,6 +112,9 @@ namespace prime
     code_changes.emplace_back(0x8017661c, 0x60000000);
     code_changes.emplace_back(0x802fb5b4, 0xd23f009c);
     code_changes.emplace_back(0x8019fbcc, 0x60000000);
+
+    // Disable Beams/Visor Menu
+    code_changes.emplace_back(0x80075CD0, 0x48000044);
 
     beam_change_code(0x8018e544);
     springball_code(0x801476D0, &code_changes);
@@ -207,6 +210,9 @@ namespace prime
     code_changes.emplace_back(0x801768b4, 0x60000000);
     code_changes.emplace_back(0x802fb84c, 0xd23f009c);
     code_changes.emplace_back(0x8019fe64, 0x60000000);
+
+    // Disable Beams/Visor Menu
+    code_changes.emplace_back(0x80075D38, 0x48000044);
   }
 
   uint32_t MP1PAL::orbit_state_address() const

@@ -55,13 +55,12 @@ namespace prime
     PowerPC::HostWrite_U32(*reinterpret_cast<u32*>(&pitch), arm_cannon_model_matrix + 0x24);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&yaw_vel), base_address + 0x178);
 
+    u32 beam_base = PowerPC::HostRead_U32(base_address + 0x12ec);
     for (int i = 0; i < 4; i++) {
-      u32 beam_base = PowerPC::HostRead_U32(base_address + 0x12ec);
       set_beam_owned(i, PowerPC::HostRead_U32(beam_base + (prime_two_beams[i] * 0x0c) + 0x5c) ? true : false);
     }
 
     u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);
-
     for (int i = 0; i < 4; i++) {
       set_visor_owned(i , PowerPC::HostRead_U32(visor_base + (std::get<1>(prime_two_visors[i]) * 0x8) + 0x30) ? true : false);
     }
@@ -105,7 +104,7 @@ namespace prime
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base + 0x1e8);
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&fov), camera_base_tp + 0x1e8);
 
-    adjust_viewmodel(fov, PowerPC::HostRead_U32(PowerPC::HostRead_U32(tweakgun_address())) + 0x4c, camera_base + 0x1C4);
+    adjust_viewmodel(fov, PowerPC::HostRead_U32(PowerPC::HostRead_U32(tweakgun_address())) + 0x4c, camera_base + 0x1C4, 0x3d200000);
 
     if (GetCulling() || GetFov() > 101.f)
       disable_culling(culling_address());
@@ -128,6 +127,9 @@ namespace prime
     code_changes.emplace_back(0x803054a0, 0xd23f009c);
     code_changes.emplace_back(0x80169dbc, 0x60000000);
     code_changes.emplace_back(0x80143d00, 0x48000050);
+
+    // Remove Beams/Visors Menu
+    code_changes.emplace_back(0x8006FB58, 0x48000044);
 
     beam_change_code(0x8018cc88);
     springball_code(0x8010BD98, &code_changes);
@@ -186,6 +188,9 @@ namespace prime
     code_changes.emplace_back(0x80307d2c, 0xd23f009c);
     code_changes.emplace_back(0x8016b534, 0x60000000);
     code_changes.emplace_back(0x80145474, 0x48000050);
+
+    // Remove Beams/Visors Menu
+    code_changes.emplace_back(0x800710D0, 0x48000044);
 
     beam_change_code(0x8018e41c);
     springball_code(0x8010D440, &code_changes);

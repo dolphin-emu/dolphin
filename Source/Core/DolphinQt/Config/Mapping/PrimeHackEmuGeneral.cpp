@@ -8,61 +8,88 @@
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QRadioButton>
+#include <QLabel>
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
-#include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
-
-#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/InputConfig.h"
 
 #include "Core/PrimeHack/HackConfig.h"
+
+class PrimeHackMisc;
 
 PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window)
     : MappingWidget(window)
 {
   CreateMainLayout();
   Connect(window);
+  LoadSettings();
 }
 
 void PrimeHackEmuGeneral::CreateMainLayout()
 {
   auto* layout = new QGridLayout;
 
-  layout->addWidget(
-    CreateGroupBox(tr("Beams"),
-                     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Beams)),
-      0, 0, -1, 1);
+  auto* groupbox1 = new QVBoxLayout();
+  auto* groupbox2 = new QVBoxLayout();
 
-  layout->addWidget(
+  auto* misc_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc);
+  auto* misc = CreateGroupBox(tr("Miscellaneous"), misc_group);
+
+  auto* ce_misc = static_cast<ControllerEmu::PrimeHackMisc*>(misc_group);
+
+  const auto combo_hbox = new QHBoxLayout;
+  combo_hbox->setAlignment(Qt::AlignCenter);
+  combo_hbox->setSpacing(10);
+
+  combo_hbox->addWidget(new QLabel(tr("Mouse")));
+  combo_hbox->addWidget(m_radio_button = new QRadioButton());
+  combo_hbox->addSpacing(95);
+  combo_hbox->addWidget(new QLabel(tr("Controller")));
+  combo_hbox->addWidget(m_radio_controller = new QRadioButton());
+
+  misc->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  static_cast<QFormLayout*>(misc->layout())->insertRow(0, combo_hbox);
+  static_cast<QFormLayout*>(misc->layout())->setVerticalSpacing(20);
+
+  groupbox1->addWidget(misc, 0, Qt::AlignTop);
+
+  auto* beam_box = CreateGroupBox(tr("Beams"),
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Beams));
+
+  beam_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  groupbox1->addWidget(beam_box, 1, Qt::AlignTop);
+
+  auto* visor_box = 
     CreateGroupBox(tr("Visors"), Wiimote::GetWiimoteGroup(
-                                                     GetPort(), WiimoteEmu::WiimoteGroup::Visors)),
-      0, 1, -1, 1);
+      GetPort(), WiimoteEmu::WiimoteGroup::Visors));
+
+  visor_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+
+  groupbox1->addWidget(visor_box, 2, Qt::AlignTop);
+
+  layout->addLayout(groupbox1, 0, 0);
 
   auto* camera = 
     CreateGroupBox(tr("Camera"),
       Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Camera));
 
-  camera->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  groupbox2->addWidget(camera, 0, Qt::AlignTop);
 
-  layout->addWidget(camera,
-      0, 2, 1, 1);
-
-  auto* misc = CreateGroupBox(tr("Misc."), Wiimote::GetWiimoteGroup(
-    GetPort(), WiimoteEmu::WiimoteGroup::Misc));
-
-  misc->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  layout->addWidget(misc, 1, 2, 1, 1);
-
-  controller_box = CreateGroupBox(tr("Controller"), Wiimote::GetWiimoteGroup(
+  controller_box = CreateGroupBox(tr("Camera Control"), Wiimote::GetWiimoteGroup(
     GetPort(), WiimoteEmu::WiimoteGroup::ControlStick));
 
-  controller_box->setEnabled(Wiimote::PrimeUseController());
+  controller_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 
-  layout->addWidget(controller_box
-    , 2, 2, -1, 1);
+  controller_box->setEnabled(ce_misc->GetSelectedDevice() == 1);
+
+  groupbox2->addWidget(controller_box, 2, Qt::AlignTop);
+
+  layout->addLayout(groupbox2, 0, 1, Qt::AlignTop);
 
   setLayout(layout);
 }
@@ -70,29 +97,58 @@ void PrimeHackEmuGeneral::CreateMainLayout()
 void PrimeHackEmuGeneral::Connect(MappingWindow* window)
 {
   connect(window, &MappingWindow::ConfigChanged, this, &PrimeHackEmuGeneral::ConfigChanged);
+  connect(window, &MappingWindow::Update, this, &PrimeHackEmuGeneral::Update);
+  connect(m_radio_button, &QRadioButton::toggled, this,
+    &PrimeHackEmuGeneral::OnDeviceSelected);
+  connect(m_radio_controller, &QRadioButton::toggled, this,
+    &PrimeHackEmuGeneral::OnDeviceSelected);
 }
 
-void PrimeHackEmuGeneral::OnAttachmentChanged(int extension)
+void PrimeHackEmuGeneral::OnDeviceSelected()
 {
+  auto* ce_misc = static_cast<ControllerEmu::PrimeHackMisc*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+
+  ce_misc->SetSelectedDevice(m_radio_button->isChecked() ? 0 : 1);
+  controller_box->setEnabled(!m_radio_button->isChecked());
+
+  ConfigChanged();
   SaveSettings();
 }
 
+
 void PrimeHackEmuGeneral::ConfigChanged()
 {
-  controller_box->setEnabled(Wiimote::PrimeUseController());
+  Update();
+
   prime::UpdateHackSettings();
+}
+
+void PrimeHackEmuGeneral::Update()
+{
+  auto* misc = static_cast<ControllerEmu::PrimeHackMisc*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+
+  controller_box->setEnabled(misc->GetSelectedDevice() == 1);
 }
 
 void PrimeHackEmuGeneral::LoadSettings()
 {
   Wiimote::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
+
+  auto* misc = static_cast<ControllerEmu::PrimeHackMisc*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+
+  bool checked = misc->GetSelectedDevice() == 0;
+  m_radio_button->setChecked(checked);
+  m_radio_controller->setChecked(!checked);
+  controller_box->setEnabled(!checked);
 }
 
 void PrimeHackEmuGeneral::SaveSettings()
 {
   Wiimote::GetConfig()->SaveConfig();
-  controller_box->setEnabled(Wiimote::PrimeUseController());
-  
+
   prime::UpdateHackSettings();
 }
 
