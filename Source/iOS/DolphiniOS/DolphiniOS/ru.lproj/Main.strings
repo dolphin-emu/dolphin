@@ -8,11 +8,14 @@
 /* Class = "UILabel"; text = "Название"; ObjectID = "8hS-Bf-M3f"; */
 "8hS-Bf-M3f.text" = "Название";
 
-/* Class = "UIBarButtonItem"; title = "Swap"; ObjectID = "dlV-92-Nly"; */
-"dlV-92-Nly.title" = "Swap";
-
 /* Class = "UILabel"; text = "Game Name"; ObjectID = "vCO-Vx-zFU"; */
 "vCO-Vx-zFU.text" = "Game Name";
 
 /* Class = "UINavigationItem"; title = "Games"; ObjectID = "yCg-jX-vjT"; */
 "yCg-jX-vjT.title" = "Games";
+
+/* Class = "UIBarButtonItem"; title = "Grid"; ObjectID = "VHr-c4-Ce6"; */
+"VHr-c4-Ce6.title" = "Grid";
+
+/* Class = "UIBarButtonItem"; title = "List"; ObjectID = "wel-yO-LXb"; */
+"wel-yO-LXb.title" = "List";
