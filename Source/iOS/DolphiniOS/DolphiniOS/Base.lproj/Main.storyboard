@@ -142,7 +142,7 @@
                     <connections>
                         <outlet property="m_collection_view" destination="LCP-cl-qmP" id="yIf-IK-fmm"/>
                         <outlet property="m_table_view" destination="V00-6y-ggr" id="aM4-7R-QkF"/>
-                        <segue destination="DBS-kS-F5b" kind="show" id="Upk-Dq-M8D"/>
+                        <segue destination="DBS-kS-F5b" kind="show" identifier="to_emulation" id="Upk-Dq-M8D"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sk5-9A-bGR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
