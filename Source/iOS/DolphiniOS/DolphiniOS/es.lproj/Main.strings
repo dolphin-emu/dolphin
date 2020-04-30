@@ -13,3 +13,21 @@
 
 /* Class = "UILabel"; text = "Etiqueta"; ObjectID = "nfc-i9-ORm"; */
 "nfc-i9-ORm.text" = "Etiqueta";
+
+/* Class = "UILabel"; text = "Game Name"; ObjectID = "4m8-PV-Ynh"; */
+"4m8-PV-Ynh.text" = "Game Name";
+
+/* Class = "UINavigationItem"; title = "Games"; ObjectID = "Igx-xr-jY1"; */
+"Igx-xr-jY1.title" = "Games";
+
+/* Class = "UILabel"; text = "Etiqueta"; ObjectID = "8hS-Bf-M3f"; */
+"8hS-Bf-M3f.text" = "Etiqueta";
+
+/* Class = "UIBarButtonItem"; title = "Swap"; ObjectID = "dlV-92-Nly"; */
+"dlV-92-Nly.title" = "Swap";
+
+/* Class = "UILabel"; text = "Game Name"; ObjectID = "vCO-Vx-zFU"; */
+"vCO-Vx-zFU.text" = "Game Name";
+
+/* Class = "UINavigationItem"; title = "Games"; ObjectID = "yCg-jX-vjT"; */
+"yCg-jX-vjT.title" = "Games";
