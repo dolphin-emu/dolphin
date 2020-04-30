@@ -7,6 +7,8 @@
 #import "Common/CommonPaths.h"
 #import "Common/FileUtil.h"
 
+#import "EmulationViewController.h"
+
 #import "MainiOS.h"
 
 #import "SoftwareCollectionViewCell.h"
@@ -121,6 +123,15 @@
   return cell;
 }
 
+- (void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath
+{
+  self.m_selected_file = self.m_cache->Get(indexPath.row).get();
+  
+  [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+  
+  [self.m_collection_view deselectItemAtIndexPath:indexPath animated:true];
+}
+
 #pragma mark - Table View
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
@@ -170,6 +181,15 @@
   return cell;
 }
 
+- (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  self.m_selected_file = self.m_cache->Get(indexPath.row).get();
+  
+  [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+  
+  [self.m_table_view deselectRowAtIndexPath:indexPath animated:true];
+}
+
 #pragma mark - Swap button
 
 - (IBAction)SwapPressed:(id)sender
@@ -179,5 +199,20 @@
     [self.m_table_view setHidden:![self.m_table_view isHidden]];
   } completion:nil];
 }
+
+#pragma mark - Segues
+
+- (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
+{
+  if ([segue.identifier isEqualToString:@"to_emulation"])
+  {
+    // Set the GameFile
+    UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
+    EmulationViewController* viewController = (EmulationViewController*)([navigationController.viewControllers firstObject]);
+    viewController.m_game_file = const_cast<UICommon::GameFile*>(self.m_selected_file);
+  }
+}
+
+- (IBAction)unwindToSoftwareTable:(UIStoryboardSegue*)segue {}
 
 @end
