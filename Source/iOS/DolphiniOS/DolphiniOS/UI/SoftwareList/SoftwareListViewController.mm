@@ -126,9 +126,7 @@
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  SoftwareTableViewCell* cell =
-      (SoftwareTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"softwareCell"
-                                                              forIndexPath:indexPath];
+  SoftwareTableViewCell* cell = (SoftwareTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"softwareCell" forIndexPath:indexPath];
   
   NSString* cell_contents = @"";
   
