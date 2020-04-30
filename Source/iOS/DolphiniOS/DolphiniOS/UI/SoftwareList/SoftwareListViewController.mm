@@ -26,6 +26,8 @@
 {
   [super viewDidLoad];
   
+  self.m_navigation_item.rightBarButtonItems = @[ self.m_list_button ];
+  
   // Load the GameFileCache
   self.m_cache = new UICommon::GameFileCache();
   self.m_cache->Load();
@@ -192,8 +194,12 @@
 
 #pragma mark - Swap button
 
-- (IBAction)SwapPressed:(id)sender
+- (IBAction)ChangeViewButtonPressed:(id)sender
 {
+  self.m_navigation_item.rightBarButtonItems = @[
+    [self.m_table_view isHidden] ? self.m_grid_button : self.m_list_button
+  ];
+  
   [UIView transitionWithView:self.view duration:0.5 options:UIViewAnimationOptionTransitionFlipFromRight animations:^{
     [self.m_collection_view setHidden:![self.m_collection_view isHidden]];
     [self.m_table_view setHidden:![self.m_table_view isHidden]];

@@ -88,14 +88,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="43"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43.333332061767578"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.333332061767578"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="11" width="345" height="21"/>
+                                                    <rect key="frame" x="15" y="10.999999999999998" width="345" height="21.333333333333329"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -133,14 +133,24 @@
                         <viewLayoutGuide key="safeArea" id="Pg7-bj-q24"/>
                     </view>
                     <navigationItem key="navigationItem" title="Games" id="yCg-jX-vjT">
-                        <barButtonItem key="rightBarButtonItem" title="Swap" id="dlV-92-Nly">
-                            <connections>
-                                <action selector="SwapPressed:" destination="VNJ-F0-t9O" id="4MH-nY-J0a"/>
-                            </connections>
-                        </barButtonItem>
+                        <rightBarButtonItems>
+                            <barButtonItem title="List" image="SF_list_dash" id="wel-yO-LXb">
+                                <connections>
+                                    <action selector="ChangeViewButtonPressed:" destination="VNJ-F0-t9O" id="8CA-Xx-nuA"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Grid" image="SF_rectangle_grid_2x2" id="VHr-c4-Ce6">
+                                <connections>
+                                    <action selector="ChangeViewButtonPressed:" destination="VNJ-F0-t9O" id="r63-Xw-lBV"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
                     <connections>
                         <outlet property="m_collection_view" destination="LCP-cl-qmP" id="yIf-IK-fmm"/>
+                        <outlet property="m_grid_button" destination="VHr-c4-Ce6" id="1p2-ga-ZGO"/>
+                        <outlet property="m_list_button" destination="wel-yO-LXb" id="uvx-2I-DV4"/>
+                        <outlet property="m_navigation_item" destination="yCg-jX-vjT" id="CUq-I5-8Tg"/>
                         <outlet property="m_table_view" destination="V00-6y-ggr" id="aM4-7R-QkF"/>
                         <segue destination="DBS-kS-F5b" kind="show" identifier="to_emulation" id="Upk-Dq-M8D"/>
                     </connections>
@@ -218,5 +228,7 @@
     <resources>
         <image name="SF_gamecontroller" width="24" height="15"/>
         <image name="SF_gear" width="19" height="19"/>
+        <image name="SF_list_dash" width="17" height="12"/>
+        <image name="SF_rectangle_grid_2x2" width="19" height="16"/>
     </resources>
 </document>
