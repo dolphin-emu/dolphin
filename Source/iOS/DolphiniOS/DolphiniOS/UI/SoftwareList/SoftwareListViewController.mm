@@ -36,6 +36,15 @@
     preferred_view == 0 ? self.m_list_button : self.m_grid_button
   ];
   
+  // Create UIRefreshControls
+  UIRefreshControl* table_refresh = [[UIRefreshControl alloc] init];
+  [table_refresh addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+  self.m_table_view.refreshControl = table_refresh;
+  
+  UIRefreshControl* collection_refresh = [[UIRefreshControl alloc] init];
+  [collection_refresh addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
+  self.m_collection_view.refreshControl = collection_refresh;
+  
   // Load the GameFileCache
   self.m_cache = new UICommon::GameFileCache();
   self.m_cache->Load();
@@ -45,6 +54,8 @@
 
 - (void)rescanWithCompletionHandler:(void (^)())completionHandler
 {
+  self.m_cache_loaded = false;
+  
   // Get the software folder path
   NSString* userDirectory = [MainiOS getUserFolder];
   NSString* softwareDirectory = [userDirectory stringByAppendingPathComponent:@"Software"];
@@ -100,6 +111,11 @@
 
 #pragma mark - Collection View
 
+- (NSInteger)numberOfSectionsInCollectionView:(UICollectionView*)collectionView
+{
+  return 1;
+}
+
 - (NSInteger)collectionView:(UICollectionView*)collectionView numberOfItemsInSection:(NSInteger)section
 {
   if (!self.m_cache_loaded)
@@ -113,6 +129,18 @@
 - (UICollectionViewCell *)collectionView:(UICollectionView*)collectionView cellForItemAtIndexPath:(NSIndexPath*)indexPath
 {
   SoftwareCollectionViewCell* cell = [collectionView dequeueReusableCellWithReuseIdentifier:@"software_view_cell" forIndexPath:indexPath];
+  
+  // Weird issue - the UICollectionView will attempt to load the cells
+  // before updating the number of items. Then, it will update the
+  // number of items and load the cells again. No idea what's going on
+  // here, but let's just make a dummy cell if this cell is for a now
+  // deleted GameFile.
+  if (self.m_cache->GetSize() <= indexPath.row)
+  {
+    [cell.m_name_label setText:@"ERROR"];
+    [cell.m_image_view setImage:[UIImage imageNamed:@"ic_launcher"]];
+    return cell;
+  }
   
   std::shared_ptr<const UICommon::GameFile> game_file = self.m_cache->Get(indexPath.row);
   
@@ -244,6 +272,15 @@
   [MainiOS importFiles:set];
   
   [self rescanWithCompletionHandler:nil];
+}
+
+#pragma mark - Refreshing
+
+- (void)handleRefresh:(UIRefreshControl*)control
+{
+  [self rescanWithCompletionHandler:^{
+    [control endRefreshing];
+  }];
 }
 
 #pragma mark - Segues
