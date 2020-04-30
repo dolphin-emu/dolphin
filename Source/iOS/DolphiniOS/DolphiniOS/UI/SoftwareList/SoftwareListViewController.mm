@@ -26,7 +26,14 @@
 {
   [super viewDidLoad];
   
-  self.m_navigation_item.rightBarButtonItems = @[ self.m_list_button ];
+  NSInteger preferred_view = [[NSUserDefaults standardUserDefaults] integerForKey:@"software_list_view"];
+  
+  [self.m_table_view setHidden:preferred_view == 0];
+  [self.m_collection_view setHidden:preferred_view == 1];
+  
+  self.m_navigation_item.rightBarButtonItems = @[
+    preferred_view == 0 ? self.m_list_button : self.m_grid_button
+  ];
   
   // Load the GameFileCache
   self.m_cache = new UICommon::GameFileCache();
@@ -199,6 +206,9 @@
   self.m_navigation_item.rightBarButtonItems = @[
     [self.m_table_view isHidden] ? self.m_grid_button : self.m_list_button
   ];
+  
+  NSInteger new_view = [self.m_table_view isHidden] ? 1 : 0;
+  [[NSUserDefaults standardUserDefaults] setInteger:new_view forKey:@"software_list_view"];
   
   [UIView transitionWithView:self.view duration:0.5 options:UIViewAnimationOptionTransitionFlipFromRight animations:^{
     [self.m_collection_view setHidden:![self.m_collection_view isHidden]];
