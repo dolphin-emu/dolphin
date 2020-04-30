@@ -99,8 +99,8 @@ def getVersion() {
 
     try {
         versionNumber = 'git describe --always --long'.execute([], project.rootDir).text
-                .trim()
-                .replaceAll(/(-0)?-[^-]+$/, "")
+            .trim()
+            .replaceAll(/(-0)?-[^-]+$/, "")
     } catch (Exception e) {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
@@ -112,11 +112,11 @@ def getVersion() {
 def getBuildVersionCode() {
     try {
         def versionNumber = 'git rev-list --first-parent --count HEAD'.execute([], project.rootDir).text
-                .trim()
-        return Integer.valueOf(versionNumber);
+            .trim()
+        return Integer.valueOf(versionNumber)
     } catch (Exception e) {
         logger.error('Cannot find git, defaulting to dummy version number')
     }
 
-    return 1;
+    return 1
 }
