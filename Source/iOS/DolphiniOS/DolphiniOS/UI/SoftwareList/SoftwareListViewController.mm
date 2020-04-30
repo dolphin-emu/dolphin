@@ -32,6 +32,7 @@
   [self.m_collection_view setHidden:preferred_view == 1];
   
   self.m_navigation_item.rightBarButtonItems = @[
+    self.m_add_button,
     preferred_view == 0 ? self.m_list_button : self.m_grid_button
   ];
   
@@ -39,10 +40,7 @@
   self.m_cache = new UICommon::GameFileCache();
   self.m_cache->Load();
   
-  [self rescanWithCompletionHandler:^{
-    [self.m_table_view reloadData];
-    [self.m_collection_view reloadData];
-  }];
+  [self rescanWithCompletionHandler:nil];
 }
 
 - (void)rescanWithCompletionHandler:(void (^)())completionHandler
@@ -75,7 +73,13 @@
     self.m_cache->UpdateAdditionalMetadata();
     
     dispatch_async(dispatch_get_main_queue(), ^{
-      completionHandler();
+      [self.m_table_view reloadData];
+      [self.m_collection_view reloadData];
+      
+      if (completionHandler)
+      {
+        completionHandler();
+      }
     });
   });
 }
@@ -204,6 +208,7 @@
 - (IBAction)ChangeViewButtonPressed:(id)sender
 {
   self.m_navigation_item.rightBarButtonItems = @[
+    self.m_add_button,
     [self.m_table_view isHidden] ? self.m_grid_button : self.m_list_button
   ];
   
@@ -214,6 +219,31 @@
     [self.m_collection_view setHidden:![self.m_collection_view isHidden]];
     [self.m_table_view setHidden:![self.m_table_view isHidden]];
   } completion:nil];
+}
+
+#pragma mark - Add button
+
+- (IBAction)AddPressed:(id)sender
+{
+  NSArray* types = @[
+    @"org.dolphin-emu.ios.generic-software",
+    @"org.dolphin-emu.ios.gamecube-software",
+    @"org.dolphin-emu.ios.wii-software"
+  ];
+  
+  UIDocumentPickerViewController* pickerController = [[UIDocumentPickerViewController alloc] initWithDocumentTypes:types inMode:UIDocumentPickerModeOpen];
+  pickerController.delegate = self;
+  pickerController.modalPresentationStyle = UIModalPresentationPageSheet;
+  
+  [self presentViewController:pickerController animated:true completion:nil];
+}
+
+- (void)documentPicker:(UIDocumentPickerViewController*)controller didPickDocumentsAtURLs:(NSArray<NSURL*>*)urls
+{
+  NSSet<NSURL*>* set = [NSSet setWithArray:urls];
+  [MainiOS importFiles:set];
+  
+  [self rescanWithCompletionHandler:nil];
 }
 
 #pragma mark - Segues
