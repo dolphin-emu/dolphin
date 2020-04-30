@@ -13,6 +13,7 @@
 #import "Common/StringUtil.h"
 
 #import "Core/Config/MainSettings.h"
+#import "Core/Config/UISettings.h"
 #import "Core/ConfigManager.h"
 #import "Core/Core.h"
 #import "Core/HW/GCKeyboard.h"
@@ -245,6 +246,7 @@
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
+  Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
   [FIRApp configure];
   
