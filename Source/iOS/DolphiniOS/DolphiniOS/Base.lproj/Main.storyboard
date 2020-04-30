@@ -88,14 +88,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="43.333332061767578"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.333332061767578"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="10.999999999999998" width="345" height="21.333333333333329"/>
+                                                    <rect key="frame" x="15" y="11" width="345" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -134,6 +134,11 @@
                     </view>
                     <navigationItem key="navigationItem" title="Games" id="yCg-jX-vjT">
                         <rightBarButtonItems>
+                            <barButtonItem systemItem="add" id="Nsf-j9-qbV">
+                                <connections>
+                                    <action selector="AddPressed:" destination="VNJ-F0-t9O" id="Mzw-z0-kc0"/>
+                                </connections>
+                            </barButtonItem>
                             <barButtonItem title="List" image="SF_list_dash" id="wel-yO-LXb">
                                 <connections>
                                     <action selector="ChangeViewButtonPressed:" destination="VNJ-F0-t9O" id="8CA-Xx-nuA"/>
@@ -147,6 +152,7 @@
                         </rightBarButtonItems>
                     </navigationItem>
                     <connections>
+                        <outlet property="m_add_button" destination="Nsf-j9-qbV" id="xgZ-xx-I0d"/>
                         <outlet property="m_collection_view" destination="LCP-cl-qmP" id="yIf-IK-fmm"/>
                         <outlet property="m_grid_button" destination="VHr-c4-Ce6" id="1p2-ga-ZGO"/>
                         <outlet property="m_list_button" destination="wel-yO-LXb" id="uvx-2I-DV4"/>
