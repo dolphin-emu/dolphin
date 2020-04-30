@@ -245,10 +245,15 @@
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
-#if !defined(DEBUG) && !TARGET_OS_SIMULATOR
+  
   [FIRApp configure];
+  
+#if !defined(DEBUG) && !TARGET_OS_SIMULATOR
   [FIRAnalytics setAnalyticsCollectionEnabled:SConfig::GetInstance().m_analytics_enabled];
   [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
+#else
+  [FIRAnalytics setAnalyticsCollectionEnabled:false];
+  [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:false];
 #endif
  
   return YES;
