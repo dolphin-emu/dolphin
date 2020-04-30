@@ -69,6 +69,20 @@
   });
 }
 
+- (NSString*)GetGameName:(std::shared_ptr<const UICommon::GameFile>)file
+{
+  // Get the long name
+  NSString* game_name = CppToFoundationString(file->GetLongName());
+  
+  // Use the file name as a fallback
+  if ([game_name length] == 0)
+  {
+    return CppToFoundationString(file->GetFileName());
+  }
+  
+  return game_name;
+}
+
 #pragma mark - Collection View
 
 - (NSInteger)collectionView:(UICollectionView*)collectionView numberOfItemsInSection:(NSInteger)section
@@ -87,7 +101,7 @@
   
   std::shared_ptr<const UICommon::GameFile> game_file = self.m_cache->Get(indexPath.row);
   
-  [cell.m_name_label setText:CppToFoundationString(game_file->GetLongName())];
+  [cell.m_name_label setText:[self GetGameName:game_file]];
   
   const std::string cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
   const std::string png_path = cover_path + game_file->GetGameTDBID() + ".png";
@@ -148,15 +162,7 @@
     cell_contents = [cell_contents stringByAppendingString:@"[Unk] "];
   }
   
-  // Append the game name
-  NSString* game_name = [NSString stringWithUTF8String:file->GetLongName().c_str()];
-  
-  if ([game_name length] == 0)
-  {
-    game_name = [NSString stringWithUTF8String:file->GetFileName().c_str()];
-  }
-  
-  cell_contents = [cell_contents stringByAppendingString:game_name];
+  cell_contents = [cell_contents stringByAppendingString:[self GetGameName:file]];
   
   // Set the cell label text
   cell.fileNameLabel.text = cell_contents;
