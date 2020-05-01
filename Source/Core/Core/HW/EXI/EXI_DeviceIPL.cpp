@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
@@ -24,6 +25,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
@@ -98,6 +100,42 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
   }
 }
 
+void CEXIIPL::Patcher(u8* data, const u32 rom_crc32)
+{
+  if (Config::Get(Config::MAIN_IPL_PATCH_RAM_SIZE_ENABLE))
+  {
+    // Replace SIMM fields containing the upper 16 bits of the Physical MEM1 Size.
+    const s16 simm_p_mem1_size = Common::swap16(Memory::GetRamSizeReal() >> 16);
+    switch (rom_crc32)
+    {
+    case CRC32_RETAIL_NTSC_1_0:
+    case CRC32_RETAIL_NTSC_1_1:
+    case CRC32_RETAIL_PAL_1_0:
+    case CRC32_RETAIL_MPAL_1_1:
+    case CRC32_NPDP_READER_NTSC_1_0:
+    case CRC32_TDEV:
+      std::memcpy(data + 0x820 + 0x494 + 2, &simm_p_mem1_size, sizeof(simm_p_mem1_size));
+      break;
+    case CRC32_RETAIL_NTSC_1_2_001:
+    case CRC32_RETAIL_NTSC_1_2_101:
+    case CRC32_RETAIL_PAL_1_2:
+      std::memcpy(data + 0x820 + 0x490 + 2, &simm_p_mem1_size, sizeof(simm_p_mem1_size));
+      break;
+    case CRC32_NPDP_READER_PAL_1_0:
+      std::memcpy(data + 0x820 + 0x474 + 2, &simm_p_mem1_size, sizeof(simm_p_mem1_size));
+      break;
+    case CRC32_NPDP_GDEV_0_93a:
+      // NPDP GDEV units could operate with 24MiB or 48MiB of memory by checking DICFG bit 3.
+      std::memcpy(data + 0x820 + 0x4ac + 2, &simm_p_mem1_size, sizeof(simm_p_mem1_size));
+      std::memcpy(data + 0x820 + 0x4b8 + 2, &simm_p_mem1_size, sizeof(simm_p_mem1_size));
+      break;
+    default:
+      PanicAlertFmtT("RAM Size Patch is not supported for unrecognized IPL dumps.");
+      break;
+    }
+  }
+}
+
 CEXIIPL::CEXIIPL()
 {
   // Fill the ROM
@@ -105,11 +143,43 @@ CEXIIPL::CEXIIPL()
 
   // Load whole ROM dump
   // Note: The Wii doesn't have a copy of the IPL, only fonts.
+  std::string path = SConfig::GetInstance().m_strBootROM;
   if (!SConfig::GetInstance().bWii && Config::Get(Config::SESSION_LOAD_IPL_DUMP) &&
-      LoadFileToIPL(SConfig::GetInstance().m_strBootROM, 0))
+      LoadFileToIPL(path, 0))
   {
+    m_is_rom_loaded = true;
+    u32 rom_crc32 = Common::ComputeCRC32(m_rom.get(), ROM_SIZE);
+    bool pal_ipl = false;
+    switch (rom_crc32)
+    {
+    case CRC32_RETAIL_NTSC_1_0:
+    case CRC32_RETAIL_NTSC_1_1:
+    case CRC32_RETAIL_NTSC_1_2_001:
+    case CRC32_RETAIL_NTSC_1_2_101:
+    case CRC32_RETAIL_MPAL_1_1:
+    case CRC32_NPDP_READER_NTSC_1_0:
+    case CRC32_TDEV:
+    case CRC32_NPDP_GDEV_0_93a:
+      break;
+    case CRC32_RETAIL_PAL_1_0:
+    case CRC32_RETAIL_PAL_1_2:
+    case CRC32_NPDP_READER_PAL_1_0:
+      pal_ipl = true;
+      break;
+    default:
+      PanicAlertFmtT("{0:s} is not a known good dump. (CRC32: {1:x})", path, rom_crc32);
+      break;
+    }
+    const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
+    if (pal_ipl != (boot_region == DiscIO::Region::PAL))
+    {
+      PanicAlertFmtT("{0} IPL found in {1} directory. The disc might not be recognized.",
+                     pal_ipl ? "PAL" : "NTSC", SConfig::GetDirectoryForRegion(boot_region));
+    }
     // Descramble the encrypted section (contains BS1 and BS2)
-    Descrambler(&m_rom[0x100], 0x1afe00);
+    Descrambler(m_rom.get() + 0x100, 0x1afe00);
+    // Patch known IPLs (currently only used for RAM Size Patch)
+    Patcher(m_rom.get(), rom_crc32);
     // yay for null-terminated strings
     const std::string_view name{reinterpret_cast<char*>(m_rom.get())};
     INFO_LOG_FMT(BOOT, "Loaded bootrom: {}", name);
@@ -117,12 +187,13 @@ CEXIIPL::CEXIIPL()
   else
   {
     // If we are in Wii mode or if loading the GC IPL fails, we should still try to load fonts.
+    m_is_rom_loaded = false;
 
     // Copy header
     if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
-      memcpy(&m_rom[0], iplverNTSC, sizeof(iplverNTSC));
+      memcpy(m_rom.get(), iplverNTSC, sizeof(iplverNTSC));
     else
-      memcpy(&m_rom[0], iplverPAL, sizeof(iplverPAL));
+      memcpy(m_rom.get(), iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);

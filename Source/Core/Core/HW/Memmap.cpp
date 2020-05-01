@@ -62,8 +62,8 @@ u8* m_pFakeVMEM;
 
 // s_ram_size is the amount allocated by the emulator, whereas s_ram_size_real
 // is what will be reported in lowmem, and thus used by emulated software.
-// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-// always be set to 24MB.
+// Note: Writing to lowmem is done by IPL. If using retail IPL and the OnionConfig
+// value "MAIN_RAM_OVERRIDE_ENABLE" is false, it will always be set to 24MB.
 static u32 s_ram_size_real;
 static u32 s_ram_size;
 static u32 s_ram_mask;
@@ -73,8 +73,8 @@ static u32 s_L1_cache_size;
 static u32 s_L1_cache_mask;
 static u32 s_io_size;
 // s_exram_size is the amount allocated by the emulator, whereas s_exram_size_real
-// is what gets used by emulated software.  If using retail IOS, it will
-// always be set to 64MB.
+// is what gets used by emulated software.  If using retail IOS and the OnionConfig
+// value "MAIN_RAM_OVERRIDE_ENABLE" is false, it will always be set to 64MB.
 static u32 s_exram_size_real;
 static u32 s_exram_size;
 static u32 s_exram_mask;
@@ -127,35 +127,28 @@ u32 GetExRamMask()
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
-static std::unique_ptr<MMIO::Mapping> InitMMIO()
+void InitMMIO(bool is_wii)
 {
-  auto mmio = std::make_unique<MMIO::Mapping>();
+  mmio_mapping = std::make_unique<MMIO::Mapping>();
 
-  CommandProcessor::RegisterMMIO(mmio.get(), 0x0C000000);
-  PixelEngine::RegisterMMIO(mmio.get(), 0x0C001000);
-  VideoInterface::RegisterMMIO(mmio.get(), 0x0C002000);
-  ProcessorInterface::RegisterMMIO(mmio.get(), 0x0C003000);
-  MemoryInterface::RegisterMMIO(mmio.get(), 0x0C004000);
-  DSP::RegisterMMIO(mmio.get(), 0x0C005000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0C006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0C006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0C006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0C006C00);
-
-  return mmio;
-}
-
-static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
-{
-  auto mmio = InitMMIO();
-
-  IOS::RegisterMMIO(mmio.get(), 0x0D000000);
-  DVDInterface::RegisterMMIO(mmio.get(), 0x0D006000);
-  SerialInterface::RegisterMMIO(mmio.get(), 0x0D006400);
-  ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
-  AudioInterface::RegisterMMIO(mmio.get(), 0x0D006C00);
-
-  return mmio;
+  CommandProcessor::RegisterMMIO(mmio_mapping.get(), 0x0C000000);
+  PixelEngine::RegisterMMIO(mmio_mapping.get(), 0x0C001000);
+  VideoInterface::RegisterMMIO(mmio_mapping.get(), 0x0C002000);
+  ProcessorInterface::RegisterMMIO(mmio_mapping.get(), 0x0C003000);
+  MemoryInterface::RegisterMMIO(mmio_mapping.get(), 0x0C004000);
+  DSP::RegisterMMIO(mmio_mapping.get(), 0x0C005000);
+  DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006000);
+  SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006400);
+  ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006800);
+  AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0C006C00);
+  if (is_wii)
+  {
+    IOS::RegisterMMIO(mmio_mapping.get(), 0x0D000000);
+    DVDInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006000);
+    SerialInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006400);
+    ExpansionInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006800);
+    AudioInterface::RegisterMMIO(mmio_mapping.get(), 0x0D006C00);
+  }
 }
 
 bool IsInitialized()
@@ -228,7 +221,7 @@ static std::array<PhysicalMemoryRegion, 4> s_physical_regions;
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
 
-void Init()
+void PreInit()
 {
   const auto get_mem1_size = [] {
     if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
@@ -251,7 +244,10 @@ void Init()
   s_exram_size_real = get_mem2_size();
   s_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
   s_exram_mask = GetExRamSize() - 1;
+}
 
+void Init()
+{
   s_physical_regions[0] = {&m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS, false};
   s_physical_regions[1] = {&m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS,
                            false};
@@ -302,10 +298,7 @@ void Init()
     }
   }
 
-  if (wii)
-    mmio_mapping = InitMMIOWii();
-  else
-    mmio_mapping = InitMMIO();
+  InitMMIO(wii);
 
   Clear();
 

@@ -41,6 +41,9 @@ namespace fs = std::filesystem;
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Channel.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
@@ -311,8 +314,6 @@ std::unique_ptr<BootParameters> BootParameters::GenerateFromFile(std::vector<std
 
 BootParameters::IPL::IPL(DiscIO::Region region_) : region(region_)
 {
-  const std::string directory = SConfig::GetInstance().GetDirectoryForRegion(region);
-  path = SConfig::GetInstance().GetBootROMPath(directory);
 }
 
 BootParameters::IPL::IPL(DiscIO::Region region_, Disc&& disc_) : IPL(region_)
@@ -389,81 +390,6 @@ bool CBoot::LoadMapFromFilename()
   }
 
   return false;
-}
-
-// If ipl.bin is not found, this function does *some* of what BS1 does:
-// loading IPL(BS2) and jumping to it.
-// It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(const std::string& boot_rom_filename)
-{
-  // CRC32 hashes of the IPL file, obtained from Redump
-  constexpr u32 NTSC_v1_0 = 0x6DAC1F2A;
-  constexpr u32 NTSC_v1_1 = 0xD5E6FEEA;
-  constexpr u32 NTSC_v1_2 = 0x86573808;
-  constexpr u32 MPAL_v1_1 = 0x667D0B64;  // Brazil
-  constexpr u32 PAL_v1_0 = 0x4F319F43;
-  constexpr u32 PAL_v1_2 = 0xAD1B7F16;
-
-  // Load the whole ROM dump
-  std::string data;
-  if (!File::ReadFileToString(boot_rom_filename, data))
-    return false;
-
-  const u32 ipl_hash = Common::ComputeCRC32(data);
-  bool known_ipl = false;
-  bool pal_ipl = false;
-  switch (ipl_hash)
-  {
-  case NTSC_v1_0:
-  case NTSC_v1_1:
-  case NTSC_v1_2:
-  case MPAL_v1_1:
-    known_ipl = true;
-    break;
-  case PAL_v1_0:
-  case PAL_v1_2:
-    pal_ipl = true;
-    known_ipl = true;
-    break;
-  default:
-    PanicAlertFmtT("The IPL file is not a known good dump. (CRC32: {0:x})", ipl_hash);
-    break;
-  }
-
-  const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
-  if (known_ipl && pal_ipl != (boot_region == DiscIO::Region::PAL))
-  {
-    PanicAlertFmtT("{0} IPL found in {1} directory. The disc might not be recognized",
-                   pal_ipl ? "PAL" : "NTSC", SConfig::GetDirectoryForRegion(boot_region));
-  }
-
-  // Run the descrambler over the encrypted section containing BS1/BS2
-  ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
-
-  // TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
-  // copying the initial boot code to 0x81200000 is a hack.
-  // For now, HLE the first few instructions and start at 0x81200150
-  // to work around this.
-  Memory::CopyToEmu(0x01200000, data.data() + 0x100, 0x700);
-  Memory::CopyToEmu(0x01300000, data.data() + 0x820, 0x1AFE00);
-
-  PowerPC::ppcState.gpr[3] = 0xfff0001f;
-  PowerPC::ppcState.gpr[4] = 0x00002030;
-  PowerPC::ppcState.gpr[5] = 0x0000009c;
-
-  MSR.FP = 1;
-  MSR.DR = 1;
-  MSR.IR = 1;
-
-  PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
-  PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
-  PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
-  PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
-  PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
-  SetupBAT(/*is_wii*/ false);
-
-  PC = 0x81200150;
-  return true;
 }
 
 static void SetDefaultDisc()
@@ -594,18 +520,44 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
     bool operator()(const BootParameters::IPL& ipl) const
     {
-      NOTICE_LOG_FMT(BOOT, "Booting GC IPL: {}", ipl.path);
-      if (!File::Exists(ipl.path))
+      const std::string path = SConfig::GetInstance().m_strBootROM;
+      NOTICE_LOG_FMT(BOOT, "Booting GC IPL: {}", path);
+
+      ExpansionInterface::CEXIIPL* exi_ipl = static_cast<ExpansionInterface::CEXIIPL*>(
+          ExpansionInterface::GetChannel(0)->GetDevice(2));
+      DEBUG_ASSERT(exi_ipl->m_device_type == ExpansionInterface::EXIDeviceType::MaskROM);
+
+      if (!exi_ipl->IsROMLoaded())
       {
         if (ipl.disc)
           PanicAlertFmtT("Cannot start the game, because the GC IPL could not be found.");
         else
-          PanicAlertFmtT("Cannot find the GC IPL.");
+          PanicAlertFmtT("Could not find the GC IPL.");
         return false;
       }
 
-      if (!Load_BS2(ipl.path))
-        return false;
+      // TODO: Execution of BS1 supposed to start at 0xFFF00100, according to YAGCD 18.2 and also
+      // some hints in YAGCD 2.8.3. Copying BS1 to 0x81200000 is a hack. For now, HLE the first few
+      // instructions and start at 0x81200150 to work around this.
+
+      Memory::CopyToEmu(0x01200000, exi_ipl->GetROM() + 0x100, 0x700);
+
+      PowerPC::ppcState.gpr[3] = 0xfff0001f;
+      PowerPC::ppcState.gpr[4] = 0x00002030;
+      PowerPC::ppcState.gpr[5] = 0x0000009c;
+
+      MSR.FP = 1;
+      MSR.DR = 1;
+      MSR.IR = 1;
+
+      PowerPC::ppcState.spr[SPR_HID0] = 0x0011c464;
+      PowerPC::ppcState.spr[SPR_IBAT3U] = 0xfff0001f;
+      PowerPC::ppcState.spr[SPR_IBAT3L] = 0xfff00001;
+      PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
+      PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
+      SetupBAT(/*is_wii*/ false);
+
+      PC = 0x81200150;
 
       if (ipl.disc)
       {

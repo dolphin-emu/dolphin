@@ -67,6 +67,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_OVERCLOCK.GetLocation(),
       &Config::MAIN_OVERCLOCK_ENABLE.GetLocation(),
       &Config::MAIN_RAM_OVERRIDE_ENABLE.GetLocation(),
+      &Config::MAIN_IPL_PATCH_RAM_SIZE_ENABLE.GetLocation(),
       &Config::MAIN_MEM1_SIZE.GetLocation(),
       &Config::MAIN_MEM2_SIZE.GetLocation(),
       &Config::MAIN_GFX_BACKEND.GetLocation(),

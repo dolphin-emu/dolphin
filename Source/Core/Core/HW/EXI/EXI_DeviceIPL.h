@@ -26,15 +26,34 @@ public:
   static constexpr u32 UNIX_EPOCH = 0;         // 1970-01-01 00:00:00
   static constexpr u32 GC_EPOCH = 0x386D4380;  // 2000-01-01 00:00:00
 
+  // CRC32 hashes of the IPL file, obtained from Redump
+  static constexpr u32 CRC32_RETAIL_NTSC_1_0 = 0x6dac1f2a;
+  static constexpr u32 CRC32_RETAIL_NTSC_1_1 = 0xd5e6feea;
+  static constexpr u32 CRC32_RETAIL_NTSC_1_2_001 = 0xd235e3f9;
+  static constexpr u32 CRC32_RETAIL_NTSC_1_2_101 = 0x86573808;
+  static constexpr u32 CRC32_RETAIL_PAL_1_0 = 0x4f319f43;
+  static constexpr u32 CRC32_RETAIL_MPAL_1_1 = 0x667d0b64;  // Brazil
+  static constexpr u32 CRC32_RETAIL_PAL_1_2 = 0xad1b7f16;
+  static constexpr u32 CRC32_NPDP_READER_NTSC_1_0 = 0x773d9a5d;
+  static constexpr u32 CRC32_NPDP_READER_PAL_1_0 = 0x7fcf6fc5;
+  static constexpr u32 CRC32_TDEV = 0xd5b49679;
+  static constexpr u32 CRC32_NPDP_GDEV_0_93a = 0x48df4dcf;
+
   static u32 GetEmulatedTime(u32 epoch);
   static u64 NetPlay_GetEmulatedTime();
 
   static void Descrambler(u8* data, u32 size);
+  static void Patcher(u8* data, const u32 rom_crc32);
 
   static bool HasIPLDump();
 
+  // These two methods are used by a HLE hack to boot the IPL.
+  bool IsROMLoaded() { return m_is_rom_loaded; }
+  const u8* GetROM() { return m_rom.get(); }
+
 private:
   std::unique_ptr<u8[]> m_rom;
+  bool m_is_rom_loaded;
 
   // TODO these ranges are highly suspect
   enum

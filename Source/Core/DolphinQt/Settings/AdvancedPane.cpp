@@ -106,6 +106,9 @@ void AdvancedPane::CreateLayout()
   m_ram_override_checkbox = new QCheckBox(tr("Enable Emulated Memory Size Override"));
   ram_override_layout->addWidget(m_ram_override_checkbox);
 
+  m_ipl_patch_ram_size_checkbox = new QCheckBox(tr("Enable Known IPL RAM Size Patch"));
+  ram_override_layout->addWidget(m_ipl_patch_ram_size_checkbox);
+
   auto* mem1_override_slider_layout = new QHBoxLayout();
   mem1_override_slider_layout->setContentsMargins(0, 0, 0, 0);
   ram_override_layout->addLayout(mem1_override_slider_layout);
@@ -199,6 +202,13 @@ void AdvancedPane::ConnectLayout()
     Update();
   });
 
+  m_ipl_patch_ram_size_checkbox->setChecked(Config::Get(Config::MAIN_IPL_PATCH_RAM_SIZE_ENABLE));
+  connect(
+      m_ipl_patch_ram_size_checkbox, &QCheckBox::toggled, [this](bool enable_ipl_patch_ram_size) {
+        Config::SetBaseOrCurrent(Config::MAIN_IPL_PATCH_RAM_SIZE_ENABLE, enable_ipl_patch_ram_size);
+        Update();
+      });
+
   connect(m_mem1_override_slider, &QSlider::valueChanged, [this](int slider_value) {
     const u32 mem1_size = m_mem1_override_slider->value() * 0x100000;
     Config::SetBaseOrCurrent(Config::MAIN_MEM1_SIZE, mem1_size);
@@ -269,6 +279,8 @@ void AdvancedPane::Update()
   }());
 
   m_ram_override_checkbox->setEnabled(!running);
+
+  m_ipl_patch_ram_size_checkbox->setEnabled(!running);
 
   m_mem1_override_slider->setEnabled(enable_ram_override_widgets && !running);
   m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && !running);

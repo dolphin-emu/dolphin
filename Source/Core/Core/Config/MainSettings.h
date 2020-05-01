@@ -106,6 +106,7 @@ extern const Info<float> MAIN_EMULATION_SPEED;
 extern const Info<float> MAIN_OVERCLOCK;
 extern const Info<bool> MAIN_OVERCLOCK_ENABLE;
 extern const Info<bool> MAIN_RAM_OVERRIDE_ENABLE;
+extern const Info<bool> MAIN_IPL_PATCH_RAM_SIZE_ENABLE;
 extern const Info<u32> MAIN_MEM1_SIZE;
 extern const Info<u32> MAIN_MEM2_SIZE;
 // Should really be part of System::GFX, but again, we're stuck with past mistakes.

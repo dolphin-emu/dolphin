@@ -105,7 +105,6 @@ struct BootParameters
   {
     explicit IPL(DiscIO::Region region_);
     IPL(DiscIO::Region region_, Disc&& disc_);
-    std::string path;
     DiscIO::Region region;
     // It is possible to boot the IPL with a disc inserted (with "skip IPL" disabled).
     std::optional<Disc> disc;
@@ -169,7 +168,6 @@ private:
                               const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
   static bool EmulatedBS2(bool is_wii, const DiscIO::VolumeDisc& volume,
                           const std::vector<DiscIO::Riivolution::Patch>& riivolution_patches);
-  static bool Load_BS2(const std::string& boot_rom_filename);
 
   static void SetupGCMemory();
   static bool SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type);

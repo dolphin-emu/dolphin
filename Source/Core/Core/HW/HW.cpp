@@ -36,6 +36,7 @@ void Init()
   State::Init();
 
   // Init the whole Hardware
+  Memory::PreInit();  // Set some constants very early on so Memory Override works everywhere.
   AudioInterface::Init();
   VideoInterface::Init();
   SerialInterface::Init();

@@ -60,6 +60,7 @@ extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
 
 // Init and Shutdown
 bool IsInitialized();
+void PreInit();
 void Init();
 void Shutdown();
 bool InitFastmemArena();

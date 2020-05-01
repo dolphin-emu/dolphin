@@ -41,6 +41,7 @@ private:
   QDateTimeEdit* m_custom_rtc_datetime;
 
   QCheckBox* m_ram_override_checkbox;
+  QCheckBox* m_ipl_patch_ram_size_checkbox;
   QSlider* m_mem1_override_slider;
   QLabel* m_mem1_override_slider_label;
   QSlider* m_mem2_override_slider;
