@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+    <device id="retina6_1" orientation="portrait" appearance="light"/>
+    <dependencies>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
+    </dependencies>
+    <scenes>
+        <!--Wii System Update View Controller-->
+        <scene sceneID="HXE-jM-oo7">
+            <objects>
+                <viewController storyboardIdentifier="Root" modalPresentationStyle="fullScreen" id="tt2-Pp-4HC" customClass="WiiSystemUpdateViewController" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="67y-lc-tXT">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="dWd-Pr-uxc" userLabel="Header Stack">
+                                <rect key="frame" x="0.0" y="64" width="414" height="204.5"/>
+                                <subviews>
+                                    <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_icloud_and_arrow_down" translatesAutoresizingMaskIntoConstraints="NO" id="ca3-YU-j1A">
+                                        <rect key="frame" x="0.0" y="0.0" width="414" height="100"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="100" id="fcP-yH-v9H"/>
+                                        </constraints>
+                                    </imageView>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Updating" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="SlU-67-9I9">
+                                        <rect key="frame" x="0.0" y="100" width="414" height="104.5"/>
+                                        <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="34"/>
+                                        <nil key="textColor"/>
+                                        <nil key="highlightedColor"/>
+                                    </label>
+                                </subviews>
+                            </stackView>
+                            <progressView opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="750" translatesAutoresizingMaskIntoConstraints="NO" id="T5H-5y-WDb">
+                                <rect key="frame" x="50" y="472" width="314" height="2"/>
+                            </progressView>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Nm-Xv-hIm">
+                                <rect key="frame" x="0.0" y="392" width="414" height="41"/>
+                                <string key="text">Preparing to update...
+This can take a while.</string>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="PlL-uA-UFC">
+                                <rect key="frame" x="20" y="797" width="374" height="45"/>
+                                <color key="backgroundColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="45" id="rjc-3q-OVr"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="boldSystem" pointSize="15"/>
+                                <state key="normal" title="Cancel">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </state>
+                                <userDefinedRuntimeAttributes>
+                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
+                                        <integer key="value" value="10"/>
+                                    </userDefinedRuntimeAttribute>
+                                </userDefinedRuntimeAttributes>
+                                <connections>
+                                    <action selector="CancelPressed:" destination="tt2-Pp-4HC" eventType="touchUpInside" id="bOi-aC-3c3"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <constraints>
+                            <constraint firstItem="dWd-Pr-uxc" firstAttribute="leading" secondItem="PIl-jq-CIg" secondAttribute="leading" id="6Ig-pr-47s"/>
+                            <constraint firstItem="dWd-Pr-uxc" firstAttribute="trailing" secondItem="PIl-jq-CIg" secondAttribute="trailing" id="6gT-MK-wbD"/>
+                            <constraint firstItem="PlL-uA-UFC" firstAttribute="trailing" secondItem="PIl-jq-CIg" secondAttribute="trailing" constant="-20" id="A76-06-NHF"/>
+                            <constraint firstItem="T5H-5y-WDb" firstAttribute="centerY" secondItem="PIl-jq-CIg" secondAttribute="centerY" constant="20" id="J3B-Rq-Mz1"/>
+                            <constraint firstItem="5Nm-Xv-hIm" firstAttribute="leading" secondItem="PIl-jq-CIg" secondAttribute="leading" id="KqF-a4-iGQ"/>
+                            <constraint firstItem="PlL-uA-UFC" firstAttribute="bottom" secondItem="PIl-jq-CIg" secondAttribute="bottom" constant="-20" id="UYV-DK-PFV"/>
+                            <constraint firstItem="T5H-5y-WDb" firstAttribute="trailing" secondItem="PIl-jq-CIg" secondAttribute="trailing" constant="-50" id="Z5p-tr-d1X"/>
+                            <constraint firstItem="dWd-Pr-uxc" firstAttribute="top" secondItem="PIl-jq-CIg" secondAttribute="top" constant="20" id="Z8D-e5-i6e"/>
+                            <constraint firstItem="dWd-Pr-uxc" firstAttribute="height" secondItem="PIl-jq-CIg" secondAttribute="height" multiplier="0.25" id="fG6-hV-Cnn"/>
+                            <constraint firstItem="T5H-5y-WDb" firstAttribute="centerX" secondItem="PIl-jq-CIg" secondAttribute="centerX" id="gbT-al-ysW"/>
+                            <constraint firstItem="5Nm-Xv-hIm" firstAttribute="bottom" secondItem="PIl-jq-CIg" secondAttribute="centerY" constant="-20" id="hVo-4h-b2W"/>
+                            <constraint firstItem="5Nm-Xv-hIm" firstAttribute="trailing" secondItem="PIl-jq-CIg" secondAttribute="trailing" id="j9T-i4-6jd"/>
+                            <constraint firstItem="T5H-5y-WDb" firstAttribute="leading" secondItem="PIl-jq-CIg" secondAttribute="leading" constant="50" id="q08-eS-gLr"/>
+                            <constraint firstItem="PlL-uA-UFC" firstAttribute="leading" secondItem="PIl-jq-CIg" secondAttribute="leading" constant="20" id="q1Z-G7-HGT"/>
+                        </constraints>
+                        <viewLayoutGuide key="safeArea" id="PIl-jq-CIg"/>
+                    </view>
+                    <connections>
+                        <outlet property="m_cancel_button" destination="PlL-uA-UFC" id="Ve0-OE-Lom"/>
+                        <outlet property="m_progress_bar" destination="T5H-5y-WDb" id="l4C-53-SWk"/>
+                        <outlet property="m_progress_label" destination="5Nm-Xv-hIm" id="6IF-fP-gV4"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="KuU-Zv-hT0" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="135" y="157"/>
+        </scene>
+    </scenes>
+    <resources>
+        <image name="SF_icloud_and_arrow_down" width="512" height="512"/>
+    </resources>
+</document>
