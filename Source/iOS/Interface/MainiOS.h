@@ -7,6 +7,10 @@
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 
+#ifdef __cplusplus
+#import "Core/Boot/Boot.h"
+#endif
+
 void UpdateWiiPointer();
 
 @interface MainiOS : NSObject
@@ -14,7 +18,9 @@ void UpdateWiiPointer();
 + (void)applicationStart;
 + (NSString*)getUserFolder;
 + (void)importFiles:(NSSet<NSURL*>*)files;
-+ (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view;
+#ifdef __cplusplus
++ (void)startEmulationWithBootParameters:(std::unique_ptr<BootParameters>)params viewController:(UIViewController*)viewController view:(UIView*)view;
+#endif
 + (void)stopEmulation;
 + (UIViewController*)getEmulationViewController;
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action;

@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#import "Core/Boot/Boot.h"
+
 #import "DolphiniOS-Swift.h"
 
 #import "EAGLView.h"
@@ -23,8 +25,9 @@ typedef NS_ENUM(NSUInteger, DOLTopBarPullDownMode) {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EmulationViewController : GCEventViewController
+@interface EmulationViewController : UIViewController
 {
+  @public std::unique_ptr<BootParameters> m_boot_parameters;
   @public std::vector<std::pair<int, TCView*>> m_controllers;
 }
 
@@ -46,8 +49,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UINavigationItem* m_navigation_item;
 @property (weak, nonatomic) IBOutlet UIButton* m_pull_down_button;
 
-@property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
+@property(nonatomic) bool m_is_wii;
 @property(nonatomic) int m_ts_active_port;
 @property(nonatomic) DOLTopBarPullDownMode m_pull_down_mode;
 @property(weak, nonatomic) TCView* m_ts_active_view;
@@ -55,6 +58,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic) UIBarButtonItem* m_pause_button;
 @property(nonatomic) UIBarButtonItem* m_play_button;
 
+- (void)RunningTitleUpdated;
 - (void)PopulatePortDictionary;
 - (void)ChangeVisibleTouchControllerToPort:(int)port;
 
