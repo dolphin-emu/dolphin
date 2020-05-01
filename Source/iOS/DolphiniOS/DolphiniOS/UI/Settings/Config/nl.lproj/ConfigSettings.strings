@@ -248,8 +248,8 @@
 /* Class = "UITableViewSection"; headerTitle = "Basis Instellingen"; ObjectID = "gdG-9I-xOW"; */
 "gdG-9I-xOW.headerTitle" = "Basis Instellingen";
 
-/* Class = "UILabel"; text = "Swipe Down"; ObjectID = "DKD-3b-KpQ"; */
-"DKD-3b-KpQ.text" = "Swipe Down";
+/* Class = "UILabel"; text = "Swipe Down to Reveal"; ObjectID = "DKD-3b-KpQ"; */
+"DKD-3b-KpQ.text" = "Swipe Down to Reveal";
 
 /* Class = "UILabel"; text = "Top Bar Mode"; ObjectID = "GpF-ug-PIN"; */
 "GpF-ug-PIN.text" = "Top Bar Mode";
@@ -260,8 +260,8 @@
 /* Class = "UILabel"; text = "Always Visible"; ObjectID = "inO-fF-5fU"; */
 "inO-fF-5fU.text" = "Always Visible";
 
-/* Class = "UILabel"; text = "Virtual Button"; ObjectID = "p30-XS-Tul"; */
-"p30-XS-Tul.text" = "Virtual Button";
+/* Class = "UILabel"; text = "Virtual Button Toggle"; ObjectID = "p30-XS-Tul"; */
+"p30-XS-Tul.text" = "Virtual Button Toggle";
 
 /* Class = "UINavigationItem"; title = "Top Bar Mode"; ObjectID = "xxn-2v-3zf"; */
 "xxn-2v-3zf.title" = "Top Bar Mode";
