@@ -4,8 +4,13 @@
 
 #import "SoftwareListViewController.h"
 
+#import "Common/CDUtils.h"
 #import "Common/CommonPaths.h"
 #import "Common/FileUtil.h"
+
+#import "Core/CommonTitles.h"
+#import "Core/IOS/ES/ES.h"
+#import "Core/IOS/IOS.h"
 
 #import "EmulationViewController.h"
 
@@ -15,6 +20,8 @@
 #import "SoftwareTableViewCell.h"
 
 #import "UICommon/GameFile.h"
+
+#import "WiiSystemUpdateViewController.h"
 
 @interface SoftwareListViewController ()
 
@@ -322,6 +329,80 @@
   }];
 }
 
+#pragma mark - Menu
+
+- (IBAction)MenuButtonPressed:(id)sender
+{
+  // Get the system menu TMD
+  IOS::HLE::Kernel ios;
+  const auto tmd = ios.GetES()->FindInstalledTMD(Titles::SYSTEM_MENU);
+  
+  UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+  
+  if (tmd.IsValid())
+  {
+    std::string system_region = DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion());
+    NSString* base_title = DOLocalizedStringWithArgs(@"Load Wii System Menu %1", @"@");
+    
+    [action_sheet addAction:[UIAlertAction actionWithTitle:[NSString stringWithFormat:base_title, CppToFoundationString(system_region)] style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+    {
+      self.m_boot_wii_menu = true;
+      [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+    }]];
+  }
+  
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Perform Online System Update") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+  {
+    void (^do_system_update)(NSString*) = ^(NSString* region){
+      self.m_wii_region = region;
+      [self performSegueWithIdentifier:@"to_wii_update" sender:nil];
+    };
+    
+    if (!tmd.IsValid())
+    {
+      UIAlertController* region_sheet = [UIAlertController alertControllerWithTitle:nil message:DOLocalizedString(@"Region") preferredStyle:UIAlertControllerStyleActionSheet];
+      
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Europe") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        do_system_update(@"EUR");
+      }]];
+      
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Japan") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        do_system_update(@"JPN");
+      }]];
+      
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Korea") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+       {
+         do_system_update(@"JPN");
+       }]];
+      
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"United States") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+       {
+         do_system_update(@"USA");
+       }]];
+           
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+      
+      [self presentViewController:region_sheet animated:true completion:nil];
+    }
+    else
+    {
+      do_system_update(@"");
+    }
+  }]];
+  
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Close") style:UIAlertActionStyleCancel handler:nil]];
+  
+  if (action_sheet.popoverPresentationController != nil)
+  {
+    action_sheet.popoverPresentationController.barButtonItem = self.m_menu_button;
+  }
+  
+  [self presentViewController:action_sheet animated:true completion:nil];
+}
+
+
 #pragma mark - Segues
 
 - (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
@@ -331,7 +412,22 @@
     // Set the GameFile
     UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
     EmulationViewController* viewController = (EmulationViewController*)([navigationController.viewControllers firstObject]);
-    viewController.m_game_file = const_cast<UICommon::GameFile*>(self.m_selected_file);
+    
+    if (self.m_boot_wii_menu)
+    {
+      viewController->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU});
+    }
+    else
+    {
+      viewController->m_boot_parameters = BootParameters::GenerateFromFile(self.m_selected_file->GetFilePath());
+    }
+  }
+  else if ([segue.identifier isEqualToString:@"to_wii_update"])
+  {
+    // Set the GameFile
+    WiiSystemUpdateViewController* update_controller = (WiiSystemUpdateViewController*)segue.destinationViewController;
+    update_controller.m_is_online = true;
+    update_controller.m_source = self.m_wii_region;
   }
 }
 
