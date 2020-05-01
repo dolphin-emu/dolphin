@@ -47,7 +47,7 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
-  void SetCurrentUserStyle(const QString& stylesheet_path);
+  void SetCurrentUserStyle(const QString& stylesheet_name);
   QString GetCurrentUserStyle() const;
 
   void SetUserStylesEnabled(bool enabled);
