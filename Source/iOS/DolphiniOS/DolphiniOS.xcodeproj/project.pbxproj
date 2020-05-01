@@ -63,6 +63,8 @@
 		B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A92362DB7C00B21680 /* libcpp-optparse.a */; };
 		B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3F32362E24000B21680 /* libc++.tbd */; };
 		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
+		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
+		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -348,6 +350,9 @@
 		B945A3F32362E24000B21680 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		B946AF0F245B953B0043767A /* TopBarModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TopBarModeViewController.h; sourceTree = "<group>"; };
 		B946AF10245B953B0043767A /* TopBarModeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TopBarModeViewController.m; sourceTree = "<group>"; };
+		B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = WiiSystemUpdate.storyboard; sourceTree = "<group>"; };
+		B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiiSystemUpdateViewController.h; sourceTree = "<group>"; };
+		B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSystemUpdateViewController.mm; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -650,6 +655,7 @@
 				B91BF368236B3E3900199BA7 /* Emulation */,
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
+				B946AF12245BFB950043767A /* WiiSystemUpdate */,
 				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
 				B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */,
 				B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */,
@@ -797,6 +803,16 @@
 				9320BE8B0931BC7AAE9E780B /* libPods-DolphiniOS.a */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		B946AF12245BFB950043767A /* WiiSystemUpdate */ = {
+			isa = PBXGroup;
+			children = (
+				B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */,
+				B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */,
+				B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */,
+			);
+			path = WiiSystemUpdate;
 			sourceTree = "<group>";
 		};
 		B95A09252382667000DBBB01 /* TouchController */ = {
@@ -1369,6 +1385,7 @@
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
+				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
 				B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
@@ -1563,6 +1580,7 @@
 				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
+				B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */,
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */,
 				B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */,
