@@ -231,7 +231,6 @@
         if (![nav_controller isBeingPresented])
         {
           [nav_controller setViewControllers:@[update_controller]];
-          [self.window makeKeyAndVisible];
           [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
         }
         else
