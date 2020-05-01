@@ -289,6 +289,8 @@ add_executable(dolphin-emu
   Settings/GeneralPane.h
   Settings/InterfacePane.cpp
   Settings/InterfacePane.h
+  Settings/MiscPane.cpp
+  Settings/MiscPane.h
   Settings/PathPane.cpp
   Settings/PathPane.h
   Settings/WiiPane.cpp
