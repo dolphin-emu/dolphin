@@ -9,15 +9,25 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
-        <!--Root-->
+        <!--Emulation-->
         <scene sceneID="yIj-hM-bTL">
             <objects>
-                <viewControllerPlaceholder storyboardName="Emulation" referencedIdentifier="Root" id="DBS-kS-F5b" sceneMemberID="viewController">
+                <viewControllerPlaceholder storyboardName="Emulation" referencedIdentifier="Root" id="DBS-kS-F5b" userLabel="Emulation" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" id="Zfc-lh-3R5"/>
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="nl9-Tw-KZS" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2650" y="-218"/>
+        </scene>
+        <!--Wii System Update-->
+        <scene sceneID="ewV-Sf-YBB">
+            <objects>
+                <viewControllerPlaceholder storyboardName="WiiSystemUpdate" referencedIdentifier="Root" id="tgy-N5-u5u" userLabel="Wii System Update" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="eBv-cv-14G"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="PK7-Fk-7sW" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2650" y="-184"/>
         </scene>
         <!--Games-->
         <scene sceneID="QTB-tI-TdV">
@@ -88,14 +98,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="43.666667938232422"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="345" height="21.666666666666671"/>
+                                                    <rect key="frame" x="15" y="11" width="345" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -137,6 +147,11 @@
                         </connections>
                     </view>
                     <navigationItem key="navigationItem" title="Games" id="yCg-jX-vjT">
+                        <barButtonItem key="leftBarButtonItem" image="SF_ellipsis_circle" id="y3A-wm-8hv">
+                            <connections>
+                                <action selector="MenuButtonPressed:" destination="VNJ-F0-t9O" id="3jq-SK-Ogs"/>
+                            </connections>
+                        </barButtonItem>
                         <rightBarButtonItems>
                             <barButtonItem systemItem="add" id="Nsf-j9-qbV">
                                 <connections>
@@ -160,9 +175,11 @@
                         <outlet property="m_collection_view" destination="LCP-cl-qmP" id="yIf-IK-fmm"/>
                         <outlet property="m_grid_button" destination="VHr-c4-Ce6" id="1p2-ga-ZGO"/>
                         <outlet property="m_list_button" destination="wel-yO-LXb" id="uvx-2I-DV4"/>
+                        <outlet property="m_menu_button" destination="y3A-wm-8hv" id="RQn-JJ-iER"/>
                         <outlet property="m_navigation_item" destination="yCg-jX-vjT" id="CUq-I5-8Tg"/>
                         <outlet property="m_table_view" destination="V00-6y-ggr" id="aM4-7R-QkF"/>
                         <segue destination="DBS-kS-F5b" kind="show" identifier="to_emulation" id="Upk-Dq-M8D"/>
+                        <segue destination="tgy-N5-u5u" kind="presentation" identifier="to_wii_update" modalPresentationStyle="fullScreen" id="yGc-JS-KN6"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sk5-9A-bGR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
@@ -241,6 +258,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="SF_ellipsis_circle" width="17" height="17"/>
         <image name="SF_gamecontroller" width="24" height="15"/>
         <image name="SF_gear" width="19" height="19"/>
         <image name="SF_list_dash" width="17" height="12"/>

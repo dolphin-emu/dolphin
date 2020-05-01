@@ -13,7 +13,10 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic) UICommon::GameFileCache* m_cache;
 @property(nonatomic) bool m_cache_loaded;
 @property(nonatomic) const UICommon::GameFile* m_selected_file;
+@property(nonatomic) NSString* m_wii_region;
+@property(nonatomic) bool m_boot_wii_menu;
 @property (weak, nonatomic) IBOutlet UINavigationItem* m_navigation_item;
+@property (weak, nonatomic) IBOutlet UIBarButtonItem* m_menu_button;
 @property (nonatomic) IBOutlet UIBarButtonItem* m_grid_button;
 @property (nonatomic) IBOutlet UIBarButtonItem* m_list_button;
 @property (weak, nonatomic) IBOutlet UIBarButtonItem* m_add_button;
