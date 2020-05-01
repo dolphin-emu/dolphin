@@ -890,6 +890,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         return 0;
       }
 
+      IOS::HLE::IOSC iosc;
       auto temp_fs = std::make_unique<IOS::HLE::FS::HostFileSystem>(path);
       std::vector<u64> titles;
 
@@ -924,73 +925,26 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       {
         u64 title_id = Common::PacketReadU64(packet);
         titles.push_back(title_id);
+        // XXX: This is a hack. Title data directories are supposed to be created by ES and owned by
+        // the title itself, not by root.
         temp_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL,
                                 Common::GetTitleDataPath(title_id) + '/', 0, fs_modes);
-        auto save = WiiSave::MakeNandStorage(temp_fs.get(), title_id);
 
         bool exists;
         packet >> exists;
         if (!exists)
           continue;
 
-        // Header
-        WiiSave::Header header;
-        packet >> header.tid;
-        packet >> header.banner_size;
-        packet >> header.permissions;
-        packet >> header.unk1;
-        for (size_t i = 0; i < header.md5.size(); i++)
-          packet >> header.md5[i];
-        packet >> header.unk2;
-        for (size_t i = 0; i < header.banner_size; i++)
-          packet >> header.banner[i];
-
-        // BkHeader
-        WiiSave::BkHeader bk_header;
-        packet >> bk_header.size;
-        packet >> bk_header.magic;
-        packet >> bk_header.ngid;
-        packet >> bk_header.number_of_files;
-        packet >> bk_header.size_of_files;
-        packet >> bk_header.unk1;
-        packet >> bk_header.unk2;
-        packet >> bk_header.total_size;
-        for (size_t i = 0; i < bk_header.unk3.size(); i++)
-          packet >> bk_header.unk3[i];
-        packet >> bk_header.tid;
-        for (size_t i = 0; i < bk_header.mac_address.size(); i++)
-          packet >> bk_header.mac_address[i];
-
-        // Files
-        std::vector<WiiSave::Storage::SaveFile> files;
-        for (u32 i = 0; i < bk_header.number_of_files; i++)
+        const std::string temp_save_path = path + "/tmp_save.bin";
+        if (!DecompressPacketIntoFile(packet, temp_save_path))
         {
-          WiiSave::Storage::SaveFile file;
-          packet >> file.mode >> file.attributes;
-          {
-            u8 tmp;
-            packet >> tmp;
-            file.type = static_cast<WiiSave::Storage::SaveFile::Type>(tmp);
-          }
-          packet >> file.path;
-
-          if (file.type == WiiSave::Storage::SaveFile::Type::File)
-          {
-            auto buffer = DecompressPacketIntoBuffer(packet);
-            if (!buffer)
-            {
-              SyncSaveDataResponse(false);
-              return 0;
-            }
-
-            file.data = std::move(*buffer);
-          }
-
-          files.push_back(std::move(file));
+          SyncSaveDataResponse(false);
+          return 0;
         }
 
-        if (!save->WriteHeader(header) || !save->WriteBkHeader(bk_header) ||
-            !save->WriteFiles(files))
+        if (!WiiSave::Copy(&*WiiSave::MakeDataBinStorage(&iosc, temp_save_path, "rb",
+                                                         WiiSave::DataBinType::Unencrypted),
+                           &*WiiSave::MakeNandStorage(temp_fs.get(), title_id)))
         {
           PanicAlertT("Failed to write Wii save.");
           SyncSaveDataResponse(false);

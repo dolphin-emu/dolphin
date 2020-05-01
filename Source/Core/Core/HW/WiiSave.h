@@ -28,9 +28,16 @@ struct StorageDeleter
   void operator()(Storage* p) const;
 };
 
+enum class DataBinType
+{
+  Encrypted,
+  Unencrypted,
+};
+
 using StoragePointer = std::unique_ptr<Storage, StorageDeleter>;
 StoragePointer MakeNandStorage(IOS::HLE::FS::FileSystem* fs, u64 tid);
-StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode);
+StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode,
+                                  DataBinType type = DataBinType::Encrypted);
 
 bool Copy(Storage* source, Storage* destination);
 

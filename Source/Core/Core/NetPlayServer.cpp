@@ -1498,22 +1498,22 @@ bool NetPlayServer::SyncSaveData()
 
   if (wii_save)
   {
-    const auto configured_fs = IOS::HLE::FS::MakeFileSystem(IOS::HLE::FS::Location::Configured);
+    IOS::HLE::Kernel ios;
+    File::ScopedTemporaryDirectory temp_dir;
 
     std::vector<std::pair<u64, WiiSave::StoragePointer>> saves;
     if (m_settings.m_SyncAllWiiSaves)
     {
-      IOS::HLE::Kernel ios;
       for (const u64 title : ios.GetES()->GetInstalledTitles())
       {
-        auto save = WiiSave::MakeNandStorage(configured_fs.get(), title);
+        auto save = WiiSave::MakeNandStorage(ios.GetFS().get(), title);
         saves.push_back(std::make_pair(title, std::move(save)));
       }
     }
     else if (game->GetPlatform() == DiscIO::Platform::WiiDisc ||
              game->GetPlatform() == DiscIO::Platform::WiiWAD)
     {
-      auto save = WiiSave::MakeNandStorage(configured_fs.get(), game->GetTitleID());
+      auto save = WiiSave::MakeNandStorage(ios.GetFS().get(), game->GetTitleID());
       saves.push_back(std::make_pair(game->GetTitleID(), std::move(save)));
     }
 
@@ -1525,79 +1525,35 @@ bool NetPlayServer::SyncSaveData()
 
     // Shove the Mii data into the start the packet
     {
-      auto file = configured_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
-                                          Common::GetMiiDatabasePath(), IOS::HLE::FS::Mode::Read);
+      auto file = ios.GetFS()->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL,
+                                        Common::GetMiiDatabasePath(), IOS::HLE::FS::Mode::Read);
+      pac << static_cast<bool>(file);
       if (file)
       {
-        pac << true;
-
         std::vector<u8> file_data(file->GetStatus()->size);
         if (!file->Read(file_data.data(), file_data.size()))
           return false;
         if (!CompressBufferIntoPacket(file_data, pac))
           return false;
       }
-      else
-      {
-        pac << false;  // no mii data
-      }
     }
 
     // Carry on with the save files
     pac << static_cast<u32>(saves.size());
 
-    for (const auto& pair : saves)
+    for (const auto& [tid, save] : saves)
     {
-      pac << sf::Uint64{pair.first};
-      titles.push_back(pair.first);
-      const auto& save = pair.second;
+      pac << sf::Uint64{tid};
+      titles.push_back(tid);
 
-      if (save->SaveExists())
-      {
-        const std::optional<WiiSave::Header> header = save->ReadHeader();
-        const std::optional<WiiSave::BkHeader> bk_header = save->ReadBkHeader();
-        const std::optional<std::vector<WiiSave::Storage::SaveFile>> files = save->ReadFiles();
-        if (!header || !bk_header || !files)
-          return false;
-
-        pac << true;  // save exists
-
-        // Header
-        pac << sf::Uint64{header->tid};
-        pac << header->banner_size << header->permissions << header->unk1;
-        for (size_t i = 0; i < header->md5.size(); i++)
-          pac << header->md5[i];
-        pac << header->unk2;
-        for (size_t i = 0; i < header->banner_size; i++)
-          pac << header->banner[i];
-
-        // BkHeader
-        pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
-            << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
-            << bk_header->total_size;
-        for (size_t i = 0; i < bk_header->unk3.size(); i++)
-          pac << bk_header->unk3[i];
-        pac << sf::Uint64{bk_header->tid};
-        for (size_t i = 0; i < bk_header->mac_address.size(); i++)
-          pac << bk_header->mac_address[i];
-
-        // Files
-        for (const WiiSave::Storage::SaveFile& file : *files)
-        {
-          pac << file.mode << file.attributes << static_cast<u8>(file.type) << file.path;
-
-          if (file.type == WiiSave::Storage::SaveFile::Type::File)
-          {
-            const std::optional<std::vector<u8>>& data = *file.data;
-            if (!data || !CompressBufferIntoPacket(*data, pac))
-              return false;
-          }
-        }
-      }
-      else
-      {
-        pac << false;  // save does not exist
-      }
+      const std::string path = temp_dir.GetPath() + "/tmp_save.bin";
+      const bool copied =
+          save->SaveExists() &&
+          WiiSave::Copy(&*save, &*WiiSave::MakeDataBinStorage(&ios.GetIOSC(), path, "w+b",
+                                                              WiiSave::DataBinType::Unencrypted));
+      pac << copied;
+      if (copied && !CompressFileIntoPacket(path, pac))
+        return false;
     }
 
     // Set titles for host-side loading in WiiRoot

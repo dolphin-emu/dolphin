@@ -239,8 +239,9 @@ private:
 class DataBinStorage final : public Storage
 {
 public:
-  explicit DataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
-      : m_iosc{*iosc}
+  explicit DataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode,
+                          DataBinType type)
+      : m_type{type}, m_iosc{*iosc}
   {
     File::CreateFullPath(path);
     m_file = File::IOFile{path, mode};
@@ -253,8 +254,8 @@ public:
       return {};
 
     std::array<u8, 0x10> iv = s_sd_initial_iv;
-    m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
-                   sizeof(Header), reinterpret_cast<u8*>(&header), IOS::PID_ES);
+    Decrypt(iv, reinterpret_cast<const u8*>(&header), sizeof(Header),
+            reinterpret_cast<u8*>(&header));
     u32 banner_size = header.banner_size;
     if ((banner_size < FULL_BNR_MIN) || (banner_size > FULL_BNR_MAX) ||
         (((banner_size - BNR_SZ) % ICON_SZ) != 0))
@@ -325,8 +326,7 @@ public:
           if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
             return {};
 
-          m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
-                         file_data.data(), IOS::PID_ES);
+          Decrypt(iv, file_data.data(), rounded_size, file_data.data());
           file_data.resize(size);
           return file_data;
         };
@@ -341,8 +341,8 @@ public:
   {
     Header encrypted_header;
     std::array<u8, 0x10> iv = s_sd_initial_iv;
-    m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), reinterpret_cast<const u8*>(&header),
-                   sizeof(Header), reinterpret_cast<u8*>(&encrypted_header), IOS::PID_ES);
+    Encrypt(iv, reinterpret_cast<const u8*>(&header), sizeof(Header),
+            reinterpret_cast<u8*>(&encrypted_header));
     return m_file.Seek(0, SEEK_SET) && m_file.WriteArray(&encrypted_header, 1);
   }
 
@@ -383,8 +383,7 @@ public:
       {
         std::vector<u8> file_data_enc(Common::AlignUp(data->size(), BLOCK_SZ));
         std::copy(data->cbegin(), data->cend(), file_data_enc.begin());
-        m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, file_hdr.iv.data(), file_data_enc.data(),
-                       file_data_enc.size(), file_data_enc.data(), IOS::PID_ES);
+        Encrypt(file_hdr.iv, file_data_enc.data(), file_data_enc.size(), file_data_enc.data());
         if (!m_file.WriteBytes(file_data_enc.data(), file_data_enc.size()))
           return false;
       }
@@ -432,6 +431,23 @@ private:
            m_file.WriteArray(&device_certificate, 1) && m_file.WriteArray(&ap_cert, 1);
   }
 
+  void Encrypt(std::array<u8, 0x10>& iv, const u8* input, size_t size, u8* output)
+  {
+    if (m_type == DataBinType::Encrypted)
+      m_iosc.Encrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), input, size, output, IOS::PID_ES);
+    else
+      std::memmove(output, input, size);
+  }
+
+  void Decrypt(std::array<u8, 0x10>& iv, const u8* input, size_t size, u8* output)
+  {
+    if (m_type == DataBinType::Encrypted)
+      m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), input, size, output, IOS::PID_ES);
+    else
+      std::memmove(output, input, size);
+  }
+
+  DataBinType m_type;
   IOS::HLE::IOSC& m_iosc;
   File::IOFile m_file;
 };
@@ -441,9 +457,10 @@ StoragePointer MakeNandStorage(FS::FileSystem* fs, u64 tid)
   return StoragePointer{new NandStorage{fs, tid}};
 }
 
-StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode)
+StoragePointer MakeDataBinStorage(IOS::HLE::IOSC* iosc, const std::string& path, const char* mode,
+                                  DataBinType type)
 {
-  return StoragePointer{new DataBinStorage{iosc, path, mode}};
+  return StoragePointer{new DataBinStorage{iosc, path, mode, type}};
 }
 
 template <typename T>
