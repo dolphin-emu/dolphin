@@ -218,9 +218,6 @@
 /* Class = "UILabel"; text = "Néerlandais"; ObjectID = "xuE-0a-y6h"; */
 "xuE-0a-y6h.text" = "Néerlandais";
 
-/* Class = "UILabel"; text = "Always Show Top Bar"; ObjectID = "yKS-Vb-4Fe"; */
-"yKS-Vb-4Fe.text" = "Always Show Top Bar";
-
 /* Class = "UILabel"; text = "Vitesse"; ObjectID = "yax-jm-ehL"; */
 "yax-jm-ehL.text" = "Vitesse";
 
@@ -250,3 +247,21 @@
 
 /* Class = "UITableViewSection"; headerTitle = "Paramètres de base"; ObjectID = "gdG-9I-xOW"; */
 "gdG-9I-xOW.headerTitle" = "Paramètres de base";
+
+/* Class = "UILabel"; text = "Swipe Down"; ObjectID = "DKD-3b-KpQ"; */
+"DKD-3b-KpQ.text" = "Swipe Down";
+
+/* Class = "UILabel"; text = "Top Bar Mode"; ObjectID = "GpF-ug-PIN"; */
+"GpF-ug-PIN.text" = "Top Bar Mode";
+
+/* Class = "UILabel"; text = "Always Hidden"; ObjectID = "MaK-93-f0b"; */
+"MaK-93-f0b.text" = "Always Hidden";
+
+/* Class = "UILabel"; text = "Always Visible"; ObjectID = "inO-fF-5fU"; */
+"inO-fF-5fU.text" = "Always Visible";
+
+/* Class = "UILabel"; text = "Virtual Button"; ObjectID = "p30-XS-Tul"; */
+"p30-XS-Tul.text" = "Virtual Button";
+
+/* Class = "UINavigationItem"; title = "Top Bar Mode"; ObjectID = "xxn-2v-3zf"; */
+"xxn-2v-3zf.title" = "Top Bar Mode";

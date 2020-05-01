@@ -40,6 +40,20 @@
                                 <rect key="frame" x="0.0" y="88" width="414" height="774"/>
                                 <gestureRecognizers/>
                             </view>
+                            <button hidden="YES" opaque="NO" alpha="0.5" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="73U-sK-RYp">
+                                <rect key="frame" x="8" y="96" width="32" height="32"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="32" id="SUl-vZ-udH"/>
+                                    <constraint firstAttribute="height" constant="32" id="bf1-Vf-BbT"/>
+                                </constraints>
+                                <color key="tintColor" white="0.66666666669999997" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <state key="normal" backgroundImage="SF_arrow_down_circle">
+                                    <preferredSymbolConfiguration key="preferredSymbolConfiguration" scale="default"/>
+                                </state>
+                                <connections>
+                                    <action selector="topEdgeRecognized:" destination="72Z-je-Eys" eventType="touchUpInside" id="xqz-KN-Kr4"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <gestureRecognizers/>
@@ -51,6 +65,7 @@
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="top" secondItem="DHP-hz-C2m" secondAttribute="top" id="Ci6-ot-aVv"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="kFP-2O-2AC" secondAttribute="bottom" id="IWm-2c-gKB"/>
                             <constraint firstItem="daX-vt-kk3" firstAttribute="bottom" secondItem="MkU-9V-PoJ" secondAttribute="bottom" id="L1v-Zt-8lf"/>
+                            <constraint firstItem="73U-sK-RYp" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" constant="8" id="LsC-Hj-boN"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="top" secondItem="kFP-2O-2AC" secondAttribute="top" id="NYU-W4-kan"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="top" secondItem="Dzs-Je-a4O" secondAttribute="top" id="V6f-dU-BSw"/>
                             <constraint firstItem="daX-vt-kk3" firstAttribute="top" secondItem="MkU-9V-PoJ" secondAttribute="top" id="Vmf-Bw-Og5"/>
@@ -66,6 +81,7 @@
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="DHP-hz-C2m" secondAttribute="bottom" id="idl-QD-yJr"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="bottom" secondItem="YWH-fQ-xGM" secondAttribute="bottom" id="kvB-9E-d0e"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="MkU-9V-PoJ" secondAttribute="bottom" id="l7v-5a-mFJ"/>
+                            <constraint firstItem="73U-sK-RYp" firstAttribute="top" secondItem="Dzs-Je-a4O" secondAttribute="top" constant="8" id="nAj-Ci-3sW"/>
                             <constraint firstItem="daX-vt-kk3" firstAttribute="leading" secondItem="Dzs-Je-a4O" secondAttribute="leading" id="scI-dh-7aD"/>
                             <constraint firstItem="Dzs-Je-a4O" firstAttribute="centerY" secondItem="daX-vt-kk3" secondAttribute="bottom" id="uhM-Ah-BI9"/>
                             <constraint firstItem="ODM-xp-bCF" firstAttribute="bottom" secondItem="Dzs-Je-a4O" secondAttribute="centerY" id="xPp-nK-9tw"/>
@@ -119,6 +135,7 @@
                         <outlet property="m_metal_half_constraint" destination="xPp-nK-9tw" id="Dmm-bt-ZWA"/>
                         <outlet property="m_metal_view" destination="ODM-xp-bCF" id="iZt-J9-8uw"/>
                         <outlet property="m_navigation_item" destination="FkZ-jT-nNo" id="EDR-41-VMG"/>
+                        <outlet property="m_pull_down_button" destination="73U-sK-RYp" id="yVw-Q8-9Br"/>
                         <outlet property="m_wii_classic_pad" destination="YWH-fQ-xGM" id="apE-lX-o8f"/>
                         <outlet property="m_wii_normal_pad" destination="kFP-2O-2AC" id="0cx-4G-3Wk"/>
                         <outlet property="m_wii_sideways_pad" destination="DHP-hz-C2m" id="DVv-1S-JEJ"/>
@@ -164,6 +181,7 @@
         </scene>
     </scenes>
     <resources>
+        <image name="SF_arrow_down_circle" width="17" height="17"/>
         <image name="ic_settings_core" width="24" height="24"/>
     </resources>
 </document>
