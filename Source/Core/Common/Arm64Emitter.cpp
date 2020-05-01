@@ -310,7 +310,7 @@ void ARM64XEmitter::SetCodePtrUnsafe(u8* ptr)
   m_code = ptr;
 }
 
-void ARM64XEmitter::SetCodePtr(u8* ptr)
+void ARM64XEmitter::SetCodePtr(u8* ptr, u8* end, bool write_failed)
 {
   SetCodePtrUnsafe(ptr);
   m_lastCacheFlushEnd = ptr;

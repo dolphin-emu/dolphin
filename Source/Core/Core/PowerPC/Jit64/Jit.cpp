@@ -281,7 +281,7 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
   u8* start = info.start;
 
   // Patch the original memory operation.
-  XEmitter emitter(start);
+  XEmitter emitter(start, start + info.len);
   emitter.JMP(trampoline, true);
   // NOPs become dead code
   const u8* end = info.start + info.len;
@@ -351,6 +351,7 @@ void Jit64::Init()
   AddChildCodeSpace(&trampolines, trampolines_size);
   AddChildCodeSpace(&m_far_code, farcode_size);
   m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
+  ResetCodePtr();
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
