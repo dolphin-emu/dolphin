@@ -231,6 +231,45 @@
   [self.m_table_view deselectRowAtIndexPath:indexPath animated:true];
 }
 
+#pragma mark - Long press
+
+- (IBAction)HandleLongPress:(UILongPressGestureRecognizer*)recognizer
+{
+  if (recognizer.state != UIGestureRecognizerStateBegan)
+  {
+    return;
+  }
+  
+  bool table_view = ![self.m_table_view isHidden];
+  CGPoint point = table_view ? [recognizer locationInView:self.m_table_view] : [recognizer locationInView:self.m_collection_view];
+  NSIndexPath* index_path = table_view ? [self.m_table_view indexPathForRowAtPoint:point] : [self.m_collection_view indexPathForItemAtPoint:point];
+  UIView* source_view = table_view ? [self.m_table_view cellForRowAtIndexPath:index_path] : [self.m_collection_view cellForItemAtIndexPath:index_path];
+  
+  const UICommon::GameFile* game_file = self.m_cache->Get(index_path.row).get();
+  
+  UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:CppToFoundationString(game_file->GetUniqueIdentifier()) preferredStyle:UIAlertControllerStyleActionSheet];
+  
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Delete") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
+  {
+    if (File::Delete(game_file->GetFilePath()))
+    {
+      [self rescanWithCompletionHandler:nil];
+    }
+  }]];
+  
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+  
+  if (action_sheet.popoverPresentationController != nil)
+  {
+    action_sheet.popoverPresentationController.sourceView = source_view;
+    action_sheet.popoverPresentationController.sourceRect = source_view.bounds;
+  }
+  
+  [self presentViewController:action_sheet animated:true completion:nil];
+  
+}
+
+
 #pragma mark - Swap button
 
 - (IBAction)ChangeViewButtonPressed:(id)sender
