@@ -88,14 +88,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="43"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43.666667938232422"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.666667938232422"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="11" width="345" height="21"/>
+                                                    <rect key="frame" x="15" y="11.000000000000002" width="345" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -120,6 +120,7 @@
                             </tableView>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <gestureRecognizers/>
                         <constraints>
                             <constraint firstItem="LCP-cl-qmP" firstAttribute="trailing" secondItem="Pg7-bj-q24" secondAttribute="trailing" id="4am-Om-Rhg"/>
                             <constraint firstItem="LCP-cl-qmP" firstAttribute="leading" secondItem="Pg7-bj-q24" secondAttribute="leading" id="CG2-S5-goT"/>
@@ -131,6 +132,9 @@
                             <constraint firstItem="LCP-cl-qmP" firstAttribute="bottom" secondItem="Pg7-bj-q24" secondAttribute="bottom" id="pbf-UO-c64"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="Pg7-bj-q24"/>
+                        <connections>
+                            <outletCollection property="gestureRecognizers" destination="d4g-Qk-L7c" appends="YES" id="OkZ-cC-OSU"/>
+                        </connections>
                     </view>
                     <navigationItem key="navigationItem" title="Games" id="yCg-jX-vjT">
                         <rightBarButtonItems>
@@ -162,6 +166,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sk5-9A-bGR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <pongPressGestureRecognizer allowableMovement="10" minimumPressDuration="1" id="d4g-Qk-L7c">
+                    <connections>
+                        <action selector="HandleLongPress:" destination="VNJ-F0-t9O" id="UPP-7K-0JD"/>
+                    </connections>
+                </pongPressGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="1948" y="-219"/>
         </scene>
