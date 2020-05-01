@@ -53,3 +53,35 @@ void JitBlockCache::WriteDestroyBlock(const JitBlock& block)
   Gen::XEmitter emit2(block.normalEntry, block.normalEntry + 1);
   emit2.INT3();
 }
+
+void JitBlockCache::Init()
+{
+  JitBaseBlockCache::Init();
+  ClearRangesToFree();
+}
+
+void JitBlockCache::DestroyBlock(JitBlock& block)
+{
+  JitBaseBlockCache::DestroyBlock(block);
+
+  if (block.near_begin != block.near_end)
+    m_ranges_to_free_on_next_codegen_near.emplace_back(block.near_begin, block.near_end);
+  if (block.far_begin != block.far_end)
+    m_ranges_to_free_on_next_codegen_far.emplace_back(block.far_begin, block.far_end);
+}
+
+const std::vector<std::pair<u8*, u8*>>& JitBlockCache::GetRangesToFreeNear() const
+{
+  return m_ranges_to_free_on_next_codegen_near;
+}
+
+const std::vector<std::pair<u8*, u8*>>& JitBlockCache::GetRangesToFreeFar() const
+{
+  return m_ranges_to_free_on_next_codegen_far;
+}
+
+void JitBlockCache::ClearRangesToFree()
+{
+  m_ranges_to_free_on_next_codegen_near.clear();
+  m_ranges_to_free_on_next_codegen_far.clear();
+}
