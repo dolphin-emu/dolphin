@@ -127,6 +127,10 @@ void AdvancedPane::CreateLayout()
   mem2_override_slider_layout->addWidget(m_mem2_override_slider_label);
 
   auto* ram_override_description =
+      // i18n: "Retail titles should be optimized for the retail memory limitations" is a
+      // description of how GameCube/Wii games typically behave (in other words, "Retail titles are
+      // normally optimized for the retail memory limitations"), not an instruction that the user
+      // should do something.
       new QLabel(tr("Adjusts the emulated sizes of MEM1 and MEM2.\n\n"
                     "Some titles may recognize the larger memory arena(s) and take "
                     "advantage of it, though retail titles should be optimized for "

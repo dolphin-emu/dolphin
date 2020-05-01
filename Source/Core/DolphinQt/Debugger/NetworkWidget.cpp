@@ -241,6 +241,7 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
   socket_table_group->setLayout(socket_table_layout);
 
   m_socket_table = new QTableWidget();
+  // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
   QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Name")};
   m_socket_table->setColumnCount(header.size());
 
@@ -286,6 +287,7 @@ QGroupBox* NetworkWidget::CreateSSLOptionsGroup()
 
   m_dump_ssl_read_checkbox = new QCheckBox(tr("Dump SSL read"));
   m_dump_ssl_write_checkbox = new QCheckBox(tr("Dump SSL write"));
+  // i18n: CA stands for certificate authority
   m_dump_root_ca_checkbox = new QCheckBox(tr("Dump root CA"));
   m_dump_peer_cert_checkbox = new QCheckBox(tr("Dump peer certificates"));
   m_verify_certificates_checkbox = new QCheckBox(tr("Verify certificates"));

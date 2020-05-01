@@ -29,10 +29,14 @@ GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(pa
   m_combobox_size->setCurrentIndex(5);
 
   m_radio_western = new QRadioButton(tr("Western (Windows-1252)"));
+  // i18n: The translation of this string should be consistent with the translation of the
+  // string "Western (Windows-1252)". Because of this, you may want to parse "Japanese" as
+  // "a character encoding which is from Japan / used in Japan" rather than "the Japanese language".
   m_radio_shiftjis = new QRadioButton(tr("Japanese (Shift-JIS)"));
   m_radio_western->setChecked(true);
 
   auto* card_size_label = new QLabel(tr("Card Size"));
+  // i18n: Character encoding
   auto* card_encoding_label = new QLabel(tr("Encoding"));
   auto* button_box = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel, this);
   button_box->button(QDialogButtonBox::Ok)->setText(tr("Create..."));
