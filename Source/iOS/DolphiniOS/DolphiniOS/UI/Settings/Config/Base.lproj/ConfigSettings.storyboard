@@ -202,9 +202,7 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="bws-ZT-dhT">
                                                     <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
                                                     <connections>
-                                                        <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="dkI-Xc-5aG"/>
                                                         <action selector="ConfirmStopChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="QLD-Wr-WVn"/>
-                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="lJD-as-0En"/>
                                                     </connections>
                                                 </switch>
                                             </subviews>
@@ -233,8 +231,6 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="qb7-al-27y">
                                                     <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
                                                     <connections>
-                                                        <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="GlE-vt-pQq"/>
-                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="4r0-B8-sy5"/>
                                                         <action selector="UsePanicHandlersChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="0Nk-Jf-dH5"/>
                                                     </connections>
                                                 </switch>
@@ -264,9 +260,7 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="H4r-mv-ORD">
                                                     <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
                                                     <connections>
-                                                        <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="1IY-Nl-K7q"/>
                                                         <action selector="ShowOsdChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="bwB-Uj-jZf"/>
-                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="Cfc-2h-nUC"/>
                                                     </connections>
                                                 </switch>
                                             </subviews>
@@ -296,7 +290,6 @@
                                                     <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
                                                     <connections>
                                                         <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="dZL-OT-B0l"/>
-                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="njv-Tx-BZs"/>
                                                     </connections>
                                                 </switch>
                                             </subviews>
@@ -724,8 +717,6 @@
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="fz4-72-O1T">
                                                     <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
                                                     <connections>
-                                                        <action selector="CenterImageChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="BqU-u8-rLE"/>
-                                                        <action selector="ShowTopBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="fF1-kv-a64"/>
                                                         <action selector="StretchingToggled:" destination="aKU-4f-y3Z" eventType="valueChanged" id="9Mx-WQ-zoP"/>
                                                     </connections>
                                                 </switch>
