@@ -63,6 +63,7 @@
 		B945A3EE2362DBB200B21680 /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39F2362DB7C00B21680 /* libglslang.a */; };
 		B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A92362DB7C00B21680 /* libcpp-optparse.a */; };
 		B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3F32362E24000B21680 /* libc++.tbd */; };
+		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -346,6 +347,8 @@
 		B945A3CE2362DB9800B21680 /* libaudiocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudiocommon.a; path = ../../../build/libs/Dolphin/libaudiocommon.a; sourceTree = "<group>"; };
 		B945A3CF2362DB9800B21680 /* libinputcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libinputcommon.a; path = ../../../build/libs/Dolphin/libinputcommon.a; sourceTree = "<group>"; };
 		B945A3F32362E24000B21680 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
+		B946AF0F245B953B0043767A /* TopBarModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TopBarModeViewController.h; sourceTree = "<group>"; };
+		B946AF10245B953B0043767A /* TopBarModeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TopBarModeViewController.m; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -876,6 +879,8 @@
 			children = (
 				B98584C523CEDFB800BE94B0 /* ConfigInterfaceViewController.h */,
 				B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */,
+				B946AF0F245B953B0043767A /* TopBarModeViewController.h */,
+				B946AF10245B953B0043767A /* TopBarModeViewController.m */,
 			);
 			path = Interface;
 			sourceTree = "<group>";
@@ -1562,6 +1567,7 @@
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
 				B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */,
+				B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */,
 				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.mm in Sources */,
 				B9EFBFA923AF7DB000593A20 /* ControllerDeviceCell.m in Sources */,
 				B9EEFBF923DA261600EAF92A /* AboutViewController.m in Sources */,
@@ -1948,7 +1954,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -1989,7 +1995,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = me.oatmealdome.DolphiniOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2100,7 +2106,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2205,7 +2211,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.1.0;
+				MARKETING_VERSION = 2.1.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-patreon-beta";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";

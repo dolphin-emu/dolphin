@@ -8,9 +8,6 @@
 /* Class = "UINavigationItem"; title = "設定"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = "設定";
 
-/* Class = "UILabel"; text = "Always Show Top Bar"; ObjectID = "yKS-Vb-4Fe"; */
-"yKS-Vb-4Fe.text" = "Always Show Top Bar";
-
 /* Class = "UINavigationItem"; title = "表示"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "表示";
 
@@ -250,3 +247,21 @@
 
 /* Class = "UITableViewSection"; headerTitle = "基本設定"; ObjectID = "gdG-9I-xOW"; */
 "gdG-9I-xOW.headerTitle" = "基本設定";
+
+/* Class = "UILabel"; text = "Swipe Down"; ObjectID = "DKD-3b-KpQ"; */
+"DKD-3b-KpQ.text" = "Swipe Down";
+
+/* Class = "UILabel"; text = "Top Bar Mode"; ObjectID = "GpF-ug-PIN"; */
+"GpF-ug-PIN.text" = "Top Bar Mode";
+
+/* Class = "UILabel"; text = "Always Hidden"; ObjectID = "MaK-93-f0b"; */
+"MaK-93-f0b.text" = "Always Hidden";
+
+/* Class = "UILabel"; text = "Always Visible"; ObjectID = "inO-fF-5fU"; */
+"inO-fF-5fU.text" = "Always Visible";
+
+/* Class = "UILabel"; text = "Virtual Button"; ObjectID = "p30-XS-Tul"; */
+"p30-XS-Tul.text" = "Virtual Button";
+
+/* Class = "UINavigationItem"; title = "Top Bar Mode"; ObjectID = "xxn-2v-3zf"; */
+"xxn-2v-3zf.title" = "Top Bar Mode";

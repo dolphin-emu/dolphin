@@ -14,6 +14,13 @@
 
 #import "UICommon/GameFile.h"
 
+typedef NS_ENUM(NSUInteger, DOLTopBarPullDownMode) {
+  DOLTopBarPullDownModeSwipe = 0,
+  DOLTopBarPullDownModeButton,
+  DOLTopBarPullDownModeAlwaysVisible,
+  DOLTopBarPullDownModeAlwaysHidden
+};
+
 NS_ASSUME_NONNULL_BEGIN
 
 @interface EmulationViewController : GCEventViewController
@@ -37,11 +44,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong, nonatomic) IBOutlet UIScreenEdgePanGestureRecognizer* m_edge_pan_recognizer;
 
 @property (weak, nonatomic) IBOutlet UINavigationItem* m_navigation_item;
+@property (weak, nonatomic) IBOutlet UIButton* m_pull_down_button;
 
 @property(nonatomic) UICommon::GameFile* m_game_file;
 @property(nonatomic) UIView* m_renderer_view;
-@property(nonatomic) bool m_should_disable_edge_pan;
 @property(nonatomic) int m_ts_active_port;
+@property(nonatomic) DOLTopBarPullDownMode m_pull_down_mode;
 @property(weak, nonatomic) TCView* m_ts_active_view;
 @property(nonatomic) UIBarButtonItem* m_stop_button;
 @property(nonatomic) UIBarButtonItem* m_pause_button;
