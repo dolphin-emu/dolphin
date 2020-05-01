@@ -23,7 +23,7 @@
   // Find the currently selected port
   self.m_last_selected = -1;
   
-  if (self.m_emulation_controller.m_ts_active_port == -1)
+  if (self.m_emulation_controller.m_ts_active_port == -2)
   {
     self.m_last_selected = 0;
   }
@@ -95,7 +95,7 @@
   
   if (indexPath.row == 0)
   {
-    [self.m_emulation_controller ChangeVisibleTouchControllerToPort:-1];
+    [self.m_emulation_controller ChangeVisibleTouchControllerToPort:-2];
   }
   else
   {

@@ -4,6 +4,9 @@
 
 #import "EmulationViewController.h"
 
+#import <utility>
+#import <variant>
+
 #import "ControllerSettingsUtils.h"
 
 #import "Common/FileUtil.h"
@@ -30,6 +33,7 @@
 #import "MainiOS.h"
 
 #import "UICommon/GameFile.h"
+#import "UICommon/GameFileCache.h"
 
 #import "VideoCommon/RenderBase.h"
 
@@ -43,24 +47,6 @@
 {
   [super viewDidLoad];
   
-  // Do not synthesize events from controller data for the responder chain
-  self.controllerUserInteractionEnabled = false;
-  
-  if (self.m_game_file == nullptr)
-  {
-    // Create the GameFile from the last game
-    NSString* path = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_path"];
-    self.m_game_file = new UICommon::GameFile(std::string([path UTF8String]));
-  }
-  else
-  {
-    // Save the last game information
-    NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-    [defaults setObject:CppToFoundationString(self.m_game_file->GetLongName()) forKey:@"last_game_title"];
-    [defaults setObject:CppToFoundationString(self.m_game_file->GetFilePath()) forKey:@"last_game_path"];
-    [defaults setInteger:State::GetVersion() forKey:@"last_game_state_version"];
-  }
-  
   // Setup renderer view
   if (SConfig::GetInstance().m_strVideoBackend == "Vulkan")
   {
@@ -73,19 +59,7 @@
   
   [self.m_renderer_view setHidden:false];
   
-  // Set default port
-  [self PopulatePortDictionary];
-  
-  if (self->m_controllers.size() != 0)
-  {
-    self.m_ts_active_port = self->m_controllers[0].first;
-  }
-  else
-  {
-    self.m_ts_active_port = -1;
-  }
-  
-  [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
+  self.m_ts_active_port = -1;
   
   if (self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysHidden && self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysVisible)
   {
@@ -139,13 +113,52 @@
     self.m_stop_button,
     self.m_pause_button
   ];
-  
-  [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
 }
 
 - (void)StartEmulation
 {
-  NSString* uid = CppToFoundationString(self.m_game_file->GetUniqueIdentifier());
+  [MainiOS startEmulationWithBootParameters:std::move(self->m_boot_parameters) viewController:self view:self.m_renderer_view];
+  
+  [[TCDeviceMotion shared] stopMotionUpdates];
+  
+  [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
+  
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
+  });
+}
+
+- (void)RunningTitleUpdated
+{
+  NSString* uid = nil;
+  NSString* last_game_path; // same name for compatibility
+  
+  UICommon::GameFileCache* cache = new UICommon::GameFileCache();
+  cache->Load();
+  
+  for (size_t i = 0; i < cache->GetSize(); i++)
+  {
+    std::shared_ptr<const UICommon::GameFile> game_file = cache->Get(i);
+    if (SConfig::GetInstance().GetGameID() == game_file->GetGameID())
+    {
+      uid = CppToFoundationString(game_file->GetUniqueIdentifier());
+      last_game_path = CppToFoundationString(game_file->GetFilePath());
+      self.m_is_wii = DiscIO::IsWii(game_file->GetPlatform());
+    }
+  }
+  
+  if (uid == nil)
+  {
+    uid = CppToFoundationString(SConfig::GetInstance().GetTitleDescription());
+    last_game_path = [NSString stringWithFormat:@"%016llx", SConfig::GetInstance().GetTitleID()];
+    self.m_is_wii = true; // assume yes
+  }
+  
+  // Save the last game information
+  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
+  [defaults setObject:uid forKey:@"last_game_title"];
+  [defaults setObject:last_game_path forKey:@"last_game_path"];
+  [defaults setInteger:State::GetVersion() forKey:@"last_game_state_version"];
   
   NSMutableArray<NSString*>* controller_list = [[NSMutableArray alloc] init];
   for (GCController* controller in [GCController controllers])
@@ -176,8 +189,6 @@
     @"connected_controllers" : [controller_list count] != 0 ? [controller_list componentsJoinedByString:@", "] : @"none"
   }];
   
-  [[FIRCrashlytics crashlytics] setCustomValue:uid forKey:@"current-game"];
-  
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
   if (![games_array containsObject:uid])
   {
@@ -190,15 +201,21 @@
     
     [[NSUserDefaults standardUserDefaults] setObject:mutable_games_array forKey:@"unique_games"];
   }
-
-  [MainiOS startEmulationWithFile:[NSString stringWithUTF8String:self.m_game_file->GetFilePath().c_str()] viewController:self view:self.m_renderer_view];
   
-  [[TCDeviceMotion shared] stopMotionUpdates];
+  [[FIRCrashlytics crashlytics] setCustomValue:uid forKey:@"current-game"];
   
-  [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
-  
-  dispatch_sync(dispatch_get_main_queue(), ^{
-    [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self PopulatePortDictionary];
+    
+    if (self.m_ts_active_port == -1)
+    {
+      if (self->m_controllers.size() != 0)
+      {
+        self.m_ts_active_port = self->m_controllers[0].first;
+      }
+    }
+    
+    [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
   });
 }
 
@@ -338,7 +355,12 @@
   self->m_controllers.clear();
   bool has_gccontroller_connected = false;
   
-  if (DiscIO::IsWii(self.m_game_file->GetPlatform()))
+  while (SConfig::GetInstance().m_region == DiscIO::Region::Unknown)
+  {
+    // Spin
+  }
+  
+  if (self.m_is_wii)
   {
     InputConfig* wii_input_config = Wiimote::GetConfig();
     for (int i = 0; i < 4; i++)
@@ -424,11 +446,13 @@
     [self.m_ts_active_view setUserInteractionEnabled:false];
   }
   
-  if (port == -1)
+  if (port == -2)
   {
     [[TCDeviceMotion shared] stopMotionUpdates];
-    self.m_ts_active_port = -1;
+    self.m_ts_active_port = -2;
     self.m_ts_active_view = nil;
+    
+    return;
   }
   
   bool found_port = false;
@@ -467,6 +491,12 @@
   
   if (!found_port)
   {
+    if (self->m_controllers.size() != 0)
+    {
+      [self ChangeVisibleTouchControllerToPort:self->m_controllers[0].first];
+      return;
+    }
+    
     [[TCDeviceMotion shared] stopMotionUpdates];
     self.m_ts_active_port = -1;
     self.m_ts_active_view = nil;
@@ -487,6 +517,8 @@
     
     [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
   }
+  
+    [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
 }
 
 #pragma mark - Memory warning
@@ -499,8 +531,22 @@
   mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
   kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
   
+  NSString* uid;
+  if (std::holds_alternative<BootParameters::Disc>(self->m_boot_parameters->parameters))
+  {
+    BootParameters::Disc disc_parameters = std::move(std::get<BootParameters::Disc>(self->m_boot_parameters->parameters));
+    UICommon::GameFile game_file = UICommon::GameFile(disc_parameters.path);
+    
+    // Analytics compatibility with 2.x.x
+    uid = CppToFoundationString(game_file.GetUniqueIdentifier());
+  }
+  else
+  {
+    uid = CppToFoundationString(SConfig::GetInstance().GetTitleDescription());
+  }
+  
   [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
-    @"game_uid" : CppToFoundationString(self.m_game_file->GetUniqueIdentifier()),
+    @"game_uid" : uid,
     @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
     @"system_total_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
   }];

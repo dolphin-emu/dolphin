@@ -35,6 +35,12 @@
 
 #include "VideoCommon/RenderBase.h"
 
+@interface EmulationViewController : UIViewController
+
+- (void)RunningTitleUpdated;
+
+@end
+
 // The Core only supports using a single Host thread.
 // If multiple threads want to call host functions then they need to queue
 // sequentially for access.
@@ -42,8 +48,8 @@ std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
 bool s_have_wm_user_stop = false;
 
-// Our UIViewController
-UIViewController* s_view_controller = nullptr;
+// Our EmulationViewController
+EmulationViewController* s_view_controller = nullptr;
 
 void Host_NotifyMapLoaded()
 {
@@ -118,6 +124,7 @@ void Host_UpdateProgressDialog(const char* caption, int position, int total)
 
 void Host_TitleChanged()
 {
+  [s_view_controller RunningTitleUpdated];
 }
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
@@ -314,7 +321,7 @@ void UpdateWiiPointer()
   }
 }
 
-+ (void)startEmulationWithFile:(NSString*)file viewController:(UIViewController*)viewController view:(UIView*)view
++ (void)startEmulationWithBootParameters:(std::unique_ptr<BootParameters>)params viewController:(EmulationViewController*)viewController view:(UIView*)view;
 {
   s_view_controller = viewController;
 
@@ -324,25 +331,32 @@ void UpdateWiiPointer()
   wsi.render_surface = (__bridge void*)view;
   wsi.render_surface_scale = [UIScreen mainScreen].scale;  
 
-  std::unique_ptr<BootParameters> boot;
+  /*std::unique_ptr<BootParameters> boot;
 
-  std::string auto_save_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"; 
-  if (File::Exists(auto_save_path))
+  if ([file isEqualToString:@"wii-menu"])
   {
-    boot = BootParameters::GenerateFromFile([file UTF8String], auto_save_path);
-    boot->delete_savestate = true;
+
   }
   else
   {
-    boot = BootParameters::GenerateFromFile([file UTF8String]);
-  }
+    std::string auto_save_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"; 
+    if (File::Exists(auto_save_path))
+    {
+      boot = BootParameters::GenerateFromFile([file UTF8String], auto_save_path);
+      boot->delete_savestate = true;
+    }
+    else
+    {
+      boot = BootParameters::GenerateFromFile([file UTF8String]);
+    }
+  }*/
 
   std::unique_lock<std::mutex> guard(s_host_identity_lock);
 
   // No use running the loop when booting fails
   s_have_wm_user_stop = false;
 
-  if (BootManager::BootCore(std::move(boot), wsi))
+  if (BootManager::BootCore(std::move(params), wsi))
   {
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;
@@ -372,7 +386,7 @@ void UpdateWiiPointer()
   s_update_main_frame_event.Set();
 }
 
-+ (UIViewController*)getEmulationViewController
++ (EmulationViewController*)getEmulationViewController
 {
   return s_view_controller;
 }
