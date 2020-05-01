@@ -33,7 +33,6 @@
   [self.m_confirm_stop_switch setOn:SConfig::GetInstance().bConfirmStop];
   [self.m_panic_handlers_switch setOn:SConfig::GetInstance().bUsePanicHandlers];
   [self.m_osd_switch setOn:SConfig::GetInstance().bOnScreenDisplayMessages];
-  [self.m_top_bar_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"]];
   [self.m_center_image_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"do_not_raise_rendering_view"]];
 }
 
@@ -51,11 +50,6 @@
 - (IBAction)ShowOsdChanged:(id)sender
 {
   SConfig::GetInstance().bOnScreenDisplayMessages = [self.m_osd_switch isOn];
-}
-
-- (IBAction)ShowTopBarChanged:(id)sender
-{
-  [[NSUserDefaults standardUserDefaults] setBool:[self.m_top_bar_switch isOn] forKey:@"always_show_top_bar"];
 }
 
 - (IBAction)CenterImageChanged:(id)sender

@@ -87,6 +87,42 @@
   
   [self ChangeVisibleTouchControllerToPort:self.m_ts_active_port];
   
+  if (self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysHidden && self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysVisible)
+  {
+    for (GCController* controller in [GCController controllers])
+    {
+      if (@available(iOS 13, *))
+      {
+        void (^handler)(GCControllerButtonInput*, float, bool) = ^(GCControllerButtonInput* button, float value, bool pressed)
+        {
+          if (!pressed)
+          {
+            return;
+          }
+          
+          [self topEdgeRecognized:nil];
+        };
+        
+        if (controller.extendedGamepad != nil)
+        {
+          controller.extendedGamepad.buttonMenu.pressedChangedHandler = handler;
+        }
+        else if (controller.microGamepad != nil)
+        {
+          controller.extendedGamepad.buttonMenu.pressedChangedHandler = handler;
+        }
+      }
+      else
+      {
+        // Fallback to controller paused handler
+        controller.controllerPausedHandler = ^(GCController*)
+        {
+          [self topEdgeRecognized:nil];
+        };
+      }
+    }
+  }
+  
   // Adjust view depending on preference
   bool do_not_raise = [[NSUserDefaults standardUserDefaults] boolForKey:@"do_not_raise_rendering_view"];
   [self.m_metal_half_constraint setActive:!do_not_raise];
@@ -191,7 +227,7 @@
 
 - (UIRectEdge)preferredScreenEdgesDeferringSystemGestures
 {
-  return self.m_should_disable_edge_pan ? UIRectEdgeNone : UIRectEdgeTop;
+  return self.m_pull_down_mode == DOLTopBarPullDownModeSwipe ? UIRectEdgeTop : UIRectEdgeNone;
 }
 
 - (bool)prefersStatusBarHidden
@@ -367,10 +403,16 @@
     }
   }
   
-  self.m_should_disable_edge_pan = [[NSUserDefaults standardUserDefaults] boolForKey:@"always_show_top_bar"] || has_gccontroller_connected;
+  self.m_pull_down_mode = (DOLTopBarPullDownMode)[[NSUserDefaults standardUserDefaults] integerForKey:@"top_bar_pull_down_mode"];
   
-  [self.navigationController setNavigationBarHidden:!self.m_should_disable_edge_pan animated:true];
-  [self.m_edge_pan_recognizer setEnabled:!self.m_should_disable_edge_pan];
+  if (has_gccontroller_connected && self.m_pull_down_mode == DOLTopBarPullDownModeSwipe)
+  {
+    self.m_pull_down_mode = DOLTopBarPullDownModeButton;
+  }
+  
+  [self.navigationController setNavigationBarHidden:self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysVisible animated:true];
+  [self.m_edge_pan_recognizer setEnabled:self.m_pull_down_mode == DOLTopBarPullDownModeSwipe];
+  [self.m_pull_down_button setHidden:self.m_pull_down_mode != DOLTopBarPullDownModeButton];
   [self setNeedsUpdateOfScreenEdgesDeferringSystemGestures];
 }
 
