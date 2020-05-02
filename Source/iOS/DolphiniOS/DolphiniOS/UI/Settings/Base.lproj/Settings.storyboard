@@ -217,6 +217,32 @@
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
+                            <tableViewSection id="iWt-hv-Y73">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" rowHeight="43.5" id="mhR-QE-MIb">
+                                        <rect key="frame" x="16" y="438" width="343" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="mhR-QE-MIb" id="LOk-rV-BiK">
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quit" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1co-pK-Y2u">
+                                                    <rect key="frame" x="15" y="11.000000000000002" width="308" height="21.666666666666671"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="1co-pK-Y2u" firstAttribute="centerY" secondItem="LOk-rV-BiK" secondAttribute="centerY" id="DeI-1h-pZh"/>
+                                                <constraint firstItem="1co-pK-Y2u" firstAttribute="leading" secondItem="LOk-rV-BiK" secondAttribute="leadingMargin" id="KdD-iY-aiH"/>
+                                                <constraint firstItem="1co-pK-Y2u" firstAttribute="top" secondItem="LOk-rV-BiK" secondAttribute="topMargin" id="hNE-Di-r0B"/>
+                                                <constraint firstAttribute="trailing" secondItem="1co-pK-Y2u" secondAttribute="trailing" constant="20" symbolic="YES" id="sFq-xs-MGb"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
                         </sections>
                         <connections>
                             <outlet property="dataSource" destination="B4L-TL-IR8" id="fUe-Ru-FzP"/>

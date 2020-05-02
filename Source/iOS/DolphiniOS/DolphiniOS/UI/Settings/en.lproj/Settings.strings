@@ -103,3 +103,6 @@
 
 /* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "ssc-yG-eeX"; */
 "ssc-yG-eeX.headerTitle" = "Misc";
+
+/* Class = "UILabel"; text = "Quit"; ObjectID = "1co-pK-Y2u"; */
+"1co-pK-Y2u.text" = "Quit";

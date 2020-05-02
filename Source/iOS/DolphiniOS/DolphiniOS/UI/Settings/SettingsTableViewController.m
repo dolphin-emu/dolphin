@@ -49,6 +49,22 @@
     
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url] options:@{} completionHandler:nil];
   }
+  else if (indexPath.section == 2) // Quit button
+  {
+    exit(0);
+  }
+}
+
+- (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
+{
+#ifndef NONJAILBROKEN
+  if (indexPath.section == 2)
+  {
+    return CGFLOAT_MIN;
+  }
+#endif
+  
+  return [super tableView:tableView heightForRowAtIndexPath:indexPath];
 }
 
 - (IBAction)UnwindToSettings:(UIStoryboardSegue*)segue {}
