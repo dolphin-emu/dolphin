@@ -129,7 +129,7 @@ void AdvancedPane::CreateLayout()
   auto* ram_override_description =
       new QLabel(tr("Adjusts the emulated sizes of MEM1 and MEM2.\n\n"
                     "Some titles may recognize the larger memory arena(s) and take "
-                    "advantage of it, though retail titles should be optimized for "
+                    "advantage of it, though retail titles are normally optimized for "
                     "the retail memory limitations."));
   ram_override_description->setWordWrap(true);
   ram_override_layout->addWidget(ram_override_description);
