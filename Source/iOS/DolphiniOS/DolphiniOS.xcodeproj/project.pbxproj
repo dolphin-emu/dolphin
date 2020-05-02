@@ -2107,10 +2107,9 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */;
 			buildSettings = {
-				APP_NAME = DolphiniOS;
+				APP_NAME = "DolphiniOS";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				BUILD_FOR_JAILBROKEN_DEVICE = YES;
-				"BUILD_FOR_JAILBROKEN_DEVICE[sdk=iphonesimulator*]" = NO;
+				BUILD_FOR_JAILBROKEN_DEVICE = NO;
 				BUILD_FOR_PATREON = NO;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
 				CLANG_CXX_LIBRARY = "compiler-default";
