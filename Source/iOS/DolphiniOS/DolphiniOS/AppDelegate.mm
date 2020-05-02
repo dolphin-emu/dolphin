@@ -271,26 +271,7 @@
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
-  if (Core::IsRunning())
-  {
-    Core::Stop();
-    
-    // Spin while Core stops
-    while (Core::GetState() != Core::State::Uninitialized);
-  }
-  
-  [[TCDeviceMotion shared] stopMotionUpdates];
-  ButtonManager::Shutdown();
-  Pad::Shutdown();
-  Keyboard::Shutdown();
-  Wiimote::Shutdown();
-  g_controller_interface.Shutdown();
-  
-  Config::Save();
-  SConfig::GetInstance().SaveSettings();
-  
-  Core::Shutdown();
-  UICommon::Shutdown();
+  [AppDelegate Shutdown];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
@@ -365,6 +346,34 @@
   [MainiOS importFiles:[NSSet setWithObject:url]];
   
   return YES;
+}
+
++ (void)Shutdown
+{
+  if (Core::IsRunning())
+  {
+    Core::Stop();
+    
+    // Spin while Core stops
+    while (Core::GetState() != Core::State::Uninitialized);
+  }
+  
+  [[TCDeviceMotion shared] stopMotionUpdates];
+  ButtonManager::Shutdown();
+  Pad::Shutdown();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  g_controller_interface.Shutdown();
+  
+  Config::Save();
+  SConfig::GetInstance().SaveSettings();
+  
+  Core::Shutdown();
+  UICommon::Shutdown();
+  
+#ifdef NONJAILBROKEN
+  exit(0);
+#endif
 }
 
 @end
