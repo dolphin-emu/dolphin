@@ -4,6 +4,8 @@
 
 #import "SettingsTableViewController.h"
 
+#import "AppDelegate.h"
+
 @interface SettingsTableViewController ()
 
 @end
@@ -51,7 +53,7 @@
   }
   else if (indexPath.section == 2) // Quit button
   {
-    exit(0);
+    [AppDelegate Shutdown];
   }
 }
 
