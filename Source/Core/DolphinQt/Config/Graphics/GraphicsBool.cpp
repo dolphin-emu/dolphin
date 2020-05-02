@@ -12,8 +12,7 @@
 
 #include <QFont>
 
-GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>& setting,
-                           bool reverse)
+GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
     : QCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
@@ -34,7 +33,7 @@ void GraphicsBool::Update()
   Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }
 
-GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::ConfigInfo<bool>& setting,
+GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::Info<bool>& setting,
                                bool reverse)
     : QRadioButton(label), m_setting(setting), m_reverse(reverse)
 {

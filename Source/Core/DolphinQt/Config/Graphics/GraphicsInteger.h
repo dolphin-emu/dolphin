@@ -9,16 +9,16 @@
 namespace Config
 {
 template <typename T>
-struct ConfigInfo;
+struct Info;
 }
 
 class GraphicsInteger : public QSpinBox
 {
   Q_OBJECT
 public:
-  GraphicsInteger(int minimum, int maximum, const Config::ConfigInfo<int>& setting, int step = 1);
+  GraphicsInteger(int minimum, int maximum, const Config::Info<int>& setting, int step = 1);
   void Update(int value);
 
 private:
-  const Config::ConfigInfo<int>& m_setting;
+  const Config::Info<int>& m_setting;
 };

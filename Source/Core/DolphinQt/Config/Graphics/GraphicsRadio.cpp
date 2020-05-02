@@ -10,7 +10,7 @@
 
 #include "DolphinQt/Settings.h"
 
-GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::ConfigInfo<int>& setting,
+GraphicsRadioInt::GraphicsRadioInt(const QString& label, const Config::Info<int>& setting,
                                    int value)
     : QRadioButton(label), m_setting(setting), m_value(value)
 {

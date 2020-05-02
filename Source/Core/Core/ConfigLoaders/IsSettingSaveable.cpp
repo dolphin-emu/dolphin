@@ -14,7 +14,7 @@
 
 namespace ConfigLoaders
 {
-bool IsSettingSaveable(const Config::ConfigLocation& config_location)
+bool IsSettingSaveable(const Config::Location& config_location)
 {
   if (config_location.system == Config::System::DualShockUDPClient)
     return true;
@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::ConfigLocation*, 96> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 96> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -155,7 +155,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
   };
 
   return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),
-                     [&config_location](const Config::ConfigLocation* location) {
+                     [&config_location](const Config::Location* location) {
                        return *location == config_location;
                      });
 }
