@@ -258,8 +258,8 @@ std::unique_ptr<FifoDataFile> FifoDataFile::Load(const std::string& filename, bo
       header.mem2_size != Memory::GetExRamSizeReal())
   {
     CriticalAlertT("Emulated memory size mismatch!\n"
-                   "Current  | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)\n"
-                   "DFF      | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)",
+                   "Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)\n"
+                   "DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)",
                    Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000,
                    Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000,
                    header.mem1_size, header.mem1_size / 0x100000, header.mem2_size,
