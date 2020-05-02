@@ -135,39 +135,48 @@
     }
   }
   
-  // Check the CPUCore type if necessary
-  bool has_changed_core = [[NSUserDefaults standardUserDefaults] boolForKey:@"did_deliberately_change_cpu_core"];
   
-  if (!has_changed_core)
-  {
-    const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-    
-    // Load Dolphin.ini
-    IniFile dolphin_config;
-    dolphin_config.Load(config_path);
-    
-    PowerPC::CPUCore core_type;
-    dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
-    
     PowerPC::CPUCore correct_core;
 #if !TARGET_OS_SIMULATOR
     correct_core = PowerPC::CPUCore::JITARM64;
 #else
     correct_core = PowerPC::CPUCore::JIT64;
 #endif
-    
-    if (core_type != correct_core)
-    {
-      // Reset the CPUCore
-      SConfig::GetInstance().cpu_core = correct_core;
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
-      
-      [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
-    }
-  }
   
   // Get the number of launches
   NSInteger launch_times = [[NSUserDefaults standardUserDefaults] integerForKey:@"launch_times"];
+  if (launch_times == 0)
+  {
+    SConfig::GetInstance().cpu_core = correct_core;
+    Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
+  }
+  else
+  {
+    // Check the CPUCore type if necessary
+    bool has_changed_core = [[NSUserDefaults standardUserDefaults] boolForKey:@"did_deliberately_change_cpu_core"];
+
+    if (!has_changed_core)
+    {
+      const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+      
+      // Load Dolphin.ini
+      IniFile dolphin_config;
+      dolphin_config.Load(config_path);
+      
+      PowerPC::CPUCore core_type;
+      dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
+      
+      if (core_type != correct_core)
+      {
+        // Reset the CPUCore
+        SConfig::GetInstance().cpu_core = correct_core;
+        Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
+        
+        [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
+      }
+    }
+  }
+  
   if (launch_times == 0)
   {
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
