@@ -90,6 +90,16 @@ QTableWidgetItem* GetSocketState(s32 host_fd)
   return new QTableWidgetItem(QTableWidget::tr("Unbound"));
 }
 
+static QString GetAddressAndPort(const sockaddr_in& addr)
+{
+  char buffer[16];
+  const char* addr_str = inet_ntop(AF_INET, &addr.sin_addr, buffer, sizeof(buffer));
+  if (!addr_str)
+    return {};
+
+  return QStringLiteral("%1:%2").arg(QString::fromLatin1(addr_str)).arg(ntohs(addr.sin_port));
+}
+
 QTableWidgetItem* GetSocketName(s32 host_fd)
 {
   if (host_fd < 0)
@@ -100,18 +110,19 @@ QTableWidgetItem* GetSocketName(s32 host_fd)
   if (getsockname(host_fd, reinterpret_cast<sockaddr*>(&sock_addr), &sock_addr_len) != 0)
     return new QTableWidgetItem(QTableWidget::tr("Unknown"));
 
-  const QString sock_name = QStringLiteral("%1:%2")
-                                .arg(QString::fromLatin1(inet_ntoa(sock_addr.sin_addr)))
-                                .arg(ntohs(sock_addr.sin_port));
+  const QString sock_name = GetAddressAndPort(sock_addr);
+  if (sock_name.isEmpty())
+    return new QTableWidgetItem(QTableWidget::tr("Unknown"));
 
   sockaddr_in peer_addr;
   socklen_t peer_addr_len = sizeof(sockaddr_in);
   if (getpeername(host_fd, reinterpret_cast<sockaddr*>(&peer_addr), &peer_addr_len) != 0)
     return new QTableWidgetItem(sock_name);
 
-  const QString peer_name = QStringLiteral("%1:%2")
-                                .arg(QString::fromLatin1(inet_ntoa(peer_addr.sin_addr)))
-                                .arg(ntohs(peer_addr.sin_port));
+  const QString peer_name = GetAddressAndPort(peer_addr);
+  if (peer_name.isEmpty())
+    return new QTableWidgetItem(sock_name);
+
   return new QTableWidgetItem(QStringLiteral("%1->%2").arg(sock_name).arg(peer_name));
 }
 }  // namespace

@@ -194,11 +194,20 @@ void CodeViewWidget::FontBasedSizing()
   constexpr int extra_text_width = 8;
 
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
+
+  const auto width = [&fm](QString text) {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
+    return fm.horizontalAdvance(text);
+#else
+    return fm.width(text);
+#endif
+  };
+
   const int rowh = fm.height() + 1;
   verticalHeader()->setMaximumSectionSize(rowh);
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
-  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS, fm.width(QStringLiteral("80000000")) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS, width(QStringLiteral("80000000")) + extra_text_width);
 
   // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
   // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
@@ -210,11 +219,10 @@ void CodeViewWidget::FontBasedSizing()
   const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
   const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
   setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
-                 fm.width(QString::fromStdString(ins)) + extra_text_width);
+                 width(QString::fromStdString(ins)) + extra_text_width);
   setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
-                 fm.width(QString::fromStdString(param)) + extra_text_width);
-  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION,
-                 fm.width(QStringLiteral("0")) * 25 + extra_text_width);
+                 width(QString::fromStdString(param)) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION, width(QStringLiteral("0")) * 25 + extra_text_width);
 
   Update();
 }
