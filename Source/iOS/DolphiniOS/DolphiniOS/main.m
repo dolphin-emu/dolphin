@@ -12,7 +12,7 @@
 extern int csops(pid_t pid, unsigned int  ops, void * useraddr, size_t usersize);
 
 #define PT_TRACEME 0
-extern int ptrace(int a, int b, int c, int d);
+extern int ptrace(int a, int b, void* c, int d);
 
 #define FLAG_PLATFORMIZE (1 << 1) /* jailbreakd - set as platform binary */
 
@@ -90,8 +90,14 @@ void SetProcessDebuggedWithJailbreakd()
   ptr(getpid(), FLAG_PLATFORMIZE);
 }
 
+void SetProcessDebuggedWithPTrace()
+{
+  ptrace(PT_TRACEME, 0, NULL, 0);
+}
+
 void SetProcessDebugged()
 {
+#ifndef NONJAILBROKEN
   // Check for jailbreakd (Chimera)
   NSFileManager* file_manager = [NSFileManager defaultManager];
   if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
@@ -102,6 +108,9 @@ void SetProcessDebugged()
   {
     SetProcessDebuggedWithDaemon();
   }
+#else
+  SetProcessDebuggedWithPTrace();
+#endif
 }
 
 int main(int argc, char* argv[])
