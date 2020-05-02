@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-30 22:56+0200\n"
-"PO-Revision-Date: 2020-04-30 20:56+0000\n"
+"POT-Creation-Date: 2020-05-02 22:20+0200\n"
+"PO-Revision-Date: 2020-05-02 20:21+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -1042,7 +1042,7 @@ msgid ""
 "Adjusts the emulated sizes of MEM1 and MEM2.\n"
 "\n"
 "Some titles may recognize the larger memory arena(s) and take advantage of "
-"it, though retail titles should be optimized for the retail memory "
+"it, though retail titles are normally optimized for the retail memory "
 "limitations."
 msgstr ""
 
@@ -1060,7 +1060,7 @@ msgstr "고급"
 msgid "Africa"
 msgstr "아프리카"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:68
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:72
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
 msgid "All Files (*)"
 msgstr "모든 파일 (*)"
@@ -1696,7 +1696,7 @@ msgstr ""
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "GC IPL 을 찾을 수 없어서, 게임을 시작할 수 없습니다."
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:35
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:38
 msgid "Card Size"
 msgstr ""
 
@@ -2303,12 +2303,12 @@ msgstr "파일을 읽을 수 없습니다."
 msgid "Country:"
 msgstr "국가:"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:55
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:67
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:59
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:71
 msgid "Create New Memory Card"
 msgstr ""
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:38
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:42
 msgid "Create..."
 msgstr ""
 
@@ -2839,8 +2839,8 @@ msgstr "돌핀은 라이슨스되지 않은 디스크들을 검증할 수 없습
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "돌핀의 치트 시스템이 현재 꺼졌습니다."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "Domain"
 msgstr ""
 
@@ -2946,11 +2946,11 @@ msgstr "오브젝트 덤프"
 msgid "Dump Path:"
 msgstr "덤프 경로:"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:287
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:288
 msgid "Dump SSL read"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:288
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:289
 msgid "Dump SSL write"
 msgstr ""
 
@@ -3011,11 +3011,12 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:290
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:292
 msgid "Dump peer certificates"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:289
+#. i18n: CA stands for certificate authority
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:291
 msgid "Dump root CA"
 msgstr ""
 
@@ -3128,8 +3129,8 @@ msgstr "에뮬된 Wii 리모트"
 #, c-format
 msgid ""
 "Emulated memory size mismatch!\n"
-"Current  | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)\n"
-"DFF      | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)"
+"Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)\n"
+"DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:324
@@ -3344,7 +3345,8 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:36
+#. i18n: Character encoding
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:40
 msgid "Encoding"
 msgstr ""
 
@@ -3648,7 +3650,8 @@ msgstr "모든 파일을 압축 풀기..."
 msgid "Extracting Directory..."
 msgstr "디렉토리 압축 풀기..."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
+#. i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
 msgid "FD"
 msgstr ""
 
@@ -4470,7 +4473,7 @@ msgstr "포트 %1 에 겜임큐브 키보드"
 msgid "GameCube Memory Card Manager"
 msgstr "게임큐브 메모리 카드 매니저"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:68
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:72
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:176
 msgid "GameCube Memory Cards (*.raw *.gcp)"
@@ -4702,7 +4705,7 @@ msgstr "핫키들은 윈도우 포커스가 필요함"
 msgid "Hz"
 msgstr "Hz"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:192
 msgid "ID"
 msgstr "아이디"
@@ -5212,7 +5215,10 @@ msgstr "일본"
 msgid "Japanese"
 msgstr "일본어"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:32
+#. i18n: The translation of this string should be consistent with the translation of the
+#. string "Western (Windows-1252)". Because of this, you may want to parse "Japanese" as
+#. "a character encoding which is from Japan / used in Japan" rather than "the Japanese language".
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:35
 msgid "Japanese (Shift-JIS)"
 msgstr ""
 
@@ -5862,8 +5868,8 @@ msgstr "NTSC-U"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:644
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:225
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:153
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
@@ -7048,11 +7054,11 @@ msgstr "SHA-1:"
 msgid "SP1:"
 msgstr "SP1:"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:261
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:262
 msgid "SSL context"
 msgstr ""
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:283
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:284
 msgid "SSL options"
 msgstr ""
 
@@ -8071,8 +8077,8 @@ msgstr "(입력) 기록 시작"
 msgid "Started game"
 msgstr "시작된 게임"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "State"
 msgstr ""
 
@@ -9265,8 +9271,8 @@ msgstr "트리거"
 #: Source/Core/DolphinQt/CheatsManager.cpp:406
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:105
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:159
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "Type"
 msgstr "타입"
 
@@ -9668,7 +9674,7 @@ msgstr "검증"
 msgid "Verify Integrity"
 msgstr "강도 검증"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:291
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:293
 msgid "Verify certificates"
 msgstr ""
 

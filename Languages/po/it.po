@@ -9,8 +9,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-30 22:56+0200\n"
-"PO-Revision-Date: 2020-04-30 20:56+0000\n"
+"POT-Creation-Date: 2020-05-02 22:20+0200\n"
+"PO-Revision-Date: 2020-05-02 20:21+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
@@ -199,11 +199,11 @@ msgstr "%1% (Velocità Normale)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:281
 msgid "%1MB (MEM1)"
-msgstr ""
+msgstr "%1MB (MEM1)"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:295
 msgid "%1MB (MEM2)"
-msgstr ""
+msgstr "%1MB (MEM2)"
 
 #: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:142
 msgid "%1[%2]: %3"
@@ -342,7 +342,7 @@ msgstr "&Copia indirizzo"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:96
 msgid "&Create..."
-msgstr ""
+msgstr "&Nuovo..."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:83
 msgid "&Delete"
@@ -446,7 +446,7 @@ msgstr "&Filmato"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:475
 msgid "&Network"
-msgstr ""
+msgstr "&Network"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:95
 #: Source/Core/DolphinQt/MenuBar.cpp:205
@@ -596,11 +596,11 @@ msgstr "/ Dividi"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:28
 msgid "128 Mbit (2043 blocks)"
-msgstr ""
+msgstr "128 Mbit (2043 blocchi)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:25
 msgid "16 Mbit (251 blocks)"
-msgstr ""
+msgstr "16 Mbit (251 blocchi)"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:110
 msgid "16-bit"
@@ -632,7 +632,7 @@ msgstr "2x Nativo (1280x1056) per 720p"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:26
 msgid "32 Mbit (507 blocks)"
-msgstr ""
+msgstr "32 Mbit (507 blocchi)"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:111
 msgid "32-bit"
@@ -661,7 +661,7 @@ msgstr "3x Nativo (1920x1584) per 1080p"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:23
 msgid "4 Mbit (59 blocks)"
-msgstr ""
+msgstr "4 Mbit (59 blocchi)"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:111
 msgid "4:3"
@@ -681,7 +681,7 @@ msgstr "5x Nativo (3200x2640)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:27
 msgid "64 Mbit (1019 blocks)"
-msgstr ""
+msgstr "64 Mbit (1019 blocchi)"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:58
 msgid "6x Native (3840x3168) for 4K"
@@ -693,7 +693,7 @@ msgstr "7x Nativo (4480x3696)"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:24
 msgid "8 Mbit (123 blocks)"
-msgstr ""
+msgstr "8 Mbit (123 blocchi)"
 
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:109
 msgid "8-bit"
@@ -1053,7 +1053,7 @@ msgid ""
 "Adjusts the emulated sizes of MEM1 and MEM2.\n"
 "\n"
 "Some titles may recognize the larger memory arena(s) and take advantage of "
-"it, though retail titles should be optimized for the retail memory "
+"it, though retail titles are normally optimized for the retail memory "
 "limitations."
 msgstr ""
 
@@ -1071,7 +1071,7 @@ msgstr "Avanzate"
 msgid "Africa"
 msgstr "Africa"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:68
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:72
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
 msgid "All Files (*)"
 msgstr "Tutti i File (*)"
@@ -1346,7 +1346,7 @@ msgstr "Nascondi Automaticamente"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1214
 msgid "Auto-detect RSO modules?"
-msgstr ""
+msgstr "Individua automaticamente i moduli RSO?"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:215
 msgid ""
@@ -1462,7 +1462,7 @@ msgstr "Bitrate (kbps):"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:65
 msgid "Block Size:"
-msgstr ""
+msgstr "Dimensione Blocco:"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 msgid "Blocks"
@@ -1715,9 +1715,9 @@ msgstr ""
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Impossibile avviare il gioco, l'IPL GC non è stato trovato"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:35
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:38
 msgid "Card Size"
-msgstr ""
+msgstr "Dimensione Scheda"
 
 #. i18n: Refers to the "center" of a TaTaCon drum.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/TaTaCon.cpp:42
@@ -1985,7 +1985,7 @@ msgstr "Connettersi a internet per avviare l'aggiornamento online di sistema?"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:82
 msgid "Connected"
-msgstr ""
+msgstr "Connesso"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:185
 msgid "Connection Type:"
@@ -2015,19 +2015,19 @@ msgstr "Profilo Controller"
 
 #: Source/Core/Core/HotkeyManager.cpp:331
 msgid "Controller Profile 1"
-msgstr ""
+msgstr "Profilo Controller 1"
 
 #: Source/Core/Core/HotkeyManager.cpp:332
 msgid "Controller Profile 2"
-msgstr ""
+msgstr "Profilo Controller 2"
 
 #: Source/Core/Core/HotkeyManager.cpp:333
 msgid "Controller Profile 3"
-msgstr ""
+msgstr "Profilo Controller 3"
 
 #: Source/Core/Core/HotkeyManager.cpp:334
 msgid "Controller Profile 4"
-msgstr ""
+msgstr "Profilo Controller 4"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:66
 msgid "Controller Settings"
@@ -2114,15 +2114,15 @@ msgstr "Convergenza:"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:52
 #: Source/Core/DolphinQt/ConvertDialog.cpp:74
 msgid "Convert"
-msgstr ""
+msgstr "Converti"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:298
 msgid "Convert File..."
-msgstr ""
+msgstr "Converti File..."
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:266
 msgid "Convert Selected Files..."
-msgstr ""
+msgstr "Converti i File Selezionati..."
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:217
 msgid ""
@@ -2130,11 +2130,14 @@ msgid ""
 "any noticeable amount of space compared to converting to ISO. Do you want to "
 "continue anyway?"
 msgstr ""
+"Convertire le immagini disco Wii in GCZ senza rimuovere i dati inutilizzati "
+"non permetterà di risparmiare molto spazio rispetto la conversione in ISO. "
+"Vuoi continuare lo stesso?"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:294
 #: Source/Core/DolphinQt/ConvertDialog.cpp:301
 msgid "Converting..."
-msgstr ""
+msgstr "Conversione in corso..."
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:228
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:711
@@ -2328,14 +2331,14 @@ msgstr "Impossibile leggere il file."
 msgid "Country:"
 msgstr "Paese:"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:55
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:67
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:59
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:71
 msgid "Create New Memory Card"
-msgstr ""
+msgstr "Crea una Nuova Memory Card"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:38
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:42
 msgid "Create..."
-msgstr ""
+msgstr "Crea..."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:203
 msgid ""
@@ -2868,10 +2871,10 @@ msgstr "Dolphin non è in grado di verificare dischi senza licenza."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "Il sistema codici di Dolphin è attualmente disabilitato."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "Domain"
-msgstr ""
+msgstr "Dominio"
 
 #: Source/Core/DolphinQt/Settings/GeneralPane.cpp:177
 msgid "Don't Update"
@@ -2975,13 +2978,13 @@ msgstr "Dump degli Oggetti"
 msgid "Dump Path:"
 msgstr "Percorso Dump:"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:287
-msgid "Dump SSL read"
-msgstr ""
-
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:288
+msgid "Dump SSL read"
+msgstr "Dump lettura SSL"
+
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:289
 msgid "Dump SSL write"
-msgstr ""
+msgstr "Dump scrittura SSL"
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:74
 msgid "Dump TEV Stages"
@@ -3040,13 +3043,14 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:290
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:292
 msgid "Dump peer certificates"
-msgstr ""
+msgstr "Dump certificati peer"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:289
+#. i18n: CA stands for certificate authority
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:291
 msgid "Dump root CA"
-msgstr ""
+msgstr "Dump CA root"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:188
 msgid ""
@@ -3159,8 +3163,8 @@ msgstr "Wii Remote Emulato"
 #, c-format
 msgid ""
 "Emulated memory size mismatch!\n"
-"Current  | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)\n"
-"DFF      | MEM1 %08X (%3dMB)    MEM2 %08X (%3dMB)"
+"Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)\n"
+"DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:324
@@ -3203,7 +3207,7 @@ msgstr "Abilita override del clock della CPU Emulata"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:104
 msgid "Enable Emulated Memory Size Override"
-msgstr ""
+msgstr "Abilità Override Dimensione Memoria Emulata"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:90
 msgid "Enable FPRF"
@@ -3379,9 +3383,10 @@ msgstr ""
 "\n"
 "Nel dubbio, lascia deselezionato."
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:36
+#. i18n: Character encoding
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:40
 msgid "Encoding"
-msgstr ""
+msgstr "Codifica"
 
 #: Source/Core/Core/NetPlayServer.cpp:111
 msgid "Enet Didn't Initialize"
@@ -3686,9 +3691,10 @@ msgstr "Estrazione di Tutti i File..."
 msgid "Extracting Directory..."
 msgstr "Estrazione Directory..."
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
+#. i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
 msgid "FD"
-msgstr ""
+msgstr "FD"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:33
 #: Source/Core/DolphinQt/MenuBar.cpp:234
@@ -3899,7 +3905,7 @@ msgstr "Impossibile avviare il server"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:333
 msgid "Failed to open the input file \"%1\"."
-msgstr ""
+msgstr "Fallita l'apertura del file di input \"%1\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:166 Source/Core/DiscIO/FileBlob.cpp:52
 #, c-format
@@ -3925,7 +3931,7 @@ msgstr "Fallita lettura di %s"
 #: Source/Core/DiscIO/CompressedBlob.cpp:232 Source/Core/DiscIO/FileBlob.cpp:92
 #, c-format
 msgid "Failed to read from the input file \"%s\"."
-msgstr ""
+msgstr "Fallita la lettura dal file di input \"%s\"."
 
 #: Source/Core/DiscIO/VolumeGC.cpp:68
 msgid "Failed to read unique ID from disc image"
@@ -3941,6 +3947,9 @@ msgid ""
 "\n"
 "Would you like to convert it without removing junk data?"
 msgstr ""
+"Fallita la rimozione dei dati inutilizzati dal file \"%1\".\n"
+"\n"
+"Vuoi convertirlo senza la loro rimozione?"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:516
 msgid "Failed to remove this title from the NAND."
@@ -4238,7 +4247,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:61
 msgid "Format:"
-msgstr ""
+msgstr "Formato:"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:25
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:24
@@ -4524,7 +4533,7 @@ msgstr "Tastiera GameCube su Porta %1"
 msgid "GameCube Memory Card Manager"
 msgstr "GameCube Memory Card Manager"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:68
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:72
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:296
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:176
 msgid "GameCube Memory Cards (*.raw *.gcp)"
@@ -4757,7 +4766,7 @@ msgstr "I tasti rapidi richiedono il focus"
 msgid "Hz"
 msgstr "Hz"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:192
 msgid "ID"
 msgstr "ID"
@@ -4814,6 +4823,13 @@ msgid ""
 "Dolphin and some other programs. It can't efficiently compress junk data "
 "(unless removed) or encrypted Wii data."
 msgstr ""
+"ISO: un formato semplice e robusto supportato da molti programmi. Richiede "
+"più spazio degli altri formati.\n"
+"\n"
+"GCZ: un formato con una compressione base compatibile con la maggior parte "
+"delle versioni di Dolphin e alcuni altri programmi. Non può comprimere "
+"efficientemente i dati inutilizzati (a meno che non vengano rimossi) o i "
+"dati criptati Wii."
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 msgid "Icon"
@@ -5274,9 +5290,12 @@ msgstr "Giappone"
 msgid "Japanese"
 msgstr "Giapponese"
 
-#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:32
+#. i18n: The translation of this string should be consistent with the translation of the
+#. string "Western (Windows-1252)". Because of this, you may want to parse "Japanese" as
+#. "a character encoding which is from Japan / used in Japan" rather than "the Japanese language".
+#: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:35
 msgid "Japanese (Shift-JIS)"
-msgstr ""
+msgstr "Giapponese (Shift-JIS)"
 
 #: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
 msgid "Keep Window on Top"
@@ -5432,7 +5451,7 @@ msgstr "Vista a Lista"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:89
 msgid "Listening"
-msgstr ""
+msgstr "Ascolto"
 
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyStates.cpp:24
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:99
@@ -5787,7 +5806,7 @@ msgstr "Memoria Non Pronta"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:99
 msgid "Memory Override"
-msgstr ""
+msgstr "Override Memoria"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:155
 msgid "Memory breakpoint options"
@@ -5933,8 +5952,8 @@ msgstr "NTSC-U"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:644
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:225
 #: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:153
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
@@ -6037,7 +6056,7 @@ msgstr "Nuovo Tag"
 #: Source/Core/Core/HotkeyManager.cpp:90 Source/Core/Core/HotkeyManager.cpp:94
 #: Source/Core/Core/HotkeyManager.cpp:98 Source/Core/Core/HotkeyManager.cpp:102
 msgid "Next Game Profile"
-msgstr ""
+msgstr "Profilo di Gioco Successivo"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:78
 msgid "Next Match"
@@ -6046,7 +6065,7 @@ msgstr "Corrispondenza Successiva"
 #: Source/Core/Core/HotkeyManager.cpp:88 Source/Core/Core/HotkeyManager.cpp:92
 #: Source/Core/Core/HotkeyManager.cpp:96 Source/Core/Core/HotkeyManager.cpp:100
 msgid "Next Profile"
-msgstr ""
+msgstr "Profilo Successivo"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:386
 msgid "Next Search"
@@ -6622,7 +6641,7 @@ msgstr ""
 #: Source/Core/Core/HotkeyManager.cpp:91 Source/Core/Core/HotkeyManager.cpp:95
 #: Source/Core/Core/HotkeyManager.cpp:99 Source/Core/Core/HotkeyManager.cpp:103
 msgid "Previous Game Profile"
-msgstr ""
+msgstr "Profilo di Gioco Precedente"
 
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:79
 msgid "Previous Match"
@@ -6631,7 +6650,7 @@ msgstr "Corrispondenza Precedente"
 #: Source/Core/Core/HotkeyManager.cpp:89 Source/Core/Core/HotkeyManager.cpp:93
 #: Source/Core/Core/HotkeyManager.cpp:97 Source/Core/Core/HotkeyManager.cpp:101
 msgid "Previous Profile"
-msgstr ""
+msgstr "Profilo Precedente"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:94
 msgid "Private"
@@ -6736,7 +6755,7 @@ msgstr "Moduli RSO"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1214
 msgid "RSO auto-detection"
-msgstr ""
+msgstr "Auto-rilevamento RSO"
 
 #. i18n: A range of memory addresses
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:287
@@ -6903,7 +6922,7 @@ msgstr "Rimuovi"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:69
 msgid "Remove Junk Data (Irreversible):"
-msgstr ""
+msgstr "Rimuovi Dati Inutilizzati (Irreversibile)"
 
 #: Source/Core/DolphinQt/GameList/GameList.cpp:388
 msgid "Remove Tag..."
@@ -6927,6 +6946,9 @@ msgid ""
 "you package the ISO file in a compressed file format such as ZIP "
 "afterwards). Do you want to continue anyway?"
 msgstr ""
+"La rimozione dei dati inutilizzati non salva spazio durante la conversione "
+"in ISO (a meno che poi tu non comprima il file ISO in un file ad esempio "
+"ZIP). Vuoi proseguire lo stesso?"
 
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:626
 #: Source/Core/DolphinQt/Debugger/CodeViewWidget.cpp:661
@@ -7126,13 +7148,13 @@ msgstr "SHA-1:"
 msgid "SP1:"
 msgstr "SP1:"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:261
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:262
 msgid "SSL context"
-msgstr ""
+msgstr "Contesto SSL"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:283
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:284
 msgid "SSL options"
-msgstr ""
+msgstr "Opzioni SSL"
 
 #. i18n: The START/PAUSE button on GameCube controllers
 #: Source/Core/Core/HW/GCPadEmu.cpp:62
@@ -7477,7 +7499,7 @@ msgstr "Seleziona un titolo da installare su NAND"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1295
 msgid "Select the RSO module address:"
-msgstr ""
+msgstr "Scegli l'indirizzo del modulo RSO:"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1555
 #: Source/Core/DolphinQt/MainWindow.cpp:1626
@@ -7495,11 +7517,11 @@ msgstr "Seleziona il file di salvataggio"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:257
 msgid "Select where you want to save the converted image"
-msgstr ""
+msgstr "Seleziona dove vuoi salvare l'immagine convertita"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:248
 msgid "Select where you want to save the converted images"
-msgstr ""
+msgstr "Seleziona dove vuoi salvare le immagini convertite"
 
 #: Source/Core/DolphinQt/Config/LogWidget.cpp:140
 msgid "Selected Font"
@@ -8070,7 +8092,7 @@ msgstr "Slot B:"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:239
 msgid "Socket table"
-msgstr ""
+msgstr "Tabella Socket"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:89
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:105
@@ -8161,10 +8183,10 @@ msgstr "Avvia Registrazione"
 msgid "Started game"
 msgstr "Gioco avviato"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "State"
-msgstr ""
+msgstr "Stato"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:92
 msgid "Steering Wheel"
@@ -8353,7 +8375,7 @@ msgstr "Inserito con successo nell'indice NetPlay"
 #: Source/Core/DolphinQt/ConvertDialog.cpp:371
 #, c-format
 msgid "Successfully converted %n image(s)."
-msgstr ""
+msgstr "Convertiti con successo %n immagini."
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:223
 msgid "Successfully deleted '%1'."
@@ -8583,6 +8605,8 @@ msgid ""
 "The DFF's minimum loader version (%d) exceeds the version of this FIFO "
 "Player (%d)"
 msgstr ""
+"La versinoe minima del loader DFF (%d) supera la versione di questo Player "
+"FIFO (%d)"
 
 #: Source/Core/DiscIO/VolumeVerifier.cpp:537
 #, c-format
@@ -9373,8 +9397,8 @@ msgstr "Grilletti"
 #: Source/Core/DolphinQt/CheatsManager.cpp:406
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:105
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:159
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:244
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:266
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:245
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:267
 msgid "Type"
 msgstr "Tipo"
 
@@ -9449,7 +9473,7 @@ msgstr ""
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1289
 msgid "Unable to auto-detect RSO module"
-msgstr ""
+msgstr "Impossibile individuare automaticamente il modulo RSO"
 
 #: Source/Core/DolphinQt/Config/CheatCodeEditor.cpp:173
 msgid ""
@@ -9482,7 +9506,7 @@ msgstr "Impossibile scrivere su file %s"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:90
 msgid "Unbound"
-msgstr ""
+msgstr "Non assegnato"
 
 #: Source/Core/DolphinQt/ConvertDialog.cpp:231
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
@@ -9783,9 +9807,9 @@ msgstr "Verifica"
 msgid "Verify Integrity"
 msgstr "Verifica Integrità"
 
-#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:291
+#: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:293
 msgid "Verify certificates"
-msgstr ""
+msgstr "Verifica certificati"
 
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:138
@@ -10065,7 +10089,7 @@ msgstr "Website"
 
 #: Source/Core/DolphinQt/GCMemcardCreateNewDialog.cpp:31
 msgid "Western (Windows-1252)"
-msgstr ""
+msgstr "Occidentale (Windows-1252)"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Guitar.cpp:90
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:137
