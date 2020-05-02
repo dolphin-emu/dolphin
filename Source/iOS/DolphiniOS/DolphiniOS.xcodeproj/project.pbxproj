@@ -65,6 +65,7 @@
 		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
 		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
 		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
+		B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */ = {isa = PBXBuildFile; fileRef = B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -353,6 +354,7 @@
 		B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = WiiSystemUpdate.storyboard; sourceTree = "<group>"; };
 		B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiiSystemUpdateViewController.h; sourceTree = "<group>"; };
 		B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSystemUpdateViewController.mm; sourceTree = "<group>"; };
+		B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = Entitlements_PsychicPaper.txt; path = BuildResources/Entitlements_PsychicPaper.txt; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -982,6 +984,7 @@
 				B996C85623D586F900700D6F /* Tools */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
+				B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -1392,6 +1395,7 @@
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
+				B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 				B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */,
 			);
