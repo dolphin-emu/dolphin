@@ -88,6 +88,7 @@
 		B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */; };
 		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
 		B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */; };
+		B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -391,6 +392,8 @@
 		B971156623E1511A001C6BD6 /* SpeedCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SpeedCell.m; sourceTree = "<group>"; };
 		B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSoundViewController.h; sourceTree = "<group>"; };
 		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
+		B971E1C3245E034E00D2A698 /* BuildIpa.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildIpa.sh; path = BuildResources/BuildScripts/BuildIpa.sh; sourceTree = "<group>"; };
+		B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_PsychicPaper_Release.plist; path = BuildResources/Entitlements_PsychicPaper_Release.plist; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
@@ -987,6 +990,7 @@
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 				B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */,
+				B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -1196,6 +1200,7 @@
 				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
 				B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */,
 				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
+				B971E1C3245E034E00D2A698 /* BuildIpa.sh */,
 				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
 				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
 				B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */,
@@ -1389,6 +1394,7 @@
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
+				B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
