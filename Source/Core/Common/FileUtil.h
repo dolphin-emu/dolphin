@@ -111,6 +111,37 @@ private:
   bool m_exists;
 };
 
+class ScopedTemporaryDirectory
+{
+public:
+  // Create a temporary directory.
+  ScopedTemporaryDirectory();
+  ScopedTemporaryDirectory(const ScopedTemporaryDirectory&) = delete;
+  ScopedTemporaryDirectory(ScopedTemporaryDirectory&& other) { *this = std::move(other); }
+  ScopedTemporaryDirectory& operator=(const ScopedTemporaryDirectory&) = delete;
+  ScopedTemporaryDirectory& operator=(ScopedTemporaryDirectory&& other)
+  {
+    m_valid = other.m_valid;
+    m_path = std::move(other.m_path);
+    other.m_valid = false;
+    return *this;
+  }
+
+  // Delete the temporary directory.
+  ~ScopedTemporaryDirectory();
+
+  const std::string& GetPath() const { return m_path; }
+  std::string Release()
+  {
+    m_valid = false;
+    return m_path;
+  }
+
+private:
+  bool m_valid = false;
+  std::string m_path;
+};
+
 // Returns true if the path exists
 bool Exists(const std::string& path);
 

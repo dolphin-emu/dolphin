@@ -613,6 +613,19 @@ bool SetCurrentDir(const std::string& directory)
   return __chdir(directory.c_str()) == 0;
 }
 
+ScopedTemporaryDirectory::ScopedTemporaryDirectory()
+{
+  m_path = CreateTempDir();
+  ASSERT(!m_path.empty());
+  m_valid = !m_path.empty();
+}
+
+ScopedTemporaryDirectory::~ScopedTemporaryDirectory()
+{
+  if (m_valid)
+    DeleteDirRecursively(m_path);
+}
+
 std::string CreateTempDir()
 {
 #ifdef _WIN32
