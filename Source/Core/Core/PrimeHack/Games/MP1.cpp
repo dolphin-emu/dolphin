@@ -213,6 +213,9 @@ namespace prime
 
     // Disable Beams/Visor Menu
     code_changes.emplace_back(0x80075D38, 0x48000044);
+
+    beam_change_code(0x8018e7dc);
+    springball_code(0x80147820, &code_changes);
   }
 
   uint32_t MP1PAL::orbit_state_address() const

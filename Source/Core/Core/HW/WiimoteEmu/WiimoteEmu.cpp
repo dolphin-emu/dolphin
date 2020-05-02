@@ -294,7 +294,6 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
     m_primehack_beams->controls.emplace_back(
         new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
   }
-
   m_primehack_beams->controls.emplace_back(
     new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Beam"), "Next Beam"));
   m_primehack_beams->controls.emplace_back(
@@ -793,7 +792,7 @@ double Wiimote::GetPrimeStickY()
 
 bool Wiimote::PrimeControllerMode()
 {
-  return m_primehack_misc->GetSelectedDevice();
+  return m_primehack_misc->GetSelectedDevice() == 1;
 }
 
 std::tuple<double, double, double, bool, bool> Wiimote::GetPrimeSettings()
@@ -810,7 +809,7 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
   EmulatedController::LoadDefaults(ciface);
 
-  if (!m_primehack_controller.GetValue())
+  if (m_primehack_misc->GetSelectedDevice() == 0)
   {
     // Fire
     m_buttons->SetControlExpression(0, "`Click 0` | RETURN");

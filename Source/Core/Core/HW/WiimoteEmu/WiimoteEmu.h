@@ -301,10 +301,8 @@ private:
   ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
-  ControllerEmu::SettingValue<bool> m_primehack_controller;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x60;
-
   static constexpr u8 STICK_CENTER = 0x80;
   static constexpr u8 STICK_RADIUS = 0x7F;
 
