@@ -1455,10 +1455,10 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \begin{DSPOpcodeNote}
     \item Actually product register gets cleared by setting registers with following values:
     \begin{lstlisting}[basicstyle=\ttfamily]
-      $14 = 0x0000
-      $15 = 0xfff0
-      $16 = 0x00ff
-      $17 = 0x0010
+      $prod.l  = 0x0000
+      $prod.m1 = 0xfff0
+      $prod.h  = 0x00ff
+      $prod.m2 = 0x0010
     \end{lstlisting}
   \end{DSPOpcodeNote}
 \end{DSPOpcode}
