@@ -89,6 +89,8 @@
 		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
 		B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */; };
 		B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */; };
+		B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */; };
+		B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -394,6 +396,9 @@
 		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
 		B971E1C3245E034E00D2A698 /* BuildIpa.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildIpa.sh; path = BuildResources/BuildScripts/BuildIpa.sh; sourceTree = "<group>"; };
 		B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_PsychicPaper_Release.plist; path = BuildResources/Entitlements_PsychicPaper_Release.plist; sourceTree = "<group>"; };
+		B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = NonJailbrokenNotice.xib; path = DolphiniOS/UI/Notices/NonJailbroken/NonJailbrokenNotice.xib; sourceTree = SOURCE_ROOT; };
+		B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NonJailbrokenNoticeViewController.h; sourceTree = "<group>"; };
+		B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NonJailbrokenNoticeViewController.m; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
@@ -689,6 +694,7 @@
 				B989119F2444F0F900A24522 /* Analytics */,
 				B9B536D323DE604A00F03106 /* Donation */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
+				B971E1C6245E209500D2A698 /* NonJailbroken */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
 				B9B536E223DE81F000F03106 /* ReloadState */,
 				B9B536DC23DE706300F03106 /* UnofficialBuild */,
@@ -886,6 +892,16 @@
 				B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */,
 			);
 			path = Sound;
+			sourceTree = "<group>";
+		};
+		B971E1C6245E209500D2A698 /* NonJailbroken */ = {
+			isa = PBXGroup;
+			children = (
+				B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */,
+				B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */,
+				B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */,
+			);
+			path = NonJailbroken;
 			sourceTree = "<group>";
 		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
@@ -1398,6 +1414,7 @@
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
+				B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */,
 				B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
@@ -1654,6 +1671,7 @@
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
+				B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2113,7 +2131,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */;
 			buildSettings = {
-				APP_NAME = "DolphiniOS";
+				APP_NAME = DolphiniOS;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = NO;
 				BUILD_FOR_PATREON = NO;
