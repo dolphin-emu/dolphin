@@ -177,7 +177,8 @@ void CBoot::SetupGCMemory()
   // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
   // TODO: determine why some games fail when using a retail ID.
   // (Seem to take different EXI paths, see Ikaruga for example)
-  PowerPC::HostWrite_U32(0x10000006, 0x8000002C);
+  const u32 console_type = static_cast<u32>(Core::ConsoleType::LatestDevkit);
+  PowerPC::HostWrite_U32(console_type, 0x8000002C);
 
   // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
   PowerPC::HostWrite_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x800000CC);
@@ -372,10 +373,12 @@ bool CBoot::SetupWiiMemory(IOS::HLE::IOSC::ConsoleType console_type)
   Memory::Write_U32(0x0D15EA5E, 0x00000020);                // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);                // Unknown
   Memory::Write_U32(Memory::GetRamSizeReal(), 0x00000028);  // MEM1 size 24MB
-  u32 board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ? 0x10000021 : 0x00000023;
-  Memory::Write_U32(board_model, 0x0000002c);  // Board Model
-  Memory::Write_U32(0x00000000, 0x00000030);   // Init
-  Memory::Write_U32(0x817FEC60, 0x00000034);   // Init
+  const Core::ConsoleType board_model = console_type == IOS::HLE::IOSC::ConsoleType::RVT ?
+                                            Core::ConsoleType::NDEV2_1 :
+                                            Core::ConsoleType::RVL_Retail3;
+  Memory::Write_U32(static_cast<u32>(board_model), 0x0000002c);  // Board Model
+  Memory::Write_U32(0x00000000, 0x00000030);                     // Init
+  Memory::Write_U32(0x817FEC60, 0x00000034);                     // Init
   // 38, 3C should get start, size of FST through apploader
   Memory::Write_U32(0x8008f7b8, 0x000000e4);                // Thread Init
   Memory::Write_U32(Memory::GetRamSizeReal(), 0x000000f0);  // "Simulated memory size" (debug mode?)
