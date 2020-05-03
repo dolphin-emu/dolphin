@@ -33,6 +33,10 @@ public class Settings
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
+  private static final String DSP_HLE = "0";
+  private static final String DSP_LLE_RECOMPILER = "1";
+  private static final String DSP_LLE_INTERPRETER = "2";
+
   public static final String SECTION_ANALYTICS = "Analytics";
 
   private String gameId;
@@ -177,6 +181,35 @@ public class Settings
         }
 
         SettingsFile.saveFile(fileName, iniSections, view);
+      }
+
+      switch (NativeLibrary
+              .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                      SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+      {
+        case DSP_HLE:
+          NativeLibrary
+                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                          SettingsFile.KEY_DSP_HLE, "True");
+          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+          break;
+
+        case DSP_LLE_RECOMPILER:
+          NativeLibrary
+                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                          SettingsFile.KEY_DSP_HLE, "False");
+          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+          break;
+
+        case DSP_LLE_INTERPRETER:
+          NativeLibrary
+                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                          SettingsFile.KEY_DSP_HLE, "False");
+          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                  SettingsFile.KEY_DSP_ENABLE_JIT, "False");
+          break;
       }
 
       // Notify the native code of the changes
