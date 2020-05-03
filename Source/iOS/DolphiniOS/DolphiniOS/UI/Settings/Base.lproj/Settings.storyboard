@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -755,6 +755,27 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
+                                        <rect key="frame" x="16" y="595.33333206176758" width="343" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tif-Kx-tey" id="NBc-oc-mVX">
+                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Set Process As Debugged" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="3ho-Oh-qCP">
+                                                    <rect key="frame" x="15" y="11.666666666666664" width="289" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="3ho-Oh-qCP" firstAttribute="centerY" secondItem="NBc-oc-mVX" secondAttribute="centerY" id="KJh-XI-GoB"/>
+                                                <constraint firstItem="3ho-Oh-qCP" firstAttribute="leading" secondItem="NBc-oc-mVX" secondAttribute="leadingMargin" id="eOY-Fy-JmG"/>
+                                                <constraint firstAttribute="trailing" secondItem="3ho-Oh-qCP" secondAttribute="trailing" id="gND-Yl-KnJ"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </cells>
                             </tableViewSection>
                         </sections>
@@ -773,6 +794,8 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                         <outlet property="m_load_store_switch" destination="c7R-Od-MOw" id="LzA-J8-6uT"/>
                         <outlet property="m_p_switch" destination="QaQ-1z-SsJ" id="bap-1n-9AF"/>
                         <outlet property="m_register_cache_switch" destination="IaX-ve-brL" id="ouu-mt-fZ4"/>
+                        <outlet property="m_set_debugged_cell" destination="Tif-Kx-tey" id="kJC-5v-Azg"/>
+                        <outlet property="m_set_debugged_label" destination="3ho-Oh-qCP" id="PQF-eb-AlH"/>
                         <outlet property="m_skip_idle_switch" destination="jqt-aK-CNs" id="lSU-rl-DTP"/>
                         <outlet property="m_system_registers_switch" destination="xc1-ii-cl1" id="Inu-jH-qdy"/>
                     </connections>
