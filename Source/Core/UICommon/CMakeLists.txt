@@ -23,6 +23,8 @@ add_library(uicommon
   UICommon.h
   USBUtils.cpp
   USBUtils.h
+  VideoBackends.cpp
+  VideoBackends.h
   VideoUtils.cpp
   VideoUtils.h
 )
@@ -30,6 +32,10 @@ add_library(uicommon
 target_link_libraries(uicommon
 PUBLIC
   common
+  videonull
+  videoogl
+  videosoftware
+  videovulkan
   cpp-optparse
   minizip
   pugixml
@@ -38,6 +44,14 @@ PRIVATE
   fmt::fmt
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+  target_link_libraries(uicommon
+  PUBLIC
+    videod3d
+    videod3d12
+  )
+endif()
 
 if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
     (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))

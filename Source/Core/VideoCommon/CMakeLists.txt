@@ -130,7 +130,7 @@ add_library(videocommon
 
 target_link_libraries(videocommon
 PUBLIC
-  core
+  common
 PRIVATE
   fmt::fmt
   png

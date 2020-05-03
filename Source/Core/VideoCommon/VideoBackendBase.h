@@ -59,7 +59,7 @@ public:
   u32 Video_GetQueryResult(PerfQueryType type);
   u16 Video_GetBoundingBox(int index);
 
-  static void PopulateList();
+  static void RegisterBackend(std::unique_ptr<VideoBackendBase> backend);
   static void ClearList();
   static void ActivateBackend(const std::string& name);
 

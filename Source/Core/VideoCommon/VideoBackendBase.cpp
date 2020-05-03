@@ -20,22 +20,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-// OpenGL is not available on Windows-on-ARM64
-#if !defined(_WIN32) || !defined(_M_ARM64)
-#define HAS_OPENGL 1
-#endif
-
-// TODO: ugly
-#ifdef _WIN32
-#include "VideoBackends/D3D/VideoBackend.h"
-#include "VideoBackends/D3D12/VideoBackend.h"
-#endif
-#include "VideoBackends/Null/VideoBackend.h"
-#ifdef HAS_OPENGL
-#include "VideoBackends/OGL/VideoBackend.h"
-#include "VideoBackends/Software/VideoBackend.h"
-#endif
-#include "VideoBackends/Vulkan/VideoBackend.h"
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -195,21 +179,9 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
   return result;
 }
 
-void VideoBackendBase::PopulateList()
+void VideoBackendBase::RegisterBackend(std::unique_ptr<VideoBackendBase> backend)
 {
-  // OGL > D3D11 > Vulkan > SW > Null
-#ifdef HAS_OPENGL
-  g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
-#endif
-#ifdef _WIN32
-  g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
-  g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
-#endif
-  g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
-#ifdef HAS_OPENGL
-  g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
-#endif
-  g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
+  g_available_video_backends.push_back(std::move(backend));
 
   const auto iter =
       std::find_if(g_available_video_backends.begin(), g_available_video_backends.end(),

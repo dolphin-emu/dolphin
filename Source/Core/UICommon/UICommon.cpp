@@ -38,6 +38,7 @@
 #include "UICommon/DiscordPresence.h"
 #include "UICommon/UICommon.h"
 #include "UICommon/USBUtils.h"
+#include "UICommon/VideoBackends.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "UICommon/X11Utils.h"
@@ -97,7 +98,7 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::PopulateList();
+  RegisterVideoBackends();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);

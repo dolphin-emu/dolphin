@@ -553,10 +553,6 @@ PUBLIC
   pugixml
   sfml-network
   sfml-system
-  videonull
-  videoogl
-  videosoftware
-  videovulkan
 
 PRIVATE
   fmt::fmt
