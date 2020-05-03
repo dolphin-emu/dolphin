@@ -193,7 +193,7 @@
   if (launch_times == 0)
   {
 #ifdef NONJAILBROKEN
-    [nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
+    //[nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
 #endif
     
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];

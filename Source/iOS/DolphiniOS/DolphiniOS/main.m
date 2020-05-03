@@ -109,7 +109,7 @@ void SetProcessDebugged()
     SetProcessDebuggedWithDaemon();
   }
 #else
-  SetProcessDebuggedWithPTrace();
+  //SetProcessDebuggedWithPTrace();
 #endif
 }
 
