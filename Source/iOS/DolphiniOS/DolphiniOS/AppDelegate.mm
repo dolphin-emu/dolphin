@@ -214,9 +214,17 @@
 #ifndef DEBUG
   NSString* update_url_string;
 #ifndef PATREON
+#ifndef NONJAILBROKEN
   update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update.json";
 #else
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_njb.json";
+#endif
+#else
+#ifndef NONJAILBROKEN
   update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon.json";
+#else
+  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon_njb.json";
+#endif
 #endif
   
   NSURL* update_url = [NSURL URLWithString:update_url_string];
