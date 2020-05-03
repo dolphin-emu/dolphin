@@ -87,7 +87,8 @@ void HiresTexture::Update()
   }
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::set<std::string> texture_directories = GetTextureDirectories(game_id);
+  const std::set<std::string> texture_directories =
+      GetTextureDirectoriesWithGameId(File::GetUserPath(D_HIRESTEXTURES_IDX), game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
   for (const auto& texture_directory : texture_directories)
@@ -454,10 +455,11 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
   return true;
 }
 
-std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& game_id)
+std::set<std::string> GetTextureDirectoriesWithGameId(const std::string& root_directory,
+                                                      const std::string& game_id)
 {
   std::set<std::string> result;
-  const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
+  const std::string texture_directory = root_directory + game_id;
 
   if (File::Exists(texture_directory))
   {
@@ -466,8 +468,7 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
   else
   {
     // If there's no directory with the region-specific ID, look for a 3-character region-free one
-    const std::string region_free_directory =
-        File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+    const std::string region_free_directory = root_directory + game_id.substr(0, 3);
 
     if (File::Exists(region_free_directory))
     {
@@ -482,7 +483,6 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
   };
 
   // Look for any other directories that might be specific to the given gameid
-  const auto root_directory = File::GetUserPath(D_HIRESTEXTURES_IDX);
   const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
   for (const auto& file : files)
   {
@@ -490,8 +490,8 @@ std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& gam
     {
       // The following code is used to calculate the top directory
       // of a found gameid.txt file
-      // ex:  <dolphin dir>/Load/Textures/My folder/gameids/<gameid>.txt
-      // would insert "<dolphin dir>/Load/Textures/My folder"
+      // ex:  <root directory>/My folder/gameids/<gameid>.txt
+      // would insert "<root directory>/My folder"
       const auto directory_path = file.substr(root_directory.size());
       const std::size_t first_path_separator_position = directory_path.find_first_of(DIR_SEP_CHR);
       result.insert(root_directory + directory_path.substr(0, first_path_separator_position));
