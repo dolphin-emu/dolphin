@@ -18,7 +18,6 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
-  Compiler.h
   Config/Config.cpp
   Config/Config.h
   Config/ConfigInfo.cpp
@@ -67,6 +66,7 @@ add_library(common
   Image.h
   IniFile.cpp
   IniFile.h
+  Inline.h
   JitRegister.cpp
   JitRegister.h
   Lazy.h

@@ -9,7 +9,7 @@
 
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
-#include "Common/Compiler.h"
+#include "Common/Inline.h"
 
 enum class EFBCopyFormat;
 

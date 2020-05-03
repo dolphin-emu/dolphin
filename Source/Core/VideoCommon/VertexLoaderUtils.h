@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Common/Compiler.h"
+#include "Common/Inline.h"
 
 extern u8* g_video_buffer_read_ptr;
 extern u8* g_vertex_manager_write_ptr;
