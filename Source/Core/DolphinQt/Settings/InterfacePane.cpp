@@ -136,10 +136,8 @@ void InterfacePane::CreateUI()
 
   for (const std::string& path : userstyle_search_results)
   {
-    std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
-    const QString qt_name = QString::fromStdString(name);
-    m_combobox_userstyle->addItem(qt_name, QString::fromStdString(path));
+    const QFileInfo file_info(QString::fromStdString(path));
+    m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
 
   // Checkboxes
@@ -216,7 +214,7 @@ void InterfacePane::LoadConfig()
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
-  const int index = m_combobox_userstyle->findText(QFileInfo(userstyle).baseName());
+  const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
 
   if (index > 0)
     m_combobox_userstyle->setCurrentIndex(index);
