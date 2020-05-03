@@ -13,7 +13,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
 
 namespace ControllerEmu
 {
@@ -98,7 +98,7 @@ void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
   // extensions
   if (type == GroupType::PrimeHack)
   {
-    auto* const ext = static_cast<PrimeHackMisc*>(this);
+    auto* const ext = static_cast<PrimeHackModes*>(this);
 
     std::string i;
     sec->Get(base + name + "/Mode", &i, "0");
@@ -148,7 +148,7 @@ void ControlGroup::SaveConfig(IniFile::Section* sec, const std::string& defdev,
 
   if (type == GroupType::PrimeHack)
   {
-    auto* const ext = static_cast<PrimeHackMisc*>(this);
+    auto* const ext = static_cast<PrimeHackModes*>(this);
 
     sec->Set(base + name + "/Mode", std::to_string(ext->GetSelectedDevice()), "0");
   }

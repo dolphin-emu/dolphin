@@ -99,7 +99,7 @@ void GraphicsWindow::CreateMainLayout()
     m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
     m_tab_widget->addTab(m_wrapped_hacks, tr("Hacks"));
     m_tab_widget->addTab(m_wrapped_advanced, tr("Advanced"));
-    m_tab_widget->addTab(m_wrapped_prime, tr("PrimeHack Misc"));
+    m_tab_widget->addTab(m_wrapped_prime, tr("PrimeHack GFX"));
   }
   else
   {

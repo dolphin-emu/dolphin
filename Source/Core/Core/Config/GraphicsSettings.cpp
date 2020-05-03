@@ -88,7 +88,7 @@ const ConfigInfo<bool> GFX_SHADER_CACHE{{System::GFX, "Settings", "ShaderCache"}
 const ConfigInfo<bool> GFX_WAIT_FOR_SHADERS_BEFORE_STARTING{
     {System::GFX, "Settings", "WaitForShadersBeforeStarting"}, false};
 const ConfigInfo<ShaderCompilationMode> GFX_SHADER_COMPILATION_MODE{
-    {System::GFX, "Settings", "ShaderCompilationMode"}, ShaderCompilationMode::Synchronous};
+    {System::GFX, "Settings", "ShaderCompilationMode"}, ShaderCompilationMode::AsynchronousUberShaders};
 const ConfigInfo<int> GFX_SHADER_COMPILER_THREADS{
     {System::GFX, "Settings", "ShaderCompilerThreads"}, 1};
 const ConfigInfo<int> GFX_SHADER_PRECOMPILER_THREADS{

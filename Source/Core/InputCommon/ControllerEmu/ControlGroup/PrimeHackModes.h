@@ -16,10 +16,10 @@
 
 namespace ControllerEmu
 {
-  class PrimeHackMisc : public ControlGroup
+  class PrimeHackModes : public ControlGroup
   {
   public:
-    explicit PrimeHackMisc(const std::string& name);
+    explicit PrimeHackModes(const std::string& name);
 
     int GetSelectedDevice() const;
     void SetSelectedDevice(int val);

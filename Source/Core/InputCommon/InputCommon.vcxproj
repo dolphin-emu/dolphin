@@ -47,7 +47,7 @@
     <ClCompile Include="ControllerEmu\ControlGroup\IMUAccelerometer.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\IMUCursor.cpp" />
     <ClCompile Include="ControllerEmu\ControlGroup\IMUGyroscope.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackMisc.cpp" />
+    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackModes.cpp" />
     <ClCompile Include="ControllerEmu\ControllerEmu.cpp" />
     <ClCompile Include="ControllerEmu\StickGate.cpp" />
     <ClCompile Include="ControllerEmu\Control\Control.cpp" />
@@ -95,7 +95,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\IMUAccelerometer.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\IMUCursor.h" />
     <ClInclude Include="ControllerEmu\ControlGroup\IMUGyroscope.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackMisc.h" />
+    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackModes.h" />
     <ClInclude Include="ControllerEmu\ControllerEmu.h" />
     <ClInclude Include="ControllerEmu\StickGate.h" />
     <ClInclude Include="ControllerEmu\Control\Control.h" />

@@ -5,11 +5,11 @@
 #pragma once
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
-#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackMisc.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
 
 class QRadioButton;
 class QLabel;
-class PrimeHackMisc;
+class PrimeHackModes;
 
 class PrimeHackEmuGeneral final : public MappingWidget
 {

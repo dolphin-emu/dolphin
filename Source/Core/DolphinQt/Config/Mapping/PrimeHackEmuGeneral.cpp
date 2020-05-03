@@ -19,7 +19,7 @@
 
 #include "Core/PrimeHack/HackConfig.h"
 
-class PrimeHackMisc;
+class PrimeHackModes;
 
 PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window)
     : MappingWidget(window)
@@ -36,10 +36,10 @@ void PrimeHackEmuGeneral::CreateMainLayout()
   auto* groupbox1 = new QVBoxLayout();
   auto* groupbox2 = new QVBoxLayout();
 
-  auto* misc_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc);
-  auto* misc = CreateGroupBox(tr("Miscellaneous"), misc_group);
+  auto* modes_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes);
+  auto* modes = CreateGroupBox(tr("Mode"), modes_group);
 
-  auto* ce_misc = static_cast<ControllerEmu::PrimeHackMisc*>(misc_group);
+  auto* ce_modes = static_cast<ControllerEmu::PrimeHackModes*>(modes_group);
 
   const auto combo_hbox = new QHBoxLayout;
   combo_hbox->setAlignment(Qt::AlignCenter);
@@ -51,11 +51,16 @@ void PrimeHackEmuGeneral::CreateMainLayout()
   combo_hbox->addWidget(new QLabel(tr("Controller")));
   combo_hbox->addWidget(m_radio_controller = new QRadioButton());
 
-  misc->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  static_cast<QFormLayout*>(misc->layout())->insertRow(0, combo_hbox);
-  static_cast<QFormLayout*>(misc->layout())->setVerticalSpacing(20);
+  modes->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  static_cast<QFormLayout*>(modes->layout())->insertRow(0, combo_hbox);
 
-  groupbox1->addWidget(misc, 0, Qt::AlignTop);
+  groupbox1->addWidget(modes, 0);
+
+  auto* misc_box = CreateGroupBox(tr("Miscellaneous"),
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+
+  misc_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  groupbox1->addWidget(misc_box, 0);
 
   auto* beam_box = CreateGroupBox(tr("Beams"),
     Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Beams));
@@ -84,8 +89,7 @@ void PrimeHackEmuGeneral::CreateMainLayout()
     GetPort(), WiimoteEmu::WiimoteGroup::ControlStick));
 
   controller_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-
-  controller_box->setEnabled(ce_misc->GetSelectedDevice() == 1);
+  controller_box->setEnabled(ce_modes->GetSelectedDevice() == 1);
 
   groupbox2->addWidget(controller_box, 2, Qt::AlignTop);
 
@@ -106,10 +110,10 @@ void PrimeHackEmuGeneral::Connect(MappingWindow* window)
 
 void PrimeHackEmuGeneral::OnDeviceSelected()
 {
-  auto* ce_misc = static_cast<ControllerEmu::PrimeHackMisc*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+  auto* ce_modes = static_cast<ControllerEmu::PrimeHackModes*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
 
-  ce_misc->SetSelectedDevice(m_radio_button->isChecked() ? 0 : 1);
+  ce_modes->SetSelectedDevice(m_radio_button->isChecked() ? 0 : 1);
   controller_box->setEnabled(!m_radio_button->isChecked());
 
   ConfigChanged();
@@ -126,20 +130,24 @@ void PrimeHackEmuGeneral::ConfigChanged()
 
 void PrimeHackEmuGeneral::Update()
 {
-  auto* misc = static_cast<ControllerEmu::PrimeHackMisc*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+  bool checked = Wiimote::PrimeUseController();
 
-  controller_box->setEnabled(misc->GetSelectedDevice() == 1);
+  controller_box->setEnabled(checked);
+
+  if (m_radio_controller->isChecked() != checked) {
+    m_radio_controller->setChecked(checked);
+    m_radio_button->setChecked(!checked);
+  }
 }
 
 void PrimeHackEmuGeneral::LoadSettings()
 {
   Wiimote::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
 
-  auto* misc = static_cast<ControllerEmu::PrimeHackMisc*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
+  auto* modes = static_cast<ControllerEmu::PrimeHackModes*>(
+    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
 
-  bool checked = misc->GetSelectedDevice() == 0;
+  bool checked = modes->GetSelectedDevice() == 0;
   m_radio_button->setChecked(checked);
   m_radio_controller->setChecked(!checked);
   controller_box->setEnabled(!checked);

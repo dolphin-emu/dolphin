@@ -23,7 +23,7 @@ class PointerWrap;
 namespace ControllerEmu
 {
 class Attachments;
-class PrimeHackMisc;
+class PrimeHackModes;
 class Buttons;
 class ControlGroup;
 class Cursor;
@@ -60,7 +60,8 @@ enum class WiimoteGroup
   Visors,
   Camera,
   Misc,
-  ControlStick
+  ControlStick,
+  Modes
 };
 
 enum class NunchukGroup;
@@ -284,7 +285,8 @@ private:
   ControllerEmu::ControlGroup* m_primehack_visors;
   ControllerEmu::ControlGroup* m_primehack_motionhacks;
   ControllerEmu::ControlGroup* m_primehack_camera;
-  ControllerEmu::PrimeHackMisc* m_primehack_misc;
+  ControllerEmu::ControlGroup* m_primehack_misc;
+  ControllerEmu::PrimeHackModes* m_primehack_modes;
   ControllerEmu::AnalogStick* m_primehack_stick;
 
   ControllerEmu::SettingValue<bool> m_sideways_setting;
