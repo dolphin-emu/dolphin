@@ -49,7 +49,7 @@ public:
       if (system)
       {
         m_values.emplace_back(
-            Config::ConfigLocation{std::move(*system), std::move(section), std::move(key)},
+            Config::Location{std::move(*system), std::move(section), std::move(key)},
             std::move(value));
       }
     }
@@ -69,7 +69,7 @@ public:
   }
 
 private:
-  std::list<std::tuple<Config::ConfigLocation, std::string>> m_values;
+  std::list<std::tuple<Config::Location, std::string>> m_values;
 };
 
 std::unique_ptr<optparse::OptionParser> CreateParser(ParserOptions options)

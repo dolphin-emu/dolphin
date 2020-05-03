@@ -8,19 +8,19 @@ namespace Config
 {
 // SYSCONF.IPL
 
-const ConfigInfo<bool> SYSCONF_SCREENSAVER{{System::SYSCONF, "IPL", "SSV"}, false};
-const ConfigInfo<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"}, 0x01};
-const ConfigInfo<u32> SYSCONF_COUNTRY{{System::SYSCONF, "IPL", "SADR"}, 0x6c};
-const ConfigInfo<bool> SYSCONF_WIDESCREEN{{System::SYSCONF, "IPL", "AR"}, true};
-const ConfigInfo<bool> SYSCONF_PROGRESSIVE_SCAN{{System::SYSCONF, "IPL", "PGS"}, true};
-const ConfigInfo<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, 0x01};
+const Info<bool> SYSCONF_SCREENSAVER{{System::SYSCONF, "IPL", "SSV"}, false};
+const Info<u32> SYSCONF_LANGUAGE{{System::SYSCONF, "IPL", "LNG"}, 0x01};
+const Info<u32> SYSCONF_COUNTRY{{System::SYSCONF, "IPL", "SADR"}, 0x6c};
+const Info<bool> SYSCONF_WIDESCREEN{{System::SYSCONF, "IPL", "AR"}, true};
+const Info<bool> SYSCONF_PROGRESSIVE_SCAN{{System::SYSCONF, "IPL", "PGS"}, true};
+const Info<bool> SYSCONF_PAL60{{System::SYSCONF, "IPL", "E60"}, 0x01};
 
 // SYSCONF.BT
 
-const ConfigInfo<u32> SYSCONF_SENSOR_BAR_POSITION{{System::SYSCONF, "BT", "BAR"}, 0x01};
-const ConfigInfo<u32> SYSCONF_SENSOR_BAR_SENSITIVITY{{System::SYSCONF, "BT", "SENS"}, 0x03};
-const ConfigInfo<u32> SYSCONF_SPEAKER_VOLUME{{System::SYSCONF, "BT", "SPKV"}, 0x58};
-const ConfigInfo<bool> SYSCONF_WIIMOTE_MOTOR{{System::SYSCONF, "BT", "MOT"}, true};
+const Info<u32> SYSCONF_SENSOR_BAR_POSITION{{System::SYSCONF, "BT", "BAR"}, 0x01};
+const Info<u32> SYSCONF_SENSOR_BAR_SENSITIVITY{{System::SYSCONF, "BT", "SENS"}, 0x03};
+const Info<u32> SYSCONF_SPEAKER_VOLUME{{System::SYSCONF, "BT", "SPKV"}, 0x58};
+const Info<bool> SYSCONF_WIIMOTE_MOTOR{{System::SYSCONF, "BT", "MOT"}, true};
 
 const std::array<SYSCONFSetting, 10> SYSCONF_SETTINGS{
     {{SYSCONF_SCREENSAVER, SysConf::Entry::Type::Byte},

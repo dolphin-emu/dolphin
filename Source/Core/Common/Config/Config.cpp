@@ -159,7 +159,7 @@ const std::string& GetLayerName(LayerType layer)
   return layer_to_name.at(layer);
 }
 
-LayerType GetActiveLayerForConfig(const ConfigLocation& config)
+LayerType GetActiveLayerForConfig(const Location& config)
 {
   ReadLock lock(s_layers_rw_lock);
 

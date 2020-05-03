@@ -12,11 +12,11 @@ class GraphicsRadioInt : public QRadioButton
 {
   Q_OBJECT
 public:
-  GraphicsRadioInt(const QString& label, const Config::ConfigInfo<int>& setting, int value);
+  GraphicsRadioInt(const QString& label, const Config::Info<int>& setting, int value);
 
 private:
   void Update();
 
-  Config::ConfigInfo<int> m_setting;
+  Config::Info<int> m_setting;
   int m_value;
 };

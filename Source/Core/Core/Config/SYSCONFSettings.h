@@ -16,23 +16,23 @@ namespace Config
 
 // SYSCONF.IPL
 
-extern const ConfigInfo<bool> SYSCONF_SCREENSAVER;
-extern const ConfigInfo<u32> SYSCONF_LANGUAGE;
-extern const ConfigInfo<u32> SYSCONF_COUNTRY;
-extern const ConfigInfo<bool> SYSCONF_WIDESCREEN;
-extern const ConfigInfo<bool> SYSCONF_PROGRESSIVE_SCAN;
-extern const ConfigInfo<bool> SYSCONF_PAL60;
+extern const Info<bool> SYSCONF_SCREENSAVER;
+extern const Info<u32> SYSCONF_LANGUAGE;
+extern const Info<u32> SYSCONF_COUNTRY;
+extern const Info<bool> SYSCONF_WIDESCREEN;
+extern const Info<bool> SYSCONF_PROGRESSIVE_SCAN;
+extern const Info<bool> SYSCONF_PAL60;
 
 // SYSCONF.BT
 
-extern const ConfigInfo<u32> SYSCONF_SENSOR_BAR_POSITION;
-extern const ConfigInfo<u32> SYSCONF_SENSOR_BAR_SENSITIVITY;
-extern const ConfigInfo<u32> SYSCONF_SPEAKER_VOLUME;
-extern const ConfigInfo<bool> SYSCONF_WIIMOTE_MOTOR;
+extern const Info<u32> SYSCONF_SENSOR_BAR_POSITION;
+extern const Info<u32> SYSCONF_SENSOR_BAR_SENSITIVITY;
+extern const Info<u32> SYSCONF_SPEAKER_VOLUME;
+extern const Info<bool> SYSCONF_WIIMOTE_MOTOR;
 
 struct SYSCONFSetting
 {
-  std::variant<ConfigInfo<u32>, ConfigInfo<bool>> config_info;
+  std::variant<Info<u32>, Info<bool>> config_info;
   SysConf::Entry::Type type;
 };
 

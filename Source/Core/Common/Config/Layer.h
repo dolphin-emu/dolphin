@@ -45,10 +45,10 @@ inline std::optional<std::string> TryParse(const std::string& str_value)
 }  // namespace detail
 
 template <typename T>
-struct ConfigInfo;
+struct Info;
 
 class Layer;
-using LayerMap = std::map<ConfigLocation, std::optional<std::string>>;
+using LayerMap = std::map<Location, std::optional<std::string>>;
 
 class ConfigLayerLoader
 {
@@ -98,18 +98,18 @@ public:
   virtual ~Layer();
 
   // Convenience functions
-  bool Exists(const ConfigLocation& location) const;
-  bool DeleteKey(const ConfigLocation& location);
+  bool Exists(const Location& location) const;
+  bool DeleteKey(const Location& location);
   void DeleteAllKeys();
 
   template <typename T>
-  T Get(const ConfigInfo<T>& config_info) const
+  T Get(const Info<T>& config_info) const
   {
     return Get<T>(config_info.location).value_or(config_info.default_value);
   }
 
   template <typename T>
-  std::optional<T> Get(const ConfigLocation& location) const
+  std::optional<T> Get(const Location& location) const
   {
     const auto iter = m_map.find(location);
     if (iter == m_map.end() || !iter->second.has_value())
@@ -118,18 +118,18 @@ public:
   }
 
   template <typename T>
-  void Set(const ConfigInfo<T>& config_info, const std::common_type_t<T>& value)
+  void Set(const Info<T>& config_info, const std::common_type_t<T>& value)
   {
     Set(config_info.location, value);
   }
 
   template <typename T>
-  void Set(const ConfigLocation& location, const T& value)
+  void Set(const Location& location, const T& value)
   {
     Set(location, ValueToString(value));
   }
 
-  void Set(const ConfigLocation& location, std::string new_value)
+  void Set(const Location& location, std::string new_value)
   {
     const auto iter = m_map.find(location);
     if (iter != m_map.end() && iter->second == new_value)

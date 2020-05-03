@@ -26,13 +26,13 @@ namespace Common::Log
 {
 constexpr size_t MAX_MSGLEN = 1024;
 
-const Config::ConfigInfo<bool> LOGGER_WRITE_TO_FILE{
-    {Config::System::Logger, "Options", "WriteToFile"}, false};
-const Config::ConfigInfo<bool> LOGGER_WRITE_TO_CONSOLE{
+const Config::Info<bool> LOGGER_WRITE_TO_FILE{{Config::System::Logger, "Options", "WriteToFile"},
+                                              false};
+const Config::Info<bool> LOGGER_WRITE_TO_CONSOLE{
     {Config::System::Logger, "Options", "WriteToConsole"}, true};
-const Config::ConfigInfo<bool> LOGGER_WRITE_TO_WINDOW{
+const Config::Info<bool> LOGGER_WRITE_TO_WINDOW{
     {Config::System::Logger, "Options", "WriteToWindow"}, true};
-const Config::ConfigInfo<int> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"}, 0};
+const Config::Info<int> LOGGER_VERBOSITY{{Config::System::Logger, "Options", "Verbosity"}, 0};
 
 class FileLogListener : public LogListener
 {
@@ -163,7 +163,7 @@ LogManager::LogManager()
 
   for (LogContainer& container : m_log)
     container.m_enable = Config::Get(
-        Config::ConfigInfo<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
@@ -188,8 +188,7 @@ void LogManager::SaveSettings()
 
   for (const auto& container : m_log)
   {
-    const Config::ConfigInfo<bool> info{{Config::System::Logger, "Logs", container.m_short_name},
-                                        false};
+    const Config::Info<bool> info{{Config::System::Logger, "Logs", container.m_short_name}, false};
     Config::SetBaseOrCurrent(info, container.m_enable);
   }
 

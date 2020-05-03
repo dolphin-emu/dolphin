@@ -10,7 +10,7 @@
 
 #include "DolphinQt/Settings.h"
 
-GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigInfo<int>& setting)
+GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::Info<int>& setting)
     : m_setting(setting)
 {
   addItems(options);
