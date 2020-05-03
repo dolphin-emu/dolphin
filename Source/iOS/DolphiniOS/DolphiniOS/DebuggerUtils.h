@@ -4,5 +4,5 @@
 
 #pragma once
 
-bool IsProcessDebugged();
-void SetProcessDebugged();
+bool IsProcessDebugged(void);
+void SetProcessDebugged(void);
