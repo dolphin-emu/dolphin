@@ -11,6 +11,7 @@
 
 int main(int argc, char* argv[])
 {
+#ifndef NONJAILBROKEN
   if (!IsProcessDebugged())
   {
     @autoreleasepool
@@ -18,6 +19,7 @@ int main(int argc, char* argv[])
       SetProcessDebugged();
     }
   }
+#endif
   
   NSString* appDelegateClassName;
   @autoreleasepool

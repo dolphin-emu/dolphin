@@ -6,6 +6,8 @@
 
 #import "AppDelegate.h"
 
+#import "DebuggerUtils.h"
+
 @interface SettingsTableViewController ()
 
 @end
@@ -39,6 +41,13 @@
   [self.m_version_label setText:version_str];
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  
+  [self.tableView reloadData];
+}
+
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   [tableView deselectRowAtIndexPath:indexPath animated:YES];
@@ -69,14 +78,17 @@
 
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-#ifndef NONJAILBROKEN
+  CGFloat real_height = [super tableView:tableView heightForRowAtIndexPath:indexPath];
   if (indexPath.section == 2)
   {
+#if !defined(NONJAILBROKEN) || DEBUG
     return CGFLOAT_MIN;
-  }
+#else
+    return IsProcessDebugged() ? real_height : CGFLOAT_MIN;
 #endif
+  }
   
-  return [super tableView:tableView heightForRowAtIndexPath:indexPath];
+  return real_height;
 }
 
 - (IBAction)UnwindToSettings:(UIStoryboardSegue*)segue {}

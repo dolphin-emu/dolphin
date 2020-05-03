@@ -6,6 +6,8 @@
 
 #import "Core/ConfigManager.h"
 
+#import "DebuggerUtils.h"
+
 @interface SettingsDebugViewController ()
 
 @end
@@ -33,6 +35,17 @@
   [self.m_register_cache_switch setOn:config.bJITRegisterCacheOff];
   
   [self.m_skip_idle_switch setOn:config.bSyncGPUOnSkipIdleHack];
+  
+  if (IsProcessDebugged())
+  {
+    [self DisableSetDebuggedCell];
+  }
+}
+
+- (void)DisableSetDebuggedCell
+{
+  [self.m_set_debugged_cell setSelectionStyle:UITableViewCellSelectionStyleNone];
+  [self.m_set_debugged_label setTextColor:[UIColor grayColor]];
 }
 
 - (IBAction)LoadStoreChanged:(id)sender
@@ -98,6 +111,14 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
+  else if (indexPath.section == 1 && indexPath.row == 1)
+  {
+    if (!IsProcessDebugged())
+    {
+      SetProcessDebugged();
+      [self DisableSetDebuggedCell];
+    }
+  }
   
   [self.tableView deselectRowAtIndexPath:indexPath animated:true];
 }
@@ -114,6 +135,28 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
+  else if (indexPath.section == 1 && indexPath.row == 1)
+  {
+    NSString* message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
+      
+    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [self presentViewController:controller animated:true completion:nil];
+  }
+}
+
+- (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
+{
+#ifndef NONJAILBROKEN
+  if (indexPath.section == 1 && indexPath.row == 1)
+  {
+    return CGFLOAT_MIN;
+  }
+#endif
+  
+  return [super tableView:tableView heightForRowAtIndexPath:indexPath];
 }
 
 @end

@@ -4,5 +4,14 @@
 
 #pragma once
 
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 bool IsProcessDebugged(void);
 void SetProcessDebugged(void);
+
+#ifdef __cplusplus
+}
+#endif
