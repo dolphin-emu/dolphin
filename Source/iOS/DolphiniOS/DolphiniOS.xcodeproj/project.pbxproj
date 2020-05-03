@@ -91,6 +91,7 @@
 		B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */; };
 		B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */; };
 		B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */; };
+		B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -399,6 +400,7 @@
 		B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = NonJailbrokenNotice.xib; path = DolphiniOS/UI/Notices/NonJailbroken/NonJailbrokenNotice.xib; sourceTree = SOURCE_ROOT; };
 		B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NonJailbrokenNoticeViewController.h; sourceTree = "<group>"; };
 		B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NonJailbrokenNoticeViewController.m; sourceTree = "<group>"; };
+		B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = OSTooNewNotice.xib; path = DolphiniOS/UI/Notices/OSTooNew/OSTooNewNotice.xib; sourceTree = SOURCE_ROOT; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
@@ -695,6 +697,7 @@
 				B9B536D323DE604A00F03106 /* Donation */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
 				B971E1C6245E209500D2A698 /* NonJailbroken */,
+				B971E1CC245E7EF100D2A698 /* OSTooNew */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
 				B9B536E223DE81F000F03106 /* ReloadState */,
 				B9B536DC23DE706300F03106 /* UnofficialBuild */,
@@ -902,6 +905,14 @@
 				B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */,
 			);
 			path = NonJailbroken;
+			sourceTree = "<group>";
+		};
+		B971E1CC245E7EF100D2A698 /* OSTooNew */ = {
+			isa = PBXGroup;
+			children = (
+				B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */,
+			);
+			path = OSTooNew;
 			sourceTree = "<group>";
 		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
@@ -1386,6 +1397,7 @@
 				B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */,
 				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
+				B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
 				B98911A12444F12200A24522 /* AnalyticsNotice.xib in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,

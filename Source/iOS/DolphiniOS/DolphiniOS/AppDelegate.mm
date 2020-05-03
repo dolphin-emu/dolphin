@@ -80,6 +80,18 @@
   }
 #endif
   
+#ifdef NONJAILBROKEN
+  if (@available(iOS 13.5, *))
+  {
+    // Show the OS incompatibilty warning
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
+    [self.window makeKeyAndVisible];
+    
+    return true;
+  }
+#endif
+  
   // Default settings values should be set in DefaultPreferences.plist in the future
   NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];
   NSDictionary *defaultPrefs = [NSDictionary dictionaryWithContentsOfURL:defaultPrefsFile];
