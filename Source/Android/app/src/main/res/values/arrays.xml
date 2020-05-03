@@ -35,7 +35,7 @@
 
     <!-- DSP Emulation Engine -->
     <string-array name="dspEngineEntriesX86_64" translatable="false">
-        <item>DSP HLE Emulation (fast)</item>
+        <item>DSP HLE (fast)</item>
         <item>DSP LLE Recompiler</item>
         <item>DSP LLE Interpreter (slow)</item>
     </string-array>
@@ -45,7 +45,7 @@
         <item>2</item>
     </integer-array>
     <string-array name="dspEngineEntriesGeneric" translatable="false">
-        <item>DSP HLE Emulation (fast)</item>
+        <item>DSP HLE (fast)</item>
         <item>DSP LLE Interpreter (slow)</item>
     </string-array>
     <integer-array name="dspEngineValuesGeneric" translatable="false">
