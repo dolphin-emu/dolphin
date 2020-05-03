@@ -90,7 +90,7 @@ void GameConfigWidget::CreateWidgets()
   m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
   m_enable_fast_disc = new QCheckBox(tr("Speed up Disc Transfer Rate"));
-  m_use_dsp_hle = new QCheckBox(tr("DSP HLE Emulation (fast)"));
+  m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
   m_deterministic_dual_core = new QComboBox;
 
   for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
