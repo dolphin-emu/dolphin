@@ -211,23 +211,8 @@
   }
   
   // Check for updates
-#ifndef DEBUG
-  NSString* update_url_string;
-#ifndef PATREON
-#ifndef NONJAILBROKEN
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update.json";
-#else
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_njb.json";
-#endif
-#else
-#ifndef NONJAILBROKEN
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon.json";
-#else
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon_njb.json";
-#endif
-#endif
-  
-  NSURL* update_url = [NSURL URLWithString:update_url_string];
+//#ifndef DEBUG
+  NSURL* update_url = [NSURL URLWithString:@"https://cydia.oatmealdome.me/DolphiniOS/api/v2/update.json"];
   
   // Create en ephemeral session to avoid caching
   NSURLSession* session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
@@ -242,8 +227,24 @@
     NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
     
     // Deserialize the JSON
-    NSDictionary* dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    NSDictionary* json_dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
     
+    NSString* dict_key;
+#ifndef PATREON
+#ifndef NONJAILBROKEN
+      dict_key = @"public";
+#else
+      dict_key = @"public_njb";
+#endif
+#else
+#ifndef NONJAILBROKEN
+      dict_key = @"patreon";
+#else
+      dict_key = @"patreon_njb";
+#endif
+#endif
+    
+    NSDictionary* dict = json_dict[dict_key];
     if (![dict[@"version"] isEqualToString:version_str])
     {
       dispatch_async(dispatch_get_main_queue(), ^{
@@ -262,7 +263,7 @@
       });
     }
   }] resume];
-#endif
+//#endif
   
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
