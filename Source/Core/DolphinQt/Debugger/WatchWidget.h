@@ -9,11 +9,11 @@
 #include "Common/CommonTypes.h"
 
 class QAction;
+class QCloseEvent;
+class QShowEvent;
 class QTableWidget;
 class QTableWidgetItem;
 class QToolBar;
-class QCloseEvent;
-class QShowEvent;
 
 class WatchWidget : public QDockWidget
 {

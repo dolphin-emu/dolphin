@@ -76,6 +76,8 @@
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="Debug\MemoryPatches.h" />
+    <ClInclude Include="Debug\OSThread.h" />
+    <ClInclude Include="Debug\Threads.h" />
     <ClInclude Include="Debug\Watches.h" />
     <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="ENetUtil.h" />
@@ -217,6 +219,7 @@
     <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp" />
+    <ClCompile Include="Debug\OSThread.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />
     <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="ENetUtil.cpp" />

@@ -168,6 +168,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   // View
   m_show_code->setVisible(enabled);
   m_show_registers->setVisible(enabled);
+  m_show_threads->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
   m_show_memory->setVisible(enabled);
@@ -443,6 +444,14 @@ void MenuBar::AddViewMenu()
   connect(m_show_registers, &QAction::toggled, &Settings::Instance(),
           &Settings::SetRegistersVisible);
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
+          &QAction::setChecked);
+
+  m_show_threads = view_menu->addAction(tr("&Threads"));
+  m_show_threads->setCheckable(true);
+  m_show_threads->setChecked(Settings::Instance().IsThreadsVisible());
+
+  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::SetThreadsVisible);
+  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, m_show_threads,
           &QAction::setChecked);
 
   // i18n: This kind of "watch" is used for watching emulated memory.

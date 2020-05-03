@@ -188,6 +188,8 @@ add_executable(dolphin-emu
   Debugger/RegisterColumn.h
   Debugger/RegisterWidget.cpp
   Debugger/RegisterWidget.h
+  Debugger/ThreadWidget.cpp
+  Debugger/ThreadWidget.h
   Debugger/WatchWidget.cpp
   Debugger/WatchWidget.h
   GameList/GameList.cpp
