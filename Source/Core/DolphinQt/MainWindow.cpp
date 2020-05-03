@@ -1178,6 +1178,7 @@ void MainWindow::ShowNetPlaySetupDialog()
 void MainWindow::ShowNetPlayBrowser()
 {
   auto* browser = new NetPlayBrowser(this);
+  browser->setAttribute(Qt::WA_DeleteOnClose, true);
   connect(browser, &NetPlayBrowser::Join, this, &MainWindow::NetPlayJoin);
   browser->exec();
 }

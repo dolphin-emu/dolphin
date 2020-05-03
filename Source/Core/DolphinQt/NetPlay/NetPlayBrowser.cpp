@@ -27,6 +27,7 @@
 
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
+#include "DolphinQt/Settings.h"
 
 NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 {
@@ -44,6 +45,8 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
   m_refresh_run.Set(true);
   m_refresh_thread = std::thread([this] { RefreshLoop(); });
 
+  RestoreSettings();
+
   UpdateList();
   Refresh();
 }
@@ -54,6 +57,8 @@ NetPlayBrowser::~NetPlayBrowser()
   m_refresh_event.Set();
   if (m_refresh_thread.joinable())
     m_refresh_thread.join();
+
+  SaveSettings();
 }
 
 void NetPlayBrowser::CreateWidgets()
@@ -322,4 +327,54 @@ void NetPlayBrowser::accept()
     Config::SetBaseOrCurrent(Config::NETPLAY_ADDRESS, server_id);
 
   emit Join();
+}
+
+void NetPlayBrowser::SaveSettings() const
+{
+  auto& settings = Settings::Instance().GetQSettings();
+
+  settings.setValue(QStringLiteral("netplaybrowser/geometry"), saveGeometry());
+  settings.setValue(QStringLiteral("netplaybrowser/region"), m_region_combo->currentText());
+  settings.setValue(QStringLiteral("netplaybrowser/name"), m_edit_name->text());
+  settings.setValue(QStringLiteral("netplaybrowser/game_id"), m_edit_game_id->text());
+
+  QString visibility(QStringLiteral("all"));
+  if (m_radio_public->isChecked())
+    visibility = QStringLiteral("public");
+  else if (m_radio_private->isChecked())
+    visibility = QStringLiteral("private");
+  settings.setValue(QStringLiteral("netplaybrowser/visibility"), visibility);
+
+  settings.setValue(QStringLiteral("netplaybrowser/hide_incompatible"),
+                    m_check_hide_incompatible->isChecked());
+  settings.setValue(QStringLiteral("netplaybrowser/hide_ingame"), m_check_hide_ingame->isChecked());
+}
+
+void NetPlayBrowser::RestoreSettings()
+{
+  const auto& settings = Settings::Instance().GetQSettings();
+
+  const QByteArray geometry =
+      settings.value(QStringLiteral("netplaybrowser/geometry")).toByteArray();
+  if (!geometry.isEmpty())
+    restoreGeometry(geometry);
+
+  const QString region = settings.value(QStringLiteral("netplaybrowser/region")).toString();
+  const bool valid_region = m_region_combo->findText(region) != -1;
+  if (valid_region)
+    m_region_combo->setCurrentText(region);
+
+  m_edit_name->setText(settings.value(QStringLiteral("netplaybrowser/name")).toString());
+  m_edit_game_id->setText(settings.value(QStringLiteral("netplaybrowser/game_id")).toString());
+
+  const QString visibility = settings.value(QStringLiteral("netplaybrowser/visibility")).toString();
+  if (visibility == QStringLiteral("public"))
+    m_radio_public->setChecked(true);
+  else if (visibility == QStringLiteral("private"))
+    m_radio_private->setChecked(true);
+
+  m_check_hide_incompatible->setChecked(
+      settings.value(QStringLiteral("netplaybrowser/hide_incompatible"), true).toBool());
+  m_check_hide_ingame->setChecked(
+      settings.value(QStringLiteral("netplaybrowser/hide_ingame")).toBool());
 }
