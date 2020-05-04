@@ -26,13 +26,32 @@ namespace prime
 
   void MP2::run_mod()
   {
-    // Load state should be 1, otherwise addresses may be invalid
-    if (PowerPC::HostRead_U32(load_state_address()) != 1)
+    u32 base_address = PowerPC::HostRead_U32(camera_ctl_address());
+    if (!mem_check(base_address))
     {
       return;
     }
-    u32 base_address = PowerPC::HostRead_U32(camera_ctl_address());
-    if (!mem_check(base_address))
+
+    int beam_id = prime::get_beam_switch(prime_two_beams);
+    if (beam_id != -1)
+    {
+      PowerPC::HostWrite_U32(beam_id, new_beam_address());
+      PowerPC::HostWrite_U32(1, beamchange_flag_address());
+    }
+
+    u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);
+    int visor_id, visor_off;
+    std::tie(visor_id, visor_off) = prime::get_visor_switch(prime_two_visors, PowerPC::HostRead_U32(visor_base + 0x34) == 0);
+    if (visor_id != -1)
+    {    
+      if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x5c) != 0)
+      {
+        PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
+      }
+    }
+
+    // Load state should be 1, otherwise addresses may be invalid
+    if (PowerPC::HostRead_U32(load_state_address()) != 1)
     {
       return;
     }
@@ -60,26 +79,8 @@ namespace prime
       set_beam_owned(i, PowerPC::HostRead_U32(beam_base + (prime_two_beams[i] * 0x0c) + 0x5c) ? true : false);
     }
 
-    u32 visor_base = PowerPC::HostRead_U32(base_address + 0x12ec);
     for (int i = 0; i < 4; i++) {
       set_visor_owned(i , PowerPC::HostRead_U32(visor_base + (std::get<1>(prime_two_visors[i]) * 0x8) + 0x30) ? true : false);
-    }
-
-    int beam_id = prime::get_beam_switch(prime_two_beams);
-    if (beam_id != -1)
-    {
-      PowerPC::HostWrite_U32(beam_id, new_beam_address());
-      PowerPC::HostWrite_U32(1, beamchange_flag_address());
-    }
-
-    int visor_id, visor_off;
-    std::tie(visor_id, visor_off) = prime::get_visor_switch(prime_two_visors, PowerPC::HostRead_U32(visor_base + 0x34) == 0);
-    if (visor_id != -1)
-    {    
-      if (PowerPC::HostRead_U32(visor_base + (visor_off * 0x0c) + 0x5c) != 0)
-      {
-        PowerPC::HostWrite_U32(visor_id, visor_base + 0x34);
-      }
     }
 
     if (UseMPAutoEFB())

@@ -27,6 +27,25 @@ namespace prime
 
   void MP1::run_mod()
   {
+    u32 powerup_base = PowerPC::HostRead_U32(powerups_base_address());
+
+    int beam_id = get_beam_switch(prime_one_beams);
+    if (beam_id != -1)
+    {
+      PowerPC::HostWrite_U32(beam_id, new_beam_address());
+      PowerPC::HostWrite_U32(1, beamchange_flag_address());
+    }
+
+    int visor_id, visor_off;
+    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(powerup_base + 0x1c) == 0);
+    if (visor_id != -1)
+    {
+      if (PowerPC::HostRead_U32(powerup_base + (visor_off * 0x08) + 0x30))
+      {
+        PowerPC::HostWrite_U32(visor_id, powerup_base + 0x1c);
+      }
+    }
+
     if (PowerPC::HostRead_U32(orbit_state_address()) != 5 && PowerPC::HostRead_U8(lockon_address()))
     {
       PowerPC::HostWrite_U32(0, yaw_vel_address());
@@ -46,8 +65,6 @@ namespace prime
     PowerPC::HostWrite_U32(0, avel_limiter_address());
     PowerPC::HostWrite_U32(*reinterpret_cast<u32 const*>(&yaw_vel), yaw_vel_address());
 
-    u32 powerup_base = PowerPC::HostRead_U32(powerups_base_address());
-
     for (int i = 0; i < 4; i++) {
       set_visor_owned(i , PowerPC::HostRead_U32(powerup_base + (std::get<1>(prime_one_visors[i]) * 0x8) + 0x30) ? true : false);
     }
@@ -56,24 +73,9 @@ namespace prime
       set_beam_owned(i , PowerPC::HostRead_U32(powerup_base + (prime_one_beams[i] * 0x08) + 0x30) ? true : false);
     }
 
-    int beam_id = get_beam_switch(prime_one_beams);
-    if (beam_id != -1)
-    {
-      PowerPC::HostWrite_U32(beam_id, new_beam_address());
-      PowerPC::HostWrite_U32(1, beamchange_flag_address());
-    }
-
     springball_check(cplayer() + 0x2f4, cplayer() + 0x25C);
 
-    int visor_id, visor_off;
-    std::tie(visor_id, visor_off) = get_visor_switch(prime_one_visors, PowerPC::HostRead_U32(powerup_base + 0x1c) == 0);
-    if (visor_id != -1)
-    {
-      if (PowerPC::HostRead_U32(powerup_base + (visor_off * 0x08) + 0x30))
-      {
-        PowerPC::HostWrite_U32(visor_id, powerup_base + 0x1c);
-      }
-    }
+
     {
       u32 camera_ptr = PowerPC::HostRead_U32(camera_pointer_address());
       u32 camera_offset = ((PowerPC::HostRead_U32(active_camera_offset_address()) >> 16) & 0x3ff)
