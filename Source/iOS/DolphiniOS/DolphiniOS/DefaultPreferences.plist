@@ -24,5 +24,7 @@
 	<true/>
 	<key>top_bar_pull_down_mode</key>
 	<integer>0</integer>
+	<key>last_version</key>
+	<string>dummy</string>
 </dict>
 </plist>
