@@ -36,13 +36,13 @@
 
 - (IBAction)UpdateNowTouched:(id)sender
 {
-  NSURL* url = [NSURL URLWithString:@"cydia://url/https://cydia.saurik.com/api/share#?source=https://cydia.oatmealdome.me/&package=me.oatmealdome.dolphinios"];
+  NSURL* url = [NSURL URLWithString:self.m_update_json[@"install_url"]];
   [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 
 - (IBAction)SeeChangesTouched:(id)sender
 {
-  NSURL* url = [NSURL URLWithString:self.m_update_json[@"url"]];
+  NSURL* url = [NSURL URLWithString:self.m_update_json[@"changes_url"]];
   [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
 }
 
