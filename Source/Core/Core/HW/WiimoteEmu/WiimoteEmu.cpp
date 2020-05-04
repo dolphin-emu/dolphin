@@ -818,17 +818,16 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
   // Map screen
   m_buttons->SetControlExpression(2, "TAB");
+
   // Pause menu
-  m_buttons->SetControlExpression(3, "ESCAPE");
-  // Beam menu
-  //m_buttons->SetControlExpression(4, "Q");
-  // Visor menu
-  m_buttons->SetControlExpression(5, "R");
+  m_buttons->SetControlExpression(3, "GRAVE");
+
+  // +-
+  m_buttons->SetControlExpression(4, "LEFT");
+  m_buttons->SetControlExpression(5, "RIGHT | R");
 
   // Shake (Only used in Prime 3, may need revision)
   m_shake->SetControlExpression(1, "LSHIFT & (`Axis Y-` | `Axis Y+` | `Axis X-` | `Axis X+`)");
-  // Springball
-  m_shake->SetControlExpression(2, "LMENU");
 
   // DPad
   // Missiles

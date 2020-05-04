@@ -31,6 +31,7 @@ PrimeWidget::PrimeWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   //LoadSettings();
   ConnectWidgets();
   AddDescriptions();
+
   ArmPositionModeChanged(m_manual_arm_position->isChecked());
 }
 
@@ -49,9 +50,6 @@ void PrimeWidget::CreateWidgets()
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
   m_toggle_secondaryFX = new GraphicsBool(tr("Enable GCN Gun Effects"), Config::ENABLE_SECONDARY_GUNFX);
-
-  if (prime::GetFov() > 96)
-    m_toggle_culling->setEnabled(false);
 
   graphics_layout->addWidget(m_autoefb, 0, 0);
   graphics_layout->addWidget(m_toggle_secondaryFX, 1, 0);
@@ -151,10 +149,14 @@ void PrimeWidget::ConnectWidgets()
       if (state != Core::State::Uninitialized) {
         if (prime::GetEnableSecondaryGunFX())
           m_toggle_secondaryFX->setEnabled(false);
+          m_toggle_culling->setEnabled(true);
       }
       else {
         m_toggle_secondaryFX->setEnabled(true);
-        m_toggle_culling->setEnabled(true);
+        if (prime::GetFov() > 96) {
+          m_toggle_culling->setEnabled(false);
+          m_toggle_culling->setChecked(true);
+        }
       }
     });
 }
@@ -178,7 +180,8 @@ void PrimeWidget::AddDescriptions()
   static const char TR_TOGGLE_ARM_POSITION[] =
     QT_TR_NOOP("Toggles repositioning of Samus's arms in the viewmodel. Repositioning her arms is visually beneficial for high Field Of Views.");
   static const char TR_TOGGLE_CULL[] =
-    QT_TR_NOOP("Disables graphical culling. This allows for Field of Views above 101 in Metroid Prime 1 and Metroid Prime 2, and above 94 in Metroid Prime 3.");
+    QT_TR_NOOP("Disables graphical culling. This allows for Field of Views above 101 in Metroid Prime 1 and Metroid Prime 2, and above 94 in Metroid Prime 3.\n\n"
+               "This option is forced on above FOV 96");
   static const char TR_MANUAL_POSITION[] =
     QT_TR_NOOP("Allows you to manually modify the XYZ positioning of Samus's arms in the viewmodel.");
   static const char TR_AUTO_POSITION[] =
