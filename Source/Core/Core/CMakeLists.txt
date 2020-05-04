@@ -554,6 +554,7 @@ PUBLIC
   inputcommon
   ${MBEDTLS_LIBRARIES}
   pugixml
+  RangeSet::RangeSet
   sfml-network
   sfml-system
   videonull
