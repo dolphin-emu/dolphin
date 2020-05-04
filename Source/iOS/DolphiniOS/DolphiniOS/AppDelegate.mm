@@ -224,6 +224,10 @@
     [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
   }
   
+  // Get the version string
+  NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+  NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+  
   // Check for updates
 #ifndef DEBUG
   NSURL* update_url = [NSURL URLWithString:@"https://dolphinios.oatmealdome.me/api/v2/update.json"];
@@ -235,10 +239,6 @@
     {
       return;
     }
-    
-    // Get the version string
-    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
-    NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
     
     // Deserialize the JSON
     NSDictionary* json_dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
@@ -293,6 +293,24 @@
   [FIRAnalytics setAnalyticsCollectionEnabled:false];
   [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:false];
 #endif
+  
+  NSString* last_version = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_version"];
+  if (![last_version isEqualToString:version_str])
+  {
+    NSString* app_type;
+#ifndef NONJAILBROKEN
+    app_type = @"jailbroken";
+#else
+    app_type = @"non-jailbroken";
+#endif
+  
+    [FIRAnalytics logEventWithName:@"version_start" parameters:@{
+      @"type" : app_type,
+      @"version" : version_str
+    }];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:version_str forKey:@"last_version"];
+  }
  
   return YES;
 }
