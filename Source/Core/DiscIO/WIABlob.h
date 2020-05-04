@@ -381,8 +381,8 @@ private:
     bool Read(u64 offset, u64 size, u8* out_ptr);
 
     // This can only be called once at least one byte of data has been read
-    bool ApplyHashExceptions(VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP],
-                             u64 exception_list_index) const;
+    void GetHashExceptions(std::vector<HashExceptionEntry>* exception_list,
+                           u64 exception_list_index, u16 additional_offset) const;
 
     template <typename T>
     bool ReadAll(std::vector<T>* vector)
@@ -418,6 +418,9 @@ private:
                       u32 exception_lists);
   Chunk& ReadCompressedData(u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
                             u32 exception_lists);
+
+  static bool ApplyHashExceptions(const std::vector<HashExceptionEntry>& exception_list,
+                                  VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP]);
 
   static std::string VersionToString(u32 version);
 
@@ -535,6 +538,10 @@ private:
   Chunk m_cached_chunk;
   u64 m_cached_chunk_offset = std::numeric_limits<u64>::max();
   WiiEncryptionCache m_encryption_cache;
+
+  std::vector<HashExceptionEntry> m_exception_list;
+  bool m_write_to_exception_list = false;
+  u64 m_exception_list_last_group_index;
 
   WIAHeader1 m_header_1;
   WIAHeader2 m_header_2;

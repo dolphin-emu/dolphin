@@ -199,11 +199,17 @@ void ConvertDialog::OnFormatChanged()
     break;
   }
   case DiscIO::BlobType::WIA:
-  case DiscIO::BlobType::RVZ:
     m_block_size->setEnabled(true);
 
     // This is the smallest block size supported by WIA. For performance, larger sizes are avoided.
     AddToBlockSizeComboBox(0x200000);
+
+    break;
+  case DiscIO::BlobType::RVZ:
+    m_block_size->setEnabled(true);
+
+    for (int block_size = MIN_BLOCK_SIZE; block_size <= MAX_BLOCK_SIZE; block_size *= 2)
+      AddToBlockSizeComboBox(block_size);
 
     break;
   default:
