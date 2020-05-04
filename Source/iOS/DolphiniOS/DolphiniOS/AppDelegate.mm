@@ -223,8 +223,8 @@
   }
   
   // Check for updates
-//#ifndef DEBUG
-  NSURL* update_url = [NSURL URLWithString:@"https://cydia.oatmealdome.me/DolphiniOS/api/v2/update.json"];
+#ifndef DEBUG
+  NSURL* update_url = [NSURL URLWithString:@"https://dolphinios.oatmealdome.me/api/v2/update.json"];
   
   // Create en ephemeral session to avoid caching
   NSURLSession* session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
@@ -275,7 +275,7 @@
       });
     }
   }] resume];
-//#endif
+#endif
   
   // Increment the launch count
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
