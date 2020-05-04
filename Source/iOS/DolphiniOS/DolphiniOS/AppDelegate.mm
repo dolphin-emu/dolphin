@@ -22,6 +22,8 @@
 #import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
+#import "DebuggerUtils.h"
+
 #import "DolphiniOS-Swift.h"
 
 #import "DonationNoticeViewController.h"
@@ -398,7 +400,10 @@
   UICommon::Shutdown();
   
 #ifdef NONJAILBROKEN
-  exit(0);
+  if (IsProcessDebugged())
+  {
+    exit(0);
+  }
 #endif
 }
 
