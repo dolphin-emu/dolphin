@@ -226,7 +226,8 @@ void ConvertDialog::OnFormatChanged()
     const QString slow = tr("%1 (slow)");
 
     AddToCompressionComboBox(tr("No Compression"), DiscIO::WIACompressionType::None);
-    AddToCompressionComboBox(QStringLiteral("Purge"), DiscIO::WIACompressionType::Purge);
+    if (format == DiscIO::BlobType::WIA)
+      AddToCompressionComboBox(QStringLiteral("Purge"), DiscIO::WIACompressionType::Purge);
     AddToCompressionComboBox(slow.arg(QStringLiteral("bzip2")), DiscIO::WIACompressionType::Bzip2);
     AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA")), DiscIO::WIACompressionType::LZMA);
     AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA2")), DiscIO::WIACompressionType::LZMA2);

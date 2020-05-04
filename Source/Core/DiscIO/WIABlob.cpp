@@ -129,7 +129,8 @@ bool WIAFileReader::Initialize(const std::string& path)
 
   const u32 compression_type = Common::swap32(m_header_2.compression_type);
   m_compression_type = static_cast<WIACompressionType>(compression_type);
-  if (m_compression_type > (m_rvz ? WIACompressionType::Zstd : WIACompressionType::LZMA2))
+  if (m_compression_type > (m_rvz ? WIACompressionType::Zstd : WIACompressionType::LZMA2) ||
+      (m_rvz && m_compression_type == WIACompressionType::Purge))
   {
     ERROR_LOG(DISCIO, "Unsupported compression type %u in %s", compression_type, path.c_str());
     return false;
