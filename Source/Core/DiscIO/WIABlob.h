@@ -37,6 +37,7 @@ enum class WIACompressionType : u32
 };
 
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
+constexpr u32 RVZ_MAGIC = 0x015A5652;  // "RVZ\x1" (byteswapped to little endian)
 
 class WIAFileReader : public BlobReader
 {
@@ -45,7 +46,7 @@ public:
 
   static std::unique_ptr<WIAFileReader> Create(File::IOFile file, const std::string& path);
 
-  BlobType GetBlobType() const override { return BlobType::WIA; }
+  BlobType GetBlobType() const override;
 
   u64 GetRawSize() const override { return Common::swap64(m_header_1.wia_file_size); }
   u64 GetDataSize() const override { return Common::swap64(m_header_1.iso_file_size); }
@@ -59,7 +60,7 @@ public:
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
   static ConversionResultCode ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
-                                           File::IOFile* outfile,
+                                           File::IOFile* outfile, bool rvz,
                                            WIACompressionType compression_type,
                                            int compression_level, int chunk_size,
                                            CompressCB callback, void* arg);
@@ -489,6 +490,7 @@ private:
   }
 
   bool m_valid;
+  bool m_rvz;
   WIACompressionType m_compression_type;
 
   File::IOFile m_file;
@@ -504,13 +506,17 @@ private:
 
   std::map<u64, DataEntry> m_data_entries;
 
+  // Perhaps we could set WIA_VERSION_WRITE_COMPATIBLE to 0.9, but WIA version 0.9 was never in
+  // any official release of wit, and interim versions (either source or binaries) are hard to find.
+  // Since we've been unable to check if we're write compatible with 0.9, we set it 1.0 to be safe.
+
   static constexpr u32 WIA_VERSION = 0x01000000;
   static constexpr u32 WIA_VERSION_WRITE_COMPATIBLE = 0x01000000;
   static constexpr u32 WIA_VERSION_READ_COMPATIBLE = 0x00080000;
 
-  // Perhaps we could set WIA_VERSION_WRITE_COMPATIBLE to 0.9, but WIA version 0.9 was never in
-  // any official release of wit, and interim versions (either source or binaries) are hard to find.
-  // Since we've been unable to check if we're write compatible with 0.9, we set it 1.0 to be safe.
+  static constexpr u32 RVZ_VERSION = 0x00010000;
+  static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00010000;
+  static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00010000;
 };
 
 }  // namespace DiscIO

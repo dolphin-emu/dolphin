@@ -37,7 +37,8 @@ enum class BlobType
   CISO,
   WBFS,
   TGC,
-  WIA
+  WIA,
+  RVZ,
 };
 
 class BlobReader
@@ -176,7 +177,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
                     const std::string& outfile_path, CompressCB callback = nullptr,
                     void* arg = nullptr);
 bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, WIACompressionType compression_type,
+                  const std::string& outfile_path, bool rvz, WIACompressionType compression_type,
                   int compression_level, int chunk_size, CompressCB callback = nullptr,
                   void* arg = nullptr);
 

@@ -51,14 +51,21 @@ bool WIAFileReader::Initialize(const std::string& path)
   if (!m_file.Seek(0, SEEK_SET) || !m_file.ReadArray(&m_header_1, 1))
     return false;
 
-  if (m_header_1.magic != WIA_MAGIC)
+  if (m_header_1.magic != WIA_MAGIC && m_header_1.magic != RVZ_MAGIC)
     return false;
 
-  const u32 version = Common::swap32(m_header_1.version);
-  const u32 version_compatible = Common::swap32(m_header_1.version_compatible);
-  if (WIA_VERSION < version_compatible || WIA_VERSION_READ_COMPATIBLE > version)
+  m_rvz = m_header_1.magic == RVZ_MAGIC;
+
+  const u32 version = m_rvz ? RVZ_VERSION : WIA_VERSION;
+  const u32 version_read_compatible =
+      m_rvz ? RVZ_VERSION_READ_COMPATIBLE : WIA_VERSION_READ_COMPATIBLE;
+
+  const u32 file_version = Common::swap32(m_header_1.version);
+  const u32 file_version_compatible = Common::swap32(m_header_1.version_compatible);
+
+  if (version < file_version_compatible || version_read_compatible > file_version)
   {
-    ERROR_LOG(DISCIO, "Unsupported WIA version %s in %s", VersionToString(version).c_str(),
+    ERROR_LOG(DISCIO, "Unsupported version %s in %s", VersionToString(file_version).c_str(),
               path.c_str());
     return false;
   }
@@ -227,6 +234,11 @@ std::unique_ptr<WIAFileReader> WIAFileReader::Create(File::IOFile file, const st
 {
   std::unique_ptr<WIAFileReader> blob(new WIAFileReader(std::move(file), path));
   return blob->m_valid ? std::move(blob) : nullptr;
+}
+
+BlobType WIAFileReader::GetBlobType() const
+{
+  return m_rvz ? BlobType::RVZ : BlobType::WIA;
 }
 
 bool WIAFileReader::Read(u64 offset, u64 size, u8* out_ptr)
@@ -1730,7 +1742,7 @@ bool WIAFileReader::WriteHeader(File::IOFile* file, const u8* data, size_t size,
 
 ConversionResultCode
 WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
-                            File::IOFile* outfile, WIACompressionType compression_type,
+                            File::IOFile* outfile, bool rvz, WIACompressionType compression_type,
                             int compression_level, int chunk_size, CompressCB callback, void* arg)
 {
   ASSERT(infile->IsDataSizeAccurate());
@@ -1952,9 +1964,10 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   header_2.group_entries_offset = Common::swap64(group_entries_offset);
   header_2.group_entries_size = Common::swap32(static_cast<u32>(compressed_group_entries->size()));
 
-  header_1.magic = WIA_MAGIC;
-  header_1.version = Common::swap32(WIA_VERSION);
-  header_1.version_compatible = Common::swap32(WIA_VERSION_WRITE_COMPATIBLE);
+  header_1.magic = rvz ? RVZ_MAGIC : WIA_MAGIC;
+  header_1.version = Common::swap32(rvz ? RVZ_VERSION : WIA_VERSION);
+  header_1.version_compatible =
+      Common::swap32(rvz ? RVZ_VERSION_WRITE_COMPATIBLE : WIA_VERSION_WRITE_COMPATIBLE);
   header_1.header_2_size = Common::swap32(sizeof(WIAHeader2));
   mbedtls_sha1_ret(reinterpret_cast<const u8*>(&header_2), sizeof(header_2),
                    header_1.header_2_hash.data());
@@ -1975,7 +1988,7 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 }
 
 bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, WIACompressionType compression_type,
+                  const std::string& outfile_path, bool rvz, WIACompressionType compression_type,
                   int compression_level, int chunk_size, CompressCB callback, void* arg)
 {
   File::IOFile outfile(outfile_path, "wb");
@@ -1991,7 +2004,7 @@ bool ConvertToWIA(BlobReader* infile, const std::string& infile_path,
   std::unique_ptr<VolumeDisc> infile_volume = CreateDisc(infile_path);
 
   const ConversionResultCode result =
-      WIAFileReader::ConvertToWIA(infile, infile_volume.get(), &outfile, compression_type,
+      WIAFileReader::ConvertToWIA(infile, infile_volume.get(), &outfile, rvz, compression_type,
                                   compression_level, chunk_size, callback, arg);
 
   if (result == ConversionResultCode::ReadFailed)

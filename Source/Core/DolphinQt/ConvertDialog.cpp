@@ -59,6 +59,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_format->addItem(QStringLiteral("ISO"), static_cast<int>(DiscIO::BlobType::PLAIN));
   m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
   m_format->addItem(QStringLiteral("WIA"), static_cast<int>(DiscIO::BlobType::WIA));
+  m_format->addItem(QStringLiteral("RVZ"), static_cast<int>(DiscIO::BlobType::RVZ));
   if (std::all_of(m_files.begin(), m_files.end(),
                   [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
   {
@@ -93,15 +94,17 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   QGroupBox* options_group = new QGroupBox(tr("Options"));
   options_group->setLayout(options_layout);
 
-  QLabel* info_text =
-      new QLabel(tr("ISO: A simple and robust format which is supported by many programs. "
-                    "It takes up more space than any other format.\n\n"
-                    "GCZ: A basic compressed format which is compatible with most versions of "
-                    "Dolphin and some other programs. It can't efficiently compress junk data "
-                    "(unless removed) or encrypted Wii data.\n\n"
-                    "WIA: An advanced compressed format which is compatible with recent versions "
-                    "of Dolphin and a few other programs. It can efficiently compress encrypted "
-                    "Wii data, but not junk data (unless removed)."));
+  QLabel* info_text = new QLabel(
+      tr("ISO: A simple and robust format which is supported by many programs. It takes up more "
+         "space than any other format.\n\n"
+         "GCZ: A basic compressed format which is compatible with most versions of Dolphin and "
+         "some other programs. It can't efficiently compress junk data (unless removed) or "
+         "encrypted Wii data.\n\n"
+         "WIA: An advanced compressed format which is compatible with recent versions of Dolphin "
+         "and a few other programs. It can efficiently compress encrypted Wii data, but not junk "
+         "data (unless removed).\n\n"
+         "RVZ: An advanced compressed format which is compatible with recent versions of Dolphin. "
+         "It can efficiently compress both junk data and encrypted Wii data."));
   info_text->setWordWrap(true);
 
   QVBoxLayout* info_layout = new QVBoxLayout;
@@ -196,6 +199,7 @@ void ConvertDialog::OnFormatChanged()
     break;
   }
   case DiscIO::BlobType::WIA:
+  case DiscIO::BlobType::RVZ:
     m_block_size->setEnabled(true);
 
     // This is the smallest block size supported by WIA. For performance, larger sizes are avoided.
@@ -214,6 +218,7 @@ void ConvertDialog::OnFormatChanged()
     AddToCompressionComboBox(QStringLiteral("Deflate"), DiscIO::WIACompressionType::None);
     break;
   case DiscIO::BlobType::WIA:
+  case DiscIO::BlobType::RVZ:
   {
     m_compression->setEnabled(true);
 
@@ -319,6 +324,10 @@ void ConvertDialog::Convert()
     extension = QStringLiteral(".wia");
     filter = tr("WIA GC/Wii images (*.wia)");
     break;
+  case DiscIO::BlobType::RVZ:
+    extension = QStringLiteral(".rvz");
+    filter = tr("RVZ GC/Wii images (*.rvz)");
+    break;
   default:
     ASSERT(false);
     return;
@@ -423,8 +432,9 @@ void ConvertDialog::Convert()
     {
       std::future<bool> good;
 
-      if (format == DiscIO::BlobType::PLAIN)
+      switch (format)
       {
+      case DiscIO::BlobType::PLAIN:
         good = std::async(std::launch::async, [&] {
           const bool good =
               DiscIO::ConvertToPlain(blob_reader.get(), original_path, dst_path.toStdString(),
@@ -432,9 +442,9 @@ void ConvertDialog::Convert()
           progress_dialog.Reset();
           return good;
         });
-      }
-      else if (format == DiscIO::BlobType::GCZ)
-      {
+        break;
+
+      case DiscIO::BlobType::GCZ:
         good = std::async(std::launch::async, [&] {
           const bool good =
               DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
@@ -443,16 +453,19 @@ void ConvertDialog::Convert()
           progress_dialog.Reset();
           return good;
         });
-      }
-      else if (format == DiscIO::BlobType::WIA)
-      {
+        break;
+
+      case DiscIO::BlobType::WIA:
+      case DiscIO::BlobType::RVZ:
         good = std::async(std::launch::async, [&] {
-          const bool good = DiscIO::ConvertToWIA(
-              blob_reader.get(), original_path, dst_path.toStdString(), compression,
-              compression_level, block_size, &CompressCB, &progress_dialog);
+          const bool good =
+              DiscIO::ConvertToWIA(blob_reader.get(), original_path, dst_path.toStdString(),
+                                   format == DiscIO::BlobType::RVZ, compression, compression_level,
+                                   block_size, &CompressCB, &progress_dialog);
           progress_dialog.Reset();
           return good;
         });
+        break;
       }
 
       progress_dialog.GetRaw()->exec();
