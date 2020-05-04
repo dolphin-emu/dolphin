@@ -15,6 +15,7 @@
 #include <bzlib.h>
 #include <lzma.h>
 #include <mbedtls/sha1.h>
+#include <zstd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -34,7 +35,10 @@ enum class WIACompressionType : u32
   Bzip2 = 2,
   LZMA = 3,
   LZMA2 = 4,
+  Zstd = 5,
 };
+
+std::pair<int, int> GetAllowedCompressionLevels(WIACompressionType compression_type);
 
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
 constexpr u32 RVZ_MAGIC = 0x015A5652;  // "RVZ\x1" (byteswapped to little endian)
@@ -250,6 +254,19 @@ private:
     bool m_error_occurred = false;
   };
 
+  class ZstdDecompressor final : public Decompressor
+  {
+  public:
+    ZstdDecompressor();
+    ~ZstdDecompressor();
+
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
+
+  private:
+    ZSTD_DStream* m_stream;
+  };
+
   class Compressor
   {
   public:
@@ -330,6 +347,27 @@ private:
     lzma_filter m_filters[2];
     std::vector<u8> m_buffer;
     bool m_initialization_failed = false;
+  };
+
+  class ZstdCompressor final : public Compressor
+  {
+  public:
+    ZstdCompressor(int compression_level);
+    ~ZstdCompressor();
+
+    bool Start() override;
+    bool Compress(const u8* data, size_t size) override;
+    bool End() override;
+
+    const u8* GetData() const override { return m_buffer.data(); }
+    size_t GetSize() const override { return m_out_buffer.pos; }
+
+  private:
+    void ExpandBuffer(size_t bytes_to_add);
+
+    ZSTD_CStream* m_stream;
+    ZSTD_outBuffer m_out_buffer;
+    std::vector<u8> m_buffer;
   };
 
   class Chunk

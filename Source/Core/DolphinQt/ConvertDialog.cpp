@@ -230,6 +230,11 @@ void ConvertDialog::OnFormatChanged()
     AddToCompressionComboBox(slow.arg(QStringLiteral("bzip2")), DiscIO::WIACompressionType::Bzip2);
     AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA")), DiscIO::WIACompressionType::LZMA);
     AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA2")), DiscIO::WIACompressionType::LZMA2);
+    if (format == DiscIO::BlobType::RVZ)
+    {
+      AddToCompressionComboBox(QStringLiteral("Zstandard"), DiscIO::WIACompressionType::Zstd);
+      m_compression->setCurrentIndex(m_compression->count() - 1);
+    }
 
     break;
   }
@@ -246,19 +251,16 @@ void ConvertDialog::OnCompressionChanged()
 {
   m_compression_level->clear();
 
-  switch (static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt()))
+  const auto compression_type =
+      static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt());
+
+  const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type);
+
+  for (int i = range.first; i <= range.second; ++i)
   {
-  case DiscIO::WIACompressionType::Bzip2:
-  case DiscIO::WIACompressionType::LZMA:
-  case DiscIO::WIACompressionType::LZMA2:
-    for (int i = 1; i <= 9; ++i)
-      AddToCompressionLevelComboBox(i);
-
-    m_compression_level->setCurrentIndex(4);
-
-    break;
-  default:
-    break;
+    AddToCompressionLevelComboBox(i);
+    if (i == 5)
+      m_compression_level->setCurrentIndex(m_compression_level->count() - 1);
   }
 
   m_compression_level->setEnabled(m_compression_level->count() > 1);

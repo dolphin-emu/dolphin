@@ -118,6 +118,9 @@
     <ProjectReference Include="$(ExternalsDir)liblzma\liblzma.vcxproj">
       <Project>{1d8c51d2-ffa4-418e-b183-9f42b6a6717e}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
+      <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

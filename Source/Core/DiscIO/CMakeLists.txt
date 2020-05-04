@@ -54,6 +54,7 @@ target_link_libraries(discio
 PUBLIC
   BZip2::BZip2
   LibLZMA::LibLZMA
+  zstd
 
 PRIVATE
   minizip
