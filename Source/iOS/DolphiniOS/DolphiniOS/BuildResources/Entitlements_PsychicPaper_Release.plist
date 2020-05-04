@@ -4,11 +4,11 @@
 <dict>
   <key>get-task-allow</key>
   <true/>
-  <!---><!-->
   <key>com.apple.security.application-groups</key>
   <array>
     <string>me.oatmealdome</string>
   </array>
+  <!---><!-->
   <key>dynamic-codesigning</key>
   <true/>
   <!-- -->
