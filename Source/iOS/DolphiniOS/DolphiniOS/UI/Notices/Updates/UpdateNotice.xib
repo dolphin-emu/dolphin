@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -42,7 +42,7 @@
                     </subviews>
                 </stackView>
                 <scrollView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="uo7-Aa-Z1e">
-                    <rect key="frame" x="0.0" y="247.66666666666669" width="375" height="530.33333333333326"/>
+                    <rect key="frame" x="0.0" y="247.66666666666666" width="375" height="280.33333333333337"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
                             <rect key="frame" x="20" y="0.0" width="335" height="80.666666666666671"/>
@@ -170,7 +170,7 @@ Save data on GameCube Memory Cards or the emulated Wii's memory is not affected.
                 <constraint firstItem="W3E-IV-CzC" firstAttribute="top" secondItem="Bm9-Am-iRC" secondAttribute="top" constant="20" id="Ixq-TV-fPR"/>
                 <constraint firstItem="uo7-Aa-Z1e" firstAttribute="trailing" secondItem="Bm9-Am-iRC" secondAttribute="trailing" id="OhX-j2-NPF"/>
                 <constraint firstItem="uo7-Aa-Z1e" firstAttribute="top" secondItem="W3E-IV-CzC" secondAttribute="bottom" id="Qlb-Sy-Zj4"/>
-                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="bottom" secondItem="Bm9-Am-iRC" secondAttribute="bottom" id="bFd-1Z-7Ng"/>
+                <constraint firstItem="uo7-Aa-Z1e" firstAttribute="bottom" secondItem="o40-Qv-36o" secondAttribute="top" id="bFd-1Z-7Ng"/>
                 <constraint firstItem="o40-Qv-36o" firstAttribute="bottom" secondItem="Bm9-Am-iRC" secondAttribute="bottom" id="dbe-Y0-l12"/>
                 <constraint firstItem="o40-Qv-36o" firstAttribute="trailing" secondItem="Bm9-Am-iRC" secondAttribute="trailing" id="gGE-fA-t5H"/>
                 <constraint firstItem="o40-Qv-36o" firstAttribute="leading" secondItem="Bm9-Am-iRC" secondAttribute="leading" id="hZ3-lK-dtJ"/>
