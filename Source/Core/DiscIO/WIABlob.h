@@ -464,8 +464,6 @@ private:
 
     std::vector<VolumeWii::HashBlock> hash_buffer =
         std::vector<VolumeWii::HashBlock>(VolumeWii::BLOCKS_PER_GROUP);
-
-    std::vector<u8> exceptions_buffer;
   };
 
   struct CompressParameters
@@ -476,11 +474,16 @@ private:
     size_t group_index;
   };
 
-  struct OutputParameters
+  struct OutputParametersEntry
   {
     std::vector<u8> exception_lists;
     std::vector<u8> main_data;
     std::optional<ReuseID> reuse_id;
+  };
+
+  struct OutputParameters
+  {
+    std::vector<OutputParametersEntry> entries;
     u64 bytes_read;
     size_t group_index;
   };
@@ -511,8 +514,8 @@ private:
                      const std::vector<PartitionEntry>& partition_entries,
                      const std::vector<DataEntry>& data_entries,
                      std::map<ReuseID, GroupEntry>* reusable_groups,
-                     std::mutex* reusable_groups_mutex, u64 exception_lists_per_chunk,
-                     bool compressed_exception_lists);
+                     std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
+                     u64 exception_lists_per_chunk, bool compressed_exception_lists);
   static ConversionResultCode Output(const OutputParameters& parameters, File::IOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,

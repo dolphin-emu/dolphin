@@ -457,7 +457,6 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
         const u16 additional_offset =
             static_cast<u16>(group_offset_in_data % VolumeWii::GROUP_DATA_SIZE /
                              VolumeWii::BLOCK_DATA_SIZE * VolumeWii::BLOCK_HEADER_SIZE);
-
         chunk.GetHashExceptions(&m_exception_list, exception_list_index, additional_offset);
         m_exception_list_last_group_index = total_group_index;
       }
@@ -1590,24 +1589,39 @@ void WIAFileReader::SetUpCompressor(std::unique_ptr<Compressor>* compressor,
   }
 }
 
+static bool AllAre(const std::vector<u8>& data, u8 x)
+{
+  return std::all_of(data.begin(), data.end(), [x](u8 y) { return x == y; });
+};
+
+static bool AllAre(const u8* begin, const u8* end, u8 x)
+{
+  return std::all_of(begin, end, [x](u8 y) { return x == y; });
+};
+
+static bool AllZero(const std::vector<u8>& data)
+{
+  return AllAre(data, 0);
+};
+
+static bool AllSame(const std::vector<u8>& data)
+{
+  return AllAre(data, data.front());
+};
+
+static bool AllSame(const u8* begin, const u8* end)
+{
+  return AllAre(begin, end, *begin);
+};
+
 ConversionResult<WIAFileReader::OutputParameters>
 WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
                                   const std::vector<PartitionEntry>& partition_entries,
                                   const std::vector<DataEntry>& data_entries,
                                   std::map<ReuseID, GroupEntry>* reusable_groups,
-                                  std::mutex* reusable_groups_mutex, u64 exception_lists_per_chunk,
-                                  bool compressed_exception_lists)
+                                  std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
+                                  u64 exception_lists_per_chunk, bool compressed_exception_lists)
 {
-  const auto all_are = [](const std::vector<u8>& data, u8 x) {
-    return std::all_of(data.begin(), data.end(), [x](u8 y) { return x == y; });
-  };
-
-  const auto all_zero = [&all_are](const std::vector<u8>& data) { return all_are(data, 0); };
-
-  const auto all_same = [&all_are](const std::vector<u8>& data) {
-    return all_are(data, data.front());
-  };
-
   const auto reuse_id_exists = [reusable_groups,
                                 reusable_groups_mutex](const std::optional<ReuseID>& reuse_id) {
     if (!reuse_id)
@@ -1618,14 +1632,15 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
     return it != reusable_groups->end();
   };
 
-  std::optional<ReuseID> reuse_id;
-
-  state->exceptions_buffer.clear();
+  std::vector<OutputParametersEntry> output_entries;
 
   if (!parameters.data_entry->is_partition)
   {
-    if (all_same(parameters.data))
-      reuse_id = ReuseID{nullptr, parameters.data.size(), false, parameters.data.front()};
+    OutputParametersEntry& entry = output_entries.emplace_back();
+    entry.main_data = std::move(parameters.data);
+
+    if (AllSame(entry.main_data))
+      entry.reuse_id = ReuseID{nullptr, entry.main_data.size(), false, entry.main_data.front()};
   }
   else
   {
@@ -1639,177 +1654,248 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
 
     ASSERT(parameters.data.size() % VolumeWii::BLOCK_TOTAL_SIZE == 0);
     const u64 blocks = parameters.data.size() / VolumeWii::BLOCK_TOTAL_SIZE;
-    const u64 bytes_to_write = blocks * VolumeWii::BLOCK_DATA_SIZE;
 
-    const auto create_reuse_id = [&partition_entry, bytes_to_write](u8 value, bool decrypted) {
-      return ReuseID{&partition_entry.partition_key, bytes_to_write, decrypted, value};
+    const u64 blocks_per_chunk = chunks_per_wii_group == 1 ?
+                                     exception_lists_per_chunk * VolumeWii::BLOCKS_PER_GROUP :
+                                     VolumeWii::BLOCKS_PER_GROUP / chunks_per_wii_group;
+
+    const u64 chunks = Common::AlignUp(blocks, blocks_per_chunk) / blocks_per_chunk;
+
+    const u64 in_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_TOTAL_SIZE;
+    const u64 out_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_DATA_SIZE;
+
+    const auto create_reuse_id = [&partition_entry, blocks,
+                                  blocks_per_chunk](u8 value, bool decrypted, u64 block) {
+      const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
+      return ReuseID{&partition_entry.partition_key, size, decrypted, value};
     };
 
-    // Set this group as reusable if the encrypted data is all_same
-    if (all_same(parameters.data))
-      reuse_id = create_reuse_id(parameters.data.front(), false);
-
-    if (reuse_id_exists(reuse_id))
-      return OutputParameters{{}, {}, reuse_id, parameters.bytes_read, parameters.group_index};
-
-    std::vector<std::vector<HashExceptionEntry>> exception_lists(exception_lists_per_chunk);
-
-    for (u64 i = 0; i < groups; ++i)
+    const u8* parameters_data_end = parameters.data.data() + parameters.data.size();
+    for (u64 i = 0; i < chunks; ++i)
     {
-      const u64 offset_of_group = i * VolumeWii::GROUP_TOTAL_SIZE;
-      const u64 write_offset_of_group = i * VolumeWii::GROUP_DATA_SIZE;
+      const u64 block_index = i * blocks_per_chunk;
 
-      const u64 blocks_in_this_group =
-          std::min<u64>(VolumeWii::BLOCKS_PER_GROUP, blocks - i * VolumeWii::BLOCKS_PER_GROUP);
+      OutputParametersEntry& entry = output_entries.emplace_back();
+      std::optional<ReuseID>& reuse_id = entry.reuse_id;
 
-      for (u32 j = 0; j < VolumeWii::BLOCKS_PER_GROUP; ++j)
+      // Set this chunk as reusable if the encrypted data is AllSame
+      const u8* data = parameters.data.data() + block_index * VolumeWii::BLOCK_TOTAL_SIZE;
+      if (AllSame(data, std::min(parameters_data_end, data + in_data_per_chunk)))
+        reuse_id = create_reuse_id(parameters.data.front(), false, i * blocks_per_chunk);
+
+      if (!reuse_id_exists(reuse_id) &&
+          !(reuse_id && std::any_of(output_entries.begin(), output_entries.begin() + i,
+                                    [reuse_id](const auto& e) { return e.reuse_id == reuse_id; })))
       {
-        if (j < blocks_in_this_group)
-        {
-          const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
-          VolumeWii::DecryptBlockData(parameters.data.data() + offset_of_block,
-                                      state->decryption_buffer[j].data(), &aes_context);
-        }
-        else
-        {
-          state->decryption_buffer[j].fill(0);
-        }
+        const u64 bytes_left = (blocks - block_index) * VolumeWii::BLOCK_DATA_SIZE;
+        entry.main_data.resize(std::min(out_data_per_chunk, bytes_left));
       }
+    }
 
-      VolumeWii::HashGroup(state->decryption_buffer.data(), state->hash_buffer.data());
+    if (!std::all_of(output_entries.begin(), output_entries.end(),
+                     [](const OutputParametersEntry& entry) { return entry.main_data.empty(); }))
+    {
+      const u64 number_of_exception_lists =
+          chunks_per_wii_group == 1 ? exception_lists_per_chunk : chunks;
+      std::vector<std::vector<HashExceptionEntry>> exception_lists(number_of_exception_lists);
 
-      for (u64 j = 0; j < blocks_in_this_group; ++j)
+      for (u64 i = 0; i < groups; ++i)
       {
-        const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
-        const u64 hash_offset_of_block = j * VolumeWii::BLOCK_HEADER_SIZE;
+        const u64 offset_of_group = i * VolumeWii::GROUP_TOTAL_SIZE;
+        const u64 write_offset_of_group = i * VolumeWii::GROUP_DATA_SIZE;
 
-        VolumeWii::HashBlock hashes;
-        VolumeWii::DecryptBlockHashes(parameters.data.data() + offset_of_block, &hashes,
-                                      &aes_context);
+        const u64 blocks_in_this_group =
+            std::min<u64>(VolumeWii::BLOCKS_PER_GROUP, blocks - i * VolumeWii::BLOCKS_PER_GROUP);
 
-        const auto compare_hash = [&](size_t offset_in_block) {
-          ASSERT(offset_in_block + sizeof(SHA1) <= VolumeWii::BLOCK_HEADER_SIZE);
-
-          const u8* desired_hash = reinterpret_cast<u8*>(&hashes) + offset_in_block;
-          const u8* computed_hash = reinterpret_cast<u8*>(&state->hash_buffer[j]) + offset_in_block;
-
-          if (!std::equal(desired_hash, desired_hash + sizeof(SHA1), computed_hash))
+        for (u32 j = 0; j < VolumeWii::BLOCKS_PER_GROUP; ++j)
+        {
+          if (j < blocks_in_this_group)
           {
-            const u64 hash_offset = hash_offset_of_block + offset_in_block;
-            ASSERT(hash_offset <= std::numeric_limits<u16>::max());
-
-            HashExceptionEntry& exception = exception_lists[i].emplace_back();
-            exception.offset = static_cast<u16>(Common::swap16(hash_offset));
-            std::memcpy(exception.hash.data(), desired_hash, sizeof(SHA1));
+            const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
+            VolumeWii::DecryptBlockData(parameters.data.data() + offset_of_block,
+                                        state->decryption_buffer[j].data(), &aes_context);
           }
-        };
+          else
+          {
+            state->decryption_buffer[j].fill(0);
+          }
+        }
 
-        const auto compare_hashes = [&compare_hash](size_t offset, size_t size) {
-          for (size_t l = 0; l < size; l += sizeof(SHA1))
-            // The std::min is to ensure that we don't go beyond the end of HashBlock with
-            // padding_2, which is 32 bytes long (not divisible by sizeof(SHA1), which is 20).
-            compare_hash(offset + std::min(l, size - sizeof(SHA1)));
-        };
+        VolumeWii::HashGroup(state->decryption_buffer.data(), state->hash_buffer.data());
 
-        using HashBlock = VolumeWii::HashBlock;
-        compare_hashes(offsetof(HashBlock, h0), sizeof(HashBlock::h0));
-        compare_hashes(offsetof(HashBlock, padding_0), sizeof(HashBlock::padding_0));
-        compare_hashes(offsetof(HashBlock, h1), sizeof(HashBlock::h1));
-        compare_hashes(offsetof(HashBlock, padding_1), sizeof(HashBlock::padding_1));
-        compare_hashes(offsetof(HashBlock, h2), sizeof(HashBlock::h2));
-        compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
+        for (u64 j = 0; j < blocks_in_this_group; ++j)
+        {
+          const u64 chunk_index = j / blocks_per_chunk;
+          const u64 block_index_in_chunk = j % blocks_per_chunk;
+
+          if (output_entries[chunk_index].main_data.empty())
+            continue;
+
+          const u64 exception_list_index = chunks_per_wii_group == 1 ? i : chunk_index;
+
+          const u64 offset_of_block = offset_of_group + j * VolumeWii::BLOCK_TOTAL_SIZE;
+          const u64 hash_offset_of_block = block_index_in_chunk * VolumeWii::BLOCK_HEADER_SIZE;
+
+          VolumeWii::HashBlock hashes;
+          VolumeWii::DecryptBlockHashes(parameters.data.data() + offset_of_block, &hashes,
+                                        &aes_context);
+
+          const auto compare_hash = [&](size_t offset_in_block) {
+            ASSERT(offset_in_block + sizeof(SHA1) <= VolumeWii::BLOCK_HEADER_SIZE);
+
+            const u8* desired_hash = reinterpret_cast<u8*>(&hashes) + offset_in_block;
+            const u8* computed_hash =
+                reinterpret_cast<u8*>(&state->hash_buffer[j]) + offset_in_block;
+
+            // We want to store a hash exception either if there is a hash mismatch, or if this
+            // chunk might get reused in a context where it is paired up (within a 2 MiB Wii group)
+            // with chunks that are different from the chunks it currently is paired up with, since
+            // that affects the recalculated hashes. Chunks which have been marked as reusable at
+            // this point normally have zero matching hashes anyway, so this shouldn't waste space.
+            if ((chunks_per_wii_group != 1 && output_entries[chunk_index].reuse_id) ||
+                !std::equal(desired_hash, desired_hash + sizeof(SHA1), computed_hash))
+            {
+              const u64 hash_offset = hash_offset_of_block + offset_in_block;
+              ASSERT(hash_offset <= std::numeric_limits<u16>::max());
+
+              HashExceptionEntry& exception = exception_lists[exception_list_index].emplace_back();
+              exception.offset = static_cast<u16>(Common::swap16(hash_offset));
+              std::memcpy(exception.hash.data(), desired_hash, sizeof(SHA1));
+            }
+          };
+
+          const auto compare_hashes = [&compare_hash](size_t offset, size_t size) {
+            for (size_t l = 0; l < size; l += sizeof(SHA1))
+              // The std::min is to ensure that we don't go beyond the end of HashBlock with
+              // padding_2, which is 32 bytes long (not divisible by sizeof(SHA1), which is 20).
+              compare_hash(offset + std::min(l, size - sizeof(SHA1)));
+          };
+
+          using HashBlock = VolumeWii::HashBlock;
+          compare_hashes(offsetof(HashBlock, h0), sizeof(HashBlock::h0));
+          compare_hashes(offsetof(HashBlock, padding_0), sizeof(HashBlock::padding_0));
+          compare_hashes(offsetof(HashBlock, h1), sizeof(HashBlock::h1));
+          compare_hashes(offsetof(HashBlock, padding_1), sizeof(HashBlock::padding_1));
+          compare_hashes(offsetof(HashBlock, h2), sizeof(HashBlock::h2));
+          compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
+        }
+
+        for (u64 j = 0; j < blocks_in_this_group; ++j)
+        {
+          const u64 chunk_index = j / blocks_per_chunk;
+          const u64 block_index_in_chunk = j % blocks_per_chunk;
+
+          OutputParametersEntry& entry = output_entries[chunk_index];
+          if (entry.main_data.empty())
+            continue;
+
+          const u64 write_offset_of_block =
+              write_offset_of_group + block_index_in_chunk * VolumeWii::BLOCK_DATA_SIZE;
+
+          std::memcpy(entry.main_data.data() + write_offset_of_block,
+                      state->decryption_buffer[j].data(), VolumeWii::BLOCK_DATA_SIZE);
+        }
       }
 
-      for (u64 j = 0; j < blocks_in_this_group; ++j)
+      for (size_t i = 0; i < exception_lists.size(); ++i)
       {
-        const u64 write_offset_of_block = write_offset_of_group + j * VolumeWii::BLOCK_DATA_SIZE;
-        std::memcpy(parameters.data.data() + write_offset_of_block,
-                    state->decryption_buffer[j].data(), VolumeWii::BLOCK_DATA_SIZE);
+        OutputParametersEntry& entry = output_entries[chunks_per_wii_group == 1 ? 0 : i];
+        if (entry.main_data.empty())
+          continue;
+
+        const std::vector<HashExceptionEntry>& in = exception_lists[i];
+        std::vector<u8>& out = entry.exception_lists;
+
+        const u16 exceptions = Common::swap16(static_cast<u16>(in.size()));
+        PushBack(&out, exceptions);
+        for (const HashExceptionEntry& exception : in)
+          PushBack(&out, exception);
+      }
+
+      for (u64 i = 0; i < output_entries.size(); ++i)
+      {
+        OutputParametersEntry& entry = output_entries[i];
+        if (entry.main_data.empty() || entry.reuse_id)
+          continue;
+
+        // Set this chunk as reusable if it lacks exceptions and the decrypted data is AllSame
+        if (AllZero(entry.exception_lists) && AllSame(parameters.data))
+          entry.reuse_id = create_reuse_id(parameters.data.front(), true, i * blocks_per_chunk);
       }
     }
+  }
 
-    bool have_exceptions = false;
+  for (OutputParametersEntry& entry : output_entries)
+  {
+    if (entry.main_data.empty())
+      continue;
 
-    for (const std::vector<HashExceptionEntry>& exception_list : exception_lists)
+    // Special case - a compressed size of zero is treated by WIA as meaning the data is all zeroes
+    const bool all_zero = AllZero(entry.exception_lists) && AllZero(entry.main_data);
+
+    if (all_zero || reuse_id_exists(entry.reuse_id))
     {
-      const u16 exceptions = Common::swap16(static_cast<u16>(exception_list.size()));
-      PushBack(&state->exceptions_buffer, exceptions);
-      for (const HashExceptionEntry& exception : exception_list)
-        PushBack(&state->exceptions_buffer, exception);
-      if (!exception_list.empty())
-        have_exceptions = true;
+      entry.exception_lists.clear();
+      entry.main_data.clear();
+      continue;
     }
 
-    parameters.data.resize(bytes_to_write);
-
-    // Set this group as reusable if it lacks exceptions and the decrypted data is all_same
-    if (!reuse_id && !have_exceptions && all_same(parameters.data))
-      reuse_id = create_reuse_id(parameters.data.front(), true);
-  }
-
-  // Special case - a compressed size of zero is treated by WIA as meaning the data is all zeroes
-  if (all_zero(state->exceptions_buffer) && all_zero(parameters.data))
-    return OutputParameters{{}, {}, reuse_id, parameters.bytes_read, parameters.group_index};
-
-  if (reuse_id_exists(reuse_id))
-    return OutputParameters{{}, {}, reuse_id, parameters.bytes_read, parameters.group_index};
-
-  if (state->compressor)
-  {
-    if (!state->compressor->Start())
-      return ConversionResultCode::InternalError;
-  }
-
-  if (!state->exceptions_buffer.empty())
-  {
-    if (compressed_exception_lists && state->compressor)
+    if (state->compressor)
     {
-      if (!state->compressor->Compress(state->exceptions_buffer.data(),
-                                       state->exceptions_buffer.size()))
-      {
+      if (!state->compressor->Start())
         return ConversionResultCode::InternalError;
-      }
-
-      state->exceptions_buffer.clear();
     }
-    else
-    {
-      if (!compressed_exception_lists)
-      {
-        while (state->exceptions_buffer.size() % 4 != 0)
-          state->exceptions_buffer.push_back(0);
-      }
 
-      if (state->compressor)
+    if (!entry.exception_lists.empty())
+    {
+      if (compressed_exception_lists && state->compressor)
       {
-        if (!state->compressor->AddPrecedingDataOnlyForPurgeHashing(
-                state->exceptions_buffer.data(), state->exceptions_buffer.size()))
+        if (!state->compressor->Compress(entry.exception_lists.data(),
+                                         entry.exception_lists.size()))
         {
           return ConversionResultCode::InternalError;
         }
+
+        entry.exception_lists.clear();
       }
+      else
+      {
+        if (!compressed_exception_lists)
+        {
+          while (entry.exception_lists.size() % 4 != 0)
+            entry.exception_lists.push_back(0);
+        }
+
+        if (state->compressor)
+        {
+          if (!state->compressor->AddPrecedingDataOnlyForPurgeHashing(entry.exception_lists.data(),
+                                                                      entry.exception_lists.size()))
+          {
+            return ConversionResultCode::InternalError;
+          }
+        }
+      }
+    }
+
+    if (state->compressor)
+    {
+      if (!state->compressor->Compress(entry.main_data.data(), entry.main_data.size()))
+        return ConversionResultCode::InternalError;
+      if (!state->compressor->End())
+        return ConversionResultCode::InternalError;
+    }
+
+    if (state->compressor)
+    {
+      const u8* data = state->compressor->GetData();
+      const size_t size = state->compressor->GetSize();
+
+      entry.main_data.resize(size);
+      std::copy(data, data + size, entry.main_data.data());
     }
   }
 
-  if (state->compressor)
-  {
-    if (!state->compressor->Compress(parameters.data.data(), parameters.data.size()))
-      return ConversionResultCode::InternalError;
-    if (!state->compressor->End())
-      return ConversionResultCode::InternalError;
-  }
-
-  if (state->compressor)
-  {
-    const u8* data = state->compressor->GetData();
-    const size_t size = state->compressor->GetSize();
-
-    parameters.data.resize(size);
-    std::copy(data, data + size, parameters.data.data());
-  }
-
-  return OutputParameters{state->exceptions_buffer, std::move(parameters.data), reuse_id,
-                          parameters.bytes_read, parameters.group_index};
+  return OutputParameters{std::move(output_entries), parameters.bytes_read, parameters.group_index};
 }
 
 ConversionResultCode WIAFileReader::Output(const OutputParameters& parameters,
@@ -1818,41 +1904,47 @@ ConversionResultCode WIAFileReader::Output(const OutputParameters& parameters,
                                            std::mutex* reusable_groups_mutex,
                                            GroupEntry* group_entry, u64* bytes_written)
 {
-  if (parameters.reuse_id)
+  for (const OutputParametersEntry& entry : parameters.entries)
   {
-    std::lock_guard guard(*reusable_groups_mutex);
-    const auto it = reusable_groups->find(*parameters.reuse_id);
-    if (it != reusable_groups->end())
+    if (entry.reuse_id)
     {
-      *group_entry = it->second;
-      return ConversionResultCode::Success;
+      std::lock_guard guard(*reusable_groups_mutex);
+      const auto it = reusable_groups->find(*entry.reuse_id);
+      if (it != reusable_groups->end())
+      {
+        *group_entry = it->second;
+        ++group_entry;
+        continue;
+      }
     }
+
+    const size_t data_size = entry.exception_lists.size() + entry.main_data.size();
+
+    if (*bytes_written >> 2 > std::numeric_limits<u32>::max())
+      return ConversionResultCode::InternalError;
+
+    ASSERT((*bytes_written & 3) == 0);
+    group_entry->data_offset = Common::swap32(static_cast<u32>(*bytes_written >> 2));
+    group_entry->data_size = Common::swap32(static_cast<u32>(data_size));
+
+    if (!outfile->WriteArray(entry.exception_lists.data(), entry.exception_lists.size()))
+      return ConversionResultCode::WriteFailed;
+    if (!outfile->WriteArray(entry.main_data.data(), entry.main_data.size()))
+      return ConversionResultCode::WriteFailed;
+
+    *bytes_written += data_size;
+
+    if (entry.reuse_id)
+    {
+      std::lock_guard guard(*reusable_groups_mutex);
+      reusable_groups->emplace(*entry.reuse_id, *group_entry);
+    }
+
+    if (!PadTo4(outfile, bytes_written))
+      return ConversionResultCode::WriteFailed;
+
+    ++group_entry;
   }
-
-  const size_t data_size = parameters.exception_lists.size() + parameters.main_data.size();
-
-  if (*bytes_written >> 2 > std::numeric_limits<u32>::max())
-    return ConversionResultCode::InternalError;
-
-  ASSERT((*bytes_written & 3) == 0);
-  group_entry->data_offset = Common::swap32(static_cast<u32>(*bytes_written >> 2));
-  group_entry->data_size = Common::swap32(static_cast<u32>(data_size));
-
-  if (!outfile->WriteArray(parameters.exception_lists.data(), parameters.exception_lists.size()))
-    return ConversionResultCode::WriteFailed;
-  if (!outfile->WriteArray(parameters.main_data.data(), parameters.main_data.size()))
-    return ConversionResultCode::WriteFailed;
-
-  *bytes_written += data_size;
-
-  if (parameters.reuse_id)
-  {
-    std::lock_guard guard(*reusable_groups_mutex);
-    reusable_groups->emplace(*parameters.reuse_id, *group_entry);
-  }
-
-  if (!PadTo4(outfile, bytes_written))
-    return ConversionResultCode::WriteFailed;
 
   return ConversionResultCode::Success;
 }
@@ -1904,6 +1996,7 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   ASSERT(chunk_size > 0);
 
   const u64 iso_size = infile->GetDataSize();
+  const u64 chunks_per_wii_group = std::max<u64>(1, VolumeWii::GROUP_TOTAL_SIZE / chunk_size);
   const u64 exception_lists_per_chunk = std::max<u64>(1, chunk_size / VolumeWii::GROUP_TOTAL_SIZE);
   const bool compressed_exception_lists = compression_type > WIACompressionType::Purge;
 
@@ -1961,8 +2054,8 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 
   const auto process_and_compress = [&](CompressThreadState* state, CompressParameters parameters) {
     return ProcessAndCompress(state, std::move(parameters), partition_entries, data_entries,
-                              &reusable_groups, &reusable_groups_mutex, exception_lists_per_chunk,
-                              compressed_exception_lists);
+                              &reusable_groups, &reusable_groups_mutex, chunks_per_wii_group,
+                              exception_lists_per_chunk, compressed_exception_lists);
   };
 
   const auto output = [&](OutputParameters parameters) {
@@ -1973,8 +2066,8 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
     if (result != ConversionResultCode::Success)
       return result;
 
-    return RunCallback(parameters.group_index + 1, parameters.bytes_read, bytes_written,
-                       total_groups, iso_size, callback, arg);
+    return RunCallback(parameters.group_index + parameters.entries.size(), parameters.bytes_read,
+                       bytes_written, total_groups, iso_size, callback, arg);
   };
 
   MultithreadedCompressor<CompressThreadState, CompressParameters, OutputParameters> mt_compressor(
@@ -2019,13 +2112,16 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
     ASSERT(groups_processed == first_group);
     ASSERT(bytes_read == data_offset);
 
-    for (u32 i = first_group; i < last_group; ++i)
+    while (groups_processed < last_group)
     {
       const ConversionResultCode status = mt_compressor.GetStatus();
       if (status != ConversionResultCode::Success)
         return status;
 
-      const u64 bytes_to_read = std::min<u64>(chunk_size, data_offset + data_size - bytes_read);
+      u64 bytes_to_read = chunk_size;
+      if (data_entry.is_partition)
+        bytes_to_read = std::max<u64>(bytes_to_read, VolumeWii::GROUP_TOTAL_SIZE);
+      bytes_to_read = std::min<u64>(bytes_to_read, data_offset + data_size - bytes_read);
 
       buffer.resize(bytes_to_read);
       if (!infile->Read(bytes_read, bytes_to_read, buffer.data()))
@@ -2035,7 +2131,7 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
       mt_compressor.CompressAndWrite(
           CompressParameters{buffer, &data_entry, bytes_read, groups_processed});
 
-      ++groups_processed;
+      groups_processed += Common::AlignUp(bytes_to_read, chunk_size) / chunk_size;
     }
   }
 
