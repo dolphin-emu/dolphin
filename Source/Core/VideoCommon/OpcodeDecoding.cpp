@@ -95,6 +95,27 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
     return opcode_start;
   };
 
+  const auto draw_primitive = [&total_cycles](const u8 cmd_byte, DataReader& reader) -> bool {
+    // load vertices
+    if (reader.size() < 2)
+      return true;
+
+    const u16 num_vertices = reader.Read<u16>();
+    const int bytes = VertexLoaderManager::RunVertices(
+        cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
+        (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, reader, is_preprocess);
+
+    if (bytes < 0)
+      return true;
+
+    reader.Skip(bytes);
+
+    // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
+    total_cycles += num_vertices * 4 * 3 + 6;
+
+    return false;
+  };
+
   while (true)
   {
     opcode_start = src.GetPointer();
@@ -231,27 +252,29 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
         }
       }
       break;
+    case DOLPHIN_REPLAY_DATA:
+    {
+      if (src.size() < 13)
+        return finish_up();
+
+      const auto original_cmd_byte = src.Read<u8>();
+      const auto offset = src.Read<std::size_t>();
+      const auto size = src.Read<u32>();
+
+      u8* replay_start = opcode_start + offset + 1;
+      u8* replay_end = replay_start + size;
+      DataReader replay_reader(replay_start, replay_end);
+      if (draw_primitive(original_cmd_byte, replay_reader))
+        return finish_up();
+    }
+    break;
 
     // draw primitives
     default:
       if ((cmd_byte & 0xC0) == 0x80)
       {
-        // load vertices
-        if (src.size() < 2)
+        if (draw_primitive(cmd_byte, src))
           return finish_up();
-
-        const u16 num_vertices = src.Read<u16>();
-        const int bytes = VertexLoaderManager::RunVertices(
-            cmd_byte & GX_VAT_MASK,  // Vertex loader index (0 - 7)
-            (cmd_byte & GX_PRIMITIVE_MASK) >> GX_PRIMITIVE_SHIFT, num_vertices, src, is_preprocess);
-
-        if (bytes < 0)
-          return finish_up();
-
-        src.Skip(bytes);
-
-        // 4 GPU ticks per vertex, 3 CPU ticks per GPU tick
-        total_cycles += num_vertices * 4 * 3 + 6;
       }
       else
       {

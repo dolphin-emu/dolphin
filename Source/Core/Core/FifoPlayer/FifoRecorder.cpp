@@ -13,6 +13,7 @@
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
+#include "VideoCommon/OpcodeDecoding.h"
 
 static FifoRecorder instance;
 
@@ -86,10 +87,37 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
                  analyzed_size, size);
     }
 
-    // Copy data to buffer
-    size_t currentSize = m_FifoData.size();
-    m_FifoData.resize(currentSize + size);
-    memcpy(&m_FifoData[currentSize], data, size);
+    const size_t currentSize = m_FifoData.size();
+    if (auto* cached = FifoAnalyzer::GetDrawCacheEntry(data))
+    {
+      if (cached->just_written)
+      {
+        cached->data_offset = currentSize;
+        cached->data_size = size;
+
+        // Treat as normal
+        // Copy full data to buffer
+        m_FifoData.resize(currentSize + size);
+        memcpy(&m_FifoData[currentSize], data, size);
+      }
+      else
+      {
+        m_FifoData.resize(currentSize + 14);
+        m_FifoData[currentSize] = OpcodeDecoder::DOLPHIN_REPLAY_DATA;
+        m_FifoData[currentSize+1] = cached->original_command;
+
+        std::size_t data_offset_swapped = Common::swap64(cached->data_offset);
+        u32 data_size_swapped = Common::swap32(cached->data_size);
+        memcpy(&m_FifoData[currentSize + 2], &data_offset_swapped, sizeof(std::size_t));
+        memcpy(&m_FifoData[currentSize + 10], &data_size_swapped, sizeof(u32));
+      }
+    }
+    else
+    {
+      // Copy full data to buffer
+      m_FifoData.resize(currentSize + size);
+      memcpy(&m_FifoData[currentSize], data, size);
+    }
   }
 
   if (m_FrameEnded && !m_FifoData.empty())
@@ -107,6 +135,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
         m_FinishedCb();
     }
 
+    FifoAnalyzer::ClearDrawCache();
     m_CurrentFrame.memoryUpdates.clear();
     m_FifoData.clear();
     m_FrameEnded = false;

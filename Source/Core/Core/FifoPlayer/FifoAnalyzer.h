@@ -29,6 +29,18 @@ struct CPMemory
 
 void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem);
 
+
+struct FifoDrawCacheEntry
+{
+  bool just_written;
+  u8 original_command;
+  std::size_t data_offset;
+  u32 data_size;
+};
+
+void ClearDrawCache();
+FifoDrawCacheEntry* GetDrawCacheEntry(const u8* data);
+
 extern bool s_DrawingObject;
 extern FifoAnalyzer::CPMemory s_CpMem;
 }  // namespace FifoAnalyzer

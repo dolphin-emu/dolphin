@@ -28,7 +28,19 @@ enum
 
   GX_CMD_CALL_DL = 0x40,
   GX_CMD_UNKNOWN_METRICS = 0x44,
-  GX_CMD_INVL_VC = 0x48
+  GX_CMD_INVL_VC = 0x48,
+
+  // While we've skipped
+  // display lists when writing
+  // our fifo log
+  // We still want a way
+  // to avoid duplicating
+  // the data
+  // We use this special flag
+  // to tell Dolphin
+  // to replay a section of
+  // data
+  DOLPHIN_REPLAY_DATA = 0x49
 };
 
 enum

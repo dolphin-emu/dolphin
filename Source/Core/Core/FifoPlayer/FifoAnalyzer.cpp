@@ -4,9 +4,13 @@
 
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 
+#include <map>
+#include <memory>
 #include <numeric>
+#include <set>
 
 #include "Common/Assert.h"
+#include "Common/Hash.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -20,6 +24,9 @@
 
 namespace FifoAnalyzer
 {
+static std::map<u64, std::unique_ptr<FifoDrawCacheEntry>> hash_to_entry = {};
+static std::map<const u8*, FifoDrawCacheEntry*> data_to_entry = {};
+
 namespace
 {
 u8 ReadFifo8(const u8*& data)
@@ -40,6 +47,13 @@ u32 ReadFifo32(const u8*& data)
 {
   const u32 value = Common::swap32(data);
   data += 4;
+  return value;
+}
+
+u64 ReadFifo64(const u8*& data)
+{
+  const u64 value = Common::swap64(data);
+  data += 8;
   return value;
 }
 
@@ -219,6 +233,14 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
     break;
   }
 
+  case OpcodeDecoder::DOLPHIN_REPLAY_DATA:
+  {
+    const auto original_cmd_byte = ReadFifo8(data);
+    const auto offset = ReadFifo64(data);
+    const auto size = ReadFifo32(data);
+  }
+  break;
+
   default:
     if (cmd & 0x80)
     {
@@ -239,6 +261,7 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
 
       const int vertexSize = offset;
       const int numVertices = ReadFifo16(data);
+      const auto datasize = numVertices * vertexSize;
 
       if (mode == DecodeMode::Record && numVertices > 0)
       {
@@ -247,9 +270,18 @@ u32 AnalyzeCommand(const u8* data, DecodeMode mode)
           FifoRecordAnalyzer::WriteVertexArray(static_cast<int>(i), data + offsets[i], vertexSize,
                                                numVertices);
         }
+
+        auto [iter, inserted] = hash_to_entry.try_emplace(Common::GetHash64(data, datasize, 0),
+                                                          std::make_unique<FifoDrawCacheEntry>());
+        if (inserted)
+        {
+          iter->second->original_command = cmd;
+        }
+        iter->second->just_written = inserted;
+        data_to_entry[dataStart] = iter->second.get();
       }
 
-      data += numVertices * vertexSize;
+      data += datasize;
     }
     else
     {
@@ -299,5 +331,16 @@ void LoadCPReg(u32 subCmd, u32 value, CPMemory& cpMem)
     cpMem.arrayStrides[subCmd & 0xF] = value & 0xFF;
     break;
   }
+}
+
+void ClearDrawCache()
+{
+  hash_to_entry.clear();
+  data_to_entry.clear();
+}
+
+FifoDrawCacheEntry* GetDrawCacheEntry(const u8* data)
+{
+  return data_to_entry[data];
 }
 }  // namespace FifoAnalyzer
