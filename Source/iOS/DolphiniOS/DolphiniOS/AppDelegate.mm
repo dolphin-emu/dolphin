@@ -36,6 +36,8 @@
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
+#import <mach/mach.h>
+
 #import "MainiOS.h"
 
 #import <MetalKit/MetalKit.h>
@@ -91,6 +93,21 @@
     
     return true;
   }
+  
+  const size_t memory_size = 0x400000000;
+  vm_address_t addr = 0;
+  kern_return_t retval = vm_allocate(mach_task_self(), &addr, memory_size, VM_FLAGS_ANYWHERE);
+  if (retval != KERN_SUCCESS)
+  {
+    // Show the bad install warning
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"ImproperlySignedNotice" bundle:nil];
+    [self.window makeKeyAndVisible];
+    
+    return true;
+  }
+
+  vm_deallocate(mach_task_self(), addr, memory_size);
 #endif
   
   // Default settings values should be set in DefaultPreferences.plist in the future
