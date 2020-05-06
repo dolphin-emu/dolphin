@@ -105,7 +105,8 @@ void ControllerInterface::RefreshDevices()
   InvokeDevicesChangedCallbacks();
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::PopulateDevices(m_wsi.render_surface);
+  // Should this be changed for other platforms? I don't have the means to test...
+  ciface::Win32::PopulateDevices(m_wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
