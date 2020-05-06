@@ -28,6 +28,7 @@
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
+#include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
 
 namespace DiscIO
@@ -154,6 +155,119 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   return true;
 }
 
+struct CompressThreadState
+{
+  CompressThreadState() : z{} {}
+  ~CompressThreadState() { deflateEnd(&z); }
+
+  // z_stream will stop working if it changes address, so this object must not be moved
+  CompressThreadState(const CompressThreadState&) = delete;
+  CompressThreadState(CompressThreadState&&) = delete;
+  CompressThreadState& operator=(const CompressThreadState&) = delete;
+  CompressThreadState& operator=(CompressThreadState&&) = delete;
+
+  std::vector<u8> compressed_buffer;
+  z_stream z;
+};
+
+struct CompressParameters
+{
+  std::vector<u8> data;
+  u32 block_number;
+  u64 inpos;
+};
+
+struct OutputParameters
+{
+  std::vector<u8> data;
+  u32 block_number;
+  bool compressed;
+  u64 inpos;
+};
+
+static ConversionResultCode SetUpCompressThreadState(CompressThreadState* state)
+{
+  return deflateInit(&state->z, 9) == Z_OK ? ConversionResultCode::Success :
+                                             ConversionResultCode::InternalError;
+}
+
+static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
+                                                   CompressParameters parameters, int block_size,
+                                                   std::vector<u32>* hashes, int* num_stored,
+                                                   int* num_compressed)
+{
+  state->compressed_buffer.resize(block_size);
+
+  int retval = deflateReset(&state->z);
+  state->z.next_in = parameters.data.data();
+  state->z.avail_in = block_size;
+  state->z.next_out = state->compressed_buffer.data();
+  state->z.avail_out = block_size;
+
+  if (retval != Z_OK)
+  {
+    ERROR_LOG(DISCIO, "Deflate failed");
+    return ConversionResultCode::InternalError;
+  }
+
+  const int status = deflate(&state->z, Z_FINISH);
+
+  state->compressed_buffer.resize(block_size - state->z.avail_out);
+
+  OutputParameters output_parameters;
+  if ((status != Z_STREAM_END) || (state->z.avail_out < 10))
+  {
+    // let's store uncompressed
+    ++*num_stored;
+    output_parameters = OutputParameters{std::move(parameters.data), parameters.block_number, false,
+                                         parameters.inpos};
+  }
+  else
+  {
+    // let's store compressed
+    ++*num_compressed;
+    output_parameters = OutputParameters{std::move(state->compressed_buffer),
+                                         parameters.block_number, true, parameters.inpos};
+  }
+
+  (*hashes)[parameters.block_number] =
+      Common::HashAdler32(output_parameters.data.data(), output_parameters.data.size());
+
+  return std::move(output_parameters);
+}
+
+static ConversionResultCode Output(OutputParameters parameters, File::IOFile* outfile,
+                                   u64* position, std::vector<u64>* offsets, int progress_monitor,
+                                   u32 num_blocks, CompressCB callback, void* arg)
+{
+  u64 offset = *position;
+  if (!parameters.compressed)
+    offset |= 0x8000000000000000ULL;
+  (*offsets)[parameters.block_number] = offset;
+
+  *position += parameters.data.size();
+
+  if (!outfile->WriteBytes(parameters.data.data(), parameters.data.size()))
+    return ConversionResultCode::WriteFailed;
+
+  if (parameters.block_number % progress_monitor == 0)
+  {
+    const int ratio =
+        parameters.inpos == 0 ? 0 : static_cast<int>(100 * *position / parameters.inpos);
+
+    const std::string text =
+        StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
+                         parameters.block_number, num_blocks, ratio);
+
+    const float completion = static_cast<float>(parameters.block_number) / num_blocks;
+
+    if (!callback(text, completion, arg))
+      return ConversionResultCode::Canceled;
+  }
+
+  return ConversionResultCode::Success;
+};
+
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
                   const std::string& outfile_path, u32 sub_type, int block_size,
                   CompressCB callback, void* arg)
@@ -170,10 +284,6 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     return false;
   }
 
-  z_stream z = {};
-  if (deflateInit(&z, 9) != Z_OK)
-    return false;
-
   callback(Common::GetStringT("Files opened, ready to compress."), 0, arg);
 
   CompressedBlobHeader header;
@@ -187,8 +297,6 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
 
   std::vector<u64> offsets(header.num_blocks);
   std::vector<u32> hashes(header.num_blocks);
-  std::vector<u8> out_buf(block_size);
-  std::vector<u8> in_buf(block_size);
 
   // seek past the header (we will write it at the end)
   outfile.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
@@ -201,94 +309,48 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   int num_compressed = 0;
   int num_stored = 0;
   int progress_monitor = std::max<int>(1, header.num_blocks / 1000);
-  bool success = true;
 
+  const auto compress = [&](CompressThreadState* state, CompressParameters parameters) {
+    return Compress(state, std::move(parameters), block_size, &hashes, &num_stored,
+                    &num_compressed);
+  };
+
+  const auto output = [&](OutputParameters parameters) {
+    return Output(std::move(parameters), &outfile, &position, &offsets, progress_monitor,
+                  header.num_blocks, callback, arg);
+  };
+
+  MultithreadedCompressor<CompressThreadState, CompressParameters, OutputParameters> compressor(
+      SetUpCompressThreadState, compress, output);
+
+  std::vector<u8> in_buf(block_size);
   for (u32 i = 0; i < header.num_blocks; i++)
   {
-    if (i % progress_monitor == 0)
-    {
-      int ratio = 0;
-      if (inpos != 0)
-        ratio = (int)(100 * position / inpos);
-
-      const std::string temp =
-          StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(), i,
-                           header.num_blocks, ratio);
-      bool was_cancelled = !callback(temp, (float)i / (float)header.num_blocks, arg);
-      if (was_cancelled)
-      {
-        success = false;
-        break;
-      }
-    }
-
-    offsets[i] = position;
+    if (compressor.GetStatus() != ConversionResultCode::Success)
+      break;
 
     const u64 bytes_to_read = std::min<u64>(block_size, header.data_size - inpos);
 
-    success = infile->Read(inpos, bytes_to_read, in_buf.data());
-    if (!success)
+    if (!infile->Read(inpos, bytes_to_read, in_buf.data()))
     {
-      PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+      compressor.SetError(ConversionResultCode::ReadFailed);
       break;
     }
 
     std::fill(in_buf.begin() + bytes_to_read, in_buf.begin() + header.block_size, 0);
 
-    int retval = deflateReset(&z);
-    z.next_in = in_buf.data();
-    z.avail_in = header.block_size;
-    z.next_out = out_buf.data();
-    z.avail_out = block_size;
-
-    if (retval != Z_OK)
-    {
-      ERROR_LOG(DISCIO, "Deflate failed");
-      success = false;
-      break;
-    }
-
-    int status = deflate(&z, Z_FINISH);
-    int comp_size = block_size - z.avail_out;
-
-    u8* write_buf;
-    int write_size;
-    if ((status != Z_STREAM_END) || (z.avail_out < 10))
-    {
-      // PanicAlert("%i %i Store %i", i*block_size, position, comp_size);
-      // let's store uncompressed
-      write_buf = in_buf.data();
-      offsets[i] |= 0x8000000000000000ULL;
-      write_size = block_size;
-      num_stored++;
-    }
-    else
-    {
-      // let's store compressed
-      // PanicAlert("Comp %i to %i", block_size, comp_size);
-      write_buf = out_buf.data();
-      write_size = comp_size;
-      num_compressed++;
-    }
-
-    if (!outfile.WriteBytes(write_buf, write_size))
-    {
-      PanicAlertT("Failed to write the output file \"%s\".\n"
-                  "Check that you have enough space available on the target drive.",
-                  outfile_path.c_str());
-      success = false;
-      break;
-    }
-
     inpos += block_size;
-    position += write_size;
 
-    hashes[i] = Common::HashAdler32(write_buf, write_size);
+    compressor.CompressAndWrite(CompressParameters{in_buf, i, inpos});
   }
+
+  compressor.Shutdown();
 
   header.compressed_data_size = position;
 
-  if (!success)
+  const ConversionResultCode result = compressor.GetStatus();
+
+  if (result != ConversionResultCode::Success)
   {
     // Remove the incomplete output file.
     outfile.Close();
@@ -301,16 +363,21 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
     outfile.WriteArray(&header, 1);
     outfile.WriteArray(offsets.data(), header.num_blocks);
     outfile.WriteArray(hashes.data(), header.num_blocks);
-  }
 
-  // Cleanup
-  deflateEnd(&z);
-
-  if (success)
-  {
     callback(Common::GetStringT("Done compressing disc image."), 1.0f, arg);
   }
-  return success;
+
+  if (result == ConversionResultCode::ReadFailed)
+    PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+
+  if (result == ConversionResultCode::WriteFailed)
+  {
+    PanicAlertT("Failed to write the output file \"%s\".\n"
+                "Check that you have enough space available on the target drive.",
+                outfile_path.c_str());
+  }
+
+  return result == ConversionResultCode::Success;
 }
 
 bool IsGCZBlob(File::IOFile& file)

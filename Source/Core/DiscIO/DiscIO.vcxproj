@@ -80,6 +80,7 @@
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
+    <ClInclude Include="MultithreadedCompressor.h" />
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="ScrubbedBlob.h" />
     <ClInclude Include="TGCBlob.h" />
