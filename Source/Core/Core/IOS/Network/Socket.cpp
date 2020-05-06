@@ -51,7 +51,12 @@ char* WiiSockMan::DecodeError(s32 ErrorCode)
 #endif
 }
 
-static s32 TranslateErrorCode(s32 native_error, bool isRW)
+// The following functions can return
+//  - EAGAIN / EWOULDBLOCK: send(to), recv(from), accept
+//  - EINPROGRESS: connect, bind
+//  - WSAEWOULDBLOCK: send(to), recv(from), accept, connect
+// On Windows is_rw is used to correct the return value for connect
+static s32 TranslateErrorCode(s32 native_error, bool is_rw)
 {
   switch (native_error)
   {
@@ -67,7 +72,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
   case ERRORCODE(EISCONN):
     return -SO_EISCONN;
   case ERRORCODE(ENOTCONN):
-    return -SO_EAGAIN;  // After proper blocking SO_EAGAIN shouldn't be needed...
+    return -SO_ENOTCONN;
   case ERRORCODE(EINPROGRESS):
     return -SO_EINPROGRESS;
   case ERRORCODE(EALREADY):
@@ -86,14 +91,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
   case ERRORCODE(ENETRESET):
     return -SO_ENETRESET;
   case EITHER(WSAEWOULDBLOCK, EAGAIN):
-    if (isRW)
-    {
-      return -SO_EAGAIN;  // EAGAIN
-    }
-    else
-    {
-      return -SO_EINPROGRESS;  // EINPROGRESS
-    }
+    return (is_rw) ? (-SO_EAGAIN) : (-SO_EINPROGRESS);
   default:
     return -1;
   }
