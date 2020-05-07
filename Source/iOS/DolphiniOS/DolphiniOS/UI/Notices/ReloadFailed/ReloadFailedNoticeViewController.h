@@ -8,7 +8,8 @@ typedef NS_ENUM(NSUInteger, DOLReloadFailedReason)
 {
   DOLReloadFailedReasonNone,
   DOLReloadFailedReasonOld,
-  DOLReloadFailedReasonFileGone
+  DOLReloadFailedReasonFileGone,
+  DOLReloadFailedReasonNand
 };
 
 NS_ASSUME_NONNULL_BEGIN

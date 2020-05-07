@@ -16,8 +16,8 @@
 {
   [super viewDidLoad];
   
-  NSString* game_name = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_title"];
-  NSString* message = [NSString stringWithFormat:@"You were playing \"%@\" before DolphiniOS was quit.", game_name];
+  NSDictionary* last_game_data = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"last_game_boot_info"];
+  NSString* message = [NSString stringWithFormat:@"You were playing \"%@\" before DolphiniOS was quit.", [last_game_data objectForKey:@"user_facing_name"]];
   [self.m_game_name_label setText:message];
   
   if (self.m_reason == DOLReloadFailedReasonOld)

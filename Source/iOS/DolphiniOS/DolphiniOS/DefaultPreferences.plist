@@ -14,12 +14,19 @@
 	<true/>
 	<key>pad_opacity_value</key>
 	<real>0.5</real>
-	<key>last_game_title</key>
-	<string>Unknown</string>
-	<key>last_game_path</key>
-	<string>/tmp/dummy</string>
-	<key>last_game_state_version</key>
-	<integer>0</integer>
+	<key>last_game_boot_info</key>
+	<dict>
+		<key>user_facing_name</key>
+		<string>Dummy</string>
+		<key>is_nand_title</key>
+		<false/>
+		<key>path</key>
+		<string>/tmp/dummy</string>
+		<key>title_id</key>
+		<integer>0</integer>
+		<key>state_version</key>
+		<integer>0</integer>
+	</dict>
 	<key>crash_reporting_enabled</key>
 	<true/>
 	<key>software_list_view</key>
