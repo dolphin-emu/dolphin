@@ -174,6 +174,7 @@
 - (void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath
 {
   self.m_selected_file = self.m_cache->Get(indexPath.row).get();
+  self.m_boot_wii_menu = false;
   
   [self performSegueWithIdentifier:@"to_emulation" sender:nil];
   
@@ -232,6 +233,7 @@
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   self.m_selected_file = self.m_cache->Get(indexPath.row).get();
+  self.m_boot_wii_menu = false;
   
   [self performSegueWithIdentifier:@"to_emulation" sender:nil];
   
