@@ -359,11 +359,14 @@
 
 - (void)applicationDidEnterBackground:(UIApplication*)application
 {
-  std::string save_state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
-
-  self.m_save_state_task = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"Save Data" expirationHandler:^{
+  std::string save_state_dir = File::GetUserPath(D_STATESAVES_IDX);
+  std::string temp_path = save_state_dir + "tempBgAuto.sav";
+  std::string real_path = save_state_dir + "backgroundAuto.sav";
+  
+  self.m_save_state_task = [[UIApplication sharedApplication] beginBackgroundTaskWithName:@"Write Automatic Save State" expirationHandler:^{
     // Delete the save state - it's probably corrupt
-    File::Delete(save_state_path);
+    File::Delete(temp_path);
+    File::Delete(real_path);
     
     [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
     self.m_save_state_task = UIBackgroundTaskInvalid;
@@ -376,9 +379,16 @@
 
     if (Core::IsRunning())
     {
-     // Save out a save state
-     State::SaveAs(save_state_path, true);
+      File::Delete(temp_path);
+      File::Delete(real_path);
+      
+      // Save out a save state
+      State::SaveAs(temp_path, true);
     }
+    
+    File::Copy(temp_path, real_path);
+    
+        NSLog(@"SAVE OK");
 
     [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
     self.m_save_state_task = UIBackgroundTaskInvalid;
