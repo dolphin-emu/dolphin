@@ -19,6 +19,8 @@
 #import "Core/HW/GCKeyboard.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/IOS/ES/ES.h"
+#import "Core/IOS/IOS.h"
 #import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
@@ -141,22 +143,68 @@
   }
   
   // Check if the background save state exists
-  if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav"))
+  std::string state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
+  if (File::Exists(state_path))
   {
-    DOLReloadFailedReason reload_fail_reason = DOLReloadFailedReasonNone;
+    // Convert 2.x.x last game format to 3.x.x
+    NSString* last_game_path = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_path"];
+    if (last_game_path != nil)
+    {
+      // Convert old into new
+      [[NSUserDefaults standardUserDefaults] setObject:@{
+        @"user_facing_name": [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_title"],
+        @"is_nand_title" : @false,
+        @"path" : last_game_path,
+        @"title_id" : @0,
+        @"state_version": @([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"])
+      } forKey:@"last_game_boot_info"];
+      
+      [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_title"];
+      [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_path"];
+      [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_state_version"];
+    }
     
-    if ([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"] != State::GetVersion())
+    NSDictionary* last_game_data = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"last_game_boot_info"];
+    
+    DOLReloadFailedReason reload_fail_reason = DOLReloadFailedReasonNone;
+    if ([[last_game_data objectForKey:@"state_version"] integerValue] != State::GetVersion())
     {
       reload_fail_reason = DOLReloadFailedReasonOld;
     }
-    else if (!File::Exists(FoundationToCppString([[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_path"])))
+    else
     {
-      reload_fail_reason = DOLReloadFailedReasonFileGone;
+      bool is_nand_title = [[last_game_data objectForKey:@"is_nand_title"] boolValue];
+      if (is_nand_title)
+      {
+        //reload_fail_reason = DOLReloadFailedReasonNand;
+        // Auto save states on NAND freeze upon reloading? Maybe a Dolphin bug?
+        u64 title_id = [[last_game_data objectForKey:@"title_id"] unsignedLongLongValue];
+        
+        IOS::HLE::Kernel ios;
+        const auto tmd = ios.GetES()->FindInstalledTMD(title_id);
+        
+        if (!tmd.IsValid())
+        {
+          reload_fail_reason = DOLReloadFailedReasonFileGone;
+        }
+      }
+      else // Game file
+      {
+        NSString* last_game_path = [last_game_data objectForKey:@"path"];
+        if (!File::Exists(FoundationToCppString(last_game_path)))
+        {
+          reload_fail_reason = DOLReloadFailedReasonFileGone;
+        }
+      }
     }
     
     if (reload_fail_reason == DOLReloadFailedReasonNone)
     {
       [nav_controller pushViewController:[[ReloadStateNoticeViewController alloc] initWithNibName:@"ReloadStateNotice" bundle:nil] animated:true];
+    }
+    else if (reload_fail_reason == DOLReloadFailedReasonNand)
+    {
+      File::Delete(state_path);
     }
     else
     {

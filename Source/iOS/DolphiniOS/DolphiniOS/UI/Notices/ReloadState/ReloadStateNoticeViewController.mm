@@ -4,6 +4,8 @@
 
 #import "Common/FileUtil.h"
 
+#import "EmulationViewController.h"
+
 #import "ReloadStateNoticeViewController.h"
 
 @interface ReloadStateNoticeViewController ()
@@ -16,8 +18,22 @@
 {
   [super viewDidLoad];
   
-  NSString* game_name = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_title"];
-  NSString* message = [NSString stringWithFormat:@"You were playing \"%@\" before DolphiniOS was quit.", game_name];
+  NSDictionary* last_game_data = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"last_game_boot_info"];
+  if ([[last_game_data objectForKey:@"is_nand_title"] boolValue])
+  {
+    u64 title_id = [[last_game_data objectForKey:@"title_id"] unsignedLongLongValue];
+    self->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::NANDTitle{title_id});
+  }
+  else // Game file
+  {
+    NSString* last_game_path = [last_game_data objectForKey:@"path"];
+    self->m_boot_parameters = BootParameters::GenerateFromFile(FoundationToCppString(last_game_path));
+  }
+  
+  self->m_boot_parameters->savestate_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
+  self->m_boot_parameters->delete_savestate = true;
+  
+  NSString* message = [NSString stringWithFormat:@"You were playing \"%@\" before DolphiniOS was quit.", [last_game_data objectForKey:@"user_facing_name"]];
   [self.m_game_name_label setText:message];
 }
 
@@ -26,8 +42,11 @@
   [self.navigationController popViewControllerAnimated:true];
   
   UIStoryboard* storyboard = [UIStoryboard storyboardWithName:@"Emulation" bundle:nil];
-  UIViewController* root_controller = [storyboard instantiateViewControllerWithIdentifier:@"Root"];
-  [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:root_controller animated:true completion:nil];
+  UINavigationController* navigation_controller = [storyboard instantiateViewControllerWithIdentifier:@"Root"];
+  EmulationViewController* emulation_controller = [navigation_controller.viewControllers firstObject];
+  emulation_controller->m_boot_parameters = std::move(self->m_boot_parameters);
+  
+  [[[[UIApplication sharedApplication] keyWindow] rootViewController] presentViewController:navigation_controller animated:true completion:nil];
 }
 
 - (IBAction)DontReturnPressed:(id)sender

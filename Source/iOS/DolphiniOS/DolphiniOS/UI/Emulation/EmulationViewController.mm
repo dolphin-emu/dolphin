@@ -131,7 +131,8 @@
 - (void)RunningTitleUpdated
 {
   NSString* uid = nil;
-  NSString* last_game_path; // same name for compatibility
+  id location = nil;
+  bool is_nand_title = false;
   
   UICommon::GameFileCache* cache = new UICommon::GameFileCache();
   cache->Load();
@@ -142,7 +143,7 @@
     if (SConfig::GetInstance().GetGameID() == game_file->GetGameID())
     {
       uid = CppToFoundationString(game_file->GetUniqueIdentifier());
-      last_game_path = CppToFoundationString(game_file->GetFilePath());
+      location = CppToFoundationString(game_file->GetFilePath());
       self.m_is_wii = DiscIO::IsWii(game_file->GetPlatform());
     }
   }
@@ -150,15 +151,24 @@
   if (uid == nil)
   {
     uid = CppToFoundationString(SConfig::GetInstance().GetTitleDescription());
-    last_game_path = [NSString stringWithFormat:@"%016llx", SConfig::GetInstance().GetTitleID()];
-    self.m_is_wii = true; // assume yes
+    location = [NSNumber numberWithUnsignedLongLong:SConfig::GetInstance().GetTitleID()];
+    is_nand_title = true;
+    self.m_is_wii = true; // assume yes since it's on NAND
   }
   
-  // Save the last game information
-  NSUserDefaults* defaults = [NSUserDefaults standardUserDefaults];
-  [defaults setObject:uid forKey:@"last_game_title"];
-  [defaults setObject:last_game_path forKey:@"last_game_path"];
-  [defaults setInteger:State::GetVersion() forKey:@"last_game_state_version"];
+  NSDictionary* last_game_data = @{
+    @"user_facing_name": uid,
+    @"is_nand_title": @(is_nand_title),
+    @"path": is_nand_title ? @"/tmp/dummy" : location,
+    @"title_id": is_nand_title ? location : @0,
+    @"state_version": @(State::GetVersion())
+  };
+  
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_title"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_path"];
+  [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"last_game_state_version"];
+  
+  [[NSUserDefaults standardUserDefaults] setObject:last_game_data forKey:@"last_game_boot_info"];
   
   NSMutableArray<NSString*>* controller_list = [[NSMutableArray alloc] init];
   for (GCController* controller in [GCController controllers])
