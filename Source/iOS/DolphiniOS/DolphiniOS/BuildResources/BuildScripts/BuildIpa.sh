@@ -26,9 +26,6 @@ exec > $EXPORT_PATH/archive.log 2>&1
 # Copy resources
 cp -r "$ARCHIVE_PATH/Products/Applications/DolphiniOS.app" $APPLICATION_DESTINATION_PATH
 
-# Hack bundle ID
-plutil -replace "CFBundleIdentifier" -string "me.oatmealdome.dolphinios-njb" $APPLICATION_DESTINATION_PATH/Info.plist
-
 # Resign the application
 codesign -f -s "OatmealDome Software" --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH
 codesign -f -s "OatmealDome Software" --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH/Frameworks/*
