@@ -540,23 +540,9 @@
   task_vm_info_data_t vm_info;
   mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
   kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
-  
-  NSString* uid;
-  if (std::holds_alternative<BootParameters::Disc>(self->m_boot_parameters->parameters))
-  {
-    BootParameters::Disc disc_parameters = std::move(std::get<BootParameters::Disc>(self->m_boot_parameters->parameters));
-    UICommon::GameFile game_file = UICommon::GameFile(disc_parameters.path);
-    
-    // Analytics compatibility with 2.x.x
-    uid = CppToFoundationString(game_file.GetUniqueIdentifier());
-  }
-  else
-  {
-    uid = CppToFoundationString(SConfig::GetInstance().GetTitleDescription());
-  }
-  
+
   [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
-    @"game_uid" : uid,
+    @"new_uid": CppToFoundationString(SConfig::GetInstance().GetTitleDescription()),
     @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
     @"system_total_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
   }];
