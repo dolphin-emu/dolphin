@@ -8,10 +8,8 @@
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
-        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="ReloadFailedNoticeViewController">
+        <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner" customClass="NonJailbrokenNoticeViewController">
             <connections>
-                <outlet property="m_game_name_label" destination="G2L-KW-hUh" id="rW9-5G-uqe"/>
-                <outlet property="m_reason_label" destination="4Lp-si-dj1" id="T6Y-OP-BhQ"/>
                 <outlet property="view" destination="r55-Fn-aBI" id="r9r-Zd-Dn7"/>
             </connections>
         </placeholder>
@@ -22,14 +20,13 @@
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W3E-IV-CzC" userLabel="Header Stack">
                     <rect key="frame" x="0.0" y="63.999999999999986" width="375" height="183.66666666666663"/>
                     <subviews>
-                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_arrow_2_circlepath_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_exclamationmark_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
                             <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
-                            <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <constraints>
                                 <constraint firstAttribute="height" constant="100" id="hmP-nM-OsB"/>
                             </constraints>
                         </imageView>
-                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Unable to Return" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MKg-MP-jJG">
+                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Non-Jailbroken" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="MKg-MP-jJG">
                             <rect key="frame" x="0.0" y="100" width="375" height="83.666666666666686"/>
                             <fontDescription key="fontDescription" type="system" weight="heavy" pointSize="34"/>
                             <nil key="textColor"/>
@@ -41,28 +38,21 @@
                     <rect key="frame" x="0.0" y="247.66666666666666" width="375" height="445.33333333333337"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
-                            <rect key="frame" x="20" y="0.0" width="335" height="202.33333333333334"/>
+                            <rect key="frame" x="20" y="0.0" width="335" height="243.33333333333334"/>
                             <subviews>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="You were playing an unknown game before DolphiniOS was quit." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Game Name Text">
-                                    <rect key="frame" x="2" y="0.0" width="331" height="40.666666666666664"/>
-                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                    <nil key="textColor"/>
-                                    <nil key="highlightedColor"/>
-                                </label>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="While DolphiniOS automatically made a save state before closing, DolphiniOS cannot load this save state for unknown reasons." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Lp-si-dj1" userLabel="State Info Text">
-                                    <rect key="frame" x="14" y="60.66666666666665" width="307.33333333333331" height="81.333333333333314"/>
-                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                    <nil key="textColor"/>
-                                    <nil key="highlightedColor"/>
-                                </label>
-                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="The save state will be deleted." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qec-pW-vzO" userLabel="Prompt Text">
-                                    <rect key="frame" x="52.333333333333329" y="162.00000000000003" width="230.66666666666669" height="20.333333333333343"/>
+                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Donate Text">
+                                    <rect key="frame" x="2.3333333333333428" y="0.0" width="330.66666666666663" height="223.33333333333334"/>
+                                    <string key="text">You are running the version of DolphiniOS for non-jailbroken devices.
+
+When you are finished with DolphiniOS, please go to Settings and press the "Quit" button.
+
+Otherwise, DolphiniOS may begin crashing on launch due to a bug in iOS. If this happens, reboot your device and DolphiniOS will work again.</string>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
-                                    <rect key="frame" x="47.666666666666686" y="202.33333333333334" width="240" height="0.0"/>
+                                    <rect key="frame" x="47.666666666666686" y="243.33333333333334" width="240" height="0.0"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" id="kge-k2-qnG"/>
@@ -92,7 +82,7 @@
                                     <subviews>
                                         <button opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="jPS-qP-47c">
                                             <rect key="frame" x="0.0" y="0.0" width="335" height="45"/>
-                                            <color key="backgroundColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                            <color key="backgroundColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                             <constraints>
                                                 <constraint firstAttribute="height" constant="45" id="j1f-m3-E7Q"/>
                                             </constraints>
@@ -106,7 +96,7 @@
                                                 </userDefinedRuntimeAttribute>
                                             </userDefinedRuntimeAttributes>
                                             <connections>
-                                                <action selector="OKPressed:" destination="-1" eventType="touchUpInside" id="y8g-Qv-gNN"/>
+                                                <action selector="OKPressed:" destination="-1" eventType="touchUpInside" id="JOQ-m1-gtS"/>
                                             </connections>
                                         </button>
                                     </subviews>
@@ -143,6 +133,6 @@
         <placeholder placeholderIdentifier="IBFirstResponder" id="-2" customClass="UIResponder"/>
     </objects>
     <resources>
-        <image name="SF_arrow_2_circlepath_circle" width="17" height="17"/>
+        <image name="SF_exclamationmark_circle" width="17" height="17"/>
     </resources>
 </document>

@@ -9,4 +9,6 @@
 @property (strong, nonatomic) UIWindow* window;
 @property (nonatomic) UIBackgroundTaskIdentifier m_save_state_task;
 
++ (void)Shutdown;
+
 @end

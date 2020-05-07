@@ -65,6 +65,7 @@
 		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
 		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
 		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
+		B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */ = {isa = PBXBuildFile; fileRef = B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -87,6 +88,11 @@
 		B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */; };
 		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
 		B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */; };
+		B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */; };
+		B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */; };
+		B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */; };
+		B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */; };
+		B971E1F9245EB63E00D2A698 /* DebuggerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B971E1F8245EB63E00D2A698 /* DebuggerUtils.m */; };
 		B9766AF523A5EACD00FF7F17 /* license.txt in Resources */ = {isa = PBXBuildFile; fileRef = B9766AF423A5EACD00FF7F17 /* license.txt */; };
 		B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */; };
 		B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B98584C623CEDFB800BE94B0 /* ConfigInterfaceViewController.mm */; };
@@ -154,6 +160,7 @@
 		B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE023AF08320014617A /* ControllerSettingsUtils.mm */; };
 		B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */; };
 		B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */; };
+		B9C956242461007C0095EC98 /* ImproperlySignedNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9C956232461007C0095EC98 /* ImproperlySignedNotice.xib */; };
 		B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */; };
 		B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */; };
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
@@ -189,6 +196,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (non-jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (non-jailbroken).xcconfig"; sourceTree = "<group>"; };
 		34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (jailbroken).xcconfig"; sourceTree = "<group>"; };
 		4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultPreferences.plist; sourceTree = "<group>"; };
 		90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (patreon).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (patreon).xcconfig"; sourceTree = "<group>"; };
@@ -353,6 +361,7 @@
 		B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = WiiSystemUpdate.storyboard; sourceTree = "<group>"; };
 		B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiiSystemUpdateViewController.h; sourceTree = "<group>"; };
 		B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSystemUpdateViewController.mm; sourceTree = "<group>"; };
+		B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = Entitlements_PsychicPaper.txt; path = BuildResources/Entitlements_PsychicPaper.txt; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -388,6 +397,14 @@
 		B971156623E1511A001C6BD6 /* SpeedCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SpeedCell.m; sourceTree = "<group>"; };
 		B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSoundViewController.h; sourceTree = "<group>"; };
 		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
+		B971E1C3245E034E00D2A698 /* BuildIpa.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildIpa.sh; path = BuildResources/BuildScripts/BuildIpa.sh; sourceTree = "<group>"; };
+		B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_PsychicPaper_Release.plist; path = BuildResources/Entitlements_PsychicPaper_Release.plist; sourceTree = "<group>"; };
+		B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = NonJailbrokenNotice.xib; path = DolphiniOS/UI/Notices/NonJailbroken/NonJailbrokenNotice.xib; sourceTree = SOURCE_ROOT; };
+		B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NonJailbrokenNoticeViewController.h; sourceTree = "<group>"; };
+		B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NonJailbrokenNoticeViewController.m; sourceTree = "<group>"; };
+		B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = OSTooNewNotice.xib; path = DolphiniOS/UI/Notices/OSTooNew/OSTooNewNotice.xib; sourceTree = SOURCE_ROOT; };
+		B971E1F7245EB63E00D2A698 /* DebuggerUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DebuggerUtils.h; sourceTree = "<group>"; };
+		B971E1F8245EB63E00D2A698 /* DebuggerUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DebuggerUtils.m; sourceTree = "<group>"; };
 		B9766AF123A4A26900FF7F17 /* postinst.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postinst.sh; path = BuildResources/DebFiles/postinst.sh; sourceTree = "<group>"; };
 		B9766AF423A5EACD00FF7F17 /* license.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = license.txt; path = ../../../../license.txt; sourceTree = "<group>"; };
 		B97C9E2423C1308300C99067 /* TCClassicWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCClassicWiiPad.swift; sourceTree = "<group>"; };
@@ -509,6 +526,7 @@
 		B9BEADE223AF1A310014617A /* ControllerRootViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerRootViewController.h; sourceTree = "<group>"; };
 		B9BEADE323AF1A310014617A /* ControllerRootViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerRootViewController.mm; sourceTree = "<group>"; };
 		B9C85E0C23A9FECF008A4DD1 /* TCDeviceMotion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDeviceMotion.swift; sourceTree = "<group>"; };
+		B9C956232461007C0095EC98 /* ImproperlySignedNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ImproperlySignedNotice.xib; path = DolphiniOS/UI/Notices/ImproperlySigned/ImproperlySignedNotice.xib; sourceTree = SOURCE_ROOT; };
 		B9D1E1A923E2B4B6008A6EE2 /* ConfigGameCubeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigGameCubeViewController.h; sourceTree = "<group>"; };
 		B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigGameCubeViewController.mm; sourceTree = "<group>"; };
 		B9D1E1AF23E2B5E0008A6EE2 /* GameCubeLanguageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameCubeLanguageViewController.h; sourceTree = "<group>"; };
@@ -614,6 +632,7 @@
 				E89268912BDEE8DCA445B6FB /* Pods-DolphiniOS.debug (non-jailbroken).xcconfig */,
 				34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */,
 				90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */,
+				1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -681,7 +700,10 @@
 			children = (
 				B989119F2444F0F900A24522 /* Analytics */,
 				B9B536D323DE604A00F03106 /* Donation */,
+				B9C956222460FFA70095EC98 /* ImproperlySigned */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
+				B971E1C6245E209500D2A698 /* NonJailbroken */,
+				B971E1CC245E7EF100D2A698 /* OSTooNew */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
 				B9B536E223DE81F000F03106 /* ReloadState */,
 				B9B536DC23DE706300F03106 /* UnofficialBuild */,
@@ -748,6 +770,8 @@
 				B945A3812362909500B21680 /* LaunchScreen.storyboard */,
 				B945A3842362909500B21680 /* Info.plist */,
 				B9E983E524592A6800119883 /* GoogleService-Info.plist */,
+				B971E1F7245EB63E00D2A698 /* DebuggerUtils.h */,
+				B971E1F8245EB63E00D2A698 /* DebuggerUtils.m */,
 				B945A3852362909500B21680 /* main.m */,
 			);
 			path = DolphiniOS;
@@ -881,6 +905,24 @@
 			path = Sound;
 			sourceTree = "<group>";
 		};
+		B971E1C6245E209500D2A698 /* NonJailbroken */ = {
+			isa = PBXGroup;
+			children = (
+				B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */,
+				B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */,
+				B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */,
+			);
+			path = NonJailbroken;
+			sourceTree = "<group>";
+		};
+		B971E1CC245E7EF100D2A698 /* OSTooNew */ = {
+			isa = PBXGroup;
+			children = (
+				B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */,
+			);
+			path = OSTooNew;
+			sourceTree = "<group>";
+		};
 		B98584C223CEDE3900BE94B0 /* Config */ = {
 			isa = PBXGroup;
 			children = (
@@ -982,6 +1024,8 @@
 				B996C85623D586F900700D6F /* Tools */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
+				B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */,
+				B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -1163,6 +1207,14 @@
 			path = InGame;
 			sourceTree = "<group>";
 		};
+		B9C956222460FFA70095EC98 /* ImproperlySigned */ = {
+			isa = PBXGroup;
+			children = (
+				B9C956232461007C0095EC98 /* ImproperlySignedNotice.xib */,
+			);
+			path = ImproperlySigned;
+			sourceTree = "<group>";
+		};
 		B9D1E1A823E2B48C008A6EE2 /* GameCube */ = {
 			isa = PBXGroup;
 			children = (
@@ -1191,6 +1243,7 @@
 				B9E1ACB723B355860072EDF0 /* BuildDebs.sh */,
 				B9DCAC9A23AB43FA002B95C8 /* BuildDolphin.sh */,
 				B9DCAC9B23AB4435002B95C8 /* BuildCsdbgd.sh */,
+				B971E1C3245E034E00D2A698 /* BuildIpa.sh */,
 				B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */,
 				B9DCAC9C23AB4456002B95C8 /* CopyDolphinImages.sh */,
 				B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */,
@@ -1360,6 +1413,7 @@
 				B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */,
 				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
+				B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */,
 				B99B05BD23A2E8BD0076C7D8 /* SpecialThanks.txt in Resources */,
 				B98911A12444F12200A24522 /* AnalyticsNotice.xib in Resources */,
 				B99B05A423A067570076C7D8 /* GCPadNew.ini in Resources */,
@@ -1371,6 +1425,7 @@
 				B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */,
 				B9B536CD23DD8B8000F03106 /* UpdateNotice.xib in Resources */,
 				B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */,
+				B9C956242461007C0095EC98 /* ImproperlySignedNotice.xib in Resources */,
 				B9B536D223DE4FE400F03106 /* UnsupportedDeviceNotice.xib in Resources */,
 				B9AAAB4123D7F5660094F159 /* Localizable.strings in Resources */,
 				B924DCA223DA873000831A1A /* Settings.storyboard in Resources */,
@@ -1384,14 +1439,17 @@
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
+				B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
+				B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */,
 				B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */,
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
+				B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 				B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */,
 			);
@@ -1581,6 +1639,7 @@
 				B945A3862362909500B21680 /* main.m in Sources */,
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
 				B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */,
+				B971E1F9245EB63E00D2A698 /* DebuggerUtils.m in Sources */,
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */,
 				B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */,
@@ -1642,6 +1701,7 @@
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
+				B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1966,6 +2026,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2011,6 +2072,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = "XCODE_APP_BUILD=1";
@@ -2034,6 +2096,112 @@
 				VERSIONING_SYSTEM = "";
 			};
 			name = "Release (Jailbroken)";
+		};
+		B971E1C1245DF29300D2A698 /* Release (Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = arm64;
+			};
+			name = "Release (Non-Jailbroken)";
+		};
+		B971E1C2245DF29300D2A698 /* Release (Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */;
+			buildSettings = {
+				APP_NAME = DolphiniOS;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = NO;
+				BUILD_FOR_PATREON = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				DOLPHIN_BUILD_TYPE = Release;
+				ENABLE_BITCODE = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"XCODE_APP_BUILD=1",
+					"NONJAILBROKEN=1",
+				);
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
+				);
+				VERSIONING_SYSTEM = "";
+			};
+			name = "Release (Non-Jailbroken)";
 		};
 		B9DCAC9123AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
 			isa = XCBuildConfiguration;
@@ -2106,7 +2274,7 @@
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = E89268912BDEE8DCA445B6FB /* Pods-DolphiniOS.debug (non-jailbroken).xcconfig */;
 			buildSettings = {
-				APP_NAME = "DiOS (Debug)";
+				APP_NAME = "DiOS (NJB Debug)";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				BUILD_FOR_JAILBROKEN_DEVICE = NO;
 				BUILD_FOR_PATREON = NO;
@@ -2118,12 +2286,14 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Debug;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"SUPPRESS_UNSUPPORTED_DEVICE=1",
 					"XCODE_APP_BUILD=1",
+					"NONJAILBROKEN=1",
 				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2131,7 +2301,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.0.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-debug";
+				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2224,6 +2394,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 46669ZA7J4;
 				DOLPHIN_BUILD_TYPE = Release;
+				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
 				GCC_PREPROCESSOR_DEFINITIONS = (
@@ -2259,6 +2430,7 @@
 				B945A3872362909500B21680 /* Debug (Jailbroken) */,
 				B9DCAC9123AB3665002B95C8 /* Debug (Non-Jailbroken) */,
 				B945A3882362909500B21680 /* Release (Jailbroken) */,
+				B971E1C1245DF29300D2A698 /* Release (Non-Jailbroken) */,
 				B9DCAC9323AB384F002B95C8 /* Release (Patreon) */,
 			);
 			defaultConfigurationIsVisible = 0;
@@ -2270,6 +2442,7 @@
 				B945A38A2362909500B21680 /* Debug (Jailbroken) */,
 				B9DCAC9223AB3665002B95C8 /* Debug (Non-Jailbroken) */,
 				B945A38B2362909500B21680 /* Release (Jailbroken) */,
+				B971E1C2245DF29300D2A698 /* Release (Non-Jailbroken) */,
 				B9DCAC9423AB384F002B95C8 /* Release (Patreon) */,
 			);
 			defaultConfigurationIsVisible = 0;

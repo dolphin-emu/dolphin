@@ -1,0 +1,6 @@
+        <!---><!-->
+        <key>dynamic-codesigning</key>
+        <true/>
+        <!-- -->
+</dict>
+</plist>

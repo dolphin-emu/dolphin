@@ -22,6 +22,8 @@
 #import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
+#import "DebuggerUtils.h"
+
 #import "DolphiniOS-Swift.h"
 
 #import "DonationNoticeViewController.h"
@@ -35,10 +37,13 @@
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
+#import <mach/mach.h>
+
 #import "MainiOS.h"
 
 #import <MetalKit/MetalKit.h>
 
+#import "NonJailbrokenNoticeViewController.h"
 #import "NoticeNavigationViewController.h"
 
 #import "ReloadFailedNoticeViewController.h"
@@ -77,6 +82,33 @@
       return true;
     }
   }
+#endif
+  
+#ifdef NONJAILBROKEN
+  if (@available(iOS 13.5, *))
+  {
+    // Show the OS incompatibilty warning
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
+    [self.window makeKeyAndVisible];
+    
+    return true;
+  }
+  
+  const size_t memory_size = 0x400000000;
+  vm_address_t addr = 0;
+  kern_return_t retval = vm_allocate(mach_task_self(), &addr, memory_size, VM_FLAGS_ANYWHERE);
+  if (retval != KERN_SUCCESS)
+  {
+    // Show the bad install warning
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"ImproperlySignedNotice" bundle:nil];
+    [self.window makeKeyAndVisible];
+    
+    return true;
+  }
+
+  vm_deallocate(mach_task_self(), addr, memory_size);
 #endif
   
   // Default settings values should be set in DefaultPreferences.plist in the future
@@ -135,41 +167,54 @@
     }
   }
   
-  // Check the CPUCore type if necessary
-  bool has_changed_core = [[NSUserDefaults standardUserDefaults] boolForKey:@"did_deliberately_change_cpu_core"];
   
-  if (!has_changed_core)
-  {
-    const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-    
-    // Load Dolphin.ini
-    IniFile dolphin_config;
-    dolphin_config.Load(config_path);
-    
-    PowerPC::CPUCore core_type;
-    dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
-    
     PowerPC::CPUCore correct_core;
 #if !TARGET_OS_SIMULATOR
     correct_core = PowerPC::CPUCore::JITARM64;
 #else
     correct_core = PowerPC::CPUCore::JIT64;
 #endif
-    
-    if (core_type != correct_core)
-    {
-      // Reset the CPUCore
-      SConfig::GetInstance().cpu_core = correct_core;
-      Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
-      
-      [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
-    }
-  }
   
   // Get the number of launches
   NSInteger launch_times = [[NSUserDefaults standardUserDefaults] integerForKey:@"launch_times"];
   if (launch_times == 0)
   {
+    SConfig::GetInstance().cpu_core = correct_core;
+    Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
+  }
+  else
+  {
+    // Check the CPUCore type if necessary
+    bool has_changed_core = [[NSUserDefaults standardUserDefaults] boolForKey:@"did_deliberately_change_cpu_core"];
+
+    if (!has_changed_core)
+    {
+      const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+      
+      // Load Dolphin.ini
+      IniFile dolphin_config;
+      dolphin_config.Load(config_path);
+      
+      PowerPC::CPUCore core_type;
+      dolphin_config.GetOrCreateSection("Core")->Get("CPUCore", &core_type);
+      
+      if (core_type != correct_core)
+      {
+        // Reset the CPUCore
+        SConfig::GetInstance().cpu_core = correct_core;
+        Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
+        
+        [nav_controller pushViewController:[[InvalidCpuCoreNoticeViewController alloc] initWithNibName:@"InvalidCpuCoreNotice" bundle:nil] animated:true];
+      }
+    }
+  }
+  
+  if (launch_times == 0)
+  {
+#ifdef NONJAILBROKEN
+    //[nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
+#endif
+    
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
   }
   else if (launch_times % 10 == 0)
@@ -196,16 +241,13 @@
     [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
   }
   
+  // Get the version string
+  NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
+  NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+  
   // Check for updates
 #ifndef DEBUG
-  NSString* update_url_string;
-#ifndef PATREON
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update.json";
-#else
-  update_url_string = @"https://cydia.oatmealdome.me/DolphiniOS/api/update_patreon.json";
-#endif
-  
-  NSURL* update_url = [NSURL URLWithString:update_url_string];
+  NSURL* update_url = [NSURL URLWithString:@"https://dolphinios.oatmealdome.me/api/v2/update.json"];
   
   // Create en ephemeral session to avoid caching
   NSURLSession* session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration ephemeralSessionConfiguration]];
@@ -215,13 +257,25 @@
       return;
     }
     
-    // Get the version string
-    NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
-    NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
-    
     // Deserialize the JSON
-    NSDictionary* dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    NSDictionary* json_dict = (NSDictionary*)[NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
     
+    NSString* dict_key;
+#ifndef PATREON
+#ifndef NONJAILBROKEN
+      dict_key = @"public";
+#else
+      dict_key = @"public_njb";
+#endif
+#else
+#ifndef NONJAILBROKEN
+      dict_key = @"patreon";
+#else
+      dict_key = @"patreon_njb";
+#endif
+#endif
+    
+    NSDictionary* dict = json_dict[dict_key];
     if (![dict[@"version"] isEqualToString:version_str])
     {
       dispatch_async(dispatch_get_main_queue(), ^{
@@ -256,32 +310,31 @@
   [FIRAnalytics setAnalyticsCollectionEnabled:false];
   [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:false];
 #endif
+  
+  NSString* last_version = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_version"];
+  if (![last_version isEqualToString:version_str])
+  {
+    NSString* app_type;
+#ifndef NONJAILBROKEN
+    app_type = @"jailbroken";
+#else
+    app_type = @"non-jailbroken";
+#endif
+  
+    [FIRAnalytics logEventWithName:@"version_start" parameters:@{
+      @"type" : app_type,
+      @"version" : version_str
+    }];
+    
+    [[NSUserDefaults standardUserDefaults] setObject:version_str forKey:@"last_version"];
+  }
  
   return YES;
 }
 
 - (void)applicationWillTerminate:(UIApplication*)application
 {
-  if (Core::IsRunning())
-  {
-    Core::Stop();
-    
-    // Spin while Core stops
-    while (Core::GetState() != Core::State::Uninitialized);
-  }
-  
-  [[TCDeviceMotion shared] stopMotionUpdates];
-  ButtonManager::Shutdown();
-  Pad::Shutdown();
-  Keyboard::Shutdown();
-  Wiimote::Shutdown();
-  g_controller_interface.Shutdown();
-  
-  Config::Save();
-  SConfig::GetInstance().SaveSettings();
-  
-  Core::Shutdown();
-  UICommon::Shutdown();
+  [AppDelegate Shutdown];
 }
 
 - (void)applicationDidBecomeActive:(UIApplication*)application
@@ -356,6 +409,37 @@
   [MainiOS importFiles:[NSSet setWithObject:url]];
   
   return YES;
+}
+
++ (void)Shutdown
+{
+  if (Core::IsRunning())
+  {
+    Core::Stop();
+    
+    // Spin while Core stops
+    while (Core::GetState() != Core::State::Uninitialized);
+  }
+  
+  [[TCDeviceMotion shared] stopMotionUpdates];
+  ButtonManager::Shutdown();
+  Pad::Shutdown();
+  Keyboard::Shutdown();
+  Wiimote::Shutdown();
+  g_controller_interface.Shutdown();
+  
+  Config::Save();
+  SConfig::GetInstance().SaveSettings();
+  
+  Core::Shutdown();
+  UICommon::Shutdown();
+  
+#ifdef NONJAILBROKEN
+  if (IsProcessDebugged())
+  {
+    exit(0);
+  }
+#endif
 }
 
 @end

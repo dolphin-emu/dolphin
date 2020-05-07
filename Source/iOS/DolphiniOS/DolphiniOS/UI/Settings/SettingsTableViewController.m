@@ -4,6 +4,10 @@
 
 #import "SettingsTableViewController.h"
 
+#import "AppDelegate.h"
+
+#import "DebuggerUtils.h"
+
 @interface SettingsTableViewController ()
 
 @end
@@ -16,15 +20,32 @@
   
   // Set the version from Info.plist
   NSDictionary* info = [[NSBundle mainBundle] infoDictionary];
-  NSString* version_str = [info objectForKey:@"CFBundleShortVersionString"];
-  version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+  
+  NSMutableArray<NSString*>* version_flags = [[NSMutableArray alloc] init];
 #ifdef DEBUG
-  version_str = [version_str stringByAppendingString:@" (Debug)"];
+  [version_flags addObject:@"Debug"];
 #endif
 #ifdef PATREON
-  version_str = [version_str stringByAppendingString:@" (Patreon)"];
+  [version_flags addObject:@"Patreon"];
 #endif
+#ifdef NONJAILBROKEN
+  [version_flags addObject:@"NJB"];
+#endif
+  
+  NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
+  if ([version_flags count] > 0)
+  {
+    version_str = [version_str stringByAppendingString:[NSString stringWithFormat:@" (%@)", [version_flags componentsJoinedByString:@", "]]];
+  }
+  
   [self.m_version_label setText:version_str];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  
+  [self.tableView reloadData];
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
@@ -49,6 +70,25 @@
     
     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url] options:@{} completionHandler:nil];
   }
+  else if (indexPath.section == 2) // Quit button
+  {
+    [AppDelegate Shutdown];
+  }
+}
+
+- (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  CGFloat real_height = [super tableView:tableView heightForRowAtIndexPath:indexPath];
+  if (indexPath.section == 2)
+  {
+#if !defined(NONJAILBROKEN) || DEBUG
+    return CGFLOAT_MIN;
+#else
+    return IsProcessDebugged() ? real_height : CGFLOAT_MIN;
+#endif
+  }
+  
+  return real_height;
 }
 
 - (IBAction)UnwindToSettings:(UIStoryboardSegue*)segue {}

@@ -34,6 +34,22 @@
 #include <unistd.h>
 #endif
 
+#if defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
+#include <vector>
+
+// 256MB maximum JIT region
+#define JIT_REGION_SIZE 1024 * 1024 * 256
+
+struct MemoryRegion
+{
+  u8* start;
+  size_t size;
+};
+
+static u8* s_jit_region_start = nullptr;
+static std::vector<MemoryRegion> s_jit_memory_regions;
+#endif
+
 namespace Common
 {
 // This is purposely not a full wrapper for virtualalloc/mmap, but it
@@ -50,6 +66,71 @@ void* AllocateExecutableMemory(size_t size)
 #endif
 
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, protection);
+#elif defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
+  int protection = PROT_READ | PROT_WRITE;
+#ifndef _WX_EXCLUSIVITY
+  protection |= PROT_EXEC;
+#endif
+
+  if (s_jit_region_start == nullptr)
+  {
+    s_jit_region_start = (u8*)mmap(nullptr, JIT_REGION_SIZE, protection, MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
+    if (s_jit_region_start == MAP_FAILED)
+    {
+      PanicAlert("Failed to allocate JIT region");
+      return nullptr;
+    }
+  }
+
+  // Round up the size to the page size as necessary
+  const size_t page_size = Common::PageSize();
+  if (size % page_size != 0)
+  {
+    size = size + page_size - (size % page_size);
+  }
+  
+  MemoryRegion region;
+  region.start = nullptr;
+  region.size = size;
+  
+  // Find a good place to put this
+  if (s_jit_memory_regions.size() == 0)
+  {
+    region.start = s_jit_region_start;
+    
+    s_jit_memory_regions.push_back(region);
+  }
+  else
+  {
+    for (std::vector<MemoryRegion>::size_type i = 1; i != s_jit_memory_regions.size(); i++)
+    {
+      MemoryRegion& prev_region = s_jit_memory_regions.at(i - 1);
+      MemoryRegion& this_region = s_jit_memory_regions.at(i);
+      
+      u8* prev_end = prev_region.start + prev_region.size;
+      if ((prev_end + size) <= this_region.start)
+      {
+        region.start = prev_end;
+
+        s_jit_memory_regions.insert(s_jit_memory_regions.begin() + i, region);
+      }
+    }
+
+    if (region.start == nullptr)
+    {    
+      MemoryRegion& last_region = s_jit_memory_regions.back();
+      region.start = last_region.start + last_region.size;
+
+      s_jit_memory_regions.push_back(region);
+    }
+  }
+
+  if (region.start + region.size >= s_jit_region_start + JIT_REGION_SIZE)
+  {
+    PanicAlert("JIT region overflow");
+  }
+
+  void* ptr = (void*)region.start;
 #else
   int protection = PROT_READ | PROT_WRITE;
 #ifndef _WX_EXCLUSIVITY
@@ -105,6 +186,16 @@ void FreeMemoryPages(void* ptr, size_t size)
 {
   if (ptr)
   {
+#if defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
+    if (ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+    {
+      s_jit_memory_regions.erase(std::remove_if(s_jit_memory_regions.begin(), s_jit_memory_regions.end(), [ptr](const MemoryRegion& region) {
+        return region.start == ptr;
+      }), s_jit_memory_regions.end());
+      
+      return;
+    }
+#endif
 #ifdef _WIN32
     if (!VirtualFree(ptr, 0, MEM_RELEASE))
       PanicAlert("FreeMemoryPages failed!\nVirtualFree: %s", GetLastErrorString().c_str());
