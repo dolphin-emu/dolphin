@@ -151,6 +151,12 @@ int main(int argc, char* argv[])
   QObject::connect(QAbstractEventDispatcher::instance(), &QAbstractEventDispatcher::aboutToBlock,
                    &app, &Core::HostDispatchJobs);
 
+  std::optional<std::string> save_state_path;
+  if (options.is_set("save_state"))
+  {
+    save_state_path = static_cast<const char*>(options.get("save_state"));
+  }
+
   std::unique_ptr<BootParameters> boot;
   bool game_specified = false;
   if (options.is_set("exec"))
@@ -158,7 +164,7 @@ int main(int argc, char* argv[])
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths);
+    boot = BootParameters::GenerateFromFile(paths, save_state_path);
     game_specified = true;
   }
   else if (options.is_set("nand_title"))
@@ -177,20 +183,27 @@ int main(int argc, char* argv[])
   }
   else if (!args.empty())
   {
-    boot = BootParameters::GenerateFromFile(args.front());
+    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
     game_specified = true;
   }
 
   int retval;
 
-  if (Settings::Instance().IsBatchModeEnabled() && !game_specified)
+  if (save_state_path && !game_specified)
+  {
+    ModalMessageBox::critical(
+        nullptr, QObject::tr("Error"),
+        QObject::tr("A save state cannot be loaded without specifying a game to launch."));
+    retval = 1;
+  }
+  else if (Settings::Instance().IsBatchModeEnabled() && !game_specified)
   {
     ModalMessageBox::critical(
         nullptr, QObject::tr("Error"),
         QObject::tr("Batch mode cannot be used without specifying a game to launch."));
     retval = 1;
   }
-  else if (Settings::Instance().IsBatchModeEnabled() && !boot)
+  else if (!boot && (Settings::Instance().IsBatchModeEnabled() || save_state_path))
   {
     // A game to launch was specified, but it was invalid.
     // An error has already been shown by code above, so exit without showing another error.

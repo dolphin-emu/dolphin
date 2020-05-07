@@ -156,13 +156,21 @@ int main(int argc, char* argv[])
   optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   std::vector<std::string> args = parser->args();
 
+  std::optional<std::string> save_state_path;
+  if (options.is_set("save_state"))
+  {
+    save_state_path = static_cast<const char*>(options.get("save_state"));
+  }
+
   std::unique_ptr<BootParameters> boot;
+  bool game_specified = false;
   if (options.is_set("exec"))
   {
     const std::list<std::string> paths_list = options.all("exec");
     const std::vector<std::string> paths{std::make_move_iterator(std::begin(paths_list)),
                                          std::make_move_iterator(std::end(paths_list))};
-    boot = BootParameters::GenerateFromFile(paths);
+    boot = BootParameters::GenerateFromFile(paths, save_state_path);
+    game_specified = true;
   }
   else if (options.is_set("nand_title"))
   {
@@ -178,8 +186,9 @@ int main(int argc, char* argv[])
   }
   else if (args.size())
   {
-    boot = BootParameters::GenerateFromFile(args.front());
+    boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
     args.erase(args.begin());
+    game_specified = true;
   }
   else
   {
@@ -198,6 +207,12 @@ int main(int argc, char* argv[])
   if (!s_platform || !s_platform->Init())
   {
     fprintf(stderr, "No platform found, or failed to initialize.\n");
+    return 1;
+  }
+
+  if (save_state_path && !game_specified)
+  {
+    fprintf(stderr, "A save state cannot be loaded without specifying a game to launch.\n");
     return 1;
   }
 
