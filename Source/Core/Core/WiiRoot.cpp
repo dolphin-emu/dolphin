@@ -80,21 +80,21 @@ static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 tit
 static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_file,
                          FS::FileSystem* dest_fs, const std::string& dest_file)
 {
-  const auto last_slash = dest_file.find_last_of('/');
-  if (last_slash != std::string::npos && last_slash > 0)
-  {
-    const std::string dir = dest_file.substr(0, last_slash);
-    dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dir + '/', 0,
-                            {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
-  }
-
   auto source_handle =
       source_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file, IOS::HLE::FS::Mode::Read);
+  // If the source file doesn't exist, there is nothing more to do.
+  // This function must not create an empty file on the destination filesystem.
+  if (!source_handle)
+    return true;
+
+  dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dest_file, 0,
+                          {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+
   auto dest_handle =
       dest_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file,
                                  {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
                                   IOS::HLE::FS::Mode::ReadWrite});
-  if (!source_handle || !dest_handle)
+  if (!dest_handle)
     return false;
 
   std::vector<u8> buffer(source_handle->GetStatus()->size);
