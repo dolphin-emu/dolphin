@@ -431,6 +431,10 @@
     Core::SetState(Core::State::Paused);
   }
   
+  // Write out the configuration in case we don't get a chance later
+  Config::Save();
+  SConfig::GetInstance().SaveSettings();
+  
   [[FIRCrashlytics crashlytics] setCustomValue:@"inactive" forKey:@"app-state"];
 }
 
@@ -450,10 +454,6 @@
   }];
   
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^{
-    // Write out the configuration in case we don't get a chance later
-    Config::Save();
-    SConfig::GetInstance().SaveSettings();
-
     if (Core::IsRunning())
     {
       File::Delete(temp_path);
