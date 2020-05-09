@@ -181,6 +181,14 @@
   [self.m_collection_view deselectItemAtIndexPath:indexPath animated:true];
 }
 
+- (UIContextMenuConfiguration*)collectionView:(UICollectionView*)collectionView contextMenuConfigurationForItemAtIndexPath:(NSIndexPath*)indexPath point:(CGPoint)point API_AVAILABLE(ios(13.0))
+{
+  return [UIContextMenuConfiguration configurationWithIdentifier:nil previewProvider:nil actionProvider:^(NSArray<UIMenuElement*>*)
+  {
+    return [self CreateContextMenuAtIndexPath:indexPath];
+  }];
+}
+
 #pragma mark - Table View
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
@@ -219,7 +227,7 @@
   }
   else
   {
-    cell_contents = [cell_contents stringByAppendingString:@"[Unk] "];
+    cell_contents = [cell_contents stringByAppendingString:@"[Homebrew] "];
   }
   
   cell_contents = [cell_contents stringByAppendingString:[self GetGameName:file]];
@@ -240,10 +248,41 @@
   [self.m_table_view deselectRowAtIndexPath:indexPath animated:true];
 }
 
+- (UIContextMenuConfiguration*)tableView:(UITableView*)tableView contextMenuConfigurationForRowAtIndexPath:(NSIndexPath*)indexPath point:(CGPoint)point API_AVAILABLE(ios(13.0))
+{
+  return [UIContextMenuConfiguration configurationWithIdentifier:nil previewProvider:nil actionProvider:^(NSArray<UIMenuElement*>*)
+  {
+    return [self CreateContextMenuAtIndexPath:indexPath];
+  }];
+}
+
+#pragma mark - Context menu
+
+- (UIMenu*)CreateContextMenuAtIndexPath:(NSIndexPath*)indexPath API_AVAILABLE(ios(13.0))
+{
+  const UICommon::GameFile* game_file = self.m_cache->Get(indexPath.row).get();
+  
+  UIAction* delete_action = [UIAction actionWithTitle:DOLocalizedString(@"Delete") image:[UIImage systemImageNamed:@"trash"] identifier:nil handler:^(UIAction*)
+  {
+    if (File::Delete(game_file->GetFilePath()))
+    {
+      [self rescanWithCompletionHandler:nil];
+    }
+  }];
+  [delete_action setAttributes:UIMenuElementAttributesDestructive];
+  
+  return [UIMenu menuWithTitle:CppToFoundationString(game_file->GetUniqueIdentifier()) children:@[ delete_action ]];
+}
+
 #pragma mark - Long press
 
 - (IBAction)HandleLongPress:(UILongPressGestureRecognizer*)recognizer
 {
+  if (@available(iOS 13, *))
+  {
+    return;
+  }
+  
   if (recognizer.state != UIGestureRecognizerStateBegan)
   {
     return;
