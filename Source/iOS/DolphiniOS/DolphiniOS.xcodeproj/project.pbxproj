@@ -437,6 +437,7 @@
 		B99577A024664F90008C5115 /* KilledBuildNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = KilledBuildNotice.xib; path = DolphiniOS/UI/Notices/KilledBuild/KilledBuildNotice.xib; sourceTree = SOURCE_ROOT; };
 		B99577A224665004008C5115 /* KilledBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KilledBuildNoticeViewController.h; path = KilledBuild/KilledBuildNoticeViewController.h; sourceTree = "<group>"; };
 		B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KilledBuildNoticeViewController.m; path = KilledBuild/KilledBuildNoticeViewController.m; sourceTree = "<group>"; };
+		B99577A62466A185008C5115 /* AutoStates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoStates.h; sourceTree = "<group>"; };
 		B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = PreBuildTasks.sh; path = BuildResources/BuildScripts/PreBuildTasks.sh; sourceTree = "<group>"; };
 		B996C85323D50FC600700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Dolphin.strings; sourceTree = "<group>"; };
 		B996C85723D5884300700D6F /* UpdateDolphinStrings.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = UpdateDolphinStrings.py; sourceTree = "<group>"; };
@@ -680,6 +681,7 @@
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
 				B946AF12245BFB950043767A /* WiiSystemUpdate */,
+				B99577A62466A185008C5115 /* AutoStates.h */,
 				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
 				B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */,
 				B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */,
