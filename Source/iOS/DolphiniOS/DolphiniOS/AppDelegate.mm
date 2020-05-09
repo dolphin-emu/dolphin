@@ -178,7 +178,12 @@
     NSDictionary* last_game_data = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"last_game_boot_info"];
     
     DOLReloadFailedReason reload_fail_reason = DOLReloadFailedReasonNone;
-    if ([[last_game_data objectForKey:@"state_version"] integerValue] != State::GetVersion())
+    if ([last_game_data[@"user_facing_name"] isEqualToString:@"Dummy"])
+    {
+      // Silently fail, we have no data but a state is present
+      reload_fail_reason = DOLReloadFailedReasonSilent;
+    }
+    else if ([[last_game_data objectForKey:@"state_version"] integerValue] != State::GetVersion())
     {
       reload_fail_reason = DOLReloadFailedReasonOld;
     }
@@ -187,8 +192,6 @@
       bool is_nand_title = [[last_game_data objectForKey:@"is_nand_title"] boolValue];
       if (is_nand_title)
       {
-        //reload_fail_reason = DOLReloadFailedReasonNand;
-        // Auto save states on NAND freeze upon reloading? Maybe a Dolphin bug?
         u64 title_id = [[last_game_data objectForKey:@"title_id"] unsignedLongLongValue];
         
         IOS::HLE::Kernel ios;
@@ -213,7 +216,7 @@
     {
       [nav_controller pushViewController:[[ReloadStateNoticeViewController alloc] initWithNibName:@"ReloadStateNotice" bundle:nil] animated:true];
     }
-    else if (reload_fail_reason == DOLReloadFailedReasonNand)
+    else if (reload_fail_reason == DOLReloadFailedReasonSilent)
     {
       File::Delete(state_path);
     }
