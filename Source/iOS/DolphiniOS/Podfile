@@ -3,4 +3,5 @@ platform :ios, '12.0'
 target 'DolphiniOS' do
     pod 'Firebase/Analytics'
     pod 'Firebase/Crashlytics'
+    pod 'UICollectionViewLeftAlignedLayout'
 end
