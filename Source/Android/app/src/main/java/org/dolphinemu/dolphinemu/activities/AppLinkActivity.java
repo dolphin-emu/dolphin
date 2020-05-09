@@ -130,8 +130,8 @@ public class AppLinkActivity extends FragmentActivity
 
   private void tryPlay(AppLinkHelper.PlayAction action)
   {
-    // TODO: This approach of getting the game from the game file cache without rescanning
-    // the library means that we can fail to launch games if the cache file has been deleted.
+    // TODO: This approach of getting the game from the game file cache without rescanning the
+    //       library means that we can fail to launch games if the cache file has been deleted.
 
     GameFile game = GameFileCacheService.getGameFileByGameId(action.getGameId());
 

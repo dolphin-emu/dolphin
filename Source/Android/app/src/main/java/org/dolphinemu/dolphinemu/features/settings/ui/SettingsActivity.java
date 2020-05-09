@@ -178,7 +178,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     }
 
     // TODO: After result of FilePicker, duplicate SettingsActivity appears.
-    //  Finish to avoid this. Is there a better method?
+    //       Finish to avoid this. Is there a better method?
     finish();
   }
 
