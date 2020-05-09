@@ -7,6 +7,8 @@
 #import <utility>
 #import <variant>
 
+#import "AutoStates.h"
+
 #import "ControllerSettingsUtils.h"
 
 #import "Common/FileUtil.h"
@@ -117,6 +119,21 @@
 
 - (void)StartEmulation
 {
+  // Hack for GC IPL - the running title isn't updated on boot
+  if (std::holds_alternative<BootParameters::IPL>(self->m_boot_parameters->parameters))
+  {
+    // Fetch the IPL region for later
+    self.m_ipl_region = std::get<BootParameters::IPL>(self->m_boot_parameters->parameters).region;
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [self RunningTitleUpdated];
+    });
+  }
+  else
+  {
+    self.m_ipl_region = DiscIO::Region::Unknown;
+  }
+  
   [MainiOS startEmulationWithBootParameters:std::move(self->m_boot_parameters) viewController:self view:self.m_renderer_view];
   
   [[TCDeviceMotion shared] stopMotionUpdates];
@@ -132,7 +149,7 @@
 {
   NSString* uid = nil;
   id location = nil;
-  bool is_nand_title = false;
+  DOLAutoStateBootType boot_type = DOLAutoStateBootTypeUnknown;
   
   UICommon::GameFileCache* cache = new UICommon::GameFileCache();
   cache->Load();
@@ -144,23 +161,33 @@
     {
       uid = CppToFoundationString(game_file->GetUniqueIdentifier());
       location = CppToFoundationString(game_file->GetFilePath());
+      boot_type = DOLAutoStateBootTypeFile;
       self.m_is_wii = DiscIO::IsWii(game_file->GetPlatform());
+      self.m_ipl_region = DiscIO::Region::Unknown; // Reset just in case
     }
   }
   
-  if (uid == nil)
+  if (self.m_ipl_region != DiscIO::Region::Unknown)
+  {
+    // We are likely in the IPL
+    uid = @"GameCube Main Menu";
+    location = @(static_cast<int>(self.m_ipl_region));
+    boot_type = DOLAutoStateBootTypeGCIPL;
+    self.m_is_wii = false;
+  }
+  else if (uid == nil)
   {
     uid = CppToFoundationString(SConfig::GetInstance().GetTitleDescription());
     location = [NSNumber numberWithUnsignedLongLong:SConfig::GetInstance().GetTitleID()];
-    is_nand_title = true;
+    boot_type = DOLAutoStateBootTypeNand;
     self.m_is_wii = true; // assume yes since it's on NAND
+    self.m_ipl_region = DiscIO::Region::Unknown; // Reset just in case
   }
   
   NSDictionary* last_game_data = @{
     @"user_facing_name": uid,
-    @"is_nand_title": @(is_nand_title),
-    @"path": is_nand_title ? @"/tmp/dummy" : location,
-    @"title_id": is_nand_title ? location : @0,
+    @"boot_type": @(boot_type),
+    @"location": location,
     @"state_version": @(State::GetVersion())
   };
   

@@ -9,6 +9,7 @@
 #import "Common/FileUtil.h"
 
 #import "Core/CommonTitles.h"
+#import "Core/ConfigManager.h"
 #import "Core/IOS/ES/ES.h"
 #import "Core/IOS/IOS.h"
 
@@ -174,7 +175,7 @@
 - (void)collectionView:(UICollectionView*)collectionView didSelectItemAtIndexPath:(NSIndexPath*)indexPath
 {
   self.m_selected_file = self.m_cache->Get(indexPath.row).get();
-  self.m_boot_wii_menu = false;
+  self.m_boot_type = DOLBootTypeGame;
   
   [self performSegueWithIdentifier:@"to_emulation" sender:nil];
   
@@ -241,8 +242,8 @@
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   self.m_selected_file = self.m_cache->Get(indexPath.row).get();
-  self.m_boot_wii_menu = false;
   
+  self.m_boot_type = DOLBootTypeGame;
   [self performSegueWithIdentifier:@"to_emulation" sender:nil];
   
   [self.m_table_view deselectRowAtIndexPath:indexPath animated:true];
@@ -387,15 +388,65 @@
     
     [action_sheet addAction:[UIAlertAction actionWithTitle:[NSString stringWithFormat:base_title, CppToFoundationString(system_region)] style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
     {
-      self.m_boot_wii_menu = true;
+      self.m_boot_type = DOLBootTypeWiiMenu;
       [self performSegueWithIdentifier:@"to_emulation" sender:nil];
     }]];
   }
   
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Load GameCube Main Menu") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+  {
+    self.m_boot_type = DOLBootTypeGCIPL;
+    
+    UIAlertController* region_sheet = [UIAlertController alertControllerWithTitle:nil message:DOLocalizedString(@"Region") preferredStyle:UIAlertControllerStyleActionSheet];
+    
+    if (File::Exists(SConfig::GetInstance().GetBootROMPath(JAP_DIR)))
+    {
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"NTSC-J") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        self.m_ipl_region = DiscIO::Region::NTSC_J;
+        [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+      }]];
+    }
+    
+    if (File::Exists(SConfig::GetInstance().GetBootROMPath(USA_DIR)))
+    {
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"NTSC-U") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        self.m_ipl_region = DiscIO::Region::NTSC_U;
+        [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+      }]];
+    }
+    
+    if (File::Exists(SConfig::GetInstance().GetBootROMPath(EUR_DIR)))
+    {
+      [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"PAL") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        self.m_ipl_region = DiscIO::Region::PAL;
+        [self performSegueWithIdentifier:@"to_emulation" sender:nil];
+      }]];
+    }
+    
+    [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+    
+    if ([[region_sheet actions] count] == 1)
+    {
+      UIAlertController* error_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Not Found") message:@"Could not find any GameCube Main Menu files. Please dump it from a GameCube and copy it into User/GC/Region as \"IPL.bin\"." preferredStyle:UIAlertControllerStyleAlert];
+      
+      [error_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+      
+      [self presentViewController:error_alert animated:true completion:nil];
+    }
+    else
+    {
+      [self presentViewController:region_sheet animated:true completion:nil];
+    }
+  }]];
+  
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Perform Online System Update") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
   {
-    void (^do_system_update)(NSString*) = ^(NSString* region){
-      self.m_wii_region = region;
+    void (^do_system_update)(DiscIO::Region) = ^(DiscIO::Region region)
+    {
+      self.m_ipl_region = region;
       [self performSegueWithIdentifier:@"to_wii_update" sender:nil];
     };
     
@@ -405,23 +456,23 @@
       
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Europe") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
       {
-        do_system_update(@"EUR");
+        do_system_update(DiscIO::Region::PAL);
       }]];
       
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Japan") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
       {
-        do_system_update(@"JPN");
+        do_system_update(DiscIO::Region::NTSC_J);
       }]];
       
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Korea") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
-       {
-         do_system_update(@"JPN");
-       }]];
-      
+      {
+        do_system_update(DiscIO::Region::NTSC_K);
+      }]];
+    
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"United States") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
-       {
-         do_system_update(@"USA");
-       }]];
+      {
+        do_system_update(DiscIO::Region::NTSC_U);
+      }]];
            
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
       
@@ -429,7 +480,7 @@
     }
     else
     {
-      do_system_update(@"");
+      do_system_update(DiscIO::Region::Unknown);
     }
   }]];
   
@@ -454,9 +505,13 @@
     UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
     EmulationViewController* viewController = (EmulationViewController*)([navigationController.viewControllers firstObject]);
     
-    if (self.m_boot_wii_menu)
+    if (self.m_boot_type == DOLBootTypeWiiMenu)
     {
       viewController->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::NANDTitle{Titles::SYSTEM_MENU});
+    }
+    else if (self.m_boot_type == DOLBootTypeGCIPL)
+    {
+      viewController->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::IPL{self.m_ipl_region});
     }
     else
     {
@@ -465,10 +520,30 @@
   }
   else if ([segue.identifier isEqualToString:@"to_wii_update"])
   {
-    // Set the GameFile
+    NSString* wii_update_region;
+    switch (self.m_ipl_region)
+    {
+      case DiscIO::Region::NTSC_J:
+        wii_update_region = @"JPN";
+        break;
+      case DiscIO::Region::NTSC_U:
+        wii_update_region = @"USA";
+        break;
+      case DiscIO::Region::PAL:
+        wii_update_region = @"EUR";
+        break;
+      case DiscIO::Region::NTSC_K:
+        wii_update_region = @"KOR";
+        break;
+      case DiscIO::Region::Unknown:
+      default:
+        wii_update_region = @"";
+        break;
+    }
+    
     WiiSystemUpdateViewController* update_controller = (WiiSystemUpdateViewController*)segue.destinationViewController;
     update_controller.m_is_online = true;
-    update_controller.m_source = self.m_wii_region;
+    update_controller.m_source = wii_update_region;
   }
 }
 

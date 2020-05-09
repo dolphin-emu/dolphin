@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import "AutoStates.h"
+
 #import "Common/FileUtil.h"
 
 #import "EmulationViewController.h"
@@ -19,14 +21,20 @@
   [super viewDidLoad];
   
   NSDictionary* last_game_data = [[NSUserDefaults standardUserDefaults] dictionaryForKey:@"last_game_boot_info"];
-  if ([[last_game_data objectForKey:@"is_nand_title"] boolValue])
+  DOLAutoStateBootType boot_type = (DOLAutoStateBootType)[last_game_data[@"boot_type"] integerValue];
+  if (boot_type == DOLAutoStateBootTypeNand)
   {
-    u64 title_id = [[last_game_data objectForKey:@"title_id"] unsignedLongLongValue];
+    u64 title_id = [last_game_data[@"location"] unsignedLongLongValue];
     self->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::NANDTitle{title_id});
+  }
+  else if (boot_type == DOLAutoStateBootTypeGCIPL)
+  {
+    DiscIO::Region region = static_cast<DiscIO::Region>([last_game_data[@"location"] integerValue]);
+    self->m_boot_parameters = std::make_unique<BootParameters>(BootParameters::IPL{region});
   }
   else // Game file
   {
-    NSString* last_game_path = [last_game_data objectForKey:@"path"];
+    NSString* last_game_path = last_game_data[@"location"];
     self->m_boot_parameters = BootParameters::GenerateFromFile(FoundationToCppString(last_game_path));
   }
   

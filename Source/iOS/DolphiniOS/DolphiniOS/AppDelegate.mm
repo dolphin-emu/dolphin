@@ -6,6 +6,9 @@
 
 #import "AppDelegate.h"
 
+#import "AutoStates.h"
+
+#import "Common/CommonPaths.h"
 #import "Common/Config/Config.h"
 #import "Common/FileUtil.h"
 #import "Common/IniFile.h"
@@ -164,9 +167,8 @@
       // Convert old into new
       [[NSUserDefaults standardUserDefaults] setObject:@{
         @"user_facing_name": [[NSUserDefaults standardUserDefaults] stringForKey:@"last_game_title"],
-        @"is_nand_title" : @false,
-        @"path" : last_game_path,
-        @"title_id" : @0,
+        @"boot_type" : @(DOLAutoStateBootTypeFile),
+        @"location" : last_game_path,
         @"state_version": @([[NSUserDefaults standardUserDefaults] integerForKey:@"last_game_state_version"])
       } forKey:@"last_game_boot_info"];
       
@@ -183,16 +185,16 @@
       // Silently fail, we have no data but a state is present
       reload_fail_reason = DOLReloadFailedReasonSilent;
     }
-    else if ([[last_game_data objectForKey:@"state_version"] integerValue] != State::GetVersion())
+    else if ([last_game_data[@"state_version"] integerValue] != State::GetVersion())
     {
       reload_fail_reason = DOLReloadFailedReasonOld;
     }
     else
     {
-      bool is_nand_title = [[last_game_data objectForKey:@"is_nand_title"] boolValue];
-      if (is_nand_title)
+      DOLAutoStateBootType boot_type = (DOLAutoStateBootType)[last_game_data[@"boot_type"] integerValue];
+      if (boot_type == DOLAutoStateBootTypeNand)
       {
-        u64 title_id = [[last_game_data objectForKey:@"title_id"] unsignedLongLongValue];
+        u64 title_id = [last_game_data[@"location"] unsignedLongLongValue];
         
         IOS::HLE::Kernel ios;
         const auto tmd = ios.GetES()->FindInstalledTMD(title_id);
@@ -202,13 +204,35 @@
           reload_fail_reason = DOLReloadFailedReasonFileGone;
         }
       }
-      else // Game file
+      else if (boot_type == DOLAutoStateBootTypeGCIPL)
       {
-        NSString* last_game_path = [last_game_data objectForKey:@"path"];
+        DiscIO::Region region = static_cast<DiscIO::Region>([last_game_data[@"location"] integerValue]);
+        std::string region_dir = USA_DIR; // default to NTSC-U
+        if (region == DiscIO::Region::NTSC_J)
+        {
+          region_dir = JAP_DIR;
+        }
+        else if (region == DiscIO::Region::PAL)
+        {
+          region_dir = EUR_DIR;
+        }
+        
+        if (!File::Exists(SConfig::GetInstance().GetBootROMPath(region_dir)))
+        {
+          reload_fail_reason = DOLReloadFailedReasonFileGone;
+        }
+      }
+      else if (boot_type == DOLAutoStateBootTypeFile) // Game file
+      {
+        NSString* last_game_path = last_game_data[@"location"];
         if (!File::Exists(FoundationToCppString(last_game_path)))
         {
           reload_fail_reason = DOLReloadFailedReasonFileGone;
         }
+      }
+      else // ???
+      {
+        reload_fail_reason = DOLReloadFailedReasonSilent;
       }
     }
     

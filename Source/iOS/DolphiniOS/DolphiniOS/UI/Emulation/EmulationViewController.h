@@ -10,6 +10,8 @@
 
 #import "Core/Boot/Boot.h"
 
+#import "DiscIO/Enums.h"
+
 #import "DolphiniOS-Swift.h"
 
 #import "EAGLView.h"
@@ -51,6 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property(nonatomic) UIView* m_renderer_view;
 @property(nonatomic) bool m_is_wii;
+@property(nonatomic) DiscIO::Region m_ipl_region;
 @property(nonatomic) int m_ts_active_port;
 @property(nonatomic) DOLTopBarPullDownMode m_pull_down_mode;
 @property(weak, nonatomic) TCView* m_ts_active_view;

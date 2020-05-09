@@ -18,12 +18,10 @@
 	<dict>
 		<key>user_facing_name</key>
 		<string>Dummy</string>
-		<key>is_nand_title</key>
+		<key>boot_type</key>
 		<false/>
-		<key>path</key>
+		<key>location</key>
 		<string>/tmp/dummy</string>
-		<key>title_id</key>
-		<integer>0</integer>
 		<key>state_version</key>
 		<integer>0</integer>
 	</dict>
