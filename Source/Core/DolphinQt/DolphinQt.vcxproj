@@ -124,6 +124,7 @@
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
+    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
     <QtMoc Include="Config\InfoWidget.h" />
@@ -212,6 +213,7 @@
     <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllerInterfaceWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
@@ -325,6 +327,7 @@
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
+    <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />

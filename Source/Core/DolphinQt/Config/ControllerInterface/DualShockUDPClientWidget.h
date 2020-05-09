@@ -4,11 +4,12 @@
 
 #pragma once
 
+#include <QStringList>
 #include <QWidget>
 
 class QCheckBox;
-class QLineEdit;
-class QSpinBox;
+class QListWidget;
+class QPushButton;
 
 class DualShockUDPClientWidget final : public QWidget
 {
@@ -16,11 +17,22 @@ class DualShockUDPClientWidget final : public QWidget
 public:
   explicit DualShockUDPClientWidget();
 
+signals:
+  // Emitted when config has changed so widgets can update to reflect the change.
+  void ConfigChanged();
+
 private:
   void CreateWidgets();
   void ConnectWidgets();
 
-  QCheckBox* m_server_enabled;
-  QLineEdit* m_server_address;
-  QSpinBox* m_server_port;
+  void RefreshServerList();
+
+  void OnServerAdded();
+  void OnServerRemoved();
+  void OnServersToggled();
+
+  QCheckBox* m_servers_enabled;
+  QListWidget* m_server_list;
+  QPushButton* m_add_server;
+  QPushButton* m_remove_server;
 };
