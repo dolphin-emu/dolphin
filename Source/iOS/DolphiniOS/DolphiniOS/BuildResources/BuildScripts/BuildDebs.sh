@@ -9,11 +9,13 @@ DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_deb_root/"
 CSDBGD_EXPORT_PATH="$EXPORT_PATH/csdbgd_deb_root/"
 CONTROL_FILE=$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/control.in
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Applications/DolphiniOS.app
+BUNDLE_ID="me.oatmealdome.DolphiniOS-njb"
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
 
 if [ $BUILD_FOR_PATREON == "YES" ]; then
   CONTROL_FILE=$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/control-patreon.in
   APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Applications/DiOSPatreon.app
+  BUNDLE_ID="me.oatmealdome.DolphiniOS-patreon-beta"
 fi
 
 # As recommended by saurik, don't copy dot files
@@ -46,6 +48,9 @@ cp $ROOT_SRC_DIR/csdbgd/DebFiles/postinst.sh $CSDBGD_EXPORT_PATH/DEBIAN/postinst
 cp $ROOT_SRC_DIR/csdbgd/DebFiles/prerm.sh $CSDBGD_EXPORT_PATH/DEBIAN/prerm
 chmod -R 755 $CSDBGD_EXPORT_PATH/DEBIAN/*
 sed "s/VERSION_NUMBER/$MARKETING_VERSION-$BUILD_NUMBER/g" $ROOT_SRC_DIR/csdbgd/DebFiles/control > $CSDBGD_EXPORT_PATH/DEBIAN/control
+
+# Hack bundle ID
+plutil -replace "CFBundleIdentifier" -string "$BUNDLE_ID" $APPLICATION_DESTINATION_PATH/Info.plist
 
 # Resign the application
 codesign -f -s "OatmealDome Software" --entitlements $ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_JB.plist $APPLICATION_DESTINATION_PATH
