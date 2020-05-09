@@ -434,9 +434,7 @@
       State::SaveAs(temp_path, true);
     }
     
-    File::Copy(temp_path, real_path);
-    
-        NSLog(@"SAVE OK");
+    File::Rename(temp_path, real_path);
 
     [[UIApplication sharedApplication] endBackgroundTask:self.m_save_state_task];
     self.m_save_state_task = UIBackgroundTaskInvalid;
