@@ -8,6 +8,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/CPUDetect.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
@@ -34,7 +35,7 @@
 #include <unistd.h>
 #endif
 
-#if defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
+#ifdef IPHONEOS
 #include <vector>
 
 // 256MB maximum JIT region
@@ -48,6 +49,8 @@ struct MemoryRegion
 
 static u8* s_jit_region_start = nullptr;
 static std::vector<MemoryRegion> s_jit_memory_regions;
+static u64 s_el0_mask_writable = 0;
+static u64 s_el0_mask_executable = 0;
 #endif
 
 namespace Common
@@ -66,8 +69,13 @@ void* AllocateExecutableMemory(size_t size)
 #endif
 
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, protection);
-#elif defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
+#elif defined(IPHONEOS)
   int protection = PROT_READ | PROT_WRITE;
+  if (cpu_info.bAPRR)
+  {
+    protection |= PROT_EXEC;
+  }
+
 #ifndef _WX_EXCLUSIVITY
   protection |= PROT_EXEC;
 #endif
@@ -79,6 +87,12 @@ void* AllocateExecutableMemory(size_t size)
     {
       PanicAlert("Failed to allocate JIT region");
       return nullptr;
+    }
+
+    if (cpu_info.bAPRR)
+    {
+      s_el0_mask_writable = *(u64*)0xfffffc110;
+      s_el0_mask_executable = *(u64*)0xfffffc118;
     }
   }
 
@@ -277,6 +291,51 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   }
 #endif
 }
+
+#ifdef IPHONEOS
+void SetEL0Mask(u64 mask)
+{
+  int version = cpu_info.iAPRRVer;
+
+  asm volatile("cmp %w0, #0x2\n"
+      "b.eq 0xc\n"
+      "msr s3_4_c15_c2_7, %x1\n"
+      "b 0x8\n"
+      "msr s3_6_c15_c1_5, %x1\n"
+      "isb"
+      : "=r" (version)
+      : "r" (mask)
+      : "cc");
+}
+
+u64 GetEL0Mask()
+{
+  u64 reg;
+  int version = cpu_info.iAPRRVer;
+
+  asm volatile("cmp %w0, #0x2\n"
+      "b.eq 0xc\n"
+      "mrs %x1, s3_4_c15_c2_7\n"
+      "b 0x8\n"
+      "mrs %x1, s3_6_c15_c1_5\n"
+      "nop"
+      : "=r" (version), "=r" (reg)
+      :
+      : "cc");
+
+  return reg;
+}
+
+void SetJitRegionExecutable(bool executable)
+{
+  SetEL0Mask(executable ? s_el0_mask_executable : s_el0_mask_writable);
+}
+
+bool GetJitRegionExecutable()
+{
+  return GetEL0Mask() == s_el0_mask_executable;
+}
+#endif
 
 #ifdef _WX_EXCLUSIVITY
 // Used on WX exclusive platforms

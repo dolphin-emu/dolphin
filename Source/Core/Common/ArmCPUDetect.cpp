@@ -113,6 +113,10 @@ void CPUInfo::Detect()
   // Default to no CRC32 support
   bCRC32 = false;
 
+  // Default to no APRR
+  bAPRR = false;
+  iAPRRVer = 0;
+  
   // Check for CRC32 intrinsics support via the device's model.
   // (Apple doesn't provide a better way to do this.)
   // Devices with A10 processors and above should support this.
@@ -122,6 +126,25 @@ void CPUInfo::Detect()
   // iPad7,1 and above
   // iPod9,1 and above
   // AppleTV6,2 and above
+
+  // Different processors have different capabilities.
+  //
+  // The following devices with A10 processors and above have
+  // CRC32 intrinsics support:
+  // iPhone9,1 and above
+  // iPad7,1 and above
+  // iPod9,1 and above
+  // AppleTV6,2 and above
+  //
+  // The following devices with A11 processors and above have
+  // APRR support:
+  // iPhone10,1 and above
+  // iPad8,1 and above
+  //
+  // The following devices with A13 processors have APRR version
+  // 2, which uses different registers than the A11 and A12:
+  // iPhone 12,1 and above
+  //
   utsname system_info;
   uname(&system_info);
 
@@ -132,28 +155,62 @@ void CPUInfo::Detect()
   if (std::regex_search(model.begin(), model.end(), match, number_regex))
   {
     int model_number = std::stoi(match[0]);
-    int minimum_model = 99; // impossible value, in case a new type of device comes along
 
     if (model.find("iPhone") != std::string::npos)
     {
-      minimum_model = 9;
+      if (model_number >= 9) // iPhone 7
+      {
+        bCRC32 = true;
+      }
+
+      if (model_number >= 10) // iPhone 8, iPhone X
+      {
+        bAPRR = true;
+
+        if (model_number >= 12) // iPhone 11, iPhone SE 2nd Gen
+        {
+          iAPRRVer = 2;
+        }
+        else
+        {
+          iAPRRVer = 1;
+        }
+      }
     }
     else if (model.find("iPad") != std::string::npos)
     {
-      minimum_model = 7;
+      if (model_number >= 7)
+      {
+        bCRC32 = true;
+      }
+
+      if (model_number >= 8)
+      {
+        bAPRR = true;
+        
+        if (model_number >= 12) // guess for A13 iPads
+        {
+          iAPRRVer = 2;
+        }
+        else
+        {
+          iAPRRVer = 1;
+        }
+      }
     }
     else if (model.find("iPod") != std::string::npos)
     {
-      minimum_model = 9;
+      if (model_number >= 9)
+      {
+        bCRC32 = true;
+      }
     }
     else if (model.find("AppleTV") != std::string::npos)
     {
-      minimum_model = 6;
-    }
-
-    if (model_number >= minimum_model)
-    {
-      bCRC32 = true;
+      if (model_number >= 6)
+      {
+        bCRC32 = true;
+      }
     }
   }
 #else
@@ -185,6 +242,8 @@ std::string CPUInfo::Summarize()
     sum += ", SHA1";
   if (bSHA2)
     sum += ", SHA2";
+  if (bAPRR)
+    sum += fmt::format(", APRR version {}", iAPRRVer);
   if (CPU64bit)
     sum += ", 64-bit";
 

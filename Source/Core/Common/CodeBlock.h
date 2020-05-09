@@ -9,7 +9,9 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/CPUDetect.h"
 #include "Common/MemoryUtil.h"
+
 
 #ifdef _WX_EXCLUSIVITY
 struct UnprotectedRegion
@@ -71,13 +73,43 @@ public:
   void ClearCodeSpace()
   {
 #ifdef _WX_EXCLUSIVITY
+#ifdef IPHONEOS
+    bool is_executable;
+    if (cpu_info.bAPRR)
+    {
+      is_executable = Common::GetJitRegionExecutable();
+      if (is_executable)
+      {
+        Common::SetJitRegionExecutable(false);
+      }
+    }
+    else
+    {
+#endif
     Common::UnWriteProtectMemory(region, region_size);
+#ifdef IPHONEOS
+    }
+#endif
 #endif
 
     PoisonMemory();
 
 #ifdef _WX_EXCLUSIVITY
+#ifdef IPHONEOS
+    if (cpu_info.bAPRR)
+    {
+      if (is_executable)
+      {
+        Common::SetJitRegionExecutable(true);
+      }
+    }
+    else
+    {
+#endif
     Common::WriteProtectMemory(region, region_size, true);
+#ifdef IPHONEOS
+    }
+#endif
 #endif
 
     ResetCodePtr();
@@ -108,6 +140,17 @@ public:
   void WriteCode(Callable write_code)
   {
 #ifdef _WX_EXCLUSIVITY
+    u8* write_ptr;
+    size_t size;
+
+#ifdef IPHONEOS
+    if (cpu_info.bAPRR)
+    {
+      Common::SetJitRegionExecutable(false);
+    }
+    else
+    {
+#endif
     const size_t page_size = Common::PageSize();
 
     // There is a chance that the caller can write to the child blocks, so every
@@ -118,11 +161,11 @@ public:
     }
 
     // Round the code pointer down to the nearest page boundary.
-    u8* write_ptr = reinterpret_cast<u8*>(reinterpret_cast<uint64_t>(T::GetWritableCodePtr()) &
+    write_ptr = reinterpret_cast<u8*>(reinterpret_cast<uint64_t>(T::GetWritableCodePtr()) &
                                           ~(page_size - 1));
 
     // All memory starting at the current page until the end of the region is unprotected.
-    size_t size = (region + region_size) - write_ptr;
+    size = (region + region_size) - write_ptr;
 
     // Round up to the next page size if necessary.
     if (size % page_size != 0)
@@ -131,11 +174,22 @@ public:
     }
 
     Common::UnWriteProtectMemory(write_ptr, size);
+#ifdef IPHONEOS
+    }
+#endif
 #endif
 
     write_code();
 
 #ifdef _WX_EXCLUSIVITY
+#ifdef IPHONEOS
+    if (cpu_info.bAPRR)
+    {
+      SetJitRegionExecutable(true);
+    }
+    else
+    {
+#endif
     // Reprotect all memory that was unprotected.
     Common::WriteProtectMemory(write_ptr, size, true);
 
@@ -143,6 +197,9 @@ public:
     {
       Common::WriteProtectMemory(child->region, child->region_size, true);
     }
+#ifdef IPHONEOS
+    }
+#endif
 #endif
   }
 
@@ -153,6 +210,20 @@ public:
   void WriteCodeAtRegion(Callable write_code, u8* start_ptr, size_t size = 0)
   {
 #ifdef _WX_EXCLUSIVITY
+    std::vector<UnprotectedRegion> unprotected_regions;
+#ifdef IPHONEOS
+    bool is_executable = false;
+    if (cpu_info.bAPRR)
+    {
+      is_executable = Common::GetJitRegionExecutable();
+      if (is_executable)
+      {
+        Common::SetJitRegionExecutable(false);
+      }
+    }
+    else
+    {
+#endif
     const size_t page_size = Common::PageSize();
 
     // Round the start pointer down to the nearest page boundary.
@@ -167,7 +238,6 @@ public:
 
     // Check the permissions of all pages within the bounds. This is to prevent any pages from
     // being write-protected again even though the JIT still needs to write to them elsewhere.
-    std::vector<UnprotectedRegion> unprotected_regions;
     for (size_t unprotected_size = 0; unprotected_size <= new_size; unprotected_size += page_size)
     {
       u8* ptr = write_ptr + unprotected_size;
@@ -198,15 +268,32 @@ public:
     {
       Common::UnWriteProtectMemory(unprotected_region.start, unprotected_region.size);
     }
+#ifdef IPHONEOS
+    }
+#endif
 #endif
 
     write_code();
 
 #ifdef _WX_EXCLUSIVITY
+#ifdef IPHONEOS
+    if (cpu_info.bAPRR)
+    {
+      if (is_executable)
+      {
+        Common::SetJitRegionExecutable(true);
+      }
+    }
+    else
+    {
+#endif
     for (UnprotectedRegion& unprotected_region : unprotected_regions)
     {
       Common::WriteProtectMemory(unprotected_region.start, unprotected_region.size, true);
     }
+#ifdef IPHONEOS
+    }
+#endif
 #endif
   }
 
