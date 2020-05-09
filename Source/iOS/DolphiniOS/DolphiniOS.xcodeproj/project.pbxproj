@@ -109,6 +109,8 @@
 		B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC523B48B7D005C7773 /* ControllerGroupDoubleCell.mm */; };
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
+		B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B99577A024664F90008C5115 /* KilledBuildNotice.xib */; };
+		B99577A424665004008C5115 /* KilledBuildNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */; };
 		B996C85223D50FC600700D6F /* Dolphin.strings in Resources */ = {isa = PBXBuildFile; fileRef = B996C85423D50FC600700D6F /* Dolphin.strings */; };
 		B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86023D590D500700D6F /* ConfigSettings.storyboard */; };
 		B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86823D5F49500700D6F /* ControllerSettings.storyboard */; };
@@ -432,6 +434,9 @@
 		B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ControllerExtensionsViewController.mm; sourceTree = "<group>"; };
 		B989DFCB23B4AE1A005C7773 /* ControllerExtensionCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerExtensionCell.h; sourceTree = "<group>"; };
 		B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerExtensionCell.m; sourceTree = "<group>"; };
+		B99577A024664F90008C5115 /* KilledBuildNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = KilledBuildNotice.xib; path = DolphiniOS/UI/Notices/KilledBuild/KilledBuildNotice.xib; sourceTree = SOURCE_ROOT; };
+		B99577A224665004008C5115 /* KilledBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KilledBuildNoticeViewController.h; path = KilledBuild/KilledBuildNoticeViewController.h; sourceTree = "<group>"; };
+		B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KilledBuildNoticeViewController.m; path = KilledBuild/KilledBuildNoticeViewController.m; sourceTree = "<group>"; };
 		B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = PreBuildTasks.sh; path = BuildResources/BuildScripts/PreBuildTasks.sh; sourceTree = "<group>"; };
 		B996C85323D50FC600700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Dolphin.strings; sourceTree = "<group>"; };
 		B996C85723D5884300700D6F /* UpdateDolphinStrings.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = UpdateDolphinStrings.py; sourceTree = "<group>"; };
@@ -702,6 +707,7 @@
 				B9B536D323DE604A00F03106 /* Donation */,
 				B9C956222460FFA70095EC98 /* ImproperlySigned */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
+				B94D332D2466366300E75790 /* KilledBuild */,
 				B971E1C6245E209500D2A698 /* NonJailbroken */,
 				B971E1CC245E7EF100D2A698 /* OSTooNew */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
@@ -837,6 +843,16 @@
 				B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */,
 			);
 			path = WiiSystemUpdate;
+			sourceTree = "<group>";
+		};
+		B94D332D2466366300E75790 /* KilledBuild */ = {
+			isa = PBXGroup;
+			children = (
+				B99577A224665004008C5115 /* KilledBuildNoticeViewController.h */,
+				B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */,
+				B99577A024664F90008C5115 /* KilledBuildNotice.xib */,
+			);
+			name = KilledBuild;
 			sourceTree = "<group>";
 		};
 		B95A09252382667000DBBB01 /* TouchController */ = {
@@ -1438,6 +1454,7 @@
 				4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */,
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
+				B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
@@ -1695,6 +1712,7 @@
 				B9B47C8723FB5D280077375A /* GraphicsEnhancementsViewController.mm in Sources */,
 				B9EFBFA623AF7BB400593A20 /* ControllerDevicesViewController.mm in Sources */,
 				B9B47C8E23FB893B0077375A /* AnisotropicFilteringViewController.mm in Sources */,
+				B99577A424665004008C5115 /* KilledBuildNoticeViewController.m in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
 				B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */,
 				B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */,
