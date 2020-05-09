@@ -39,6 +39,8 @@
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
+#import "KilledBuildNoticeViewController.h"
+
 #import <mach/mach.h>
 
 #import "MainiOS.h"
@@ -112,6 +114,15 @@
 
   vm_deallocate(mach_task_self(), addr, memory_size);
 #endif
+  
+  if ([[NSUserDefaults standardUserDefaults] boolForKey:@"is_killed"])
+  {
+    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+    self.window.rootViewController = [[KilledBuildNoticeViewController alloc] initWithNibName:@"KilledBuildNotice" bundle:nil];
+    [self.window makeKeyAndVisible];
+    
+    return true;
+  }
   
   // Default settings values should be set in DefaultPreferences.plist in the future
   NSURL *defaultPrefsFile = [[NSBundle mainBundle] URLForResource:@"DefaultPreferences" withExtension:@"plist"];
@@ -215,12 +226,11 @@
     }
   }
   
-  
-    PowerPC::CPUCore correct_core;
+  PowerPC::CPUCore correct_core;
 #if !TARGET_OS_SIMULATOR
-    correct_core = PowerPC::CPUCore::JITARM64;
+  correct_core = PowerPC::CPUCore::JITARM64;
 #else
-    correct_core = PowerPC::CPUCore::JIT64;
+  correct_core = PowerPC::CPUCore::JIT64;
 #endif
   
   // Get the number of launches
@@ -322,6 +332,19 @@
       dict_key = @"patreon_njb";
 #endif
 #endif
+    
+    NSArray* killed_array = json_dict[@"kbs"];
+    if ([killed_array containsObject:version_str])
+    {
+      [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"is_killed"];
+      [[NSUserDefaults standardUserDefaults] setObject:json_dict[dict_key][@"install_url"] forKey:@"killed_url"];
+      
+      dispatch_async(dispatch_get_main_queue(), ^{
+        self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+        self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"KilledBuildNotice" bundle:nil];
+        [self.window makeKeyAndVisible];
+      });
+    }
     
     NSDictionary* dict = json_dict[dict_key];
     if (![dict[@"version"] isEqualToString:version_str])

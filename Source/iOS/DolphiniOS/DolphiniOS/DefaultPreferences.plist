@@ -35,5 +35,9 @@
 	<integer>0</integer>
 	<key>last_version</key>
 	<string>dummy</string>
+	<key>is_killed</key>
+	<false/>
+	<key>killed_url</key>
+	<string>https://dolphinios.oatmealdome.me/update</string>
 </dict>
 </plist>
