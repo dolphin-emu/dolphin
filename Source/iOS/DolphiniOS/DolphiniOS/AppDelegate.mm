@@ -242,6 +242,9 @@
   {
     SConfig::GetInstance().cpu_core = correct_core;
     Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, correct_core);
+    
+    Config::Save();
+    SConfig::GetInstance().SaveSettings();
   }
   else
   {
