@@ -199,6 +199,7 @@
 
 /* Begin PBXFileReference section */
 		1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (non-jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (non-jailbroken).xcconfig"; sourceTree = "<group>"; };
+		1C7A2FB715F2DA9D44DBCD2C /* Pods-DolphiniOS.release (patreon non-jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (patreon non-jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (patreon non-jailbroken).xcconfig"; sourceTree = "<group>"; };
 		34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (jailbroken).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (jailbroken).xcconfig"; sourceTree = "<group>"; };
 		4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultPreferences.plist; sourceTree = "<group>"; };
 		90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (patreon).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (patreon).xcconfig"; sourceTree = "<group>"; };
@@ -639,6 +640,7 @@
 				34A4EDCAEEF0A7E782CF880D /* Pods-DolphiniOS.release (jailbroken).xcconfig */,
 				90536E9884E000D5A37D40AD /* Pods-DolphiniOS.release (patreon).xcconfig */,
 				1022B8AD0EB1AFF4542D5AD7 /* Pods-DolphiniOS.release (non-jailbroken).xcconfig */,
+				1C7A2FB715F2DA9D44DBCD2C /* Pods-DolphiniOS.release (patreon non-jailbroken).xcconfig */,
 			);
 			path = Pods;
 			sourceTree = "<group>";
@@ -2059,7 +2061,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.2;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2101,7 +2103,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.2;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = me.oatmealdome.DolphiniOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2207,7 +2209,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.2;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -2222,6 +2224,111 @@
 				VERSIONING_SYSTEM = "";
 			};
 			name = "Release (Non-Jailbroken)";
+		};
+		B99577A724672FF8008C5115 /* Release (Patreon Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = arm64;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
+				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
+				LIBRARY_SEARCH_PATHS = (
+					"$(SRCROOT)/../../../build/libs/Dolphin",
+					"$(SRCROOT)/../../../build/libs/Externals/**",
+				);
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+				VALID_ARCHS = arm64;
+			};
+			name = "Release (Patreon Non-Jailbroken)";
+		};
+		B99577A824672FF8008C5115 /* Release (Patreon Non-Jailbroken) */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 1C7A2FB715F2DA9D44DBCD2C /* Pods-DolphiniOS.release (patreon non-jailbroken).xcconfig */;
+			buildSettings = {
+				APP_NAME = "DiOS (Patreon)";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				BUILD_FOR_JAILBROKEN_DEVICE = NO;
+				BUILD_FOR_PATREON = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_CXX_LIBRARY = "compiler-default";
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 46669ZA7J4;
+				DOLPHIN_BUILD_TYPE = Release;
+				ENABLE_BITCODE = NO;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"PATREON=1",
+					"XCODE_APP_BUILD=1",
+					"NONJAILBROKEN=1",
+				);
+				INFOPLIST_FILE = DolphiniOS/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb-patreon-beta";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				USER_HEADER_SEARCH_PATHS = (
+					"$(SRCROOT)/../../Core/**",
+					"$(SRCROOT)/../Interface/**",
+					"$(SRCROOT)/../../../Externals/**",
+				);
+				VERSIONING_SYSTEM = "";
+			};
+			name = "Release (Patreon Non-Jailbroken)";
 		};
 		B9DCAC9123AB3665002B95C8 /* Debug (Non-Jailbroken) */ = {
 			isa = XCBuildConfiguration;
@@ -2320,7 +2427,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.2;
+				MARKETING_VERSION = 3.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2426,8 +2533,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.2.2;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-patreon-beta";
+				MARKETING_VERSION = 3.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-patreon-beta-2";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -2452,6 +2559,7 @@
 				B945A3882362909500B21680 /* Release (Jailbroken) */,
 				B971E1C1245DF29300D2A698 /* Release (Non-Jailbroken) */,
 				B9DCAC9323AB384F002B95C8 /* Release (Patreon) */,
+				B99577A724672FF8008C5115 /* Release (Patreon Non-Jailbroken) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "Release (Jailbroken)";
@@ -2464,6 +2572,7 @@
 				B945A38B2362909500B21680 /* Release (Jailbroken) */,
 				B971E1C2245DF29300D2A698 /* Release (Non-Jailbroken) */,
 				B9DCAC9423AB384F002B95C8 /* Release (Patreon) */,
+				B99577A824672FF8008C5115 /* Release (Patreon Non-Jailbroken) */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = "Release (Jailbroken)";
