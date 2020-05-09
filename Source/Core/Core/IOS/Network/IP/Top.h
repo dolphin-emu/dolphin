@@ -36,18 +36,18 @@ enum NET_IOCTL
   IOCTL_SO_GETHOSTBYNAME,
   IOCTL_SO_GETHOSTBYADDR,
   IOCTLV_SO_GETNAMEINFO,
-  IOCTL_SO_UNK14,
+  IOCTL_SO_GETLASTERROR,
   IOCTL_SO_INETATON,
   IOCTL_SO_INETPTON,
   IOCTL_SO_INETNTOP,
   IOCTLV_SO_GETADDRINFO,
   IOCTL_SO_SOCKATMARK,
-  IOCTLV_SO_UNK1A,
-  IOCTLV_SO_UNK1B,
+  IOCTLV_SO_STARTUP,
+  IOCTLV_SO_CLEANUP,
   IOCTLV_SO_GETINTERFACEOPT,
   IOCTLV_SO_SETINTERFACEOPT,
   IOCTL_SO_SETINTERFACE,
-  IOCTL_SO_STARTUP,
+  IOCTL_SO_INITINTERFACE,
   IOCTL_SO_ICMPSOCKET = 0x30,
   IOCTLV_SO_ICMPPING,
   IOCTL_SO_ICMPCANCEL,
@@ -68,7 +68,7 @@ public:
   void Update() override;
 
 private:
-  IPCCommandResult HandleStartUpRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleInitInterfaceRequest(const IOCtlRequest& request);
   IPCCommandResult HandleSocketRequest(const IOCtlRequest& request);
   IPCCommandResult HandleICMPSocketRequest(const IOCtlRequest& request);
   IPCCommandResult HandleCloseRequest(const IOCtlRequest& request);
