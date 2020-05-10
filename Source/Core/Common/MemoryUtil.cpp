@@ -70,87 +70,77 @@ void* AllocateExecutableMemory(size_t size)
 
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, protection);
 #elif defined(IPHONEOS)
-  void* ptr = nullptr;
+  int protection = PROT_READ | PROT_WRITE;
   if (cpu_info.bAPRR)
   {
-    if (s_jit_region_start == nullptr)
-    {
-      s_jit_region_start = (u8*)mmap(nullptr, JIT_REGION_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
-      if (s_jit_region_start == MAP_FAILED)
-      {
-        PanicAlert("Failed to allocate JIT region");
-        return nullptr;
-      }
+    protection |= PROT_EXEC;
+  }
 
-      if (cpu_info.bAPRR)
-      {
-        s_el0_mask_writable = *(u64*)0xfffffc110;
-        s_el0_mask_executable = *(u64*)0xfffffc118;
-      }
+  if (s_jit_region_start == nullptr)
+  {
+    s_jit_region_start = (u8*)mmap(nullptr, JIT_REGION_SIZE, protection, MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
+    if (s_jit_region_start == MAP_FAILED)
+    {
+      PanicAlert("Failed to allocate JIT region");
+      return nullptr;
     }
 
-    // Round up the size to the page size as necessary
-    const size_t page_size = Common::PageSize();
-    if (size % page_size != 0)
+    if (cpu_info.bAPRR)
     {
-      size = size + page_size - (size % page_size);
+      s_el0_mask_writable = *(u64*)0xfffffc110;
+      s_el0_mask_executable = *(u64*)0xfffffc118;
     }
+  }
+
+  // Round up the size to the page size as necessary
+  const size_t page_size = Common::PageSize();
+  if (size % page_size != 0)
+  {
+    size = size + page_size - (size % page_size);
+  }
+  
+  MemoryRegion region;
+  region.start = nullptr;
+  region.size = size;
+  
+  // Find a good place to put this
+  if (s_jit_memory_regions.size() == 0)
+  {
+    region.start = s_jit_region_start;
     
-    MemoryRegion region;
-    region.start = nullptr;
-    region.size = size;
-    
-    // Find a good place to put this
-    if (s_jit_memory_regions.size() == 0)
-    {
-      region.start = s_jit_region_start;
-      
-      s_jit_memory_regions.push_back(region);
-    }
-    else
-    {
-      for (std::vector<MemoryRegion>::size_type i = 1; i != s_jit_memory_regions.size(); i++)
-      {
-        MemoryRegion& prev_region = s_jit_memory_regions.at(i - 1);
-        MemoryRegion& this_region = s_jit_memory_regions.at(i);
-        
-        u8* prev_end = prev_region.start + prev_region.size;
-        if ((prev_end + size) <= this_region.start)
-        {
-          region.start = prev_end;
-
-          s_jit_memory_regions.insert(s_jit_memory_regions.begin() + i, region);
-        }
-      }
-
-      if (region.start == nullptr)
-      {    
-        MemoryRegion& last_region = s_jit_memory_regions.back();
-        region.start = last_region.start + last_region.size;
-
-        s_jit_memory_regions.push_back(region);
-      }
-    }
-
-    if (region.start + region.size >= s_jit_region_start + JIT_REGION_SIZE)
-    {
-      PanicAlert("JIT region overflow");
-    }
-
-    ptr = (void*)region.start;
+    s_jit_memory_regions.push_back(region);
   }
   else
   {
-    int protection = PROT_READ | PROT_WRITE;
-#ifndef _WX_EXCLUSIVITY
-    protection |= PROT_EXEC;
-#endif
+    for (std::vector<MemoryRegion>::size_type i = 1; i != s_jit_memory_regions.size(); i++)
+    {
+      MemoryRegion& prev_region = s_jit_memory_regions.at(i - 1);
+      MemoryRegion& this_region = s_jit_memory_regions.at(i);
+      
+      u8* prev_end = prev_region.start + prev_region.size;
+      if ((prev_end + size) <= this_region.start)
+      {
+        region.start = prev_end;
 
-    ptr = mmap(nullptr, size, protection, MAP_ANON | MAP_PRIVATE, -1, 0);
+        s_jit_memory_regions.insert(s_jit_memory_regions.begin() + i, region);
+      }
+    }
 
-    if (ptr == MAP_FAILED)
-      ptr = nullptr;
+    if (region.start == nullptr)
+    {
+      MemoryRegion& last_region = s_jit_memory_regions.back();
+      region.start = last_region.start + last_region.size;
+
+      s_jit_memory_regions.push_back(region);
+    }
   }
+
+  if (region.start + region.size >= s_jit_region_start + JIT_REGION_SIZE)
+  {
+    PanicAlert("JIT region overflow");
+  }
+
+  void* ptr = (void*)region.start;
 #else
   int protection = PROT_READ | PROT_WRITE;
 #ifndef _WX_EXCLUSIVITY
@@ -246,7 +236,7 @@ void ReadProtectMemory(void* ptr, size_t size)
     PanicAlert("ReadProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
 #ifdef IPHONEOS
-  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  if (ShouldNotModifyMemoryProtection(ptr, size))
   {
     return;
   }
@@ -264,7 +254,7 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
     PanicAlert("WriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
 #ifdef IPHONEOS
-  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  if (ShouldNotModifyMemoryProtection(ptr, size))
   {
     return;
   }
@@ -293,7 +283,7 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
     PanicAlert("UnWriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
 #ifdef IPHONEOS
-  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  if (ShouldNotModifyMemoryProtection(ptr, size))
   {
     return;
   }
@@ -359,6 +349,42 @@ void SetJitRegionExecutable(bool executable)
 bool GetJitRegionExecutable()
 {
   return GetEL0Mask() == s_el0_mask_executable;
+}
+
+bool ShouldNotModifyMemoryProtection(void* ptr, size_t size)
+{
+  if (!cpu_info.bAPRR)
+  {
+    return false;
+  }
+
+  return s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE);
+}
+
+void ResetJitRegion()
+{
+  if (!s_jit_region_start)
+  {
+    return;
+  }
+
+  s_jit_memory_regions.clear();
+
+  int protection = PROT_READ | PROT_WRITE;
+  if (cpu_info.bAPRR)
+  {
+    protection |= PROT_EXEC;
+  }
+
+  if (mprotect(s_jit_region_start, JIT_REGION_SIZE, protection) != 0)
+  {
+    PanicAlert("JIT region reprotect failed!\nmprotect: %s", LastStrerrorString().c_str());
+  }
+
+  if (cpu_info.bAPRR)
+  {
+    SetJitRegionExecutable(false);
+  }
 }
 #endif
 

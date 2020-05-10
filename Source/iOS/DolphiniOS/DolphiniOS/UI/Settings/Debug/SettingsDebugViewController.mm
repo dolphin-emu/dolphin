@@ -4,6 +4,8 @@
 
 #import "SettingsDebugViewController.h"
 
+#import "AppDelegate.h"
+
 #import "Common/CPUDetect.h"
 
 #import "Core/ConfigManager.h"
@@ -106,6 +108,17 @@
 {
   [[NSUserDefaults standardUserDefaults] setBool:[self.m_aprr_switch isOn] forKey:@"aprr_jit_on"];
   cpu_info.bAPRR = [self.m_aprr_switch isOn];
+  
+  NSString* message = NSLocalizedString(@"DolphiniOS will quit to apply changes.", nil);
+  
+  UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Warning") message:message preferredStyle:UIAlertControllerStyleAlert];
+  
+  [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:^(UIAlertAction*) {
+    [AppDelegate Shutdown];
+    exit(0);
+  }]];
+  
+  [self presentViewController:controller animated:true completion:nil];
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath

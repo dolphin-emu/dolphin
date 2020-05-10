@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/MemoryUtil.h"
 #include "Common/PerformanceCounter.h"
 #include "Common/StringUtil.h"
 
@@ -45,6 +46,10 @@ JitArm64::~JitArm64() = default;
 void JitArm64::Init()
 {
   InitializeInstructionTables();
+
+#ifdef IPHONEOS
+  Common::ResetJitRegion();
+#endif
 
   size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);

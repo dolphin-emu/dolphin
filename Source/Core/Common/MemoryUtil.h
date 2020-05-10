@@ -20,6 +20,8 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute = false);
 #ifdef IPHONEOS
 void SetJitRegionExecutable(bool executable);
 bool GetJitRegionExecutable();
+bool ShouldNotModifyMemoryProtection(void* ptr, size_t size);
+void ResetJitRegion();
 #endif
 #ifdef _WX_EXCLUSIVITY
 bool IsMemoryPageExecutable(void* ptr);
