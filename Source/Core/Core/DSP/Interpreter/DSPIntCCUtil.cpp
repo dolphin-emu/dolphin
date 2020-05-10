@@ -120,7 +120,7 @@ static bool IsOverS32()
 
 static bool IsLess()
 {
-  return (!(g_dsp.r.sr & SR_OVERFLOW) != !(g_dsp.r.sr & SR_SIGN));
+  return (g_dsp.r.sr & SR_OVERFLOW) != (g_dsp.r.sr & SR_SIGN);
 }
 
 static bool IsZero()

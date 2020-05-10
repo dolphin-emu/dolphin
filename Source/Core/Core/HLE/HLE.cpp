@@ -27,12 +27,6 @@ typedef void (*TPatchFunction)();
 
 static std::map<u32, u32> s_original_instructions;
 
-enum
-{
-  HLE_RETURNTYPE_BLR = 0,
-  HLE_RETURNTYPE_RFI = 1,
-};
-
 struct SPatch
 {
   char m_szPatchName[128];
