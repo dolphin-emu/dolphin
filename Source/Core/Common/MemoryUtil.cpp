@@ -70,81 +70,87 @@ void* AllocateExecutableMemory(size_t size)
 
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, protection);
 #elif defined(IPHONEOS)
-  int protection = PROT_READ | PROT_WRITE;
+  void* ptr = nullptr;
   if (cpu_info.bAPRR)
   {
-    protection |= PROT_EXEC;
-  }
-
-#ifndef _WX_EXCLUSIVITY
-  protection |= PROT_EXEC;
-#endif
-
-  if (s_jit_region_start == nullptr)
-  {
-    s_jit_region_start = (u8*)mmap(nullptr, JIT_REGION_SIZE, protection, MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
-    if (s_jit_region_start == MAP_FAILED)
+    if (s_jit_region_start == nullptr)
     {
-      PanicAlert("Failed to allocate JIT region");
-      return nullptr;
-    }
-
-    if (cpu_info.bAPRR)
-    {
-      s_el0_mask_writable = *(u64*)0xfffffc110;
-      s_el0_mask_executable = *(u64*)0xfffffc118;
-    }
-  }
-
-  // Round up the size to the page size as necessary
-  const size_t page_size = Common::PageSize();
-  if (size % page_size != 0)
-  {
-    size = size + page_size - (size % page_size);
-  }
-  
-  MemoryRegion region;
-  region.start = nullptr;
-  region.size = size;
-  
-  // Find a good place to put this
-  if (s_jit_memory_regions.size() == 0)
-  {
-    region.start = s_jit_region_start;
-    
-    s_jit_memory_regions.push_back(region);
-  }
-  else
-  {
-    for (std::vector<MemoryRegion>::size_type i = 1; i != s_jit_memory_regions.size(); i++)
-    {
-      MemoryRegion& prev_region = s_jit_memory_regions.at(i - 1);
-      MemoryRegion& this_region = s_jit_memory_regions.at(i);
-      
-      u8* prev_end = prev_region.start + prev_region.size;
-      if ((prev_end + size) <= this_region.start)
+      s_jit_region_start = (u8*)mmap(nullptr, JIT_REGION_SIZE, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE | MAP_JIT, -1, 0);
+      if (s_jit_region_start == MAP_FAILED)
       {
-        region.start = prev_end;
+        PanicAlert("Failed to allocate JIT region");
+        return nullptr;
+      }
 
-        s_jit_memory_regions.insert(s_jit_memory_regions.begin() + i, region);
+      if (cpu_info.bAPRR)
+      {
+        s_el0_mask_writable = *(u64*)0xfffffc110;
+        s_el0_mask_executable = *(u64*)0xfffffc118;
       }
     }
 
-    if (region.start == nullptr)
-    {    
-      MemoryRegion& last_region = s_jit_memory_regions.back();
-      region.start = last_region.start + last_region.size;
-
+    // Round up the size to the page size as necessary
+    const size_t page_size = Common::PageSize();
+    if (size % page_size != 0)
+    {
+      size = size + page_size - (size % page_size);
+    }
+    
+    MemoryRegion region;
+    region.start = nullptr;
+    region.size = size;
+    
+    // Find a good place to put this
+    if (s_jit_memory_regions.size() == 0)
+    {
+      region.start = s_jit_region_start;
+      
       s_jit_memory_regions.push_back(region);
     }
-  }
+    else
+    {
+      for (std::vector<MemoryRegion>::size_type i = 1; i != s_jit_memory_regions.size(); i++)
+      {
+        MemoryRegion& prev_region = s_jit_memory_regions.at(i - 1);
+        MemoryRegion& this_region = s_jit_memory_regions.at(i);
+        
+        u8* prev_end = prev_region.start + prev_region.size;
+        if ((prev_end + size) <= this_region.start)
+        {
+          region.start = prev_end;
 
-  if (region.start + region.size >= s_jit_region_start + JIT_REGION_SIZE)
+          s_jit_memory_regions.insert(s_jit_memory_regions.begin() + i, region);
+        }
+      }
+
+      if (region.start == nullptr)
+      {    
+        MemoryRegion& last_region = s_jit_memory_regions.back();
+        region.start = last_region.start + last_region.size;
+
+        s_jit_memory_regions.push_back(region);
+      }
+    }
+
+    if (region.start + region.size >= s_jit_region_start + JIT_REGION_SIZE)
+    {
+      PanicAlert("JIT region overflow");
+    }
+
+    ptr = (void*)region.start;
+  }
+  else
   {
-    PanicAlert("JIT region overflow");
-  }
+    int protection = PROT_READ | PROT_WRITE;
+#ifndef _WX_EXCLUSIVITY
+    protection |= PROT_EXEC;
+#endif
 
-  void* ptr = (void*)region.start;
+    ptr = mmap(nullptr, size, protection, MAP_ANON | MAP_PRIVATE, -1, 0);
+
+    if (ptr == MAP_FAILED)
+      ptr = nullptr;
+  }
 #else
   int protection = PROT_READ | PROT_WRITE;
 #ifndef _WX_EXCLUSIVITY
@@ -200,8 +206,8 @@ void FreeMemoryPages(void* ptr, size_t size)
 {
   if (ptr)
   {
-#if defined(IPHONEOS) && !defined(IPHONEOS_JAILBROKEN)
-    if (ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+#ifdef IPHONEOS
+    if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
     {
       s_jit_memory_regions.erase(std::remove_if(s_jit_memory_regions.begin(), s_jit_memory_regions.end(), [ptr](const MemoryRegion& region) {
         return region.start == ptr;
@@ -239,6 +245,12 @@ void ReadProtectMemory(void* ptr, size_t size)
   if (!VirtualProtect(ptr, size, PAGE_NOACCESS, &oldValue))
     PanicAlert("ReadProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
+#ifdef IPHONEOS
+  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  {
+    return;
+  }
+#endif
   if (mprotect(ptr, size, PROT_NONE) != 0)
     PanicAlert("ReadProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
 #endif
@@ -251,6 +263,12 @@ void WriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   if (!VirtualProtect(ptr, size, allowExecute ? PAGE_EXECUTE_READ : PAGE_READONLY, &oldValue))
     PanicAlert("WriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
+#ifdef IPHONEOS
+  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  {
+    return;
+  }
+#endif
   if (mprotect(ptr, size, allowExecute ? (PROT_READ | PROT_EXEC) : PROT_READ) != 0)
     PanicAlert("WriteProtectMemory failed!\nmprotect: %s", LastStrerrorString().c_str());
 #endif
@@ -274,6 +292,13 @@ void UnWriteProtectMemory(void* ptr, size_t size, bool allowExecute)
   if (!VirtualProtect(ptr, size, protection, &oldValue))
     PanicAlert("UnWriteProtectMemory failed!\nVirtualProtect: %s", GetLastErrorString().c_str());
 #else
+#ifdef IPHONEOS
+  if (s_jit_region_start && ptr >= s_jit_region_start && ptr <= (s_jit_region_start + JIT_REGION_SIZE))
+  {
+    return;
+  }
+#endif
+
   int protection = PROT_READ | PROT_WRITE;
   if (allowExecute)
   {

@@ -67,6 +67,7 @@ struct CPUInfo
   bool bSHA2 = false;
 
   // Apple A-series processor specific
+  bool bCanAPRR = false;
   bool bAPRR = false;
   int iAPRRVer = 0;
 

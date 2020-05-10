@@ -4,6 +4,8 @@
 
 #import "SettingsDebugViewController.h"
 
+#import "Common/CPUDetect.h"
+
 #import "Core/ConfigManager.h"
 
 #import "DebuggerUtils.h"
@@ -35,6 +37,8 @@
   [self.m_register_cache_switch setOn:config.bJITRegisterCacheOff];
   
   [self.m_skip_idle_switch setOn:config.bSyncGPUOnSkipIdleHack];
+  [self.m_aprr_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"]];
+  [self.m_aprr_switch setEnabled:cpu_info.bCanAPRR];
   
   if (IsProcessDebugged())
   {
@@ -98,6 +102,12 @@
   SConfig::GetInstance().bSyncGPUOnSkipIdleHack = [self.m_skip_idle_switch isOn];
 }
 
+- (IBAction)AprrJitChanged:(id)sender
+{
+  [[NSUserDefaults standardUserDefaults] setBool:[self.m_aprr_switch isOn] forKey:@"aprr_jit_on"];
+  cpu_info.bAPRR = [self.m_aprr_switch isOn];
+}
+
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   // Jit help button
@@ -111,7 +121,7 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
-  else if (indexPath.section == 1 && indexPath.row == 1)
+  else if (indexPath.section == 1 && indexPath.row == 2)
   {
     if (!IsProcessDebugged())
     {
@@ -125,32 +135,31 @@
 
 - (void)tableView:(UITableView*)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath*)indexPath
 {
+  NSString* message;
   if (indexPath.section == 1 && indexPath.row == 0)
   {
-    NSString* message = NSLocalizedString(@"This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked.", nil);
-    
-    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
-    
-    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
-    
-    [self presentViewController:controller animated:true completion:nil];
+    message = NSLocalizedString(@"This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked.", nil);
   }
   else if (indexPath.section == 1 && indexPath.row == 1)
   {
-    NSString* message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
-      
-    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
-    
-    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
-    
-    [self presentViewController:controller animated:true completion:nil];
+    message = NSLocalizedString(@"This setting changes whether the APRR JIT is enabled. It may result in performance increases, but it is highly experimental and can cause crashes. In addition, only devices with A11 processors and higher support APRR.\n\nIf unsure, leave this setting unchecked.", nil);
   }
+  else if (indexPath.section == 1 && indexPath.row == 2)
+  {
+    message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
+  }
+  
+  UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
+  
+  [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+  
+  [self presentViewController:controller animated:true completion:nil];
 }
 
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
 {
 //#ifndef NONJAILBROKEN
-  if (indexPath.section == 1 && indexPath.row == 1)
+  if (indexPath.section == 1 && indexPath.row == 2)
   {
     return CGFLOAT_MIN;
   }

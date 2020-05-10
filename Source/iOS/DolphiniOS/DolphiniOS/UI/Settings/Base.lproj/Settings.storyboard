@@ -755,8 +755,37 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="GyR-YO-pOW">
                                         <rect key="frame" x="16" y="595.33333206176758" width="343" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="GyR-YO-pOW" id="vIf-t4-LUA">
+                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="APRR JIT" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="mmb-wT-Nx4">
+                                                    <rect key="frame" x="15" y="11.666666666666664" width="232" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IeL-Ea-kqw">
+                                                    <rect key="frame" x="247" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <connections>
+                                                        <action selector="AprrJitChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="TlJ-x3-hrS"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailingMargin" secondItem="IeL-Ea-kqw" secondAttribute="trailing" id="7OI-GQ-3Po"/>
+                                                <constraint firstItem="mmb-wT-Nx4" firstAttribute="leading" secondItem="vIf-t4-LUA" secondAttribute="leadingMargin" id="EXp-IM-pry"/>
+                                                <constraint firstItem="IeL-Ea-kqw" firstAttribute="leading" secondItem="mmb-wT-Nx4" secondAttribute="trailing" id="Qg2-LZ-c7s"/>
+                                                <constraint firstItem="mmb-wT-Nx4" firstAttribute="centerY" secondItem="vIf-t4-LUA" secondAttribute="centerY" id="dkd-KN-cYY"/>
+                                                <constraint firstItem="IeL-Ea-kqw" firstAttribute="centerY" secondItem="vIf-t4-LUA" secondAttribute="centerY" id="qbT-EN-WJK"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
+                                        <rect key="frame" x="16" y="639.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tif-Kx-tey" id="NBc-oc-mVX">
                                             <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
@@ -786,6 +815,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                     </tableView>
                     <navigationItem key="navigationItem" title="Debug" id="ico-l1-GvZ"/>
                     <connections>
+                        <outlet property="m_aprr_switch" destination="IeL-Ea-kqw" id="UP4-2l-LDE"/>
                         <outlet property="m_branch_switch" destination="kpl-jJ-akF" id="ecv-XU-wVM"/>
                         <outlet property="m_fp_switch" destination="hSW-ts-PuQ" id="qy4-Ut-8YZ"/>
                         <outlet property="m_integer_switch" destination="9Q7-Fm-UJm" id="mbm-E8-Z91"/>

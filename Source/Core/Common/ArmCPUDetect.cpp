@@ -114,6 +114,7 @@ void CPUInfo::Detect()
   bCRC32 = false;
 
   // Default to no APRR
+  bCanAPRR = false;
   bAPRR = false;
   iAPRRVer = 0;
   
@@ -213,6 +214,9 @@ void CPUInfo::Detect()
       }
     }
   }
+
+  bCanAPRR = bAPRR;
+  bAPRR = false;
 #else
   unsigned long hwcaps = getauxval(AT_HWCAP);
   bFP = hwcaps & HWCAP_FP;

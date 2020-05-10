@@ -10,6 +10,7 @@
 
 #import "Common/CommonPaths.h"
 #import "Common/Config/Config.h"
+#import "Common/CPUDetect.h"
 #import "Common/FileUtil.h"
 #import "Common/IniFile.h"
 #import "Common/MsgHandler.h"
@@ -401,6 +402,8 @@
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
+  
+  cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
   
   [FIRApp configure];
   
