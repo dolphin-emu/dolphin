@@ -55,6 +55,7 @@
     <ClCompile Include="FileBlob.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
+    <ClCompile Include="LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="ScrubbedBlob.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
@@ -81,6 +82,7 @@
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
+    <ClInclude Include="LaggedFibonacciGenerator.h" />
     <ClInclude Include="MultithreadedCompressor.h" />
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="ScrubbedBlob.h" />

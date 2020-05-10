@@ -10,6 +10,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 #include <bzlib.h>
@@ -21,6 +22,7 @@
 #include "Common/File.h"
 #include "Common/Swap.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/WiiEncryptionCache.h"
 
@@ -267,6 +269,31 @@ private:
     ZSTD_DStream* m_stream;
   };
 
+  class RVZPackDecompressor final : public Decompressor
+  {
+  public:
+    RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor,
+                        DecompressionBuffer decompressed, u64 data_offset);
+
+    bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
+                    size_t* in_bytes_read) override;
+
+    bool Done() const override;
+
+  private:
+    std::optional<bool> ReadToDecompressed(const DecompressionBuffer& in, size_t* in_bytes_read,
+                                           size_t decompressed_bytes_read, size_t bytes_to_read);
+
+    std::unique_ptr<Decompressor> m_decompressor;
+    DecompressionBuffer m_decompressed;
+    size_t m_decompressed_bytes_read = 0;
+    u64 m_data_offset;
+
+    u32 m_size = 0;
+    bool m_junk;
+    LaggedFibonacciGenerator m_lfg;
+  };
+
   class Compressor
   {
   public:
@@ -375,7 +402,7 @@ private:
   public:
     Chunk();
     Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-          u32 exception_lists, bool compressed_exception_lists,
+          u32 exception_lists, bool compressed_exception_lists, bool rvz_pack, u64 data_offset,
           std::unique_ptr<Decompressor> decompressor);
 
     bool Read(u64 offset, u64 size, u8* out_ptr);
@@ -391,6 +418,7 @@ private:
     }
 
   private:
+    bool Decompress();
     bool HandleExceptions(const u8* data, size_t bytes_allocated, size_t bytes_written,
                           size_t* bytes_used, bool align);
 
@@ -407,6 +435,8 @@ private:
     size_t m_in_bytes_used_for_exceptions = 0;
     u32 m_exception_lists = 0;
     bool m_compressed_exception_lists = false;
+    bool m_rvz_pack = false;
+    u64 m_data_offset = 0;
   };
 
   explicit WIAFileReader(File::IOFile file, const std::string& path);
@@ -417,7 +447,7 @@ private:
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
                       u32 exception_lists);
   Chunk& ReadCompressedData(u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-                            u32 exception_lists);
+                            u32 exception_lists = 0, bool rvz_pack = false, u64 data_offset = 0);
 
   static bool ApplyHashExceptions(const std::vector<HashExceptionEntry>& exception_list,
                                   VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP]);
@@ -430,18 +460,18 @@ private:
   {
     bool operator==(const ReuseID& other) const
     {
-      return std::tie(partition_key, data_size, decrypted, value) ==
-             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+      return std::tie(partition_key, data_size, encrypted, value) ==
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
     bool operator<(const ReuseID& other) const
     {
-      return std::tie(partition_key, data_size, decrypted, value) <
-             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+      return std::tie(partition_key, data_size, encrypted, value) <
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
     bool operator>(const ReuseID& other) const
     {
-      return std::tie(partition_key, data_size, decrypted, value) >
-             std::tie(other.partition_key, other.data_size, other.decrypted, other.value);
+      return std::tie(partition_key, data_size, encrypted, value) >
+             std::tie(other.partition_key, other.data_size, other.encrypted, other.value);
     }
     bool operator!=(const ReuseID& other) const { return !operator==(other); }
     bool operator>=(const ReuseID& other) const { return !operator<(other); }
@@ -449,7 +479,7 @@ private:
 
     const WiiKey* partition_key;
     u64 data_size;
-    bool decrypted;
+    bool encrypted;
     u8 value;
   };
 
@@ -470,6 +500,7 @@ private:
   {
     std::vector<u8> data;
     const DataEntry* data_entry;
+    u64 data_offset;
     u64 bytes_read;
     size_t group_index;
   };
@@ -512,13 +543,17 @@ private:
                               WIAHeader2* header_2);
   static bool TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
                        std::mutex* reusable_groups_mutex, OutputParametersEntry* entry);
+  static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk, size_t chunks,
+                      u64 total_size, u64 data_offset, u64 in_offset, bool allow_junk_reuse);
+  static void RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data_offset,
+                      bool allow_junk_reuse);
   static ConversionResult<OutputParameters>
   ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
                      const std::vector<PartitionEntry>& partition_entries,
                      const std::vector<DataEntry>& data_entries,
                      std::map<ReuseID, GroupEntry>* reusable_groups,
                      std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
-                     u64 exception_lists_per_chunk, bool compressed_exception_lists);
+                     u64 exception_lists_per_chunk, bool compressed_exception_lists, bool rvz);
   static ConversionResultCode Output(std::vector<OutputParametersEntry>* entries,
                                      File::IOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
@@ -528,13 +563,20 @@ private:
                                           u32 total_groups, u64 iso_size, CompressCB callback,
                                           void* arg);
 
+  static void PushBack(std::vector<u8>* vector, const u8* begin, const u8* end)
+  {
+    const size_t offset_in_vector = vector->size();
+    vector->resize(offset_in_vector + (end - begin));
+    std::copy(begin, end, vector->data() + offset_in_vector);
+  }
+
   template <typename T>
   static void PushBack(std::vector<u8>* vector, const T& x)
   {
-    const size_t offset_in_vector = vector->size();
-    vector->resize(offset_in_vector + sizeof(T));
+    static_assert(std::is_trivially_copyable_v<T>);
+
     const u8* x_ptr = reinterpret_cast<const u8*>(&x);
-    std::copy(x_ptr, x_ptr + sizeof(T), vector->data() + offset_in_vector);
+    PushBack(vector, x_ptr, x_ptr + sizeof(T));
   }
 
   bool m_valid;
@@ -566,9 +608,9 @@ private:
   static constexpr u32 WIA_VERSION_WRITE_COMPATIBLE = 0x01000000;
   static constexpr u32 WIA_VERSION_READ_COMPATIBLE = 0x00080000;
 
-  static constexpr u32 RVZ_VERSION = 0x00010000;
-  static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00010000;
-  static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00010000;
+  static constexpr u32 RVZ_VERSION = 0x00020000;
+  static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00020000;
+  static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00020000;
 };
 
 }  // namespace DiscIO

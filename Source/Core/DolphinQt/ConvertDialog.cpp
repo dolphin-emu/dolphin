@@ -252,6 +252,10 @@ void ConvertDialog::OnFormatChanged()
 
   m_block_size->setEnabled(m_block_size->count() > 1);
   m_compression->setEnabled(m_compression->count() > 1);
+
+  m_scrub->setEnabled(format != DiscIO::BlobType::RVZ);
+  if (format == DiscIO::BlobType::RVZ)
+    m_scrub->setChecked(false);
 }
 
 void ConvertDialog::OnCompressionChanged()

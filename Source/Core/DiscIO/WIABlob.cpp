@@ -34,6 +34,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscExtractor.h"
+#include "DiscIO/LaggedFibonacciGenerator.h"
 #include "DiscIO/MultithreadedCompressor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
@@ -192,10 +193,9 @@ bool WIAFileReader::Initialize(const std::string& path)
 
   const u32 number_of_raw_data_entries = Common::swap32(m_header_2.number_of_raw_data_entries);
   m_raw_data_entries.resize(number_of_raw_data_entries);
-  Chunk& raw_data_entries =
-      ReadCompressedData(Common::swap64(m_header_2.raw_data_entries_offset),
-                         Common::swap32(m_header_2.raw_data_entries_size),
-                         number_of_raw_data_entries * sizeof(RawDataEntry), false);
+  Chunk& raw_data_entries = ReadCompressedData(Common::swap64(m_header_2.raw_data_entries_offset),
+                                               Common::swap32(m_header_2.raw_data_entries_size),
+                                               number_of_raw_data_entries * sizeof(RawDataEntry));
   if (!raw_data_entries.ReadAll(&m_raw_data_entries))
     return false;
 
@@ -211,7 +211,7 @@ bool WIAFileReader::Initialize(const std::string& path)
   m_group_entries.resize(number_of_group_entries);
   Chunk& group_entries = ReadCompressedData(Common::swap64(m_header_2.group_entries_offset),
                                             Common::swap32(m_header_2.group_entries_size),
-                                            number_of_group_entries * sizeof(GroupEntry), false);
+                                            number_of_group_entries * sizeof(GroupEntry));
   if (!group_entries.ReadAll(&m_group_entries))
     return false;
 
@@ -444,8 +444,8 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
     else
     {
       const u64 group_offset_in_file = static_cast<u64>(Common::swap32(group.data_offset)) << 2;
-      Chunk& chunk =
-          ReadCompressedData(group_offset_in_file, group_data_size, chunk_size, exception_lists);
+      Chunk& chunk = ReadCompressedData(group_offset_in_file, group_data_size, chunk_size,
+                                        exception_lists, m_rvz, group_offset_in_data);
       if (!chunk.Read(offset_in_group, bytes_to_read, *out_ptr))
       {
         m_cached_chunk_offset = std::numeric_limits<u64>::max();  // Invalidate the cache
@@ -472,7 +472,8 @@ bool WIAFileReader::ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chu
 }
 
 WIAFileReader::Chunk& WIAFileReader::ReadCompressedData(u64 offset_in_file, u64 compressed_size,
-                                                        u64 decompressed_size, u32 exception_lists)
+                                                        u64 decompressed_size, u32 exception_lists,
+                                                        bool rvz_pack, u64 data_offset)
 {
   if (offset_in_file == m_cached_chunk_offset)
     return m_cached_chunk;
@@ -504,8 +505,9 @@ WIAFileReader::Chunk& WIAFileReader::ReadCompressedData(u64 offset_in_file, u64 
 
   const bool compressed_exception_lists = m_compression_type > WIACompressionType::Purge;
 
-  m_cached_chunk = Chunk(&m_file, offset_in_file, compressed_size, decompressed_size,
-                         exception_lists, compressed_exception_lists, std::move(decompressor));
+  m_cached_chunk =
+      Chunk(&m_file, offset_in_file, compressed_size, decompressed_size, exception_lists,
+            compressed_exception_lists, rvz_pack, data_offset, std::move(decompressor));
   m_cached_chunk_offset = offset_in_file;
   return m_cached_chunk;
 }
@@ -791,6 +793,135 @@ bool WIAFileReader::ZstdDecompressor::Decompress(const DecompressionBuffer& in,
 
   m_done = result == 0;
   return !ZSTD_isError(result);
+}
+
+WIAFileReader::RVZPackDecompressor::RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor,
+                                                        DecompressionBuffer decompressed,
+                                                        u64 data_offset)
+    : m_decompressor(std::move(decompressor)), m_decompressed(std::move(decompressed)),
+      m_data_offset(data_offset)
+{
+}
+
+std::optional<bool> WIAFileReader::RVZPackDecompressor::ReadToDecompressed(
+    const DecompressionBuffer& in, size_t* in_bytes_read, size_t decompressed_bytes_read,
+    size_t bytes_to_read)
+{
+  if (m_decompressed.data.size() < decompressed_bytes_read + bytes_to_read)
+    m_decompressed.data.resize(decompressed_bytes_read + bytes_to_read);
+
+  if (m_decompressed.bytes_written < decompressed_bytes_read + bytes_to_read)
+  {
+    if (!m_decompressor->Decompress(in, &m_decompressed, in_bytes_read))
+      return false;
+
+    if (m_decompressed.bytes_written < decompressed_bytes_read + bytes_to_read)
+      return true;
+  }
+
+  return std::nullopt;
+}
+
+bool WIAFileReader::RVZPackDecompressor::Decompress(const DecompressionBuffer& in,
+                                                    DecompressionBuffer* out, size_t* in_bytes_read)
+{
+  while (out->data.size() != out->bytes_written && !Done())
+  {
+    if (m_size == 0)
+    {
+      if (m_decompressed.bytes_written == m_decompressed_bytes_read)
+      {
+        m_decompressed.data.resize(sizeof(u32));
+        m_decompressed.bytes_written = 0;
+        m_decompressed_bytes_read = 0;
+      }
+
+      std::optional<bool> result =
+          ReadToDecompressed(in, in_bytes_read, m_decompressed_bytes_read, sizeof(u32));
+      if (result)
+        return *result;
+
+      m_size = Common::swap32(m_decompressed.data.data() + m_decompressed_bytes_read);
+
+      m_junk = m_size & 0x80000000;
+      if (m_junk)
+      {
+        m_size &= 0x7FFFFFFF;
+
+        constexpr size_t SEED_SIZE = LaggedFibonacciGenerator::SEED_SIZE * sizeof(u32);
+
+        result = ReadToDecompressed(in, in_bytes_read, m_decompressed_bytes_read + sizeof(u32),
+                                    SEED_SIZE);
+        if (result)
+          return *result;
+
+        m_lfg.SetSeed(m_decompressed.data.data() + m_decompressed_bytes_read + sizeof(u32));
+        m_lfg.Forward(m_data_offset % VolumeWii::BLOCK_TOTAL_SIZE);
+
+        m_decompressed_bytes_read += SEED_SIZE;
+      }
+
+      m_decompressed_bytes_read += sizeof(u32);
+    }
+
+    size_t bytes_to_write = std::min<size_t>(m_size, out->data.size() - out->bytes_written);
+    if (m_junk)
+    {
+      m_lfg.GetBytes(bytes_to_write, out->data.data() + out->bytes_written);
+      out->bytes_written += bytes_to_write;
+    }
+    else
+    {
+      if (m_decompressed.bytes_written != m_decompressed_bytes_read)
+      {
+        bytes_to_write =
+            std::min(bytes_to_write, m_decompressed.bytes_written - m_decompressed_bytes_read);
+
+        std::memcpy(out->data.data() + out->bytes_written,
+                    m_decompressed.data.data() + m_decompressed_bytes_read, bytes_to_write);
+
+        m_decompressed_bytes_read += bytes_to_write;
+        out->bytes_written += bytes_to_write;
+      }
+      else
+      {
+        const size_t prev_out_bytes_written = out->bytes_written;
+        const size_t old_out_size = out->data.size();
+        const size_t new_out_size = out->bytes_written + bytes_to_write;
+
+        if (new_out_size < old_out_size)
+          out->data.resize(new_out_size);
+
+        if (!m_decompressor->Decompress(in, out, in_bytes_read))
+          return false;
+
+        out->data.resize(old_out_size);
+
+        bytes_to_write = out->bytes_written - prev_out_bytes_written;
+        if (bytes_to_write == 0)
+          return true;
+      }
+    }
+
+    m_data_offset += bytes_to_write;
+    m_size -= static_cast<u32>(bytes_to_write);
+  }
+
+  // If out is full but not all data has been read from in, give the decompressor a chance to read
+  // from in anyway. This is needed for the case where zstd has read everything except the checksum.
+  if (out->data.size() == out->bytes_written && in.bytes_written != *in_bytes_read)
+  {
+    if (!m_decompressor->Decompress(in, out, in_bytes_read))
+      return false;
+  }
+
+  return true;
+}
+
+bool WIAFileReader::RVZPackDecompressor::Done() const
+{
+  return m_size == 0 && m_decompressed.bytes_written == m_decompressed_bytes_read &&
+         m_decompressor->Done();
 }
 
 WIAFileReader::Compressor::~Compressor() = default;
@@ -1169,11 +1300,11 @@ WIAFileReader::Chunk::Chunk() = default;
 
 WIAFileReader::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size,
                             u64 decompressed_size, u32 exception_lists,
-                            bool compressed_exception_lists,
+                            bool compressed_exception_lists, bool rvz_pack, u64 data_offset,
                             std::unique_ptr<Decompressor> decompressor)
     : m_file(file), m_offset_in_file(offset_in_file), m_exception_lists(exception_lists),
-      m_compressed_exception_lists(compressed_exception_lists),
-      m_decompressor(std::move(decompressor))
+      m_compressed_exception_lists(compressed_exception_lists), m_rvz_pack(rvz_pack),
+      m_data_offset(data_offset), m_decompressor(std::move(decompressor))
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
       Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, sizeof(SHA1)) / sizeof(SHA1) *
@@ -1250,7 +1381,7 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
 
     if (m_exception_lists == 0 || m_compressed_exception_lists)
     {
-      if (!m_decompressor->Decompress(m_in, &m_out, &m_in_bytes_read))
+      if (!Decompress())
         return false;
     }
 
@@ -1260,6 +1391,12 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
                             m_out.bytes_written, &m_out_bytes_used_for_exceptions, false))
       {
         return false;
+      }
+
+      if (m_rvz_pack && m_exception_lists == 0)
+      {
+        if (!Decompress())
+          return false;
       }
     }
 
@@ -1287,6 +1424,26 @@ bool WIAFileReader::Chunk::Read(u64 offset, u64 size, u8* out_ptr)
 
   std::memcpy(out_ptr, m_out.data.data() + offset + m_out_bytes_used_for_exceptions, size);
   return true;
+}
+
+bool WIAFileReader::Chunk::Decompress()
+{
+  if (m_rvz_pack && m_exception_lists == 0)
+  {
+    m_rvz_pack = false;
+
+    const size_t bytes_to_move = m_out.bytes_written - m_out_bytes_used_for_exceptions;
+
+    DecompressionBuffer in{std::vector<u8>(bytes_to_move), bytes_to_move};
+    std::memcpy(in.data.data(), m_out.data.data() + m_out_bytes_used_for_exceptions, bytes_to_move);
+
+    m_out.bytes_written = m_out_bytes_used_for_exceptions;
+
+    m_decompressor = std::make_unique<RVZPackDecompressor>(std::move(m_decompressor), std::move(in),
+                                                           m_data_offset);
+  }
+
+  return m_decompressor->Decompress(m_in, &m_out, &m_in_bytes_read);
 }
 
 bool WIAFileReader::Chunk::HandleExceptions(const u8* data, size_t bytes_allocated,
@@ -1633,23 +1790,120 @@ static bool AllSame(const u8* begin, const u8* end)
   return AllAre(begin, end, *begin);
 };
 
-ConversionResult<WIAFileReader::OutputParameters>
-WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
-                                  const std::vector<PartitionEntry>& partition_entries,
-                                  const std::vector<DataEntry>& data_entries,
-                                  std::map<ReuseID, GroupEntry>* reusable_groups,
-                                  std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
-                                  u64 exception_lists_per_chunk, bool compressed_exception_lists)
+void WIAFileReader::RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk,
+                            size_t chunks, u64 total_size, u64 data_offset, u64 in_offset,
+                            bool allow_junk_reuse)
+{
+  using Seed = std::array<u32, LaggedFibonacciGenerator::SEED_SIZE>;
+  struct JunkInfo
+  {
+    size_t start_offset;
+    Seed seed;
+  };
+
+  // Maps end_offset -> (start_offset, seed)
+  std::map<size_t, JunkInfo> junk_info;
+
+  size_t position = 0;
+  while (position < total_size)
+  {
+    const size_t bytes_to_read =
+        std::min(Common::AlignUp(data_offset + 1, VolumeWii::BLOCK_TOTAL_SIZE) - data_offset,
+                 total_size - position);
+
+    const size_t data_offset_mod = static_cast<size_t>(data_offset % VolumeWii::BLOCK_TOTAL_SIZE);
+
+    Seed seed;
+    const size_t bytes_reconstructed = LaggedFibonacciGenerator::GetSeed(
+        in + in_offset + position, bytes_to_read, data_offset_mod, seed.data());
+
+    if (bytes_reconstructed > 0)
+      junk_info.emplace(position + bytes_reconstructed, JunkInfo{position, seed});
+
+    position += bytes_to_read;
+    data_offset += bytes_to_read;
+  }
+
+  for (size_t i = 0; i < chunks; ++i)
+  {
+    OutputParametersEntry& entry = out[i];
+    if (entry.reused_group)
+      continue;
+
+    u64 current_offset = i * bytes_per_chunk;
+    const u64 end_offset = std::min(current_offset + bytes_per_chunk, total_size);
+
+    const bool store_junk_efficiently = allow_junk_reuse || !entry.reuse_id;
+
+    while (current_offset < end_offset)
+    {
+      constexpr size_t SEED_SIZE = LaggedFibonacciGenerator::SEED_SIZE * sizeof(u32);
+
+      u64 next_junk_start = end_offset;
+      u64 next_junk_end = end_offset;
+      Seed* seed = nullptr;
+      if (store_junk_efficiently && end_offset - current_offset > SEED_SIZE)
+      {
+        const auto next_junk_it = junk_info.upper_bound(current_offset + SEED_SIZE);
+        if (next_junk_it != junk_info.end() &&
+            next_junk_it->second.start_offset + SEED_SIZE < end_offset)
+        {
+          next_junk_start = std::max<u64>(current_offset, next_junk_it->second.start_offset);
+          next_junk_end = std::min<u64>(end_offset, next_junk_it->first);
+          seed = &next_junk_it->second.seed;
+        }
+      }
+
+      const u64 non_junk_bytes = next_junk_start - current_offset;
+      if (non_junk_bytes > 0)
+      {
+        const u8* ptr = in + in_offset + current_offset;
+
+        PushBack(&entry.main_data, Common::swap32(static_cast<u32>(non_junk_bytes)));
+        PushBack(&entry.main_data, ptr, ptr + non_junk_bytes);
+
+        current_offset += non_junk_bytes;
+      }
+
+      const u64 junk_bytes = next_junk_end - current_offset;
+      if (junk_bytes > 0)
+      {
+        PushBack(&entry.main_data, Common::swap32(static_cast<u32>(junk_bytes) | 0x80000000));
+        PushBack(&entry.main_data, *seed);
+
+        current_offset += junk_bytes;
+      }
+    }
+  }
+}
+
+void WIAFileReader::RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data_offset,
+                            bool allow_junk_reuse)
+{
+  RVZPack(in, out, size, 1, size, data_offset, 0, allow_junk_reuse);
+}
+
+ConversionResult<WIAFileReader::OutputParameters> WIAFileReader::ProcessAndCompress(
+    CompressThreadState* state, CompressParameters parameters,
+    const std::vector<PartitionEntry>& partition_entries,
+    const std::vector<DataEntry>& data_entries, std::map<ReuseID, GroupEntry>* reusable_groups,
+    std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group, u64 exception_lists_per_chunk,
+    bool compressed_exception_lists, bool rvz)
 {
   std::vector<OutputParametersEntry> output_entries;
 
   if (!parameters.data_entry->is_partition)
   {
     OutputParametersEntry& entry = output_entries.emplace_back();
-    entry.main_data = std::move(parameters.data);
+    std::vector<u8>& data = parameters.data;
 
-    if (AllSame(entry.main_data))
-      entry.reuse_id = ReuseID{nullptr, entry.main_data.size(), false, entry.main_data.front()};
+    if (AllSame(data))
+      entry.reuse_id = ReuseID{nullptr, data.size(), false, data.front()};
+
+    if (rvz)
+      RVZPack(data.data(), output_entries.data(), data.size(), parameters.data_offset, true);
+    else
+      entry.main_data = std::move(data);
   }
   else
   {
@@ -1676,9 +1930,9 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
     const size_t first_chunk = output_entries.size();
 
     const auto create_reuse_id = [&partition_entry, blocks,
-                                  blocks_per_chunk](u8 value, bool decrypted, u64 block) {
+                                  blocks_per_chunk](u8 value, bool encrypted, u64 block) {
       const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
-      return ReuseID{&partition_entry.partition_key, size, decrypted, value};
+      return ReuseID{&partition_entry.partition_key, size, encrypted, value};
     };
 
     const u8* parameters_data_end = parameters.data.data() + parameters.data.size();
@@ -1692,7 +1946,7 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
       // Set this chunk as reusable if the encrypted data is AllSame
       const u8* data = parameters.data.data() + block_index * VolumeWii::BLOCK_TOTAL_SIZE;
       if (AllSame(data, std::min(parameters_data_end, data + in_data_per_chunk)))
-        reuse_id = create_reuse_id(parameters.data.front(), false, i * blocks_per_chunk);
+        reuse_id = create_reuse_id(parameters.data.front(), true, i * blocks_per_chunk);
 
       TryReuse(reusable_groups, reusable_groups_mutex, &entry);
       if (!entry.reused_group && reuse_id)
@@ -1794,41 +2048,58 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
 
         static_assert(std::is_trivially_copyable_v<decltype(
                           CompressThreadState::decryption_buffer)::value_type>);
-        const u8* in_ptr = state->decryption_buffer[0].data();
-        for (u64 j = 0; j < chunks; ++j)
+        if (rvz)
         {
-          OutputParametersEntry& entry = output_entries[first_chunk + j];
+          // We must not store junk efficiently for chunks that may get reused at a position
+          // which has a different value of data_offset % VolumeWii::BLOCK_TOTAL_SIZE
+          const bool allow_junk_reuse = chunks_per_wii_group == 1;
 
-          if (!entry.reused_group)
+          const u64 bytes_per_chunk = std::min(out_data_per_chunk, VolumeWii::GROUP_DATA_SIZE);
+          const u64 total_size = blocks_in_this_group * VolumeWii::BLOCK_DATA_SIZE;
+          const u64 data_offset = parameters.data_offset + write_offset_of_group;
+
+          RVZPack(state->decryption_buffer[0].data(), output_entries.data() + first_chunk,
+                  bytes_per_chunk, chunks, total_size, data_offset, write_offset_of_group,
+                  allow_junk_reuse);
+        }
+        else
+        {
+          const u8* in_ptr = state->decryption_buffer[0].data();
+          for (u64 j = 0; j < chunks; ++j)
           {
-            const u64 bytes_left = (blocks - j * blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
-            const u64 bytes_to_write_total = std::min(out_data_per_chunk, bytes_left);
+            OutputParametersEntry& entry = output_entries[first_chunk + j];
 
-            if (i == 0)
-              entry.main_data.resize(bytes_to_write_total);
-
-            const u64 bytes_to_write = std::min(bytes_to_write_total, VolumeWii::GROUP_DATA_SIZE);
-
-            std::memcpy(entry.main_data.data() + write_offset_of_group, in_ptr, bytes_to_write);
-
-            // Set this chunk as reusable if the decrypted data is AllSame.
-            // There is also a requirement that it lacks exceptions, but this is checked later
-            if (i == 0 && !entry.reuse_id)
+            if (!entry.reused_group)
             {
-              if (AllSame(in_ptr, in_ptr + bytes_to_write))
-                entry.reuse_id = create_reuse_id(*in_ptr, true, j * blocks_per_chunk);
-            }
-            else
-            {
-              if (entry.reuse_id && entry.reuse_id->decrypted &&
-                  (!AllSame(in_ptr, in_ptr + bytes_to_write) || entry.reuse_id->value != *in_ptr))
+              const u64 bytes_left = (blocks - j * blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
+              const u64 bytes_to_write_total = std::min(out_data_per_chunk, bytes_left);
+
+              if (i == 0)
+                entry.main_data.resize(bytes_to_write_total);
+
+              const u64 bytes_to_write = std::min(bytes_to_write_total, VolumeWii::GROUP_DATA_SIZE);
+
+              std::memcpy(entry.main_data.data() + write_offset_of_group, in_ptr, bytes_to_write);
+
+              // Set this chunk as reusable if the decrypted data is AllSame.
+              // There is also a requirement that it lacks exceptions, but this is checked later
+              if (i == 0 && !entry.reuse_id)
               {
-                entry.reuse_id.reset();
+                if (AllSame(in_ptr, in_ptr + bytes_to_write))
+                  entry.reuse_id = create_reuse_id(*in_ptr, false, j * blocks_per_chunk);
+              }
+              else
+              {
+                if (entry.reuse_id && !entry.reuse_id->encrypted &&
+                    (!AllSame(in_ptr, in_ptr + bytes_to_write) || entry.reuse_id->value != *in_ptr))
+                {
+                  entry.reuse_id.reset();
+                }
               }
             }
-          }
 
-          in_ptr += out_data_per_chunk;
+            in_ptr += out_data_per_chunk;
+          }
         }
       }
 
@@ -1853,7 +2124,7 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
 
         // If this chunk was set as reusable because the decrypted data is AllSame,
         // but it has exceptions, unmark it as reusable
-        if (entry.reuse_id && entry.reuse_id->decrypted && !AllZero(entry.exception_lists))
+        if (entry.reuse_id && !entry.reuse_id->encrypted && !AllZero(entry.exception_lists))
           entry.reuse_id.reset();
       }
     }
@@ -1866,7 +2137,7 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
       continue;
 
     // Special case - a compressed size of zero is treated by WIA as meaning the data is all zeroes
-    if (AllZero(entry.exception_lists) && AllZero(entry.main_data))
+    if (entry.reuse_id && !entry.reuse_id->encrypted && entry.reuse_id->value == 0)
     {
       entry.exception_lists.clear();
       entry.main_data.clear();
@@ -2084,7 +2355,7 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
   const auto process_and_compress = [&](CompressThreadState* state, CompressParameters parameters) {
     return ProcessAndCompress(state, std::move(parameters), partition_entries, data_entries,
                               &reusable_groups, &reusable_groups_mutex, chunks_per_wii_group,
-                              exception_lists_per_chunk, compressed_exception_lists);
+                              exception_lists_per_chunk, compressed_exception_lists, rvz);
   };
 
   const auto output = [&](OutputParameters parameters) {
@@ -2110,6 +2381,8 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
     u64 data_offset;
     u64 data_size;
 
+    u64 data_offset_in_partition;
+
     if (data_entry.is_partition)
     {
       const PartitionEntry& partition_entry = partition_entries[data_entry.index];
@@ -2119,9 +2392,14 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
       first_group = Common::swap32(partition_data_entry.group_index);
       last_group = first_group + Common::swap32(partition_data_entry.number_of_groups);
 
-      data_offset = Common::swap32(partition_data_entry.first_sector) * VolumeWii::BLOCK_TOTAL_SIZE;
+      const u32 first_sector = Common::swap32(partition_data_entry.first_sector);
+      data_offset = first_sector * VolumeWii::BLOCK_TOTAL_SIZE;
       data_size =
           Common::swap32(partition_data_entry.number_of_sectors) * VolumeWii::BLOCK_TOTAL_SIZE;
+
+      const u32 block_in_partition =
+          first_sector - Common::swap32(partition_entry.data_entries[0].first_sector);
+      data_offset_in_partition = block_in_partition * VolumeWii::BLOCK_DATA_SIZE;
     }
     else
     {
@@ -2136,6 +2414,8 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
       const u64 skipped_data = data_offset % VolumeWii::BLOCK_TOTAL_SIZE;
       data_offset -= skipped_data;
       data_size += skipped_data;
+
+      data_offset_in_partition = data_offset;
     }
 
     ASSERT(groups_processed == first_group);
@@ -2157,11 +2437,26 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
         return ConversionResultCode::ReadFailed;
       bytes_read += bytes_to_read;
 
-      mt_compressor.CompressAndWrite(
-          CompressParameters{buffer, &data_entry, bytes_read, groups_processed});
+      mt_compressor.CompressAndWrite(CompressParameters{
+          buffer, &data_entry, data_offset_in_partition, bytes_read, groups_processed});
+
+      data_offset += bytes_to_read;
+      data_size -= bytes_to_read;
+
+      if (data_entry.is_partition)
+      {
+        data_offset_in_partition +=
+            bytes_to_read / VolumeWii::BLOCK_TOTAL_SIZE * VolumeWii::BLOCK_DATA_SIZE;
+      }
+      else
+      {
+        data_offset_in_partition += bytes_to_read;
+      }
 
       groups_processed += Common::AlignUp(bytes_to_read, chunk_size) / chunk_size;
     }
+
+    ASSERT(data_size == 0);
   }
 
   ASSERT(groups_processed == total_groups);

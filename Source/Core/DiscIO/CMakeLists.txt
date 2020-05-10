@@ -21,6 +21,8 @@ add_library(discio
   FileSystemGCWii.h
   Filesystem.cpp
   Filesystem.h
+  LaggedFibonacciGenerator.cpp
+  LaggedFibonacciGenerator.h
   MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
