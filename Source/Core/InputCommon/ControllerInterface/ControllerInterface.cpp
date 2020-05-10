@@ -105,17 +105,17 @@ void ControllerInterface::RefreshDevices()
   InvokeDevicesChangedCallbacks();
 
 #ifdef CIFACE_USE_WIN32
-  ciface::Win32::PopulateDevices(m_wsi.render_surface);
+  ciface::Win32::PopulateDevices(m_wsi.render_window);
 #endif
 #ifdef CIFACE_USE_XLIB
   if (m_wsi.type == WindowSystemType::X11)
-    ciface::XInput2::PopulateDevices(m_wsi.render_surface);
+    ciface::XInput2::PopulateDevices(m_wsi.render_window);
 #endif
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
   {
-    ciface::OSX::PopulateDevices(m_wsi.render_surface);
-    ciface::Quartz::PopulateDevices(m_wsi.render_surface);
+    ciface::OSX::PopulateDevices(m_wsi.render_window);
+    ciface::Quartz::PopulateDevices(m_wsi.render_window);
   }
 #endif
 #ifdef CIFACE_USE_SDL
