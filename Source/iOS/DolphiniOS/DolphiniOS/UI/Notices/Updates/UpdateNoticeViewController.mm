@@ -24,12 +24,10 @@
   [self.m_changes_label setText:self.m_update_json[@"changes"]];
   
 #ifdef PATREON
-  [self.m_update_now_button setHidden:true];
   [self.m_see_changes_button setHidden:true];
-  [self.m_not_now_button setHidden:true];
-#else
-  [self.m_ok_button setHidden:true];
 #endif
+  
+  [self.m_ok_button setHidden:true];
   
   [self.m_save_states_warning_label setHidden:(NSInteger)self.m_update_json[@"state_version"] != State::GetVersion()];
 }
