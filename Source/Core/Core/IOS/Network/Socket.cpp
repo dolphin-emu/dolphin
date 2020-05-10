@@ -652,6 +652,12 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
   return wii_fd;
 }
 
+bool WiiSockMan::IsSocketBlocking(s32 wii_fd) const
+{
+  const auto it = WiiSockets.find(wii_fd);
+  return it != WiiSockets.end() && !it->second.nonBlock;
+}
+
 s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 {
   if (af != 2 && af != 23)  // AF_INET && AF_INET6
