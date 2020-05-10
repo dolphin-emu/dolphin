@@ -13,6 +13,7 @@
 #include <memory>
 #include <mutex>
 #include <optional>
+#include <type_traits>
 #include <utility>
 
 #include <bzlib.h>
@@ -1589,6 +1590,24 @@ void WIAFileReader::SetUpCompressor(std::unique_ptr<Compressor>* compressor,
   }
 }
 
+bool WIAFileReader::TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
+                             std::mutex* reusable_groups_mutex, OutputParametersEntry* entry)
+{
+  if (entry->reused_group)
+    return true;
+
+  if (!entry->reuse_id)
+    return false;
+
+  std::lock_guard guard(*reusable_groups_mutex);
+  const auto it = reusable_groups->find(*entry->reuse_id);
+  if (it == reusable_groups->end())
+    return false;
+
+  entry->reused_group = it->second;
+  return true;
+}
+
 static bool AllAre(const std::vector<u8>& data, u8 x)
 {
   return std::all_of(data.begin(), data.end(), [x](u8 y) { return x == y; });
@@ -1622,16 +1641,6 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
                                   std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
                                   u64 exception_lists_per_chunk, bool compressed_exception_lists)
 {
-  const auto reuse_id_exists = [reusable_groups,
-                                reusable_groups_mutex](const std::optional<ReuseID>& reuse_id) {
-    if (!reuse_id)
-      return false;
-
-    std::lock_guard guard(*reusable_groups_mutex);
-    const auto it = reusable_groups->find(*reuse_id);
-    return it != reusable_groups->end();
-  };
-
   std::vector<OutputParametersEntry> output_entries;
 
   if (!parameters.data_entry->is_partition)
@@ -1664,6 +1673,8 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
     const u64 in_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_TOTAL_SIZE;
     const u64 out_data_per_chunk = blocks_per_chunk * VolumeWii::BLOCK_DATA_SIZE;
 
+    const size_t first_chunk = output_entries.size();
+
     const auto create_reuse_id = [&partition_entry, blocks,
                                   blocks_per_chunk](u8 value, bool decrypted, u64 block) {
       const u64 size = std::min(blocks - block, blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
@@ -1683,17 +1694,18 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
       if (AllSame(data, std::min(parameters_data_end, data + in_data_per_chunk)))
         reuse_id = create_reuse_id(parameters.data.front(), false, i * blocks_per_chunk);
 
-      if (!reuse_id_exists(reuse_id) &&
-          !(reuse_id && std::any_of(output_entries.begin(), output_entries.begin() + i,
-                                    [reuse_id](const auto& e) { return e.reuse_id == reuse_id; })))
+      TryReuse(reusable_groups, reusable_groups_mutex, &entry);
+      if (!entry.reused_group && reuse_id)
       {
-        const u64 bytes_left = (blocks - block_index) * VolumeWii::BLOCK_DATA_SIZE;
-        entry.main_data.resize(std::min(out_data_per_chunk, bytes_left));
+        const auto it = std::find_if(output_entries.begin(), output_entries.begin() + i,
+                                     [reuse_id](const auto& e) { return e.reuse_id == reuse_id; });
+        if (it != output_entries.begin() + i)
+          entry.reused_group = it->reused_group;
       }
     }
 
     if (!std::all_of(output_entries.begin(), output_entries.end(),
-                     [](const OutputParametersEntry& entry) { return entry.main_data.empty(); }))
+                     [](const OutputParametersEntry& entry) { return entry.reused_group; }))
     {
       const u64 number_of_exception_lists =
           chunks_per_wii_group == 1 ? exception_lists_per_chunk : chunks;
@@ -1728,7 +1740,7 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
           const u64 chunk_index = j / blocks_per_chunk;
           const u64 block_index_in_chunk = j % blocks_per_chunk;
 
-          if (output_entries[chunk_index].main_data.empty())
+          if (output_entries[chunk_index].reused_group)
             continue;
 
           const u64 exception_list_index = chunks_per_wii_group == 1 ? i : chunk_index;
@@ -1780,27 +1792,50 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
           compare_hashes(offsetof(HashBlock, padding_2), sizeof(HashBlock::padding_2));
         }
 
-        for (u64 j = 0; j < blocks_in_this_group; ++j)
+        static_assert(std::is_trivially_copyable_v<decltype(
+                          CompressThreadState::decryption_buffer)::value_type>);
+        const u8* in_ptr = state->decryption_buffer[0].data();
+        for (u64 j = 0; j < chunks; ++j)
         {
-          const u64 chunk_index = j / blocks_per_chunk;
-          const u64 block_index_in_chunk = j % blocks_per_chunk;
+          OutputParametersEntry& entry = output_entries[first_chunk + j];
 
-          OutputParametersEntry& entry = output_entries[chunk_index];
-          if (entry.main_data.empty())
-            continue;
+          if (!entry.reused_group)
+          {
+            const u64 bytes_left = (blocks - j * blocks_per_chunk) * VolumeWii::BLOCK_DATA_SIZE;
+            const u64 bytes_to_write_total = std::min(out_data_per_chunk, bytes_left);
 
-          const u64 write_offset_of_block =
-              write_offset_of_group + block_index_in_chunk * VolumeWii::BLOCK_DATA_SIZE;
+            if (i == 0)
+              entry.main_data.resize(bytes_to_write_total);
 
-          std::memcpy(entry.main_data.data() + write_offset_of_block,
-                      state->decryption_buffer[j].data(), VolumeWii::BLOCK_DATA_SIZE);
+            const u64 bytes_to_write = std::min(bytes_to_write_total, VolumeWii::GROUP_DATA_SIZE);
+
+            std::memcpy(entry.main_data.data() + write_offset_of_group, in_ptr, bytes_to_write);
+
+            // Set this chunk as reusable if the decrypted data is AllSame.
+            // There is also a requirement that it lacks exceptions, but this is checked later
+            if (i == 0 && !entry.reuse_id)
+            {
+              if (AllSame(in_ptr, in_ptr + bytes_to_write))
+                entry.reuse_id = create_reuse_id(*in_ptr, true, j * blocks_per_chunk);
+            }
+            else
+            {
+              if (entry.reuse_id && entry.reuse_id->decrypted &&
+                  (!AllSame(in_ptr, in_ptr + bytes_to_write) || entry.reuse_id->value != *in_ptr))
+              {
+                entry.reuse_id.reset();
+              }
+            }
+          }
+
+          in_ptr += out_data_per_chunk;
         }
       }
 
       for (size_t i = 0; i < exception_lists.size(); ++i)
       {
         OutputParametersEntry& entry = output_entries[chunks_per_wii_group == 1 ? 0 : i];
-        if (entry.main_data.empty())
+        if (entry.reused_group)
           continue;
 
         const std::vector<HashExceptionEntry>& in = exception_lists[i];
@@ -1815,25 +1850,23 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
       for (u64 i = 0; i < output_entries.size(); ++i)
       {
         OutputParametersEntry& entry = output_entries[i];
-        if (entry.main_data.empty() || entry.reuse_id)
-          continue;
 
-        // Set this chunk as reusable if it lacks exceptions and the decrypted data is AllSame
-        if (AllZero(entry.exception_lists) && AllSame(parameters.data))
-          entry.reuse_id = create_reuse_id(parameters.data.front(), true, i * blocks_per_chunk);
+        // If this chunk was set as reusable because the decrypted data is AllSame,
+        // but it has exceptions, unmark it as reusable
+        if (entry.reuse_id && entry.reuse_id->decrypted && !AllZero(entry.exception_lists))
+          entry.reuse_id.reset();
       }
     }
   }
 
   for (OutputParametersEntry& entry : output_entries)
   {
-    if (entry.main_data.empty())
+    TryReuse(reusable_groups, reusable_groups_mutex, &entry);
+    if (entry.reused_group)
       continue;
 
     // Special case - a compressed size of zero is treated by WIA as meaning the data is all zeroes
-    const bool all_zero = AllZero(entry.exception_lists) && AllZero(entry.main_data);
-
-    if (all_zero || reuse_id_exists(entry.reuse_id))
+    if (AllZero(entry.exception_lists) && AllZero(entry.main_data))
     {
       entry.exception_lists.clear();
       entry.main_data.clear();
@@ -1898,24 +1931,20 @@ WIAFileReader::ProcessAndCompress(CompressThreadState* state, CompressParameters
   return OutputParameters{std::move(output_entries), parameters.bytes_read, parameters.group_index};
 }
 
-ConversionResultCode WIAFileReader::Output(const OutputParameters& parameters,
+ConversionResultCode WIAFileReader::Output(std::vector<OutputParametersEntry>* entries,
                                            File::IOFile* outfile,
                                            std::map<ReuseID, GroupEntry>* reusable_groups,
                                            std::mutex* reusable_groups_mutex,
                                            GroupEntry* group_entry, u64* bytes_written)
 {
-  for (const OutputParametersEntry& entry : parameters.entries)
+  for (OutputParametersEntry& entry : *entries)
   {
-    if (entry.reuse_id)
+    TryReuse(reusable_groups, reusable_groups_mutex, &entry);
+    if (entry.reused_group)
     {
-      std::lock_guard guard(*reusable_groups_mutex);
-      const auto it = reusable_groups->find(*entry.reuse_id);
-      if (it != reusable_groups->end())
-      {
-        *group_entry = it->second;
-        ++group_entry;
-        continue;
-      }
+      *group_entry = *entry.reused_group;
+      ++group_entry;
+      continue;
     }
 
     const size_t data_size = entry.exception_lists.size() + entry.main_data.size();
@@ -2060,7 +2089,7 @@ WIAFileReader::ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
 
   const auto output = [&](OutputParameters parameters) {
     const ConversionResultCode result =
-        Output(parameters, outfile, &reusable_groups, &reusable_groups_mutex,
+        Output(&parameters.entries, outfile, &reusable_groups, &reusable_groups_mutex,
                &group_entries[parameters.group_index], &bytes_written);
 
     if (result != ConversionResultCode::Success)

@@ -479,6 +479,7 @@ private:
     std::vector<u8> exception_lists;
     std::vector<u8> main_data;
     std::optional<ReuseID> reuse_id;
+    std::optional<GroupEntry> reused_group;
   };
 
   struct OutputParameters
@@ -509,6 +510,8 @@ private:
   static void SetUpCompressor(std::unique_ptr<Compressor>* compressor,
                               WIACompressionType compression_type, int compression_level,
                               WIAHeader2* header_2);
+  static bool TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
+                       std::mutex* reusable_groups_mutex, OutputParametersEntry* entry);
   static ConversionResult<OutputParameters>
   ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
                      const std::vector<PartitionEntry>& partition_entries,
@@ -516,7 +519,8 @@ private:
                      std::map<ReuseID, GroupEntry>* reusable_groups,
                      std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
                      u64 exception_lists_per_chunk, bool compressed_exception_lists);
-  static ConversionResultCode Output(const OutputParameters& parameters, File::IOFile* outfile,
+  static ConversionResultCode Output(std::vector<OutputParametersEntry>* entries,
+                                     File::IOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
                                      u64* bytes_written);
