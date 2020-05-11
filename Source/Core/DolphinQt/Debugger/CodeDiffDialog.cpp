@@ -54,21 +54,24 @@ void CodeDiffDialog::CreateWidgets()
   auto& settings = Settings::GetQSettings();
   restoreGeometry(settings.value(QStringLiteral("diffdialog/geometry")).toByteArray());
   auto* btns_layout = new QGridLayout;
-  m_exclude_btn = new QPushButton(tr("Exclude"));
-  m_include_btn = new QPushButton(tr("Include"));
-  m_record_btn = new QPushButton(tr("Record"));
+  m_exclude_btn = new QPushButton(tr("Code did not get executed"));
+  m_include_btn = new QPushButton(tr("Code has been executed"));
+  m_record_btn = new QPushButton(tr("New Recording"));
   m_record_btn->setCheckable(true);
   m_record_btn->setStyleSheet(
       QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
                      "border-width: 3px; border-color: rgb(150,0,0); color: rgb(255, 255, 255);}"));
+
+  m_exclude_btn->setEnabled(false);
+  m_include_btn->setEnabled(false);
 
   btns_layout->addWidget(m_exclude_btn, 0, 0);
   btns_layout->addWidget(m_include_btn, 0, 1);
   btns_layout->addWidget(m_record_btn, 0, 2);
 
   auto* labels_layout = new QHBoxLayout;
-  m_exclude_size_label = new QLabel(tr("Excluded"));
-  m_include_size_label = new QLabel(tr("Included"));
+  m_exclude_size_label = new QLabel(tr("Excluded: 0"));
+  m_include_size_label = new QLabel(tr("Included: 0"));
 
   btns_layout->addWidget(m_exclude_size_label, 1, 0);
   btns_layout->addWidget(m_include_size_label, 1, 1);
@@ -108,6 +111,10 @@ void CodeDiffDialog::ClearData()
     m_record_btn->toggle();
   ClearBlockCache();
   m_output_list->clear();
+  m_exclude_size_label->setText(QString::fromStdString("Excluded: 0"));
+  m_include_size_label->setText(QString::fromStdString("Included: 0"));
+  m_exclude_btn->setEnabled(false);
+  m_include_btn->setEnabled(false);
   std::vector<Diff>().swap(m_include);
   std::vector<Diff>().swap(m_exclude);
   JitInterface::SetProfilingState(JitInterface::ProfilingState::Disabled);
@@ -135,12 +142,16 @@ void CodeDiffDialog::OnRecord(bool enabled)
     ClearBlockCache();
     m_record_btn->setText(tr("Recording..."));
     state = JitInterface::ProfilingState::Enabled;
+    m_exclude_btn->setEnabled(true);
+    m_include_btn->setEnabled(true);
   }
   else
   {
     ClearBlockCache();
-    m_record_btn->setText(tr("Start Recording"));
+    m_record_btn->setText(tr("New Recording"));
     state = JitInterface::ProfilingState::Disabled;
+    m_exclude_btn->setEnabled(false);
+    m_include_btn->setEnabled(false);
   }
 
   m_record_btn->update();
@@ -283,8 +294,10 @@ void CodeDiffDialog::Update(bool include)
 
     m_output_list->addItem(item);
   }
-  m_exclude_size_label->setText(QString::number(m_exclude.size()));
-  m_include_size_label->setText(QString::number(m_include.size()));
+  m_exclude_size_label->setText(QString::fromStdString("Excluded: ") +
+                                QString::number(m_exclude.size()));
+  m_include_size_label->setText(QString::fromStdString("Included: ") +
+                                QString::number(m_include.size()));
 
   JitInterface::ClearCache();
   if (old_state == Core::State::Running)
@@ -297,10 +310,10 @@ void CodeDiffDialog::InfoDisp()
       QStringLiteral(
           "Used to find functions based on when they should be running. Similar to Cheat Engine "
           "Ultimap.\n"
-          "A symbol map must be loaded prior to use.\n\nRecord Functions: will "
+          "A symbol map must be loaded prior to use.\n\nStart Recording: will "
           "keep track of what functions run. Stop and start again to reset current "
-          "recording.\nExclude: will add recorded functions to an exclude "
-          "list, then reset the recording list.\nInclude: will add "
+          "recording.\n'Code did not get executed': will add recorded functions to an exclude "
+          "list, then reset the recording list.\nCode has been executed: will add "
           "recorded function to an include list, then reset the recording list.\nAfter you use "
           "both "
           "exclude and include once, the "
@@ -315,8 +328,8 @@ void CodeDiffDialog::InfoDisp()
           "results.\nIncludes should "
           "have short recordings focusing on what you want.\nAlso note, pressing include multiple "
           "times will never increase the include list's size.\n   Pressing include twice will only "
-          "keep functions that ran for both recordings.\n\nRight click -> blr will attempt to skip "
-          "the function by placing a blr at the top of the symbol."),
+          "keep functions that ran for both recordings.\n\nRight click -> Set blr will attempt to "
+          "skip the function by placing a blr at the top of the symbol."),
       m_output_list);
 }
 
@@ -324,7 +337,7 @@ void CodeDiffDialog::OnContextMenu()
 {
   QMenu* menu = new QMenu(this);
   menu->addAction(tr("&Go to start of function"), this, &CodeDiffDialog::OnGoTop);
-  menu->addAction(tr("Toggle &blr"), this, &CodeDiffDialog::OnToggleBLR);
+  menu->addAction(tr("Set &blr"), this, &CodeDiffDialog::OnSetBLR);
   menu->addAction(tr("&Delete"), this, &CodeDiffDialog::OnDelete);
   menu->exec(QCursor::pos());
 }
@@ -333,6 +346,8 @@ void CodeDiffDialog::OnGoTop()
 {
   auto item = m_output_list->currentItem();
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(item->data(Qt::UserRole).toUInt());
+  if (!symbol)
+    return;
   m_code_widget->SetAddress(symbol->address, CodeViewWidget::SetAddressUpdate::WithUpdate);
 }
 
@@ -340,26 +355,19 @@ void CodeDiffDialog::OnDelete()
 {
   // Delete from include and listwidget.
   int remove_item = m_output_list->row(m_output_list->currentItem());
+  if (!remove_item)
+    return;
   m_include.erase(m_include.begin() + remove_item - 1);
   m_output_list->takeItem(remove_item);
 }
 
-void CodeDiffDialog::OnToggleBLR()
+void CodeDiffDialog::OnSetBLR()
 {
-  // Get address at top of function (hopefully) and blr it.
   auto item = m_output_list->currentItem();
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(item->data(Qt::UserRole).toUInt());
-
-  PowerPC::debug_interface.UnsetPatch(symbol->address);
-
-  if (PowerPC::HostRead_U32(symbol->address) != 0x4e800020)
-  {
-    PowerPC::debug_interface.SetPatch(symbol->address, 0x4e800020);
-    item->setForeground(QBrush(Qt::red));
-    m_code_widget->Update();
-  }
-  else
-  {
-    item->setForeground(QBrush(Qt::black));
-  }
+  if (!symbol)
+    return;
+  PowerPC::debug_interface.SetPatch(symbol->address, 0x4E800020);
+  item->setForeground(QBrush(Qt::red));
+  m_code_widget->Update();
 }
