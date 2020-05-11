@@ -34,9 +34,11 @@
 
 #import "DonationNoticeViewController.h"
 
+#ifdef CRASHLYTICS
 #import <Firebase/Firebase.h>
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
+#endif
 
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
@@ -404,15 +406,16 @@
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
   cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
-  
+
+#ifdef CRASHLYTICS
   [FIRApp configure];
-  
 #if !defined(DEBUG) && !TARGET_OS_SIMULATOR
   [FIRAnalytics setAnalyticsCollectionEnabled:SConfig::GetInstance().m_analytics_enabled];
   [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:[[NSUserDefaults standardUserDefaults] boolForKey:@"crash_reporting_enabled"]];
 #else
   [FIRAnalytics setAnalyticsCollectionEnabled:false];
   [[FIRCrashlytics crashlytics] setCrashlyticsCollectionEnabled:false];
+#endif
 #endif
   
   NSString* last_version = [[NSUserDefaults standardUserDefaults] stringForKey:@"last_version"];
@@ -424,11 +427,13 @@
 #else
     app_type = @"non-jailbroken";
 #endif
-  
+
+#ifdef CRASHLYTICS
     [FIRAnalytics logEventWithName:@"version_start" parameters:@{
       @"type" : app_type,
       @"version" : version_str
     }];
+#endif
     
     [[NSUserDefaults standardUserDefaults] setObject:version_str forKey:@"last_version"];
   }
@@ -447,8 +452,10 @@
   {
     Core::SetState(Core::State::Running);
   }
-  
+
+#ifdef CRASHLYTICS
   [[FIRCrashlytics crashlytics] setCustomValue:@"active" forKey:@"app-state"];
+#endif
 }
 
 - (void)applicationWillResignActive:(UIApplication*)application
@@ -461,8 +468,10 @@
   // Write out the configuration in case we don't get a chance later
   Config::Save();
   SConfig::GetInstance().SaveSettings();
-  
+
+#ifdef CRASHLYTICS
   [[FIRCrashlytics crashlytics] setCustomValue:@"inactive" forKey:@"app-state"];
+#endif
 }
 
 - (void)applicationDidEnterBackground:(UIApplication*)application

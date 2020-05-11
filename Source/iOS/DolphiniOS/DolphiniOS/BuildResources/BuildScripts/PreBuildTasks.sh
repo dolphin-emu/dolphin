@@ -33,3 +33,8 @@ bartycrouch update -x
 INFO_FILE=$PROJECT_DIR/DolphiniOS/Info.plist
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$INFO_FILE")
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(($BUILD_NUMBER + 1))" "$INFO_FILE"
+
+# Copy a dummy google service info plist if it doesn't exist (if we don't care about firebase)
+if [ ! -f "$PROJECT_DIR/DolphiniOS/GoogleService-Info.plist" ]; then
+  cp $PROJECT_DIR/DolphiniOS/GoogleService-Info-Placeholder.plist $PROJECT_DIR/DolphiniOS/GoogleService-Info.plist
+fi
