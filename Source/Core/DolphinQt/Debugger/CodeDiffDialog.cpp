@@ -56,7 +56,7 @@ void CodeDiffDialog::CreateWidgets()
   auto* btns_layout = new QGridLayout;
   m_exclude_btn = new QPushButton(tr("Code did not get executed"));
   m_include_btn = new QPushButton(tr("Code has been executed"));
-  m_record_btn = new QPushButton(tr("New Recording"));
+  m_record_btn = new QPushButton(tr("Start Recording"));
   m_record_btn->setCheckable(true);
   m_record_btn->setStyleSheet(
       QStringLiteral("QPushButton:checked { background-color: rgb(150, 0, 0); border-style: solid; "
@@ -76,16 +76,16 @@ void CodeDiffDialog::CreateWidgets()
   btns_layout->addWidget(m_exclude_size_label, 1, 0);
   btns_layout->addWidget(m_include_size_label, 1, 1);
 
-  m_output_list = new QListWidget();
-  m_output_list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-  m_output_list->setContextMenuPolicy(Qt::CustomContextMenu);
+  m_matching_results_list = new QListWidget();
+  m_matching_results_list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+  m_matching_results_list->setContextMenuPolicy(Qt::CustomContextMenu);
   m_reset_btn = new QPushButton(tr("Reset All"));
   m_reset_btn->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   auto* layout = new QVBoxLayout();
   layout->addLayout(btns_layout);
   layout->addLayout(labels_layout);
-  layout->addWidget(m_output_list);
+  layout->addWidget(m_matching_results_list);
   layout->addWidget(m_reset_btn);
 
   setLayout(layout);
@@ -96,12 +96,12 @@ void CodeDiffDialog::ConnectWidgets()
   connect(m_record_btn, &QPushButton::toggled, this, &CodeDiffDialog::OnRecord);
   connect(m_include_btn, &QPushButton::pressed, [this]() { Update(true); });
   connect(m_exclude_btn, &QPushButton::pressed, [this]() { Update(false); });
-  connect(m_output_list, &QListWidget::itemClicked, [this](QListWidgetItem* item) {
+  connect(m_matching_results_list, &QListWidget::itemClicked, [this](QListWidgetItem* item) {
     m_code_widget->SetAddress(item->data(Qt::UserRole).toUInt(),
                               CodeViewWidget::SetAddressUpdate::WithUpdate);
   });
   connect(m_reset_btn, &QPushButton::pressed, this, &CodeDiffDialog::ClearData);
-  connect(m_output_list, &CodeDiffDialog::customContextMenuRequested, this,
+  connect(m_matching_results_list, &CodeDiffDialog::customContextMenuRequested, this,
           &CodeDiffDialog::OnContextMenu);
 }
 
@@ -110,7 +110,7 @@ void CodeDiffDialog::ClearData()
   if (m_record_btn->isChecked())
     m_record_btn->toggle();
   ClearBlockCache();
-  m_output_list->clear();
+  m_matching_results_list->clear();
   m_exclude_size_label->setText(QString::fromStdString("Excluded: 0"));
   m_include_size_label->setText(QString::fromStdString("Included: 0"));
   m_exclude_btn->setEnabled(false);
@@ -148,7 +148,7 @@ void CodeDiffDialog::OnRecord(bool enabled)
   else
   {
     ClearBlockCache();
-    m_record_btn->setText(tr("New Recording"));
+    m_record_btn->setText(tr("Start Recording"));
     state = JitInterface::ProfilingState::Disabled;
     m_exclude_btn->setEnabled(false);
     m_include_btn->setEnabled(false);
@@ -277,9 +277,9 @@ void CodeDiffDialog::Update(bool include)
   // Main process
   OnIncludeExclude(include);
 
-  m_output_list->clear();
+  m_matching_results_list->clear();
 
-  new QListWidgetItem(tr("Address\tHits\tSymbol"), m_output_list);
+  new QListWidgetItem(tr("Address\tHits\tSymbol"), m_matching_results_list);
 
   for (auto& iter : m_include)
   {
@@ -289,10 +289,10 @@ void CodeDiffDialog::Update(bool include)
     QString tmp_out =
         QString::fromStdString(StringFromFormat("%08x\t%i\t", iter.addr, iter.hits)) + fix_sym;
 
-    auto* item = new QListWidgetItem(tmp_out, m_output_list);
+    auto* item = new QListWidgetItem(tmp_out, m_matching_results_list);
     item->setData(Qt::UserRole, iter.addr);
 
-    m_output_list->addItem(item);
+    m_matching_results_list->addItem(item);
   }
   m_exclude_size_label->setText(QString::fromStdString("Excluded: ") +
                                 QString::number(m_exclude.size()));
@@ -311,26 +311,32 @@ void CodeDiffDialog::InfoDisp()
           "Used to find functions based on when they should be running. Similar to Cheat Engine "
           "Ultimap.\n"
           "A symbol map must be loaded prior to use.\n\n'Start Recording': will "
-          "keep track of what functions run. Stop and start again to reset current "
-          "recording.\n'Code did not get executed': will add recorded functions to an exclude "
-          "list, then reset the recording list.\n'Code has been executed': will add "
-          "recorded function to an include list, then reset the recording list.\nAfter you use "
+          "keep track of what functions run. Clicking 'Recording...' again will erase current "
+          "recording without any change to the lists.\n'Code did not get executed': click while "
+          "recording, will add recorded functions to an exclude "
+          "list, then reset the recording list.\n'Code has been executed': click while recording, "
+          "will add "
+          "recorded function to an include list, then reset the recording list.\n\nAfter you use "
           "both "
-          "exclude and include once, the "
-          "exclude list will be subtracted\nfrom the include list and any includes left over "
-          "will "
-          "be displayed.\nYou can continue to use include/exclude to narrow down the "
-          "results.\n\nExample: "
+          "exclude and include once, the exclude list will be subtracted\nfrom the include list "
+          "and "
+          "any includes left over will be displayed.\nYou can continue to use "
+          "'Code has been executed'/'Code did not get executed' to narrow down the "
+          "results.\n\n\nExample: "
           "You want to find a function that runs when HP is modified.\n1.  Start recording and "
-          "play "
-          "the game without letting HP be modified, then press Exclude.\n2.  Immediately "
-          "gain/lose HP and press Include.\n3.  Repeat 1 or 2 to narrow down the "
+          "play the game without letting HP be modified, then press 'Code did not get "
+          "executed'.\n2. "
+          "Immediately gain/lose HP and press 'Code has been executed'.\n3.  Repeat 1 or 2 to "
+          "narrow down the "
           "results.\nIncludes should "
-          "have short recordings focusing on what you want.\nAlso note, pressing include multiple "
-          "times will never increase the include list's size.\n   Pressing include twice will only "
-          "keep functions that ran for both recordings.\n\nRight click -> Set blr will attempt to "
+          "have short recordings focusing on what you want.\nAlso note, pressing 'Code has been "
+          "executed' multiple "
+          "times will never increase the include list's size.\n   Pressing 'Code has been "
+          "executed' twice will only "
+          "keep functions that ran for both recordings.\n\nRight click -> 'Set blr' will attempt "
+          "to "
           "skip the function by placing a blr at the top of the symbol."),
-      m_output_list);
+      m_matching_results_list);
 }
 
 void CodeDiffDialog::OnContextMenu()
@@ -344,7 +350,9 @@ void CodeDiffDialog::OnContextMenu()
 
 void CodeDiffDialog::OnGoTop()
 {
-  auto item = m_output_list->currentItem();
+  auto item = m_matching_results_list->currentItem();
+  if (!item)
+    return;
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(item->data(Qt::UserRole).toUInt());
   if (!symbol)
     return;
@@ -354,16 +362,18 @@ void CodeDiffDialog::OnGoTop()
 void CodeDiffDialog::OnDelete()
 {
   // Delete from include and listwidget.
-  int remove_item = m_output_list->row(m_output_list->currentItem());
-  if (!remove_item)
+  int remove_item = m_matching_results_list->row(m_matching_results_list->currentItem());
+  if (!remove_item || remove_item == -1)
     return;
   m_include.erase(m_include.begin() + remove_item - 1);
-  m_output_list->takeItem(remove_item);
+  m_matching_results_list->takeItem(remove_item);
 }
 
 void CodeDiffDialog::OnSetBLR()
 {
-  auto item = m_output_list->currentItem();
+  auto item = m_matching_results_list->currentItem();
+  if (!item)
+    return;
   Common::Symbol* symbol = g_symbolDB.GetSymbolFromAddr(item->data(Qt::UserRole).toUInt());
   if (!symbol)
     return;

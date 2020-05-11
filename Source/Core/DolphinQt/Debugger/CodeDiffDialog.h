@@ -50,14 +50,13 @@ private:
   void OnDelete();
   void OnSetBLR();
 
-  QListWidget* m_output_list;
+  QListWidget* m_matching_results_list;
   QLabel* m_exclude_size_label;
   QLabel* m_include_size_label;
   QPushButton* m_exclude_btn;
   QPushButton* m_include_btn;
   QPushButton* m_record_btn;
   QPushButton* m_reset_btn;
-  QPushButton* m_help_btn;
   CodeWidget* m_code_widget;
 
   std::vector<Diff> m_exclude;
