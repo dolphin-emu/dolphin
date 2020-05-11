@@ -310,10 +310,10 @@ void CodeDiffDialog::InfoDisp()
       QStringLiteral(
           "Used to find functions based on when they should be running. Similar to Cheat Engine "
           "Ultimap.\n"
-          "A symbol map must be loaded prior to use.\n\nStart Recording: will "
+          "A symbol map must be loaded prior to use.\n\n'Start Recording': will "
           "keep track of what functions run. Stop and start again to reset current "
           "recording.\n'Code did not get executed': will add recorded functions to an exclude "
-          "list, then reset the recording list.\nCode has been executed: will add "
+          "list, then reset the recording list.\n'Code has been executed': will add "
           "recorded function to an include list, then reset the recording list.\nAfter you use "
           "both "
           "exclude and include once, the "
