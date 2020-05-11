@@ -1,0 +1,2622 @@
+"
+
+Because GameCube disc images contain little verification data, there may be problems that Dolphin is unable to detect." = "
+
+Eftersom GameCube-skivavbildningar inte innehåller mycket verifieringsdata kan det finnas problem som Dolphin inte kan upptäcka.";
+"
+
+Because this title is not for retail Wii consoles, Dolphin cannot verify that it hasn't been tampered with." = "
+
+På grund av att detta är en utvecklarversion av en titel kan Dolphin inte verifiera att den inte har mixtrats med.";
+"
+
+WARNING: Fixing this NAND requires the deletion of titles that have incomplete data on the NAND, including all associated save data. By continuing, the following title(s) will be removed:
+
+%1
+Launching these titles may also fix the issues." = "
+
+VARNING: För att åtgärda det här NAND-minnet krävs att spel som har ofullständiga data lagrad på NAND-minnet tas bort, även dess spardata. Om du väljer att fortsätta kommer följande spel att tas bort:
+
+%1
+Genom att starta spelen kan problemen eventuellt lösas.";
+" (Disc %1)" = " (skiva %1)";
+"! Not" = "! Icke";
+"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "\"%s\" kunde inte rensas på onödig data. Den är antagligen korrupt.";
+"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" är redan komprimerad! Den kan inte komprimeras ytterligare.";
+"\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\" är en ogiltig GCM/ISO-fil eller så är filen inte en GC/Wii ISO.";
+"%" = "%";
+"% Modulo" = "% Modulo";
+"%1
+wants to join your party." = "%1
+vill vara med i din grupp.";
+"%1 %" = "%1 %";
+"%1 % (%2 MHz)" = "%1 % (%2 MHz)";
+"%1 (%2)" = "%1 (%2)";
+"%1 (Copy)" = "%1 (kopia)";
+"%1 (Disc %2, Revision %3)" = "%1 (skiva %2, revision %3)";
+"%1 (Revision %3)" = "%1 (revision %3)";
+"%1 FIFO bytes
+%2 memory bytes
+%3 frames" = "%1 FIFO-byte
+%2 minnesbyte
+%3 bildrutor";
+"%1 Free Blocks; %2 Free Dir Entries" = "%1 lediga block; %2 lediga filkatalogsplatser";
+"%1 Graphics Configuration" = "%1-grafikkonfigurering";
+"%1 Match(es)" = "%1 matchning(ar)";
+"%1 doesn't support this feature on your system." = "%1 stöder inte den här funktionen på ditt system.";
+"%1 doesn't support this feature." = "%1 stöder inte den här funktionen.";
+"%1 frame(s)
+%2 object(s)
+Current Frame: %3" = "%1 bildrutor
+%2 objekt
+Nuvarande bildruta: %3";
+"%1 has joined" = "%1 har gått med";
+"%1 has left" = "%1 har gått ut";
+"%1 is now golfing" = "%1 golfar nu";
+"%1 ms" = "%1 ms";
+"%1 session found" = "%1 session hittades";
+"%1 sessions found" = "%1 sessioner hittades";
+"%1% (Normal Speed)" = "%1% (normal hastighet)";
+"%1[%2]: %3" = "%1[%2]: %3";
+"%1[%2]: %3 %" = "%1[%2]: %3 %";
+"%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 MiB";
+"%i of %i blocks. Compression ratio %i%%" = "%i av %i block. Komprimeringsgrad %i%%";
+"%s (Masterpiece)" = "%s (Masterpiece)";
+"%s IPL found in %s directory. The disc might not be recognized" = "%s-IPL hittades i %s-mappen. Det kan hända att skivan inte går att känna igen";
+"%s is not a directory, failed to move to *.original.
+ Verify your write permissions or move the file outside of Dolphin" = "%s är inte en mapp och kunde inte flyttas till *.original.
+Kontrollera rättigheterna för att skriva eller flytta filen utanför Dolphin.";
+"%s was not a directory, moved to *.original" = "%s var inte en mapp. Den har flyttats till *.original";
+"& And" = "& Och";
+"&About" = "&Om";
+"&Add Memory Breakpoint" = "&Lägg till minnesbrytpunkt";
+"&Add New Code..." = "&Lägg till ny kod…";
+"&Add function" = "&Lägg till funktion";
+"&Add..." = "&Lägg till...";
+"&Audio Settings" = "&Ljudinställningar";
+"&Auto Update:" = "&Uppdatera automatiskt:";
+"&Automatic Start" = "&Automatisk start";
+"&Boot from DVD Backup" = "&Starta från bränd DVD";
+"&Breakpoints" = "&Brytpunkter";
+"&Browse..." = "&Bläddra...";
+"&Bug Tracker" = "&Bugghanterare";
+"&Cancel" = "&Avbryt";
+"&Cheats Manager" = "&Fuskhanterare";
+"&Check for Updates..." = "&Leta efter uppdateringar...";
+"&Clear Symbols" = "&Rensa symboler";
+"&Clone..." = "&Klona...";
+"&Code" = "&Kod";
+"&Controller Settings" = "&Kontrollinställningar";
+"&Copy address" = "&Kopiera adress";
+"&Delete" = "&Radera";
+"&Delete Watch" = "&Ta bort bevakning";
+"&Edit Code..." = "&Redigera kod…";
+"&Edit..." = "&Redigera...";
+"&Eject Disc" = "&Mata ut skiva";
+"&Emulation" = "&Emulering";
+"&Export..." = "&Exportera...";
+"&File" = "&Arkiv";
+"&Font..." = "&Teckensnitt…";
+"&Frame Advance" = "Gå fram en &bildruta";
+"&Generate Symbols From" = "&Generera symboler från";
+"&GitHub Repository" = "Källkoden på &GitHub";
+"&Graphics Settings" = "G&rafikinställningar";
+"&Help" = "&Hjälp";
+"&Hotkey Settings" = "&Kortkommandoinställningar";
+"&Import..." = "&Importera...";
+"&Insert blr" = "&Sätt in blr";
+"&JIT" = "&JIT";
+"&Language:" = "&Språk:";
+"&Load State" = "L&äs in snabbsparning";
+"&Load Symbol Map" = "&Ladda symbol-map";
+"&Lock Widgets In Place" = "&Lås fast gränssnittselement";
+"&Memory" = "&Minne";
+"&Movie" = "&Inspelning";
+"&Open..." = "&Öppna...";
+"&Options" = "A&lternativ";
+"&Patch HLE Functions" = "&Patcha HLE-funktioner";
+"&Pause" = "&Pausa";
+"&Play" = "&Spela";
+"&Properties" = "&Egenskaper";
+"&Read-Only Mode" = "S&krivskyddat läge";
+"&Registers" = "&Register";
+"&Remove" = "&Ta bort";
+"&Remove Code" = "&Ta bort kod";
+"&Rename symbol" = "&Byt namn på symbol";
+"&Reset" = "&Återställ";
+"&Resource Pack Manager" = "&Resurspaketshanterare";
+"&Save Symbol Map" = "&Spara symbol-map";
+"&Speed Limit:" = "&Hastighetsbegränsning:";
+"&Stop" = "S&toppa";
+"&Theme:" = "&Tema:";
+"&Tools" = "&Verktyg";
+"&View" = "&Visa";
+"&Watch" = "&Bevakning";
+"&Website" = "&Webbplats";
+"&Wiki" = "&Wiki";
+"'%1' not found, no symbol names generated" = "'%1' hittades inte, inga symbolnamn genererade";
+"'%1' not found, scanning for common functions instead" = "'%1' hittades inte, skannar efter vanliga funktioner istället";
+"(None)" = "(Ingen)";
+"(host)" = "(värd)";
+"(off)" = "(av)";
+"(ppc)" = "(ppc)";
+"* Multiply" = "* Multiplicera";
+"+ Add" = "+ Addera";
+", Comma" = ", Komma";
+"- Subtract" = "- Subtrahera";
+"--> %1" = "--> %1";
+"..." = "...";
+"/ Divide" = "/ Dividera";
+"16-bit" = "16 bitar";
+"16-bit Integer" = "16-bitars heltal";
+"16:9" = "16:9";
+"16x" = "16x";
+"1x" = "1x";
+"2x" = "2x";
+"2x Native (1280x1056) for 720p" = "2x ursprunglig (1280x1056) för 720p";
+"32-bit" = "32 bitar";
+"32-bit Integer" = "32-bitars heltal";
+"3D" = "3D";
+"3D Depth" = "3D-djup";
+"3x Native (1920x1584) for 1080p" = "3x ursprunglig (1920x1584) för 1080p";
+"4:3" = "4:3";
+"4x" = "4x";
+"4x Native (2560x2112) for 1440p" = "4x ursprunglig (2560x2112) för 1440p";
+"5x Native (3200x2640)" = "5x ursprunglig (3200x2640)";
+"6x Native (3840x3168) for 4K" = "6x ursprunglig (3840x3168) för 4K";
+"7x Native (4480x3696)" = "7x ursprunglig (4480x3696)";
+"8-bit" = "8 bitar";
+"8-bit Integer" = "8-bitars heltal";
+"8x" = "8x";
+"8x Native (5120x4224) for 5K" = "8x ursprunglig (5120x4224) för 5K";
+"< Less-than" = "< Mindre än";
+"<Nothing>" = "<Ingenting>";
+"<System Language>" = "<Systemspråk>";
+"<h2>A new version of Dolphin is available!</h2>Dolphin %1 is available for download. You are running %2.<br> Would you like to update?<br><h4>Release Notes:</h4>" = "<h2>En ny version av Dolphin är tillgänglig!</h2>Dolphin %1 är tillgänglig för nedladdning. Du använder %2.<br> Vill du uppdatera?<br><h4>Uppdateringsbeskrivning:</h4>";
+"> Greater-than" = "> Större än";
+"A NetPlay Session is already in progress!" = "En nätspelssession pågår redan!";
+"A different version of this title is already installed on the NAND.
+
+Installed version: %u
+WAD version: %u
+
+Installing this WAD will replace it irreversibly. Continue?" = "En annan version av denna titel är redan installerad på NAND-minnet.
+
+Installerad version: %u
+WAD-version: %u
+
+Om du installerar denna WAD kommer titeln skrivas över. Detta går inte att ångra. Vill du fortsätta?";
+"A disc is already about to be inserted." = "En skiva håller redan på att sättas in.";
+"A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "En nedstängning har redan påbörjats. Osparad data kan gå förlorad om du avslutar emuleringen innan den slutförs. Vill du tvinga emuleringen att avslutas?";
+"A sync can only be triggered when a Wii game is running." = "Det går bara att synka när ett Wii-spel körs.";
+"ALERT:
+
+All players must use the same Dolphin version.
+If enabled, SD cards must be identical between players.
+If DSP LLE is used, DSP ROMs must be identical between players.
+If a game is hanging on boot, it may not support Dual Core Netplay. Disable Dual Core.
+If connecting directly, the host must have the chosen UDP port open/forwarded!
+
+Wii Remote support in netplay is experimental and may not work correctly.
+Use at your own risk.
+" = "OBS:
+
+Alla spelare måste använda samma version av Dolphin.
+Om SD-kort används måste de vara identiska mellan spelarna.
+Om DSP LLE används måste DSP-ROM-filerna vara identiska mellan spelarna.
+Om ett spel hänger sig vid start stöder spelet kanske inte nätspel med dubbla kärnor. Stäng av dubbla kärnor.
+Om du ansluter direkt måste värden ha den valda UDP-porten öppen/vidarebefordrad.
+
+Wii-fjärrkontroller i nätspel är experimentellt och fungerar inte nödvändigtvis korrekt.
+Använd det på egen risk.
+";
+"AR Code" = "AR-kod";
+"AR Codes" = "AR-koder";
+"ASCII" = "ASCII";
+"Abort" = "Avbryt";
+"About Dolphin" = "Om Dolphin";
+"Accelerometer" = "Accelerometer";
+"Accuracy:" = "Precision:";
+"Action" = "Handling";
+"Action Replay Code Decryption Error:
+Parity Check Failed
+
+Culprit Code:
+%s" = "Dekrypteringsfel av Action Replay-kod:
+Paritetskontroll misslyckades
+
+Orsakande kod:
+%s";
+"Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)" = "Action Replay-fel: Ogiltig storlek (%08x : adress = %08x) i 'Lägg till kod' (%s)";
+"Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide (%s)" = "Action Replay-fel: Ogiltig storlek (%08x : adress = %08x) i 'Fill and Slide' (%s)";
+"Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And Fill (%s)" = "Action Replay-fel: Ogiltig storlek (%08x : adress = %08x) i 'Ram Write And Fill' (%s)";
+"Action Replay Error: Invalid size (%08x : address = %08x) in Write To Pointer (%s)" = "Action Replay-fel: Ogiltig storlek (%08x : adress = %08x) i 'Write To Pointer' (%s)";
+"Action Replay Error: Invalid value (%08x) in Memory Copy (%s)" = "Action Replay-fel: Ogiltigt värde (%08x) i minneskopia (%s)";
+"Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)
+Master codes are not needed. Do not use master codes." = "Action Replay-fel: Masterkod och Skriv Till CCXXXXXX är inte implementerade (%s)
+Masterkoder behövs inte. Använd inte masterkoder.";
+"Action Replay Error: invalid AR code line: %s" = "Action Replay-fel: ogiltig AR-kodrad: %s";
+"Action Replay: Conditional Code: Invalid Size %08x (%s)" = "Action Replay: Tillståndskod: Ogiltig storlek %08x (%s)";
+"Action Replay: Invalid Normal Code Type %08x (%s)" = "Action Replay: Ogiltig typ av normalkod %08x (%s)";
+"Action Replay: Normal Code %i: Invalid subtype %08x (%s)" = "Action Replay: Normalkod %i: Ogiltig undertyp %08x (%s)";
+"Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "Action Replay: Normalkod 0: Ogiltig undertyp %08x (%s)";
+"Activate NetPlay Chat" = "Aktivera nätspelschatt";
+"Active" = "Aktiv";
+"Adapter Detected" = "Adapter upptäcktes";
+"Adapter:" = "Adapter:";
+"Add" = "Lägg till";
+"Add New USB Device" = "Lägg till ny USB-enhet";
+"Add a Breakpoint" = "Lägg till brytpunkt";
+"Add a Memory Breakpoint" = "Lägg till en minnesbrytpunkt";
+"Add to &watch" = "Lägg till &bevakning";
+"Add to Watch" = "Lägg till bevakning";
+"Add..." = "Lägg till...";
+"Address" = "Adress";
+"Address Space" = "Adressutrymme";
+"Address:" = "Adress:";
+"Adjusts the accuracy at which the GPU receives texture updates from RAM.
+
+The \"Safe\" setting eliminates the likelihood of the GPU missing texture updates from RAM. Lower accuracies cause in-game text to appear garbled in certain games.
+
+If unsure, select the rightmost value." = "Justerar noggrannheten för när grafikprocessorn hämtar texturuppdateringar från RAM.
+
+Inställningen \"Säker\" eliminerar sannolikheten att grafikprocessorn saknar texturuppdateringar från RAM. En lägre noggrannhet får text i vissa spel att se förvrängd ut.
+
+Om du är osäker kan du välja värdet längst till höger.";
+"Adjusts the emulated CPU's clock rate.
+
+Higher values may make variable-framerate games run at a higher framerate, at the expense of performance. Lower values may activate a game's internal frameskip, potentially improving performance.
+
+WARNING: Changing this from the default (100%) can and will break games and cause glitches. Do so at your own risk. Please do not report bugs that occur with a non-default clock." = "Justerar den emulerade CPU:ns klockfrekvens.
+
+Högre värden kan få spel med olåst bildfrekvens att köras med högre bildfrekvens på bekostnad av prestanda. Lägre värden kan få spel att använda en lägre bildfrekvens, vilket potentiellt kan förbättra prestandan.
+
+VARNING: Risken att spel blir ospelbara och buggar uppstår är stor om detta ändras från standardvärdet (100%). Använd på egen risk. Rapportera inte buggar som uppstår när klockfrekvensen inte är inställd på standard.";
+"Advance Game Port" = "Advance Game Port";
+"Advanced" = "Avancerat";
+"Africa" = "Afrika";
+"All Files (*)" = "Alla filer (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;Alla filer (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;Alla filer (*)";
+"All Save States (*.sav *.s##);; All Files (*)" = "Alla snabbsparningar (*.sav *.s##);; Alla filer (*)";
+"All devices" = "Alla enheter";
+"All players' codes synchronized." = "Alla spelares koder har synkroniserats.";
+"All players' saves synchronized." = "Alla spelares koder har synkroniserats.";
+"Allow Mismatched Region Settings" = "Tillåt regionsinställningar som inte matchar";
+"Allow Usage Statistics Reporting" = "Tillåt rapportering av användningsstatistik";
+"Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
+
+Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
+
+If unsure, leave this unchecked. " = "Gör det möjligt att manipulera kameran i spelet. Flytta musen medan du håller ned högerklick för att panorera eller mittenklick för att rulla.
+
+Använd tangenterna WASD medan du håller ned SHIFT för att flytta kameran. Tryck på SHIFT+2 för att öka hastigheten eller SHIFT+1 för att sänka hastigheten. Tryck på SHIFT+R för att återställa kamera eller SHIFT+F för att återställa hastigheten.
+
+Om du är osäker kan du lämna detta omarkerat. ";
+"Alternate Input Sources" = "Alternativa inmatningskällor";
+"Always Connected" = "Alltid ansluten";
+"Always Hide Mouse Cursor" = "Dölj alltid muspekaren";
+"An error occurred.
+
+  Line: %d
+  File: %s
+
+Ignore and continue?" = "Ett fel uppstod.
+
+Rad: %d
+Fil: %s
+
+Vill du ignorera det och fortsätta?";
+"An inserted disc was expected but not found." = "En inmatad skiva förväntades men hittades inte.";
+"Anaglyph" = "Anaglyf";
+"Analyze" = "Analysera";
+"Angle" = "Vinkel";
+"Anisotropic Filtering:" = "Anisotropisk filtrering:";
+"Anti-Aliasing:" = "Kantutjämning:";
+"Any Region" = "Valfri region";
+"Append signature to" = "Lägg till signatur i";
+"Append to &Existing Signature File..." = "Lägg till i &existerande signaturfil...";
+"Appl&y Signature File..." = "Appli&cera signaturfil...";
+"Applies a post-processing effect after rendering a frame.
+
+If unsure, select (off)." = "Tillämpar en efterbehandlingseffekt när en bildruta har renderats.
+
+Om du är osäker kan du välja (av).";
+"Apploader Date:" = "Apploader-datum:";
+"Apply" = "Verkställ";
+"Apply signature file" = "Applicera signaturfil";
+"Arbitrary Mipmap Detection" = "Upptäck godtyckliga mipmaps";
+"Are you sure that you want to delete '%1'?" = "Vill du verkligen radera '%1'?";
+"Are you sure you want to delete this file?" = "Vill du verkligen radera den här filen?";
+"Are you sure you want to delete this pack?" = "Är du säker på att du vill radera det här paketet?";
+"Are you sure you want to quit NetPlay?" = "Är du säker på att du vill avsluta nätspelssessionen?";
+"Are you sure?" = "Är du säker?";
+"Aspect Ratio:" = "Bildförhållande:";
+"Assign Controller Ports" = "Tilldela kontrolluttag";
+"Assign Controllers" = "Tilldela kontroller";
+"Asynchronous (Skip Drawing)" = "Asynkron (rita inte)";
+"Asynchronous (Ubershaders)" = "Asynkron (übershaders)";
+"Attach MotionPlus" = "Anslut MotionPlus";
+"Audio" = "Ljud";
+"Audio Backend:" = "Ljudbackend:";
+"Audio Stretching Settings" = "Ljudsträckningsinställningar";
+"Australia" = "Australien";
+"Author" = "Skapare";
+"Authors" = "Författare";
+"Auto" = "Auto";
+"Auto (Multiple of 640x528)" = "Auto (multipel av 640x528)";
+"Auto Update Settings" = "Automatiska uppdateringar";
+"Auto internal resolution is not allowed in strict sync mode, as it depends on window size.
+
+Please select a specific internal resolution." = "Automatisk intern upplösning är inte tillåtet när strikt inställningssynkronisering används eftersom det är beroende av fönsterstorleken.
+
+Välj en specifik intern upplösning.";
+"Auto-Adjust Window Size" = "Autojustera fönsterstorlek";
+"Auto-Hide" = "Dölj automatiskt";
+"Automatically adjusts the window size to the internal resolution.
+
+If unsure, leave this unchecked." = "Justerar automatiskt fönsterstorleken till den interna upplösningen.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Auxiliary" = "ARAM";
+"B" = "B";
+"BAT incorrect. Dolphin will now exit" = "BAT är inkorrekt. Dolphin kommer nu avslutas";
+"BP register " = "BP-register";
+"Backend Multithreading" = "Flertrådning i backend";
+"Backend Settings" = "Backendinställningar";
+"Backend:" = "Backend:";
+"Background Input" = "Bakgrundsindata";
+"Backward" = "Tillbaka";
+"Bad address provided." = "Ogiltig adress angiven.";
+"Bad dump" = "Inkorrekt kopia";
+"Bad value provided." = "Ogiltigt värde angivet.";
+"Banner" = "Banner";
+"Banner Details" = "Bannerdetaljer";
+"Banner:" = "Banner:";
+"Bar" = "Svajarm";
+"Basic" = "Grundläggande";
+"Basic Settings" = "Grundläggande inställningar";
+"Bass" = "Bas";
+"Batch mode cannot be used without specifying a game to launch." = "Batchläget kan inte användas utan att ange ett spel att starta.";
+"Battery" = "Batteri";
+"Beta (once a month)" = "Beta (en gång i månaden)";
+"Bitrate (kbps):" = "Bithastighet (kbps):";
+"Blocks" = "Block";
+"Blue" = "Blå";
+"Blue Left" = "Blå vänster";
+"Blue Right" = "Blå höger";
+"Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "Bluetooth-genomsläppningsläge är påslaget, men Dolphin byggdes utan libusb. Genomsläppningsläge kan inte användas.";
+"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "Bluetooth-genomsläppningsläge är påslaget, men ingen Bluetooth-USB-enhet som kan användas hittades. Avbryter.";
+"Boot to Pause" = "Pausa vid start";
+"BootMii NAND backup file (*.bin);;All Files (*)" = "BootMii-NAND-kopia (*bin);;Alla filer (*)";
+"BootMii keys file (*.bin);;All Files (*)" = "BootMii-nyckelfil (*bin);;Alla filer (*)";
+"Borderless Fullscreen" = "Kantlös helskärm";
+"Bottom" = "Under";
+"Branch: %1" = "Gren: %1";
+"Break" = "Bryt";
+"Breakpoint" = "Brytpunkt";
+"Breakpoint encountered! Step out aborted." = "Brytpunkt påträffades! Urstegning avbruten.";
+"Breakpoints" = "Brytpunkter";
+"Broadband Adapter" = "Bredbandsadapter";
+"Broadband Adapter MAC address" = "MAC-adress för bredbandsadapter";
+"Browse &NetPlay Sessions...." = "Bläddra bland &nätspelssessioner...";
+"Buffer Size:" = "Buffertstorlek:";
+"Buffer size changed to %1" = "Buffertstorleken ändrades till %1";
+"Buffer:" = "Buffert:";
+"Button" = "Knapp";
+"Buttons" = "Knappar";
+"C Stick" = "C-spak";
+"C&reate Signature File..." = "S&kapa signaturfil...";
+"CP register " = "CP-register";
+"CPU Emulation Engine:" = "CPU-emuleringsmotor:";
+"CPU Options" = "Processoralternativ";
+"CRC32:" = "CRC32:";
+"Cached Interpreter (slower)" = "Interpreterare med cache (långsammare)";
+"Caches custom textures to system RAM on startup.
+
+This can require exponentially more RAM but fixes possible stuttering.
+
+If unsure, leave this unchecked." = "Cachelagrar anpassade texturer till systemets RAM vid uppstart.
+
+Detta kan kräva exponentiellt mer RAM men åtgärdar eventuella ryckningar i prestandan.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Calculate" = "Beräkna";
+"Calculates lighting of 3D objects per-pixel rather than per-vertex, smoothing out the appearance of lit polygons and making individual triangles less noticeable.
+
+Rarely causes slowdowns or graphical issues.
+
+If unsure, leave this unchecked." = "Beräknar ljussättning av 3D-objekt per pixel istället för per vertex, vilket ger ett mjukare utseende på belysta polygoner och gör individuella trianglar mindre märkbara.
+
+Kan i vissa fall leda till prestandaproblem eller grafiska problem.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Calibrate" = "Kalibrera";
+"Calibration" = "Kalibrering";
+"Callstack" = "Anropsstack";
+"Can't find Wii Remote by connection handle %02x" = "Kan inte hitta Wii-fjärrkontrollen med anslutnings-handle %02x";
+"Can't start a NetPlay Session while a game is still running!" = "Det går inte att starta en nätspelssession medan ett spel fortfarande körs!";
+"Cancel" = "Avbryt";
+"Cancel Calibration" = "Avbryt kalibrering";
+"Cannot SingleStep the FIFO. Use Frame Advance instead." = "Det går inte att stega igenom FIFO-loggar. Gå fram en bildruta i taget istället.";
+"Cannot boot this WAD because it could not be installed to the NAND." = "Denna WAD kan inte startas för att det inte gick att installera den till NAND-minnet.";
+"Cannot find the GC IPL." = "Kan inte hitta GC-IPL-filen.";
+"Cannot interpret the given value.
+Have you chosen the right type?" = "Det givna värdet kan inte tolkas.
+Har du valt rätt typ?";
+"Cannot start the game, because the GC IPL could not be found." = "Kunde inte starta spelet för att GC-IPL-filen inte kunde hittas.";
+"Center" = "Center";
+"Center and Calibrate" = "Centrera och kalibrera";
+"Change &Disc" = "Byt &skiva";
+"Change &Disc..." = "Byt s&kiva";
+"Change Disc" = "Byt skiva";
+"Change Discs Automatically" = "Byt skivor automatiskt";
+"Change the disc to %s" = "Bytte skiva till %s";
+"Changing cheats will only take effect when the game is restarted." = "Fuskändringar kommer inte börja gälla förrän spelet startas om.";
+"Chat" = "Chatt";
+"Cheat Code Editor" = "Fuskkodsredigerare";
+"Cheat Search" = "Sök efter fusk";
+"Cheats Manager" = "Fuskhanterare";
+"Check NAND..." = "Kontrollera NAND-minne...";
+"Check for Game List Changes in the Background" = "Leta efter ändringar i spellistan i bakgrunden";
+"Check for updates" = "Leta efter uppdateringar";
+"Check whether you have the permissions required to delete the file or whether it's still in use." = "Kontrollera om du har rättigheterna som krävs för att radera filen eller om filen fortfarande används.";
+"Checksum" = "Kontrollsumma";
+"China" = "Kina";
+"Choose a file to open" = "Välj en fil att öppna";
+"Choose priority input file" = "Välj primär indatafil";
+"Choose secondary input file" = "Välj sekundär indatafil";
+"Choose the folder to extract to" = "Välj filkatalogen att extrahera till";
+"Classic Buttons" = "Classic-knappar";
+"Classic Controller" = "Classic Controller";
+"Clear" = "Rensa";
+"Clear Cache" = "Rensa cache";
+"Clock Override" = "Hastighetsöverskridning";
+"Clone and &Edit Code..." = "Klona och &redigera kod…";
+"Close" = "Stäng";
+"Co&nfiguration" = "Ko&nfiguration";
+"Code" = "Kod";
+"Code:" = "Kod:";
+"Codes received!" = "Koder mottagna!";
+"Combine &Two Signature Files..." = "Kombinera &två signaturfiler...";
+"Comment" = "Kommentar";
+"Common" = "Gemensamt";
+"Compile Shaders Before Starting" = "Kompilera shaders före start";
+"Compiling Shaders" = "Kompilerar shaders";
+"Compress ISO..." = "Komprimera ISO...";
+"Compress Selected ISOs..." = "Komprimera valda ISO-filer...";
+"Compressed GC/Wii images (*.gcz)" = "Komprimerade GC/Wii-skivavbildningar (*.gcz)";
+"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "När en Wii-skivavbildning komprimeras kommer den komprimerade kopian ändras permanent genom att onödig data tas bort. Skivavbildningen kommer fortsätta fungera. Vill du fortsätta?";
+"Compressing..." = "Komprimerar...";
+"Condition" = "Villkor";
+"Config" = "Konfig.";
+"Configure" = "Konfigurera";
+"Configure Dolphin" = "Konfigurera Dolphin";
+"Configure Input" = "Konfigurera inmatning";
+"Configure Output" = "Konfigurera utmatning";
+"Confirm" = "Bekräfta";
+"Confirm backend change" = "Bekräfta byte av backend";
+"Confirm on Stop" = "Bekräfta vid stopp";
+"Confirmation" = "Bekräftelse";
+"Connect" = "Anslut";
+"Connect Balance Board" = "Anslut balansbräda";
+"Connect USB Keyboard" = "Anslut USB-tangentbord";
+"Connect Wii Remote %1" = "Anslut Wii-fjärrkontroll %1";
+"Connect Wii Remote 1" = "Anslut Wii-fjärrkontroll 1";
+"Connect Wii Remote 2" = "Anslut Wii-fjärrkontroll 2";
+"Connect Wii Remote 3" = "Anslut Wii-fjärrkontroll 3";
+"Connect Wii Remote 4" = "Anslut Wii-fjärrkontroll 4";
+"Connect Wii Remotes" = "Anslut Wii-fjärrkontroller";
+"Connect to the Internet and perform an online system update?" = "Vill du ansluta till internet och uppdatera Wii-systemmjukvaran?";
+"Connection Type:" = "Anslutningstyp:";
+"Content %08x is corrupt." = "Innehåll %08x är korrupt.";
+"Continuous Scanning" = "Kontinuerlig skanning";
+"Control NetPlay Golf Mode" = "Kontrollera nätspelsgolfläge";
+"Control Stick" = "Kontrollspak";
+"Controller Profile" = "Kontrollprofil";
+"Controller Settings" = "Kontrollinställningar";
+"Controllers" = "Kontroller";
+"Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
+
+A higher value creates stronger out-of-screen effects while a lower value is more comfortable." = "Kontrollerar avståndet för konvergensplanen. Detta är avståndet som virtuella objekt kommer att vara på framför skärmen.
+
+Ett högre värde skapar en starkare tredimensionell effekt medan ett lägre värde är mer bekvämt.";
+"Controls the rendering resolution.
+
+A high resolution greatly improves visual quality, but also greatly increases GPU load and can cause issues in certain games. Generally speaking, the lower the internal resolution, the better performance will be.
+
+If unsure, select Native." = "Kontrollerar renderingsupplösningen.
+
+En hög upplösning förbättrar den visuella kvaliteten avsevärt, men ökar också användningen av grafikprocessorn avsevärt och kan orsaka problem i vissa spel. I allmänhet kan man säga att ju lägre intern upplösning, desto högre prestanda.
+
+Om du är osäker kan du välja Ursprunglig.";
+"Controls the separation distance between the virtual cameras. 
+
+A higher value creates a stronger feeling of depth while a lower value is more comfortable." = "Kontrollerar avståndet mellan de virtuella kamerorna.
+
+Ett högre värde skapar en starkare djupkänsla medan ett lägre värde är bekvämligare.";
+"Controls whether or not Dual Core should be enabled. Can improve performance but can also cause issues. Defaults to <b>True</b>" = "Styr huruvida Dual Core ska aktiveras. Det kan förbättra prestanda men kan också orsaka problem. Förval är <b>Sant</b>";
+"Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "Styr huruvida minneshanteringsenheten ska emuleras fullständigt. Få spel behöver det.";
+"Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "Styr vilken DSP-emulering som ska användas; hög eller låg nivå. Förval är <b>Sant</b>";
+"Convergence:" = "Konvergens:";
+"Copy" = "Kopiera";
+"Copy &function" = "Kopiera &funktion";
+"Copy &hex" = "Kopiera &hex";
+"Copy Address" = "Kopiera adress";
+"Copy Hex" = "Kopiera hex";
+"Copy code &line" = "Kopiera kod&rad";
+"Copy failed" = "Kopiering misslyckades";
+"Copy to A" = "Kopiera till A";
+"Copy to B" = "Kopiera till B";
+"Core" = "Kärna";
+"Cost" = "Kostnad";
+"Could not communicate with host." = "Kunde inte kommunicera med värden.";
+"Could not create client." = "Kunde inte skapa klient.";
+"Could not create peer." = "Kunde inte skapa en peer.";
+"Could not download update files from Nintendo. Please check your Internet connection and try again." = "Kunde inte ladda ner uppdateringsfiler från Nintendo. Kontrollera internetanslutningen och försök igen.";
+"Could not download update information from Nintendo. Please check your Internet connection and try again." = "Kunde inte ladda ner uppdateringsinformation från Nintendo. Kontrollera internetanslutningen och försök igen.";
+"Could not install an update to the Wii system memory. Please refer to logs for more information." = "En uppdatering kunde inte installeras till Wii-systemminnet. Läs loggen för mer information.";
+"Could not launch IOS %016<PRIx64> because it is missing from the NAND.
+The emulated software will likely hang now." = "Kunde inte starta IOS %016<PRIx64> eftersom den inte finns i NAND-minnet.
+Den emulerade mjukvaran kommer antagligen frysa nu.";
+"Could not launch the Wii Menu because it is missing from the NAND.
+The emulated software will likely hang now." = "Kunde inte starta Wii-menyn eftersom den inte finns i NAND-minnet.
+Den emulerade mjukvaran kommer antagligen frysa nu.";
+"Could not launch title %016<PRIx64> because it is missing from the NAND.
+The emulated software will likely hang now." = "Kunde inte starta titeln %016<PRIx64> eftersom den inte finns i NAND-minnet.
+Den emulerade mjukvaran kommer antagligen frysa nu.";
+"Could not read \"%s\". There is no disc in the drive or it is not a GameCube/Wii backup. Please note that Dolphin cannot play games directly from the original GameCube and Wii discs." = "Kunde inte läsa \"%s\".  Det finns ingen skiva i läsaren, eller så är det ingen GC/Wii-backup. Observera att Dolphin inte kan köra spel direkt från GameCube/Wii-originalskivor.";
+"Could not recognize file %s" = "Kunde inte känna igen filen %s";
+"Could not write memory card file %s.
+
+Are you running Dolphin from a CD/DVD, or is the save file maybe write protected?
+
+Are you receiving this after moving the emulator directory?
+If so, then you may need to re-specify your memory card location in the options." = "Kunde inte skriva minneskortsfilen %s.
+
+Kör du Dolphin från en CD/DVD-skiva, eller är sparningfilen kanske skrivskyddad?
+
+Får du detta efter att ha flyttat emulatorns filkatalog?
+I så fall kan du behöva ställa in dina minneskortsplatser i inställningarna igen.";
+"Couldn't look up central server" = "Kunde inte slå upp centralserver";
+"Couldn't open file." = "Kunde inte öppna filen.";
+"Couldn't read file." = "Kunde inte läsa in filen.";
+"Country:" = "Land:";
+"Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
+
+If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
+
+If unsure, leave this unchecked." = "Skapar bildrutedumpar och skärmdumpar med renderarens interna upplösning, istället för fönsterstorleken som den visas i.
+
+Om bredbildsläge används kommer utmatningsbilden att skalas horisontellt för att bevara den vertikala upplösningen.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Creator:" = "Skapare:";
+"Critical" = "Kritisk";
+"Crop" = "Beskär";
+"Crops the picture from its native aspect ratio to 4:3 or 16:9.
+
+If unsure, leave this unchecked." = "Beskär bilden från dess ursprungliga bildförhållande till 4:3 eller 16:9.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Crossfade" = "Överbländning";
+"Current Region" = "Nuvarande region";
+"Current game" = "Nuvarande spel";
+"Custom" = "Anpassad";
+"Custom RTC Options" = "Alternativ för egen realtidsklocka";
+"D-Pad" = "Styrkors";
+"DJ Turntable" = "DJ-skivspelare";
+"DK Bongos" = "DK Bongos";
+"DSP Emulation Engine" = "DSP-emuleringsmotor";
+"DSP HLE Emulation (fast)" = "DSP HLE-emulering (snabb)";
+"DSP LLE Interpreter (slow)" = "DSP LLE-interpreterare (långsam)";
+"DSP LLE Recompiler" = "DSP LLE-omkompilator";
+"DSU Client" = "DSU-klient";
+"DSU protocol enables the use of input and motion data from compatible sources, like PlayStation, Nintendo Switch and Steam controllers.<br><br>For setup instructions, <a href=\"https://wiki.dolphin-emu.org/index.php?title=DSU_Client\">refer to this page</a>." = "DSU-protokollet använder inmatning och rörelsedata från kompatibla källor, som PlayStation-, Nintendo Switch- och Steam-kontroller.<br><br>För installationsinstruktioner , <a href=\"https://wiki.dolphin-emu.org/index.php?title=DSU_Client\">se denna sida</a>.";
+"Dance Mat" = "Dansmatta";
+"Data" = "Data";
+"Data Transfer" = "Dataöverföring";
+"Data Type" = "Datatyp";
+"Data in area of file that should be unused." = "Det finns data i ett område av filen som borde vara oanvänt.";
+"Data received!" = "Data mottagen!";
+"Datel MaxDrive/Pro files(*.sav)" = "Datel MaxDrive/Pro-filer (*.sav)";
+"Dead Zone" = "Död zon";
+"Debug" = "Felsökning";
+"Debug Only" = "Endast felsökning";
+"Debugging" = "Felsökning";
+"Decimal" = "Decimal";
+"Decoding Quality:" = "Dekodningskvalitet:";
+"Decompress ISO..." = "Avkomprimera ISO…";
+"Decompress Selected ISOs..." = "Dekomprimera valda ISO-filer...";
+"Decompressing..." = "Dekomprimerar...";
+"Decrease Convergence" = "Sänk konvergens";
+"Decrease Depth" = "Sänk djup";
+"Decrease Emulation Speed" = "Minska emuleringshastighet";
+"Decrease IR" = "Sänk intern upplösning";
+"Default" = "Standard";
+"Default Config (Read Only)" = "Standardinställningar (skrivskyddad)";
+"Default Device" = "Standardenhet";
+"Default Font" = "Standardteckensnitt";
+"Default ISO:" = "Standard-ISO:";
+"Defer EFB Cache Invalidation" = "Fördröj EFB-cacheinvalidering";
+"Defer EFB Copies to RAM" = "Fördröj EFB-kopior till RAM";
+"Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
+
+May improve performance in some games which rely on CPU EFB Access at the cost of stability.
+
+If unsure, leave this unchecked." = "Fördröjer invalidering av EFB-åtkomstcachen tills dess att ett GPU-synkroniseringskommando exekveras. Om detta stängs av kommer cachen invalideras för varje ritanrop.
+
+Kan förbättra prestandan i vissa spel som använder EFB-åtkomst från CPU, men med möjliga stabilitetsproblem.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Delete" = "Radera";
+"Delete File..." = "Radera fil...";
+"Delete Selected Files..." = "Radera valda filer...";
+"Delete the existing file '%s'?" = "Radera den existerande filen '%s'?";
+"Depth Percentage:" = "Djupandel:";
+"Depth:" = "Djup:";
+"Description" = "Beskrivning";
+"Description:" = "Beskrivning:";
+"Detect" = "Sök";
+"Deterministic dual core:" = "Deterministiska dubbla kärnor:";
+"Dev (multiple times a day)" = "Utveckling (flera gånger om dagen)";
+"Device" = "Enhet";
+"Device PID (e.g., 0305)" = "Enhetens PID (t.ex. 0305)";
+"Device Settings" = "Enhetsinställningar";
+"Device VID (e.g., 057e)" = "Enhetens VID (t.ex. 057e)";
+"Device:" = "Enhet:";
+"Dims the screen after five minutes of inactivity." = "Gör skärmen mörkare efter fem minuters inaktivitet.";
+"Direct Connection" = "Direkt anslutning";
+"Direct3D 11" = "Direct3D 11";
+"Direct3D 11 renderer requires support for features not supported by your system configuration. This is most likely because you are using Windows 7. You may still use this backend, but you might encounter graphical artifacts.
+
+Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Direct3D 11-renderaren kräver stöd för funktioner som inte stöds av din systemkonfiguration. Detta är antagligen på grund av att du använder Windows 7. Du kan använda Direct3D 11-renderaren ändå, men det kan uppstå grafiska problem.
+
+Vill du verkligen byta till Direct3D 11? Om du är osäker, välj 'Nej'.";
+"Disable Bounding Box" = "Inaktivera Bounding Box";
+"Disable Copy Filter" = "Inaktivera kopieringsfilter";
+"Disable EFB VRAM Copies" = "Inaktivera EFB-VRAM-kopior";
+"Disable Emulation Speed Limit" = "Stäng av emuleringshastighetsgräns";
+"Disable Fog" = "Inaktivera dimma";
+"Disable JIT Cache" = "Inaktivera JIT-cache";
+"Disables bounding box emulation.
+
+This may improve GPU performance significantly, but some games will break.
+
+If unsure, leave this checked." = "Inaktiverar emulering av Bounding Box.
+
+Detta kan förbättra grafikprocessorns prestanda avsevärt i ett antal spel, men vissa spel kommer inte fungera rätt.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all upscaling.
+
+If unsure, leave this unchecked." = "Inaktiverar kopior av EFB till VRAM och tvingar EFB att kopieras till RAM istället. Förhindrar all uppskalning.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Disables the blending of adjacent rows when copying the EFB. This is known in some games as \"deflickering\" or \"smoothing\". 
+
+Disabling the filter has no effect on performance, but may result in a sharper image. Causes few graphical issues.
+
+If unsure, leave this checked." = "Inaktiverar sammanblandningen av intilliggande rader när EFB kopieras. I vissa spel kallas detta för \"deflickering\" eller \"smoothing\". Att inaktivera filtret påverkar inte prestandan, men det kan göra bilden skarpare. Orsakar få grafiska problem.
+
+Om du är osäker kan du lämna detta markerat.";
+"Disc" = "Skiva";
+"Disc Read Error" = "Diskläsningsfel";
+"Displays XFB copies as soon as they are created, instead of waiting for scanout.
+
+Can cause graphical defects in some games if the game doesn't expect all XFB copies to be displayed. However, turning this setting on reduces latency.
+
+If unsure, leave this unchecked." = "Visar XFB-kopior så fort de skapas istället för att vänta på utskanning.
+
+Kan orsaka grafiska problem i vissa spel som inte förväntar sig att alla XFB-kopior ska visas. Latensen blir dock lägre när detta är påslaget.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Distance" = "Avstånd";
+"Distance of travel from neutral position." = "Förflyttningsavstånd från neutral position.";
+"Do you authorize Dolphin to report information to Dolphin's developers?" = "Godkänner du att Dolphin rapporterar information till Dolphins utvecklare?";
+"Do you want to add \"%1\" to the list of Game Paths?" = "Vill du lägga till \"%1\" i listan av spelsökvägar?";
+"Do you want to clear the list of symbol names?" = "Vill du tömma symbolnamnlistan?";
+"Do you want to delete the %1 selected save files?" = "Vill du radera de %1 valda sparfilerna?";
+"Do you want to delete the selected save file?" = "Vill du radera den valda sparfilen?";
+"Do you want to stop the current emulation?" = "Vill du stoppa den aktuella emuleringen?";
+"Dolby Pro Logic II Decoder" = "Dolby Pro Logic II-dekoder";
+"Dolphin" = "Dolphin";
+"Dolphin FIFO Log (*.dff)" = "Dolphin-FIFO-logg (*.dff)";
+"Dolphin Map File (*.map)" = "Dolphin-map-fil (*.map)";
+"Dolphin Signature CSV File" = "Dolphin-signatur-CSV-fil";
+"Dolphin Signature File" = "Dolphin-signaturfil";
+"Dolphin TAS Movies (*.dtm)" = "Dolphin-TAS-filmer (*.dtm)";
+"Dolphin could not find any GameCube/Wii ISOs or WADs.
+Double-click here to set a games directory..." = "Dolphin kunde inte hitta några ISO/WAD-filer för GameCube/Wii.
+Dubbelklicka här för att ställa in en spelmapp…";
+"Dolphin failed to complete the requested action." = "Dolphin kunde inte slutföra den begärda åtgärden.";
+"Dolphin is a free and open-source GameCube and Wii emulator." = "Dolphin är en GameCube- och Wii-emulator som är open source och fri mjukvara.";
+"Dolphin is too old for traversal server" = "Dolphin är för gammal för traverseringsservern";
+"Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "Dolphin kan inte verifiera typiska TGC-filer korrekt eftersom de inte är kopior av faktiska skivor.";
+"Dolphin is unable to verify unlicensed discs." = "Dolphin kan inte verifiera olicensierade skivor.";
+"Dolphin's cheat system is currently disabled." = "Dolphins fusksystem är avstängt just nu.";
+"Don't Update" = "Uppdatera inte";
+"Done compressing disc image." = "Skivavbildningen har komprimerats.";
+"Double" = "Double";
+"Down" = "Ner";
+"Download Codes" = "Ladda ner koder";
+"Download Codes from the WiiRD Database" = "Ladda ner koder från WiiRD-databasen";
+"Download Game Covers from GameTDB.com for Use in Grid Mode" = "Ladda ned spelomslag från GameTDB.com att använda i rutnätsläget";
+"Download complete" = "Nedladdning slutförd";
+"Downloaded %1 codes. (added %2)" = "Laddade ner %1 koder. (Lade till %2)";
+"Drawn Object Range" = "Räckvidd för ritade objekt";
+"Drawsome Tablet" = "Drawsome Tablet";
+"Drum Kit" = "Trumset";
+"Dual Core" = "Dual Core";
+"Dummy" = "Dummy";
+"Dump &ARAM" = "Dumpa &ARAM";
+"Dump &ExRAM" = "Dumpa &ExRAM";
+"Dump &FakeVMEM" = "Dumpa &FakeVMEM";
+"Dump &MRAM" = "Dumpa &MRAM";
+"Dump Audio" = "Dumpa ljud";
+"Dump EFB Target" = "Dumpa EFB-mål";
+"Dump Frames" = "Dumpa bildrutor";
+"Dump Objects" = "Dumpa objekt";
+"Dump Path:" = "Dump-sökväg:";
+"Dump TEV Stages" = "Dumpa TEV-stadier";
+"Dump TEV Stages to User/Dump/Objects/.
+
+If unsure, leave this unchecked." = "Dumpa TEV Stages till User/Dump/Objects/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dump Texture Fetches" = "Dumpa texturhämtningar";
+"Dump Texture Fetches to User/Dump/Objects/.
+
+If unsure, leave this unchecked." = "Dumpa hämtade texturer till User/Dump/Objects/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dump Textures" = "Dumpa texturer";
+"Dump at Internal Resolution" = "Dumpa med intern upplösning";
+"Dump decoded game textures to User/Dump/Textures/<game_id>/.
+
+If unsure, leave this unchecked." = "Dumpar avkodade speltexturer till User/Dump/Textures/<game_id>/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dump objects to User/Dump/Objects/.
+
+If unsure, leave this unchecked." = "Dumpa objekt till User/Dump/Objects/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+
+If unsure, leave this unchecked." = "Dumpar avkodade speltexturer till User/Dump/Textures/<game_id>/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dumps the contents of EFB copies to User/Dump/Textures/.
+
+If unsure, leave this unchecked." = "Dumpar innehållet i EFB-kopior till User/Dump/Textures/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Dutch" = "Nederländska";
+"E&xit" = "A&vsluta";
+"ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "FEL: Denna version av Dolphin kräver drivrutinen TAP-Win32 som åtminstone är version %d.%d -- Om du nyligen har uppdaterat din utgåva av Dolphin krävs förmodligen en omstart för tillfället för att få Windows att hitta den nya drivrutinen.";
+"Each player sends their own inputs to the game, with equal buffer size for all players, configured by the host.
+Suitable for competitive games where fairness and minimal latency are most important." = "Varje spelare skickar sina egna inmatningar till spelet, med likadana buffertstorlekar för alla spelare, som konfigureras av värden.
+Lämpligt för tävlingar där neutralitet och minimal latens är som mest viktigt.";
+"Early Memory Updates" = "Tidiga minnesuppdateringar";
+"East Asia" = "Östasien";
+"Editor" = "Editor";
+"Effect" = "Effekt";
+"Effective" = "Effektiv";
+"EiB" = "EiB";
+"Eject Disc" = "Mata ut skiva";
+"Embedded Frame Buffer (EFB)" = "Inbäddad bildrutebuffert (EFB)";
+"Empty" = "Tom";
+"Emu Thread already running" = "Emuleringstråd körs redan";
+"Emulate the Wii's Bluetooth adapter" = "Emulera Wii-Bluetooth-adapter";
+"Emulated Wii Remote" = "Emulerad Wii-fjärrkontroll";
+"Emulation Speed" = "Emuleringshastighet";
+"Enable" = "Aktivera";
+"Enable API Validation Layers" = "Aktivera API-valideringslager";
+"Enable Audio Stretching" = "Aktivera ljudsträckning";
+"Enable Cheats" = "Aktivera fusk";
+"Enable Custom RTC" = "Aktivera egen realtidsklocka";
+"Enable Dual Core" = "Aktivera dubbla kärnor";
+"Enable Dual Core (speedup)" = "Aktivera dubbla kärnor (höjer prestandan)";
+"Enable Emulated CPU Clock Override" = "Åsidosätt den emulerade CPU:ns hastighet";
+"Enable FPRF" = "Aktivera FPRF";
+"Enable MMU" = "Aktivera MMU";
+"Enable Progressive Scan" = "Aktivera Progressive scan";
+"Enable Rumble" = "Vibration";
+"Enable Screen Saver" = "Aktivera skärmsläckare";
+"Enable Speaker Data" = "Aktivera högtalardata";
+"Enable Usage Statistics Reporting" = "Aktivera statistikrapportering";
+"Enable Wireframe" = "Aktivera Wireframe";
+"Enable fast disc access. This can cause crashes and other problems in some games. (ON = Fast, OFF = Compatible)" = "Aktiverar snabb skivläsning. Detta kan leda till kraschar och andra problem i vissa spel. (PÅ = snabb, AV = kompatibel)";
+"Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only." = "Aktiverar emulering av Dolby Pro Logic II med hjälp av 5.1 surround. Endast för vissa backends.";
+"Enables Floating Point Result Flag calculation, needed for a few games. (ON = Compatible, OFF = Fast)" = "Aktiverar beräkning av Floating Point Result Flag. Behövs för vissa spel. (PÅ = kompatibel, AV = snabb)";
+"Enables anisotropic filtering, which enhances the visual quality of textures that are at oblique viewing angles.
+
+Might cause issues in a small number of games.
+
+If unsure, select 1x." = "Aktiverar anisotropisk filtrering, som förbättrar den visuella kvaliteten på texturer som visas från en sned vinkel.
+
+Kan orsaka problem i ett fåtal spel.
+
+Om du är osäker kan du välja 1x.";
+"Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.
+
+May have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures. This feature is not compatible with GPU Texture Decoding.
+
+If unsure, leave this checked." = "Låter godtyckliga mipmaps upptäckas, som vissa spel använder för speciella avståndsbaserade effekter.
+
+Detekteringen kan bli fel ibland, vilket leder till suddiga texturer vid högre interna upplösningar, som i spel som använder mipmaps med mycket låg upplösning. Om detta inaktiveras kan problem med ojämn prestanda reduceras i spel som ofta läser in nya texturer. Denna funktion är inte kompatibel med GPU-texturdekodning.
+
+Om du är osäker kan du lämna detta markerat.";
+"Enables multithreaded command submission in backends where supported. Enabling this option may result in a performance improvement on systems with more than two CPU cores. Currently, this is limited to the Vulkan backend.
+
+If unsure, leave this checked." = "Aktiverar flertrådad kommandoinskickning för backends som stöder det. Om det här alternativet används kan prestandan förbättras på system med fler än två CPU-kärnor. Just nu fungerar detta bara med Vulkan.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Enables progressive scan if supported by the emulated software. Most games don't have any issue with this.
+
+If unsure, leave this unchecked." = "Aktiverar progressive scan om det stöds av den emulerade programvaran. De flesta spel har inga problem med detta.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Enables stretching of the audio to match emulation speed." = "Sträcker ut ljudet så att det matchar emulationshastigheten.";
+"Enables texture decoding using the GPU instead of the CPU.
+
+This may result in performance gains in some scenarios, or on systems where the CPU is the bottleneck.
+
+If unsure, leave this unchecked." = "Låter texturer dekodas i GPU:n istället för CPU:n.
+
+Detta kan förbättra prestandan i vissa scenarion eller på system där prestandan begränsas av CPU:n.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)" = "Aktiverar minneshanterarenheten som behövs för några spel. (PÅ = Kompatibel, AV = Snabb)";
+"Enables validation of API calls made by the video backend, which may assist in debugging graphical issues.
+
+If unsure, leave this unchecked." = "Aktiverar validering av videobackendens API-anrop, vilket kan vara till hjälp för att undersöka grafikproblem.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Encodes frame dumps using the FFV1 codec.
+
+If unsure, leave this unchecked." = "Kodar bildrutedumpar med hjälp av kodeket FFV1.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Enet Didn't Initialize" = "Enet initialiserades inte";
+"English" = "Engelska";
+"Enhancements" = "Förbättringar";
+"Enter USB device ID" = "Ange ID för en USB-enhet";
+"Enter new Broadband Adapter MAC address:" = "Ange ny MAC-adress för bredbandsadaptern:";
+"Enter password" = "Ange lösenord";
+"Enter the RSO module address:" = "Ange RSO-moduladressen:";
+"Equals to" = "Lika med";
+"Error" = "Fel";
+"Error Opening Adapter: %1" = "Ett fel uppstod när adaptern skulle öppnas: %1";
+"Error loading selected language. Falling back to system default." = "Fel uppstod när valt språk skulle läsas in. Byter tillbaka till systemstandard.";
+"Error obtaining session list: %1" = "Ett fel uppstod när sessionslistan skulle hämtas: %1";
+"Error occured while loading some texture packs" = "Ett fel uppstod när texturpaket laddades";
+"Error processing codes." = "Fel uppstod när koder behandlades.";
+"Error processing data." = "Fel uppstod när data behandlades.";
+"Error reading file: %s" = "Fel uppstod när fil lästes: %s";
+"Error synchronizing cheat codes!" = "Ett fel uppstod med att synkronisera fuskkoder!";
+"Error synchronizing save data!" = "Fel uppstod när spardata synkroniserades!";
+"Error writing file: %s" = "Fel uppstod när fil skrevs: %s";
+"Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load..." = "Fel: Efter \"%s\" hittades %d (0x%X) istället för sparningsmarkören %d (0x%X). Avbryter inläsning av snabbsparning…";
+"Error: Trying to access Shift JIS fonts but they are not loaded. Games may not show fonts correctly, or crash." = "Fel: Försöker att komma åt Shift-JIS-teckensnitt men de är inte inlästa. Spel kanske inte visar typsnitt korrekt, eller kraschar.";
+"Error: Trying to access Windows-1252 fonts but they are not loaded. Games may not show fonts correctly, or crash." = "Fel: Försöker att komma åt Windows-1252-teckensnitt men de är inte inlästa. Spel kanske inte visar typsnitt korrekt, eller kraschar.";
+"Errors were found in %zu blocks in the %s partition." = "Fel hittades i %zu block i %s-partitionen.";
+"Errors were found in %zu unused blocks in the %s partition." = "Fel hittades i %zu oanvända block i %s-partitionen.";
+"Euphoria" = "Euphoria";
+"Europe" = "Europa";
+"Exit" = "Avsluta";
+"Expected arguments: " = "Förväntade argument:";
+"Expected closing paren." = "Förväntade slutparentes.";
+"Expected comma." = "Förväntade komma.";
+"Expected end of expression." = "Förväntade slut av uttryck.";
+"Expected start of expression." = "Förväntade början av uttryck.";
+"Experimental" = "Experimentell";
+"Export &All..." = "Exportera &alla...";
+"Export All Wii Saves" = "Exportera alla Wii-sparningar";
+"Export Recording" = "Exportera inspelning";
+"Export Recording..." = "Exportera inspelning...";
+"Export Save File" = "Exportera sparfil";
+"Export Wii Save" = "Exportera Wii-sparning";
+"Export Wii Saves" = "Exportera Wii-sparningar";
+"Exported %n save(s)" = "Exporterade %n sparfil(er)";
+"Extension" = "Extern kontroll";
+"Extension Motion Input" = "Rörelseinmatning för extern kontroll";
+"Extension Motion Simulation" = "Rörelsesimulering för extern kontroll";
+"External" = "Extern";
+"External Frame Buffer (XFB)" = "Extern bildrutebuffert (XFB)";
+"Extract Certificates from NAND" = "Extrahera certifikat från NAND-minne";
+"Extract Entire Disc..." = "Extrahera hela skivan...";
+"Extract Entire Partition..." = "Extrahera hela partitionen...";
+"Extract File..." = "Extrahera fil...";
+"Extract Files..." = "Extrahera filer...";
+"Extract System Data..." = "Extrahera systemdata...";
+"Extracting All Files..." = "Extraherar alla filer...";
+"Extracting Directory..." = "Extraherar katalog...";
+"FIFO Player" = "FIFO-spelare";
+"Failed opening memory card:
+%1" = "Misslyckades att öppna minneskortet:
+%1";
+"Failed to add this session to the NetPlay index: %1" = "Misslyckades att lägga till denna session i nätspelsindex: %1";
+"Failed to append to signature file '%1'" = "Misslyckades att lägga till i signaturfilen \"%1\"";
+"Failed to claim interface for BT passthrough" = "Kunde inte ta gränssnitt för BT-genomsläpp";
+"Failed to connect to Redump.org" = "Misslyckades att ansluta till Redump.org";
+"Failed to connect to server: %1" = "Misslyckades att ansluta till server: %1";
+"Failed to copy file" = "Misslyckades att kopiera filen";
+"Failed to create D3D swap chain" = "Misslyckades att skapa D3D-swapchain";
+"Failed to create DXGI factory" = "Misslyckades att skapa DXGI-fabrik";
+"Failed to delete NetPlay memory card. Verify your write permissions." = "Misslyckades att radera minneskort för nätspel. Bekräfta dina skrivbehörigheter.";
+"Failed to delete the selected file." = "Misslyckades att radera den valda filen.";
+"Failed to detach kernel driver for BT passthrough: %s" = "Kunde inte koppla loss kärnans drivrutin för BT-genomsläpp: %s";
+"Failed to download codes." = "Misslyckades att ladda ner koder.";
+"Failed to dump %1: Can't open file" = "Misslyckades att dumpa %1: Kan inte öppna filen";
+"Failed to dump %1: Failed to write to file" = "Misslyckades att dumpa %1: Kunde inte skriva till filen";
+"Failed to export the following save files:" = "Misslyckades att exportera följande sparfiler:";
+"Failed to extract certificates from NAND" = "Misslyckades att extrahera certifikat från NAND-minnet";
+"Failed to extract file." = "Misslyckades att extrahera filen.";
+"Failed to extract system data." = "Misslyckades att extrahera systemdata.";
+"Failed to find new filename.
+%s
+ will be overwritten" = "Kunde inte hitta det nya filnamnet.
+%s
+kommer skrivas över";
+"Failed to find one or more D3D symbols" = "Misslyckades att hitta en eller flera D3D-symboler";
+"Failed to import \"%1\"." = "Misslyckades att importera \"%1\".";
+"Failed to import save files." = "Misslyckades att importera sparfiler.";
+"Failed to init core" = "Misslyckades att initialisera kärnan";
+"Failed to initialize Direct3D.
+Make sure your video card supports at least D3D 10.0" = "Misslyckades att initialisera Direct3D.
+Se till att ditt grafikkort stöder minst D3D 10.0";
+"Failed to install pack: %1" = "Misslyckades att installera paket: %1";
+"Failed to install this title to the NAND." = "Misslyckades att installera denna titel till NAND-minnet.";
+"Failed to listen on port %1. Is another instance of the NetPlay server running?" = "Misslyckades att lyssna på port %1. Körs nätspelsservern redan?";
+"Failed to load %s. If you are using Windows 7, try installing the KB4019990 update package." = "Misslyckades att läsa in %s. Om du använder Windows 7, prova att installera uppdateringspaketet KB4019990.";
+"Failed to load RSO module at %1" = "Misslyckades att ladda RSO-model vid %1";
+"Failed to load d3d11.dll" = "Misslyckades att ladda d3d11.dll";
+"Failed to load dxgi.dll" = "Misslyckades att ladda dxgi.dll";
+"Failed to load map file '%1'" = "Misslyckades att läsa map-filen \"%1\"";
+"Failed to load the executable to memory." = "Kunde inte läsa in den exekverbara filen till minnet.";
+"Failed to open '%1'" = "Misslyckades att öppna '%1'";
+"Failed to open Bluetooth device: %s" = "Kunde inte öppna Bluetooth-enhet: %s";
+"Failed to open config file!" = "Misslyckades att öppna konfigurationsfilen!";
+"Failed to open file \"%s\"." = "Misslyckades att öppna filen \"%s\".";
+"Failed to open file \"%s\". Verify your write permissions." = "Misslyckades att öppna filen \"%s\". Kontrollera skrivbehörigheten.";
+"Failed to open file in external editor.
+Make sure there's an application assigned to open INI files." = "Misslyckades att öppna filen i en extern editor.
+Se till att det finns en applikation inställd för att öppna INI-filer.";
+"Failed to open server" = "Misslyckades att öppna servern";
+"Failed to open the input file \"%s\"." = "Kunde inte öppna inmatningsfilen \"%s\".";
+"Failed to open the output file \"%s\".
+Check that you have permissions to write the target folder and that the media can be written." = "Kunde inte öppna utmatningsfilen \"%s\".
+Kontrollera att du har tillåtelse att skriva till mappen i fråga och att enheten inte är skrivskyddad.";
+"Failed to parse Redump.org data" = "Misslyckades att tolka data från Redump.org";
+"Failed to read %s" = "Misslyckades att läsa %s";
+"Failed to read unique ID from disc image" = "Misslyckades att läsa unikt ID från skivavbildningen";
+"Failed to remove file" = "Misslyckades att ta bort filen";
+"Failed to remove this title from the NAND." = "Kunde inte ta bort denna titel från NAND-minnet.";
+"Failed to reset NetPlay GCI folder. Verify your write permissions." = "Misslyckades att nollställa nätspels-GCI-mappen. Kontrollera skrivrättigheterna.";
+"Failed to reset NetPlay NAND folder. Verify your write permissions." = "Misslyckades att nollställa nätspels-NAND-mappen. Kontrollera skrivrättigheterna.";
+"Failed to save FIFO log." = "Misslyckades att spara FIFO-logg.";
+"Failed to save code map to path '%1'" = "Misslyckades att spara kod-map till sökvägen \"%1\"";
+"Failed to save signature file '%1'" = "Misslyckades att spara signaturfilen \"%1\"";
+"Failed to save symbol map to path '%1'" = "Misslyckades att spara symbol-map till sökvägen \"%1\"";
+"Failed to save to signature file '%1'" = "Misslyckades att spara till signaturfilen \"%1\"";
+"Failed to uninstall pack: %1" = "Misslyckades att avinstallera paket: %1";
+"Failed to write BT.DINF to SYSCONF" = "Misslyckades att skriva BT.DINF till SYSCONF";
+"Failed to write Mii data." = "Misslyckades att skriva Mii-data.";
+"Failed to write Wii save." = "Misslyckades att skriva Wii-sparning.";
+"Failed to write config file!" = "Kunde inte skriva inställningsfil!";
+"Failed to write the output file \"%s\".
+Check that you have enough space available on the target drive." = "Kunde inte skriva till utmatningsfilen \"%s\".
+Kontrollera att det finns tillräckligt med utrymme på målenheten.";
+"Failure" = "Misslyckades";
+"Fair Input Delay" = "Rättvis latens";
+"Fast" = "Snabb";
+"Fast Depth Calculation" = "Snabb djupberäkning";
+"Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Allvarlig desynkronisering. Avbryter uppspelning. (Fel i PlayWiimote: %u != %u, byte %u.)%s";
+"File Info" = "Filinformation";
+"File Name" = "Filnamn";
+"File Size" = "Filstorlek";
+"File contained no codes." = "Filen innehöll inga koder.";
+"File not compressed" = "Filen är inte komprimerad";
+"File write failed" = "Misslyckades att skriva till fil";
+"File:" = "Fil:";
+"Files opened, ready to compress." = "Filerna har öppnats. Redo att komprimera.";
+"Files specified in the M3U file \"%s\" were not found:
+%s" = "Filer specificerade i M3U-filen \"%s\" hittades inte:
+%s";
+"Filesize does not match any known GameCube Memory Card size." = "Filstorleken matchar inte någon känd storlek för GameCube-minneskort.";
+"Filesize in header mismatches actual card size." = "Filstorleken i headern matchar inte minneskortets faktiska storlek.";
+"Filesystem" = "Filsystem";
+"Filter Symbols" = "Filtrera symboler";
+"Filters" = "Filter";
+"Filters all textures, including any that the game explicitly set as unfiltered.
+
+May improve quality of certain textures in some games, but will cause issues in others.
+
+If unsure, leave this unchecked." = "Filtrerar alla texturer, inklusive de som spelet uttryckligen har angivit som ofiltrerade.
+
+Kan förbättra kvaliteten för en del texturer i vissa spel, men kommer att orsaka problem i andra.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Find &Next" = "Hitta &nästa";
+"Find &Previous" = "Hitta &föregående";
+"Finish Calibration" = "Slutför kalibrering";
+"Finishing the update...
+This can take a while." = "Färdigställer uppdateringen...
+Detta kan ta ett tag.";
+"First Block" = "Första block";
+"Fix Checksums" = "Fixa kontrollsummor";
+"Flags" = "Flaggor";
+"Float" = "Float";
+"Follow &branch" = "Följ &gren";
+"For best results please slowly move your input to all possible regions." = "För bästa resultat, täck långsamt över alla möjliga regioner.";
+"Force 16:9" = "Tvinga 16:9";
+"Force 24-Bit Color" = "24-bitars färg";
+"Force 4:3" = "Tvinga 4:3";
+"Force Listen Port:" = "Lyssna på port:";
+"Force Texture Filtering" = "Tvinga texturfiltrering";
+"Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to \"Force 16:9\" to force 4:3-only games to run at 16:9.
+
+Rarely produces good results and often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any AR/Gecko-code widescreen patches.
+
+If unsure, leave this unchecked." = "Tvingar spelet att mata ut grafik för alla bildförhållanden. Använd med \"Bildförhållande\" inställt på \"Tvinga 16:9\" för att tvinga spel som bara stöder 4:3 att köras i 16:9.
+
+Detta leder sällan till bra resultat och förstör ofta grafiken och spelets gränssnitt. Onödigt (and riskabelt) om någon AR/Gecko-kod för bredbildsformat används.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Forces the game to render the RGB color channels in 24-bit, thereby increasing quality by reducing color banding.
+
+Has no impact on performance and causes few graphical issues.
+
+If unsure, leave this checked." = "Tvingar spelet att rendera RGB-färgkanalerna i 24 bitar, vilket ökar kvaliteten genom att reducera skarpa färgövergångar.
+
+Påverkar inte prestandan och orsakar få grafikproblem.
+
+Om du är osäker kan du lämna detta markerat.";
+"Forward" = "Framåt";
+"Forward port (UPnP)" = "Vidaresänd port (UPnP)";
+"Found %1 results for \"%2\"" = "Hittade %1 resultat för \"%2\"";
+"Frame %1" = "Bildruta %1";
+"Frame Advance" = "Gå fram en bildruta";
+"Frame Advance Decrease Speed" = "Gå fram en bildruta - Sänk hastighet";
+"Frame Advance Increase Speed" = "Gå fram en bildruta - Öka hastighet";
+"Frame Advance Reset Speed" = "Gå fram en bildruta - Nollställ hastighet";
+"Frame Dumping" = "Bildrutedumpning";
+"Frame Range" = "Räckvidd för bildrutor";
+"Frame dump image(s) '%s' already exists. Overwrite?" = "Bildrutedumpsbilden \"%s\" finns redan. Vill du skriva över?";
+"Frames to Record:" = "Bildrutor att spela in:";
+"France" = "Frankrike";
+"Free Look" = "Fri vy";
+"Freelook" = "Fri kamera";
+"Freelook Decrease Speed" = "Fri kamera - Sänk hastighet";
+"Freelook Increase Speed" = "Fri kamera - Öka hastighet";
+"Freelook Move Down" = "Fri kamera - Flytta nedåt";
+"Freelook Move Left" = "Fri kamera - Flytta till vänster";
+"Freelook Move Right" = "Fri kamera - Flytta till höger";
+"Freelook Move Up" = "Fri kamera - Flytta uppåt";
+"Freelook Reset" = "Fri kamera - Återställ";
+"Freelook Reset Speed" = "Fri kamera - Återställ hastighet";
+"Freelook Zoom In" = "Fri kamera - Zooma in";
+"Freelook Zoom Out" = "Fri kamera - Zooma ut";
+"French" = "Franska";
+"Frequency" = "Frekvens";
+"Frets" = "Greppband";
+"From" = "Från";
+"From:" = "Från:";
+"FullScr" = "Helskärm";
+"Function" = "Funktion";
+"Function callers" = "Funktionsanropare";
+"Function calls" = "Funktionsanrop";
+"Functions" = "Funktioner";
+"GBA" = "GBA";
+"GC Port %1" = "GC-uttag %1";
+"GCI Folder" = "GCI-mapp";
+"GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock anropades med ogiltig blockadress";
+"GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
+This means one of the following:
+* The emulated GPU got desynced, disabling dual core can help
+* Command stream corrupted by some spurious memory bug
+* This really is an unknown opcode (unlikely)
+* Some other sort of bug
+
+Further errors will be sent to the Video Backend log and
+Dolphin will now likely crash or hang. Enjoy." = "GFX-FIFO: Okänd opcode (0x%02x @ %p, %s).
+Orsaken kan vara någon av dessa:
+* Den emulerade GPU:n blev desynkad. Att stänga av dubbla kärnor kan hjälpa.
+* Kommandoströmmen blev korrupt av någon minnesbugg.
+* Det är faktiskt en okänd opcode (osannolikt).
+* Någon annan sorts bugg.
+
+Fel utöver detta kommer skickas till Video Backend-loggen. Dolphin kommer nu antagligen krascha eller frysa.";
+"GPU Texture Decoding" = "GPU-texturdekodning";
+"Game" = "Spel";
+"Game Boy Advance Carts (*.gba)" = "Game Boy Advance-kassetter (*.gba)";
+"Game Config" = "Spelkonfiguration";
+"Game Folders" = "Spelmappar";
+"Game ID" = "Spel-ID";
+"Game ID:" = "Spelets ID:";
+"Game Status" = "Spelstatus";
+"Game changed to \"%1\"" = "Bytte spel till \"%1\"";
+"Game is already running!" = "Spelet körs redan!";
+"Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x" = "Spelet skrevs över med ett annat spels sparfil. Data kommer antagligen bli korrupt 0x%x, 0x%x";
+"Game-Specific Settings" = "Spelspecifika inställningar";
+"GameCube" = "GameCube";
+"GameCube Adapter for Wii U" = "GameCube-adapter för Wii U";
+"GameCube Adapter for Wii U at Port %1" = "GameCube-adapter för Wii U i uttag %1";
+"GameCube Controller" = "GameCube-kontroll";
+"GameCube Controller at Port %1" = "GameCube-kontroll i uttag %1";
+"GameCube Controllers" = "GameCube-kontroller";
+"GameCube Keyboard" = "GameCube-tangentbord";
+"GameCube Keyboard at Port %1" = "GameCube-tangentbord i uttag %1";
+"GameCube Memory Card Manager" = "GameCube-minneskorthanterare";
+"GameCube Memory Cards (*.raw *.gcp)" = "GameCube-minneskort (*.raw *.gcp)";
+"GameCube Microphone Slot %1" = "GameCube-mikrofon i plats %1";
+"GameCube TAS Input %1" = "GameCube-TAS-inmatning %1";
+"Gecko Codes" = "Gecko-koder";
+"General" = "Allmänt";
+"General and Options" = "Allmänt och alternativ";
+"Generate Action Replay Code" = "Generera Action Replay-kod";
+"Generate a New Statistics Identity" = "Generera en ny statistikidentitet";
+"Generated by search (Address %1)" = "Genererad av sökning (adress %1)";
+"Generated symbol names from '%1'" = "Genererade symbolnamn från '%1'";
+"German" = "Tyska";
+"Germany" = "Tyskland";
+"GiB" = "GiB";
+"Golf Mode" = "Golfläge";
+"Good dump" = "Korrekt kopia";
+"Graphics" = "Grafik";
+"Graphics Toggles" = "Växla grafikalternativ";
+"Greatly increases the quality of textures generated using render-to-texture effects.
+
+Slightly increases GPU load and causes relatively few graphical issues. Raising the internal resolution will improve the effect of this setting. 
+
+If unsure, leave this checked." = "Höjer kraftigt kvaliteten på texturer som genereras med texturrenderingseffekter.
+
+Sänker prestandan en aning och leder till relativt få problem. Att höja den interna upplösningen förbättrar effekten av den här inställningen.
+
+Om du är osäker kan du lämna detta markerat.";
+"Green" = "Grön";
+"Green Left" = "Grön vänster";
+"Green Right" = "Grön höger";
+"Grid View" = "Rutnätsvy";
+"Guitar" = "Gitarr";
+"Gyroscope" = "Gyroskop";
+"HDMI 3D" = "HDMI-3D";
+"Hacks" = "Hackningar";
+"Hex" = "Hex";
+"Hexadecimal" = "Hexadecimal";
+"Hide" = "Göm";
+"Hide Incompatible Sessions" = "Dölj inkompatibla sessioner";
+"High" = "Hög";
+"Highest" = "Högsta";
+"Hit Strength" = "Slagstyrka";
+"Host" = "Värd";
+"Host Code:" = "Värdkod:";
+"Host Input Authority" = "Värdauktoritet för indata";
+"Host Size" = "Värdstorlek";
+"Host has control of sending all inputs to the game, as received from other players, giving the host zero latency but increasing latency for others.
+Suitable for casual games with 3+ players, possibly on unstable or high latency connections." = "Värden har kontroll över att skicka alla inmatningar till spelet, som de mottagits från andra spelare, vilket ger värden noll latens men ökar latensen för andra.
+Lämplig för casual spel med 3+ spelare, eventuellt på instabila eller höga latensanslutningar.";
+"Host input authority disabled" = "Värdauktoritet för indata avstängt";
+"Host input authority enabled" = "Värdauktoritet för indata påslaget";
+"Host with NetPlay" = "Starta nätspel som värd";
+"Hotkey Settings" = "Kortkommandoinställningar";
+"Hotkeys" = "Kortkommandon";
+"Hz" = "Hz";
+"ID" = "ID";
+"IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: En fil som krävs för SSL-tjänster (%s) är ogiltig. Se https://dolphin-emu.org/docs/guides/wii-network-guide/ för instruktioner gällande konfiguration av Wii-nätverk.";
+"IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Kunde inte läsa en fil som krävs för SSL-tjänster (%s). Se https://dolphin-emu.org/docs/guides/wii-network-guide/ för instruktioner gällande konfiguration av Wii-nätverk.";
+"IP Address:" = "IP-adress:";
+"IPL Settings" = "IPL-inställningar";
+"IR" = "IR";
+"IR Sensitivity:" = "IR-känslighet:";
+"ISO Details" = "ISO-detaljer";
+"Icon" = "Ikon";
+"Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
+Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identisk med Värdauktoritet för indata, förutom att \"Värden\" (som har noll latens) kan ändras när som helst.
+Lämplig för turbaserade spel med tidskänsliga kontroller, till exempel golf.";
+"Identity Generation" = "Identitetsgenerering";
+"If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
+
+No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
+This authorization can be revoked at any time through Dolphin's settings." = "Om du godkänner det kan Dolphin skicka data om prestanda, användning av funktioner, konfiguration, och även vilken hårdvara och vilket operativsystem som används.
+
+Ingen privat data samlas någonsin in. Datan hjälper oss att förstå hur folk och emulerade spel använder Dolphin, så att vi kan prioritera vårt arbete bättre. Den hjälper oss också att upptäcka sällsynta konfigurationer som leder till buggar och prestanda- och stabilitetsproblem.
+Du kan dra tillbaka detta godkännande när som helst genom Dolphins inställningar.";
+"Ignore" = "Ignorera";
+"Ignore Format Changes" = "Ignorera formatändringar";
+"Ignore for this session" = "Ignorera för den här sessionen";
+"Ignores any changes to the EFB format.
+
+Improves performance in many games without any negative effect. Causes graphical defects in a small number of other games.
+
+If unsure, leave this checked." = "Ignorera alla ändringar av EFB-format.
+
+Förbättrar prestanda i många spel utan några negativa effekter. Orsakar dock felaktigheter i grafiken i ett litet antal andra spel.
+
+Om du är osäker kan du lämna detta markerat.";
+"Ignores any requests from the CPU to read from or write to the EFB. 
+
+Improves performance in some games, but will disable all EFB-based graphical effects or gameplay-related features.
+
+If unsure, leave this unchecked." = "Ignorerar alla efterfrågningar från processorn om att läsa från eller skriva till EFB:n.
+
+Förbättrar prestandan i några spel, men gör så att alla EFB-baserade spelrelaterade funktioner eller grafikeffekter inte fungerar.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Immediately Present XFB" = "Presentera XFB omedelbart";
+"Implements fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.
+
+If unsure, leave this unchecked." = "Implementerar helskärmsläget med ett kantlöst fönster som täcker hela skärmen istället för att använda exklusivt helskärmsläge. Detta gör det snabbare att växla mellan helskärm och fönster, men det ökar latensen för knapptryckningar lite, gör rörelser mindre mjuka och sänker prestandan lite.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Import BootMii NAND Backup..." = "Importera BootMii-NAND-kopia...";
+"Import Save File" = "Importera Spara Fil";
+"Import Wii Save..." = "Importera Wii-sparning…";
+"Import failed" = "Importering misslyckades";
+"Importing NAND backup" = "Importerar NAND-kopia";
+"Importing NAND backup
+ Time elapsed: %1s" = "Importerar NAND-kopia
+ Förfluten tid: %1s";
+"In-Game?" = "Spelar?";
+"Includes the contents of the embedded frame buffer (EFB) and upscaled EFB copies in save states. Fixes missing and/or non-upscaled textures/objects when loading states at the cost of additional save/load time.
+
+If unsure, leave this checked." = "Inkluderar innehållet i inbäddad bildrutebuffert (EFB) och uppskalade EFB-kopior i snabbsparning. Det fixar saknade och/eller icke uppskalade texturer/objekt vid snabbsparningsinläsning i utbyte mot ytterligare spara/laddningstid.
+
+Om du är osäker kan du lämna detta markerat.";
+"Increase Convergence" = "Öka konvergens";
+"Increase Depth" = "Öka djup";
+"Increase Emulation Speed" = "Öka emuleringshastighet";
+"Increase IR" = "Öka intern upplösning";
+"Info" = "Info";
+"Information" = "Information";
+"Input" = "Indata";
+"Input strength required for activation." = "Inmatningsstyrka som krävs för att aktiveras.";
+"Input strength to ignore." = "Inmatningsstyrka att ignorera.";
+"Insert &nop" = "Sätt in &nop";
+"Insert SD Card" = "Sätt in SD-kort";
+"Install" = "Installera";
+"Install Update" = "Installera uppdatering";
+"Install WAD..." = "Installera WAD…";
+"Install to the NAND" = "Installera till NAND-minnet";
+"Instruction" = "Instruktion";
+"Instruction Breakpoint" = "Instruktionsbrytpunkt";
+"Instruction:" = "Instruktion:";
+"Instruction: %1" = "Instruktion: %1";
+"Intensity" = "Intensitet";
+"Interface" = "Gränssnitt";
+"Internal LZO Error - compression failed" = "Internt LZO-fel - komprimering misslyckades";
+"Internal LZO Error - decompression failed" = "Internt LZO-fel - dekomprimering misslyckades";
+"Internal LZO Error - decompression failed (%d) (%li, %li) 
+Try loading the state again" = "Internt LZO-fel - avkomprimering misslyckades (%d) (%li, %li) 
+Försök att läsa in snabbsparning igen";
+"Internal LZO Error - lzo_init() failed" = "Internt LZO-fel - lzo_init() misslyckades";
+"Internal Resolution" = "Intern upplösning";
+"Internal Resolution:" = "Intern upplösning:";
+"Interpreter (slowest)" = "Interpreterare (långsammast)";
+"Interpreter Core" = "Interpreterarkärna";
+"Invalid Mixed Code" = "Ogiltig blandad kod";
+"Invalid Pack %1 provided: %2" = "Ogiltigt paket %1: %2";
+"Invalid Player ID" = "Ogiltigt spelar-ID";
+"Invalid RSO module address: %1" = "Ogiltig RSO-moduladress: %1";
+"Invalid Token." = "Ogiltig token.";
+"Invalid callstack" = "Ogiltig callstack";
+"Invalid checksums." = "Ogiltiga kontrollsummor.";
+"Invalid host" = "Ogiltig värd";
+"Invalid input for the field \"%1\"" = "Ogiltig indata för fältet \"%1\"";
+"Invalid input provided" = "Ogiltig indata";
+"Invalid literal." = "Ogiltig literal.";
+"Invalid password provided." = "Ogiltigt lösenord angivet.";
+"Invalid recording file" = "Ogiltig inspelningsfil";
+"Invalid search parameters (no object selected)" = "Ogiltiga sökparametrar (inget objekt markerat)";
+"Invalid search string (couldn't convert to number)" = "Ogiltig söksträng (kunde inte konvertera till siffror)";
+"Invalid search string (only even string lengths supported)" = "Ogiltig söksträng (endast jämna stränglängder stöds)";
+"Invalid title ID." = "Ogiltigt titel-ID.";
+"Italian" = "Italienska";
+"Italy" = "Italien";
+"JIT" = "JIT";
+"JIT Arm64 (experimental)" = "JIT Arm64 (experimentell)";
+"JIT Block Linking Off" = "JIT-blocklänkning av";
+"JIT Blocks" = "JIT-block";
+"JIT Branch Off" = "JIT Branch av";
+"JIT FloatingPoint Off" = "JIT FloatingPoint av";
+"JIT Integer Off" = "JIT Integer av";
+"JIT LoadStore Floating Off" = "JIT LoadStore Floating av";
+"JIT LoadStore Off" = "JIT LoadStore av";
+"JIT LoadStore Paired Off" = "JIT LoadStore Paired av";
+"JIT LoadStore lXz Off" = "JIT LoadStore lXz av";
+"JIT LoadStore lbzx Off" = "JIT LoadStore lbzx av";
+"JIT LoadStore lwz Off" = "JIT LoadStore lwz av";
+"JIT Off (JIT Core)" = "JIT av (JIT-kärna)";
+"JIT Paired Off" = "JIT Paired av";
+"JIT Recompiler (recommended)" = "JIT-kompilator (rekommenderas)";
+"JIT Register Cache Off" = "JIT Register Cache Off";
+"JIT SystemRegisters Off" = "JIT SystemRegisters av";
+"Japan" = "Japan";
+"Japanese" = "Japanska";
+"Keep Window on Top" = "Visa alltid fönster överst";
+"Keyboard" = "Tangentbord";
+"Keys" = "Tangenter";
+"KiB" = "KiB";
+"Kick Player" = "Sparka ut spelare";
+"Korea" = "Korea";
+"Korean" = "Koreanska";
+"L" = "L";
+"L-Analog" = "L-analog";
+"Label" = "Etikett";
+"Latency:" = "Latens:";
+"Latency: ~10ms" = "Latens: ~10 ms";
+"Latency: ~20ms" = "Latens: ~20 ms";
+"Latency: ~40ms" = "Latens: ~40 ms";
+"Latency: ~80ms" = "Latens: ~80 ms";
+"Left" = "Vänster";
+"Left Stick" = "Vänster spak";
+"Left Table" = "Vänster skiva";
+"Left click to set the IR value.
+Right click to re-center it." = "Vänsterklicka för att välja ett IR-värde.
+Högerklicka för att återcentrera.";
+"Left click to set the stick value.
+Right click to re-center it." = "Vänsterklicka för att välja ett spakvärde.
+Högerklicka för att återcentrera.";
+"Left-click to detect input.
+Middle-click to clear.
+Right-click for more options." = "Vänsterklicka för att söka efter indata.
+Mittenklicka för att rensa.
+Högerklicka för fler alternativ.";
+"Left/Right-click to configure output.
+Middle-click to clear." = "Vänster-/högerklicka för att konfigurera utdata.
+Mittenklicka för att rensa.";
+"Less or equal to" = "Mindre än eller lika med";
+"Less than" = "Mindre än";
+"License" = "Licens";
+"Limit Chunked Upload Speed:" = "Begränsa segmentuppladdningshastighet:";
+"List Columns" = "Listkolumner";
+"List View" = "Listvy";
+"Load" = "Läs in";
+"Load &Bad Map File..." = "Ladda &felaktig map-fil...";
+"Load &Other Map File..." = "Ladda &annan map-fil...";
+"Load Custom Textures" = "Läs in anpassade texturer";
+"Load GameCube Main Menu" = "Ladda GameCube-huvudmeny";
+"Load Last State" = "Läs in senaste snabbsparning";
+"Load Path:" = "Laddningssökväg:";
+"Load State" = "Läs in snabbsparning";
+"Load State Last 1" = "Läs in senaste snabbsparning 1";
+"Load State Last 10" = "Läs in senaste snabbsparning 10";
+"Load State Last 2" = "Läs in senaste snabbsparning 2";
+"Load State Last 3" = "Läs in senaste snabbsparning 3";
+"Load State Last 4" = "Läs in senaste snabbsparning 4";
+"Load State Last 5" = "Läs in senaste snabbsparning 5";
+"Load State Last 6" = "Läs in senaste snabbsparning 6";
+"Load State Last 7" = "Läs in senaste snabbsparning 7";
+"Load State Last 8" = "Läs in senaste snabbsparning 8";
+"Load State Last 9" = "Läs in senaste snabbsparning 9";
+"Load State Slot 1" = "Läs in snabbsparningsplats 1";
+"Load State Slot 10" = "Läs in snabbsparningsplats 10";
+"Load State Slot 2" = "Läs in snabbsparningsplats 2";
+"Load State Slot 3" = "Läs in snabbsparningsplats 3";
+"Load State Slot 4" = "Läs in snabbsparningsplats 4";
+"Load State Slot 5" = "Läs in snabbsparningsplats 5";
+"Load State Slot 6" = "Läs in snabbsparningsplats 6";
+"Load State Slot 7" = "Läs in snabbsparningsplats 7";
+"Load State Slot 8" = "Läs in snabbsparningsplats 8";
+"Load State Slot 9" = "Läs in snabbsparningsplats 9";
+"Load State from File" = "Läs in snabbsparning från fil";
+"Load State from Selected Slot" = "Läs in snabbsparning från vald plats";
+"Load State from Slot" = "Läs in snabbsparning från plats";
+"Load Wii Save" = "Ladda Wii-spardata";
+"Load Wii System Menu %1" = "Starta Wii-systemmeny %1";
+"Load from Selected Slot" = "Ladda från vald plats";
+"Load from Slot %1 - %2" = "Läs in från plats %1 - %2";
+"Load map file" = "Ladda map-fil";
+"Load..." = "Ladda...";
+"Loaded symbols from '%1'" = "Laddade symboler från '%1'";
+"Loads custom textures from User/Load/Textures/<game_id>/.
+
+If unsure, leave this unchecked." = "Läser in anpassade texturer från User/Load/Textures/<game_id>/.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Local" = "Lokalt";
+"Lock" = "Lås";
+"Log" = "Logg";
+"Log Configuration" = "Loggkonfiguration";
+"Log JIT Instruction Coverage" = "Logga JIT-instruktionstäckning";
+"Log Render Time to File" = "Logga renderingstid till fil";
+"Log Types" = "Loggtyper";
+"Logger Outputs" = "Loggningsutdata";
+"Logs the render time of every frame to User/Logs/render_time.txt.
+
+Use this feature when to measure the performance of Dolphin.
+
+If unsure, leave this unchecked." = "Loggar renderingstiden för varje bildruta till User/Logs/render_time.txt.
+
+Använd denna funktion när du vill mäta Dolphins prestanda.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Lost connection to NetPlay server..." = "Tappade anslutningen till nätspelsservern...";
+"Low" = "Låg";
+"Lowest" = "Lägsta";
+"MD5 Checksum" = "MD5-kontrollsumma";
+"MD5:" = "MD5:";
+"MMU" = "MHE";
+"MadCatz Gameshark files(*.gcs)" = "MadCatz Gameshark-filer (*.gcs)";
+"Main Stick" = "Huvudspak";
+"Maker" = "Skapare";
+"Maker:" = "Skapare:";
+"Makes distant objects more visible by removing fog, thus increasing the overall detail.
+
+Disabling fog will break some games which rely on proper fog emulation.
+
+If unsure, leave this unchecked." = "Gör avlägsna objekt mer synliga genom att ta bort dimma, så att detaljnivån ökar.
+
+Om dimma inaktiveras kan det orsaka problem i en del spel som förlitar sig på korrekt emulering av dimma.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Manage NAND" = "Hantera NAND";
+"Mapping" = "Mappning";
+"Match Found" = "Sökträff hittades";
+"Max Buffer:" = "Maxbuffert:";
+"Max buffer size changed to %1" = "Buffertstorleken ändrades till %1";
+"Maximum tilt angle." = "Maximal lutningsvinkel.";
+"May cause slow down in Wii Menu and some games." = "Kan leda till prestandaproblem i Wii-menyn och vissa spel.";
+"Medium" = "Medium";
+"Memory" = "Minne";
+"Memory Breakpoint" = "Minnesbrytpunkt";
+"Memory Card" = "Minneskort";
+"Memory Card Manager" = "Minneskorthanterare";
+"Memory Card filename in Slot %c is incorrect
+Region not specified
+
+Slot %c path was changed to
+%s
+Would you like to copy the old file to this new location?
+" = "Minneskortets filnamn i plats %c är ogiltigt
+Regionen är inte specificerad
+
+Sökvägen för platsen %c ändrades till
+%s
+Vill du kopiera den gamla filen till denna nya plats?
+";
+"Memory Not Ready" = "Minnet är inte redo";
+"Memory breakpoint options" = "Minnesbrytpunktsalternativ";
+"MemoryCard: ClearBlock called on invalid address (0x%x)" = "MemoryCard: ClearBlock anropades med ogiltig adress (0x%x)";
+"MemoryCard: Read called with invalid source address (0x%x)" = "MemoryCard: Read anropades med ogiltig källadress (0x%x)";
+"MemoryCard: Write called with invalid destination address (0x%x)" = "MemoryCard: Write anropades med ogiltig destinationsadress (0x%x)";
+"Merging a new NAND over your currently selected NAND will overwrite any channels and savegames that already exist. This process is not reversible, so it is recommended that you keep backups of both NANDs. Are you sure you want to continue?" = "Om du importerar ett nytt NAND över ditt nuvarande NAND kommer kanaler och sparfiler som redan finns att skrivas över. Detta går inte att ångra, så det rekommenderas att du har säkerhetskopior av båda NAND-minnena. Är du säker på att du vill fortsätta?";
+"MiB" = "MiB";
+"Microphone" = "Mikrofon";
+"Misc" = "Övrigt";
+"Misc Settings" = "Övriga inställningar";
+"Mismatch between free block count in header and actually unused blocks." = "Antalet fria block i headern matchar inte det faktiska antalet fria block.";
+"Mismatch between internal data structures." = "De interna datastrukturerna matchar inte.";
+"Modifier" = "Redigerare";
+"Modifies textures to show the format they're encoded in.
+
+May require an emulation reset to apply.
+
+If unsure, leave this unchecked." = "Modifierar texturer för att visa formatet de är kodade i.
+
+Det kan krävas att emuleringen startas om för att det ska börja gälla.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Monoscopic Shadows" = "Monoskopiska skuggor";
+"Monospaced Font" = "Teckensnitt med fast teckenbredd";
+"More or equal to" = "Mer än eller lika med";
+"More than" = "Mer än";
+"Motion Input" = "Rörelseinmatning";
+"Motion Simulation" = "Rörelsesimulering";
+"Motor" = "Motor";
+"Move the mouse pointer over an option to display a detailed description." = "Håll muspekaren över ett alternativ för att visa en detaljerad beskrivning.";
+"Movie" = "Inspelning";
+"NAND Check" = "NAND-minneskontroll";
+"NOTE: Stream size doesn't match actual data length
+" = "OBS: Strömningsstorleken stämmer inte överens med den faktiska datalängden
+";
+"NTSC-J" = "NTSC-J";
+"NTSC-U" = "NTSC-U";
+"Name" = "Namn";
+"Name for a new tag:" = "Namn för ny etikett:";
+"Name of the tag to remove:" = "Namn på etiketten att ta bort:";
+"Name of your session shown in the server browser" = "Namnet på din session som visas i serverlistan";
+"Name:" = "Namn:";
+"Native (640x528)" = "Ursprunglig (640x528)";
+"Native GCI File (*.gci)" = "GCI-fil (*.gci)";
+"NetPlay" = "Nätspel";
+"NetPlay Session Browser" = "Nätspelssessionlista";
+"NetPlay Setup" = "Nätspelsinställningar";
+"Netherlands" = "Nederländerna";
+"Netplay has desynced in NetPlay_GetButtonPress()" = "Nätspel har desynkroniserats i NetPlay_GetButtonPress()";
+"Netplay has desynced. There is no way to recover from this." = "Nätspelet har desynkroniserats. Det går inte att göra något åt detta.";
+"Network" = "Nätverk";
+"Never Auto-Update" = "Uppdatera aldrig automatiskt";
+"New" = "Ny";
+"New Breakpoint" = "Ny brytpunkt";
+"New Search" = "Ny sökning";
+"New Tag..." = "Ny etikett...";
+"New identity generated." = "En ny identitet har genererats.";
+"New instruction:" = "Ny instruktion:";
+"New tag" = "Ny etikett";
+"Next Game Profile for Wii Remote 1" = "Nästa spelprofil för Wii-fjärrkontroll 1";
+"Next Game Profile for Wii Remote 2" = "Nästa spelprofil för Wii-fjärrkontroll 2";
+"Next Game Profile for Wii Remote 3" = "Nästa spelprofil för Wii-fjärrkontroll 3";
+"Next Game Profile for Wii Remote 4" = "Nästa spelprofil för Wii-fjärrkontroll 4";
+"Next Match" = "Nästa matchning";
+"Next Profile for Wii Remote 1" = "Nästa profil för Wii-fjärrkontroll 1";
+"Next Profile for Wii Remote 2" = "Nästa profil för Wii-fjärrkontroll 2";
+"Next Profile for Wii Remote 3" = "Nästa profil för Wii-fjärrkontroll 3";
+"Next Profile for Wii Remote 4" = "Nästa profil för Wii-fjärrkontroll 4";
+"Next Search" = "Nästa sökning";
+"Nickname:" = "Smeknamn:";
+"No" = "Nej";
+"No Adapter Detected" = "Ingen adapter upptäcktes";
+"No Audio Output" = "Ingen ljuduppspelning";
+"No Match" = "Ingen sökträff";
+"No Value Given" = "Inget Värde Angivet";
+"No description available" = "Ingen beskrivning tillgänglig";
+"No errors." = "Inga fel.";
+"No extension selected." = "Ingen extern kontroll har valts.";
+"No file loaded / recorded." = "Ingen fil inläst/inspelad.";
+"No issues have been detected." = "Inga problem upptäcktes.";
+"No paths found in the M3U file \"%s\"" = "Inga sökvägar hittades i M3U-filen \"%s\"";
+"No problems were found." = "Inga problem hittades.";
+"No problems were found. This does not guarantee that this is a good dump, but since Wii titles contain a lot of verification data, it does mean that there most likely are no problems that will affect emulation." = "Inga problem hittades. Detta garanterar inte att detta är en korrekt kopia, men eftersom Wii-titlar innehåller mycket verifieringsdata betyder det att det antagligen inte finns några problem som påverkar emuleringen.";
+"No profiles found for game setting '%s'" = "Inga profiler hittades för spelinställningen \"%s\"";
+"No recording loaded." = "Ingen inspelning laddad.";
+"No save data found." = "Ingen spardata hittades.";
+"No search value entered." = "Inget sökvärde har angivits.";
+"No undo.dtm found, aborting undo load state to prevent movie desyncs" = "Ingen undo.dtm hittades, avbryter ångring av snabbsparningsinläsning för att förhindra att inspelningen desynkroniseras";
+"No value provided." = "Inget värde angivet.";
+"None" = "Ingen";
+"North America" = "Nordamerika";
+"Not Found" = "Hittades inte";
+"Not Set" = "Inte angiven";
+"Not all players have the game. Do you really want to start?" = "Vissa spelare har inte detta spel. Vill du verkligen starta?";
+"Not equals to" = "Inte lika med";
+"Notes:" = "Anteckningar:";
+"Nothing to configure" = "Ingenting att konfigurera";
+"Notice" = "Meddelande";
+"Null" = "Null";
+"NumExec" = "NumExec";
+"Number of shakes per second." = "Antal skakningar per sekund.";
+"Nunchuk" = "Nunchuk";
+"Nunchuk Buttons" = "Nunchuk-knappar";
+"Nunchuk Orientation" = "Nunchuk-orientering";
+"Nunchuk Stick" = "Nunchuk-spak";
+"OK" = "OK";
+"Object %1" = "Objekt %1";
+"Object Range" = "Räckvidd för objekt";
+"Oceania" = "Oceanien";
+"Octal" = "Oktal";
+"Off" = "Av";
+"Offset:" = "Offset:";
+"On" = "På";
+"Online &Documentation" = "&Dokumentation online ";
+"Only append symbols with prefix:
+(Blank for all symbols)" = "Lägg endast till symboler med prefix:
+(Lämna tomt för att exportera alla symboler)";
+"Only export symbols with prefix:
+(Blank for all symbols)" = "Exportera endast symboler med prefix:
+(Lämna tomt för att exportera alla symboler)";
+"Open" = "Öppna";
+"Open &Containing Folder" = "Öppna &innehållande mapp";
+"Open Directory..." = "Öppna mapp...";
+"Open FIFO log" = "Öppna FIFO-logg";
+"Open GameCube &Save Folder" = "Öppna &sparningsmappen för GameCube";
+"Open Wii &Save Folder" = "Öppna &sparningsmappen för Wii";
+"Open in External Editor" = "Öppna i extern editor";
+"OpenAL: can't create context for device %s" = "OpenAL: kan inte skapa sammanhang för utrustningen %s";
+"OpenAL: can't find sound devices" = "OpenAL: kan inte hitta någon ljudutrustning";
+"OpenAL: can't open device %s" = "OpenAL: kan inte öppna enheten %s";
+"OpenGL" = "OpenGL";
+"OpenGL ES" = "OpenGL ES";
+"Operators" = "Operatörer";
+"Options" = "Alternativ";
+"Orange" = "Orange";
+"Other" = "Övrigt";
+"Other State Hotkeys" = "Andra snabbsparningskortkommandon";
+"Other State Management" = "Annan snabbsparningshantering";
+"Other game..." = "Annat spel...";
+"Overlay Information" = "Pålagd informationstext";
+"P&lay Input Recording..." = "Spe&la upp inspelning...";
+"PAL" = "PAL";
+"PNG image file (*.png);; All Files (*)" = "PNG-bildfil (*.png);; Alla filer (*)";
+"PPC Size" = "PPC-storlek";
+"PPC vs Host" = "PPC mot värd";
+"Pad" = "Kontroll";
+"Pads" = "Kontroller";
+"Parsing Error" = "Tolkningsfel";
+"Partition %1" = "Partition %1";
+"Passive" = "Passiv";
+"Passthrough a Bluetooth adapter" = "Bluetooth-adaptergenomsläppning";
+"Password" = "Lösenord";
+"Password for joining your game (leave empty for none)" = "Lösenord för att ansluta till ditt spel (lämna tomt för inget)";
+"Password?" = "Lösenord?";
+"Patch Editor" = "Patchredigerare";
+"Patch name" = "Patchnamn";
+"Patches" = "Patcher";
+"Paths" = "Sökvägar";
+"Pause" = "Pausa";
+"Pause at End of Movie" = "Pausa vid slutet av inspelningar";
+"Pause on Focus Loss" = "Pausa när fokus förloras";
+"Peak angular velocity (measured in turns per second)." = "Maximal vinkelhastighet (mätt i varv per sekund).";
+"Peak velocity of movements to neutral position." = "Topphastigheten för rörelser mot neutral position.";
+"Peak velocity of outward swing movements." = "Topphastigheten för svingande utåt.";
+"Per-Pixel Lighting" = "Ljus per bildpunkt";
+"Perform Online System Update" = "Uppdatera systemmjukvaran via internet";
+"Perform System Update" = "Uppdatera systemmjukvaran";
+"Physical" = "Fysisk";
+"PiB" = "PiB";
+"Pick a debug font" = "Välj ett teckensnitt för felsökning";
+"Ping" = "Ping";
+"Pitch Down" = "Luta nedåt";
+"Pitch Up" = "Luta uppåt";
+"Platform" = "Plattform";
+"Play" = "Spela";
+"Play / Record" = "Spela / spela in";
+"Play Recording" = "Spela upp inspelning";
+"Playback Options" = "Uppspelningsalternativ";
+"Player" = "Spelare";
+"Players" = "Spelare";
+"Point" = "Pekning";
+"Port %1" = "Uttag %1";
+"Port:" = "Port:";
+"Possible desync detected: %1 might have desynced at frame %2" = "Möjlig desynkronisation upptäcktes: %1 kan ha desynkroniserat under bildruta %2";
+"Post-Processing Effect:" = "Efterbehandlingseffekt:";
+"Post-Processing Shader Configuration" = "Efterbehandlingsshaderkonfiguration";
+"Prefetch Custom Textures" = "Läs in anpassade texturer i förhand";
+"Premature movie end in PlayController. %u + %zu > %zu" = "Tidigt inspelningsslut i PlayController. %u + %zu > %zu";
+"Premature movie end in PlayWiimote. %u + %d > %zu" = "Tidigt inspelningsslut i PlayWiimote. %u + %d > %zu";
+"Premature movie end in PlayWiimote. %u > %zu" = "Tidigt inspelningsslut i PlayWiimote. %u > %zu";
+"Preparing to update...
+This can take a while." = "Förbereder uppdateringen...
+Detta kan ta ett tag.";
+"Presets" = "Förval";
+"Press Sync Button" = "Synkknapptryckning";
+"Pressure" = "Tryck";
+"Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken effects.
+
+Not recommended, only use if the other options give poor results." = "Förhindrar korta pauser medan shaders kompileras genom att inte rendera väntande objekt. Kan fungera i scenarion där übershaders inte fungerar, men det kommer uppstå grafiska problem och trasiga effekter.
+
+Rekommenderas inte. Använd bara detta om de andra alternativen inte ger bra resultat.";
+"Previous Game Profile for Wii Remote 1" = "Föregående spelprofil för Wii-fjärrkontroll 1";
+"Previous Game Profile for Wii Remote 2" = "Föregående spelprofil för Wii-fjärrkontroll 2";
+"Previous Game Profile for Wii Remote 3" = "Föregående spelprofil för Wii-fjärrkontroll 3";
+"Previous Game Profile for Wii Remote 4" = "Föregående spelprofil för Wii-fjärrkontroll 4";
+"Previous Match" = "Föregående matchning";
+"Previous Profile for Wii Remote 1" = "Föregående profil för Wii-fjärrkontroll 1";
+"Previous Profile for Wii Remote 2" = "Föregående profil för Wii-fjärrkontroll 2";
+"Previous Profile for Wii Remote 3" = "Föregående profil för Wii-fjärrkontroll 3";
+"Previous Profile for Wii Remote 4" = "Föregående profil för Wii-fjärrkontroll 4";
+"Private" = "Privat";
+"Private and Public" = "Privat och offentlig";
+"Problem" = "Problem";
+"Problems with high severity were found. The game will most likely not work at all." = "Mycket allvarliga problem har påträffats. Spelet kommer mycket troligt inte fungera alls.";
+"Problems with low severity were found. They will most likely not prevent the game from running." = "Smärre problem har påträffats. De kommer förmodligen inte förhindra spelet från att köras.";
+"Problems with medium severity were found. The whole game or certain parts of the game might not work correctly." = "Någorlunda allvarliga problem har påträffats. Hela spelet eller vissa delar av spelet kommer kanske inte fungera riktigt.";
+"Profile" = "Profil";
+"Program Counter" = "Program Counter";
+"Progress" = "Förlopp";
+"Public" = "Offentlig";
+"Purge Game List Cache" = "Töm cache för spellista";
+"Put Main Menu roms in User/GC/{region}." = "Lägg huvudmeny-ROM-filer i User/GC/{region}.";
+"Quality of Service (QoS) couldn't be enabled." = "Det gick inte att sätta på Quality of Service (QoS).";
+"Quality of Service (QoS) was successfully enabled." = "Quality of Service (QoS) har satts på.";
+"Quality of the DPLII decoder. Audio latency increases with quality." = "Kvaliteten för DPLII-dekodern. Ljudlatensen ökar ju högre kvaliteten är.";
+"Question" = "Fråga";
+"Quit" = "Avsluta";
+"R" = "R";
+"R-Analog" = "R-analog";
+"RSO Modules" = "RSO-moduler";
+"Range" = "Räckvidd";
+"Re&place instruction" = "Byt &ut instruktion";
+"Read" = "Läs";
+"Read and write" = "Läs och skriv";
+"Read only" = "Endast läs";
+"Read or Write" = "Läs eller skriv";
+"Read-Only Mode" = "Skrivskyddat läge";
+"Real Balance Board" = "Riktig balansbräda";
+"Real Wii Remote" = "Riktig Wii-fjärrkontroll";
+"Recenter" = "Återställ";
+"Record" = "Spela in";
+"Record Inputs" = "Spela in inmatningar";
+"Recording" = "Inspelning";
+"Recording Options" = "Inspelningsalternativ";
+"Recording..." = "Spelar in...";
+"Red" = "Röd";
+"Red Left" = "Röd vänster";
+"Red Right" = "Röd höger";
+"Reduces the amount of aliasing caused by rasterizing 3D graphics, resulting in smoother edges on objects. Increases GPU load and sometimes causes graphical issues.
+
+SSAA is significantly more demanding than MSAA, but provides top quality geometry anti-aliasing and also applies anti-aliasing to lighting, shader effects, and textures.
+
+If unsure, select None." = "Minskar ojämnheten som orsakas av rastrerad 3D-grafik, så att objekt får mjukare kanter. Höjer grafikprocessoranvändningen och kan ibland orsaka grafikfel.
+
+SSAA är mer krävande än MSAA, men ger avsevärt bättre geometrikantutjämning och utjämnar även ljus, shadereffekter och texturer.
+
+Om du är osäker kan du välja Ingen.";
+"Redump.org Status:" = "Redump.org-status:";
+"Refresh" = "Uppdatera";
+"Refresh Game List" = "Uppdatera spellista";
+"Refreshing..." = "Uppdaterar...";
+"Region" = "Region";
+"Region:" = "Region:";
+"Registers" = "Register";
+"Relative Input" = "Relativ Inmatning";
+"Relative Input Hold" = "Relativ Inmatning Håll";
+"Remind Me Later" = "Påminn mig senare";
+"Remove" = "Ta bort";
+"Remove Tag..." = "Ta bort etikett...";
+"Remove failed" = "Borttagning misslyckades";
+"Remove from Watch" = "Ta bort från bevakning";
+"Remove tag" = "Ta bort etikett";
+"Rename symbol" = "Byt namn på symbol";
+"Render Window" = "Renderingsfönster";
+"Render to Main Window" = "Rendera till huvudfönstret";
+"Rendering" = "Rendering";
+"Renders the scene as a wireframe.
+
+If unsure, leave this unchecked." = "Renderar scenen som wireframe.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Report: GCIFolder Writing to unallocated block 0x%x" = "Rapport: GCIFolder skriver till oallokerat block 0x%x";
+"Request to Join Your Party" = "Förfrågan att vara med i din grupp";
+"Reset" = "Återställ";
+"Reset Traversal Server" = "Återställ traverseringsserver";
+"Reset Traversal Server to %1:%2" = "Återställ traverseringsserver till %1:%2";
+"Reset Traversal Settings" = "Återställ traverseringsinställningar";
+"Reset all saved Wii Remote pairings" = "Nollställ alla sparade Wii-fjärrkontrollparningar";
+"Resource Pack Manager" = "Resurspaketshanterare";
+"Resource Pack Path:" = "Resurspaketssökväg:";
+"Restart Required" = "Omstart krävs";
+"Restore instruction" = "Återställ instruktion";
+"Retry" = "Försök igen";
+"Return Speed" = "Returhastighet";
+"Revision" = "Revision";
+"Revision: %1" = "Revision: %1";
+"Right" = "Höger";
+"Right Stick" = "Höger spak";
+"Right Table" = "Höger skiva";
+"Rim" = "Kant";
+"Rocker Down" = "Knapp Ner";
+"Rocker Up" = "Knapp Upp";
+"Roll Left" = "Rulla vänster";
+"Roll Right" = "Rulla höger";
+"Room ID" = "Rum-ID";
+"Rotation applied at extremities of swing." = "Mängden rotation vid svängningens ändpunkter.";
+"Rounds 2D vertices to whole pixels.
+
+Fixes graphical problems in some games at higher internal resolutions. This setting has no effect when native internal resolution is used.
+
+If unsure, leave this unchecked." = "Avrundar 2D-vertexer till hela pixlar.
+
+Fixar grafiska problem som uppstår i vissa spel när högre interna upplösningar används. Den här inställningen har ingen effekt när den ursprungliga interna upplösningen används.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Rumble" = "Vibration";
+"Run &To Here" = "Kör &hit";
+"Russia" = "Ryssland";
+"SD Card" = "SD-kort";
+"SD Card Image (*.raw);;All Files (*)" = "SD-kortsavbildning (*.raw);;Alla filer (*)";
+"SD Card Path:" = "SD-kortssökväg:";
+"SHA-1:" = "SHA-1:";
+"SP1:" = "SP1:";
+"START" = "START";
+"Sa&ve Code" = "&Spara kod";
+"Sa&ve State" = "Spa&ra snabbsparning";
+"Safe" = "Säker";
+"Save" = "Spara";
+"Save Export" = "Sparfilsexportering";
+"Save FIFO log" = "Spara FIFO-logg";
+"Save File to" = "Spara fil till";
+"Save Import" = "Sparfilsimportering";
+"Save Oldest State" = "Spara äldsta snabbsparning";
+"Save State" = "Spara snabbsparning";
+"Save State Slot 1" = "Spara snabbsparningsplats 1";
+"Save State Slot 10" = "Spara snabbsparningsplats 10";
+"Save State Slot 2" = "Spara snabbsparningsplats 2";
+"Save State Slot 3" = "Spara snabbsparningsplats 3";
+"Save State Slot 4" = "Spara snabbsparningsplats 4";
+"Save State Slot 5" = "Spara snabbsparningsplats 5";
+"Save State Slot 6" = "Spara snabbsparningsplats 6";
+"Save State Slot 7" = "Spara snabbsparningsplats 7";
+"Save State Slot 8" = "Spara snabbsparningsplats 8";
+"Save State Slot 9" = "Spara snabbsparningsplats 9";
+"Save State to File" = "Spara snabbsparning till fil";
+"Save State to Oldest Slot" = "Spara snabbsparning på äldsta platsen";
+"Save State to Selected Slot" = "Snabbspara på vald plats";
+"Save State to Slot" = "Spara snabbsparning på plats";
+"Save Symbol Map &As..." = "Spara symbol-map so&m...";
+"Save Texture Cache to State" = "Spara texturcache i snabbsparningar";
+"Save and Load State" = "Spara och läs in snabbsparning";
+"Save as..." = "Spara som...";
+"Save combined output file as" = "Spara kombinerad utdatafil som";
+"Save data for this title already exists in the NAND. Consider backing up the current data before overwriting.
+Overwrite now?" = "Spardata för den här titeln finns redan i NAND-minnet. Du kanske vill göra en säkerhetskopia på de nuvarande sparfilerna före du skriver över.
+Vill du skriva över nu?";
+"Save map file" = "Spara map-fil";
+"Save signature file" = "Spara signaturfil";
+"Save to Selected Slot" = "Spara på vald plats";
+"Save to Slot %1 - %2" = "Spara på plats %1 - %2";
+"Save..." = "Spara...";
+"Saved Wii Remote pairings can only be reset when a Wii game is running." = "Sparade Wii-fjärrkontrollparningar kan bara nollställas när ett Wii-spel körs.";
+"Saved to /Wii/sd.raw (default size is 128mb)." = "Sparas som /Wii/sd.raw (standardstorleken är 128 MiB).";
+"Savestate movie %s is corrupted, movie recording stopping..." = "Snabbsparningsinspelningen %s är korrupt. Inspelningen stoppas...";
+"Scaled EFB Copy" = "Skalad EFB-kopia";
+"ScrShot" = "Skärmdump";
+"Screenshot failed: Could not open file \"%s\" (error %d)" = "Kunde inte ta bild: Filen \"%s\" kunde inte öppnas (felkod %d)";
+"Search" = "Sök";
+"Search Address" = "Sök adress";
+"Search Current Object" = "Sök aktuellt objekt";
+"Search Subfolders" = "Sök undermappar";
+"Search for an Instruction" = "Sök efter en instruktion";
+"Search games..." = "Sök efter spel...";
+"Search instruction" = "Sök efter en instruktion";
+"Section that contains all Action Replay cheat codes." = "Avsnitt som innehåller alla Action Repla-koder.";
+"Section that contains all Gecko cheat codes." = "Avsnitt som innehåller alla Gecko-koder.";
+"Section that contains all graphics related settings." = "Avsnitt som innehåller alla grafikinställningar.";
+"Section that contains most CPU and Hardware related settings." = "Avsnitt som innehåller de flesta CPU- och hårdvaruinställningarna.";
+"Select" = "Välj";
+"Select Dump Path" = "Välj dump-sökväg:";
+"Select Export Directory" = "Välj exporteringskatalog";
+"Select Last State" = "Välj senaste snabbsparning";
+"Select Load Path" = "Välj laddningssökväg";
+"Select Resource Pack Path" = "Välj resurspaketssökväg";
+"Select Slot %1 - %2" = "Välj plats %1 - %2";
+"Select State" = "Välj snabbsparning";
+"Select State Slot" = "Välj snabbsparningsplats";
+"Select State Slot 1" = "Välj snabbsparningsplats 1";
+"Select State Slot 10" = "Välj snabbsparningsplats 10";
+"Select State Slot 2" = "Välj snabbsparningsplats 2";
+"Select State Slot 3" = "Välj snabbsparningsplats 3";
+"Select State Slot 4" = "Välj snabbsparningsplats 4";
+"Select State Slot 5" = "Välj snabbsparningsplats 5";
+"Select State Slot 6" = "Välj snabbsparningsplats 6";
+"Select State Slot 7" = "Välj snabbsparningsplats 7";
+"Select State Slot 8" = "Välj snabbsparningsplats 8";
+"Select State Slot 9" = "Välj snabbsparningsplats 9";
+"Select Wii NAND Root" = "Välj Wii-NAND-rot";
+"Select a Directory" = "Välj en mapp";
+"Select a File" = "Välj en fil";
+"Select a Game" = "Välj ett spel";
+"Select a SD Card Image" = "Välj en SD-kortsavbildning";
+"Select a game" = "Välj ett spel";
+"Select a title to install to NAND" = "Välj en titel att installera till NAND-minnet";
+"Select the Recording File" = "Välj inspelningsfil";
+"Select the keys file (OTP/SEEPROM dump)" = "Välj nyckelfil (OTP/SEEPROM-kopia)";
+"Select the save file" = "Välj sparningsfilen";
+"Select where you want to save the compressed image" = "Välj var du vill spara den komprimerade skivavbildningen";
+"Select where you want to save the compressed images" = "Välj var du vill spara de komprimerade skivavbildningarna";
+"Select where you want to save the decompressed image" = "Välj var du vill spara den dekomprimerade skivavbildningen";
+"Select where you want to save the decompressed images" = "Välj var du vill spara de avkomprimerade skivavbildningarna";
+"Selected Font" = "Valt teckensnitt";
+"Selected controller profile does not exist" = "Den valda kontrollprofilen finns inte";
+"Selected game doesn't exist in game list!" = "Det valda spelet finns inte i spellistan!";
+"Selects a hardware adapter to use.
+
+If unsure, select the first one." = "Väljer en hårdvaruadapter att använda.
+
+Om du är osäker kan du välja den första.";
+"Selects the stereoscopic 3D mode. Stereoscopy allows a better feeling of depth if the necessary hardware is present. Heavily decreases emulation speed and sometimes causes issues.
+
+Side-by-Side and Top-and-Bottom are used by most 3D TVs.
+Anaglyph is used for Red-Cyan colored glasses.
+HDMI 3D is used when the monitor supports 3D display resolutions.
+Passive is another type of 3D used by some TVs.
+
+If unsure, select Off." = "Väljer stereoskopiskt 3D-läge. Stereoskopi låter dig få bättre djupkänsla om du har den nödvändiga hårdvaran. Sänker emuleringshastigheten kraftigt och kan ibland orsaka fel.
+
+Sida-vid-sida och Topp-och-botten används av de flesta 3D-TV-apparater.
+Anaglyf används för röd-turkos-färgade glasögon.
+HDMI-3D används när skärmen stödjer 3D-visningsupplösningar.
+Passiv är en annan typ av 3D som används av vissa TV-apparater.
+
+Om du är osäker kan du välja Av.";
+"Selects what graphics API to use internally.
+The software renderer is extremely slow and only useful for debugging, so you'll want to use either Direct3D or OpenGL. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it's recommended to try both and choose the one that's less problematic.
+
+If unsure, select OpenGL." = "Väljer vilket grafik-API som ska användas internt.
+Programvarurenderaren är extremt långsam och är därför bara användbar för att felsöka, så om du inte har en anledning att använda den bör du välja antingen Direct3D eller OpenGL. Beroende på spel och grafikprocessor kan varje backend bete sig lite annorlunda, så för att få den bästa upplevelsen är det bra att prova båda och ta den som har minst problem.
+
+Om du är osäker kan du välja OpenGL.";
+"Selects which aspect ratio to use when rendering.
+
+Auto: Uses the native aspect ratio
+Force 16:9: Mimics an analog TV with a widescreen aspect ratio.
+Force 4:3: Mimics a standard 4:3 analog TV.
+Stretch to Window: Stretches the picture to the window size.
+
+If unsure, select Auto." = "Välj vilket bildformat som ska användas vid rendering:
+
+Auto: Använder det ursprungliga bildförhållandet.
+Tvinga 16:9: Härmar en analog-TV med bredbildsformat.
+Tvinga 4:3: Härmar en vanlig analog-TV i 4:3.
+Sträck ut till fönster: Sträcker bilden till fönsterstorleken.
+
+Om du är osäker kan du välja Auto.";
+"Selects which graphics API to use internally.
+
+The software renderer is extremely slow and only useful for debugging, so any of the other backends are recommended.
+
+If unsure, select OpenGL." = "Väljer vilket grafik-API som ska användas internt.
+
+Programvarurenderaren är extremt långsam och är därför bara användbar för att felsöka, så någon annan backend rekommenderas.
+
+Om du är osäker kan du välja OpenGL.";
+"Selects which graphics API to use internally.
+
+The software renderer is extremely slow and only useful for debugging, so either OpenGL, Direct3D, or Vulkan are recommended. Different games and different GPUs will behave differently on each backend, so for the best emulation experience it is recommended to try each and select the backend that is least problematic.
+
+If unsure, select OpenGL." = "Väljer vilket grafik-API som ska användas internt.
+
+Programvarurenderaren är extremt långsam och är därför bara användbar för att felsöka, så OpenGL, Direct3D eller Vulkan rekommenderas. Beroende på spel och grafikprocessor kan varje backend bete sig lite annorlunda, så för att få den bästa upplevelsen rekommenderas det att prova var och en och välja den backend som har minst problem.
+
+Om du är osäker kan du välja OpenGL.";
+"Send" = "Skicka";
+"Sensor Bar Position:" = "Position för Sensor Bar:";
+"Serial and/or version data is missing from %s" = "Data för serienummer och/eller version saknas i %s";
+"Server IP Address" = "Serverns IP-adress";
+"Server Port" = "Serverns port";
+"Server rejected traversal attempt" = "Servern avvisade traverseringsförsök";
+"Set &Value" = "Sätt &värde";
+"Set PC" = "Sätt PC";
+"Set as &Default ISO" = "Ange som &standard-ISO";
+"Set memory card file for Slot A" = "Välj minneskortsfil för plats A";
+"Set memory card file for Slot B" = "Välj minneskortsfil för plats B";
+"Set symbol &end address" = "Ställ in slut&adress för symbol";
+"Set symbol &size" = "Ställ in &storlek för symbol";
+"Set symbol end address" = "Ställ in slutadress för symbol";
+"Set symbol size (%1):" = "Ange storlek för symbol (%1):";
+"Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL games.
+May not work for all games." = "Sätter Wii-bildläget till 60Hz (480i) istället för 50Hz (576i) för PAL-spel. Vissa spel stödjer inte detta.";
+"Sets the Wii system language." = "Ställer in Wii-systemspråk.";
+"Sets the latency (in ms). Higher values may reduce audio crackling. Certain backends only." = "Anger latensen (i millisekunder). Högre värden kan minska ljudknaster. Endast för vissa backends.";
+"Settings" = "Inställningar";
+"SetupWiiMemory: Can't create setting.txt file" = "SetupWiiMemory: Kan inte skapa filen setting.txt";
+"Severity" = "Allvarlighet";
+"Shader Compilation" = "Shaderkompilering";
+"Shake" = "Skakning";
+"Shortens loading times but may break some games. Can have negative effects on performance. Defaults to <b>False</b>" = "Minskar laddningstider, men kan orsaka problem i vissa spel. Kan ha negativ påverkan på prestanda. Förval är <b>Falskt</b>";
+"Show &Log" = "Visa &logg";
+"Show &Toolbar" = "Visa &verktygsfält";
+"Show Active Title in Window Title" = "Visa aktiv titel i fönstertitel";
+"Show Australia" = "Visa Australien";
+"Show Current Game on Discord" = "Visa nuvarande spel på Discord";
+"Show Debugging UI" = "Visa felsökningsgränssnitt";
+"Show ELF/DOL" = "Visa ELF/DOL";
+"Show FPS" = "Visa bildfrekvens";
+"Show Frame Counter" = "Visa bildruteräknare";
+"Show France" = "Visa Frankrike";
+"Show GameCube" = "Visa GameCube";
+"Show Germany" = "Visa Tyskland";
+"Show Golf Mode Overlay" = "Visa överlägg för golfläge";
+"Show Input Display" = "Visa indata";
+"Show Italy" = "Visa Italien";
+"Show JAP" = "Visa JAP";
+"Show Korea" = "Visa Korea";
+"Show Lag Counter" = "Visa laggräknare";
+"Show Language:" = "Visa språk:";
+"Show Log &Configuration" = "Visa logg&konfiguration";
+"Show NetPlay Messages" = "Visa nätspelsmeddelanden";
+"Show NetPlay Ping" = "Visa nätspelsping";
+"Show Netherlands" = "Visa Nederländerna";
+"Show On-Screen Display Messages" = "Visa meddelanden på skärmen";
+"Show PAL" = "Visa PAL";
+"Show PC" = "Visa PC";
+"Show Platforms" = "Visa plattformar";
+"Show Regions" = "Visa regioner";
+"Show Russia" = "Visa Ryssland";
+"Show Spain" = "Visa Spanien";
+"Show Statistics" = "Visa statistik";
+"Show System Clock" = "Visa systemklocka";
+"Show Taiwan" = "Visa Taiwan";
+"Show USA" = "Visa USA";
+"Show Unknown" = "Visa okänd";
+"Show WAD" = "Visa WAD";
+"Show Wii" = "Visa Wii";
+"Show World" = "Visa världen";
+"Show in &memory" = "Visa i &minne";
+"Show in code" = "Visa i kod";
+"Show in server browser" = "Visa i serverlistan";
+"Show various rendering statistics.
+
+If unsure, leave this unchecked." = "Visar diverse renderingsstatistik.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Shows chat messages, buffer changes, and desync alerts while playing NetPlay.
+
+If unsure, leave this unchecked." = "Visar chattmeddelanden, buffertändringar och desynkroniseringsvarningar under nätspel.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Shows the number of frames rendered per second as a measure of emulation speed.
+
+If unsure, leave this unchecked." = "Visa antalet renderade bildrutor per sekund som ett mått på emuleringshastigeten.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Shows the player's maximum ping while playing on NetPlay.
+
+If unsure, leave this unchecked." = "Visar spelarens maximala ping under nätspel.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Shows various rendering statistics.
+
+If unsure, leave this unchecked." = "Visar diverse renderingsstatistik.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Side-by-Side" = "Sida-vid-sida";
+"Sideways Hold" = "Håll inne för liggande läge";
+"Sideways Toggle" = "Tryck för liggande läge";
+"Sideways Wii Remote" = "Liggande Wii-fjärrkontroll";
+"Signature Database" = "Signaturdatabas";
+"Signed Integer" = "Signed int";
+"Simplified Chinese" = "Förenklad kinesiska";
+"Simulate DK Bongos" = "Simulera DK Bongos";
+"Size" = "Storlek";
+"Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "Sträckningsbuffertens storlek i millisekunder. Om värdet är för lågt kan ljudet låta hackigt.";
+"Skip" = "Hoppa över";
+"Skip EFB Access from CPU" = "Hoppa över tillgång till EFB från processorn";
+"Skip Main Menu" = "Hoppa över huvudmeny";
+"Skip Presenting Duplicate Frames" = "Hoppa över dubblettbildrutor";
+"Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. This may improve performance on low-end devices, while making frame pacing less consistent.
+
+Disable this option as well as enabling V-Sync for optimal frame pacing.
+
+If unsure, leave this checked." = "Visar inte dubblettbildrutor (XFB-kopior) i spel med bildfrekvenser på 25 fps/30 fps. Detta kan förbättra prestandan på äldre enheter, men gör bildhastigheten mindre jämn.
+
+Inaktivera detta alternativ och aktivera även V-Sync för optimal utjämning av bildfrekvensen.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Slider Bar" = "Slider Bar";
+"Slot A" = "Plats A";
+"Slot A:" = "Plats A:";
+"Slot B" = "Plats B";
+"Slot B:" = "Plats B:";
+"Software Renderer" = "Mjukvarurenderare";
+"Some of the data could not be read." = "Viss data kunde inte läsas.";
+"Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "Viss ifyllnadsdata som borde vara noll är inte noll. Detta kan göra att spelet fryser vid vissa punkter.";
+"Some values you provided are invalid.
+Please check the highlighted values." = "Vissa av de angivna värdena är ogiltiga.
+Kontrollera de markerade värdena.";
+"Sort Alphabetically" = "Sortera alfabetiskt";
+"South America" = "Sydamerika";
+"Spain" = "Spanien";
+"Spanish" = "Spanska";
+"Speaker Pan" = "Högtalarpanorering";
+"Speaker Volume:" = "Högtalarvolym:";
+"Speed" = "Hastighet";
+"Speed up Disc Transfer Rate" = "Snabba upp disköverförningshastigheten";
+"Stable (once a year)" = "Stabil (en gång om året)";
+"Standard Controller" = "Standardkontroll";
+"Start" = "Start";
+"Start &NetPlay..." = "Starta &nätspel...";
+"Start Re&cording Input" = "Starta &inspelning";
+"Start Recording" = "Starta inspelning";
+"Started game" = "Startade spelet";
+"Steering Wheel" = "Ratt";
+"Step" = "Stega";
+"Step Into" = "Stega in";
+"Step Out" = "Stega ut";
+"Step Over" = "Stega över";
+"Step out successful!" = "Urstegningen lyckades!";
+"Step out timed out!" = "Urstegningen gjorde timeout!";
+"Step over in progress..." = "Överstegning pågår...";
+"Step successful!" = "Stegning lyckades!";
+"Stepping" = "Stega";
+"Stereoscopic 3D Mode:" = "Läge för stereoskopisk 3D:";
+"Stereoscopy" = "Stereoskopi";
+"Stick" = "Spak";
+"Stop" = "Stoppa";
+"Stop Playing/Recording Input" = "Avbryt uppspelning/inspelning";
+"Stopped game" = "Stoppade spelet";
+"Store EFB Copies to Texture Only" = "Lagra EFB-kopior endast i texturer";
+"Store XFB Copies to Texture Only" = "Lagra XFB-kopior endast i texturer";
+"Stores EFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games.
+
+Enabled = EFB Copies to Texture
+Disabled = EFB Copies to RAM (and Texture)
+
+If unsure, leave this checked." = "Lagrar EFB-kopior exklusivt på grafikprocessorn och kringgår systemminnet. Orsakar grafikfel i ett litet antal spel.
+
+Aktiverat = EFB-kopior till texturer
+Inaktiverat = EFB-kopior till RAM (och texturer)
+
+Om du är osäker kan du lämna detta markerat.";
+"Stores XFB copies exclusively on the GPU, bypassing system memory. Causes graphical defects in a small number of games.
+
+Enabled = XFB Copies to Texture
+Disabled = XFB Copies to RAM (and Texture)
+
+If unsure, leave this checked." = "Lagrar XFB-kopior exklusivt på grafikprocessorn och kringgår systemminnet. Orsakar grafikfel i ett litet antal spel.
+
+Aktiverat = XFB-kopior till texturer
+Inaktiverat = XFB-kopior till RAM (och texturer)
+
+Om du är osäker kan du lämna detta markerat.";
+"Stretch to Window" = "Sträck ut till fönster";
+"Strict Settings Sync" = "Strikt inställningssynkronisering";
+"String" = "Sträng";
+"String Match" = "Strängmatchning";
+"String values can only be compared using equality." = "Strängvärden kan bara jämföras med likhet.";
+"Strum" = "Slagskena";
+"Stylus" = "Penna";
+"Success" = "Klar";
+"Success." = "Lyckades.";
+"Successfully added to the NetPlay index" = "Lades till i nätspelindex";
+"Successfully compressed %n image(s)." = "Komprimerade %n skivavbildning(ar).";
+"Successfully decompressed %n image(s)." = "Avkomprimerade %n skivavbildning(ar).";
+"Successfully deleted '%1'." = "Borttagningen av '%1' lyckades.";
+"Successfully deleted files." = "Filerna har tagits bort.";
+"Successfully exported save files" = "Exporteringen av sparfiler lyckades";
+"Successfully exported the %1 save files." = "De %1 sparfilerna har exporterats.";
+"Successfully exported the save file." = "Sparfilen har exporterats.";
+"Successfully extracted certificates from NAND" = "Certifikaten har extraherats från NAND-minnet";
+"Successfully extracted file." = "Extraheringen av filen lyckades.";
+"Successfully extracted system data." = "Extraheringen av systemdata lyckades.";
+"Successfully imported save files." = "Importeringen av sparfiler lyckades.";
+"Successfully installed this title to the NAND." = "Titeln har installerats i NAND-minnet.";
+"Successfully removed this title from the NAND." = "Titeln har tagits bort från NAND-minnet.";
+"Support" = "Support";
+"Swap Eyes" = "Byt plats på ögon";
+"Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
+
+If unsure, leave this unchecked." = "Byter plats på vänster och höger öga. Mest användbart för sida-vid-sida-stereoskopiläget.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Swing" = "Svängning ";
+"Switch to A" = "Byt till A";
+"Switch to B" = "Byt till B";
+"Symbol" = "Symbol";
+"Symbol (%1) end address:" = "Slutadress för symbol (%1):";
+"Symbol name:" = "Symbolnamn";
+"Symbols" = "Symboler";
+"Sync" = "Synka";
+"Sync AR/Gecko Codes" = "Synka AR/Gecko-koder";
+"Sync All Wii Saves" = "Synka alla Wii-sparningar";
+"Sync Saves" = "Synka sparningar";
+"Sync real Wii Remotes and pair them" = "Synka riktiga Wii-fjärrkontroller och para dem";
+"Synchronize GPU thread" = "Synkronisera grafikprocessortråd";
+"Synchronizes the GPU and CPU threads to help prevent random freezes in Dual core mode. (ON = Compatible, OFF = Fast)" = "Synkroniserar grafikprocessorns och processorns trådar för att förhindra slumpartade frysningar när läget \"Dubbla kärnor\" används. (PÅ = kompatibel, AV = snabb)";
+"Synchronizing AR codes..." = "Synkroniserar AR-koder...";
+"Synchronizing Gecko codes..." = "Synkroniserar Gecko-koder...";
+"Synchronizing save data..." = "Synkroniserar spardata...";
+"Synchronous" = "Synkron";
+"Synchronous (Ubershaders)" = "Synkron (übershaders)";
+"System Language:" = "Systemspråk:";
+"TAS Input" = "TAS-inmatning";
+"TAS Tools" = "TAS-verktyg";
+"Tags" = "Etiketter";
+"Taiko Drum" = "Taikotrumma";
+"Taiwan" = "Taiwan";
+"Take Screenshot" = "Ta en skärmdump";
+"Test" = "Test";
+"Texture Cache" = "Texturcache";
+"Texture Format Overlay" = "Överlägg för texturformat";
+"The %s partition does not have a valid file system." = "%s-partitionen har inget giltigt filsystem.";
+"The %s partition does not seem to contain valid data." = "%s-partitionen verkar inte innehålla giltig data.";
+"The %s partition is not correctly signed." = "%s-partitionen är inte korrekt signerad.";
+"The %s partition is not properly aligned." = "%s-partitionen ligger inte på en korrekt position.";
+"The H3 hash table for the %s partition is not correct." = "H3-hashtabellen för %s-partitionen är inte korrekt.";
+"The IPL file is not a known good dump. (CRC32: %x)" = "IPL-filen är inte en känd korrekt version. (CRC32: %x)";
+"The Masterpiece partitions are missing." = "Masterpiecepartitionerna saknas.";
+"The NAND could not be repaired. It is recommended to back up your current data and start over with a fresh NAND." = "NAND-minnet kunde inte repareras. Det rekommenderas att du gör en säkerhetskopia av ditt nuvarande NAND-minne och sedan börjar om med ett nyskapat NAND-minne.";
+"The NAND has been repaired." = "NAND-minnet har reparerats.";
+"The address is invalid" = "Adressen är ogiltig";
+"The channel partition is missing." = "Kanalpartitionen saknas.";
+"The data partition is missing." = "Datapartitionen saknas.";
+"The data partition is not at its normal position. This will affect the emulated loading times. When using NetPlay or sending input recordings to other people, you will experience desyncs if anyone is using a good dump." = "Datapartitionen är inte på sin normala position. Detta kommer påverka de emulerade laddningstiderna. Om du använder nätspel eller skickar indatainspelningar till andra kommer det uppstå desynkroniseringar om någon använder en korrekt skivavbildning.";
+"The disc change to \"%s\" could not be saved in the .dtm file.
+The filename of the disc image must not be longer than 40 characters." = "Skivbytet till \"%s\" kunde inte sparas i .dtm-filen.
+Filnamnet för den nya skivavbildningen kan inte vara längre än 40 tecken.";
+"The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)." = "Skivan kunde inte läsas (vid 0x%<PRIx64> - 0x%<PRIx64>).";
+"The disc image \"%s\" is corrupt.
+Hash of block %<PRIu64> is %08x instead of %08x." = "Skivavbildningen \"%s\" är korrupt.
+Kontrollsumman av blocket %<PRIu64> är %08x istället för %08x.";
+"The disc image \"%s\" is truncated, some of the data is missing." = "Skivavbildningen \"%s\" är avklippt. Viss data saknas.";
+"The disc that was about to be inserted couldn't be found." = "Skivan som skulle sättas in hittades inte.";
+"The emulated NAND is damaged. System titles such as the Wii Menu and the Wii Shop Channel may not work correctly.
+
+Do you want to try to repair the NAND?" = "Det emulerade NAND-minnet är skadat. Systemtitlar såsom Wii-menyn och Wii Shop Channel kommer kanske inte fungera korrekt.
+
+Vill du försöka reparera NAND-minnet?";
+"The emulated Wii console has been updated." = "Den emulerade Wii-konsolen har uppdaterats.";
+"The emulated Wii console is already up-to-date." = "Den emulerade Wii-konsolen har redan den nyaste systemmjukvaran.";
+"The entered PID is invalid." = "Det angivna PID:t är ogiltigt.";
+"The entered VID is invalid." = "Det angivna VID:t är ogiltigt.";
+"The expression contains a syntax error." = "Uttrycket innehåller ett syntaxfel.";
+"The file
+%1
+is either corrupted or not a GameCube memory card file.
+%2" = "Filen
+%1
+är antingen korrupt eller inte en GameCube-minneskortsfil.
+%2";
+"The file %1 already exists.
+Do you wish to replace it?" = "Filen %1 finns redan.
+Vill du byta ut den?";
+"The file %s could not be opened for writing. Please check if it's already opened by another program." = "Filen %s kunde inte öppnas för skrivning. Var god kontrollera om den redan är öppnad i ett annat program.";
+"The file %s was already open, the file header will not be written." = "Filen %s var redan öppen, headerfilen kommer inte att skrivas.";
+"The filesystem is invalid or could not be read." = "Filsystemet är ogiltigt eller kunde inte läsas.";
+"The format that the disc image is saved in does not store the size of the disc image." = "Formatet som skivavbildningen är sparad i lagrar inte skivavbildningens storlek.";
+"The game ID is %s but should be %s." = "Spel-ID:t är %s men borde vara %s.";
+"The game ID is inconsistent." = "Spel-ID:t är inkonsistent.";
+"The game ID is unusually short." = "Spel-ID:t är ovanligt kort.";
+"The game disc does not contain any usable update information." = "Spelskivan innehåller inte någon uppdateringsinformation som går att använda.";
+"The game is currently running." = "Spelet körs för tillfället.";
+"The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "Spelets region matchar inte konsolens region. För att undvika problem med systemmenyn kommer du inte kunna uppdatera den emulerade konsolen med den här skivan.";
+"The hashes do not match!" = "Kontrollsummorna stämmer inte!";
+"The hashes match!" = "Kontrollsummorna stämmer!";
+"The host code is too long.
+Please recheck that you have the correct code." = "Värdkoden är för lång.
+Kontrollera att du har rätt kod.";
+"The install partition is missing." = "Installationspartitionen saknas.";
+"The profile '%1' does not exist" = "Profilen '%1' finns inte";
+"The recorded game (%s) is not the same as the selected game (%s)" = "Det inspelade spelet (%s) är inte samma som det valda spelet (%s)";
+"The region code does not match the game ID. If this is because the region code has been modified, the game might run at the wrong speed, graphical elements might be offset, or the game might not run at all." = "Regionskoden stämmer inte överens med spelets ID. Om detta beror på att regionskoden har ändrats kommer kanske spelet köras i fel hastighet, grafiska element kanske är förskjutna eller spelet kanske inte körs alls.";
+"The resulting decrypted AR code doesn't contain any lines." = "Den resulterande dekrypterade AR-koden innehåller inga rader.";
+"The same file can't be used in both slots." = "Samma fil kan inte användas för båda platser.";
+"The selected CPU emulation core (%d) is not available. Please select a different CPU emulation core in the settings." = "Den valda CPU-emuleringskärnan (%d) är inte tillgänglig. Välj en annan CPU-emuleringskärna i inställningarna.";
+"The server and client's NetPlay versions are incompatible." = "Serverns och klientens nätspelsversioner är inkompatibla.";
+"The server is full." = "Servern är full.";
+"The server sent an unknown error message." = "Servern skickade ett okänt felmeddelande.";
+"The software renderer is significantly slower than other backends and is only recommended for debugging purposes.
+
+Do you really want to enable software rendering? If unsure, select 'No'." = "Programvarurendering är betydligt långsammare än andra backends och rekommenderas endast för felsökningssyften.
+
+Vill du verkligen aktivera programvarurendering? Om du är osäker kan du välja 'Nej'.";
+"The specified common key index is %u but should be %u." = "Det specificerade indexet för gemensam nyckel är %u men borde vara %u.";
+"The specified file \"%s\" does not exist" = "Den valda filen \"%s\" finns inte";
+"The type of a partition could not be read." = "Typen av en partition kunde inte läsas.";
+"The update has been cancelled. It is strongly recommended to finish it in order to avoid inconsistent system software versions." = "Uppdateringen har avbrutits. Det rekommenderas starkt att du slutför den så att det inte finns inkonsistenta versioner av systemmjukvara.";
+"The update partition does not contain the IOS used by this title." = "Uppdateringspartitionen innehåller inte det IOS som används av den här titeln.";
+"The update partition is missing." = "Uppdateringspartitionen saknas.";
+"The update partition is not at its normal position." = "Uppdateringspartitionen är inte på sin normala position.";
+"The value is invalid" = "Värdet är ogiltigt";
+"There are too many partitions in the first partition table." = "Det finns för många partitioner i den första partitionstabellen.";
+"There is nothing to undo!" = "Det finns inget att ångra!";
+"These settings override core Dolphin settings.
+Undetermined means the game uses Dolphin's setting." = "Dessa inställningar har högre prioritet än Dolphins kärninställningar.
+Obestämda rutor betyder att spelet använder Dolphins inställningar.";
+"This Action Replay code contains both encrypted and unencrypted lines; you should check that you have entered it correctly.
+
+Do you want to discard all unencrypted lines?" = "Denna Action Replay-kod innehåller både krypterade och okrypterade rader. Du bör kontrollera att du har skrivit in den rätt.
+
+Vill du ta bort alla okrypterade rader?";
+"This Korean title is set to use an IOS that typically isn't used on Korean consoles. This is likely to lead to ERROR #002." = "Denna koreanska speltitel är inställd på att använda en IOS som vanligtvis inte används i koreanska konsoler. Detta kommer troligtvis orsaka ERROR #002.";
+"This USB device is already whitelisted." = "Den här enheten används redan med USB-genomsläppning.";
+"This WAD is not bootable." = "Denna WAD går inte att starta.";
+"This WAD is not valid." = "Denna WAD är inte giltig.";
+"This action replay simulator does not support codes that modify Action Replay itself." = "Denna Action Replay-simulator stödjer inte koder som förändrar själva Action Replay.";
+"This cannot be undone!" = "Det går inte att ångra detta!";
+"This debug disc image has the size of a retail disc image." = "Denna skivavbildning av en utvecklarskiva har samma storlek som en skivavbildning av en vanlig skiva.";
+"This disc image has an unusual size." = "Denna skivavbildning har en ovanlig storlek.";
+"This disc image has an unusual size. This will likely make the emulated loading times longer. When using NetPlay or sending input recordings to other people, you will likely experience desyncs if anyone is using a good dump." = "Denna skivavbildning har en ovanlig storlek. Detta kommer antagligen göra de emulerade laddningstiderna längre. Om du använder nätspel eller skickar indatainspelningar till andra kommer det antagligen uppstå desynkroniseringar om någon använder en korrekt skivavbildning.";
+"This disc image is in the NKit format. It is not a good dump in its current form, but it might become a good dump if converted back. The CRC32 of this file might match the CRC32 of a good dump even though the files are not identical." = "Den här skivavbildningen är i NKit-formatet. Den är inte en korrekt skivavbildning i dess nuvarande form, men det är möjligt att den blir en om den konverteras tillbaka. CRC32-kontrollsumman av den här filen kanske matchar CRC32-kontrollsumman av en korrekt skivavbildning trots att filerna inte är identiska.";
+"This disc image is too small and lacks some data. If your dumping program saved the disc image as several parts, you need to merge them into one file." = "Denna skivavbildning är för liten och saknar viss data. Om ditt dumpningsprogram sparade skivavbildningen som flera delar måste du sammanfoga dem till en enda fil.";
+"This disc image is too small and lacks some data. The problem is most likely that this is a dual-layer disc that has been dumped as a single-layer disc." = "Denna skivavbild är för liten och saknar en del data. Problemet är troligtvis att detta är en skiva med dubbla lager som har dumpats som en skiva med ett lager.";
+"This file does not look like a BootMii NAND backup." = "Filen verkar inte vara en BootMii-NAND-kopia.";
+"This game has been hacked to fit on a single-layer DVD. Some content such as pre-rendered videos, extra languages or entire game modes will be broken. This problem generally only exists in illegal copies of games." = "Det här spelet har hackats för att få plats på en enkellagrig DVD-skiva. Visst innehåll såsom förrenderade videor, extra språk eller hela spellägen kommer vara trasiga. Det här problemet finns generellt sett bara i piratkopior av spel.";
+"This game requires bounding box emulation to run properly but your graphics card or its drivers do not support it. As a result you will experience bugs or freezes while running this game." = "Detta spel kräver emulering av bounding box för att fungera rätt, men ditt grafikkort eller dess drivrutiner stöder inte det. På grund av detta kommer spelet vara buggigt eller frysa.";
+"This is a bad dump." = "Detta är en inkorrekt kopia.";
+"This is a bad dump. This doesn't necessarily mean that the game won't run correctly." = "Detta är en inkorrekt kopia. Det betyder inte nödvändigtvis att spelet inte kommer fungera rätt.";
+"This is a good dump according to Redump.org, but Dolphin has found problems. This might be a bug in Dolphin." = "Detta är en korrekt kopia enligt Redump.org, men Dolphin har hittat problem. Detta skulle kunna vara en bugg i Dolphin.";
+"This is a good dump." = "Detta är en korrekt kopia.";
+"This session requires a password:" = "Den här sessionen kräver ett lösenord:";
+"This setting allows you to set a custom real time clock (RTC) separate from your current system time.
+
+If unsure, leave this unchecked." = "Den här inställningen låter dig ställa in en egen tid för realtidsklockan (RTC) istället för att använda din systemtid.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"This software should not be used to play games you do not legally own." = "Denna mjukvara bör inte användas för att spela spel som du inte äger lagligt.";
+"This title cannot be booted." = "Denna titel kan inte startas.";
+"This title is not correctly signed." = "Denna titel är inte korrekt signerad.";
+"This title is set to use an invalid IOS." = "Denna titel är inställd på att använda ett ogiltigt IOS.";
+"This title is set to use an invalid common key." = "Denna titel är inställd på att använda en ogiltig gemensam nyckel.";
+"This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.
+
+DSPHLE: Unknown ucode (CRC = %08x) - forcing AX." = "Den här mjukvaran kan vara inkompatibel med DSP HLE-emulering. Prova att använda LLE om det här är homebrew.
+
+DSPHLE: Okänd µcode (CRC = %08x) - AX kommer användas.";
+"This title might be incompatible with DSP HLE emulation. Try using LLE if this is homebrew.
+
+Unknown ucode (CRC = %08x) - forcing AXWii." = "Den här mjukvaran kan vara inkompatibel med DSP HLE-emulering. Prova att använda LLE om det här är homebrew.
+
+DSPHLE: Okänd µcode (CRC = %08x) - AXWii kommer användas.";
+"This value is added to the convergence value set in the graphics configuration." = "Det här värdet adderas med konvergensvärdet som har ställts in i grafikkonfigurationen.";
+"This value is multiplied with the depth set in the graphics configuration." = "Det här värdet multipliceras med djupet som har ställts in i grafikkonfigurationen.";
+"This will limit the speed of chunked uploading per client, which is used for save sync." = "Detta begränsar hastigheten av uppladdning i segment per klient, vilket används för sparningssynkronisering.";
+"This will sync additional graphics settings, and force everyone to the same internal resolution.
+May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "Detta kommer att synkronisera ytterligare grafikinställningar och tvinga att alla använder samma interna upplösning.
+Detta kan förhindra desynkronisering i vissa spel som läser från EFB. Se till att alla använder samma videobackend.";
+"Threshold" = "Tröskel";
+"TiB" = "TiB";
+"Tilt" = "Lutning";
+"Title" = "Titel";
+"To" = "till";
+"To:" = "Till:";
+"Toggle &Fullscreen" = "&Helskärm";
+"Toggle 3D Anaglyph" = "Slå på/av 3D-anaglyf";
+"Toggle 3D Side-by-Side" = "Slå på/av 3D sida-vid-sida";
+"Toggle 3D Top-Bottom" = "Slå på/av 3D topp-och-botten";
+"Toggle All Log Types" = "Slå på/av alla loggtyper";
+"Toggle Aspect Ratio" = "Växla bildförhållande";
+"Toggle Breakpoint" = "Slå på/av brytpunkt";
+"Toggle Crop" = "Slå på/av beskärning";
+"Toggle Custom Textures" = "Slå på/av anpassade texturer";
+"Toggle EFB Copies" = "Slå på/av EFB-kopior";
+"Toggle Fog" = "Slå på/av dimma";
+"Toggle Fullscreen" = "Slå på/av helskärm";
+"Toggle Pause" = "Slå på/av paus";
+"Toggle SD Card" = "Mata in/ut SD-kort";
+"Toggle Texture Dumping" = "Slå på/av texturdumpning";
+"Toggle USB Keyboard" = "Slå på/av USB-tangentbord";
+"Toggle XFB Copies" = "Slå på/av XFB-kopior";
+"Toggle XFB Immediate Mode" = "Slå på/av omedelbar XFB-presentation";
+"Tokenizing failed." = "Tokenisering misslyckades.";
+"Too many matches to display (%1)" = "För många matchningar för att visa (%1)";
+"Toolbar" = "Verktygsfält";
+"Top" = "Ovan";
+"Top-and-Bottom" = "Topp-och-botten";
+"Total Pitch" = "Total vertikal rotation";
+"Total Yaw" = "Total horisontal rotation";
+"Total rotation about the pitch axis." = "Total rotation längst den vertikala planen.";
+"Total rotation about the yaw axis." = "Total rotation längst den horisontala planen.";
+"Total travel distance." = "Totalt förflyttningsavstånd";
+"Touch" = "Beröring";
+"Traditional Chinese" = "Traditionell kinesiska";
+"Traversal Error" = "Traverseringsfel";
+"Traversal Server" = "Traverseringsserver";
+"Traversal server timed out connecting to the host" = "Traverseringsserver gjorde en timeout vid anslutning till värden";
+"Tries to translate branches ahead of time, improving performance in most cases. Defaults to <b>True</b>" = "Försöker översätta grenar i förtid, vilket förbättrar prestanda i de flesta fall. Förvalet är <b>Sant</b>";
+"Triggers" = "Avtryckare";
+"Type" = "Typ";
+"U&16" = "U&16";
+"U&32" = "U&32";
+"U&8" = "U&8";
+"USA" = "USA";
+"USB Gecko" = "USB Gecko";
+"USB Whitelist Error" = "Ogiltig USB-enhet";
+"Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low.
+
+Recommended for low-end hardware. 
+
+If unsure, select this mode." = "Übershaders används aldrig. Korta pauser kommer uppstå under shaderkompilering, men GPU-kraven är låga.
+
+Rekommenderas för mindre kraftfull hårdvara.
+
+Om du är osäker, välj det här läget.";
+"Ubershaders will always be used. Provides a near stutter-free experience at the cost of high GPU performance requirements.
+
+Only recommended for high-end systems." = "Übershaders används alltid. Det uppstår nästan inga pauser när spel körs, men GPU-prestandakraven är höga.
+
+Rekommenderas bara för kraftfulla system.";
+"Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering.
+
+In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "Übershaders används för att förhindra korta pauser medan shaders kompileras, men specialiserade shaders används när de inte orsakar pauser.
+
+I bästa fall eliminerar detta pauser utan att ha någon märkbar prestandapåverkan, men resultaten varierar beroende på grafikdrivrutinernas beteende.";
+"Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
+
+Would you like to ignore this line and continue parsing?" = "Det gick inte att tolka rad %1 i den angivna AR-koden som en giltig krypterad eller dekrypterad kod. Se till att du har skrivit in den rätt.
+
+Vill du ignorera denna rad och fortsätta tolka resten?";
+"Unable to parse line %1 of the entered Gecko code as a valid code. Make sure you typed it correctly.
+
+Would you like to ignore this line and continue parsing?" = "Det gick inte att tolka rad %1 i den angivna Gecko-koden som en giltig kod. Se till att du har skrivit in den rätt.
+
+Vill du ignorera denna rad och fortsätta tolka resten?";
+"Unable to write to file %s" = "Kunde inte skriva till filen %s";
+"Uncompressed GC/Wii images (*.iso *.gcm)" = "Okomprimerade GC/Wii-skivavbildningar (*.iso *.gcm)";
+"Undo Load State" = "Ångra inläsning av snabbsparning";
+"Undo Save State" = "Ångra snabbsparning";
+"Unexpected 0x80 call? Aborting..." = "Oväntat anrop av 0x80? Avbryter...";
+"Uninstall" = "Avinstallera";
+"Uninstall from the NAND" = "Avinstallera från NAND-minnet";
+"Uninstalling the WAD will remove the currently installed version of this title from the NAND without deleting its save data. Continue?" = "Att avinstallera WAD-filen gör att den för tillfället installerade versionen av denna titel tas bort från NAND-minnet utan att dess spardata tas bort. Vill du fortsätta?";
+"United States" = "USA";
+"Unknown" = "Okänd";
+"Unknown DVD command %08x - fatal error" = "Okänt DVD-kommando %08x - katastrofalt fel";
+"Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking player!" = "Tog emot ett okänt SYNC_GECKO_CODES-meddelande med id: %d från spelare: %d Spelaren sparkas ut!";
+"Unknown SYNC_SAVE_DATA message received with id: %d" = "Tog emot ett okänt SYNC_SAVE_DATA-meddelande med id: %d";
+"Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking player!" = "Tog emot ett okänt SYNC_SAVE_DATA-meddelande med id: %d från spelare: %d Spelaren sparkas ut!";
+"Unknown disc" = "Okänd skiva";
+"Unknown error %x" = "Okänt fel %x";
+"Unknown message received with id : %d" = "Tog emot ett okänt meddelande med id: %d";
+"Unknown message with id:%d received from player:%d Kicking player!" = "Ett okänt meddelande togs emot med id:%d från spelare:%d Spelaren sparkas ut!";
+"Unlimited" = "Obegränsad";
+"Unpacking" = "Packar upp";
+"Unsigned Integer" = "Unsigned int";
+"Up" = "Upp";
+"Update" = "Uppdatera";
+"Update after closing Dolphin" = "Uppdatera efter Dolphin stängs";
+"Update available" = "Uppdatering tillgänglig";
+"Update cancelled" = "Uppdateringen avbröts";
+"Update completed" = "Uppdateringen är klar";
+"Update failed" = "Uppdateringen misslyckades";
+"Updating" = "Uppdaterar";
+"Updating title %1...
+This can take a while." = "Uppdaterar titel %1...
+Detta kan ta ett tag.";
+"Upright Hold" = "Håll inne för stående läge";
+"Upright Toggle" = "Tryck för stående läge";
+"Upright Wii Remote" = "Stående Wii-fjärrkontroll";
+"Usage Statistics Reporting Settings" = "Statistikrapporteringsinställningar";
+"Use Built-In Database of Game Names" = "Använd inbyggd databas för spelnamn";
+"Use Custom User Style" = "Använd anpassad användarstil";
+"Use Fullscreen" = "Använd helskärm";
+"Use Lossless Codec (FFV1)" = "Använd förlustfritt kodek (FFV1)";
+"Use PAL60 Mode (EuRGB60)" = "Använd PAL60-läge (EuRGB60)";
+"Use Panic Handlers" = "Använd panikhanterare";
+"Use a single depth buffer for both eyes. Needed for a few games." = "Gör så att båda ögon använder samma djupbuffert. Vissa spel kräver detta.";
+"User Config" = "Användarinställningar";
+"User Interface" = "Användargränssnitt";
+"User Style:" = "Användarstil:";
+"Uses a less accurate algorithm to calculate depth values.
+
+Causes issues in a few games, but can result in a decent speed increase depending on the game and/or GPU.
+
+If unsure, leave this checked." = "Använder en mindre exakt algoritm för att beräkna djupvärden.
+
+Orsakar fel i några spel, men kan ge en hyfsad prestandaökning beroende på spel och grafikprocessor.
+
+Om du är osäker kan du lämna detta markerat.";
+"Uses the entire screen for rendering.
+
+If disabled, a render window will be created instead.
+
+If unsure, leave this unchecked." = "Använder hela skärmen för rendering.
+
+Om detta är inaktiverat kommer ett renderingsfönster att skapas istället.";
+"Uses the main Dolphin window for rendering rather than a separate render window.
+
+If unsure, leave this unchecked." = "Använder Dolphins huvudfönster för rendering istället för ett separat fönster.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Using Qt %1" = "Använder Qt %1";
+"Utility" = "Hjälpprogram";
+"V-Sync" = "V-synk";
+"Value" = "Värde";
+"Value:" = "Värde:";
+"Velocity" = "Hastighet";
+"Verbosity" = "Felsökningsnivå";
+"Verify" = "Verifiera";
+"Verify Integrity" = "Verifiera integritet";
+"Verifying" = "Verifierar";
+"Version" = "Version";
+"Vertex Rounding" = "Vertexavrundning";
+"Vertical Offset" = "Vertikal förskjutning";
+"Video" = "Video";
+"View &code" = "Visa &kod";
+"View &memory" = "Visa &minne";
+"Volume" = "Volym";
+"Volume Down" = "Volym ner";
+"Volume Toggle Mute" = "Slå på/av ljudvolym";
+"Volume Up" = "Volym upp";
+"Vulkan" = "Vulkan";
+"WAD files (*.wad)" = "WAD-filer (*.wad)";
+"WAD installation failed: Could not finalise title import." = "WAD-installation misslyckades: Kunde inte finalisera titelimport.";
+"WAD installation failed: Could not import content %08x." = "WAD-installation misslyckades: Kunde inte importera innehåll%08x.";
+"WAD installation failed: Could not initialise title import (error %d)." = "WAD-installation misslyckades: Kunde inte initialisera titelimport (fel %d).";
+"WAD installation failed: The selected file is not a valid WAD." = "WAD-installation misslyckades: Den valda filen är inte en giltig WAD.";
+"WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "VARNING: Kontrollerna under accelerometer och gyroskop är designade för att kopplas direkt till rörelsesensorhårdvara. De är inte tänkta att användas för att mappa vanliga knappar eller spakar. Du kan behöva konfigurera alternativa inmatningskällor före du använder de här kontrollerna.";
+"WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "VARNING: Dessa kontroller är designade för att kopplas direkt till rörelsesensorhårdvara. De är inte tänkta att användas för att mappa vanliga knappar eller spakar. Du kan behöva konfigurera alternativa inmatningskällor före du använder de här kontrollerna.";
+"WASAPI (Exclusive Mode)" = "WASAPI (exklusivt läge)";
+"Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
+
+Otherwise, if unsure, leave this unchecked." = "Väntar på att alla shaders kompileras färdigt före ett spel startas. Att slå på det här alternativet kan få bort korta pauser som uppstår under en kort tid efter att ett spel har startats, men i utbyte är det längre att vänta före spelet startas. För system med två eller färre kärnor rekommenderas det att ha det här alternativet påslaget eftersom en stor shaderkö kan försämra prestandan.
+
+I övriga fall kan du lämna detta omarkerat om du är osäker.";
+"Waits for vertical blanks in order to prevent tearing.
+
+Decreases performance if emulation speed is below 100%.
+
+If unsure, leave this unchecked." = "Väntar på vertikal blankning för att reducera screen tearing.
+
+Sänker prestandan om emuleringshastigheten är under 100 %.
+
+Om du är osäker kan du lämna detta omarkerat.";
+"Waits until the game synchronizes with the emulated GPU before writing the contents of EFB copies to RAM.
+
+Reduces the overhead of EFB RAM copies, providing a performance boost in many games, at the risk of breaking those which do not safely synchronize with the emulated GPU.
+
+If unsure, leave this checked." = "Väntar tills spelet synkroniserar med den emulerade grafikprocessorn före EFB-kopior skrivs till RAM.
+
+Sänker prestandakostnaden för EFB-till-RAM-kopior, men riskerar att ha sönder spel som inte synkroniserar med den emulerade grafikprocessorn på ett säkert sätt.
+
+Om du är osäker kan du lämna detta markerat.";
+"Warning" = "Varning";
+"Warning: Analog inputs may reset to controller values at random. In some cases this can be fixed by adding a deadzone." = "Varning: Analoga inmatningar kan slumpmässigt återställas till kontrollens värden. I vissa fall kan detta åtgärdas genom att lägga till en dödzon.";
+"Warning: Number of blocks indicated by the BAT (%u) does not match that of the loaded file header (%u)" = "Varning: Antalet BAT-block (%u) matchar inte den laddade filheadern (%u)";
+"Warning: You loaded a save that's after the end of the current movie. (byte %u > %zu) (input %u > %u). You should load another save before continuing, or load this state with read-only mode off." = "Varning: Du läste in en sparning som är efter den aktuella inspelningens slut. (byte %u > %zu) (inmatning %u > %u). Du bör läsa in en annan sparning innan du fortsätter, eller läsa in denna snabbsparning med skrivskyddat läge inaktiverat.";
+"Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing." = "Varning: Du läste in en sparning vars inspelning slutar före den nuvarande bildrutan i sparningensom är efter den aktuella inspelningen (byte %u < %u) (bildruta %u < %u). Du bör läsa in en annan sparning innan du fortsätter.";
+"Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync." = "Varning: Du läste in en sparning vars inspelning inte matchar på byte %zu (0x%zX). Du bör läsa in en annan sparning innan du fortsätter, eller läsa in denna snabbsparning med skrivskyddat läge inaktiverat. Annars kan du få en desynkronisering.";
+"Warning: You loaded a save whose movie mismatches on frame %td. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.
+
+More information: The current movie is %d frames long and the savestate's movie is %d frames long.
+
+On frame %td, the current movie presses:
+Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d
+
+On frame %td, the savestate's movie presses:
+Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d" = "Varning: Du läste in en sparning vars inspelning inte matchar på bildrutan %td. Du bör läsa in en annan sparning innan du fortsätter, eller läsa in denna snabbsparning med skrivskyddat läge inaktiverat. Annars kan du få en desynkronisering.
+
+Mer information: Den aktuella inspelningen är %d bildrutor lång och snabbsparningens inspelning är %d bildrutor lång.
+
+På bildrutan %td trycker den aktuella inspelningen på:
+Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d
+
+På bildrutan %td trycker snabbsparningens inspelning på:
+Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d";
+"Watch" = "Bevakning";
+"WaveFileWriter - file not open." = "WaveFileWriter - fil är inte öppen.";
+"Website" = "Webbplats";
+"Whammy" = "Svajarm";
+"Whitelisted USB Passthrough Devices" = "Enheter som används med USB-genomsläppning";
+"Widescreen Hack" = "Bredbildshack";
+"Wii" = "Wii";
+"Wii Menu" = "Wii Menu";
+"Wii NAND Root:" = "Wii-NAND-rot:";
+"Wii Remote" = "Wii-fjärrkontroll";
+"Wii Remote %1" = "Wii-fjärrkontroll %1";
+"Wii Remote Buttons" = "Wii-fjärrkontrollknappar";
+"Wii Remote Orientation" = "Wii-fjärrkontrollorientering";
+"Wii Remote Rumble" = "Wii-fjärrkontrollvibration";
+"Wii Remote Settings" = "Wii-fjärrkontrollinställningar";
+"Wii Remotes" = "Wii-fjärrkontroller";
+"Wii TAS Input %1 - Classic Controller" = "Wii-TAS-inmatning %1 - Classic Controller";
+"Wii TAS Input %1 - Wii Remote" = "Wii-TAS-inmatning %1 - Wii-fjärrkontroll";
+"Wii TAS Input %1 - Wii Remote + Nunchuk" = "Wii-TAS-inmatning %1 - Wii-fjärrkontroll + Nunchuk";
+"Wii and Wii Remote" = "Wii och Wii-fjärrkontroller";
+"Wii data is not public yet" = "Wii-data är inte offentlig än";
+"Wii save files (*.bin);;All Files (*)" = "Wii-sparfiler (*.bin);;Alla filer (*)";
+"WiiTools Signature MEGA File" = "WiiTools-signaturmegafil";
+"Word Wrap" = "Radbrytning";
+"World" = "Världen";
+"Write" = "Skriv";
+"Write Save/SD Data" = "Skriv sparnings-/SD-data";
+"Write only" = "Endast skriv";
+"Write to Console" = "Skriv till konsol";
+"Write to File" = "Skriv till fil";
+"Write to Log" = "Skriv till logg";
+"Write to Log and Break" = "Skriv till logg och bryt";
+"Write to Window" = "Skriv till fönster";
+"X" = "X";
+"XF register " = "XF-register ";
+"Y" = "Y";
+"Yaw Left" = "Gira vänster";
+"Yaw Right" = "Gira höger";
+"Yellow" = "Gul";
+"Yes" = "Ja";
+"You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "Du försöker använda Vulkan (Metal)-backenden på ett operativsystem där det inte stöds. För att all funktionalitet ska vara tillgänglig måste du använda macOS 10.14 (Mojave) eller nyare. Rapportera inte några problem som förekommer om de inte också förekommer på 10.14+.";
+"You are running the latest version available on this update track." = "Du använder den senaste versionen som är tillgänglig på det här uppdateringsspåret.";
+"You cannot use the Wii Shop Channel without using your own device credentials.
+Please refer to the NAND usage guide for setup instructions: https://dolphin-emu.org/docs/guides/nand-usage-guide/" = "Du kan inte använda Wii Shop Channel utan identitetsdata från din egen konsol. Läs NAND-användningsguiden för instruktioner: https://dolphin-emu.org/docs/guides/nand-usage-guide/";
+"You have to enter a name." = "Du måste ange ett namn.";
+"You must provide a name for your session!" = "Du måste ange ett namn för din session!";
+"You must provide a region for your session!" = "Du måste ange en region för din session!";
+"You must restart Dolphin in order for the change to take effect." = "Du måste starta om Dolphin för att ändringarna ska börja gälla.";
+"You must select a game to host!" = "Du måste välja ett spel!";
+"Your DSP ROMs have incorrect hashes.
+Would you like to stop now to fix the problem?
+If you select \"No\", audio might be garbled." = "Dina DSP-ROM-filer har ogiltiga kontrollsummor.
+Vill du stoppa nu för att fixa problemet?
+Om du väljer \"nej\" kan ljudet bli förvrängt.";
+"Z" = "Z";
+"Zero 3 code not supported" = "Zero 3-kod stöds inte";
+"Zero code unknown to Dolphin: %08x" = "Nollkod som är okänd för Dolphin: %08x";
+"^ Xor" = "^ Exklusiv eller";
+"auto" = "auto";
+"cm" = "cm";
+"d3d12.dll could not be loaded." = "d3d12.dll kunde inte läsas in.";
+"disconnected" = "frånkopplad";
+"fake-completion" = "fake-completion";
+"m/s" = "m/s";
+"none" = "ingen";
+"on" = "på";
+"or select a device" = "eller välj en enhet";
+"uDraw GameTablet" = "uDraw GameTablet";
+"{} failed to synchronize codes." = "{} misslyckades att synkronisera koder.";
+"{} failed to synchronize." = "{} misslyckades att synkronisera.";
+"| Or" = "| Eller";
+"© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ Dolphin-teamet. ”GameCube” och ”Wii” är varumärken som tillhör Nintendo. Dolphin är inte associerat med Nintendo på något sätt.";
+"°" = "°";
+"✔ Invite" = "✔ Bjud in";
+"✖ Decline" = "✖ Neka";
