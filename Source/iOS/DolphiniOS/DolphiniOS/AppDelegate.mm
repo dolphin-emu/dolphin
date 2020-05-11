@@ -318,7 +318,7 @@
 #endif
   }
 
-#ifdef CRASHLYTICS
+#ifdef ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
     [nav_controller pushViewController:[[AnalyticsNoticeViewController alloc] initWithNibName:@"AnalyticsNotice" bundle:nil] animated:true];
@@ -453,7 +453,7 @@
     Core::SetState(Core::State::Running);
   }
 
-#ifdef CRASHLYTICS
+#ifdef ANALYTICS
   [[FIRCrashlytics crashlytics] setCustomValue:@"active" forKey:@"app-state"];
 #endif
 }
@@ -469,7 +469,7 @@
   Config::Save();
   SConfig::GetInstance().SaveSettings();
 
-#ifdef CRASHLYTICS
+#ifdef ANALYTICS
   [[FIRCrashlytics crashlytics] setCustomValue:@"inactive" forKey:@"app-state"];
 #endif
 }
