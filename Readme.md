@@ -8,6 +8,57 @@ of the GNU General Public License, version 2 or later (GPLv2+).
 
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
+## Building for iOS
+
+You'll need:
+
+* A modern Mac running Xcode 11 or later
+* Familiarity with building and running with Xcode
+* [Homebrew](https://brew.sh)
+* [Cocoapods](https://cocoapods.org)
+
+### Clone the repo
+
+```
+git clone git@github.com:OatmealDome/dolphin.git
+git checkout ios-jb
+```
+
+### Install required dependencies
+
+Use Homebrew to install software:
+
+```
+brew install cmake
+brew install ninja
+brew install bartycrouch
+brew install python
+```
+
+Install some python stuff:
+
+```
+curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
+python get-pip.py
+/usr/local/bin/python3 -m pip install --upgrade polib
+```
+
+Finally, use CocoaPods to install some iOS libraries:
+```
+cd Source/iOS/DolphiniOS/
+pod install
+```
+
+### Xcode Project Setup
+
+Open the Xcode project: `open DolphiniOS.xcworkspace/` (Make sure to open the xcworkspace!)
+
+* Click the Project in the Navigator Pane and choose "Signing & Capabilities" for the DolphiniOS target
+* Change the Team to your Developer ID
+* Edit the Scheme (or create a new one), and choose the build configuration (JB/Non-JB) you want for building/archiving 
+
+🚀 Build and Run! 
+
 ## System Requirements
 
 ### Desktop

@@ -1608,7 +1608,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${PODS_ROOT}/FirebaseCrashlytics/run\"\n";
+			shellScript = "eval \"${GCC_PREPROCESSOR_DEFINITIONS}\"\n\nif [ ! -z $CRASHLYTICS ]; then\n\"${PODS_ROOT}/FirebaseCrashlytics/run\"\nfi\n";
 		};
 		B9E9E2E5238A021B00BB12A9 /* Update Entitlements */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -2097,7 +2097,10 @@
 				ENABLE_BITCODE = NO;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "DolphiniOS/DolphiniOS-Prefix.pch";
-				GCC_PREPROCESSOR_DEFINITIONS = "XCODE_APP_BUILD=1";
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"XCODE_APP_BUILD=1",
+					"CRASHLYTICS=1",
+				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -2203,6 +2206,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"XCODE_APP_BUILD=1",
 					"NONJAILBROKEN=1",
+					"CRASHLYTICS=1",
 				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2309,6 +2313,7 @@
 					"PATREON=1",
 					"XCODE_APP_BUILD=1",
 					"NONJAILBROKEN=1",
+					"CRASHLYTICS=1",
 				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -2527,6 +2532,7 @@
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"PATREON=1",
 					"XCODE_APP_BUILD=1",
+					"CRASHLYTICS=1",
 				);
 				INFOPLIST_FILE = DolphiniOS/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
