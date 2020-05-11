@@ -18,7 +18,9 @@
 }
 - (IBAction)OKPressed:(id)sender
 {
+#ifdef ANALYTICS
   [FIRAnalytics logEventWithName:@"cpucore_reset_new" parameters:@{}];
+#endif
   [self.navigationController popViewControllerAnimated:true];
 }
 

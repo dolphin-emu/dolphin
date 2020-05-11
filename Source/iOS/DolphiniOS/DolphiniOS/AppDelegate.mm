@@ -33,11 +33,9 @@
 
 #import "DonationNoticeViewController.h"
 
-#ifdef CRASHLYTICS
 #import <Firebase/Firebase.h>
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
-#endif
 
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
@@ -318,11 +316,13 @@
     }
 #endif
   }
-  
+
+#ifdef CRASHLYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
   {
     [nav_controller pushViewController:[[AnalyticsNoticeViewController alloc] initWithNibName:@"AnalyticsNotice" bundle:nil] animated:true];
   }
+#endif
   
   // Present if the navigation controller isn't empty
   if ([[nav_controller viewControllers] count] != 0)
@@ -404,7 +404,7 @@
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
 
-#ifdef CRASHLYTICS
+#ifdef ANALYTICS
   [FIRApp configure];
 #if !defined(DEBUG) && !TARGET_OS_SIMULATOR
   [FIRAnalytics setAnalyticsCollectionEnabled:SConfig::GetInstance().m_analytics_enabled];
@@ -425,7 +425,7 @@
     app_type = @"non-jailbroken";
 #endif
 
-#ifdef CRASHLYTICS
+#ifdef ANALYTICS
     [FIRAnalytics logEventWithName:@"version_start" parameters:@{
       @"type" : app_type,
       @"version" : version_str
