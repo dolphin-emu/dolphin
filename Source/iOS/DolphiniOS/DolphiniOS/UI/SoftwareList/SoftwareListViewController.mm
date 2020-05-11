@@ -428,6 +428,11 @@
     
     [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
     
+    if (region_sheet.popoverPresentationController != nil)
+    {
+      region_sheet.popoverPresentationController.barButtonItem = self.m_menu_button;
+    }
+    
     if ([[region_sheet actions] count] == 1)
     {
       UIAlertController* error_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Not Found") message:@"Could not find any GameCube Main Menu files. Please dump it from a GameCube and copy it into User/GC/Region as \"IPL.bin\"." preferredStyle:UIAlertControllerStyleAlert];
@@ -475,6 +480,11 @@
       }]];
            
       [region_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
+      
+      if (region_sheet.popoverPresentationController != nil)
+      {
+        region_sheet.popoverPresentationController.barButtonItem = self.m_menu_button;
+      }
       
       [self presentViewController:region_sheet animated:true completion:nil];
     }
