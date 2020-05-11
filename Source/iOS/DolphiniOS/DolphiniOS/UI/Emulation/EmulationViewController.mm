@@ -219,19 +219,23 @@
     
     [controller_list addObject:[NSString stringWithFormat:@"%@ (%@)", [controller vendorName], controller_type]];
   }
-  
+
+#ifdef ANALYTICS
   [FIRAnalytics logEventWithName:@"game_start" parameters:@{
     @"game_uid" : uid,
     @"is_returning" : File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav") ? @"true" : @"false",
     @"connected_controllers" : [controller_list count] != 0 ? [controller_list componentsJoinedByString:@", "] : @"none"
   }];
+#endif
   
   NSArray* games_array = [[NSUserDefaults standardUserDefaults] arrayForKey:@"unique_games"];
   if (![games_array containsObject:uid])
   {
+#ifdef ANALYTICS
     [FIRAnalytics logEventWithName:@"unique_game_start" parameters:@{
       @"game_uid" : uid
     }];
+#endif
     
     NSMutableArray* mutable_games_array = [games_array mutableCopy];
     [mutable_games_array addObject:uid];
@@ -567,12 +571,13 @@
   task_vm_info_data_t vm_info;
   mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
   kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
-
+#ifdef ANALYTICS
   [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
     @"new_uid": CppToFoundationString(SConfig::GetInstance().GetTitleDescription()),
     @"app_used_ram" : result != KERN_SUCCESS ? @"unknown" : [NSString stringWithFormat:@"%llu", vm_info.phys_footprint],
     @"system_total_ram" : [NSString stringWithFormat:@"%llu", [NSProcessInfo processInfo].physicalMemory]
   }];
+#endif
 }
 
 #pragma mark - Rewind segue
