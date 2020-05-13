@@ -19,3 +19,6 @@
 
 /* Class = "UIBarButtonItem"; title = "List"; ObjectID = "wel-yO-LXb"; */
 "wel-yO-LXb.title" = "List";
+
+/* Class = "UIBarButtonItem"; title = "Menu"; ObjectID = "y3A-wm-8hv"; */
+"y3A-wm-8hv.title" = "Menu";
