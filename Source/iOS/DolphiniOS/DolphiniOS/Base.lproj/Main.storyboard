@@ -98,14 +98,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="43.666667938232422"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43.333332061767578"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43.333332061767578"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="345" height="21.666666666666671"/>
+                                                    <rect key="frame" x="15" y="10.999999999999998" width="345" height="21.333333333333329"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -195,7 +195,7 @@
         <scene sceneID="IZf-BQ-YuK">
             <objects>
                 <navigationController id="9db-Gg-8BZ" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Games" image="SF_gamecontroller" id="9X2-kc-x4w"/>
+                    <tabBarItem key="tabBarItem" title="Games" id="9X2-kc-x4w"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="Fk8-nd-EuK">
                         <rect key="frame" x="0.0" y="44" width="375" height="96"/>
@@ -209,10 +209,10 @@
             </objects>
             <point key="canvasLocation" x="1045" y="-218"/>
         </scene>
-        <!--Tab Bar Controller-->
+        <!--Main Tab Bar Controller-->
         <scene sceneID="WrA-dh-Tg1">
             <objects>
-                <tabBarController id="q3R-AU-YT0" sceneMemberID="viewController">
+                <tabBarController id="q3R-AU-YT0" customClass="MainTabBarController" sceneMemberID="viewController">
                     <navigationItem key="navigationItem" id="VUw-aU-gYn"/>
                     <tabBar key="tabBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="9Bh-cE-ozU">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="49"/>
@@ -242,7 +242,7 @@
         <scene sceneID="8Hm-gg-Nyw">
             <objects>
                 <navigationController id="mPi-hn-CQa" sceneMemberID="viewController">
-                    <tabBarItem key="tabBarItem" title="Settings" image="SF_gear" id="5gb-G7-eot"/>
+                    <tabBarItem key="tabBarItem" title="Settings" id="5gb-G7-eot"/>
                     <simulatedTabBarMetrics key="simulatedBottomBarMetrics"/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" id="zA4-TF-ey1">
                         <rect key="frame" x="0.0" y="44" width="375" height="44"/>
@@ -259,8 +259,6 @@
     </scenes>
     <resources>
         <image name="SF_ellipsis_circle" width="17" height="17"/>
-        <image name="SF_gamecontroller" width="24" height="15"/>
-        <image name="SF_gear" width="19" height="19"/>
         <image name="SF_list_dash" width="17" height="12"/>
         <image name="SF_rectangle_grid_2x2" width="19" height="16"/>
     </resources>
