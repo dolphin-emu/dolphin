@@ -168,3 +168,67 @@ This struct is used by the simple compression method PURGE, which stores runs of
 |`u8 data[size]`|Data.|
 
 Each PURGE chunk contains zero or more `wia_segment_t` structs stored in order of ascending `offset`, followed by a SHA-1 hash (0x14 bytes) of the `wia_except_list_t` structs (if any) and the `wia_segment_t` structs. Bytes in the decompressed data that are not covered by any `wia_segment_t` struct are set to `0x00`.
+
+# RVZ file format description
+
+RVZ is a file format which is closely based on WIA. The differences are as follows:
+
+* Zstandard has been added as a compression method. `compression` in `wia_disc_t` is set to 5 when Zstandard is used, and there is no compressor specific data. `compr_level` in `wia_disc_t` should be treated as signed instead of unsigned because Zstandard supports negative compression levels.
+* PURGE has been removed as a compression method.
+* Chunk sizes smaller than 2 MiB are supported. The following applies when using a chunk size smaller than 2 MiB:
+    * The chunk size must be at least 32 KiB and must be a power of two. (Just like with WIA, sizes larger than 2 MiB do not have to be a power of two, they just have to be an integer multiple of 2 MiB.)
+    * For Wii partition data, each chunk contains one `wia_except_list_t` which contains exceptions for that chunk (and no other chunks). Offset 0 refers to the first hash of the current chunk, not the first hash of the full 2 MiB of data.
+* An encoding scheme which is described below is used to store pseudorandom padding data losslessly.
+
+## RVZ packing
+
+The RVZ packing encoding scheme is applied to all `wia_group_t` data, with any bzip2/LZMA/Zstandard compression being applied on top of it. (In other words, when reading an RVZ file, bzip2/LZMA/Zstandard decompression is done before decoding the RVZ packing.) RVZ packed data can be decoded as follows:
+
+1. Read 4 bytes of data and interpret it as a 32-bit unsigned big endian integer. Call this `size`.
+2. If the most significant bit of `size` is not set, read `size` bytes and output them unchanged. If the most significant bit of `size` is set, unset the most significant bit of `size`, then read 68 bytes of PRNG seed data and output `size` bytes using the PRNG algorithm described below.
+3. Repeat until all input has been read.
+
+### PRNG algorithm
+
+The PRNG algorithm used for generating padding data on GameCube and Wii discs is a Lagged Fibonacci generator with the parameters f = xor, j = 32, k = 521.
+
+Start by allocating a buffer of 521 32-bit words.
+
+```
+u32 buffer[521];
+```
+
+Copy the 68 bytes (17 words) of seed data into the start of the buffer. This seed data is stored in big endian in RVZ files, so remember to byteswap each word if the system is not big endian. Then, use the following code to fill the remaining part of the buffer:
+
+```
+for (size_t i = 17; i < 521; i++)
+    buffer[i] = (buffer[i - 17] << 23) ^ (buffer[i - 16] >> 9) ^ buffer[i - 1];
+```
+
+The following code is used for advancing the state of the PRNG by a full buffer length. You must run it 4 times before you can start outputting data, and must then run it once after every 521 words of data you output.
+
+```
+for (size_t i = 0; i < 32; i++)
+    buffer[i] ^= buffer[i + 521 - 32];
+
+for (size_t i = 32; i < 521; i++)
+    buffer[i] ^= buffer[i - 32];
+```
+
+After running the above code 4 times, you are ready to output data from the buffer -- but only if the offset (relative to the start of the disc for `wia_raw_data_t` and relative to the start of the partition data for `wia_part_t`) at which you are outputting data is evenly divisible by 32 KiB. Otherwise, you first have to advance the state of the PRNG by `offset % 0x8000` bytes. Please note that the hashes are not counted in the offset for `wia_part_t`, yet the number is still 32 KiB and not 31 KiB.
+
+To finally output a word of data from the buffer, use the following code:
+
+```
+u8* out;
+u32* buffer_ptr;
+
+/* ... */
+
+*(out++) = *buffer_ptr >> 24;
+*(out++) = *buffer_ptr >> 18;  // NB: 18, not 16
+*(out++) = *buffer_ptr >> 8;
+*(out++) = *buffer_ptr;
+
+buffer_ptr++;
+```
