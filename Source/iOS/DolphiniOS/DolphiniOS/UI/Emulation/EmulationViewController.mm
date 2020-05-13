@@ -99,6 +99,16 @@
     }
   }
   
+  // Assign image using SF symbols when supported
+  if (@available(iOS 13, *))
+  {
+    [self.m_pull_down_button setBackgroundImage:[UIImage imageNamed:@"SF_arrow_down_circle"] forState:UIControlStateNormal];
+  }
+  else
+  {
+    [self.m_pull_down_button setBackgroundImage:[UIImage imageNamed:@"arrow_down_circle_legacy.png"] forState:UIControlStateNormal];
+  }
+  
   // Adjust view depending on preference
   bool do_not_raise = [[NSUserDefaults standardUserDefaults] boolForKey:@"do_not_raise_rendering_view"];
   [self.m_metal_half_constraint setActive:!do_not_raise];
