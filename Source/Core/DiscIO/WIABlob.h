@@ -28,6 +28,7 @@
 
 namespace DiscIO
 {
+class FileSystem;
 class VolumeDisc;
 
 enum class WIACompressionType : u32
@@ -528,11 +529,10 @@ private:
   CreatePartitionDataEntry(u64 offset, u64 size, u32 index, int chunk_size, u32* total_groups,
                            const std::vector<PartitionEntry>& partition_entries,
                            std::vector<DataEntry>* data_entries);
-  static ConversionResultCode
-  SetUpDataEntriesForWriting(const VolumeDisc* volume, int chunk_size, u64 iso_size,
-                             u32* total_groups, std::vector<PartitionEntry>* partition_entries,
-                             std::vector<RawDataEntry>* raw_data_entries,
-                             std::vector<DataEntry>* data_entries);
+  static ConversionResultCode SetUpDataEntriesForWriting(
+      const VolumeDisc* volume, int chunk_size, u64 iso_size, u32* total_groups,
+      std::vector<PartitionEntry>* partition_entries, std::vector<RawDataEntry>* raw_data_entries,
+      std::vector<DataEntry>* data_entries, std::vector<const FileSystem*>* partition_file_systems);
   static std::optional<std::vector<u8>> Compress(Compressor* compressor, const u8* data,
                                                  size_t size);
   static bool WriteHeader(File::IOFile* file, const u8* data, size_t size, u64 upper_bound,
@@ -544,16 +544,18 @@ private:
   static bool TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
                        std::mutex* reusable_groups_mutex, OutputParametersEntry* entry);
   static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk, size_t chunks,
-                      u64 total_size, u64 data_offset, u64 in_offset, bool allow_junk_reuse);
+                      u64 total_size, u64 data_offset, u64 in_offset, bool allow_junk_reuse,
+                      bool compression, const FileSystem* file_system);
   static void RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data_offset,
-                      bool allow_junk_reuse);
+                      bool allow_junk_reuse, bool compression, const FileSystem* file_system);
   static ConversionResult<OutputParameters>
   ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
                      const std::vector<PartitionEntry>& partition_entries,
-                     const std::vector<DataEntry>& data_entries,
+                     const std::vector<DataEntry>& data_entries, const FileSystem* file_system,
                      std::map<ReuseID, GroupEntry>* reusable_groups,
                      std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
-                     u64 exception_lists_per_chunk, bool compressed_exception_lists, bool rvz);
+                     u64 exception_lists_per_chunk, bool compressed_exception_lists,
+                     bool compression, bool rvz);
   static ConversionResultCode Output(std::vector<OutputParametersEntry>* entries,
                                      File::IOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
