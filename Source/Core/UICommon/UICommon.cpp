@@ -396,7 +396,7 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_X11
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
 void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
