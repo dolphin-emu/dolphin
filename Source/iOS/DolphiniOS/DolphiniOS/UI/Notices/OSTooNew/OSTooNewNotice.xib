@@ -21,7 +21,7 @@
                 <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" translatesAutoresizingMaskIntoConstraints="NO" id="W3E-IV-CzC" userLabel="Header Stack">
                     <rect key="frame" x="0.0" y="53.999999999999986" width="375" height="183.66666666666663"/>
                     <subviews>
-                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="SF_xmark_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
+                        <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="xmark_circle" translatesAutoresizingMaskIntoConstraints="NO" id="IUQ-qk-Kke">
                             <rect key="frame" x="0.0" y="0.0" width="375" height="100"/>
                             <color key="tintColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             <constraints>
@@ -92,6 +92,6 @@ If you want to use DolphiniOS on this device, it must be jailbroken first.</stri
         </view>
     </objects>
     <resources>
-        <image name="SF_xmark_circle" width="17" height="17"/>
+        <image name="xmark_circle" width="100" height="100"/>
     </resources>
 </document>
