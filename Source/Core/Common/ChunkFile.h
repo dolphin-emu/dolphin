@@ -28,8 +28,8 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/Compiler.h"
 #include "Common/Flag.h"
+#include "Common/Inline.h"
 #include "Common/Logging/Log.h"
 
 // XXX: Replace this with std::is_trivially_copyable<T> once we stop using volatile
