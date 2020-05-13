@@ -131,6 +131,12 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 void ConvertDialog::AddToBlockSizeComboBox(int size)
 {
   m_block_size->addItem(QString::fromStdString(UICommon::FormatSize(size, 0)), size);
+
+  // Select 128 KiB by default, or if it is not available, the size closest to it.
+  // This code assumes that sizes get added to the combo box in increasing order.
+  constexpr int DEFAULT_SIZE = 0x20000;
+  if (size <= DEFAULT_SIZE)
+    m_block_size->setCurrentIndex(m_block_size->count() - 1);
 }
 
 void ConvertDialog::AddToCompressionComboBox(const QString& name, DiscIO::WIACompressionType type)
