@@ -147,7 +147,7 @@
                         </connections>
                     </view>
                     <navigationItem key="navigationItem" title="Games" id="yCg-jX-vjT">
-                        <barButtonItem key="leftBarButtonItem" image="SF_ellipsis_circle" id="y3A-wm-8hv">
+                        <barButtonItem key="leftBarButtonItem" title="Menu" id="y3A-wm-8hv">
                             <connections>
                                 <action selector="MenuButtonPressed:" destination="VNJ-F0-t9O" id="3jq-SK-Ogs"/>
                             </connections>
@@ -158,12 +158,12 @@
                                     <action selector="AddPressed:" destination="VNJ-F0-t9O" id="Mzw-z0-kc0"/>
                                 </connections>
                             </barButtonItem>
-                            <barButtonItem title="List" image="SF_list_dash" id="wel-yO-LXb">
+                            <barButtonItem title="List" id="wel-yO-LXb">
                                 <connections>
                                     <action selector="ChangeViewButtonPressed:" destination="VNJ-F0-t9O" id="8CA-Xx-nuA"/>
                                 </connections>
                             </barButtonItem>
-                            <barButtonItem title="Grid" image="SF_rectangle_grid_2x2" id="VHr-c4-Ce6">
+                            <barButtonItem title="Grid" id="VHr-c4-Ce6">
                                 <connections>
                                     <action selector="ChangeViewButtonPressed:" destination="VNJ-F0-t9O" id="r63-Xw-lBV"/>
                                 </connections>
@@ -257,9 +257,4 @@
             <point key="canvasLocation" x="1045" y="417"/>
         </scene>
     </scenes>
-    <resources>
-        <image name="SF_ellipsis_circle" width="17" height="17"/>
-        <image name="SF_list_dash" width="17" height="12"/>
-        <image name="SF_rectangle_grid_2x2" width="19" height="16"/>
-    </resources>
 </document>
