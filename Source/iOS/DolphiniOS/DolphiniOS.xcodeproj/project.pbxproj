@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		4EDF824B246C7F4200ED9FFA /* MainTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EDF824A246C7F4200ED9FFA /* MainTabBarController.m */; };
+		4EDF824D246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDF824C246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift */; };
 		4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */; };
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
@@ -205,6 +206,7 @@
 		279BB209DB2DB8AF6B5FB5C5 /* Pods-DolphiniOS.release (non-jailbroken, no analytics).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (non-jailbroken, no analytics).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (non-jailbroken, no analytics).xcconfig"; sourceTree = "<group>"; };
 		4EDF8249246C7F4200ED9FFA /* MainTabBarController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainTabBarController.h; sourceTree = "<group>"; };
 		4EDF824A246C7F4200ED9FFA /* MainTabBarController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MainTabBarController.m; sourceTree = "<group>"; };
+		4EDF824C246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "UIImageView+FixVectorTemplate.swift"; sourceTree = "<group>"; };
 		4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = DefaultPreferences.plist; sourceTree = "<group>"; };
 		731BA247DEFFCA151CF77CC8 /* Pods-DolphiniOS.release (non-jailbroken no analytics).xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-DolphiniOS.release (non-jailbroken no analytics).xcconfig"; path = "Target Support Files/Pods-DolphiniOS/Pods-DolphiniOS.release (non-jailbroken no analytics).xcconfig"; sourceTree = "<group>"; };
 		93227A79A53E50FE37648CB5 /* libPods-DolphiniOS.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-DolphiniOS.a"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -692,6 +694,7 @@
 				B946AF12245BFB950043767A /* WiiSystemUpdate */,
 				B99577A62466A185008C5115 /* AutoStates.h */,
 				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
+				4EDF824C246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift */,
 				B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */,
 				B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */,
 				4EDF8249246C7F4200ED9FFA /* MainTabBarController.h */,
@@ -1667,6 +1670,7 @@
 				B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */,
 				B9EFBFA323AF582400593A20 /* ControllerDetailsViewController.mm in Sources */,
 				B945A3862362909500B21680 /* main.m in Sources */,
+				4EDF824D246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift in Sources */,
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
 				B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */,
 				B971E1F9245EB63E00D2A698 /* DebuggerUtils.m in Sources */,
