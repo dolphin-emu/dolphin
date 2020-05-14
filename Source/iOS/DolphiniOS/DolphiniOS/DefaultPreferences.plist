@@ -39,5 +39,7 @@
 	<string>https://dolphinios.oatmealdome.me/update</string>
 	<key>aprr_jit_on</key>
 	<false/>
+	<key>show_status_bar</key>
+	<false/>
 </dict>
 </plist>
