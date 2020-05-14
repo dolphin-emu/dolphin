@@ -13,6 +13,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UISwitch* m_osd_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_top_bar_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_center_image_switch;
+@property (weak, nonatomic) IBOutlet UISwitch* m_status_bar_switch;
 
 @end
 

@@ -34,6 +34,7 @@
   [self.m_panic_handlers_switch setOn:SConfig::GetInstance().bUsePanicHandlers];
   [self.m_osd_switch setOn:SConfig::GetInstance().bOnScreenDisplayMessages];
   [self.m_center_image_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"do_not_raise_rendering_view"]];
+  [self.m_status_bar_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"show_status_bar"]];
 }
 
 - (IBAction)ConfirmStopChanged:(id)sender
@@ -55,6 +56,10 @@
 - (IBAction)CenterImageChanged:(id)sender
 {
   [[NSUserDefaults standardUserDefaults] setBool:[self.m_center_image_switch isOn] forKey:@"do_not_raise_rendering_view"];
+}
+
+- (IBAction)ShowStatusBarChanged:(id)sender {
+  [[NSUserDefaults standardUserDefaults] setBool:[self.m_status_bar_switch isOn] forKey:@"show_status_bar"];
 }
 
 @end

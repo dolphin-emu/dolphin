@@ -265,3 +265,6 @@
 
 /* Class = "UINavigationItem"; title = "Top Bar Mode"; ObjectID = "xxn-2v-3zf"; */
 "xxn-2v-3zf.title" = "Top Bar Mode";
+
+/* Class = "UILabel"; text = "Show Status Bar"; ObjectID = "Dge-z6-TXb"; */
+"Dge-z6-TXb.text" = "Show Status Bar";

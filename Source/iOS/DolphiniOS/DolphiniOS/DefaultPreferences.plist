@@ -37,5 +37,7 @@
 	<false/>
 	<key>killed_url</key>
 	<string>https://dolphinios.oatmealdome.me/update</string>
+	<key>show_status_bar</key>
+	<false/>
 </dict>
 </plist>

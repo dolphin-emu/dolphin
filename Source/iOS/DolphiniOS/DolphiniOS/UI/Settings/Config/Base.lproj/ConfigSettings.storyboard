@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -302,8 +302,37 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.5" id="v5T-hA-aMx">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" rowHeight="43.5" id="gVI-Pa-3eY">
                                         <rect key="frame" x="16" y="192" width="343" height="43.5"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="gVI-Pa-3eY" id="RaO-gr-WRS">
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" horizontalCompressionResistancePriority="749" text="Show Status Bar" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="Dge-z6-TXb">
+                                                    <rect key="frame" x="15" y="11.333333333333336" width="264" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="3hy-TV-k9x">
+                                                    <rect key="frame" x="279" y="6.3333333333333321" width="51" height="30.999999999999996"/>
+                                                    <connections>
+                                                        <action selector="ShowStatusBarChanged:" destination="zSU-9e-4LZ" eventType="valueChanged" id="dG7-yh-xRc"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="Dge-z6-TXb" firstAttribute="centerY" secondItem="RaO-gr-WRS" secondAttribute="centerY" id="2Mk-YN-qCv"/>
+                                                <constraint firstItem="3hy-TV-k9x" firstAttribute="leading" secondItem="Dge-z6-TXb" secondAttribute="trailing" id="8XO-K2-Da4"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="3hy-TV-k9x" secondAttribute="trailing" id="OCG-T1-NSC"/>
+                                                <constraint firstItem="Dge-z6-TXb" firstAttribute="leading" secondItem="RaO-gr-WRS" secondAttribute="leadingMargin" id="k5F-zg-F4l"/>
+                                                <constraint firstItem="3hy-TV-k9x" firstAttribute="centerY" secondItem="RaO-gr-WRS" secondAttribute="centerY" id="kty-Te-7MJ"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.5" id="v5T-hA-aMx">
+                                        <rect key="frame" x="16" y="235.5" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="v5T-hA-aMx" id="wvh-1m-BKq">
                                             <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
@@ -341,6 +370,7 @@
                         <outlet property="m_confirm_stop_switch" destination="bws-ZT-dhT" id="K5n-l7-z8T"/>
                         <outlet property="m_osd_switch" destination="H4r-mv-ORD" id="Lzg-Yj-tLZ"/>
                         <outlet property="m_panic_handlers_switch" destination="qb7-al-27y" id="NFb-XV-0kY"/>
+                        <outlet property="m_status_bar_switch" destination="3hy-TV-k9x" id="HeX-eT-2oU"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Or1-yk-Hnj" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
