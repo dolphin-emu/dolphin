@@ -117,4 +117,12 @@ extern const Info<std::string> MAIN_LOAD_PATH;
 extern const Info<std::string> MAIN_RESOURCEPACK_PATH;
 extern const Info<std::string> MAIN_FS_PATH;
 extern const Info<std::string> MAIN_SD_PATH;
+
+// Main.Network
+
+extern const Info<bool> MAIN_NETWORK_SSL_DUMP_READ;
+extern const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE;
+extern const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES;
+extern const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA;
+extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
 }  // namespace Config

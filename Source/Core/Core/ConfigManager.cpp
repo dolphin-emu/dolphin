@@ -93,7 +93,6 @@ void SConfig::SaveSettings()
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
   SaveAnalyticsSettings(ini);
-  SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
@@ -292,17 +291,6 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
   fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
-void SConfig::SaveNetworkSettings(IniFile& ini)
-{
-  IniFile::Section* network = ini.GetOrCreateSection("Network");
-
-  network->Set("SSLDumpRead", m_SSLDumpRead);
-  network->Set("SSLDumpWrite", m_SSLDumpWrite);
-  network->Set("SSLVerifyCertificates", m_SSLVerifyCert);
-  network->Set("SSLDumpRootCA", m_SSLDumpRootCA);
-  network->Set("SSLDumpPeerCert", m_SSLDumpPeerCert);
-}
-
 void SConfig::SaveAnalyticsSettings(IniFile& ini)
 {
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
@@ -376,7 +364,6 @@ void SConfig::LoadSettings()
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
-  LoadNetworkSettings(ini);
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
@@ -581,17 +568,6 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
   IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
   fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
-}
-
-void SConfig::LoadNetworkSettings(IniFile& ini)
-{
-  IniFile::Section* network = ini.GetOrCreateSection("Network");
-
-  network->Get("SSLDumpRead", &m_SSLDumpRead, false);
-  network->Get("SSLDumpWrite", &m_SSLDumpWrite, false);
-  network->Get("SSLVerifyCertificates", &m_SSLVerifyCert, true);
-  network->Get("SSLDumpRootCA", &m_SSLDumpRootCA, false);
-  network->Get("SSLDumpPeerCert", &m_SSLDumpPeerCert, false);
 }
 
 void SConfig::LoadAnalyticsSettings(IniFile& ini)
