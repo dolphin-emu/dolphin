@@ -50,13 +50,6 @@
 #include <unistd.h>
 #endif
 
-// WSAPoll doesn't support POLLPRI and POLLWRBAND flags
-#ifdef _WIN32
-#define UNSUPPORTED_WSAPOLL POLLPRI | POLLWRBAND
-#else
-#define UNSUPPORTED_WSAPOLL 0
-#endif
-
 namespace IOS::HLE::Device
 {
 enum SOResultCode : s32
@@ -78,6 +71,12 @@ NetIPTop::~NetIPTop()
 #ifdef _WIN32
   WSACleanup();
 #endif
+}
+
+void NetIPTop::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  WiiSockMan::GetInstance().DoState(p);
 }
 
 static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
@@ -599,77 +598,45 @@ IPCCommandResult NetIPTop::HandleInetNToPRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
 {
-  // Map Wii/native poll events types
-  struct
+  WiiSockMan& sm = WiiSockMan::GetInstance();
+
+  if (!request.buffer_in || !request.buffer_out)
+    return GetDefaultReply(-SO_EINVAL);
+
+  // Negative timeout indicates wait forever
+  const s64 timeout = static_cast<s64>(Memory::Read_U64(request.buffer_in));
+
+  const u32 nfds = request.buffer_out_size / 0xc;
+  if (nfds == 0 || nfds > WII_SOCKET_FD_MAX)
   {
-    int native;
-    int wii;
-  } mapping[] = {
-      {POLLRDNORM, 0x0001}, {POLLRDBAND, 0x0002}, {POLLPRI, 0x0004}, {POLLWRNORM, 0x0008},
-      {POLLWRBAND, 0x0010}, {POLLERR, 0x0020},    {POLLHUP, 0x0040}, {POLLNVAL, 0x0080},
-  };
-
-  u32 unknown = Memory::Read_U32(request.buffer_in);
-  u32 timeout = Memory::Read_U32(request.buffer_in + 4);
-
-  int nfds = request.buffer_out_size / 0xc;
-  if (nfds == 0)
-    ERROR_LOG(IOS_NET, "Hidden POLL");
+    ERROR_LOG(IOS_NET, "IOCTL_SO_POLL failed: Invalid array size %d, ret=%d", nfds, -SO_EINVAL);
+    return GetDefaultReply(-SO_EINVAL);
+  }
 
   std::vector<pollfd_t> ufds(nfds);
 
-  for (int i = 0; i < nfds; ++i)
+  for (u32 i = 0; i < nfds; ++i)
   {
-    s32 wii_fd = Memory::Read_U32(request.buffer_out + 0xc * i);
-    ufds[i].fd = WiiSockMan::GetInstance().GetHostSocket(wii_fd);          // fd
-    int events = Memory::Read_U32(request.buffer_out + 0xc * i + 4);       // events
-    ufds[i].revents = Memory::Read_U32(request.buffer_out + 0xc * i + 8);  // revents
+    const s32 wii_fd = Memory::Read_U32(request.buffer_out + 0xc * i);
+    ufds[i].fd = sm.GetHostSocket(wii_fd);                                  // fd
+    const int events = Memory::Read_U32(request.buffer_out + 0xc * i + 4);  // events
+    ufds[i].revents = 0;
 
     // Translate Wii to native events
-    int unhandled_events = events;
-    ufds[i].events = 0;
-    for (auto& map : mapping)
-    {
-      if (events & map.wii)
-        ufds[i].events |= map.native;
-      unhandled_events &= ~map.wii;
-    }
+    ufds[i].events = WiiSockMan::ConvertEvents(events, WiiSockMan::ConvertDirection::WiiToNative);
     DEBUG_LOG(IOS_NET,
               "IOCTL_SO_POLL(%d) "
-              "Sock: %08x, Unknown: %08x, Events: %08x, "
+              "Sock: %08x, Events: %08x, "
               "NativeEvents: %08x",
-              i, wii_fd, unknown, events, ufds[i].events);
+              i, wii_fd, events, ufds[i].events);
 
     // Do not pass return-only events to the native poll
     ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL | UNSUPPORTED_WSAPOLL);
-
-    if (unhandled_events)
-      ERROR_LOG(IOS_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
   }
 
-  int ret = poll(ufds.data(), nfds, timeout);
-  ret = WiiSockMan::GetNetErrorCode(ret, "SO_POLL", false);
-
-  for (int i = 0; i < nfds; ++i)
-  {
-    // Translate native to Wii events
-    int revents = 0;
-    for (auto& map : mapping)
-    {
-      if (ufds[i].revents & map.native)
-        revents |= map.wii;
-    }
-
-    // No need to change fd or events as they are input only.
-    // Memory::Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
-    // Memory::Write_U32(events, request.buffer_out + 0xc*i + 4); //events
-    Memory::Write_U32(revents, request.buffer_out + 0xc * i + 8);  // revents
-
-    DEBUG_LOG(IOS_NET, "IOCTL_SO_POLL socket %d wevents %08X events %08X revents %08X", i, revents,
-              ufds[i].events, ufds[i].revents);
-  }
-
-  return GetDefaultReply(ret);
+  // Prevents blocking emulation on a blocking poll
+  sm.AddPollCommand({request.address, request.buffer_out, std::move(ufds), timeout});
+  return GetNoReply();
 }
 
 IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& request)

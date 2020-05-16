@@ -13,6 +13,13 @@
 #include <ws2tcpip.h>
 #endif
 
+// WSAPoll doesn't support POLLPRI and POLLWRBAND flags
+#ifdef _WIN32
+constexpr int UNSUPPORTED_WSAPOLL = POLLPRI | POLLWRBAND;
+#else
+constexpr int UNSUPPORTED_WSAPOLL = 0;
+#endif
+
 namespace IOS::HLE
 {
 enum NET_IOCTL
@@ -62,6 +69,7 @@ public:
   NetIPTop(Kernel& ios, const std::string& device_name);
   virtual ~NetIPTop();
 
+  void DoState(PointerWrap& p) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
