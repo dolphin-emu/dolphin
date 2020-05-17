@@ -175,7 +175,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
   XDisplayKeycodes(m_display, &min_keycode, &max_keycode);
   for (int i = min_keycode; i <= max_keycode; ++i)
   {
-    Key* const temp_key = new Key(m_display, i, m_state.keyboard.data());
+    Key* const temp_key = new Key(m_display, i, m_state.keyboard, m_state_buffer.keyboard);
     if (temp_key->m_keyname.length())
       AddInput(temp_key);
     else
@@ -189,7 +189,7 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
 
   // Mouse Buttons
   for (int i = 0; i < 32; i++)
-    AddInput(new Button(i, &m_state.buttons));
+    AddInput(new Button(i, &m_state.buttons, &m_state_buffer.buttons));
 
   // Mouse Cursor, X-/+ and Y-/+
   for (int i = 0; i != 4; ++i)
@@ -281,20 +281,25 @@ void KeyboardMouse::UpdateInput()
     switch (event.xcookie.evtype)
     {
     case XI_ButtonPress:
+    {
       m_state.buttons |= 1 << (dev_event->detail - 1);
+      m_state_buffer.buttons |= 1 << (dev_event->detail - 1);
       break;
+    }
     case XI_ButtonRelease:
+    {
       m_state.buttons &= ~(1 << (dev_event->detail - 1));
       break;
+    }
     case XI_KeyPress:
       m_state.keyboard[dev_event->detail / 8] |= 1 << (dev_event->detail % 8);
+      m_state_buffer.keyboard[dev_event->detail / 8] |= 1 << (dev_event->detail % 8);
       break;
     case XI_KeyRelease:
       m_state.keyboard[dev_event->detail / 8] &= ~(1 << (dev_event->detail % 8));
       break;
     case XI_RawMotion:
       mouse_moved = true;
-
       // always safe because there is always at least one byte in
       // raw_event->valuators.mask, and if a bit is set in the mask,
       // then the value in raw_values is also available.
@@ -360,8 +365,10 @@ std::string KeyboardMouse::GetSource() const
   return "XInput2";
 }
 
-KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard)
-    : m_display(display), m_keyboard(keyboard), m_keycode(keycode)
+KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* keyboard,
+                        char* keyboard_buffer)
+    : m_display(display), m_keyboard(keyboard), m_keyboard_buffer(keyboard_buffer),
+      m_keycode(keycode)
 {
   int i = 0;
   KeySym keysym = 0;
@@ -385,18 +392,24 @@ KeyboardMouse::Key::Key(Display* const display, KeyCode keycode, const char* key
 
 ControlState KeyboardMouse::Key::GetState() const
 {
-  return (m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0;
+  bool state = ((m_keyboard[m_keycode / 8] & (1 << (m_keycode % 8))) != 0) ||
+               ((m_keyboard_buffer[m_keycode / 8] & (1 << (m_keycode % 8))) != 0);
+  m_keyboard_buffer[m_keycode / 8] &= ~(1 << (m_keycode % 8));
+  return state;
 }
 
-KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons)
-    : m_buttons(buttons), m_index(index)
+KeyboardMouse::Button::Button(unsigned int index, unsigned int* buttons,
+                              unsigned int* buttons_buffer)
+    : m_buttons(buttons), m_buttons_buffer(buttons_buffer), m_index(index)
 {
   name = fmt::format("Click {}", m_index + 1);
 }
 
 ControlState KeyboardMouse::Button::GetState() const
 {
-  return ((*m_buttons & (1 << m_index)) != 0);
+  bool state = ((*m_buttons & (1 << m_index)) != 0) || ((*m_buttons_buffer & (1 << m_index)) != 0);
+  *m_buttons_buffer &= ~(1 << m_index);
+  return state;
 }
 
 KeyboardMouse::Cursor::Cursor(u8 index, bool positive, const float* cursor)
