@@ -608,7 +608,7 @@ else()
   add_subdirectory(Externals/liblzma)
 endif()
 
-find_package(zstd)
+pkg_search_module(ZSTD QUIET libzstd)
 if(ZSTD_FOUND)
   message(STATUS "Using shared zstd")
 else()
