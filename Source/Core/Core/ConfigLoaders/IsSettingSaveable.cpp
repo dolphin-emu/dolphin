@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::Location*, 97> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 102> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -49,6 +49,14 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_RENDER_WINDOW_AUTOSIZE.location,
       &Config::MAIN_KEEP_WINDOW_ON_TOP.location,
       &Config::MAIN_DISABLE_SCREENSAVER.location,
+
+      // Main.Network
+
+      &Config::MAIN_NETWORK_SSL_DUMP_READ.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_WRITE.location,
+      &Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT.location,
 
       // Graphics.Hardware
 

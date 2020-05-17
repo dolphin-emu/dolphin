@@ -16,7 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
@@ -216,7 +216,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
       mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
-      if (SConfig::GetInstance().m_SSLVerifyCert && verifyOption)
+      if (Config::Get(Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES) && verifyOption)
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_REQUIRED);
       else
         mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
@@ -298,7 +298,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
       int ret =
           mbedtls_x509_crt_parse_der(&ssl->cacert, Memory::GetPointer(BufferOut2), BufferOutSize2);
 
-      if (SConfig::GetInstance().m_SSLDumpRootCA)
+      if (Config::Get(Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA))
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
         File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
