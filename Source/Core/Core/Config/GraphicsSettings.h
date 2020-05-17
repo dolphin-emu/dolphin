@@ -11,6 +11,7 @@
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;
 enum class StereoMode : int;
+enum class FreelookControlType : int;
 
 namespace Config
 {
@@ -41,6 +42,7 @@ extern const Info<bool> GFX_DUMP_EFB_TARGET;
 extern const Info<bool> GFX_DUMP_XFB_TARGET;
 extern const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES;
 extern const Info<bool> GFX_FREE_LOOK;
+extern const Info<FreelookControlType> GFX_FREE_LOOK_CONTROL_TYPE;
 extern const Info<bool> GFX_USE_FFV1;
 extern const Info<std::string> GFX_DUMP_FORMAT;
 extern const Info<std::string> GFX_DUMP_CODEC;

@@ -29,10 +29,6 @@ public:
   static void SetProjectionChanged();
   static void SetMaterialColorChanged(int index);
 
-  static void TranslateView(float x, float y, float z = 0.0f);
-  static void RotateView(float x, float y, float z);
-  static void ResetView();
-
   static void SetVertexFormat(u32 components);
   static void SetTexMatrixInfoChanged(int index);
   static void SetLightingConfigChanged();
