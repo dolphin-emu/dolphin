@@ -138,12 +138,22 @@ private:
   };
   static_assert(sizeof(RawDataEntry) == 0x18, "Wrong size for WIA raw data entry");
 
-  struct GroupEntry
+  struct WIAGroupEntry
   {
     u32 data_offset;  // >> 2
     u32 data_size;
   };
-  static_assert(sizeof(GroupEntry) == 0x08, "Wrong size for WIA group entry");
+  static_assert(sizeof(WIAGroupEntry) == 0x08, "Wrong size for WIA group entry");
+
+  struct RVZGroupEntry
+  {
+    u32 data_offset;  // >> 2
+    u32 data_size;
+    u32 rvz_packed_size;
+  };
+  static_assert(sizeof(RVZGroupEntry) == 0x0c, "Wrong size for RVZ group entry");
+
+  using GroupEntry = std::conditional_t<RVZ, RVZGroupEntry, WIAGroupEntry>;
 
   struct HashExceptionEntry
   {
@@ -172,8 +182,8 @@ private:
   public:
     Chunk();
     Chunk(File::IOFile* file, u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-          u32 exception_lists, bool compressed_exception_lists, bool rvz_pack, u64 data_offset,
-          std::unique_ptr<Decompressor> decompressor);
+          u32 exception_lists, bool compressed_exception_lists, u32 rvz_packed_size,
+          u64 data_offset, std::unique_ptr<Decompressor> decompressor);
 
     bool Read(u64 offset, u64 size, u8* out_ptr);
 
@@ -205,7 +215,7 @@ private:
     size_t m_in_bytes_used_for_exceptions = 0;
     u32 m_exception_lists = 0;
     bool m_compressed_exception_lists = false;
-    bool m_rvz_pack = false;
+    u32 m_rvz_packed_size = 0;
     u64 m_data_offset = 0;
   };
 
@@ -217,7 +227,8 @@ private:
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,
                       u32 exception_lists);
   Chunk& ReadCompressedData(u64 offset_in_file, u64 compressed_size, u64 decompressed_size,
-                            u32 exception_lists = 0, bool rvz_pack = false, u64 data_offset = 0);
+                            WIARVZCompressionType compression_type, u32 exception_lists = 0,
+                            u32 rvz_packed_size = 0, u64 data_offset = 0);
 
   static bool ApplyHashExceptions(const std::vector<HashExceptionEntry>& exception_list,
                                   VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP]);
@@ -273,13 +284,26 @@ private:
     size_t group_index;
   };
 
-  struct OutputParametersEntry
+  struct WIAOutputParametersEntry
   {
     std::vector<u8> exception_lists;
     std::vector<u8> main_data;
     std::optional<ReuseID> reuse_id;
     std::optional<GroupEntry> reused_group;
   };
+
+  struct RVZOutputParametersEntry
+  {
+    std::vector<u8> exception_lists;
+    std::vector<u8> main_data;
+    std::optional<ReuseID> reuse_id;
+    std::optional<GroupEntry> reused_group;
+    size_t rvz_packed_size = 0;
+    bool compressed = false;
+  };
+
+  using OutputParametersEntry =
+      std::conditional_t<RVZ, RVZOutputParametersEntry, WIAOutputParametersEntry>;
 
   struct OutputParameters
   {
@@ -355,9 +379,9 @@ private:
   static constexpr u32 WIA_VERSION_WRITE_COMPATIBLE = 0x01000000;
   static constexpr u32 WIA_VERSION_READ_COMPATIBLE = 0x00080000;
 
-  static constexpr u32 RVZ_VERSION = 0x00020000;
-  static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00020000;
-  static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00020000;
+  static constexpr u32 RVZ_VERSION = 0x00030000;
+  static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00030000;
+  static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00030000;
 };
 
 using WIAFileReader = WIARVZFileReader<false>;

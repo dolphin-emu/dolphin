@@ -178,11 +178,24 @@ RVZ is a file format which is closely based on WIA. The differences are as follo
 * Chunk sizes smaller than 2 MiB are supported. The following applies when using a chunk size smaller than 2 MiB:
     * The chunk size must be at least 32 KiB and must be a power of two. (Just like with WIA, sizes larger than 2 MiB do not have to be a power of two, they just have to be an integer multiple of 2 MiB.)
     * For Wii partition data, each chunk contains one `wia_except_list_t` which contains exceptions for that chunk (and no other chunks). Offset 0 refers to the first hash of the current chunk, not the first hash of the full 2 MiB of data.
-* An encoding scheme which is described below is used to store pseudorandom padding data losslessly.
+* The `wia_group_t` struct has been expanded. See the `rvz_group_t` section below.
+* Pseudorandom padding data is stored losslessly using an encoding scheme described in the *RVZ packing* section below.
+
+## `rvz_group_t`
+
+Compared to `wia_group_t`, `rvz_group_t` changes the meaning of the most significant bit of `data_size` and adds one additional attribute.
+
+"Compressed data" below means the data as it is stored in the file. When compression is disabled, this "compressed data" is actually not compressed.
+
+|Type and name|Description|
+|--|--|
+|`u32 data_off4`|The offset in the file where the compressed data is stored, divided by 4.|
+|`u32 data_size`|The most significant bit is 1 if the data is compressed using the compression method indicated in `wia_disc_t`, and 0 if it is not compressed. The lower 31 bits are the size of the compressed data, including any `wia_except_list_t` structs. The lower 31 bits being 0 is a special case meaning that every byte of the decompressed and unpacked data is `0x00` and the `wia_except_list_t` structs (if there are supposed to be any) contain 0 exceptions.|
+|`u32 rvz_packed_size`|The size after decompressing but before decoding the RVZ packing. If this is 0, RVZ packing is not used for this group.|
 
 ## RVZ packing
 
-The RVZ packing encoding scheme is applied to all `wia_group_t` data, with any bzip2/LZMA/Zstandard compression being applied on top of it. (In other words, when reading an RVZ file, bzip2/LZMA/Zstandard decompression is done before decoding the RVZ packing.) RVZ packed data can be decoded as follows:
+The RVZ packing encoding scheme can be applied to `wia_group_t` data, with any bzip2/LZMA/Zstandard compression being applied on top of it. (In other words, when reading an RVZ file, bzip2/LZMA/Zstandard decompression is done before decoding the RVZ packing.) RVZ packed data can be decoded as follows:
 
 1. Read 4 bytes of data and interpret it as a 32-bit unsigned big endian integer. Call this `size`.
 2. If the most significant bit of `size` is not set, read `size` bytes and output them unchanged. If the most significant bit of `size` is set, unset the most significant bit of `size`, then read 68 bytes of PRNG seed data and output `size` bytes using the PRNG algorithm described below.

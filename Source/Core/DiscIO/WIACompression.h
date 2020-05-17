@@ -122,7 +122,7 @@ class RVZPackDecompressor final : public Decompressor
 {
 public:
   RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor, DecompressionBuffer decompressed,
-                      u64 data_offset);
+                      u64 data_offset, u32 rvz_packed_size);
 
   bool Decompress(const DecompressionBuffer& in, DecompressionBuffer* out,
                   size_t* in_bytes_read) override;
@@ -130,13 +130,16 @@ public:
   bool Done() const override;
 
 private:
+  bool IncrementBytesRead(size_t x);
   std::optional<bool> ReadToDecompressed(const DecompressionBuffer& in, size_t* in_bytes_read,
                                          size_t decompressed_bytes_read, size_t bytes_to_read);
 
   std::unique_ptr<Decompressor> m_decompressor;
   DecompressionBuffer m_decompressed;
   size_t m_decompressed_bytes_read = 0;
+  size_t m_bytes_read;
   u64 m_data_offset;
+  u32 m_rvz_packed_size;
 
   u32 m_size = 0;
   bool m_junk;

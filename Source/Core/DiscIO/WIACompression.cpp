@@ -292,10 +292,18 @@ bool ZstdDecompressor::Decompress(const DecompressionBuffer& in, DecompressionBu
 }
 
 RVZPackDecompressor::RVZPackDecompressor(std::unique_ptr<Decompressor> decompressor,
-                                         DecompressionBuffer decompressed, u64 data_offset)
+                                         DecompressionBuffer decompressed, u64 data_offset,
+                                         u32 rvz_packed_size)
     : m_decompressor(std::move(decompressor)), m_decompressed(std::move(decompressed)),
-      m_data_offset(data_offset)
+      m_data_offset(data_offset), m_rvz_packed_size(rvz_packed_size)
 {
+  m_bytes_read = m_decompressed.bytes_written;
+}
+
+bool RVZPackDecompressor::IncrementBytesRead(size_t x)
+{
+  m_bytes_read += x;
+  return m_bytes_read <= m_rvz_packed_size;
 }
 
 std::optional<bool> RVZPackDecompressor::ReadToDecompressed(const DecompressionBuffer& in,
@@ -308,7 +316,12 @@ std::optional<bool> RVZPackDecompressor::ReadToDecompressed(const DecompressionB
 
   if (m_decompressed.bytes_written < decompressed_bytes_read + bytes_to_read)
   {
+    const size_t prev_bytes_written = m_decompressed.bytes_written;
+
     if (!m_decompressor->Decompress(in, &m_decompressed, in_bytes_read))
+      return false;
+
+    if (!IncrementBytesRead(m_decompressed.bytes_written - prev_bytes_written))
       return false;
 
     if (m_decompressed.bytes_written < decompressed_bytes_read + bytes_to_read)
@@ -395,6 +408,10 @@ bool RVZPackDecompressor::Decompress(const DecompressionBuffer& in, Decompressio
         out->data.resize(old_out_size);
 
         bytes_to_write = out->bytes_written - prev_out_bytes_written;
+
+        if (!IncrementBytesRead(bytes_to_write))
+          return false;
+
         if (bytes_to_write == 0)
           return true;
       }
@@ -417,8 +434,8 @@ bool RVZPackDecompressor::Decompress(const DecompressionBuffer& in, Decompressio
 
 bool RVZPackDecompressor::Done() const
 {
-  return m_size == 0 && m_decompressed.bytes_written == m_decompressed_bytes_read &&
-         m_decompressor->Done();
+  return m_size == 0 && m_rvz_packed_size == m_bytes_read &&
+         m_decompressed.bytes_written == m_decompressed_bytes_read && m_decompressor->Done();
 }
 
 Compressor::~Compressor() = default;
