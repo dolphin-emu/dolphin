@@ -7,7 +7,7 @@ Dolphin includes or links code of the following third-party software projects:
 - [Bochs](http://bochs.sourceforge.net/):
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
 - [bzip2](https://www.sourceware.org/bzip2/):
-   bzip2 license (BSD-like)
+   [bzip2 license](https://www.sourceware.org/git/?p=bzip2.git;a=blob;f=LICENSE;hb=HEAD) (similar to 3-clause BSD)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
@@ -18,8 +18,8 @@ Dolphin includes or links code of the following third-party software projects:
    GPLv2+
 - [gettext](https://www.gnu.org/software/gettext/):
    [GPLv3+](http://git.savannah.gnu.org/cgit/gettext.git/tree/COPYING)
-- [googletest](https://code.google.com/p/googletest/):
-   [3-clause BSD](https://code.google.com/p/googletest/source/browse/trunk/LICENSE)
+- [googletest](https://github.com/google/googletest):
+   [3-clause BSD](https://github.com/google/googletest/blob/master/LICENSE)
 - [libao](https://www.xiph.org/ao/):
    [GPLv2+](https://trac.xiph.org/browser/trunk/ao/README)
 - [libav](https://libav.org/):
