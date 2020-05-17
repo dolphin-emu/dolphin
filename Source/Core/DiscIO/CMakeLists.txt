@@ -46,6 +46,8 @@ add_library(discio
   WbfsBlob.h
   WIABlob.cpp
   WIABlob.h
+  WIACompression.cpp
+  WIACompression.h
   WiiEncryptionCache.cpp
   WiiEncryptionCache.h
   WiiSaveBanner.cpp
