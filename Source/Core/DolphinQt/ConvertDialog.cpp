@@ -139,7 +139,8 @@ void ConvertDialog::AddToBlockSizeComboBox(int size)
     m_block_size->setCurrentIndex(m_block_size->count() - 1);
 }
 
-void ConvertDialog::AddToCompressionComboBox(const QString& name, DiscIO::WIACompressionType type)
+void ConvertDialog::AddToCompressionComboBox(const QString& name,
+                                             DiscIO::WIARVZCompressionType type)
 {
   m_compression->addItem(name, static_cast<int>(type));
 }
@@ -227,7 +228,7 @@ void ConvertDialog::OnFormatChanged()
   {
   case DiscIO::BlobType::GCZ:
     m_compression->setEnabled(true);
-    AddToCompressionComboBox(QStringLiteral("Deflate"), DiscIO::WIACompressionType::None);
+    AddToCompressionComboBox(QStringLiteral("Deflate"), DiscIO::WIARVZCompressionType::None);
     break;
   case DiscIO::BlobType::WIA:
   case DiscIO::BlobType::RVZ:
@@ -237,15 +238,22 @@ void ConvertDialog::OnFormatChanged()
     // i18n: %1 is the name of a compression method (e.g. LZMA)
     const QString slow = tr("%1 (slow)");
 
-    AddToCompressionComboBox(tr("No Compression"), DiscIO::WIACompressionType::None);
+    AddToCompressionComboBox(tr("No Compression"), DiscIO::WIARVZCompressionType::None);
+
     if (format == DiscIO::BlobType::WIA)
-      AddToCompressionComboBox(QStringLiteral("Purge"), DiscIO::WIACompressionType::Purge);
-    AddToCompressionComboBox(slow.arg(QStringLiteral("bzip2")), DiscIO::WIACompressionType::Bzip2);
-    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA")), DiscIO::WIACompressionType::LZMA);
-    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA2")), DiscIO::WIACompressionType::LZMA2);
+      AddToCompressionComboBox(QStringLiteral("Purge"), DiscIO::WIARVZCompressionType::Purge);
+
+    AddToCompressionComboBox(slow.arg(QStringLiteral("bzip2")),
+                             DiscIO::WIARVZCompressionType::Bzip2);
+
+    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA")), DiscIO::WIARVZCompressionType::LZMA);
+
+    AddToCompressionComboBox(slow.arg(QStringLiteral("LZMA2")),
+                             DiscIO::WIARVZCompressionType::LZMA2);
+
     if (format == DiscIO::BlobType::RVZ)
     {
-      AddToCompressionComboBox(QStringLiteral("Zstandard"), DiscIO::WIACompressionType::Zstd);
+      AddToCompressionComboBox(QStringLiteral("Zstandard"), DiscIO::WIARVZCompressionType::Zstd);
       m_compression->setCurrentIndex(m_compression->count() - 1);
     }
 
@@ -269,7 +277,7 @@ void ConvertDialog::OnCompressionChanged()
   m_compression_level->clear();
 
   const auto compression_type =
-      static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt());
+      static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
 
   const std::pair<int, int> range = DiscIO::GetAllowedCompressionLevels(compression_type);
 
@@ -299,8 +307,8 @@ void ConvertDialog::Convert()
 {
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(m_format->currentData().toInt());
   const int block_size = m_block_size->currentData().toInt();
-  const DiscIO::WIACompressionType compression =
-      static_cast<DiscIO::WIACompressionType>(m_compression->currentData().toInt());
+  const DiscIO::WIARVZCompressionType compression =
+      static_cast<DiscIO::WIARVZCompressionType>(m_compression->currentData().toInt());
   const int compression_level = m_compression_level->currentData().toInt();
   const bool scrub = m_scrub->isChecked();
 
@@ -477,10 +485,10 @@ void ConvertDialog::Convert()
       case DiscIO::BlobType::WIA:
       case DiscIO::BlobType::RVZ:
         good = std::async(std::launch::async, [&] {
-          const bool good =
-              DiscIO::ConvertToWIA(blob_reader.get(), original_path, dst_path.toStdString(),
-                                   format == DiscIO::BlobType::RVZ, compression, compression_level,
-                                   block_size, &CompressCB, &progress_dialog);
+          const bool good = DiscIO::ConvertToWIAOrRVZ(
+              blob_reader.get(), original_path, dst_path.toStdString(),
+              format == DiscIO::BlobType::RVZ, compression, compression_level, block_size,
+              &CompressCB, &progress_dialog);
           progress_dialog.Reset();
           return good;
         });

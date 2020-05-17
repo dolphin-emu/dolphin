@@ -16,7 +16,7 @@ class QComboBox;
 
 namespace DiscIO
 {
-enum class WIACompressionType : u32;
+enum class WIARVZCompressionType : u32;
 }
 
 namespace UICommon
@@ -39,7 +39,7 @@ private slots:
 
 private:
   void AddToBlockSizeComboBox(int size);
-  void AddToCompressionComboBox(const QString& name, DiscIO::WIACompressionType type);
+  void AddToCompressionComboBox(const QString& name, DiscIO::WIARVZCompressionType type);
   void AddToCompressionLevelComboBox(int level);
 
   bool ShowAreYouSureDialog(const QString& text);

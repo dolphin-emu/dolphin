@@ -207,8 +207,9 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
   case WBFS_MAGIC:
     return WbfsFileReader::Create(std::move(file), filename);
   case WIA_MAGIC:
-  case RVZ_MAGIC:
     return WIAFileReader::Create(std::move(file), filename);
+  case RVZ_MAGIC:
+    return RVZFileReader::Create(std::move(file), filename);
   default:
     if (auto directory_blob = DirectoryBlobReader::Create(filename))
       return std::move(directory_blob);

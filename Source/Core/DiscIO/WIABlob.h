@@ -25,7 +25,7 @@ namespace DiscIO
 class FileSystem;
 class VolumeDisc;
 
-enum class WIACompressionType : u32
+enum class WIARVZCompressionType : u32
 {
   None = 0,
   Purge = 1,
@@ -35,17 +35,18 @@ enum class WIACompressionType : u32
   Zstd = 5,
 };
 
-std::pair<int, int> GetAllowedCompressionLevels(WIACompressionType compression_type);
+std::pair<int, int> GetAllowedCompressionLevels(WIARVZCompressionType compression_type);
 
 constexpr u32 WIA_MAGIC = 0x01414957;  // "WIA\x1" (byteswapped to little endian)
 constexpr u32 RVZ_MAGIC = 0x015A5652;  // "RVZ\x1" (byteswapped to little endian)
 
-class WIAFileReader : public BlobReader
+template <bool RVZ>
+class WIARVZFileReader : public BlobReader
 {
 public:
-  ~WIAFileReader();
+  ~WIARVZFileReader();
 
-  static std::unique_ptr<WIAFileReader> Create(File::IOFile file, const std::string& path);
+  static std::unique_ptr<WIARVZFileReader> Create(File::IOFile file, const std::string& path);
 
   BlobType GetBlobType() const override;
 
@@ -60,11 +61,10 @@ public:
   bool SupportsReadWiiDecrypted() const override;
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
-  static ConversionResultCode ConvertToWIA(BlobReader* infile, const VolumeDisc* infile_volume,
-                                           File::IOFile* outfile, bool rvz,
-                                           WIACompressionType compression_type,
-                                           int compression_level, int chunk_size,
-                                           CompressCB callback, void* arg);
+  static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
+                                      File::IOFile* outfile, WIARVZCompressionType compression_type,
+                                      int compression_level, int chunk_size, CompressCB callback,
+                                      void* arg);
 
 private:
   using SHA1 = std::array<u8, 20>;
@@ -209,7 +209,7 @@ private:
     u64 m_data_offset = 0;
   };
 
-  explicit WIAFileReader(File::IOFile file, const std::string& path);
+  explicit WIARVZFileReader(File::IOFile file, const std::string& path);
   bool Initialize(const std::string& path);
   bool HasDataOverlap() const;
 
@@ -306,15 +306,10 @@ private:
                           u64* bytes_written, u64* offset_out);
 
   static void SetUpCompressor(std::unique_ptr<Compressor>* compressor,
-                              WIACompressionType compression_type, int compression_level,
+                              WIARVZCompressionType compression_type, int compression_level,
                               WIAHeader2* header_2);
   static bool TryReuse(std::map<ReuseID, GroupEntry>* reusable_groups,
                        std::mutex* reusable_groups_mutex, OutputParametersEntry* entry);
-  static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chunk, size_t chunks,
-                      u64 total_size, u64 data_offset, u64 in_offset, bool allow_junk_reuse,
-                      bool compression, const FileSystem* file_system);
-  static void RVZPack(const u8* in, OutputParametersEntry* out, u64 size, u64 data_offset,
-                      bool allow_junk_reuse, bool compression, const FileSystem* file_system);
   static ConversionResult<OutputParameters>
   ProcessAndCompress(CompressThreadState* state, CompressParameters parameters,
                      const std::vector<PartitionEntry>& partition_entries,
@@ -322,7 +317,7 @@ private:
                      std::map<ReuseID, GroupEntry>* reusable_groups,
                      std::mutex* reusable_groups_mutex, u64 chunks_per_wii_group,
                      u64 exception_lists_per_chunk, bool compressed_exception_lists,
-                     bool compression, bool rvz);
+                     bool compression);
   static ConversionResultCode Output(std::vector<OutputParametersEntry>* entries,
                                      File::IOFile* outfile,
                                      std::map<ReuseID, GroupEntry>* reusable_groups,
@@ -332,25 +327,8 @@ private:
                                           u32 total_groups, u64 iso_size, CompressCB callback,
                                           void* arg);
 
-  static void PushBack(std::vector<u8>* vector, const u8* begin, const u8* end)
-  {
-    const size_t offset_in_vector = vector->size();
-    vector->resize(offset_in_vector + (end - begin));
-    std::copy(begin, end, vector->data() + offset_in_vector);
-  }
-
-  template <typename T>
-  static void PushBack(std::vector<u8>* vector, const T& x)
-  {
-    static_assert(std::is_trivially_copyable_v<T>);
-
-    const u8* x_ptr = reinterpret_cast<const u8*>(&x);
-    PushBack(vector, x_ptr, x_ptr + sizeof(T));
-  }
-
   bool m_valid;
-  bool m_rvz;
-  WIACompressionType m_compression_type;
+  WIARVZCompressionType m_compression_type;
 
   File::IOFile m_file;
   Chunk m_cached_chunk;
@@ -381,5 +359,8 @@ private:
   static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00020000;
   static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00020000;
 };
+
+using WIAFileReader = WIARVZFileReader<false>;
+using RVZFileReader = WIARVZFileReader<true>;
 
 }  // namespace DiscIO
