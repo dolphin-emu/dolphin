@@ -18,10 +18,6 @@ void Host_RefreshDSPDebuggerWindow()
 void Host_Message(HostMessageID)
 {
 }
-void* Host_GetRenderHandle()
-{
-  return nullptr;
-}
 void Host_UpdateTitle(const std::string&)
 {
 }
@@ -47,4 +43,8 @@ void Host_YieldToUI()
 }
 void Host_TitleChanged()
 {
+}
+bool Host_UIBlocksControllerState()
+{
+  return false;
 }

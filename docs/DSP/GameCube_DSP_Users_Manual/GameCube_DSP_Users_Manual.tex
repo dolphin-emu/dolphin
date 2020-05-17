@@ -410,10 +410,10 @@ The DSP has 32 16-bit registers, although their individual purpose and their fun
 \Register{\$5}  & \Register{\$r05} & \Register{\$ix1}     & Indexing register 1         \\ \hline
 \Register{\$6}  & \Register{\$r06} & \Register{\$ix2}     & Indexing register 2         \\ \hline
 \Register{\$7}  & \Register{\$r07} & \Register{\$ix3}     & Indexing register 3         \\ \hline
-\Register{\$8}  & \Register{\$r08} &                      &                             \\ \hline
-\Register{\$9}  & \Register{\$r09} &                      &                             \\ \hline
-\Register{\$10} & \Register{\$r0A} &                      &                             \\ \hline
-\Register{\$11} & \Register{\$r0B} &                      &                             \\ \hline
+\Register{\$8}  & \Register{\$r08} & \Register{\$wr0}     & Wrapping register 0         \\ \hline
+\Register{\$9}  & \Register{\$r09} & \Register{\$wr1}     & Wrapping register 1         \\ \hline
+\Register{\$10} & \Register{\$r0A} & \Register{\$wr2}     & Wrapping register 2         \\ \hline
+\Register{\$11} & \Register{\$r0B} & \Register{\$wr3}     & Wrapping register 3         \\ \hline
 \Register{\$12} & \Register{\$r0C} & \Register{\$st0}     & Call stack register         \\ \hline
 \Register{\$13} & \Register{\$r0D} & \Register{\$st1}     & Data stack register         \\ \hline
 \Register{\$14} & \Register{\$r0E} & \Register{\$st2}     & Loop address stack register \\ \hline
@@ -427,8 +427,8 @@ The DSP has 32 16-bit registers, although their individual purpose and their fun
 \Register{\$22} & \Register{\$r16} & \Register{\$prod.h}  & Product register (high)     \\ \hline
 \Register{\$23} & \Register{\$r17} & \Register{\$prod.m2} & Product register (mid 2)    \\ \hline
 \Register{\$24} & \Register{\$r18} & \Register{\$ax0.l}   & 32-bit Accumulator 0 (low)  \\ \hline
-\Register{\$25} & \Register{\$r19} & \Register{\$ax0.h}   & 32-bit Accumulator 0 (high) \\ \hline
-\Register{\$26} & \Register{\$r1A} & \Register{\$ax1.l}   & 32-bit Accumulator 1 (low)  \\ \hline
+\Register{\$25} & \Register{\$r19} & \Register{\$ax1.l}   & 32-bit Accumulator 1 (low)  \\ \hline
+\Register{\$26} & \Register{\$r1A} & \Register{\$ax0.h}   & 32-bit Accumulator 0 (high) \\ \hline
 \Register{\$27} & \Register{\$r1B} & \Register{\$ax1.h}   & 32-bit Accumulator 1 (high) \\ \hline
 \Register{\$28} & \Register{\$r1C} & \Register{\$ac0.l}   & 40-bit Accumulator 0 (low)  \\ \hline
 \Register{\$29} & \Register{\$r1D} & \Register{\$ac1.l}   & 40-bit Accumulator 1 (low)  \\ \hline
@@ -1282,7 +1282,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
         $pc = $st0
     END
     $pc = addrA + 1
-    // Remove vaues from stack
+    // Remove values from stack
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -1318,7 +1318,7 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
         $pc = $st0
     END
     $pc = addrA + 1
-    // Remove vaues from stack
+    // Remove values from stack
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
