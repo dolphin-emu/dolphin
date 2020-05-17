@@ -230,6 +230,7 @@ add_executable(dolphin-emu
   QtUtils/FileOpenEventFilter.h
   QtUtils/FlowLayout.cpp
   QtUtils/FlowLayout.h
+  QtUtils/FontMetricsHelper.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
   QtUtils/ParallelProgressDialog.h

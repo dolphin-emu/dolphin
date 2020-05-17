@@ -31,6 +31,7 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Debugger/PatchInstructionDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/FontMetricsHelper.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
@@ -195,19 +196,12 @@ void CodeViewWidget::FontBasedSizing()
 
   const QFontMetrics fm(Settings::Instance().GetDebugFont());
 
-  const auto width = [&fm](QString text) {
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 11, 0))
-    return fm.horizontalAdvance(text);
-#else
-    return fm.width(text);
-#endif
-  };
-
   const int rowh = fm.height() + 1;
   verticalHeader()->setMaximumSectionSize(rowh);
   horizontalHeader()->setMinimumSectionSize(rowh + 5);
   setColumnWidth(CODE_VIEW_COLUMN_BREAKPOINT, rowh + 5);
-  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS, width(QStringLiteral("80000000")) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_ADDRESS,
+                 FontMetricsWidth(fm, QStringLiteral("80000000")) + extra_text_width);
 
   // The longest instruction is technically 'ps_merge00' (0x10000420u), but those instructions are
   // very rare and would needlessly increase the column size, so let's go with 'rlwinm.' instead.
@@ -219,10 +213,11 @@ void CodeViewWidget::FontBasedSizing()
   const std::string ins = (split == std::string::npos ? disas : disas.substr(0, split));
   const std::string param = (split == std::string::npos ? "" : disas.substr(split + 1));
   setColumnWidth(CODE_VIEW_COLUMN_INSTRUCTION,
-                 width(QString::fromStdString(ins)) + extra_text_width);
+                 FontMetricsWidth(fm, QString::fromStdString(ins)) + extra_text_width);
   setColumnWidth(CODE_VIEW_COLUMN_PARAMETERS,
-                 width(QString::fromStdString(param)) + extra_text_width);
-  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION, width(QStringLiteral("0")) * 25 + extra_text_width);
+                 FontMetricsWidth(fm, QString::fromStdString(param)) + extra_text_width);
+  setColumnWidth(CODE_VIEW_COLUMN_DESCRIPTION,
+                 FontMetricsWidth(fm, QStringLiteral("0")) * 25 + extra_text_width);
 
   Update();
 }
