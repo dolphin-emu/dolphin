@@ -4,6 +4,7 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/IMUGyroscope.h"
 
+#include <algorithm>
 #include <memory>
 
 #include "Common/Common.h"
@@ -124,7 +125,8 @@ auto IMUGyroscope::GetRawState() const -> StateData
 
 std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const
 {
-  if (controls[0]->control_ref->BoundCount() == 0)
+  if (std::all_of(controls.begin(), controls.end(),
+                  [](const auto& control) { return control->control_ref->BoundCount() == 0; }))
   {
     // Set calibration to zero.
     m_calibration = {};
