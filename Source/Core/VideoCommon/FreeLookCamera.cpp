@@ -204,6 +204,11 @@ Common::Matrix44 FreeLookCamera::GetView()
   return m_camera_controller->GetView();
 }
 
+Common::Vec2 FreeLookCamera::GetFieldOfView() const
+{
+  return Common::Vec2{m_fov_x, m_fov_y};
+}
+
 void FreeLookCamera::MoveVertical(float amt)
 {
   m_camera_controller->MoveVertical(amt);
@@ -228,9 +233,23 @@ void FreeLookCamera::Rotate(const Common::Vec3& amt)
   m_dirty = true;
 }
 
+void FreeLookCamera::IncreaseFovX(float fov)
+{
+  m_fov_x += fov;
+  m_fov_x = std::clamp(m_fov_x, 0.1f, m_fov_x);
+}
+
+void FreeLookCamera::IncreaseFovY(float fov)
+{
+  m_fov_y += fov;
+  m_fov_y = std::clamp(m_fov_y, 0.1f, m_fov_y);
+}
+
 void FreeLookCamera::Reset()
 {
   m_camera_controller->Reset();
+  m_fov_x = 1.0f;
+  m_fov_y = 1.0f;
   m_dirty = true;
 }
 
@@ -239,6 +258,8 @@ void FreeLookCamera::DoState(PointerWrap& p)
   if (p.mode == PointerWrap::MODE_WRITE || p.mode == PointerWrap::MODE_MEASURE)
   {
     p.Do(m_current_type);
+    p.Do(m_fov_x);
+    p.Do(m_fov_y);
     if (m_camera_controller)
     {
       m_camera_controller->DoState(p);
