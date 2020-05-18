@@ -21,6 +21,7 @@ public:
   bool ClearCurrent() override;
 
   void Update() override;
+  void UpdateSurface(void* window_handle) override;
 
   void Swap() override;
   void SwapInterval(int interval) override;
@@ -29,6 +30,7 @@ public:
 
 protected:
   bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core) override;
+  bool InitializeDC();
 
   static HGLRC CreateCoreContext(HDC dc, HGLRC share_context);
   static bool CreatePBuffer(HDC onscreen_dc, int width, int height, HANDLE* pbuffer_handle,
@@ -38,4 +40,5 @@ protected:
   HANDLE m_pbuffer_handle = nullptr;
   HDC m_dc = nullptr;
   HGLRC m_rc = nullptr;
+  bool m_stereo = false;
 };
