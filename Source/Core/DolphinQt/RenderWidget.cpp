@@ -203,7 +203,13 @@ bool RenderWidget::event(QEvent* event)
     break;
   case QEvent::WindowDeactivate:
     if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
-      Core::SetState(Core::State::Paused);
+    {
+      // If we are declared as the CPU thread, it means that the real CPU thread is waiting
+      // for us to finish showing a panic alert (with that panic alert likely being the cause
+      // of this event), so trying to pause the real CPU thread would cause a deadlock
+      if (!Core::IsCPUThread())
+        Core::SetState(Core::State::Paused);
+    }
 
     emit FocusChanged(false);
     break;
