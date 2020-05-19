@@ -38,6 +38,8 @@ public:
   size_t GetSize() const;
   void Clear(DeleteOnDisk delete_on_disk);
 
+  const std::shared_ptr<GameFile>& Get(size_t idx) const;
+
   // Returns nullptr if the file is invalid.
   std::shared_ptr<const GameFile> AddOrGet(const std::string& path, bool* cache_changed);
 

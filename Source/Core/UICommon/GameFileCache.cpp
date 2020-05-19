@@ -66,6 +66,11 @@ void GameFileCache::Clear(DeleteOnDisk delete_on_disk)
   m_cached_files.clear();
 }
 
+const std::shared_ptr<GameFile>& GameFileCache::Get(size_t idx) const
+{
+  return m_cached_files[idx];
+}
+
 std::shared_ptr<const GameFile> GameFileCache::AddOrGet(const std::string& path,
                                                         bool* cache_changed)
 {

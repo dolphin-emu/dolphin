@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Core/IOS/Device.h"
+#include "UICommon/GameFileCache.h"
 
 namespace IOS::HLE::Device
 {
@@ -14,5 +15,10 @@ public:
   // Inherit the constructor from the Device class, since we don't need to do anything special.
   using Device::Device;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+
+#ifndef __ANDROID__
+private:
+  UICommon::GameFileCache cache;
+#endif
 };
 }  // namespace IOS::HLE::Device
