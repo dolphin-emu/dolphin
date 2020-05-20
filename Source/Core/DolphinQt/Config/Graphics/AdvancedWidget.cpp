@@ -231,13 +231,13 @@ void AdvancedWidget::AddDescriptions()
       "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
       "to reset the camera or SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked. ");
   static const char TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION[] = QT_TR_NOOP(
-      "Changes the in-game camera type during freelook.\n\n  Six Axis: Offers full camera control "
-      "on all axis, akin to moving a spacecraft in zero gravity. This is the most powerful "
-      "freelook option but is the most challenging to use.\n"
-      "First Person: cControls the free camera similarly to a first person video game. The camera "
-      "can rotate and travel, but roll is impossible. Easy to use, but limiting.\nOrbital: Rotates "
-      "the free camera around the original camera. Has no lateral movement, only rotation and you "
-      "may zoom up to the camera's origin point.");
+      "Changes the in-game camera type during freelook.\n\n"
+      "Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero "
+      "gravity. This is the most powerful freelook option but is the most challenging to use.\n"
+      "First Person: Controls the free camera similarly to a first person video game. The camera "
+      "can rotate and travel, but roll is impossible. Easy to use, but limiting.\n"
+      "Orbital: Rotates the free camera around the original camera. Has no lateral movement, only "
+      "rotation and you may zoom up to the camera's origin point.");
   static const char TR_CROPPING_DESCRIPTION[] =
       QT_TR_NOOP("Crops the picture from its native aspect ratio to 4:3 or "
                  "16:9.\n\nIf unsure, leave this unchecked.");
