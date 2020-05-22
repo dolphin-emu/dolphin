@@ -410,8 +410,8 @@ public final class SettingsFragmentPresenter
     overclock = coreSection.getSetting(SettingsFile.KEY_OVERCLOCK_PERCENT);
 
     // TODO: Having different emuCoresEntries/emuCoresValues for each architecture is annoying.
-    // The proper solution would be to have one emuCoresEntries and one emuCoresValues
-    // and exclude the values that aren't present in PowerPC::AvailableCPUCores().
+    //       The proper solution would be to have one emuCoresEntries and one emuCoresValues
+    //       and exclude the values that aren't present in PowerPC::AvailableCPUCores().
     int defaultCpuCore = NativeLibrary.DefaultCPUCore();
     int emuCoresEntries;
     int emuCoresValues;
@@ -446,7 +446,7 @@ public final class SettingsFragmentPresenter
     {
       if (mGameID.equals(""))
       {
-        // TODO This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
+        // TODO: This controller_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
         Setting gcPadSetting = mSettings.getSection(Settings.SECTION_INI_CORE)
                 .getSetting(SettingsFile.KEY_GCPAD_TYPE + i);
         sl.add(new SingleChoiceSetting(SettingsFile.KEY_GCPAD_TYPE + i, Settings.SECTION_INI_CORE,
@@ -468,7 +468,7 @@ public final class SettingsFragmentPresenter
   {
     for (int i = 0; i < 4; i++)
     {
-      // TODO This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
+      // TODO: This wiimote_0 + i business is quite the hack. It should work, but only if the definitions are kept together and in order.
       if (mGameID.equals(""))
       {
         Setting wiimoteSetting = mSettings.getSection(Settings.SECTION_WIIMOTE + (i + 1))

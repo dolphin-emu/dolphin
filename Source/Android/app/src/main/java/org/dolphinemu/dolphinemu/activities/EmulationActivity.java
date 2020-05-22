@@ -273,8 +273,8 @@ public final class EmulationActivity extends AppCompatActivity
 
     updateOrientation();
 
-    // TODO: The accurate way to find out which console we're emulating is to
-    // first launch emulation and then ask the core which console we're emulating
+    // TODO: The accurate way to find out which console we're emulating is to first
+    //       launch emulation and then ask the core which console we're emulating
     sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
