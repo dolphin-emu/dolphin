@@ -5,7 +5,12 @@
 #include <algorithm>
 #include <cstring>
 
+#include "Common/CommonPaths.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
+#include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 #include "Common/scmrev.h"
 #include "Core/BootManager.h"
@@ -25,6 +30,7 @@ enum
   IOCTL_DOLPHIN_GET_SPEED_LIMIT = 0x03,
   IOCTL_DOLPHIN_SET_SPEED_LIMIT = 0x04,
   IOCTL_DOLPHIN_GET_CPU_SPEED = 0x05,
+  IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE = 0x06,
 
 };
 
@@ -123,6 +129,37 @@ IPCCommandResult SetSpeedLimit(const IOCtlVRequest& request)
   return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
 }
 
+IPCCommandResult GetRealProductCode(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 1))
+  {
+    return DolphinDevice::GetDefaultReply(IPC_EINVAL);
+  }
+
+  const std::string backup_file_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + WII_SETTING;
+
+  File::IOFile file(backup_file_path, "rb");
+  if (!file)
+    return DolphinDevice::GetDefaultReply(IPC_ENOENT);
+
+  Common::SettingsHandler::Buffer data;
+
+  if (!file.ReadBytes(data.data(), data.size()))
+    return DolphinDevice::GetDefaultReply(IPC_ENOENT);
+
+  Common::SettingsHandler gen;
+  gen.SetBytes(std::move(data));
+  const std::string code = gen.GetValue("CODE");
+
+  const size_t length = std::min<size_t>(request.io_vectors[0].size, code.length());
+  if (length == 0)
+    return DolphinDevice::GetDefaultReply(IPC_ENOENT);
+
+  Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
+  Memory::CopyToEmu(request.io_vectors[0].address, code.c_str(), length);
+  return DolphinDevice::GetDefaultReply(IPC_SUCCESS);
+}
+
 }  // namespace
 
 IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
@@ -144,6 +181,8 @@ IPCCommandResult DolphinDevice::IOCtlV(const IOCtlVRequest& request)
     return SetSpeedLimit(request);
   case IOCTL_DOLPHIN_GET_CPU_SPEED:
     return GetCPUSpeed(request);
+  case IOCTL_DOLPHIN_GET_REAL_PRODUCTCODE:
+    return GetRealProductCode(request);
   default:
     return GetDefaultReply(IPC_EINVAL);
   }
