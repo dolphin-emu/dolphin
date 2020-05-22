@@ -238,6 +238,8 @@ add_executable(dolphin-emu
   GCMemcardCreateNewDialog.h
   GCMemcardManager.cpp
   GCMemcardManager.h
+  GrandSettingsWindow.cpp
+  GrandSettingsWindow.h
   Host.cpp
   Host.h
   HotkeyScheduler.cpp

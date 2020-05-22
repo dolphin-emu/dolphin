@@ -154,6 +154,7 @@
     <ClCompile Include="GBAWidget.cpp" />
     <ClCompile Include="GCMemcardCreateNewDialog.cpp" />
     <ClCompile Include="GCMemcardManager.cpp" />
+    <ClCompile Include="GrandSettingsWindow.cpp" />
     <ClCompile Include="Host.cpp" />
     <ClCompile Include="HotkeyScheduler.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -345,6 +346,7 @@
     <QtMoc Include="GBAWidget.h" />
     <QtMoc Include="GCMemcardCreateNewDialog.h" />
     <QtMoc Include="GCMemcardManager.h" />
+    <QtMoc Include="GrandSettingsWindow.h" />
     <QtMoc Include="Host.h" />
     <QtMoc Include="HotkeyScheduler.h" />
     <QtMoc Include="MainWindow.h" />

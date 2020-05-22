@@ -89,6 +89,7 @@
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
 #include "DolphinQt/GCMemcardManager.h"
 #include "DolphinQt/GameList/GameList.h"
+#include "DolphinQt/GrandSettingsWindow.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MenuBar.h"
@@ -502,6 +503,7 @@ void MainWindow::ConnectMenuBar()
   connect(m_menu_bar, &MenuBar::ConfigureControllers, this, &MainWindow::ShowControllersWindow);
   connect(m_menu_bar, &MenuBar::ConfigureHotkeys, this, &MainWindow::ShowHotkeyDialog);
   connect(m_menu_bar, &MenuBar::ConfigureFreelook, this, &MainWindow::ShowFreeLookWindow);
+  connect(m_menu_bar, &MenuBar::ConfigureGrandSettings, this, &MainWindow::ShowGrandSettingsDialog);
 
   // Tools
   connect(m_menu_bar, &MenuBar::ShowMemcardManager, this, &MainWindow::ShowMemcardManager);
@@ -1234,12 +1236,29 @@ void MainWindow::ShowHotkeyDialog()
   m_hotkey_window->activateWindow();
 }
 
+void MainWindow::ShowGrandSettingsDialog()
+{
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
+  if (GetWindowSystemType() == WindowSystemType::X11 && m_xrr_config != nullptr)
+  {
+    m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
+        static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(
+            "display", windowHandle())),
+        winId());
+  }
+  GrandSettingsWindow grand{m_xrr_config.get(), this};
+#else
+  GrandSettingsWindow grand{nullptr, this};
+#endif
+  grand.exec();
+}
+
 void MainWindow::ShowGraphicsWindow()
 {
   if (!m_graphics_window)
   {
 #ifdef HAVE_XRANDR
-    if (GetWindowSystemType() == WindowSystemType::X11)
+    if (GetWindowSystemType() == WindowSystemType::X11 && m_xrr_config != nullptr)
     {
       m_xrr_config = std::make_unique<X11Utils::XRRConfiguration>(
           static_cast<Display*>(QGuiApplication::platformNativeInterface()->nativeResourceForWindow(

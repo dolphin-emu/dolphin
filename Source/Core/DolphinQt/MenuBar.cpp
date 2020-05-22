@@ -527,6 +527,10 @@ void MenuBar::AddOptionsMenu()
 
   options_menu->addSeparator();
 
+  options_menu->addAction(tr("Grand Settings"), this, &MenuBar::ConfigureGrandSettings);
+
+  options_menu->addSeparator();
+
   // Debugging mode only
   m_boot_to_pause = options_menu->addAction(tr("Boot to Pause"));
   m_boot_to_pause->setCheckable(true);
