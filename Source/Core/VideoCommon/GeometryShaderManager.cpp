@@ -7,7 +7,9 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/GeometryShaderManager.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -41,24 +43,48 @@ void GeometryShaderManager::Dirty()
 
 void GeometryShaderManager::SetConstants()
 {
-  if (s_projection_changed && g_ActiveConfig.stereo_mode != StereoMode::Off)
+  if (s_projection_changed || g_freelook_camera.IsDirty())
   {
-    s_projection_changed = false;
-
-    if (xfmem.projection.type == GX_PERSPECTIVE)
+    if (g_ActiveConfig.stereo_mode != StereoMode::Off)
     {
-      float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
-                     (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
-      constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
-      constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
+      if (xfmem.projection.type == GX_PERSPECTIVE)
+      {
+        float offset = (g_ActiveConfig.iStereoDepth / 1000.0f) *
+                       (g_ActiveConfig.iStereoDepthPercentage / 100.0f);
+        constants.stereoparams[0] = g_ActiveConfig.bStereoSwapEyes ? offset : -offset;
+        constants.stereoparams[1] = g_ActiveConfig.bStereoSwapEyes ? -offset : offset;
+      }
+      else
+      {
+        constants.stereoparams[0] = constants.stereoparams[1] = 0;
+      }
+
+      constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
+                                          (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+    }
+
+    Common::Matrix44 projection = {};
+    std::memcpy(projection.data.data(), VertexShaderManager::constants.projection.data(),
+                sizeof(projection));
+    if (g_ActiveConfig.bFreeLook && g_ActiveConfig.iFreelookScreens > 1)
+    {
+      constants.pixelcentercorrection = VertexShaderManager::constants.pixelcentercorrection;
+      constants.views[0] = projection;
+
+      if (xfmem.projection.type == GX_PERSPECTIVE)
+      {
+        projection *= g_freelook_camera.GetView();
+      }
+      constants.views[1] = projection;
+
+      g_freelook_camera.SetClean();
     }
     else
     {
-      constants.stereoparams[0] = constants.stereoparams[1] = 0;
+      constants.views.fill(projection);
     }
 
-    constants.stereoparams[2] = (float)(g_ActiveConfig.iStereoConvergence *
-                                        (g_ActiveConfig.iStereoConvergencePercentage / 100.0f));
+    s_projection_changed = false;
 
     dirty = true;
   }

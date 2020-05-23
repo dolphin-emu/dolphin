@@ -18,6 +18,7 @@ ShaderHostConfig ShaderHostConfig::GetCurrent()
   bits.ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA &&
               g_ActiveConfig.backend_info.bSupportsSSAA;
   bits.stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
+  bits.views = g_ActiveConfig.bFreeLook ? g_ActiveConfig.iFreelookScreens : 1;
   bits.wireframe = g_ActiveConfig.bWireFrame;
   bits.per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   bits.vertex_rounding = g_ActiveConfig.UseVertexRounding();

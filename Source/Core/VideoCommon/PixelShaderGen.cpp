@@ -539,6 +539,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
+  const int views = host_config.views;
   const u32 numStages = uid_data->genMode_numtevstages + 1;
 
   out.Write("//Pixel Shader for TEV stages\n");
@@ -648,7 +649,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       GenerateVSOutputMembers(out, ApiType, uid_data->genMode_numtexgens, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
-      if (stereo)
+      if (stereo || views > 1)
         out.Write("\tflat int layer;\n");
 
       out.Write("};\n");
@@ -730,7 +731,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
       out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
     }
-    if (stereo)
+    if (stereo || views > 1)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("        ) {\n");
   }
@@ -806,14 +807,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const ShaderHostConfig& host
       }
 
       out.Write("\tint3 iindtex%d = ", i);
-      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo, ApiType);
+      SampleTexture(out, "float2(tempcoord)", "abg", texmap, stereo || views > 1, ApiType);
     }
   }
 
   for (u32 i = 0; i < numStages; i++)
   {
     // Build the equation for this stage
-    WriteStage(out, uid_data, i, ApiType, stereo);
+    WriteStage(out, uid_data, i, ApiType, stereo || views > 1);
   }
 
   {

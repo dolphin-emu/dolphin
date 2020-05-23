@@ -82,6 +82,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool vertex_rounding = host_config.vertex_rounding;
+  const int views = host_config.views;
 
   out.Write("%s", s_lighting_struct);
 
@@ -233,8 +234,18 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
   if (!(uid_data->components & VB_HAS_NRM0))
     out.Write("float3 _norm0 = float3(0.0, 0.0, 0.0);\n");
 
-  out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
-            "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
+  // If we have more than one view, don't apply
+  // the projection matrix
+  // that will be applied in the geometry shader
+  if (views > 1)
+  {
+    out.Write("o.pos = pos;\n");
+  }
+  else
+  {
+    out.Write("o.pos = float4(dot(" I_PROJECTION "[0], pos), dot(" I_PROJECTION
+              "[1], pos), dot(" I_PROJECTION "[2], pos), dot(" I_PROJECTION "[3], pos));\n");
+  }
 
   out.Write("int4 lacc;\n"
             "float3 ldir, h, cosAttn, distAttn;\n"
@@ -398,10 +409,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.colors_1 = o.colors_0;\n");
   }
 
-  // clipPos/w needs to be done in pixel shader, not here
-  if (!host_config.fast_depth_calc)
-    out.Write("o.clipPos = o.pos;\n");
-
   if (per_pixel_lighting)
   {
     out.Write("o.Normal = _norm0;\n");
@@ -414,80 +421,94 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("o.colors_1 = rawcolor1;\n");
   }
 
-  // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
-  // our own depth clipping and calculate the depth range before the perspective divide if
-  // necessary.
-  if (host_config.backend_depth_clamp)
+  if (views > 1)
   {
-    // Since we're adjusting z for the depth range before the perspective divide, we have to do our
-    // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
-    // We adjust our depth value for clipping purposes to match the perspective projection in the
-    // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
-    out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
-    out.Write("float clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
-    out.Write("float clipDist1 = -clipDepth;\n");           // Far: z > 0
-    if (host_config.backend_geometry_shaders)
+    out.Write("o.clipDist0 = 0;\n");
+    out.Write("o.clipDist1 = 0;\n");
+    if (!host_config.fast_depth_calc)
+      out.Write("o.clipPos = float4(0, 0, 0, 0);\n");
+  }
+  else
+  {
+    // clipPos/w needs to be done in pixel shader, not here
+    if (!host_config.fast_depth_calc)
+      out.Write("o.clipPos = o.pos;\n");
+
+    // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
+    // our own depth clipping and calculate the depth range before the perspective divide if
+    // necessary.
+    if (host_config.backend_depth_clamp)
     {
-      out.Write("o.clipDist0 = clipDist0;\n");
-      out.Write("o.clipDist1 = clipDist1;\n");
+      // Since we're adjusting z for the depth range before the perspective divide, we have to do
+      // our own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0
+      // range. We adjust our depth value for clipping purposes to match the perspective projection
+      // in the software backend, which is a hack to fix Sonic Adventure and Unleashed games.
+      out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
+      out.Write("float clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
+      out.Write("float clipDist1 = -clipDepth;\n");           // Far: z > 0
+      if (host_config.backend_geometry_shaders)
+      {
+        out.Write("o.clipDist0 = clipDist0;\n");
+        out.Write("o.clipDist1 = clipDist1;\n");
+      }
     }
-  }
 
-  // Write the true depth value. If the game uses depth textures, then the pixel shader will
-  // override it with the correct values if not then early z culling will improve speed.
-  // There are two different ways to do this, when the depth range is oversized, we process
-  // the depth range in the vertex shader, if not we let the host driver handle it.
-  //
-  // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
-  // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
-  // We have to handle the depth range in the vertex shader instead of after the perspective
-  // divide, because some games will use a depth range larger than what is allowed by the
-  // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
-  // games effectively add a depth bias to the values written to the depth buffer.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
-            "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+    // Write the true depth value. If the game uses depth textures, then the pixel shader will
+    // override it with the correct values if not then early z culling will improve speed.
+    // There are two different ways to do this, when the depth range is oversized, we process
+    // the depth range in the vertex shader, if not we let the host driver handle it.
+    //
+    // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
+    // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
+    // We have to handle the depth range in the vertex shader instead of after the perspective
+    // divide, because some games will use a depth range larger than what is allowed by the
+    // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
+    // games effectively add a depth bias to the values written to the depth buffer.
+    out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
+              "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
 
-  if (!host_config.backend_clip_control)
-  {
-    // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
-    // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy floating-point
-    // operation that can introduce a round-trip error.
-    out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
-  }
+    if (!host_config.backend_clip_control)
+    {
+      // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
+      // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy
+      // floating-point operation that can introduce a round-trip error.
+      out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
+    }
 
-  // Correct for negative viewports by mirroring all vertices. We need to negate the height here,
-  // since the viewport height is already negated by the render backend.
-  out.Write("o.pos.xy *= sign(" I_PIXELCENTERCORRECTION ".xy * float2(1.0, -1.0));\n");
+    // Correct for negative viewports by mirroring all vertices. We need to negate the height here,
+    // since the viewport height is already negated by the render backend.
+    out.Write("o.pos.xy *= sign(" I_PIXELCENTERCORRECTION ".xy * float2(1.0, -1.0));\n");
 
-  // The console GPU places the pixel center at 7/12 in screen space unless
-  // antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
-  // in some primitives being placed one pixel too far to the bottom-right,
-  // which in turn can be critical if it happens for clear quads.
-  // Hence, we compensate for this pixel center difference so that primitives
-  // get rasterized correctly.
-  out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
+    // The console GPU places the pixel center at 7/12 in screen space unless
+    // antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
+    // in some primitives being placed one pixel too far to the bottom-right,
+    // which in turn can be critical if it happens for clear quads.
+    // Hence, we compensate for this pixel center difference so that primitives
+    // get rasterized correctly.
+    out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
 
-  if (vertex_rounding)
-  {
-    // By now our position is in clip space
-    // however, higher resolutions than the Wii outputs
-    // cause an additional pixel offset
-    // due to a higher pixel density
-    // we need to correct this by converting our
-    // clip-space position into the Wii's screen-space
-    // acquire the right pixel and then convert it back
-    out.Write("if (o.pos.w == 1.0f)\n");
-    out.Write("{\n");
+    if (vertex_rounding)
+    {
+      // By now our position is in clip space
+      // however, higher resolutions than the Wii outputs
+      // cause an additional pixel offset
+      // due to a higher pixel density
+      // we need to correct this by converting our
+      // clip-space position into the Wii's screen-space
+      // acquire the right pixel and then convert it back
+      out.Write("if (o.pos.w == 1.0f)\n");
+      out.Write("{\n");
 
-    out.Write("\tfloat ss_pixel_x = ((o.pos.x + 1.0f) * (" I_VIEWPORT_SIZE ".x * 0.5f));\n");
-    out.Write("\tfloat ss_pixel_y = ((o.pos.y + 1.0f) * (" I_VIEWPORT_SIZE ".y * 0.5f));\n");
+      out.Write("\tfloat ss_pixel_x = ((o.pos.x + 1.0f) * (" I_VIEWPORT_SIZE ".x * 0.5f));\n");
+      out.Write("\tfloat ss_pixel_y = ((o.pos.y + 1.0f) * (" I_VIEWPORT_SIZE ".y * 0.5f));\n");
 
-    out.Write("\tss_pixel_x = round(ss_pixel_x);\n");
-    out.Write("\tss_pixel_y = round(ss_pixel_y);\n");
+      out.Write("\tss_pixel_x = round(ss_pixel_x);\n");
+      out.Write("\tss_pixel_y = round(ss_pixel_y);\n");
 
-    out.Write("\to.pos.x = ((ss_pixel_x / (" I_VIEWPORT_SIZE ".x * 0.5f)) - 1.0f);\n");
-    out.Write("\to.pos.y = ((ss_pixel_y / (" I_VIEWPORT_SIZE ".y * 0.5f)) - 1.0f);\n");
-    out.Write("}\n");
+      out.Write("\to.pos.x = ((ss_pixel_x / (" I_VIEWPORT_SIZE ".x * 0.5f)) - 1.0f);\n");
+      out.Write("\to.pos.y = ((ss_pixel_y / (" I_VIEWPORT_SIZE ".y * 0.5f)) - 1.0f);\n");
+      out.Write("}\n");
+    }
   }
 
   if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
@@ -513,17 +534,24 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       out.Write("colors_1 = o.colors_1;\n");
     }
 
-    if (host_config.backend_depth_clamp)
+    if (views > 1)
     {
-      out.Write("gl_ClipDistance[0] = clipDist0;\n");
-      out.Write("gl_ClipDistance[1] = clipDist1;\n");
-    }
-
-    // Vulkan NDC space has Y pointing down (right-handed NDC space).
-    if (api_type == APIType::Vulkan)
-      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
-    else
       out.Write("gl_Position = o.pos;\n");
+    }
+    else
+    {
+      if (host_config.backend_depth_clamp)
+      {
+        out.Write("gl_ClipDistance[0] = clipDist0;\n");
+        out.Write("gl_ClipDistance[1] = clipDist1;\n");
+      }
+
+      // Vulkan NDC space has Y pointing down (right-handed NDC space).
+      if (api_type == APIType::Vulkan)
+        out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+      else
+        out.Write("gl_Position = o.pos;\n");
+    }
   }
   else  // D3D
   {

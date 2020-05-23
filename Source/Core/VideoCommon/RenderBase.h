@@ -270,7 +270,8 @@ protected:
     CONFIG_CHANGE_BIT_ANISOTROPY = (1 << 4),
     CONFIG_CHANGE_BIT_FORCE_TEXTURE_FILTERING = (1 << 5),
     CONFIG_CHANGE_BIT_VSYNC = (1 << 6),
-    CONFIG_CHANGE_BIT_BBOX = (1 << 7)
+    CONFIG_CHANGE_BIT_BBOX = (1 << 7),
+    CONFIG_CHANGE_BIT_FREELOOK = (1 << 8)
   };
 
   std::tuple<int, int> CalculateTargetScale(int x, int y) const;

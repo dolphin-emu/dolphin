@@ -165,6 +165,7 @@ union ShaderHostConfig
     u32 wireframe : 1;
     u32 per_pixel_lighting : 1;
     u32 vertex_rounding : 1;
+    u32 views : 2;
     u32 fast_depth_calc : 1;
     u32 bounding_box : 1;
     u32 backend_dual_source_blend : 1;
@@ -182,7 +183,7 @@ union ShaderHostConfig
     u32 backend_shader_framebuffer_fetch : 1;
     u32 backend_logic_op : 1;
     u32 backend_palette_conversion : 1;
-    u32 pad : 9;
+    u32 pad : 7;
   };
 
   static ShaderHostConfig GetCurrent();
@@ -238,6 +239,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 #define I_STEREOPARAMS "cstereo"
 #define I_LINEPTPARAMS "clinept"
 #define I_TEXOFFSET "ctexoffset"
+#define I_VIEWS "cviews"
 
 static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"

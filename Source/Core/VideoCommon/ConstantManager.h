@@ -7,6 +7,7 @@
 #include <array>
 
 #include "Common/CommonTypes.h"
+#include "Common/Matrix.h"
 
 // all constant buffer attributes must be 16 bytes aligned, so this are the only allowed components:
 using float4 = std::array<float, 4>;
@@ -89,4 +90,6 @@ struct GeometryShaderConstants
   float4 stereoparams;
   float4 lineptparams;
   int4 texoffset;
+  std::array<Common::Matrix44, 2> views;
+  float4 pixelcentercorrection;
 };

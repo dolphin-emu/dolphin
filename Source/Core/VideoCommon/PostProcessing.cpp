@@ -59,6 +59,10 @@ void PostProcessingConfiguration::LoadShader(const std::string& shader)
   {
     sub_dir = PASSIVE_DIR DIR_SEP;
   }
+  else if (g_Config.bFreeLook && g_Config.iFreelookScreens > 1)
+  {
+    sub_dir = SPLIT_SCREEN_DIR DIR_SEP;
+  }
 
   // loading shader code
   std::string code;
@@ -383,6 +387,11 @@ std::vector<std::string> PostProcessing::GetPassiveShaderList()
   return GetShaders(PASSIVE_DIR DIR_SEP);
 }
 
+std::vector<std::string> PostProcessing::GetSplitScreenShaderList()
+{
+  return GetShaders(SPLIT_SCREEN_DIR DIR_SEP);
+}
+
 bool PostProcessing::Initialize(AbstractTextureFormat format)
 {
   m_framebuffer_format = format;
@@ -447,6 +456,7 @@ std::string PostProcessing::GetUniformBufferHeader() const
   ss << "  float4 window_resolution;\n";
   ss << "  float4 src_rect;\n";
   ss << "  int src_layer;\n";
+  ss << "  int screen_count;\n";
   ss << "  uint time;\n";
   for (u32 i = 0; i < 2; i++)
     ss << "  uint ubo_align_" << unused_counter++ << "_;\n";
@@ -538,6 +548,8 @@ float4 Sample() { return texture(samp0, v_tex0); }
 float4 SampleLocation(float2 location) { return texture(samp0, float3(location, float(v_tex0.z))); }
 float4 SampleLayer(int layer) { return texture(samp0, float3(v_tex0.xy, float(layer))); }
 #define SampleOffset(offset) textureOffset(samp0, v_tex0, offset)
+
+int ScreenCount() { return screen_count; }
 
 float2 GetWindowResolution()
 {
@@ -653,8 +665,9 @@ struct BuiltinUniforms
   float window_resolution[4];
   float src_rect[4];
   s32 src_layer;
+  s32 screen_count;
   u32 time;
-  u32 padding[2];
+  u32 padding[1];
 };
 
 size_t PostProcessing::CalculateUniformsSize() const
@@ -678,6 +691,7 @@ void PostProcessing::FillUniformBuffer(const MathUtil::Rectangle<int>& src,
        static_cast<float>(src.GetWidth()) * rcp_src_width,
        static_cast<float>(src.GetHeight()) * rcp_src_height},
       static_cast<s32>(src_layer),
+      static_cast<s32>(g_ActiveConfig.iFreelookScreens),
       static_cast<u32>(m_timer.GetTimeElapsed()),
   };
 

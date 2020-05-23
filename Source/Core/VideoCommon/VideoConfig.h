@@ -115,6 +115,8 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   FreelookControlType iFreelookControlType;
+  int iFreelookScreens;
+  bool bFreeLookPreferHorizontal;
   bool bBorderlessFullscreen;
   bool bEnableGPUTextureDecoding;
   int iBitrateKbps;

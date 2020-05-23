@@ -403,6 +403,8 @@ void Renderer::CheckForConfigChanges()
   const bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   const bool old_vsync = g_ActiveConfig.bVSyncActive;
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
+  const bool old_freelook = g_ActiveConfig.bFreeLook;
+  const bool old_freelook_prefer_horizontal = g_ActiveConfig.bFreeLookPreferHorizontal;
 
   UpdateActiveConfig();
 
@@ -440,6 +442,10 @@ void Renderer::CheckForConfigChanges()
     changed_bits |= CONFIG_CHANGE_BIT_VSYNC;
   if (old_bbox != g_ActiveConfig.bBBoxEnable)
     changed_bits |= CONFIG_CHANGE_BIT_BBOX;
+  if (old_freelook != g_ActiveConfig.bFreeLook)
+    changed_bits |= CONFIG_CHANGE_BIT_FREELOOK;
+  if (old_freelook_prefer_horizontal != g_ActiveConfig.bFreeLookPreferHorizontal)
+    changed_bits |= CONFIG_CHANGE_BIT_FREELOOK;
   if (CalculateTargetSize())
     changed_bits |= CONFIG_CHANGE_BIT_TARGET_SIZE;
 
@@ -465,7 +471,8 @@ void Renderer::CheckForConfigChanges()
   }
 
   // Reload shaders if host config has changed.
-  if (changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES))
+  if ((changed_bits & (CONFIG_CHANGE_BIT_HOST_CONFIG | CONFIG_CHANGE_BIT_MULTISAMPLES |
+                       CONFIG_CHANGE_BIT_FREELOOK)))
   {
     OSD::AddMessage("Video config changed, reloading shaders.", OSD::Duration::NORMAL);
     g_vertex_manager->InvalidatePipelineObject();
@@ -483,9 +490,18 @@ void Renderer::CheckForConfigChanges()
 
   // Stereo mode change requires recompiling our post processing pipeline and imgui pipelines for
   // rendering the UI.
-  if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
+  if (changed_bits & (CONFIG_CHANGE_BIT_STEREO_MODE | CONFIG_CHANGE_BIT_FREELOOK))
   {
-    RecompileImGuiPipeline();
+    if (changed_bits & CONFIG_CHANGE_BIT_STEREO_MODE)
+    {
+      RecompileImGuiPipeline();
+    }
+
+    if (changed_bits & CONFIG_CHANGE_BIT_FREELOOK)
+    {
+      VertexShaderManager::SetProjectionChanged();
+    }
+
     m_post_processor->RecompilePipeline();
   }
 }
@@ -1345,8 +1361,11 @@ void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
   {
     const auto [left_rc, right_rc] = ConvertStereoRectangle(target_rc);
 
-    m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, 0);
-    m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, 1);
+    for (int i = 0; i < g_ActiveConfig.iFreelookScreens * 2; i += 2)
+    {
+      m_post_processor->BlitFromTexture(left_rc, source_rc, source_texture, i);
+      m_post_processor->BlitFromTexture(right_rc, source_rc, source_texture, i + 1);
+    }
   }
   else
   {

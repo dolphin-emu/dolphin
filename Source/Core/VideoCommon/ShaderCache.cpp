@@ -564,7 +564,8 @@ bool ShaderCache::NeedsGeometryShader(const GeometryShaderUid& uid) const
 
 bool ShaderCache::UseGeometryShaderForEFBCopies() const
 {
-  return m_host_config.backend_geometry_shaders && m_host_config.stereo;
+  return m_host_config.backend_geometry_shaders &&
+         (m_host_config.stereo || (g_ActiveConfig.bFreeLook && m_host_config.views > 1));
 }
 
 AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(

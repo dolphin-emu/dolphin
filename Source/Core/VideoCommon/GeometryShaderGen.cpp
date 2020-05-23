@@ -19,9 +19,11 @@ constexpr std::array<const char*, 4> primitives_d3d = {{"point", "line", "triang
 
 bool geometry_shader_uid_data::IsPassthrough() const
 {
+  const bool is_multiview = g_ActiveConfig.bFreeLook && g_ActiveConfig.iFreelookScreens > 1;
   const bool stereo = g_ActiveConfig.stereo_mode != StereoMode::Off;
   const bool wireframe = g_ActiveConfig.bWireFrame;
-  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe;
+  return primitive_type >= static_cast<u32>(PrimitiveType::Triangles) && !stereo && !wireframe &&
+         !is_multiview;
 }
 
 GeometryShaderUid GetGeometryShaderUid(PrimitiveType primitive_type)
@@ -51,6 +53,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
+  const u32 views = host_config.views;
   const PrimitiveType primitive_type = static_cast<PrimitiveType>(uid_data->primitive_type);
   const unsigned primitive_type_index = static_cast<unsigned>(uid_data->primitive_type);
   const unsigned vertex_in = std::min(static_cast<unsigned>(primitive_type_index) + 1, 3u);
@@ -65,7 +68,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     if (host_config.backend_gs_instancing)
     {
       out.Write("layout(%s, invocations = %d) in;\n", primitives_ogl[primitive_type_index],
-                stereo ? 2 : 1);
+                stereo ? 2 * views : views);
       out.Write("layout(%s_strip, max_vertices = %d) out;\n", wireframe ? "line" : "triangle",
                 vertex_out);
     }
@@ -73,7 +76,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     {
       out.Write("layout(%s) in;\n", primitives_ogl[primitive_type_index]);
       out.Write("layout(%s_strip, max_vertices = %d) out;\n", wireframe ? "line" : "triangle",
-                stereo ? vertex_out * 2 : vertex_out);
+                stereo ? vertex_out * 2 * views : vertex_out * views);
     }
   }
 
@@ -88,6 +91,8 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
   out.Write("\tfloat4 " I_STEREOPARAMS ";\n"
             "\tfloat4 " I_LINEPTPARAMS ";\n"
             "\tint4 " I_TEXOFFSET ";\n"
+            "\tfloat4 " I_VIEWS "[2][4];\n"
+            "\tfloat4 " I_PIXELCENTERCORRECTION ";\n"
             "};\n");
 
   out.Write("struct VS_OUTPUT {\n");
@@ -108,7 +113,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     GenerateVSOutputMembers(out, ApiType, uid_data->numTexGens, host_config,
                             GetInterpolationQualifier(msaa, ssaa, true, false));
 
-    if (stereo)
+    if (stereo || views > 1)
       out.Write("\tflat int layer;\n");
 
     out.Write("} ps;\n");
@@ -120,21 +125,21 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     out.Write("struct VertexData {\n");
     out.Write("\tVS_OUTPUT o;\n");
 
-    if (stereo)
+    if (stereo || views > 1)
       out.Write("\tuint layer : SV_RenderTargetArrayIndex;\n");
 
     out.Write("};\n");
 
     if (host_config.backend_gs_instancing)
     {
-      out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, stereo ? 2 : 1);
+      out.Write("[maxvertexcount(%d)]\n[instance(%d)]\n", vertex_out, stereo ? 2 * views : views);
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output, in uint "
                 "InstanceID : SV_GSInstanceID)\n{\n",
                 primitives_d3d[primitive_type_index], vertex_in, wireframe ? "Line" : "Triangle");
     }
     else
     {
-      out.Write("[maxvertexcount(%d)]\n", stereo ? vertex_out * 2 : vertex_out);
+      out.Write("[maxvertexcount(%d)]\n", stereo ? vertex_out * 2 * views : vertex_out * views);
       out.Write("void main(%s VS_OUTPUT o[%d], inout %sStream<VertexData> output)\n{\n",
                 primitives_d3d[primitive_type_index], vertex_in, wireframe ? "Line" : "Triangle");
     }
@@ -191,14 +196,15 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
               ".x, -" I_LINEPTPARAMS ".w / " I_LINEPTPARAMS ".y) * center.pos.w;\n");
   }
 
-  if (stereo)
+  if (stereo || views > 1)
   {
     // If the GPU supports invocation we don't need a for loop and can simply use the
     // invocation identifier to determine which layer we're rendering.
     if (host_config.backend_gs_instancing)
-      out.Write("\tint eye = InstanceID;\n");
+      out.Write("\tint layer_view = InstanceID;\n");
     else
-      out.Write("\tfor (int eye = 0; eye < 2; ++eye) {\n");
+      out.Write("\tfor (int layer_view = 0; layer_view < %d; ++layer_view) {\n",
+                stereo ? 2 * views : views);
   }
 
   if (wireframe)
@@ -225,22 +231,110 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
     out.Write("\tVS_OUTPUT f = o[i];\n");
   }
 
-  if (stereo)
+  if (stereo || views > 1)
   {
     // Select the output layer
-    out.Write("\tps.layer = eye;\n");
+    out.Write("\tps.layer = layer_view;\n");
     if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
-      out.Write("\tgl_Layer = eye;\n");
+      out.Write("\tgl_Layer = layer_view;\n");
 
-    // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
-    // to the depth of the vertex. We retrieve the depth value from the w-component of the projected
-    // vertex which contains the negated z-component of the original vertex.
-    // For negative parallax (out-of-screen effects) we subtract a convergence value from
-    // the depth value. This results in objects at a distance smaller than the convergence
-    // distance to seemingly appear in front of the screen.
-    // This formula is based on page 13 of the "Nvidia 3D Vision Automatic, Best Practices Guide"
-    out.Write("\tfloat hoffset = (eye == 0) ? " I_STEREOPARAMS ".x : " I_STEREOPARAMS ".y;\n");
-    out.Write("\tf.pos.x += hoffset * (f.pos.w - " I_STEREOPARAMS ".z);\n");
+    if (views > 1)
+    {
+      if (stereo)
+      {
+        out.Write("\tint view_index = layer_view %% 2;\n");
+      }
+      else
+      {
+        out.Write("\tint view_index = layer_view;\n");
+      }
+      out.Write("\tf.pos = float4(dot(" I_VIEWS "[view_index][0], f.pos), dot(" I_VIEWS
+                "[view_index][1], f.pos), dot(" I_VIEWS "[view_index][2], f.pos), dot(" I_VIEWS
+                "[view_index][3], f.pos));\n");
+
+      // clipPos/w needs to be done in pixel shader, not here
+      if (!host_config.fast_depth_calc)
+        out.Write("f.clipPos = f.pos;\n");
+
+      // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
+      // our own depth clipping and calculate the depth range before the perspective divide if
+      // necessary.
+      if (host_config.backend_depth_clamp)
+      {
+        // Since we're adjusting z for the depth range before the perspective divide, we have to do
+        // our own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0
+        // range. We adjust our depth value for clipping purposes to match the perspective
+        // projection in the software backend, which is a hack to fix Sonic Adventure and Unleashed
+        // games.
+        out.Write("float clipDepth = f.pos.z * (1.0 - 1e-7);\n");
+        out.Write("float clipDist0 = clipDepth + f.pos.w;\n");  // Near: z < -w
+        out.Write("float clipDist1 = -clipDepth;\n");           // Far: z > 0
+        if (host_config.backend_geometry_shaders)
+        {
+          out.Write("f.clipDist0 = clipDist0;\n");
+          out.Write("f.clipDist1 = clipDist1;\n");
+        }
+      }
+
+      // Write the true depth value. If the game uses depth textures, then the pixel shader will
+      // override it with the correct values if not then early z culling will improve speed.
+      // There are two different ways to do this, when the depth range is oversized, we process
+      // the depth range in the vertex shader, if not we let the host driver handle it.
+      //
+      // Adjust z for the depth range. We're using an equation which incorperates a depth
+      // inversion, so we can map the console -1..0 range to the 0..1 range used in the depth
+      // buffer. We have to handle the depth range in the vertex shader instead of after the
+      // perspective divide, because some games will use a depth range larger than what is allowed
+      // by the graphics API. These large depth ranges will still be clipped to the 0..1 range, so
+      // these games effectively add a depth bias to the values written to the depth buffer.
+      out.Write("f.pos.z = f.pos.w * " I_PIXELCENTERCORRECTION ".w - "
+                "f.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+
+      if (!host_config.backend_clip_control)
+      {
+        // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
+        // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy
+        // floating-point operation that can introduce a round-trip error.
+        out.Write("f.pos.z = f.pos.z * 2.0 - f.pos.w;\n");
+      }
+
+      // Correct for negative viewports by mirroring all vertices. We need to negate the height
+      // here, since the viewport height is already negated by the render backend.
+      out.Write("f.pos.xy *= sign(" I_PIXELCENTERCORRECTION ".xy * float2(1.0, -1.0));\n");
+
+      // The console GPU places the pixel center at 7/12 in screen space unless
+      // antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
+      // in some primitives being placed one pixel too far to the bottom-right,
+      // which in turn can be critical if it happens for clear quads.
+      // Hence, we compensate for this pixel center difference so that primitives
+      // get rasterized correctly.
+      out.Write("f.pos.xy = f.pos.xy - f.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
+
+      if ((ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) &&
+          host_config.backend_depth_clamp)
+      {
+        out.Write("gl_ClipDistance[0] = clipDist0;\n");
+        out.Write("gl_ClipDistance[1] = clipDist1;\n");
+      }
+
+      // Vulkan NDC space has Y pointing down (right-handed NDC space).
+      /*if (ApiType == APIType::Vulkan)
+        out.Write("gl_Position = float4(f.pos.x, -f.pos.y, f.pos.z, f.pos.w);\n");*/
+    }
+
+    if (stereo)
+    {
+      out.Write("\tint eye = (layer_view < %d) ? 0 : 1;\n", views);
+      // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
+      // to the depth of the vertex. We retrieve the depth value from the w-component of the
+      // projected vertex which contains the negated z-component of the original vertex. For
+      // negative parallax (out-of-screen effects) we subtract a convergence value from the depth
+      // value. This results in objects at a distance smaller than the convergence distance to
+      // seemingly appear in front of the screen. This formula is based on page 13 of the "Nvidia 3D
+      // Vision Automatic, Best Practices Guide"
+      out.Write("\tfloat hoffset = (eye == 0) ? " I_STEREOPARAMS ".x : " I_STEREOPARAMS ".y;\n");
+      out.Write("\tf.pos.x += hoffset * (f.pos.w - " I_STEREOPARAMS ".z);\n");
+    }
   }
 
   if (primitive_type == PrimitiveType::Lines)
@@ -304,7 +398,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& h
 
   EndPrimitive(out, host_config, uid_data, ApiType, wireframe);
 
-  if (stereo && !host_config.backend_gs_instancing)
+  if ((stereo || views > 1) && !host_config.backend_gs_instancing)
     out.Write("\t}\n");
 
   out.Write("}\n");
