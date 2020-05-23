@@ -19,6 +19,7 @@
 #include "Common/Config/Config.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -71,6 +72,7 @@ void WiiPane::ConnectLayout()
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
+  connect(m_allow_sd_writes_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_connect_keyboard_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(&Settings::Instance(), &Settings::SDCardInsertionChanged, m_sd_card_checkbox,
           &QCheckBox::setChecked);
@@ -105,6 +107,7 @@ void WiiPane::CreateMisc()
   m_pal60_mode_checkbox = new QCheckBox(tr("Use PAL60 Mode (EuRGB60)"));
   m_screensaver_checkbox = new QCheckBox(tr("Enable Screen Saver"));
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
+  m_allow_sd_writes_checkbox = new QCheckBox(tr("Allow Writes to SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new QComboBox();
@@ -133,11 +136,12 @@ void WiiPane::CreateMisc()
   misc_settings_group_layout->addWidget(m_pal60_mode_checkbox, 0, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_sd_card_checkbox, 0, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_screensaver_checkbox, 1, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 1, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 2, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 2, 1, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice_label, 3, 0, 1, 1);
-  misc_settings_group_layout->addWidget(m_system_language_choice, 3, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_allow_sd_writes_checkbox, 1, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_connect_keyboard_checkbox, 2, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice_label, 3, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 3, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice_label, 4, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_system_language_choice, 4, 1, 1, 1);
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
@@ -210,6 +214,7 @@ void WiiPane::LoadConfig()
   m_screensaver_checkbox->setChecked(Config::Get(Config::SYSCONF_SCREENSAVER));
   m_pal60_mode_checkbox->setChecked(Config::Get(Config::SYSCONF_PAL60));
   m_sd_card_checkbox->setChecked(Settings::Instance().IsSDCardInserted());
+  m_allow_sd_writes_checkbox->setChecked(Config::Get(Config::MAIN_ALLOW_SD_WRITES));
   m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
@@ -230,6 +235,7 @@ void WiiPane::OnSaveConfig()
   Config::SetBase(Config::SYSCONF_SCREENSAVER, m_screensaver_checkbox->isChecked());
   Config::SetBase(Config::SYSCONF_PAL60, m_pal60_mode_checkbox->isChecked());
   Settings::Instance().SetSDCardInserted(m_sd_card_checkbox->isChecked());
+  Config::SetBase(Config::MAIN_ALLOW_SD_WRITES, m_allow_sd_writes_checkbox->isChecked());
   Settings::Instance().SetUSBKeyboardConnected(m_connect_keyboard_checkbox->isChecked());
 
   Config::SetBase<u32>(Config::SYSCONF_SENSOR_BAR_POSITION,
