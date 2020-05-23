@@ -187,6 +187,7 @@ struct SConfig
 
   // files
   std::string m_strBootROM;
+  std::string m_strRtc;
   std::string m_strSRAM;
 
   std::string m_perfDir;

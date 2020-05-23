@@ -933,6 +933,7 @@ bool SConfig::SetPathsAndGameMetadata(const BootParameters& boot)
   // Set up paths
   const std::string region_dir = GetDirectoryForRegion(ToGameCubeRegion(m_region));
   m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+  m_strRtc = File::GetUserPath(F_GCRTC_IDX);
   m_strBootROM = GetBootROMPath(region_dir);
 
   return true;

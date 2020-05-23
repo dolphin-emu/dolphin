@@ -20,6 +20,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 
+Rtc g_rtc;
 Sram g_SRAM;
 bool g_SRAM_netplay_initialized = false;
 

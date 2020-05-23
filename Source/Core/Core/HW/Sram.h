@@ -42,6 +42,13 @@ using CardFlashId = std::array<u8, 12>;
 
 #pragma pack(push, 1)
 
+struct Rtc
+{
+  Common::BigEndianValue<u32> rtc;
+  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
+  const u8& operator[](size_t offset) const { return reinterpret_cast<const u8*>(&rtc)[offset]; }
+};
+
 // Note: UnlockSram does:
 // if ((flags & 3) == 3) flags &= ~3;
 // It also checks and can reset gbs_mode
@@ -116,15 +123,14 @@ struct SramSettingsEx
 
 struct Sram
 {
-  Common::BigEndianValue<u32> rtc;
   SramSettings settings;
   SramSettingsEx settings_ex;
   // Allow access to this entire structure as a raw blob
   // Typical union-with-byte-array method can't be used here on GCC
-  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
+  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&settings)[offset]; }
 };
 // TODO determine real full sram size for gc/wii
-static_assert(sizeof(Sram) == 0x44);
+static_assert(sizeof(Sram) == 0x40);
 
 #pragma pack(pop)
 
@@ -132,5 +138,6 @@ void InitSRAM();
 void SetCardFlashID(const u8* buffer, u8 card_index);
 void FixSRAMChecksums();
 
+extern Rtc g_rtc;
 extern Sram g_SRAM;
 extern bool g_SRAM_netplay_initialized;
