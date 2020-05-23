@@ -55,7 +55,7 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
-bool TryParse(const std::string& str, T* output)
+bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -67,9 +67,9 @@ bool TryParse(const std::string& str, T* output)
   ReadType value;
 
   if constexpr (std::is_unsigned_v<T>)
-    value = std::strtoull(str.c_str(), &end_ptr, 0);
+    value = std::strtoull(str.c_str(), &end_ptr, base);
   else
-    value = std::strtoll(str.c_str(), &end_ptr, 0);
+    value = std::strtoll(str.c_str(), &end_ptr, base);
 
   // Fail if the end of the string wasn't reached.
   if (end_ptr == nullptr || *end_ptr != '\0')

@@ -236,8 +236,8 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
         {
           AREntry op;
-          bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
-          bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
+          bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
+          bool success_val = TryParse(pieces[1], &op.value, 16);
 
           if (success_addr && success_val)
           {
