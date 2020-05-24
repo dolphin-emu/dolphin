@@ -141,9 +141,29 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     break;
 
   case IOCTL_NWC24_REQUEST_SHUTDOWN:
-    // if ya set the IOS version to a very high value this happens ...
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
+  {
+    if (request.buffer_in == 0 || request.buffer_in % 4 != 0 || request.buffer_in_size < 8 ||
+        request.buffer_out == 0 || request.buffer_out % 4 != 0 || request.buffer_out_size < 4)
+    {
+      return_value = IPC_EINVAL;
+      ERROR_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN = IPC_EINVAL");
+      break;
+    }
+
+    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN");
+    [[maybe_unused]] const u32 event = Memory::Read_U32(request.buffer_in);
+    // TODO: Advertise shutdown event
+    // TODO: Shutdown USB keyboard LEDs if event == 3
+    // TODO: IOCTLV_NCD_SETCONFIG
+    // TODO: DHCP related features
+    // SOGetInterfaceOpt(0xfffe,0x4003);  // IP settings
+    // SOGetInterfaceOpt(0xfffe,0xc001);  // DHCP lease time remaining?
+    // SOGetInterfaceOpt(0xfffe,0x1003);  // Error
+    // Call /dev/net/ip/top 0x1b (SOCleanup), it closes all sockets
+    WiiSockMan::GetInstance().Clean();
+    return_value = IPC_SUCCESS;
     break;
+  }
 
   default:
     request.Log(GetDeviceName(), Common::Log::IOS_WC24);

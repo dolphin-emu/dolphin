@@ -274,8 +274,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 
   switch (request.request)
   {
-  case IOCTL_SO_STARTUP:
-    return HandleStartUpRequest(request);
+  case IOCTL_SO_INITINTERFACE:
+    return HandleInitInterfaceRequest(request);
   case IOCTL_SO_SOCKET:
     return HandleSocketRequest(request);
   case IOCTL_SO_ICMPSOCKET:
@@ -349,7 +349,7 @@ void NetIPTop::Update()
   WiiSockMan::GetInstance().Update();
 }
 
-IPCCommandResult NetIPTop::HandleStartUpRequest(const IOCtlRequest& request)
+IPCCommandResult NetIPTop::HandleInitInterfaceRequest(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   return GetDefaultReply(IPC_SUCCESS);
