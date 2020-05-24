@@ -765,6 +765,18 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
       result.bad = true;
   }
 
+  // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
+  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FROM_CONFIGURED_ROOT);
+  const File::FileInfo rfl_db(rfl_db_path);
+  if (rfl_db.Exists() && rfl_db.GetSize() == 0)
+  {
+    ERROR_LOG(CORE, "CheckNAND: RFL_DB.dat exists but is empty");
+    if (repair)
+      File::Delete(rfl_db_path);
+    else
+      result.bad = true;
+  }
+
   for (const u64 title_id : es->GetInstalledTitles())
   {
     const std::string title_dir = Common::GetTitlePath(title_id, Common::FROM_CONFIGURED_ROOT);
