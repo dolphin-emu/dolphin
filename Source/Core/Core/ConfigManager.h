@@ -180,7 +180,6 @@ struct SConfig
 
   DiscIO::Region m_region;
 
-  std::string m_strVideoBackend;
   std::string m_strGPUDeterminismMode;
 
   // set based on the string version

@@ -96,7 +96,6 @@ private:
   float m_OCFactor;
   bool m_OCEnable;
   bool m_bt_passthrough_enabled;
-  std::string strBackend;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
   std::array<WiimoteSource, MAX_BBMOTES> iWiimoteSource;
@@ -127,7 +126,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   cpu_core = config.cpu_core;
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
-  strBackend = config.m_strVideoBackend;
   sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_OCFactor = config.m_OCFactor;
@@ -202,13 +200,11 @@ void ConfigCache::RestoreConfig(SConfig* config)
       config->m_EXIDevice[i] = m_EXIDevice[i];
   }
 
-  config->m_strVideoBackend = strBackend;
   config->sBackend = sBackend;
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
   config->m_OCFactor = m_OCFactor;
   config->m_OCEnable = m_OCEnable;
   config->m_bt_passthrough_enabled = m_bt_passthrough_enabled;
-  VideoBackendBase::ActivateBackend(config->m_strVideoBackend);
 }
 
 static ConfigCache config_cache;
@@ -269,7 +265,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
     core_section->Get("DSPHLE", &StartUp.bDSPHLE, StartUp.bDSPHLE);
-    core_section->Get("GFXBackend", &StartUp.m_strVideoBackend, StartUp.m_strVideoBackend);
     core_section->Get("CPUCore", &StartUp.cpu_core, StartUp.cpu_core);
     core_section->Get("HLE_BS2", &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
     core_section->Get("GameCubeLanguage", &StartUp.SelectedLanguage, StartUp.SelectedLanguage);
@@ -280,7 +275,6 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
       config_cache.bSetVolume = true;
     dsp_section->Get("EnableJIT", &StartUp.m_DSPEnableJIT, StartUp.m_DSPEnableJIT);
     dsp_section->Get("Backend", &StartUp.sBackend, StartUp.sBackend);
-    VideoBackendBase::ActivateBackend(StartUp.m_strVideoBackend);
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);
     core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);

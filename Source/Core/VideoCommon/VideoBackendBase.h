@@ -64,8 +64,9 @@ public:
   static void ActivateBackend(const std::string& name);
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
-  // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfo();
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfoFromUI();
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);

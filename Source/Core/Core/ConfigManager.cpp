@@ -241,7 +241,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("EmulationSpeed", m_EmulationSpeed);
   core->Set("Overclock", m_OCFactor);
   core->Set("OverclockEnable", m_OCEnable);
-  core->Set("GFXBackend", m_strVideoBackend);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
   core->Set("EnableCustomRTC", bEnableCustomRTC);
@@ -517,7 +516,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("GFXBackend", &m_strVideoBackend, "");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
