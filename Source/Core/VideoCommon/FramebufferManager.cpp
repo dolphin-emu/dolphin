@@ -513,7 +513,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
 
   // Since we can't partially copy from a depth buffer directly to the staging texture in D3D, we
   // use an intermediate buffer to avoid copying the whole texture.
-  if ((IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
+  if (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
+      (IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                          GetEFBDepthCopyFormat()) ||
       g_renderer->GetEFBScale() != 1)
@@ -577,7 +578,8 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
   // buffer directly to a staging texture (must be the whole resource).
   const bool force_intermediate_copy =
       depth &&
-      ((!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
+      (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
+       (!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
        !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                           GetEFBDepthCopyFormat()));
 

@@ -521,6 +521,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // GLES does not support logic op.
     g_Config.backend_info.bSupportsLogicOp = false;
 
+    // glReadPixels() can't be used with non-color formats. But, if we support
+    // ARB_get_texture_sub_image (unlikely, except maybe on NVIDIA), we can use that instead.
+    g_Config.backend_info.bSupportsDepthReadback = g_ogl_config.bSupportsTextureSubImage;
+
     if (GLExtensions::Supports("GL_EXT_shader_framebuffer_fetch"))
     {
       g_ogl_config.SupportedFramebufferFetch = EsFbFetchType::FbFetchExt;

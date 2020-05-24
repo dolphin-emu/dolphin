@@ -92,6 +92,7 @@ void VideoBackend::FillBackendInfo()
   g_Config.backend_info.bSupportsGPUTextureDecoding = true;
   g_Config.backend_info.bSupportsCopyToVram = true;
   g_Config.backend_info.bSupportsLargePoints = false;
+  g_Config.backend_info.bSupportsDepthReadback = true;
   g_Config.backend_info.bSupportsPartialDepthCopies = false;
   g_Config.backend_info.bSupportsBitfield = false;
   g_Config.backend_info.bSupportsDynamicSamplerIndexing = false;
