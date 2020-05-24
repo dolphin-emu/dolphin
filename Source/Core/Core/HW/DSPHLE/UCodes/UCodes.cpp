@@ -186,8 +186,8 @@ void UCodeInterface::PrepareBootUCode(u32 mail)
 
     if (SConfig::GetInstance().m_DumpUCode)
     {
-      DSP::DumpDSPCode(static_cast<u8*>(Memory::GetPointer(m_next_ucode.iram_mram_addr)),
-                       m_next_ucode.iram_size, ector_crc);
+      DSP::DumpDSPCode(Memory::GetPointer(m_next_ucode.iram_mram_addr), m_next_ucode.iram_size,
+                       ector_crc);
     }
 
     DEBUG_LOG(DSPHLE, "PrepareBootUCode 0x%08x", ector_crc);
