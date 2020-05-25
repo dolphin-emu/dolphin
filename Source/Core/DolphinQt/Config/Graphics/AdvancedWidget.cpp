@@ -34,8 +34,6 @@ AdvancedWidget::AdvancedWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
-
-  OnBackendChanged();
   OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
@@ -89,10 +87,16 @@ void AdvancedWidget::CreateWidgets()
   m_enable_freelook = new GraphicsBool(tr("Enable"), Config::GFX_FREE_LOOK);
   m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
                                                Config::GFX_FREE_LOOK_CONTROL_TYPE);
+  m_freelook_screens = new GraphicsInteger(1, 2, Config::GFX_FREE_LOOK_SCREEN_COUNT, 1);
+  m_freelook_prefer_horizontal =
+      new GraphicsBool(tr("Use Horizontal Layout"), Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL);
 
   freelook_layout->addWidget(m_enable_freelook, 0, 0);
   freelook_layout->addWidget(new QLabel(tr("Control Type:")), 1, 0);
   freelook_layout->addWidget(m_freelook_control_type, 1, 1);
+  freelook_layout->addWidget(new QLabel(tr("Freelook Screens:")), 2, 0);
+  freelook_layout->addWidget(m_freelook_screens, 2, 1);
+  freelook_layout->addWidget(m_freelook_prefer_horizontal, 3, 0);
 
   // Frame dumping
   auto* dump_box = new QGroupBox(tr("Frame Dumping"));
@@ -158,6 +162,8 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_freelook, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_freelook_screens, qOverload<int>(&QSpinBox::valueChanged), this,
+          &AdvancedWidget::SaveSettings);
 }
 
 void AdvancedWidget::LoadSettings()
@@ -168,6 +174,11 @@ void AdvancedWidget::LoadSettings()
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
 
   m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
+
+  const bool supports_multiple_screens =
+      g_Config.backend_info.bSupportsGeometryShaders && Config::Get(Config::GFX_FREE_LOOK);
+  m_freelook_screens->setEnabled(supports_multiple_screens);
+  m_freelook_prefer_horizontal->setEnabled(Config::Get(Config::GFX_FREE_LOOK_SCREEN_COUNT) > 1);
 }
 
 void AdvancedWidget::SaveSettings()
@@ -178,10 +189,16 @@ void AdvancedWidget::SaveSettings()
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
 
   m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
+
+  const bool supports_multiple_screens =
+      g_Config.backend_info.bSupportsGeometryShaders && Config::Get(Config::GFX_FREE_LOOK);
+  m_freelook_screens->setEnabled(supports_multiple_screens);
+  m_freelook_prefer_horizontal->setEnabled(Config::Get(Config::GFX_FREE_LOOK_SCREEN_COUNT) > 1);
 }
 
 void AdvancedWidget::OnBackendChanged()
 {
+  LoadSettings();
 }
 
 void AdvancedWidget::OnEmulationStateChanged(bool running)

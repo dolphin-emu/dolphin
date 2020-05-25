@@ -39,6 +39,24 @@ EnhancementsWidget::EnhancementsWidget(GraphicsWindow* parent)
   AddDescriptions();
   connect(parent, &GraphicsWindow::BackendChanged,
           [this](const QString& backend) { LoadSettings(); });
+  connect(&Settings::Instance(), &Settings::ConfigChanged, [this]() {
+    if (m_freelook != static_cast<int>(Config::Get(Config::GFX_FREE_LOOK)) ||
+        m_freelook_screens != Config::Get(Config::GFX_FREE_LOOK_SCREEN_COUNT) ||
+        m_freelook_screen_prefer_horizontal !=
+            static_cast<int>(Config::Get(Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL)))
+    {
+      m_freelook = static_cast<int>(Config::Get(Config::GFX_FREE_LOOK));
+      m_freelook_screens = Config::Get(Config::GFX_FREE_LOOK_SCREEN_COUNT);
+      m_freelook_screen_prefer_horizontal =
+          static_cast<int>(Config::Get(Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL));
+
+      m_block_save = true;
+      LoadPPShaders();
+      m_block_save = false;
+
+      SaveSettings();
+    }
+  });
 }
 
 void EnhancementsWidget::CreateWidgets()
@@ -170,10 +188,15 @@ void EnhancementsWidget::LoadPPShaders()
   {
     shaders = VideoCommon::PostProcessing::GetPassiveShaderList();
   }
+  else if (g_Config.bFreeLook && g_Config.iFreelookScreens > 1)
+  {
+    shaders = VideoCommon::PostProcessing::GetSplitScreenShaderList();
+  }
 
   m_pp_effect->clear();
 
-  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive)
+  if (g_Config.stereo_mode != StereoMode::Anaglyph && g_Config.stereo_mode != StereoMode::Passive &&
+      (!g_Config.bFreeLook || g_Config.iFreelookScreens < 2))
     m_pp_effect->addItem(tr("(off)"));
 
   auto selected_shader = Config::Get(Config::GFX_ENHANCE_POST_SHADER);
@@ -194,6 +217,17 @@ void EnhancementsWidget::LoadPPShaders()
     m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("dubois")));
   else if (g_Config.stereo_mode == StereoMode::Passive && !found)
     m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("horizontal")));
+  else if (g_Config.iFreelookScreens == 2 && g_Config.bFreeLook)
+  {
+    if (Config::Get(Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL))
+    {
+      m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("freelook-2-horizontal")));
+    }
+    else
+    {
+      m_pp_effect->setCurrentIndex(m_pp_effect->findText(QStringLiteral("freelook-2-vertical")));
+    }
+  }
 
   const bool supports_postprocessing = g_Config.backend_info.bSupportsPostProcessing;
   m_pp_effect->setEnabled(supports_postprocessing);
@@ -268,10 +302,12 @@ void EnhancementsWidget::SaveSettings()
 
   const bool anaglyph = g_Config.stereo_mode == StereoMode::Anaglyph;
   const bool passive = g_Config.stereo_mode == StereoMode::Passive;
-  Config::SetBaseOrCurrent(Config::GFX_ENHANCE_POST_SHADER,
-                           (!anaglyph && !passive && m_pp_effect->currentIndex() == 0) ?
-                               "(off)" :
-                               m_pp_effect->currentText().toStdString());
+  const bool is_multiscreen = g_Config.bFreeLook && g_Config.iFreelookScreens > 1;
+  Config::SetBaseOrCurrent(
+      Config::GFX_ENHANCE_POST_SHADER,
+      (!anaglyph && !passive && !is_multiscreen && m_pp_effect->currentIndex() == 0) ?
+          "(off)" :
+          m_pp_effect->currentText().toStdString());
 
   VideoCommon::PostProcessingConfiguration pp_shader;
   if (Config::Get(Config::GFX_ENHANCE_POST_SHADER) != "(off)")
@@ -321,7 +357,8 @@ void EnhancementsWidget::AddDescriptions()
       "causes slowdowns or graphical issues.\n\nIf unsure, leave this unchecked.");
   static const char TR_WIDESCREEN_HACK_DESCRIPTION[] = QT_TR_NOOP(
       "Forces the game to output graphics for any aspect ratio. Use with \"Aspect Ratio\" set to "
-      "\"Force 16:9\" to force 4:3-only games to run at 16:9.\n\nRarely produces good results and "
+      "\"Force 16:9\" to force 4:3-only games to run at 16:9.\n\nRarely produces good results "
+      "and "
       "often partially breaks graphics and game UIs. Unnecessary (and detrimental) if using any "
       "AR/Gecko-code widescreen patches.\n\nIf unsure, leave this unchecked.");
   static const char TR_REMOVE_FOG_DESCRIPTION[] =
@@ -361,7 +398,8 @@ void EnhancementsWidget::AddDescriptions()
   static const char TR_ARBITRARY_MIPMAP_DETECTION_DESCRIPTION[] = QT_TR_NOOP(
       "Enables detection of arbitrary mipmaps, which some games use for special distance-based "
       "effects.\n\nMay have false positives that result in blurry textures at increased internal "
-      "resolution, such as in games that use very low resolution mipmaps. Disabling this can also "
+      "resolution, such as in games that use very low resolution mipmaps. Disabling this can "
+      "also "
       "reduce stutter in games that frequently load new textures. This feature is not compatible "
       "with GPU Texture Decoding.\n\nIf unsure, leave this checked.");
 
