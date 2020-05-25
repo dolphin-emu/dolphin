@@ -133,24 +133,24 @@ void sbset(const UDSPInstruction opc)
 void srbith(const UDSPInstruction opc)
 {
   ZeroWriteBackLog();
-  switch ((opc >> 8) & 0xf)
+  switch ((opc >> 8) & 0x7)
   {
-  case 0xa:  // M2
+  case 2:  // M2
     g_dsp.r.sr &= ~SR_MUL_MODIFY;
     break;
-  case 0xb:  // M0
+  case 3:  // M0
     g_dsp.r.sr |= SR_MUL_MODIFY;
     break;
-  case 0xc:  // CLR15
+  case 4:  // CLR15
     g_dsp.r.sr &= ~SR_MUL_UNSIGNED;
     break;
-  case 0xd:  // SET15
+  case 5:  // SET15
     g_dsp.r.sr |= SR_MUL_UNSIGNED;
     break;
-  case 0xe:  // SET16 (CLR40)
+  case 6:  // SET16 (CLR40)
     g_dsp.r.sr &= ~SR_40_MODE_BIT;
     break;
-  case 0xf:  // SET40
+  case 7:  // SET40
     g_dsp.r.sr |= SR_40_MODE_BIT;
     break;
   default:
