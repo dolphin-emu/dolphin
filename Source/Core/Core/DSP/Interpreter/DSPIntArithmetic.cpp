@@ -770,7 +770,6 @@ void movr(const UDSPInstruction opc)
     break;
   }
   ax <<= 16;
-  ax &= ~0xffff;
 
   ZeroWriteBackLog();
 
