@@ -110,7 +110,7 @@ void addarn(const UDSPInstruction opc)
 //----
 
 // SBCLR #I
-// 0001 0011 aaaa aiii
+// 0001 0010 aaaa aiii
 // bit of status register $sr. Bit number is calculated by adding 6 to
 // immediate value I.
 void sbclr(const UDSPInstruction opc)
@@ -120,7 +120,7 @@ void sbclr(const UDSPInstruction opc)
 }
 
 // SBSET #I
-// 0001 0010 aaaa aiii
+// 0001 0011 aaaa aiii
 // Set bit of status register $sr. Bit number is calculated by adding 6 to
 // immediate value I.
 void sbset(const UDSPInstruction opc)
