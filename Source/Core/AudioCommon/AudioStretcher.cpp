@@ -49,7 +49,8 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   // This gives some headroom both ways to prevent underflow and overflow.
   // We tweak current_ratio to encourage this.
   constexpr double tweak_time_scale = 0.5;  // seconds
-  current_ratio *= 1.0 + 2.0 * (backlog_fullness - 0.5) * (time_delta / tweak_time_scale);
+  const double tweak_factor = backlog_fullness - std::clamp(backlog_fullness, 0.25, 0.75);
+  current_ratio *= 1.0 + 2.0 * tweak_factor * (time_delta / tweak_time_scale);
 
   // This low-pass filter smoothes out variance in the calculated stretch ratio.
   // The time-scale determines how responsive this filter is.
@@ -60,6 +61,13 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   // Place a lower limit of 10% speed.  When a game boots up, there will be
   // many silence samples.  These do not need to be timestretched.
   m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
+
+  // If m_stretch_ratio is close enough to desired ratio, make it equal to it.
+  if (std::abs(m_stretch_ratio - SConfig::GetInstance().m_EmulationSpeed) < 0.01)
+  {
+    m_stretch_ratio = SConfig::GetInstance().m_EmulationSpeed;
+  }
+
   m_sound_touch.setTempo(m_stretch_ratio);
 
   DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", num_in, num_out,
