@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 134> s_hotkey_labels{{
+constexpr std::array<const char*, 138> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -127,6 +127,10 @@ constexpr std::array<const char*, 134> s_hotkey_labels{{
     _trans("Freelook Zoom Out"),
     _trans("Freelook Reset"),
     _trans("Freelook Toggle"),
+    _trans("Freelook Increase Field of View X"),
+    _trans("Freelook Decrease Field of View X"),
+    _trans("Freelook Increase Field of View Y"),
+    _trans("Freelook Decrease Field of View Y"),
 
     _trans("Toggle 3D Side-by-Side"),
     _trans("Toggle 3D Top-Bottom"),
@@ -334,7 +338,7 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Controller Profile 4"), HK_NEXT_WIIMOTE_PROFILE_4, HK_PREV_GAME_WIIMOTE_PROFILE_4},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
-     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_TOGGLE},
+     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_DECREASE_FOV_Y},
      // i18n: Stereoscopic 3D
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_ANAGLYPH},
      // i18n: Stereoscopic 3D
@@ -469,6 +473,10 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
   set_key_expression(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
   set_key_expression(HK_FREELOOK_RESET, SHIFT + " & R");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, SHIFT + " & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, SHIFT + " & `Axis Z-`");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, SHIFT + " & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, SHIFT + " & `Axis Z-`");
 
   // Savestates
   const std::string non_fmt = NON + " & `F{}`";
