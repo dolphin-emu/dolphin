@@ -84,8 +84,10 @@ static void Read()
   int payload_size = 0;
   while (s_adapter_thread_running.IsSet())
   {
-    libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
-                              sizeof(s_controller_payload_swap), &payload_size, 16);
+    int err = libusb_interrupt_transfer(s_handle, s_endpoint_in, s_controller_payload_swap,
+                                        sizeof(s_controller_payload_swap), &payload_size, 16);
+    if (err)
+      ERROR_LOG(SERIALINTERFACE, "adapter libusb read failed: err=%s", libusb_error_name(err));
 
     {
       std::lock_guard<std::mutex> lk(s_mutex);
@@ -110,7 +112,10 @@ static void Write()
 
     u8 payload[5] = {0x11, s_controller_rumble[0], s_controller_rumble[1], s_controller_rumble[2],
                      s_controller_rumble[3]};
-    libusb_interrupt_transfer(s_handle, s_endpoint_out, payload, sizeof(payload), &size, 16);
+    int err =
+        libusb_interrupt_transfer(s_handle, s_endpoint_out, payload, sizeof(payload), &size, 16);
+    if (err)
+      ERROR_LOG(SERIALINTERFACE, "adapter libusb write failed: err=%s", libusb_error_name(err));
   }
 }
 

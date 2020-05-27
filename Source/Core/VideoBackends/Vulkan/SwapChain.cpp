@@ -107,17 +107,18 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
   }
 #endif
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
   if (wsi.type == WindowSystemType::MacOS)
   {
-    VkMacOSSurfaceCreateInfoMVK surface_create_info = {
-        VK_STRUCTURE_TYPE_MACOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
+    VkMetalSurfaceCreateInfoEXT surface_create_info = {
+        VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT, nullptr, 0,
+        static_cast<const CAMetalLayer*>(wsi.render_surface)};
 
     VkSurfaceKHR surface;
-    VkResult res = vkCreateMacOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
+    VkResult res = vkCreateMetalSurfaceEXT(instance, &surface_create_info, nullptr, &surface);
     if (res != VK_SUCCESS)
     {
-      LOG_VULKAN_ERROR(res, "vkCreateMacOSSurfaceMVK failed: ");
+      LOG_VULKAN_ERROR(res, "vkCreateMetalSurfaceEXT failed: ");
       return VK_NULL_HANDLE;
     }
 

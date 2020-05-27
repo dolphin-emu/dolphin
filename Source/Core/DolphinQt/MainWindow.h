@@ -11,7 +11,6 @@
 #include <optional>
 #include <string>
 
-class QProgressDialog;
 class QStackedWidget;
 class QString;
 
@@ -35,10 +34,12 @@ class MemoryWidget;
 class MenuBar;
 class NetPlayDialog;
 class NetPlaySetupDialog;
+class NetworkWidget;
 class RegisterWidget;
 class RenderWidget;
 class SearchBar;
 class SettingsWindow;
+class ThreadWidget;
 class ToolBar;
 class WatchWidget;
 class WiiTASInputWindow;
@@ -167,8 +168,6 @@ private:
   void OnSignal();
 #endif
 
-  void OnUpdateProgressDialog(QString label, int progress, int total);
-
   void OnPlayRecording();
   void OnStartRecording();
   void OnStopRecording();
@@ -193,7 +192,6 @@ private:
   std::unique_ptr<X11Utils::XRRConfiguration> m_xrr_config;
 #endif
 
-  QProgressDialog* m_progress_dialog = nullptr;
   QStackedWidget* m_stack;
   ToolBar* m_tool_bar;
   MenuBar* m_menu_bar;
@@ -229,7 +227,9 @@ private:
   LogWidget* m_log_widget;
   LogConfigWidget* m_log_config_widget;
   MemoryWidget* m_memory_widget;
+  NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;
+  ThreadWidget* m_thread_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;
   QByteArray m_render_widget_geometry;

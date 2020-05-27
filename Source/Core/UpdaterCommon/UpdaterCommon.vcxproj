@@ -48,22 +48,22 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup />
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.vcxproj">
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)curl\curl.vcxproj">
       <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\externals\ed25519\ed25519.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)ed25519\ed25519.vcxproj">
       <Project>{5bdf4b91-1491-4fb0-bc27-78e9a8e97dc3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\mbedtls\mbedTLS.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
       <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\zlib\zlib.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)zlib\zlib.vcxproj">
       <Project>{ff213b23-2c26-4214-9f88-85271e557e87}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\cpp-optparse\cpp-optparse.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)cpp-optparse\cpp-optparse.vcxproj">
       <Project>{c636d9d1-82fe-42b5-9987-63b7d4836341}</Project>
     </ProjectReference>
   </ItemGroup>

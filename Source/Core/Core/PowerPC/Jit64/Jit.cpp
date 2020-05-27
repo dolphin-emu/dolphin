@@ -330,7 +330,6 @@ bool Jit64::BackPatch(u32 emAddress, SContext* ctx)
 
 void Jit64::Init()
 {
-  InitializeInstructionTables();
   EnableBlockLink();
 
   jo.fastmem_arena = SConfig::GetInstance().bFastmem && Memory::InitFastmemArena();

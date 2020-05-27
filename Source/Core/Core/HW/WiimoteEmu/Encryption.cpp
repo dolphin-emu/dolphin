@@ -478,12 +478,12 @@ EncryptionKey::KeyData KeyGen3rdParty::GenerateKeyData(const EncryptionKey::Rand
   auto& rol8 = Common::RotateLeft<u8>;
 
   return {
-      u8(t0[7] ^ t0[6] + rol8(ans[0] ^ t0[0], t0[1])),
-      u8(t0[1] ^ t0[3] + rol8(ans[1] ^ t0[4], t0[2])),
-      u8(t0[5] ^ t0[4] + rol8(ans[2] ^ t0[2], t0[8])),
-      u8(t0[0] ^ t0[7] + rol8(ans[3] ^ t0[6], t0[9])),
-      u8(t0[1] ^ t0[8] + rol8(ans[4] ^ t0[5], t0[4])),
-      u8(t0[5] ^ t0[8] + rol8(ans[5] ^ t0[9], t0[3])),
+      u8(t0[7] ^ (t0[6] + rol8(ans[0] ^ t0[0], t0[1]))),
+      u8(t0[1] ^ (t0[3] + rol8(ans[1] ^ t0[4], t0[2]))),
+      u8(t0[5] ^ (t0[4] + rol8(ans[2] ^ t0[2], t0[8]))),
+      u8(t0[0] ^ (t0[7] + rol8(ans[3] ^ t0[6], t0[9]))),
+      u8(t0[1] ^ (t0[8] + rol8(ans[4] ^ t0[5], t0[4]))),
+      u8(t0[5] ^ (t0[8] + rol8(ans[5] ^ t0[9], t0[3]))),
   };
 }
 

@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <iomanip>
+#include <limits>
 #include <locale>
 #include <sstream>
 #include <string>
@@ -54,7 +55,7 @@ std::string ReplaceAll(std::string result, std::string_view src, std::string_vie
 bool TryParse(const std::string& str, bool* output);
 
 template <typename T, std::enable_if_t<std::is_integral_v<T> || std::is_enum_v<T>>* = nullptr>
-bool TryParse(const std::string& str, T* output)
+bool TryParse(const std::string& str, T* output, int base = 0)
 {
   char* end_ptr = nullptr;
 
@@ -66,9 +67,9 @@ bool TryParse(const std::string& str, T* output)
   ReadType value;
 
   if constexpr (std::is_unsigned_v<T>)
-    value = std::strtoull(str.c_str(), &end_ptr, 0);
+    value = std::strtoull(str.c_str(), &end_ptr, base);
   else
-    value = std::strtoll(str.c_str(), &end_ptr, 0);
+    value = std::strtoll(str.c_str(), &end_ptr, base);
 
   // Fail if the end of the string wasn't reached.
   if (end_ptr == nullptr || *end_ptr != '\0')
@@ -157,6 +158,8 @@ std::string JoinStrings(const std::vector<std::string>& strings, const std::stri
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 bool SplitPath(std::string_view full_path, std::string* path, std::string* filename,
                std::string* extension);
+
+std::string PathToFileName(std::string_view path);
 
 void BuildCompleteFilename(std::string& complete_filename, std::string_view path,
                            std::string_view filename);

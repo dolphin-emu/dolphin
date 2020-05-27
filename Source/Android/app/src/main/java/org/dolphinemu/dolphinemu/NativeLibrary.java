@@ -449,6 +449,8 @@ public final class NativeLibrary
 
   public static native void ReloadWiimoteConfig();
 
+  public static native boolean InstallWAD(String file);
+
   private static boolean alertResult = false;
 
   public static boolean displayAlertMsg(final String caption, final String text,
@@ -465,7 +467,8 @@ public final class NativeLibrary
     {
       // Create object used for waiting.
       final Object lock = new Object();
-      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity)
+      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
+              R.style.DolphinDialogBase)
               .setTitle(caption)
               .setMessage(text);
 
@@ -510,7 +513,7 @@ public final class NativeLibrary
       }
 
       // Show the AlertDialog on the main thread.
-      emulationActivity.runOnUiThread(() -> builder.show());
+      emulationActivity.runOnUiThread(builder::show);
 
       // Wait for the lock to notify that it is complete.
       synchronized (lock)

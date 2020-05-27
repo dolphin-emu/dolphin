@@ -69,9 +69,9 @@ struct WiimotePoolEntry
 
 // Connected wii remotes are placed here when no open slot is set to "Real".
 // They are then automatically disconnected after some time.
-std::vector<WiimotePoolEntry> g_wiimote_pool;
+static std::vector<WiimotePoolEntry> s_wiimote_pool;
 
-WiimoteScanner g_wiimote_scanner;
+static WiimoteScanner s_wiimote_scanner;
 
 // Attempt to fill a real wiimote slot from the pool or by stealing from ControllerInterface.
 static void TryToFillWiimoteSlot(u32 index)
@@ -82,17 +82,17 @@ static void TryToFillWiimoteSlot(u32 index)
     return;
 
   // If the pool is empty, attempt to steal from ControllerInterface.
-  if (g_wiimote_pool.empty())
+  if (s_wiimote_pool.empty())
   {
     ciface::Wiimote::ReleaseDevices(1);
 
     // Still empty?
-    if (g_wiimote_pool.empty())
+    if (s_wiimote_pool.empty())
       return;
   }
 
-  if (TryToConnectWiimoteToSlot(g_wiimote_pool.front().wiimote, index))
-    g_wiimote_pool.erase(g_wiimote_pool.begin());
+  if (TryToConnectWiimoteToSlot(s_wiimote_pool.front().wiimote, index))
+    s_wiimote_pool.erase(s_wiimote_pool.begin());
 }
 
 // Attempts to fill enabled real wiimote slots.
@@ -106,10 +106,10 @@ void ProcessWiimotePool()
 
   if (SConfig::GetInstance().connect_wiimotes_for_ciface)
   {
-    for (auto& entry : g_wiimote_pool)
+    for (auto& entry : s_wiimote_pool)
       ciface::Wiimote::AddDevice(std::move(entry.wiimote));
 
-    g_wiimote_pool.clear();
+    s_wiimote_pool.clear();
   }
   else
   {
@@ -130,7 +130,7 @@ void AddWiimoteToPool(std::unique_ptr<Wiimote> wiimote)
   }
 
   std::lock_guard lk(g_wiimotes_mutex);
-  g_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wiimote)});
+  s_wiimote_pool.emplace_back(WiimotePoolEntry{std::move(wiimote)});
 }
 
 Wiimote::Wiimote() = default;
@@ -613,17 +613,17 @@ void WiimoteScanner::PoolThreadFunc()
     std::lock_guard lk(g_wiimotes_mutex);
 
     // Remove stale pool entries.
-    for (auto it = g_wiimote_pool.begin(); it != g_wiimote_pool.end();)
+    for (auto it = s_wiimote_pool.begin(); it != s_wiimote_pool.end();)
     {
       if (!it->wiimote->IsConnected())
       {
         INFO_LOG(WIIMOTE, "Removing disconnected wiimote pool entry.");
-        it = g_wiimote_pool.erase(it);
+        it = s_wiimote_pool.erase(it);
       }
       else if (it->IsExpired())
       {
         INFO_LOG(WIIMOTE, "Removing expired wiimote pool entry.");
-        it = g_wiimote_pool.erase(it);
+        it = s_wiimote_pool.erase(it);
       }
       else
       {
@@ -632,7 +632,7 @@ void WiimoteScanner::PoolThreadFunc()
     }
 
     // Make wiimote pool LEDs dance.
-    for (auto& wiimote : g_wiimote_pool)
+    for (auto& wiimote : s_wiimote_pool)
     {
       OutputReportLeds leds = {};
       leds.leds = led_value;
@@ -847,19 +847,19 @@ void Initialize(::Wiimote::InitializeMode init_mode)
 {
   if (!g_real_wiimotes_initialized)
   {
-    g_wiimote_scanner.StartThread();
+    s_wiimote_scanner.StartThread();
   }
 
   if (SConfig::GetInstance().m_WiimoteContinuousScanning)
-    g_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
+    s_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
-    g_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
+    s_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
 
   // wait for connection because it should exist before state load
   if (init_mode == ::Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES)
   {
     int timeout = 100;
-    g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
+    s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
     while (CalculateWantedWiimotes() && timeout)
     {
       Common::SleepCurrentThread(100);
@@ -887,7 +887,7 @@ void Stop()
 void Shutdown()
 {
   g_real_wiimotes_initialized = false;
-  g_wiimote_scanner.StopThread();
+  s_wiimote_scanner.StopThread();
 
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
 
@@ -897,7 +897,7 @@ void Shutdown()
 
   // Release remotes from ControllerInterface and empty the pool.
   ciface::Wiimote::ReleaseDevices();
-  g_wiimote_pool.clear();
+  s_wiimote_pool.clear();
 }
 
 void Resume()
@@ -958,7 +958,7 @@ static void HandleWiimoteDisconnect(int index)
 void Refresh()
 {
   if (!SConfig::GetInstance().m_WiimoteContinuousScanning)
-    g_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
+    s_wiimote_scanner.SetScanMode(WiimoteScanMode::SCAN_ONCE);
 }
 
 void InterruptChannel(int wiimote_number, u16 channel_id, const void* data, u32 size)

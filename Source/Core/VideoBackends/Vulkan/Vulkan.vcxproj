@@ -91,7 +91,7 @@
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\Externals\glslang\glslang.vcxproj">
+    <ProjectReference Include="$(ExternalsDir)glslang\glslang.vcxproj">
       <Project>{d178061b-84d3-44f9-beed-efd18d9033f0}</Project>
     </ProjectReference>
   </ItemGroup>

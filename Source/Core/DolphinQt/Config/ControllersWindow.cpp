@@ -260,20 +260,16 @@ void ControllersWindow::ConnectWidgets()
 
   for (size_t i = 0; i < m_wiimote_groups.size(); i++)
   {
-    connect(m_wiimote_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::SaveSettings);
-    connect(m_wiimote_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_wiimote_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::OnWiimoteModeChanged);
     connect(m_wiimote_buttons[i], &QPushButton::clicked, this,
             &ControllersWindow::OnWiimoteConfigure);
 
-    connect(m_gc_controller_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::SaveSettings);
-    connect(m_gc_controller_boxes[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_gc_controller_boxes[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &ControllersWindow::OnGCTypeChanged);
     connect(m_gc_buttons[i], &QPushButton::clicked, this, &ControllersWindow::OnGCPadConfigure);
   }

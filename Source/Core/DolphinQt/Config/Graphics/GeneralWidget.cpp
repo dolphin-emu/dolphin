@@ -38,7 +38,7 @@ GeneralWidget::GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWin
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
-  emit BackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &GeneralWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
@@ -138,27 +138,26 @@ void GeneralWidget::CreateWidgets()
 void GeneralWidget::ConnectWidgets()
 {
   // Video Backend
-  connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &GeneralWidget::SaveSettings);
-  connect(m_adapter_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, [](int index) {
-            g_Config.iAdapter = index;
-            Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
-          });
+  connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &GeneralWidget::SaveSettings);
+  connect(m_adapter_combo, qOverload<int>(&QComboBox::currentIndexChanged), this, [](int index) {
+    g_Config.iAdapter = index;
+    Config::SetBaseOrCurrent(Config::GFX_ADAPTER, index);
+  });
 }
 
 void GeneralWidget::LoadSettings()
 {
   // Video Backend
   m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-      QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
+      QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
 }
 
 void GeneralWidget::SaveSettings()
 {
   // Video Backend
   const auto current_backend = m_backend_combo->currentData().toString().toStdString();
-  if (SConfig::GetInstance().m_strVideoBackend != current_backend)
+  if (Config::Get(Config::MAIN_GFX_BACKEND) != current_backend)
   {
     auto warningMessage =
         g_available_video_backends[m_backend_combo->currentIndex()]->GetWarningMessage();
@@ -174,7 +173,7 @@ void GeneralWidget::SaveSettings()
       if (confirm_sw.exec() != QMessageBox::Yes)
       {
         m_backend_combo->setCurrentIndex(m_backend_combo->findData(
-            QVariant(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend))));
+            QVariant(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)))));
         return;
       }
     }

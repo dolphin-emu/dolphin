@@ -55,6 +55,7 @@ public:
     COL_COUNTRY,
     COL_SIZE,
     COL_FILE_NAME,
+    COL_FILE_PATH,
     COL_TAGS,
     NUM_COLS
   };

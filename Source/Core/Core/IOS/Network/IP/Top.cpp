@@ -274,8 +274,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 
   switch (request.request)
   {
-  case IOCTL_SO_STARTUP:
-    return HandleStartUpRequest(request);
+  case IOCTL_SO_INITINTERFACE:
+    return HandleInitInterfaceRequest(request);
   case IOCTL_SO_SOCKET:
     return HandleSocketRequest(request);
   case IOCTL_SO_ICMPSOCKET:
@@ -349,7 +349,7 @@ void NetIPTop::Update()
   WiiSockMan::GetInstance().Update();
 }
 
-IPCCommandResult NetIPTop::HandleStartUpRequest(const IOCtlRequest& request)
+IPCCommandResult NetIPTop::HandleInitInterfaceRequest(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   return GetDefaultReply(IPC_SUCCESS);
@@ -860,10 +860,13 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
       }
     }
 #elif defined(__linux__) && !defined(__ANDROID__)
-    if (res_init() == 0)
-      address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
-    else
-      WARN_LOG(IOS_NET, "Call to res_init failed");
+    if (!Core::WantsDeterminism())
+    {
+      if (res_init() == 0)
+        address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+      else
+        WARN_LOG(IOS_NET, "Call to res_init failed");
+    }
 #endif
     if (address == 0)
       address = default_main_dns_resolver;

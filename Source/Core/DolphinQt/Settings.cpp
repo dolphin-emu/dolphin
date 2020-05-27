@@ -7,6 +7,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QFile>
+#include <QFileInfo>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -72,17 +73,22 @@ void Settings::SetThemeName(const QString& theme_name)
 
 QString Settings::GetCurrentUserStyle() const
 {
-  return GetQSettings().value(QStringLiteral("userstyle/path"), false).toString();
+  if (GetQSettings().contains(QStringLiteral("userstyle/name")))
+    return GetQSettings().value(QStringLiteral("userstyle/name")).toString();
+
+  // Migration code for the old way of storing this setting
+  return QFileInfo(GetQSettings().value(QStringLiteral("userstyle/path")).toString()).fileName();
 }
 
-void Settings::SetCurrentUserStyle(const QString& stylesheet_path)
+void Settings::SetCurrentUserStyle(const QString& stylesheet_name)
 {
   QString stylesheet_contents;
 
-  if (!stylesheet_path.isEmpty() && AreUserStylesEnabled())
+  if (!stylesheet_name.isEmpty() && AreUserStylesEnabled())
   {
     // Load custom user stylesheet
-    QFile stylesheet(stylesheet_path);
+    QDir directory = QDir(QString::fromStdString(File::GetUserPath(D_STYLES_IDX)));
+    QFile stylesheet(directory.filePath(stylesheet_name));
 
     if (stylesheet.open(QFile::ReadOnly))
       stylesheet_contents = QString::fromUtf8(stylesheet.readAll().data());
@@ -90,7 +96,7 @@ void Settings::SetCurrentUserStyle(const QString& stylesheet_path)
 
   qApp->setStyleSheet(stylesheet_contents);
 
-  GetQSettings().setValue(QStringLiteral("userstyle/path"), stylesheet_path);
+  GetQSettings().setValue(QStringLiteral("userstyle/name"), stylesheet_name);
 }
 
 bool Settings::AreUserStylesEnabled() const
@@ -358,6 +364,20 @@ void Settings::SetRegistersVisible(bool enabled)
   }
 }
 
+bool Settings::IsThreadsVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/showthreads")).toBool();
+}
+
+void Settings::SetThreadsVisible(bool enabled)
+{
+  if (IsThreadsVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showthreads"), enabled);
+  emit ThreadsVisibilityChanged(enabled);
+}
+
 bool Settings::IsRegistersVisible() const
 {
   return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();
@@ -420,6 +440,20 @@ void Settings::SetMemoryVisible(bool enabled)
 bool Settings::IsMemoryVisible() const
 {
   return QSettings().value(QStringLiteral("debugger/showmemory")).toBool();
+}
+
+void Settings::SetNetworkVisible(bool enabled)
+{
+  if (IsNetworkVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/shownetwork"), enabled);
+  emit NetworkVisibilityChanged(enabled);
+}
+
+bool Settings::IsNetworkVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/shownetwork")).toBool();
 }
 
 void Settings::SetJITVisible(bool enabled)

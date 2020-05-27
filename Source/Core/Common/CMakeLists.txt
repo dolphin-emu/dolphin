@@ -18,7 +18,6 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
-  Compiler.h
   Config/Config.cpp
   Config/Config.h
   Config/ConfigInfo.cpp
@@ -35,6 +34,9 @@ add_library(common
   Crypto/ec.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
+  Debug/OSThread.cpp
+  Debug/OSThread.h
+  Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h
   DebugInterface.h
@@ -64,6 +66,7 @@ add_library(common
   Image.h
   IniFile.cpp
   IniFile.h
+  Inline.h
   JitRegister.cpp
   JitRegister.h
   Lazy.h

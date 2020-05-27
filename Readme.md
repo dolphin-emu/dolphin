@@ -141,12 +141,13 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 * -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
-LLE (Low Level Emulation). HLE is fast but often less accurate while LLE is
-slow but close to perfect. Note that LLE has two submodes (Interpreter and
-Recompiler), which cannot be selected from the command line.
+LLE (Low Level Emulation). HLE is faster but less accurate whereas
+LLE is slower but close to perfect. Note that LLE has two submodes (Interpreter and Recompiler) 
+but they cannot be selected from the command line.
 
-Available video backends are "D3D" (only available on Windows) and
-"OGL". There's also "Software Renderer", which uses the CPU for rendering and
+Available video backends are "D3D" and "D3D12" (they are only available on Windows), "OGL", and "Vulkan".
+There's also "Null", which will not render anything, and
+"Software Renderer", which uses the CPU for rendering and
 is intended for debugging purposes only.
 
 ## Sys Files

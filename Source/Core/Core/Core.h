@@ -25,8 +25,8 @@ namespace Core
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
-void Callback_VideoCopiedToXFB(bool video_update);
-void FrameUpdate();
+void Callback_FramePresented();
+void Callback_NewField();
 
 enum class State
 {
@@ -35,6 +35,59 @@ enum class State
   Running,
   Stopping,
   Starting,
+};
+
+// Console type values based on:
+//  - YAGCD 4.2.1.1.2
+//  - OSInit (GameCube ELF from Finding Nemo)
+//  - OSReportInfo (Wii ELF from Rayman Raving Rabbids)
+enum class ConsoleType : u32
+{
+  // 0x0XXXXXXX Retail units - Gamecube
+  HW1 = 1,
+  HW2 = 2,
+  LatestProductionBoard = 3,
+  Reserved = 4,
+
+  // 0x0XXXXXXX Retail units - Wii
+  PreProductionBoard0 = 0x10,    // Pre-production board 0
+  PreProductionBoard1 = 0x11,    // Pre-production board 1
+  PreProductionBoard2_1 = 0x12,  // Pre-production board 2-1
+  PreProductionBoard2_2 = 0x20,  // Pre-production board 2-2
+  RVL_Retail1 = 0x21,
+  RVL_Retail2 = 0x22,
+  RVL_Retail3 = 0x23,
+  RVA1 = 0x100,  // Revolution Arcade
+
+  // 0x1XXXXXXX Devkits - Gamecube
+  // Emulators
+  MacEmulator = 0x10000000,  // Mac Emulator
+  PcEmulator = 0x10000001,   // PC Emulator
+
+  // Embedded PowerPC series
+  Arthur = 0x10000002,  // EPPC Arthur
+  Minnow = 0x10000003,  // EPPC Minnow
+
+  // Development HW
+  // Version = (console_type & 0x0fffffff) - 3
+  FirstDevkit = 0x10000004,
+  SecondDevkit = 0x10000005,
+  LatestDevkit = 0x10000006,
+  ReservedDevkit = 0x10000007,
+
+  // 0x1XXXXXXX Devkits - Wii
+  RevolutionEmulator = 0x10000008,  // Revolution Emulator
+  NDEV1_0 = 0x10000010,             // NDEV 1.0
+  NDEV1_1 = 0x10000011,             // NDEV 1.1
+  NDEV1_2 = 0x10000012,             // NDEV 1.2
+  NDEV2_0 = 0x10000020,             // NDEV 2.0
+  NDEV2_1 = 0x10000021,             // NDEV 2.1
+
+  // 0x2XXXXXXX TDEV-based emulation HW
+  // Version = (console_type & 0x0fffffff) - 3
+  HW2TDEVSystem = 0x20000005,
+  LatestTDEVSystem = 0x20000006,
+  ReservedTDEVSystem = 0x20000007,
 };
 
 bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi);
@@ -112,6 +165,6 @@ void HostDispatchJobs();
 
 void DoFrameStep();
 
-void UpdateInputGate();
+void UpdateInputGate(bool require_focus);
 
 }  // namespace Core

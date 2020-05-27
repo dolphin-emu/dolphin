@@ -6,7 +6,6 @@
 
 #include <QAbstractEventDispatcher>
 #include <QApplication>
-#include <QProgressDialog>
 
 #include <imgui.h>
 
@@ -19,6 +18,7 @@
 #include "Core/Host.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/State.h"
 
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
@@ -30,7 +30,15 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-Host::Host() = default;
+Host::Host()
+{
+  State::SetOnAfterLoadCallback([this] { Host_UpdateDisasmDialog(); });
+}
+
+Host::~Host()
+{
+  State::SetOnAfterLoadCallback(nullptr);
+}
 
 Host* Host::GetInstance()
 {
@@ -124,11 +132,6 @@ void Host_YieldToUI()
 void Host_UpdateDisasmDialog()
 {
   QueueOnObject(QApplication::instance(), [] { emit Host::GetInstance()->UpdateDisasmDialog(); });
-}
-
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-  emit Host::GetInstance()->UpdateProgressDialog(QString::fromUtf8(caption), position, total);
 }
 
 void Host::RequestNotifyMapLoaded()

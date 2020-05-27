@@ -54,7 +54,7 @@ constexpr int ReshapableInput::CALIBRATION_SAMPLE_COUNT;
 
 std::optional<u32> StickGate::GetIdealCalibrationSampleCount() const
 {
-  return {};
+  return std::nullopt;
 }
 
 OctagonStickGate::OctagonStickGate(ControlState radius) : m_radius(radius)
@@ -84,6 +84,12 @@ RoundStickGate::RoundStickGate(ControlState radius) : m_radius(radius)
 ControlState RoundStickGate::GetRadiusAtAngle(double) const
 {
   return m_radius;
+}
+
+std::optional<u32> RoundStickGate::GetIdealCalibrationSampleCount() const
+{
+  // The "radius" is the same at every angle so a single sample is enough.
+  return 1;
 }
 
 SquareStickGate::SquareStickGate(ControlState half_width) : m_half_width(half_width)
@@ -177,7 +183,8 @@ void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2
   auto& calibration_sample = data[calibration_index];
 
   // Update closest sample from provided x,y.
-  calibration_sample = std::max(calibration_sample, point.Length());
+  calibration_sample = std::clamp(point.Length(), calibration_sample,
+                                  SquareStickGate(1).GetRadiusAtAngle(calibration_angle));
 
   // Here we update all other samples in our calibration vector to maintain
   // a convex polygon containing our new calibration point.
@@ -275,10 +282,11 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
       [](ControlState val) { return fmt::format("{:.2f}", val * CALIBRATION_CONFIG_SCALE); });
   section->Set(group + CALIBRATION_CONFIG_NAME, JoinStrings(save_data, " "), "");
 
-  const auto center_data = fmt::format("{:.2f} {:.2f}", m_center.x * CENTER_CONFIG_SCALE,
+  // Save center value.
+  static constexpr char center_format[] = "{:.2f} {:.2f}";
+  const auto center_data = fmt::format(center_format, m_center.x * CENTER_CONFIG_SCALE,
                                        m_center.y * CENTER_CONFIG_SCALE);
-
-  section->Set(group + CENTER_CONFIG_NAME, center_data, "");
+  section->Set(group + CENTER_CONFIG_NAME, center_data, fmt::format(center_format, 0.0, 0.0));
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,

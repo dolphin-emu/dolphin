@@ -46,14 +46,25 @@ public final class SettingsFile
   public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
   public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
   public static final String KEY_VIDEO_BACKEND = "GFXBackend";
+
+  public static final String KEY_DSP_ENGINE = "DSPEngine";
+  public static final String KEY_DSP_HLE = "DSPHLE";
+  public static final String KEY_DSP_ENABLE_JIT = "EnableJIT";
   public static final String KEY_AUDIO_STRETCH = "AudioStretch";
   public static final String KEY_AUDIO_VOLUME = "Volume";
+
   public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
   public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
   public static final String KEY_OVERRIDE_REGION_SETTINGS = "OverrideRegionSettings";
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
   public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
+  public static final String KEY_DEFAULT_ISO = "DefaultISO";
+  public static final String KEY_NAND_ROOT_PATH = "NANDRootPath";
+  public static final String KEY_DUMP_PATH = "DumpPath";
+  public static final String KEY_LOAD_PATH = "LoadPath";
+  public static final String KEY_RESOURCE_PACK_PATH = "ResourcePackPath";
+  public static final String KEY_WII_SD_CARD_PATH = "WiiSDCardPath";
 
   public static final String KEY_ANALYTICS_ENABLED = "Enabled";
   public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
@@ -269,6 +280,7 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT = "TurntableCrossLeft_";
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT = "TurntableCrossRight_";
 
+  public static final String KEY_WII_SD_CARD = "WiiSDCard";
   public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
   public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 

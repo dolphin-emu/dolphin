@@ -567,8 +567,8 @@ void Tev::Indirect(unsigned int stageNum, s32 s, s32 t)
 
 void Tev::Draw()
 {
-  ASSERT(Position[0] >= 0 && Position[0] < EFB_WIDTH);
-  ASSERT(Position[1] >= 0 && Position[1] < EFB_HEIGHT);
+  ASSERT(Position[0] >= 0 && Position[0] < s32(EFB_WIDTH));
+  ASSERT(Position[1] >= 0 && Position[1] < s32(EFB_HEIGHT));
 
   INCSTAT(g_stats.this_frame.tev_pixels_in);
 

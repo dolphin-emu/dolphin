@@ -19,8 +19,10 @@ import android.view.MenuItem;
 import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
@@ -155,6 +157,32 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
+  protected void onActivityResult(int requestCode, int resultCode, Intent result)
+  {
+    super.onActivityResult(requestCode, resultCode, result);
+
+    // Save modified non-FilePicker settings beforehand since finish() won't save them.
+    // onStop() must come before handling the resultCode to properly save FilePicker selection.
+    mPresenter.onStop(true);
+
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
+    {
+      mPresenter.onFileConfirmed(FileBrowserHelper.getSelectedPath(result));
+
+      // Prevent duplicate Toasts.
+      if (!mPresenter.shouldSave())
+      {
+        Toast.makeText(this, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
+      }
+    }
+
+    // TODO: After result of FilePicker, duplicate SettingsActivity appears.
+    //       Finish to avoid this. Is there a better method?
+    finish();
+  }
+
+  @Override
   public void showLoading()
   {
     if (dialog == null)
@@ -190,7 +218,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public void showGameIniJunkDeletionQuestion()
   {
-    new AlertDialog.Builder(this)
+    new AlertDialog.Builder(this, R.style.DolphinDialogBase)
             .setTitle(getString(R.string.game_ini_junk_title))
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())

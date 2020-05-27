@@ -23,7 +23,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 #include <objc/message.h>
 #endif
 
@@ -280,7 +280,7 @@ void VideoBackend::Shutdown()
   UnloadVulkanLibrary();
 }
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 static bool IsRunningOnMojaveOrHigher()
 {
   // id processInfo = [NSProcessInfo processInfo]
@@ -304,9 +304,9 @@ static bool IsRunningOnMojaveOrHigher()
 }
 #endif
 
-void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
+void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 {
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
   // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
   id view = reinterpret_cast<id>(wsi.render_surface);
   Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
@@ -342,6 +342,10 @@ void VideoBackend::PrepareWindow(const WindowSystemInfo& wsi)
   // layer.contentsScale = factor
   reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
                                                             factor);
+
+  // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
+  wsi.render_surface = layer;
+
   // The Metal version included with MacOS 10.13 and below does not support several features we
   // require. Furthermore, the drivers seem to choke on our shaders (mainly Intel). So, we warn
   // the user that this is an unsupported configuration, but permit them to continue.

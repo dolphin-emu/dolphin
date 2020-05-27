@@ -83,7 +83,7 @@ void ApproachAngleWithAccel(RotationalState* state, const Common::Vec3& target, 
 void EmulateShake(PositionalState* state, ControllerEmu::Shake* shake_group, float time_elapsed);
 void EmulateTilt(RotationalState* state, ControllerEmu::Tilt* tilt_group, float time_elapsed);
 void EmulateSwing(MotionState* state, ControllerEmu::Force* swing_group, float time_elapsed);
-void EmulateCursor(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
+void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed);
 void EmulateIMUCursor(IMUCursorState* state, ControllerEmu::IMUCursor* imu_ir_group,
                       ControllerEmu::IMUAccelerometer* imu_accelerometer_group,
                       ControllerEmu::IMUGyroscope* imu_gyroscope_group, float time_elapsed);

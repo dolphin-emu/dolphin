@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.leanback.app.BrowseFragment;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
@@ -59,8 +58,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     {
       StartupHandler.HandleInit(this);
     }
-    // Setup and/or sync channels
-    TvUtil.scheduleSyncingChannel(getApplicationContext());
   }
 
   @Override
@@ -143,13 +140,21 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchFileListActivity()
   {
-    FileBrowserHelper.openDirectoryPicker(this);
+    FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   @Override
   public void launchOpenFileActivity()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_OPEN_FILE, true);
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_GAME_FILE, false,
+            FileBrowserHelper.GAME_EXTENSIONS);
+  }
+
+  @Override
+  public void launchInstallWAD()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
+            FileBrowserHelper.WAD_EXTENSION);
   }
 
   @Override
@@ -171,21 +176,30 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
+    super.onActivityResult(requestCode, resultCode, result);
     switch (requestCode)
     {
-      case MainPresenter.REQUEST_ADD_DIRECTORY:
+      case MainPresenter.REQUEST_DIRECTORY:
         // If the user picked a file, as opposed to just backing out.
         if (resultCode == MainActivity.RESULT_OK)
         {
-          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedDirectory(result));
+          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
         }
         break;
 
-      case MainPresenter.REQUEST_OPEN_FILE:
+      case MainPresenter.REQUEST_GAME_FILE:
         // If the user picked a file, as opposed to just backing out.
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_WAD_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
         }
         break;
     }

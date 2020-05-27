@@ -28,7 +28,7 @@ public:
   SettingsHandler();
   explicit SettingsHandler(Buffer&& buffer);
 
-  void AddSetting(std::string_view key, std::string_view value);
+  void AddSetting(const std::string& key, const std::string& value);
 
   const Buffer& GetBytes() const;
   void SetBytes(Buffer&& buffer);
@@ -39,6 +39,7 @@ public:
   static std::string GenerateSerialNumber();
 
 private:
+  void WriteLine(const std::string& str);
   void WriteByte(u8 b);
 
   std::array<u8, SETTINGS_SIZE> m_buffer;

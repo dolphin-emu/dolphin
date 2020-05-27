@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <type_traits>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -71,8 +72,8 @@ struct Rectangle
     return left == r.left && top == r.top && right == r.right && bottom == r.bottom;
   }
 
-  T GetWidth() const { return std::abs(right - left); }
-  T GetHeight() const { return std::abs(bottom - top); }
+  constexpr T GetWidth() const { return GetDistance(left, right); }
+  constexpr T GetHeight() const { return GetDistance(top, bottom); }
   // If the rectangle is in a coordinate system with a lower-left origin, use
   // this Clamp.
   void ClampLL(T x1, T y1, T x2, T y2)
@@ -91,6 +92,15 @@ struct Rectangle
     right = std::clamp(right, x1, x2);
     top = std::clamp(top, y1, y2);
     bottom = std::clamp(bottom, y1, y2);
+  }
+
+private:
+  constexpr T GetDistance(T a, T b) const
+  {
+    if constexpr (std::is_unsigned<T>())
+      return b > a ? b - a : a - b;
+    else
+      return std::abs(b - a);
   }
 };
 

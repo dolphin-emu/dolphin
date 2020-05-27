@@ -17,6 +17,7 @@
 
 #include <fmt/format.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -86,26 +87,40 @@ void HiresTexture::Update()
   }
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  const std::string texture_directory = GetTextureDirectory(game_id);
+  const std::set<std::string> texture_directories = GetTextureDirectories(game_id);
   const std::vector<std::string> extensions{".png", ".dds"};
 
-  const std::vector<std::string> texture_paths =
-      Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
-
-  const std::string code = game_id + "_";
-
-  for (auto& path : texture_paths)
+  for (const auto& texture_directory : texture_directories)
   {
-    std::string filename;
-    SplitPath(path, nullptr, &filename, nullptr);
+    const auto texture_paths =
+        Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
 
-    if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
+    bool failed_insert = false;
+    for (auto& path : texture_paths)
     {
-      const size_t arb_index = filename.rfind("_arb");
-      const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
-      if (has_arbitrary_mipmaps)
-        filename.erase(arb_index, 4);
-      s_textureMap[filename] = {path, has_arbitrary_mipmaps};
+      std::string filename;
+      SplitPath(path, nullptr, &filename, nullptr);
+
+      if (filename.substr(0, s_format_prefix.length()) == s_format_prefix)
+      {
+        const size_t arb_index = filename.rfind("_arb");
+        const bool has_arbitrary_mipmaps = arb_index != std::string::npos;
+        if (has_arbitrary_mipmaps)
+          filename.erase(arb_index, 4);
+
+        const auto [it, inserted] =
+            s_textureMap.try_emplace(filename, DiskTexture{path, has_arbitrary_mipmaps});
+        if (!inserted)
+        {
+          failed_insert = true;
+        }
+      }
+    }
+
+    if (failed_insert)
+    {
+      ERROR_LOG(VIDEO, "One or more textures at path '%s' were already inserted",
+                texture_directory.c_str());
     }
   }
 
@@ -439,15 +454,51 @@ bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
   return true;
 }
 
-std::string HiresTexture::GetTextureDirectory(const std::string& game_id)
+std::set<std::string> HiresTexture::GetTextureDirectories(const std::string& game_id)
 {
+  std::set<std::string> result;
   const std::string texture_directory = File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id;
 
-  // If there's no directory with the region-specific ID, look for a 3-character region-free one
-  if (!File::Exists(texture_directory))
-    return File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
+  if (File::Exists(texture_directory))
+  {
+    result.insert(texture_directory);
+  }
+  else
+  {
+    // If there's no directory with the region-specific ID, look for a 3-character region-free one
+    const std::string region_free_directory =
+        File::GetUserPath(D_HIRESTEXTURES_IDX) + game_id.substr(0, 3);
 
-  return texture_directory;
+    if (File::Exists(region_free_directory))
+    {
+      result.insert(region_free_directory);
+    }
+  }
+
+  const auto match_gameid = [game_id](const std::string& filename) {
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    return basename == game_id || basename == game_id.substr(0, 3);
+  };
+
+  // Look for any other directories that might be specific to the given gameid
+  const auto root_directory = File::GetUserPath(D_HIRESTEXTURES_IDX);
+  const auto files = Common::DoFileSearch({root_directory}, {".txt"}, true);
+  for (const auto& file : files)
+  {
+    if (match_gameid(file))
+    {
+      // The following code is used to calculate the top directory
+      // of a found gameid.txt file
+      // ex:  <dolphin dir>/Load/Textures/My folder/gameids/<gameid>.txt
+      // would insert "<dolphin dir>/Load/Textures/My folder"
+      const auto directory_path = file.substr(root_directory.size());
+      const std::size_t first_path_separator_position = directory_path.find_first_of(DIR_SEP_CHR);
+      result.insert(root_directory + directory_path.substr(0, first_path_separator_position));
+    }
+  }
+
+  return result;
 }
 
 HiresTexture::~HiresTexture()

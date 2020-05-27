@@ -11,7 +11,7 @@
 #include <QPixmap>
 #include <QPushButton>
 
-#include <discord-rpc/include/discord_rpc.h>
+#include <discord_rpc.h>
 
 #include "Common/HttpRequest.h"
 #include "Common/StringUtil.h"

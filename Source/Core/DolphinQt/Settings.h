@@ -47,7 +47,7 @@ public:
 
   // UI
   void SetThemeName(const QString& theme_name);
-  void SetCurrentUserStyle(const QString& stylesheet_path);
+  void SetCurrentUserStyle(const QString& stylesheet_name);
   QString GetCurrentUserStyle() const;
 
   void SetUserStylesEnabled(bool enabled);
@@ -118,6 +118,8 @@ public:
   bool IsDebugModeEnabled() const;
   void SetRegistersVisible(bool enabled);
   bool IsRegistersVisible() const;
+  void SetThreadsVisible(bool enabled);
+  bool IsThreadsVisible() const;
   void SetWatchVisible(bool enabled);
   bool IsWatchVisible() const;
   void SetBreakpointsVisible(bool enabled);
@@ -126,6 +128,8 @@ public:
   bool IsCodeVisible() const;
   void SetMemoryVisible(bool enabled);
   bool IsMemoryVisible() const;
+  void SetNetworkVisible(bool enabled);
+  bool IsNetworkVisible() const;
   void SetJITVisible(bool enabled);
   bool IsJITVisible() const;
   QFont GetDebugFont() const;
@@ -159,6 +163,7 @@ signals:
   void VolumeChanged(int volume);
   void NANDRefresh();
   void RegistersVisibilityChanged(bool visible);
+  void ThreadsVisibilityChanged(bool visible);
   void LogVisibilityChanged(bool visible);
   void LogConfigVisibilityChanged(bool visible);
   void ToolBarVisibilityChanged(bool visible);
@@ -168,6 +173,7 @@ signals:
   void BreakpointsVisibilityChanged(bool visible);
   void CodeVisibilityChanged(bool visible);
   void MemoryVisibilityChanged(bool visible);
+  void NetworkVisibilityChanged(bool visible);
   void JITVisibilityChanged(bool visible);
   void DebugModeToggled(bool enabled);
   void DebugFontChanged(QFont font);

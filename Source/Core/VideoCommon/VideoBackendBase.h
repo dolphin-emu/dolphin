@@ -47,7 +47,7 @@ public:
 
   // Prepares a native window for rendering. This is called on the main thread, or the
   // thread which owns the window.
-  virtual void PrepareWindow(const WindowSystemInfo& wsi) {}
+  virtual void PrepareWindow(WindowSystemInfo& wsi) {}
 
   static std::string BadShaderFilename(const char* shader_stage, int counter);
 
@@ -64,8 +64,9 @@ public:
   static void ActivateBackend(const std::string& name);
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
-  // Called by the UI thread when the graphics config is opened.
   static void PopulateBackendInfo();
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfoFromUI();
 
   // Wrapper function which pushes the event to the GPU thread.
   void DoState(PointerWrap& p);

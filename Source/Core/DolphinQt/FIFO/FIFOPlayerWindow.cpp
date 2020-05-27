@@ -169,14 +169,14 @@ void FIFOPlayerWindow::ConnectWidgets()
   connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::reject);
   connect(m_early_memory_updates, &QCheckBox::toggled, this,
           &FIFOPlayerWindow::OnEarlyMemoryUpdatesChanged);
-  connect(m_frame_range_from, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_frame_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
-  connect(m_frame_range_to, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_frame_range_to, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
 
-  connect(m_object_range_from, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_object_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
-  connect(m_object_range_to, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_object_range_to, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
 }
 

@@ -96,6 +96,44 @@ void AdvancedPane::CreateLayout()
   cpu_clock_override_description->setWordWrap(true);
   clock_override_layout->addWidget(cpu_clock_override_description);
 
+  auto* ram_override = new QGroupBox(tr("Memory Override"));
+  auto* ram_override_layout = new QVBoxLayout();
+  ram_override->setLayout(ram_override_layout);
+  main_layout->addWidget(ram_override);
+
+  m_ram_override_checkbox = new QCheckBox(tr("Enable Emulated Memory Size Override"));
+  ram_override_layout->addWidget(m_ram_override_checkbox);
+
+  auto* mem1_override_slider_layout = new QHBoxLayout();
+  mem1_override_slider_layout->setContentsMargins(0, 0, 0, 0);
+  ram_override_layout->addLayout(mem1_override_slider_layout);
+
+  m_mem1_override_slider = new QSlider(Qt::Horizontal);
+  m_mem1_override_slider->setRange(24, 64);
+  mem1_override_slider_layout->addWidget(m_mem1_override_slider);
+
+  m_mem1_override_slider_label = new QLabel();
+  mem1_override_slider_layout->addWidget(m_mem1_override_slider_label);
+
+  auto* mem2_override_slider_layout = new QHBoxLayout();
+  mem2_override_slider_layout->setContentsMargins(0, 0, 0, 0);
+  ram_override_layout->addLayout(mem2_override_slider_layout);
+
+  m_mem2_override_slider = new QSlider(Qt::Horizontal);
+  m_mem2_override_slider->setRange(64, 128);
+  mem2_override_slider_layout->addWidget(m_mem2_override_slider);
+
+  m_mem2_override_slider_label = new QLabel();
+  mem2_override_slider_layout->addWidget(m_mem2_override_slider_label);
+
+  auto* ram_override_description =
+      new QLabel(tr("Adjusts the emulated sizes of MEM1 and MEM2.\n\n"
+                    "Some titles may recognize the larger memory arena(s) and take "
+                    "advantage of it, though retail titles are normally optimized for "
+                    "the retail memory limitations."));
+  ram_override_description->setWordWrap(true);
+  ram_override_layout->addWidget(ram_override_description);
+
   auto* rtc_options = new QGroupBox(tr("Custom RTC Options"));
   rtc_options->setLayout(new QVBoxLayout());
   main_layout->addWidget(rtc_options);
@@ -131,14 +169,13 @@ void AdvancedPane::CreateLayout()
 void AdvancedPane::ConnectLayout()
 {
   connect(m_cpu_emulation_engine_combobox,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          [this](int index) {
+          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), [](int index) {
             SConfig::GetInstance().cpu_core = PowerPC::AvailableCPUCores()[index];
             Config::SetBaseOrCurrent(Config::MAIN_CPU_CORE, PowerPC::AvailableCPUCores()[index]);
           });
 
   connect(m_enable_mmu_checkbox, &QCheckBox::toggled, this,
-          [this](bool checked) { SConfig::GetInstance().bMMU = checked; });
+          [](bool checked) { SConfig::GetInstance().bMMU = checked; });
 
   m_cpu_clock_override_checkbox->setChecked(SConfig::GetInstance().m_OCEnable);
   connect(m_cpu_clock_override_checkbox, &QCheckBox::toggled, [this](bool enable_clock_override) {
@@ -152,6 +189,24 @@ void AdvancedPane::ConnectLayout()
     const float factor = std::exp2f((m_cpu_clock_override_slider->value() - 100.f) / 25.f);
     SConfig::GetInstance().m_OCFactor = factor;
     Config::SetBaseOrCurrent(Config::MAIN_OVERCLOCK, factor);
+    Update();
+  });
+
+  m_ram_override_checkbox->setChecked(Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE));
+  connect(m_ram_override_checkbox, &QCheckBox::toggled, [this](bool enable_ram_override) {
+    Config::SetBaseOrCurrent(Config::MAIN_RAM_OVERRIDE_ENABLE, enable_ram_override);
+    Update();
+  });
+
+  connect(m_mem1_override_slider, &QSlider::valueChanged, [this](int slider_value) {
+    const u32 mem1_size = m_mem1_override_slider->value() * 0x100000;
+    Config::SetBaseOrCurrent(Config::MAIN_MEM1_SIZE, mem1_size);
+    Update();
+  });
+
+  connect(m_mem2_override_slider, &QSlider::valueChanged, [this](int slider_value) {
+    const u32 mem2_size = m_mem2_override_slider->value() * 0x100000;
+    Config::SetBaseOrCurrent(Config::MAIN_MEM2_SIZE, mem2_size);
     Update();
   });
 
@@ -174,13 +229,14 @@ void AdvancedPane::Update()
 {
   const bool running = Core::GetState() != Core::State::Uninitialized;
   const bool enable_cpu_clock_override_widgets = SConfig::GetInstance().m_OCEnable;
+  const bool enable_ram_override_widgets = Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE);
   const bool enable_custom_rtc_widgets = SConfig::GetInstance().bEnableCustomRTC && !running;
 
   const std::vector<PowerPC::CPUCore>& available_cpu_cores = PowerPC::AvailableCPUCores();
-  for (int i = 0; i < available_cpu_cores.size(); ++i)
+  for (size_t i = 0; i < available_cpu_cores.size(); ++i)
   {
     if (available_cpu_cores[i] == SConfig::GetInstance().cpu_core)
-      m_cpu_emulation_engine_combobox->setCurrentIndex(i);
+      m_cpu_emulation_engine_combobox->setCurrentIndex(int(i));
   }
   m_cpu_emulation_engine_combobox->setEnabled(!running);
 
@@ -207,6 +263,36 @@ void AdvancedPane::Update()
     int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
     int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
     return tr("%1 % (%2 MHz)").arg(QString::number(percent), QString::number(clock));
+  }());
+
+  m_ram_override_checkbox->setEnabled(!running);
+
+  m_mem1_override_slider->setEnabled(enable_ram_override_widgets && !running);
+  m_mem1_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
+
+  {
+    const QSignalBlocker blocker(m_mem1_override_slider);
+    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
+    m_mem1_override_slider->setValue(mem1_size);
+  }
+
+  m_mem1_override_slider_label->setText([] {
+    const u32 mem1_size = Config::Get(Config::MAIN_MEM1_SIZE) / 0x100000;
+    return tr("%1MB (MEM1)").arg(QString::number(mem1_size));
+  }());
+
+  m_mem2_override_slider->setEnabled(enable_ram_override_widgets && !running);
+  m_mem2_override_slider_label->setEnabled(enable_ram_override_widgets && !running);
+
+  {
+    const QSignalBlocker blocker(m_mem2_override_slider);
+    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
+    m_mem2_override_slider->setValue(mem2_size);
+  }
+
+  m_mem2_override_slider_label->setText([] {
+    const u32 mem2_size = Config::Get(Config::MAIN_MEM2_SIZE) / 0x100000;
+    return tr("%1MB (MEM2)").arg(QString::number(mem2_size));
   }());
 
   m_custom_rtc_checkbox->setEnabled(!running);

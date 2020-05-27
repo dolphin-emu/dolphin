@@ -25,6 +25,8 @@
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/AddressSpace.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
@@ -166,9 +168,11 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   // View
   m_show_code->setVisible(enabled);
   m_show_registers->setVisible(enabled);
+  m_show_threads->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
   m_show_memory->setVisible(enabled);
+  m_show_network->setVisible(enabled);
   m_show_jit->setVisible(enabled);
 
   if (enabled)
@@ -199,8 +203,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(Qt::CTRL + Qt::Key_O));
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open, QKeySequence::Open);
 
   file_menu->addSeparator();
 
@@ -211,8 +214,8 @@ void MenuBar::AddFileMenu()
 
   file_menu->addSeparator();
 
-  m_exit_action =
-      file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit, QKeySequence(Qt::ALT + Qt::Key_F4));
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
 }
 
 void MenuBar::AddToolsMenu()
@@ -443,6 +446,14 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
           &QAction::setChecked);
 
+  m_show_threads = view_menu->addAction(tr("&Threads"));
+  m_show_threads->setCheckable(true);
+  m_show_threads->setChecked(Settings::Instance().IsThreadsVisible());
+
+  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::SetThreadsVisible);
+  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, m_show_threads,
+          &QAction::setChecked);
+
   // i18n: This kind of "watch" is used for watching emulated memory.
   // It's not related to timekeeping devices.
   m_show_watch = view_menu->addAction(tr("&Watch"));
@@ -470,6 +481,14 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
+  m_show_network = view_menu->addAction(tr("&Network"));
+  m_show_network->setCheckable(true);
+  m_show_network->setChecked(Settings::Instance().IsNetworkVisible());
+
+  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::SetNetworkVisible);
+  connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, m_show_network,
+          &QAction::setChecked);
+
   m_show_jit = view_menu->addAction(tr("&JIT"));
   m_show_jit->setCheckable(true);
   m_show_jit->setChecked(Settings::Instance().IsJITVisible());
@@ -488,14 +507,14 @@ void MenuBar::AddViewMenu()
   view_menu->addSeparator();
   view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
   view_menu->addSeparator();
-  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch,
-                       QKeySequence(Qt::CTRL + Qt::Key_F));
+  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
+  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
+                          QKeySequence::Preferences);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
@@ -606,6 +625,7 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("File Path"), &SConfig::GetInstance().m_showFilePathColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
       {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
@@ -1168,13 +1188,15 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
@@ -1196,6 +1218,12 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
 
 void MenuBar::GenerateSymbolsFromRSO()
 {
+  // i18n: RSO refers to a proprietary format for shared objects (like DLL files).
+  const int ret =
+      ModalMessageBox::question(this, tr("RSO auto-detection"), tr("Auto-detect RSO modules?"));
+  if (ret == QMessageBox::Yes)
+    return GenerateSymbolsFromRSOAuto();
+
   QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
   bool good;
   uint address = text.toUInt(&good, 16);
@@ -1218,6 +1246,79 @@ void MenuBar::GenerateSymbolsFromRSO()
   }
 }
 
+void MenuBar::GenerateSymbolsFromRSOAuto()
+{
+  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+  std::vector<std::pair<u32, std::string>> matches;
+
+  // Find filepath to elf/plf commonly used by RSO modules
+  for (const auto& str : search_for)
+  {
+    u32 next = 0;
+    while (true)
+    {
+      auto found_addr =
+          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+
+      if (!found_addr.has_value())
+        break;
+      next = *found_addr + 1;
+
+      // Get the beginning of the string
+      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
+      if (!found_addr.has_value())
+        continue;
+
+      // Get the string reference
+      const u32 ref_addr = *found_addr + 1;
+      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
+                                     static_cast<u8>(ref_addr >> 16),
+                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
+      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
+      if (!found_addr.has_value() || *found_addr < 16)
+        continue;
+
+      // Go to the beginning of the RSO header
+      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
+    }
+  }
+
+  QStringList items;
+  for (const auto& match : matches)
+  {
+    const QString item = QLatin1String("%1 %2");
+
+    items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
+  }
+
+  if (items.empty())
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Unable to auto-detect RSO module"));
+    return;
+  }
+
+  bool ok;
+  const QString item = QInputDialog::getItem(
+      this, tr("Input"), tr("Select the RSO module address:"), items, 0, false, &ok);
+
+  if (!ok)
+    return;
+
+  RSOChainView rso_chain;
+  const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
+  if (rso_chain.Load(address))
+  {
+    rso_chain.Apply(&g_symbolDB);
+    emit NotifySymbolsUpdated();
+  }
+  else
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(address));
+  }
+}
+
 void MenuBar::LoadSymbolMap()
 {
   std::string existing_map_file, writable_map_file;
@@ -1226,7 +1327,8 @@ void MenuBar::LoadSymbolMap()
   if (!map_exists)
   {
     g_symbolDB.Clear();
-    PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
+    PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR + 0x1300000,
+                              Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
     if (db.Load(File::GetSysDirectory() + TOTALDB))
       db.Apply(&g_symbolDB);
@@ -1465,7 +1567,8 @@ void MenuBar::SearchInstruction()
     return;
 
   bool found = false;
-  for (u32 addr = 0x80000000; addr < 0x81800000; addr += 4)
+  for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal();
+       addr += 4)
   {
     auto ins_name =
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));

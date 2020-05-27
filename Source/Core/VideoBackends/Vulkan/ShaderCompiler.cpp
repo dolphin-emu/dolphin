@@ -107,8 +107,10 @@ static const char SUBGROUP_HELPER_HEADER[] = R"(
   #define SUBGROUP_MAX(value) value = subgroupMax(value)
 )";
 
-std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage, const char* stage_filename,
-                                                  std::string_view source, std::string_view header)
+static std::optional<SPIRVCodeVector> CompileShaderToSPV(EShLanguage stage,
+                                                         const char* stage_filename,
+                                                         std::string_view source,
+                                                         std::string_view header)
 {
   if (!InitializeGlslang())
     return std::nullopt;

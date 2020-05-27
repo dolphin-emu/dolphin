@@ -241,19 +241,19 @@ static void BPWritten(const BPCmd& bp)
     // known for configuring these out-of-range copies.
     int copy_width = srcRect.GetWidth();
     int copy_height = srcRect.GetHeight();
-    if (srcRect.right > EFB_WIDTH || srcRect.bottom > EFB_HEIGHT)
+    if (srcRect.right > s32(EFB_WIDTH) || srcRect.bottom > s32(EFB_HEIGHT))
     {
       WARN_LOG(VIDEO, "Oversized EFB copy: %dx%d (offset %d,%d stride %u)", copy_width, copy_height,
                srcRect.left, srcRect.top, destStride);
 
       // Adjust the copy size to fit within the EFB. So that we don't end up with a stretched image,
       // instead of clamping the source rectangle, we reduce it by the over-sized amount.
-      if (copy_width > EFB_WIDTH)
+      if (copy_width > s32(EFB_WIDTH))
       {
         srcRect.right -= copy_width - EFB_WIDTH;
         copy_width = EFB_WIDTH;
       }
-      if (copy_height > EFB_HEIGHT)
+      if (copy_height > s32(EFB_HEIGHT))
       {
         srcRect.bottom -= copy_height - EFB_HEIGHT;
         copy_height = EFB_HEIGHT;

@@ -4,7 +4,7 @@
 
 #include "UICommon/AutoUpdate.h"
 
-#include <picojson/picojson.h>
+#include <picojson.h>
 #include <string>
 
 #include "Common/CommonPaths.h"
@@ -43,9 +43,9 @@ const char UPDATER_RELOC_FILENAME[] = ".Dolphin Updater.2.app";
 
 #endif
 
+#ifdef OS_SUPPORTS_UPDATER
 const char UPDATER_LOG_FILE[] = "Updater.log";
 
-#ifdef OS_SUPPORTS_UPDATER
 std::string MakeUpdaterCommandLine(const std::map<std::string, std::string>& flags)
 {
 #ifdef __APPLE__

@@ -17,8 +17,15 @@
 namespace ControllerEmu
 {
 IMUCursor::IMUCursor(std::string name, std::string ui_name)
-    : ControlGroup(std::move(name), std::move(ui_name), GroupType::IMUCursor,
-                   ControlGroup::CanBeDisabled::Yes)
+    : ControlGroup(
+          std::move(name), std::move(ui_name), GroupType::IMUCursor,
+#ifdef ANDROID
+          // Enabling this on Android devices which have an accelerometer and gyroscope prevents
+          // touch controls from being used for pointing, and touch controls generally work better
+          ControlGroup::DefaultValue::Disabled)
+#else
+          ControlGroup::DefaultValue::Enabled)
+#endif
 {
   AddInput(Translate, _trans("Recenter"));
 

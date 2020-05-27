@@ -82,6 +82,7 @@ public:
       PullEventsInternal();
   }
   void PushEvent(const Event& event, bool blocking = false);
+  void WaitForEmptyQueue();
   void SetEnable(bool enable);
   void SetPassthrough(bool enable);
 

@@ -31,6 +31,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/WiiRoot.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -88,6 +89,8 @@ static void InitCustomPaths()
 
 void Init()
 {
+  Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
+
   Config::Init();
   Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
@@ -97,7 +100,7 @@ void Init()
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
-  VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
   Common::SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
@@ -393,7 +396,7 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_X11
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
 void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
@@ -450,7 +453,7 @@ void EnableScreenSaver(bool enable)
 #endif
 }
 
-std::string FormatSize(u64 bytes)
+std::string FormatSize(u64 bytes, int decimals)
 {
   // i18n: The symbol for the unit "bytes"
   const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
@@ -465,7 +468,7 @@ std::string FormatSize(u64 bytes)
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
   std::ostringstream ss;
-  ss << std::fixed << std::setprecision(2);
+  ss << std::fixed << std::setprecision(decimals);
   ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
   return ss.str();
 }

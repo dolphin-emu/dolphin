@@ -11,6 +11,7 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
@@ -28,7 +29,7 @@ HacksWidget::HacksWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
   AddDescriptions();
 
   connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
-  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
 }
 

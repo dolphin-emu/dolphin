@@ -6,6 +6,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](https://git.kernel.org/cgit/bluetooth/bluez.git/tree/COPYING.LIB)
 - [Bochs](http://bochs.sourceforge.net/):
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
+- [bzip2](https://www.sourceware.org/bzip2/):
+   [bzip2 license](https://www.sourceware.org/git/?p=bzip2.git;a=blob;f=LICENSE;hb=HEAD) (similar to 3-clause BSD)
 - [cubeb](https://github.com/kinetiknz/cubeb):
    [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [Discord-RPC](https://github.com/discordapp/discord-rpc):
@@ -16,8 +18,8 @@ Dolphin includes or links code of the following third-party software projects:
    GPLv2+
 - [gettext](https://www.gnu.org/software/gettext/):
    [GPLv3+](http://git.savannah.gnu.org/cgit/gettext.git/tree/COPYING)
-- [googletest](https://code.google.com/p/googletest/):
-   [3-clause BSD](https://code.google.com/p/googletest/source/browse/trunk/LICENSE)
+- [googletest](https://github.com/google/googletest):
+   [3-clause BSD](https://github.com/google/googletest/blob/master/LICENSE)
 - [libao](https://www.xiph.org/ao/):
    [GPLv2+](https://trac.xiph.org/browser/trunk/ao/README)
 - [libav](https://libav.org/):
@@ -26,6 +28,8 @@ Dolphin includes or links code of the following third-party software projects:
    [GPLv3+](http://git.savannah.gnu.org/gitweb/?p=libcdio.git;a=blob_plain;f=COPYING)
 - [libiconv](https://www.gnu.org/software/libiconv/):
    [LGPLv2+](http://git.savannah.gnu.org/cgit/libiconv.git/tree/COPYING.LIB)
+- [liblzma](https://tukaani.org/xz/):
+   [Public domain](https://git.tukaani.org/?p=xz.git;a=blob_plain;f=COPYING;hb=HEAD)
 - [libpng](http://www.libpng.org/pub/png/libpng.html):
    [libpng license](http://www.libpng.org/pub/png/src/libpng-LICENSE.txt)
 - [libusb](http://libusb.info/):
@@ -60,7 +64,11 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2+](http://www.surina.net/soundtouch/license.html)
 - [TAP-Windows](https://openvpn.net/):
    header only
+- [Windows Implementation Libraries](https://github.com/microsoft/wil):
+   [MIT](https://github.com/microsoft/wil/blob/master/LICENSE)
 - [xxHash](https://github.com/Cyan4973/xxHash):
    [2-clause BSD](https://github.com/Cyan4973/xxHash/blob/master/LICENSE)
 - [zlib](http://www.zlib.net/):
    [zlib license](http://www.zlib.net/zlib_license.html)
+- [Zstandard](https://facebook.github.io/zstd/):
+   [3-clause BSD](https://github.com/facebook/zstd/blob/dev/LICENSE) or [GPLv2](https://github.com/facebook/zstd/blob/dev/COPYING)

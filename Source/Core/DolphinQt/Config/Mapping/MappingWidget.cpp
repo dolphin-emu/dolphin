@@ -101,7 +101,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     indicator_layout->setAlignment(Qt::AlignCenter);
     form_layout->addRow(indicator_layout);
 
-    connect(this, &MappingWidget::Update, indicator, QOverload<>::of(&MappingIndicator::update));
+    connect(this, &MappingWidget::Update, indicator, qOverload<>(&MappingIndicator::update));
 
     const bool need_calibration = group->type == ControllerEmu::GroupType::Cursor ||
                                   group->type == ControllerEmu::GroupType::Stick ||
@@ -162,7 +162,7 @@ QGroupBox* MappingWidget::CreateGroupBox(const QString& name, ControllerEmu::Con
     }
   }
 
-  if (group->can_be_disabled)
+  if (group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled)
   {
     QLabel* group_enable_label = new QLabel(tr("Enable"));
     QCheckBox* group_enable_checkbox = new QCheckBox();

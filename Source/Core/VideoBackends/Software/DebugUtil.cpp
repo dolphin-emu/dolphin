@@ -136,9 +136,9 @@ static void DumpEfb(const std::string& filename)
   u8* data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
   u8* writePtr = data;
 
-  for (int y = 0; y < EFB_HEIGHT; y++)
+  for (u32 y = 0; y < EFB_HEIGHT; y++)
   {
-    for (int x = 0; x < EFB_WIDTH; x++)
+    for (u32 x = 0; x < EFB_WIDTH; x++)
     {
       // ABGR to RGBA
       const u32 sample = Common::swap32(EfbInterface::GetColor(x, y));

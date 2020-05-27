@@ -52,6 +52,9 @@ public:
   void RemovePatch(std::size_t index) override;
   void ClearPatches() override;
 
+  // Threads
+  Common::Debug::Threads GetThreads() const override;
+
   std::string Disassemble(u32 address) const override;
   std::string GetRawMemoryString(int memory, u32 address) const override;
   bool IsAlive() const override;

@@ -131,11 +131,11 @@ public:
   void DoNothing(UGeckoInstruction _inst);
   void HLEFunction(UGeckoInstruction _inst);
 
-  void DynaRunTable4(UGeckoInstruction _inst);
-  void DynaRunTable19(UGeckoInstruction _inst);
-  void DynaRunTable31(UGeckoInstruction _inst);
-  void DynaRunTable59(UGeckoInstruction _inst);
-  void DynaRunTable63(UGeckoInstruction _inst);
+  void DynaRunTable4(UGeckoInstruction inst);
+  void DynaRunTable19(UGeckoInstruction inst);
+  void DynaRunTable31(UGeckoInstruction inst);
+  void DynaRunTable59(UGeckoInstruction inst);
+  void DynaRunTable63(UGeckoInstruction inst);
 
   void addx(UGeckoInstruction inst);
   void arithcx(UGeckoInstruction inst);
@@ -236,7 +236,6 @@ public:
   void eieio(UGeckoInstruction inst);
 
 private:
-  static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   bool HandleFunctionHooking(u32 address);

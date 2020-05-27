@@ -9,8 +9,11 @@
 
 #include <fmt/format.h>
 
-#include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VideoCommon.h"
+#include "Common/CommonTypes.h"
+
+class ShaderCode;
+enum class APIType;
+union ShaderHostConfig;
 
 namespace UberShader
 {

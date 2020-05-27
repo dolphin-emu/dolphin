@@ -101,8 +101,9 @@ NetPlayServer::~NetPlayServer()
 }
 
 // called from ---GUI--- thread
-NetPlayServer::NetPlayServer(const u16 port, const bool forward_port,
+NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI* dialog,
                              const NetTraversalConfig& traversal_config)
+    : m_dialog(dialog)
 {
   //--use server time
   if (enet_initialize() != 0)
@@ -209,11 +210,9 @@ void NetPlayServer::SetupIndex()
 
   session.EncryptID(Config::Get(Config::NETPLAY_INDEX_PASSWORD));
 
+  bool success = m_index.Add(session);
   if (m_dialog != nullptr)
-  {
-    bool success = m_index.Add(session);
     m_dialog->OnIndexAdded(success, success ? "" : m_index.GetLastError());
-  }
 
   m_index.SetErrorCallback([this] {
     if (m_dialog != nullptr)
@@ -1931,11 +1930,6 @@ bool NetPlayServer::PlayerHasControllerMapped(const PlayerId pid) const
 u16 NetPlayServer::GetPort() const
 {
   return m_server->address.port;
-}
-
-void NetPlayServer::SetNetPlayUI(NetPlayUI* dialog)
-{
-  m_dialog = dialog;
 }
 
 // called from ---GUI--- thread

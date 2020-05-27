@@ -68,7 +68,7 @@ void NewPatchDialog::CreateWidgets()
 
 void NewPatchDialog::ConnectWidgets()
 {
-  connect(m_name_edit, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
+  connect(m_name_edit, qOverload<const QString&>(&QLineEdit::textEdited),
           [this](const QString& name) { m_patch.name = name.toStdString(); });
 
   connect(m_add_button, &QPushButton::clicked, this, &NewPatchDialog::AddEntry);
@@ -130,7 +130,7 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
   layout->addWidget(remove, 3, 0, 1, -1);
   box->setLayout(layout);
 
-  connect(offset, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
+  connect(offset, qOverload<const QString&>(&QLineEdit::textEdited),
           [&entry, offset](const QString& text) {
             bool okay = true;
             entry.address = text.toUInt(&okay, 16);
@@ -147,7 +147,7 @@ QGroupBox* NewPatchDialog::CreateEntry(PatchEngine::PatchEntry& entry)
             offset->setPalette(palette);
           });
 
-  connect(value, static_cast<void (QLineEdit::*)(const QString&)>(&QLineEdit::textEdited),
+  connect(value, qOverload<const QString&>(&QLineEdit::textEdited),
           [&entry, value](const QString& text) {
             bool okay;
             entry.value = text.toUInt(&okay, 16);

@@ -84,6 +84,12 @@
     <ClCompile Include="VolumeVerifier.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
+    <ClCompile Include="WiiEncryptionCache.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrubbedBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -148,6 +154,15 @@
     </ClInclude>
     <ClInclude Include="VolumeVerifier.h">
       <Filter>Volume</Filter>
+    </ClInclude>
+    <ClInclude Include="WiiEncryptionCache.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrubbedBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="MultithreadedCompressor.h">
+      <Filter>Volume\Blob</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

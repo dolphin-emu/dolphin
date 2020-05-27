@@ -16,8 +16,10 @@
 #include "Common/Thread.h"
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/Host.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -28,6 +30,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
@@ -143,8 +146,8 @@ void HotkeyScheduler::Run()
 
     if (Core::GetState() != Core::State::Stopping)
     {
-      // Obey window focus before checking hotkeys.
-      Core::UpdateInputGate();
+      // Obey window focus (config permitting) before checking hotkeys.
+      Core::UpdateInputGate(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
 
       HotkeyManagerEmu::GetStatus();
 
@@ -526,6 +529,13 @@ void HotkeyScheduler::Run()
     // Freelook
     static float fl_speed = 1.0;
 
+    if (IsHotkey(HK_FREELOOK_TOGGLE))
+    {
+      const bool new_value = !Config::Get(Config::GFX_FREE_LOOK);
+      Config::SetCurrent(Config::GFX_FREE_LOOK, new_value);
+      OSD::AddMessage(StringFromFormat("Freelook: %s", new_value ? "Enabled" : "Disabled"));
+    }
+
     if (IsHotkey(HK_FREELOOK_DECREASE_SPEED, true))
       fl_speed /= 1.1f;
 
@@ -536,25 +546,25 @@ void HotkeyScheduler::Run()
       fl_speed = 1.0;
 
     if (IsHotkey(HK_FREELOOK_UP, true))
-      VertexShaderManager::TranslateView(0.0, 0.0, -fl_speed);
+      g_freelook_camera.MoveVertical(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_DOWN, true))
-      VertexShaderManager::TranslateView(0.0, 0.0, fl_speed);
+      g_freelook_camera.MoveVertical(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_LEFT, true))
-      VertexShaderManager::TranslateView(fl_speed, 0.0);
+      g_freelook_camera.MoveHorizontal(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_RIGHT, true))
-      VertexShaderManager::TranslateView(-fl_speed, 0.0);
+      g_freelook_camera.MoveHorizontal(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_ZOOM_IN, true))
-      VertexShaderManager::TranslateView(0.0, fl_speed);
+      g_freelook_camera.Zoom(fl_speed);
 
     if (IsHotkey(HK_FREELOOK_ZOOM_OUT, true))
-      VertexShaderManager::TranslateView(0.0, -fl_speed);
+      g_freelook_camera.Zoom(-fl_speed);
 
     if (IsHotkey(HK_FREELOOK_RESET, true))
-      VertexShaderManager::ResetView();
+      g_freelook_camera.Reset();
 
     // Savestates
     for (u32 i = 0; i < State::NUM_STATES; i++)

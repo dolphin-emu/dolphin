@@ -12,10 +12,10 @@ class GraphicsChoice : public QComboBox
 {
   Q_OBJECT
 public:
-  GraphicsChoice(const QStringList& options, const Config::ConfigInfo<int>& setting);
+  GraphicsChoice(const QStringList& options, const Config::Info<int>& setting);
 
 private:
   void Update(int choice);
 
-  Config::ConfigInfo<int> m_setting;
+  Config::Info<int> m_setting;
 };

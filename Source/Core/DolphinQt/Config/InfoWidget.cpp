@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProgressDialog>
 #include <QPushButton>
 #include <QTextEdit>
 
@@ -176,8 +175,7 @@ void InfoWidget::CreateLanguageSelector()
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
 
-  connect(m_language_selector,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_language_selector, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InfoWidget::ChangeLanguage);
 }
 

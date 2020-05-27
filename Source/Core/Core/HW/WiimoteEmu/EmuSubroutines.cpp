@@ -588,7 +588,7 @@ void Wiimote::DoState(PointerWrap& p)
   // Dynamics
   p.Do(m_swing_state);
   p.Do(m_tilt_state);
-  p.Do(m_cursor_state);
+  p.Do(m_point_state);
   p.Do(m_shake_state);
 
   // We'll consider the IMU state part of the user's physical controller state and not sync it.

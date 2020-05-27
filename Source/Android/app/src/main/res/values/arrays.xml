@@ -33,6 +33,26 @@
         <item>0</item>
     </integer-array>
 
+    <!-- DSP Emulation Engine -->
+    <string-array name="dspEngineEntriesX86_64" translatable="false">
+        <item>DSP HLE (fast)</item>
+        <item>DSP LLE Recompiler</item>
+        <item>DSP LLE Interpreter (slow)</item>
+    </string-array>
+    <integer-array name="dspEngineValuesX86_64" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+    <string-array name="dspEngineEntriesGeneric" translatable="false">
+        <item>DSP HLE (fast)</item>
+        <item>DSP LLE Interpreter (slow)</item>
+    </string-array>
+    <integer-array name="dspEngineValuesGeneric" translatable="false">
+        <item>0</item>
+        <item>2</item>
+    </integer-array>
+
     <!-- GameCube System Languages -->
     <string-array name="gameCubeSystemLanguageEntries" translatable="false">
         <item>English</item>
@@ -337,6 +357,7 @@
 
     <string-array name="gameSettingsMenusGC">
         <item>Details</item>
+        <item>Set as Default ISO</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>
@@ -344,6 +365,7 @@
     </string-array>
     <string-array name="gameSettingsMenusWii">
         <item>Details</item>
+        <item>Set as Default ISO</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
         <item>GameCube Controller Settings</item>

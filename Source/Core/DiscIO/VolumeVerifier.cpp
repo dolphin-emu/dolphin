@@ -18,8 +18,8 @@
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
-#include <minizip/unzip.h>
 #include <pugixml.hpp>
+#include <unzip.h>
 #include <zlib.h>
 
 #include "Common/Align.h"
@@ -607,12 +607,17 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (type == PARTITION_UPDATE)
   {
-    std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
-    bool has_correct_ios = false;
-    if (file_info)
+    const IOS::ES::TMDReader& tmd = m_volume.GetTMD(m_volume.GetGamePartition());
+
+    // IOS9 is the only IOS which can be assumed to exist in a working state on any Wii
+    // regardless of what updates have been installed. At least Mario Party 8
+    // (RM8E01, revision 2) uses IOS9 without having it in its update partition.
+    bool has_correct_ios = tmd.IsValid() && (tmd.GetIOSId() & 0xFF) == 9;
+
+    if (!has_correct_ios && tmd.IsValid())
     {
-      const IOS::ES::TMDReader& tmd = m_volume.GetTMD(m_volume.GetGamePartition());
-      if (tmd.IsValid())
+      std::unique_ptr<FileInfo> file_info = filesystem->FindFileInfo("_sys");
+      if (file_info)
       {
         const std::string correct_ios = "IOS" + std::to_string(tmd.GetIOSId() & 0xFF) + "-";
         for (const FileInfo& f : *file_info)
@@ -735,7 +740,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     return;
 
   m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
-  if (ShouldBeDualLayer() && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
+  const bool should_be_dual_layer = ShouldBeDualLayer();
+  if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
                Common::GetStringT(
@@ -753,7 +759,7 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
   else if (!m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
-    const bool is_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
+    const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
     const u64 size = m_volume.GetSize();
 
     const bool valid_gamecube = size == MINI_DVD_SIZE;
@@ -761,8 +767,8 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
     const bool valid_debug_wii = size == SL_DVD_R_SIZE || size == DL_DVD_R_SIZE;
 
     const bool debug = IsDebugSigned();
-    if ((is_gc_size && !valid_gamecube) ||
-        (!is_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
+    if ((should_be_gc_size && !valid_gamecube) ||
+        (!should_be_gc_size && (debug ? !valid_debug_wii : !valid_retail_wii)))
     {
       if (debug && valid_retail_wii)
       {
@@ -772,7 +778,15 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
       }
       else
       {
-        if ((is_gc_size && size < MINI_DVD_SIZE) || (!is_gc_size && size < SL_DVD_SIZE))
+        u64 normal_size;
+        if (should_be_gc_size)
+          normal_size = MINI_DVD_SIZE;
+        else if (!should_be_dual_layer)
+          normal_size = SL_DVD_SIZE;
+        else
+          normal_size = DL_DVD_SIZE;
+
+        if (size < normal_size)
         {
           AddProblem(
               Severity::Low,
@@ -1031,7 +1045,7 @@ void VolumeVerifier::SetUpHashing()
   else if (m_volume.GetVolumeType() == Platform::WiiDisc)
   {
     // Set up a DiscScrubber for checking whether blocks with errors are unused
-    m_scrubber.SetupScrub(&m_volume, VolumeWii::BLOCK_TOTAL_SIZE);
+    m_scrubber.SetupScrub(&m_volume);
   }
 
   std::sort(m_blocks.begin(), m_blocks.end(),

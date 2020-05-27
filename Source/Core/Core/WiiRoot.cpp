@@ -16,6 +16,8 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
+#include "Core/CommonTitles.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/IOS/ES/ES.h"
@@ -32,6 +34,40 @@ namespace FS = IOS::HLE::FS;
 
 static std::string s_temp_wii_root;
 
+static bool CopyBackupFile(const std::string& path_from, const std::string& path_to)
+{
+  if (!File::Exists(path_from))
+    return false;
+
+  File::CreateFullPath(path_to);
+
+  return File::Copy(path_from, path_to);
+}
+
+static void DeleteBackupFile(const std::string& file_name)
+{
+  File::Delete(File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name);
+}
+
+static void BackupFile(const std::string& path_in_nand)
+{
+  const std::string file_name = PathToFileName(path_in_nand);
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+
+  CopyBackupFile(original_path, backup_path);
+}
+
+static void RestoreFile(const std::string& path_in_nand)
+{
+  const std::string file_name = PathToFileName(path_in_nand);
+  const std::string original_path = File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP + path_in_nand;
+  const std::string backup_path = File::GetUserPath(D_BACKUP_IDX) + DIR_SEP + file_name;
+
+  if (CopyBackupFile(backup_path, original_path))
+    DeleteBackupFile(file_name);
+}
+
 static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 title_id)
 {
   dest->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, Common::GetTitleDataPath(title_id) + '/',
@@ -44,21 +80,21 @@ static void CopySave(FS::FileSystem* source, FS::FileSystem* dest, const u64 tit
 static bool CopyNandFile(FS::FileSystem* source_fs, const std::string& source_file,
                          FS::FileSystem* dest_fs, const std::string& dest_file)
 {
-  const auto last_slash = dest_file.find_last_of('/');
-  if (last_slash != std::string::npos && last_slash > 0)
-  {
-    const std::string dir = dest_file.substr(0, last_slash);
-    dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dir + '/', 0,
-                            {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
-  }
-
   auto source_handle =
       source_fs->OpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file, IOS::HLE::FS::Mode::Read);
+  // If the source file doesn't exist, there is nothing more to do.
+  // This function must not create an empty file on the destination filesystem.
+  if (!source_handle)
+    return true;
+
+  dest_fs->CreateFullPath(IOS::PID_KERNEL, IOS::PID_KERNEL, dest_file, 0,
+                          {FS::Mode::ReadWrite, FS::Mode::ReadWrite, FS::Mode::ReadWrite});
+
   auto dest_handle =
       dest_fs->CreateAndOpenFile(IOS::PID_KERNEL, IOS::PID_KERNEL, source_file,
                                  {IOS::HLE::FS::Mode::ReadWrite, IOS::HLE::FS::Mode::ReadWrite,
                                   IOS::HLE::FS::Mode::ReadWrite});
-  if (!source_handle || !dest_handle)
+  if (!dest_handle)
     return false;
 
   std::vector<u8> buffer(source_handle->GetStatus()->size);
@@ -171,6 +207,29 @@ void ShutdownWiiRoot()
     File::DeleteDirRecursively(s_temp_wii_root);
     s_temp_wii_root.clear();
   }
+}
+
+void BackupWiiSettings()
+{
+  // Back up files which Dolphin can modify at boot, so that we can preserve the original contents.
+  // For SYSCONF, the backup is only needed in case Dolphin crashes or otherwise exists unexpectedly
+  // during emulation, since the config system will restore the SYSCONF settings at emulation end.
+  // For setting.txt, there is no other code that restores the original values for us.
+
+  BackupFile(Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
+  BackupFile("/shared2/sys/SYSCONF");
+}
+
+void RestoreWiiSettings(RestoreReason reason)
+{
+  RestoreFile(Common::GetTitleDataPath(Titles::SYSTEM_MENU) + "/" WII_SETTING);
+
+  // We must not restore the SYSCONF backup when ending emulation cleanly, since the user may have
+  // edited the SYSCONF file in the NAND using the emulated software (e.g. the Wii Menu settings).
+  if (reason == RestoreReason::CrashRecovery)
+    RestoreFile("/shared2/sys/SYSCONF");
+  else
+    DeleteBackupFile("SYSCONF");
 }
 
 /// Copy a directory from host_source_path (on the host FS) to nand_target_path on the NAND.

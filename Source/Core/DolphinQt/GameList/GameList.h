@@ -64,7 +64,7 @@ private:
   void InstallWAD();
   void UninstallWAD();
   void ExportWiiSave();
-  void CompressISO(bool decompress);
+  void ConvertFile();
   void ChangeDisc();
   void NewTag();
   void DeleteTag();
@@ -94,5 +94,5 @@ private:
   bool m_prefer_list;
 
 protected:
-  void keyReleaseEvent(QKeyEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 };

@@ -32,6 +32,7 @@
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
 
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
@@ -58,9 +59,6 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
-    // Stop filling the background once emulation starts, but fill it until then (Bug 10958)
-    SetFillBackground(Config::Get(Config::MAIN_RENDER_TO_MAIN) &&
-                      state == Core::State::Uninitialized);
     if (state == Core::State::Running)
       SetImGuiKeyMap();
   });
@@ -91,21 +89,12 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
   // We need a native window to render into.
   setAttribute(Qt::WA_NativeWindow);
-
-  SetFillBackground(true);
-}
-
-void RenderWidget::SetFillBackground(bool fill)
-{
-  setAutoFillBackground(fill);
-  setAttribute(Qt::WA_OpaquePaintEvent, !fill);
-  setAttribute(Qt::WA_NoSystemBackground, !fill);
-  setAttribute(Qt::WA_PaintOnScreen, !fill);
+  setAttribute(Qt::WA_PaintOnScreen);
 }
 
 QPaintEngine* RenderWidget::paintEngine() const
 {
-  return autoFillBackground() ? QWidget::paintEngine() : nullptr;
+  return nullptr;
 }
 
 void RenderWidget::dragEnterEvent(QDragEnterEvent* event)
@@ -178,8 +167,6 @@ bool RenderWidget::event(QEvent* event)
 
   switch (event->type())
   {
-  case QEvent::Paint:
-    return !autoFillBackground();
   case QEvent::KeyPress:
   {
     QKeyEvent* ke = static_cast<QKeyEvent*>(event);
@@ -252,12 +239,12 @@ void RenderWidget::OnFreeLookMouseMove(QMouseEvent* event)
   if (event->buttons() & Qt::RightButton)
   {
     // Camera Pitch and Yaw:
-    VertexShaderManager::RotateView(mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f);
+    g_freelook_camera.Rotate(Common::Vec3{mouse_move.y() / 200.f, mouse_move.x() / 200.f, 0.f});
   }
   else if (event->buttons() & Qt::MidButton)
   {
     // Camera Roll:
-    VertexShaderManager::RotateView(0.f, 0.f, mouse_move.x() / 200.f);
+    g_freelook_camera.Rotate({0.f, 0.f, mouse_move.x() / 200.f});
   }
 }
 

@@ -195,7 +195,6 @@ private:
 
 // Mutex is recursive as ControllerInterface may call AddWiimoteToPool within ProcessWiimotePool.
 extern std::recursive_mutex g_wiimotes_mutex;
-extern WiimoteScanner g_wiimote_scanner;
 extern std::unique_ptr<Wiimote> g_wiimotes[MAX_BBMOTES];
 
 void AddWiimoteToPool(std::unique_ptr<Wiimote>);

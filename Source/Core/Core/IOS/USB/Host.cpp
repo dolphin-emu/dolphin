@@ -35,7 +35,7 @@ USBHost::~USBHost() = default;
 
 IPCCommandResult USBHost::Open(const OpenRequest& request)
 {
-  if (!m_has_initialised)
+  if (!m_has_initialised && !Core::WantsDeterminism())
   {
     StartThreads();
     // Force a device scan to complete, because some games (including Your Shape) only care

@@ -18,6 +18,8 @@ add_executable(dolphin-emu
   AboutDialog.h
   CheatsManager.cpp
   CheatsManager.h
+  ConvertDialog.cpp
+  ConvertDialog.h
   DiscordHandler.cpp
   DiscordHandler.h
   DiscordJoinRequestDialog.cpp
@@ -176,6 +178,8 @@ add_executable(dolphin-emu
   Debugger/MemoryViewWidget.h
   Debugger/MemoryWidget.cpp
   Debugger/MemoryWidget.h
+  Debugger/NetworkWidget.cpp
+  Debugger/NetworkWidget.h
   Debugger/NewBreakpointDialog.cpp
   Debugger/NewBreakpointDialog.h
   Debugger/PatchInstructionDialog.cpp
@@ -184,6 +188,8 @@ add_executable(dolphin-emu
   Debugger/RegisterColumn.h
   Debugger/RegisterWidget.cpp
   Debugger/RegisterWidget.h
+  Debugger/ThreadWidget.cpp
+  Debugger/ThreadWidget.h
   Debugger/WatchWidget.cpp
   Debugger/WatchWidget.h
   GameList/GameList.cpp
@@ -196,6 +202,8 @@ add_executable(dolphin-emu
   GameList/GridProxyModel.h
   GameList/ListProxyModel.cpp
   GameList/ListProxyModel.h
+  GCMemcardCreateNewDialog.cpp
+  GCMemcardCreateNewDialog.h
   GCMemcardManager.cpp
   GCMemcardManager.h
   QtUtils/BlockUserInputFilter.cpp
@@ -222,8 +230,10 @@ add_executable(dolphin-emu
   QtUtils/FileOpenEventFilter.h
   QtUtils/FlowLayout.cpp
   QtUtils/FlowLayout.h
+  QtUtils/FontMetricsHelper.h
   QtUtils/ModalMessageBox.cpp
   QtUtils/ModalMessageBox.h
+  QtUtils/ParallelProgressDialog.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
   QtUtils/WindowActivationEventFilter.cpp

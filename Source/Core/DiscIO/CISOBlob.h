@@ -37,12 +37,15 @@ public:
   static std::unique_ptr<CISOFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::CISO; }
+
+  u64 GetRawSize() const override;
   // The CISO format does not save the original file size.
   // This function returns an upper bound.
   u64 GetDataSize() const override;
   bool IsDataSizeAccurate() const override { return false; }
 
-  u64 GetRawSize() const override;
+  u64 GetBlockSize() const override { return m_block_size; }
+
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:

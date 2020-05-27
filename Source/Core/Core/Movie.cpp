@@ -44,6 +44,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -190,11 +191,8 @@ std::string GetRTCDisplay()
   return format_time.str();
 }
 
-// NOTE: GPU Thread
 void FrameUpdate()
 {
-  // TODO[comex]: This runs on the GPU thread, yet it messes with the CPU
-  // state directly.  That's super sketchy.
   s_currentFrame++;
   if (!s_bPolled)
     s_currentLagCount++;
@@ -1379,6 +1377,15 @@ void SetGraphicsConfig()
 // NOTE: EmuThread / Host Thread
 void GetSettings()
 {
+  const bool slot_a_has_raw_memcard =
+      SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD;
+  const bool slot_a_has_gci_folder =
+      SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+  const bool slot_b_has_raw_memcard =
+      SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD;
+  const bool slot_b_has_gci_folder =
+      SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+
   s_bSaveConfig = true;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
@@ -1389,16 +1396,21 @@ void GetSettings()
   }
   else
   {
-    s_bClearSave = !File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH));
+    const auto gci_folder_has_saves = [](int card_index) {
+      const auto [path, migrate] = ExpansionInterface::CEXIMemoryCard::GetGCIFolderPath(
+          card_index, ExpansionInterface::AllowMovieFolder::No);
+      const u64 number_of_saves = File::ScanDirectoryTree(path, false).size;
+      return number_of_saves > 0;
+    };
+
+    s_bClearSave =
+        !(slot_a_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_A_PATH))) &&
+        !(slot_b_has_raw_memcard && File::Exists(Config::Get(Config::MAIN_MEMCARD_B_PATH))) &&
+        !(slot_a_has_gci_folder && gci_folder_has_saves(0)) &&
+        !(slot_b_has_gci_folder && gci_folder_has_saves(1));
   }
-  s_memcards |=
-      (SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-       SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
-      << 0;
-  s_memcards |=
-      (SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
-       SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
-      << 1;
+  s_memcards |= (slot_a_has_raw_memcard || slot_a_has_gci_folder) << 0;
+  s_memcards |= (slot_b_has_raw_memcard || slot_b_has_gci_folder) << 1;
 
   s_revision = ConvertGitRevisionToBytes(Common::scm_rev_git_str);
 
