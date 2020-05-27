@@ -103,8 +103,6 @@ GameFile::GameFile() = default;
 
 GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 {
-  m_file_name = PathToFileName(m_file_path);
-
   {
     std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
@@ -156,6 +154,13 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
+
+  // If the game is extracted then use the folder name two/three directories up instead
+  if (m_blob_type == DiscIO::BlobType::DIRECTORY)
+    m_file_name = FindFolderName();
+
+  if (m_file_name.empty())
+    m_file_name = PathToFileName(m_file_path);
 
   if (!IsValid() && GetExtension() == ".json")
   {
@@ -348,6 +353,17 @@ bool GameFile::IsElfOrDol() const
 {
   const std::string extension = GetExtension();
   return extension == ".elf" || extension == ".dol";
+}
+
+// Function for finding the folder name two (three if a Wii game) directories up for use in the file
+// name column for extracted games Returns a blank string if the folder can't be found
+std::string GameFile::FindFolderName() const
+{
+  const std::filesystem::path game_file_path = StringToPath(m_file_path).parent_path().parent_path();
+  return PathToString(m_platform == DiscIO::Platform::WiiDisc &&
+                              PathToString(game_file_path.filename()) == "DATA" ?
+                          game_file_path.parent_path() :
+                          game_file_path.filename());
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)
