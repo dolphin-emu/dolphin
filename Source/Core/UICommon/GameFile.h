@@ -112,6 +112,7 @@ private:
                                    const std::map<DiscIO::Language, std::string>& strings);
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
+  std::string FindFolderName();
   bool IsElfOrDol() const;
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
