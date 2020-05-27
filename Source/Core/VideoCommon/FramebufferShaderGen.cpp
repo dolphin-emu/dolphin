@@ -12,6 +12,8 @@
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace FramebufferShaderGen
 {

@@ -15,14 +15,19 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 
-#include "imgui.h"
+#include <imgui.h>
 
 std::unique_ptr<VideoCommon::ShaderCache> g_shader_cache;
 
 namespace VideoCommon
 {
-ShaderCache::ShaderCache() = default;
+ShaderCache::ShaderCache() : m_api_type{APIType::Nothing}
+{
+}
+
 ShaderCache::~ShaderCache()
 {
   ClearCaches();

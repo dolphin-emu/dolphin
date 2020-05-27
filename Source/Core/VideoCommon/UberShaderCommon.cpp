@@ -4,7 +4,8 @@
 
 #include "VideoCommon/UberShaderCommon.h"
 #include "VideoCommon/NativeVertexFormat.h"
-#include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace UberShader
