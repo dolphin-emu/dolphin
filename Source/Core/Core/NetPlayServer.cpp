@@ -935,7 +935,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   {
     sf::Packet spac;
     spac << static_cast<MessageId>(NP_MSG_POWER_BUTTON);
-    SendToClients(spac, player.pid);
+    SendToClients(spac);
   }
   break;
 

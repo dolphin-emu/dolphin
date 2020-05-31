@@ -841,20 +841,21 @@ bool MainWindow::RequestStop()
   OnStopRecording();
   // TODO: Add Debugger shutdown
 
-  if (!m_stop_requested && UICommon::TriggerSTMPowerEvent())
+  if (!m_stop_requested && UICommon::CanTriggerSTMPowerEvent())
   {
     m_stop_requested = true;
 
-    // Unpause because gracefully shutting down needs the game to actually request a shutdown.
-    // TODO: Do not unpause in debug mode to allow debugging until the complete shutdown.
-    if (Core::GetState() == Core::State::Paused)
-      Core::SetState(Core::State::Running);
-
-    // Tell NetPlay about the power event
     if (NetPlay::IsNetPlayRunning())
+    {
+      // Tell NetPlay about the power event
       NetPlay::SendPowerButtonEvent();
 
-    return true;
+      return true;
+    }
+    else if (UICommon::TriggerSTMPowerEvent())
+    {
+      return true;
+    }
   }
 
   ForceStop();
