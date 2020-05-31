@@ -26,10 +26,10 @@
 # Laete Meireles <laetemn@hotmail.com>, 2016-2017
 # Lucas Miranda <Liddack@outlook.com>, 2018-2020
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
-# Mateus B. Cassiano <inactive+Jhonn@transifex.com>, 2013
+# 0d650e867a64ff3c44c343a4a46f4cc4_0750f19 <ca09cae74bc6c7e28e5c24ed2567e538_49102>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2016
 # Mateus B. Cassiano <mbc07@live.com>, 2017
-# Mateus B. Cassiano <inactive+Jhonn@transifex.com>, 2013
+# 0d650e867a64ff3c44c343a4a46f4cc4_0750f19 <ca09cae74bc6c7e28e5c24ed2567e538_49102>, 2013
 # Matheus Staffa <matheushelmer@bol.com.br>, 2017-2018
 # Matheus Willder dos Santos, 2017
 # e280a96fc1c5ca912770b39ec2f351b2_b3cd8ba, 2017-2018
@@ -40,9 +40,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-05-21 18:39+0200\n"
-"PO-Revision-Date: 2020-05-21 16:39+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2020-05-31 21:07+0200\n"
+"PO-Revision-Date: 2020-05-24 00:21+0000\n"
+"Last-Translator: Igor Rückert\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -171,7 +171,7 @@ msgstr ""
 msgid "%1 Free Blocks; %2 Free Dir Entries"
 msgstr "%1 blocos livres; %2 arquivos livres"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:101
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:103
 msgid "%1 Graphics Configuration"
 msgstr "Configuração de gráficos %1"
 
@@ -179,7 +179,7 @@ msgstr "Configuração de gráficos %1"
 msgid "%1 Match(es)"
 msgstr "%1 correspondência(s)"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:134
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:135
 msgid "%1 doesn't support this feature on your system."
 msgstr "%1 não é compatível com este recurso no seu sistema."
 
@@ -549,7 +549,7 @@ msgstr "&Tema:"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:449
 msgid "&Threads"
-msgstr ""
+msgstr "Segmen&tos"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:223
 msgid "&Tools"
@@ -800,6 +800,7 @@ msgstr "Um disco já está prestes a ser inserido."
 #: Source/Core/DolphinQt/Main.cpp:196
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr ""
+"Um save state não pode ser carregado sem especificar um jogo para iniciar."
 
 #: Source/Core/DolphinQt/MainWindow.cpp:826
 msgid ""
@@ -872,7 +873,7 @@ msgstr "Sobre o Dolphin"
 msgid "Accelerometer"
 msgstr "Acelerômetro"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:73
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:74
 msgid "Accuracy:"
 msgstr "Precisão:"
 
@@ -980,11 +981,11 @@ msgstr "Ativo"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:162
 msgid "Active thread queue"
-msgstr ""
+msgstr "Fila do segmento ativo"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:177
 msgid "Active threads"
-msgstr ""
+msgstr "Segmentos ativos"
 
 #: Source/Core/DolphinQt/Config/Mapping/GCPadWiiUConfigDialog.cpp:71
 msgid "Adapter Detected"
@@ -1001,7 +1002,7 @@ msgstr "Adicionar"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:123
 msgid "Add &breakpoint"
-msgstr ""
+msgstr "Adicionar &ponto de interrupção"
 
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:46
 msgid "Add New USB Device"
@@ -1017,7 +1018,7 @@ msgstr "Adicionar um ponto de interrupção de memória"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:124
 msgid "Add memory breakpoint"
-msgstr ""
+msgstr "Adicionar ponto de interrupção de memória"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -1059,7 +1060,7 @@ msgstr "Espaço do endereço"
 msgid "Address:"
 msgstr "Endereço:"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:228
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:229
 msgid ""
 "Adjusts the accuracy at which the GPU receives texture updates from RAM.\n"
 "\n"
@@ -1118,8 +1119,8 @@ msgstr ""
 msgid "Advance Game Port"
 msgstr "Advance Game Port"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:85
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:114
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:87
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:116
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:43
 msgid "Advanced"
 msgstr "Avançado"
@@ -1437,7 +1438,7 @@ msgstr "Registrador BP"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:234
 msgid "Back Chain"
-msgstr ""
+msgstr "Cadeia de Retorno"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:122
 msgid "Backend Multithreading"
@@ -1448,7 +1449,7 @@ msgid "Backend Settings"
 msgstr "Configurações do Backend"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:71
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:50
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:51
 msgid "Backend:"
 msgstr "Backend:"
 
@@ -1495,7 +1496,7 @@ msgstr "Barra"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "Base priority"
-msgstr ""
+msgstr "Prioridade base"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:54
 msgid "Basic"
@@ -1828,6 +1829,17 @@ msgid ""
 "Orbital: Rotates the free camera around the original camera. Has no lateral "
 "movement, only rotation and you may zoom up to the camera's origin point."
 msgstr ""
+"Altera o tipo de câmera no jogo durante o freelook.\n"
+"\n"
+"Seis eixos: oferece controle total da câmera em todos os eixos, semelhante "
+"ao movimento de uma espaçonave em gravidade zero. Esta é a opção freelook "
+"mais poderosa, mas é a mais desafiadora de usar.\n"
+"Primeira pessoa: controla a câmera livre de maneira semelhante a um "
+"videogame em primeira pessoa. A câmera pode girar e viajar, mas é impossível "
+"rolar. Fácil de usar, mas limitado.\n"
+"Orbital: gira a câmera livre em torno da câmera original. Não possui "
+"movimento lateral, apenas rotação e você pode aumentar o zoom até o ponto de "
+"origem da câmera."
 
 #: Source/Core/DolphinQt/Config/CheatWarningWidget.cpp:67
 msgid "Changing cheats will only take effect when the game is restarted."
@@ -1958,7 +1970,7 @@ msgstr "Comum"
 msgid "Compile Shaders Before Starting"
 msgstr "Compilar shaders antes de começar"
 
-#: Source/Core/VideoCommon/ShaderCache.cpp:163
+#: Source/Core/VideoCommon/ShaderCache.cpp:168
 msgid "Compiling Shaders"
 msgstr "Compilando shaders"
 
@@ -2090,7 +2102,7 @@ msgstr "Eixo de Controle"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:94
 msgid "Control Type:"
-msgstr ""
+msgstr "Tipo de Controle:"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:389
 msgid "Controller Profile"
@@ -2475,7 +2487,7 @@ msgstr "Região atual"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:147
 msgid "Current context"
-msgstr ""
+msgstr "Contexto atual"
 
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:153
 msgid "Current game"
@@ -2483,7 +2495,7 @@ msgstr "Jogo atual"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:150
 msgid "Current thread"
-msgstr ""
+msgstr "Segmento atual"
 
 #: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:137
 msgid "Custom RTC Options"
@@ -2514,7 +2526,7 @@ msgstr "Emulação DSP"
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:93
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:51
 msgid "DSP HLE (fast)"
-msgstr ""
+msgstr "DSP HLE (rápido)"
 
 #: Source/Core/DolphinQt/Settings/AudioPane.cpp:53
 msgid "DSP LLE Interpreter (slow)"
@@ -2578,7 +2590,7 @@ msgstr "Zona Morta"
 msgid "Debug"
 msgstr "Depuração"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:72
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:73
 msgid "Debug Only"
 msgstr "Apenas Depuração"
 
@@ -2636,13 +2648,13 @@ msgstr "ISO padrão:"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:153
 msgid "Default thread"
-msgstr ""
+msgstr "Segmento padrão"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:140
 msgid "Defer EFB Cache Invalidation"
 msgstr "Postergar invalidação de cache do EFB"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:50
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:51
 msgid "Defer EFB Copies to RAM"
 msgstr "Postergar cópias EFB para a RAM"
 
@@ -2692,7 +2704,7 @@ msgstr "Porcentagem de profundidade:"
 msgid "Depth:"
 msgstr "Profundidade:"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:41
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:43
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:234
 #: Source/Core/DolphinQt/GameList/GameList.cpp:776
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:196
@@ -2708,7 +2720,7 @@ msgstr "Descrição:"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:184
 msgid "Detached"
-msgstr ""
+msgstr "Desanexado"
 
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:232
 msgid "Detect"
@@ -2774,7 +2786,7 @@ msgstr ""
 "\n"
 "Você ainda deseja usar o Direct3D 11? Na dúvida, selecione \"Não\"."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:104
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:105
 msgid "Disable Bounding Box"
 msgstr "Desativar Bounding Box"
 
@@ -2798,7 +2810,7 @@ msgstr "Desativar Névoa"
 msgid "Disable JIT Cache"
 msgstr "Desativar cache JIT"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:260
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:261
 msgid ""
 "Disables bounding box emulation.\n"
 "\n"
@@ -2849,7 +2861,7 @@ msgstr "Disco"
 msgid "Disc Read Error"
 msgstr "Erro de Leitura do Disco"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:239
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:240
 msgid ""
 "Displays XFB copies as soon as they are created, instead of waiting for "
 "scanout.\n"
@@ -3015,7 +3027,7 @@ msgstr "Download concluído"
 msgid "Downloaded %1 codes. (added %2)"
 msgstr "Baixado %1 códigos. (adicionado %2)"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:87
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:88
 msgid "Drawn Object Range"
 msgstr "Extensão dos Objetos Desenhados"
 
@@ -3067,7 +3079,7 @@ msgstr "Extrair Alvo EFB"
 msgid "Dump Frames"
 msgstr "Extrair &Quadros"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:66
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:67
 msgid "Dump Objects"
 msgstr "Extrair Objetos"
 
@@ -3083,11 +3095,11 @@ msgstr "Despejo de leitura SSL"
 msgid "Dump SSL write"
 msgstr "Despejo de escrita SSL"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:74
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:75
 msgid "Dump TEV Stages"
 msgstr "Extrair Estágios TEV"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:173
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:176
 msgid ""
 "Dump TEV Stages to User/Dump/Objects/.\n"
 "\n"
@@ -3097,11 +3109,11 @@ msgstr ""
 "\n"
 "Na dúvida, deixe desmarcado."
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:76
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:77
 msgid "Dump Texture Fetches"
 msgstr "Extrair Fetches de Textura"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:177
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:180
 msgid ""
 "Dump Texture Fetches to User/Dump/Objects/.\n"
 "\n"
@@ -3112,7 +3124,7 @@ msgstr ""
 "Na dúvida, deixe desmarcado."
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:68
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:65
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:66
 msgid "Dump Textures"
 msgstr "Extrair Texturas"
 
@@ -3120,7 +3132,7 @@ msgstr "Extrair Texturas"
 msgid "Dump at Internal Resolution"
 msgstr "Despejo na resolução interna"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:165
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:168
 msgid ""
 "Dump decoded game textures to User/Dump/Textures/<game_id>/.\n"
 "\n"
@@ -3131,7 +3143,7 @@ msgstr ""
 "\n"
 "Na dúvida, mantenha essa opção desativada."
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:169
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:172
 msgid ""
 "Dump objects to User/Dump/Objects/.\n"
 "\n"
@@ -3231,7 +3243,7 @@ msgstr "Efetivo"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:186
 msgid "Effective priority"
-msgstr ""
+msgstr "Prioridade efetiva"
 
 #: Source/Core/UICommon/UICommon.cpp:460
 msgid "EiB"
@@ -3241,7 +3253,7 @@ msgstr "EiB"
 msgid "Eject Disc"
 msgstr "Ejetar disco"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:40
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:41
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Frame Buffer Embutido (EFB)"
 
@@ -3444,7 +3456,7 @@ msgstr ""
 "Habilita o alongamento do áudio para corresponder com a velocidade de "
 "emulação."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:251
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:252
 msgid ""
 "Enables texture decoding using the GPU instead of the CPU.\n"
 "\n"
@@ -3505,8 +3517,8 @@ msgid "English"
 msgstr "Inglês"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:49
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:83
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:112
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:85
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:114
 msgid "Enhancements"
 msgstr "Melhorias"
 
@@ -3757,7 +3769,7 @@ msgstr "Extensão da simulação de movimento"
 msgid "External"
 msgstr "Externo"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:82
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:83
 msgid "External Frame Buffer (XFB)"
 msgstr "Frame Buffer Externo (XFB)"
 
@@ -3835,8 +3847,8 @@ msgstr "Falha na conexão com o servidor: %1"
 msgid "Failed to copy file"
 msgstr "Falha ao copiar o arquivo"
 
-#: Source/Core/VideoBackends/D3D/main.cpp:145
-#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:120
+#: Source/Core/VideoBackends/D3D/main.cpp:146
+#: Source/Core/VideoBackends/D3D12/VideoBackend.cpp:121
 msgid "Failed to create D3D swap chain"
 msgstr "Falha ao criar cadeia de swap D3D"
 
@@ -4128,11 +4140,11 @@ msgid "Fair Input Delay"
 msgstr "Atraso de entrada justo"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:232
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:78
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:79
 msgid "Fast"
 msgstr "Rápido"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:102
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:103
 msgid "Fast Depth Calculation"
 msgstr "Cálculo Rápido de Profundidade"
 
@@ -4260,7 +4272,7 @@ msgstr "Primeiro Bloco"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "First Person"
-msgstr ""
+msgstr "Primeira Pessoa"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:87
 msgid "Fix Checksums"
@@ -4550,7 +4562,7 @@ msgstr ""
 "Erros posteriores serão enviados para o log do backend de vídeo e o Dolphin "
 "provavelmente vai travar ou congelar agora. Aproveite."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:68
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:69
 msgid "GPU Texture Decoding"
 msgstr "Descodificação de texturas da GPU"
 
@@ -4661,8 +4673,8 @@ msgstr "Códigos Gecko"
 
 #: Source/Core/Core/HotkeyManager.cpp:322
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:196
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:82
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:111
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:84
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:113
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
@@ -4712,7 +4724,7 @@ msgstr "Modo golfe"
 msgid "Good dump"
 msgstr "Extração boa"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:32
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:390
 #: Source/Core/DolphinQt/ToolBar.cpp:131
 msgid "Graphics"
@@ -4770,14 +4782,14 @@ msgstr "Giroscópio"
 msgid "HDMI 3D"
 msgstr "HDMI 3D"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:84
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:113
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:86
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:115
 msgid "Hacks"
 msgstr "Hacks"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:165
 msgid "Head"
-msgstr ""
+msgstr "Cabeça"
 
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:109
 msgid "Hex"
@@ -4988,7 +5000,7 @@ msgstr ""
 msgid "Ignore"
 msgstr "Ignorar"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:45
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:46
 msgid "Ignore Format Changes"
 msgstr "Ignorar Mudanças de Formato"
 
@@ -4996,7 +5008,7 @@ msgstr "Ignorar Mudanças de Formato"
 msgid "Ignore for this session"
 msgstr "Ignorar para esta sessão"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:215
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:216
 msgid ""
 "Ignores any changes to the EFB format.\n"
 "\n"
@@ -5011,7 +5023,7 @@ msgstr ""
 "\n"
 "Na dúvida, mantenha essa opção ativada."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:210
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:211
 msgid ""
 "Ignores any requests from the CPU to read from or write to the EFB. \n"
 "\n"
@@ -5027,7 +5039,7 @@ msgstr ""
 "\n"
 "Na dúvida, deixe isto desmarcado."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:88
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
 msgid "Immediately Present XFB"
 msgstr "Apresentar XFB Imediatamente"
 
@@ -5080,7 +5092,7 @@ msgstr ""
 msgid "In-Game?"
 msgstr "Dentro do jogo?"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:263
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:264
 msgid ""
 "Includes the contents of the embedded frame buffer (EFB) and upscaled EFB "
 "copies in save states. Fixes missing and/or non-upscaled textures/objects "
@@ -5455,7 +5467,7 @@ msgstr "L (analógico)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:234
 msgid "LR Save"
-msgstr ""
+msgstr "Save LR"
 
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:141
 msgid "Label"
@@ -5808,7 +5820,7 @@ msgstr "MMU"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:290
 msgid "MORIBUND"
-msgstr ""
+msgstr "MORIBUNDO"
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:325
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:361
@@ -6030,8 +6042,8 @@ msgstr "Simulação de movimento"
 msgid "Motor"
 msgstr "Motor"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:44
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:145
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:46
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:147
 msgid ""
 "Move the mouse pointer over an option to display a detailed description."
 msgstr ""
@@ -6312,7 +6324,7 @@ msgid "Notice"
 msgstr "Informação"
 
 #. i18n: Null is referring to the null video backend, which renders nothing
-#: Source/Core/VideoBackends/Null/NullBackend.cpp:105
+#: Source/Core/VideoBackends/Null/NullBackend.cpp:106
 msgid "Null"
 msgstr "Nulo"
 
@@ -6440,11 +6452,11 @@ msgstr "OpenAL: não foi possível encontrar dispositivos de som"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: não foi possível abrir o dispositivo %s"
 
-#: Source/Core/VideoBackends/OGL/main.cpp:72
+#: Source/Core/VideoBackends/OGL/main.cpp:73
 msgid "OpenGL"
 msgstr "OpenGL"
 
-#: Source/Core/VideoBackends/OGL/main.cpp:70
+#: Source/Core/VideoBackends/OGL/main.cpp:71
 msgid "OpenGL ES"
 msgstr "OpenGL ES"
 
@@ -6467,10 +6479,10 @@ msgstr "Laranja"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "Orbital"
-msgstr ""
+msgstr "Orbital"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:84
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:97
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:98
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:166
 msgid "Other"
 msgstr "Outros"
@@ -6488,7 +6500,7 @@ msgstr "Gerenciamento de outro estado"
 msgid "Other game..."
 msgstr "Outro jogo..."
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:56
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:57
 msgid "Overlay Information"
 msgstr "Sobrepor Informações"
 
@@ -6864,7 +6876,7 @@ msgstr "R (analógico)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:281
 msgid "READY"
-msgstr ""
+msgstr "PRONTO"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:938
 msgid "RSO Modules"
@@ -6876,7 +6888,7 @@ msgstr "Autodetecção RSO"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:284
 msgid "RUNNING"
-msgstr ""
+msgstr "CORRENDO"
 
 #. i18n: A range of memory addresses
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:287
@@ -7084,7 +7096,7 @@ msgstr "Janela de renderização"
 msgid "Render to Main Window"
 msgstr "Renderizar na Janela Principal"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:45
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:46
 msgid "Rendering"
 msgstr "Renderização"
 
@@ -7217,7 +7229,7 @@ msgstr "ID da sala"
 msgid "Rotation applied at extremities of swing."
 msgstr "Rotação aplicada nas extremidades do balanço."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:267
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:268
 msgid ""
 "Rounds 2D vertices to whole pixels.\n"
 "\n"
@@ -7290,7 +7302,7 @@ msgid "Sa&ve State"
 msgstr "&Salvar Estado"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:224
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:70
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:71
 msgid "Safe"
 msgstr "Seguro"
 
@@ -7390,7 +7402,7 @@ msgstr "Salvar estado no compartimento"
 msgid "Save Symbol Map &As..."
 msgstr "Salvar mapa de símbolos &como..."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:107
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:108
 msgid "Save Texture Cache to State"
 msgstr "Salvar Cache de Texturas no Estado"
 
@@ -7660,11 +7672,11 @@ msgstr "O jogo selecionado não existe na lista de jogos!"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:229
 msgid "Selected thread callstack"
-msgstr ""
+msgstr "Pilha de chamada de segmento selecionada"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:207
 msgid "Selected thread context"
-msgstr ""
+msgstr "Contexto de segmento selecionado"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:210
 msgid ""
@@ -7700,7 +7712,7 @@ msgstr ""
 "\n"
 "Na dúvida, selecione \"Desligado\"."
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:155
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:158
 msgid ""
 "Selects what graphics API to use internally.\n"
 "The software renderer is extremely slow and only useful for debugging, so "
@@ -8015,7 +8027,7 @@ msgid "Show Spain"
 msgstr "&Espanha"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:52
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:59
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:60
 msgid "Show Statistics"
 msgstr "Exibir Estatísticas"
 
@@ -8059,7 +8071,7 @@ msgstr "Mostrar no código"
 msgid "Show in server browser"
 msgstr "Mostrar no navegador do servidor"
 
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:162
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:165
 msgid ""
 "Show various rendering statistics.\n"
 "\n"
@@ -8148,7 +8160,7 @@ msgstr "Simular DK Bongos"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
 msgid "Six Axis"
-msgstr ""
+msgstr "Seis Eixos"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
 #: Source/Core/DolphinQt/GameList/GameListModel.cpp:204
@@ -8167,7 +8179,7 @@ msgstr ""
 msgid "Skip"
 msgstr "Pular"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:44
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:45
 msgid "Skip EFB Access from CPU"
 msgstr "Pular Acesso EFB da CPU"
 
@@ -8175,11 +8187,11 @@ msgstr "Pular Acesso EFB da CPU"
 msgid "Skip Main Menu"
 msgstr "Pular menu principal"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:89
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:90
 msgid "Skip Presenting Duplicate Frames"
 msgstr "Ignorar apresentação de quadros duplicados"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:245
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:246
 msgid ""
 "Skips presentation of duplicate frames (XFB copies) in 25fps/30fps games. "
 "This may improve performance on low-end devices, while making frame pacing "
@@ -8223,8 +8235,8 @@ msgstr "Espaço B:"
 msgid "Socket table"
 msgstr "Tabela de soquete"
 
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:89
-#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:105
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:91
+#: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:107
 #: Source/Core/VideoBackends/Software/SWmain.cpp:53
 msgid "Software Renderer"
 msgstr "Renderizador de software"
@@ -8278,7 +8290,7 @@ msgstr "Volume do Auto-Falante:"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:189
 msgid "Specific"
-msgstr ""
+msgstr "Específico"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:43
 msgid "Speed"
@@ -8294,11 +8306,11 @@ msgstr "Estável (anualmente)"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:187
 msgid "Stack end"
-msgstr ""
+msgstr "Fim da pilha"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:187
 msgid "Stack start"
-msgstr ""
+msgstr "Começo da pilha"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
 msgid "Standard Controller"
@@ -8415,16 +8427,16 @@ msgid "Stopped game"
 msgstr "Jogo interrompido"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:216
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:47
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:48
 msgid "Store EFB Copies to Texture Only"
 msgstr "Armazenar Cópias EFB Somente na Textura"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:219
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:86
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:87
 msgid "Store XFB Copies to Texture Only"
 msgstr "Armazenar cópias XFB em somente textura"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:219
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:220
 msgid ""
 "Stores EFB copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.\n"
@@ -8442,7 +8454,7 @@ msgstr ""
 "\n"
 "Na dúvida, deixe isto marcado."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:234
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:235
 msgid ""
 "Stores XFB copies exclusively on the GPU, bypassing system memory. Causes "
 "graphical defects in a small number of games.\n"
@@ -8575,7 +8587,7 @@ msgstr "Suporta SD e SDHC. O tamanho padrão é 128 MB."
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:185
 msgid "Suspended"
-msgstr ""
+msgstr "Suspenso"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:128
 msgid "Swap Eyes"
@@ -8707,7 +8719,7 @@ msgstr "Tambor Taiko"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:168
 msgid "Tail"
-msgstr ""
+msgstr "Traseira"
 
 #: Source/Core/DiscIO/Enums.cpp:57
 msgid "Taiwan"
@@ -8722,7 +8734,7 @@ msgid "Test"
 msgstr "Testar"
 
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:223
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:58
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:59
 msgid "Texture Cache"
 msgstr "Cache de Texturas"
 
@@ -9124,11 +9136,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "O dispositivo USB já está na lista branca."
 
-#: Source/Core/Core/ConfigManager.cpp:876
+#: Source/Core/Core/ConfigManager.cpp:874
 msgid "This WAD is not bootable."
 msgstr "Este WAD não é inicializável."
 
-#: Source/Core/Core/ConfigManager.cpp:871
+#: Source/Core/Core/ConfigManager.cpp:869
 msgid "This WAD is not valid."
 msgstr "Este WAD não é válido."
 
@@ -9212,7 +9224,7 @@ msgstr ""
 "inteiros ficarão quebrados. Este problema geralmente só existe em cópias "
 "ilegais de jogos."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:177
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:179
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9269,7 +9281,7 @@ msgstr ""
 "Este software não deve ser usado para jogar jogos que você não possui "
 "legalmente."
 
-#: Source/Core/Core/ConfigManager.cpp:893
+#: Source/Core/Core/ConfigManager.cpp:891
 msgid "This title cannot be booted."
 msgstr "Este título não pode ser inicializado."
 
@@ -9350,11 +9362,11 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:144
 msgid "Thread context"
-msgstr ""
+msgstr "Contexto do segmento"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:25
 msgid "Threads"
-msgstr ""
+msgstr "Segmentos"
 
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:26
 msgid "Threshold"
@@ -9578,7 +9590,7 @@ msgstr "U&8"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:293
 msgid "UNKNOWN"
-msgstr ""
+msgstr "DESCONHECIDO"
 
 #: Source/Core/DiscIO/Enums.cpp:30
 msgid "USA"
@@ -9891,7 +9903,7 @@ msgstr "Interface do usuário"
 msgid "User Style:"
 msgstr "Estilo do usuário:"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:256
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:257
 msgid ""
 "Uses a less accurate algorithm to calculate depth values.\n"
 "\n"
@@ -9939,7 +9951,7 @@ msgid "Using Qt %1"
 msgstr "Usando o Qt %1"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:64
-#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:63
+#: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:64
 msgid "Utility"
 msgstr "Utilitário"
 
@@ -9987,7 +9999,7 @@ msgstr "Verificando"
 msgid "Version"
 msgstr "Versão"
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:105
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:106
 msgid "Vertex Rounding"
 msgstr "Arredondamento de vértice"
 
@@ -10060,7 +10072,7 @@ msgstr "Falha na instalação do WAD: o título selecionado não é um WAD váli
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:287
 msgid "WAITING"
-msgstr ""
+msgstr "AGUARDANDO"
 
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:32
 msgid ""
@@ -10124,7 +10136,7 @@ msgstr ""
 "\n"
 "Na dúvida, mantenha essa opção desativada."
 
-#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:223
+#: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:224
 msgid ""
 "Waits until the game synchronizes with the emulated GPU before writing the "
 "contents of EFB copies to RAM.\n"
@@ -10537,7 +10549,7 @@ msgstr "desconectado"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:188
 msgid "errno"
-msgstr ""
+msgstr "errno"
 
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:96
 msgid "fake-completion"
