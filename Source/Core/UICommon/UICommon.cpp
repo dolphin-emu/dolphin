@@ -382,6 +382,17 @@ void SaveWiimoteSources()
 
 bool TriggerSTMPowerEvent()
 {
+  if (!CanTriggerSTMPowerEvent())
+    return false;
+
+  Core::DisplayMessage("Shutting down", 30000);
+  ProcessorInterface::PowerButton_Tap();
+
+  return true;
+}
+
+bool CanTriggerSTMPowerEvent()
+{
   const auto ios = IOS::HLE::GetIOS();
   if (!ios)
     return false;
@@ -389,9 +400,6 @@ bool TriggerSTMPowerEvent()
   const auto stm = ios->GetDeviceByName("/dev/stm/eventhook");
   if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
     return false;
-
-  Core::DisplayMessage("Shutting down", 30000);
-  ProcessorInterface::PowerButton_Tap();
 
   return true;
 }

@@ -27,6 +27,7 @@ void CreateDirectories();
 void SetUserDirectory(const std::string& custom_path);
 
 bool TriggerSTMPowerEvent();
+bool CanTriggerSTMPowerEvent();
 
 void SaveWiimoteSources();
 
