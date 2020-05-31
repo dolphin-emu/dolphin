@@ -265,7 +265,7 @@ void ui_pad_sel(void)
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
-#else
+#endif
   if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
     cursor_reg += 8;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
@@ -280,7 +280,6 @@ void ui_pad_sel(void)
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
-#endif
 }
 
 void ui_pad_edit_reg(void)
@@ -302,7 +301,7 @@ void ui_pad_edit_reg(void)
     *reg_value = 0;
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
     *reg_value = 0xffff;
-#else
+#endif
   if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
     small_cursor_x++;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
@@ -319,7 +318,6 @@ void ui_pad_edit_reg(void)
     *reg_value = 0;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_Y)
     *reg_value = 0xffff;
-#endif
 }
 
 void handle_dsp_mail(void)
