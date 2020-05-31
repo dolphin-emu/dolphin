@@ -4,6 +4,10 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
@@ -66,13 +70,17 @@ public class GameFileCache
    */
   public boolean scanLibrary(Context context)
   {
+    boolean recursiveScan = NativeLibrary
+            .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
+                    SettingsFile.KEY_RECURSIVE_ISO_PATHS, "False").equals("True");
+
     removeNonExistentGameFolders(context);
 
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
     String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
 
-    boolean cacheChanged = update(folderPaths);
+    boolean cacheChanged = update(folderPaths, recursiveScan);
     cacheChanged |= updateAdditionalMetadata();
     if (cacheChanged)
     {
@@ -85,7 +93,7 @@ public class GameFileCache
 
   public native GameFile addOrGet(String gamePath);
 
-  private native boolean update(String[] folderPaths);
+  private native boolean update(String[] folderPaths, boolean recursiveScan);
 
   private native boolean updateAdditionalMetadata();
 

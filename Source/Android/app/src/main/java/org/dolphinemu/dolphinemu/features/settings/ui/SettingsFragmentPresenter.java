@@ -317,6 +317,7 @@ public final class SettingsFragmentPresenter
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
   {
+    Setting recursiveISOPaths = null;
     Setting defaultISO = null;
     Setting NANDRootPath = null;
     Setting dumpPath = null;
@@ -326,6 +327,7 @@ public final class SettingsFragmentPresenter
 
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
     SettingSection generalSection = mSettings.getSection(Settings.SECTION_INI_GENERAL);
+    recursiveISOPaths = generalSection.getSetting(SettingsFile.KEY_RECURSIVE_ISO_PATHS);
     defaultISO = coreSection.getSetting(SettingsFile.KEY_DEFAULT_ISO);
     NANDRootPath = generalSection.getSetting(SettingsFile.KEY_NAND_ROOT_PATH);
     dumpPath = generalSection.getSetting(SettingsFile.KEY_DUMP_PATH);
@@ -333,6 +335,9 @@ public final class SettingsFragmentPresenter
     resourcePackPath = generalSection.getSetting(SettingsFile.KEY_RESOURCE_PACK_PATH);
     wiiSDCardPath = generalSection.getSetting(SettingsFile.KEY_WII_SD_CARD_PATH);
 
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_RECURSIVE_ISO_PATHS, Settings.SECTION_INI_GENERAL,
+            R.string.search_subfolders, R.string.search_subfolders_description, false,
+            recursiveISOPaths));
     sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_DEFAULT_ISO,
             Settings.SECTION_INI_CORE, R.string.default_ISO, 0, "",
             MainPresenter.REQUEST_GAME_FILE, defaultISO));
