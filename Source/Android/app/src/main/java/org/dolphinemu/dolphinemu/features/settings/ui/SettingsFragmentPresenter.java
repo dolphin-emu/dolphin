@@ -336,8 +336,7 @@ public final class SettingsFragmentPresenter
     wiiSDCardPath = generalSection.getSetting(SettingsFile.KEY_WII_SD_CARD_PATH);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_RECURSIVE_ISO_PATHS, Settings.SECTION_INI_GENERAL,
-            R.string.search_subfolders, R.string.search_subfolders_description, false,
-            recursiveISOPaths));
+            R.string.search_subfolders, 0, false, recursiveISOPaths));
     sl.add(new FilePicker(SettingsFile.FILE_NAME_DOLPHIN, SettingsFile.KEY_DEFAULT_ISO,
             Settings.SECTION_INI_CORE, R.string.default_ISO, 0, "",
             MainPresenter.REQUEST_GAME_FILE, defaultISO));

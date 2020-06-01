@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -10,6 +11,9 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public final class SettingsActivityPresenter
 {
@@ -27,18 +31,22 @@ public final class SettingsActivityPresenter
 
   private MenuTag menuTag;
   private String gameId;
+  private Context context;
+
+  private final Set<String> modifiedSettings = new HashSet<>();
 
   SettingsActivityPresenter(SettingsActivityView view)
   {
     mView = view;
   }
 
-  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId)
+  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
   {
     if (savedInstanceState == null)
     {
       this.menuTag = menuTag;
       this.gameId = gameId;
+      this.context = context;
     }
     else
     {
@@ -126,7 +134,7 @@ public final class SettingsActivityPresenter
   public void clearSettings()
   {
     mSettings.clearSettings();
-    onSettingChanged();
+    onSettingChanged(null);
   }
 
   public void onStop(boolean finishing)
@@ -140,7 +148,7 @@ public final class SettingsActivityPresenter
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView);
+      mSettings.saveSettings(mView, context, modifiedSettings);
     }
   }
 
@@ -174,8 +182,13 @@ public final class SettingsActivityPresenter
     return false;
   }
 
-  public void onSettingChanged()
+  public void onSettingChanged(String key)
   {
+    if (key != null)
+    {
+      modifiedSettings.add(key);
+    }
+
     mShouldSave = true;
   }
 

@@ -182,7 +182,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
     }
 
-    mView.onSettingChanged();
+    mView.onSettingChanged(item.getKey());
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -294,7 +294,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         mView.putSetting(setting);
       }
 
-      mView.onSettingChanged();
+      mView.onSettingChanged(item.getKey());
     });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
@@ -366,7 +366,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     sView.putSetting(resourcePackPath);
     sView.putSetting(sdPath);
 
-    sView.onSettingChanged();
+    sView.onSettingChanged(null);
   }
 
   @Override
@@ -378,7 +378,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue() != value)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       MenuTag menuTag = scSetting.getMenuTag();
       if (menuTag != null)
@@ -434,7 +434,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which);
       if (scSetting.getSelectedValue() != value)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       // Get the backing Setting, which may be null (if for example it was missing from the file)
       IntSetting setting = scSetting.setSelectedValue(value);
@@ -450,7 +450,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue().equals(value))
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       StringSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
@@ -464,7 +464,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       SliderSetting sliderSetting = (SliderSetting) mClickedItem;
       if (sliderSetting.getSelectedValue() != mSeekbarProgress)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       if (sliderSetting.isPercentSetting() || sliderSetting.getSetting() instanceof FloatSetting)
       {

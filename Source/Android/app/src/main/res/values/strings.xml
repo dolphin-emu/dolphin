@@ -165,7 +165,6 @@
     <!-- Path Settings -->
     <string name="paths_submenu">Paths</string>
     <string name="search_subfolders">Search Subfolders for Game Files</string>
-    <string name="search_subfolders_description">Refresh library after changing this setting.</string>
     <string name="default_ISO">Default ISO</string>
     <string name="wii_NAND_root">Wii NAND Root</string>
     <string name="dump_path">Dump Path</string>

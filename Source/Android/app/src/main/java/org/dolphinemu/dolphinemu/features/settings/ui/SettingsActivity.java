@@ -51,7 +51,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID);
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, getApplicationContext());
   }
 
   @Override
@@ -275,9 +275,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void onSettingChanged()
+  public void onSettingChanged(String key)
   {
-    mPresenter.onSettingChanged();
+    mPresenter.onSettingChanged(key);
   }
 
   @Override
