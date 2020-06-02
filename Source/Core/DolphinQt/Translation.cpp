@@ -302,6 +302,17 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 
 void Translation::Initialize()
 {
+// Let the translation select the GUI directionality. This is intentionally excluded
+// from compilation, since all that matters is that xgettext sees it. We could use
+// QT_TRANSLATE_NOOP3 instead of tr, but that doesn't compile correctly when put
+// on a line of its own, so we would need to exclude it from compilation anyway.
+#if 0
+  QGuiApplication::tr(
+      "QT_LAYOUT_DIRECTION",
+      "Translate this string to the string 'LTR' in left-to-right languages or to 'RTL' in "
+      "right-to-left languages (such as Hebrew and Arabic) to get proper widget layout.");
+#endif
+
   // Hook up Dolphin internal translation
   Common::RegisterStringTranslator(
       [](const char* text) { return QObject::tr(text).toStdString(); });
