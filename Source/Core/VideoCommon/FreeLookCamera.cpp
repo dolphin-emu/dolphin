@@ -270,3 +270,8 @@ bool FreeLookCamera::IsDirty() const
 {
   return m_dirty;
 }
+
+void FreeLookCamera::SetClean()
+{
+  m_dirty = false;
+}

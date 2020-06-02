@@ -54,6 +54,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool msaa = host_config.msaa;
   const bool ssaa = host_config.ssaa;
   const bool stereo = host_config.stereo;
+  const int views = host_config.views;
   const bool use_dual_source = host_config.backend_dual_source_blend;
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool early_depth = uid_data->early_depth != 0;
@@ -114,7 +115,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
       GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
-      if (stereo)
+      if (stereo || views > 1)
         out.Write("  flat int layer;\n");
 
       out.Write("};\n\n");
@@ -285,7 +286,8 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   // ======================
   //    Indirect Lookup
   // ======================
-  auto LookupIndirectTexture = [&out, stereo](const char* out_var_name, const char* in_index_name) {
+  auto LookupIndirectTexture = [&out, stereo, views](const char* out_var_name,
+                                                     const char* in_index_name) {
     out.Write("{\n"
               "  uint iref = bpmem_iref(%s);\n"
               "  if ( iref != 0u)\n"
@@ -304,7 +306,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
               "    %s = sampleTexture(texmap, float3(float2(fixedPoint_uv) * " I_TEXDIMS
               "[texmap].xy, %s)).abg;\n",
               in_index_name, in_index_name, in_index_name, in_index_name, out_var_name,
-              stereo ? "float(layer)" : "0.0");
+              (stereo || views > 1) ? "float(layer)" : "0.0");
     out.Write("  }\n"
               "  else\n"
               "  {\n"
@@ -737,7 +739,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     }
     out.Write(",\n  in float clipDist0 : SV_ClipDistance0\n");
     out.Write(",\n  in float clipDist1 : SV_ClipDistance1\n");
-    if (stereo)
+    if (stereo || views > 1)
       out.Write(",\n  in uint layer : SV_RenderTargetArrayIndex\n");
     out.Write("\n        ) {\n");
   }

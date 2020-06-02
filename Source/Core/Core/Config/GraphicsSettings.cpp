@@ -43,6 +43,9 @@ const Info<bool> GFX_DUMP_FRAMES_AS_IMAGES{{System::GFX, "Settings", "DumpFrames
 const Info<bool> GFX_FREE_LOOK{{System::GFX, "Settings", "FreeLook"}, false};
 const Info<FreelookControlType> GFX_FREE_LOOK_CONTROL_TYPE{
     {System::GFX, "Settings", "FreeLookControlType"}, FreelookControlType::SixAxis};
+const Info<int> GFX_FREE_LOOK_SCREEN_COUNT{{System::GFX, "Settings", "FreeLookScreenCount"}, 1};
+const Info<bool> GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL{
+    {System::GFX, "Settings", "FreeLookScreenPreferHorizontal"}, true};
 const Info<bool> GFX_USE_FFV1{{System::GFX, "Settings", "UseFFV1"}, false};
 const Info<std::string> GFX_DUMP_FORMAT{{System::GFX, "Settings", "DumpFormat"}, "avi"};
 const Info<std::string> GFX_DUMP_CODEC{{System::GFX, "Settings", "DumpCodec"}, ""};

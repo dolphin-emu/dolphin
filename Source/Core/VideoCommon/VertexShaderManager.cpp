@@ -346,7 +346,7 @@ void VertexShaderManager::SetConstants()
     }
   }
 
-  if (bProjectionChanged || g_freelook_camera.IsDirty())
+  if (bProjectionChanged || (g_freelook_camera.IsDirty() && g_ActiveConfig.iFreelookScreens == 1))
   {
     bProjectionChanged = false;
 
@@ -414,8 +414,12 @@ void VertexShaderManager::SetConstants()
 
     auto corrected_matrix = s_viewportCorrection * Common::Matrix44::FromArray(g_fProjectionMatrix);
 
-    if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE)
+    if (g_ActiveConfig.bFreeLook && xfmem.projection.type == GX_PERSPECTIVE &&
+        g_ActiveConfig.iFreelookScreens == 1)
+    {
       corrected_matrix *= g_freelook_camera.GetView();
+      g_freelook_camera.SetClean();
+    }
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 

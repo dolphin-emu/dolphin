@@ -379,6 +379,7 @@ public:
 
   // For when a vec4 isn't needed a multiplication function that takes a Vec3 and w:
   Vec3 Transform(const Vec3& point, float w) const;
+  Matrix44 Inverted() const;
 
   Matrix44& operator*=(const Matrix44& rhs)
   {

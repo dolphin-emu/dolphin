@@ -97,6 +97,7 @@ public:
   static std::vector<std::string> GetShaderList();
   static std::vector<std::string> GetPassiveShaderList();
   static std::vector<std::string> GetAnaglyphShaderList();
+  static std::vector<std::string> GetSplitScreenShaderList();
 
   PostProcessingConfiguration* GetConfig() { return &m_config; }
 

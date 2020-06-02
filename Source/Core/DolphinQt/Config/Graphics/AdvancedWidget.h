@@ -41,6 +41,8 @@ private:
   QCheckBox* m_load_custom_textures;
   QCheckBox* m_enable_freelook;
   QComboBox* m_freelook_control_type;
+  QSpinBox* m_freelook_screens;
+  QCheckBox* m_freelook_prefer_horizontal;
 
   // Frame dumping
   QCheckBox* m_dump_use_ffv1;

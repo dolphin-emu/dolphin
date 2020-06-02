@@ -91,6 +91,8 @@ void VideoConfig::Refresh()
   bDumpXFBTarget = Config::Get(Config::GFX_DUMP_XFB_TARGET);
   bDumpFramesAsImages = Config::Get(Config::GFX_DUMP_FRAMES_AS_IMAGES);
   bFreeLook = Config::Get(Config::GFX_FREE_LOOK);
+  iFreelookScreens = Config::Get(Config::GFX_FREE_LOOK_SCREEN_COUNT);
+  bFreeLookPreferHorizontal = Config::Get(Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL);
   bUseFFV1 = Config::Get(Config::GFX_USE_FFV1);
   sDumpFormat = Config::Get(Config::GFX_DUMP_FORMAT);
   sDumpCodec = Config::Get(Config::GFX_DUMP_CODEC);
@@ -181,6 +183,17 @@ void VideoConfig::VerifyValidity()
           "Stereoscopic 3D isn't supported by your GPU, support for OpenGL 3.2 is required.",
           10000);
       stereo_mode = StereoMode::Off;
+    }
+  }
+
+  if (iFreelookScreens > 1)
+  {
+    if (!backend_info.bSupportsGeometryShaders)
+    {
+      OSD::AddMessage("Multiple screen rendering isn't supported by your GPU, support for OpenGL "
+                      "3.2 is required.",
+                      10000);
+      iFreelookScreens = 1;
     }
   }
 }

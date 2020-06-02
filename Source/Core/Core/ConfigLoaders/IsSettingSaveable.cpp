@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::Location*, 103> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 105> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -83,6 +83,8 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::GFX_DUMP_FRAMES_AS_IMAGES.location,
       &Config::GFX_FREE_LOOK.location,
       &Config::GFX_FREE_LOOK_CONTROL_TYPE.location,
+      &Config::GFX_FREE_LOOK_SCREEN_COUNT.location,
+      &Config::GFX_FREE_LOOK_SCREEN_PREFER_HORIZONTAL.location,
       &Config::GFX_USE_FFV1.location,
       &Config::GFX_DUMP_FORMAT.location,
       &Config::GFX_DUMP_CODEC.location,

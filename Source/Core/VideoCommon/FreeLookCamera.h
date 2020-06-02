@@ -56,6 +56,7 @@ public:
   void DoState(PointerWrap& p);
 
   bool IsDirty() const;
+  void SetClean();
 
 private:
   bool m_dirty = false;

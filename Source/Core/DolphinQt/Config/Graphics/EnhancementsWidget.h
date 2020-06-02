@@ -51,4 +51,8 @@ private:
 
   int m_msaa_modes;
   bool m_block_save;
+
+  int m_freelook = -1;
+  int m_freelook_screens = 0;
+  int m_freelook_screen_prefer_horizontal = -1;
 };
