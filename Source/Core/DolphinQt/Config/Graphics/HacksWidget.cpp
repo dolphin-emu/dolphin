@@ -14,21 +14,21 @@
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
+#include "DolphinQt/Config/Graphics/GraphicsDialog.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipSlider.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-HacksWidget::HacksWidget(GraphicsWindow* parent)
+HacksWidget::HacksWidget(GraphicsDialog* parent)
 {
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(parent, &GraphicsWindow::BackendChanged, this, &HacksWidget::OnBackendChanged);
+  connect(parent, &GraphicsDialog::BackendChanged, this, &HacksWidget::OnBackendChanged);
   OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
   connect(&Settings::Instance(), &Settings::ConfigChanged, this, &HacksWidget::LoadSettings);
 }

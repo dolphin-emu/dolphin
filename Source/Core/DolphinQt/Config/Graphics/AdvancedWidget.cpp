@@ -17,22 +17,22 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
+#include "DolphinQt/Config/Graphics/GraphicsDialog.h"
 #include "DolphinQt/Config/Graphics/GraphicsInteger.h"
-#include "DolphinQt/Config/Graphics/GraphicsWindow.h"
 #include "DolphinQt/Config/ToolTipControls/ToolTipCheckBox.h"
 #include "DolphinQt/QtUtils/SignalBlocking.h"
 #include "DolphinQt/Settings.h"
 
 #include "VideoCommon/VideoConfig.h"
 
-AdvancedWidget::AdvancedWidget(GraphicsWindow* parent)
+AdvancedWidget::AdvancedWidget(GraphicsDialog* parent)
 {
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
 
-  connect(parent, &GraphicsWindow::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
+  connect(parent, &GraphicsDialog::BackendChanged, this, &AdvancedWidget::OnBackendChanged);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     OnEmulationStateChanged(state != Core::State::Uninitialized);
   });

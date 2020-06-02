@@ -73,6 +73,7 @@
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsChoice.cpp" />
+    <ClCompile Include="Config\Graphics\GraphicsDialog.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsInteger.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
@@ -268,6 +269,7 @@
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />
     <QtMoc Include="Config\Graphics\GraphicsChoice.h" />
+    <QtMoc Include="Config\Graphics\GraphicsDialog.h" />
     <QtMoc Include="Config\Graphics\GraphicsInteger.h" />
     <QtMoc Include="Config\Graphics\GraphicsRadio.h" />
     <QtMoc Include="Config\Graphics\GraphicsSlider.h" />

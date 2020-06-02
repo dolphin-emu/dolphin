@@ -17,6 +17,7 @@
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
+#include "DolphinQt/Config/Graphics/GraphicsDialog.h"
 #include "DolphinQt/Config/Graphics/HacksWidget.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
@@ -25,7 +26,7 @@
 #include "VideoCommon/VideoConfig.h"
 
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
-    : QDialog(parent), m_xrr_config(xrr_config)
+    : GraphicsDialog(parent), m_xrr_config(xrr_config)
 {
   CreateMainLayout();
 

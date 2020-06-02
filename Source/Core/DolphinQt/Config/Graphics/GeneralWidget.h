@@ -8,8 +8,8 @@
 
 class GraphicsBool;
 class GraphicsChoice;
+class GraphicsDialog;
 class GraphicsRadioInt;
-class GraphicsWindow;
 class QCheckBox;
 class QComboBox;
 class QRadioButton;
@@ -25,7 +25,7 @@ class GeneralWidget final : public GraphicsWidget
 {
   Q_OBJECT
 public:
-  explicit GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsWindow* parent);
+  explicit GeneralWidget(X11Utils::XRRConfiguration* xrr_config, GraphicsDialog* parent);
 signals:
   void BackendChanged(const QString& backend);
 

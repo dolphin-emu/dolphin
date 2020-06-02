@@ -79,6 +79,8 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsBool.h
   Config/Graphics/GraphicsChoice.cpp
   Config/Graphics/GraphicsChoice.h
+  Config/Graphics/GraphicsDialog.cpp
+  Config/Graphics/GraphicsDialog.h
   Config/Graphics/GraphicsInteger.cpp
   Config/Graphics/GraphicsInteger.h
   Config/Graphics/GraphicsRadio.cpp
