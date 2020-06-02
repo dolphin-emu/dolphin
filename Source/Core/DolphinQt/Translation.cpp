@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <cstring>
 #include <iterator>
+#include <string>
 
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -213,7 +214,17 @@ public:
   QString translate(const char* context, const char* source_text,
                     const char* disambiguation = nullptr, int n = -1) const override
   {
-    return QString::fromUtf8(m_mo_file.Translate(source_text));
+    if (disambiguation)
+    {
+      std::string combined_string = disambiguation;
+      combined_string += '\4';
+      combined_string += source_text;
+      return QString::fromUtf8(m_mo_file.Translate(combined_string.c_str()));
+    }
+    else
+    {
+      return QString::fromUtf8(m_mo_file.Translate(source_text));
+    }
   }
 
 private:
