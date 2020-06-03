@@ -96,13 +96,13 @@ public:
   }
   virtual std::string GetGameID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const = 0;
-  virtual std::string GetMakerID(const Partition& partition = PARTITION_NONE) const = 0;
+  virtual std::string GetPublisherID(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::string GetInternalName(const Partition& partition = PARTITION_NONE) const = 0;
   virtual std::map<Language, std::string> GetShortNames() const { return {}; }
   virtual std::map<Language, std::string> GetLongNames() const { return {}; }
-  virtual std::map<Language, std::string> GetShortMakers() const { return {}; }
-  virtual std::map<Language, std::string> GetLongMakers() const { return {}; }
+  virtual std::map<Language, std::string> GetShortMakerPublishers() const { return {}; }
+  virtual std::map<Language, std::string> GetLongPublishers() const { return {}; }
   virtual std::map<Language, std::string> GetDescriptions() const { return {}; }
   virtual std::vector<u32> GetBanner(u32* width, u32* height) const = 0;
   std::string GetApploaderDate() const { return GetApploaderDate(GetGamePartition()); }

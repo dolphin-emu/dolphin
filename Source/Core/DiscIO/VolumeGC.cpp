@@ -103,7 +103,7 @@ Country VolumeGC::GetCountry(const Partition& partition) const
   return CountryCodeToCountry(country, Platform::GameCubeDisc, region, revision);
 }
 
-std::string VolumeGC::GetMakerID(const Partition& partition) const
+std::string VolumeGC::GetPublisherID(const Partition& partition) const
 {
   char maker_id[2];
   if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
@@ -137,12 +137,12 @@ std::map<Language, std::string> VolumeGC::GetLongNames() const
   return m_converted_banner->long_names;
 }
 
-std::map<Language, std::string> VolumeGC::GetShortMakers() const
+std::map<Language, std::string> VolumeGC::GetShortMakerPublishers() const
 {
   return m_converted_banner->short_makers;
 }
 
-std::map<Language, std::string> VolumeGC::GetLongMakers() const
+std::map<Language, std::string> VolumeGC::GetLongPublishers() const
 {
   return m_converted_banner->long_makers;
 }

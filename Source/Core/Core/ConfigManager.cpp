@@ -149,7 +149,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ShowActiveTitle", m_show_active_title);
-  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_title_database);
+  interface->Set("UseBuiltinTitleDatabase", m_use_builtin_metadata_database);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
   interface->Set("DebugModeEnabled", bEnableDebugging);
@@ -411,7 +411,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
-  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_title_database, true);
+  interface->Get("UseBuiltinTitleDatabase", &m_use_builtin_metadata_database, true);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
   interface->Get("DebugModeEnabled", &bEnableDebugging, false);

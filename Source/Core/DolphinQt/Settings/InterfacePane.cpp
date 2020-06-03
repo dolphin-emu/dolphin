@@ -141,14 +141,14 @@ void InterfacePane::CreateUI()
   }
 
   // Checkboxes
-  m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
+  m_checkbox_use_builtin_metadata_database = new QCheckBox(tr("Use Built-In Database of Metadata"));
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
   m_checkbox_use_covers =
       new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
   m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
 
-  groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
+  groupbox_layout->addWidget(m_checkbox_use_builtin_metadata_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
   groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
@@ -181,7 +181,7 @@ void InterfacePane::CreateInGame()
 
 void InterfacePane::ConnectLayout()
 {
-  connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
+  connect(m_checkbox_use_builtin_metadata_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -206,7 +206,7 @@ void InterfacePane::ConnectLayout()
 void InterfacePane::LoadConfig()
 {
   const SConfig& startup_params = SConfig::GetInstance();
-  m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
+  m_checkbox_use_builtin_metadata_database->setChecked(startup_params.m_use_builtin_metadata_database);
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
       QString::fromStdString(SConfig::GetInstance().m_InterfaceLanguage)));
@@ -241,7 +241,7 @@ void InterfacePane::LoadConfig()
 void InterfacePane::OnSaveConfig()
 {
   SConfig& settings = SConfig::GetInstance();
-  settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
+  settings.m_use_builtin_metadata_database = m_checkbox_use_builtin_metadata_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
   Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());

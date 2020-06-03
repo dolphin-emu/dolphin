@@ -134,8 +134,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
   case COL_MAKER:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
-      return QString::fromStdString(
-          game.GetMaker(UICommon::GameFile::Variant::LongAndPossiblyCustom));
+      return QString::fromStdString(game.GetPublisher(m_title_database));
     }
     break;
   case COL_FILE_NAME:
@@ -195,7 +194,7 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
   case COL_DESCRIPTION:
     return tr("Description");
   case COL_MAKER:
-    return tr("Maker");
+    return tr("Publisher");
   case COL_FILE_NAME:
     return tr("File Name");
   case COL_FILE_PATH:
