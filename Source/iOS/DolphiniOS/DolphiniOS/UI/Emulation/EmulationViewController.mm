@@ -593,6 +593,12 @@
 
 - (void)didReceiveMemoryWarning
 {
+  // Show a warning
+  NSString* warning = @"iOS has detected that the available system RAM is running low.\n\nDolphiniOS may be forcibly quit at any time to free up RAM, since it is using a significant amount of RAM for emulation.\n\nAn automatic save state has been made which can be restored when the app is reopened, but you should still save your progress in-game immediately.";
+  UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Warning" message:warning preferredStyle:UIAlertControllerStyleAlert];
+  [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+  [self presentViewController:alert animated:true completion:nil];
+  
   // Attempt to get the process's VM info
   // https://github.com/WebKit/webkit/blob/master/Source/WTF/wtf/cocoa/MemoryFootprintCocoa.cpp
   task_vm_info_data_t vm_info;
