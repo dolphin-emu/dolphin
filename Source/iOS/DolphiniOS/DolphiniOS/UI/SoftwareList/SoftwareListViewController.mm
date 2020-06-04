@@ -44,6 +44,20 @@
     preferred_view == 0 ? self.m_list_button : self.m_grid_button
   ];
   
+  // Assign images to navigation buttons using SF symbols when supported
+  if (@available(iOS 13, *))
+  {
+    self.m_menu_button.image = [UIImage imageNamed:@"SF_ellipsis_circle"];
+    self.m_grid_button.image = [UIImage imageNamed:@"SF_rectangle_grid_2x2"];
+    self.m_list_button.image = [UIImage imageNamed:@"SF_list_dash"];
+  }
+  else
+  {
+    self.m_menu_button.image = [UIImage imageNamed:@"ellipsis_circle_legacy.png"];
+    self.m_grid_button.image = [UIImage imageNamed:@"rectangle_grid_2x2_legacy.png"];
+    self.m_list_button.image = [UIImage imageNamed:@"list_dash_legacy.png"];
+  }
+  
   // Create UIRefreshControls
   UIRefreshControl* table_refresh = [[UIRefreshControl alloc] init];
   [table_refresh addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
