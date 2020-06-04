@@ -65,6 +65,8 @@
   
   self.m_ts_active_port = -1;
   
+  self.m_pull_down_mode = (DOLTopBarPullDownMode)[[NSUserDefaults standardUserDefaults] integerForKey:@"top_bar_pull_down_mode"];
+  
   if (self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysHidden && self.m_pull_down_mode != DOLTopBarPullDownModeAlwaysVisible)
   {
     for (GCController* controller in [GCController controllers])
