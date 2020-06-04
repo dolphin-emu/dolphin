@@ -38,6 +38,8 @@
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
 
+#import "GameFileCacheHolder.h"
+
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
@@ -406,6 +408,8 @@
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
   cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
+  
+  [[GameFileCacheHolder sharedInstance] rescanWithCompletionHandler:nil];
 
 #ifdef ANALYTICS
   [FIRApp configure];
