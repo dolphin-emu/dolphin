@@ -125,6 +125,14 @@
     self.m_stop_button,
     self.m_pause_button
   ];
+  
+  // Update status bar appearance so it's the proper color if "Show Status Bar" is enabled
+  [self setNeedsStatusBarAppearanceUpdate];
+}
+
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+  return UIStatusBarStyleLightContent;
 }
 
 - (void)StartEmulation
@@ -300,7 +308,15 @@
 
 - (bool)prefersStatusBarHidden
 {
-  return [self.navigationController isNavigationBarHidden];
+  // If user prefers status bar to be shown, don't hide it
+  if ([[NSUserDefaults standardUserDefaults] boolForKey:@"show_status_bar"])
+  {
+    return false;
+  }
+  else
+  {
+    return [self.navigationController isNavigationBarHidden];
+  }
 }
 
 - (void)UpdateNavigationBar:(bool)hidden
