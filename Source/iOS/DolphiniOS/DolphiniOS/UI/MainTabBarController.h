@@ -1,10 +1,6 @@
-//
-//  MainTabBarController.h
-//  DolphiniOS
-//
-//  Created by Bailey Hughes on 5/13/20.
-//  Copyright © 2020 Dolphin Team. All rights reserved.
-//
+// Copyright 2020 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #import <UIKit/UIKit.h>
 
