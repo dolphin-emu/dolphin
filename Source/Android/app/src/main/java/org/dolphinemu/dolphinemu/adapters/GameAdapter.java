@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.adapters;
 
+import android.content.Context;
 import android.graphics.Rect;
 
 import androidx.annotation.NonNull;
@@ -15,6 +16,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.GameViewHolder;
 
@@ -68,11 +70,21 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   @Override
   public void onBindViewHolder(GameViewHolder holder, int position)
   {
+    Context context = holder.itemView.getContext();
     GameFile gameFile = mGameFiles.get(position);
     PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
 
     holder.textGameTitle.setText(gameFile.getTitle());
-    holder.textCompany.setText(gameFile.getCompany());
+
+    if (GameFileCacheService.findSecondDisc(gameFile) != null)
+    {
+      holder.textGameCaption
+              .setText(context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
+    }
+    else
+    {
+      holder.textGameCaption.setText(gameFile.getCompany());
+    }
 
     holder.gameFile = gameFile;
   }
