@@ -81,3 +81,6 @@ Pods/
 
 # Firebase
 GoogleService-Info.plist
+
+# MoltenVK
+DolphiniOS/libMoltenVK.dylib

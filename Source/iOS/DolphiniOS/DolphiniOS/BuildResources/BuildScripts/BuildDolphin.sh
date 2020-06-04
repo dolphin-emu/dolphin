@@ -4,7 +4,7 @@ set -e
 
 ROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..
 CMAKE_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$ARCHS-$DOLPHIN_BUILD_TYPE
-GENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build
+GENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$DOLPHIN_BUILD_TYPE
 ADDITIONAL_CMAKE_SETTINGS=
 
 IOS_PLATFORM=OS64
@@ -47,4 +47,4 @@ if [ -f "$GENERIC_BUILD_DIR/libs/Externals/libfmtd.a" ]; then
     cp $GENERIC_BUILD_DIR/libs/Externals/libfmtd.a $GENERIC_BUILD_DIR/libs/Externals/libfmt.a
 fi
 
-cp $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $GENERIC_BUILD_DIR/libs/Externals/libMoltenVK.dylib
+ln -s $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $PROJECT_DIR/libMoltenVK.dylib
