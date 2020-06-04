@@ -60,6 +60,7 @@
     <ClCompile Include="ScrubbedBlob.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
     <ClCompile Include="Volume.cpp" />
+    <ClCompile Include="VolumeDisc.cpp" />
     <ClCompile Include="VolumeFileBlobReader.cpp" />
     <ClCompile Include="VolumeGC.cpp" />
     <ClCompile Include="VolumeVerifier.cpp" />
@@ -89,6 +90,7 @@
     <ClInclude Include="ScrubbedBlob.h" />
     <ClInclude Include="TGCBlob.h" />
     <ClInclude Include="Volume.h" />
+    <ClInclude Include="VolumeDisc.h" />
     <ClInclude Include="VolumeFileBlobReader.h" />
     <ClInclude Include="VolumeGC.h" />
     <ClInclude Include="VolumeVerifier.h" />

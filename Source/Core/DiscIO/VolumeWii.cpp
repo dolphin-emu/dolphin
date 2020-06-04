@@ -299,16 +299,6 @@ u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition
   return EncryptedPartitionOffsetToRawOffset(offset, partition, data_offset);
 }
 
-std::string VolumeWii::GetGameID(const Partition& partition) const
-{
-  char id[6];
-
-  if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
-    return std::string();
-
-  return DecodeString(id);
-}
-
 std::string VolumeWii::GetGameTDBID(const Partition& partition) const
 {
   // Don't return an ID for Datel discs
@@ -320,49 +310,7 @@ std::string VolumeWii::GetGameTDBID(const Partition& partition) const
 
 Region VolumeWii::GetRegion() const
 {
-  const std::optional<u32> region_code = m_reader->ReadSwapped<u32>(0x4E000);
-  if (!region_code)
-    return Region::Unknown;
-  const Region region = static_cast<Region>(*region_code);
-  return region <= Region::NTSC_K ? region : Region::Unknown;
-}
-
-Country VolumeWii::GetCountry(const Partition& partition) const
-{
-  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
-  const u8 country_byte = ReadSwapped<u8>(3, partition).value_or(0);
-  const Region region = GetRegion();
-  const std::optional<u16> revision = GetRevision();
-
-  if (CountryCodeToRegion(country_byte, Platform::WiiDisc, region, revision) != region)
-    return TypicalCountryForRegion(region);
-
-  return CountryCodeToCountry(country_byte, Platform::WiiDisc, region, revision);
-}
-
-std::string VolumeWii::GetMakerID(const Partition& partition) const
-{
-  char maker_id[2];
-
-  if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
-    return std::string();
-
-  return DecodeString(maker_id);
-}
-
-std::optional<u16> VolumeWii::GetRevision(const Partition& partition) const
-{
-  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
-  return revision ? *revision : std::optional<u16>();
-}
-
-std::string VolumeWii::GetInternalName(const Partition& partition) const
-{
-  char name_buffer[0x60];
-  if (Read(0x20, sizeof(name_buffer), reinterpret_cast<u8*>(&name_buffer), partition))
-    return DecodeString(name_buffer);
-
-  return "";
+  return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x4E000));
 }
 
 std::map<Language, std::string> VolumeWii::GetLongNames() const
@@ -385,24 +333,9 @@ std::vector<u32> VolumeWii::GetBanner(u32* width, u32* height) const
   return WiiSaveBanner(*title_id).GetBanner(width, height);
 }
 
-std::string VolumeWii::GetApploaderDate(const Partition& partition) const
-{
-  char date[16];
-
-  if (!Read(0x2440, sizeof(date), reinterpret_cast<u8*>(&date), partition))
-    return std::string();
-
-  return DecodeString(date);
-}
-
 Platform VolumeWii::GetVolumeType() const
 {
   return Platform::WiiDisc;
-}
-
-std::optional<u8> VolumeWii::GetDiscNumber(const Partition& partition) const
-{
-  return ReadSwapped<u8>(6, partition);
 }
 
 BlobType VolumeWii::GetBlobType() const
