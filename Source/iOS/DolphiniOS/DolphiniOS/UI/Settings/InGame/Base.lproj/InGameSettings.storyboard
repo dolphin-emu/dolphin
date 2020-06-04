@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -115,6 +115,34 @@
                                         </tableViewCellContentView>
                                         <connections>
                                             <segue destination="gjN-t9-9DX" kind="show" id="PLB-JJ-0vI"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
+                            <tableViewSection headerTitle="Misc" id="m8l-i1-6aC">
+                                <cells>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" rowHeight="43.666667938232422" id="wrm-uf-LwA">
+                                        <rect key="frame" x="20" y="342.16667175292969" width="374" height="43.666667938232422"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="wrm-uf-LwA" id="ffW-0W-amK">
+                                            <rect key="frame" x="0.0" y="0.0" width="343" height="43.666667938232422"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Change Disc" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wCh-P0-Prf">
+                                                    <rect key="frame" x="20" y="11.5" width="323" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="wCh-P0-Prf" firstAttribute="centerY" secondItem="ffW-0W-amK" secondAttribute="centerY" id="F2f-hg-KTK"/>
+                                                <constraint firstItem="wCh-P0-Prf" firstAttribute="leading" secondItem="ffW-0W-amK" secondAttribute="leadingMargin" id="Si2-cQ-w1X"/>
+                                                <constraint firstAttribute="trailing" secondItem="wCh-P0-Prf" secondAttribute="trailing" id="n5C-z2-bX4"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <segue destination="k2b-Zj-1F8" kind="show" id="P2p-rJ-HaR"/>
                                         </connections>
                                     </tableViewCell>
                                 </cells>
@@ -295,6 +323,50 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Yff-o4-p1h" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="13458" y="649"/>
+        </scene>
+        <!--Change Disc-->
+        <scene sceneID="Uo2-E9-V3h">
+            <objects>
+                <tableViewController title="Change Touchscreen" id="k2b-Zj-1F8" userLabel="Change Disc" customClass="InGameChangeDiscViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="Jcy-Sf-ERT">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="software_cell" rowHeight="44" id="PLQ-HH-uH2" customClass="SoftwareTableViewCell">
+                                <rect key="frame" x="20" y="55.5" width="374" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="PLQ-HH-uH2" id="UFJ-M5-Oer">
+                                    <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Game Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Xpb-MD-Ttl">
+                                            <rect key="frame" x="20" y="11.5" width="354" height="21"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstAttribute="trailing" secondItem="Xpb-MD-Ttl" secondAttribute="trailing" id="aMq-G8-9lc"/>
+                                        <constraint firstItem="Xpb-MD-Ttl" firstAttribute="centerY" secondItem="UFJ-M5-Oer" secondAttribute="centerY" id="xhi-SI-fCK"/>
+                                        <constraint firstItem="Xpb-MD-Ttl" firstAttribute="leading" secondItem="UFJ-M5-Oer" secondAttribute="leadingMargin" id="yzB-rK-YVo"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="fileNameLabel" destination="Xpb-MD-Ttl" id="XVH-GT-BYs"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="k2b-Zj-1F8" id="xn5-SZ-br6"/>
+                            <outlet property="delegate" destination="k2b-Zj-1F8" id="HZ2-Tt-a2r"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Change Disc" id="jpz-Dz-fkp"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="9es-zW-7QR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="12535" y="1359"/>
         </scene>
     </scenes>
 </document>

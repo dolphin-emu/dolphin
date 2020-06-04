@@ -68,6 +68,7 @@
 		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
 		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
 		B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */ = {isa = PBXBuildFile; fileRef = B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */; };
+		B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -379,6 +380,8 @@
 		B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiiSystemUpdateViewController.h; sourceTree = "<group>"; };
 		B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSystemUpdateViewController.mm; sourceTree = "<group>"; };
 		B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = Entitlements_PsychicPaper.txt; path = BuildResources/Entitlements_PsychicPaper.txt; sourceTree = "<group>"; };
+		B94817D32489758300CD27AD /* InGameChangeDiscViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameChangeDiscViewController.h; sourceTree = "<group>"; };
+		B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameChangeDiscViewController.mm; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -876,6 +879,15 @@
 			path = WiiSystemUpdate;
 			sourceTree = "<group>";
 		};
+		B94817D2248973BA00CD27AD /* ChangeDisc */ = {
+			isa = PBXGroup;
+			children = (
+				B94817D32489758300CD27AD /* InGameChangeDiscViewController.h */,
+				B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */,
+			);
+			path = ChangeDisc;
+			sourceTree = "<group>";
+		};
 		B94D332D2466366300E75790 /* KilledBuild */ = {
 			isa = PBXGroup;
 			children = (
@@ -1265,6 +1277,7 @@
 		B9C85E1323AA21E2008A4DD1 /* InGame */ = {
 			isa = PBXGroup;
 			children = (
+				B94817D2248973BA00CD27AD /* ChangeDisc */,
 				B9B948B823BFC4AC00E244FF /* PortSelector */,
 				B971155423E02E2B001C6BD6 /* State */,
 				B9A7AD6123C16B0F00C70473 /* InGameSettingsViewController.h */,
@@ -1757,6 +1770,7 @@
 				B99D361D23E3F405005627CE /* WiiAspectRatioViewController.mm in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
 				B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */,
+				B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */,
 				B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
 				B92CCE602431266D0057BC75 /* SettingsDebugViewController.mm in Sources */,

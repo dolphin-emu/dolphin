@@ -43,3 +43,18 @@
 
 /* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
 "uVG-PZ-CTl.text" = "State Slot 1";
+
+/* Class = "UILabel"; text = "Game Name"; ObjectID = "Xpb-MD-Ttl"; */
+"Xpb-MD-Ttl.text" = "Game Name";
+
+/* Class = "UINavigationItem"; title = "Cambiar disco"; ObjectID = "jpz-Dz-fkp"; */
+"jpz-Dz-fkp.title" = "Cambiar disco";
+
+/* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "k2b-Zj-1F8"; */
+"k2b-Zj-1F8.title" = "Change Touchscreen";
+
+/* Class = "UITableViewSection"; headerTitle = "Varios"; ObjectID = "m8l-i1-6aC"; */
+"m8l-i1-6aC.headerTitle" = "Varios";
+
+/* Class = "UILabel"; text = "Cambiar disco"; ObjectID = "wCh-P0-Prf"; */
+"wCh-P0-Prf.text" = "Cambiar disco";
