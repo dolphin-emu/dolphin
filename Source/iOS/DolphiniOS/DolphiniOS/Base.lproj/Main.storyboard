@@ -228,6 +228,32 @@
             </objects>
             <point key="canvasLocation" x="133" y="107"/>
         </scene>
+        <!--Navigation Controller-->
+        <scene sceneID="523-1a-5v4">
+            <objects>
+                <navigationController id="8JK-OS-dC3" sceneMemberID="viewController">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" largeTitles="YES" id="Ezk-l4-PlQ">
+                        <rect key="frame" x="0.0" y="44" width="375" height="96"/>
+                        <autoresizingMask key="autoresizingMask"/>
+                    </navigationBar>
+                    <connections>
+                        <segue destination="WtG-rJ-iSn" kind="relationship" relationship="rootViewController" id="yH1-v1-Vxo"/>
+                    </connections>
+                </navigationController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="Hv5-Ou-4A4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1044" y="464"/>
+        </scene>
+        <!--NetPlay Setup-->
+        <scene sceneID="KMq-I5-ykS">
+            <objects>
+                <viewControllerPlaceholder storyboardName="NetPlaySetup" referencedIdentifier="Root" id="WtG-rJ-iSn" userLabel="NetPlay Setup" sceneMemberID="viewController">
+                    <navigationItem key="navigationItem" id="890-s4-UWi"/>
+                </viewControllerPlaceholder>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="7BC-ug-Ej4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1948" y="463"/>
+        </scene>
         <!--Root-->
         <scene sceneID="w6p-Qu-w2w">
             <objects>
@@ -236,7 +262,7 @@
                 </viewControllerPlaceholder>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="gac-X5-9Sw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1948" y="417"/>
+            <point key="canvasLocation" x="1947" y="1153"/>
         </scene>
         <!--Settings-->
         <scene sceneID="8Hm-gg-Nyw">
@@ -254,7 +280,7 @@
                 </navigationController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Zid-Qp-qcb" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="1045" y="417"/>
+            <point key="canvasLocation" x="1044" y="1154"/>
         </scene>
     </scenes>
 </document>

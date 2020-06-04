@@ -109,3 +109,6 @@
 
 /* Class = "UILabel"; text = "Set Process As Debugged"; ObjectID = "3ho-Oh-qCP"; */
 "3ho-Oh-qCP.text" = "Set Process As Debugged";
+
+/* Class = "UILabel"; text = "APRR JIT"; ObjectID = "mmb-wT-Nx4"; */
+"mmb-wT-Nx4.text" = "APRR JIT";
