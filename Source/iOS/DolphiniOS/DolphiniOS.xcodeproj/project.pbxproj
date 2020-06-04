@@ -13,7 +13,6 @@
 		B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF36D236B3FCE00199BA7 /* SoftwareTableViewCell.m */; };
 		B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.m */; };
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
-		B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; };
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B92431C52400DFC600D5FF0A /* GraphicsSettings.storyboard */; };
 		B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924321D2401F61300D5FF0A /* InGameSettings.storyboard */; };
@@ -216,7 +215,7 @@
 		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = ../../../build/libs/Externals/libMoltenVK.dylib; sourceTree = "<group>"; };
+		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = libMoltenVK.dylib; sourceTree = "<group>"; };
 		B92431C42400DFC600D5FF0A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/GraphicsSettings.storyboard; sourceTree = "<group>"; };
 		B92431C72400DFD100D5FF0A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
 		B92431C92400DFDC00D5FF0A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
@@ -591,7 +590,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B91BF388236BFAF700199BA7 /* libMoltenVK.dylib in Frameworks */,
 				B95A09492385DE9600DBBB01 /* CoreAudio.framework in Frameworks */,
 				B95A094A2385DE9600DBBB01 /* AudioToolbox.framework in Frameworks */,
 				B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */,
@@ -1965,8 +1963,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -2077,8 +2075,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -2138,8 +2136,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -2291,8 +2289,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -2398,8 +2396,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
@@ -2510,8 +2508,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -2617,8 +2615,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build/libs/Dolphin",
-					"$(SRCROOT)/../../../build/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
