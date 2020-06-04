@@ -255,10 +255,15 @@
 {
   const UICommon::GameFile* game_file = self.m_cache->Get(indexPath.row).get();
   
-  UIAction* set_default_action = [UIAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") image:[UIImage systemImageNamed:@"doc"] identifier:nil handler:^(UIAction*)
+  NSMutableArray<UIAction*>* actions = [[NSMutableArray alloc] init];
+  
+  if (game_file->GetPlatform() == DiscIO::Platform::WiiDisc || game_file->GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
-    [self SetDefaultIso:game_file];
-  }];
+    [actions addObject:[UIAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") image:[UIImage systemImageNamed:@"doc"] identifier:nil handler:^(UIAction*)
+    {
+      [self SetDefaultIso:game_file];
+    }]];
+  }
   
   UIAction* delete_action = [UIAction actionWithTitle:DOLocalizedString(@"Delete") image:[UIImage systemImageNamed:@"trash"] identifier:nil handler:^(UIAction*)
   {
@@ -266,7 +271,9 @@
   }];
   [delete_action setAttributes:UIMenuElementAttributesDestructive];
   
-  return [UIMenu menuWithTitle:CppToFoundationString(game_file->GetUniqueIdentifier()) children:@[ set_default_action, delete_action ]];
+  [actions addObject:delete_action];
+  
+  return [UIMenu menuWithTitle:CppToFoundationString(game_file->GetUniqueIdentifier()) children:[actions copy]];
 }
 
 #pragma mark - Long press
@@ -292,10 +299,13 @@
   
   UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:CppToFoundationString(game_file->GetUniqueIdentifier()) preferredStyle:UIAlertControllerStyleActionSheet];
   
-  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+  if (game_file->GetPlatform() == DiscIO::Platform::WiiDisc || game_file->GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
-    [self SetDefaultIso:game_file];
-  }]];
+    [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+    {
+      [self SetDefaultIso:game_file];
+    }]];
+  }
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Delete") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
@@ -323,10 +333,19 @@
 
 - (void)DeleteFile:(const UICommon::GameFile*)game_file
 {
-  if (File::Delete(game_file->GetFilePath()))
+  UIAlertController* confirm_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Are you sure you want to delete this file?") preferredStyle:UIAlertControllerStyleAlert];
+  
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
-    [self rescanWithCompletionHandler:nil];
-  }
+    if (File::Delete(game_file->GetFilePath()))
+    {
+      [self rescanWithCompletionHandler:nil];
+    }
+  }]];
+  
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+  
+  [self presentViewController:confirm_alert animated:true completion:nil];
 }
 
 #pragma mark - Swap button
