@@ -1,10 +1,6 @@
-//
-//  MainTabBarController.m
-//  DolphiniOS
-//
-//  Created by Bailey Hughes on 5/13/20.
-//  Copyright © 2020 Dolphin Team. All rights reserved.
-//
+// Copyright 2020 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
 
 #import "MainTabBarController.h"
 
@@ -14,7 +10,8 @@
 
 @implementation MainTabBarController
 
-- (void)viewDidLoad {
+- (void)viewDidLoad
+{
   [super viewDidLoad];
   
   // Load SF Symbols on iOS 13 only, otherwise revert to legacy PNGs
