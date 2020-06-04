@@ -21,6 +21,8 @@
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
 		B92C380324142B960023D808 /* GraphicsAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */; };
 		B92CCE602431266D0057BC75 /* SettingsDebugViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92CCE5F2431266D0057BC75 /* SettingsDebugViewController.mm */; };
+		B930A5D12467B01000C7F1B5 /* NPSConnectionTypeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B930A5D02467B01000C7F1B5 /* NPSConnectionTypeViewController.mm */; };
+		B930A5D42467BDDA00C7F1B5 /* NPSJoinViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B930A5D32467BDDA00C7F1B5 /* NPSJoinViewController.mm */; };
 		B945A3752362908500B21680 /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = B945A3742362908500B21680 /* AppDelegate.mm */; };
 		B945A37E2362908500B21680 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B945A37C2362908500B21680 /* Main.storyboard */; };
 		B945A3802362909500B21680 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B945A37F2362909500B21680 /* Assets.xcassets */; };
@@ -111,6 +113,8 @@
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
 		B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B99577A024664F90008C5115 /* KilledBuildNotice.xib */; };
 		B99577A424665004008C5115 /* KilledBuildNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */; };
+		B99577AD24673EC0008C5115 /* NetPlaySetup.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B99577AC24673EBF008C5115 /* NetPlaySetup.storyboard */; };
+		B99585D524673F89008C5115 /* NetPlayHolder.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99585D424673F89008C5115 /* NetPlayHolder.mm */; };
 		B996C85223D50FC600700D6F /* Dolphin.strings in Resources */ = {isa = PBXBuildFile; fileRef = B996C85423D50FC600700D6F /* Dolphin.strings */; };
 		B996C85E23D590D500700D6F /* ConfigSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86023D590D500700D6F /* ConfigSettings.storyboard */; };
 		B996C86623D5F49500700D6F /* ControllerSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B996C86823D5F49500700D6F /* ControllerSettings.storyboard */; };
@@ -317,6 +321,10 @@
 		B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsAdvancedViewController.mm; sourceTree = "<group>"; };
 		B92CCE5E2431266D0057BC75 /* SettingsDebugViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsDebugViewController.h; sourceTree = "<group>"; };
 		B92CCE5F2431266D0057BC75 /* SettingsDebugViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SettingsDebugViewController.mm; sourceTree = "<group>"; };
+		B930A5CF2467B01000C7F1B5 /* NPSConnectionTypeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NPSConnectionTypeViewController.h; sourceTree = "<group>"; };
+		B930A5D02467B01000C7F1B5 /* NPSConnectionTypeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NPSConnectionTypeViewController.mm; sourceTree = "<group>"; };
+		B930A5D22467BDDA00C7F1B5 /* NPSJoinViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NPSJoinViewController.h; sourceTree = "<group>"; };
+		B930A5D32467BDDA00C7F1B5 /* NPSJoinViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NPSJoinViewController.mm; sourceTree = "<group>"; };
 		B945A3702362908500B21680 /* DolphiniOS.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DolphiniOS.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B945A3732362908500B21680 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		B945A3742362908500B21680 /* AppDelegate.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = AppDelegate.mm; sourceTree = "<group>"; };
@@ -444,6 +452,9 @@
 		B99577A224665004008C5115 /* KilledBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KilledBuildNoticeViewController.h; path = KilledBuild/KilledBuildNoticeViewController.h; sourceTree = "<group>"; };
 		B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KilledBuildNoticeViewController.m; path = KilledBuild/KilledBuildNoticeViewController.m; sourceTree = "<group>"; };
 		B99577A62466A185008C5115 /* AutoStates.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AutoStates.h; sourceTree = "<group>"; };
+		B99577AC24673EBF008C5115 /* NetPlaySetup.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; path = NetPlaySetup.storyboard; sourceTree = "<group>"; };
+		B99585D324673F89008C5115 /* NetPlayHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetPlayHolder.h; sourceTree = "<group>"; };
+		B99585D424673F89008C5115 /* NetPlayHolder.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = NetPlayHolder.mm; sourceTree = "<group>"; };
 		B996C83B23D45B5A00700D6F /* PreBuildTasks.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = PreBuildTasks.sh; path = BuildResources/BuildScripts/PreBuildTasks.sh; sourceTree = "<group>"; };
 		B996C85323D50FC600700D6F /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Dolphin.strings; sourceTree = "<group>"; };
 		B996C85723D5884300700D6F /* UpdateDolphinStrings.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = UpdateDolphinStrings.py; sourceTree = "<group>"; };
@@ -687,6 +698,7 @@
 			children = (
 				B924DCA923DAD40700831A1A /* Notices */,
 				B91BF368236B3E3900199BA7 /* Emulation */,
+				B99577AE24673EC4008C5115 /* NetPlay */,
 				B91BF363236B3DEC00199BA7 /* SoftwareList */,
 				B91BF35F236B390900199BA7 /* Settings */,
 				B946AF12245BFB950043767A /* WiiSystemUpdate */,
@@ -1008,6 +1020,28 @@
 				B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */,
 			);
 			path = Extensions;
+			sourceTree = "<group>";
+		};
+		B99577AE24673EC4008C5115 /* NetPlay */ = {
+			isa = PBXGroup;
+			children = (
+				B99585D224673F13008C5115 /* Setup */,
+				B99585D324673F89008C5115 /* NetPlayHolder.h */,
+				B99585D424673F89008C5115 /* NetPlayHolder.mm */,
+			);
+			path = NetPlay;
+			sourceTree = "<group>";
+		};
+		B99585D224673F13008C5115 /* Setup */ = {
+			isa = PBXGroup;
+			children = (
+				B930A5CF2467B01000C7F1B5 /* NPSConnectionTypeViewController.h */,
+				B930A5D02467B01000C7F1B5 /* NPSConnectionTypeViewController.mm */,
+				B930A5D22467BDDA00C7F1B5 /* NPSJoinViewController.h */,
+				B930A5D32467BDDA00C7F1B5 /* NPSJoinViewController.mm */,
+				B99577AC24673EBF008C5115 /* NetPlaySetup.storyboard */,
+			);
+			path = Setup;
 			sourceTree = "<group>";
 		};
 		B996C84F23D50E3600700D6F /* Localizables */ = {
@@ -1472,6 +1506,7 @@
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
+				B99577AD24673EC0008C5115 /* NetPlaySetup.storyboard in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
 				B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */,
@@ -1654,6 +1689,7 @@
 				B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */,
 				B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */,
 				B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */,
+				B99585D524673F89008C5115 /* NetPlayHolder.mm in Sources */,
 				B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.mm in Sources */,
@@ -1672,8 +1708,10 @@
 				B9BEADE423AF1A310014617A /* ControllerRootViewController.mm in Sources */,
 				B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */,
 				B971E1F9245EB63E00D2A698 /* DebuggerUtils.m in Sources */,
+				B930A5D12467B01000C7F1B5 /* NPSConnectionTypeViewController.mm in Sources */,
 				B988D7FD23B604AB0092CB6C /* ControllerProfileCell.m in Sources */,
 				B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */,
+				B930A5D42467BDDA00C7F1B5 /* NPSJoinViewController.mm in Sources */,
 				B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */,
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
