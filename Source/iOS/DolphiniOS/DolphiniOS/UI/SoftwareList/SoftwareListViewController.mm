@@ -257,15 +257,12 @@
   
   UIAction* set_default_action = [UIAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") image:[UIImage systemImageNamed:@"doc"] identifier:nil handler:^(UIAction*)
   {
-    Config::SetBase(Config::MAIN_DEFAULT_ISO, game_file->GetFilePath());
+    [self SetDefaultIso:game_file];
   }];
   
   UIAction* delete_action = [UIAction actionWithTitle:DOLocalizedString(@"Delete") image:[UIImage systemImageNamed:@"trash"] identifier:nil handler:^(UIAction*)
   {
-    if (File::Delete(game_file->GetFilePath()))
-    {
-      [self rescanWithCompletionHandler:nil];
-    }
+    [self DeleteFile:game_file];
   }];
   [delete_action setAttributes:UIMenuElementAttributesDestructive];
   
@@ -297,15 +294,12 @@
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
   {
-    Config::SetBase(Config::MAIN_DEFAULT_ISO, game_file->GetFilePath());
+    [self SetDefaultIso:game_file];
   }]];
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Delete") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
-    if (File::Delete(game_file->GetFilePath()))
-    {
-      [self rescanWithCompletionHandler:nil];
-    }
+    [self DeleteFile:game_file];
   }]];
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Cancel") style:UIAlertActionStyleCancel handler:nil]];
@@ -320,6 +314,20 @@
   
 }
 
+#pragma mark - Menu actions
+
+- (void)SetDefaultIso:(const UICommon::GameFile*)game_file
+{
+  Config::SetBase(Config::MAIN_DEFAULT_ISO, game_file->GetFilePath());
+}
+
+- (void)DeleteFile:(const UICommon::GameFile*)game_file
+{
+  if (File::Delete(game_file->GetFilePath()))
+  {
+    [self rescanWithCompletionHandler:nil];
+  }
+}
 
 #pragma mark - Swap button
 
