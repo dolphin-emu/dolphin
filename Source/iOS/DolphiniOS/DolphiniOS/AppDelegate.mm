@@ -37,6 +37,8 @@
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
 
+#import "GameFileCacheHolder.h"
+
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 
@@ -403,6 +405,8 @@
   [[NSUserDefaults standardUserDefaults] setInteger:launch_times + 1 forKey:@"launch_times"];
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
+  
+  [[GameFileCacheHolder sharedInstance] rescanWithCompletionHandler:nil];
 
 #ifdef ANALYTICS
   [FIRApp configure];

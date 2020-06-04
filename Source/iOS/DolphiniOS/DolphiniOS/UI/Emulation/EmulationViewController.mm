@@ -26,6 +26,8 @@
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
 
+#import "GameFileCacheHolder.h"
+
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
@@ -169,8 +171,7 @@
   id location = nil;
   DOLAutoStateBootType boot_type = DOLAutoStateBootTypeUnknown;
   
-  UICommon::GameFileCache* cache = new UICommon::GameFileCache();
-  cache->Load();
+  UICommon::GameFileCache* cache = [[GameFileCacheHolder sharedInstance] m_cache];
   
   for (size_t i = 0; i < cache->GetSize(); i++)
   {

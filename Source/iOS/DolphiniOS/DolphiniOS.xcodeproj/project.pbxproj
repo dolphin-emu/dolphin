@@ -80,6 +80,7 @@
 		B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */; };
 		B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
+		B966124E2488DF7200006392 /* GameFileCacheHolder.mm in Sources */ = {isa = PBXBuildFile; fileRef = B966124D2488DF7200006392 /* GameFileCacheHolder.mm */; };
 		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
 		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
 		B971155123DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971155023DF44C3001C6BD6 /* InvalidCpuCoreNotice.xib */; };
@@ -219,7 +220,7 @@
 		B91BF372236B400200199BA7 /* SettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SettingsTableViewController.h; sourceTree = "<group>"; };
 		B91BF373236B400200199BA7 /* SettingsTableViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SettingsTableViewController.m; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
-		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libMoltenVK.dylib; path = libMoltenVK.dylib; sourceTree = "<group>"; };
+		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libMoltenVK.dylib; sourceTree = "<group>"; };
 		B92431C42400DFC600D5FF0A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/GraphicsSettings.storyboard; sourceTree = "<group>"; };
 		B92431C72400DFD100D5FF0A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
 		B92431C92400DFDC00D5FF0A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
@@ -395,6 +396,8 @@
 		B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsSettingsUtils.h; sourceTree = "<group>"; };
 		B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsSettingsUtils.mm; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
+		B966124C2488DF7200006392 /* GameFileCacheHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameFileCacheHolder.h; sourceTree = "<group>"; };
+		B966124D2488DF7200006392 /* GameFileCacheHolder.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameFileCacheHolder.mm; sourceTree = "<group>"; };
 		B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReloadFailedNoticeViewController.mm; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
 		B971154D23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InvalidCpuCoreNoticeViewController.h; sourceTree = "<group>"; };
 		B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InvalidCpuCoreNoticeViewController.mm; sourceTree = "<group>"; };
@@ -703,6 +706,8 @@
 				B91BF35F236B390900199BA7 /* Settings */,
 				B946AF12245BFB950043767A /* WiiSystemUpdate */,
 				B99577A62466A185008C5115 /* AutoStates.h */,
+				B966124C2488DF7200006392 /* GameFileCacheHolder.h */,
+				B966124D2488DF7200006392 /* GameFileCacheHolder.mm */,
 				B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */,
 				4EDF824C246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift */,
 				B9AAAB3C23D789CD0094F159 /* LocalizerUtils.h */,
@@ -1716,6 +1721,7 @@
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
+				B966124E2488DF7200006392 /* GameFileCacheHolder.mm in Sources */,
 				B9E983F4245A57EB00119883 /* SoftwareListViewController.mm in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
 				B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */,
