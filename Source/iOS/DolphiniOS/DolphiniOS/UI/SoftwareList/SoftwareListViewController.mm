@@ -13,6 +13,7 @@
 #import "Core/ConfigManager.h"
 #import "Core/IOS/ES/ES.h"
 #import "Core/IOS/IOS.h"
+#import "Core/WiiUtils.h"
 
 #import "EmulationViewController.h"
 
@@ -257,12 +258,30 @@
   
   NSMutableArray<UIAction*>* actions = [[NSMutableArray alloc] init];
   
-  if (game_file->GetPlatform() == DiscIO::Platform::WiiDisc || game_file->GetPlatform() == DiscIO::Platform::GameCubeDisc)
+  DiscIO::Platform platform = game_file->GetPlatform();
+  if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::GameCubeDisc)
   {
     [actions addObject:[UIAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") image:[UIImage systemImageNamed:@"doc"] identifier:nil handler:^(UIAction*)
     {
       [self SetDefaultIso:game_file];
     }]];
+  }
+  else if (platform == DiscIO::Platform::WiiWAD)
+  {
+    if (!WiiUtils::IsTitleInstalled(game_file->GetTitleID()))
+    {
+      [actions addObject:[UIAction actionWithTitle:DOLocalizedString(@"Install to the NAND") image:[UIImage systemImageNamed:@"rectangle.stack.badge.plus"] identifier:nil handler:^(UIAction*)
+      {
+        [self InstallWad:game_file];
+      }]];
+    }
+    else
+    {
+      [actions addObject:[UIAction actionWithTitle:DOLocalizedString(@"Uninstall from the NAND") image:[UIImage systemImageNamed:@"rectangle.stack.badge.minus"] identifier:nil handler:^(UIAction*)
+      {
+        [self UninstallWad:game_file];
+      }]];
+    }
   }
   
   UIAction* delete_action = [UIAction actionWithTitle:DOLocalizedString(@"Delete") image:[UIImage systemImageNamed:@"trash"] identifier:nil handler:^(UIAction*)
@@ -299,12 +318,30 @@
   
   UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:CppToFoundationString(game_file->GetUniqueIdentifier()) preferredStyle:UIAlertControllerStyleActionSheet];
   
-  if (game_file->GetPlatform() == DiscIO::Platform::WiiDisc || game_file->GetPlatform() == DiscIO::Platform::GameCubeDisc)
+  DiscIO::Platform platform = game_file->GetPlatform();
+  if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::GameCubeDisc)
   {
     [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
     {
       [self SetDefaultIso:game_file];
     }]];
+  }
+  else if (platform == DiscIO::Platform::WiiWAD)
+  {
+    if (!WiiUtils::IsTitleInstalled(game_file->GetTitleID()))
+    {
+      [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Install to the NAND") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+      {
+        [self InstallWad:game_file];
+      }]];
+    }
+    else
+    {
+      [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Uninstall from the NAND") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
+      {
+        [self UninstallWad:game_file];
+      }]];
+    }
   }
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Delete") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
@@ -341,6 +378,53 @@
     {
       [self rescanWithCompletionHandler:nil];
     }
+  }]];
+  
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+  
+  [self presentViewController:confirm_alert animated:true completion:nil];
+}
+
+- (void)InstallWad:(const UICommon::GameFile*)game_file
+{
+  bool success = WiiUtils::InstallWAD(game_file->GetFilePath());
+  
+  UIAlertController* result_alert;
+  if (success)
+  {
+    result_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Success") message:DOLocalizedString(@"Successfully installed this title to the NAND.") preferredStyle:UIAlertControllerStyleAlert];
+  }
+  else
+  {
+    result_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Failure") message:DOLocalizedString(@"Failed to install this title to the NAND.") preferredStyle:UIAlertControllerStyleAlert];
+  }
+  
+  [result_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+  
+  [self presentViewController:result_alert animated:true completion:nil];
+}
+
+- (void)UninstallWad:(const UICommon::GameFile*)game_file
+{
+  UIAlertController* confirm_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Uninstalling the WAD will remove the currently installed version of this title from the NAND without deleting its save data. Continue?") preferredStyle:UIAlertControllerStyleAlert];
+  
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
+  {
+    bool success = WiiUtils::UninstallTitle(game_file->GetTitleID());
+    
+    UIAlertController* result_alert;
+    if (success)
+    {
+      result_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Success") message:DOLocalizedString(@"Successfully removed this title from the NAND.") preferredStyle:UIAlertControllerStyleAlert];
+    }
+    else
+    {
+      result_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Failure") message:DOLocalizedString(@"Failed to remove this title from the NAND.") preferredStyle:UIAlertControllerStyleAlert];
+    }
+    
+    [result_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [self presentViewController:result_alert animated:true completion:nil];
   }]];
   
   [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
