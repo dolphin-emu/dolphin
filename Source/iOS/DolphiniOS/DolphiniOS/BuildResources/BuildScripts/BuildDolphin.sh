@@ -47,4 +47,5 @@ if [ -f "$GENERIC_BUILD_DIR/libs/Externals/libfmtd.a" ]; then
     cp $GENERIC_BUILD_DIR/libs/Externals/libfmtd.a $GENERIC_BUILD_DIR/libs/Externals/libfmt.a
 fi
 
+rm $PROJECT_DIR/libMoltenVK.dylib || true
 ln -s $ROOT_DOLPHIN_DIR/Externals/MoltenVK/libvulkan_iOS.dylib $PROJECT_DIR/libMoltenVK.dylib
