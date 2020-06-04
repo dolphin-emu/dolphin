@@ -9,6 +9,7 @@
 #import "Common/FileUtil.h"
 
 #import "Core/CommonTitles.h"
+#import "Core/Config/MainSettings.h"
 #import "Core/ConfigManager.h"
 #import "Core/IOS/ES/ES.h"
 #import "Core/IOS/IOS.h"
@@ -277,6 +278,11 @@
 {
   const UICommon::GameFile* game_file = self.m_cache->Get(indexPath.row).get();
   
+  UIAction* set_default_action = [UIAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") image:[UIImage systemImageNamed:@"doc"] identifier:nil handler:^(UIAction*)
+  {
+    Config::SetBase(Config::MAIN_DEFAULT_ISO, game_file->GetFilePath());
+  }];
+  
   UIAction* delete_action = [UIAction actionWithTitle:DOLocalizedString(@"Delete") image:[UIImage systemImageNamed:@"trash"] identifier:nil handler:^(UIAction*)
   {
     if (File::Delete(game_file->GetFilePath()))
@@ -286,7 +292,7 @@
   }];
   [delete_action setAttributes:UIMenuElementAttributesDestructive];
   
-  return [UIMenu menuWithTitle:CppToFoundationString(game_file->GetUniqueIdentifier()) children:@[ delete_action ]];
+  return [UIMenu menuWithTitle:CppToFoundationString(game_file->GetUniqueIdentifier()) children:@[ set_default_action, delete_action ]];
 }
 
 #pragma mark - Long press
@@ -311,6 +317,11 @@
   const UICommon::GameFile* game_file = self.m_cache->Get(index_path.row).get();
   
   UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:CppToFoundationString(game_file->GetUniqueIdentifier()) preferredStyle:UIAlertControllerStyleActionSheet];
+  
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Set as Default ISO") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+  {
+    Config::SetBase(Config::MAIN_DEFAULT_ISO, game_file->GetFilePath());
+  }]];
   
   [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Delete") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
