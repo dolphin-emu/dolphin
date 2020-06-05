@@ -18,6 +18,8 @@ class TCButton: UIButton
     }
   }
   
+  @IBInspectable var isAxis: Bool = false
+  
   var m_port: Int = 0
   
   override init(frame: CGRect)
@@ -81,12 +83,27 @@ class TCButton: UIButton
     {
         hapticGenerator.impactOccurred()
     }
-    MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 1)
+    
+    if (isAxis)
+    {
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(controllerButton), value: 1.0)
+    }
+    else
+    {
+      MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 1)
+    }
   }
   
   @objc func buttonReleased()
   {
-    MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 0)
+    if (isAxis)
+    {
+      MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(controllerButton), value: 0)
+    }
+    else
+    {
+      MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 0)
+    }
   }
   
 }
