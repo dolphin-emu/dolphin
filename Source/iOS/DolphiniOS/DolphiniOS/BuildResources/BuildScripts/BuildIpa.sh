@@ -8,8 +8,11 @@ EXPORT_PATH="/tmp/DolphiniOS-NJB-$EXPORT_UUID"
 DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_ipa_root/"
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Payload/DolphiniOS.app
 ENTITLEMENTS_FILE="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_PsychicPaper_Release.plist"
+BUNDLE_ID="me.oatmealdome.DolphiniOS-njb"
+BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
 
 if [ $BUILD_FOR_PATREON == "YES" ]; then
+  BUNDLE_ID="me.oatmealdome.DolphiniOS-njb-patreon-beta"
   APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Payload/DiOSPatreon.app
 fi
 
@@ -25,6 +28,9 @@ exec > $EXPORT_PATH/archive.log 2>&1
 
 # Copy resources
 cp -r "$ARCHIVE_PATH/Products/Applications/DolphiniOS.app" $APPLICATION_DESTINATION_PATH
+
+# Hack bundle ID
+plutil -replace "CFBundleIdentifier" -string "$BUNDLE_ID" $APPLICATION_DESTINATION_PATH/Info.plist
 
 # Resign the application
 codesign -f -s "OatmealDome Software" --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH
