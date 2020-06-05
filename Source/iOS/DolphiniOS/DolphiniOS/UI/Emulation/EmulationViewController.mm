@@ -151,6 +151,14 @@
       [self RunningTitleUpdated];
     });
   }
+  else if (std::holds_alternative<BootParameters::Executable>(self->m_boot_parameters->parameters))
+  {
+    self.m_is_homebrew = true;
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+      [self RunningTitleUpdated];
+    });
+  }
   else
   {
     self.m_ipl_region = DiscIO::Region::Unknown;
@@ -178,13 +186,14 @@
   for (size_t i = 0; i < cache->GetSize(); i++)
   {
     std::shared_ptr<const UICommon::GameFile> game_file = cache->Get(i);
-    if (SConfig::GetInstance().GetGameID() == game_file->GetGameID())
+    if (SConfig::GetInstance().GetGameID() == game_file->GetGameID() && game_file->GetPlatform() != DiscIO::Platform::ELFOrDOL)
     {
       uid = CppToFoundationString(game_file->GetUniqueIdentifier());
       location = CppToFoundationString(game_file->GetFilePath());
       boot_type = DOLAutoStateBootTypeFile;
       self.m_is_wii = DiscIO::IsWii(game_file->GetPlatform());
       self.m_ipl_region = DiscIO::Region::Unknown; // Reset just in case
+      self.m_is_homebrew = false;
     }
   }
   
@@ -195,6 +204,14 @@
     location = @(static_cast<int>(self.m_ipl_region));
     boot_type = DOLAutoStateBootTypeGCIPL;
     self.m_is_wii = false;
+    self.m_is_homebrew = false;
+  }
+  else if (self.m_is_homebrew)
+  {
+    uid = @"Homebrew";
+    location = @"Unknown";
+    boot_type = DOLAutoStateBootTypeUnknown;
+    self.m_is_wii = true;
   }
   else if (uid == nil)
   {
