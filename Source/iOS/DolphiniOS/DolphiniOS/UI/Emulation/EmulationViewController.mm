@@ -144,24 +144,28 @@
   // Hack for GC IPL - the running title isn't updated on boot
   if (std::holds_alternative<BootParameters::IPL>(self->m_boot_parameters->parameters))
   {
+    self.m_is_homebrew = false;
+    
     // Fetch the IPL region for later
     self.m_ipl_region = std::get<BootParameters::IPL>(self->m_boot_parameters->parameters).region;
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-      [self RunningTitleUpdated];
-    });
-  }
-  else if (std::holds_alternative<BootParameters::Executable>(self->m_boot_parameters->parameters))
-  {
-    self.m_is_homebrew = true;
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-      [self RunningTitleUpdated];
-    });
+    [self RunningTitleUpdated];
   }
   else
   {
     self.m_ipl_region = DiscIO::Region::Unknown;
+    
+    if (std::holds_alternative<BootParameters::Executable>(self->m_boot_parameters->parameters))
+    {
+      self.m_is_homebrew = true;
+      self.m_ipl_region = DiscIO::Region::Unknown;
+      
+      [self RunningTitleUpdated];
+    }
+    else
+    {
+      self.m_is_homebrew = false;
+    }
   }
   
   [MainiOS startEmulationWithBootParameters:std::move(self->m_boot_parameters) viewController:self view:self.m_renderer_view];
@@ -197,7 +201,14 @@
     }
   }
   
-  if (self.m_ipl_region != DiscIO::Region::Unknown)
+  if (self.m_is_homebrew)
+  {
+    uid = @"Homebrew";
+    location = @"Unknown";
+    boot_type = DOLAutoStateBootTypeUnknown;
+    self.m_is_wii = true;
+  }
+  else if (self.m_ipl_region != DiscIO::Region::Unknown)
   {
     // We are likely in the IPL
     uid = @"GameCube Main Menu";
@@ -205,13 +216,6 @@
     boot_type = DOLAutoStateBootTypeGCIPL;
     self.m_is_wii = false;
     self.m_is_homebrew = false;
-  }
-  else if (self.m_is_homebrew)
-  {
-    uid = @"Homebrew";
-    location = @"Unknown";
-    boot_type = DOLAutoStateBootTypeUnknown;
-    self.m_is_wii = true;
   }
   else if (uid == nil)
   {
