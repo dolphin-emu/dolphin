@@ -28,7 +28,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::Location*, 103> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 104> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
