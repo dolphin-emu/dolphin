@@ -30,8 +30,10 @@
   return self;
 }
 
-- (void)rescanWithCompletionHandler:(nullable void (^)())completion_handler
+- (void)scanSoftwareFolder
 {
+  self.m_is_busy = true;
+  
   // Get the software folder path
   NSString* softwareDirectory = [[MainiOS getUserFolder] stringByAppendingPathComponent:@"Software"];
 
@@ -52,15 +54,30 @@
     self.m_cache->Save();
   }
   
+  self.m_is_busy = false;
+}
+
+- (void)fetchMetadataWithCompletionHandler:(nullable void (^)())completion_handler
+{
+  self.m_is_busy = true;
+  
   dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
   {
     self.m_cache->UpdateAdditionalMetadata();
+    
+    self.m_is_busy = false;
     
     if (completion_handler)
     {
       completion_handler();
     }
   });
+}
+
+- (void)completeRescanWithCompletionHandler:(nullable void (^)())completion_handler
+{
+  [self scanSoftwareFolder];
+  [self fetchMetadataWithCompletionHandler:completion_handler];
 }
 
 @end

@@ -406,7 +406,7 @@
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
-  [[GameFileCacheHolder sharedInstance] rescanWithCompletionHandler:nil];
+  [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];
 
 #ifdef ANALYTICS
   [FIRApp configure];
