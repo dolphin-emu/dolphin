@@ -94,7 +94,7 @@
 
 - (IBAction)ProgressiveScanChanged:(id)sender
 {
-  Config::SetBaseOrCurrent(Config::SYSCONF_PROGRESSIVE_SCAN, [self.m_progressive_scan_switch isOn]);
+  Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, [self.m_progressive_scan_switch isOn]);
 }
 
 - (IBAction)BackendMultithreadingChanged:(id)sender
