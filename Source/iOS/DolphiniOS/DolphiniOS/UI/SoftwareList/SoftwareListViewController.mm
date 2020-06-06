@@ -24,6 +24,8 @@
 #import "SoftwareCollectionViewCell.h"
 #import "SoftwareTableViewCell.h"
 
+#import "UICollectionViewLeftAlignedLayout.h"
+
 #import "UICommon/GameFile.h"
 
 #import "WiiSystemUpdateViewController.h"
@@ -70,6 +72,12 @@
   UIRefreshControl* collection_refresh = [[UIRefreshControl alloc] init];
   [collection_refresh addTarget:self action:@selector(handleRefresh:) forControlEvents:UIControlEventValueChanged];
   self.m_collection_view.refreshControl = collection_refresh;
+  
+  // Left align on devices that aren't compact horizontally
+  if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular)
+  {
+    self.m_collection_view.collectionViewLayout = [[UICollectionViewLeftAlignedLayout alloc] init];
+  }
   
   // Load the GameFileCache
   self.m_cache = [[GameFileCacheHolder sharedInstance] m_cache];
