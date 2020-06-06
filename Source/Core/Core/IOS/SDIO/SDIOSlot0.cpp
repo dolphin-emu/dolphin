@@ -15,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SDCardUtil.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IOS.h"
@@ -25,6 +26,8 @@ namespace IOS::HLE::Device
 SDIOSlot0::SDIOSlot0(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name), m_sdhc_supported(HasFeature(ios.GetVersion(), Feature::SDv2))
 {
+  if (!Config::Get(Config::MAIN_ALLOW_SD_WRITES))
+    INFO_LOG(IOS_SD, "Writes to SD card disabled by user");
 }
 
 void SDIOSlot0::DoState(PointerWrap& p)
@@ -274,7 +277,8 @@ s32 SDIOSlot0::ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_
     INFO_LOG(IOS_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
              req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
-    if (m_card && SConfig::GetInstance().bEnableMemcardSdWriting)
+    if (m_card && SConfig::GetInstance().bEnableMemcardSdWriting &&
+        Config::Get(Config::MAIN_ALLOW_SD_WRITES))
     {
       u32 size = req.bsize * req.blocks;
       u64 address = GetAddressFromRequest(req.arg);

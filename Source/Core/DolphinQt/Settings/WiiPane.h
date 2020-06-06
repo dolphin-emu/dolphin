@@ -44,6 +44,7 @@ private:
   QCheckBox* m_screensaver_checkbox;
   QCheckBox* m_pal60_mode_checkbox;
   QCheckBox* m_sd_card_checkbox;
+  QCheckBox* m_allow_sd_writes_checkbox;
   QCheckBox* m_connect_keyboard_checkbox;
   QComboBox* m_system_language_choice;
   QLabel* m_system_language_choice_label;
