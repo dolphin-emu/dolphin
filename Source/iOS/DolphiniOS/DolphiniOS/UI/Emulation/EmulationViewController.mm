@@ -623,6 +623,11 @@
   task_vm_info_data_t vm_info;
   mach_msg_type_number_t count = TASK_VM_INFO_COUNT;
   kern_return_t result = task_info(mach_task_self(), TASK_VM_INFO, (task_info_t) &vm_info, &count);
+  if (result != KERN_SUCCESS)
+  {
+    return;
+  }
+  
 #ifdef ANALYTICS
   [FIRAnalytics logEventWithName:@"in_game_memory_warning" parameters:@{
     @"new_uid": CppToFoundationString(SConfig::GetInstance().GetTitleDescription()),
