@@ -394,6 +394,8 @@
 {
   UIAlertController* confirm_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Are you sure you want to delete this file?") preferredStyle:UIAlertControllerStyleAlert];
   
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+  
   [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
     if (File::Delete(game_file->GetFilePath()))
@@ -401,8 +403,6 @@
       [self rescanWithCompletionHandler:nil];
     }
   }]];
-  
-  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
   
   [self presentViewController:confirm_alert animated:true completion:nil];
 }
@@ -430,6 +430,8 @@
 {
   UIAlertController* confirm_alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Uninstalling the WAD will remove the currently installed version of this title from the NAND without deleting its save data. Continue?") preferredStyle:UIAlertControllerStyleAlert];
   
+  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
+  
   [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Yes") style:UIAlertActionStyleDestructive handler:^(UIAlertAction*)
   {
     bool success = WiiUtils::UninstallTitle(game_file->GetTitleID());
@@ -448,8 +450,6 @@
     
     [self presentViewController:result_alert animated:true completion:nil];
   }]];
-  
-  [confirm_alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
   
   [self presentViewController:confirm_alert animated:true completion:nil];
 }
