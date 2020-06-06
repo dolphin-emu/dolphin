@@ -407,7 +407,10 @@
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
-  cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
+  if (cpu_info.bCanAPRR)
+  {
+    cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
+  }
   
   [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];
 

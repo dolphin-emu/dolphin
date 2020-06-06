@@ -170,6 +170,7 @@ void CPUInfo::Detect()
 
         if (model_number >= 12) // iPhone 11, iPhone SE 2nd Gen
         {
+          bAPRR = false; // A13 APRR is broken
           iAPRRVer = 2;
         }
         else
