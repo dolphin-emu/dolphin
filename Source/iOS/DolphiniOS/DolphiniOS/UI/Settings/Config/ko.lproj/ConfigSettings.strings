@@ -95,9 +95,6 @@
 /* Class = "UILabel"; text = "맞지 않는 지역 설정 허락"; ObjectID = "JXJ-Qk-sNk"; */
 "JXJ-Qk-sNk.text" = "맞지 않는 지역 설정 허락";
 
-/* Class = "UILabel"; text = "볼륨"; ObjectID = "LeV-Nx-S8y"; */
-"LeV-Nx-S8y.text" = "볼륨";
-
 /* Class = "UINavigationItem"; title = " 환경설정"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = " 환경설정";
 
@@ -142,9 +139,6 @@
 
 /* Class = "UINavigationItem"; title = "일반"; ObjectID = "VNc-Ms-o2f"; */
 "VNc-Ms-o2f.title" = "일반";
-
-/* Class = "UILabel"; text = "0%"; ObjectID = "Zlo-ls-qgb"; */
-"Zlo-ls-qgb.text" = "0%";
 
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
