@@ -27,8 +27,8 @@
 {
   [super viewWillAppear:animated];
   
-  [self.m_volume_slider setValue:SConfig::GetInstance().m_Volume];
-  [self UpdateVolumePercentageLabel];
+  //[self.m_volume_slider setValue:SConfig::GetInstance().m_Volume];
+  //[self UpdateVolumePercentageLabel];
   [self.m_stretching_switch setOn:SConfig::GetInstance().m_audio_stretch];
   [self.m_buffer_size_slider setEnabled:SConfig::GetInstance().m_audio_stretch];
   [self.m_buffer_size_slider setValue:SConfig::GetInstance().m_audio_stretch_max_latency];
