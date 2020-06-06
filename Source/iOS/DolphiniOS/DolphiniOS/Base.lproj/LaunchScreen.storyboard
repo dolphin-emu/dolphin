@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="15702" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="retina6_1" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="15704"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -27,21 +27,13 @@
                                     <tabBarItem title="Settings" image="SF_gear" id="DFB-eE-kHd"/>
                                 </items>
                             </tabBar>
-                            <navigationBar contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="ryS-Jz-kVw">
-                                <rect key="frame" x="0.0" y="44" width="414" height="44"/>
-                                <items>
-                                    <navigationItem id="tDH-sS-Zm2"/>
-                                </items>
-                            </navigationBar>
                         </subviews>
                         <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                         <constraints>
-                            <constraint firstItem="ryS-Jz-kVw" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="0Wf-xa-mGg"/>
+                            <constraint firstItem="3ip-Lw-Hcy" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="5iQ-n6-YKV"/>
                             <constraint firstItem="3ip-Lw-Hcy" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" id="64a-9r-lp3"/>
-                            <constraint firstItem="ryS-Jz-kVw" firstAttribute="trailing" secondItem="3ip-Lw-Hcy" secondAttribute="trailing" id="Xoq-sB-IFV"/>
-                            <constraint firstItem="ryS-Jz-kVw" firstAttribute="centerX" secondItem="Ze5-6b-2t3" secondAttribute="centerX" id="cE8-yq-pV7"/>
-                            <constraint firstItem="ryS-Jz-kVw" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="eSY-nq-In1"/>
-                            <constraint firstItem="ryS-Jz-kVw" firstAttribute="leading" secondItem="3ip-Lw-Hcy" secondAttribute="leading" id="qml-bn-aRP"/>
+                            <constraint firstItem="3ip-Lw-Hcy" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="K2u-bN-DzF"/>
+                            <constraint firstItem="3ip-Lw-Hcy" firstAttribute="trailing" secondItem="6Tk-OE-BBY" secondAttribute="trailing" id="PPF-rs-gNp"/>
                         </constraints>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                     </view>
