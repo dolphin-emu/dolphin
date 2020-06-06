@@ -57,6 +57,8 @@ struct SramFlags
 {
   enum : u8
   {
+    // Video Mode
+    kVideoMode = 3,
     // 0 = Mono, 1 = Stereo
     kStereo = 1 << 2,
     // If unset, IPL will ask user to configure settings
@@ -66,6 +68,7 @@ struct SramFlags
     // Display Progressive Scan prompt if the game supports it
     kProgressiveScan = 1 << 7,
   };
+  u8 video_mode() const { return value & kVideoMode; }
   bool stereo() const { return value & kStereo; }
   bool oobe_done() const { return value & kOobeDone; }
   bool boot_to_menu() const { return value & kBootToMenu; }
@@ -77,10 +80,30 @@ struct SramFlags
     else
       value &= ~flag;
   }
+  void video_mode(u8 mode) { value = (value & ~kVideoMode) | (mode & kVideoMode); }
   void stereo(bool enable) { set_flag(enable, kStereo); }
   void oobe_done(bool enable) { set_flag(enable, kOobeDone); }
   void boot_to_menu(bool enable) { set_flag(enable, kBootToMenu); }
   void progressive_scan(bool enable) { set_flag(enable, kProgressiveScan); }
+  u8 value;
+};
+
+struct ntdFlags
+{
+  enum : u8
+  {
+    // Display PAL60 mode prompt if the game supports it 
+    kPal60 = 1 << 6
+  };
+  bool Pal60_mode() const { return value & kPal60; }
+  void set_flag(bool enable, u8 flag)
+  {
+    if (enable)
+      value |= flag;
+    else
+      value &= ~flag;
+  }
+  void Pal60_mode(bool enabled) { set_flag(enabled, kPal60); }
   u8 value;
 };
 
@@ -100,7 +123,7 @@ struct SramSettings
   s8 vi_horizontal_offset;
 
   // Unknown attribute
-  u8 ntd;
+  ntdFlags ntd;
 
   u8 language;
   SramFlags flags;
