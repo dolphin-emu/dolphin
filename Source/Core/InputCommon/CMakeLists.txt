@@ -1,9 +1,15 @@
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    set(input DInputMouseAbsolute.cpp DInputMouseAbsolute.h)
+else()
+    # TODO add Mac support
+    set(input XInput2Mouse.cpp XInput2Mouse.h)
+endif()
+
 add_library(inputcommon
   InputConfig.cpp
   InputConfig.h
   GenericMouse.cpp
-	XInput2Mouse.cpp
-	XInput2Mouse.h
+  ${input}
   InputProfile.cpp
   InputProfile.h
   ControllerEmu/ControllerEmu.cpp
