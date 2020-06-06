@@ -188,6 +188,11 @@ int main(int argc, char* argv[])
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
 
+    if (!SConfig::GetInstance().bInitialPrimeHack) {
+      ModalMessageBox::primehack(&win);
+      SConfig::GetInstance().bInitialPrimeHack = true;
+    }
+
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
     if (!SConfig::GetInstance().m_analytics_permission_asked)
     {

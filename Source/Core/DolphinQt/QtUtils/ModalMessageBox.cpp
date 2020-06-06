@@ -5,6 +5,9 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include <QApplication>
+#include <QDesktopServices>
+#include <QUrl>
+#include <QString>
 
 ModalMessageBox::ModalMessageBox(QWidget* parent, Qt::WindowModality modality)
     : QMessageBox(parent != nullptr ? parent->window() : nullptr)
@@ -32,6 +35,32 @@ static inline int ExecMessageBox(ModalMessageBox::Icon icon, QWidget* parent, co
   return msg.exec();
 }
 
+static inline int ExecPrimeHackMessage(QWidget* parent)
+{
+  ModalMessageBox msg(parent, Qt::WindowModal);
+  msg.setIcon(QMessageBox::Information);
+  msg.setWindowTitle(QString::fromStdString("PrimeHack"));
+  msg.setTextFormat(Qt::RichText);
+  msg.setText(QString::fromStdString(
+    "<p>PrimeHack has detected this is your initial run. "
+    "If you are new to Primehack, we highly recommend you press the <b>Default</b> button inside the controller profile window to ensure you are using the default PrimeHack controls."
+    "</p><p>"
+    "If you have any further questions, please see our wiki:<br>"
+    "<a href='https://github.com/shiiion/dolphin/wiki'>https://github.com/shiiion/dolphin/wiki</a></p>"));
+  msg.setStandardButtons(QMessageBox::Ok);
+  msg.addButton(QMessageBox::Help);
+  msg.setDefaultButton(QMessageBox::NoButton);
+
+  return msg.exec();
+}
+
+void ModalMessageBox::primehack(QWidget* parent)
+{
+  if (ExecPrimeHackMessage(parent) == QMessageBox::Help) {
+    QDesktopServices::openUrl(QUrl(QString::fromStdString("https://github.com/shiiion/dolphin/wiki/Installation")));
+  }
+}
+
 int ModalMessageBox::critical(QWidget* parent, const QString& title, const QString& text,
                               StandardButtons buttons, StandardButton default_button,
                               Qt::WindowModality modality)
@@ -46,6 +75,11 @@ int ModalMessageBox::information(QWidget* parent, const QString& title, const QS
 {
   return ExecMessageBox(QMessageBox::Information, parent, title, text, buttons, default_button,
                         modality);
+}
+
+int ModalMessageBox::primehackInitial()
+{
+	return 0;
 }
 
 int ModalMessageBox::question(QWidget* parent, const QString& title, const QString& text,

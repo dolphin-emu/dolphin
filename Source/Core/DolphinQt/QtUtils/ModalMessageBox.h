@@ -15,9 +15,11 @@ public:
   static int critical(QWidget* parent, const QString& title, const QString& text,
                       StandardButtons buttons = Ok, StandardButton default_button = NoButton,
                       Qt::WindowModality modality = Qt::WindowModal);
+  static void primehack(QWidget* parent);
   static int information(QWidget* parent, const QString& title, const QString& text,
                          StandardButtons buttons = Ok, StandardButton default_button = NoButton,
                          Qt::WindowModality modality = Qt::WindowModal);
+  static int primehackInitial();
   static int question(QWidget* parent, const QString& title, const QString& text,
                       StandardButtons buttons = Yes | No, StandardButton default_button = NoButton,
                       Qt::WindowModality modality = Qt::WindowModal);

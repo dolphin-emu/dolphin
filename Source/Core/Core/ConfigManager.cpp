@@ -214,6 +214,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("AccurateNaNs", bAccurateNaNs);
   core->Set("EnableCheats", bEnableCheats);
   core->Set("EnablePrimeHack", bEnablePrimeHack);
+  core->Set("InitialPrimeHackRun", bInitialPrimeHack);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideRegionSettings", bOverrideRegionSettings);
   core->Set("DPL2Decoder", bDPL2Decoder);
@@ -494,6 +495,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("EnableCheats", &bEnableCheats, false);
+  core->Get("InitialPrimeHackRun", &bInitialPrimeHack, false);
   core->Get("EnablePrimeHack", &bEnablePrimeHack, true);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
@@ -774,6 +776,7 @@ void SConfig::LoadDefaults()
   cpu_core = PowerPC::DefaultCPUCore();
   bEnableCheats = true;
   bEnablePrimeHack = true;
+  bInitialPrimeHack = false;
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;

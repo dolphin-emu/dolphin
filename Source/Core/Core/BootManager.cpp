@@ -264,6 +264,7 @@ bool BootCore(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
     core_section->Get("JITFollowBranch", &StartUp.bJITFollowBranch, StartUp.bJITFollowBranch);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("EnablePrimeHack", &StartUp.bEnablePrimeHack, StartUp.bEnablePrimeHack);
+    core_section->Get("InitialPrimeHackRun", &StartUp.bInitialPrimeHack, &StartUp.bInitialPrimeHack);
 
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);

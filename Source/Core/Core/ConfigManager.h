@@ -120,6 +120,7 @@ struct SConfig
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnablePrimeHack = true;
+  bool bInitialPrimeHack = false;
   bool bEnableMemcardSdWriting = true;
   bool bCopyWiiSaveNetplay = true;
 
