@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -40,23 +40,23 @@
                     <rect key="frame" x="0.0" y="237.66666666666669" width="375" height="540.33333333333326"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
-                            <rect key="frame" x="20" y="0.0" width="335" height="263.66666666666669"/>
+                            <rect key="frame" x="20" y="0.0" width="335" height="243.33333333333334"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Version Text">
-                                    <rect key="frame" x="0.0" y="0.0" width="335" height="243.66666666666666"/>
+                                    <rect key="frame" x="4.6666666666666572" y="0.0" width="325.66666666666674" height="223.33333333333334"/>
                                     <string key="text">DolphiniOS can only run on non-jailbroken devices running iOS 13.4.1 and lower.
 
-Apple fixed a security flaw in iOS 13.5 which DolphiniOS uses to give itself more permissions than what iOS usually allows.
+If you want to use DolphiniOS on this device, it must be jailbroken first.
 
-DolphiniOS cannot run without these permissions.
+If this device is already jailbroken, please install DolphiniOS from our Cydia source instead of sideloading it:
 
-If you want to use DolphiniOS on this device, it must be jailbroken first.</string>
+https://cydia.oatmealdome.me</string>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
-                                    <rect key="frame" x="47.666666666666686" y="263.66666666666663" width="240" height="0.0"/>
+                                    <rect key="frame" x="47.666666666666686" y="243.33333333333334" width="240" height="0.0"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" id="kge-k2-qnG"/>
