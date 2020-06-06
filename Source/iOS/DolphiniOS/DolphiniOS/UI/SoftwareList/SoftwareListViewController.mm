@@ -81,15 +81,29 @@
   
   // Load the GameFileCache
   self.m_cache = [[GameFileCacheHolder sharedInstance] m_cache];
+  self.m_cache_loaded = true;
   
-  [self rescanWithCompletionHandler:nil];
+  [[GameFileCacheHolder sharedInstance] fetchMetadataWithCompletionHandler:^{
+    dispatch_async(dispatch_get_main_queue(), ^{
+      [self.m_table_view reloadData];
+      [self.m_collection_view reloadData];
+    });
+  }];
 }
 
 - (void)rescanWithCompletionHandler:(void (^)())completionHandler
 {
+  if ([[GameFileCacheHolder sharedInstance] m_is_busy])
+  {
+    if (completionHandler)
+    {
+      completionHandler();
+    }
+  }
+  
   self.m_cache_loaded = false;
   
-  [[GameFileCacheHolder sharedInstance] rescanWithCompletionHandler:^{
+  [[GameFileCacheHolder sharedInstance] completeRescanWithCompletionHandler:^{
     self.m_cache_loaded = true;
     
     dispatch_async(dispatch_get_main_queue(), ^{

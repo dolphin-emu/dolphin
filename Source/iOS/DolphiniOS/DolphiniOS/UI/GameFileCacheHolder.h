@@ -11,10 +11,13 @@ NS_ASSUME_NONNULL_BEGIN
 @interface GameFileCacheHolder : NSObject
 
 @property(nonatomic) UICommon::GameFileCache* m_cache;
+@property(atomic) bool m_is_busy;
 
 + (GameFileCacheHolder*)sharedInstance;
 
-- (void)rescanWithCompletionHandler:(nullable void (^)())completion_handler;
+- (void)scanSoftwareFolder;
+- (void)fetchMetadataWithCompletionHandler:(nullable void (^)())completion_handler;
+- (void)completeRescanWithCompletionHandler:(nullable void (^)())completion_handler;
 
 @end
 

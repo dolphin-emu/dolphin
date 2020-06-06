@@ -409,7 +409,7 @@
   
   cpu_info.bAPRR = [[NSUserDefaults standardUserDefaults] boolForKey:@"aprr_jit_on"];
   
-  [[GameFileCacheHolder sharedInstance] rescanWithCompletionHandler:nil];
+  [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];
 
 #ifdef ANALYTICS
   [FIRApp configure];
