@@ -513,8 +513,9 @@
   }
   
   self.m_pull_down_mode = (DOLTopBarPullDownMode)[[NSUserDefaults standardUserDefaults] integerForKey:@"top_bar_pull_down_mode"];
+  bool status_bar_shown = [[NSUserDefaults standardUserDefaults] boolForKey:@"show_status_bar"];
   
-  if (has_gccontroller_connected && self.m_pull_down_mode == DOLTopBarPullDownModeSwipe)
+  if ((has_gccontroller_connected || status_bar_shown) && self.m_pull_down_mode == DOLTopBarPullDownModeSwipe)
   {
     self.m_pull_down_mode = DOLTopBarPullDownModeButton;
   }
