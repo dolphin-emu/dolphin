@@ -62,12 +62,6 @@
 /* Class = "UITableViewSection"; headerTitle = "Audio Stretching Settings"; ObjectID = "Gbe-Ah-d5T"; */
 "Gbe-Ah-d5T.headerTitle" = "Audio Stretching Settings";
 
-/* Class = "UILabel"; text = "Volume"; ObjectID = "LeV-Nx-S8y"; */
-"LeV-Nx-S8y.text" = "Volume";
-
-/* Class = "UILabel"; text = "0%"; ObjectID = "Zlo-ls-qgb"; */
-"Zlo-ls-qgb.text" = "0%";
-
 /* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
 "w8Z-IJ-Fbf.text" = "Enable";
 

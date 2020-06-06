@@ -95,9 +95,6 @@
 /* Class = "UILabel"; text = "Nicht übereinstimmende Regionseinstellungen zulassen"; ObjectID = "JXJ-Qk-sNk"; */
 "JXJ-Qk-sNk.text" = "Nicht übereinstimmende Regionseinstellungen zulassen";
 
-/* Class = "UILabel"; text = "Lautstärke"; ObjectID = "LeV-Nx-S8y"; */
-"LeV-Nx-S8y.text" = "Lautstärke";
-
 /* Class = "UINavigationItem"; title = "Einstellungen"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = "Einstellungen";
 
@@ -142,9 +139,6 @@
 
 /* Class = "UINavigationItem"; title = "Allgemein"; ObjectID = "VNc-Ms-o2f"; */
 "VNc-Ms-o2f.title" = "Allgemein";
-
-/* Class = "UILabel"; text = "0%"; ObjectID = "Zlo-ls-qgb"; */
-"Zlo-ls-qgb.text" = "0%";
 
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
