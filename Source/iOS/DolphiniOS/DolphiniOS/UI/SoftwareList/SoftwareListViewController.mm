@@ -74,10 +74,12 @@
   self.m_collection_view.refreshControl = collection_refresh;
   
   // Left align on devices that aren't compact horizontally
-  if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular)
+  /*if (self.traitCollection.horizontalSizeClass == UIUserInterfaceSizeClassRegular)
   {
-    self.m_collection_view.collectionViewLayout = [[UICollectionViewLeftAlignedLayout alloc] init];
-  }
+    UICollectionViewFlowLayout* layout = [[UICollectionViewLeftAlignedLayout alloc] init];
+    layout.estimatedItemSize = UICollectionViewFlowLayoutAutomaticSize;
+    self.m_collection_view.collectionViewLayout = layout;
+  }*/
   
   // Load the GameFileCache
   self.m_cache = [[GameFileCacheHolder sharedInstance] m_cache];
