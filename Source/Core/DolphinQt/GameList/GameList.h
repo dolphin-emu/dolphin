@@ -47,7 +47,7 @@ public:
 
 signals:
   void GameSelected();
-  void NetPlayHost(const QString& game_id);
+  void NetPlayHost(const UICommon::GameFile& game);
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
 

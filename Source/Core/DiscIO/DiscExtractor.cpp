@@ -245,19 +245,26 @@ bool ExportBI2Data(const Volume& volume, const Partition& partition,
   return ExportData(volume, partition, 0x440, 0x2000, export_filename);
 }
 
+std::optional<u64> GetApploaderSize(const Volume& volume, const Partition& partition)
+{
+  constexpr u64 header_size = 0x20;
+  const std::optional<u32> apploader_size = volume.ReadSwapped<u32>(0x2440 + 0x14, partition);
+  const std::optional<u32> trailer_size = volume.ReadSwapped<u32>(0x2440 + 0x18, partition);
+  if (!apploader_size || !trailer_size)
+    return std::nullopt;
+
+  return header_size + *apploader_size + *trailer_size;
+}
+
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename)
 {
   if (!IsDisc(volume.GetVolumeType()))
     return false;
 
-  std::optional<u32> apploader_size = volume.ReadSwapped<u32>(0x2440 + 0x14, partition);
-  const std::optional<u32> trailer_size = volume.ReadSwapped<u32>(0x2440 + 0x18, partition);
-  constexpr u32 header_size = 0x20;
-  if (!apploader_size || !trailer_size)
+  const std::optional<u64> apploader_size = GetApploaderSize(volume, partition);
+  if (!apploader_size)
     return false;
-  *apploader_size += *trailer_size + header_size;
-  DEBUG_LOG(DISCIO, "Apploader size -> %x", *apploader_size);
 
   return ExportData(volume, partition, 0x2440, *apploader_size, export_filename);
 }

@@ -5,6 +5,7 @@
 #include "UICommon/GameFile.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -13,11 +14,13 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include <fmt/format.h>
+#include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
 #include "Common/ChunkFile.h"
@@ -532,7 +535,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
   return languages;
 }
 
-std::string GameFile::GetUniqueIdentifier() const
+std::string GameFile::GetNetPlayName() const
 {
   std::vector<std::string> info;
   if (!GetGameID().empty())
@@ -564,6 +567,66 @@ std::string GameFile::GetUniqueIdentifier() const
   std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
   ss << info.back();
   return name + " (" + ss.str() + ")";
+}
+
+std::array<u8, 20> GameFile::GetSyncHash() const
+{
+  std::array<u8, 20> hash{};
+
+  if (m_platform == DiscIO::Platform::ELFOrDOL)
+  {
+    std::string buffer;
+    if (File::ReadFileToString(m_file_path, buffer))
+      mbedtls_sha1_ret(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), hash.data());
+  }
+  else
+  {
+    if (std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
+      hash = volume->GetSyncHash();
+  }
+
+  return hash;
+}
+
+NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
+{
+  const u64 dol_elf_size = m_platform == DiscIO::Platform::ELFOrDOL ? m_file_size : 0;
+  return NetPlay::SyncIdentifier{dol_elf_size,  m_game_id,       m_revision,
+                                 m_disc_number, m_is_datel_disc, GetSyncHash()};
+}
+
+NetPlay::SyncIdentifierComparison
+GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) const
+{
+  const bool is_elf_or_dol = m_platform == DiscIO::Platform::ELFOrDOL;
+  if ((is_elf_or_dol ? m_file_size : 0) != sync_identifier.dol_elf_size)
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  const auto trim = [](const std::string& str, size_t n) {
+    return std::string_view(str.data(), std::min(n, str.size()));
+  };
+
+  if (trim(m_game_id, 3) != trim(sync_identifier.game_id, 3))
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  if (m_disc_number != sync_identifier.disc_number || m_is_datel_disc != sync_identifier.is_datel)
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  const NetPlay::SyncIdentifierComparison mismatch_result =
+      is_elf_or_dol || m_is_datel_disc ? NetPlay::SyncIdentifierComparison::DifferentGame :
+                                         NetPlay::SyncIdentifierComparison::DifferentVersion;
+
+  if (m_game_id != sync_identifier.game_id)
+  {
+    const bool game_id_is_title_id = m_game_id.size() > 6 || sync_identifier.game_id.size() > 6;
+    return game_id_is_title_id ? NetPlay::SyncIdentifierComparison::DifferentGame : mismatch_result;
+  }
+
+  if (m_revision != sync_identifier.revision)
+    return mismatch_result;
+
+  return GetSyncHash() == sync_identifier.sync_hash ? NetPlay::SyncIdentifierComparison::SameGame :
+                                                      mismatch_result;
 }
 
 std::string GameFile::GetWiiFSPath() const

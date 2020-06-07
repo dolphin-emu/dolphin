@@ -1374,7 +1374,7 @@ bool MainWindow::NetPlayJoin()
   return true;
 }
 
-bool MainWindow::NetPlayHost(const QString& game_id)
+bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
@@ -1419,7 +1419,8 @@ bool MainWindow::NetPlayHost(const QString& game_id)
     return false;
   }
 
-  Settings::Instance().GetNetPlayServer()->ChangeGame(game_id.toStdString());
+  Settings::Instance().GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(),
+                                                      game.GetNetPlayName());
 
   // Join our local server
   return NetPlayJoin();

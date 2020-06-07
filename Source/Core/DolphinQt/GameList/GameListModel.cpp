@@ -313,16 +313,6 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
-QString GameListModel::GetPath(int index) const
-{
-  return QString::fromStdString(m_games[index]->GetFilePath());
-}
-
-QString GameListModel::GetUniqueIdentifier(int index) const
-{
-  return QString::fromStdString(m_games[index]->GetUniqueIdentifier());
-}
-
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
   beginInsertRows(QModelIndex(), m_games.size(), m_games.size());
