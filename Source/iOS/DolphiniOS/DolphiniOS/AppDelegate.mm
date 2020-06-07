@@ -388,7 +388,7 @@
         UpdateNoticeViewController* update_controller = [[UpdateNoticeViewController alloc] initWithNibName:@"UpdateNotice" bundle:nil];
         update_controller.m_update_json = dict;
         
-        if (self.window.rootViewController.presentedViewController == nav_controller)
+        if (self.window.rootViewController.presentedViewController != nav_controller)
         {
           [nav_controller setViewControllers:@[update_controller]];
           [self.window.rootViewController presentViewController:nav_controller animated:true completion:nil];
