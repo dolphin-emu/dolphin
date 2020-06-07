@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina6_5" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -119,7 +119,7 @@
                         </connections>
                     </view>
                     <navigationItem key="navigationItem" title="Dolphin" id="FkZ-jT-nNo">
-                        <barButtonItem key="leftBarButtonItem" title="Item" image="ic_settings_core" id="8NK-If-SQF">
+                        <barButtonItem key="leftBarButtonItem" title="Item" image="gear_legacy" id="8NK-If-SQF">
                             <connections>
                                 <segue destination="74x-Ml-S3c" kind="presentation" id="BMk-wU-jAw"/>
                             </connections>
@@ -181,6 +181,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="ic_settings_core" width="24" height="24"/>
+        <image name="gear_legacy" width="25" height="25"/>
     </resources>
 </document>
