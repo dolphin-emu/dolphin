@@ -95,6 +95,7 @@ public:
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const;
 
   static bool EncryptGroup(u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
                            const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,

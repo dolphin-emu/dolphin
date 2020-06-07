@@ -45,6 +45,7 @@ public:
   bool IsDataSizeAccurate() const override { return false; }
 
   u64 GetBlockSize() const override { return m_block_size; }
+  bool HasFastRandomAccessInBlock() const override { return true; }
 
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 

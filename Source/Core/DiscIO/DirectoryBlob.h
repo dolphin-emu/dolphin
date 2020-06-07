@@ -161,9 +161,13 @@ public:
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* buffer, u64 partition_data_offset) override;
 
   BlobType GetBlobType() const override;
+
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
   bool IsDataSizeAccurate() const override { return true; }
+
+  u64 GetBlockSize() const override { return 0; }
+  bool HasFastRandomAccessInBlock() const override { return true; }
 
 private:
   struct PartitionWithType

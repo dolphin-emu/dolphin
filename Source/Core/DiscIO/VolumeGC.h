@@ -54,6 +54,7 @@ public:
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const;
 
 private:
   static const u32 GC_BANNER_WIDTH = 96;

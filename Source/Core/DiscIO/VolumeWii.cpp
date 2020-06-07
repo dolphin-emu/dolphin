@@ -434,6 +434,11 @@ u64 VolumeWii::GetRawSize() const
   return m_reader->GetRawSize();
 }
 
+const BlobReader& VolumeWii::GetBlobReader() const
+{
+  return *m_reader;
+}
+
 bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
 {
   auto it = m_partitions.find(partition);

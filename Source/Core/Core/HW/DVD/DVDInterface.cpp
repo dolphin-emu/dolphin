@@ -36,6 +36,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWii.h"
@@ -425,6 +426,17 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 {
   bool had_disc = IsDiscInside();
   bool has_disc = static_cast<bool>(disc);
+
+  if (has_disc)
+  {
+    const DiscIO::BlobReader& blob = disc->GetBlobReader();
+    if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
+    {
+      OSD::AddMessage("You are running a disc image with a very large block size.", 60000);
+      OSD::AddMessage("This will likely lead to performance problems.", 60000);
+      OSD::AddMessage("You can use Dolphin's convert feature to reduce the block size.", 60000);
+    }
+  }
 
   if (auto_disc_change_paths)
   {

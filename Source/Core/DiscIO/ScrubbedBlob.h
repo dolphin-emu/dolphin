@@ -20,10 +20,16 @@ public:
   static std::unique_ptr<ScrubbedBlob> Create(const std::string& path);
 
   BlobType GetBlobType() const override { return m_blob_reader->GetBlobType(); }
+
   u64 GetRawSize() const override { return m_blob_reader->GetRawSize(); }
   u64 GetDataSize() const override { return m_blob_reader->GetDataSize(); }
   bool IsDataSizeAccurate() const override { return m_blob_reader->IsDataSizeAccurate(); }
+
   u64 GetBlockSize() const override { return m_blob_reader->GetBlockSize(); }
+  bool HasFastRandomAccessInBlock() const override
+  {
+    return m_blob_reader->HasFastRandomAccessInBlock();
+  }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
 

@@ -20,6 +20,7 @@
 
 namespace DiscIO
 {
+class BlobReader;
 enum class BlobType;
 class FileSystem;
 class VolumeWAD;
@@ -132,6 +133,7 @@ public:
   virtual bool IsSizeAccurate() const = 0;
   // Size on disc (compressed size)
   virtual u64 GetRawSize() const = 0;
+  virtual const BlobReader& GetBlobReader() const = 0;
 
 protected:
   template <u32 N>

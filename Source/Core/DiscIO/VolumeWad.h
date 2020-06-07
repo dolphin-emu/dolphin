@@ -66,6 +66,7 @@ public:
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const;
 
 private:
   std::unique_ptr<BlobReader> m_reader;

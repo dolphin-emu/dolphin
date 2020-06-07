@@ -31,6 +31,7 @@ public:
   bool IsDataSizeAccurate() const override { return true; }
 
   u64 GetBlockSize() const override { return ECC_BLOCK_SIZE; }
+  bool HasFastRandomAccessInBlock() const override { return false; }
 
 private:
   DriveReader(const std::string& drive);
