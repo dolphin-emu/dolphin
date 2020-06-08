@@ -223,7 +223,9 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SlotA", m_EXIDevice[0]);
   core->Set("SlotB", m_EXIDevice[1]);
   core->Set("SerialPort1", m_EXIDevice[2]);
-  core->Set("BBA_TAP_MAC", m_bba_tap_mac);
+  core->Set("BBA_MAC", m_bba_mac);
+  core->Set("BBA_XLINK_IP", m_bba_xlink_ip);
+  core->Set("BBA_XLINK_CHAT_OSD", m_bba_xlink_chat_osd);
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Set(fmt::format("SIDevice{}", i), m_SIDevice[i]);
@@ -488,7 +490,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
   core->Get("SlotB", (int*)&m_EXIDevice[1], ExpansionInterface::EXIDEVICE_NONE);
   core->Get("SerialPort1", (int*)&m_EXIDevice[2], ExpansionInterface::EXIDEVICE_NONE);
-  core->Get("BBA_TAP_MAC", &m_bba_tap_mac);
+  core->Get("BBA_MAC", &m_bba_mac);
+  core->Get("BBA_XLINK_IP", &m_bba_xlink_ip, "127.0.0.1");
+  core->Get("BBA_XLINK_CHAT_OSD", &m_bba_xlink_chat_osd, true);
   for (size_t i = 0; i < std::size(m_SIDevice); ++i)
   {
     core->Get(fmt::format("SIDevice{}", i), &m_SIDevice[i],

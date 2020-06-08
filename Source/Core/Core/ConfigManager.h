@@ -227,7 +227,9 @@ struct SConfig
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
 
-  std::string m_bba_tap_mac;
+  std::string m_bba_mac;
+  std::string m_bba_xlink_ip;
+  bool m_bba_xlink_chat_osd = true;
 
   // interface language
   std::string m_InterfaceLanguage;

@@ -141,6 +141,7 @@
     <ClCompile Include="HW\DVD\DVDThread.cpp" />
     <ClCompile Include="HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp" />
+    <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp" />
     <ClCompile Include="HW\EXI\EXI.cpp" />
     <ClCompile Include="HW\EXI\EXI_Channel.cpp" />
     <ClCompile Include="HW\EXI\EXI_Device.cpp" />

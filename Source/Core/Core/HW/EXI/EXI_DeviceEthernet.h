@@ -12,6 +12,8 @@
 #include <Windows.h>
 #endif
 
+#include <SFML/Network.hpp>
+
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
@@ -198,7 +200,8 @@ enum RecvStatus
 
 enum class BBADeviceType
 {
-  BBA_TAP,
+  TAP,
+  XLINK,
 };
 
 class CEXIETHERNET : public IEXIDevice
@@ -323,9 +326,7 @@ private:
   class TAPNetworkInterface : public NetworkInterface
   {
   public:
-    explicit TAPNetworkInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref)
-    {
-    }
+    explicit TAPNetworkInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref) {}
 
   public:
     bool Activate() override;
@@ -355,15 +356,46 @@ private:
 #endif
   };
 
+  class XLinkNetworkInterface : public NetworkInterface
+  {
+  public:
+    XLinkNetworkInterface(CEXIETHERNET* eth_ref, std::string dest_ip, int dest_port,
+                          std::string identifier, bool chat_osd_enabled)
+        : NetworkInterface(eth_ref), m_dest_ip(std::move(dest_ip)), m_dest_port(dest_port),
+          m_client_identifier(identifier), m_chat_osd_enabled(chat_osd_enabled)
+    {
+    }
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+    std::string m_dest_ip;
+    int m_dest_port;
+    std::string m_client_identifier;
+    bool m_chat_osd_enabled;
+    bool m_bba_link_up = false;
+    bool m_bba_failure_notified = false;
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
-    std::thread readThread;
-    Common::Flag readEnabled;
-    Common::Flag readThreadShutdown;
+    sf::UdpSocket m_sf_socket;
+    sf::IpAddress m_sf_recipient_ip;
+    char m_in_frame[9004];
+    char m_out_frame[9004];
+    std::thread m_read_thread;
+    Common::Flag m_read_enabled;
+    Common::Flag m_read_thread_shutdown;
+    static void ReadThreadHandler(XLinkNetworkInterface* self);
 #endif
-};
+  };
 
-  std::unique_ptr<NetworkInterface> network_interface;
+  std::unique_ptr<NetworkInterface> m_network_interface;
 
   std::unique_ptr<u8[]> mRecvBuffer;
   u32 mRecvBufferLength = 0;

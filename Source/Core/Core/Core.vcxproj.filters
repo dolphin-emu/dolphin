@@ -993,6 +993,9 @@
     <ClCompile Include="PowerPC\Jit64\RegCache\FPURegCache.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
+    <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
+    </ClCompile>
     <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClCompile>
