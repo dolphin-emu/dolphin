@@ -6,6 +6,8 @@
 
 #import "AppDelegate.h"
 
+#import "Common/CommonFuncs.h"
+
 #import "DebuggerUtils.h"
 
 @interface SettingsTableViewController ()
@@ -39,6 +41,8 @@
   }
   
   [self.m_version_label setText:version_str];
+  
+  [self.m_core_label setText:CppToFoundationString(GetBuildType())];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -55,11 +59,11 @@
   if (indexPath.section == 0)
   {
     NSString* url;
-    if (indexPath.row == 2)
+    if (indexPath.row == 3)
     {
       url = @"https://oatmealdome.me/dolphinios/";
     }
-    else if (indexPath.row == 3)
+    else if (indexPath.row == 4)
     {
       url = @"https://patreon.com/oatmealdome";
     }

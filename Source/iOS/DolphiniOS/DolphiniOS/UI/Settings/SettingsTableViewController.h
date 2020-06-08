@@ -9,6 +9,7 @@ NS_ASSUME_NONNULL_BEGIN
 @interface SettingsTableViewController : UITableViewController
 
 @property (weak, nonatomic) IBOutlet UILabel *m_version_label;
+@property (weak, nonatomic) IBOutlet UILabel *m_core_label;
 
 @end
 

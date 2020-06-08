@@ -112,3 +112,9 @@
 
 /* Class = "UILabel"; text = "APRR JIT"; ObjectID = "mmb-wT-Nx4"; */
 "mmb-wT-Nx4.text" = "APRR JIT";
+
+/* Class = "UILabel"; text = "1.0.0"; ObjectID = "9Bx-0J-21P"; */
+"9Bx-0J-21P.text" = "1.0.0";
+
+/* Class = "UILabel"; text = "Emulation Core"; ObjectID = "hMd-RA-rNX"; */
+"hMd-RA-rNX.text" = "Emulation Core";
