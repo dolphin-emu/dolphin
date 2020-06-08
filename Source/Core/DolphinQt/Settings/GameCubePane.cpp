@@ -103,7 +103,7 @@ void GameCubePane::CreateWidgets()
   for (const auto& entry :
        {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
         std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
-        std::make_pair(tr("Broadband Adapter"), ExpansionInterface::EXIDEVICE_ETH)})
+        std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH),
   {
     m_slot_combos[2]->addItem(entry.first, entry.second);
   }
@@ -186,10 +186,13 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     bool ok;
     const auto new_mac = QInputDialog::getText(
-        this, tr("Broadband Adapter MAC address"), tr("Enter new Broadband Adapter MAC address:"),
-        QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_mac), &ok);
+        this, tr("Broadband Adapter (TAP) MAC address"),
+        tr("Enter new Broadband Adapter (TAP) MAC address:"), QLineEdit::Normal,
+        QString::fromStdString(SConfig::GetInstance().m_bba_tap_mac), &ok);
     if (ok)
-      SConfig::GetInstance().m_bba_mac = new_mac.toStdString();
+      SConfig::GetInstance().m_bba_tap_mac = new_mac.toStdString();
+    return;
+  }
     return;
   }
   default:

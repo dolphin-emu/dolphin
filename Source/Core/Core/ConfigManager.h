@@ -226,7 +226,8 @@ struct SConfig
   std::string m_strGbaCartB;
   ExpansionInterface::TEXIDevices m_EXIDevice[3];
   SerialInterface::SIDevices m_SIDevice[4];
-  std::string m_bba_mac;
+
+  std::string m_bba_tap_mac;
 
   // interface language
   std::string m_InterfaceLanguage;

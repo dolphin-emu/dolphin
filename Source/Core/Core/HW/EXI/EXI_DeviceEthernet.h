@@ -196,10 +196,15 @@ enum RecvStatus
 
 #define BBA_RECV_SIZE 0x800
 
+enum class BBADeviceType
+{
+  BBA_TAP,
+};
+
 class CEXIETHERNET : public IEXIDevice
 {
 public:
-  CEXIETHERNET();
+  explicit CEXIETHERNET(BBADeviceType type);
   virtual ~CEXIETHERNET();
   void SetCS(int cs) override;
   bool IsPresent() const override;
@@ -297,34 +302,70 @@ private:
   std::unique_ptr<u8[]> mBbaMem;
   std::unique_ptr<u8[]> tx_fifo;
 
-  // TAP interface
-  static void ReadThreadHandler(CEXIETHERNET* self);
-  bool Activate();
-  void Deactivate();
-  bool IsActivated();
-  bool SendFrame(const u8* frame, u32 size);
-  bool RecvInit();
-  void RecvStart();
-  void RecvStop();
+  class NetworkInterface
+  {
+  protected:
+    CEXIETHERNET* m_eth_ref = nullptr;
+    explicit NetworkInterface(CEXIETHERNET* eth_ref) : m_eth_ref{eth_ref} {}
 
-  std::unique_ptr<u8[]> mRecvBuffer;
-  u32 mRecvBufferLength = 0;
+  public:
+    virtual bool Activate() { return false; }
+    virtual void Deactivate() {}
+    virtual bool IsActivated() { return false; }
+    virtual bool SendFrame(const u8* frame, u32 size) { return false; }
+    virtual bool RecvInit() { return false; }
+    virtual void RecvStart() {}
+    virtual void RecvStop() {}
 
-#if defined(_WIN32)
-  HANDLE mHAdapter = INVALID_HANDLE_VALUE;
-  OVERLAPPED mReadOverlapped = {};
-  OVERLAPPED mWriteOverlapped = {};
-  std::vector<u8> mWriteBuffer;
-  bool mWritePending = false;
-#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
-  int fd = -1;
+    virtual ~NetworkInterface() = default;
+  };
+
+  class TAPNetworkInterface : public NetworkInterface
+  {
+  public:
+    explicit TAPNetworkInterface(CEXIETHERNET* eth_ref) : NetworkInterface(eth_ref)
+    {
+    }
+
+  public:
+    bool Activate() override;
+    void Deactivate() override;
+    bool IsActivated() override;
+    bool SendFrame(const u8* frame, u32 size) override;
+    bool RecvInit() override;
+    void RecvStart() override;
+    void RecvStop() override;
+
+  private:
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
+    defined(__OpenBSD__)
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
+    static void ReadThreadHandler(TAPNetworkInterface* self);
 #endif
+#if defined(_WIN32)
+    HANDLE mHAdapter = INVALID_HANDLE_VALUE;
+    OVERLAPPED mReadOverlapped = {};
+    OVERLAPPED mWriteOverlapped = {};
+    std::vector<u8> mWriteBuffer;
+    bool mWritePending = false;
+#elif defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+    int fd = -1;
+#endif
+  };
 
 #if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
-  std::thread readThread;
-  Common::Flag readEnabled;
-  Common::Flag readThreadShutdown;
+    std::thread readThread;
+    Common::Flag readEnabled;
+    Common::Flag readThreadShutdown;
 #endif
+};
+
+  std::unique_ptr<NetworkInterface> network_interface;
+
+  std::unique_ptr<u8[]> mRecvBuffer;
+  u32 mRecvBufferLength = 0;
 };
 }  // namespace ExpansionInterface
