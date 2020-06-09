@@ -6,6 +6,8 @@
 
 #import "SoftwareInfoViewController.h"
 
+#import "SoftwareVerifyStartViewController.h"
+
 @interface SoftwarePropertiesViewController ()
 
 @end
@@ -34,6 +36,10 @@
   if ([segue.identifier isEqualToString:@"to_info"])
   {
     ((SoftwareInfoViewController*)(segue.destinationViewController)).m_game_file = self.m_game_file;
+  }
+  else if ([segue.identifier isEqualToString:@"to_verify"])
+  {
+    ((SoftwareVerifyStartViewController*)(segue.destinationViewController)).m_game_file = self.m_game_file;
   }
 }
 

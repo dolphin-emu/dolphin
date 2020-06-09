@@ -84,6 +84,13 @@
 		B964B13B248DFCA200EE5A3B /* SoftwareProperties.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B964B13A248DFCA200EE5A3B /* SoftwareProperties.storyboard */; };
 		B964B13E248EB63E00EE5A3B /* SoftwareInfoViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */; };
 		B964B141248ED58200EE5A3B /* SoftwarePropertiesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B140248ED58200EE5A3B /* SoftwarePropertiesViewController.mm */; };
+		B964B145248F613700EE5A3B /* SoftwareVerifyStartViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B144248F613700EE5A3B /* SoftwareVerifyStartViewController.mm */; };
+		B964B14B248F621300EE5A3B /* SoftwareVerifyResultsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B14A248F621300EE5A3B /* SoftwareVerifyResultsViewController.mm */; };
+		B964B14E248F622400EE5A3B /* SoftwareVerifyComputeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B14D248F622400EE5A3B /* SoftwareVerifyComputeViewController.mm */; };
+		B964B151248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B964B150248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.m */; };
+		B964B154248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B964B153248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.m */; };
+		B964B157248F800500EE5A3B /* SoftwareVerifyResult.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B156248F800500EE5A3B /* SoftwareVerifyResult.mm */; };
+		B964B15A248F826600EE5A3B /* SoftwareVerifyProblem.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B159248F826600EE5A3B /* SoftwareVerifyProblem.mm */; };
 		B966124E2488DF7200006392 /* GameFileCacheHolder.mm in Sources */ = {isa = PBXBuildFile; fileRef = B966124D2488DF7200006392 /* GameFileCacheHolder.mm */; };
 		B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */; };
 		B971154F23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971154E23DF449F001C6BD6 /* InvalidCpuCoreNoticeViewController.mm */; };
@@ -407,6 +414,20 @@
 		B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareInfoViewController.mm; sourceTree = "<group>"; };
 		B964B13F248ED58200EE5A3B /* SoftwarePropertiesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwarePropertiesViewController.h; sourceTree = "<group>"; };
 		B964B140248ED58200EE5A3B /* SoftwarePropertiesViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwarePropertiesViewController.mm; sourceTree = "<group>"; };
+		B964B143248F613700EE5A3B /* SoftwareVerifyStartViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyStartViewController.h; sourceTree = "<group>"; };
+		B964B144248F613700EE5A3B /* SoftwareVerifyStartViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareVerifyStartViewController.mm; sourceTree = "<group>"; };
+		B964B149248F621300EE5A3B /* SoftwareVerifyResultsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyResultsViewController.h; sourceTree = "<group>"; };
+		B964B14A248F621300EE5A3B /* SoftwareVerifyResultsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareVerifyResultsViewController.mm; sourceTree = "<group>"; };
+		B964B14C248F622400EE5A3B /* SoftwareVerifyComputeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyComputeViewController.h; sourceTree = "<group>"; };
+		B964B14D248F622400EE5A3B /* SoftwareVerifyComputeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareVerifyComputeViewController.mm; sourceTree = "<group>"; };
+		B964B14F248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyResultsProblemCell.h; sourceTree = "<group>"; };
+		B964B150248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareVerifyResultsProblemCell.m; sourceTree = "<group>"; };
+		B964B152248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyResultsHashCell.h; sourceTree = "<group>"; };
+		B964B153248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareVerifyResultsHashCell.m; sourceTree = "<group>"; };
+		B964B155248F800500EE5A3B /* SoftwareVerifyResult.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyResult.h; sourceTree = "<group>"; };
+		B964B156248F800500EE5A3B /* SoftwareVerifyResult.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareVerifyResult.mm; sourceTree = "<group>"; };
+		B964B158248F826600EE5A3B /* SoftwareVerifyProblem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareVerifyProblem.h; sourceTree = "<group>"; };
+		B964B159248F826600EE5A3B /* SoftwareVerifyProblem.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareVerifyProblem.mm; sourceTree = "<group>"; };
 		B966124C2488DF7200006392 /* GameFileCacheHolder.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameFileCacheHolder.h; sourceTree = "<group>"; };
 		B966124D2488DF7200006392 /* GameFileCacheHolder.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameFileCacheHolder.mm; sourceTree = "<group>"; };
 		B971154A23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ReloadFailedNoticeViewController.mm; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
@@ -931,6 +952,7 @@
 		B964B136248DFBEE00EE5A3B /* Properties */ = {
 			isa = PBXGroup;
 			children = (
+				B964B142248F60D300EE5A3B /* Verify */,
 				B964B13C248EB63E00EE5A3B /* SoftwareInfoViewController.h */,
 				B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */,
 				B964B13F248ED58200EE5A3B /* SoftwarePropertiesViewController.h */,
@@ -938,6 +960,27 @@
 				B964B13A248DFCA200EE5A3B /* SoftwareProperties.storyboard */,
 			);
 			path = Properties;
+			sourceTree = "<group>";
+		};
+		B964B142248F60D300EE5A3B /* Verify */ = {
+			isa = PBXGroup;
+			children = (
+				B964B158248F826600EE5A3B /* SoftwareVerifyProblem.h */,
+				B964B159248F826600EE5A3B /* SoftwareVerifyProblem.mm */,
+				B964B155248F800500EE5A3B /* SoftwareVerifyResult.h */,
+				B964B156248F800500EE5A3B /* SoftwareVerifyResult.mm */,
+				B964B14C248F622400EE5A3B /* SoftwareVerifyComputeViewController.h */,
+				B964B14D248F622400EE5A3B /* SoftwareVerifyComputeViewController.mm */,
+				B964B152248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.h */,
+				B964B153248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.m */,
+				B964B14F248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.h */,
+				B964B150248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.m */,
+				B964B149248F621300EE5A3B /* SoftwareVerifyResultsViewController.h */,
+				B964B14A248F621300EE5A3B /* SoftwareVerifyResultsViewController.mm */,
+				B964B143248F613700EE5A3B /* SoftwareVerifyStartViewController.h */,
+				B964B144248F613700EE5A3B /* SoftwareVerifyStartViewController.mm */,
+			);
+			path = Verify;
 			sourceTree = "<group>";
 		};
 		B971154C23DF4451001C6BD6 /* InvalidCpuCore */ = {
@@ -1724,15 +1767,19 @@
 				B9B47C7D23FB26520077375A /* GraphicsBackendViewController.mm in Sources */,
 				B9B47C9D23FF5AE90077375A /* GraphicsHacksViewController.mm in Sources */,
 				B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */,
+				B964B151248F6E1800EE5A3B /* SoftwareVerifyResultsProblemCell.m in Sources */,
+				B964B15A248F826600EE5A3B /* SoftwareVerifyProblem.mm in Sources */,
 				B9BEADE123AF08320014617A /* ControllerSettingsUtils.mm in Sources */,
 				B9B47C8023FB42460077375A /* AspectRatioViewController.mm in Sources */,
 				B97C9E2523C1308300C99067 /* TCClassicWiiPad.swift in Sources */,
 				B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */,
 				B971156123E13641001C6BD6 /* ConfigGeneralViewController.mm in Sources */,
+				B964B14E248F622400EE5A3B /* SoftwareVerifyComputeViewController.mm in Sources */,
 				B99585D524673F89008C5115 /* NetPlayHolder.mm in Sources */,
 				B964B13E248EB63E00EE5A3B /* SoftwareInfoViewController.mm in Sources */,
 				B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */,
 				B91BF374236B400200199BA7 /* SettingsTableViewController.mm in Sources */,
+				B964B154248F6E3A00EE5A3B /* SoftwareVerifyResultsHashCell.m in Sources */,
 				B945A3752362908500B21680 /* AppDelegate.mm in Sources */,
 				B91BF36E236B3FCE00199BA7 /* SoftwareTableViewCell.m in Sources */,
 				B99B05B923A20F3D0076C7D8 /* TCView.swift in Sources */,
@@ -1757,6 +1804,7 @@
 				B989DFC623B48B7D005C7773 /* ControllerGroupDoubleCell.mm in Sources */,
 				B988D7F623B5A90E0092CB6C /* ControllerGroupExtensionButtonCell.m in Sources */,
 				B9EFBFAF23AF8A5B00593A20 /* ControllerTypeCell.m in Sources */,
+				B964B157248F800500EE5A3B /* SoftwareVerifyResult.mm in Sources */,
 				B966124E2488DF7200006392 /* GameFileCacheHolder.mm in Sources */,
 				B9E983F4245A57EB00119883 /* SoftwareListViewController.mm in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
@@ -1780,6 +1828,7 @@
 				B98911A4244521E400A24522 /* AnalyticsNoticeViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
 				B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */,
+				B964B145248F613700EE5A3B /* SoftwareVerifyStartViewController.mm in Sources */,
 				B9B47C9423FC7B830077375A /* AntiAliasingCell.m in Sources */,
 				B945A3922362D90200B21680 /* EAGLView.m in Sources */,
 				4EDF824B246C7F4200ED9FFA /* MainTabBarController.m in Sources */,
@@ -1812,6 +1861,7 @@
 				B9B47C8E23FB893B0077375A /* AnisotropicFilteringViewController.mm in Sources */,
 				B99577A424665004008C5115 /* KilledBuildNoticeViewController.m in Sources */,
 				B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */,
+				B964B14B248F621300EE5A3B /* SoftwareVerifyResultsViewController.mm in Sources */,
 				B971154B23DE98AB001C6BD6 /* ReloadFailedNoticeViewController.mm in Sources */,
 				B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */,
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,

@@ -11,8 +11,13 @@
 #include <string>
 #include <vector>
 
+#ifndef XCODE_APP_BUILD
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
+#else
+#include "mbedtls/md5.h"
+#include "mbedtls/sha1.h"
+#endif
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/ES/Formats.h"
