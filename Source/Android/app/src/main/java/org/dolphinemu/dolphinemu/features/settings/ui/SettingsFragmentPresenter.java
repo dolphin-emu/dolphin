@@ -381,16 +381,20 @@ public final class SettingsFragmentPresenter
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
     Setting wiiSDCard = null;
+    Setting wiiSDWrites = null;
     Setting continuousScan = null;
     Setting wiimoteSpeaker = null;
 
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
     wiiSDCard = coreSection.getSetting(SettingsFile.KEY_WII_SD_CARD);
+    wiiSDWrites = coreSection.getSetting(SettingsFile.KEY_WII_SD_CARD_ALLOW_WRITES);
     continuousScan = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SCAN);
     wiimoteSpeaker = coreSection.getSetting(SettingsFile.KEY_WIIMOTE_SPEAKER);
 
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WII_SD_CARD, Settings.SECTION_INI_CORE,
             R.string.insert_sd_card, R.string.insert_sd_card_description, true, wiiSDCard));
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_WII_SD_CARD_ALLOW_WRITES, Settings.SECTION_INI_CORE,
+            R.string.wii_sd_card_allow_writes, 0, true, wiiSDWrites));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE,
             R.string.wiimote_scanning, R.string.wiimote_scanning_description, true,
             continuousScan));

@@ -134,6 +134,7 @@
     <string name="wii_submenu">Wii</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
+    <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
