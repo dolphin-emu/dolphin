@@ -29,6 +29,14 @@
             </objects>
             <point key="canvasLocation" x="2650" y="-184"/>
         </scene>
+        <!--Software Properties-->
+        <scene sceneID="MfC-9d-aHm">
+            <objects>
+                <viewControllerPlaceholder storyboardName="SoftwareProperties" referencedIdentifier="Root" id="NN1-zE-gjq" userLabel="Software Properties" sceneMemberID="viewController"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="EKQ-1X-07f" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2649" y="-149"/>
+        </scene>
         <!--Games-->
         <scene sceneID="QTB-tI-TdV">
             <objects>
@@ -98,14 +106,14 @@
                                 <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="softwareCell" id="0R1-Jg-ifQ" customClass="SoftwareTableViewCell">
-                                        <rect key="frame" x="0.0" y="28" width="375" height="42.666667938232422"/>
+                                        <rect key="frame" x="0.0" y="28" width="375" height="43"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="0R1-Jg-ifQ" id="WOi-Tr-BOa">
-                                            <rect key="frame" x="0.0" y="0.0" width="375" height="42.666667938232422"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="375" height="43"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8hS-Bf-M3f">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="345" height="20.666666666666671"/>
+                                                    <rect key="frame" x="15" y="11" width="345" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -180,6 +188,7 @@
                         <outlet property="m_table_view" destination="V00-6y-ggr" id="aM4-7R-QkF"/>
                         <segue destination="DBS-kS-F5b" kind="show" identifier="to_emulation" id="Upk-Dq-M8D"/>
                         <segue destination="tgy-N5-u5u" kind="presentation" identifier="to_wii_update" modalPresentationStyle="fullScreen" id="yGc-JS-KN6"/>
+                        <segue destination="NN1-zE-gjq" kind="presentation" identifier="to_properties" id="wx0-J7-DvL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="sk5-9A-bGR" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>

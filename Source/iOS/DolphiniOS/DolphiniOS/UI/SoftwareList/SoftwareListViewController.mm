@@ -22,6 +22,7 @@
 #import "MainiOS.h"
 
 #import "SoftwareCollectionViewCell.h"
+#import "SoftwarePropertiesViewController.h"
 #import "SoftwareTableViewCell.h"
 
 #import "UICollectionViewLeftAlignedLayout.h"
@@ -282,6 +283,11 @@
   
   NSMutableArray<UIAction*>* actions = [[NSMutableArray alloc] init];
   
+  [actions addObject:[UIAction actionWithTitle:DOLocalizedString(@"Properties") image:[UIImage systemImageNamed:@"square.and.pencil"] identifier:nil handler:^(UIAction*)
+  {
+    [self OpenProperties:game_file];
+  }]];
+  
   DiscIO::Platform platform = game_file->GetPlatform();
   if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::GameCubeDisc)
   {
@@ -342,6 +348,11 @@
   
   UIAlertController* action_sheet = [UIAlertController alertControllerWithTitle:nil message:CppToFoundationString(game_file->GetUniqueIdentifier()) preferredStyle:UIAlertControllerStyleActionSheet];
   
+  [action_sheet addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"Properties") style:UIAlertActionStyleDefault handler:^(UIAlertAction*)
+  {
+    [self OpenProperties:game_file];
+  }]];
+  
   DiscIO::Platform platform = game_file->GetPlatform();
   if (platform == DiscIO::Platform::WiiDisc || platform == DiscIO::Platform::GameCubeDisc)
   {
@@ -386,6 +397,12 @@
 }
 
 #pragma mark - Menu actions
+
+- (void)OpenProperties:(const UICommon::GameFile*)game_file
+{
+  self.m_selected_file = game_file;
+  [self performSegueWithIdentifier:@"to_properties" sender:nil];
+}
 
 - (void)SetDefaultIso:(const UICommon::GameFile*)game_file
 {
@@ -693,6 +710,12 @@
     WiiSystemUpdateViewController* update_controller = (WiiSystemUpdateViewController*)segue.destinationViewController;
     update_controller.m_is_online = true;
     update_controller.m_source = wii_update_region;
+  }
+  else if ([segue.identifier isEqualToString:@"to_properties"])
+  {
+    UINavigationController* navigationController = (UINavigationController*)segue.destinationViewController;
+    SoftwarePropertiesViewController* properties_controller = (SoftwarePropertiesViewController*)([navigationController.viewControllers firstObject]);
+    properties_controller.m_game_file = const_cast<UICommon::GameFile*>(self.m_selected_file);
   }
 }
 
