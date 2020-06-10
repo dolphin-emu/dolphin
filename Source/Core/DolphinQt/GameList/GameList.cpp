@@ -743,6 +743,11 @@ GameList::FindSecondDisc(const UICommon::GameFile& game) const
   return m_model->FindSecondDisc(game);
 }
 
+std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
+{
+  return m_model->GetNetPlayName(game);
+}
+
 void GameList::SetViewColumn(int col, bool view)
 {
   m_list->setColumnHidden(col, !view);

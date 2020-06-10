@@ -313,6 +313,11 @@ std::shared_ptr<const UICommon::GameFile> GameListModel::GetGameFile(int index) 
   return m_games[index];
 }
 
+std::string GameListModel::GetNetPlayName(const UICommon::GameFile& game) const
+{
+  return game.GetNetPlayName(m_title_database);
+}
+
 void GameListModel::AddGame(const std::shared_ptr<const UICommon::GameFile>& game)
 {
   beginInsertRows(QModelIndex(), m_games.size(), m_games.size());

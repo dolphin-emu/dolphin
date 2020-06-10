@@ -325,9 +325,12 @@ void NetPlayDialog::ConnectWidgets()
     GameListDialog gld(this);
     if (gld.exec() == QDialog::Accepted)
     {
+      Settings& settings = Settings::Instance();
+
       const UICommon::GameFile& game = gld.GetSelectedGame();
-      const std::string netplay_name = game.GetNetPlayName();
-      Settings::Instance().GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(), netplay_name);
+      const std::string netplay_name = settings.GetGameListModel()->GetNetPlayName(game);
+
+      settings.GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(), netplay_name);
       Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
                                         QString::fromStdString(netplay_name));
     }

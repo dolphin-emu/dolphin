@@ -82,7 +82,7 @@ public:
   u16 GetRevision() const { return m_revision; }
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }
-  std::string GetNetPlayName() const;
+  std::string GetNetPlayName(const Core::TitleDatabase& title_database) const;
 
   // This function is slow
   std::array<u8, 20> GetSyncHash() const;

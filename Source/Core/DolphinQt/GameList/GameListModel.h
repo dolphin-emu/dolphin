@@ -37,6 +37,7 @@ public:
   int columnCount(const QModelIndex& parent) const override;
 
   std::shared_ptr<const UICommon::GameFile> GetGameFile(int index) const;
+  std::string GetNetPlayName(const UICommon::GameFile& game) const;
   bool ShouldDisplayGameListItem(int index) const;
   void SetSearchTerm(const QString& term);
 

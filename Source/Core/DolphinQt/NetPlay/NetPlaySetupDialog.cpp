@@ -363,7 +363,8 @@ void NetPlaySetupDialog::PopulateGameList()
   {
     std::shared_ptr<const UICommon::GameFile> game = m_game_list_model->GetGameFile(i);
 
-    auto* item = new QListWidgetItem(QString::fromStdString(game->GetNetPlayName()));
+    auto* item =
+        new QListWidgetItem(QString::fromStdString(m_game_list_model->GetNetPlayName(*game)));
     item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
     m_host_games->addItem(item);
   }

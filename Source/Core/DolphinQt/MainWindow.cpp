@@ -1420,7 +1420,7 @@ bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
   }
 
   Settings::Instance().GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(),
-                                                      game.GetNetPlayName());
+                                                      m_game_list->GetNetPlayName(game));
 
   // Join our local server
   return NetPlayJoin();

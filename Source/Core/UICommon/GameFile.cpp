@@ -535,7 +535,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
   return languages;
 }
 
-std::string GameFile::GetNetPlayName() const
+std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const
 {
   std::vector<std::string> info;
   if (!GetGameID().empty())
@@ -543,12 +543,7 @@ std::string GameFile::GetNetPlayName() const
   if (GetRevision() != 0)
     info.push_back("Revision " + std::to_string(GetRevision()));
 
-  std::string name = GetLongName(DiscIO::Language::English);
-  if (name.empty())
-  {
-    // Use the file name as a fallback. Not necessarily consistent, but it's the best we have
-    name = m_file_name;
-  }
+  const std::string name = GetName(title_database);
 
   int disc_number = GetDiscNumber() + 1;
 
