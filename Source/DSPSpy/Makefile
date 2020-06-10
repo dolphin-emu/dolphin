@@ -24,7 +24,6 @@ include $(DEVKITPPC)/$(HW_TYPE)_rules
 TARGET		:=	$(notdir $(CURDIR))_$(HW_TYPE)
 BUILD		:=	build
 SOURCES		:=	. emu
-RESOURCES	:=	../resources
 DATA		:=	data
 INCLUDES	:=	include ../Core/Common .
 
@@ -33,7 +32,7 @@ INCLUDES	:=	include ../Core/Common .
 #---------------------------------------------------------------------------------
 
 CFLAGS	= -save-temps -O2 -Wall --no-strict-aliasing $(MACHDEP) $(INCLUDE)
-CXXFLAGS	=	-std=c++0x $(CFLAGS)
+CXXFLAGS	=	-std=c++17 -Wno-register $(CFLAGS)
 
 LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 
@@ -41,9 +40,9 @@ LDFLAGS	=	-g $(MACHDEP) -Wl,-Map,$(notdir $@).map
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
 ifeq ($(HW_TYPE), gamecube)
-LIBS	:=	-lfat -lasnd -lmodplay -ldb -logc -lm
+LIBS	:=	-lfat -ldb -logc -lm
 else
-LIBS	:=	-lfat -lasnd -lmodplay -lwiiuse -lbte -logc -lm
+LIBS	:=	-lfat -lwiiuse -lbte -logc -lm
 endif
 
 #---------------------------------------------------------------------------------
@@ -61,7 +60,7 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) $(foreach dir,$(RESOURCES),$(CURDIR)/$(dir))\
+export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 					$(foreach dir,$(DATA),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
@@ -70,7 +69,6 @@ export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 # automatically build a list of object files for our project
 #---------------------------------------------------------------------------------
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CFILES		+=	$(foreach dir,$(RESOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
@@ -86,14 +84,16 @@ else
 	export LD	:=	$(CXX)
 endif
 
-export OFILES	:=	$(addsuffix .o,$(BINFILES)) \
-					$(CPPFILES:.cpp=.o) $(CFILES:.c=.o) \
-					$(sFILES:.s=.o) $(SFILES:.S=.o)
+export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
+export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(sFILES:.s=.o) $(SFILES:.S=.o)
+export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
+
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 #---------------------------------------------------------------------------------
 # build a list of include paths
 #---------------------------------------------------------------------------------
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
+export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD) \
 					-I$(LIBOGC_INC)
@@ -101,8 +101,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 #---------------------------------------------------------------------------------
 # build a list of library paths
 #---------------------------------------------------------------------------------
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
-					-L$(LIBOGC_LIB)
+export LIBPATHS	:= -L$(LIBOGC_LIB) $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 .PHONY: $(BUILD) clean
@@ -116,6 +115,7 @@ $(BUILD):
 clean:
 	@echo clean ...
 	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
+
 #---------------------------------------------------------------------------------
 run:
 ifeq ($(HW_TYPE), gamecube)
@@ -139,8 +139,9 @@ DEPENDS	:=	$(OFILES:.o=.d)
 # main targets
 #---------------------------------------------------------------------------------
 $(OUTPUT).dol: $(OUTPUT).elf
-$(OUTPUT).elf: $(OFILES) 
+$(OUTPUT).elf: $(OFILES)
 
+$(OFILES_SOURCES) : $(HFILES)
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension
