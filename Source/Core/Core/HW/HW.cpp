@@ -62,8 +62,11 @@ void Init()
 void Shutdown()
 {
   // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
-  IOS::HLE::Shutdown();  // Depends on Memory
-  IOS::Shutdown();
+  // The SocketManager can fire IPC events on shutdown so run it as CPU thread.
+  Core::RunAsCPUThread([&] {
+    IOS::HLE::Shutdown();  // Depends on Memory
+    IOS::Shutdown();
+  });
   Core::ShutdownWiiRoot();
 
   SystemTimers::Shutdown();
