@@ -85,6 +85,7 @@
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
     <ClCompile Include="FreeLookConfig.cpp" />
+    <ClCompile Include="FreeLookManager.cpp" />
     <ClCompile Include="GeckoCode.cpp" />
     <ClCompile Include="GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
@@ -440,6 +441,7 @@
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
     <ClInclude Include="FreeLookConfig.h" />
+    <ClInclude Include="FreeLookManager.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />

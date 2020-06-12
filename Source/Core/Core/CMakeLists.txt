@@ -19,6 +19,8 @@ add_library(core
   DSPEmulator.h
   FreeLookConfig.cpp
   FreeLookConfig.h
+  FreeLookManager.cpp
+  FreeLookManager.h
   GeckoCodeConfig.cpp
   GeckoCodeConfig.h
   GeckoCode.cpp
