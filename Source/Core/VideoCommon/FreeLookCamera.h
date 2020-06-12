@@ -63,6 +63,10 @@ public:
   bool IsDirty() const;
   void SetClean();
 
+  void ModifySpeed(float multiplier);
+  void ResetSpeed();
+  float GetSpeed() const;
+
 private:
   bool m_dirty = false;
   float m_fov_x = 1.0f;
@@ -71,6 +75,7 @@ private:
   std::unique_ptr<CameraController> m_camera_controller;
 
   float m_fov_step_size = 0.025f;
+  float m_speed = 1.0f;
 };
 
 extern FreeLookCamera g_freelook_camera;

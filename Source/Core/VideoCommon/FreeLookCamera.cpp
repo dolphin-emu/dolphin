@@ -258,10 +258,26 @@ void FreeLookCamera::Reset()
   m_dirty = true;
 }
 
+void FreeLookCamera::ModifySpeed(float multiplier)
+{
+  m_speed *= multiplier;
+}
+
+void FreeLookCamera::ResetSpeed()
+{
+  m_speed = 1.0f;
+}
+
+float FreeLookCamera::GetSpeed() const
+{
+  return m_speed;
+}
+
 void FreeLookCamera::DoState(PointerWrap& p)
 {
   if (p.mode == PointerWrap::MODE_WRITE || p.mode == PointerWrap::MODE_MEASURE)
   {
+    p.Do(m_speed);
     p.Do(m_current_type);
     p.Do(m_fov_x);
     p.Do(m_fov_y);
@@ -273,6 +289,7 @@ void FreeLookCamera::DoState(PointerWrap& p)
   else
   {
     const auto old_type = m_current_type;
+    p.Do(m_speed);
     p.Do(m_current_type);
     p.Do(m_fov_x);
     p.Do(m_fov_y);
