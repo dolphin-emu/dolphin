@@ -54,7 +54,7 @@ public:
     m_mat = Common::Matrix44::Translate(Common::Vec3{amt, 0, 0}) * m_mat;
   }
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     m_mat = Common::Matrix44::Translate(Common::Vec3{0, 0, amt}) * m_mat;
   }
@@ -97,7 +97,7 @@ public:
     m_position += right * amt;
   }
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     Common::Vec3 forward{m_rotate_mat.data[8], m_rotate_mat.data[9], m_rotate_mat.data[10]};
     m_position += forward * amt;
@@ -150,7 +150,7 @@ public:
 
   void MoveHorizontal(float) override {}
 
-  void Zoom(float amt) override
+  void MoveForward(float amt) override
   {
     m_distance += -1 * amt;
     m_distance = std::clamp(m_distance, 0.0f, m_distance);
@@ -221,9 +221,9 @@ void FreeLookCamera::MoveHorizontal(float amt)
   m_dirty = true;
 }
 
-void FreeLookCamera::Zoom(float amt)
+void FreeLookCamera::MoveForward(float amt)
 {
-  m_camera_controller->Zoom(amt);
+  m_camera_controller->MoveForward(amt);
   m_dirty = true;
 }
 

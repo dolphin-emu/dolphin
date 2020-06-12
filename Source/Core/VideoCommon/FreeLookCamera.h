@@ -29,7 +29,7 @@ public:
   virtual void MoveVertical(float amt) = 0;
   virtual void MoveHorizontal(float amt) = 0;
 
-  virtual void Zoom(float amt) = 0;
+  virtual void MoveForward(float amt) = 0;
 
   virtual void Rotate(const Common::Vec3& amt) = 0;
 
@@ -47,8 +47,7 @@ public:
 
   void MoveVertical(float amt);
   void MoveHorizontal(float amt);
-
-  void Zoom(float amt);
+  void MoveForward(float amt);
 
   void Rotate(const Common::Vec3& amt);
 
