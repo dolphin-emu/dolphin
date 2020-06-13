@@ -83,7 +83,7 @@ void MappingWindow::CreateDevicesLayout()
   m_devices_combo = new QComboBox();
   m_devices_refresh = new QPushButton(tr("Refresh"));
 
-  m_devices_combo->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Fixed);
+  m_devices_combo->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   m_devices_refresh->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
   m_devices_layout->addWidget(m_devices_combo);
