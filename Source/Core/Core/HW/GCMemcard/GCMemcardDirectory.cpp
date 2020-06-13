@@ -78,6 +78,9 @@ bool GCMemcardDirectory::LoadGCI(GCIFile gci)
   }
   gci.m_gci_header.m_first_block = first_block;
 
+  INFO_LOG(EXPANSIONINTERFACE, "GCI Folder: Reserved blocks [0x%x, 0x%x) for %s.", first_block,
+           first_block + num_blocks, gci.m_filename.c_str());
+
   if (gci.HasCopyProtection())
   {
     GCMemcard::PSO_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
