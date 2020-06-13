@@ -34,7 +34,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A graphics processor that supports OpenGL ES 3.0 or higher. Performance varies heavily with [driver quality](https://dolphin-emu.org/blog/2013/09/26/dolphin-emulator-and-opengl-drivers-hall-fameshame/).
     * A graphics processor that supports standard desktop OpenGL features is recommended for best performance.
 
-Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install Dolphin on an unsupported device will result in a failed installation. An error message will be displayed afterwards.
+Dolphin can only be installed on devices that satisfy the above requirements. Any attempt to install Dolphin on an unsupported device will result in a failed installation. An error message will be displayed afterwards.
 
 ## Building for Windows
 
