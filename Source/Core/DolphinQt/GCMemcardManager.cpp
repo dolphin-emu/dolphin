@@ -224,8 +224,8 @@ void GCMemcardManager::UpdateSlotTable(int slot)
       comment = QString::fromStdString(file_comments->second);
     }
 
-    QString blocks = QStringLiteral("%1").arg(memcard->DEntry_BlockCount(file_index));
-    QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
+    QString blocks = QStringLiteral("%1").arg(memcard->DirEntry_BlockCount(file_index));
+    QString block_count = QStringLiteral("%1").arg(memcard->DirEntry_FirstBlock(file_index));
 
     auto* banner = new QTableWidgetItem;
     banner->setData(Qt::DecorationRole, GetBannerFromSaveFile(file_index, slot));
@@ -553,7 +553,7 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
       }
     }
 
-    const bool is_pingpong = memcard->DEntry_IsPingPong(file_index);
+    const bool is_pingpong = memcard->DirEntry_IsPingPong(file_index);
     if (is_pingpong && decoded_data->size() >= 3)
     {
       // if the animation 'ping-pongs' between start and end then the animation frame order is

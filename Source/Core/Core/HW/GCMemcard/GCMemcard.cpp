@@ -367,8 +367,11 @@ u8 GCMemcard::GetNumFiles() const
   u8 j = 0;
   for (int i = 0; i < DIRLEN; i++)
   {
-    if (GetActiveDirectory().m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (GetActiveDirectory().m_dir_entries[i].m_gamecode !=
+        GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
+    {
       j++;
+    }
   }
   return j;
 }
@@ -380,7 +383,8 @@ u8 GCMemcard::GetFileIndex(u8 fileNumber) const
     u8 j = 0;
     for (u8 i = 0; i < DIRLEN; i++)
     {
-      if (GetActiveDirectory().m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+      if (GetActiveDirectory().m_dir_entries[i].m_gamecode !=
+          GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
       {
         if (j == fileNumber)
         {
@@ -401,7 +405,7 @@ u16 GCMemcard::GetFreeBlocks() const
   return GetActiveBat().m_free_blocks;
 }
 
-u8 GCMemcard::TitlePresent(const DEntry& d) const
+u8 GCMemcard::TitlePresent(const GCMemcardDirEntry& d) const
 {
   if (!m_valid)
     return DIRLEN;
@@ -422,17 +426,17 @@ u8 GCMemcard::TitlePresent(const DEntry& d) const
 bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
 {
   if (!m_valid || index >= DIRLEN ||
-      GetActiveDirectory().m_dir_entries[index].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+      GetActiveDirectory().m_dir_entries[index].m_gamecode ==
+          GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
+  {
     return false;
+  }
 
   filename = GetActiveDirectory().m_dir_entries[index].GCI_FileName();
   return true;
 }
 
-// DEntry functions, all take u8 index < DIRLEN (127)
-// Functions that have ascii output take a char *buffer
-
-std::string GCMemcard::DEntry_GameCode(u8 index) const
+std::string GCMemcard::DirEntry_GameCode(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -442,7 +446,7 @@ std::string GCMemcard::DEntry_GameCode(u8 index) const
       GetActiveDirectory().m_dir_entries[index].m_gamecode.size());
 }
 
-std::string GCMemcard::DEntry_Makercode(u8 index) const
+std::string GCMemcard::DirEntry_Makercode(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -452,7 +456,7 @@ std::string GCMemcard::DEntry_Makercode(u8 index) const
       GetActiveDirectory().m_dir_entries[index].m_makercode.size());
 }
 
-std::string GCMemcard::DEntry_BIFlags(u8 index) const
+std::string GCMemcard::DirEntry_BIFlags(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -467,7 +471,7 @@ std::string GCMemcard::DEntry_BIFlags(u8 index) const
   return flags;
 }
 
-bool GCMemcard::DEntry_IsPingPong(u8 index) const
+bool GCMemcard::DirEntry_IsPingPong(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return false;
@@ -476,7 +480,7 @@ bool GCMemcard::DEntry_IsPingPong(u8 index) const
   return (flags & 0b0000'0100) != 0;
 }
 
-std::string GCMemcard::DEntry_FileName(u8 index) const
+std::string GCMemcard::DirEntry_FileName(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -486,7 +490,7 @@ std::string GCMemcard::DEntry_FileName(u8 index) const
       GetActiveDirectory().m_dir_entries[index].m_filename.size());
 }
 
-u32 GCMemcard::DEntry_ModTime(u8 index) const
+u32 GCMemcard::DirEntry_ModTime(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
@@ -494,7 +498,7 @@ u32 GCMemcard::DEntry_ModTime(u8 index) const
   return GetActiveDirectory().m_dir_entries[index].m_modification_time;
 }
 
-u32 GCMemcard::DEntry_ImageOffset(u8 index) const
+u32 GCMemcard::DirEntry_ImageOffset(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFFFFFF;
@@ -502,7 +506,7 @@ u32 GCMemcard::DEntry_ImageOffset(u8 index) const
   return GetActiveDirectory().m_dir_entries[index].m_image_offset;
 }
 
-std::string GCMemcard::DEntry_IconFmt(u8 index) const
+std::string GCMemcard::DirEntry_IconFmt(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -516,7 +520,7 @@ std::string GCMemcard::DEntry_IconFmt(u8 index) const
   return format;
 }
 
-std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
+std::string GCMemcard::DirEntry_AnimSpeed(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -530,7 +534,7 @@ std::string GCMemcard::DEntry_AnimSpeed(u8 index) const
   return speed;
 }
 
-std::string GCMemcard::DEntry_Permissions(u8 index) const
+std::string GCMemcard::DirEntry_Permissions(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return "";
@@ -543,7 +547,7 @@ std::string GCMemcard::DEntry_Permissions(u8 index) const
   return permissionsString;
 }
 
-u8 GCMemcard::DEntry_CopyCounter(u8 index) const
+u8 GCMemcard::DirEntry_CopyCounter(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFF;
@@ -551,7 +555,7 @@ u8 GCMemcard::DEntry_CopyCounter(u8 index) const
   return GetActiveDirectory().m_dir_entries[index].m_copy_counter;
 }
 
-u16 GCMemcard::DEntry_FirstBlock(u8 index) const
+u16 GCMemcard::DirEntry_FirstBlock(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
@@ -562,7 +566,7 @@ u16 GCMemcard::DEntry_FirstBlock(u8 index) const
   return block;
 }
 
-u16 GCMemcard::DEntry_BlockCount(u8 index) const
+u16 GCMemcard::DirEntry_BlockCount(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return 0xFFFF;
@@ -579,7 +583,7 @@ std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t
   if (!m_valid || save_index >= DIRLEN)
     return std::nullopt;
 
-  const DEntry& entry = GetActiveDirectory().m_dir_entries[save_index];
+  const GCMemcardDirEntry& entry = GetActiveDirectory().m_dir_entries[save_index];
   const BlockAlloc& bat = GetActiveBat();
   const u16 block_count = entry.m_block_count;
   const u16 first_block = entry.m_first_block;
@@ -662,7 +666,7 @@ std::optional<std::pair<std::string, std::string>> GCMemcard::GetSaveComments(u8
                         strip_null(string_decoder(encoded_2)));
 }
 
-std::optional<DEntry> GCMemcard::GetDEntry(u8 index) const
+std::optional<GCMemcardDirEntry> GCMemcard::GetDirEntry(u8 index) const
 {
   if (!m_valid || index >= DIRLEN)
     return std::nullopt;
@@ -815,8 +819,8 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   if (!m_valid)
     return GCMemcardGetSaveDataRetVal::NOMEMCARD;
 
-  const u16 block = DEntry_FirstBlock(index);
-  const u16 BlockCount = DEntry_BlockCount(index);
+  const u16 block = DirEntry_FirstBlock(index);
+  const u16 BlockCount = DirEntry_BlockCount(index);
 
   if ((block == 0xFFFF) || (BlockCount == 0xFFFF))
   {
@@ -833,9 +837,8 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   }
   return GCMemcardGetSaveDataRetVal::SUCCESS;
 }
-// End DEntry functions
 
-GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
+GCMemcardImportFileRetVal GCMemcard::ImportFile(const GCMemcardDirEntry& direntry,
                                                 std::vector<GCMBlock>& saveBlocks)
 {
   if (!m_valid)
@@ -864,7 +867,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   // find first free dir entry
   for (int i = 0; i < DIRLEN; i++)
   {
-    if (UpdatedDir.m_dir_entries[i].m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+    if (UpdatedDir.m_dir_entries[i].m_gamecode == GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
     {
       UpdatedDir.m_dir_entries[i] = direntry;
       UpdatedDir.m_dir_entries[i].m_first_block = firstBlock;
@@ -942,11 +945,11 @@ GCMemcardImportFileRetVal GCMemcard::CopyFrom(const GCMemcard& source, u8 index)
   if (!m_valid || !source.m_valid)
     return GCMemcardImportFileRetVal::NOMEMCARD;
 
-  std::optional<DEntry> tempDEntry = source.GetDEntry(index);
+  std::optional<GCMemcardDirEntry> tempDEntry = source.GetDirEntry(index);
   if (!tempDEntry)
     return GCMemcardImportFileRetVal::NOMEMCARD;
 
-  u32 size = source.DEntry_BlockCount(index);
+  u32 size = source.DirEntry_BlockCount(index);
   if (size == 0xFFFF)
     return GCMemcardImportFileRetVal::INVALIDFILESIZE;
 
@@ -1008,7 +1011,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportGciInternal(File::IOFile&& gci,
   }
   gci.Seek(offset, SEEK_SET);
 
-  DEntry tempDEntry;
+  GCMemcardDirEntry tempDEntry;
   gci.ReadBytes(&tempDEntry, DENTRY_SIZE);
   const u64 fStart = gci.Tell();
   gci.Seek(0, SEEK_END);
@@ -1086,14 +1089,14 @@ GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& file
     break;
   }
 
-  std::optional<DEntry> tempDEntry = GetDEntry(index);
+  std::optional<GCMemcardDirEntry> tempDEntry = GetDirEntry(index);
   if (!tempDEntry)
     return GCMemcardExportFileRetVal::NOMEMCARD;
 
   Gcs_SavConvert(*tempDEntry, offset);
   gci.WriteBytes(&tempDEntry.value(), DENTRY_SIZE);
 
-  u32 size = DEntry_BlockCount(index);
+  u32 size = DirEntry_BlockCount(index);
   if (size == 0xFFFF)
   {
     return GCMemcardExportFileRetVal::FAIL;
@@ -1123,7 +1126,7 @@ GCMemcardExportFileRetVal GCMemcard::ExportGci(u8 index, const std::string& file
     return GCMemcardExportFileRetVal::WRITEFAIL;
 }
 
-void GCMemcard::Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length)
+void GCMemcard::Gcs_SavConvert(GCMemcardDirEntry& tempDEntry, int saveType, u64 length)
 {
   switch (saveType)
   {
@@ -1411,7 +1414,8 @@ bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 /*************************************************************/
 
 s32 GCMemcard::FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
-                                         const DEntry& direntry, std::vector<GCMBlock>& FileBuffer)
+                                         const GCMemcardDirEntry& direntry,
+                                         std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
   u16 chksum = 0xFFFF;
@@ -1465,7 +1469,8 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
 /* Returns: Error code                                     */
 /***********************************************************/
 
-s32 GCMemcard::PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader, const DEntry& direntry,
+s32 GCMemcard::PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
+                                     const GCMemcardDirEntry& direntry,
                                      std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1581,12 +1586,12 @@ std::pair<u32, u32> GCMemcardHeaderBlock::CalculateSerial() const
   return std::make_pair(serial1, serial2);
 }
 
-DEntry::DEntry()
+GCMemcardDirEntry::GCMemcardDirEntry()
 {
   memset(this, 0xFF, DENTRY_SIZE);
 }
 
-std::string DEntry::GCI_FileName() const
+std::string GCMemcardDirEntry::GCI_FileName() const
 {
   std::string filename =
       std::string(reinterpret_cast<const char*>(m_makercode.data()), m_makercode.size()) + '-' +
@@ -1644,7 +1649,7 @@ Directory::Directory()
   m_checksum_inv = 0;
 }
 
-bool Directory::Replace(const DEntry& entry, size_t index)
+bool Directory::Replace(const GCMemcardDirEntry& entry, size_t index)
 {
   if (index >= m_dir_entries.size())
     return false;
@@ -1694,8 +1699,8 @@ GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
 
   for (u8 i = 0; i < DIRLEN; ++i)
   {
-    const DEntry& entry = m_dir_entries[i];
-    if (entry.m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+    const GCMemcardDirEntry& entry = m_dir_entries[i];
+    if (entry.m_gamecode == GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
       continue;
 
     // check if we end up with the same number of blocks when traversing through the BAT using the

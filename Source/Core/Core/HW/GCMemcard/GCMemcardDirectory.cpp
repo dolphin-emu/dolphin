@@ -439,7 +439,7 @@ inline void GCMemcardDirectory::SyncSaves()
 
   for (u32 i = 0; i < DIRLEN; ++i)
   {
-    if (current->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (current->m_dir_entries[i].m_gamecode != GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
     {
       INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x",
                Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
@@ -483,7 +483,7 @@ inline void GCMemcardDirectory::SyncSaves()
     {
       INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or deleting save 0x%x",
                Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
-      m_saves[i].m_gci_header.m_gamecode = DEntry::UNINITIALIZED_GAMECODE;
+      m_saves[i].m_gci_header.m_gamecode = GCMemcardDirEntry::UNINITIALIZED_GAMECODE;
       m_saves[i].m_save_data.clear();
       m_saves[i].m_used_blocks.clear();
       m_saves[i].m_dirty = true;
@@ -494,7 +494,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 {
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
-    if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (m_saves[i].m_gci_header.m_gamecode != GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
     {
       if (m_saves[i].m_used_blocks.empty())
       {
@@ -586,12 +586,12 @@ void GCMemcardDirectory::FlushToFile()
 {
   std::unique_lock<std::mutex> l(m_write_mutex);
   int errors = 0;
-  DEntry invalid;
+  GCMemcardDirEntry invalid;
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
     if (m_saves[i].m_dirty)
     {
-      if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+      if (m_saves[i].m_gci_header.m_gamecode != GCMemcardDirEntry::UNINITIALIZED_GAMECODE)
       {
         m_saves[i].m_dirty = false;
         if (m_saves[i].m_save_data.empty())

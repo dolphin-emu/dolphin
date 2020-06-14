@@ -246,9 +246,9 @@ struct GCMemcardHeaderBlock
 };
 static_assert(sizeof(GCMemcardHeaderBlock) == BLOCK_SIZE);
 
-struct DEntry
+struct GCMemcardDirEntry
 {
-  DEntry();
+  GCMemcardDirEntry();
 
   // TODO: This probably shouldn't be here at all?
   std::string GCI_FileName() const;
@@ -321,14 +321,14 @@ struct DEntry
   // 4 bytes at 0x3c: Address of the two comments within the file data
   Common::BigEndianValue<u32> m_comments_address;
 };
-static_assert(sizeof(DEntry) == DENTRY_SIZE);
+static_assert(sizeof(GCMemcardDirEntry) == DENTRY_SIZE);
 
 struct BlockAlloc;
 
 struct Directory
 {
   // 127 files of 0x40 bytes each
-  std::array<DEntry, DIRLEN> m_dir_entries;
+  std::array<GCMemcardDirEntry, DIRLEN> m_dir_entries;
 
   // 0x3a bytes at 0x1fc0: Unused, always 0xFF
   std::array<u8, 0x3a> m_padding;
@@ -346,8 +346,8 @@ struct Directory
   Directory();
 
   // Replaces the file metadata at the given index (range 0-126)
-  // with the given DEntry data.
-  bool Replace(const DEntry& entry, size_t index);
+  // with the given GCMemcardDirEntry data.
+  bool Replace(const GCMemcardDirEntry& entry, size_t index);
 
   void FixChecksums();
   std::pair<u16, u16> CalculateChecksums() const;
@@ -437,8 +437,10 @@ public:
   static bool Format(u8* card_data, bool shift_jis = false,
                      u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
   static s32 FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
-                                       const DEntry& direntry, std::vector<GCMBlock>& FileBuffer);
-  static s32 PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader, const DEntry& direntry,
+                                       const GCMemcardDirEntry& direntry,
+                                       std::vector<GCMBlock>& FileBuffer);
+  static s32 PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
+                                   const GCMemcardDirEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
   bool FixChecksums();
@@ -451,25 +453,25 @@ public:
   u16 GetFreeBlocks() const;
 
   // If title already on memcard returns index, otherwise returns -1
-  u8 TitlePresent(const DEntry& d) const;
+  u8 TitlePresent(const GCMemcardDirEntry& d) const;
 
   bool GCI_FileName(u8 index, std::string& filename) const;
-  // DEntry functions, all take u8 index < DIRLEN (127)
-  std::string DEntry_GameCode(u8 index) const;
-  std::string DEntry_Makercode(u8 index) const;
-  std::string DEntry_BIFlags(u8 index) const;
-  bool DEntry_IsPingPong(u8 index) const;
-  std::string DEntry_FileName(u8 index) const;
-  u32 DEntry_ModTime(u8 index) const;
-  u32 DEntry_ImageOffset(u8 index) const;
-  std::string DEntry_IconFmt(u8 index) const;
-  std::string DEntry_AnimSpeed(u8 index) const;
-  std::string DEntry_Permissions(u8 index) const;
-  u8 DEntry_CopyCounter(u8 index) const;
+  // DirEntry functions, all take u8 index < DIRLEN (127)
+  std::string DirEntry_GameCode(u8 index) const;
+  std::string DirEntry_Makercode(u8 index) const;
+  std::string DirEntry_BIFlags(u8 index) const;
+  bool DirEntry_IsPingPong(u8 index) const;
+  std::string DirEntry_FileName(u8 index) const;
+  u32 DirEntry_ModTime(u8 index) const;
+  u32 DirEntry_ImageOffset(u8 index) const;
+  std::string DirEntry_IconFmt(u8 index) const;
+  std::string DirEntry_AnimSpeed(u8 index) const;
+  std::string DirEntry_Permissions(u8 index) const;
+  u8 DirEntry_CopyCounter(u8 index) const;
   // get first block for file
-  u16 DEntry_FirstBlock(u8 index) const;
+  u16 DirEntry_FirstBlock(u8 index) const;
   // get file length in blocks
-  u16 DEntry_BlockCount(u8 index) const;
+  u16 DirEntry_BlockCount(u8 index) const;
 
   std::optional<std::vector<u8>>
   GetSaveDataBytes(u8 save_index, size_t offset = 0,
@@ -480,13 +482,14 @@ public:
   // next to the block size, often a progress indicator or subtitle.
   std::optional<std::pair<std::string, std::string>> GetSaveComments(u8 index) const;
 
-  // Fetches a DEntry from the given file index.
-  std::optional<DEntry> GetDEntry(u8 index) const;
+  // Fetches a GCMemcardDirEntry from the given file index.
+  std::optional<GCMemcardDirEntry> GetDirEntry(u8 index) const;
 
   GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
   // adds the file to the directory and copies its contents
-  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  GCMemcardImportFileRetVal ImportFile(const GCMemcardDirEntry& direntry,
+                                       std::vector<GCMBlock>& saveBlocks);
 
   // delete a file from the directory
   GCMemcardRemoveFileRetVal RemoveFile(u8 index);
@@ -503,7 +506,7 @@ public:
 
   // GCI files are untouched, SAV files are byteswapped
   // GCS files have the block count set, default is 1 (For export as GCS)
-  static void Gcs_SavConvert(DEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
+  static void Gcs_SavConvert(GCMemcardDirEntry& tempDEntry, int saveType, u64 length = BLOCK_SIZE);
 
   // reads the banner image
   std::optional<std::vector<u32>> ReadBannerRGBA8(u8 index) const;

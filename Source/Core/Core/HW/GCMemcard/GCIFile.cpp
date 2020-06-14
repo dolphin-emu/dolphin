@@ -88,7 +88,7 @@ int GCIFile::UsesBlock(u16 block_num)
 
 void GCIFile::DoState(PointerWrap& p)
 {
-  p.DoPOD<DEntry>(m_gci_header);
+  p.DoPOD<GCMemcardDirEntry>(m_gci_header);
   p.Do(m_dirty);
   p.Do(m_filename);
   int num_blocks = (int)m_save_data.size();
