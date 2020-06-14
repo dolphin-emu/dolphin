@@ -430,7 +430,7 @@ void GCMemcardDirectory::ClearBlock(u32 address)
 
 inline void GCMemcardDirectory::SyncSaves()
 {
-  Directory* current = &m_dir2;
+  GCMemcardDirectoryBlock* current = &m_dir2;
 
   if (m_dir1.m_update_counter > m_dir2.m_update_counter)
   {
@@ -532,7 +532,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 {
   u32 block = dest_address / BLOCK_SIZE;
   u32 offset = dest_address % BLOCK_SIZE;
-  Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
+  GCMemcardDirectoryBlock* dest = (block == 1) ? &m_dir1 : &m_dir2;
   u16 Dnum = offset / DENTRY_SIZE;
 
   if (Dnum == DIRLEN)
@@ -682,8 +682,8 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   m_last_block_address = nullptr;
   p.Do(m_save_directory);
   p.DoPOD<GCMemcardHeaderBlock>(m_hdr);
-  p.DoPOD<Directory>(m_dir1);
-  p.DoPOD<Directory>(m_dir2);
+  p.DoPOD<GCMemcardDirectoryBlock>(m_dir1);
+  p.DoPOD<GCMemcardDirectoryBlock>(m_dir2);
   p.DoPOD<BlockAlloc>(m_bat1);
   p.DoPOD<BlockAlloc>(m_bat2);
   int num_saves = (int)m_saves.size();

@@ -272,7 +272,7 @@ std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> GCMemcard::Open(std::str
   return std::make_pair(error_code, std::move(card));
 }
 
-const Directory& GCMemcard::GetActiveDirectory() const
+const GCMemcardDirectoryBlock& GCMemcard::GetActiveDirectory() const
 {
   return m_directory_blocks[m_active_directory];
 }
@@ -282,7 +282,7 @@ const BlockAlloc& GCMemcard::GetActiveBat() const
   return m_bat_blocks[m_active_bat];
 }
 
-void GCMemcard::UpdateDirectory(const Directory& directory)
+void GCMemcard::UpdateDirectory(const GCMemcardDirectoryBlock& directory)
 {
   // overwrite inactive dir with given data, then set active dir to written block
   int new_directory_index = m_active_directory == 0 ? 1 : 0;
@@ -862,7 +862,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const GCMemcardDirEntry& direntr
       GetActiveBat().NextFreeBlock(m_size_blocks, GetActiveBat().m_last_allocated_block);
   if (firstBlock == 0xFFFF)
     return GCMemcardImportFileRetVal::OUTOFBLOCKS;
-  Directory UpdatedDir = GetActiveDirectory();
+  GCMemcardDirectoryBlock UpdatedDir = GetActiveDirectory();
 
   // find first free dir entry
   for (int i = 0; i < DIRLEN; i++)
@@ -925,7 +925,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
   UpdateBat(UpdatedBat);
 
-  Directory UpdatedDir = GetActiveDirectory();
+  GCMemcardDirectoryBlock UpdatedDir = GetActiveDirectory();
 
   // TODO: Deleting a file via the GC BIOS sometimes leaves behind an extra updated directory block
   // here that has an empty file with the filename "Broken File000" where the actual deleted file
@@ -1377,8 +1377,8 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 
   *((GCMemcardHeaderBlock*)card_data) = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
 
-  *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
-  *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
+  *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE)) = GCMemcardDirectoryBlock();
+  *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE * 2)) = GCMemcardDirectoryBlock();
   *((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
   *((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
   return true;
@@ -1387,7 +1387,7 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
   m_header_block = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
-  m_directory_blocks[0] = m_directory_blocks[1] = Directory();
+  m_directory_blocks[0] = m_directory_blocks[1] = GCMemcardDirectoryBlock();
   m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
 
   m_size_mb = SizeMb;
@@ -1641,7 +1641,7 @@ GCMemcardErrorCode GCMemcardHeaderBlock::CheckForErrors(u16 card_size_mbits) con
   return error_code;
 }
 
-Directory::Directory()
+GCMemcardDirectoryBlock::GCMemcardDirectoryBlock()
 {
   memset(this, 0xFF, BLOCK_SIZE);
   m_update_counter = 0;
@@ -1649,7 +1649,7 @@ Directory::Directory()
   m_checksum_inv = 0;
 }
 
-bool Directory::Replace(const GCMemcardDirEntry& entry, size_t index)
+bool GCMemcardDirectoryBlock::Replace(const GCMemcardDirEntry& entry, size_t index)
 {
   if (index >= m_dir_entries.size())
     return false;
@@ -1659,25 +1659,25 @@ bool Directory::Replace(const GCMemcardDirEntry& entry, size_t index)
   return true;
 }
 
-void Directory::FixChecksums()
+void GCMemcardDirectoryBlock::FixChecksums()
 {
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
 }
 
-std::pair<u16, u16> Directory::CalculateChecksums() const
+std::pair<u16, u16> GCMemcardDirectoryBlock::CalculateChecksums() const
 {
-  static_assert(std::is_trivially_copyable<Directory>());
+  static_assert(std::is_trivially_copyable<GCMemcardDirectoryBlock>());
 
-  std::array<u8, sizeof(Directory)> raw;
+  std::array<u8, sizeof(GCMemcardDirectoryBlock)> raw;
   memcpy(raw.data(), this, raw.size());
 
-  constexpr size_t checksum_area_start = offsetof(Directory, m_dir_entries);
-  constexpr size_t checksum_area_end = offsetof(Directory, m_checksum);
+  constexpr size_t checksum_area_start = offsetof(GCMemcardDirectoryBlock, m_dir_entries);
+  constexpr size_t checksum_area_end = offsetof(GCMemcardDirectoryBlock, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-GCMemcardErrorCode Directory::CheckForErrors() const
+GCMemcardErrorCode GCMemcardDirectoryBlock::CheckForErrors() const
 {
   GCMemcardErrorCode error_code;
 
@@ -1693,7 +1693,7 @@ GCMemcardErrorCode Directory::CheckForErrors() const
   return error_code;
 }
 
-GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
+GCMemcardErrorCode GCMemcardDirectoryBlock::CheckForErrorsWithBat(const BlockAlloc& bat) const
 {
   GCMemcardErrorCode error_code;
 

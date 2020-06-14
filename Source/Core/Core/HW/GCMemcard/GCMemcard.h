@@ -325,7 +325,7 @@ static_assert(sizeof(GCMemcardDirEntry) == DENTRY_SIZE);
 
 struct BlockAlloc;
 
-struct Directory
+struct GCMemcardDirectoryBlock
 {
   // 127 files of 0x40 bytes each
   std::array<GCMemcardDirEntry, DIRLEN> m_dir_entries;
@@ -343,7 +343,7 @@ struct Directory
   u16 m_checksum_inv;
 
   // Constructs an empty Directory block.
-  Directory();
+  GCMemcardDirectoryBlock();
 
   // Replaces the file metadata at the given index (range 0-126)
   // with the given GCMemcardDirEntry data.
@@ -356,7 +356,7 @@ struct Directory
 
   GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
 };
-static_assert(sizeof(Directory) == BLOCK_SIZE);
+static_assert(sizeof(GCMemcardDirectoryBlock) == BLOCK_SIZE);
 
 struct BlockAlloc
 {
@@ -403,7 +403,7 @@ private:
   u16 m_size_mb;
 
   GCMemcardHeaderBlock m_header_block;
-  std::array<Directory, 2> m_directory_blocks;
+  std::array<GCMemcardDirectoryBlock, 2> m_directory_blocks;
   std::array<BlockAlloc, 2> m_bat_blocks;
   std::vector<GCMBlock> m_data_blocks;
 
@@ -414,10 +414,10 @@ private:
 
   GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
 
-  const Directory& GetActiveDirectory() const;
+  const GCMemcardDirectoryBlock& GetActiveDirectory() const;
   const BlockAlloc& GetActiveBat() const;
 
-  void UpdateDirectory(const Directory& directory);
+  void UpdateDirectory(const GCMemcardDirectoryBlock& directory);
   void UpdateBat(const BlockAlloc& bat);
 
 public:

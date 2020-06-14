@@ -52,7 +52,8 @@ private:
   u8* m_last_block_address;
 
   GCMemcardHeaderBlock m_hdr;
-  Directory m_dir1, m_dir2;
+  GCMemcardDirectoryBlock m_dir1;
+  GCMemcardDirectoryBlock m_dir2;
   BlockAlloc m_bat1, m_bat2;
   std::vector<GCIFile> m_saves;
 
