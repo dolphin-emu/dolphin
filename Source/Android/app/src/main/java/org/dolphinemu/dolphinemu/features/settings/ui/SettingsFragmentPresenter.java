@@ -284,9 +284,10 @@ public final class SettingsFragmentPresenter
     Setting audioStretch = null;
     Setting audioVolume = null;
 
+    SettingSection androidSection = mSettings.getSection(Settings.SECTION_INI_ANDROID);
     SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
     SettingSection dspSection = mSettings.getSection(Settings.SECTION_INI_DSP);
-    dspEmulationEngine = dspSection.getSetting(SettingsFile.KEY_DSP_ENGINE);
+    dspEmulationEngine = androidSection.getSetting(SettingsFile.KEY_DSP_ENGINE);
     audioStretch = coreSection.getSetting(SettingsFile.KEY_AUDIO_STRETCH);
     audioVolume = dspSection.getSetting(SettingsFile.KEY_AUDIO_VOLUME);
 
@@ -306,7 +307,7 @@ public final class SettingsFragmentPresenter
     }
     // DSP Emulation Engine controls two settings.
     // DSP Emulation Engine is read by Settings.saveSettings to modify the relevant settings.
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_DSP_ENGINE, Settings.SECTION_INI_DSP,
+    sl.add(new SingleChoiceSetting(SettingsFile.KEY_DSP_ENGINE, Settings.SECTION_INI_ANDROID,
             R.string.dsp_emulation_engine, 0, dspEngineEntries, dspEngineValues, 0,
             dspEmulationEngine));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_AUDIO_STRETCH, Settings.SECTION_INI_CORE,

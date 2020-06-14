@@ -17,6 +17,7 @@ import java.util.TreeMap;
 
 public class Settings
 {
+  public static final String SECTION_INI_ANDROID = "Android";
   public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
   public static final String SECTION_INI_INTERFACE = "Interface";
@@ -49,9 +50,10 @@ public class Settings
   static
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
-            Arrays.asList(SECTION_INI_GENERAL, SECTION_INI_CORE, SECTION_INI_INTERFACE,
-                    SECTION_INI_DSP,
-                    SECTION_BINDINGS, SECTION_ANALYTICS, SECTION_DEBUG));
+            Arrays
+                    .asList(SECTION_INI_ANDROID, SECTION_INI_GENERAL, SECTION_INI_CORE,
+                            SECTION_INI_INTERFACE,
+                            SECTION_INI_DSP, SECTION_BINDINGS, SECTION_ANALYTICS, SECTION_DEBUG));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
             Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS,
                     SECTION_STEREOSCOPY));
@@ -189,7 +191,7 @@ public class Settings
       if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
       {
         switch (NativeLibrary
-                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_ANDROID,
                         SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
         {
           case DSP_HLE:
