@@ -51,7 +51,7 @@ private:
   s32 m_last_block;
   u8* m_last_block_address;
 
-  Header m_hdr;
+  GCMemcardHeaderBlock m_hdr;
   Directory m_dir1, m_dir2;
   BlockAlloc m_bat1, m_bat2;
   std::vector<GCIFile> m_saves;

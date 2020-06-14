@@ -681,7 +681,7 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   m_last_block = -1;
   m_last_block_address = nullptr;
   p.Do(m_save_directory);
-  p.DoPOD<Header>(m_hdr);
+  p.DoPOD<GCMemcardHeaderBlock>(m_hdr);
   p.DoPOD<Directory>(m_dir1);
   p.DoPOD<Directory>(m_dir2);
   p.DoPOD<BlockAlloc>(m_bat1);

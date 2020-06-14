@@ -188,7 +188,7 @@ struct GCMBlock
 };
 
 #pragma pack(push, 1)
-struct Header
+struct GCMemcardHeaderBlock
 {
   // NOTE: libogc refers to 'Serial' as the first 0x20 bytes of the header,
   // so the data from m_serial until m_unknown_2 (inclusive)
@@ -233,8 +233,8 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
-                  bool shift_jis = false);
+  explicit GCMemcardHeaderBlock(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
+                                bool shift_jis = false);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
@@ -244,7 +244,7 @@ struct Header
 
   GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
 };
-static_assert(sizeof(Header) == BLOCK_SIZE);
+static_assert(sizeof(GCMemcardHeaderBlock) == BLOCK_SIZE);
 
 struct DEntry
 {
@@ -402,7 +402,7 @@ private:
   u32 m_size_blocks;
   u16 m_size_mb;
 
-  Header m_header_block;
+  GCMemcardHeaderBlock m_header_block;
   std::array<Directory, 2> m_directory_blocks;
   std::array<BlockAlloc, 2> m_bat_blocks;
   std::vector<GCMBlock> m_data_blocks;
@@ -436,9 +436,9 @@ public:
   bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
   static bool Format(u8* card_data, bool shift_jis = false,
                      u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
-  static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
-                                       std::vector<GCMBlock>& FileBuffer);
-  static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
+  static s32 FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
+                                       const DEntry& direntry, std::vector<GCMBlock>& FileBuffer);
+  static s32 PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader, const DEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
   bool FixChecksums();

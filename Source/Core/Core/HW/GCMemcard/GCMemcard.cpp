@@ -1372,7 +1372,7 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
   memset(card_data, 0xFF, BLOCK_SIZE * 3);
   memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((Header*)card_data) = Header(SLOT_A, SizeMb, shift_jis);
+  *((GCMemcardHeaderBlock*)card_data) = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
 
   *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
   *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
@@ -1383,7 +1383,7 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 
 bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
-  m_header_block = Header(SLOT_A, SizeMb, shift_jis);
+  m_header_block = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
   m_directory_blocks[0] = m_directory_blocks[1] = Directory();
   m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
 
@@ -1410,8 +1410,8 @@ bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 /* Returns: Error code                                       */
 /*************************************************************/
 
-s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
-                                         std::vector<GCMBlock>& FileBuffer)
+s32 GCMemcard::FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
+                                         const DEntry& direntry, std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
   u16 chksum = 0xFFFF;
@@ -1465,7 +1465,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry&
 /* Returns: Error code                                     */
 /***********************************************************/
 
-s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
+s32 GCMemcard::PSO_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader, const DEntry& direntry,
                                      std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1536,7 +1536,7 @@ void GCMBlock::Erase()
   memset(m_block.data(), 0xFF, m_block.size());
 }
 
-Header::Header(int slot, u16 size_mbits, bool shift_jis)
+GCMemcardHeaderBlock::GCMemcardHeaderBlock(int slot, u16 size_mbits, bool shift_jis)
 {
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
@@ -1563,9 +1563,9 @@ Header::Header(int slot, u16 size_mbits, bool shift_jis)
   FixChecksums();
 }
 
-std::pair<u32, u32> Header::CalculateSerial() const
+std::pair<u32, u32> GCMemcardHeaderBlock::CalculateSerial() const
 {
-  static_assert(std::is_trivially_copyable<Header>());
+  static_assert(std::is_trivially_copyable<GCMemcardHeaderBlock>());
 
   std::array<u8, 32> raw;
   memcpy(raw.data(), this, raw.size());
@@ -1595,25 +1595,25 @@ std::string DEntry::GCI_FileName() const
   return Common::EscapeFileName(filename);
 }
 
-void Header::FixChecksums()
+void GCMemcardHeaderBlock::FixChecksums()
 {
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
 }
 
-std::pair<u16, u16> Header::CalculateChecksums() const
+std::pair<u16, u16> GCMemcardHeaderBlock::CalculateChecksums() const
 {
-  static_assert(std::is_trivially_copyable<Header>());
+  static_assert(std::is_trivially_copyable<GCMemcardHeaderBlock>());
 
-  std::array<u8, sizeof(Header)> raw;
+  std::array<u8, sizeof(GCMemcardHeaderBlock)> raw;
   memcpy(raw.data(), this, raw.size());
 
-  constexpr size_t checksum_area_start = offsetof(Header, m_serial);
-  constexpr size_t checksum_area_end = offsetof(Header, m_checksum);
+  constexpr size_t checksum_area_start = offsetof(GCMemcardHeaderBlock, m_serial);
+  constexpr size_t checksum_area_end = offsetof(GCMemcardHeaderBlock, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
+GCMemcardErrorCode GCMemcardHeaderBlock::CheckForErrors(u16 card_size_mbits) const
 {
   GCMemcardErrorCode error_code;
 
