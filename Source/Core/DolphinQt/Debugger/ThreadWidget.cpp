@@ -17,7 +17,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/FontMetricsHelper.h"
 #include "DolphinQt/Settings.h"
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
@@ -135,7 +134,7 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
   QLineEdit* line_edit = new QLineEdit(QLatin1Literal("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
-      FontMetricsWidth(line_edit->fontMetrics(), QLatin1Literal(" 00000000 ")));
+      line_edit->fontMetrics().boundingRect(QLatin1Literal(" 00000000 ")).width());
   return line_edit;
 }
 
