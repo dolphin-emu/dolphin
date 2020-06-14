@@ -106,6 +106,15 @@ protected:
   std::unique_ptr<VertexLoaderBase> m_loader;
 };
 
+template <typename T>
+constexpr T clamp(float v)
+{
+  const T lo = std::numeric_limits<T>::lowest();
+  const T hi = std::numeric_limits<T>::max();
+  const float clamped = std::clamp<float>(v, lo, hi);
+  return static_cast<T>(clamped);
+};
+
 class VertexLoaderParamTest : public VertexLoaderTest,
                               public ::testing::WithParamInterface<std::tuple<int, int, int, int>>
 {
@@ -140,7 +149,7 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       -0x8000,
       -0x80,
       -1,
-      -0,
+      -0.,
       0,
       1,
       123,
@@ -173,16 +182,16 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     switch (format)
     {
     case FORMAT_UBYTE:
-      Input((u8)value);
+      Input(clamp<u8>(value));
       break;
     case FORMAT_BYTE:
-      Input((s8)value);
+      Input(clamp<s8>(value));
       break;
     case FORMAT_USHORT:
-      Input((u16)value);
+      Input(clamp<u16>(value));
       break;
     case FORMAT_SHORT:
-      Input((s16)value);
+      Input(clamp<s16>(value));
       break;
     case FORMAT_FLOAT:
       Input(value);
@@ -199,20 +208,20 @@ TEST_P(VertexLoaderParamTest, PositionAll)
     switch (format)
     {
     case FORMAT_UBYTE:
-      f = (u8)*iter++;
-      g = (u8)*iter++;
+      f = clamp<u8>(*iter++);
+      g = clamp<u8>(*iter++);
       break;
     case FORMAT_BYTE:
-      f = (s8)*iter++;
-      g = (s8)*iter++;
+      f = clamp<s8>(*iter++);
+      g = clamp<s8>(*iter++);
       break;
     case FORMAT_USHORT:
-      f = (u16)*iter++;
-      g = (u16)*iter++;
+      f = clamp<u16>(*iter++);
+      g = clamp<u16>(*iter++);
       break;
     case FORMAT_SHORT:
-      f = (s16)*iter++;
-      g = (s16)*iter++;
+      f = clamp<s16>(*iter++);
+      g = clamp<s16>(*iter++);
       break;
     case FORMAT_FLOAT:
       f = *iter++;
