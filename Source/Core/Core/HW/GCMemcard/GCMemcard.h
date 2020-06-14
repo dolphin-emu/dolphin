@@ -435,7 +435,7 @@ public:
   bool Save();
   bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
   static bool Format(u8* card_data, bool shift_jis = false,
-                     u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
+                     u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043);
   static s32 FZEROGX_MakeSaveGameValid(const GCMemcardHeaderBlock& cardheader,
                                        const GCMemcardDirEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);

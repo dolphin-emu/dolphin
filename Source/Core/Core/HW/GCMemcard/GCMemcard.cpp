@@ -1368,19 +1368,29 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   return output;
 }
 
-bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
+bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 size_mbits)
 {
   if (!card_data)
     return false;
-  memset(card_data, 0xFF, BLOCK_SIZE * 3);
-  memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((GCMemcardHeaderBlock*)card_data) = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
+  static_assert(std::is_trivially_copyable<GCMemcardHeaderBlock>());
+  static_assert(std::is_trivially_copyable<GCMemcardDirectoryBlock>());
+  static_assert(std::is_trivially_copyable<GCMemcardBATBlock>());
 
-  *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE)) = GCMemcardDirectoryBlock();
-  *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE * 2)) = GCMemcardDirectoryBlock();
-  *((GCMemcardBATBlock*)(card_data + BLOCK_SIZE * 3)) = GCMemcardBATBlock(SizeMb);
-  *((GCMemcardBATBlock*)(card_data + BLOCK_SIZE * 4)) = GCMemcardBATBlock(SizeMb);
+  GCMemcardHeaderBlock header(SLOT_A, size_mbits, shift_jis);
+  GCMemcardDirectoryBlock dir;
+  GCMemcardBATBlock bat(size_mbits);
+
+  static_assert(sizeof(header) == BLOCK_SIZE);
+  static_assert(sizeof(dir) == BLOCK_SIZE);
+  static_assert(sizeof(bat) == BLOCK_SIZE);
+
+  std::memcpy(&card_data[BLOCK_SIZE * 0], &header, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 1], &dir, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 2], &dir, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 3], &bat, BLOCK_SIZE);
+  std::memcpy(&card_data[BLOCK_SIZE * 4], &bat, BLOCK_SIZE);
+
   return true;
 }
 
