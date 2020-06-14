@@ -15,6 +15,7 @@ import android.widget.ImageView;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.GamePropertiesDialog;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.PicassoUtils;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
@@ -46,13 +47,24 @@ public final class GameRowPresenter extends Presenter
   public void onBindViewHolder(ViewHolder viewHolder, Object item)
   {
     TvGameViewHolder holder = (TvGameViewHolder) viewHolder;
+    Context context = holder.cardParent.getContext();
     GameFile gameFile = (GameFile) item;
 
     holder.imageScreenshot.setImageDrawable(null);
     PicassoUtils.loadGameCover(holder.imageScreenshot, gameFile);
 
     holder.cardParent.setTitleText(gameFile.getTitle());
-    holder.cardParent.setContentText(gameFile.getCompany());
+
+    if (GameFileCacheService.findSecondDisc(gameFile) != null)
+    {
+      holder.cardParent
+              .setContentText(
+                      context.getString(R.string.disc_number, gameFile.getDiscNumber() + 1));
+    }
+    else
+    {
+      holder.cardParent.setContentText(gameFile.getCompany());
+    }
 
     holder.gameFile = gameFile;
 
@@ -72,7 +84,6 @@ public final class GameRowPresenter extends Presenter
       default:
         throw new AssertionError("Not reachable.");
     }
-    Context context = holder.cardParent.getContext();
     Drawable background = ContextCompat.getDrawable(context, backgroundId);
     holder.cardParent.setInfoAreaBackground(background);
     holder.cardParent.setOnLongClickListener((view) ->

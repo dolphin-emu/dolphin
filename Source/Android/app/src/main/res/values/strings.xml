@@ -377,5 +377,6 @@
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>
+    <string name="disc_number">Disc %1$d</string>
 
 </resources>
