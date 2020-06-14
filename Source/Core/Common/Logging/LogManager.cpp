@@ -93,11 +93,11 @@ static size_t DeterminePathCutOffPoint()
 LogManager::LogManager()
 {
   // create log containers
-  m_log[ACTIONREPLAY] = {"ActionReplay", "ActionReplay"};
+  m_log[ACTIONREPLAY] = {"ActionReplay", "Action Replay"};
   m_log[AUDIO] = {"Audio", "Audio Emulator"};
   m_log[AUDIO_INTERFACE] = {"AI", "Audio Interface"};
   m_log[BOOT] = {"BOOT", "Boot"};
-  m_log[COMMANDPROCESSOR] = {"CP", "CommandProc"};
+  m_log[COMMANDPROCESSOR] = {"CP", "Command Processor"};
   m_log[COMMON] = {"COMMON", "Common"};
   m_log[CONSOLE] = {"CONSOLE", "Dolphin Console"};
   m_log[CORE] = {"CORE", "Core"};
@@ -105,13 +105,13 @@ LogManager::LogManager()
   m_log[DSPHLE] = {"DSPHLE", "DSP HLE"};
   m_log[DSPLLE] = {"DSPLLE", "DSP LLE"};
   m_log[DSP_MAIL] = {"DSPMails", "DSP Mails"};
-  m_log[DSPINTERFACE] = {"DSP", "DSPInterface"};
+  m_log[DSPINTERFACE] = {"DSP", "DSP Interface"};
   m_log[DVDINTERFACE] = {"DVD", "DVD Interface"};
-  m_log[DYNA_REC] = {"JIT", "Dynamic Recompiler"};
+  m_log[DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[FILEMON] = {"FileMon", "File Monitor"};
   m_log[GDB_STUB] = {"GDB_STUB", "GDB Stub"};
-  m_log[GPFIFO] = {"GP", "GPFifo"};
+  m_log[GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[HOST_GPU] = {"Host GPU", "Host GPU"};
   m_log[IOS] = {"IOS", "IOS"};
   m_log[IOS_DI] = {"IOS_DI", "IOS - Drive Interface"};
@@ -126,21 +126,21 @@ LogManager::LogManager()
   m_log[IOS_WFS] = {"IOS_WFS", "IOS - WFS"};
   m_log[IOS_WIIMOTE] = {"IOS_WIIMOTE", "IOS - Wii Remote"};
   m_log[MASTER_LOG] = {"MASTER", "Master Log"};
-  m_log[MEMCARD_MANAGER] = {"MemCard Manager", "MemCard Manager"};
-  m_log[MEMMAP] = {"MI", "MI & memmap"};
+  m_log[MEMCARD_MANAGER] = {"MemCard Manager", "Memory Card Manager"};
+  m_log[MEMMAP] = {"MI", "Memory Interface & Memory Map"};
   m_log[NETPLAY] = {"NETPLAY", "Netplay"};
-  m_log[OSHLE] = {"HLE", "HLE"};
+  m_log[OSHLE] = {"HLE", "OSHLE"};
   m_log[OSREPORT] = {"OSREPORT", "OSReport"};
   m_log[PAD] = {"PAD", "Pad"};
-  m_log[PIXELENGINE] = {"PE", "PixelEngine"};
-  m_log[PROCESSORINTERFACE] = {"PI", "ProcessorInt"};
-  m_log[POWERPC] = {"PowerPC", "IBM CPU"};
+  m_log[PIXELENGINE] = {"PE", "Pixel Engine"};
+  m_log[PROCESSORINTERFACE] = {"PI", "Processor Interface"};
+  m_log[POWERPC] = {"PowerPC", "PowerPC IBM CPU"};
   m_log[SERIALINTERFACE] = {"SI", "Serial Interface"};
   m_log[SP1] = {"SP1", "Serial Port 1"};
   m_log[SYMBOLS] = {"SYMBOLS", "Symbols"};
   m_log[VIDEO] = {"Video", "Video Backend"};
   m_log[VIDEOINTERFACE] = {"VI", "Video Interface"};
-  m_log[WIIMOTE] = {"Wiimote", "Wiimote"};
+  m_log[WIIMOTE] = {"Wiimote", "Wii Remote"};
   m_log[WII_IPC] = {"WII_IPC", "WII IPC"};
 
   RegisterListener(LogListener::FILE_LISTENER,
