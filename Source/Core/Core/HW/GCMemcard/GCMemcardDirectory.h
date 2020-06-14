@@ -54,7 +54,8 @@ private:
   GCMemcardHeaderBlock m_hdr;
   GCMemcardDirectoryBlock m_dir1;
   GCMemcardDirectoryBlock m_dir2;
-  BlockAlloc m_bat1, m_bat2;
+  GCMemcardBATBlock m_bat1;
+  GCMemcardBATBlock m_bat2;
   std::vector<GCIFile> m_saves;
 
   std::string m_save_directory;

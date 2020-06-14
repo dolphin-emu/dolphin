@@ -277,7 +277,7 @@ const GCMemcardDirectoryBlock& GCMemcard::GetActiveDirectory() const
   return m_directory_blocks[m_active_directory];
 }
 
-const BlockAlloc& GCMemcard::GetActiveBat() const
+const GCMemcardBATBlock& GCMemcard::GetActiveBat() const
 {
   return m_bat_blocks[m_active_bat];
 }
@@ -290,7 +290,7 @@ void GCMemcard::UpdateDirectory(const GCMemcardDirectoryBlock& directory)
   m_active_directory = new_directory_index;
 }
 
-void GCMemcard::UpdateBat(const BlockAlloc& bat)
+void GCMemcard::UpdateBat(const GCMemcardBATBlock& bat)
 {
   // overwrite inactive BAT with given data, then set active BAT to written block
   int new_bat_index = m_active_bat == 0 ? 1 : 0;
@@ -584,7 +584,7 @@ std::optional<std::vector<u8>> GCMemcard::GetSaveDataBytes(u8 save_index, size_t
     return std::nullopt;
 
   const GCMemcardDirEntry& entry = GetActiveDirectory().m_dir_entries[save_index];
-  const BlockAlloc& bat = GetActiveBat();
+  const GCMemcardBATBlock& bat = GetActiveBat();
   const u16 block_count = entry.m_block_count;
   const u16 first_block = entry.m_first_block;
   const size_t block_max = MC_FST_BLOCKS + m_data_blocks.size();
@@ -674,7 +674,7 @@ std::optional<GCMemcardDirEntry> GCMemcard::GetDirEntry(u8 index) const
   return GetActiveDirectory().m_dir_entries[index];
 }
 
-BlockAlloc::BlockAlloc(u16 size_mbits)
+GCMemcardBATBlock::GCMemcardBATBlock(u16 size_mbits)
 {
   memset(this, 0, BLOCK_SIZE);
   m_free_blocks = (size_mbits * MBIT_TO_BLOCKS) - MC_FST_BLOCKS;
@@ -682,7 +682,7 @@ BlockAlloc::BlockAlloc(u16 size_mbits)
   FixChecksums();
 }
 
-u16 BlockAlloc::GetNextBlock(u16 block) const
+u16 GCMemcardBATBlock::GetNextBlock(u16 block) const
 {
   // FIXME: This is fishy, shouldn't that be in range [5, 4096[?
   if ((block < MC_FST_BLOCKS) || (block > 4091))
@@ -693,7 +693,7 @@ u16 BlockAlloc::GetNextBlock(u16 block) const
 
 // Parameters and return value are expected as memory card block index,
 // not BAT index; that is, block 5 is the first file data block.
-u16 BlockAlloc::NextFreeBlock(u16 max_block, u16 starting_block) const
+u16 GCMemcardBATBlock::NextFreeBlock(u16 max_block, u16 starting_block) const
 {
   if (m_free_blocks > 0)
   {
@@ -710,7 +710,7 @@ u16 BlockAlloc::NextFreeBlock(u16 max_block, u16 starting_block) const
   return 0xFFFF;
 }
 
-bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
+bool GCMemcardBATBlock::ClearBlocks(u16 starting_block, u16 block_count)
 {
   std::vector<u16> blocks;
   while (starting_block != 0xFFFF && starting_block != 0)
@@ -734,12 +734,12 @@ bool BlockAlloc::ClearBlocks(u16 starting_block, u16 block_count)
   return false;
 }
 
-void BlockAlloc::FixChecksums()
+void GCMemcardBATBlock::FixChecksums()
 {
   std::tie(m_checksum, m_checksum_inv) = CalculateChecksums();
 }
 
-u16 BlockAlloc::AssignBlocksContiguous(u16 length)
+u16 GCMemcardBATBlock::AssignBlocksContiguous(u16 length)
 {
   u16 starting = m_last_allocated_block + 1;
   if (length > m_free_blocks)
@@ -757,20 +757,20 @@ u16 BlockAlloc::AssignBlocksContiguous(u16 length)
   return starting;
 }
 
-std::pair<u16, u16> BlockAlloc::CalculateChecksums() const
+std::pair<u16, u16> GCMemcardBATBlock::CalculateChecksums() const
 {
-  static_assert(std::is_trivially_copyable<BlockAlloc>());
+  static_assert(std::is_trivially_copyable<GCMemcardBATBlock>());
 
-  std::array<u8, sizeof(BlockAlloc)> raw;
+  std::array<u8, sizeof(GCMemcardBATBlock)> raw;
   memcpy(raw.data(), this, raw.size());
 
-  constexpr size_t checksum_area_start = offsetof(BlockAlloc, m_update_counter);
-  constexpr size_t checksum_area_end = sizeof(BlockAlloc);
+  constexpr size_t checksum_area_start = offsetof(GCMemcardBATBlock, m_update_counter);
+  constexpr size_t checksum_area_end = sizeof(GCMemcardBATBlock);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
 }
 
-GCMemcardErrorCode BlockAlloc::CheckForErrors(u16 size_mbits) const
+GCMemcardErrorCode GCMemcardBATBlock::CheckForErrors(u16 size_mbits) const
 {
   GCMemcardErrorCode error_code;
 
@@ -883,7 +883,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const GCMemcardDirEntry& direntr
   FZEROGX_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
   PSO_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
 
-  BlockAlloc UpdatedBat = GetActiveBat();
+  GCMemcardBATBlock UpdatedBat = GetActiveBat();
   u16 nextBlock;
   // keep assuming no freespace fragmentation, and copy over all the data
   for (int i = 0; i < fileBlocks; ++i)
@@ -919,7 +919,7 @@ GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the direc
   u16 startingblock = GetActiveDirectory().m_dir_entries[index].m_first_block;
   u16 numberofblocks = GetActiveDirectory().m_dir_entries[index].m_block_count;
 
-  BlockAlloc UpdatedBat = GetActiveBat();
+  GCMemcardBATBlock UpdatedBat = GetActiveBat();
   if (!UpdatedBat.ClearBlocks(startingblock, numberofblocks))
     return GCMemcardRemoveFileRetVal::DELETE_FAIL;
   UpdatedBat.m_update_counter = UpdatedBat.m_update_counter + 1;
@@ -1379,8 +1379,8 @@ bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 
   *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE)) = GCMemcardDirectoryBlock();
   *((GCMemcardDirectoryBlock*)(card_data + BLOCK_SIZE * 2)) = GCMemcardDirectoryBlock();
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
+  *((GCMemcardBATBlock*)(card_data + BLOCK_SIZE * 3)) = GCMemcardBATBlock(SizeMb);
+  *((GCMemcardBATBlock*)(card_data + BLOCK_SIZE * 4)) = GCMemcardBATBlock(SizeMb);
   return true;
 }
 
@@ -1388,7 +1388,7 @@ bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
   m_header_block = GCMemcardHeaderBlock(SLOT_A, SizeMb, shift_jis);
   m_directory_blocks[0] = m_directory_blocks[1] = GCMemcardDirectoryBlock();
-  m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
+  m_bat_blocks[0] = m_bat_blocks[1] = GCMemcardBATBlock(SizeMb);
 
   m_size_mb = SizeMb;
   m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
@@ -1693,7 +1693,8 @@ GCMemcardErrorCode GCMemcardDirectoryBlock::CheckForErrors() const
   return error_code;
 }
 
-GCMemcardErrorCode GCMemcardDirectoryBlock::CheckForErrorsWithBat(const BlockAlloc& bat) const
+GCMemcardErrorCode
+GCMemcardDirectoryBlock::CheckForErrorsWithBat(const GCMemcardBATBlock& bat) const
 {
   GCMemcardErrorCode error_code;
 

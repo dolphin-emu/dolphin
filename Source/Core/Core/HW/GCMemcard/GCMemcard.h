@@ -323,7 +323,7 @@ struct GCMemcardDirEntry
 };
 static_assert(sizeof(GCMemcardDirEntry) == DENTRY_SIZE);
 
-struct BlockAlloc;
+struct GCMemcardBATBlock;
 
 struct GCMemcardDirectoryBlock
 {
@@ -354,11 +354,11 @@ struct GCMemcardDirectoryBlock
 
   GCMemcardErrorCode CheckForErrors() const;
 
-  GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
+  GCMemcardErrorCode CheckForErrorsWithBat(const GCMemcardBATBlock& bat) const;
 };
 static_assert(sizeof(GCMemcardDirectoryBlock) == BLOCK_SIZE);
 
-struct BlockAlloc
+struct GCMemcardBATBlock
 {
   // 2 bytes at 0x0000: Additive Checksum
   u16 m_checksum;
@@ -378,7 +378,7 @@ struct BlockAlloc
   // 0x1ff8 bytes at 0x000a: Map of allocated Blocks
   std::array<Common::BigEndianValue<u16>, BAT_SIZE> m_map;
 
-  explicit BlockAlloc(u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043);
+  explicit GCMemcardBATBlock(u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043);
 
   u16 GetNextBlock(u16 block) const;
   u16 NextFreeBlock(u16 max_block, u16 starting_block = MC_FST_BLOCKS) const;
@@ -390,7 +390,7 @@ struct BlockAlloc
 
   GCMemcardErrorCode CheckForErrors(u16 size_mbits) const;
 };
-static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
+static_assert(sizeof(GCMemcardBATBlock) == BLOCK_SIZE);
 #pragma pack(pop)
 
 class GCMemcard
@@ -404,7 +404,7 @@ private:
 
   GCMemcardHeaderBlock m_header_block;
   std::array<GCMemcardDirectoryBlock, 2> m_directory_blocks;
-  std::array<BlockAlloc, 2> m_bat_blocks;
+  std::array<GCMemcardBATBlock, 2> m_bat_blocks;
   std::vector<GCMBlock> m_data_blocks;
 
   int m_active_directory;
@@ -415,10 +415,10 @@ private:
   GCMemcardImportFileRetVal ImportGciInternal(File::IOFile&& gci, const std::string& inputFile);
 
   const GCMemcardDirectoryBlock& GetActiveDirectory() const;
-  const BlockAlloc& GetActiveBat() const;
+  const GCMemcardBATBlock& GetActiveBat() const;
 
   void UpdateDirectory(const GCMemcardDirectoryBlock& directory);
-  void UpdateBat(const BlockAlloc& bat);
+  void UpdateBat(const GCMemcardBATBlock& bat);
 
 public:
   static std::optional<GCMemcard> Create(std::string filename, u16 size_mbits, bool shift_jis);

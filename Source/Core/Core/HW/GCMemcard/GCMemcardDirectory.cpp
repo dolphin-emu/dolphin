@@ -551,7 +551,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 
 bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 {
-  BlockAlloc* current_bat;
+  GCMemcardBATBlock* current_bat;
   if (m_bat2.m_update_counter > m_bat1.m_update_counter)
     current_bat = &m_bat2;
   else
@@ -684,8 +684,8 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   p.DoPOD<GCMemcardHeaderBlock>(m_hdr);
   p.DoPOD<GCMemcardDirectoryBlock>(m_dir1);
   p.DoPOD<GCMemcardDirectoryBlock>(m_dir2);
-  p.DoPOD<BlockAlloc>(m_bat1);
-  p.DoPOD<BlockAlloc>(m_bat2);
+  p.DoPOD<GCMemcardBATBlock>(m_bat1);
+  p.DoPOD<GCMemcardBATBlock>(m_bat2);
   int num_saves = (int)m_saves.size();
   p.Do(num_saves);
   m_saves.resize(num_saves);
