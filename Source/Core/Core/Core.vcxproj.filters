@@ -1245,6 +1245,9 @@
     <ClInclude Include="HW\GCMemcard\GCMemcard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
+    <ClInclude Include="HW\GCMemcard\GCMemcardBase.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
     <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
