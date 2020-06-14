@@ -59,6 +59,7 @@ public final class SettingsFile
   public static final String KEY_SLOT_A_DEVICE = "SlotA";
   public static final String KEY_SLOT_B_DEVICE = "SlotB";
   public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
+  public static final String KEY_RECURSIVE_ISO_PATHS = "RecursiveISOPaths";
   public static final String KEY_DEFAULT_ISO = "DefaultISO";
   public static final String KEY_NAND_ROOT_PATH = "NANDRootPath";
   public static final String KEY_DUMP_PATH = "DumpPath";

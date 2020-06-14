@@ -1,15 +1,18 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class Settings
@@ -164,7 +167,7 @@ public class Settings
     loadSettings(view);
   }
 
-  public void saveSettings(SettingsActivityView view)
+  public void saveSettings(SettingsActivityView view, Context context, Set<String> modifiedSettings)
   {
     if (TextUtils.isEmpty(gameId))
     {
@@ -183,38 +186,52 @@ public class Settings
         SettingsFile.saveFile(fileName, iniSections, view);
       }
 
-      switch (NativeLibrary
-              .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                      SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+      if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
       {
-        case DSP_HLE:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "True");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
-          break;
+        switch (NativeLibrary
+                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                        SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+        {
+          case DSP_HLE:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "True");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            break;
 
-        case DSP_LLE_RECOMPILER:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "False");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
-          break;
+          case DSP_LLE_RECOMPILER:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "False");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            break;
 
-        case DSP_LLE_INTERPRETER:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "False");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "False");
-          break;
+          case DSP_LLE_INTERPRETER:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "False");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "False");
+            break;
+        }
       }
 
       // Notify the native code of the changes
       NativeLibrary.ReloadConfig();
       NativeLibrary.ReloadWiimoteConfig();
+
+      if (modifiedSettings.contains(SettingsFile.KEY_RECURSIVE_ISO_PATHS))
+      {
+        // Refresh game library
+        GameFileCacheService.startRescan(context);
+      }
+
+      modifiedSettings.clear();
     }
     else
     {
