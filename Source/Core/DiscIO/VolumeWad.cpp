@@ -327,4 +327,9 @@ u64 VolumeWAD::GetRawSize() const
   return m_reader->GetRawSize();
 }
 
+const BlobReader& VolumeWAD::GetBlobReader() const
+{
+  return *m_reader;
+}
+
 }  // namespace DiscIO

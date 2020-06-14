@@ -49,7 +49,8 @@ public:
   virtual bool IsDataSizeAccurate() const = 0;
 
   // Returns 0 if the format does not use blocks
-  virtual u64 GetBlockSize() const { return 0; }
+  virtual u64 GetBlockSize() const = 0;
+  virtual bool HasFastRandomAccessInBlock() const = 0;
 
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;

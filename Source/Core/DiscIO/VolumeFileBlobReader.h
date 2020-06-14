@@ -23,9 +23,14 @@ public:
   Create(const Volume& volume, const Partition& partition, std::string_view file_path);
 
   BlobType GetBlobType() const override { return BlobType::PLAIN; }
+
   u64 GetRawSize() const override;
   u64 GetDataSize() const override;
   bool IsDataSizeAccurate() const override { return true; }
+
+  u64 GetBlockSize() const override;
+  bool HasFastRandomAccessInBlock() const override;
+
   bool Read(u64 offset, u64 length, u8* out_ptr) override;
 
 private:

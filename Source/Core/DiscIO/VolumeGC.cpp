@@ -188,6 +188,11 @@ u64 VolumeGC::GetRawSize() const
   return m_reader->GetRawSize();
 }
 
+const BlobReader& VolumeGC::GetBlobReader() const
+{
+  return *m_reader;
+}
+
 std::optional<u8> VolumeGC::GetDiscNumber(const Partition& partition) const
 {
   return ReadSwapped<u8>(6, partition);
