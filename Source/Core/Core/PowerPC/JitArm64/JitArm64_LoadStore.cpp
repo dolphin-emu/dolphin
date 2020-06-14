@@ -366,18 +366,21 @@ void JitArm64::stX(UGeckoInstruction inst)
     {
     case 183:  // stwux
       update = true;
+      [[fallthrough]];
     case 151:  // stwx
       flags |= BackPatchInfo::FLAG_SIZE_32;
       regOffset = b;
       break;
     case 247:  // stbux
       update = true;
+      [[fallthrough]];
     case 215:  // stbx
       flags |= BackPatchInfo::FLAG_SIZE_8;
       regOffset = b;
       break;
     case 439:  // sthux
       update = true;
+      [[fallthrough]];
     case 407:  // sthx
       flags |= BackPatchInfo::FLAG_SIZE_16;
       regOffset = b;
@@ -391,11 +394,13 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   case 39:  // stbu
     update = true;
+    [[fallthrough]];
   case 38:  // stb
     flags |= BackPatchInfo::FLAG_SIZE_8;
     break;
   case 45:  // sthu
     update = true;
+    [[fallthrough]];
   case 44:  // sth
     flags |= BackPatchInfo::FLAG_SIZE_16;
     break;
