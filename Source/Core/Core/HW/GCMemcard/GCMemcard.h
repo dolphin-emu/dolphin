@@ -24,6 +24,8 @@ namespace File
 class IOFile;
 }
 
+namespace Memcard
+{
 enum
 {
   SLOT_A = 0,
@@ -489,3 +491,4 @@ public:
   // reads the animation frames
   std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> ReadAnimRGBA8(u8 index) const;
 };
+}  // namespace Memcard

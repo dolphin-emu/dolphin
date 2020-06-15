@@ -31,6 +31,8 @@ static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
   return megabits;
 }
 
+namespace Memcard
+{
 bool GCMemcardErrorCode::HasCriticalErrors() const
 {
   return Test(GCMemcardValidityIssues::FAILED_TO_OPEN) || Test(GCMemcardValidityIssues::IO_ERROR) ||
@@ -1744,3 +1746,4 @@ GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
 
   return error_code;
 }
+}  // namespace Memcard
