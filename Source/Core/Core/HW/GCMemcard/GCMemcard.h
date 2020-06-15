@@ -213,8 +213,12 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
-                  bool shift_jis = false);
+  // initialize an unformatted header block
+  explicit Header();
+
+  // initialize a formatted header block
+  explicit Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                  u32 sram_language, u64 format_time);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
@@ -401,7 +405,9 @@ private:
   void UpdateBat(const BlockAlloc& bat);
 
 public:
-  static std::optional<GCMemcard> Create(std::string filename, u16 size_mbits, bool shift_jis);
+  static std::optional<GCMemcard> Create(std::string filename, const CardFlashId& flash_id,
+                                         u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                                         u32 sram_language, u64 format_time);
 
   static std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> Open(std::string filename);
 
@@ -413,9 +419,10 @@ public:
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();
-  bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
-  static bool Format(u8* card_data, bool shift_jis = false,
-                     u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
+  bool Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+              u32 sram_language, u64 format_time);
+  static bool Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,
+                     u32 rtc_bias, u32 sram_language, u64 format_time);
   static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
   static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,

@@ -26,9 +26,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";
@@ -148,8 +152,10 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
                                        bool shift_jis, int game_id)
     : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
-      m_hdr(slot, size_mbits, shift_jis), m_bat1(size_mbits), m_saves(0),
-      m_save_directory(directory), m_exiting(false)
+      m_hdr(g_SRAM.settings_ex.flash_id[slot], size_mbits, shift_jis, g_SRAM.settings.rtc_bias,
+            static_cast<u32>(g_SRAM.settings.language),
+            Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH),
+      m_bat1(size_mbits), m_saves(0), m_save_directory(directory), m_exiting(false)
 {
   // Use existing header data if available
   {
