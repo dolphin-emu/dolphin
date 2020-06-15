@@ -629,7 +629,8 @@ void GCMemcardDirectory::FlushToFile()
         if (gci)
         {
           gci.WriteBytes(&save.m_gci_header, Memcard::DENTRY_SIZE);
-          gci.WriteBytes(save.m_save_data.data(), Memcard::BLOCK_SIZE * save.m_save_data.size());
+          for (const Memcard::GCMBlock& block : save.m_save_data)
+            gci.WriteBytes(block.m_block.data(), Memcard::BLOCK_SIZE);
 
           if (gci.IsGood())
           {
