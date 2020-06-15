@@ -170,7 +170,9 @@ static_assert(sizeof(GCMBlock) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<GCMBlock>);
 
 #pragma pack(push, 1)
-struct Header
+// split off from Header to have a small struct with all the data needed to regenerate the header
+// for GCI folders
+struct HeaderData
 {
   // NOTE: libogc refers to 'Serial' as the first 0x20 bytes of the header,
   // so the data from m_serial until m_unknown_2 (inclusive)
@@ -198,6 +200,15 @@ struct Header
 
   // 2 bytes at 0x0024: Encoding (Windows-1252 or Shift JIS)
   Common::BigEndianValue<u16> m_encoding;
+};
+static_assert(std::is_trivially_copyable_v<HeaderData>);
+
+void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
+                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
+
+struct Header
+{
+  HeaderData m_data;
 
   // 468 bytes at 0x0026: Unused (0xff)
   std::array<u8, 468> m_unused_1;
@@ -221,6 +232,9 @@ struct Header
   // initialize a formatted header block
   explicit Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
                   u32 sram_language, u64 format_time);
+
+  // initialize a header block from existing HeaderData
+  explicit Header(const HeaderData& data);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;

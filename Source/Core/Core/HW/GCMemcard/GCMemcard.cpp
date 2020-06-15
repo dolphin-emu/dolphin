@@ -304,7 +304,7 @@ void GCMemcard::UpdateBat(const BlockAlloc& bat)
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return m_header_block.m_encoding != 0;
+  return m_header_block.m_data.m_encoding != 0;
 }
 
 bool GCMemcard::Save()
@@ -1549,32 +1549,48 @@ Header::Header()
   std::memset(this, 0xFF, BLOCK_SIZE);
 }
 
-Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
-               u32 sram_language, u64 format_time)
+void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
+                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time)
 {
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
   // Changing the constants will break memory card support
-  static_assert(std::is_trivially_copyable_v<Header>);
-  std::memset(this, 0xFF, BLOCK_SIZE);
-  m_size_mb = size_mbits;
-  m_encoding = shift_jis ? 1 : 0;
-  m_format_time = format_time;
+  data->m_size_mb = size_mbits;
+  data->m_encoding = shift_jis ? 1 : 0;
+  data->m_format_time = format_time;
   u64 rand = format_time;
   for (int i = 0; i < 12; i++)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    m_serial[i] = (u8)(flash_id[i] + (u32)rand);
+    data->m_serial[i] = (u8)(flash_id[i] + (u32)rand);
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     rand &= (u64)0x0000000000007fffULL;
   }
-  m_sram_bias = rtc_bias;
-  m_sram_language = sram_language;
+  data->m_sram_bias = rtc_bias;
+  data->m_sram_language = sram_language;
   // TODO: determine the purpose of m_unknown_2
   // 1 works for slot A, 0 works for both slot A and slot B
-  memset(m_unknown_2.data(), 0,
-         m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-  m_device_id = 0;
+  std::memset(
+      data->m_unknown_2.data(), 0,
+      data->m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+  data->m_device_id = 0;
+}
+
+Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+               u32 sram_language, u64 format_time)
+{
+  static_assert(std::is_trivially_copyable_v<Header>);
+  std::memset(this, 0xFF, BLOCK_SIZE);
+  InitializeHeaderData(&m_data, flash_id, size_mbits, shift_jis, rtc_bias, sram_language,
+                       format_time);
+  FixChecksums();
+}
+
+Header::Header(const HeaderData& data)
+{
+  static_assert(std::is_trivially_copyable_v<Header>);
+  std::memset(this, 0xFF, BLOCK_SIZE);
+  m_data = data;
   FixChecksums();
 }
 
@@ -1622,7 +1638,7 @@ std::pair<u16, u16> Header::CalculateChecksums() const
   std::array<u8, sizeof(Header)> raw;
   memcpy(raw.data(), this, raw.size());
 
-  constexpr size_t checksum_area_start = offsetof(Header, m_serial);
+  constexpr size_t checksum_area_start = offsetof(Header, m_data);
   constexpr size_t checksum_area_end = offsetof(Header, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
@@ -1633,7 +1649,7 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
   GCMemcardErrorCode error_code;
 
   // total card size should match card size in header
-  if (m_size_mb != card_size_mbits)
+  if (m_data.m_size_mb != card_size_mbits)
     error_code.Set(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE);
 
   // unused areas, should always be filled with 0xFF
