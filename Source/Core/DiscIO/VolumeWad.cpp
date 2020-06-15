@@ -289,6 +289,11 @@ bool VolumeWAD::IsDatelDisc() const
   return false;
 }
 
+bool VolumeWAD::IsNKit() const
+{
+  return false;
+}
+
 std::map<Language, std::string> VolumeWAD::GetLongNames() const
 {
   if (!m_tmd.IsValid() || !IOS::ES::IsChannel(m_tmd.GetTitleId()))

@@ -988,22 +988,18 @@ void VolumeVerifier::CheckMisc()
     }
   }
 
-  if (IsDisc(m_volume.GetVolumeType()))
+  if (m_volume.IsNKit())
   {
-    constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"
-    if (m_volume.ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC)
-    {
-      AddProblem(
-          Severity::Low,
-          Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
-                             "current form, but it might become a good dump if converted back. "
-                             "The CRC32 of this file might match the CRC32 of a good dump even "
-                             "though the files are not identical."));
-    }
-
-    if (StringBeginsWith(game_id_unencrypted, "R8P"))
-      CheckSuperPaperMario();
+    AddProblem(
+        Severity::Low,
+        Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
+                           "current form, but it might become a good dump if converted back. "
+                           "The CRC32 of this file might match the CRC32 of a good dump even "
+                           "though the files are not identical."));
   }
+
+  if (IsDisc(m_volume.GetVolumeType()) && StringBeginsWith(game_id_unencrypted, "R8P"))
+    CheckSuperPaperMario();
 }
 
 void VolumeVerifier::CheckSuperPaperMario()

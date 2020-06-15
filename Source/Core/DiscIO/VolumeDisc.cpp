@@ -84,4 +84,10 @@ std::optional<u8> VolumeDisc::GetDiscNumber(const Partition& partition) const
   return ReadSwapped<u8>(6, partition);
 }
 
+bool VolumeDisc::IsNKit() const
+{
+  constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"
+  return ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC;
+}
+
 }  // namespace DiscIO

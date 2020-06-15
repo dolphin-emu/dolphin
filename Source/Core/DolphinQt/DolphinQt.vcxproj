@@ -178,6 +178,7 @@
     <QtMoc Include="NetPlay\NetPlayDialog.h" />
     <QtMoc Include="NetPlay\NetPlaySetupDialog.h" />
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
+    <QtMoc Include="NKitWarningDialog.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
@@ -290,6 +291,7 @@
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewBreakpointDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewPatchDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NKitWarningDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ParallelProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)UTF8CodePointCountValidator.cpp" />
@@ -394,6 +396,7 @@
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
+    <ClCompile Include="NKitWarningDialog.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />

@@ -37,6 +37,8 @@ add_executable(dolphin-emu
   MainWindow.h
   MenuBar.cpp
   MenuBar.h
+  NKitWarningDialog.cpp
+  NKitWarningDialog.h
   RenderWidget.cpp
   RenderWidget.h
   Resources.cpp

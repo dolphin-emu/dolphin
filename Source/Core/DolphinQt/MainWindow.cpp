@@ -18,6 +18,7 @@
 
 #include <future>
 #include <optional>
+#include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 #include <signal.h>
@@ -83,6 +84,7 @@
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
@@ -952,6 +954,15 @@ void MainWindow::StartGame(const std::vector<std::string>& paths,
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 {
+  if (std::holds_alternative<BootParameters::Disc>(parameters->parameters))
+  {
+    if (std::get<BootParameters::Disc>(parameters->parameters).volume->IsNKit())
+    {
+      if (!NKitWarningDialog::ShowUnlessDisabled())
+        return;
+    }
+  }
+
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {

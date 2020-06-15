@@ -60,6 +60,7 @@ public:
   }
   Platform GetVolumeType() const override;
   bool IsDatelDisc() const override;
+  bool IsNKit() const override;
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
