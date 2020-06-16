@@ -411,6 +411,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
             Log.debug("[EmulationFragment] Starting emulation thread.");
             NativeLibrary.Run(mGamePaths);
           }
+          EmulationActivity.stopIgnoringLaunchRequests();
         }, "NativeEmulation");
         emulationThread.start();
       }
