@@ -1576,6 +1576,17 @@ void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 siz
   data->m_device_id = 0;
 }
 
+bool operator==(const HeaderData& lhs, const HeaderData& rhs)
+{
+  static_assert(std::is_trivially_copyable_v<HeaderData>);
+  return std::memcmp(&lhs, &rhs, sizeof(HeaderData)) == 0;
+}
+
+bool operator!=(const HeaderData& lhs, const HeaderData& rhs)
+{
+  return !(lhs == rhs);
+}
+
 Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
                u32 sram_language, u64 format_time)
 {
