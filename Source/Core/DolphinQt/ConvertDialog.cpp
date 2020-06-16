@@ -331,6 +331,7 @@ void ConvertDialog::Convert()
     {
       QErrorMessage(this).showMessage(
           tr("Failed to open the input file \"%1\".").arg(QString::fromStdString(original_path)));
+      return;
     }
     else
     {
