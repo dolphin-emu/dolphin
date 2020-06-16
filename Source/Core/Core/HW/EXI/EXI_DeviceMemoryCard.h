@@ -14,6 +14,11 @@
 class MemoryCardBase;
 class PointerWrap;
 
+namespace Memcard
+{
+struct HeaderData;
+}
+
 namespace ExpansionInterface
 {
 enum class AllowMovieFolder
@@ -25,7 +30,7 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(const int index, bool gciFolder);
+  CEXIMemoryCard(const int index, bool gciFolder, const Memcard::HeaderData& header_data);
   virtual ~CEXIMemoryCard();
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
@@ -46,7 +51,7 @@ public:
   GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
 
 private:
-  void SetupGciFolder(u16 sizeMb);
+  void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 sizeMb);
   static void EventCompleteFindInstance(u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);

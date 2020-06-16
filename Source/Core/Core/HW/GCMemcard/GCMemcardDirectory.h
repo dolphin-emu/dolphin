@@ -21,8 +21,8 @@ void MigrateFromMemcardFile(const std::string& directory_name, int card_index);
 class GCMemcardDirectory : public MemoryCardBase
 {
 public:
-  GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits, bool shift_jis,
-                     int game_id);
+  GCMemcardDirectory(const std::string& directory, int slot, const Memcard::HeaderData& header_data,
+                     u32 game_id);
   ~GCMemcardDirectory();
 
   GCMemcardDirectory(const GCMemcardDirectory&) = delete;

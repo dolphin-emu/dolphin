@@ -102,7 +102,8 @@ void IEXIDevice::TransferByte(u8& byte)
 }
 
 // F A C T O R Y
-std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num)
+std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num,
+                                             const Memcard::HeaderData& memcard_header_data)
 {
   std::unique_ptr<IEXIDevice> result;
 
@@ -116,7 +117,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
   case EXIDEVICE_MEMORYCARDFOLDER:
   {
     bool gci_folder = (device_type == EXIDEVICE_MEMORYCARDFOLDER);
-    result = std::make_unique<CEXIMemoryCard>(channel_num, gci_folder);
+    result = std::make_unique<CEXIMemoryCard>(channel_num, gci_folder, memcard_header_data);
     break;
   }
   case EXIDEVICE_MASKROM:

@@ -149,13 +149,11 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
   return filenames;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
-                                       bool shift_jis, int game_id)
-    : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
-      m_hdr(g_SRAM.settings_ex.flash_id[slot], size_mbits, shift_jis, g_SRAM.settings.rtc_bias,
-            static_cast<u32>(g_SRAM.settings.language),
-            Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH),
-      m_bat1(size_mbits), m_saves(0), m_save_directory(directory), m_exiting(false)
+GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
+                                       const Memcard::HeaderData& header_data, u32 game_id)
+    : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
+      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory),
+      m_exiting(false)
 {
   // Use existing header data if available
   {

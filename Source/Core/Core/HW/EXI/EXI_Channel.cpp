@@ -22,7 +22,8 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(u32 channel_id) : m_channel_id(channel_id)
+CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_header_data)
+    : m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
 {
   if (m_channel_id == 0 || m_channel_id == 1)
     m_status.EXTINT = 1;
@@ -30,7 +31,7 @@ CEXIChannel::CEXIChannel(u32 channel_id) : m_channel_id(channel_id)
     m_status.CHIP_SELECT = 1;
 
   for (auto& device : m_devices)
-    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id);
+    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id, m_memcard_header_data);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -166,7 +167,7 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-  AddDevice(EXIDevice_Create(device_type, m_channel_id), device_num);
+  AddDevice(EXIDevice_Create(device_type, m_channel_id, m_memcard_header_data), device_num);
 }
 
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
@@ -229,6 +230,7 @@ void CEXIChannel::DoState(PointerWrap& p)
   p.Do(m_dma_length);
   p.Do(m_control);
   p.Do(m_imm_data);
+  p.DoPOD(m_memcard_header_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
@@ -242,7 +244,8 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
     else
     {
-      std::unique_ptr<IEXIDevice> save_device = EXIDevice_Create(type, m_channel_id);
+      std::unique_ptr<IEXIDevice> save_device =
+          EXIDevice_Create(type, m_channel_id, m_memcard_header_data);
       save_device->DoState(p);
       AddDevice(std::move(save_device), device_index, false);
     }
