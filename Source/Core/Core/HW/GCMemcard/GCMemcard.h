@@ -166,6 +166,8 @@ struct GCMBlock
   void Erase();
   std::array<u8, BLOCK_SIZE> m_block;
 };
+static_assert(sizeof(GCMBlock) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<GCMBlock>);
 
 #pragma pack(push, 1)
 struct Header
@@ -229,6 +231,7 @@ struct Header
   GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<Header>);
 
 struct DEntry
 {
@@ -306,6 +309,7 @@ struct DEntry
   Common::BigEndianValue<u32> m_comments_address;
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
+static_assert(std::is_trivially_copyable_v<DEntry>);
 
 struct BlockAlloc;
 
@@ -341,6 +345,7 @@ struct Directory
   GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<Directory>);
 
 struct BlockAlloc
 {
@@ -375,6 +380,7 @@ struct BlockAlloc
   GCMemcardErrorCode CheckForErrors(u16 size_mbits) const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<BlockAlloc>);
 #pragma pack(pop)
 
 class GCMemcard
