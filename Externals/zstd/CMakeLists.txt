@@ -1,4 +1,4 @@
-project(bzip2 C)
+project(zstd C)
 
 include(CheckTypeSize)
 include(CheckFunctionExists)
