@@ -86,6 +86,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   {
     super.onResume();
     mPresenter.addDirIfNeeded(this);
+    GameFileCacheService.startRescan(this);
   }
 
   @Override
