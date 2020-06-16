@@ -12,7 +12,6 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QErrorMessage>
 #include <QFileDialog>
 #include <QGridLayout>
 #include <QGroupBox>
@@ -329,7 +328,8 @@ void ConvertDialog::Convert()
 
     if (!blob_reader)
     {
-      QErrorMessage(this).showMessage(
+      ModalMessageBox::critical(
+          this, tr("Error"),
           tr("Failed to open the input file \"%1\".").arg(QString::fromStdString(original_path)));
       return;
     }
@@ -362,7 +362,8 @@ void ConvertDialog::Convert()
       progress_dialog.GetRaw()->exec();
       if (!good.get())
       {
-        QErrorMessage(this).showMessage(tr("Dolphin failed to complete the requested action."));
+        ModalMessageBox::critical(this, tr("Error"),
+                                  tr("Dolphin failed to complete the requested action."));
         return;
       }
     }
