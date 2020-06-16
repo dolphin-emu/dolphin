@@ -119,6 +119,7 @@ public final class SettingsFile
   public static final String KEY_DEBUG_JITREGISTERCACHEOFF = "JitRegisterCacheOff";
 
   public static final String KEY_GCPAD_TYPE = "SIDevice";
+  public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
 
   public static final String KEY_GCBIND_A = "InputA_";

@@ -24,12 +24,15 @@ import android.view.MotionEvent;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.View.OnTouchListener;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -44,14 +47,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_GAMECUBE = 0;
   public static final int OVERLAY_WIIMOTE = 1;
   public static final int OVERLAY_WIIMOTE_SIDEWAYS = 2;
-  public static final int OVERLAY_WIIMOTE_NUNCHUCK = 3;
+  public static final int OVERLAY_WIIMOTE_NUNCHUK = 3;
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
+  public static final int OVERLAY_NONE = 5;
+
+  private static final String DISABLED_GAMECUBE_CONTROLLER = "0";
+  private static final String EMULATED_GAMECUBE_CONTROLLER = "6";
+  private static final String GAMECUBE_ADAPTER = "12";
 
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
   private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
   private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
   private InputOverlayPointer overlayPointer;
 
+  private boolean mIsFirstRun = true;
   private boolean mIsInEditMode = false;
   private InputOverlayDrawableButton mButtonBeingConfigured;
   private InputOverlayDrawableDpad mDpadBeingConfigured;
@@ -135,7 +144,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       int doubleTapButton = mPreferences.getInt("doubleTapButton",
               InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
 
-      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUCK) !=
+      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUK) !=
               InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
               doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
       {
@@ -692,24 +701,56 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (mPreferences.getBoolean("showInputOverlay", true))
     {
       // Add all the enabled overlay items back to the HashSet.
-      if (EmulationActivity.isGameCubeGame() || mPreferences.getInt("wiiController", 3) == 0)
+      if (EmulationActivity.isGameCubeGame())
       {
-        addGameCubeOverlayControls(orientation);
-      }
-      else if (mPreferences.getInt("wiiController", 3) == 4)
-      {
-        addClassicOverlayControls(orientation);
+        switch (NativeLibrary
+                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                        SettingsFile.KEY_GCPAD_PLAYER_1, EMULATED_GAMECUBE_CONTROLLER))
+        {
+          case DISABLED_GAMECUBE_CONTROLLER:
+            if (mIsFirstRun)
+            {
+              Toast.makeText(getContext(), R.string.disabled_gc_overlay_notice, Toast.LENGTH_SHORT)
+                      .show();
+            }
+            break;
+
+          case EMULATED_GAMECUBE_CONTROLLER:
+            addGameCubeOverlayControls(orientation);
+            break;
+
+          case GAMECUBE_ADAPTER:
+            break;
+        }
       }
       else
       {
-        addWiimoteOverlayControls(orientation);
-        if (mPreferences.getInt("wiiController", 3) == 3)
+        switch (mPreferences.getInt("wiiController", 3))
         {
-          addNunchukOverlayControls(orientation);
+          case OVERLAY_GAMECUBE:
+            addGameCubeOverlayControls(orientation);
+            break;
+
+          case OVERLAY_WIIMOTE:
+          case OVERLAY_WIIMOTE_SIDEWAYS:
+            addWiimoteOverlayControls(orientation);
+            break;
+
+          case OVERLAY_WIIMOTE_NUNCHUK:
+            addWiimoteOverlayControls(orientation);
+            addNunchukOverlayControls(orientation);
+            break;
+
+          case OVERLAY_WIIMOTE_CLASSIC:
+            addClassicOverlayControls(orientation);
+            break;
+
+          case OVERLAY_NONE:
+            break;
         }
       }
     }
-
+    mIsFirstRun = false;
     invalidate();
   }
 
