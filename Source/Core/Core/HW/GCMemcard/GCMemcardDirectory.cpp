@@ -430,7 +430,7 @@ void GCMemcardDirectory::ClearBlock(u32 address)
     if (m_last_block == -1)
       return;
   }
-  ((Memcard::GCMBlock*)m_last_block_address)->Erase();
+  std::memset(m_last_block_address, 0xFF, Memcard::BLOCK_SIZE);
 }
 
 inline void GCMemcardDirectory::SyncSaves()
