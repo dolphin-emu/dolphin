@@ -24,6 +24,8 @@ namespace File
 class IOFile;
 }
 
+namespace Memcard
+{
 enum
 {
   SLOT_A = 0,
@@ -157,28 +159,6 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // number of palette entries in a CI8 palette of a banner or icon
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
-
-class MemoryCardBase
-{
-public:
-  explicit MemoryCardBase(int card_index = 0, int size_mbits = MBIT_SIZE_MEMORY_CARD_2043)
-      : m_card_index(card_index), m_nintendo_card_id(size_mbits)
-  {
-  }
-  virtual ~MemoryCardBase() {}
-  virtual s32 Read(u32 src_address, s32 length, u8* dest_address) = 0;
-  virtual s32 Write(u32 dest_address, s32 length, const u8* src_address) = 0;
-  virtual void ClearBlock(u32 address) = 0;
-  virtual void ClearAll() = 0;
-  virtual void DoState(PointerWrap& p) = 0;
-  u32 GetCardId() const { return m_nintendo_card_id; }
-  bool IsAddressInBounds(u32 address) const { return address <= (m_memory_card_size - 1); }
-
-protected:
-  int m_card_index;
-  u16 m_nintendo_card_id;
-  u32 m_memory_card_size;
-};
 
 struct GCMBlock
 {
@@ -511,3 +491,4 @@ public:
   // reads the animation frames
   std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> ReadAnimRGBA8(u8 index) const;
 };
+}  // namespace Memcard

@@ -221,6 +221,7 @@ add_library(core
   HW/GCMemcard/GCIFile.h
   HW/GCMemcard/GCMemcard.cpp
   HW/GCMemcard/GCMemcard.h
+  HW/GCMemcard/GCMemcardBase.h
   HW/GCMemcard/GCMemcardDirectory.cpp
   HW/GCMemcard/GCMemcardDirectory.h
   HW/GCMemcard/GCMemcardRaw.cpp

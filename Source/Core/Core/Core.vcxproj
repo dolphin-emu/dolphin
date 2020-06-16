@@ -514,6 +514,7 @@
     <ClInclude Include="HW\GCKeyboardEmu.h" />
     <ClInclude Include="HW\GCMemcard\GCIFile.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcard.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardBase.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h" />
     <ClInclude Include="HW\GCPad.h" />

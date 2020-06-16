@@ -142,7 +142,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   bool useMC251;
   IniFile gameIni = SConfig::GetInstance().LoadGameIni();
   gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
-  u16 sizeMb = useMC251 ? MBIT_SIZE_MEMORY_CARD_251 : MBIT_SIZE_MEMORY_CARD_2043;
+  u16 sizeMb = useMC251 ? Memcard::MBIT_SIZE_MEMORY_CARD_251 : Memcard::MBIT_SIZE_MEMORY_CARD_2043;
 
   if (gciFolder)
   {
@@ -245,7 +245,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
   MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
-  if (sizeMb == MBIT_SIZE_MEMORY_CARD_251)
+  if (sizeMb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
     filename.insert(filename.find_last_of("."), ".251");
 
   memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);
@@ -545,9 +545,9 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
   memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
 
-  if ((address + _uSize) % BLOCK_SIZE == 0)
+  if ((address + _uSize) % Memcard::BLOCK_SIZE == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
@@ -561,9 +561,9 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
 
-  if (((address + _uSize) % BLOCK_SIZE) == 0)
+  if (((address + _uSize) % Memcard::BLOCK_SIZE) == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

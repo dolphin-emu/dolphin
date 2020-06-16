@@ -12,6 +12,8 @@
 
 class PointerWrap;
 
+namespace Memcard
+{
 class GCIFile
 {
 public:
@@ -27,3 +29,4 @@ public:
   bool m_dirty;
   std::string m_filename;
 };
+}  // namespace Memcard

@@ -11,6 +11,8 @@
 #include "Common/File.h"
 #include "Common/Logging/Log.h"
 
+namespace Memcard
+{
 bool GCIFile::LoadHeader()
 {
   if (m_filename.empty())
@@ -100,3 +102,4 @@ void GCIFile::DoState(PointerWrap& p)
   }
   p.Do(m_used_blocks);
 }
+}  // namespace Memcard

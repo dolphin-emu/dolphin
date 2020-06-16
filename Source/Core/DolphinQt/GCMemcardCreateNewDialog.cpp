@@ -75,7 +75,7 @@ bool GCMemcardCreateNewDialog::CreateCard()
     return false;
 
   const std::string p = path.toStdString();
-  auto memcard = GCMemcard::Create(p, size, is_shift_jis);
+  auto memcard = Memcard::GCMemcard::Create(p, size, is_shift_jis);
   if (memcard && memcard->Save())
   {
     m_card_path = p;

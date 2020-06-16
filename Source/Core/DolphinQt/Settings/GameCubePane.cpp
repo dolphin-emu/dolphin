@@ -210,7 +210,7 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (File::Exists(filename.toStdString()))
     {
-      auto [error_code, mc] = GCMemcard::Open(filename.toStdString());
+      auto [error_code, mc] = Memcard::GCMemcard::Open(filename.toStdString());
 
       if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
