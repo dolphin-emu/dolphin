@@ -73,6 +73,7 @@ public final class EmulationActivity extends AppCompatActivity
   private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
+  private static boolean sIgnoreLaunchRequests = false;
   private static boolean sIsGameCubeGame;
 
   private boolean activityRecreated;
@@ -196,6 +197,11 @@ public final class EmulationActivity extends AppCompatActivity
 
   public static void launch(FragmentActivity activity, GameFile gameFile)
   {
+    if (sIgnoreLaunchRequests)
+      return;
+
+    sIgnoreLaunchRequests = true;
+
     Intent launcher = new Intent(activity, EmulationActivity.class);
 
     launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
@@ -207,6 +213,11 @@ public final class EmulationActivity extends AppCompatActivity
 
   public static void launchFile(FragmentActivity activity, String[] filePaths)
   {
+    if (sIgnoreLaunchRequests)
+      return;
+
+    sIgnoreLaunchRequests = true;
+
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
 
@@ -235,6 +246,11 @@ public final class EmulationActivity extends AppCompatActivity
     }
 
     activity.startActivity(launcher);
+  }
+
+  public static void stopIgnoringLaunchRequests()
+  {
+    sIgnoreLaunchRequests = false;
   }
 
   public static void clearWiimoteNewIniLinkedPreferences(Context context)
