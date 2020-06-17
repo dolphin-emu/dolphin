@@ -131,8 +131,6 @@ void ConvertDialog::OnFormatChanged()
   {
   case DiscIO::BlobType::GCZ:
   {
-    m_block_size->setEnabled(true);
-
     // In order for versions of Dolphin prior to 5.0-11893 to be able to convert a GCZ file
     // to ISO without messing up the final part of the file in some way, the file size
     // must be an integer multiple of the block size (fixed in 3aa463c) and must not be
@@ -169,9 +167,10 @@ void ConvertDialog::OnFormatChanged()
     break;
   }
   default:
-    m_block_size->setEnabled(false);
     break;
   }
+
+  m_block_size->setEnabled(m_block_size->count() > 1);
 }
 
 bool ConvertDialog::ShowAreYouSureDialog(const QString& text)
