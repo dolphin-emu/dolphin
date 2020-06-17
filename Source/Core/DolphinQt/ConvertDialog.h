@@ -32,7 +32,6 @@ private slots:
   void Convert();
 
 private:
-  void AddToFormatComboBox(const QString& name, DiscIO::BlobType format);
   void AddToBlockSizeComboBox(int size);
 
   bool ShowAreYouSureDialog(const QString& text);

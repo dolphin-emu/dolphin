@@ -55,8 +55,13 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->setColumnStretch(1, 1);
 
   m_format = new QComboBox;
-  AddToFormatComboBox(QStringLiteral("ISO"), DiscIO::BlobType::PLAIN);
-  AddToFormatComboBox(QStringLiteral("GCZ"), DiscIO::BlobType::GCZ);
+  m_format->addItem(QStringLiteral("ISO"), static_cast<int>(DiscIO::BlobType::PLAIN));
+  m_format->addItem(QStringLiteral("GCZ"), static_cast<int>(DiscIO::BlobType::GCZ));
+  if (std::all_of(m_files.begin(), m_files.end(),
+                  [](const auto& file) { return file->GetBlobType() == DiscIO::BlobType::PLAIN; }))
+  {
+    m_format->setCurrentIndex(m_format->count() - 1);
+  }
   grid_layout->addWidget(new QLabel(tr("Format:")), 0, 0);
   grid_layout->addWidget(m_format, 0, 1);
 
@@ -102,17 +107,6 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   connect(convert_button, &QPushButton::clicked, this, &ConvertDialog::Convert);
 
   OnFormatChanged();
-}
-
-void ConvertDialog::AddToFormatComboBox(const QString& name, DiscIO::BlobType format)
-{
-  if (std::all_of(m_files.begin(), m_files.end(),
-                  [format](const auto& file) { return file->GetBlobType() == format; }))
-  {
-    return;
-  }
-
-  m_format->addItem(name, static_cast<int>(format));
 }
 
 void ConvertDialog::AddToBlockSizeComboBox(int size)
