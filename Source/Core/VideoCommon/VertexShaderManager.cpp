@@ -419,6 +419,8 @@ void VertexShaderManager::SetConstants()
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
 
+    g_freelook_camera.SetClean();
+
     dirty = true;
   }
 
