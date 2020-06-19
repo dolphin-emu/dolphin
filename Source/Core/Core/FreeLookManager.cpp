@@ -146,6 +146,9 @@ ControllerEmu::ControlGroup* FreeLookController::GetGroup(FreeLookGroup group) c
 
 void FreeLookController::Update()
 {
+  if (!g_freelook_camera.IsActive())
+    return;
+
   if (m_move_buttons->controls[MoveButtons::Up]->GetState<bool>())
     g_freelook_camera.MoveVertical(-g_freelook_camera.GetSpeed());
 
