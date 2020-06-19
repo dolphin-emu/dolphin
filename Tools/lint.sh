@@ -2,6 +2,8 @@
 #
 # Linter script that checks for common style issues in Dolphin's codebase.
 
+echo "Hello"
+
 set -euo pipefail
 
 if ! [ -x "$(command -v git)" ]; then
