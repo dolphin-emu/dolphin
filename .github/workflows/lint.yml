@@ -19,5 +19,5 @@ jobs:
           git rev-parse origin/${{ github.base_ref }}
           echo ::set-env name=base_commit::$(git rev-parse origin/${{ github.base_ref }})
           echo "basecommit ${{ env.base_commit }}"
-          ./Tools/lint.sh $(git rev-parse origin/${{ github.base_ref }})
+          ./Tools/lint.sh $(git rev-parse origin/${{ github.base_ref }})...
       
