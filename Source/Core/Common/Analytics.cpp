@@ -28,6 +28,8 @@ enum class TypeId : u8
   BOOL = 1,
   UINT = 2,
   SINT = 3,
+  
+  
   FLOAT = 4,
 
   // Flags which can be combined with other types.
