@@ -66,6 +66,8 @@ public:
   void ResetSpeed();
   float GetSpeed() const;
 
+  bool IsActive() const;
+
 private:
   bool m_dirty = false;
   float m_fov_x = 1.0f;
@@ -75,6 +77,7 @@ private:
 
   float m_fov_step_size = 0.025f;
   float m_speed = 1.0f;
+  bool m_enabled = true;
 };
 
 extern FreeLookCamera g_freelook_camera;

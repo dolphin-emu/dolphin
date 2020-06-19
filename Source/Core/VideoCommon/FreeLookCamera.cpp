@@ -319,3 +319,8 @@ void FreeLookCamera::SetClean()
 {
   m_dirty = false;
 }
+
+bool FreeLookCamera::IsActive() const
+{
+  return FreeLook::GetActiveConfig().enabled;
+}
