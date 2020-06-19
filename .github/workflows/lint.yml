@@ -13,5 +13,5 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
-      - run: git diff --cached --name-only | egrep '[.](cpp|h|mm)$' | xargs clang-format
+      - run: ./Tools/lint.sh ${{ github.sha }}
 
