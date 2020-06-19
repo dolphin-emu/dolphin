@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exit 0
+
 set -e
 
 XCENT_FILE=$DERIVED_SOURCES_DIR/../DolphiniOS.app.xcent
