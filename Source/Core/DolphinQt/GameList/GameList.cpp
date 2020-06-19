@@ -134,7 +134,7 @@ void GameList::MakeListView()
   connect(hor_header, &QHeaderView::sectionResized, this, &GameList::OnSectionResized);
 
   if (!Settings::GetQSettings().contains(QStringLiteral("tableheader/state")))
-    m_list->sortByColumn(GameListModel::COL_TITLE, Qt::AscendingOrder);
+    m_list->sortByColumn(GameListModel::COL_TITLE, Qt::DescendingOrder);
 
   hor_header->setSectionResizeMode(GameListModel::COL_PLATFORM, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_BANNER, QHeaderView::Fixed);
