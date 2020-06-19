@@ -69,6 +69,8 @@ fail=0
 # Default to staged files, unless a commit was passed.
 COMMIT=$(git log --format="%H" -n 1)
 
+echo $COMMIT
+
 # Get modified files (must be on own line for exit-code handling)
 modified_files=$(git diff-tree --no-commit-id --name-only -r $COMMIT)
 
