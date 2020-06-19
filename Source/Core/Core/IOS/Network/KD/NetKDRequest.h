@@ -24,6 +24,56 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
+    ///Information from http://forum.wiibrew.org/read.php?27,2146,3605
+    #pragma pack(push, 1)
+    struct WC24Record final
+    {
+        short record_index;
+        short unknown_value_1;
+        int unknown_value_2;
+        char game_title[4];
+        int unknown_value_3;
+        int unknown_value_4;
+        int unknown_value_5;
+        int unknown_value_6;
+        int unknown_value_7;
+        int unknown_value_8;
+        int unknown_value_9;
+        int unknown_value_10;
+        int unknown_value_11;
+        int unknown_value_12;
+        char unknown_value_13[128];
+        char wc24_main_url[236];
+        char wc24_sub_url_files[96];
+    };
+    #pragma pack(pop)
+    #pragma pack(push, 1)
+    struct WC24File final
+    {
+        char magic_word[4]; // 'WcDl'
+        int unknown_value_1;
+        int unknown_value_2;
+        int unknown_value_3;
+        short unknown_value_4;
+        short wc24_header_file_offset;
+        short wc24_record_count;
+        short unknown_value_5;
+    };
+    #pragma pack(pop)
+    #pragma pack(push, 1)
+    struct WC24Header final
+    {
+        char game_title[4];
+        u32 memory_address_1;
+        u32 memory_address_2;
+        u8 record_pointer;
+        u8 padding[3];
+    };
+    #pragma pack(pop)
+    WC24File WC24FileHeader;
+    WC24Header WC24RecordHeader;
+    WC24Record WC24Log;
+
   enum
   {
     IOCTL_NWC24_SUSPEND_SCHEDULAR = 0x01,
