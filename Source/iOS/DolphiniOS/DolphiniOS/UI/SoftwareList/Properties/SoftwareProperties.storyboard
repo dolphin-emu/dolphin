@@ -86,6 +86,9 @@
                                                 <constraint firstAttribute="trailing" secondItem="mgd-iA-q4d" secondAttribute="trailing" id="rG0-ii-i7F"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <segue destination="8ZT-Dw-ErR" kind="show" identifier="to_ar" id="Oct-3e-1RR"/>
+                                        </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="disclosureIndicator" indentationWidth="10" id="nts-ag-T8x">
                                         <rect key="frame" x="20" y="148.5" width="374" height="43.5"/>
@@ -511,6 +514,61 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4vR-Ln-RRi" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1412" y="88"/>
+        </scene>
+        <!--Action Replay-->
+        <scene sceneID="2DQ-hN-YEQ">
+            <objects>
+                <tableViewController id="8ZT-Dw-ErR" customClass="SoftwareActionReplayViewController" sceneMemberID="viewController">
+                    <tableView key="view" clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="insetGrouped" separatorStyle="default" rowHeight="44" estimatedRowHeight="-1" sectionHeaderHeight="18" sectionFooterHeight="18" id="uum-Eb-lBr">
+                        <rect key="frame" x="0.0" y="0.0" width="414" height="842"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <prototypes>
+                            <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="code_cell" rowHeight="44" id="tAL-h5-qwt" customClass="SoftwareActionReplayCodeCell">
+                                <rect key="frame" x="20" y="55.5" width="374" height="44"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="tAL-h5-qwt" id="kR0-gD-xmG">
+                                    <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                    <subviews>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1Kp-Z1-s0m">
+                                            <rect key="frame" x="20" y="0.0" width="285" height="44"/>
+                                            <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                            <nil key="textColor"/>
+                                            <nil key="highlightedColor"/>
+                                        </label>
+                                        <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="l9m-A7-13T">
+                                            <rect key="frame" x="305" y="6.5" width="51" height="31"/>
+                                            <connections>
+                                                <action selector="EnabledChanged:" destination="8ZT-Dw-ErR" eventType="valueChanged" id="UIy-f1-0V3"/>
+                                                <action selector="Sha1Changed:" destination="LQ6-SW-Dqy" eventType="valueChanged" id="IeN-SN-gII"/>
+                                            </connections>
+                                        </switch>
+                                    </subviews>
+                                    <constraints>
+                                        <constraint firstItem="l9m-A7-13T" firstAttribute="leading" secondItem="1Kp-Z1-s0m" secondAttribute="trailing" id="IfL-fR-cq1"/>
+                                        <constraint firstAttribute="trailingMargin" secondItem="l9m-A7-13T" secondAttribute="trailing" id="L7V-su-rhS"/>
+                                        <constraint firstAttribute="bottom" secondItem="1Kp-Z1-s0m" secondAttribute="bottom" id="RK2-b7-uuH"/>
+                                        <constraint firstItem="1Kp-Z1-s0m" firstAttribute="top" secondItem="kR0-gD-xmG" secondAttribute="top" id="TXS-0J-Yhb"/>
+                                        <constraint firstItem="l9m-A7-13T" firstAttribute="centerY" secondItem="kR0-gD-xmG" secondAttribute="centerY" id="qqs-JB-HSx"/>
+                                        <constraint firstItem="1Kp-Z1-s0m" firstAttribute="leading" secondItem="kR0-gD-xmG" secondAttribute="leadingMargin" id="vrA-aV-MwI"/>
+                                    </constraints>
+                                </tableViewCellContentView>
+                                <connections>
+                                    <outlet property="m_enabled_switch" destination="l9m-A7-13T" id="SfC-F3-32w"/>
+                                    <outlet property="m_name_label" destination="1Kp-Z1-s0m" id="Uw1-Nt-n7U"/>
+                                </connections>
+                            </tableViewCell>
+                        </prototypes>
+                        <connections>
+                            <outlet property="dataSource" destination="8ZT-Dw-ErR" id="OpU-UN-MoA"/>
+                            <outlet property="delegate" destination="8ZT-Dw-ErR" id="iFb-2Q-NNI"/>
+                        </connections>
+                    </tableView>
+                    <navigationItem key="navigationItem" title="Action Replay" id="0HZ-6f-okH"/>
+                </tableViewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="AvL-Lf-4iX" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="1412" y="770"/>
         </scene>
         <!--Software Verify Compute View Controller-->
         <scene sceneID="u3f-Pl-bJT">
