@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [ ios-jb ]
 
+env:
+  GITHUB_SHA: ${{ github.sha }}
+
 jobs:
   run-linter:
     runs-on: ubuntu-latest
