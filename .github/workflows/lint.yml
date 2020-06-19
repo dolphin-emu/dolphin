@@ -16,6 +16,8 @@ jobs:
       - name: Lint
         run: | 
           ls -al
+          git rev-parse ios-jb
+          git rev-parse master
           echo ::set-env name=base_commit::$(git rev-parse ${{ github.base_ref }})
           echo "basecommit ${{ env.base_commit }}"
           ./Tools/lint.sh ${{ env.base_commit }}
