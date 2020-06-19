@@ -15,8 +15,7 @@ jobs:
         uses: actions/checkout@v2
       - name: Lint
         run: | 
-          echo $BASE_COMMIT
-          ./Tools/lint.sh $BASE_COMMIT
-        env: 
-          BASE_COMMIT: $(git rev-parse ${{ github.base_ref }})
+          echo ::set-env name=base_commit::$(git rev-parse ${{ github.base_ref }})
+          echo ${{ env.base_commit }}
+          ./Tools/lint.sh $(git rev-parse ${{ github.base_ref }})
       
