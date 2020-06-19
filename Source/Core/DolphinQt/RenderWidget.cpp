@@ -181,7 +181,7 @@ bool RenderWidget::event(QEvent* event)
     break;
   }
   case QEvent::MouseMove:
-    if (g_Config.bFreeLook)
+    if (g_freelook_camera.IsActive())
       OnFreeLookMouseMove(static_cast<QMouseEvent*>(event));
     [[fallthrough]];
 
