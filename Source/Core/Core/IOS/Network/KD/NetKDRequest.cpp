@@ -144,12 +144,60 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_SHUTDOWN - NI");
     break;
           
-   case IOCTL_NWC24_DOWNLOAD_NOW_EX:
-    // Writing a non-zero return value to this ioctl prevents Nintendo Channel crashing.
-    // For more information, see https://bugs.dolphin-emu.org/issues/11978.
-    INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI");
-    WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
-    break;
+ case IOCTL_NWC24_DOWNLOAD_NOW_EX:
+    {
+        INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_DOWNLOAD_NOW_EX - NI");
+        request.Dump(GetDeviceName(), Common::Log::IOS_WC24, Common::Log::LWARNING);
+        
+        ///Opens nwc24dl.bin file
+        const std::string file_path = "/" WII_WC24CONF_DIR "/nwc24dl.bin";
+        const auto fs = IOS::HLE::GetIOS()->GetFS();
+        constexpr IOS::HLE::FS::Mode rw_mode = IOS::HLE::FS::Mode::Read;
+        const auto file = fs->OpenFile(PID_KD, PID_KD, file_path, rw_mode);
+        
+        if (!file)
+        {
+            INFO_LOG(IOS_WC24, "IOCTL_NWC24_DOWNLOAD_NOW_EX: Download directory cannot be read.");
+            ///return_value = NWC24::WC24_ERR_FATAL;
+            WriteReturnValue(NWC24::WC24_ERR_FATAL, request.buffer_out);
+            break;
+        }
+        
+        ///Reads the WcDl File Header
+        file->Read(&WC24FileHeader, sizeof(WC24FileHeader));
+        
+        ///Seeks to and reads the WcDl Record Header
+        const u16 header_offset = 0x80 + (0x18 *(Memory::Read_U8(request.buffer_in + 0x03)));
+        file->Seek(header_offset, IOS::HLE::FS::SeekMode::Set);
+        file->Read(&WC24RecordHeader, sizeof(WC24RecordHeader));
+        
+        ///Seeks to and reads the WcDl Main Record
+        const u16 link_offset = 0x800 + (0x200 *(Memory::Read_U8(request.buffer_in + 0x07)));
+        file->Seek(link_offset, IOS::HLE::FS::SeekMode::Set);
+        file->Read(&WC24Log, sizeof(WC24Log));
+        
+        ///Checks if a Pubkey is needed.
+        ///The Nintendo Channel is the only title known to use a pubkey.
+        ///Unknown value 1 might have something to do with this.
+        if (WC24Log.unknown_value_1 < 0)
+        {
+            INFO_LOG(IOS_WC24, "IOCTL_NWC24_DOWNLOAD_NOW_EX: Content needs PubKey Decryption.");
+            CriticalAlertT("This content needs to be decrypted by a PubKey which is currently NI."
+                           "\nWC24 will now return an error.");
+            WriteReturnValue(-1, request.buffer_out);
+            break;
+            
+        }
+        //TODO: Implement an HTTP download which stores the data into dlcnt.bin.
+        //TODO: Figure out how the downloaded file gets stored into the title's VFF.
+        ///I believe if the downloaded file's header has WC24, then the content must be decrypted.
+        ///If it doesn't, it might be able to be copied directly to the VFF, but I'm not entirly sure.
+        
+        WriteReturnValue(0, request.buffer_out);
+        break;
+    }
+
+
 
   default:
     request.Log(GetDeviceName(), Common::Log::IOS_WC24);
