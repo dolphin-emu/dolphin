@@ -5,6 +5,8 @@
 #include <cstddef>
 #include <type_traits>
 
+test
+
 namespace Common
 {
 template <typename T>
