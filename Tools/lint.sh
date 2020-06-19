@@ -2,8 +2,6 @@
 #
 # Linter script that checks for common style issues in Dolphin's codebase.
 
-echo "Hello"
-
 set -euo pipefail
 
 if ! [ -x "$(command -v git)" ]; then
@@ -72,7 +70,7 @@ fail=0
 COMMIT=${1:---cached}
 
 # Get modified files (must be on own line for exit-code handling)
-modified_files=$(git diff --name-only --diff-filter=ACMRTUXB $COMMIT)
+modified_files=$(git diff-tree --no-commit-id --name-only -r $COMMIT)
 
 function java_check() {
   "${ANDROID_STUDIO_ROOT}/bin/format.sh" -s "${JAVA_CODESTYLE_FILE}" -R "${java_temp_dir}" >/dev/null
