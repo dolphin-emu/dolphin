@@ -6,9 +6,6 @@ on:
   pull_request:
     branches: [ ios-jb ]
 
-env:
-  GITHUB_SHA: ${{ github.sha }}
-
 jobs:
   run-linter:
     runs-on: ubuntu-latest
@@ -16,5 +13,5 @@ jobs:
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v2
-      - run: ./Tools/lint.sh $GITHUB_SHA
+      - run: ./Tools/lint.sh ${GITHUB_SHA}
 
