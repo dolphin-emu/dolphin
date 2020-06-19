@@ -74,6 +74,8 @@ echo $COMMIT
 # Get modified files (must be on own line for exit-code handling)
 modified_files=$(git diff-tree --no-commit-id --name-only -r $COMMIT)
 
+echo $modified_files
+
 function java_check() {
   "${ANDROID_STUDIO_ROOT}/bin/format.sh" -s "${JAVA_CODESTYLE_FILE}" -R "${java_temp_dir}" >/dev/null
 
