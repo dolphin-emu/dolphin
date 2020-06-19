@@ -67,7 +67,7 @@ function java_setup() {
 fail=0
 
 # Default to staged files, unless a commit was passed.
-COMMIT=$(git log --format="%H" -n 1)
+COMMIT=${1:---cached}
 
 echo $COMMIT
 
