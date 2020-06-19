@@ -8,7 +8,7 @@
 #include <optional>
 
 #include "Common/Matrix.h"
-#include "VideoCommon/VideoConfig.h"
+#include "Core/FreeLookConfig.h"
 
 class PointerWrap;
 
@@ -41,7 +41,7 @@ public:
 class FreeLookCamera
 {
 public:
-  void SetControlType(FreelookControlType type);
+  void SetControlType(FreeLook::ControlType type);
   Common::Matrix44 GetView();
   Common::Vec2 GetFieldOfView() const;
 
@@ -70,7 +70,7 @@ private:
   bool m_dirty = false;
   float m_fov_x = 1.0f;
   float m_fov_y = 1.0f;
-  std::optional<FreelookControlType> m_current_type;
+  std::optional<FreeLook::ControlType> m_current_type;
   std::unique_ptr<CameraController> m_camera_controller;
 
   float m_fov_step_size = 0.025f;

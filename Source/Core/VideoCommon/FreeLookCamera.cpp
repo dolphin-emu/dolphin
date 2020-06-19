@@ -12,25 +12,24 @@
 #include "Common/MathUtil.h"
 
 #include "Common/ChunkFile.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+
 #include "VideoCommon/VideoCommon.h"
-#include "VideoCommon/VideoConfig.h"
 
 FreeLookCamera g_freelook_camera;
 
 namespace
 {
-std::string to_string(FreelookControlType type)
+std::string to_string(FreeLook::ControlType type)
 {
   switch (type)
   {
-  case FreelookControlType::SixAxis:
+  case FreeLook::ControlType::SixAxis:
     return "Six Axis";
-  case FreelookControlType::FPS:
+  case FreeLook::ControlType::FPS:
     return "First Person";
-  case FreelookControlType::Orbital:
+  case FreeLook::ControlType::Orbital:
     return "Orbital";
   }
 
@@ -176,22 +175,22 @@ private:
 };
 }  // namespace
 
-void FreeLookCamera::SetControlType(FreelookControlType type)
+void FreeLookCamera::SetControlType(FreeLook::ControlType type)
 {
   if (m_current_type && *m_current_type == type)
   {
     return;
   }
 
-  if (type == FreelookControlType::SixAxis)
+  if (type == FreeLook::ControlType::SixAxis)
   {
     m_camera_controller = std::make_unique<SixAxisController>();
   }
-  else if (type == FreelookControlType::Orbital)
+  else if (type == FreeLook::ControlType::Orbital)
   {
     m_camera_controller = std::make_unique<OrbitalController>();
   }
-  else
+  else if (type == FreeLook::ControlType::FPS)
   {
     m_camera_controller = std::make_unique<FPSController>();
   }
