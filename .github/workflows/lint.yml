@@ -14,7 +14,9 @@ jobs:
       - name: Check out Git repository
         uses: actions/checkout@v2
       - name: Lint
-        run: ./Tools/lint.sh $BASE_COMMIT
+        run: | 
+          echo $BASE_COMMIT
+          ./Tools/lint.sh $BASE_COMMIT
         env: 
           BASE_COMMIT: $(git rev-parse ${{ github.base_ref }})
       
