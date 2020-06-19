@@ -1,0 +1,35 @@
+# This is a basic workflow to help you get started with Actions
+
+name: Build
+
+# Controls when the action will run. Triggers the workflow on push or pull request
+# events but only for the master branch
+on:
+  push:
+    branches: [ ios-jb ]
+  pull_request:
+    branches: [ ios-jb ]
+
+jobs:
+  build:
+    runs-on: macos-10.15
+    
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+    
+    - name: Install build utilities
+      run: brew install ninja bartycrouch
+    
+    - name: Run CocoaPods
+      run: |
+        cd Source/iOS/DolphiniOS
+        pod install
+      
+    - name: Build test
+      run: |
+        cd Source/iOS/DolphiniOS
+        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Jailbroken)" CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO CODE_SIGN_ENTITLEMENTS="" CODE_SIGNING_ALLOWED="NO"
+    
+    - name: tmate
+      uses: mxschmitt/action-tmate@v2
