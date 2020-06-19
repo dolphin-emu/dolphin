@@ -220,6 +220,9 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 #define DMAL (*(UReg_DMAL*)&PowerPC::ppcState.spr[SPR_DMAL])
 #define MMCR0 ((UReg_MMCR0&)PowerPC::ppcState.spr[SPR_MMCR0])
 #define MMCR1 ((UReg_MMCR1&)PowerPC::ppcState.spr[SPR_MMCR1])
+#define THRM1 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM1])
+#define THRM2 ((UReg_THRM12&)PowerPC::ppcState.spr[SPR_THRM2])
+#define THRM3 ((UReg_THRM3&)PowerPC::ppcState.spr[SPR_THRM3])
 #define PC PowerPC::ppcState.pc
 #define NPC PowerPC::ppcState.npc
 #define FPSCR PowerPC::ppcState.fpscr
