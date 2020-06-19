@@ -216,6 +216,8 @@ void Initialize()
 
   s_config.RegisterHotplugCallback();
 
+  FreeLook::GetConfig().Refresh();
+
   s_config.LoadConfig(true);
 }
 
