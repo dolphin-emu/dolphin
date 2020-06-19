@@ -1,0 +1,17 @@
+name: Lint
+
+on:
+  push:
+    branches: [ ios-jb ]
+  pull_request:
+    branches: [ ios-jb ]
+
+jobs:
+  run-linter:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v2
+      - run: ./Tools/lint.sh
+
