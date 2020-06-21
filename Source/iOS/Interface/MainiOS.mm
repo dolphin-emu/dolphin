@@ -325,10 +325,12 @@ void UpdateWiiPointer()
 {
   s_view_controller = viewController;
 
-  WindowSystemInfo wsi;
+  __block WindowSystemInfo wsi;
   wsi.type = WindowSystemType::IPhoneOS;
   wsi.display_connection = nullptr;
-  wsi.render_surface = (__bridge void*)view;
+  dispatch_sync(dispatch_get_main_queue(), ^{
+    wsi.render_surface = (__bridge void*)[view layer];
+  });
   wsi.render_surface_scale = [UIScreen mainScreen].scale;  
 
   /*std::unique_ptr<BootParameters> boot;

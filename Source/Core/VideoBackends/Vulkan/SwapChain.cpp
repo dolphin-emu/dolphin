@@ -108,7 +108,7 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
 #endif
 
 #if defined(VK_USE_PLATFORM_METAL_EXT)
-  if (wsi.type == WindowSystemType::MacOS)
+  if (wsi.type == WindowSystemType::MacOS || wsi.type == WindowSystemType::IPhoneOS)
   {
     VkMetalSurfaceCreateInfoEXT surface_create_info = {
         VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT, nullptr, 0,
@@ -119,32 +119,6 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, const WindowSys
     if (res != VK_SUCCESS)
     {
       LOG_VULKAN_ERROR(res, "vkCreateMetalSurfaceEXT failed: ");
-      return VK_NULL_HANDLE;
-    }
-
-    return surface;
-  }
-#endif
-
-#if defined(VK_USE_PLATFORM_IOS_MVK)
-  if (wsi.type == WindowSystemType::IPhoneOS)
-  {
-    VkIOSSurfaceCreateInfoMVK surface_create_info = {
-        VK_STRUCTURE_TYPE_IOS_SURFACE_CREATE_INFO_MVK, nullptr, 0, wsi.render_surface};
-
-    __block VkSurfaceKHR surface;
-    __block VkResult res;
-    
-    // This needs to be done on the UI thread since vkCreateIOSSurfaceMVK calls [UIView layer],
-    // otherwise we get a really long stall on boot
-    dispatch_sync(dispatch_get_main_queue(), ^
-    {
-      res = vkCreateIOSSurfaceMVK(instance, &surface_create_info, nullptr, &surface);
-    });
-    
-    if (res != VK_SUCCESS)
-    {
-      LOG_VULKAN_ERROR(res, "vkCreateIOSSurfaceMVK failed: ");
       return VK_NULL_HANDLE;
     }
 

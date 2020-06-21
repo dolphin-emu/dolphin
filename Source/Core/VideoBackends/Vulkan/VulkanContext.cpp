@@ -212,13 +212,7 @@ bool VulkanContext::SelectInstanceExtensions(std::vector<const char*>* extension
   }
 #endif
 #if defined(VK_USE_PLATFORM_METAL_EXT)
-  if (wstype == WindowSystemType::MacOS && !AddExtension(VK_EXT_METAL_SURFACE_EXTENSION_NAME, true))
-  {
-    return false;
-  }
-#endif
-#if defined(VK_USE_PLATFORM_IOS_MVK)
-  if (wstype == WindowSystemType::IPhoneOS && !AddExtension(VK_MVK_IOS_SURFACE_EXTENSION_NAME, true))
+  if ((wstype == WindowSystemType::MacOS || wstype == WindowSystemType::IPhoneOS) && !AddExtension(VK_EXT_METAL_SURFACE_EXTENSION_NAME, true))
   {
     return false;
   }
@@ -315,7 +309,7 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsBBox = config->backend_info.bSupportsFragmentStoresAndAtomics =
-#ifndef VK_USE_PLATFORM_IOS_MVK
+#ifndef VK_USE_PLATFORM_METAL_EXT
       (features.fragmentStoresAndAtomics == VK_TRUE);
 #else
       true;
