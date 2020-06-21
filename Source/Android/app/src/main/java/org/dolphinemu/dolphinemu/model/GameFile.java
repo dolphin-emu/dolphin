@@ -38,6 +38,16 @@ public class GameFile
 
   public native int getRevision();
 
+  public native String getBlobTypeString();
+
+  public native long getBlockSize();
+
+  public native String getCompressionMethod();
+
+  public native boolean shouldShowFileFormatDetails();
+
+  public native long getFileSize();
+
   public native int[] getBanner();
 
   public native int getBannerWidth();

@@ -50,6 +50,7 @@ public:
 
   u64 GetBlockSize() const override { return 0; }
   bool HasFastRandomAccessInBlock() const override { return true; }
+  std::string GetCompressionMethod() const override { return {}; }
 
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 

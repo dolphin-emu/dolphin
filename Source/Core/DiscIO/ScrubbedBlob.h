@@ -30,6 +30,10 @@ public:
   {
     return m_blob_reader->HasFastRandomAccessInBlock();
   }
+  std::string GetCompressionMethod() const override
+  {
+    return m_blob_reader->GetCompressionMethod();
+  }
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
 

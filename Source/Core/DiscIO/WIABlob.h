@@ -56,6 +56,7 @@ public:
 
   u64 GetBlockSize() const override { return Common::swap32(m_header_2.chunk_size); }
   bool HasFastRandomAccessInBlock() const override { return false; }
+  std::string GetCompressionMethod() const override;
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
   bool SupportsReadWiiDecrypted() const override;

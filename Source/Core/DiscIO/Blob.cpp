@@ -12,6 +12,7 @@
 #include "Common/CDUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
+#include "Common/MsgHandler.h"
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/CISOBlob.h"
@@ -25,6 +26,35 @@
 
 namespace DiscIO
 {
+std::string GetName(BlobType blob_type, bool translate)
+{
+  const auto translate_str = [translate](const std::string& str) {
+    return translate ? Common::GetStringT(str.c_str()) : str;
+  };
+
+  switch (blob_type)
+  {
+  case BlobType::PLAIN:
+    return "ISO";
+  case BlobType::DIRECTORY:
+    return translate_str("Directory");
+  case BlobType::GCZ:
+    return "GCZ";
+  case BlobType::CISO:
+    return "CISO";
+  case BlobType::WBFS:
+    return "WBFS";
+  case BlobType::TGC:
+    return "TGC";
+  case BlobType::WIA:
+    return "WIA";
+  case BlobType::RVZ:
+    return "RVZ";
+  default:
+    return "";
+  }
+}
+
 void SectorReader::SetSectorSize(int blocksize)
 {
   m_block_size = std::max(blocksize, 0);

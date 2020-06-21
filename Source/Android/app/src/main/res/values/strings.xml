@@ -317,6 +317,11 @@
     <string name="game_details_company">Company</string>
     <string name="game_details_game_id">Game ID</string>
     <string name="game_details_revision">Revision</string>
+    <string name="game_details_file_size">File Size</string>
+    <string name="game_details_file_format">File Format</string>
+    <string name="game_details_compression">Compression</string>
+    <string name="game_details_block_size">Block Size</string>
+    <string name="game_details_no_compression">No Compression</string>
 
     <!-- Emulation Menu -->
     <string name="emulation_screenshot">Take Screenshot</string>

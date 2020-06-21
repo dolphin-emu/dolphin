@@ -742,6 +742,14 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallW
   return static_cast<jboolean>(WiiUtils::InstallWAD(path));
 }
 
+JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_FormatSize(JNIEnv* env,
+                                                                                  jobject obj,
+                                                                                  jlong bytes,
+                                                                                  jint decimals)
+{
+  return ToJString(env, UICommon::FormatSize(bytes, decimals));
+}
+
 #ifdef __cplusplus
 }
 #endif
