@@ -332,7 +332,7 @@
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wii Remotes</string>
-    <string name="emulation_configure_controls">Configure Controls</string>
+    <string name="emulation_overlay_controls">Overlay Controls</string>
     <string name="emulation_edit_layout">Edit Layout</string>
     <string name="emulation_done">Done</string>
     <string name="emulation_toggle_controls">Toggle Controls</string>
@@ -378,5 +378,6 @@
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>
     <string name="disc_number">Disc %1$d</string>
+    <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
 
 </resources>
