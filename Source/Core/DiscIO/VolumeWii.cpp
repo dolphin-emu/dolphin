@@ -201,18 +201,9 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
       if (!m_reader->Read(block_offset_on_disc, BLOCK_TOTAL_SIZE, read_buffer.data()))
         return false;
 
-      // Decrypt the block's data.
-      // 0x3D0 - 0x3DF in read_buffer will be overwritten,
-      // but that won't affect anything, because we won't
-      // use the content of read_buffer anymore after this
-      mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, &read_buffer[0x3D0],
-                            &read_buffer[BLOCK_HEADER_SIZE], m_last_decrypted_block_data);
+      // Decrypt the block's data
+      DecryptBlockData(read_buffer.data(), m_last_decrypted_block_data, aes_context);
       m_last_decrypted_block = block_offset_on_disc;
-
-      // The only thing we currently use from the 0x000 - 0x3FF part
-      // of the block is the IV (at 0x3D0), but it also contains SHA-1
-      // hashes that IOS uses to check that discs aren't tampered with.
-      // http://wiibrew.org/wiki/Wii_Disc#Encrypted
     }
 
     // Copy the decrypted data
@@ -482,14 +473,10 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encr
     return false;
 
   HashBlock hashes;
-  u8 iv[16] = {0};
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(HashBlock), iv,
-                        encrypted_data.data(), reinterpret_cast<u8*>(&hashes));
+  DecryptBlockHashes(encrypted_data.data(), &hashes, aes_context);
 
   u8 cluster_data[BLOCK_DATA_SIZE];
-  std::memcpy(iv, encrypted_data.data() + 0x3D0, 16);
-  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(cluster_data), iv,
-                        encrypted_data.data() + sizeof(HashBlock), cluster_data);
+  DecryptBlockData(encrypted_data.data(), cluster_data, aes_context);
 
   for (u32 hash_index = 0; hash_index < 31; ++hash_index)
   {
@@ -532,54 +519,33 @@ bool VolumeWii::CheckBlockIntegrity(u64 block_index, const Partition& partition)
   return CheckBlockIntegrity(block_index, cluster, partition);
 }
 
-bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
-                             u64 partition_data_decrypted_size,
-                             const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
-                             std::array<u8, GROUP_TOTAL_SIZE>* out)
+bool VolumeWii::HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GROUP],
+                          HashBlock out[BLOCKS_PER_GROUP],
+                          const std::function<bool(size_t block)>& read_function)
 {
-  std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
-  std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
-
   std::array<std::future<void>, BLOCKS_PER_GROUP> hash_futures;
-  bool error_occurred = false;
+  bool success = true;
 
   for (size_t i = 0; i < BLOCKS_PER_GROUP; ++i)
   {
-    if (!error_occurred)
-    {
-      if (offset + (i + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
-      {
-        if (!blob->ReadWiiDecrypted(offset + i * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
-                                    unencrypted_data[i].data(), partition_data_offset))
-        {
-          error_occurred = true;
-        }
-      }
-      else
-      {
-        unencrypted_data[i].fill(0);
-      }
-    }
+    if (read_function && success)
+      success = read_function(i);
 
-    hash_futures[i] = std::async(std::launch::async, [&unencrypted_data, &unencrypted_hashes,
-                                                      &hash_futures, error_occurred, i]() {
+    hash_futures[i] = std::async(std::launch::async, [&in, &out, &hash_futures, success, i]() {
       const size_t h1_base = Common::AlignDown(i, 8);
 
-      if (!error_occurred)
+      if (success)
       {
         // H0 hashes
         for (size_t j = 0; j < 31; ++j)
-        {
-          mbedtls_sha1_ret(unencrypted_data[i].data() + j * 0x400, 0x400,
-                           unencrypted_hashes[i].h0[j]);
-        }
+          mbedtls_sha1_ret(in[i].data() + j * 0x400, 0x400, out[i].h0[j]);
 
         // H0 padding
-        std::memset(unencrypted_hashes[i].padding_0, 0, sizeof(HashBlock::padding_0));
+        std::memset(out[i].padding_0, 0, sizeof(HashBlock::padding_0));
 
         // H1 hash
-        mbedtls_sha1_ret(reinterpret_cast<u8*>(unencrypted_hashes[i].h0), sizeof(HashBlock::h0),
-                         unencrypted_hashes[h1_base].h1[i - h1_base]);
+        mbedtls_sha1_ret(reinterpret_cast<u8*>(out[i].h0), sizeof(HashBlock::h0),
+                         out[h1_base].h1[i - h1_base]);
       }
 
       if (i % 8 == 7)
@@ -587,21 +553,18 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
         for (size_t j = 0; j < 7; ++j)
           hash_futures[h1_base + j].get();
 
-        if (!error_occurred)
+        if (success)
         {
           // H1 padding
-          std::memset(unencrypted_hashes[h1_base].padding_1, 0, sizeof(HashBlock::padding_1));
+          std::memset(out[h1_base].padding_1, 0, sizeof(HashBlock::padding_1));
 
           // H1 copies
           for (size_t j = 1; j < 8; ++j)
-          {
-            std::memcpy(unencrypted_hashes[h1_base + j].h1, unencrypted_hashes[h1_base].h1,
-                        sizeof(HashBlock::h1));
-          }
+            std::memcpy(out[h1_base + j].h1, out[h1_base].h1, sizeof(HashBlock::h1));
 
           // H2 hash
-          mbedtls_sha1_ret(reinterpret_cast<u8*>(unencrypted_hashes[i].h1), sizeof(HashBlock::h1),
-                           unencrypted_hashes[0].h2[h1_base / 8]);
+          mbedtls_sha1_ret(reinterpret_cast<u8*>(out[i].h1), sizeof(HashBlock::h1),
+                           out[0].h2[h1_base / 8]);
         }
 
         if (i == BLOCKS_PER_GROUP - 1)
@@ -609,17 +572,14 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
           for (size_t j = 0; j < 7; ++j)
             hash_futures[j * 8 + 7].get();
 
-          if (!error_occurred)
+          if (success)
           {
             // H2 padding
-            std::memset(unencrypted_hashes[0].padding_2, 0, sizeof(HashBlock::padding_2));
+            std::memset(out[0].padding_2, 0, sizeof(HashBlock::padding_2));
 
             // H2 copies
             for (size_t j = 1; j < BLOCKS_PER_GROUP; ++j)
-            {
-              std::memcpy(unencrypted_hashes[j].h2, unencrypted_hashes[0].h2,
-                          sizeof(HashBlock::h2));
-            }
+              std::memcpy(out[j].h2, out[0].h2, sizeof(HashBlock::h2));
           }
         }
       }
@@ -629,8 +589,40 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
   // Wait for all the async tasks to finish
   hash_futures.back().get();
 
-  if (error_occurred)
+  return success;
+}
+
+bool VolumeWii::EncryptGroup(
+    u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
+    const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
+    std::array<u8, GROUP_TOTAL_SIZE>* out,
+    const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>& hash_exception_callback)
+{
+  std::vector<std::array<u8, BLOCK_DATA_SIZE>> unencrypted_data(BLOCKS_PER_GROUP);
+  std::vector<HashBlock> unencrypted_hashes(BLOCKS_PER_GROUP);
+
+  const bool success =
+      HashGroup(unencrypted_data.data(), unencrypted_hashes.data(), [&](size_t block) {
+        if (offset + (block + 1) * BLOCK_DATA_SIZE <= partition_data_decrypted_size)
+        {
+          if (!blob->ReadWiiDecrypted(offset + block * BLOCK_DATA_SIZE, BLOCK_DATA_SIZE,
+                                      unencrypted_data[block].data(), partition_data_offset))
+          {
+            return false;
+          }
+        }
+        else
+        {
+          unencrypted_data[block].fill(0);
+        }
+        return true;
+      });
+
+  if (!success)
     return false;
+
+  if (hash_exception_callback)
+    hash_exception_callback(unencrypted_hashes.data());
 
   const unsigned int threads =
       std::min(BLOCKS_PER_GROUP, std::max<unsigned int>(1, std::thread::hardware_concurrency()));
@@ -665,6 +657,22 @@ bool VolumeWii::EncryptGroup(u64 offset, u64 partition_data_offset,
     future.get();
 
   return true;
+}
+
+void VolumeWii::DecryptBlockHashes(const u8* in, HashBlock* out, mbedtls_aes_context* aes_context)
+{
+  std::array<u8, 16> iv;
+  iv.fill(0);
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, sizeof(HashBlock), iv.data(), in,
+                        reinterpret_cast<u8*>(out));
+}
+
+void VolumeWii::DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context)
+{
+  std::array<u8, 16> iv;
+  std::copy(&in[0x3d0], &in[0x3e0], iv.data());
+  mbedtls_aes_crypt_cbc(aes_context, MBEDTLS_AES_DECRYPT, BLOCK_DATA_SIZE, iv.data(),
+                        &in[BLOCK_HEADER_SIZE], out);
 }
 
 }  // namespace DiscIO

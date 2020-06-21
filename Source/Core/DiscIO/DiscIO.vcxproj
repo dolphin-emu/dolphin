@@ -55,6 +55,7 @@
     <ClCompile Include="FileBlob.cpp" />
     <ClCompile Include="Filesystem.cpp" />
     <ClCompile Include="FileSystemGCWii.cpp" />
+    <ClCompile Include="LaggedFibonacciGenerator.cpp" />
     <ClCompile Include="NANDImporter.cpp" />
     <ClCompile Include="ScrubbedBlob.cpp" />
     <ClCompile Include="TGCBlob.cpp" />
@@ -65,6 +66,8 @@
     <ClCompile Include="VolumeWad.cpp" />
     <ClCompile Include="VolumeWii.cpp" />
     <ClCompile Include="WbfsBlob.cpp" />
+    <ClCompile Include="WIABlob.cpp" />
+    <ClCompile Include="WIACompression.cpp" />
     <ClCompile Include="WiiEncryptionCache.cpp" />
     <ClCompile Include="WiiSaveBanner.cpp" />
   </ItemGroup>
@@ -80,6 +83,7 @@
     <ClInclude Include="FileBlob.h" />
     <ClInclude Include="Filesystem.h" />
     <ClInclude Include="FileSystemGCWii.h" />
+    <ClInclude Include="LaggedFibonacciGenerator.h" />
     <ClInclude Include="MultithreadedCompressor.h" />
     <ClInclude Include="NANDImporter.h" />
     <ClInclude Include="ScrubbedBlob.h" />
@@ -91,6 +95,8 @@
     <ClInclude Include="VolumeWad.h" />
     <ClInclude Include="VolumeWii.h" />
     <ClInclude Include="WbfsBlob.h" />
+    <ClInclude Include="WIABlob.h" />
+    <ClInclude Include="WIACompression.h" />
     <ClInclude Include="WiiEncryptionCache.h" />
     <ClInclude Include="WiiSaveBanner.h" />
   </ItemGroup>
@@ -109,6 +115,15 @@
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)bzip2\bzip2.vcxproj">
+      <Project>{055a775f-b4f5-4970-9240-f6cf7661f37b}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)liblzma\liblzma.vcxproj">
+      <Project>{1d8c51d2-ffa4-418e-b183-9f42b6a6717e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)zstd\zstd.vcxproj">
+      <Project>{1bea10f3-80ce-4bc4-9331-5769372cdf99}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

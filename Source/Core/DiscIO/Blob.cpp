@@ -20,6 +20,7 @@
 #include "DiscIO/DriveBlob.h"
 #include "DiscIO/FileBlob.h"
 #include "DiscIO/TGCBlob.h"
+#include "DiscIO/WIABlob.h"
 #include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
@@ -205,6 +206,10 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename)
     return TGCFileReader::Create(std::move(file));
   case WBFS_MAGIC:
     return WbfsFileReader::Create(std::move(file), filename);
+  case WIA_MAGIC:
+    return WIAFileReader::Create(std::move(file), filename);
+  case RVZ_MAGIC:
+    return RVZFileReader::Create(std::move(file), filename);
   default:
     if (auto directory_blob = DirectoryBlobReader::Create(filename))
       return std::move(directory_blob);

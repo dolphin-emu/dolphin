@@ -22,7 +22,7 @@ import java.util.List;
 public final class FileBrowserHelper
 {
   public static final HashSet<String> GAME_EXTENSIONS = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wad", "dol", "elf", "dff"));
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf", "dff"));
 
   public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
           "raw"));
