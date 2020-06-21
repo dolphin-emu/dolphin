@@ -143,8 +143,8 @@
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
 
-/* Class = "UILabel"; text = "Steek SD-kaart in"; ObjectID = "acr-9s-yir"; */
-"acr-9s-yir.text" = "Steek SD-kaart in";
+/* Class = "UILabel"; text = "Plaats SD-kaart"; ObjectID = "acr-9s-yir"; */
+"acr-9s-yir.text" = "Plaats SD-kaart";
 
 /* Class = "UINavigationItem"; title = "CPU Emulatie Engine"; ObjectID = "bUR-fZ-pg3"; */
 "bUR-fZ-pg3.title" = "CPU Emulatie Engine";

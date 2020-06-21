@@ -21,8 +21,6 @@ Launching these titles may also fix the issues." = "
 Часть проблем может решиться сама собой при запуске данных продуктов.";
 " (Disc %1)" = " (Диск %1)";
 "! Not" = "! Не";
-"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "Не удалось сжать \"%s\". Вероятно, образ поврежден.";
-"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" уже сжат! Дальнейшее сжатие невозможно.";
 "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\" является неверным файлом GCM/ISO, или не является образом GC/Wii.";
 "%" = "%";
 "% Modulo" = "% По модулю";
@@ -57,9 +55,12 @@ Current Frame: %3" = "%1 кадр(ов)
 "%1 session found" = "Найдено сессий: %1";
 "%1 sessions found" = "Найдено сессий: %1";
 "%1% (Normal Speed)" = "%1% (обычная скорость)";
+"%1MB (MEM1)" = "%1 Мбайт (MEM1)";
+"%1MB (MEM2)" = "%1 Мбайт (MEM2)";
 "%1[%2]: %3" = "%1[%2]: %3";
 "%1[%2]: %3 %" = "%1[%2]: %3 %";
 "%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 МиБ";
+"%1x Native (%2x%3)" = "Родное %1x (%2x%3)";
 "%i of %i blocks. Compression ratio %i%%" = "%i из %i блоков. Коэффициент сжатия: %i%%";
 "%s (Masterpiece)" = "%s (Masterpiece)";
 "%s IPL found in %s directory. The disc might not be recognized" = "%s IPL найдено в папке %s. Диск может быть не опознан";
@@ -78,7 +79,6 @@ Current Frame: %3" = "%1 кадр(ов)
 "&Automatic Start" = "&Автоматический запуск";
 "&Boot from DVD Backup" = "&Запустить игру с DVD-бэкапа";
 "&Breakpoints" = "&Точки останова";
-"&Browse..." = "&Обзор...";
 "&Bug Tracker" = "&Баг-трекер";
 "&Cancel" = "&Отмена";
 "&Cheats Manager" = "&Менеджер читов";
@@ -88,6 +88,7 @@ Current Frame: %3" = "%1 кадр(ов)
 "&Code" = "&Код";
 "&Controller Settings" = "Настройки &управления";
 "&Copy address" = "&Скопировать адрес";
+"&Create..." = "&Создать...";
 "&Delete" = "&Удалить";
 "&Delete Watch" = "&Удалить из наблюдения";
 "&Edit Code..." = "&Изменить код...";
@@ -112,6 +113,7 @@ Current Frame: %3" = "%1 кадр(ов)
 "&Lock Widgets In Place" = "&Зафиксировать виджеты";
 "&Memory" = "&Память";
 "&Movie" = "&Запись";
+"&Network" = "&Сеть";
 "&Open..." = "&Открыть...";
 "&Options" = "&Опции";
 "&Patch HLE Functions" = "&Патчить HLE-функции";
@@ -129,6 +131,7 @@ Current Frame: %3" = "%1 кадр(ов)
 "&Speed Limit:" = "&Ограничение скорости:";
 "&Stop" = "&Остановить";
 "&Theme:" = "&Тема:";
+"&Threads" = "&Потоки";
 "&Tools" = "&Инструменты";
 "&View" = "&Вид";
 "&Watch" = "&Наблюдение";
@@ -147,6 +150,8 @@ Current Frame: %3" = "%1 кадр(ов)
 "--> %1" = "--> %1";
 "..." = "...";
 "/ Divide" = "/ Разделить";
+"128 Mbit (2043 blocks)" = "128 Мбит (2043 блока)";
+"16 Mbit (251 blocks)" = "16 Мбит (251 блок)";
 "16-bit" = "16-бит";
 "16-bit Integer" = "16-битное целое";
 "16:9" = "16:9";
@@ -154,17 +159,21 @@ Current Frame: %3" = "%1 кадр(ов)
 "1x" = "1x";
 "2x" = "2x";
 "2x Native (1280x1056) for 720p" = "Родное 2x (1280x1056) для 720p";
+"32 Mbit (507 blocks)" = "32 Мбит (507 блоков)";
 "32-bit" = "32-бита";
 "32-bit Integer" = "32-битное целое";
 "3D" = "3D";
 "3D Depth" = "Глубина 3D";
 "3x Native (1920x1584) for 1080p" = "Родное 3x (1920x1584) для 1080p";
+"4 Mbit (59 blocks)" = "4 Мбит (59 блоков)";
 "4:3" = "4:3";
 "4x" = "4x";
 "4x Native (2560x2112) for 1440p" = "Родное 4x (2560x2112) для 1440p";
 "5x Native (3200x2640)" = "Родное 5x (3200x2640)";
+"64 Mbit (1019 blocks)" = "64 Мбит (1019 блоков)";
 "6x Native (3840x3168) for 4K" = "Родное 6x (3840x3168) для 4K";
 "7x Native (4480x3696)" = "Родное 7x (4480x3696)";
+"8 Mbit (123 blocks)" = "8 Мбит (123 блока)";
 "8-bit" = "8-бит";
 "8-bit Integer" = "8-битное целое";
 "8x" = "8x";
@@ -187,6 +196,7 @@ Installing this WAD will replace it irreversibly. Continue?" = "Другая в�
 
 После установки этого WAD вернуть прежнюю версию не получится. Продолжить?";
 "A disc is already about to be inserted." = "Диск уже должен быть вставлен.";
+"A save state cannot be loaded without specifying a game to launch." = "Чтобы загрузить быстрое сохранение, нужно указать игру.";
 "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "Завершение работы уже запущено. Если остановить эмуляцию, несохранённые данные могут быть утеряны. Остановить принудительно?";
 "A sync can only be triggered when a Wii game is running." = "Синхронизация возможна только при запущенной игре для Wii.";
 "ALERT:
@@ -242,12 +252,16 @@ Master codes are not needed. Do not use master codes." = "Ошибка Action Re
 "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "Action Replay: нормальный код 0: неверный подтип %08x (%s)";
 "Activate NetPlay Chat" = "Активировать чат сетевой игры";
 "Active" = "Активна";
+"Active thread queue" = "Активная очередь потоков";
+"Active threads" = "Активные потоки";
 "Adapter Detected" = "Адаптер обнаружен";
 "Adapter:" = "Адаптер:";
 "Add" = "Добавить";
+"Add &breakpoint" = "Добавить &точку останова";
 "Add New USB Device" = "Добавление нового USB-устройства";
 "Add a Breakpoint" = "Добавить точку останова";
 "Add a Memory Breakpoint" = "Добавить точку останова в памяти";
+"Add memory breakpoint" = "Добавить точку останова в памяти";
 "Add to &watch" = "Добавить в &наблюдение";
 "Add to Watch" = "Добавить в наблюдение";
 "Add..." = "Добавить...";
@@ -272,6 +286,11 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 Более высокие значения позволят играм с переменной частотой кадров выдавать больше кадров ценой производительности. Более низкие значения позволят таким играм задействовать внутренний механизм пропуска кадров, что, вероятно, улучшит производительность.
 
 ПРЕДУПРЕЖДЕНИЕ: нестандартные значения (кроме 100%) могут сломать игры и вызвать глюки. Используйте на свой страх и риск. Пожалуйста, не сообщайте об ошибках, возникших при использовании нестандартной частоты. ";
+"Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations." = "Корректирует эмулируемые размеры MEM1 и MEM2.
+
+Некоторые продукты могут распознать большие области памяти и воспользоваться ими для своих нужд, но продаваемые продукты обычно оптимизированы с учётом ограничений памяти в продаваемых консолях.";
 "Advance Game Port" = "Advance Game Port";
 "Advanced" = "Расширенные";
 "Africa" = "Африка";
@@ -284,6 +303,7 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 "All players' saves synchronized." = "Сохранения всех игроков синхронизированы.";
 "Allow Mismatched Region Settings" = "Разрешить несовпадение настроек региона";
 "Allow Usage Statistics Reporting" = "Разрешить отправку статистики об использовании";
+"Allow Writes to SD Card" = "Allow Writes to SD Card";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -311,6 +331,7 @@ Ignore and continue?" = "Произошла ошибка.
 "Anaglyph" = "Анаглиф";
 "Analyze" = "Анализ";
 "Angle" = "Угол";
+"Angular velocity to ignore." = "Игнорируемая угловая скорость.";
 "Anisotropic Filtering:" = "Анизотропная фильтрация:";
 "Anti-Aliasing:" = "Сглаживание:";
 "Any Region" = "Любой регион";
@@ -353,6 +374,7 @@ Please select a specific internal resolution." = "Автоматическое �
 Пожалуйста, выберите конкретное внутреннее разрешение.";
 "Auto-Adjust Window Size" = "Автонастройка размера окна";
 "Auto-Hide" = "Автоскрытие";
+"Auto-detect RSO modules?" = "Обнаруживать RSO автоматически?";
 "Automatically adjusts the window size to the internal resolution.
 
 If unsure, leave this unchecked." = "Автоматически подстраивает размер окна под внутреннее разрешение.
@@ -362,6 +384,7 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "B" = "Б";
 "BAT incorrect. Dolphin will now exit" = "Некорректная BAT. Dolphin завершит работу";
 "BP register " = "Регистр в ТО ";
+"Back Chain" = "Цепочка возврата";
 "Backend Multithreading" = "Многопоточный бэкенд";
 "Backend Settings" = "Настройки бэкенда";
 "Backend:" = "Бэкенд:";
@@ -374,6 +397,7 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Banner Details" = "Данные логотипа";
 "Banner:" = "Логотип:";
 "Bar" = "Тремоло";
+"Base priority" = "Базовый приоритет";
 "Basic" = "Основные";
 "Basic Settings" = "Основные настройки";
 "Bass" = "Басы";
@@ -381,18 +405,19 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Battery" = "Батарея";
 "Beta (once a month)" = "Бета (раз в месяц)";
 "Bitrate (kbps):" = "Битрейт (кбит/с):";
+"Block Size:" = "Размер блока:";
 "Blocks" = "Блоков";
 "Blue" = "Синяя";
 "Blue Left" = "Синяя слева";
 "Blue Right" = "Синяя справа";
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "Включён режим проброса Bluetooth, но Dolphin собран без поддержки libusb. Невозможно использовать режим проброса.";
-"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "Включён режим проброса Bluetooth, но не найдено подходящего устройства Bluetooth USB. Отмена.";
 "Boot to Pause" = "Пауза после запуска";
 "BootMii NAND backup file (*.bin);;All Files (*)" = "Файл бэкапа NAND BootMii (*.bin);;Все файлы (*)";
 "BootMii keys file (*.bin);;All Files (*)" = "Файл с ключами BootMii (*.bin);;Все файлы (*)";
 "Borderless Fullscreen" = "Полноэкранный режим без рамок";
 "Bottom" = "снизу";
 "Branch: %1" = "Ветка: %1";
+"Branches" = "Ветви";
 "Break" = "Останов";
 "Breakpoint" = "Точка останова";
 "Breakpoint encountered! Step out aborted." = "Попадание в точку останова! Шаг с выходом отменён.";
@@ -433,6 +458,7 @@ If unsure, leave this unchecked." = "Рассчитывает освещение
 Если не уверены – оставьте выключенным.";
 "Calibrate" = "Откалибровать";
 "Calibration" = "Калибровка";
+"Calibration Period" = "Период калибровки";
 "Callstack" = "Стэк вызова";
 "Can't find Wii Remote by connection handle %02x" = "Не удаётся найти Wii Remote по дескриптору %02x";
 "Can't start a NetPlay Session while a game is still running!" = "Невозможно создать сессию сетевой игры, пока игра всё ещё запущена!";
@@ -445,6 +471,7 @@ If unsure, leave this unchecked." = "Рассчитывает освещение
 Have you chosen the right type?" = "Невозможно интерпретировать данное значение.
 Вы выбрали правильный тип?";
 "Cannot start the game, because the GC IPL could not be found." = "Не удалось запустить игру, потому что IPL GC не был найден.";
+"Card Size" = "Размер карты";
 "Center" = "Центр";
 "Center and Calibrate" = "Центрировать и откалибровать";
 "Change &Disc" = "Сменить &диск";
@@ -452,6 +479,15 @@ Have you chosen the right type?" = "Невозможно интерпретир�
 "Change Disc" = "Сменить диск";
 "Change Discs Automatically" = "Автоматически сменять диски";
 "Change the disc to %s" = "Сменить диск на %s";
+"Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point.";
 "Changing cheats will only take effect when the game is restarted." = "Изменения в читах вступят в силу после перезапуска игры.";
 "Chat" = "Чат";
 "Cheat Code Editor" = "Редактор чит-кодов";
@@ -483,11 +519,7 @@ Have you chosen the right type?" = "Невозможно интерпретир�
 "Common" = "Общее";
 "Compile Shaders Before Starting" = "Компилировать шейдеры перед запуском";
 "Compiling Shaders" = "Компиляция шейдеров";
-"Compress ISO..." = "Сжать ISO-файл...";
-"Compress Selected ISOs..." = "Сжать выбранные ISO-файлы...";
 "Compressed GC/Wii images (*.gcz)" = "Сжатые образы GC/Wii (*.gcz)";
-"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "Сжатие образа диска Wii необратимо изменит сжатую копию, удалив из неё пустые данные. Это не повлияет на работоспособность образа. Продолжить?";
-"Compressing..." = "Сжатие...";
 "Condition" = "Условие";
 "Config" = "Настройки";
 "Configure" = "Настройка";
@@ -507,13 +539,20 @@ Have you chosen the right type?" = "Невозможно интерпретир�
 "Connect Wii Remote 3" = "Подключить Wii Remote 3";
 "Connect Wii Remote 4" = "Подключить Wii Remote 4";
 "Connect Wii Remotes" = "Подключить Wii Remote";
+"Connect Wii Remotes for Emulated Controllers" = "Подключение Wii Remote для эмулируемых контроллеров";
 "Connect to the Internet and perform an online system update?" = "Подключиться к интернету и выполнить обновление системы?";
+"Connected" = "Подключен";
 "Connection Type:" = "Тип подключения:";
 "Content %08x is corrupt." = "Содержимое %08x повреждено.";
 "Continuous Scanning" = "Непрерывное сканирование";
 "Control NetPlay Golf Mode" = "Управление режимом гольфа сетевой игры";
 "Control Stick" = "Control Stick";
+"Control Type:" = "Control Type:";
 "Controller Profile" = "Профиль контроллера";
+"Controller Profile 1" = "Профиль контроллера 1";
+"Controller Profile 2" = "Профиль контроллера 2";
+"Controller Profile 3" = "Профиль контроллера 3";
+"Controller Profile 4" = "Профиль контроллера 4";
 "Controller Settings" = "Настройки управления";
 "Controllers" = "Управление";
 "Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
@@ -539,6 +578,11 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "Управляет тем, требуется ли полностью эмулировать блок управления памятью (MMU). Требуется для некоторых игр.";
 "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "Управляет тем, использовать высокоуровневую или низкоуровневую эмуляцию DSP. По умолчанию <b>Да</b>";
 "Convergence:" = "Сведение:";
+"Convert" = "Конвертация";
+"Convert File..." = "Конвертировать файл...";
+"Convert Selected Files..." = "Конвертировать выбранные файлы...";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Преобразование образов дисков Wii в GCZ без удаления ненужных данных не сохраняет заметного объёма пространства по сравнению с преобразованием в ISO. Вы всё равно хотите продолжить?";
+"Converting..." = "Идёт конвертация...";
 "Copy" = "Копировать";
 "Copy &function" = "Скопировать &функцию";
 "Copy &hex" = "Скопировать &hex-значение";
@@ -555,6 +599,20 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Could not create peer." = "Не удалось создать точку подключения.";
 "Could not download update files from Nintendo. Please check your Internet connection and try again." = "Не удалось загрузить файлы обновлений от Nintendo. Проверьте подключение к интернету и повторите попытку.";
 "Could not download update information from Nintendo. Please check your Internet connection and try again." = "Не удалось загрузить информацию об обновлениях от Nintendo. Проверьте подключение к интернету и повторите попытку.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop." = "Ну удалось найти подходящий USB Bluetooth-адаптер для проброса Bluetooth.
+
+Эмулируемая консоль будет остановлена.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop." = "Ну удалось найти подходящий USB Bluetooth-адаптер для проброса Bluetooth.
+При попытке Dolphin использовать данный адаптер была получена ошибка:
+%s
+
+Эмулируемая консоль будет остановлена.";
 "Could not install an update to the Wii system memory. Please refer to logs for more information." = "Не удалось установить обновление в системную память Wii. Для получения дополнительной информации обратитесь к логам.";
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
 The emulated software will likely hang now." = "Не удалось запустить IOS %016<PRIx64> из-за отсутствия в NAND.
@@ -581,6 +639,8 @@ If so, then you may need to re-specify your memory card location in the options.
 "Couldn't open file." = "Не удалось открыть файл.";
 "Couldn't read file." = "Не удалось прочесть файл.";
 "Country:" = "Страна:";
+"Create New Memory Card" = "Создать новую карту памяти";
+"Create..." = "Создать...";
 "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
 
 If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
@@ -600,14 +660,15 @@ If unsure, leave this unchecked." = "Обрезает картинку с её �
 Если не уверены – оставьте выключенным.";
 "Crossfade" = "Кроссфейдер";
 "Current Region" = "Текущий регион";
+"Current context" = "Текущий контекст";
 "Current game" = "Текущей игры";
-"Custom" = "Своё";
+"Current thread" = "Текущий поток";
 "Custom RTC Options" = "Свои настройки времени";
 "D-Pad" = "Крестовина";
 "DJ Turntable" = "DJ пульт";
 "DK Bongos" = "Бонго DK";
 "DSP Emulation Engine" = "Движок эмуляции DSP";
-"DSP HLE Emulation (fast)" = "Эмуляция DSP HLE (быстро)";
+"DSP HLE (fast)" = "DSP HLE (быстрый)";
 "DSP LLE Interpreter (slow)" = "Интерпретатор DSP LLE (медленно)";
 "DSP LLE Recompiler" = "Рекомпилятор DSP LLE";
 "DSU Client" = "Клиент DSU";
@@ -625,9 +686,6 @@ If unsure, leave this unchecked." = "Обрезает картинку с её �
 "Debugging" = "Отладка";
 "Decimal" = "Десятичный";
 "Decoding Quality:" = "Качество декодирования:";
-"Decompress ISO..." = "Расжать ISO-файл...";
-"Decompress Selected ISOs..." = "Расжать выбранные ISO-файлы...";
-"Decompressing..." = "Распаковка...";
 "Decrease Convergence" = "Уменьшить сведение";
 "Decrease Depth" = "Уменьшить глубину";
 "Decrease Emulation Speed" = "Уменьшить скорость эмуляции";
@@ -637,6 +695,7 @@ If unsure, leave this unchecked." = "Обрезает картинку с её �
 "Default Device" = "Устройство по умолчанию";
 "Default Font" = "Шрифт по умолчанию";
 "Default ISO:" = "Образ по умолчанию:";
+"Default thread" = "Поток по умолчанию";
 "Defer EFB Cache Invalidation" = "Отложить инвалидацию кэша EFB";
 "Defer EFB Copies to RAM" = "Отложенное копирование EFB в ОЗУ";
 "Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
@@ -656,6 +715,7 @@ If unsure, leave this unchecked." = "Откладывает инвалидаци
 "Depth:" = "Глубина:";
 "Description" = "Описание";
 "Description:" = "Описание:";
+"Detached" = "Detached";
 "Detect" = "Считать";
 "Deterministic dual core:" = "Детерминированная двухядерность:";
 "Dev (multiple times a day)" = "Разрабатываемая (несколько раз в день)";
@@ -676,6 +736,7 @@ Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Для 
 "Disable Copy Filter" = "Отключить фильтр копирования";
 "Disable EFB VRAM Copies" = "Отключить копии EFB в VRAM";
 "Disable Emulation Speed Limit" = "Отключить огр. скорости эмуляции";
+"Disable Fastmem" = "Disable Fastmem";
 "Disable Fog" = "Отключить туман";
 "Disable JIT Cache" = "Отключить кэш JIT";
 "Disables bounding box emulation.
@@ -721,7 +782,6 @@ If unsure, leave this unchecked." = "Отображает копии XFB сра�
 "Do you want to delete the selected save file?" = "Вы хотите удалить выбранный файл сохранения?";
 "Do you want to stop the current emulation?" = "Вы хотите остановить текущую эмуляцию?";
 "Dolby Pro Logic II Decoder" = "Декодер Dolby Pro Logic II";
-"Dolphin" = "Dolphin";
 "Dolphin FIFO Log (*.dff)" = "Лог Dolphin FIFO (*.dff)";
 "Dolphin Map File (*.map)" = "Файл карты Dolphin (*.map)";
 "Dolphin Signature CSV File" = "CSV-файл с сигнатурами Dolphin";
@@ -736,6 +796,7 @@ Double-click here to set a games directory..." = "Dolphin не может най
 "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "Dolphin не может корректно проверить обычные файлы TGC, потому что они не являются дампами настоящих дисков.";
 "Dolphin is unable to verify unlicensed discs." = "Dolphin не может проверить нелицензионные диски.";
 "Dolphin's cheat system is currently disabled." = "На данный момент поддержка читов в Dolphin отключена.";
+"Domain" = "Домен";
 "Don't Update" = "Не обновлять";
 "Done compressing disc image." = "Сжатие образа диска завершено.";
 "Double" = "Double";
@@ -759,6 +820,8 @@ Double-click here to set a games directory..." = "Dolphin не может най
 "Dump Frames" = "Дампить кадры";
 "Dump Objects" = "Дампить объекты";
 "Dump Path:" = "Путь к дампам:";
+"Dump SSL read" = "Дампить чтение SSL";
+"Dump SSL write" = "Дампить запись SSL";
 "Dump TEV Stages" = "Дампить этапы TEV";
 "Dump TEV Stages to User/Dump/Objects/.
 
@@ -783,6 +846,8 @@ If unsure, leave this unchecked." = "Дампить декодированные
 If unsure, leave this unchecked." = "Дампить объекты в User/Dump/Objects/.
 
 Если не уверены – оставьте выключенным.";
+"Dump peer certificates" = "Дампить сертификаты";
+"Dump root CA" = "Дампить корневой серт.";
 "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked." = "Дампит декодированные текстуры в User/Dump/Textures/<game_id>/.
@@ -804,6 +869,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Editor" = "Редактор";
 "Effect" = "Эффект";
 "Effective" = "Эффективное";
+"Effective priority" = "Эффективный приоритет";
 "EiB" = "ЭиБ";
 "Eject Disc" = "Извлечь диск";
 "Embedded Frame Buffer (EFB)" = "Встроенный буфер кадров (EFB)";
@@ -811,6 +877,11 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Emu Thread already running" = "Процесс эмулятора уже запущен";
 "Emulate the Wii's Bluetooth adapter" = "Эмулировать Bluetooth-адаптер Wii";
 "Emulated Wii Remote" = "Эмулируемый Wii Remote";
+"Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)" = "Несовпадение эмулируемого размера памяти!
+Текущий: MEM1 %08X (%3d МиБ), MEM2 %08X (%3d МиБ)
+DFF: MEM1 %08X (%3d МиБ), MEM2 %08X (%3d МиБ)";
 "Emulation Speed" = "Скорость эмуляции";
 "Enable" = "Включить";
 "Enable API Validation Layers" = "Включить слои проверки API";
@@ -820,6 +891,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Enable Dual Core" = "Включить двухядерный режим";
 "Enable Dual Core (speedup)" = "Включить двухядерный режим (ускорение)";
 "Enable Emulated CPU Clock Override" = "Переопределять частоту эмулируемого ЦП";
+"Enable Emulated Memory Size Override" = "Включить переопределение эмулируемого размера памяти";
 "Enable FPRF" = "Включить FPRF";
 "Enable MMU" = "Включить MMU";
 "Enable Progressive Scan" = "Включить прогрессивную развёртку";
@@ -880,6 +952,7 @@ If unsure, leave this unchecked." = "Включает проверку вызо�
 If unsure, leave this unchecked." = "Кодирует дампы кадров с использованием кодека FFV1.
 
 Если не уверены – оставьте выключенным.";
+"Encoding" = "Кодировка";
 "Enet Didn't Initialize" = "Enet не был инициализирован";
 "English" = "Английский";
 "Enhancements" = "Улучшения";
@@ -934,6 +1007,7 @@ If unsure, leave this unchecked." = "Кодирует дампы кадров с
 "Extract System Data..." = "Извлечь системные данные...";
 "Extracting All Files..." = "Извлечение всех файлов...";
 "Extracting Directory..." = "Извлечение папки...";
+"FD" = "ФД";
 "FIFO Player" = "Проигрыватель FIFO";
 "Failed opening memory card:
 %1" = "Не удалось открыть карту памяти:
@@ -948,7 +1022,7 @@ If unsure, leave this unchecked." = "Кодирует дампы кадров с
 "Failed to create DXGI factory" = "Не удалось создать фабрику DXGI";
 "Failed to delete NetPlay memory card. Verify your write permissions." = "Не удалось удалить карту памяти сетевой игры. Проверьте, что у вас есть права на запись.";
 "Failed to delete the selected file." = "Не удалось удалить выбранный файл.";
-"Failed to detach kernel driver for BT passthrough: %s" = "Не удалось отсоединить драйвер ядра для проброса BT: %s";
+"Failed to detach kernel driver for BT passthrough: {}" = "Не удалось отключить драйвер ядра для проброса BT: {}";
 "Failed to download codes." = "Не удалось скачать коды.";
 "Failed to dump %1: Can't open file" = "Не удалось сдампить %1: невозможно открыть файл";
 "Failed to dump %1: Failed to write to file" = "Не удалось сдампить %1: ошибка записи в файл";
@@ -978,7 +1052,7 @@ Make sure your video card supports at least D3D 10.0" = "Не удалось и�
 "Failed to load map file '%1'" = "Не удалось загрузить файл с картой '%1'";
 "Failed to load the executable to memory." = "Не удалось загрузить исполняемый файл в память.";
 "Failed to open '%1'" = "Не удалось открыть '%1'";
-"Failed to open Bluetooth device: %s" = "Не удалось открыть устройство Bluetooth: %s";
+"Failed to open Bluetooth device: {}" = "Не удалось открыть Bluetooth-устройство: {}";
 "Failed to open config file!" = "Не удалось открыть файл с конфигурацией!";
 "Failed to open file \"%s\"." = "Не удалось открыть файл \"%s\".";
 "Failed to open file \"%s\". Verify your write permissions." = "Не удалось открыть файл \"%s\". Проверьте, что у вас есть права на запись.";
@@ -986,14 +1060,20 @@ Make sure your video card supports at least D3D 10.0" = "Не удалось и�
 Make sure there's an application assigned to open INI files." = "Не удалось открыть файл в стороннем редакторе.
 Убедитесь, что у вас есть приложение, на которое назначено открытие INI-файлов.";
 "Failed to open server" = "Не удалось открыть сервер";
-"Failed to open the input file \"%s\"." = "Не удалось открыть входной файл \"%s\".";
+"Failed to open the input file \"%1\"." = "Не удалось открыть входной файл \"%1\".";
 "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written." = "Ошибка при открытии выходного файла \"%s\".
 Проверьте, есть ли у вас разрешения на запись в целевую директорию и записываемый ли носитель.";
 "Failed to parse Redump.org data" = "Не удалось обработать данные с Redump.org";
 "Failed to read %s" = "Не удалось прочесть %s";
+"Failed to read from the input file \"%s\"." = "Не удалось прочесть входной файл \"%s\".";
 "Failed to read unique ID from disc image" = "Не удалось прочитать уникальный ID с образа диска";
 "Failed to remove file" = "Не удалось удалить файл";
+"Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?" = "Не удалось удалить мусорные данные из файла \"%1\".
+
+Вы хотите продолжить конвертацию без удаления мусорных данных?";
 "Failed to remove this title from the NAND." = "Не удалось удалить этот продукт из NAND.";
 "Failed to reset NetPlay GCI folder. Verify your write permissions." = "Не удалось сбросить папку сетевой игры GCI. Проверьте, что у вас есть права на запись.";
 "Failed to reset NetPlay NAND folder. Verify your write permissions." = "Не удалось сбросить папку сетевой игры NAND. Проверьте, что у вас есть права на запись.";
@@ -1017,9 +1097,9 @@ Check that you have enough space available on the target drive." = "Не уда�
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Критическая рассинхронизация. Остановка воспроизведения. (Ошибка в PlayWiimote: %u != %u, байт %u.)%s";
 "File Info" = "Информация о файле";
 "File Name" = "Имя файла";
+"File Path" = "Путь к файлу";
 "File Size" = "Размер файла";
 "File contained no codes." = "Файл не содержит кодов.";
-"File not compressed" = "Файл не сжат";
 "File write failed" = "Запись файла не удалась";
 "File:" = "Файл:";
 "Files opened, ready to compress." = "Файлы открыты и готовы к сжатию.";
@@ -1047,6 +1127,7 @@ If unsure, leave this unchecked." = "Фильтрует все текстуры,
 This can take a while." = "Завершение обновления...
 Это может занять некоторое время.";
 "First Block" = "Первый блок";
+"First Person" = "First Person";
 "Fix Checksums" = "Исправить контрольные суммы";
 "Flags" = "Флаги";
 "Float" = "Float";
@@ -1075,6 +1156,7 @@ If unsure, leave this checked." = "Цветовые каналы будут пр
 Не влияет на производительность и вызывает мало проблем с графикой.
 
 Если не уверены – оставьте включенным.";
+"Format:" = "Формат:";
 "Forward" = "Вперед";
 "Forward port (UPnP)" = "Пробросить порт (UPnP)";
 "Found %1 results for \"%2\"" = "Найдено %1 результатов для \"%2\"";
@@ -1098,6 +1180,7 @@ If unsure, leave this checked." = "Цветовые каналы будут пр
 "Freelook Move Up" = "Свободный обзор: движение вверх";
 "Freelook Reset" = "Свободный обзор: сброс";
 "Freelook Reset Speed" = "Свободный обзор: сбросить скорость";
+"Freelook Toggle" = "Вкл./выкл. свободный обзор";
 "Freelook Zoom In" = "Свободный обзор: приблизить";
 "Freelook Zoom Out" = "Свободный обзор: отдалить";
 "French" = "Французский";
@@ -1186,9 +1269,11 @@ If unsure, leave this checked." = "Значительно повышает ка�
 "Gyroscope" = "Гироскоп";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "Хаки";
+"Head" = "Head";
 "Hex" = "Hex";
 "Hexadecimal" = "Шестнадцатеричный";
 "Hide" = "Спрятать";
+"Hide In-Game Sessions" = "Скрыть сессии \"В игре\"";
 "Hide Incompatible Sessions" = "Скрыть несовместимые сессии";
 "High" = "Высокая";
 "Highest" = "Самое высокое";
@@ -1205,6 +1290,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Host with NetPlay" = "Создать сетевую игру";
 "Hotkey Settings" = "Горячие клавиши";
 "Hotkeys" = "Горячие клавиши";
+"Hotkeys Require Window Focus" = "Для горячих клавиш требуется окно в фокусе";
 "Hz" = "Гц";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Файл, необходимый для работы SSL (%s), некорректен. Пожалуйста, обратитесь к инструкции по настройки сети Wii: https://dolphin-emu.org/docs/guides/wii-network-guide/";
@@ -1214,11 +1300,17 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IR" = "ИК";
 "IR Sensitivity:" = "Чувствительность ИК:";
 "ISO Details" = "Данные образа";
+"ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: простой и надежный формат, который поддерживается многими программами. Он занимает больше места, чем любой другой формат.
+
+GCZ: основной сжатый формат, совместимый с большинством версий Dolphin и некоторыми другими программами. Он не может эффективно сжимать мусорные данные (если их не удалить) или зашифрованные данные Wii.";
 "Icon" = "Иконка";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Похоже на \"Хост управляет вводом\" за исключением того, что хоста (у кого нулевая задержка) можно менять во время игры.
 Подходит для пошаговых игр с элементами управления, чувствительными ко времени, такими как гольф.";
 "Identity Generation" = "Генерация ID";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1282,6 +1374,7 @@ If unsure, leave this checked." = "Добавляет содержимое вс�
 "Install Update" = "Установить обновление";
 "Install WAD..." = "Установить WAD...";
 "Install to the NAND" = "Установить в NAND";
+"Instr." = "Инстр.";
 "Instruction" = "Инструкция";
 "Instruction Breakpoint" = "Точка останова инструкции";
 "Instruction:" = "Инструкция:";
@@ -1333,10 +1426,11 @@ Try loading the state again" = "Внутренняя ошибка LZO - ошиб
 "JIT Off (JIT Core)" = "Отключить JIT (ядро JIT)";
 "JIT Paired Off" = "Отключить JIT Paired";
 "JIT Recompiler (recommended)" = "JIT-рекомпилятор (рекомендуется)";
-"JIT Register Cache Off" = "JIT Register Cache Off";
+"JIT Register Cache Off" = "Отключить кэш регистров JIT";
 "JIT SystemRegisters Off" = "Отключить JIT SystemRegisters";
 "Japan" = "Япония";
 "Japanese" = "Японский";
+"Japanese (Shift-JIS)" = "Японская (Shift-JIS)";
 "Keep Window on Top" = "Держать окно поверх остальных";
 "Keyboard" = "Клавиатура";
 "Keys" = "Клавиши";
@@ -1346,6 +1440,7 @@ Try loading the state again" = "Внутренняя ошибка LZO - ошиб
 "Korean" = "Корейский";
 "L" = "L";
 "L-Analog" = "L-аналог";
+"LR Save" = "LR Save";
 "Label" = "Название";
 "Latency:" = "Задержка:";
 "Latency: ~10ms" = "Задержка: ~10 мс";
@@ -1375,6 +1470,7 @@ Middle-click to clear." = "Левый/правый клик - настроить
 "Limit Chunked Upload Speed:" = "Ограничить скорость закачки:";
 "List Columns" = "Столбцы в списке";
 "List View" = "В виде списка";
+"Listening" = "Прослушивание";
 "Load" = "Загр.";
 "Load &Bad Map File..." = "Загрузить файл с &плохими картами...";
 "Load &Other Map File..." = "Загрузить &другой файл с картой...";
@@ -1441,6 +1537,7 @@ If unsure, leave this unchecked." = "Записывает время ренде�
 "MD5 Checksum" = "Контрольная сумма MD5";
 "MD5:" = "MD5:";
 "MMU" = "MMU";
+"MORIBUND" = "УМИРАЕТ";
 "MadCatz Gameshark files(*.gcs)" = "Файлы Gameshark MadCatz (*.gcs)";
 "Main Stick" = "Основной стик";
 "Maker" = "Создатель";
@@ -1480,6 +1577,7 @@ Would you like to copy the old file to this new location?
 Скопировать старый файл в это новое место?
 ";
 "Memory Not Ready" = "Память не готова";
+"Memory Override" = "Переопределение памяти";
 "Memory breakpoint options" = "Опции точек останова в памяти";
 "MemoryCard: ClearBlock called on invalid address (0x%x)" = "MemoryCard: вызван ClearBlock некорректного участка памяти (0x%x)";
 "MemoryCard: Read called with invalid source address (0x%x)" = "MemoryCard: вызвано чтение некорректного участка памяти (0x%x)";
@@ -1538,15 +1636,9 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "New identity generated." = "Новый ID сгенерирован.";
 "New instruction:" = "Новая инструкция:";
 "New tag" = "Новая метка";
-"Next Game Profile for Wii Remote 1" = "Следующий игровой профиль для Wii Remote 1";
-"Next Game Profile for Wii Remote 2" = "Следующий игровой профиль для Wii Remote 2";
-"Next Game Profile for Wii Remote 3" = "Следующий игровой профиль для Wii Remote 3";
-"Next Game Profile for Wii Remote 4" = "Следующий игровой профиль для Wii Remote 4";
+"Next Game Profile" = "Следующий игровой профиль";
 "Next Match" = "Следующее совпадение";
-"Next Profile for Wii Remote 1" = "Следующий профиль для Wii Remote 1";
-"Next Profile for Wii Remote 2" = "Следующий профиль для Wii Remote 2";
-"Next Profile for Wii Remote 3" = "Следующий профиль для Wii Remote 3";
-"Next Profile for Wii Remote 4" = "Следующий профиль для Wii Remote 4";
+"Next Profile" = "Следующий профиль";
 "Next Search" = "Новый поиск";
 "Nickname:" = "Ник:";
 "No" = "Нет";
@@ -1614,6 +1706,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Operators" = "Операторы";
 "Options" = "Опции";
 "Orange" = "Оранжевая";
+"Orbital" = "Orbital";
 "Other" = "Прочие";
 "Other State Hotkeys" = "Другие горячие клавиши";
 "Other State Management" = "Другое управление сохранениями";
@@ -1626,6 +1719,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "PPC vs Host" = "PPC и Хост";
 "Pad" = "Геймпад";
 "Pads" = "Мембраны";
+"Parameters" = "Параметры";
 "Parsing Error" = "Ошибка разбора";
 "Partition %1" = "Раздел %1";
 "Passive" = "Пассивный";
@@ -1680,15 +1774,9 @@ This can take a while." = "Подготовка к обновлению...
 Not recommended, only use if the other options give poor results." = "Предотвращает подтормаживания при компиляции шейдеров путём пропуска отрисовки ожидаемых объектов. Поможет в тех случаях, когда не работают убершейдеры, но появятся графические искажения и неработающие эффекты.
 
 Не рекомендуется. Используйте тогда, когда другие настройки не дают хороших результатов.";
-"Previous Game Profile for Wii Remote 1" = "Предыдущий игровой профиль для Wii Remote 1";
-"Previous Game Profile for Wii Remote 2" = "Предыдущий игровой профиль для Wii Remote 2";
-"Previous Game Profile for Wii Remote 3" = "Предыдущий игровой профиль для Wii Remote 3";
-"Previous Game Profile for Wii Remote 4" = "Предыдущий игровой профиль для Wii Remote 4";
+"Previous Game Profile" = "Предыдущий игровой профиль";
 "Previous Match" = "Предыдущее совпадение";
-"Previous Profile for Wii Remote 1" = "Предыдущий профиль для Wii Remote 1";
-"Previous Profile for Wii Remote 2" = "Предыдущий профиль для Wii Remote 2";
-"Previous Profile for Wii Remote 3" = "Предыдущий профиль для Wii Remote 3";
-"Previous Profile for Wii Remote 4" = "Предыдущий профиль для Wii Remote 4";
+"Previous Profile" = "Предыдущий профиль";
 "Private" = "Частные";
 "Private and Public" = "Частные и открытые";
 "Problem" = "Проблема";
@@ -1708,7 +1796,10 @@ Not recommended, only use if the other options give poor results." = "Предо
 "Quit" = "Выход";
 "R" = "R";
 "R-Analog" = "R-аналог";
+"READY" = "ГОТОВ";
 "RSO Modules" = "Модули RSO";
+"RSO auto-detection" = "Автообнаружение RSO";
+"RUNNING" = "РАБОТАЕТ";
 "Range" = "Диапазон";
 "Re&place instruction" = "За&менить инструкцию";
 "Read" = "Чтение";
@@ -1747,10 +1838,12 @@ SSAA значительно более требовательно по срав�
 "Relative Input Hold" = "Удерж. относ. ввод";
 "Remind Me Later" = "Напомнить позже";
 "Remove" = "Удалить";
+"Remove Junk Data (Irreversible):" = "Удалить мусорные данные (безвозвратно):";
 "Remove Tag..." = "Удалить метку...";
 "Remove failed" = "Не удалось удалить";
 "Remove from Watch" = "Удалить из наблюдения";
 "Remove tag" = "Удалить метку";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Удаление ненужных данных не экономит место при конвертации в ISO (если, конечно, вы впоследствии не запакуете данный образ в архив вроде ZIP). Вы всё равно хотите продолжить?";
 "Rename symbol" = "Переименовать символ";
 "Render Window" = "Окно отрисовки";
 "Render to Main Window" = "Выводить изображение в главное окно";
@@ -1802,6 +1895,8 @@ If unsure, leave this unchecked." = "Округляет 2D вершины до �
 "SD Card Path:" = "Путь к SD-карте:";
 "SHA-1:" = "SHA-1:";
 "SP1:" = "SP1:";
+"SSL context" = "Контекст SSL";
+"SSL options" = "Настройки SSL";
 "START" = "START";
 "Sa&ve Code" = "Со&хранить код";
 "Sa&ve State" = "Быстрое &сохранение";
@@ -1841,7 +1936,6 @@ Overwrite now?" = "Сохранение для данного продукта �
 "Save to Slot %1 - %2" = "Сохранить в слот %1 - %2";
 "Save..." = "Сохранить...";
 "Saved Wii Remote pairings can only be reset when a Wii game is running." = "Сохранённые сопряжения Wii Remote могут быть сброшены только при запущенной игре для Wii.";
-"Saved to /Wii/sd.raw (default size is 128mb)." = "Сохраняется в /Wii/sd.raw (размер по умолчанию: 128 Мб).";
 "Savestate movie %s is corrupted, movie recording stopping..." = "Быстрое сохранение ролика %s повреждено, остановка записи ролика...";
 "Scaled EFB Copy" = "Увеличенная копия EFB";
 "ScrShot" = "Скриншот";
@@ -1883,16 +1977,17 @@ Overwrite now?" = "Сохранение для данного продукта �
 "Select a SD Card Image" = "Выберите образ SD-карты";
 "Select a game" = "Выберите игру";
 "Select a title to install to NAND" = "Выберите продукт для установки в NAND";
+"Select the RSO module address:" = "Выберите адрес модуля RSO:";
 "Select the Recording File" = "Выберите файл с записью";
 "Select the keys file (OTP/SEEPROM dump)" = "Выберите файл с ключами (дамп OTP/SEEPROM)";
 "Select the save file" = "Выберите файл сохранения";
-"Select where you want to save the compressed image" = "Выберите место сохранения сжатого образа";
-"Select where you want to save the compressed images" = "Выберите место хранения сжатых образов";
-"Select where you want to save the decompressed image" = "Выберите место сохранения разжатого образа";
-"Select where you want to save the decompressed images" = "Выберите место хранения разжатых образов";
+"Select where you want to save the converted image" = "Выберите, куда вы хотите сохранить сконвертированный образ";
+"Select where you want to save the converted images" = "Выберите, куда вы хотите сохранить сконвертированные образы";
 "Selected Font" = "Выбранный шрифт";
 "Selected controller profile does not exist" = "Выбранный профиль контроллера не существует";
 "Selected game doesn't exist in game list!" = "Выбранной игры нету в списке игр!";
+"Selected thread callstack" = "Выбранный стэк вызовов потока";
+"Selected thread context" = "Выбранный контекст потока";
 "Selects a hardware adapter to use.
 
 If unsure, select the first one." = "Выбирает используемый аппаратный адаптер.
@@ -2053,6 +2148,7 @@ If unsure, leave this unchecked." = "Показывает различную с�
 "Signed Integer" = "Знаковое целое";
 "Simplified Chinese" = "Упрощ. китайский";
 "Simulate DK Bongos" = "Симуляция бонго DK";
+"Six Axis" = "Six Axis";
 "Size" = "Размер";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "Размер буфера растяжения в миллисекундах. При низких значениях звук может потрескивать.";
 "Skip" = "Пропустить";
@@ -2073,6 +2169,7 @@ If unsure, leave this checked." = "Пропускает отображение �
 "Slot A:" = "Слот A:";
 "Slot B" = "Слот B";
 "Slot B:" = "Слот B:";
+"Socket table" = "Таблица сокетов";
 "Software Renderer" = "Программный рендеринг";
 "Some of the data could not be read." = "Не удалось считать часть данных.";
 "Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "Часть дополняющих данных, которые должны быть нулями — не нули. Из-за этого игра может иногда зависать.";
@@ -2085,15 +2182,19 @@ Please check the highlighted values." = "Некоторые введённые �
 "Spanish" = "Испанский";
 "Speaker Pan" = "Баланс звука";
 "Speaker Volume:" = "Громкость динамика:";
+"Specific" = "Specific";
 "Speed" = "Скорость";
 "Speed up Disc Transfer Rate" = "Ускорить чтение с диска";
 "Stable (once a year)" = "Стабильная (раз в год)";
+"Stack end" = "Конец стэка";
+"Stack start" = "Начало стэка";
 "Standard Controller" = "Стандартный контроллер";
 "Start" = "Старт";
 "Start &NetPlay..." = "Начать &сетевую игру...";
 "Start Re&cording Input" = "&Начать запись ввода";
 "Start Recording" = "Начать запись";
 "Started game" = "Игра начата";
+"State" = "Состояние";
 "Steering Wheel" = "Рулевое колесо";
 "Step" = "Шаг";
 "Step Into" = "Шаг с заходом";
@@ -2144,8 +2245,7 @@ If unsure, leave this checked." = "Хранит копии XFB только на
 "Success" = "Успешно";
 "Success." = "Успешно.";
 "Successfully added to the NetPlay index" = "Успешно добавлена в индекс сетевой игры";
-"Successfully compressed %n image(s)." = "Образы успешно сжаты (%n шт.)";
-"Successfully decompressed %n image(s)." = "Образы успешно разжаты (%n шт.)";
+"Successfully converted %n image(s)." = "Успешно сконвертировано образов: %n. ";
 "Successfully deleted '%1'." = "'%1' успешно удалён.";
 "Successfully deleted files." = "Файлы успешно удалены.";
 "Successfully exported save files" = "Файлы сохранений успешно экспортированы";
@@ -2158,6 +2258,8 @@ If unsure, leave this checked." = "Хранит копии XFB только на
 "Successfully installed this title to the NAND." = "Данный продукт успешно установлен в NAND.";
 "Successfully removed this title from the NAND." = "Данный продукт успешно удалён из NAND.";
 "Support" = "Поддержка";
+"Supports SD and SDHC. Default size is 128 MB." = "Поддерживаются SD и SDHC. Размер по умолчанию: 128 Мбайт.";
+"Suspended" = "Suspended";
 "Swap Eyes" = "Поменять ракурсы местами";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2188,6 +2290,7 @@ If unsure, leave this unchecked." = "Меняет местами ракурсы 
 "TAS Tools" = "Управление TAS";
 "Tags" = "Метки";
 "Taiko Drum" = "Барабан Тайко";
+"Tail" = "Tail";
 "Taiwan" = "Тайвань";
 "Take Screenshot" = "Сделать скриншот";
 "Test" = "Проверить";
@@ -2197,6 +2300,7 @@ If unsure, leave this unchecked." = "Меняет местами ракурсы 
 "The %s partition does not seem to contain valid data." = "В разделе %s, вероятно, не содержится корректных данных.";
 "The %s partition is not correctly signed." = "Раздел %s некорректно подписан.";
 "The %s partition is not properly aligned." = "Раздел %s некорректно выровнен.";
+"The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)" = "Минимальная версия загрузчика DFF (%d) выше, чем версия текущего плеера FIFO (%d)";
 "The H3 hash table for the %s partition is not correct." = "Некорректная хэш-таблица H3 для раздела %s.";
 "The IPL file is not a known good dump. (CRC32: %x)" = "IPL-файла нет в списке известных корректных дампов. (CRC32: %x)";
 "The Masterpiece partitions are missing." = "Отсутствуют разделы Masterpiece.";
@@ -2329,9 +2433,12 @@ Unknown ucode (CRC = %08x) - forcing AXWii." = "Данная игра не по�
 "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "Позволит синхронизировать дополнительные настройки графики и заставит всех иметь одинаковое внутреннее разрешение.
 Может предотвратить рассинхрон в некоторых играх, которые используют чтение EFB. Пожалуйста, убедитесь, что у всех одинаковый бэкенд видео.";
+"Thread context" = "Контекст потока";
+"Threads" = "Потоки";
 "Threshold" = "Порог";
 "TiB" = "ТиБ";
 "Tilt" = "Наклон";
+"Time period of stable input to trigger calibration. (zero to disable)" = "Период времени стабильного ввода для запуска калибровки. (ноль - отключить)";
 "Title" = "Название";
 "To" = "до";
 "To:" = "До:";
@@ -2374,6 +2481,7 @@ May prevent desync in some games that use EFB reads. Please ensure everyone uses
 "U&16" = "U&16";
 "U&32" = "U&32";
 "U&8" = "U&8";
+"UNKNOWN" = "НЕИЗВЕСТНО";
 "USA" = "США";
 "USB Gecko" = "USB Gecko";
 "USB Whitelist Error" = "Ошибка белого списка USB";
@@ -2396,6 +2504,7 @@ Only recommended for high-end systems." = "Убершейдеры будут и�
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "Убершейдеры будут использоваться для предотвращения подтормаживаний во время компиляции шейдеров, а специализированные шейдеры будут использоваться, когда не вызывают подтормаживаний.
 
 В идеале оно устраняет подтормаживания при компиляции шейдеров с минимальным влиянием на производительность, но конечный результат зависит от поведения драйвера ГП.";
+"Unable to auto-detect RSO module" = "Не удалось автоматически обнаружить модуль RSO";
 "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
 
 Would you like to ignore this line and continue parsing?" = "Невозможно интерпретировать строку %1 введённого AR-кода как корректный зашифрованный или расшифрованный код. Убедитесь, что он набран правильно.
@@ -2407,6 +2516,7 @@ Would you like to ignore this line and continue parsing?" = "Невозможн�
 
 Вы хотите игнорировать данную строку и продолжить чтение?";
 "Unable to write to file %s" = "Запись в файл %s не удалась";
+"Unbound" = "Несвязанный";
 "Uncompressed GC/Wii images (*.iso *.gcm)" = "Несжатые образы GC/Wii (*.iso *.gcm)";
 "Undo Load State" = "Отменить быструю загрузку";
 "Undo Save State" = "Отменить быстрое сохранение";
@@ -2484,6 +2594,7 @@ If unsure, leave this unchecked." = "Выводит изображение в г
 "Verbosity" = "Уровень анализа";
 "Verify" = "Проверка";
 "Verify Integrity" = "Проверить целостность";
+"Verify certificates" = "Проверять сертификаты";
 "Verifying" = "Выполняется проверка";
 "Version" = "Версия";
 "Vertex Rounding" = "Округление вершин";
@@ -2501,6 +2612,7 @@ If unsure, leave this unchecked." = "Выводит изображение в г
 "WAD installation failed: Could not import content %08x." = "Ошибка установки WAD: не удалось импортировать содержимое %08x.";
 "WAD installation failed: Could not initialise title import (error %d)." = "Ошибка установки WAD: не удалось инициализировать импорт продукта (ошибка %d).";
 "WAD installation failed: The selected file is not a valid WAD." = "Ошибка установки WAD: выбранный файл не является корректным файлом WAD.";
+"WAITING" = "ОЖИДАНИЕ";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ВНИМАНИЕ: Настройки в колонках \"Акселерометр\" и \"Гироскоп\" предназначены для прямого взаимодействия с сенсорами. С их помощью нельзя назначить обычные кнопки, рычажки и оси. Для задействования этих настроек вам может потребоваться настроить другие источники ввода.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ВНИМАНИЕ: Данные настройки предназначены для прямого взаимодействия с сенсорами. С их помощью нельзя назначить обычные кнопки, рычажки и оси. Для задействования этих настроек вам может потребоваться настроить другие источники ввода.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Эксклюзивный режим)";
@@ -2553,6 +2665,7 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Watch" = "Наблюдение";
 "WaveFileWriter - file not open." = "WaveFileWriter - файл не открыт.";
 "Website" = "Веб-сайт";
+"Western (Windows-1252)" = "Западная (Windows-1252)";
 "Whammy" = "Флойд";
 "Whitelisted USB Passthrough Devices" = "Белый список пробрасываемых USB-устройств";
 "Widescreen Hack" = "Широкоформатный хак";
@@ -2614,16 +2727,19 @@ If you select \"No\", audio might be garbled." = "В ПЗУ вашего DSP с�
 "cm" = "см";
 "d3d12.dll could not be loaded." = "не удалось загрузить d3d12.dll.";
 "disconnected" = "не подключено";
+"errno" = "номер ошибки";
 "fake-completion" = "ложное дополнение";
 "m/s" = "м/с";
 "none" = "отсутствует";
 "on" = "на";
 "or select a device" = "или выберите устройство";
+"s" = "с";
 "uDraw GameTablet" = "Планшет uDraw GameTablet";
 "{} failed to synchronize codes." = "Не удалось синхронизировать коды {}.";
 "{} failed to synchronize." = "Не удалось синхронизировать {}.";
 "| Or" = "| Или";
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ Команда Dolphin. “GameCube” и “Wii” являются торговыми марками Nintendo. Dolphin никоим образом не связан с Nintendo.";
 "°" = "°";
+"°/s" = "°/с";
 "✔ Invite" = "✔ Пригласить";
 "✖ Decline" = "✖ Отклонить";

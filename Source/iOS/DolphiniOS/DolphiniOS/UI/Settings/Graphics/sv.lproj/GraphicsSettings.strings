@@ -107,8 +107,8 @@
 /* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
 "U4x-0k-bbr.text" = "OpenGL";
 
-/* Class = "UILabel"; text = "Hackningar"; ObjectID = "VGQ-Nc-rWb"; */
-"VGQ-Nc-rWb.text" = "Hackningar";
+/* Class = "UILabel"; text = "Hack"; ObjectID = "VGQ-Nc-rWb"; */
+"VGQ-Nc-rWb.text" = "Hack";
 
 /* Class = "UILabel"; text = "24-bitars färg"; ObjectID = "WX6-i9-QZE"; */
 "WX6-i9-QZE.text" = "24-bitars färg";
@@ -161,8 +161,8 @@
 /* Class = "UILabel"; text = "Synkron"; ObjectID = "gmt-s1-lH4"; */
 "gmt-s1-lH4.text" = "Synkron";
 
-/* Class = "UINavigationItem"; title = "Hackningar"; ObjectID = "hAk-wO-QgI"; */
-"hAk-wO-QgI.title" = "Hackningar";
+/* Class = "UINavigationItem"; title = "Hack"; ObjectID = "hAk-wO-QgI"; */
+"hAk-wO-QgI.title" = "Hack";
 
 /* Class = "UILabel"; text = "Presentera XFB omedelbart"; ObjectID = "hiz-TR-uFn"; */
 "hiz-TR-uFn.text" = "Presentera XFB omedelbart";

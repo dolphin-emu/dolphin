@@ -21,8 +21,6 @@ Launching these titles may also fix the issues." = "
 이 타이틀들을 런칭하면 또한 이슈들을 고칠지도 모릅니다.";
 " (Disc %1)" = " (디스크 %1)";
 "! Not" = "! 아님";
-"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "\"%s\" 가 실패해 취소되었습니다. 이미지 파일이 손상된 것 같습니다.";
-"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" 는 이미 압축되어 있습니다! 더 이상 압축할 수 없습니다.";
 "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아닙니다.";
 "%" = "%";
 "% Modulo" = "% 나머지";
@@ -57,9 +55,12 @@ Current Frame: %3" = "%1 프레임(들)
 "%1 session found" = "%1 세션이 발견되었습니다";
 "%1 sessions found" = "%1 세션들이 발견되었습니다";
 "%1% (Normal Speed)" = "%1% (보통 속도)";
+"%1MB (MEM1)" = "%1MB (MEM1)";
+"%1MB (MEM2)" = "%1MB (MEM2)";
 "%1[%2]: %3" = "%1[%2]: %3";
 "%1[%2]: %3 %" = "%1[%2]: %3 %";
 "%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 MiB";
+"%1x Native (%2x%3)" = "%1x 원본 (%2x%3)";
 "%i of %i blocks. Compression ratio %i%%" = "%i  / %i 블록. 압축 비율 %i%%";
 "%s (Masterpiece)" = "%s (명작)";
 "%s IPL found in %s directory. The disc might not be recognized" = "%s IPL이 발견되었습니다. 디렉토리: %s. 디스크가 인식되지 않은 것 같습니다";
@@ -78,7 +79,6 @@ Current Frame: %3" = "%1 프레임(들)
 "&Automatic Start" = "자동 시작 (&A)";
 "&Boot from DVD Backup" = "DVD 백업에서 부트(&B)";
 "&Breakpoints" = "중단점 (&B)";
-"&Browse..." = "찾아보기... (&B)";
 "&Bug Tracker" = "버그 추적자(%B)";
 "&Cancel" = "취소(&C)";
 "&Cheats Manager" = "치트 매니저(&C)";
@@ -88,6 +88,7 @@ Current Frame: %3" = "%1 프레임(들)
 "&Code" = "코드 (&C)";
 "&Controller Settings" = "컨트롤러 설정(&C)";
 "&Copy address" = "주소 복사 (&C)";
+"&Create..." = "생성...(&C)";
 "&Delete" = "삭제 (&)";
 "&Delete Watch" = "관찰 삭제 (&D)";
 "&Edit Code..." = "코드 수정... (&E)";
@@ -112,6 +113,7 @@ Current Frame: %3" = "%1 프레임(들)
 "&Lock Widgets In Place" = "위젯 고정(&L)";
 "&Memory" = "메모리(&M)";
 "&Movie" = "무비(&M)";
+"&Network" = "네트워크(&N)";
 "&Open..." = "열기...(&O)";
 "&Options" = "옵션(&O)";
 "&Patch HLE Functions" = "HLE 함수 패치 (&P)";
@@ -129,6 +131,7 @@ Current Frame: %3" = "%1 프레임(들)
 "&Speed Limit:" = "속도 제한(&S):";
 "&Stop" = "중지(&S)";
 "&Theme:" = "테마(&T):";
+"&Threads" = "쓰레드(&T)";
 "&Tools" = "도구(&T)";
 "&View" = "보기(&V)";
 "&Watch" = "관찰(&W)";
@@ -147,6 +150,8 @@ Current Frame: %3" = "%1 프레임(들)
 "--> %1" = "--> %1";
 "..." = "...";
 "/ Divide" = "/ 나누기";
+"128 Mbit (2043 blocks)" = "128 Mbit (2043 블락)";
+"16 Mbit (251 blocks)" = "16 Mbit (251 블락)";
 "16-bit" = "16-비트";
 "16-bit Integer" = "16-비트 정수";
 "16:9" = "16:9";
@@ -154,17 +159,21 @@ Current Frame: %3" = "%1 프레임(들)
 "1x" = "1x";
 "2x" = "2x";
 "2x Native (1280x1056) for 720p" = "2x 원본 (1280x1056) 720p용";
+"32 Mbit (507 blocks)" = "32 Mbit (507 블락)";
 "32-bit" = "32-비트";
 "32-bit Integer" = "32-비트 정수";
 "3D" = "3D";
 "3D Depth" = "3D 깊이";
 "3x Native (1920x1584) for 1080p" = "3x 원본 (1920x1584) 1080p용";
+"4 Mbit (59 blocks)" = "4 Mbit (59 블락)";
 "4:3" = "4:3";
 "4x" = "4x";
 "4x Native (2560x2112) for 1440p" = "4x 원본 (2560x2112) 1440p용";
 "5x Native (3200x2640)" = "5x 원본 (3200x2640)";
+"64 Mbit (1019 blocks)" = "64 Mbit (1019 블락)";
 "6x Native (3840x3168) for 4K" = "6x 원본 (3840x3168) 4K용";
 "7x Native (4480x3696)" = "7x 원본 (4480x3696)";
+"8 Mbit (123 blocks)" = "8 Mbit (123 블락)";
 "8-bit" = "8-비트";
 "8-bit Integer" = "8-비트 정수";
 "8x" = "8x";
@@ -187,6 +196,7 @@ WAD 버전: %u
 
 이 WAD 를 설치하면 되돌릴 수 없게 바꾸게 됩니다. 계속합니까?";
 "A disc is already about to be inserted." = "디스크가 이미 삽입되려는 중입니다.";
+"A save state cannot be loaded without specifying a game to launch." = "저장 상태는 시작할 게임 명시 없이는 로드될 수 없습니다.";
 "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "종료가 이미 진행 중입니다. 저장되지 않은 데이터는 완료되기 전에 현재 에뮬레이션을 중단하면 잃을 수도 있습니다. 중지시키겠습니까?";
 "A sync can only be triggered when a Wii game is running." = "Wii 게임이 구동 중일 때만 동기화가 발동될 수 있습니다.";
 "ALERT:
@@ -242,12 +252,16 @@ Master codes are not needed. Do not use master codes." = "액션 리플레이 �
 "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "액션 리플레이: 일반 코드 0: 올바르지 않은 하위 분류 %08x (%s)";
 "Activate NetPlay Chat" = "넷플레이 채팅 활성";
 "Active" = "액티브";
+"Active thread queue" = "활성 쓰레드 큐";
+"Active threads" = "활성 쓰레드";
 "Adapter Detected" = "어댑터가 감지되었습니다";
 "Adapter:" = "어댑터:";
 "Add" = "추가";
+"Add &breakpoint" = "중단점 추가(&b)";
 "Add New USB Device" = "새로운 USB 장치 추가";
 "Add a Breakpoint" = "중단점 추가";
 "Add a Memory Breakpoint" = "메모리 중단점 추가";
+"Add memory breakpoint" = "메모리 중단점 추가";
 "Add to &watch" = "관찰에 추가 (&w)";
 "Add to Watch" = "관찰에 추가";
 "Add..." = "추가...";
@@ -272,6 +286,11 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 높은 값일수록 성능을 소비해서 가변-프레임 게임들을 더 높은 프레임으로 구동되게 만들 수도 있습니다. 낮은 값일수록  게임의 내부 프레임스킵을 유발할 수도 있습니다, 잠재적으로 성능은 향상.
 
 경고: 기본 (100%)에서 이를 변경하면 게임이 깨지거나 결함을 유발할 수 있습니다. 그러니 위험을 스스로 안고 하세요. 비-기본 클럭으로 일어난 버그를 리포트하지 말아주세요.";
+"Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations." = "MEM1 과 MEM2 의 에뮬된 크기를 조정합니다.
+
+일부 타이틀은 더 큰 메모리 활동 영역을 인식하고 그 이득을 취합니다, 리테일 타이틀은 보통 리테일 메모리 한계에 최적화되어 있긴 합니다.";
 "Advance Game Port" = "고급 게임 포트";
 "Advanced" = "고급";
 "Africa" = "아프리카";
@@ -284,6 +303,7 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 "All players' saves synchronized." = "모든 플레이어의 저장이 동기화되었습니다.";
 "Allow Mismatched Region Settings" = "맞지 않는 지역 설정 허락";
 "Allow Usage Statistics Reporting" = "사용 통계 보고 허용";
+"Allow Writes to SD Card" = "Allow Writes to SD Card";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -311,6 +331,7 @@ Ignore and continue?" = "에러가 발생했습니다.
 "Anaglyph" = "입체";
 "Analyze" = "분석";
 "Angle" = "각도";
+"Angular velocity to ignore." = "무시할 각 속도";
 "Anisotropic Filtering:" = "비등방성 필터링:";
 "Anti-Aliasing:" = "안티-앨리어싱:";
 "Any Region" = "아무 지역";
@@ -353,6 +374,7 @@ Please select a specific internal resolution." = "자동 내부 해상도는 엄
 특정 내부 해상도를 선택해주세요.";
 "Auto-Adjust Window Size" = "창 크기 자동 조정";
 "Auto-Hide" = "자동-숨기기";
+"Auto-detect RSO modules?" = "RSO 모듈을 자동-감지할까요?";
 "Automatically adjusts the window size to the internal resolution.
 
 If unsure, leave this unchecked." = "창 크기를 내부 해상도로 자동 조정합니다.
@@ -362,6 +384,7 @@ If unsure, leave this unchecked." = "창 크기를 내부 해상도로 자동 �
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT가 올바르지 않습니다. 돌핀이 종료됩니다.";
 "BP register " = "BP 레지스터";
+"Back Chain" = "백 체인";
 "Backend Multithreading" = "백엔드 멀티쓰레딩";
 "Backend Settings" = "백엔드 설정";
 "Backend:" = "백엔드:";
@@ -374,6 +397,7 @@ If unsure, leave this unchecked." = "창 크기를 내부 해상도로 자동 �
 "Banner Details" = "배너 세부사항";
 "Banner:" = "배너:";
 "Bar" = "바";
+"Base priority" = "기본 우선순위";
 "Basic" = "기본";
 "Basic Settings" = "기본 설정";
 "Bass" = "베이스";
@@ -381,18 +405,19 @@ If unsure, leave this unchecked." = "창 크기를 내부 해상도로 자동 �
 "Battery" = "배터리";
 "Beta (once a month)" = "베타 (한 달에 한 번)";
 "Bitrate (kbps):" = "비트레이트 (kbps):";
+"Block Size:" = "블락 크기:";
 "Blocks" = "블록들";
 "Blue" = "파랑";
 "Blue Left" = "파랑 왼쪽";
 "Blue Right" = "파랑 오른쪽";
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "블루투스 패스쓰루 모드가 켜졌습니다, 하지만 돌핀이 libusb 없이 빌드되었습니다. 패스쓰루 모드를 사용할 수 없습니다.";
-"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "블루투스 패스쓰루 모드가 켜졌습니다, 하지만 사용가능한 블루투스 USB 장치가 없습니다. 취소됩니다.";
 "Boot to Pause" = "부팅하고 멈추기";
 "BootMii NAND backup file (*.bin);;All Files (*)" = "BootMii NAND 백업 파일 (*.bin);;모든 파일 (*)";
 "BootMii keys file (*.bin);;All Files (*)" = "BootMii 키 파일 (*.bin);;모든 파일 (*)";
 "Borderless Fullscreen" = "틀 없는 전체화면";
 "Bottom" = "아래";
 "Branch: %1" = "분기: %1";
+"Branches" = "분기들";
 "Break" = "중단";
 "Breakpoint" = "중단점";
 "Breakpoint encountered! Step out aborted." = "중단점을 만났습니다! 스텝 나가기가 중단되었습니다.";
@@ -433,6 +458,7 @@ If unsure, leave this unchecked." = "3D 오브젝트의 빛을 버텍스별 보�
 잘 모르겠으면, 체크 해제해 두세요.";
 "Calibrate" = "측정합니다";
 "Calibration" = "측정";
+"Calibration Period" = "측정 기간";
 "Callstack" = "콜스텍";
 "Can't find Wii Remote by connection handle %02x" = "%02x 연결 핸들로 Wii 리모트를 찾을 수 없음";
 "Can't start a NetPlay Session while a game is still running!" = "게임이 여전히 구동되는 동안에 넷플레이 세션을 시작할 수 없습니다!";
@@ -445,6 +471,7 @@ If unsure, leave this unchecked." = "3D 오브젝트의 빛을 버텍스별 보�
 Have you chosen the right type?" = "주어진 값을 해석할 수 없습니다.
 올바른 유형을 선택했습니까?";
 "Cannot start the game, because the GC IPL could not be found." = "GC IPL 을 찾을 수 없어서, 게임을 시작할 수 없습니다.";
+"Card Size" = "카드 크기";
 "Center" = "중앙";
 "Center and Calibrate" = "중앙과 측정";
 "Change &Disc" = "디스크 변경(&D)";
@@ -452,6 +479,15 @@ Have you chosen the right type?" = "주어진 값을 해석할 수 없습니다.
 "Change Disc" = "디스크 변경";
 "Change Discs Automatically" = "디스크 자동 교환";
 "Change the disc to %s" = "%s 로 디스크를 변경합니다.";
+"Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "자유보기에서 인-게임 카메라 유형을 변경합니다.
+
+6 축: 모든 축에 완전한 카메라 컨트롤을 제공합니다, 무 중력에서 우주선을 움직이는 것과 비슷합니다. 이것은 가장 파워풀한 자유보기 옵션이지만 사용하기에 가장 도전적입니다.
+일인칭: 일인칭 비디오 게임과 비슷하게 자유 카메라를 컨트롤합니다. 카메라는 로테이트와 트레블을 할 수 있습니다, 하지만 롤은 불가능합니다. 사용하기 쉽지만, 제한적입니다.
+궤도: 원본 카메라의 주위를 자유 카메라가 로테이트합니다. 측면 이동은 없습니다, 단지 로테이트하고 카메라의 원본 지점까지 줌할 수 있을 겁니다.";
 "Changing cheats will only take effect when the game is restarted." = "치트 변경은 게임을 재시작해야만 효과가 반영될 것입니다.";
 "Chat" = "대화";
 "Cheat Code Editor" = "치트 코드 에디터";
@@ -483,11 +519,7 @@ Have you chosen the right type?" = "주어진 값을 해석할 수 없습니다.
 "Common" = "공통";
 "Compile Shaders Before Starting" = "시작하기 전에 쉐이더들 컴파일";
 "Compiling Shaders" = "쉐이더들 컴파일하기";
-"Compress ISO..." = "ISO 압축...";
-"Compress Selected ISOs..." = "선택된 ISO 들을 압축...";
 "Compressed GC/Wii images (*.gcz)" = "압축된 GC/Wii 이미지들 (*.gcz)";
-"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "Wii 디스크 이미지 압축하기는 속채움 데이터를 제거해서 압축된 복사본을 되돌릴 수 없게 변경할 것입니다. 당신의 디스크 이미지는 여전히 작동할 것입니다. 계속합니까?";
-"Compressing..." = "압축하기...";
 "Condition" = "상태";
 "Config" = " 환경설정";
 "Configure" = "설정";
@@ -507,13 +539,20 @@ Have you chosen the right type?" = "주어진 값을 해석할 수 없습니다.
 "Connect Wii Remote 3" = "Wii 리모트 3 연결";
 "Connect Wii Remote 4" = "Wii 리모트 4 연결";
 "Connect Wii Remotes" = "Wii 리모트 연결";
+"Connect Wii Remotes for Emulated Controllers" = "에뮬된 컨트롤러에 대한 Wii 리모트 연결";
 "Connect to the Internet and perform an online system update?" = "인터넷에 연결하여 온라인 시스템 업데이트를 하시겠습니까?";
+"Connected" = "연결되었습니다";
 "Connection Type:" = "연결 종류:";
 "Content %08x is corrupt." = "내용 %08x 는 오류입니다.";
 "Continuous Scanning" = "지속적인 스캐닝";
 "Control NetPlay Golf Mode" = "넷플레이 골프 모드 컨트롤";
 "Control Stick" = "컨트롤 스틱";
+"Control Type:" = "컨트롤 타입:";
 "Controller Profile" = "컨트롤러 프로파일";
+"Controller Profile 1" = "컨트롤러 프로파일 1";
+"Controller Profile 2" = "컨트롤러 프로파일 2";
+"Controller Profile 3" = "컨트롤러 프로파일 3";
+"Controller Profile 4" = "컨트롤러 프로파일 4";
 "Controller Settings" = "컨트롤러 설정";
 "Controllers" = "컨트롤러";
 "Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
@@ -539,6 +578,11 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "메모리 관리 유닛이 완전히 에뮬될지 여부를 조정합니다. 소수 게임이 이게 필요합니다.";
 "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "높은 혹은 낮은-레벨 DSP 에뮬레이션을 사용할지 정합니다. 기본값은 <b>켜기</b>";
 "Convergence:" = "수렴:";
+"Convert" = "변환";
+"Convert File..." = "파일 변환...";
+"Convert Selected Files..." = "선택된 파일 변환...";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "정크 데이터 제거 없이 Wii 디스크 이미지를 GCZ 로 변환하기는 ISO 로 변환하기와 비교해서 뚜렷하게 공간을 절약하지는 않습니다. 아무튼 계속 하시겠습니까?";
+"Converting..." = "변환중...";
 "Copy" = "복사";
 "Copy &function" = "함수 복사 (&f)";
 "Copy &hex" = "헥스 복사 (&h)";
@@ -555,6 +599,20 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Could not create peer." = "피어를 생성할 수 없었습니다.";
 "Could not download update files from Nintendo. Please check your Internet connection and try again." = "닌텐도로부터 업데이트 파일을 다운로드할 수 없었습니다. 인터넷 연결을 확인하시고 다시 시도하세요.";
 "Could not download update information from Nintendo. Please check your Internet connection and try again." = "닌텐도로부터 업데이트 정보를 다운로드할 수 없었습니다. 인터넷 연결을 확인하시고 다시 시도하세요.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop." = "블루투스 패스쓰루로 사용가능한 블루투스 USB 어댑터를 찾을 수 없었습니다.
+
+에뮬된 콘솔이 지금 멈출 것입니다.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop." = "블루투스 패스쓰루로 사용가능한 블루투스 USB 어댑터를 찾을 수 없었습니다.
+다음 에러는 돌핀이 어댑터를 사용하려 했을 때 발생했습니다.
+%s
+
+에뮬된 콘솔이 지금 멈출 것입니다.";
 "Could not install an update to the Wii system memory. Please refer to logs for more information." = "Wii 시스템 메모리에 업데이트를 설치할 수 없었습니다. 더 많은 정보에 대해서는 로그를 참조하세요.";
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
 The emulated software will likely hang now." = " NAND 에 없어서 IOS %016<PRIx64> 를 런치할 수 없었습니다.
@@ -582,6 +640,8 @@ CD/DVD에서 돌핀을 구동하고 있거나, 저장 파일이 보호되어 있
 "Couldn't open file." = "파일을 열 수 없습니다.";
 "Couldn't read file." = "파일을 읽을 수 없습니다.";
 "Country:" = "국가:";
+"Create New Memory Card" = "새로운 메모리 카트 생성";
+"Create..." = "생성...";
 "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
 
 If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
@@ -601,14 +661,15 @@ If unsure, leave this unchecked." = "원본 종횡비에서 그림을 4:3이나 
 잘 모르겠으면, 체크 해제해 두세요.";
 "Crossfade" = "크로스페이드";
 "Current Region" = "현재 지역";
+"Current context" = "현재 맥락";
 "Current game" = "현재 게임";
-"Custom" = "사용자 지정";
+"Current thread" = "현재 쓰레드";
 "Custom RTC Options" = "사용자 지정 RTC 옵션";
 "D-Pad" = "D-패드";
 "DJ Turntable" = "디제이 턴테이블";
 "DK Bongos" = "DK 봉고";
 "DSP Emulation Engine" = "DSP 에뮬레이션 엔진";
-"DSP HLE Emulation (fast)" = "DSP HLE 에뮬레이션 (빠름)";
+"DSP HLE (fast)" = "DSP HLE (빠름)";
 "DSP LLE Interpreter (slow)" = "DSP LLE 인터프리터 (느림)";
 "DSP LLE Recompiler" = "DSP LLE 리컴파일러";
 "DSU Client" = "DSU 클라이언트";
@@ -626,9 +687,6 @@ If unsure, leave this unchecked." = "원본 종횡비에서 그림을 4:3이나 
 "Debugging" = "디버깅";
 "Decimal" = "10 진수";
 "Decoding Quality:" = "디코딩 품질:";
-"Decompress ISO..." = "ISO 압축풀기...";
-"Decompress Selected ISOs..." = "선택된 ISO 들을 압축풀기...";
-"Decompressing..." = "압축풀기...";
 "Decrease Convergence" = "수렴 감소";
 "Decrease Depth" = "깊이 감소";
 "Decrease Emulation Speed" = "에뮬레이션 속도 감소";
@@ -638,6 +696,7 @@ If unsure, leave this unchecked." = "원본 종횡비에서 그림을 4:3이나 
 "Default Device" = "기본 장치";
 "Default Font" = "기본 폰트";
 "Default ISO:" = "기본 ISO:";
+"Default thread" = "기본 쓰레드";
 "Defer EFB Cache Invalidation" = "EFB 캐시 무효화를 연기";
 "Defer EFB Copies to RAM" = "EFB 램에 복사 연기";
 "Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
@@ -657,6 +716,7 @@ If unsure, leave this unchecked." = "GPU 동기화 명령이 실행될 때까지
 "Depth:" = "깊이:";
 "Description" = "설명";
 "Description:" = "설명:";
+"Detached" = "떨어진";
 "Detect" = "감지";
 "Deterministic dual core:" = "결정론적 듀얼 코어:";
 "Dev (multiple times a day)" = "개발 (하루에 여러 번)";
@@ -677,6 +737,7 @@ Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Direct3
 "Disable Copy Filter" = "복사 필터 비활성";
 "Disable EFB VRAM Copies" = "EFB 비디오램 복사 비활성";
 "Disable Emulation Speed Limit" = "에뮬레이션 속도 제한 끄기";
+"Disable Fastmem" = "Disable Fastmem";
 "Disable Fog" = "안개 끄기";
 "Disable JIT Cache" = "JIT 캐시 비활성";
 "Disables bounding box emulation.
@@ -722,7 +783,6 @@ If unsure, leave this unchecked." = "스켄아웃을 기다리는 대신, XFB �
 "Do you want to delete the selected save file?" = "선택된 저장 파일을 삭제하고 싶습니까?";
 "Do you want to stop the current emulation?" = "에뮬레이션을 중단하고 싶습니까?";
 "Dolby Pro Logic II Decoder" = "돌비 프로 로직 II 디코더";
-"Dolphin" = "돌핀";
 "Dolphin FIFO Log (*.dff)" = "돌핀 FIFO 로그 (*.dff)";
 "Dolphin Map File (*.map)" = "돌핀 맵 파일 (*.map)";
 "Dolphin Signature CSV File" = "돌핀 서명 CSV 파일";
@@ -737,6 +797,7 @@ Double-click here to set a games directory..." = "돌핀이 어떠한 게임큐�
 "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "실제 디스크의 덤프들이 아니기 때문에, 돌핀은 일반 TGC 파일들을 올바르게 검증할 수 없습니다.";
 "Dolphin is unable to verify unlicensed discs." = "돌핀은 라이슨스되지 않은 디스크들을 검증할 수 없습니다.";
 "Dolphin's cheat system is currently disabled." = "돌핀의 치트 시스템이 현재 꺼졌습니다.";
+"Domain" = "도메인";
 "Don't Update" = "업데이트 안함";
 "Done compressing disc image." = "디스크 이미지 압축이 완료되었습니다.";
 "Double" = "더블";
@@ -760,6 +821,8 @@ Double-click here to set a games directory..." = "돌핀이 어떠한 게임큐�
 "Dump Frames" = "프레임들 덤프";
 "Dump Objects" = "오브젝트 덤프";
 "Dump Path:" = "덤프 경로:";
+"Dump SSL read" = "SSL 덤프 읽기";
+"Dump SSL write" = "SSL 덤프 쓰기";
 "Dump TEV Stages" = "TEV 스테이지 덤프";
 "Dump TEV Stages to User/Dump/Objects/.
 
@@ -784,6 +847,8 @@ If unsure, leave this unchecked." = "디코드된 게임 텍스처를 User/Dump/
 If unsure, leave this unchecked." = "오브젝트들을 User/Dump/Objects/ 에 덤프합니다.
 
 잘 모르겠으면, 체크 해제해 두세요.";
+"Dump peer certificates" = "피어 증명서 덤프";
+"Dump root CA" = "루트 CA 덤프";
 "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked." = "디코드된 게임 텍스처를 User/Dump/Textures/<game_id>/ 에 덤프합니다
@@ -805,6 +870,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Editor" = "에디터";
 "Effect" = "효과";
 "Effective" = "효과적인";
+"Effective priority" = "효율 우선순위";
 "EiB" = "EiB";
 "Eject Disc" = "디스크 꺼내기";
 "Embedded Frame Buffer (EFB)" = "내장형 프레임 버퍼 (EFB)";
@@ -812,6 +878,11 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Emu Thread already running" = "에뮬 쓰레드가 이미 구동중임";
 "Emulate the Wii's Bluetooth adapter" = "Wii 의 블루투스 어댑터를 에뮬";
 "Emulated Wii Remote" = "에뮬된 Wii 리모트";
+"Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)" = "에뮬된 메모리 크기가 맞지 않습니다!
+현재: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)";
 "Emulation Speed" = "에뮬레이션 속도";
 "Enable" = "활성";
 "Enable API Validation Layers" = "API 검증 레이어 활성화";
@@ -821,6 +892,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Enable Dual Core" = "듀얼 코어 활성화";
 "Enable Dual Core (speedup)" = "듀얼 코어 활성화 (속도 상승)";
 "Enable Emulated CPU Clock Override" = "에뮬된 CPU 클럭 오버라이드 활성화";
+"Enable Emulated Memory Size Override" = "에뮬된 메모리 크기 오버라이드 활성화";
 "Enable FPRF" = "FPRF 활성화";
 "Enable MMU" = "MMU 활성화";
 "Enable Progressive Scan" = "프로그레시브 스캔 활성화";
@@ -881,6 +953,7 @@ If unsure, leave this unchecked." = "비디오 백엔드에 의해 만들어진 
 If unsure, leave this unchecked." = "FFV1 코덱을 사용하여 프레임 덤프들을 인코드합니다.
 
 잘 모르겠으면, 체크 해제해 두세요.";
+"Encoding" = "인코딩";
 "Enet Didn't Initialize" = "Enet이 초기화되지 않았습니다.";
 "English" = "영어";
 "Enhancements" = "향상";
@@ -935,6 +1008,7 @@ If unsure, leave this unchecked." = "FFV1 코덱을 사용하여 프레임 덤�
 "Extract System Data..." = "시스템 데이터 압축 풀기...";
 "Extracting All Files..." = "모든 파일을 압축 풀기...";
 "Extracting Directory..." = "디렉토리 압축 풀기...";
+"FD" = "FD";
 "FIFO Player" = "FIFO 플레이어";
 "Failed opening memory card:
 %1" = "메모리 카드 열기에 실패했습니다:
@@ -949,7 +1023,7 @@ If unsure, leave this unchecked." = "FFV1 코덱을 사용하여 프레임 덤�
 "Failed to create DXGI factory" = "DXGI 팩토리 생성에 실패했습니다";
 "Failed to delete NetPlay memory card. Verify your write permissions." = "넷플레이 메모리 카드를 삭제에 실패했습니다. 쓰기 권한을 검증하세요.";
 "Failed to delete the selected file." = "선택된 파일 삭제에 실패했습니다.";
-"Failed to detach kernel driver for BT passthrough: %s" = "블투 패스쓰루용 커널 드라이버 제거 실패: %s";
+"Failed to detach kernel driver for BT passthrough: {}" = "블투 패스쓰루용 커널 드라이버를 분리하는데에 실패했습니다: {}";
 "Failed to download codes." = "코드 다운로드에 실패했습니다.";
 "Failed to dump %1: Can't open file" = "덤프에 실패했습니다 %1: 파일을 열 수 없습니다";
 "Failed to dump %1: Failed to write to file" = "덤프에 실패했습니다 %1: 파일에 쓰기를 실패했습니다";
@@ -979,7 +1053,7 @@ Make sure your video card supports at least D3D 10.0" = "Direct3D 초기화에 �
 "Failed to load map file '%1'" = "맵 파일 '%1' 을 로드에 실패했습니다.";
 "Failed to load the executable to memory." = "실행 가능한 것을 메모리에 로드하는데 실패했습니다.";
 "Failed to open '%1'" = "'%1' 를 열기에 실패했습니다";
-"Failed to open Bluetooth device: %s" = "블루투스 장치 열기에 실패했습니다: %s";
+"Failed to open Bluetooth device: {}" = "블루투스 장치 열기에 실패했습니다: {}";
 "Failed to open config file!" = "환경 파일 열기에 실패했습니다!";
 "Failed to open file \"%s\"." = "파일 \"%s\" 열기에 실패했습니다.";
 "Failed to open file \"%s\". Verify your write permissions." = "파일 \"%s\" 열기에 실패했습니다. 쓰기 권한을 검증하세요.";
@@ -987,14 +1061,20 @@ Make sure your video card supports at least D3D 10.0" = "Direct3D 초기화에 �
 Make sure there's an application assigned to open INI files." = "외부 에디터로 파일 열기에 실패했습니다.
 INI 파일들을 여는데 할당된 애플러케이션이 있는지 확인하세요.";
 "Failed to open server" = "서버 열기에 실패했습니다";
-"Failed to open the input file \"%s\"." = "입력 파일 \"%s\" 을 열 수 없습니다.";
+"Failed to open the input file \"%1\"." = "입력 파일 \"%1\" 열기에 실패했습니다.";
 "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written." = "출력 파일 \"%s\" 을 열 수 없습니다.
 타겟 폴더에 쓰기 권한을 가지고 있는지와 미디어가 쓰여질 수 있는지를 확인하세요.";
 "Failed to parse Redump.org data" = "Redump.org 데이터 문법분석에 실패했습니다";
 "Failed to read %s" = "%s 을 읽을 수 없습니다.";
+"Failed to read from the input file \"%s\"." = "입력 파일 \"%s\" 로 부터 읽기에 실패했습니다.";
 "Failed to read unique ID from disc image" = "디스크 이미지의 ID를 읽기에 실패했습니다";
 "Failed to remove file" = "파일 삭제에 실패했습니다";
+"Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?" = "파일 \"%1\" 로 부터 정크 데이터 제거에 실패했습니다.
+
+정크 데이터 제거 없이 변환 하시겠습니까?";
 "Failed to remove this title from the NAND." = "NAND 에서 이 타이틀 제거에 실패했습니다.";
 "Failed to reset NetPlay GCI folder. Verify your write permissions." = "넷플레이 GCI 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요.";
 "Failed to reset NetPlay NAND folder. Verify your write permissions." = "넷플레이 NAND 폴더 재설정에 실패했습니다. 쓰기 권한을 검증하세요.";
@@ -1018,9 +1098,9 @@ Check that you have enough space available on the target drive." = "출력 파�
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "치명적 비동기. 재생을 중단합니다. (PlayWiimote에서 오류: %u != %u, byte %u.)%s";
 "File Info" = "파일 정보";
 "File Name" = "파일 이름";
+"File Path" = "파일 경로";
 "File Size" = "파일 크기";
 "File contained no codes." = "파일에 코드가 없습니다.";
-"File not compressed" = "파일이 압축되지 않었습니다.";
 "File write failed" = "파일을 쓰지 못했습니다.";
 "File:" = "파일:";
 "Files opened, ready to compress." = "파일이 열렸습니다, 압축할 준비가 되었습니다.";
@@ -1048,6 +1128,7 @@ If unsure, leave this unchecked." = "모든 텍스처를 필터합니다, 필터
 This can take a while." = "업데이트를 완료중입니다...
 시간이 잠시 걸릴 수 있습니다.";
 "First Block" = "첫번째 블록";
+"First Person" = "일인칭";
 "Fix Checksums" = "체크섬을 고치기";
 "Flags" = "플래그";
 "Float" = "플로우트";
@@ -1076,6 +1157,7 @@ If unsure, leave this checked." = "게임이 RGB 컬러 채널을 24-비트로 �
 성능에 영향이 없고 소수의 그래픽 이슈를 읽으킵니다.
 
 잘 모르겠으면, 체크해 두세요.";
+"Format:" = "포맷:";
 "Forward" = "앞으로";
 "Forward port (UPnP)" = "포트 열기 (UPnP)";
 "Found %1 results for \"%2\"" = "%1 결과들을 찾았음 \"%2\" 에 대한 것임";
@@ -1099,6 +1181,7 @@ If unsure, leave this checked." = "게임이 RGB 컬러 채널을 24-비트로 �
 "Freelook Move Up" = "자유로운 보기 위로 이동";
 "Freelook Reset" = "자유로운 보기 리셋";
 "Freelook Reset Speed" = "자유로운 보기 속도 리셋";
+"Freelook Toggle" = "자유로운 보기 토글";
 "Freelook Zoom In" = "자유로운 보기 줌 인";
 "Freelook Zoom Out" = "자유로운 보기 줌 아웃";
 "French" = "프랑스어";
@@ -1187,9 +1270,11 @@ GPU 로드를 약간 증가시키고 상대적으로 적은 그래픽 오류를 
 "Gyroscope" = "자이로스";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "핵";
+"Head" = "헤드";
 "Hex" = "헥스";
 "Hexadecimal" = "16진수";
 "Hide" = "숨기기";
+"Hide In-Game Sessions" = "인-게임 세션 숨기기";
 "Hide Incompatible Sessions" = "비호환 세션들 숨기기";
 "High" = "높은";
 "Highest" = "최고";
@@ -1206,6 +1291,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Host with NetPlay" = "넷플레이로 호스트";
 "Hotkey Settings" = "단축키 설정";
 "Hotkeys" = "단축키";
+"Hotkeys Require Window Focus" = "핫키들은 윈도우 포커스가 필요함";
 "Hz" = "Hz";
 "ID" = "아이디";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: SSL 서비스 (%s) 를 위해 필요한 파일이 부적합합니다. Wii 네트워킹 설정상의 설명은 https://dolphin-emu.org/docs/guides/wii-network-guide/ 를 참고하세요.";
@@ -1215,12 +1301,18 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IR" = "IR";
 "IR Sensitivity:" = "IR 감도:";
 "ISO Details" = "ISO 세부사항";
+"ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO:  많은 프로그램에서 지원되는 단순하고 강력한 포맷. 다른 어느 포맷보다 더 많은 공간을 차지합니다.
+
+GCZ: 대부분의 돌핀 버전과 일부 다른 프로그램과 호환되는 기본 압축된 포맷. 정크 데이터(제거 되지 않으면)나 암호화된 Wii 데이터를 효과적으로 압축할 수 없습니다.";
 "Icon" = "아이콘";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "호스트 입력 권한을 동일하게, 단 \"호스트\" (지연 없는 사람)는 언제라도 전환될 수 있습니다.
 
 타이밍-민감한 컨트롤을 지진 턴-기반 게임에 알맞음, 골프 같은.";
 "Identity Generation" = "식별자 생성";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1284,6 +1376,7 @@ If unsure, leave this checked." = "내장 프레임 버퍼 (EFB) 의 내용들�
 "Install Update" = "업데이트 설치";
 "Install WAD..." = "WAD 설치...";
 "Install to the NAND" = "NAND 에 설치";
+"Instr." = "명령.";
 "Instruction" = "명령";
 "Instruction Breakpoint" = "명령 중단점";
 "Instruction:" = "명령:";
@@ -1335,10 +1428,11 @@ Try loading the state again" = "내부 LZO 오류 - 압축풀기 실패했습니
 "JIT Off (JIT Core)" = "JIT 끄기 (JIT 코어)";
 "JIT Paired Off" = "JIT 짝짓기 끄기";
 "JIT Recompiler (recommended)" = "JIT 리컴파일러 (권장)";
-"JIT Register Cache Off" = "JIT Register Cache Off";
+"JIT Register Cache Off" = "JIT 레지스터 캐시 끄기";
 "JIT SystemRegisters Off" = "JIT 시스템레지스터 끄기";
 "Japan" = "일본";
 "Japanese" = "일본어";
+"Japanese (Shift-JIS)" = "일본어 (쉬프트-JIS)";
 "Keep Window on Top" = "창을 맨위로 유지";
 "Keyboard" = "키보드";
 "Keys" = "키";
@@ -1348,6 +1442,7 @@ Try loading the state again" = "내부 LZO 오류 - 압축풀기 실패했습니
 "Korean" = "한국어";
 "L" = "L";
 "L-Analog" = "L-아날로그";
+"LR Save" = "LR 세이브";
 "Label" = "레이블";
 "Latency:" = "지연:";
 "Latency: ~10ms" = "지연: ~10ms";
@@ -1377,6 +1472,7 @@ Middle-click to clear." = "좌/우-클릭 출력 설정하기.
 "Limit Chunked Upload Speed:" = "덩어리된 업로드 스피드 제한:";
 "List Columns" = "목록 세로줄";
 "List View" = "목록 보기";
+"Listening" = "듣기";
 "Load" = "로드";
 "Load &Bad Map File..." = "배드 맵 파일 로드... (&B)";
 "Load &Other Map File..." = "다른 맵 파일 로드... (&O)";
@@ -1443,6 +1539,7 @@ If unsure, leave this unchecked." = "모든 프레임의 렌더 타임을 User/L
 "MD5 Checksum" = "MD5 체크섬";
 "MD5:" = "MD5:";
 "MMU" = "MMU";
+"MORIBUND" = "빈사";
 "MadCatz Gameshark files(*.gcs)" = "MadCatz 게임샤크 파일(*.gcs)";
 "Main Stick" = "메인 스틱";
 "Maker" = "제작사";
@@ -1482,6 +1579,7 @@ Would you like to copy the old file to this new location?
 오래된 파일을 이 새로운 위치로 복사하고 싶습니까?
 ";
 "Memory Not Ready" = "메모리가 준비 안됨";
+"Memory Override" = "메모리 오버라이드";
 "Memory breakpoint options" = "메모리 중단점 옵션";
 "MemoryCard: ClearBlock called on invalid address (0x%x)" = "메모리카드: 부적합한 주소 (0x%x) 상에서 호출된 클리어블록";
 "MemoryCard: Read called with invalid source address (0x%x)" = "메모리카드: 부적합 소스 주소로 호출된 읽기 (0x%x)";
@@ -1540,15 +1638,9 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 "New identity generated." = "새로운 식별자가 생성되었습니다.";
 "New instruction:" = "새로운 명령:";
 "New tag" = "새로운 태그";
-"Next Game Profile for Wii Remote 1" = "Wii 리모트 1 에 대한 다음 게임 프로파일";
-"Next Game Profile for Wii Remote 2" = "Wii 리모트 2 에 대한 다음 게임 프로파일";
-"Next Game Profile for Wii Remote 3" = "Wii 리모트 3 에 대한 다음 게임 프로파일";
-"Next Game Profile for Wii Remote 4" = "Wii 리모트 4 에 대한 다음 게임 프로파일";
+"Next Game Profile" = "다음 게임 프로파일";
 "Next Match" = "다음 일치";
-"Next Profile for Wii Remote 1" = "Wii 리모트 1 에 대한 다음 프로파일";
-"Next Profile for Wii Remote 2" = "Wii 리모트 2 에 대한 다음 프로파일";
-"Next Profile for Wii Remote 3" = "Wii 리모트 3 에 대한 다음 프로파일";
-"Next Profile for Wii Remote 4" = "Wii 리모트 4 에 대한 다음 프로파일";
+"Next Profile" = "다음 프로파일";
 "Next Search" = "다음 찾기";
 "Nickname:" = "별명:";
 "No" = "아니요";
@@ -1616,6 +1708,7 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 "Operators" = "연산자들";
 "Options" = "옵션";
 "Orange" = "주황";
+"Orbital" = "궤도";
 "Other" = "다른 것들";
 "Other State Hotkeys" = "다른 상태 단축키";
 "Other State Management" = "다른 상태 관리";
@@ -1628,6 +1721,7 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 "PPC vs Host" = "PPC 대 호스트";
 "Pad" = "패드";
 "Pads" = "패드";
+"Parameters" = "매개변수들";
 "Parsing Error" = "분석 에러";
 "Partition %1" = "파티션 %1";
 "Passive" = "패씨브";
@@ -1682,15 +1776,9 @@ This can take a while." = "업데이트 준비중...
 Not recommended, only use if the other options give poor results." = "기다리는 오브젝트들을 렌더링하지 않아서 쉐이더 컴파일 버벅임을 막습니다. 우버쉐이더스가 작동하지 않는 시나리오에서 작동할 수 있습니다, 보이는 결함과 망가진 효과들을 보여주는 댓가로 말이죠.
 
 추천되지 않습니다, 다른 옵션들이 형편없는 결과를 가져올 때만 사용하세요.";
-"Previous Game Profile for Wii Remote 1" = "Wii 리모트 1 에 대한 이전 게임 프로파일";
-"Previous Game Profile for Wii Remote 2" = "Wii 리모트 2 에 대한 이전 게임 프로파일";
-"Previous Game Profile for Wii Remote 3" = "Wii 리모트 3 에 대한 이전 게임 프로파일";
-"Previous Game Profile for Wii Remote 4" = "Wii 리모트 4 에 대한 이전 게임 프로파일";
+"Previous Game Profile" = "이전 게임 프로파일";
 "Previous Match" = "이전 일치";
-"Previous Profile for Wii Remote 1" = "Wii 리모트 1 에 대한 이전 프로파일";
-"Previous Profile for Wii Remote 2" = "Wii 리모트 2 에 대한 이전 프로파일";
-"Previous Profile for Wii Remote 3" = "Wii 리모트 3 에 대한 이전 프로파일";
-"Previous Profile for Wii Remote 4" = "Wii 리모트 4 에 대한 이전 프로파일";
+"Previous Profile" = "이전 프로파일";
 "Private" = "사설";
 "Private and Public" = "사설과 공공";
 "Problem" = "문제";
@@ -1710,7 +1798,10 @@ Not recommended, only use if the other options give poor results." = "기다리�
 "Quit" = "종료";
 "R" = "R";
 "R-Analog" = "R-아날로그";
+"READY" = "준비";
 "RSO Modules" = "RSO 모듈";
+"RSO auto-detection" = "RSO 자동-감지";
+"RUNNING" = "구동";
 "Range" = "범위";
 "Re&place instruction" = "명령 바꾸기 (&p)";
 "Read" = "읽기";
@@ -1749,10 +1840,12 @@ SSAA는 MSAA보다 상당히 더 로드가 요구됩니다, 하지만 최고 품
 "Relative Input Hold" = "연관 입력 유지";
 "Remind Me Later" = "나중에 다시 알려주기";
 "Remove" = "제거";
+"Remove Junk Data (Irreversible):" = "정크 데이터 제거 (되돌릴 수 없음):";
 "Remove Tag..." = "태그 제거...";
 "Remove failed" = "삭제 실패했음";
 "Remove from Watch" = "관찰에서 제거";
 "Remove tag" = "태그 제거";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "정크 데이터 제거하기는 ISO 로 변환할 때 (ISO 파일을 나중에 ZIP 같은 파일 포맷으로 담지 않는다면) 압축공간을 조금도 절약하지 않습니다. 아무튼 계속 하시겠습니까?";
 "Rename symbol" = "부호 이름 바꾸기";
 "Render Window" = "렌더 창";
 "Render to Main Window" = "메인 창에 렌더";
@@ -1804,6 +1897,8 @@ If unsure, leave this unchecked." = "2D 버텍스들을 전체 픽셀들로 반�
 "SD Card Path:" = "SD 카드 경로:";
 "SHA-1:" = "SHA-1:";
 "SP1:" = "SP1:";
+"SSL context" = "SSL 맥락";
+"SSL options" = "SSL 옵션";
 "START" = "시작";
 "Sa&ve Code" = "코드 저장 (&v)";
 "Sa&ve State" = "상태 저장(&v) ";
@@ -1843,7 +1938,6 @@ Overwrite now?" = "이 타이틀에 대한 저장 데이터가 이미 NAND 에 �
 "Save to Slot %1 - %2" = "슬롯 %1 - %2 에 저장";
 "Save..." = "저장...";
 "Saved Wii Remote pairings can only be reset when a Wii game is running." = "저장된 Wii 리모트 페어링은 게임이 구동 중일 때만 재설정될 수 있습니다.";
-"Saved to /Wii/sd.raw (default size is 128mb)." = "/Wii/sd.raw 에 저장되었습니다 (기본 크기는 128mb 입니다).";
 "Savestate movie %s is corrupted, movie recording stopping..." = "상태저장 무비 %s 가 손상되었습니다, 무비 기록 중지 중...";
 "Scaled EFB Copy" = "스케일된 EFB 복사";
 "ScrShot" = "스크린샷";
@@ -1885,16 +1979,17 @@ Overwrite now?" = "이 타이틀에 대한 저장 데이터가 이미 NAND 에 �
 "Select a SD Card Image" = "SD 카드 이미지 선택";
 "Select a game" = "게임 선택";
 "Select a title to install to NAND" = "NAND 에 설치할 타이틀 선택";
+"Select the RSO module address:" = "RSO 모듈 주소 선택:";
 "Select the Recording File" = "기록 파일 선택";
 "Select the keys file (OTP/SEEPROM dump)" = "키 파일 선택 (OTP/SEEPROM 덤프)";
 "Select the save file" = "저장 파일을 선택";
-"Select where you want to save the compressed image" = "압축된 이미지를 저장하고 싶은 곳을 선택하세요";
-"Select where you want to save the compressed images" = "압축된 이미지들을 저장하고 싶은 곳을 선택하세요";
-"Select where you want to save the decompressed image" = "압축풀린 이미지를 저장하고 싶은 곳을 선택하세요";
-"Select where you want to save the decompressed images" = "압축풀린 이미지들을 저장하고 싶은 곳을 선택하세요";
+"Select where you want to save the converted image" = "변환된 이미지를 저장하고 싶은 곳을 선택하세요";
+"Select where you want to save the converted images" = "변환된 이미지들을 저장하고 싶은 곳을 선택하세요";
 "Selected Font" = "선택된 폰트";
 "Selected controller profile does not exist" = "선택된 컨트롤러 프로파일이 존재하지 않습니다";
 "Selected game doesn't exist in game list!" = "선택된 게임은 게임 목록에 존재하지 않습니다!";
+"Selected thread callstack" = "선택된 쓰레드 콜스택";
+"Selected thread context" = "선택된 쓰레드 맥락";
 "Selects a hardware adapter to use.
 
 If unsure, select the first one." = "사용할 하드웨어 어댑터를 선택하세요.
@@ -2055,6 +2150,7 @@ If unsure, leave this unchecked." = "다양한 렌더링 통계를 보여줍니�
 "Signed Integer" = "부호 정수";
 "Simplified Chinese" = "간소화 중국어";
 "Simulate DK Bongos" = "DK 봉고 시뮬";
+"Six Axis" = "6 축";
 "Size" = "크기";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "밀리세컨드 단위의 늘림 버퍼 크기. 값이 너무 낮으면 오디오 지직거림을 일으킬지 모릅니다.";
 "Skip" = "스킵";
@@ -2075,6 +2171,7 @@ If unsure, leave this checked." = "25fps/30fps 게임들에서 반복 프레임�
 "Slot A:" = "슬롯 A:";
 "Slot B" = "슬롯 B";
 "Slot B:" = "슬롯 B:";
+"Socket table" = "소켓 테이블";
 "Software Renderer" = "소프트웨어 렌더러";
 "Some of the data could not be read." = "데이터의 일부가 읽혀지지 않았습니다.";
 "Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "제로여야할 일부 채우기 데이터가 제로가 아닙니다. 이것은 특정 지점들에서 게임을 얼게 만들 수 있습니다.";
@@ -2087,15 +2184,19 @@ Please check the highlighted values." = "제공된 일부 값들이 부적합합
 "Spanish" = "스페인어";
 "Speaker Pan" = "스피커 팬";
 "Speaker Volume:" = "스피커 볼륨:";
+"Specific" = "상세";
 "Speed" = "속도";
 "Speed up Disc Transfer Rate" = "디스크 전송율 속도 상승";
 "Stable (once a year)" = "안정적 (일년에 한 번)";
+"Stack end" = "스택 끝";
+"Stack start" = "스택 시작";
 "Standard Controller" = "표준 컨트롤러";
 "Start" = "시작";
 "Start &NetPlay..." = "넷플레이 시작(&N)";
 "Start Re&cording Input" = "입력 기록 시작(&c)";
 "Start Recording" = "(입력) 기록 시작";
 "Started game" = "시작된 게임";
+"State" = "상태";
 "Steering Wheel" = "운전대";
 "Step" = "스텝";
 "Step Into" = "스텝 들어가기";
@@ -2146,8 +2247,7 @@ If unsure, leave this checked." = "시스템 메모리를 우회해서 GPU 상�
 "Success" = "성공";
 "Success." = "성공.";
 "Successfully added to the NetPlay index" = "넷플레이 목록에 성공적으로 추가되었습니다";
-"Successfully compressed %n image(s)." = "성공적으로 %n 이미지(들)을 압축했습니다.";
-"Successfully decompressed %n image(s)." = "성공적으로 %n 이미지(들)을 압축해제했습니다.";
+"Successfully converted %n image(s)." = "%n 이미지를 성공적으로 변환했습니다.";
 "Successfully deleted '%1'." = "'%1' 를 성공적으로 삭제했습니다.";
 "Successfully deleted files." = "성공적으로 파일을 삭제했습니다.";
 "Successfully exported save files" = "저장 파일들을 성공적으로 내보냈습니다";
@@ -2160,6 +2260,8 @@ If unsure, leave this checked." = "시스템 메모리를 우회해서 GPU 상�
 "Successfully installed this title to the NAND." = "NAND 에 이 타이틀을 성공적으로 설치했습니다.";
 "Successfully removed this title from the NAND." = "NAND 에서 이 타이틀을 성공적으로 제거했습니다.";
 "Support" = "지원";
+"Supports SD and SDHC. Default size is 128 MB." = "SD 와 SDHC 를 지원합니다. 기본 크기는 128 MB 입니다.";
+"Suspended" = "연기된";
 "Swap Eyes" = "눈 교차";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2190,6 +2292,7 @@ If unsure, leave this unchecked." = "왼쪽과 오른쪽 눈을 바꿉니다. �
 "TAS Tools" = "TAS 도구";
 "Tags" = "태그";
 "Taiko Drum" = "타이코 드럼";
+"Tail" = "꼬리";
 "Taiwan" = "타이완";
 "Take Screenshot" = "스크린샷 찍기";
 "Test" = "테스트";
@@ -2199,6 +2302,7 @@ If unsure, leave this unchecked." = "왼쪽과 오른쪽 눈을 바꿉니다. �
 "The %s partition does not seem to contain valid data." = "%s 파티션은 적합한 데이터를 가지고 있지 않은 것 같습니다.";
 "The %s partition is not correctly signed." = "%s 파티션은 올바르게 서명되어 있지 않습니다";
 "The %s partition is not properly aligned." = "%s 파티션은 올바르게 정렬되어 있지 않습니다.";
+"The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)" = "DFF 의 최소 로더 버전 (%d) 이 이 FIFO 플레이어의 버전 (%d) 을 초과합니다";
 "The H3 hash table for the %s partition is not correct." = "%s 파티션에 대한 H3 해쉬 테이블이 올바르지 않습니다.";
 "The IPL file is not a known good dump. (CRC32: %x)" = "IPL 파일이 알려진 좋은 덤프가 아닙니다. (CRC32: %x)";
 "The Masterpiece partitions are missing." = "명작 파티션들이 빠져있습니다.";
@@ -2331,9 +2435,12 @@ Unknown ucode (CRC = %08x) - forcing AXWii." = "이 타이틀은 DSP HLE 에뮬�
 "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "이것은 추가적인 그래픽 설정을 동기화할 것입니다, 그리고 모든이를 같은 내부 해상도로 강제합니다.
 EFB 읽기를 사용하는 일부 게임에서 비동기화를 막을지도 모릅니다. 모두 같은 비디오 백엔드를 사용하는지 확실히 하세요.";
+"Thread context" = "쓰레드 맥락";
+"Threads" = "쓰레드";
 "Threshold" = "한계점";
 "TiB" = "TiB";
 "Tilt" = "기울기";
+"Time period of stable input to trigger calibration. (zero to disable)" = "측정을 작동시키기 위한 안정적 입력 기간. (제로는 비활성)";
 "Title" = "제목";
 "To" = "까지";
 "To:" = "까지:";
@@ -2376,6 +2483,7 @@ EFB 읽기를 사용하는 일부 게임에서 비동기화를 막을지도 모�
 "U&16" = "U&16";
 "U&32" = "U&32";
 "U&8" = "U&8";
+"UNKNOWN" = "알려지지 않음";
 "USA" = "미국";
 "USB Gecko" = "USB Gecko";
 "USB Whitelist Error" = "USB 와이트리스트 에러";
@@ -2398,6 +2506,7 @@ Only recommended for high-end systems." = "우버쉐이더스가 항상 사용�
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "우버쉐이더스가 쉐이더 컴파일 동안 버벅임을 막기위해 사용되어질 것입니다. 하지만 버벅임을 유발하지 않는다면 특화된 쉐이더들이 사용될 것입니다.
 
 최상의 경우 미약한 성능 타격을 얻는 반면 쉐이더 컴파일 버벅임을 완전제거합니다, 하지만 결과는 비디오 드라이버 행동에 달려있습니다.";
+"Unable to auto-detect RSO module" = "RSO 모듈을 자동-감지할 수 없습니다";
 "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
 
 Would you like to ignore this line and continue parsing?" = "입력된 AR 코드의 %1 라인을 적합한 암호화되거나 해독된 코드로 분석할 수 없습니다. 올바로 타이핑했는지 확인하세요.
@@ -2409,6 +2518,7 @@ Would you like to ignore this line and continue parsing?" = "입력된 Gecko 코
 
 이 라인을 무시하고 분석을 계속합니까?";
 "Unable to write to file %s" = "%s 파일에 쓸 수 없습니다";
+"Unbound" = "풀림";
 "Uncompressed GC/Wii images (*.iso *.gcm)" = "압축풀린 GC/Wii 이미지들 (*.iso *.gcm)";
 "Undo Load State" = "상태 로드 되돌리기";
 "Undo Save State" = "상태 저장 되돌리기";
@@ -2486,6 +2596,7 @@ If unsure, leave this unchecked." = "렌더링을 위해 분리된 렌더 창 �
 "Verbosity" = "상세설명";
 "Verify" = "검증";
 "Verify Integrity" = "강도 검증";
+"Verify certificates" = "증명서 검증";
 "Verifying" = "검증하기";
 "Version" = "버전";
 "Vertex Rounding" = "버텍스 반올림";
@@ -2503,6 +2614,7 @@ If unsure, leave this unchecked." = "렌더링을 위해 분리된 렌더 창 �
 "WAD installation failed: Could not import content %08x." = "WAD 설치를 실패했습니다: 내용 %08x 를 가져올 수 없습니다.";
 "WAD installation failed: Could not initialise title import (error %d)." = "WAD 설치를 실패했습니다: 타이틀 가져오기를 초기화할 수 없었습니다 (error %d).";
 "WAD installation failed: The selected file is not a valid WAD." = "WAD 설치를 실패했습니다: 선택된 파일은 적합한 WAD 가 아닙니다.";
+"WAITING" = "대기";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "경고: 가속도계와 자이로콥하에 컨트롤들은 모션 센서 하드웨어와 직접 접속하도록 디자인되어있습니다. 그것들은 전통적 버튼, 트리거, 축들을 맵핑하도록 의도되어있지 않습니다. 이들 컨트롤들을 사용하기 전에 대체 입력 소스를 설정할 필요가 있을 것 같습니다.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "경고: 이 컨트롤들은 모션 센서 하드웨어와 직접 접속하도록 디자인되어있습니다. 그것들은 전통적 버튼, 트리거, 축들을 맵핑하도록 의도되어있지 않습니다. 이들 컨트롤들을 사용하기 전에 대체 입력 소스를 설정할 필요가 있을 것 같습니다.";
 "WASAPI (Exclusive Mode)" = "WASAPI (전용 모드)";
@@ -2555,6 +2667,7 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Watch" = "관찰";
 "WaveFileWriter - file not open." = "WaveFileWriter - 파일이 열리지 않습니다.";
 "Website" = "웹사이트";
+"Western (Windows-1252)" = "웨스턴 (윈도우즈-1252)";
 "Whammy" = "훼미";
 "Whitelisted USB Passthrough Devices" = "와이트리스트된 USB 패스쓰루 장치들";
 "Widescreen Hack" = "와이드스크린 핵";
@@ -2615,16 +2728,19 @@ If you select \"No\", audio might be garbled." = "당신의 DSP 롬들이 잘못
 "cm" = "cm";
 "d3d12.dll could not be loaded." = "d3d12.dll 는 로드될 수 없었습니다.";
 "disconnected" = "연결이 끊겼습니다";
+"errno" = "errno";
 "fake-completion" = "가짜-완료";
 "m/s" = "m/s";
 "none" = "없음";
 "on" = "켜기";
 "or select a device" = "또는 장치를 선택하세요";
+"s" = "s";
 "uDraw GameTablet" = "유드로 게임태블릿";
 "{} failed to synchronize codes." = "{} 코드 동기화에 실패했습니다.";
 "{} failed to synchronize." = "{} 동기화에 실패했습니다.";
 "| Or" = "| 또는";
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ 돌핀 팀. “게임큐브” 와 “Wii” 는 닌텐도의 상표입니다. 돌핀은 닌텐도와 아무런 관련이 없습니다.";
 "°" = "°";
+"°/s" = "°/s";
 "✔ Invite" = "✔ 초대";
 "✖ Decline" = "✖ 거절";

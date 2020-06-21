@@ -14,8 +14,8 @@
 /* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
 "LOg-ZN-hB0.title" = "Change Controller";
 
-/* Class = "UITableViewSection"; headerTitle = "Sla staat op"; ObjectID = "OsQ-TK-bBV"; */
-"OsQ-TK-bBV.headerTitle" = "Sla staat op";
+/* Class = "UITableViewSection"; headerTitle = "Save State"; ObjectID = "OsQ-TK-bBV"; */
+"OsQ-TK-bBV.headerTitle" = "Save State";
 
 /* Class = "UINavigationItem"; title = "Opslaan"; ObjectID = "dYF-hp-EOu"; */
 "dYF-hp-EOu.title" = "Opslaan";

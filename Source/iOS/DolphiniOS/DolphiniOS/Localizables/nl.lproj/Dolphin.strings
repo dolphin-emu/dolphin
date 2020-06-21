@@ -2,7 +2,7 @@
 
 Because GameCube disc images contain little verification data, there may be problems that Dolphin is unable to detect." = "
 
-Omdat GameCube schijfkopieën weinig verificatiedata bevatten kunnen er problemen zijn die Dolphin niet kan detecteren.";
+Omdat GameCube schijfafbeeldingen weinig verificatiedata bevatten kunnen er problemen zijn die Dolphin niet kan detecteren.";
 "
 
 Because this title is not for retail Wii consoles, Dolphin cannot verify that it hasn't been tampered with." = "
@@ -21,8 +21,6 @@ WAARSCHUWING: Het herstellen van deze NAND vereist verwijdering van titels met o
 Het starten van deze titels kan de problemen ook oplossen.";
 " (Disc %1)" = " (Schijf %1)";
 "! Not" = "! Niet";
-"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "Het comprimeren van \"%s\" is mislukt. Waarschijnlijk is de schijfkopie corrupt.";
-"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" is al gecomprimeerd en kan niet verder worden gecomprimeerd.";
 "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\" is een ongeldig GCM/ISO-bestand.";
 "%" = "%";
 "% Modulo" = "% Modulo";
@@ -57,9 +55,12 @@ Huidige Frame: %3";
 "%1 session found" = "%1 sessie gevonden";
 "%1 sessions found" = "%1 sessies gevonden";
 "%1% (Normal Speed)" = "%1% (Normale Snelheid)";
+"%1MB (MEM1)" = "%1MB (MEM1)";
+"%1MB (MEM2)" = "%1MB (MEM2)";
 "%1[%2]: %3" = "%1[%2]: %3";
 "%1[%2]: %3 %" = "%1[%2]: %3 %";
 "%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 MiB";
+"%1x Native (%2x%3)" = "%1x Native (%2x%3)";
 "%i of %i blocks. Compression ratio %i%%" = "%i van %i blokken. Compressieverhouding %i%%";
 "%s (Masterpiece)" = "%s (Masterpiece)";
 "%s IPL found in %s directory. The disc might not be recognized" = "%s IPL gevonden in %s map. Het is mogelijk dat de schijf niet herkend wordt";
@@ -78,7 +79,6 @@ Huidige Frame: %3";
 "&Automatic Start" = "&Automatische Start";
 "&Boot from DVD Backup" = "&Opstarten vanaf DVD Backup";
 "&Breakpoints" = "&Breakpoints";
-"&Browse..." = "&Bladeren...";
 "&Bug Tracker" = "&Bug Tracker";
 "&Cancel" = "&Annuleren";
 "&Cheats Manager" = "&Cheatsbeheer";
@@ -88,6 +88,7 @@ Huidige Frame: %3";
 "&Code" = "&Code";
 "&Controller Settings" = "&Controller Instellingen";
 "&Copy address" = "&Kopieer adres";
+"&Create..." = "&Maak...";
 "&Delete" = "&Verwijderen";
 "&Delete Watch" = "&Verwijder Watchvenster";
 "&Edit Code..." = "&Wijzig Code...";
@@ -107,11 +108,12 @@ Huidige Frame: %3";
 "&Insert blr" = "&Voeg blr toe";
 "&JIT" = "&JIT";
 "&Language:" = "&Taal:";
-"&Load State" = "&Laad Staat";
+"&Load State" = "&Laad State";
 "&Load Symbol Map" = "&Laad Symbol Map";
 "&Lock Widgets In Place" = "&Vergrendel Widgets op hun Plaats";
 "&Memory" = "&Geheugen";
 "&Movie" = "&Film";
+"&Network" = "&Netwerk";
 "&Open..." = "&Open...";
 "&Options" = "&Opties";
 "&Patch HLE Functions" = "&Patch HLE Functies";
@@ -129,6 +131,7 @@ Huidige Frame: %3";
 "&Speed Limit:" = "&Snelheidslimiet:";
 "&Stop" = "&Stop";
 "&Theme:" = "&Thema:";
+"&Threads" = "&Threads";
 "&Tools" = "&Tools";
 "&View" = "&Weergave";
 "&Watch" = "&Watchvenster";
@@ -147,28 +150,34 @@ Huidige Frame: %3";
 "--> %1" = "--> %1";
 "..." = "...";
 "/ Divide" = "/ Delen";
+"128 Mbit (2043 blocks)" = "128 Mbit (2043 blokken)";
+"16 Mbit (251 blocks)" = "16 Mbit (251 blokken)";
 "16-bit" = "16-bits";
 "16-bit Integer" = "16-bits Geheel Getal";
 "16:9" = "16:9";
 "16x" = "16x";
 "1x" = "1x";
 "2x" = "2x";
-"2x Native (1280x1056) for 720p" = "2x Natief (1280x1056) voor 720p";
+"2x Native (1280x1056) for 720p" = "2x Native (1280x1056) voor 720p";
+"32 Mbit (507 blocks)" = "32 Mbit (507 blokken)";
 "32-bit" = "32-bits";
 "32-bit Integer" = "32-bits Geheel Getal";
 "3D" = "3D";
 "3D Depth" = "3D diepte";
-"3x Native (1920x1584) for 1080p" = "3x Natief (1920x1584) voor 1080p";
+"3x Native (1920x1584) for 1080p" = "3x Native (1920x1584) voor 1080p";
+"4 Mbit (59 blocks)" = "4 Mbit (59 blokken)";
 "4:3" = "4:3";
 "4x" = "4x";
-"4x Native (2560x2112) for 1440p" = "4x Natief (2560x2112) voor 1440p";
-"5x Native (3200x2640)" = "5x Natief (3200x2640)";
-"6x Native (3840x3168) for 4K" = "6x Natief (3840x3168) voor 4K";
-"7x Native (4480x3696)" = "7x Natief (4480x3696)";
+"4x Native (2560x2112) for 1440p" = "4x Native (2560x2112) voor 1440p";
+"5x Native (3200x2640)" = "5x Naive (3200x2640)";
+"64 Mbit (1019 blocks)" = "64 Mbit (1019 blokken)";
+"6x Native (3840x3168) for 4K" = "6x Native (3840x3168) voor 4K";
+"7x Native (4480x3696)" = "7x Native (4480x3696)";
+"8 Mbit (123 blocks)" = "8 Mbit (123 blokken)";
 "8-bit" = "8-bits";
 "8-bit Integer" = "8-bits Geheel Getal";
 "8x" = "8x";
-"8x Native (5120x4224) for 5K" = "8x Natief (5120x4224) voor 5K";
+"8x Native (5120x4224) for 5K" = "8x Native (5120x4224) voor 5K";
 "< Less-than" = "< Minder dan";
 "<Nothing>" = "<Niks>";
 "<System Language>" = "<Systeemtaal>";
@@ -187,6 +196,7 @@ WAD-versie: %u
 
 Het installeren van deze WAD zal het onherstelbaar vervangen. Doorgaan?";
 "A disc is already about to be inserted." = "Er ligt al een schijf in de lade.";
+"A save state cannot be loaded without specifying a game to launch." = "Een save state kan niet worden gebruikt zonder een spel te specificeren. ";
 "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "Er wordt al afgesloten. Niet opgeslagen data kan verloren gaan wanneer u de huidige emulatie stopzet voordat het afsluiten voltooid wordt. Stop forceren?";
 "A sync can only be triggered when a Wii game is running." = "Een synchronisatie kan alleen worden geactiveerd wanneer er een Wii spel draait.";
 "ALERT:
@@ -241,12 +251,16 @@ Master codes zijn niet nodig en moeten niet gebruikt worden.";
 "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "Action Replay: Normal Code 0: Onjuist Subtype %08x (%s)";
 "Activate NetPlay Chat" = "Activeer NetPlay Chat";
 "Active" = "Actief";
+"Active thread queue" = "Actieve thread wachtrij";
+"Active threads" = "Actieve threads";
 "Adapter Detected" = "Adapter Gevonden";
 "Adapter:" = "Adapter:";
 "Add" = "Toevoegen";
+"Add &breakpoint" = "Plaats &breakpoint";
 "Add New USB Device" = "Nieuw USB Apparaat Toevoegen";
 "Add a Breakpoint" = "Voeg een Breakpoint Toe";
 "Add a Memory Breakpoint" = "Voeg Een Geheugen Breakpoint Toe";
+"Add memory breakpoint" = "Plaats geheugen breakpoint";
 "Add to &watch" = "Toevoegen aan &watchvenster";
 "Add to Watch" = "Toevoegen aan Watchvenster";
 "Add..." = "Toevoegen...";
@@ -272,7 +286,12 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 Hogere waarden kunnen ervoor zorgen dat variabele framerate spellen op een hogere framerate draaien, ten koste van prestaties. Lagere waarden kunnen de interne frameskip van een spel activeren, waardoor prestaties mogelijk verbeteren.
 
 WAARSCHUWING: Het veranderen van de standaard (100%) kan en zal games breken en glitches veroorzaken. Doe dit op eigen risico. Rapporteer alstublieft geen bugs die plaatsvinden als u dit aanpast.";
-"Advance Game Port" = "Advance Gamepoort";
+"Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations." = "Past de geëmuleerde grootte van MEM1 en MEM2 aan.
+
+Sommige titels kunnen de grotere geheugenarena(s) herkennen en hiervan profiteren, hoewel retail titels normaal gesproken zijn geoptimaliseerd voor de retail geheugenlimieten.";
+"Advance Game Port" = "Advance Game Port";
 "Advanced" = "Geavanceerd";
 "Africa" = "Afrika";
 "All Files (*)" = "Alle Bestanden (*)";
@@ -284,6 +303,7 @@ WAARSCHUWING: Het veranderen van de standaard (100%) kan en zal games breken en 
 "All players' saves synchronized." = "Saves van alle spelers gesynchroniseerd.";
 "Allow Mismatched Region Settings" = "Sta Niet-Overeenkomende Regio-instellingen toe";
 "Allow Usage Statistics Reporting" = "Gebruiksstatistiekrapportage Toestaan";
+"Allow Writes to SD Card" = "Allow Writes to SD Card";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -311,6 +331,7 @@ Negeren en doorgaan?";
 "Anaglyph" = "Anaglyph";
 "Analyze" = "Analyseer";
 "Angle" = "Hoek";
+"Angular velocity to ignore." = "Hoeksnelheid drempelwaarde.";
 "Anisotropic Filtering:" = "Anisotrope Filtering:";
 "Anti-Aliasing:" = "Anti-Aliasing:";
 "Any Region" = "Elke Regio";
@@ -351,8 +372,9 @@ In geval van twijfel selecteer (uit).";
 Please select a specific internal resolution." = "Automatische interne resolutie is niet toegestaan in de strikte synchronisatiemodus, omdat dit afhankelijk is van de venstergrootte.
 
 Selecteer een specifieke interne resolutie.";
-"Auto-Adjust Window Size" = "Venstergrootte Automatisch Aanpassen";
+"Auto-Adjust Window Size" = "Pas Venstergrootte Automatisch aan";
 "Auto-Hide" = "Automatisch Verbergen";
+"Auto-detect RSO modules?" = "Auto-detect RSO module?";
 "Automatically adjusts the window size to the internal resolution.
 
 If unsure, leave this unchecked." = "Past de venster grootte automatisch aan aan de interne resolutie.
@@ -362,6 +384,7 @@ In geval van twijfel leeg laten.";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT is fout. Dolphin sluit zich nu af";
 "BP register " = "BP register ";
+"Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multi-threading";
 "Backend Settings" = "Backendinstellingen";
 "Backend:" = "Backend:";
@@ -374,6 +397,7 @@ In geval van twijfel leeg laten.";
 "Banner Details" = "Banner Details";
 "Banner:" = "Banner:";
 "Bar" = "Balk";
+"Base priority" = "Base prioriteit";
 "Basic" = "Basis";
 "Basic Settings" = "Basis Instellingen";
 "Bass" = "Bass";
@@ -381,20 +405,21 @@ In geval van twijfel leeg laten.";
 "Battery" = "Batterij";
 "Beta (once a month)" = "Bèta (één keer per maand)";
 "Bitrate (kbps):" = "Bitrate (kbps):";
+"Block Size:" = "Blokgrootte:";
 "Blocks" = "Blokken";
 "Blue" = "Blauw";
 "Blue Left" = "Blauw Links";
 "Blue Right" = "Blauw Rechts";
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "Bluetooth passthrough modus staat aan, maar Dolphin is gecompileerd zonder libusb. Passthrough  mode kan niet gebruikt worden.";
-"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "Bluetooth passthrough modus is ingeschakeld, maar er is geen bruikbaar Bluetooth USB-apparaat gevonden. Annuleren.";
 "Boot to Pause" = "Opstarten naar Pauze";
 "BootMii NAND backup file (*.bin);;All Files (*)" = "BootMii NAND backup bestanden (*.bin);;Alle bestanden (*)";
 "BootMii keys file (*.bin);;All Files (*)" = "BootMii sleutelbestand (*.bin);;Alle Bestanden (*)";
 "Borderless Fullscreen" = "Randloos Volledig Scherm";
 "Bottom" = "Beneden";
 "Branch: %1" = "Branch: %1";
+"Branches" = "Branches";
 "Break" = "Afbreken";
-"Breakpoint" = "Breekpunt";
+"Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breekpunt tegengekomen! Uitstappen afgebroken.";
 "Breakpoints" = "Breekpunten";
 "Broadband Adapter" = "Breedband Adapter";
@@ -433,6 +458,7 @@ Zorgt bijna nooit voor vertragingen of grafische problemen.
 In geval van twijfel leeg laten.";
 "Calibrate" = "Kalibreren";
 "Calibration" = "Kalibratie";
+"Calibration Period" = "Kalibratieperiode";
 "Callstack" = "Callstack";
 "Can't find Wii Remote by connection handle %02x" = "Kan Wii-afstandsbediening niet vinden via verbindingshendel %02x";
 "Can't start a NetPlay Session while a game is still running!" = "Kan geen NetPlay-sessie starten als spel nog draait!";
@@ -445,6 +471,7 @@ In geval van twijfel leeg laten.";
 Have you chosen the right type?" = "Kan de gegeven waarde niet interpreteren.
 Hebt u het juiste type gekozen?";
 "Cannot start the game, because the GC IPL could not be found." = "Kan het spel niet starten, omdat de GC IPL niet kon worden gevonden.";
+"Card Size" = "Kaartgrootte";
 "Center" = "Middelpunt";
 "Center and Calibrate" = "Centreer en Kalibreer";
 "Change &Disc" = "Schijf &Veranderen";
@@ -452,6 +479,15 @@ Hebt u het juiste type gekozen?";
 "Change Disc" = "Schijf Veranderen";
 "Change Discs Automatically" = "Verwisselen Schijfen Automatisch";
 "Change the disc to %s" = "Verander de schijf naar %s";
+"Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Verandert de in-game camera methode tijdens vrije kijk.
+
+Zes Assen: Biedt volledige camerabesturing op alle assen, vergelijkbaar met het verplaatsen van een ruimtevaartuig zonder zwaartekracht. Dit is de krachtigste vrije kijk methode maar is het meest uitdagend om te gebruiken.
+First Person: Bedient de vrije camera vergelijkbaar aan een first-person videospel. De camera kan draaien en rond bewegen maar rollen is onmogelijk. Makkelijk te gebruiken, maar beperkend.
+Orbitaal: Draait de vrije camera rond de originele camera. Heeft geen zijwaartse beweging, alleen rotatie. U kunt inzoomen tot het oorsprongspunt van de camera.";
 "Changing cheats will only take effect when the game is restarted." = "Het veranderen van cheats zal pas van kracht worden wanneer het spel opnieuw wordt opgestart.";
 "Chat" = "Chat";
 "Cheat Code Editor" = "Cheat Code Bewerker";
@@ -483,11 +519,7 @@ Hebt u het juiste type gekozen?";
 "Common" = "Gemeenschappelijk";
 "Compile Shaders Before Starting" = "Compileer Shaders Voor Starten";
 "Compiling Shaders" = "Shaders Compileren";
-"Compress ISO..." = "Comprimeer ISO ...";
-"Compress Selected ISOs..." = "Comprimeer geselecteerde ISO's ...";
-"Compressed GC/Wii images (*.gcz)" = "Gecomprimeerde GC/Wii-images (*.gcz)";
-"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "Het comprimeren van een Wii schijfkopie zal de gecomprimeerde kopie comprimeren door opvuldata te verwijderen en is niet meer om te draaien. Uw schijfkopie zal hierna nog steeds werken. Doorgaan?";
-"Compressing..." = "Comprimeren...";
+"Compressed GC/Wii images (*.gcz)" = "Gecomprimeerde GC/Wii-afbeelding (*.gcz)";
 "Condition" = "Conditie";
 "Config" = "Config";
 "Configure" = "Configureer";
@@ -507,13 +539,20 @@ Hebt u het juiste type gekozen?";
 "Connect Wii Remote 3" = "Verbind Wii-afstandsbediening 3";
 "Connect Wii Remote 4" = "Verbind Wii-afstandsbediening 4";
 "Connect Wii Remotes" = "Verbind Wii-afstandsbedieningen";
+"Connect Wii Remotes for Emulated Controllers" = "Verbind Wii-afstandbediening voor Geëmuleerde Controllers";
 "Connect to the Internet and perform an online system update?" = "Verbinding maken met internet en een online systeemupdate uitvoeren?";
+"Connected" = "Verbonden";
 "Connection Type:" = "Verbindingstype:";
 "Content %08x is corrupt." = "Inhoud %08x is beschadigd.";
 "Continuous Scanning" = "Continu Scannen";
 "Control NetPlay Golf Mode" = "Bedien NetPlay Golf Modus";
 "Control Stick" = "Control Stick";
+"Control Type:" = "Bestuur Methode:";
 "Controller Profile" = "Controllerprofiel";
+"Controller Profile 1" = "Controllerprofiel 1";
+"Controller Profile 2" = "Controllerprofiel 2";
+"Controller Profile 3" = "Controllerprofiel 3";
+"Controller Profile 4" = "Controllerprofiel 4";
 "Controller Settings" = "Controllerinstellingen";
 "Controllers" = "Controllers";
 "Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
@@ -529,7 +568,7 @@ If unsure, select Native." = "Geeft de resolutie aan die wordt gebruikt om te re
 
 Een hoge resolutie verbetert de visuele kwaliteit aanzienlijk, maar verhoogt de GPU belasting enorm en kan problemen veroorzaken in bepaalde spellen. Over het algemeen geldt dat hoe lager de interne resolutie is, hoe beter de prestaties zullen zijn.
 
-In geval van twijfel Natief selecteren.";
+In geval van twijfel Native selecteren.";
 "Controls the separation distance between the virtual cameras. 
 
 A higher value creates a stronger feeling of depth while a lower value is more comfortable." = "Regelt de afstand tussen de virtuele camera's.
@@ -539,6 +578,11 @@ Een hogere waarde creëert een sterker gevoel van diepte terwijl een lagere waar
 "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "Bepaalt of de geheugenbeheerseenheid (MMU) volledig moet worden geëmuleerd. Weinig spellen vereisen dit.";
 "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "Bepaalt of high of low-level DSP-emulatie moet worden gebruikt. Standaard ingesteld op <b>Waar</b>";
 "Convergence:" = "Convergentie:";
+"Convert" = "Converteer";
+"Convert File..." = "Converteer Bestand...";
+"Convert Selected Files..." = "Converteer Geselecteerde Bestanden...";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Het converteren van Wii-schijfimages naar GCZ zonder het verwijderen van loze data bespaart geen merkbare hoeveelheid ruimte in vergelijking met het converteren naar ISO. Wilt u toch doorgaan?";
+"Converting..." = "Converteren...";
 "Copy" = "Kopieer";
 "Copy &function" = "Kopieer &functie";
 "Copy &hex" = "Kopieer &hex";
@@ -555,6 +599,18 @@ Een hogere waarde creëert een sterker gevoel van diepte terwijl een lagere waar
 "Could not create peer." = "Kon geen peer maken.";
 "Could not download update files from Nintendo. Please check your Internet connection and try again." = "Kon geen updatebestanden van Nintendo downloaden. Controleer uw internetverbinding en probeer het opnieuw.";
 "Could not download update information from Nintendo. Please check your Internet connection and try again." = "Kon geen updateinformatie van Nintendo downloaden. Controleer uw internetverbinding en probeer het opnieuw.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop." = "Kan geen bruikbare Bluetooth USB-adapter vinden voor Bluetooth Passthrough.
+
+De geëmuleerde console stopt nu.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop." = "Kan geen bruikbare Bluetooth USB-adapter vinden voor Bluetooth Passthrough. De volgende fout deed zich voor toen Dolphin probeerde een adapter te gebruiken: %s
+
+De geëmuleerde console stopt nu.";
 "Could not install an update to the Wii system memory. Please refer to logs for more information." = "Kon geen update installeren naar het Wii-systeemgeheugen. Raadpleeg de logs voor meer informatie.";
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
 The emulated software will likely hang now." = "Kon IOS %016<PRIx64> niet starten omdat het ontbreekt in de NAND.
@@ -582,6 +638,8 @@ In dat geval moet u uw geheugenkaartlocatie opnieuw aangeven in de configuratie.
 "Couldn't open file." = "Kon bestand niet openen.";
 "Couldn't read file." = "Kon bestand niet lezen.";
 "Country:" = "Land:";
+"Create New Memory Card" = "Maak Nieuwe Geheugenkaart";
+"Create..." = "Maak...";
 "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
 
 If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
@@ -601,14 +659,15 @@ If unsure, leave this unchecked." = "Snijdt de afbeelding bij van de oorspronkel
 In geval van twijfel leeg laten.";
 "Crossfade" = "Crossfade";
 "Current Region" = "Huidige Regio";
+"Current context" = "Huidige context";
 "Current game" = "Huidig spel";
-"Custom" = "Aangepast";
+"Current thread" = "Huidige thread";
 "Custom RTC Options" = "Aangepaste RTC Opties";
 "D-Pad" = "D-Pad";
 "DJ Turntable" = "DJ Draaitafel";
 "DK Bongos" = "DK Bongos";
 "DSP Emulation Engine" = "DSP Emulatie Engine";
-"DSP HLE Emulation (fast)" = "DSP HLE Emulatie (snel)";
+"DSP HLE (fast)" = "DSP HLE (snel)";
 "DSP LLE Interpreter (slow)" = "DSP LLE Interpreter (traag)";
 "DSP LLE Recompiler" = "DSP LLE Recompiler";
 "DSU Client" = "DSU Client";
@@ -626,9 +685,6 @@ In geval van twijfel leeg laten.";
 "Debugging" = "Debugging";
 "Decimal" = "Decimaal";
 "Decoding Quality:" = "Decoding Kwaliteit:";
-"Decompress ISO..." = "Decomprimeer ISO...";
-"Decompress Selected ISOs..." = "Decomprimeer geselecteerde ISO's...";
-"Decompressing..." = "Decomprimeren...";
 "Decrease Convergence" = "Verlaag Convergentie";
 "Decrease Depth" = "Verlaag Diepte";
 "Decrease Emulation Speed" = "Verlaag Emulatiesnelheid";
@@ -638,6 +694,7 @@ In geval van twijfel leeg laten.";
 "Default Device" = "Standaardapparaat";
 "Default Font" = "Standaardlettertype";
 "Default ISO:" = "Standaard ISO:";
+"Default thread" = "Standaard thread";
 "Defer EFB Cache Invalidation" = "Stel EFB Cache Invalidatie uit";
 "Defer EFB Copies to RAM" = "Stel EFB Kopieën naar RAM uit";
 "Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
@@ -656,6 +713,7 @@ In geval van twijfel leeg laten.";
 "Depth:" = "Diepte:";
 "Description" = "Beschrijving";
 "Description:" = "Beschrijving:";
+"Detached" = "Ontkoppeld";
 "Detect" = "Detect";
 "Deterministic dual core:" = "Deterministische dual-core:";
 "Dev (multiple times a day)" = "Dev (meerdere keren per dag)";
@@ -676,6 +734,7 @@ Wilt u echt Direct3D 11 gebruiken? In geval van twijfel 'Nee' selecteren.";
 "Disable Copy Filter" = "Schakel Kopieerfilter uit";
 "Disable EFB VRAM Copies" = "Schakel EFB VRAM Kopieën uit";
 "Disable Emulation Speed Limit" = "Schakel Emulatie Snelheidslimit uit";
+"Disable Fastmem" = "Disable Fastmem";
 "Disable Fog" = "Schakel Mist uit";
 "Disable JIT Cache" = "JIT Cache uitschakelen";
 "Disables bounding box emulation.
@@ -716,7 +775,6 @@ In geval van twijfel leeg laten.";
 "Do you want to delete the selected save file?" = "Wilt u het geselecteerde save bestand verwijderen?";
 "Do you want to stop the current emulation?" = "Wilt u de emulatie stoppen?";
 "Dolby Pro Logic II Decoder" = "Dolby Pro Logic II Decoder";
-"Dolphin" = "Dolphin";
 "Dolphin FIFO Log (*.dff)" = "Dolphin FIFO Log (*.dff)";
 "Dolphin Map File (*.map)" = "Dolphin Mapbestand (*.map)";
 "Dolphin Signature CSV File" = "Dolphin Signatuur CSV Bestand";
@@ -731,8 +789,9 @@ Dubbelklik hier om een spellenmap in te stellen ...";
 "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "Dolphin kan TGC bestanden niet verifiëren, omdat het geen dumps zijn van werkelijke schijven.";
 "Dolphin is unable to verify unlicensed discs." = "Dolphin kan ongelicenseerde schijven niet verifiëren.";
 "Dolphin's cheat system is currently disabled." = "Dolphin's cheatsysteem is momenteel uitgeschakeld.";
+"Domain" = "Domein";
 "Don't Update" = "Niet Updaten";
-"Done compressing disc image." = "Comprimeren van schijfkopie voltooid.";
+"Done compressing disc image." = "Comprimeren van schijfafbeelding voltooid.";
 "Double" = "Double";
 "Down" = "Omlaag";
 "Download Codes" = "Download Codes";
@@ -754,6 +813,8 @@ Dubbelklik hier om een spellenmap in te stellen ...";
 "Dump Frames" = "Dump Frames";
 "Dump Objects" = "Dump Objecten";
 "Dump Path:" = "Dump Pad:";
+"Dump SSL read" = "Dump SSL read";
+"Dump SSL write" = "Dump SSL write";
 "Dump TEV Stages" = "Dump TEV Stages";
 "Dump TEV Stages to User/Dump/Objects/.
 
@@ -778,6 +839,8 @@ In geval van twijfel leeg laten.";
 If unsure, leave this unchecked." = "Dump Ojecten naar User/Dump/Objects/
 
 In geval van twijfel leeg laten.";
+"Dump peer certificates" = "Dump peer certificaten";
+"Dump root CA" = "Dump root CA";
 "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked." = "Dumpt de gedecodeerde textures naar User/Dump/Textures/<game_id>/.
@@ -799,6 +862,7 @@ Geschikt voor competitieve spellen waarbij rechtvaardigheid en minimale latentie
 "Editor" = "Bewerker";
 "Effect" = "Effect";
 "Effective" = "Effectief";
+"Effective priority" = "Effectieve prioriteit";
 "EiB" = "EiB";
 "Eject Disc" = "Schijf Uitwerpen";
 "Embedded Frame Buffer (EFB)" = "Embedded Frame Buffer (EFB)";
@@ -806,15 +870,21 @@ Geschikt voor competitieve spellen waarbij rechtvaardigheid en minimale latentie
 "Emu Thread already running" = "Emu Thread draait al";
 "Emulate the Wii's Bluetooth adapter" = "Emuleer de Wii's Bluetooth adapter";
 "Emulated Wii Remote" = "Emuleer Wii-afstandsbediening";
+"Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)" = "Geëmuleerde geheugengrootte komt niet overeen!
+Huidig: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)";
 "Emulation Speed" = "Emulatiesnelheid";
 "Enable" = "Inschakelen";
 "Enable API Validation Layers" = "Activeer API Validatielagen";
-"Enable Audio Stretching" = "Activeer Audiouitrekking";
+"Enable Audio Stretching" = "Activeer Audio Uitrekking";
 "Enable Cheats" = "Activeer Cheats";
 "Enable Custom RTC" = "Activeer Aangepaste RTC";
 "Enable Dual Core" = "Activeer Dual-Core";
 "Enable Dual Core (speedup)" = "Activeer Dual-Core (snelheidsverhoging)";
 "Enable Emulated CPU Clock Override" = "Activeer Overschrijven van Geëmuleerde CPU Klok";
+"Enable Emulated Memory Size Override" = "Schakel Gemuleerde Geheugen Grootte Overschrijven in";
 "Enable FPRF" = "Activeer FPRF";
 "Enable MMU" = "Activeer MMU";
 "Enable Progressive Scan" = "Activeer Progressieve Scan";
@@ -877,6 +947,7 @@ In geval van twijfel leeg laten.";
 If unsure, leave this unchecked." = "Encode frame dumps met de FFV1 codec. 
 
 In geval van twijfel leeg laten.";
+"Encoding" = "Encoding";
 "Enet Didn't Initialize" = "Enet niet geïnitialiseerd";
 "English" = "Engels";
 "Enhancements" = "Verbeteringen";
@@ -896,7 +967,7 @@ In geval van twijfel leeg laten.";
 "Error synchronizing cheat codes!" = "Fout bij het synchroniseren van cheat codes!";
 "Error synchronizing save data!" = "Fout bij synchroniseren van save data!";
 "Error writing file: %s" = "Fout bij het schrijven van bestand: %s";
-"Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load..." = "Fout: Na \\\"%s\\\", gevonden %d (0x%X) in plaats van bewaar punt %d (0x%X). Bewaarstaat laadactie wordt geannuleerd...";
+"Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting savestate load..." = "Fout: Na \\\"%s\\\", gevonden %d (0x%X) in plaats van bewaar punt %d (0x%X). Savestate laadactie wordt geannuleerd...";
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may not show fonts correctly, or crash." = "Fout: Poging tot het verkrijgen van toegang tot Shift JIS-lettertypen, maar deze zijn niet geladen. Spellen kunnen wellicht lettertypes niet juist weergeven, of crashen.";
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games may not show fonts correctly, or crash." = "Fout: Poging tot het verkrijgen van toegang tot Windows-1252-lettertypen, maar deze zijn niet geladen. Spellen kunnen wellicht lettertypes niet juist weergeven, of crashen.";
 "Errors were found in %zu blocks in the %s partition." = "Fouten zijn gevonden in %zu blokken in de %s partitie.";
@@ -931,6 +1002,7 @@ In geval van twijfel leeg laten.";
 "Extract System Data..." = "Systeemdata Uitpakken...";
 "Extracting All Files..." = "Alle Bestanden Uitpakken...";
 "Extracting Directory..." = "Map Uitpakken...";
+"FD" = "FD";
 "FIFO Player" = "FIFO Speler";
 "Failed opening memory card:
 %1" = "Openen van geheugenkaart mislukt:
@@ -945,7 +1017,7 @@ In geval van twijfel leeg laten.";
 "Failed to create DXGI factory" = "Kon DXGI factory niet maken";
 "Failed to delete NetPlay memory card. Verify your write permissions." = "Kon de NetPlay-geheugenkaart niet verwijderen. Controleer uw schrijfrechten.";
 "Failed to delete the selected file." = "Kon het geselecteerde bestand niet verwijderen.";
-"Failed to detach kernel driver for BT passthrough: %s" = "Kon kernel driver voor BT passthrough niet ontkoppelen: %s";
+"Failed to detach kernel driver for BT passthrough: {}" = "Kon kernel driver voor BT passthrough niet ontkoppelen: {}";
 "Failed to download codes." = "Kon codes niet downloaden.";
 "Failed to dump %1: Can't open file" = "Kon %1 niet dumpen: Kon het bestand niet openen";
 "Failed to dump %1: Failed to write to file" = "Kon %1 niet dumpen: Kon niet naar het bestand schrijven";
@@ -975,7 +1047,7 @@ Zorg ervoor dat uw videokaart ten minste D3D 10.0 ondersteunt.";
 "Failed to load map file '%1'" = "Kon mapbestand'%1' niet laden";
 "Failed to load the executable to memory." = "Kon het uitvoerbare bestand niet in het geheugen laden.";
 "Failed to open '%1'" = "Kon '%1' niet openen";
-"Failed to open Bluetooth device: %s" = "Kon Bluetooth-apparaat niet openen: %s";
+"Failed to open Bluetooth device: {}" = "Kon Bluetooth-apparaat niet openen: {}";
 "Failed to open config file!" = "Kon het configuratiebestand niet openen!";
 "Failed to open file \"%s\"." = "Kon bestand \"%s\" niet openen.";
 "Failed to open file \"%s\". Verify your write permissions." = "Kon bestand \"%s\" niet openen. Controleer uw schrijfrechten.";
@@ -983,14 +1055,20 @@ Zorg ervoor dat uw videokaart ten minste D3D 10.0 ondersteunt.";
 Make sure there's an application assigned to open INI files." = "Openen van bestand in externe editor mislukt.
 Zorg ervoor dat er een toepassing is toegewezen om INI-bestanden te openen.";
 "Failed to open server" = "Kon server niet openen";
-"Failed to open the input file \"%s\"." = "Kon inputbestand \"%s\" niet openen.";
+"Failed to open the input file \"%1\"." = "Kan het invoerbestand \"% 1\" niet openen.";
 "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written." = "Openen van \"%s\" is mislukt.
 Controleer of u permissies heeft om de map te maken, en dat de media geschreven kan worden.";
 "Failed to parse Redump.org data" = "Ontleden van Redump.org gegevens mislukt";
 "Failed to read %s" = "Lezen van %s is mislukt";
-"Failed to read unique ID from disc image" = "Het lezen van de unieke ID van de schijf image is mislukt";
+"Failed to read from the input file \"%s\"." = "Kan het invoerbestand \"%s\" niet lezen.";
+"Failed to read unique ID from disc image" = "Het lezen van de unieke ID van de schijfafbeelding is mislukt";
 "Failed to remove file" = "Kon bestand niet verwijderen";
+"Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?" = "Kan onnodige data niet verwijderen uit bestand \"% 1\".
+
+Wilt u het converteren zonder ongewenste gegevens te verwijderen?";
 "Failed to remove this title from the NAND." = "Kon deze titel niet van de NAND verwijderen.";
 "Failed to reset NetPlay GCI folder. Verify your write permissions." = "Kon NetPlay CGI-map niet resetten. Controleer uw schrijfrechten.";
 "Failed to reset NetPlay NAND folder. Verify your write permissions." = "Kon NetPlay NAND-map niet resetten. Controleer uw schrijfrechten.";
@@ -1014,9 +1092,9 @@ Controleer of u genoeg ruimte hebt op het doel.";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Fatale desync. Terugspelen wordt geannuleerd. (Fout in PlayWiimote: %u != %u, byte %u.)%s";
 "File Info" = "Bestandsinfo";
 "File Name" = "Bestandsnaam";
+"File Path" = "Bestandspad";
 "File Size" = "Bestandsgrootte";
 "File contained no codes." = "Bestand bevat geen codes.";
-"File not compressed" = "Bestand niet gecomprimeerd";
 "File write failed" = "Bestand schrijven mislukt";
 "File:" = "Bestand:";
 "Files opened, ready to compress." = "Bestanden geopend, gereed voor compressie.";
@@ -1044,6 +1122,7 @@ In geval van twijfel leeg laten.";
 This can take a while." = "De update voltooien...
 Dit kan even duren.";
 "First Block" = "Eerste Blok";
+"First Person" = "First Person";
 "Fix Checksums" = "Herstel Controlesommen";
 "Flags" = "Flags";
 "Float" = "Kommagetal";
@@ -1072,6 +1151,7 @@ If unsure, leave this checked." = "Forceert het spel om de RGB-kleurkanalen in 2
 Dit heeft geen invloed op prestaties en veroorzaakt weinig grafische problemen.
 
 In geval van twijfel geselecteerd laten.";
+"Format:" = "Formaat:";
 "Forward" = "Vooruit";
 "Forward port (UPnP)" = "Poort forwarden (UPnP)";
 "Found %1 results for \"%2\"" = "%1 resultaten gevonden voor \"%2\"";
@@ -1095,6 +1175,7 @@ In geval van twijfel geselecteerd laten.";
 "Freelook Move Up" = "Vrij kijken Beweeg Omhoog";
 "Freelook Reset" = "Vrij kijken Reset";
 "Freelook Reset Speed" = "Vrij kijken Reset Snelheid";
+"Freelook Toggle" = "Vrije kijk Schakelaar";
 "Freelook Zoom In" = "Vrij kijken Zoom In";
 "Freelook Zoom Out" = "Vrij kijken Zoom Uit";
 "French" = "Frans";
@@ -1182,9 +1263,11 @@ In geval van twijfel geselecteerd laten.";
 "Gyroscope" = "Gyroscoop";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "Hacks";
+"Head" = "Hoofd";
 "Hex" = "Hex";
 "Hexadecimal" = "Hexadecimaal";
 "Hide" = "Verberg";
+"Hide In-Game Sessions" = "Verberg In-Game Sessies";
 "Hide Incompatible Sessions" = "Verberg Incompatibele Sessies";
 "High" = "Hoog";
 "Highest" = "Hoogste";
@@ -1200,6 +1283,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Host with NetPlay" = "Host met NetPlay";
 "Hotkey Settings" = "Sneltoetsinstellingen";
 "Hotkeys" = "Sneltoetsen";
+"Hotkeys Require Window Focus" = "Sneltoetsen Vereisen Venster Focus";
 "Hz" = "Hz";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Een vereist bestand voor SSL-services (%s) is ongeldig. Raadpleeg https://dolphin-emu.org/docs/guides/wii-network-guide/ voor instructies over het instellen van Wii-netwerken.";
@@ -1209,11 +1293,17 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IR" = "IR";
 "IR Sensitivity:" = "IR Gevoeligheid:";
 "ISO Details" = "ISO Details";
+"ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: een eenvoudig en robuust formaat dat door veel programma's wordt ondersteund. Het neemt meer ruimte in beslag dan elk ander formaat.
+
+GCZ: een basaal gecomprimeerd formaat dat compatibel is met de meeste versies van Dolphin en enkele andere programma's. Het kan onnodige data (tenzij verwijderd) of gecodeerde Wii-data niet efficiënt comprimeren.";
 "Icon" = "Icoon";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Hetzelfde als Host Invoer Autoriteit, behalve dat de \"Host\" (die geen vertraging heeft) op elk moment gewisseld kan worden.
 Geschikt voor turn-based spellen met timing gevoelige bediening, zoals golf.";
 "Identity Generation" = "Genereer Identiteit";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1271,11 +1361,12 @@ In geval van twijfel geselecteerd laten.";
 "Input strength required for activation." = "Input drempelwaarde.";
 "Input strength to ignore." = "Input drempelwaarde.";
 "Insert &nop" = "Toevoegen &nop";
-"Insert SD Card" = "Steek SD-kaart in";
+"Insert SD Card" = "Plaats SD-kaart";
 "Install" = "Installeren";
 "Install Update" = "Installeer Update";
 "Install WAD..." = "Installeer WAD...";
 "Install to the NAND" = "Installeren op de NAND";
+"Instr." = "Instr.";
 "Instruction" = "Instructie";
 "Instruction Breakpoint" = "Instructie Breakpoint";
 "Instruction:" = "Instructie:";
@@ -1286,7 +1377,7 @@ In geval van twijfel geselecteerd laten.";
 "Internal LZO Error - decompression failed" = "Interne LZO fout - decompressie is mislukt";
 "Internal LZO Error - decompression failed (%d) (%li, %li) 
 Try loading the state again" = "Interne LZO fout - decompressie is mislukt (%d) (%li, %li) 
-Probeer de staat opnieuw te laden";
+Probeer de state opnieuw te laden";
 "Internal LZO Error - lzo_init() failed" = "Interne LZO fout - lzo_init() is mislukt";
 "Internal Resolution" = "Interne Resolutie";
 "Internal Resolution:" = "Interne Resolutie:";
@@ -1327,10 +1418,11 @@ Probeer de staat opnieuw te laden";
 "JIT Off (JIT Core)" = "JIT Uit (JIT Core)";
 "JIT Paired Off" = "JIT Paired Uit";
 "JIT Recompiler (recommended)" = "JIT Recompiler (aanbevolen)";
-"JIT Register Cache Off" = "JIT Register Cache Off";
+"JIT Register Cache Off" = "JIT Register Cache Uit";
 "JIT SystemRegisters Off" = "JIT SysteemRegisters Uit";
 "Japan" = "Japan";
 "Japanese" = "Japans";
+"Japanese (Shift-JIS)" = "Japans (Shift-JIS)";
 "Keep Window on Top" = "Houd Venster Bovenop";
 "Keyboard" = "Toetsenbord";
 "Keys" = "Toetsen";
@@ -1340,6 +1432,7 @@ Probeer de staat opnieuw te laden";
 "Korean" = "Koreaans";
 "L" = "L";
 "L-Analog" = "L-Analoog";
+"LR Save" = "LR Save";
 "Label" = "Label";
 "Latency:" = "Vertraging:";
 "Latency: ~10ms" = "Vertraging: ~10ms";
@@ -1369,37 +1462,38 @@ Midden-klik om te wissen.";
 "Limit Chunked Upload Speed:" = "Beperk chunked-uploadsnelheid:";
 "List Columns" = "Lijstkolommen";
 "List View" = "Lijstweergave";
+"Listening" = "Luisteren";
 "Load" = "Laad";
 "Load &Bad Map File..." = "Laad &Slechte Mapbestand...";
 "Load &Other Map File..." = "Laad &Ander Mapbestand...";
 "Load Custom Textures" = "Laad Aangepaste Texturen";
 "Load GameCube Main Menu" = "Laad GameCube Hoofdmenu";
-"Load Last State" = "Laad Laatste Staat";
+"Load Last State" = "Laad Laatste State";
 "Load Path:" = "Laad pad:";
-"Load State" = "Laad staat";
-"Load State Last 1" = "Laad Laatste Staat 1";
-"Load State Last 10" = "Laad Laatste Staat 10";
-"Load State Last 2" = "Laad Laatste Staat 2";
-"Load State Last 3" = "Laad Laatste Staat 3";
-"Load State Last 4" = "Laad Laatste Staat 4";
-"Load State Last 5" = "Laad Laatste Staat 5";
-"Load State Last 6" = "Laad Laatste Staat 6";
-"Load State Last 7" = "Laad Laatste Staat 7";
-"Load State Last 8" = "Laad Laatste Staat 8";
-"Load State Last 9" = "Laad Laatste Staat 9";
-"Load State Slot 1" = "Laad Staat 1";
-"Load State Slot 10" = "Laad Staat 10";
-"Load State Slot 2" = "Laad Staat 2";
-"Load State Slot 3" = "Laad Staat 3";
-"Load State Slot 4" = "Laad Staat 4";
-"Load State Slot 5" = "Laad Staat 5";
-"Load State Slot 6" = "Laad Staat 6";
-"Load State Slot 7" = "Laad Staat 7";
-"Load State Slot 8" = "Laad Staat 8";
-"Load State Slot 9" = "Laad Staat 9";
-"Load State from File" = "Laad Staat van Bestand";
-"Load State from Selected Slot" = "Laad Staat van Geselecteerde Slot";
-"Load State from Slot" = "Laad Staat van Slot";
+"Load State" = "Laad State";
+"Load State Last 1" = "Laad Laatste State 1";
+"Load State Last 10" = "Laad Laatste State 10";
+"Load State Last 2" = "Laad Laatste State 2";
+"Load State Last 3" = "Laad Laatste State 3";
+"Load State Last 4" = "Laad Laatste State 4";
+"Load State Last 5" = "Laad Laatste State 5";
+"Load State Last 6" = "Laad Laatste State 6";
+"Load State Last 7" = "Laad Laatste State 7";
+"Load State Last 8" = "Laad Laatste State 8";
+"Load State Last 9" = "Laad Laatste State 9";
+"Load State Slot 1" = "Laad State Slot 1";
+"Load State Slot 10" = "Laad State Slot 10";
+"Load State Slot 2" = "Laad State Slot 2";
+"Load State Slot 3" = "Laad State Slot 3";
+"Load State Slot 4" = "Laad State Slot 4";
+"Load State Slot 5" = "Laad State Slot 5";
+"Load State Slot 6" = "Laad State Slot 6";
+"Load State Slot 7" = "Laad State Slot 7";
+"Load State Slot 8" = "Laad State Slot 8";
+"Load State Slot 9" = "Laad State Slot 9";
+"Load State from File" = "Laad State van Bestand";
+"Load State from Selected Slot" = "Laad State van Geselecteerde Slot";
+"Load State from Slot" = "Laad State van Slot";
 "Load Wii Save" = "Laad Wii Save";
 "Load Wii System Menu %1" = "Laad Wii Hoofdmenu %1";
 "Load from Selected Slot" = "Laden van Geselecteerde Slot";
@@ -1435,6 +1529,7 @@ In geval van twijfel leeg laten.";
 "MD5 Checksum" = "MD5 Controlesom";
 "MD5:" = "MD5:";
 "MMU" = "MMU";
+"MORIBUND" = "MORIBUND";
 "MadCatz Gameshark files(*.gcs)" = "MadCatz Gameshark bestanden(*.gcs)";
 "Main Stick" = "Hoofd Knuppel";
 "Maker" = "Maker";
@@ -1474,6 +1569,7 @@ De bestandslocatie van slot %c is veranderd naar
 Wilt u de oude bestanden naar de nieuwe locatie kopiëren?
 ";
 "Memory Not Ready" = "Geheugen Niet Gereed";
+"Memory Override" = "Geheugen Overschrijven";
 "Memory breakpoint options" = "Geheugen breakpoint opties";
 "MemoryCard: ClearBlock called on invalid address (0x%x)" = "GCMemcardDirectory: ClearBlock aangeroepen op ongeldige adres (0x%x)";
 "MemoryCard: Read called with invalid source address (0x%x)" = "MemoryCard: Read aangeroepen met onjuiste bronadres (0x%x)";
@@ -1515,8 +1611,8 @@ In geval van twijfel leeg laten.";
 "Name of the tag to remove:" = "Naam van de te verwijderen tag:";
 "Name of your session shown in the server browser" = "Naam van uw sessie zoals weergegeven in de server browser";
 "Name:" = "Naam:";
-"Native (640x528)" = "Natief (640x528)";
-"Native GCI File (*.gci)" = "Natief GCI-bestand (*.gci)";
+"Native (640x528)" = "Native (640x528)";
+"Native GCI File (*.gci)" = "Native GCI-bestand (*.gci)";
 "NetPlay" = "NetPlay";
 "NetPlay Session Browser" = "NetPlay Sessie Browser";
 "NetPlay Setup" = "Netplay Instellingen";
@@ -1532,15 +1628,9 @@ In geval van twijfel leeg laten.";
 "New identity generated." = "Nieuwe identiteit gegenereerd.";
 "New instruction:" = "Nieuwe instructie:";
 "New tag" = "Nieuwe tag";
-"Next Game Profile for Wii Remote 1" = "Volgende Spelprofiel voor Wii-afstandsbediening 1";
-"Next Game Profile for Wii Remote 2" = "Volgende Spelprofiel voor Wii-afstandsbediening 2";
-"Next Game Profile for Wii Remote 3" = "Volgende Spelprofiel voor Wii-afstandsbediening 3";
-"Next Game Profile for Wii Remote 4" = "Volgende Spelprofiel voor Wii-afstandsbediening 4";
+"Next Game Profile" = "Volgend Spel Profiel";
 "Next Match" = "Volgende Overeenkomst";
-"Next Profile for Wii Remote 1" = "Volgende profiel voor Wii-afstandsbediening 1";
-"Next Profile for Wii Remote 2" = "Volgende profiel voor Wii-afstandsbediening 2";
-"Next Profile for Wii Remote 3" = "Volgende profiel voor Wii-afstandsbediening 3";
-"Next Profile for Wii Remote 4" = "Volgende profiel voor Wii-afstandsbediening 4";
+"Next Profile" = "Volgend Profiel";
 "Next Search" = "Volgende Zoekopdracht";
 "Nickname:" = "Bijnaam:";
 "No" = "Nee";
@@ -1560,7 +1650,7 @@ In geval van twijfel leeg laten.";
 "No recording loaded." = "Geen opname geladen.";
 "No save data found." = "Geen save data gevonden.";
 "No search value entered." = "Geen zoekwaarde opgegeven.";
-"No undo.dtm found, aborting undo load state to prevent movie desyncs" = "Geen undo.dtm gevonden. Het ongedaan maken van staat laden wordt afgebroken om film desynchronisatie te voorkomen";
+"No undo.dtm found, aborting undo load state to prevent movie desyncs" = "Geen undo.dtm gevonden, het ongedaan maken van de state laden wordt afgebroken om film desynchonisatie te voorkomen";
 "No value provided." = "Geen waarde opgegeven.";
 "None" = "Geen";
 "North America" = "Noord-Amerika";
@@ -1608,9 +1698,10 @@ In geval van twijfel leeg laten.";
 "Operators" = "Operators";
 "Options" = "Opties";
 "Orange" = "Oranje";
+"Orbital" = "Orbitaal";
 "Other" = "Overige";
-"Other State Hotkeys" = "Overige Staat-sneltoetsen";
-"Other State Management" = "Overige Staatbeheer";
+"Other State Hotkeys" = "Overige State Sneltoetsen";
+"Other State Management" = "Overige State Beheer";
 "Other game..." = "Ander spel...";
 "Overlay Information" = "Overlay Informatie";
 "P&lay Input Recording..." = "O&pname Invoer Afspelen...";
@@ -1620,6 +1711,7 @@ In geval van twijfel leeg laten.";
 "PPC vs Host" = "PPC vs Host";
 "Pad" = "Pad";
 "Pads" = "Pads";
+"Parameters" = "Parameters";
 "Parsing Error" = "Parseerfout";
 "Partition %1" = "Partitie %1";
 "Passive" = "Passief";
@@ -1674,15 +1766,9 @@ Dit kan even duren.";
 Not recommended, only use if the other options give poor results." = "Voorkomt shadercompilatie stotteren door wachtende objecten niet te renderen. Kan werken in scenario's waarin Ubershaders dat niet doen, ten koste van het introduceren van visuele glitches en slecht werkende effecten.
 
 Niet aanbevolen, gebruik alleen als de andere opties slechte resultaten opleveren.";
-"Previous Game Profile for Wii Remote 1" = "Vorige Spelprofiel voor Wii-afstandsbediening 1";
-"Previous Game Profile for Wii Remote 2" = "Vorige Spelprofiel voor Wii-afstandsbediening 2";
-"Previous Game Profile for Wii Remote 3" = "Vorige Spelprofiel voor Wii-afstandsbediening 3";
-"Previous Game Profile for Wii Remote 4" = "Vorige Spelprofiel voor Wii-afstandsbediening 4";
+"Previous Game Profile" = "Vorig Spel Profiel";
 "Previous Match" = "Vorige Overeenkomst";
-"Previous Profile for Wii Remote 1" = "Vorige Profiel voor Wii-afstandsbediening 1";
-"Previous Profile for Wii Remote 2" = "Vorige Profiel voor Wii-afstandsbediening 2";
-"Previous Profile for Wii Remote 3" = "Vorige Profiel voor Wii-afstandsbediening 3";
-"Previous Profile for Wii Remote 4" = "Vorige Profiel voor Wii-afstandsbediening 4";
+"Previous Profile" = "Vorig Profiel";
 "Private" = "Privé";
 "Private and Public" = "Privé en Openbaar";
 "Problem" = "Probleem";
@@ -1702,7 +1788,10 @@ Niet aanbevolen, gebruik alleen als de andere opties slechte resultaten oplevere
 "Quit" = "Stoppen";
 "R" = "R";
 "R-Analog" = "R-Analoog";
+"READY" = "GEREED";
 "RSO Modules" = "RSO Modules";
+"RSO auto-detection" = "RSO autodetectie";
+"RUNNING" = "LOPEND";
 "Range" = "Afstand";
 "Re&place instruction" = "Ver&vang instructie";
 "Read" = "Lezen";
@@ -1741,10 +1830,12 @@ In geval van twijfel \"Geen\" selecteren.";
 "Relative Input Hold" = "Relatieve Invoer Houden";
 "Remind Me Later" = "Herinner Me Later";
 "Remove" = "Verwijder";
+"Remove Junk Data (Irreversible):" = "Verwijder Onnodige Data (Onomkeerbaar):";
 "Remove Tag..." = "Tag Verwijderen...";
 "Remove failed" = "Verwijderen mislukt";
 "Remove from Watch" = "Verwijderen uit Watchvenster";
 "Remove tag" = "Tag verwijderen";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Het verwijderen van onnodige data bespaart geen ruimte bij het converteren naar ISO (tenzij u het ISO-bestand verpakt in een gecomprimeerd bestandsformaat zoals ZIP achteraf). Wilt u toch doorgaan?";
 "Rename symbol" = "Hernoem symbool";
 "Render Window" = "Render Scherm";
 "Render to Main Window" = "Geef weer op hoofdvenster";
@@ -1785,45 +1876,47 @@ Fixes graphical problems in some games at higher internal resolutions. This sett
 
 If unsure, leave this unchecked." = "Rondt 2D-hoekpunten af op hele pixels.
 
-Lost grafische problemen bij hogere interne resoluties op voor sommige spellen. Deze instelling heeft geen effect wanneer natieve interne resolutie wordt gebruikt.
+Lost grafische problemen bij hogere interne resoluties op voor sommige spellen. Deze instelling heeft geen effect wanneer native interne resolutie wordt gebruikt.
 
 In geval van twijfel leeg laten.";
 "Rumble" = "Rumble";
 "Run &To Here" = "Loop &Tot Hier";
 "Russia" = "Rusland";
 "SD Card" = "SD-kaart";
-"SD Card Image (*.raw);;All Files (*)" = "SD-kaart Image (*.raw);;Alle Bestanden(*)";
+"SD Card Image (*.raw);;All Files (*)" = "SD-kaartafbeedling (*.raw);;Alle Bestanden(*)";
 "SD Card Path:" = "SD-kaart Pad:";
 "SHA-1:" = "SHA-1:";
 "SP1:" = "SP1:";
+"SSL context" = "SSL context";
+"SSL options" = "SSL opties";
 "START" = "START";
 "Sa&ve Code" = "Code Op&slaan";
-"Sa&ve State" = "S&la Staat Op";
+"Sa&ve State" = "S&la State Op";
 "Safe" = "Veilig";
 "Save" = "Opslaan";
 "Save Export" = "Export Opslaan";
 "Save FIFO log" = "FIFO log Opslaan";
 "Save File to" = "Bestand Opslaan in";
 "Save Import" = "Import Opslaan";
-"Save Oldest State" = "Sla oudste staat op";
-"Save State" = "Sla staat op";
-"Save State Slot 1" = "Sla Staat 1 Op";
-"Save State Slot 10" = "Sla Staat 10 Op";
-"Save State Slot 2" = "Sla Staat 2 Op";
-"Save State Slot 3" = "Sla Staat 3 Op";
-"Save State Slot 4" = "Sla Staat 4 Op";
-"Save State Slot 5" = "Sla Staat 5 Op";
-"Save State Slot 6" = "Sla Staat 6 Op";
-"Save State Slot 7" = "Sla Staat 7 Op";
-"Save State Slot 8" = "Sla Staat 8 Op";
-"Save State Slot 9" = "Sla Staat 9 Op";
-"Save State to File" = "Sla Staat Op naar Bestand";
-"Save State to Oldest Slot" = "Sla Staat Op naar Oudste Slot";
-"Save State to Selected Slot" = "Sla Staat Op naar Geselecteerde Slot";
-"Save State to Slot" = "Sla Staat Op naar Slot";
+"Save Oldest State" = "Sla Oudste State op";
+"Save State" = "Save State";
+"Save State Slot 1" = "Save State Slot 1";
+"Save State Slot 10" = "Save State Slot 10";
+"Save State Slot 2" = "Save State Slot 2";
+"Save State Slot 3" = "Save State Slot 3";
+"Save State Slot 4" = "Save State Slot 4";
+"Save State Slot 5" = "Save State Slot 5";
+"Save State Slot 6" = "Save State Slot 6";
+"Save State Slot 7" = "Save State Slot 7";
+"Save State Slot 8" = "Save State Slot 8";
+"Save State Slot 9" = "Save State Slot 9";
+"Save State to File" = "Save State naar Bestand";
+"Save State to Oldest Slot" = "Save State naar Oudste Slot";
+"Save State to Selected Slot" = "Save State naar Geselecteerde Slot";
+"Save State to Slot" = "Save State naar Slot";
 "Save Symbol Map &As..." = "Sla Symbol Map Op &Als...";
 "Save Texture Cache to State" = "Sla Texture Cache in Save State op";
-"Save and Load State" = "Staat Opslaan en Laden";
+"Save and Load State" = "Save en Laad State";
 "Save as..." = "Opslaan als...";
 "Save combined output file as" = "Gecombineerde uitvoerbestand opslaan als";
 "Save data for this title already exists in the NAND. Consider backing up the current data before overwriting.
@@ -1835,7 +1928,6 @@ Nu overschrijven?";
 "Save to Slot %1 - %2" = "Opslaan naar Slot %1 - %2";
 "Save..." = "Opslaan...";
 "Saved Wii Remote pairings can only be reset when a Wii game is running." = "Opgeslagen Wii-afstandsbediening koppelingen kunnen alleen gerest worden wanneer er een Wii spel draait.";
-"Saved to /Wii/sd.raw (default size is 128mb)." = "Opgeslagen naar /Wii/sd.raw (standaardgrootte is 128mb).";
 "Savestate movie %s is corrupted, movie recording stopping..." = "Savestate film %s is corrupt, film opnemen stopt...";
 "Scaled EFB Copy" = "Geschaalde EFB Kopie";
 "ScrShot" = "ScrShot";
@@ -1854,39 +1946,40 @@ Nu overschrijven?";
 "Select" = "Selecteer";
 "Select Dump Path" = "Selecteer Dump Pad";
 "Select Export Directory" = "Selecteer Export Map";
-"Select Last State" = "Selecteer Laatste Staat";
+"Select Last State" = "Selecteer Laatste State";
 "Select Load Path" = "Selecteer Laad Pad";
 "Select Resource Pack Path" = "Selecteer Resourcepakket Pad";
 "Select Slot %1 - %2" = "Selecteer Slot %1 - %2";
-"Select State" = "Selecteer Staat";
-"Select State Slot" = "Selecteer Staat Slot";
-"Select State Slot 1" = "Selecteer Staat Slot 1";
-"Select State Slot 10" = "Selecteer Staat Slot 10";
-"Select State Slot 2" = "Selecteer Staat Slot 2";
-"Select State Slot 3" = "Selecteer Staat Slot 3";
-"Select State Slot 4" = "Selecteer Staat Slot 4";
-"Select State Slot 5" = "Selecteer Staat Slot 5";
-"Select State Slot 6" = "Selecteer Staat Slot 6";
-"Select State Slot 7" = "Selecteer Staat Slot 7";
-"Select State Slot 8" = "Selecteer Staat Slot 8";
-"Select State Slot 9" = "Selecteer Staat Slot 9";
+"Select State" = "Selecteer State";
+"Select State Slot" = "Selecteer State Slot";
+"Select State Slot 1" = "Selecteer State Slot 1";
+"Select State Slot 10" = "Selecteer State Slot 10";
+"Select State Slot 2" = "Selecteer State Slot 2";
+"Select State Slot 3" = "Selecteer State Slot 3";
+"Select State Slot 4" = "Selecteer State Slot 4";
+"Select State Slot 5" = "Selecteer State Slot 5";
+"Select State Slot 6" = "Selecteer State Slot 6";
+"Select State Slot 7" = "Selecteer State Slot 7";
+"Select State Slot 8" = "Selecteer State Slot 8";
+"Select State Slot 9" = "Selecteer State Slot 9";
 "Select Wii NAND Root" = "Selecteer Wii NAND Basismap";
 "Select a Directory" = "Selecteer een Map";
 "Select a File" = "Selecteer een Bestand";
 "Select a Game" = "Selecteer een Spel";
-"Select a SD Card Image" = "Selecteer een SD-kaart Image";
+"Select a SD Card Image" = "Selecteer een SD-kaartafbeelding";
 "Select a game" = "Selecteer een Spel";
 "Select a title to install to NAND" = "Selecteer een titel om te installeren op de NAND";
+"Select the RSO module address:" = "Selecteer het RSO module adres:";
 "Select the Recording File" = "Selecteer Opnamebestand";
 "Select the keys file (OTP/SEEPROM dump)" = "Selecteer het sleutelbestand (OTP/SEEPROM dump)";
 "Select the save file" = "Selecteer het save bestand";
-"Select where you want to save the compressed image" = "Selecteer waar u de gecomprimeerde image wilt opslaan";
-"Select where you want to save the compressed images" = "Selecteer waar u de gecomprimeerde images wilt opslaan";
-"Select where you want to save the decompressed image" = "Selecteer waar u de uitgepakte image wilt opslaan";
-"Select where you want to save the decompressed images" = "Selecteer waar u de uitgepakte images wilt opslaan";
+"Select where you want to save the converted image" = "Selecteer waar u de geconverteerde afbeelding wilt opslaan";
+"Select where you want to save the converted images" = "Selecteer waar u de geconverteerde afbeeldingen wilt opslaan";
 "Selected Font" = "Selecteer Font";
 "Selected controller profile does not exist" = "Geselecteerde controller profiel bestaat niet";
 "Selected game doesn't exist in game list!" = "Het geselecteerde spel bestaat niet in de spellijst!";
+"Selected thread callstack" = "Geselecteerde thread callstack";
+"Selected thread context" = "Geselecteerde thread context";
 "Selects a hardware adapter to use.
 
 If unsure, select the first one." = "Selecteert een hardware-adapter om te gebruiken.
@@ -2048,6 +2141,7 @@ In geval van twijfel leeg laten.";
 "Signed Integer" = "Signed Integer";
 "Simplified Chinese" = "Vereenvoudigd Chinees";
 "Simulate DK Bongos" = "Simuleer DK Bongos";
+"Six Axis" = "Zes Assen";
 "Size" = "Grootte";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "Grootte van uitrekkingsbuffer in milliseconden. Te lage waarden kunnen leiden tot krakend geluid.";
 "Skip" = "Overslaan";
@@ -2068,6 +2162,7 @@ In geval van twijfel geselecteerd laten.";
 "Slot A:" = "Slot A:";
 "Slot B" = "Slot B";
 "Slot B:" = "Slot B:";
+"Socket table" = "Socket table";
 "Software Renderer" = "Software Renderer";
 "Some of the data could not be read." = "Een deel van de data kon niet worden gelezen.";
 "Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "Sommige opvulgegevens die nul moeten zijn, zijn niet nul. Hierdoor kan het spel op bepaalde punten vastlopen.";
@@ -2080,15 +2175,19 @@ Controleer de gemarkeerde waarden.";
 "Spanish" = "Spaans";
 "Speaker Pan" = "Speaker Pan";
 "Speaker Volume:" = "Speaker Volume:";
+"Specific" = "Specifiek";
 "Speed" = "Snelheid";
 "Speed up Disc Transfer Rate" = "Versnel Disc Transfer Rate";
 "Stable (once a year)" = "Stabiel (één keer per jaar)";
+"Stack end" = "Stack eind";
+"Stack start" = "Stack begin";
 "Standard Controller" = "Standaard Controller";
 "Start" = "Start";
 "Start &NetPlay..." = "Start &NetPlay...";
 "Start Re&cording Input" = "Start Invoer Op&name";
 "Start Recording" = "Start Opname";
 "Started game" = "Gestart spel";
+"State" = "Staat";
 "Steering Wheel" = "Stuurwiel";
 "Step" = "Stap";
 "Step Into" = "Stap In";
@@ -2139,8 +2238,7 @@ In geval van twijfel geselecteerd laten.";
 "Success" = "Geslaagd";
 "Success." = "Gelukt.";
 "Successfully added to the NetPlay index" = "Succesvol aan NetPlay index toegevoegd";
-"Successfully compressed %n image(s)." = "%nimage(s) succesvol gecomprimeerd.";
-"Successfully decompressed %n image(s)." = "%n image(s) succesvol uitgepakt.";
+"Successfully converted %n image(s)." = "Succesvol %n afbeelding(en) geconverteerd.";
 "Successfully deleted '%1'." = "'%1' is succesvol verwijderd.";
 "Successfully deleted files." = "Bestanden succesvol verwijderd.";
 "Successfully exported save files" = "Save bestanden succesvol geëxporteerd";
@@ -2153,6 +2251,8 @@ In geval van twijfel geselecteerd laten.";
 "Successfully installed this title to the NAND." = "Titel succesvol geïnstalleerd op de NAND.";
 "Successfully removed this title from the NAND." = "Titel succesvol verwijderd van de NAND.";
 "Support" = "Ondersteuning";
+"Supports SD and SDHC. Default size is 128 MB." = "Ondersteunt SD en SDHC. De standaardgrootte is 128 MB.";
+"Suspended" = "Onderbroken";
 "Swap Eyes" = "Wissel Ogen";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2183,6 +2283,7 @@ In geval van twijfel leeg laten.";
 "TAS Tools" = "TAS-Tools";
 "Tags" = "Tags";
 "Taiko Drum" = "Taiko Drum";
+"Tail" = "Staart";
 "Taiwan" = "Taiwan";
 "Take Screenshot" = "Maak Screenshot";
 "Test" = "Test";
@@ -2192,6 +2293,7 @@ In geval van twijfel leeg laten.";
 "The %s partition does not seem to contain valid data." = "De %s partitie bevat geen valide data.";
 "The %s partition is not correctly signed." = "De %s partitie is niet correct ondertekend.";
 "The %s partition is not properly aligned." = "De %s partitie is niet goed uitgelijnd.";
+"The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)" = "De DFF's minimale loader versie (%d) overschrijd de versie van deze FIFO Player (%d)";
 "The H3 hash table for the %s partition is not correct." = "De H3 hashtabel voor de %s partitie is onjuist.";
 "The IPL file is not a known good dump. (CRC32: %x)" = "Het IPL bestand is geen bekende goede dump. (CRC32: %x)";
 "The Masterpiece partitions are missing." = "De Masterpiece partities ontbreken.";
@@ -2202,13 +2304,13 @@ In geval van twijfel leeg laten.";
 "The data partition is missing." = "De datapartitie ontbreekt.";
 "The data partition is not at its normal position. This will affect the emulated loading times. When using NetPlay or sending input recordings to other people, you will experience desyncs if anyone is using a good dump." = "De datapartitie staat niet op zijn normale positie. Dit heeft invloed op de geëmuleerde laadtijden. Wanneer u NetPlay gebruikt of input-opnames naar andere mensen verzendt, ervaart u desyncs als iemand een goede dump gebruikt.";
 "The disc change to \"%s\" could not be saved in the .dtm file.
-The filename of the disc image must not be longer than 40 characters." = "Schijfwissel naar \"%s\" kan niet worden opgeslagen in de .dtm bestand.
-Bestandsnaam van schijfimage mag niet langer dan 40 karakters zijn.";
+The filename of the disc image must not be longer than 40 characters." = "Schijf wissel naar \"%s\" kan niet worden opgeslagen in de .dtm bestand.
+Bestandsnaam van schijfafbeelding mag niet langer dan 40 karakters zijn.";
 "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)." = "Schijf kan niet worden gelezen (op 0x%<PRIx64> - 0x%<PRIx64>).";
 "The disc image \"%s\" is corrupt.
-Hash of block %<PRIu64> is %08x instead of %08x." = "Schijfkopie \"%s\" is beschadigd.
+Hash of block %<PRIu64> is %08x instead of %08x." = "Schijfafbeelding \"%s\" is beschadigd.
 Hash van block %<PRIu64> is %08x in plaats van %08x.";
-"The disc image \"%s\" is truncated, some of the data is missing." = "Schijfkopie \"%s\" is afgekapt en mist data.";
+"The disc image \"%s\" is truncated, some of the data is missing." = "Schijfafbeelding \"%s\" is afgekapt en mist data.";
 "The disc that was about to be inserted couldn't be found." = "De schijf die op het punt stond geplaatst te worden, kon niet worden gevonden.";
 "The emulated NAND is damaged. System titles such as the Wii Menu and the Wii Shop Channel may not work correctly.
 
@@ -2233,7 +2335,7 @@ Wilt u het vervangen?";
 "The file %s could not be opened for writing. Please check if it's already opened by another program." = "Bestand %s kan niet worden geopend om te schrijven. Controleer of het bestand al geopend is in een ander programma.";
 "The file %s was already open, the file header will not be written." = "Bestand %s is al geopend. De bestandsheader zal niet worden weggeschreven.";
 "The filesystem is invalid or could not be read." = "Het bestandssysteem is ongeldig of kon niet gelezen worden.";
-"The format that the disc image is saved in does not store the size of the disc image." = "Het formaat waarin de schijfkopie is opgeslagen, slaat de grote van de schijfkopie niet op.";
+"The format that the disc image is saved in does not store the size of the disc image." = "Het formaat waarin de schijfafbeelding is opgeslagen, slaat de grote van de schijfafbeelding niet op.";
 "The game ID is %s but should be %s." = "Het spel ID is %s maar zou %s moeten zijn.";
 "The game ID is inconsistent." = "Het spel ID is inconsistent.";
 "The game ID is unusually short." = "Het spel ID is ongewoon kort.";
@@ -2284,12 +2386,12 @@ Wilt u alle niet-gecodeerde regels verwijderen?";
 "This WAD is not valid." = "Deze WAD is niet geldig.";
 "This action replay simulator does not support codes that modify Action Replay itself." = "Deze action replay simulator ondersteund geen codes die de Action Replay zelf aanpassen.";
 "This cannot be undone!" = "Dit kan niet ongedaan gemaakt worden!";
-"This debug disc image has the size of a retail disc image." = "Deze debug schijfkopie heeft de grote van een retail schijfkopie.";
-"This disc image has an unusual size." = "Deze schijfkopie heeft een ongebruikelijke grote.";
+"This debug disc image has the size of a retail disc image." = "Deze debug schijfafbeelding heeft de grote van een retail schijfafbeelding.";
+"This disc image has an unusual size." = "Deze schijfafbeelding heeft een ongebruikelijke grote.";
 "This disc image has an unusual size. This will likely make the emulated loading times longer. When using NetPlay or sending input recordings to other people, you will likely experience desyncs if anyone is using a good dump." = "Deze schijfafbeelding heeft een ongewone grootte. Dit zal de geëmuleerde laadtijden waarschijnlijk langer maken. Wanneer u NetPlay gebruikt of input-opnames naar andere mensen verzendt, zult u waarschijnlijk desyncs ervaren als iemand een goede dump gebruikt.";
-"This disc image is in the NKit format. It is not a good dump in its current form, but it might become a good dump if converted back. The CRC32 of this file might match the CRC32 of a good dump even though the files are not identical." = "Deze schijfkopie heeft het NKit-formaat. Het is geen goede dump in zijn huidige vorm maar het kan een goede dump worden als het terug wordt geconverteerd. De CRC32 van dit bestand kan overeenkomen met de CRC32 van een goede dump, hoewel de bestanden niet identiek zijn.";
-"This disc image is too small and lacks some data. If your dumping program saved the disc image as several parts, you need to merge them into one file." = "Deze schijfkopie is te klein en mist wat gegevens. Als uw dumpprogramma de schijfkopie in verschillende stukken heeft opgeslagen, moet u deze in één bestand samenvoegen.";
-"This disc image is too small and lacks some data. The problem is most likely that this is a dual-layer disc that has been dumped as a single-layer disc." = "Deze schijfkopie is te klein en mist wat gegevens. Het probleem is hoogstwaarschijnlijk veroorzaakt doordat dit een dubbellaagse schijf is die als een enkellaagse schijf is gedumpt.";
+"This disc image is in the NKit format. It is not a good dump in its current form, but it might become a good dump if converted back. The CRC32 of this file might match the CRC32 of a good dump even though the files are not identical." = "Deze schijfafbeelding heeft het NKit-formaat. Het is geen goede dump in zijn huidige vorm maar het kan een goede dump worden als het terug wordt geconverteerd. De CRC32 van dit bestand kan overeenkomen met de CRC32 van een goede dump, hoewel de bestanden niet identiek zijn.";
+"This disc image is too small and lacks some data. If your dumping program saved the disc image as several parts, you need to merge them into one file." = "Deze schijfafbeelding is te klein en mist wat gegevens. Als uw dumpprogramma de schijfafbeelding in verschillende stukken heeft opgeslagen, moet u deze in één bestand samenvoegen.";
+"This disc image is too small and lacks some data. The problem is most likely that this is a dual-layer disc that has been dumped as a single-layer disc." = "Deze schijfafbeelding is te klein en mist wat gegevens. Het probleem is hoogstwaarschijnlijk veroorzaakt doordat dit een dubbellaagse schijf is die als een enkellaagse schijf is gedumpt.";
 "This file does not look like a BootMii NAND backup." = "Dit bestand lijkt niet op een BootMii NAND-back-up.";
 "This game has been hacked to fit on a single-layer DVD. Some content such as pre-rendered videos, extra languages or entire game modes will be broken. This problem generally only exists in illegal copies of games." = "Dit spel is gehackt zodat het op een single-layer DVD past. Inhoud zoals vooraf gerenderde videos, extra talen of hele spelmodi zullen niet goed werken. Dit probleem komt over het algemeen alleen in illegale kopieën van spellen voor.";
 "This game requires bounding box emulation to run properly but your graphics card or its drivers do not support it. As a result you will experience bugs or freezes while running this game." = "Dit spel vereist bounding box emulatie om correct te werken, maar uw grafische kaart of stuurprogramma's ondersteunen dit niet. Als gevolg hiervan zult u bugs of vastlopers ervaren tijdens het uitvoeren van dit spel.";
@@ -2324,9 +2426,12 @@ Onbekende ucode (CRC = %08x) - AXWii wordt geforceerd.";
 "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "Hiermee worden extra grafische instellingen gesynchroniseerd en wordt iedereen gedwongen dezelfde interne resolutie te gebruiken.
 Kan desync in spellen die EFB-reads gebruiken voorkomen. Zorg ervoor dat iedereen dezelfde video-backend gebruikt.";
+"Thread context" = "Thread context";
+"Threads" = "Threads";
 "Threshold" = "Drempelwaarde";
 "TiB" = "TiB";
 "Tilt" = "Kantelen";
+"Time period of stable input to trigger calibration. (zero to disable)" = "Tijdsperiode van stabiele invoer om kalibratie te activeren. (nul om uit te schakelen)";
 "Title" = "Titel";
 "To" = "Naar";
 "To:" = "Naar:";
@@ -2369,6 +2474,7 @@ Kan desync in spellen die EFB-reads gebruiken voorkomen. Zorg ervoor dat iederee
 "U&16" = "U&16";
 "U&32" = "U&32";
 "U&8" = "U&8";
+"UNKNOWN" = "ONBEKEND";
 "USA" = "USA";
 "USB Gecko" = "USB Gecko";
 "USB Whitelist Error" = "USB Witte Lijst Fout";
@@ -2391,6 +2497,7 @@ Alleen aanbevolen voor high-end systemen.";
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "Ubershaders worden gebruikt om stotteren tijdens het compileren van de shaders te voorkomen, maar gespecialiseerde shaders zullen worden gebruikt wanneer ze geen stotteren veroorzaken.
 
 In het beste geval elimineert het compileren van shadercompilatie met minimale impact op de prestaties, maar de resultaten zijn afhankelijk van het gedrag van videostuurprogramma's.";
+"Unable to auto-detect RSO module" = "Kan RSO-module niet automatisch detecteren";
 "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
 
 Would you like to ignore this line and continue parsing?" = "Niet in staat om regel %1 van de ingevoerde AR code te verwerken als een geldige gecodeerde of gedecodeerde code. Controleer of u het correct heeft getypt.
@@ -2402,9 +2509,10 @@ Would you like to ignore this line and continue parsing?" = "Niet in staat om re
 
 Wilt u deze regel negeren en verder gaan met verwerken?";
 "Unable to write to file %s" = "Niet in staat om naar bestand %s te schrijven";
-"Uncompressed GC/Wii images (*.iso *.gcm)" = "Ongecomprimeerde GC/Wii-images (*.iso *.gcm)";
-"Undo Load State" = "Laad Staat ongedaan maken";
-"Undo Save State" = "Save Staat ongedaan maken";
+"Unbound" = "Unbound";
+"Uncompressed GC/Wii images (*.iso *.gcm)" = "Ongecomprimeerde GC/Wii-afbeeldingen (*.iso *.gcm)";
+"Undo Load State" = "Laad State Ongedaan Maken";
+"Undo Save State" = "Save State Ongedaan Maken";
 "Unexpected 0x80 call? Aborting..." = "Onverwachtte 0x80 fout? Annuleren...";
 "Uninstall" = "Deïnstalleren";
 "Uninstall from the NAND" = "Deïnstalleren van de NAND";
@@ -2479,6 +2587,7 @@ In geval van twijfel leeg laten.";
 "Verbosity" = "Breedsprakigheid";
 "Verify" = "Verifieer";
 "Verify Integrity" = "Verifiëer integriteit";
+"Verify certificates" = "Controleer certificaten";
 "Verifying" = "Verifiëren";
 "Version" = "Versie";
 "Vertex Rounding" = "Vertex Afronding";
@@ -2496,6 +2605,7 @@ In geval van twijfel leeg laten.";
 "WAD installation failed: Could not import content %08x." = "WAD installatie mislukt: Kon inhoud niet importeren %08x.";
 "WAD installation failed: Could not initialise title import (error %d)." = "WAD installatie mislukt: Kon titelimport niet initialiseren (fout %d).";
 "WAD installation failed: The selected file is not a valid WAD." = "WAD installatie mislukt: Het geselecteerde bestand is geen geldige WAD.";
+"WAITING" = "WACHTEN";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "Waarschuwing: De bediening van Accelerometer en Gyroscoop is ontworpen om rechtstreeks te worden gekoppeld aan bewegingssensors. Het is niet bedoeld om te koppelen met traditionele knoppen, trekkers of sticks. Mogelijk moet u alternatieve invoerbronnen configureren voordat u deze besturing kan gebruiken.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "Waarschuwing: Deze bediening is ontworpen om rechtstreeks te worden gekoppeld aan bewegingssensors. Het is niet bedoeld om te koppelen met traditionele knoppen, trekkers of sticks. Mogelijk moet u alternatieve invoerbronnen configureren voordat u deze besturing kan gebruiken.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusieve Modus)";
@@ -2525,9 +2635,9 @@ In geval van twijfel geselecteerd laten.";
 "Warning" = "Waarschuwing";
 "Warning: Analog inputs may reset to controller values at random. In some cases this can be fixed by adding a deadzone." = "Waarschuwing: Analoge invoer kan willekeurig worden gereset naar controllerwaarden. In sommige gevallen kan dit worden opgelost door een dode zone toe te voegen.";
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of the loaded file header (%u)" = "Waarschuwing: Het aantal blokken aangegeven door BAT (%u) komt niet overeen met de geladen bestandsheader (%u)";
-"Warning: You loaded a save that's after the end of the current movie. (byte %u > %zu) (input %u > %u). You should load another save before continuing, or load this state with read-only mode off." = "Waarschuwing: U hebt een save geladen die zich na het einde van de huidige film bevindt. (byte %u > %zu) (invoer %u > %u). U moet een andere save laden voordat u verdergaat, of deze staat laden in alleen-lezen modus.";
+"Warning: You loaded a save that's after the end of the current movie. (byte %u > %zu) (input %u > %u). You should load another save before continuing, or load this state with read-only mode off." = "Waarschuwing: U hebt een save geladen die zich na het einde van de huidige film bevindt. (byte %u > %zu) (invoer %u > %u). U moet een andere save laden voordat u verdergaat, of deze state laden in alleen-lezen modus.";
 "Warning: You loaded a save whose movie ends before the current frame in the save (byte %u < %u) (frame %u < %u). You should load another save before continuing." = "Waarschuwing: U hebt een save geladen waarvan de huidige film eindigt voor het huidige beeld in de save (byte %u < %u) (frame %u < %u). U moet een andere save laden voordat u verder gaat.";
-"Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync." = "Waarschuwing: U hebt een save geladen waarvan de film niet overeenkomt op byte %zu (0x%zX). U moet een andere save laden voordat u verder gaat, of deze staat opnieuw laden met alleen-lezen modus uitgeschakeld. Anders zullen er waarschijnlijk synchronisatieproblemen optreden.";
+"Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync." = "Waarschuwing: U hebt een save geladen waarvan de film niet overeenkomt op byte %zu (0x%zX). U moet een andere save laden voordat u verder gaat, of deze state opnieuw laden met alleen-lezen modus uitgeschakeld. Anders zullen er waarschijnlijk synchronisatieproblemen optreden.";
 "Warning: You loaded a save whose movie mismatches on frame %td. You should load another save before continuing, or load this state with read-only mode off. Otherwise you'll probably get a desync.
 
 More information: The current movie is %d frames long and the savestate's movie is %d frames long.
@@ -2536,7 +2646,7 @@ On frame %td, the current movie presses:
 Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d
 
 On frame %td, the savestate's movie presses:
-Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d" = "Waarschuwing: U hebt een save geladen waarvan de film niet overeenkomt op frame %td. U dient een andere save te laden voordat u verder gaat, of laad deze staat opnieuw met alleen-lezen modus uitgeschakeld. Anders zullen er waarschijnlijk synchronisatieproblemen optreden.
+Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d, Connected=%d" = "Waarschuwing: U hebt een save geladen waarvan de film niet overeenkomt op frame %td. U dient een andere save te laden voordat u verder gaat, of laad deze state opnieuw met alleen-lezen modus uitgeschakeld. Anders zullen er waarschijnlijk synchronisatieproblemen optreden.
 
 Meer informatie: De huidige film is %d frames lang en de film van de savestate is %d frames lang.
 
@@ -2548,6 +2658,7 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOmhoog=%d, DOmlaag=%d, DLinks=%d, DRech
 "Watch" = "Watch";
 "WaveFileWriter - file not open." = "WaveFileWriter - bestand niet open.";
 "Website" = "Website";
+"Western (Windows-1252)" = "Westers (Windows-1252)";
 "Whammy" = "Whammy";
 "Whitelisted USB Passthrough Devices" = "Witte lijst van USB Passthrough Apparaten";
 "Widescreen Hack" = "Breedbeeld Hack";
@@ -2608,16 +2719,19 @@ Als u \"Nee\" selecteert kan het geluid vervormd klinken.";
 "cm" = "cm";
 "d3d12.dll could not be loaded." = "d3d12.dll kan niet worden geladen.";
 "disconnected" = "verbinding verbroken";
+"errno" = "errno";
 "fake-completion" = "fake-completion";
 "m/s" = "m/s";
 "none" = "geen";
 "on" = "aan";
 "or select a device" = "of selecteer een apparaat";
+"s" = "s";
 "uDraw GameTablet" = "uDraw GameTablet";
 "{} failed to synchronize codes." = "{} kon codes niet synchroniseren.";
 "{} failed to synchronize." = "{} kon niet synchroniseren.";
 "| Or" = "| Of";
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ Dolphin Team. “GameCube”en “Wii”  zijn geregistreerde handelsmerken van Nintendo. Dolphin is op geen enkele manier verbonden met Nintendo.";
 "°" = "°";
+"°/s" = "°/s";
 "✔ Invite" = "✔ Uitnodigen";
 "✖ Decline" = "✖ Weigeren";

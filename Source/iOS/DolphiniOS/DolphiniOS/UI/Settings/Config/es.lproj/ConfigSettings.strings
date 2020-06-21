@@ -8,8 +8,8 @@
 /* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "Idioma del sistema";
 
-/* Class = "UITableViewSection"; headerTitle = "Ciclo de reloj"; ObjectID = "16h-jz-fQG"; */
-"16h-jz-fQG.headerTitle" = "Ciclo de reloj";
+/* Class = "UITableViewSection"; headerTitle = "Anulación de reloj"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "Anulación de reloj";
 
 /* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "1L5-Kj-USx"; */
 "1L5-Kj-USx.text" = "Idioma del sistema";
@@ -92,8 +92,8 @@
 /* Class = "UITableViewSection"; headerTitle = "Otros ajustes"; ObjectID = "Is2-CQ-RYW"; */
 "Is2-CQ-RYW.headerTitle" = "Otros ajustes";
 
-/* Class = "UILabel"; text = "Permitir configuracion de region inparejada"; ObjectID = "JXJ-Qk-sNk"; */
-"JXJ-Qk-sNk.text" = "Permitir configuracion de region inparejada";
+/* Class = "UILabel"; text = "Permitir configuración de región independiente."; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "Permitir configuración de región independiente.";
 
 /* Class = "UINavigationItem"; title = "Configuración"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = "Configuración";

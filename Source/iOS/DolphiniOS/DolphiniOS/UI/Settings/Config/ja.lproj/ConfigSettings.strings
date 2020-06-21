@@ -20,8 +20,8 @@
 /* Class = "UILabel"; text = "デュアルコア動作を行う (速度向上)"; ObjectID = "Hqe-6i-IcW"; */
 "Hqe-6i-IcW.text" = "デュアルコア動作を行う (速度向上)";
 
-/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
-"JXJ-Qk-sNk.text" = "Allow Mismatched Region Settings";
+/* Class = "UILabel"; text = "コンソール上の言語設定の不一致を許可"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "コンソール上の言語設定の不一致を許可";
 
 /* Class = "UINavigationItem"; title = "一般"; ObjectID = "VNc-Ms-o2f"; */
 "VNc-Ms-o2f.title" = "一般";
@@ -62,8 +62,8 @@
 /* Class = "UITableViewSection"; headerTitle = "タイムストレッチの設定"; ObjectID = "Gbe-Ah-d5T"; */
 "Gbe-Ah-d5T.headerTitle" = "タイムストレッチの設定";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
-"w8Z-IJ-Fbf.text" = "Enable";
+/* Class = "UILabel"; text = "有効"; ObjectID = "w8Z-IJ-Fbf"; */
+"w8Z-IJ-Fbf.text" = "有効";
 
 /* Class = "UILabel"; text = "システムの言語"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "システムの言語";
@@ -191,8 +191,8 @@
 /* Class = "UINavigationItem"; title = "高度な設定"; ObjectID = "0s6-c7-OwY"; */
 "0s6-c7-OwY.title" = "高度な設定";
 
-/* Class = "UITableViewSection"; headerTitle = "Clock Override"; ObjectID = "16h-jz-fQG"; */
-"16h-jz-fQG.headerTitle" = "Clock Override";
+/* Class = "UITableViewSection"; headerTitle = "Clock Override を有効化"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "Clock Override を有効化";
 
 /* Class = "UITableViewSection"; headerTitle = "CPU設定"; ObjectID = "3FW-wh-rEp"; */
 "3FW-wh-rEp.headerTitle" = "CPU設定";
@@ -203,8 +203,8 @@
 /* Class = "UILabel"; text = "ヘルプ"; ObjectID = "7wX-hc-fac"; */
 "7wX-hc-fac.text" = "ヘルプ";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "PUW-7n-hkA"; */
-"PUW-7n-hkA.text" = "Enable";
+/* Class = "UILabel"; text = "有効"; ObjectID = "PUW-7n-hkA"; */
+"PUW-7n-hkA.text" = "有効";
 
 /* Class = "UILabel"; text = "JIT Recompiler (推奨)"; ObjectID = "QLN-FA-k5N"; */
 "QLN-FA-k5N.text" = "JIT Recompiler (推奨)";

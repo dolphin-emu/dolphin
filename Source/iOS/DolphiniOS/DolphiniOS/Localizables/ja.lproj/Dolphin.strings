@@ -21,8 +21,6 @@ Launching these titles may also fix the issues." = "
 （これらのタイトルを起動することで問題が解決する場合もあります）";
 " (Disc %1)" = "(ディスク %1)";
 "! Not" = "! Not（否定）";
-"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "\"%s\" のスクラビングに失敗しました。おそらく壊れています。";
-"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" は圧縮済みです！これ以上圧縮することはできません。";
 "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\" は無効なファイル、またはゲームキューブ／Wii のISOではありません";
 "%" = "%";
 "% Modulo" = "% Modulo（剰余）";
@@ -52,21 +50,24 @@ Current Frame: %3" = "%1 フレーム
 現在のフレーム： %3";
 "%1 has joined" = "%1 が入室しました";
 "%1 has left" = "%1 が退室しました";
-"%1 is now golfing" = "%1 is now golfing";
+"%1 is now golfing" = "%1 がゴルフ中";
 "%1 ms" = "%1 ms";
 "%1 session found" = "%1 個のセッションを発見";
 "%1 sessions found" = "%1 個のセッションを発見";
 "%1% (Normal Speed)" = "%1% (標準)";
+"%1MB (MEM1)" = "%1MB (MEM1)";
+"%1MB (MEM2)" = "%1MB (MEM2)";
 "%1[%2]: %3" = "%1[%2]: %3";
 "%1[%2]: %3 %" = "%1[%2]: %3 %";
 "%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 MiB";
+"%1x Native (%2x%3)" = "%1x Native (%2x%3)";
 "%i of %i blocks. Compression ratio %i%%" = "処理中... %i (全%iブロック中) 圧縮比：%i%%";
 "%s (Masterpiece)" = "%s (名作トライアル)";
 "%s IPL found in %s directory. The disc might not be recognized" = "%s IPL が %s フォルダ内で見つかりました. ディスクが認識されない可能性があります。";
 "%s is not a directory, failed to move to *.original.
  Verify your write permissions or move the file outside of Dolphin" = "%s はフォルダではありません。*.original ファイルの移動に失敗しました
 書き込み権限を確認するか、ファイルをDolphinの外部へ移動させて下さい";
-"%s was not a directory, moved to *.original" = "%s was not a directory, moved to *.original";
+"%s was not a directory, moved to *.original" = "%s はフォルダでなかったので、*.original へ移動させました";
 "& And" = "& And（論理積）";
 "&About" = "Dolphinについて(&A)";
 "&Add Memory Breakpoint" = "&Add Memory Breakpoint";
@@ -78,7 +79,6 @@ Current Frame: %3" = "%1 フレーム
 "&Automatic Start" = "&Automatic Start";
 "&Boot from DVD Backup" = "DVDバックアップから起動(&B)";
 "&Breakpoints" = "&Breakpoints";
-"&Browse..." = "開く...(&B)";
 "&Bug Tracker" = "バグトラッカー(&B)";
 "&Cancel" = "キャンセル(&C)";
 "&Cheats Manager" = "チートマネージャ(&C)";
@@ -88,6 +88,7 @@ Current Frame: %3" = "%1 フレーム
 "&Code" = "&Code";
 "&Controller Settings" = "コントローラ設定(&C)";
 "&Copy address" = "&Copy address";
+"&Create..." = "作成(&C)";
 "&Delete" = "削除(&D)";
 "&Delete Watch" = "&Delete Watch";
 "&Edit Code..." = "コードを編集...(&E)";
@@ -112,6 +113,7 @@ Current Frame: %3" = "%1 フレーム
 "&Lock Widgets In Place" = "ツールバーの位置を固定(&L)";
 "&Memory" = "&Memory";
 "&Movie" = "記録(&M)";
+"&Network" = "&Network";
 "&Open..." = "開く(&O)";
 "&Options" = "設定(&O)";
 "&Patch HLE Functions" = "&Patch HLE Functions";
@@ -129,6 +131,7 @@ Current Frame: %3" = "%1 フレーム
 "&Speed Limit:" = "速度制限(&S)：";
 "&Stop" = "停止(&S)";
 "&Theme:" = "テーマ(&T)：";
+"&Threads" = "&Threads";
 "&Tools" = "ツール(&T)";
 "&View" = "表示(&V)";
 "&Watch" = "&Watch";
@@ -147,6 +150,8 @@ Current Frame: %3" = "%1 フレーム
 "--> %1" = "--> %1";
 "..." = "...";
 "/ Divide" = "/ Divide（除算）";
+"128 Mbit (2043 blocks)" = "128 Mbit (2043 ブロック)";
+"16 Mbit (251 blocks)" = "16 Mbit (251 ブロック)";
 "16-bit" = "16 ビット";
 "16-bit Integer" = "16-bit 整数";
 "16:9" = "16:9";
@@ -154,17 +159,21 @@ Current Frame: %3" = "%1 フレーム
 "1x" = "1x";
 "2x" = "2x";
 "2x Native (1280x1056) for 720p" = "2x Native (1280x1056) for 720p";
+"32 Mbit (507 blocks)" = "32 Mbit (507 ブロック)";
 "32-bit" = "32 ビット";
 "32-bit Integer" = "32-bit 整数";
 "3D" = "3D";
 "3D Depth" = "3D深度";
 "3x Native (1920x1584) for 1080p" = "3x Native (1920x1584) for 1080p";
+"4 Mbit (59 blocks)" = "4 Mbit (59 ブロック)";
 "4:3" = "4:3";
 "4x" = "4x";
 "4x Native (2560x2112) for 1440p" = "4x Native (2560x2112) for 1440p";
 "5x Native (3200x2640)" = "5x Native (3200x2640)";
+"64 Mbit (1019 blocks)" = "64 Mbit (1019 ブロック)";
 "6x Native (3840x3168) for 4K" = "6x Native (3840x3168) for 4K";
 "7x Native (4480x3696)" = "7x Native (4480x3696)";
+"8 Mbit (123 blocks)" = "8 Mbit (123 ブロック)";
 "8-bit" = "8 ビット";
 "8-bit Integer" = "8-bit 整数";
 "8x" = "8x";
@@ -187,6 +196,7 @@ WADファイルのバージョン： %u
 
 このWADのバージョンで上書きしますか？元に戻すことはできません！";
 "A disc is already about to be inserted." = "ディスクは既に挿入されています。";
+"A save state cannot be loaded without specifying a game to launch." = "A save state cannot be loaded without specifying a game to launch.";
 "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "終了処理の実行中です。 この処理が完了する前にエミュレーションの強制終了をするとデータが失われる場合があります。それでも強制終了しますか？";
 "A sync can only be triggered when a Wii game is running." = "WiiリモコンとのSyncはWiiのゲームを実行中にのみ行なえます";
 "ALERT:
@@ -214,7 +224,7 @@ DSP-LLEを使用する場合、全プレイヤーは同じDSP ROMを使用する
 "ASCII" = "ASCII";
 "Abort" = "中断";
 "About Dolphin" = "Dolphinについて";
-"Accelerometer" = "Accelerometer";
+"Accelerometer" = "加速度";
 "Accuracy:" = "精度：";
 "Action" = "Action";
 "Action Replay Code Decryption Error:
@@ -241,12 +251,16 @@ Master codes are not needed. Do not use master codes." = "エラー: マスタ�
 "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "Action Replay: 通常コード 0: 不正なサブタイプ %08x (%s)";
 "Activate NetPlay Chat" = "ネットプレイ：チャットをアクティブ";
 "Active" = "Active";
+"Active thread queue" = "Active thread queue";
+"Active threads" = "Active threads";
 "Adapter Detected" = "タップが接続されています";
 "Adapter:" = "ビデオカード：";
 "Add" = "追加";
+"Add &breakpoint" = "Add &breakpoint";
 "Add New USB Device" = "USBデバイスを追加";
 "Add a Breakpoint" = "Add a Breakpoint";
 "Add a Memory Breakpoint" = "Add a Memory Breakpoint";
+"Add memory breakpoint" = "Add memory breakpoint";
 "Add to &watch" = "Add to &watch";
 "Add to Watch" = "ウォッチウィンドウに追加";
 "Add..." = "追加";
@@ -274,6 +288,11 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 注意：
 デフォルト(100%)以外の値では、 クラッシュやバグが発生する可能性があります。
 あくまでも自己責任での使用を前提とし、 デフォルト以外の値で発生したバグについては 報告しないでください。";
+"Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations." = "Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations.";
 "Advance Game Port" = "アドバンスコネクタ";
 "Advanced" = "高度な設定";
 "Africa" = "アフリカ";
@@ -284,8 +303,9 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 "All devices" = "すべてのデバイス";
 "All players' codes synchronized." = "すべてのプレイヤーのチートコードは同期されました";
 "All players' saves synchronized." = "すべてのプレイヤーのセーブデータは同期されました";
-"Allow Mismatched Region Settings" = "Allow Mismatched Region Settings";
+"Allow Mismatched Region Settings" = "コンソール上の言語設定の不一致を許可";
 "Allow Usage Statistics Reporting" = "利用統計レポートを許可";
+"Allow Writes to SD Card" = "Allow Writes to SD Card";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -299,7 +319,7 @@ If unsure, leave this unchecked. " = "ゲーム内カメラに干渉すること
 ・Shift+Fキー - カメラ速度のリセット
 
 よく分からなければ、チェックを入れないでください。";
-"Alternate Input Sources" = "他の入力方法を使う";
+"Alternate Input Sources" = "外部入力設定";
 "Always Connected" = "常時接続状態として扱う";
 "Always Hide Mouse Cursor" = "常にマウスカーソルを隠す";
 "An error occurred.
@@ -317,6 +337,7 @@ Ignore and continue?" = "エラーが発生しました
 "Anaglyph" = "Anaglyph";
 "Analyze" = "分析";
 "Angle" = "角度";
+"Angular velocity to ignore." = "設定値以下の運動速度を無視します";
 "Anisotropic Filtering:" = "異方性フィルタリング：";
 "Anti-Aliasing:" = "アンチエイリアス：";
 "Any Region" = "すべて";
@@ -359,6 +380,7 @@ Please select a specific internal resolution." = "内部解像度の設定「自
 自動以外の内部解像度に設定しなおしてください";
 "Auto-Adjust Window Size" = "ウィンドウサイズを自動調整";
 "Auto-Hide" = "未操作時に隠す";
+"Auto-detect RSO modules?" = "Auto-detect RSO modules?";
 "Automatically adjusts the window size to the internal resolution.
 
 If unsure, leave this unchecked." = "内部解像度に合わせてウィンドウサイズを自動調整します。
@@ -368,6 +390,7 @@ If unsure, leave this unchecked." = "内部解像度に合わせてウィンド�
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT incorrect. Dolphin will now exit";
 "BP register " = "BP register ";
+"Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multithreading";
 "Backend Settings" = "出力設定";
 "Backend:" = "ビデオAPI：";
@@ -380,27 +403,28 @@ If unsure, leave this unchecked." = "内部解像度に合わせてウィンド�
 "Banner Details" = "バナーの詳細";
 "Banner:" = "バナー表示";
 "Bar" = "バー";
+"Base priority" = "Base priority";
 "Basic" = "基本設定";
 "Basic Settings" = "基本設定";
 "Bass" = "バスドラム";
-"Batch mode cannot be used without specifying a game to launch." = "Batch mode cannot be used without specifying a game to launch.";
+"Batch mode cannot be used without specifying a game to launch." = "バッチモードの使用にはタイトルの指定が必須です";
 "Battery" = "バッテリー残量";
 "Beta (once a month)" = "ベータ版 (ひと月に一度)";
 "Bitrate (kbps):" = "ビットレート (kbps):";
+"Block Size:" = "Block Size:";
 "Blocks" = "ブロック数";
 "Blue" = "青";
 "Blue Left" = "青 - 左";
 "Blue Right" = "青 - 右";
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "Bluetoothパススルーは有効になっていますが、Dolphinはlibusbを含むことなくビルドされました。
 パススルーの機能は使えません。";
-"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "Bluetoothパススルーは有効になっていますが、使用できるUSBデバイスが見つかりません。
-起動は中止されます。";
 "Boot to Pause" = "Boot to Pause";
 "BootMii NAND backup file (*.bin);;All Files (*)" = "BootMii NAND バックアップファイル (*.bin);;すべてのファイル (*)";
 "BootMii keys file (*.bin);;All Files (*)" = "BootMii キー ファイル (*.bin);;すべてのファイル (*)";
 "Borderless Fullscreen" = "ボーダレス フルスクリーン";
 "Bottom" = "下";
 "Branch: %1" = "Branch: %1";
+"Branches" = "Branches";
 "Break" = "Break";
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breakpoint encountered! Step out aborted.";
@@ -440,6 +464,7 @@ If unsure, leave this unchecked." = "3Dオブジェクトに対し、ピクセ�
 よく分からなければ、チェックを入れないでください。";
 "Calibrate" = "キャリブレーション開始";
 "Calibration" = "キャリブレーション";
+"Calibration Period" = "Calibration Period";
 "Callstack" = "Callstack";
 "Can't find Wii Remote by connection handle %02x" = "Can't find Wii Remote by connection handle %02x";
 "Can't start a NetPlay Session while a game is still running!" = "ゲーム実行中はネットプレイセッションを開始できません！";
@@ -449,9 +474,10 @@ If unsure, leave this unchecked." = "3Dオブジェクトに対し、ピクセ�
 "Cannot boot this WAD because it could not be installed to the NAND." = "NANDへのインストールができなかったため、このWADファイルを起動できません";
 "Cannot find the GC IPL." = "GC IPLが見つかりません";
 "Cannot interpret the given value.
-Have you chosen the right type?" = "Cannot interpret the given value.
-Have you chosen the right type?";
+Have you chosen the right type?" = "与えられた値の解釈ができませんでした。
+正しい形式が選択されていますか？";
 "Cannot start the game, because the GC IPL could not be found." = "GC IPLが見つからないため、ゲームを開始できませんでした。";
+"Card Size" = "Card Size";
 "Center" = "面";
 "Center and Calibrate" = "センタリングとキャリブレーション";
 "Change &Disc" = "ディスクの入れ替え(&D)";
@@ -459,6 +485,15 @@ Have you chosen the right type?";
 "Change Disc" = "ディスクの入れ替え";
 "Change Discs Automatically" = "ディスク交換を自動化";
 "Change the disc to %s" = "次のディスクに変更：%s";
+"Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point.";
 "Changing cheats will only take effect when the game is restarted." = "変更されたチート内容は次回のゲーム開始時に反映されます";
 "Chat" = "チャット欄";
 "Cheat Code Editor" = "チートコードエディタ";
@@ -478,7 +513,7 @@ Have you chosen the right type?";
 "Classic Controller" = "クラシックコントローラ";
 "Clear" = "全消去";
 "Clear Cache" = "Clear Cache";
-"Clock Override" = "Clock Override";
+"Clock Override" = "Clock Override を有効化";
 "Clone and &Edit Code..." = "コピーして編集...(&E)";
 "Close" = "閉じる";
 "Co&nfiguration" = "Dolphinの設定(&N)";
@@ -490,11 +525,7 @@ Have you chosen the right type?";
 "Common" = "全般";
 "Compile Shaders Before Starting" = "ゲーム開始前にシェーダをコンパイルする";
 "Compiling Shaders" = "シェーダをコンパイル中...";
-"Compress ISO..." = "このタイトルを圧縮";
-"Compress Selected ISOs..." = "選択中のISOファイルを圧縮";
 "Compressed GC/Wii images (*.gcz)" = "圧縮されたGC/Wii ISOファイル (gcz)";
-"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "Wiiディスクイメージの圧縮はパディングデータを除去するため非可逆圧縮となります。ゲームデータに変更はありません。続けますか？";
-"Compressing..." = "圧縮中...";
 "Condition" = "Condition";
 "Config" = "設定";
 "Configure" = "設定";
@@ -514,13 +545,20 @@ Have you chosen the right type?";
 "Connect Wii Remote 3" = "3PのWiiリモコンを接続";
 "Connect Wii Remote 4" = "4PのWiiリモコンを接続";
 "Connect Wii Remotes" = "Wiiリモコンの接続";
+"Connect Wii Remotes for Emulated Controllers" = "実機Wiiリモコンをエミュレートされたコントローラとして扱う";
 "Connect to the Internet and perform an online system update?" = "インターネットに接続してWiiのシステム更新を行いますか？";
+"Connected" = "Connected";
 "Connection Type:" = "接続方式：";
 "Content %08x is corrupt." = "Content %08x is corrupt.";
 "Continuous Scanning" = "接続状況を常に監視";
 "Control NetPlay Golf Mode" = "Control NetPlay Golf Mode";
 "Control Stick" = "コントロールスティック";
+"Control Type:" = "Control Type:";
 "Controller Profile" = "入力設定";
+"Controller Profile 1" = "Controller Profile 1";
+"Controller Profile 2" = "Controller Profile 2";
+"Controller Profile 3" = "Controller Profile 3";
+"Controller Profile 4" = "Controller Profile 4";
 "Controller Settings" = "Dolphin コントローラ設定";
 "Controllers" = "コントローラ";
 "Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
@@ -542,10 +580,15 @@ If unsure, select Native." = "内部解像度の計算方式を設定します�
 
 A higher value creates a stronger feeling of depth while a lower value is more comfortable." = "仮想カメラ間の距離調整。
 値を高くすると効果が強くなり、 低くすると目の負担が軽減されます。";
-"Controls whether or not Dual Core should be enabled. Can improve performance but can also cause issues. Defaults to <b>True</b>" = "Controls whether or not Dual Core should be enabled. Can improve performance but can also cause issues. Defaults to <b>True</b>";
+"Controls whether or not Dual Core should be enabled. Can improve performance but can also cause issues. Defaults to <b>True</b>" = "デュアルコアで処理を行うかの設定です。有効化すると処理速度が向上しますが、様々なバグを引き起こすこともあります。デフォルトは <b>True</b>（有効）です。";
 "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it.";
 "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>";
 "Convergence:" = "収束点 (Convergence):";
+"Convert" = "Convert";
+"Convert File..." = "Convert File...";
+"Convert Selected Files..." = "Convert Selected Files...";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?";
+"Converting..." = "Converting...";
 "Copy" = "コピー";
 "Copy &function" = "Copy &function";
 "Copy &hex" = "Copy &hex";
@@ -562,6 +605,20 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Could not create peer." = "ピアを作成できませんでした";
 "Could not download update files from Nintendo. Please check your Internet connection and try again." = "更新ファイルのダウンロードに失敗。インターネット接続設定を確認してから改めて試してください";
 "Could not download update information from Nintendo. Please check your Internet connection and try again." = "更新情報のダウンロードに失敗。インターネット接続設定を確認してから改めて試してください";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop." = "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop." = "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop.";
 "Could not install an update to the Wii system memory. Please refer to logs for more information." = "更新ファイルのWiiシステムメモリへのインストールに失敗。ログで詳細を確認してください";
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
 The emulated software will likely hang now." = "NAND内に IOS %016<PRIx64> が見当たらなかったため、起動できませんでした。
@@ -588,6 +645,8 @@ DolphinをCD/DVDから起動しているか、セーブファイルが読み取�
 "Couldn't open file." = "Couldn't open file.";
 "Couldn't read file." = "Couldn't read file.";
 "Country:" = "発売国";
+"Create New Memory Card" = "新しくメモリーカードを作成";
+"Create..." = "作成";
 "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
 
 If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
@@ -605,14 +664,15 @@ If unsure, leave this unchecked." = "アスペクト比 4:3 もしくは 16:9 �
 よく分からなければ、チェックを入れないでください。";
 "Crossfade" = "クロスフェーダー";
 "Current Region" = "現在の地域";
+"Current context" = "Current context";
 "Current game" = "選択中のタイトル";
-"Custom" = "カスタム";
+"Current thread" = "Current thread";
 "Custom RTC Options" = "リアルタイムクロック設定";
 "D-Pad" = "十字キー";
 "DJ Turntable" = "ターンテーブル";
 "DK Bongos" = "タルコンガ";
 "DSP Emulation Engine" = "DSPエミュレーション方式";
-"DSP HLE Emulation (fast)" = "DSP HLE Emulation（高速）";
+"DSP HLE (fast)" = "DSP HLE (高速)";
 "DSP LLE Interpreter (slow)" = "DSP LLE Interpreter（低速）";
 "DSP LLE Recompiler" = "DSP LLE Recompiler";
 "DSU Client" = "DSU Client";
@@ -630,9 +690,6 @@ If unsure, leave this unchecked." = "アスペクト比 4:3 もしくは 16:9 �
 "Debugging" = "デバッグ用";
 "Decimal" = "Decimal";
 "Decoding Quality:" = "デコード精度";
-"Decompress ISO..." = "ISOファイルへ復元";
-"Decompress Selected ISOs..." = "選択中のISOファイルをすべて復元";
-"Decompressing..." = "復元中...";
 "Decrease Convergence" = "収束距離 減少";
 "Decrease Depth" = "深度 減少";
 "Decrease Emulation Speed" = "エミュレーション速度 減少";
@@ -642,6 +699,7 @@ If unsure, leave this unchecked." = "アスペクト比 4:3 もしくは 16:9 �
 "Default Device" = "既定のデバイス";
 "Default Font" = "既定のフォント";
 "Default ISO:" = "デフォルトISO";
+"Default thread" = "Default thread";
 "Defer EFB Cache Invalidation" = "Defer EFB Cache Invalidation";
 "Defer EFB Copies to RAM" = "Defer EFB Copies to RAM";
 "Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
@@ -661,6 +719,7 @@ If unsure, leave this unchecked.";
 "Depth:" = "深度 (Depth):";
 "Description" = "説明";
 "Description:" = "説明";
+"Detached" = "Detached";
 "Detect" = "検出";
 "Deterministic dual core:" = "Deterministic dual core: ";
 "Dev (multiple times a day)" = "開発者向け (起動する度に確認)";
@@ -674,13 +733,15 @@ If unsure, leave this unchecked.";
 "Direct3D 11" = "Direct3D 11";
 "Direct3D 11 renderer requires support for features not supported by your system configuration. This is most likely because you are using Windows 7. You may still use this backend, but you might encounter graphical artifacts.
 
-Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Direct3D 11 renderer requires support for features not supported by your system configuration. This is most likely because you are using Windows 7. You may still use this backend, but you might encounter graphical artifacts.
+Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Direct3D 11 レンダラは、使用中のシステムではサポートされていない機能を必要としています。これは主に Windows 7 を使用していることが原因である可能性が高いです。このまま使用することはできますが、描画に問題が発生する場合があります。
 
-Do you really want to switch to Direct3D 11? If unsure, select 'No'.";
+本当に Direct3D 11 を使いますか？
+よく分からない場合、「いいえ」を選択してください。";
 "Disable Bounding Box" = "Disable Bounding Box";
 "Disable Copy Filter" = "Disable Copy Filter";
 "Disable EFB VRAM Copies" = "Disable EFB VRAM Copies";
 "Disable Emulation Speed Limit" = "エミュレーション速度 無効化";
+"Disable Fastmem" = "Disable Fastmem";
 "Disable Fog" = "Disable Fog";
 "Disable JIT Cache" = "Disable JIT Cache";
 "Disables bounding box emulation.
@@ -712,7 +773,7 @@ Can cause graphical defects in some games if the game doesn't expect all XFB cop
 If unsure, leave this unchecked." = "XFBコピーが作成された際、スキャンアウトを待たずにすぐ表示します。有効にするとレイテンシの改善が見込めますが、すべてのXFBコピーが表示されることを前提にしていない一部のタイトルでは描画バグが発生する可能性があります。
 
 よく分からなければ、チェックを入れないでください。";
-"Distance" = "Distance";
+"Distance" = "距離";
 "Distance of travel from neutral position." = "振りの強さをニュートラルポジションからの距離で指定";
 "Do you authorize Dolphin to report information to Dolphin's developers?" = "Dolphinの開発者への情報提供にご協力いただけますか？";
 "Do you want to add \"%1\" to the list of Game Paths?" = "\"%1\" をゲームパスリストに追加しますか？";
@@ -721,7 +782,6 @@ If unsure, leave this unchecked." = "XFBコピーが作成された際、スキ�
 "Do you want to delete the selected save file?" = "選択したセーブファイルを削除しますか？";
 "Do you want to stop the current emulation?" = "動作中のゲームを停止しますか？";
 "Dolby Pro Logic II Decoder" = "Dolby Pro Logic II decoder";
-"Dolphin" = "Dolphin";
 "Dolphin FIFO Log (*.dff)" = "Dolphin FIFO ログファイル (*.dff)";
 "Dolphin Map File (*.map)" = "Dolphin Map File (*.map)";
 "Dolphin Signature CSV File" = "Dolphin Signature CSV File";
@@ -735,6 +795,7 @@ Double-click here to set a games directory..." = "ゲームリストは空です
 "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs.";
 "Dolphin is unable to verify unlicensed discs." = "Dolphin is unable to verify unlicensed discs.";
 "Dolphin's cheat system is currently disabled." = "チートは現在、無効化されています";
+"Domain" = "Domain";
 "Don't Update" = "自動更新しない";
 "Done compressing disc image." = "ディスクイメージの圧縮に成功しました";
 "Double" = "Double";
@@ -758,6 +819,8 @@ Double-click here to set a games directory..." = "ゲームリストは空です
 "Dump Frames" = "フレームのダンプを行う(AVI形式)";
 "Dump Objects" = "Dump Objects";
 "Dump Path:" = "ダンプ先";
+"Dump SSL read" = "Dump SSL read";
+"Dump SSL write" = "Dump SSL write";
 "Dump TEV Stages" = "Dump TEV Stages";
 "Dump TEV Stages to User/Dump/Objects/.
 
@@ -783,6 +846,8 @@ User/Dump/Textures/<ゲームID>/
 If unsure, leave this unchecked." = "Dump objects to User/Dump/Objects/.
 
 If unsure, leave this unchecked.";
+"Dump peer certificates" = "Dump peer certificates";
+"Dump root CA" = "Dump root CA";
 "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked." = "以下のフォルダにテクスチャをダンプします。 
@@ -799,13 +864,14 @@ If unsure, leave this unchecked." = "以下のフォルダにEFBコピーの内�
 "E&xit" = "終了";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "エラー：少なくとも %d.%d 以上のバージョンのTAP-Win32ドライバが必要です。最近Dolphinのバージョンを更新した場合は、ドライバを認識させるためにWindowsの再起動が必要になるかもしれません。";
 "Each player sends their own inputs to the game, with equal buffer size for all players, configured by the host.
-Suitable for competitive games where fairness and minimal latency are most important." = "Each player sends their own inputs to the game, with equal buffer size for all players, configured by the host.
-Suitable for competitive games where fairness and minimal latency are most important.";
+Suitable for competitive games where fairness and minimal latency are most important." = "ホストが設定したバッファサイズですべてのプレイヤーの入力を受け付けます。
+公平性が重要な対戦ゲーム向けの設定です。";
 "Early Memory Updates" = "Early Memory Updates";
 "East Asia" = "東アジア";
 "Editor" = "エディタ";
 "Effect" = "エフェクト";
 "Effective" = "Effective";
+"Effective priority" = "Effective priority";
 "EiB" = "EiB";
 "Eject Disc" = "ディスクの取り出し";
 "Embedded Frame Buffer (EFB)" = "Embedded Frame Buffer (内蔵フレームバッファ)";
@@ -813,8 +879,13 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Emu Thread already running" = "エミュレーションスレッドはすでに稼働中です";
 "Emulate the Wii's Bluetooth adapter" = "WiiのBluetoothアダプタをエミュレート";
 "Emulated Wii Remote" = "Wiiリモコンをエミュレート";
+"Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)" = "Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)";
 "Emulation Speed" = "エミュレーション速度";
-"Enable" = "Enable";
+"Enable" = "有効";
 "Enable API Validation Layers" = "Enable API Validation Layers";
 "Enable Audio Stretching" = "タイムストレッチを有効にする (Audio Stretching)";
 "Enable Cheats" = "チートコードを有効化";
@@ -822,6 +893,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Enable Dual Core" = "デュアルコア動作を行う";
 "Enable Dual Core (speedup)" = "デュアルコア動作を行う (速度向上)";
 "Enable Emulated CPU Clock Override" = "CPU Clock Override を使用する";
+"Enable Emulated Memory Size Override" = "Memory Size Override を使用する";
 "Enable FPRF" = "Enable FPRF";
 "Enable MMU" = "Enable MMU";
 "Enable Progressive Scan" = "プログレッシブ表示を有効化";
@@ -848,11 +920,13 @@ If unsure, select 1x." = "異方性フィルタリングを適用します。
 
 May have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures. This feature is not compatible with GPU Texture Decoding.
 
-If unsure, leave this checked." = "Enables detection of arbitrary mipmaps, which some games use for special distance-based effects.
+If unsure, leave this checked." = "いくつかのタイトルで特別な距離ベースエフェクトのために使用される、任意のミップマップの検出を可能にします。
 
-May have false positives that result in blurry textures at increased internal resolution, such as in games that use very low resolution mipmaps. Disabling this can also reduce stutter in games that frequently load new textures. This feature is not compatible with GPU Texture Decoding.
+非常に低解像度なミップマップを使用しているタイトルでは、内部解像度を上げても誤検知によりテクスチャがぼやけたままになる可能性があります。
+無効にした場合は、頻繁に新しいテクスチャを読み込むタイトルでカクつきを減らす可能性があります。
+この機能は「GPUテクスチャデコーディング」と互換性がありません。
 
-If unsure, leave this checked.";
+よく分からなければ、チェックを外さないでください。";
 "Enables multithreaded command submission in backends where supported. Enabling this option may result in a performance improvement on systems with more than two CPU cores. Currently, this is limited to the Vulkan backend.
 
 If unsure, leave this checked." = "サポートされている場合は、バックエンドでマルチスレッドのコマンド送信を有効にします。3つ以上のCPUコアを持つシステムでパフォーマンスが向上する可能性があります。
@@ -883,6 +957,7 @@ If unsure, leave this unchecked." = "ビデオバックエンドによって行�
 If unsure, leave this unchecked." = "ダンプしたフレームのエンコードにFFV1コーデックを使用します。
 
 よく分からなければ、チェックを入れないでください。";
+"Encoding" = "エンコード";
 "Enet Didn't Initialize" = "Enet Didn't Initialize";
 "English" = "英語";
 "Enhancements" = "画質向上の設定";
@@ -910,23 +985,23 @@ If unsure, leave this unchecked." = "ダンプしたフレームのエンコー�
 "Euphoria" = "Euphoria";
 "Europe" = "ヨーロッパ";
 "Exit" = "Dolphinを終了";
-"Expected arguments: " = "Expected arguments: ";
+"Expected arguments: " = "入力値の検証：変数の入力待ち";
 "Expected closing paren." = "Expected closing paren.";
 "Expected comma." = "Expected comma.";
-"Expected end of expression." = "Expected end of expression.";
-"Expected start of expression." = "Expected start of expression.";
+"Expected end of expression." = "入力値の検証：演算子に続く入力待ち";
+"Expected start of expression." = "入力値の検証：入力待ち";
 "Experimental" = "実験的";
 "Export &All..." = "すべてエクスポート(&A)";
 "Export All Wii Saves" = "全てのWiiセーブデータをエクスポート";
 "Export Recording" = "録画ファイルのエクスポート";
 "Export Recording..." = "録画ファイルのエクスポート";
 "Export Save File" = "セーブファイルをエクスポート";
-"Export Wii Save" = "Export Wii Save";
+"Export Wii Save" = "セーブデータをエクスポート";
 "Export Wii Saves" = "Export Wii Saves";
 "Exported %n save(s)" = "%n個のファイルをエクスポートしました";
 "Extension" = "拡張コントローラ";
-"Extension Motion Input" = "Extension Motion Input";
-"Extension Motion Simulation" = "Extension Motion Simulation";
+"Extension Motion Input" = "拡張コントローラ モーション（外部入力）";
+"Extension Motion Simulation" = "拡張コントローラ モーション";
 "External" = "External";
 "External Frame Buffer (XFB)" = "External Frame Buffer (外部フレームバッファ)";
 "Extract Certificates from NAND" = "証明書ファイルをNANDから取り出す";
@@ -937,6 +1012,7 @@ If unsure, leave this unchecked." = "ダンプしたフレームのエンコー�
 "Extract System Data..." = "システムデータを抽出";
 "Extracting All Files..." = "全てのファイルを抽出";
 "Extracting Directory..." = "このフォルダを抽出";
+"FD" = "FD";
 "FIFO Player" = "FIFO プレーヤー";
 "Failed opening memory card:
 %1" = "Failed opening memory card:
@@ -951,7 +1027,7 @@ If unsure, leave this unchecked." = "ダンプしたフレームのエンコー�
 "Failed to create DXGI factory" = "Failed to create DXGI factory";
 "Failed to delete NetPlay memory card. Verify your write permissions." = "ネットプレイ メモリカードの削除に失敗しました。書き込み権限を確認してください";
 "Failed to delete the selected file." = "選択したファイルの削除に失敗しました";
-"Failed to detach kernel driver for BT passthrough: %s" = "Failed to detach kernel driver for BT passthrough: %s";
+"Failed to detach kernel driver for BT passthrough: {}" = "Failed to detach kernel driver for BT passthrough: {}";
 "Failed to download codes." = "コードの取得に失敗しました";
 "Failed to dump %1: Can't open file" = "Failed to dump %1: Can't open file";
 "Failed to dump %1: Failed to write to file" = "Failed to dump %1: Failed to write to file";
@@ -981,7 +1057,7 @@ Make sure your video card supports at least D3D 10.0" = "Direct3D の初期化�
 "Failed to load map file '%1'" = "Failed to load map file '%1'";
 "Failed to load the executable to memory." = "実行ファイルをメモリに読み込めませんでした。";
 "Failed to open '%1'" = "'%1' のオープンに失敗しました";
-"Failed to open Bluetooth device: %s" = "Failed to open Bluetooth device: %s";
+"Failed to open Bluetooth device: {}" = "Failed to open Bluetooth device: {}";
 "Failed to open config file!" = "Failed to open config file!";
 "Failed to open file \"%s\"." = "ファイル\"%s\"を開けませんでした";
 "Failed to open file \"%s\". Verify your write permissions." = "ファイル\"%s\"を開けませんでした。書き込み権限を確認してください";
@@ -989,14 +1065,20 @@ Make sure your video card supports at least D3D 10.0" = "Direct3D の初期化�
 Make sure there's an application assigned to open INI files." = "外部エディタでファイルを開くことができませんでした
 INIファイルに関連付けされているソフトを確認してください";
 "Failed to open server" = "サーバーを開けませんでした";
-"Failed to open the input file \"%s\"." = "次のファイルの読み込みに失敗 \"%s\"。";
+"Failed to open the input file \"%1\"." = "Failed to open the input file \"%1\".";
 "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written." = "出力したファイル \"%s\" を開けませんでした
 出力先が書き込み可能なメディアか、また書き込み権限があるかどうかを確認してください";
 "Failed to parse Redump.org data" = "Failed to parse Redump.org data";
 "Failed to read %s" = "Failed to read %s";
+"Failed to read from the input file \"%s\"." = "Failed to read from the input file \"%s\".";
 "Failed to read unique ID from disc image" = "Failed to read unique ID from disc image";
 "Failed to remove file" = "ファイルの削除に失敗しました";
+"Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?" = "Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?";
 "Failed to remove this title from the NAND." = "タイトルの消去に失敗";
 "Failed to reset NetPlay GCI folder. Verify your write permissions." = "ネットプレイ GCIフォルダのリセットに失敗しました。書き込み権限を確認してください";
 "Failed to reset NetPlay NAND folder. Verify your write permissions." = "ネットプレイ NANDフォルダのリセットに失敗しました。書き込み権限を確認してください";
@@ -1020,9 +1102,9 @@ Check that you have enough space available on the target drive." = "次のファ
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "致命的なdesyncが発生したため再生を中止します。 (Error in PlayWiimote: %u != %u, byte %u.)%s";
 "File Info" = "ファイル情報";
 "File Name" = "ファイル名";
+"File Path" = "File Path";
 "File Size" = "ファイルサイズ";
 "File contained no codes." = "コードを含まないファイルです";
-"File not compressed" = "圧縮されていないファイル";
 "File write failed" = "ファイルの書込に失敗";
 "File:" = "ファイルの場所";
 "Files opened, ready to compress." = "圧縮処理の待機中です...";
@@ -1041,7 +1123,7 @@ May improve quality of certain textures in some games, but will cause issues in 
 If unsure, leave this unchecked." = "ゲーム側で無効を明示している物も含めた全てのテクスチャに対してフィルタリングを行います。
 いくつかのテクスチャの画質が向上しますが、内容によって問題が発生する可能性もあります。
 
-よく分からなければ、チェックを外さないでください。";
+よく分からなければ、チェックを入れないでください。";
 "Find &Next" = "Find &Next";
 "Find &Previous" = "Find &Previous";
 "Finish Calibration" = "キャリブレーション終了";
@@ -1049,6 +1131,7 @@ If unsure, leave this unchecked." = "ゲーム側で無効を明示している�
 This can take a while." = "更新の最終処理中...
 しばらくお待ちください";
 "First Block" = "ブロック開始位置";
+"First Person" = "First Person";
 "Fix Checksums" = "チェックサムを修正";
 "Flags" = "Flags";
 "Float" = "Float";
@@ -1077,6 +1160,7 @@ If unsure, leave this checked." = "強制的にRGB 24bitカラーでレンダリ
 速度に影響はありませんが、一部のゲームで描画バグの原因になります。
 
 よく分からなければ、チェックを外さないでください。";
+"Format:" = "Format:";
 "Forward" = "前方";
 "Forward port (UPnP)" = "ポート開放を自動で設定 (UPnP)";
 "Found %1 results for \"%2\"" = "\"%2\" の検索結果 %1 件";
@@ -1100,6 +1184,7 @@ If unsure, leave this checked." = "強制的にRGB 24bitカラーでレンダリ
 "Freelook Move Up" = "フリールック 上へ";
 "Freelook Reset" = "フリールック リセット";
 "Freelook Reset Speed" = "フリールック速度 リセット";
+"Freelook Toggle" = "Freelook Toggle";
 "Freelook Zoom In" = "フリールック  ズームイン";
 "Freelook Zoom Out" = "フリールック ズームアウト";
 "French" = "フランス語";
@@ -1159,7 +1244,7 @@ Video Backendログにエラー内容を送ります。
 "GameCube TAS Input %1" = "TAS Input ゲームキューブ コントローラ %1";
 "Gecko Codes" = "Geckoコード";
 "General" = "一般";
-"General and Options" = "一般設定";
+"General and Options" = "全般";
 "Generate Action Replay Code" = "アクションリプレイコードを生成";
 "Generate a New Statistics Identity" = "新しい統計IDを作成する";
 "Generated by search (Address %1)" = "検索から生成（アドレス %1）";
@@ -1185,12 +1270,14 @@ GPU負荷が多少増加し、まれに描画バグの原因になります。
 "Green Right" = "緑 - 右";
 "Grid View" = "グリッド表示";
 "Guitar" = "ギターコントローラ";
-"Gyroscope" = "Gyroscope";
+"Gyroscope" = "ジャイロスコープ";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "高速化(Hacks)";
+"Head" = "Head";
 "Hex" = "Hex";
 "Hexadecimal" = "Hexadecimal";
 "Hide" = "隠す";
+"Hide In-Game Sessions" = "Hide In-Game Sessions";
 "Hide Incompatible Sessions" = "互換性のないセッションを隠す";
 "High" = "大";
 "Highest" = "Highest";
@@ -1207,6 +1294,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Host with NetPlay" = "ネットプレイを開始（ホスト）";
 "Hotkey Settings" = "ホットキーのカスタマイズ";
 "Hotkeys" = "ホットキー";
+"Hotkeys Require Window Focus" = "フォーカスがあるときのみホットキーを動作させる";
 "Hz" = "Hz";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: SSLサービスの動作に必要なファイル (%s) が正しくありません。 https://dolphin-emu.org/docs/guides/wii-network-guide/ でWiiのネットワーク設定手順を確認できます。";
@@ -1216,11 +1304,17 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IR" = "ポインタ";
 "IR Sensitivity:" = "Wiiリモコンの感度";
 "ISO Details" = "ゲームの詳細";
+"ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.";
 "Icon" = "アイコン";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf.";
 "Identity Generation" = "IDの作成";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1250,9 +1344,10 @@ If unsure, leave this unchecked." = "CPUのEFBに対する読込／書込リク�
 "Immediately Present XFB" = "Immediately Present XFB";
 "Implements fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.
 
-If unsure, leave this unchecked." = "Implements fullscreen mode with a borderless window spanning the whole screen instead of using exclusive mode. Allows for faster transitions between fullscreen and windowed mode, but slightly increases input latency, makes movement less smooth and slightly decreases performance.
+If unsure, leave this unchecked." = "通常の排他的フルスクリーン表示ではなく、枠のないウィンドウを全画面に広げる形でフルスクリーン表示します。
+他のウィンドウとの表示切替が高速になりますが、代わりに若干の操作遅延、動作速度の低下などのデメリットも発生します。
 
-If unsure, leave this unchecked.";
+よく分からなければ、チェックを入れないでください。";
 "Import BootMii NAND Backup..." = "BootMii NAND バックアップをインポート";
 "Import Save File" = "Import Save File";
 "Import Wii Save..." = "Wii セーブデータのインポート";
@@ -1282,6 +1377,7 @@ If unsure, leave this checked.";
 "Install Update" = "自動更新";
 "Install WAD..." = "WiiメニューにWADファイルを追加";
 "Install to the NAND" = "NANDへインストール";
+"Instr." = "Instr.";
 "Instruction" = "Instruction";
 "Instruction Breakpoint" = "Instruction Breakpoint";
 "Instruction:" = "Instruction:";
@@ -1337,6 +1433,7 @@ Try loading the state again" = "Internal LZO Error - decompression failed (%d) (
 "JIT SystemRegisters Off" = "JIT SystemRegisters Off";
 "Japan" = "日本";
 "Japanese" = "日本語";
+"Japanese (Shift-JIS)" = "日本用 (Shift-JIS)";
 "Keep Window on Top" = "最前面に表示";
 "Keyboard" = "キーボード";
 "Keys" = "キー";
@@ -1346,6 +1443,7 @@ Try loading the state again" = "Internal LZO Error - decompression failed (%d) (
 "Korean" = "韓国語";
 "L" = "L";
 "L-Analog" = "L (アナログ)";
+"LR Save" = "LR Save";
 "Label" = "Label";
 "Latency:" = "レイテンシ：";
 "Latency: ~10ms" = "遅延： ~10ms";
@@ -1375,6 +1473,7 @@ Middle-click to clear.";
 "Limit Chunked Upload Speed:" = "Limit Chunked Upload Speed:";
 "List Columns" = "ゲームリストカラムの表示";
 "List View" = "リスト表示";
+"Listening" = "Listening";
 "Load" = "読込";
 "Load &Bad Map File..." = "Load &Bad Map File...";
 "Load &Other Map File..." = "Load &Other Map File...";
@@ -1442,6 +1541,7 @@ Dolphinのベンチマークとして有用な機能です。
 "MD5 Checksum" = "MD5チェックサム";
 "MD5:" = "MD5:";
 "MMU" = "MMU";
+"MORIBUND" = "MORIBUND";
 "MadCatz Gameshark files(*.gcs)" = "MadCatz Gameshark セーブファイル(*.gcs)";
 "Main Stick" = "コントロールスティック";
 "Maker" = "メーカー";
@@ -1480,6 +1580,7 @@ Would you like to copy the old file to this new location?
 この場所に古いファイルをコピーしますか？
 ";
 "Memory Not Ready" = "Memory Not Ready";
+"Memory Override" = "Memory Override";
 "Memory breakpoint options" = "Memory breakpoint options";
 "MemoryCard: ClearBlock called on invalid address (0x%x)" = "MemoryCard: ClearBlock called on invalid address (0x%x)";
 "MemoryCard: Read called with invalid source address (0x%x)" = "MemoryCard: Read called with invalid source address (0x%x)";
@@ -1508,8 +1609,8 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "Monospaced Font" = "等幅フォント";
 "More or equal to" = "次の値以上";
 "More than" = "次の値より大きい";
-"Motion Input" = "Motion Input";
-"Motion Simulation" = "Motion Simulation";
+"Motion Input" = "モーション（外部入力）";
+"Motion Simulation" = "モーション";
 "Motor" = "モーター";
 "Move the mouse pointer over an option to display a detailed description." = "設定項目にマウスカーソルを合わせると、ここに説明が表示されます。";
 "Movie" = "記録";
@@ -1542,15 +1643,9 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "New identity generated." = "新しいIDが作成されました。";
 "New instruction:" = "New instruction:";
 "New tag" = "新しいタグ";
-"Next Game Profile for Wii Remote 1" = "1PのWiiリモコン：次のゲームプロファイル";
-"Next Game Profile for Wii Remote 2" = "2PのWiiリモコン：次のゲームプロファイル";
-"Next Game Profile for Wii Remote 3" = "3PのWiiリモコン：次のゲームプロファイル";
-"Next Game Profile for Wii Remote 4" = "4PのWiiリモコン：次のゲームプロファイル";
+"Next Game Profile" = "Next Game Profile";
 "Next Match" = "Next Match";
-"Next Profile for Wii Remote 1" = "1PのWiiリモコン：次のプロファイル";
-"Next Profile for Wii Remote 2" = "2PのWiiリモコン：次のプロファイル";
-"Next Profile for Wii Remote 3" = "3PのWiiリモコン：次のプロファイル";
-"Next Profile for Wii Remote 4" = "4PのWiiリモコン：次のプロファイル";
+"Next Profile" = "Next Profile";
 "Next Search" = "次を検索";
 "Nickname:" = "ニックネーム：";
 "No" = "いいえ";
@@ -1618,6 +1713,7 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "Operators" = "演算子";
 "Options" = "設定";
 "Orange" = "オレンジ";
+"Orbital" = "Orbital";
 "Other" = "その他";
 "Other State Hotkeys" = "その他";
 "Other State Management" = "その他ステート関係";
@@ -1630,6 +1726,7 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "PPC vs Host" = "PPC vs Host";
 "Pad" = "パッド";
 "Pads" = "パッド";
+"Parameters" = "Parameters";
 "Parsing Error" = "解析エラー";
 "Partition %1" = "パーティション %1";
 "Passive" = "Passive";
@@ -1682,15 +1779,9 @@ This can take a while." = "更新の準備中...
 "Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken effects.
 
 Not recommended, only use if the other options give poor results." = "Ubershadersを使う代わりに、待機中のオブジェクトのレンダリングを行わないようにすることでカクつきを防ぎます。描画精度やエフェクト表示が犠牲になるため、他の方式を選ぶことをオススメします。";
-"Previous Game Profile for Wii Remote 1" = "1PのWiiリモコン：前のゲームプロファイル";
-"Previous Game Profile for Wii Remote 2" = "2PのWiiリモコン：前のゲームプロファイル";
-"Previous Game Profile for Wii Remote 3" = "3PのWiiリモコン：前のゲームプロファイル";
-"Previous Game Profile for Wii Remote 4" = "4PのWiiリモコン：前のゲームプロファイル";
+"Previous Game Profile" = "Previous Game Profile";
 "Previous Match" = "Previous Match";
-"Previous Profile for Wii Remote 1" = "1PのWiiリモコン：前のプロファイル";
-"Previous Profile for Wii Remote 2" = "2PのWiiリモコン：前のプロファイル";
-"Previous Profile for Wii Remote 3" = "3PのWiiリモコン：前のプロファイル";
-"Previous Profile for Wii Remote 4" = "4PのWiiリモコン：前のプロファイル";
+"Previous Profile" = "Previous Profile";
 "Private" = "パスワードあり";
 "Private and Public" = "すべて";
 "Problem" = "問題点";
@@ -1710,7 +1801,10 @@ Not recommended, only use if the other options give poor results." = "Ubershader
 "Quit" = "終了";
 "R" = "R";
 "R-Analog" = "R (アナログ)";
+"READY" = "READY";
 "RSO Modules" = "RSO Modules";
+"RSO auto-detection" = "RSO auto-detection";
+"RUNNING" = "RUNNING";
 "Range" = "範囲／強さ";
 "Re&place instruction" = "Re&place instruction";
 "Read" = "Read";
@@ -1751,10 +1845,12 @@ SSAAは更に負荷が増大しますが、最高の品質を得られる上、�
 "Relative Input Hold" = "Relative Input Hold";
 "Remind Me Later" = "また今度";
 "Remove" = "削除";
+"Remove Junk Data (Irreversible):" = "Remove Junk Data (Irreversible):";
 "Remove Tag..." = "タグの削除";
 "Remove failed" = "Remove failed";
 "Remove from Watch" = "Remove from Watch";
 "Remove tag" = "タグを削除";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?";
 "Rename symbol" = "Rename symbol";
 "Render Window" = "ゲームウィンドウの設定";
 "Render to Main Window" = "メインウィンドウ部分に描画";
@@ -1805,6 +1901,8 @@ If unsure, leave this unchecked." = "Round 2D vertices to whole pixels. 内部�
 "SD Card Path:" = "SDカード";
 "SHA-1:" = "SHA-1:";
 "SP1:" = "シリアルポート1";
+"SSL context" = "SSL context";
+"SSL options" = "SSL options";
 "START" = "START";
 "Sa&ve Code" = "Sa&ve Code";
 "Sa&ve State" = "ステートセーブ(&V)";
@@ -1844,8 +1942,6 @@ Overwrite now?" = "このタイトルのセーブデータは既にNAND内に存
 "Save to Slot %1 - %2" = "スロット %1 - %2";
 "Save..." = "保存";
 "Saved Wii Remote pairings can only be reset when a Wii game is running." = "ペアリングの初期化はWiiのゲームを実行中にのみ行なえます";
-"Saved to /Wii/sd.raw (default size is 128mb)." = "以下の場所に128MBの仮想SDファイルを作成します
-/Wii/sd.raw";
 "Savestate movie %s is corrupted, movie recording stopping..." = "Savestate movie %s の破損を確認しました。録画を中止しています...";
 "Scaled EFB Copy" = "Scaled EFB Copy";
 "ScrShot" = "画面撮影";
@@ -1887,16 +1983,17 @@ Overwrite now?" = "このタイトルのセーブデータは既にNAND内に存
 "Select a SD Card Image" = "SDカードファイルを選択";
 "Select a game" = "タイトルを選択";
 "Select a title to install to NAND" = "NANDにインストールするタイトルを選択";
+"Select the RSO module address:" = "Select the RSO module address:";
 "Select the Recording File" = "録画ファイルを選択";
 "Select the keys file (OTP/SEEPROM dump)" = "キーファイル (OTP/SEEPROM ダンプ)を選択";
 "Select the save file" = "セーブファイルを選択";
-"Select where you want to save the compressed image" = "圧縮するタイトルの保存先を選択";
-"Select where you want to save the compressed images" = "圧縮された画像の保存先を選択";
-"Select where you want to save the decompressed image" = "復元するタイトルの保存先を選択";
-"Select where you want to save the decompressed images" = "解凍された画像の保存先を選択";
+"Select where you want to save the converted image" = "Select where you want to save the converted image";
+"Select where you want to save the converted images" = "Select where you want to save the converted images";
 "Selected Font" = "選択したフォント";
 "Selected controller profile does not exist" = "選択されたプロファイルは存在しません";
 "Selected game doesn't exist in game list!" = "選択されたゲームがゲームリストに存在しません！";
+"Selected thread callstack" = "Selected thread callstack";
+"Selected thread context" = "Selected thread context";
 "Selects a hardware adapter to use.
 
 If unsure, select the first one." = "描画に使用するビデオカードを選択します。
@@ -2059,6 +2156,7 @@ If unsure, leave this unchecked." = "画面上に様々な統計情報を表示�
 "Signed Integer" = "Signed Integer";
 "Simplified Chinese" = "簡体字中国語";
 "Simulate DK Bongos" = "タルコンガのシミュレート";
+"Six Axis" = "Six Axis";
 "Size" = "サイズ";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "ストレッチに使用するバッファサイズをミリ秒単位で変更できます。小さくしすぎると音割れの原因になります。";
 "Skip" = "Skip";
@@ -2079,6 +2177,7 @@ If unsure, leave this checked.";
 "Slot A:" = "スロットA";
 "Slot B" = "スロットB";
 "Slot B:" = "スロットB";
+"Socket table" = "Socket table";
 "Software Renderer" = "Software Renderer";
 "Some of the data could not be read." = "Some of the data could not be read.";
 "Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "Some padding data that should be zero is not zero. This can make the game freeze at certain points.";
@@ -2091,15 +2190,19 @@ Please check the highlighted values." = "いくつかの値は不正です。
 "Spanish" = "スペイン語";
 "Speaker Pan" = "スピーカー パン調整";
 "Speaker Volume:" = "リモコンスピーカー音量";
+"Specific" = "Specific";
 "Speed" = "Speed";
 "Speed up Disc Transfer Rate" = "Speed up Disc Transfer Rate";
 "Stable (once a year)" = "安定版 (年に一度のみ)";
+"Stack end" = "Stack end";
+"Stack start" = "Stack start";
 "Standard Controller" = "標準コントローラ";
 "Start" = "スタート";
 "Start &NetPlay..." = "ネットプレイを開始(&N)";
 "Start Re&cording Input" = "操作の記録を開始(&C)";
 "Start Recording" = "操作の記録を開始";
 "Started game" = "ゲームを開始";
+"State" = "State";
 "Steering Wheel" = "SPEED FORCE";
 "Step" = "Step";
 "Step Into" = "Step Into";
@@ -2135,11 +2238,11 @@ If unsure, leave this checked." = "システムメモリをバイパスさせ、
 Enabled = XFB Copies to Texture
 Disabled = XFB Copies to RAM (and Texture)
 
-If unsure, leave this checked." = "システムメモリをバイパスさせ、EFBコピーをGPU上に独占的に格納します。
+If unsure, leave this checked." = "システムメモリをバイパスさせ、XFBコピーをGPU上に独占的に格納します。
 少数のタイトルで描画バグの原因になる可能性があります。
 
-有効にする = EFB Copies to Texture
-無効にする = EFB Copies to RAM (and Texture)
+有効にする = XFB Copies to Texture
+無効にする = XFB Copies to RAM (and Texture)
 
 よく分からなければ、チェックを外さないでください。";
 "Stretch to Window" = "ウィンドウに合わせる";
@@ -2152,10 +2255,7 @@ If unsure, leave this checked." = "システムメモリをバイパスさせ、
 "Success" = "完了";
 "Success." = "完了";
 "Successfully added to the NetPlay index" = "Successfully added to the NetPlay index";
-"Successfully compressed %n image(s)." = "次のディスクイメージの圧縮に成功しました
-%n";
-"Successfully decompressed %n image(s)." = "次のディスクイメージの復元に成功しました
-%n";
+"Successfully converted %n image(s)." = "Successfully converted %n image(s).";
 "Successfully deleted '%1'." = " '%1' の削除に成功しました";
 "Successfully deleted files." = "選択されたファイルの削除に成功しました";
 "Successfully exported save files" = "セーブファイルのエクスポートに成功しました";
@@ -2168,6 +2268,8 @@ If unsure, leave this checked." = "システムメモリをバイパスさせ、
 "Successfully installed this title to the NAND." = "タイトルのインストールに成功しました";
 "Successfully removed this title from the NAND." = "タイトルの消去に成功しました";
 "Support" = "サポート";
+"Supports SD and SDHC. Default size is 128 MB." = "Supports SD and SDHC. Default size is 128 MB.";
+"Suspended" = "Suspended";
 "Swap Eyes" = "視点を入れ替える";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2198,6 +2300,7 @@ If unsure, leave this unchecked." = "有効にすると左右の視点を入れ�
 "TAS Tools" = "TAS関係";
 "Tags" = "タグを表示";
 "Taiko Drum" = "タタコン";
+"Tail" = "Tail";
 "Taiwan" = "台湾";
 "Take Screenshot" = "画面撮影";
 "Test" = "テスト";
@@ -2207,6 +2310,7 @@ If unsure, leave this unchecked." = "有効にすると左右の視点を入れ�
 "The %s partition does not seem to contain valid data." = "The %s partition does not seem to contain valid data.";
 "The %s partition is not correctly signed." = "The %s partition is not correctly signed.";
 "The %s partition is not properly aligned." = "The %s partition is not properly aligned.";
+"The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)" = "The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)";
 "The H3 hash table for the %s partition is not correct." = "The H3 hash table for the %s partition is not correct.";
 "The IPL file is not a known good dump. (CRC32: %x)" = "このIPLファイルは良好なダンプではないようです (CRC32: %x)";
 "The Masterpiece partitions are missing." = "The Masterpiece partitions are missing.";
@@ -2342,9 +2446,12 @@ Unknown ucode (CRC = %08x) - forcing AXWii.";
 "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend.";
+"Thread context" = "Thread context";
+"Threads" = "Threads";
 "Threshold" = "しきい値";
 "TiB" = "TiB";
 "Tilt" = "傾き";
+"Time period of stable input to trigger calibration. (zero to disable)" = "Time period of stable input to trigger calibration. (zero to disable)";
 "Title" = "タイトル";
 "To" = "終了";
 "To:" = "終了";
@@ -2387,6 +2494,7 @@ May prevent desync in some games that use EFB reads. Please ensure everyone uses
 "U&16" = "U&16";
 "U&32" = "U&32";
 "U&8" = "U&8";
+"UNKNOWN" = "UNKNOWN";
 "USA" = "アメリカ合衆国";
 "USB Gecko" = "USB Gecko";
 "USB Whitelist Error" = "USB Whitelist Error";
@@ -2406,6 +2514,7 @@ Only recommended for high-end systems." = "Ubershaders を常に使用します�
 
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "Ubershaders をカクつき防止のために使用します。
 ただし、カクつきを引き起こさないと考えられる一部のシェーダに対しては使用しません。最良のケースではパフォーマンスへの影響を最小限に抑えつつカクつきが解消されるはずですが、実際の所はお使いのビデオドライバに依存します。";
+"Unable to auto-detect RSO module" = "Unable to auto-detect RSO module";
 "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
 
 Would you like to ignore this line and continue parsing?" = "暗号化または復号化コードとして入力された内 %1 行目を解析できません。内容を確認してください。
@@ -2417,6 +2526,7 @@ Would you like to ignore this line and continue parsing?" = "暗号化または�
 
 この行を無視して解析を続けますか？";
 "Unable to write to file %s" = "1%s に書き込むことができません";
+"Unbound" = "Unbound";
 "Uncompressed GC/Wii images (*.iso *.gcm)" = "未圧縮のGC/Wii ISOファイル (*.iso *.gcm)";
 "Undo Load State" = "直前のステートロードを取消";
 "Undo Save State" = "直前のステートセーブの取消";
@@ -2492,6 +2602,7 @@ If unsure, leave this unchecked." = "ゲーム画面として別のウィンド�
 "Verbosity" = "出力するログのレベル設定";
 "Verify" = "整合性";
 "Verify Integrity" = "整合性チェックを実行";
+"Verify certificates" = "Verify certificates";
 "Verifying" = "整合性チェック中...";
 "Version" = "バージョン";
 "Vertex Rounding" = "Vertex Rounding";
@@ -2509,8 +2620,9 @@ If unsure, leave this unchecked." = "ゲーム画面として別のウィンド�
 "WAD installation failed: Could not import content %08x." = "WAD installation failed: Could not import content %08x.";
 "WAD installation failed: Could not initialise title import (error %d)." = "WAD installation failed: Could not initialise title import (error %d).";
 "WAD installation failed: The selected file is not a valid WAD." = "WAD installation failed: The selected file is not a valid WAD.";
-"WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
-"WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
+"WAITING" = "WAITING";
+"WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "注意：このページの加速度欄およびジャイロスコープ欄は、モーションセンサーを持つ外部入力装置のためのものです。事前に外部入力設定が必要です。";
+"WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "注意：このページはモーションセンサーを持つ外部入力装置のためのものです。事前に外部入力設定が必要です。";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusive Mode)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
@@ -2562,6 +2674,7 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Watch" = "Watch";
 "WaveFileWriter - file not open." = "WaveFileWriter - file not open.";
 "Website" = "Webサイト";
+"Western (Windows-1252)" = "欧米用 (Windows-1252)";
 "Whammy" = "ワーミー";
 "Whitelisted USB Passthrough Devices" = "常にパススルーを行うUSBデバイスリスト";
 "Widescreen Hack" = "疑似ワイドスクリーン化";
@@ -2599,7 +2712,9 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "Yaw Right";
 "Yellow" = "黄";
 "Yes" = "はい";
-"You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+.";
+"You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "Vulkan (Metal) API をサポートしていないOSで有効にしようとしています。
+すべての機能を有効化するには macOS 10.14 (Mojave) 以降のOSが必要です。
+これより前のOSで問題が発生してもバグ報告はしないでください。";
 "You are running the latest version available on this update track." = "最新バージョンを使用しているようです";
 "You cannot use the Wii Shop Channel without using your own device credentials.
 Please refer to the NAND usage guide for setup instructions: https://dolphin-emu.org/docs/guides/nand-usage-guide/" = "Wiiショップチャンネルはあなたがお持ちの実機NANDを通してしか使用できません。
@@ -2623,16 +2738,19 @@ If you select \"No\", audio might be garbled." = "ダンプしたDSP ROMのハ�
 "cm" = "cm";
 "d3d12.dll could not be loaded." = "d3d12.dll could not be loaded.";
 "disconnected" = "disconnected";
+"errno" = "errno";
 "fake-completion" = "擬似シングルコア (fake-completion)";
 "m/s" = "m/s";
 "none" = "なし";
 "on" = "on";
 "or select a device" = "もしくは下の一覧から選択";
+"s" = "s";
 "uDraw GameTablet" = "uDraw GameTablet";
 "{} failed to synchronize codes." = "{} failed to synchronize codes.";
 "{} failed to synchronize." = "{} failed to synchronize.";
 "| Or" = "| Or（論理和）";
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.";
 "°" = "°";
+"°/s" = "°/s";
 "✔ Invite" = "✔ 招待";
 "✖ Decline" = "✖ 拒否";

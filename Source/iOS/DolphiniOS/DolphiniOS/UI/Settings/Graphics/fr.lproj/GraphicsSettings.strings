@@ -215,8 +215,8 @@
 /* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
 "ufh-Et-UDN.text" = "1x";
 
-/* Class = "UILabel"; text = "Sauvegarder le cache de texture dans la sauvegarde de l'état"; ObjectID = "v90-sm-gpO"; */
-"v90-sm-gpO.text" = "Sauvegarder le cache de texture dans la sauvegarde de l'état";
+/* Class = "UILabel"; text = "Enreg. le cache de texture dans la sauveg. de l'état"; ObjectID = "v90-sm-gpO"; */
+"v90-sm-gpO.text" = "Enreg. le cache de texture dans la sauveg. de l'état";
 
 /* Class = "UILabel"; text = "Noter le temps de rendu dans un fichier"; ObjectID = "vLt-rL-Jc6"; */
 "vLt-rL-Jc6.text" = "Noter le temps de rendu dans un fichier";

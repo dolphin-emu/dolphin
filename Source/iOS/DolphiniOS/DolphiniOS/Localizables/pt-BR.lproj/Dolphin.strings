@@ -21,8 +21,6 @@ WARNING: Fixing this NAND requires the deletion of titles that have incomplete d
 Launching these titles may also fix the issues.";
 " (Disc %1)" = " (Disc %1)";
 "! Not" = "! Not";
-"\"%s\" failed to be scrubbed. Probably the image is corrupt." = "\"%s\" failed to be scrubbed. Probably the image is corrupt.";
-"\"%s\" is already compressed! Cannot compress it further." = "\"%s\" is already compressed! Cannot compress it further.";
 "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO." = "\"%s\" Ficheiro GCM/ISO inválido, ou não é um ISO de GC/Wii.";
 "%" = "%";
 "% Modulo" = "% Modulo";
@@ -57,9 +55,12 @@ Current Frame: %3";
 "%1 session found" = "%1 session found";
 "%1 sessions found" = "%1 sessions found";
 "%1% (Normal Speed)" = "%1% (Normal Speed)";
+"%1MB (MEM1)" = "%1MB (MEM1)";
+"%1MB (MEM2)" = "%1MB (MEM2)";
 "%1[%2]: %3" = "%1[%2]: %3";
 "%1[%2]: %3 %" = "%1[%2]: %3 %";
 "%1[%2]: %3/%4 MiB" = "%1[%2]: %3/%4 MiB";
+"%1x Native (%2x%3)" = "%1x Native (%2x%3)";
 "%i of %i blocks. Compression ratio %i%%" = "%i of %i blocks. Compression ratio %i%%";
 "%s (Masterpiece)" = "%s (Masterpiece)";
 "%s IPL found in %s directory. The disc might not be recognized" = "%s IPL found in %s directory. The disc might not be recognized";
@@ -78,7 +79,6 @@ Current Frame: %3";
 "&Automatic Start" = "&Automatic Start";
 "&Boot from DVD Backup" = "&Boot from DVD Backup";
 "&Breakpoints" = "&Pontos de partida";
-"&Browse..." = "&Browse...";
 "&Bug Tracker" = "&Bug Tracker";
 "&Cancel" = "&Cancel";
 "&Cheats Manager" = "&Cheats Manager";
@@ -88,6 +88,7 @@ Current Frame: %3";
 "&Code" = "&Code";
 "&Controller Settings" = "&Controller Settings";
 "&Copy address" = "&Copy address";
+"&Create..." = "&Create...";
 "&Delete" = "&Delete";
 "&Delete Watch" = "&Delete Watch";
 "&Edit Code..." = "&Edit Code...";
@@ -112,6 +113,7 @@ Current Frame: %3";
 "&Lock Widgets In Place" = "&Lock Widgets In Place";
 "&Memory" = "&Memória";
 "&Movie" = "&Movie";
+"&Network" = "&Network";
 "&Open..." = "&Abrir...";
 "&Options" = "&Opções";
 "&Patch HLE Functions" = "&Patch HLE Functions";
@@ -129,6 +131,7 @@ Current Frame: %3";
 "&Speed Limit:" = "&Speed Limit:";
 "&Stop" = "&Parar";
 "&Theme:" = "&Theme:";
+"&Threads" = "&Threads";
 "&Tools" = "&Ferramentas";
 "&View" = "&Ver";
 "&Watch" = "&Watch";
@@ -147,6 +150,8 @@ Current Frame: %3";
 "--> %1" = "--> %1";
 "..." = "...";
 "/ Divide" = "/ Divide";
+"128 Mbit (2043 blocks)" = "128 Mbit (2043 blocks)";
+"16 Mbit (251 blocks)" = "16 Mbit (251 blocks)";
 "16-bit" = "16-bit";
 "16-bit Integer" = "16-bit Integer";
 "16:9" = "16:9";
@@ -154,17 +159,21 @@ Current Frame: %3";
 "1x" = "1x";
 "2x" = "2x";
 "2x Native (1280x1056) for 720p" = "2x Native (1280x1056) for 720p";
+"32 Mbit (507 blocks)" = "32 Mbit (507 blocks)";
 "32-bit" = "32-bit";
 "32-bit Integer" = "32-bit Integer";
 "3D" = "3D";
 "3D Depth" = "3D Depth";
 "3x Native (1920x1584) for 1080p" = "3x Native (1920x1584) for 1080p";
+"4 Mbit (59 blocks)" = "4 Mbit (59 blocks)";
 "4:3" = "4:3";
 "4x" = "4x";
 "4x Native (2560x2112) for 1440p" = "4x Native (2560x2112) for 1440p";
 "5x Native (3200x2640)" = "5x Native (3200x2640)";
+"64 Mbit (1019 blocks)" = "64 Mbit (1019 blocks)";
 "6x Native (3840x3168) for 4K" = "6x Native (3840x3168) for 4K";
 "7x Native (4480x3696)" = "7x Native (4480x3696)";
+"8 Mbit (123 blocks)" = "8 Mbit (123 blocks)";
 "8-bit" = "8-bit";
 "8-bit Integer" = "8-bit Integer";
 "8x" = "8x";
@@ -187,6 +196,7 @@ WAD version: %u
 
 Installing this WAD will replace it irreversibly. Continue?";
 "A disc is already about to be inserted." = "A disc is already about to be inserted.";
+"A save state cannot be loaded without specifying a game to launch." = "A save state cannot be loaded without specifying a game to launch.";
 "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?" = "A shutdown is already in progress. Unsaved data may be lost if you stop the current emulation before it completes. Force stop?";
 "A sync can only be triggered when a Wii game is running." = "A sync can only be triggered when a Wii game is running.";
 "ALERT:
@@ -242,12 +252,16 @@ Master codes are not needed. Do not use master codes.";
 "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)" = "Action Replay: Código Normal 0: Subtipo Inválido %08x (%s)";
 "Activate NetPlay Chat" = "Activate NetPlay Chat";
 "Active" = "Active";
+"Active thread queue" = "Active thread queue";
+"Active threads" = "Active threads";
 "Adapter Detected" = "Adapter Detected";
 "Adapter:" = "Adaptador:";
 "Add" = "Adicionar";
+"Add &breakpoint" = "Add &breakpoint";
 "Add New USB Device" = "Add New USB Device";
 "Add a Breakpoint" = "Add a Breakpoint";
 "Add a Memory Breakpoint" = "Add a Memory Breakpoint";
+"Add memory breakpoint" = "Add memory breakpoint";
 "Add to &watch" = "Add to &watch";
 "Add to Watch" = "Add to Watch";
 "Add..." = "Adicionar...";
@@ -272,6 +286,11 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 Higher values may make variable-framerate games run at a higher framerate, at the expense of performance. Lower values may activate a game's internal frameskip, potentially improving performance.
 
 WARNING: Changing this from the default (100%) can and will break games and cause glitches. Do so at your own risk. Please do not report bugs that occur with a non-default clock.";
+"Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations." = "Adjusts the emulated sizes of MEM1 and MEM2.
+
+Some titles may recognize the larger memory arena(s) and take advantage of it, though retail titles are normally optimized for the retail memory limitations.";
 "Advance Game Port" = "Advance Game Port";
 "Advanced" = "Avançadas";
 "Africa" = "Africa";
@@ -284,6 +303,7 @@ WARNING: Changing this from the default (100%) can and will break games and caus
 "All players' saves synchronized." = "All players' saves synchronized.";
 "Allow Mismatched Region Settings" = "Allow Mismatched Region Settings";
 "Allow Usage Statistics Reporting" = "Allow Usage Statistics Reporting";
+"Allow Writes to SD Card" = "Allow Writes to SD Card";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -311,6 +331,7 @@ Ignore and continue?";
 "Anaglyph" = "Anaglyph";
 "Analyze" = "Analisar";
 "Angle" = "Ângulo";
+"Angular velocity to ignore." = "Angular velocity to ignore.";
 "Anisotropic Filtering:" = "Filtro Anisotrópico";
 "Anti-Aliasing:" = "Anti-Serrilhamento";
 "Any Region" = "Any Region";
@@ -353,6 +374,7 @@ Please select a specific internal resolution." = "Auto internal resolution is no
 Please select a specific internal resolution.";
 "Auto-Adjust Window Size" = "Auto-Adjust Window Size";
 "Auto-Hide" = "Auto-Hide";
+"Auto-detect RSO modules?" = "Auto-detect RSO modules?";
 "Automatically adjusts the window size to the internal resolution.
 
 If unsure, leave this unchecked." = "Automatically adjusts the window size to the internal resolution.
@@ -362,6 +384,7 @@ If unsure, leave this unchecked.";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT incorrect. Dolphin will now exit";
 "BP register " = "BP register ";
+"Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multithreading";
 "Backend Settings" = "Definições Backend";
 "Backend:" = "Backend:";
@@ -374,6 +397,7 @@ If unsure, leave this unchecked.";
 "Banner Details" = "Detalhes de Banner";
 "Banner:" = "Banner:";
 "Bar" = "Barra";
+"Base priority" = "Base priority";
 "Basic" = "Básico";
 "Basic Settings" = "Definições Básicas";
 "Bass" = "Baixo";
@@ -381,18 +405,19 @@ If unsure, leave this unchecked.";
 "Battery" = "Battery";
 "Beta (once a month)" = "Beta (once a month)";
 "Bitrate (kbps):" = "Bitrate (kbps):";
+"Block Size:" = "Block Size:";
 "Blocks" = "Blocos";
 "Blue" = "Azul";
 "Blue Left" = "Azul esquerda";
 "Blue Right" = "Azul Direita";
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used." = "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. Passthrough mode cannot be used.";
-"Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting." = "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device was found. Aborting.";
 "Boot to Pause" = "Boot to Pause";
 "BootMii NAND backup file (*.bin);;All Files (*)" = "BootMii NAND backup file (*.bin);;All Files (*)";
 "BootMii keys file (*.bin);;All Files (*)" = "BootMii keys file (*.bin);;All Files (*)";
 "Borderless Fullscreen" = "Borderless Fullscreen";
 "Bottom" = "Inferior";
 "Branch: %1" = "Branch: %1";
+"Branches" = "Branches";
 "Break" = "Break";
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breakpoint encountered! Step out aborted.";
@@ -433,6 +458,7 @@ Rarely causes slowdowns or graphical issues.
 If unsure, leave this unchecked.";
 "Calibrate" = "Calibrate";
 "Calibration" = "Calibration";
+"Calibration Period" = "Calibration Period";
 "Callstack" = "Callstack";
 "Can't find Wii Remote by connection handle %02x" = "Can't find Wii Remote by connection handle %02x";
 "Can't start a NetPlay Session while a game is still running!" = "Can't start a NetPlay Session while a game is still running!";
@@ -445,6 +471,7 @@ If unsure, leave this unchecked.";
 Have you chosen the right type?" = "Cannot interpret the given value.
 Have you chosen the right type?";
 "Cannot start the game, because the GC IPL could not be found." = "Cannot start the game, because the GC IPL could not be found.";
+"Card Size" = "Card Size";
 "Center" = "Center";
 "Center and Calibrate" = "Center and Calibrate";
 "Change &Disc" = "Change &Disc";
@@ -452,6 +479,15 @@ Have you chosen the right type?";
 "Change Disc" = "Mudar Disco";
 "Change Discs Automatically" = "Change Discs Automatically";
 "Change the disc to %s" = "Change the disc to %s";
+"Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Changes the in-game camera type during freelook.
+
+Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
+First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point.";
 "Changing cheats will only take effect when the game is restarted." = "Changing cheats will only take effect when the game is restarted.";
 "Chat" = "Conversa";
 "Cheat Code Editor" = "Cheat Code Editor";
@@ -483,11 +519,7 @@ Have you chosen the right type?";
 "Common" = "Common";
 "Compile Shaders Before Starting" = "Compile Shaders Before Starting";
 "Compiling Shaders" = "Compiling Shaders";
-"Compress ISO..." = "Comprimir ISO...";
-"Compress Selected ISOs..." = "Compress Selected ISOs...";
 "Compressed GC/Wii images (*.gcz)" = "Compressed GC/Wii images (*.gcz)";
-"Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?" = "Compressing a Wii disc image will irreversibly change the compressed copy by removing padding data. Your disc image will still work. Continue?";
-"Compressing..." = "Compressing...";
 "Condition" = "Condition";
 "Config" = "Configurar";
 "Configure" = "Configuração";
@@ -507,13 +539,20 @@ Have you chosen the right type?";
 "Connect Wii Remote 3" = "Connect Wii Remote 3";
 "Connect Wii Remote 4" = "Connect Wii Remote 4";
 "Connect Wii Remotes" = "Connect Wii Remotes";
+"Connect Wii Remotes for Emulated Controllers" = "Connect Wii Remotes for Emulated Controllers";
 "Connect to the Internet and perform an online system update?" = "Connect to the Internet and perform an online system update?";
+"Connected" = "Connected";
 "Connection Type:" = "Connection Type:";
 "Content %08x is corrupt." = "Content %08x is corrupt.";
 "Continuous Scanning" = "Continuous Scanning";
 "Control NetPlay Golf Mode" = "Control NetPlay Golf Mode";
 "Control Stick" = "Control Stick";
+"Control Type:" = "Control Type:";
 "Controller Profile" = "Controller Profile";
+"Controller Profile 1" = "Controller Profile 1";
+"Controller Profile 2" = "Controller Profile 2";
+"Controller Profile 3" = "Controller Profile 3";
+"Controller Profile 4" = "Controller Profile 4";
 "Controller Settings" = "Controller Settings";
 "Controllers" = "Controllers";
 "Controls the distance of the convergence plane. This is the distance at which virtual objects will appear to be in front of the screen.
@@ -539,6 +578,11 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it." = "Controls whether or not the Memory Management Unit should be emulated fully. Few games require it.";
 "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>" = "Controls whether to use high or low-level DSP emulation. Defaults to <b>True</b>";
 "Convergence:" = "Convergence:";
+"Convert" = "Convert";
+"Convert File..." = "Convert File...";
+"Convert Selected Files..." = "Convert Selected Files...";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?";
+"Converting..." = "Converting...";
 "Copy" = "Copy";
 "Copy &function" = "Copy &function";
 "Copy &hex" = "Copy &hex";
@@ -555,6 +599,20 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Could not create peer." = "Could not create peer.";
 "Could not download update files from Nintendo. Please check your Internet connection and try again." = "Could not download update files from Nintendo. Please check your Internet connection and try again.";
 "Could not download update information from Nintendo. Please check your Internet connection and try again." = "Could not download update information from Nintendo. Please check your Internet connection and try again.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop." = "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+
+The emulated console will now stop.";
+"Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop." = "Could not find any usable Bluetooth USB adapter for Bluetooth Passthrough.
+The following error occurred when Dolphin tried to use an adapter:
+%s
+
+The emulated console will now stop.";
 "Could not install an update to the Wii system memory. Please refer to logs for more information." = "Could not install an update to the Wii system memory. Please refer to logs for more information.";
 "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
 The emulated software will likely hang now." = "Could not launch IOS %016<PRIx64> because it is missing from the NAND.
@@ -582,6 +640,8 @@ If so, then you may need to re-specify your memory card location in the options.
 "Couldn't open file." = "Couldn't open file.";
 "Couldn't read file." = "Couldn't read file.";
 "Country:" = "País";
+"Create New Memory Card" = "Create New Memory Card";
+"Create..." = "Create...";
 "Creates frame dumps and screenshots at the internal resolution of the renderer, rather than the size of the window it is displayed within.
 
 If the aspect ratio is widescreen, the output image will be scaled horizontally to preserve the vertical resolution.
@@ -601,14 +661,15 @@ If unsure, leave this unchecked." = "Crops the picture from its native aspect ra
 If unsure, leave this unchecked.";
 "Crossfade" = "Desvanecimento cruzado";
 "Current Region" = "Current Region";
+"Current context" = "Current context";
 "Current game" = "Current game";
-"Custom" = "Custom";
+"Current thread" = "Current thread";
 "Custom RTC Options" = "Custom RTC Options";
 "D-Pad" = "D-Pad";
 "DJ Turntable" = "DJ Turntable";
 "DK Bongos" = "DK Bongos";
 "DSP Emulation Engine" = "DSP Emulation Engine";
-"DSP HLE Emulation (fast)" = "DSP HLE Emulation (fast)";
+"DSP HLE (fast)" = "DSP HLE (fast)";
 "DSP LLE Interpreter (slow)" = "DSP LLE Interpreter (slow)";
 "DSP LLE Recompiler" = "DSP LLE Recompiler";
 "DSU Client" = "DSU Client";
@@ -626,9 +687,6 @@ If unsure, leave this unchecked.";
 "Debugging" = "Depuração";
 "Decimal" = "Decimal";
 "Decoding Quality:" = "Decoding Quality:";
-"Decompress ISO..." = "Descomprimir ISO...";
-"Decompress Selected ISOs..." = "Decompress Selected ISOs...";
-"Decompressing..." = "Decompressing...";
 "Decrease Convergence" = "Decrease Convergence";
 "Decrease Depth" = "Decrease Depth";
 "Decrease Emulation Speed" = "Decrease Emulation Speed";
@@ -638,6 +696,7 @@ If unsure, leave this unchecked.";
 "Default Device" = "Default Device";
 "Default Font" = "Default Font";
 "Default ISO:" = "ISO Padrão:";
+"Default thread" = "Default thread";
 "Defer EFB Cache Invalidation" = "Defer EFB Cache Invalidation";
 "Defer EFB Copies to RAM" = "Defer EFB Copies to RAM";
 "Defers invalidation of the EFB access cache until a GPU synchronization command is executed. If disabled, the cache will be invalidated with every draw call. 
@@ -657,6 +716,7 @@ If unsure, leave this unchecked.";
 "Depth:" = "Depth:";
 "Description" = "Descrição";
 "Description:" = "Description:";
+"Detached" = "Detached";
 "Detect" = "Detectar";
 "Deterministic dual core:" = "Deterministic dual core:";
 "Dev (multiple times a day)" = "Dev (multiple times a day)";
@@ -677,6 +737,7 @@ Do you really want to switch to Direct3D 11? If unsure, select 'No'.";
 "Disable Copy Filter" = "Disable Copy Filter";
 "Disable EFB VRAM Copies" = "Disable EFB VRAM Copies";
 "Disable Emulation Speed Limit" = "Disable Emulation Speed Limit";
+"Disable Fastmem" = "Disable Fastmem";
 "Disable Fog" = "Desactivar Nevoeiro";
 "Disable JIT Cache" = "Disable JIT Cache";
 "Disables bounding box emulation.
@@ -722,7 +783,6 @@ If unsure, leave this unchecked.";
 "Do you want to delete the selected save file?" = "Do you want to delete the selected save file?";
 "Do you want to stop the current emulation?" = "Deseja parar a emulação actual?";
 "Dolby Pro Logic II Decoder" = "Dolby Pro Logic II Decoder";
-"Dolphin" = "Dolphin";
 "Dolphin FIFO Log (*.dff)" = "Dolphin FIFO Log (*.dff)";
 "Dolphin Map File (*.map)" = "Dolphin Map File (*.map)";
 "Dolphin Signature CSV File" = "Dolphin Signature CSV File";
@@ -737,6 +797,7 @@ Double-click here to set a games directory...";
 "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs." = "Dolphin is unable to verify typical TGC files properly, since they are not dumps of actual discs.";
 "Dolphin is unable to verify unlicensed discs." = "Dolphin is unable to verify unlicensed discs.";
 "Dolphin's cheat system is currently disabled." = "Dolphin's cheat system is currently disabled.";
+"Domain" = "Domain";
 "Don't Update" = "Don't Update";
 "Done compressing disc image." = "Done compressing disc image.";
 "Double" = "Double";
@@ -760,6 +821,8 @@ Double-click here to set a games directory...";
 "Dump Frames" = "Depositar Quadros";
 "Dump Objects" = "Dump Objects";
 "Dump Path:" = "Dump Path:";
+"Dump SSL read" = "Dump SSL read";
+"Dump SSL write" = "Dump SSL write";
 "Dump TEV Stages" = "Dump TEV Stages";
 "Dump TEV Stages to User/Dump/Objects/.
 
@@ -784,6 +847,8 @@ If unsure, leave this unchecked.";
 If unsure, leave this unchecked." = "Dump objects to User/Dump/Objects/.
 
 If unsure, leave this unchecked.";
+"Dump peer certificates" = "Dump peer certificates";
+"Dump root CA" = "Dump root CA";
 "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked." = "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
@@ -805,6 +870,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Editor" = "Editor";
 "Effect" = "Efeito";
 "Effective" = "Effective";
+"Effective priority" = "Effective priority";
 "EiB" = "EiB";
 "Eject Disc" = "Eject Disc";
 "Embedded Frame Buffer (EFB)" = "Embedded Frame Buffer (EFB)";
@@ -812,6 +878,11 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Emu Thread already running" = "Thread de Emulador já em execução";
 "Emulate the Wii's Bluetooth adapter" = "Emulate the Wii's Bluetooth adapter";
 "Emulated Wii Remote" = "Emulated Wii Remote";
+"Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)" = "Emulated memory size mismatch!
+Current: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)
+DFF: MEM1 %08X (%3d MiB), MEM2 %08X (%3d MiB)";
 "Emulation Speed" = "Emulation Speed";
 "Enable" = "Enable";
 "Enable API Validation Layers" = "Enable API Validation Layers";
@@ -821,6 +892,7 @@ Suitable for competitive games where fairness and minimal latency are most impor
 "Enable Dual Core" = "Activar Dual Core";
 "Enable Dual Core (speedup)" = "Activar Dual Core (aumento de desempenho)";
 "Enable Emulated CPU Clock Override" = "Enable Emulated CPU Clock Override";
+"Enable Emulated Memory Size Override" = "Enable Emulated Memory Size Override";
 "Enable FPRF" = "Enable FPRF";
 "Enable MMU" = "Activar MMU";
 "Enable Progressive Scan" = "Activar Progressive Scan";
@@ -881,6 +953,7 @@ If unsure, leave this unchecked.";
 If unsure, leave this unchecked." = "Encodes frame dumps using the FFV1 codec.
 
 If unsure, leave this unchecked.";
+"Encoding" = "Encoding";
 "Enet Didn't Initialize" = "Enet Didn't Initialize";
 "English" = "Inglês";
 "Enhancements" = "Melhorias";
@@ -935,6 +1008,7 @@ If unsure, leave this unchecked.";
 "Extract System Data..." = "Extract System Data...";
 "Extracting All Files..." = "Extracting All Files...";
 "Extracting Directory..." = "Extracting Directory...";
+"FD" = "FD";
 "FIFO Player" = "Reprodutor FIFO";
 "Failed opening memory card:
 %1" = "Failed opening memory card:
@@ -949,7 +1023,7 @@ If unsure, leave this unchecked.";
 "Failed to create DXGI factory" = "Failed to create DXGI factory";
 "Failed to delete NetPlay memory card. Verify your write permissions." = "Failed to delete NetPlay memory card. Verify your write permissions.";
 "Failed to delete the selected file." = "Failed to delete the selected file.";
-"Failed to detach kernel driver for BT passthrough: %s" = "Failed to detach kernel driver for BT passthrough: %s";
+"Failed to detach kernel driver for BT passthrough: {}" = "Failed to detach kernel driver for BT passthrough: {}";
 "Failed to download codes." = "Falha ao descarregar códigos";
 "Failed to dump %1: Can't open file" = "Failed to dump %1: Can't open file";
 "Failed to dump %1: Failed to write to file" = "Failed to dump %1: Failed to write to file";
@@ -979,7 +1053,7 @@ Make sure your video card supports at least D3D 10.0";
 "Failed to load map file '%1'" = "Failed to load map file '%1'";
 "Failed to load the executable to memory." = "Failed to load the executable to memory.";
 "Failed to open '%1'" = "Failed to open '%1'";
-"Failed to open Bluetooth device: %s" = "Failed to open Bluetooth device: %s";
+"Failed to open Bluetooth device: {}" = "Failed to open Bluetooth device: {}";
 "Failed to open config file!" = "Failed to open config file!";
 "Failed to open file \"%s\"." = "Failed to open file \"%s\".";
 "Failed to open file \"%s\". Verify your write permissions." = "Failed to open file \"%s\". Verify your write permissions.";
@@ -987,14 +1061,20 @@ Make sure your video card supports at least D3D 10.0";
 Make sure there's an application assigned to open INI files." = "Failed to open file in external editor.
 Make sure there's an application assigned to open INI files.";
 "Failed to open server" = "Failed to open server";
-"Failed to open the input file \"%s\"." = "Failed to open the input file \"%s\".";
+"Failed to open the input file \"%1\"." = "Failed to open the input file \"%1\".";
 "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written." = "Failed to open the output file \"%s\".
 Check that you have permissions to write the target folder and that the media can be written.";
 "Failed to parse Redump.org data" = "Failed to parse Redump.org data";
 "Failed to read %s" = "Failed to read %s";
+"Failed to read from the input file \"%s\"." = "Failed to read from the input file \"%s\".";
 "Failed to read unique ID from disc image" = "Falha ao ler ID único da imagem do disco";
 "Failed to remove file" = "Failed to remove file";
+"Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?" = "Failed to remove junk data from file \"%1\".
+
+Would you like to convert it without removing junk data?";
 "Failed to remove this title from the NAND." = "Failed to remove this title from the NAND.";
 "Failed to reset NetPlay GCI folder. Verify your write permissions." = "Failed to reset NetPlay GCI folder. Verify your write permissions.";
 "Failed to reset NetPlay NAND folder. Verify your write permissions." = "Failed to reset NetPlay NAND folder. Verify your write permissions.";
@@ -1018,9 +1098,9 @@ Check that you have enough space available on the target drive.";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s";
 "File Info" = "Informação de Ficheiro";
 "File Name" = "File Name";
+"File Path" = "File Path";
 "File Size" = "File Size";
 "File contained no codes." = "O ficheiro não continha códigos.";
-"File not compressed" = "Ficheiro não comprimido";
 "File write failed" = "File write failed";
 "File:" = "File:";
 "Files opened, ready to compress." = "Files opened, ready to compress.";
@@ -1048,6 +1128,7 @@ If unsure, leave this unchecked.";
 This can take a while." = "Finishing the update...
 This can take a while.";
 "First Block" = "Primeiro Bloco";
+"First Person" = "First Person";
 "Fix Checksums" = "Corrigir Checksums";
 "Flags" = "Flags";
 "Float" = "Float";
@@ -1076,6 +1157,7 @@ If unsure, leave this checked." = "Forces the game to render the RGB color chann
 Has no impact on performance and causes few graphical issues.
 
 If unsure, leave this checked.";
+"Format:" = "Format:";
 "Forward" = "Frente";
 "Forward port (UPnP)" = "Forward port (UPnP)";
 "Found %1 results for \"%2\"" = "Found %1 results for \"%2\"";
@@ -1099,6 +1181,7 @@ If unsure, leave this checked.";
 "Freelook Move Up" = "Freelook Move Up";
 "Freelook Reset" = "Freelook Reset";
 "Freelook Reset Speed" = "Freelook Reset Speed";
+"Freelook Toggle" = "Freelook Toggle";
 "Freelook Zoom In" = "Freelook Zoom In";
 "Freelook Zoom Out" = "Freelook Zoom Out";
 "French" = "Francês";
@@ -1187,9 +1270,11 @@ If unsure, leave this checked.";
 "Gyroscope" = "Gyroscope";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "Hacks";
+"Head" = "Head";
 "Hex" = "Hex";
 "Hexadecimal" = "Hexadecimal";
 "Hide" = "Esconder";
+"Hide In-Game Sessions" = "Hide In-Game Sessions";
 "Hide Incompatible Sessions" = "Hide Incompatible Sessions";
 "High" = "High";
 "Highest" = "Highest";
@@ -1206,6 +1291,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Host with NetPlay" = "Host with NetPlay";
 "Hotkey Settings" = "Hotkey Settings";
 "Hotkeys" = "Teclas de Atalho";
+"Hotkeys Require Window Focus" = "Hotkeys Require Window Focus";
 "Hz" = "Hz";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking.";
@@ -1215,11 +1301,17 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IR" = "IV";
 "IR Sensitivity:" = "Sensibilidade de Infra Vermelhos";
 "ISO Details" = "Detalhes ISO";
+"ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.";
 "Icon" = "Ícone";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf.";
 "Identity Generation" = "Identity Generation";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1283,6 +1375,7 @@ If unsure, leave this checked.";
 "Install Update" = "Install Update";
 "Install WAD..." = "Install WAD...";
 "Install to the NAND" = "Install to the NAND";
+"Instr." = "Instr.";
 "Instruction" = "Instruction";
 "Instruction Breakpoint" = "Instruction Breakpoint";
 "Instruction:" = "Instruction:";
@@ -1338,6 +1431,7 @@ Tente carregar o estado novamente";
 "JIT SystemRegisters Off" = "JIT SystemRegisters Off";
 "Japan" = "Japan";
 "Japanese" = "Japonês";
+"Japanese (Shift-JIS)" = "Japanese (Shift-JIS)";
 "Keep Window on Top" = "Keep Window on Top";
 "Keyboard" = "Keyboard";
 "Keys" = "Keys";
@@ -1347,6 +1441,7 @@ Tente carregar o estado novamente";
 "Korean" = "Coreano";
 "L" = "L";
 "L-Analog" = "L-Analógico";
+"LR Save" = "LR Save";
 "Label" = "Label";
 "Latency:" = "Latency:";
 "Latency: ~10ms" = "Latency: ~10ms";
@@ -1376,6 +1471,7 @@ Middle-click to clear.";
 "Limit Chunked Upload Speed:" = "Limit Chunked Upload Speed:";
 "List Columns" = "List Columns";
 "List View" = "List View";
+"Listening" = "Listening";
 "Load" = "Carregar";
 "Load &Bad Map File..." = "Load &Bad Map File...";
 "Load &Other Map File..." = "Load &Other Map File...";
@@ -1442,6 +1538,7 @@ If unsure, leave this unchecked.";
 "MD5 Checksum" = "MD5 Checksum";
 "MD5:" = "MD5:";
 "MMU" = "MMU";
+"MORIBUND" = "MORIBUND";
 "MadCatz Gameshark files(*.gcs)" = "ficheiros MadCatz Gameshark(*.gcs)";
 "Main Stick" = "Stick Principal";
 "Maker" = "Fabricante";
@@ -1481,6 +1578,7 @@ Slot %c caminho foi alterado para
 Quer fazer uma cópia do ficheiro antigo para esta nova localização?
 ";
 "Memory Not Ready" = "Memory Not Ready";
+"Memory Override" = "Memory Override";
 "Memory breakpoint options" = "Memory breakpoint options";
 "MemoryCard: ClearBlock called on invalid address (0x%x)" = "MemoryCard: ClearBlock called on invalid address (0x%x)";
 "MemoryCard: Read called with invalid source address (0x%x)" = "MemoryCard: Read called with invalid source address (0x%x)";
@@ -1539,15 +1637,9 @@ If unsure, leave this unchecked.";
 "New identity generated." = "New identity generated.";
 "New instruction:" = "New instruction:";
 "New tag" = "New tag";
-"Next Game Profile for Wii Remote 1" = "Next Game Profile for Wii Remote 1";
-"Next Game Profile for Wii Remote 2" = "Next Game Profile for Wii Remote 2";
-"Next Game Profile for Wii Remote 3" = "Next Game Profile for Wii Remote 3";
-"Next Game Profile for Wii Remote 4" = "Next Game Profile for Wii Remote 4";
+"Next Game Profile" = "Next Game Profile";
 "Next Match" = "Next Match";
-"Next Profile for Wii Remote 1" = "Next Profile for Wii Remote 1";
-"Next Profile for Wii Remote 2" = "Next Profile for Wii Remote 2";
-"Next Profile for Wii Remote 3" = "Next Profile for Wii Remote 3";
-"Next Profile for Wii Remote 4" = "Next Profile for Wii Remote 4";
+"Next Profile" = "Next Profile";
 "Next Search" = "Next Search";
 "Nickname:" = "Nickname:";
 "No" = "No";
@@ -1615,6 +1707,7 @@ If unsure, leave this unchecked.";
 "Operators" = "Operators";
 "Options" = "Opções";
 "Orange" = "Laranja";
+"Orbital" = "Orbital";
 "Other" = "Outro";
 "Other State Hotkeys" = "Other State Hotkeys";
 "Other State Management" = "Other State Management";
@@ -1627,6 +1720,7 @@ If unsure, leave this unchecked.";
 "PPC vs Host" = "PPC vs Host";
 "Pad" = "Comando";
 "Pads" = "Comandos";
+"Parameters" = "Parameters";
 "Parsing Error" = "Parsing Error";
 "Partition %1" = "Partition %1";
 "Passive" = "Passive";
@@ -1681,15 +1775,9 @@ This can take a while.";
 Not recommended, only use if the other options give poor results." = "Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn't, at the cost of introducing visual glitches and broken effects.
 
 Not recommended, only use if the other options give poor results.";
-"Previous Game Profile for Wii Remote 1" = "Previous Game Profile for Wii Remote 1";
-"Previous Game Profile for Wii Remote 2" = "Previous Game Profile for Wii Remote 2";
-"Previous Game Profile for Wii Remote 3" = "Previous Game Profile for Wii Remote 3";
-"Previous Game Profile for Wii Remote 4" = "Previous Game Profile for Wii Remote 4";
+"Previous Game Profile" = "Previous Game Profile";
 "Previous Match" = "Previous Match";
-"Previous Profile for Wii Remote 1" = "Previous Profile for Wii Remote 1";
-"Previous Profile for Wii Remote 2" = "Previous Profile for Wii Remote 2";
-"Previous Profile for Wii Remote 3" = "Previous Profile for Wii Remote 3";
-"Previous Profile for Wii Remote 4" = "Previous Profile for Wii Remote 4";
+"Previous Profile" = "Previous Profile";
 "Private" = "Private";
 "Private and Public" = "Private and Public";
 "Problem" = "Problem";
@@ -1709,7 +1797,10 @@ Not recommended, only use if the other options give poor results.";
 "Quit" = "Sair";
 "R" = "R";
 "R-Analog" = "R-Analógico";
+"READY" = "READY";
 "RSO Modules" = "RSO Modules";
+"RSO auto-detection" = "RSO auto-detection";
+"RUNNING" = "RUNNING";
 "Range" = "Alcance";
 "Re&place instruction" = "Re&place instruction";
 "Read" = "Read";
@@ -1748,10 +1839,12 @@ If unsure, select None.";
 "Relative Input Hold" = "Relative Input Hold";
 "Remind Me Later" = "Remind Me Later";
 "Remove" = "Remover";
+"Remove Junk Data (Irreversible):" = "Remove Junk Data (Irreversible):";
 "Remove Tag..." = "Remove Tag...";
 "Remove failed" = "Remove failed";
 "Remove from Watch" = "Remove from Watch";
 "Remove tag" = "Remove tag";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?";
 "Rename symbol" = "Rename symbol";
 "Render Window" = "Render Window";
 "Render to Main Window" = "Renderizar para a Janela Principal";
@@ -1803,6 +1896,8 @@ If unsure, leave this unchecked.";
 "SD Card Path:" = "SD Card Path:";
 "SHA-1:" = "SHA-1:";
 "SP1:" = "SP1:";
+"SSL context" = "SSL context";
+"SSL options" = "SSL options";
 "START" = "START";
 "Sa&ve Code" = "Sa&ve Code";
 "Sa&ve State" = "Gua&rdar Estado";
@@ -1842,7 +1937,6 @@ Overwrite now?";
 "Save to Slot %1 - %2" = "Save to Slot %1 - %2";
 "Save..." = "Save...";
 "Saved Wii Remote pairings can only be reset when a Wii game is running." = "Saved Wii Remote pairings can only be reset when a Wii game is running.";
-"Saved to /Wii/sd.raw (default size is 128mb)." = "Saved to /Wii/sd.raw (default size is 128mb).";
 "Savestate movie %s is corrupted, movie recording stopping..." = "O filme de Savestate  %s está corrupto, gravação de filme a parar...";
 "Scaled EFB Copy" = "Cópia EFB Escalada";
 "ScrShot" = "ScrShot";
@@ -1884,16 +1978,17 @@ Overwrite now?";
 "Select a SD Card Image" = "Select a SD Card Image";
 "Select a game" = "Select a game";
 "Select a title to install to NAND" = "Select a title to install to NAND";
+"Select the RSO module address:" = "Select the RSO module address:";
 "Select the Recording File" = "Select the Recording File";
 "Select the keys file (OTP/SEEPROM dump)" = "Select the keys file (OTP/SEEPROM dump)";
 "Select the save file" = "Seleccione o ficheiro de jogo guardado";
-"Select where you want to save the compressed image" = "Select where you want to save the compressed image";
-"Select where you want to save the compressed images" = "Select where you want to save the compressed images";
-"Select where you want to save the decompressed image" = "Select where you want to save the decompressed image";
-"Select where you want to save the decompressed images" = "Select where you want to save the decompressed images";
+"Select where you want to save the converted image" = "Select where you want to save the converted image";
+"Select where you want to save the converted images" = "Select where you want to save the converted images";
 "Selected Font" = "Selected Font";
 "Selected controller profile does not exist" = "Selected controller profile does not exist";
 "Selected game doesn't exist in game list!" = "Selected game doesn't exist in game list!";
+"Selected thread callstack" = "Selected thread callstack";
+"Selected thread context" = "Selected thread context";
 "Selects a hardware adapter to use.
 
 If unsure, select the first one." = "Selects a hardware adapter to use.
@@ -2054,6 +2149,7 @@ If unsure, leave this unchecked.";
 "Signed Integer" = "Signed Integer";
 "Simplified Chinese" = "Chinês Simplificado";
 "Simulate DK Bongos" = "Simulate DK Bongos";
+"Six Axis" = "Six Axis";
 "Size" = "Dimensão";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "Size of stretch buffer in milliseconds. Values too low may cause audio crackling.";
 "Skip" = "Skip";
@@ -2074,6 +2170,7 @@ If unsure, leave this checked.";
 "Slot A:" = "Slot A:";
 "Slot B" = "Slot B";
 "Slot B:" = "Slot B:";
+"Socket table" = "Socket table";
 "Software Renderer" = "Software Renderer";
 "Some of the data could not be read." = "Some of the data could not be read.";
 "Some padding data that should be zero is not zero. This can make the game freeze at certain points." = "Some padding data that should be zero is not zero. This can make the game freeze at certain points.";
@@ -2086,15 +2183,19 @@ Please check the highlighted values.";
 "Spanish" = "Espanhol";
 "Speaker Pan" = "Speaker Pan";
 "Speaker Volume:" = "Volume do Altifalante:";
+"Specific" = "Specific";
 "Speed" = "Speed";
 "Speed up Disc Transfer Rate" = "Aumente a taxa de transferência do disco";
 "Stable (once a year)" = "Stable (once a year)";
+"Stack end" = "Stack end";
+"Stack start" = "Stack start";
 "Standard Controller" = "Comando padrão";
 "Start" = "Começar";
 "Start &NetPlay..." = "Start &NetPlay...";
 "Start Re&cording Input" = "Start Re&cording Input";
 "Start Recording" = "Começar Gravação";
 "Started game" = "Started game";
+"State" = "State";
 "Steering Wheel" = "Steering Wheel";
 "Step" = "Step";
 "Step Into" = "Step Into";
@@ -2145,8 +2246,7 @@ If unsure, leave this checked.";
 "Success" = "Success";
 "Success." = "Success.";
 "Successfully added to the NetPlay index" = "Successfully added to the NetPlay index";
-"Successfully compressed %n image(s)." = "Successfully compressed %n image(s).";
-"Successfully decompressed %n image(s)." = "Successfully decompressed %n image(s).";
+"Successfully converted %n image(s)." = "Successfully converted %n image(s).";
 "Successfully deleted '%1'." = "Successfully deleted '%1'.";
 "Successfully deleted files." = "Successfully deleted files.";
 "Successfully exported save files" = "Successfully exported save files";
@@ -2159,6 +2259,8 @@ If unsure, leave this checked.";
 "Successfully installed this title to the NAND." = "Successfully installed this title to the NAND.";
 "Successfully removed this title from the NAND." = "Successfully removed this title from the NAND.";
 "Support" = "Support";
+"Supports SD and SDHC. Default size is 128 MB." = "Supports SD and SDHC. Default size is 128 MB.";
+"Suspended" = "Suspended";
 "Swap Eyes" = "Swap Eyes";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2189,6 +2291,7 @@ If unsure, leave this unchecked.";
 "TAS Tools" = "TAS Tools";
 "Tags" = "Tags";
 "Taiko Drum" = "Taiko Drum";
+"Tail" = "Tail";
 "Taiwan" = "Taiwan";
 "Take Screenshot" = "Tirar Screenshot";
 "Test" = "Teste";
@@ -2198,6 +2301,7 @@ If unsure, leave this unchecked.";
 "The %s partition does not seem to contain valid data." = "The %s partition does not seem to contain valid data.";
 "The %s partition is not correctly signed." = "The %s partition is not correctly signed.";
 "The %s partition is not properly aligned." = "The %s partition is not properly aligned.";
+"The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)" = "The DFF's minimum loader version (%d) exceeds the version of this FIFO Player (%d)";
 "The H3 hash table for the %s partition is not correct." = "The H3 hash table for the %s partition is not correct.";
 "The IPL file is not a known good dump. (CRC32: %x)" = "The IPL file is not a known good dump. (CRC32: %x)";
 "The Masterpiece partitions are missing." = "The Masterpiece partitions are missing.";
@@ -2330,9 +2434,12 @@ Unknown ucode (CRC = %08x) - forcing AXWii.";
 "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend." = "This will sync additional graphics settings, and force everyone to the same internal resolution.
 May prevent desync in some games that use EFB reads. Please ensure everyone uses the same video backend.";
+"Thread context" = "Thread context";
+"Threads" = "Threads";
 "Threshold" = "Limite";
 "TiB" = "TiB";
 "Tilt" = "Tilt";
+"Time period of stable input to trigger calibration. (zero to disable)" = "Time period of stable input to trigger calibration. (zero to disable)";
 "Title" = "Título";
 "To" = "Para";
 "To:" = "To:";
@@ -2375,6 +2482,7 @@ May prevent desync in some games that use EFB reads. Please ensure everyone uses
 "U&16" = "U&16";
 "U&32" = "U&32";
 "U&8" = "U&8";
+"UNKNOWN" = "UNKNOWN";
 "USA" = "EUA";
 "USB Gecko" = "USB Gecko";
 "USB Whitelist Error" = "USB Whitelist Error";
@@ -2397,6 +2505,7 @@ Only recommended for high-end systems.";
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior." = "Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering.
 
 In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.";
+"Unable to auto-detect RSO module" = "Unable to auto-detect RSO module";
 "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
 
 Would you like to ignore this line and continue parsing?" = "Unable to parse line %1 of the entered AR code as a valid encrypted or decrypted code. Make sure you typed it correctly.
@@ -2408,6 +2517,7 @@ Would you like to ignore this line and continue parsing?" = "Unable to parse lin
 
 Would you like to ignore this line and continue parsing?";
 "Unable to write to file %s" = "Unable to write to file %s";
+"Unbound" = "Unbound";
 "Uncompressed GC/Wii images (*.iso *.gcm)" = "Uncompressed GC/Wii images (*.iso *.gcm)";
 "Undo Load State" = "Retroceder Carregamento de Estado";
 "Undo Save State" = "Undo Save State";
@@ -2485,6 +2595,7 @@ If unsure, leave this unchecked.";
 "Verbosity" = "Verbosidade";
 "Verify" = "Verify";
 "Verify Integrity" = "Verify Integrity";
+"Verify certificates" = "Verify certificates";
 "Verifying" = "Verifying";
 "Version" = "Version";
 "Vertex Rounding" = "Vertex Rounding";
@@ -2502,6 +2613,7 @@ If unsure, leave this unchecked.";
 "WAD installation failed: Could not import content %08x." = "WAD installation failed: Could not import content %08x.";
 "WAD installation failed: Could not initialise title import (error %d)." = "WAD installation failed: Could not initialise title import (error %d).";
 "WAD installation failed: The selected file is not a valid WAD." = "WAD installation failed: The selected file is not a valid WAD.";
+"WAITING" = "WAITING";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusive Mode)";
@@ -2554,6 +2666,7 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Watch" = "Watch";
 "WaveFileWriter - file not open." = "WaveFileWriter - ficheiro não aberto.";
 "Website" = "Website";
+"Western (Windows-1252)" = "Western (Windows-1252)";
 "Whammy" = "Whammy";
 "Whitelisted USB Passthrough Devices" = "Whitelisted USB Passthrough Devices";
 "Widescreen Hack" = "Hack de Ecrã Panorâmico";
@@ -2614,16 +2727,19 @@ If you select \"No\", audio might be garbled.";
 "cm" = "cm";
 "d3d12.dll could not be loaded." = "d3d12.dll could not be loaded.";
 "disconnected" = "disconnected";
+"errno" = "errno";
 "fake-completion" = "fake-completion";
 "m/s" = "m/s";
 "none" = "none";
 "on" = "on";
 "or select a device" = "or select a device";
+"s" = "s";
 "uDraw GameTablet" = "uDraw GameTablet";
 "{} failed to synchronize codes." = "{} failed to synchronize codes.";
 "{} failed to synchronize." = "{} failed to synchronize.";
 "| Or" = "| Or";
 "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way." = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. Dolphin is not affiliated with Nintendo in any way.";
 "°" = "°";
+"°/s" = "°/s";
 "✔ Invite" = "✔ Invite";
 "✖ Decline" = "✖ Decline";

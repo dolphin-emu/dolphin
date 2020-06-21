@@ -14,8 +14,8 @@
 /* Class = "UINavigationItem"; title = "Algemeen"; ObjectID = "5gK-bb-ym4"; */
 "5gK-bb-ym4.title" = "Algemeen";
 
-/* Class = "UILabel"; text = "6x Natief (3840x3168) voor 4K"; ObjectID = "5wx-F7-0NK"; */
-"5wx-F7-0NK.text" = "6x Natief (3840x3168) voor 4K";
+/* Class = "UILabel"; text = "6x Native (3840x3168) voor 4K"; ObjectID = "5wx-F7-0NK"; */
+"5wx-F7-0NK.text" = "6x Native (3840x3168) voor 4K";
 
 /* Class = "UINavigationItem"; title = "Backend"; ObjectID = "6a1-9U-EM4"; */
 "6a1-9U-EM4.title" = "Backend";
@@ -38,8 +38,8 @@
 /* Class = "UINavigationItem"; title = "Anisotrope Filtering"; ObjectID = "E6W-P0-4HU"; */
 "E6W-P0-4HU.title" = "Anisotrope Filtering";
 
-/* Class = "UILabel"; text = "5x Natief (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
-"EKI-bu-6U3.text" = "5x Natief (3200x2640)";
+/* Class = "UILabel"; text = "5x Naive (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
+"EKI-bu-6U3.text" = "5x Naive (3200x2640)";
 
 /* Class = "UITableViewSection"; headerTitle = "Embedded Frame Buffer (EFB)"; ObjectID = "Ett-Ts-rvO"; */
 "Ett-Ts-rvO.headerTitle" = "Embedded Frame Buffer (EFB)";
@@ -92,8 +92,8 @@
 /* Class = "UILabel"; text = "16x"; ObjectID = "RnS-Zb-Fvf"; */
 "RnS-Zb-Fvf.text" = "16x";
 
-/* Class = "UILabel"; text = "4x Natief (2560x2112) voor 1440p"; ObjectID = "SSy-g0-mPk"; */
-"SSy-g0-mPk.text" = "4x Natief (2560x2112) voor 1440p";
+/* Class = "UILabel"; text = "4x Native (2560x2112) voor 1440p"; ObjectID = "SSy-g0-mPk"; */
+"SSy-g0-mPk.text" = "4x Native (2560x2112) voor 1440p";
 
 /* Class = "UILabel"; text = "Anisotrope Filtering"; ObjectID = "Skl-PD-WnK"; */
 "Skl-PD-WnK.text" = "Anisotrope Filtering";
@@ -101,8 +101,8 @@
 /* Class = "UILabel"; text = "Veilig"; ObjectID = "TGq-7C-aJD"; */
 "TGq-7C-aJD.text" = "Veilig";
 
-/* Class = "UILabel"; text = "Natief (640x528)"; ObjectID = "U3R-RE-wrE"; */
-"U3R-RE-wrE.text" = "Natief (640x528)";
+/* Class = "UILabel"; text = "Native (640x528)"; ObjectID = "U3R-RE-wrE"; */
+"U3R-RE-wrE.text" = "Native (640x528)";
 
 /* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
 "U4x-0k-bbr.text" = "OpenGL";
@@ -170,8 +170,8 @@
 /* Class = "UILabel"; text = "Auto"; ObjectID = "jAa-cL-Rjh"; */
 "jAa-cL-Rjh.text" = "Auto";
 
-/* Class = "UILabel"; text = "3x Natief (1920x1584) voor 1080p"; ObjectID = "jJs-ou-NxC"; */
-"jJs-ou-NxC.text" = "3x Natief (1920x1584) voor 1080p";
+/* Class = "UILabel"; text = "3x Native (1920x1584) voor 1080p"; ObjectID = "jJs-ou-NxC"; */
+"jJs-ou-NxC.text" = "3x Native (1920x1584) voor 1080p";
 
 /* Class = "UILabel"; text = "Algemeen"; ObjectID = "jjY-Es-Kzy"; */
 "jjY-Es-Kzy.text" = "Algemeen";
@@ -206,8 +206,8 @@
 /* Class = "UILabel"; text = "2x"; ObjectID = "tne-SZ-I6X"; */
 "tne-SZ-I6X.text" = "2x";
 
-/* Class = "UILabel"; text = "8x Natief (5120x4224) voor 5K"; ObjectID = "u1l-8D-mFj"; */
-"u1l-8D-mFj.text" = "8x Natief (5120x4224) voor 5K";
+/* Class = "UILabel"; text = "8x Native (5120x4224) voor 5K"; ObjectID = "u1l-8D-mFj"; */
+"u1l-8D-mFj.text" = "8x Native (5120x4224) voor 5K";
 
 /* Class = "UINavigationItem"; title = "Beeldverhouding"; ObjectID = "ubg-gf-CKs"; */
 "ubg-gf-CKs.title" = "Beeldverhouding";
@@ -233,8 +233,8 @@
 /* Class = "UINavigationItem"; title = "Anti-Aliasing"; ObjectID = "y9H-fG-lRi"; */
 "y9H-fG-lRi.title" = "Anti-Aliasing";
 
-/* Class = "UILabel"; text = "2x Natief (1280x1056) voor 720p"; ObjectID = "yPP-e3-670"; */
-"yPP-e3-670.text" = "2x Natief (1280x1056) voor 720p";
+/* Class = "UILabel"; text = "2x Native (1280x1056) voor 720p"; ObjectID = "yPP-e3-670"; */
+"yPP-e3-670.text" = "2x Native (1280x1056) voor 720p";
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";

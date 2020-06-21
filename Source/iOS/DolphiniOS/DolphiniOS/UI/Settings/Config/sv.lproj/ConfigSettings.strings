@@ -8,8 +8,8 @@
 /* Class = "UILabel"; text = "Systemspråk"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "Systemspråk";
 
-/* Class = "UITableViewSection"; headerTitle = "Hastighetsöverskridning"; ObjectID = "16h-jz-fQG"; */
-"16h-jz-fQG.headerTitle" = "Hastighetsöverskridning";
+/* Class = "UITableViewSection"; headerTitle = "Hastighetsåsidosättning"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "Hastighetsåsidosättning";
 
 /* Class = "UILabel"; text = "Systemspråk"; ObjectID = "1L5-Kj-USx"; */
 "1L5-Kj-USx.text" = "Systemspråk";

@@ -23,8 +23,8 @@
 /* Class = "UITableViewController"; title = "Profile Selector"; ObjectID = "6bQ-Dj-mFK"; */
 "6bQ-Dj-mFK.title" = "Profile Selector";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "7vY-8m-y7Y"; */
-"7vY-8m-y7Y.text" = "Enable";
+/* Class = "UILabel"; text = "有効"; ObjectID = "7vY-8m-y7Y"; */
+"7vY-8m-y7Y.text" = "有効";
 
 /* Class = "UILabel"; text = "Port 2"; ObjectID = "8QZ-ZA-mzk"; */
 "8QZ-ZA-mzk.text" = "Port 2";
@@ -170,8 +170,8 @@
 /* Class = "UINavigationItem"; title = "Port 0"; ObjectID = "qeO-Qo-Gt8"; */
 "qeO-Qo-Gt8.title" = "Port 0";
 
-/* Class = "UILabel"; text = "Enable"; ObjectID = "qhK-oa-Vec"; */
-"qhK-oa-Vec.text" = "Enable";
+/* Class = "UILabel"; text = "有効"; ObjectID = "qhK-oa-Vec"; */
+"qhK-oa-Vec.text" = "有効";
 
 /* Class = "UILabel"; text = "形式"; ObjectID = "qlf-xO-p0I"; */
 "qlf-xO-p0I.text" = "形式";
