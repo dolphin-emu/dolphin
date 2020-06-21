@@ -39,6 +39,8 @@ public final class SettingsFile
   public static final String FILE_NAME_GCPAD = "GCPadNew";
   public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
+  public static final String KEY_DSP_ENGINE = "DSPEngine";
+  public static final String KEY_LAST_PLATFORM_TAB = "LastPlatformTab";
 
   public static final String KEY_CPU_CORE = "CPUCore";
   public static final String KEY_DUAL_CORE = "CPUThread";
@@ -47,7 +49,6 @@ public final class SettingsFile
   public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
   public static final String KEY_VIDEO_BACKEND = "GFXBackend";
 
-  public static final String KEY_DSP_ENGINE = "DSPEngine";
   public static final String KEY_DSP_HLE = "DSPHLE";
   public static final String KEY_DSP_ENABLE_JIT = "EnableJIT";
   public static final String KEY_AUDIO_STRETCH = "AudioStretch";
