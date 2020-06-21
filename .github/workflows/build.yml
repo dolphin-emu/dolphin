@@ -1,0 +1,168 @@
+name: Build
+
+on:
+  push:
+    branches: [ ios-jb ]
+  pull_request:
+    branches: [ ios-jb ]
+
+jobs:
+  build-jb:
+    runs-on: macos-10.15
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install build utilities
+      run: |
+        brew install ninja bartycrouch dpkg s3cmd libmagic dos2unix
+        pip3 install polib python-magic
+        
+    - name: Create Keychain
+      run: |
+        security create-keychain -p alpine build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p alpine build.keychain
+        security set-keychain-settings -t 36000 build.keychain
+        security import Source/iOS/DolphiniOS/DolphiniOS/BuildResources/OatmealDomeSoftware.p12 -k build.keychain -P ${{ secrets.CERTIFICATE_GPG_PASSWORD }} -A
+        security set-key-partition-list -S apple-tool:,apple: -s -k alpine build.keychain
+        
+    - name: Prepare Resources
+      run: |
+        cd Source/iOS/DolphiniOS/DolphiniOS
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.FIREBASE_GPG_PASSWORD }}" --output GoogleService-Info.plist GoogleService-Info.plist.gpg
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $((${{ github.run_number }} - 1))" Info.plist
+        cd BundleResources
+        rm SpecialThanks.txt
+        wget -O SpecialThanks.txt https://smash.oatmealdome.me/parts/patrons.txt
+        dos2unix SpecialThanks.txt
+    
+    - name: Cache CocoaPods
+      uses: actions/cache@v1
+      with:
+        path: Source/iOS/DolphiniOS/Pods
+        key: ${{ runner.OS }}-pods-cache-${{ hashFiles('**/Source/iOS/DolphiniOS/Podfile.lock') }}
+    
+    - name: Run CocoaPods
+      run: |
+        cd Source/iOS/DolphiniOS
+        pod install
+      
+    - name: Build
+      env:
+        XCODEBUILD_ARGS: "BUILD_DIR=${{ github.workspace }}/build-Xcode CODE_SIGNING_ALLOWED=\"NO\" CODE_SIGNING_REQUIRED=\"NO\" CODE_SIGN_ENTITLEMENTS=\"\" CODE_SIGN_IDENTITY=\"\"" 
+      run: |
+        mkdir build-Xcode
+        cd Source/iOS/DolphiniOS
+        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}
+        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Patreon)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}   
+      
+    - name: Package (Normal)
+      env:
+        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
+        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-jb"
+        BUILD_FOR_PATREON: "NO"
+        IS_CI: "YES"
+      run: |
+        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        cp -R "${{ github.workspace }}/build-Xcode/Release (Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildDebs.sh build.keychain JB_DEB_PATH
+        
+    - name: Package (Patreon)
+      env:
+        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
+        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-jb-patreon"
+        BUILD_FOR_PATREON: "YES"
+        IS_CI: "YES"
+      run: |
+        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        cp -R "${{ github.workspace }}/build-Xcode/Release (Patreon)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildDebs.sh build.keychain JB_PATREON_DEB_PATH
+        
+    - name: Upload
+      env:
+        S3CMD_ARGS: "--access_key=${{ secrets.SPACES_KEY }} --secret_key=${{ secrets.SPACES_SECRET }} --host=${{ secrets.SPACES_ENDPOINT }} --host-bucket=%\\(bucket\\)s.${{ secrets.SPACES_ENDPOINT }}"
+        BUCKET_ROOT_PATH: "s3://wii-sports/dolphinios/ci"
+      run: |
+        s3cmd put ${{ env.JB_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.JB_PATREON_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-Patreon-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
+  
+  build-njb:
+    runs-on: macos-10.15
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Install build utilities
+      run: |
+        brew install ninja bartycrouch dpkg s3cmd libmagic dos2unix
+        pip3 install polib python-magic
+        
+    - name: Create Keychain
+      run: |
+        security create-keychain -p alpine build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p alpine build.keychain
+        security set-keychain-settings -t 36000 build.keychain
+        security import Source/iOS/DolphiniOS/DolphiniOS/BuildResources/OatmealDomeSoftware.p12 -k build.keychain -P ${{ secrets.CERTIFICATE_GPG_PASSWORD }} -A
+        security set-key-partition-list -S apple-tool:,apple: -s -k alpine build.keychain
+        
+    - name: Prepare Resources
+      run: |
+        cd Source/iOS/DolphiniOS/DolphiniOS
+        gpg --quiet --batch --yes --decrypt --passphrase="${{ secrets.FIREBASE_GPG_PASSWORD }}" --output GoogleService-Info.plist GoogleService-Info.plist.gpg
+        /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $((${{ github.run_number }} - 1))" Info.plist
+        cd BundleResources
+        rm SpecialThanks.txt
+        wget -O SpecialThanks.txt https://smash.oatmealdome.me/parts/patrons.txt
+        dos2unix SpecialThanks.txt
+    
+    - name: Cache CocoaPods
+      uses: actions/cache@v1
+      with:
+        path: Source/iOS/DolphiniOS/Pods
+        key: ${{ runner.OS }}-pods-cache-${{ hashFiles('**/Source/iOS/DolphiniOS/Podfile.lock') }}
+    
+    - name: Run CocoaPods
+      run: |
+        cd Source/iOS/DolphiniOS
+        pod install
+      
+    - name: Build
+      env:
+        XCODEBUILD_ARGS: "BUILD_DIR=${{ github.workspace }}/build-Xcode CODE_SIGNING_ALLOWED=\"NO\" CODE_SIGNING_REQUIRED=\"NO\" CODE_SIGN_ENTITLEMENTS=\"\" CODE_SIGN_IDENTITY=\"\"" 
+      run: |
+        mkdir build-Xcode
+        cd Source/iOS/DolphiniOS
+        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Non-Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}
+        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Patreon Non-Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}    
+        
+    - name: Package (Normal)
+      env:
+        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
+        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-njb"
+        BUILD_FOR_PATREON: "NO"
+        IS_CI: "YES"
+      run: |
+        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        cp -R "${{ github.workspace }}/build-Xcode/Release (Non-Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildIpa.sh build.keychain NJB_IPA_PATH
+    
+    - name: Package (Patreon)
+      env:
+        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
+        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-njb-patreon"
+        BUILD_FOR_PATREON: "YES"
+        IS_CI: "YES"
+      run: |
+        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        cp -R "${{ github.workspace }}/build-Xcode/Release (Patreon Non-Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
+        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildIpa.sh build.keychain NJB_PATREON_IPA_PATH
+        
+    - name: Upload
+      env:
+        S3CMD_ARGS: "--access_key=${{ secrets.SPACES_KEY }} --secret_key=${{ secrets.SPACES_SECRET }} --host=${{ secrets.SPACES_ENDPOINT }} --host-bucket=%\\(bucket\\)s.${{ secrets.SPACES_ENDPOINT }}"
+        BUCKET_ROOT_PATH: "s3://wii-sports/dolphinios/ci"
+      run: |
+        s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Patreon-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
