@@ -71,7 +71,7 @@
   switch (section)
   {
     case SECTION_ENABLE_SWITCH: // Enabled
-      return self.m_control_group->can_be_disabled ? 1 : 0;
+      return self.m_control_group->default_value != ControllerEmu::ControlGroup::DefaultValue::AlwaysEnabled ? 1 : 0;
     case SECTION_BUTTONS: // Buttons
       return self.m_control_group->controls.size();
     case SECTION_NUMERIC_SETTINGS: // Numeric Settings
