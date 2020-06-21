@@ -379,7 +379,7 @@ private:
   static constexpr u32 WIA_VERSION_WRITE_COMPATIBLE = 0x01000000;
   static constexpr u32 WIA_VERSION_READ_COMPATIBLE = 0x00080000;
 
-  static constexpr u32 RVZ_VERSION = 0x00030000;
+  static constexpr u32 RVZ_VERSION = 0x01000000;
   static constexpr u32 RVZ_VERSION_WRITE_COMPATIBLE = 0x00030000;
   static constexpr u32 RVZ_VERSION_READ_COMPATIBLE = 0x00030000;
 };
