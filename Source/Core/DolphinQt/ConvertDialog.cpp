@@ -100,10 +100,10 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
          "GCZ: A basic compressed format which is compatible with most versions of Dolphin and "
          "some other programs. It can't efficiently compress junk data (unless removed) or "
          "encrypted Wii data.\n\n"
-         "WIA: An advanced compressed format which is compatible with recent versions of Dolphin "
+         "WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, "
          "and a few other programs. It can efficiently compress encrypted Wii data, but not junk "
          "data (unless removed).\n\n"
-         "RVZ: An advanced compressed format which is compatible with recent versions of Dolphin. "
+         "RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. "
          "It can efficiently compress both junk data and encrypted Wii data."));
   info_text->setWordWrap(true);
 
