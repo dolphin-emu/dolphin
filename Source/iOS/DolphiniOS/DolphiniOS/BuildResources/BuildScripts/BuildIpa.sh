@@ -7,9 +7,14 @@ EXPORT_UUID=`uuidgen`
 EXPORT_PATH="/tmp/DolphiniOS-NJB-$EXPORT_UUID"
 DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_ipa_root/"
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Payload/DolphiniOS.app
+CODESIGN_ARGS='-f -s OatmealDome'
 ENTITLEMENTS_FILE="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_PsychicPaper_Release.plist"
 BUNDLE_ID="me.oatmealdome.DolphiniOS-njb"
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
+
+if [ -n "$IS_CI" ]; then
+  CODESIGN_ARGS+=" --keychain $1"
+fi
 
 if [ $BUILD_FOR_PATREON == "YES" ]; then
   BUNDLE_ID="me.oatmealdome.DolphiniOS-njb-patreon-beta"
@@ -24,7 +29,9 @@ export COPY_EXTENDED_ATTRIBUTES_DISABLE
 mkdir -p $DOLPHIN_EXPORT_PATH
 mkdir $DOLPHIN_EXPORT_PATH/Payload
 
-exec > $EXPORT_PATH/archive.log 2>&1
+if [ -z "$IS_CI" ]; then
+  exec > $EXPORT_PATH/archive.log 2>&1
+fi
 
 # Copy resources
 cp -r "$ARCHIVE_PATH/Products/Applications/DolphiniOS.app" $APPLICATION_DESTINATION_PATH
@@ -33,13 +40,17 @@ cp -r "$ARCHIVE_PATH/Products/Applications/DolphiniOS.app" $APPLICATION_DESTINAT
 plutil -replace "CFBundleIdentifier" -string "$BUNDLE_ID" $APPLICATION_DESTINATION_PATH/Info.plist
 
 # Resign the application
-codesign -f -s "OatmealDome Software" --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH
-codesign -f -s "OatmealDome Software" --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH/Frameworks/*
+codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH
+codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATION_PATH/Frameworks/*
 
 # Remove the mobileprovision file
-rm $APPLICATION_DESTINATION_PATH/embedded.mobileprovision
+rm $APPLICATION_DESTINATION_PATH/embedded.mobileprovision || true
 
 cd $DOLPHIN_EXPORT_PATH
 zip -r ../DolphiniOS-NJB.ipa .
 
-open $EXPORT_PATH
+if [ -n "$IS_CI" ]; then
+  echo ::set-env name=$2::$EXPORT_PATH
+else
+  open $EXPORT_PATH
+fi
