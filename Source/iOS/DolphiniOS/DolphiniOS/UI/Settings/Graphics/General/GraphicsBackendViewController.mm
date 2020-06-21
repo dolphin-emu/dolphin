@@ -4,7 +4,9 @@
 
 #import "GraphicsBackendViewController.h"
 
-#import "Core/ConfigManager.h"
+#import "Common/Config/Config.h"
+
+#import "Core/Config/MainSettings.h"
 
 #import "VideoCommon/VideoBackendBase.h"
 
@@ -30,7 +32,7 @@
   
   for (size_t i = 0; i < self->m_backends.size(); i++)
   {
-    if (self->m_backends[i] == SConfig::GetInstance().m_strVideoBackend)
+    if (self->m_backends[i] == Config::Get(Config::MAIN_GFX_BACKEND))
     {
       self.m_last_selected = i;
     }
@@ -43,7 +45,7 @@
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   std::string backend = self->m_backends[indexPath.row];
-  if (backend != SConfig::GetInstance().m_strVideoBackend)
+  if (backend != Config::Get(Config::MAIN_GFX_BACKEND))
   {
     void (^ChangeBackend)() = ^{
       UITableViewCell* old_cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:self.m_last_selected inSection:0]];
@@ -52,8 +54,8 @@
       UITableViewCell* cell = [self.tableView cellForRowAtIndexPath:[NSIndexPath indexPathForRow:indexPath.row inSection:0]];
       [cell setAccessoryType:UITableViewCellAccessoryCheckmark];
       
-      SConfig::GetInstance().m_strVideoBackend = backend;
-      VideoBackendBase::PopulateBackendInfo();
+      Config::SetBase(Config::MAIN_GFX_BACKEND, backend);
+      VideoBackendBase::PopulateBackendInfoFromUI();
       
       self.m_last_selected = indexPath.row;
     };

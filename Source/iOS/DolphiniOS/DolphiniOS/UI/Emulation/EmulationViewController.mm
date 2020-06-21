@@ -11,9 +11,11 @@
 
 #import "ControllerSettingsUtils.h"
 
+#import "Common/Config/Config.h"
 #import "Common/FileUtil.h"
 
 #import "Core/ConfigManager.h"
+#import "Core/Config/MainSettings.h"
 #import "Core/Core.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
@@ -52,7 +54,7 @@
   [super viewDidLoad];
   
   // Setup renderer view
-  if (SConfig::GetInstance().m_strVideoBackend == "Vulkan")
+  if (Config::Get(Config::MAIN_GFX_BACKEND) == "Vulkan")
   {
     self.m_renderer_view = self.m_metal_view;
   }
