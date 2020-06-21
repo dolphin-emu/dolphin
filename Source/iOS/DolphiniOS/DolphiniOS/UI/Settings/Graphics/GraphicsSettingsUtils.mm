@@ -4,11 +4,13 @@
 
 #import "GraphicsSettingsUtils.h"
 
+#import "Common/Config/Config.h"
+
 #import <UIKit/UIKit.h>
 
 @implementation GraphicsSettingsUtils
 
-+ (void)SetInitialForBoolSetting:(const Config::ConfigInfo<bool>&)setting isInverted:(bool)inverted forSwitch:(UISwitch*)sw label:(UILabel*)label
++ (void)SetInitialForBoolSetting:(const Config::Info<bool>&)setting isInverted:(bool)inverted forSwitch:(UISwitch*)sw label:(UILabel*)label
 {
   [sw setOn:Config::Get(setting) ^ inverted];
   
@@ -22,7 +24,7 @@
   }
 }
 
-+ (void)SetInitialForTransitionCell:(const Config::ConfigInfo<int>&)setting forLabel:(UILabel*)label
++ (void)SetInitialForTransitionCell:(const Config::Info<int>&)setting forLabel:(UILabel*)label
 {
   if (Config::GetActiveLayerForConfig(setting) != Config::LayerType::Base)
   {
@@ -35,7 +37,7 @@
 }
 
 // TODO: Better way?
-+ (void)SetInitialForTransitionCellU32:(const Config::ConfigInfo<u32>&)setting forLabel:(UILabel*)label
++ (void)SetInitialForTransitionCellU32:(const Config::Info<u32>&)setting forLabel:(UILabel*)label
 {
   if (Config::GetActiveLayerForConfig(setting) != Config::LayerType::Base)
   {
