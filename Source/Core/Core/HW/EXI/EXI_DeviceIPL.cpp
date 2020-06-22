@@ -130,7 +130,7 @@ CEXIIPL::CEXIIPL()
   }
 
   // Clear RTC
-  g_SRAM.rtc = 0;
+  g_rtc.rtc = 0;
 
   // We Overwrite language selection here since it's possible on the GC to change the language as
   // you please
@@ -145,13 +145,15 @@ CEXIIPL::~CEXIIPL()
   // SRAM
   if (!g_SRAM_netplay_initialized)
   {
-    File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
-    file.WriteArray(&g_SRAM, 1);
+    File::IOFile sram(SConfig::GetInstance().m_strSRAM, "wb");
+    sram.WriteArray(&g_SRAM, 1);
+    File::IOFile rtc(SConfig::GetInstance().m_strRtc, "wb");
+    rtc.WriteArray(&g_rtc, 1);
   }
 }
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  p.Do(g_SRAM.rtc);
+  p.Do(g_rtc);
   p.Do(g_rtc_flags);
   p.Do(m_command);
   p.Do(m_command_bytes_received);
@@ -254,7 +256,7 @@ void CEXIIPL::SetCS(int cs)
 
 void CEXIIPL::UpdateRTC()
 {
-  g_SRAM.rtc = GetEmulatedTime(GC_EPOCH);
+  g_rtc.rtc = GetEmulatedTime(GC_EPOCH);
 }
 
 bool CEXIIPL::IsPresent() const
@@ -340,6 +342,15 @@ void CEXIIPL::TransferByte(u8& data)
           m_fonts_loaded = true;
         }
       }
+    }
+    else if (IN_RANGE(RTC))
+    {
+      if (m_cursor > RTC_SIZE)
+        m_cursor = 0;
+      if (m_command.is_write())
+        g_rtc[m_cursor++] = data;
+      else
+        data = g_rtc[m_cursor++];
     }
     else if (IN_RANGE(SRAM))
     {

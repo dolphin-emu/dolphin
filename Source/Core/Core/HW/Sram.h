@@ -42,6 +42,13 @@ using CardFlashId = std::array<u8, 12>;
 
 #pragma pack(push, 1)
 
+struct Rtc
+{
+  Common::BigEndianValue<u32> rtc;
+  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
+  const u8& operator[](size_t offset) const { return reinterpret_cast<const u8*>(&rtc)[offset]; }
+};
+
 // Note: UnlockSram does:
 // if ((flags & 3) == 3) flags &= ~3;
 // It also checks and can reset gbs_mode
@@ -50,6 +57,8 @@ struct SramFlags
 {
   enum : u8
   {
+    // Video Mode
+    kVideoMode = 3,
     // 0 = Mono, 1 = Stereo
     kStereo = 1 << 2,
     // If unset, IPL will ask user to configure settings
@@ -59,6 +68,7 @@ struct SramFlags
     // Display Progressive Scan prompt if the game supports it
     kProgressiveScan = 1 << 7,
   };
+  u8 video_mode() const { return value & kVideoMode; }
   bool stereo() const { return value & kStereo; }
   bool oobe_done() const { return value & kOobeDone; }
   bool boot_to_menu() const { return value & kBootToMenu; }
@@ -70,10 +80,30 @@ struct SramFlags
     else
       value &= ~flag;
   }
+  void video_mode(u8 mode) { value = (value & ~kVideoMode) | (mode & kVideoMode); }
   void stereo(bool enable) { set_flag(enable, kStereo); }
   void oobe_done(bool enable) { set_flag(enable, kOobeDone); }
   void boot_to_menu(bool enable) { set_flag(enable, kBootToMenu); }
   void progressive_scan(bool enable) { set_flag(enable, kProgressiveScan); }
+  u8 value;
+};
+
+struct ntdFlags
+{
+  enum : u8
+  {
+    // Display PAL60 mode prompt if the game supports it 
+    kPal60 = 1 << 6
+  };
+  bool Pal60_mode() const { return value & kPal60; }
+  void set_flag(bool enable, u8 flag)
+  {
+    if (enable)
+      value |= flag;
+    else
+      value &= ~flag;
+  }
+  void Pal60_mode(bool enabled) { set_flag(enabled, kPal60); }
   u8 value;
 };
 
@@ -93,7 +123,7 @@ struct SramSettings
   s8 vi_horizontal_offset;
 
   // Unknown attribute
-  u8 ntd;
+  ntdFlags ntd;
 
   u8 language;
   SramFlags flags;
@@ -116,15 +146,14 @@ struct SramSettingsEx
 
 struct Sram
 {
-  Common::BigEndianValue<u32> rtc;
   SramSettings settings;
   SramSettingsEx settings_ex;
   // Allow access to this entire structure as a raw blob
   // Typical union-with-byte-array method can't be used here on GCC
-  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&rtc)[offset]; }
+  u8& operator[](size_t offset) { return reinterpret_cast<u8*>(&settings)[offset]; }
 };
 // TODO determine real full sram size for gc/wii
-static_assert(sizeof(Sram) == 0x44);
+static_assert(sizeof(Sram) == 0x40);
 
 #pragma pack(pop)
 
@@ -132,5 +161,6 @@ void InitSRAM();
 void SetCardFlashID(const u8* buffer, u8 card_index);
 void FixSRAMChecksums();
 
+extern Rtc g_rtc;
 extern Sram g_SRAM;
 extern bool g_SRAM_netplay_initialized;

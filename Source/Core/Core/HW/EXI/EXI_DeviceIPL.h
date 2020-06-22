@@ -42,8 +42,10 @@ private:
   {
     ROM_BASE = 0,
     ROM_SIZE = 0x200000,
-    SRAM_BASE = 0x800000,
-    SRAM_SIZE = 0x44,
+    RTC_BASE = 0x800000,
+    RTC_SIZE = 0x4,
+    SRAM_BASE = 0x800004,
+    SRAM_SIZE = 0x40,
     UART_BASE = 0x800400,
     UART_SIZE = 0x50,
     WII_RTC_BASE = 0x840000,
