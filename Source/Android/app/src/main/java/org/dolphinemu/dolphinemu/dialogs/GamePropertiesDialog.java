@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
+import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -23,21 +24,20 @@ import java.io.File;
 public class GamePropertiesDialog extends DialogFragment
 {
   public static final String TAG = "GamePropertiesDialog";
-  public static final String ARG_PATH = "path";
-  public static final String ARG_GAMEID = "game_id";
+  private static final String ARG_PATH = "path";
+  private static final String ARG_GAMEID = "game_id";
   public static final String ARG_REVISION = "revision";
-  public static final String ARG_PLATFORM = "platform";
+  private static final String ARG_PLATFORM = "platform";
 
-  public static GamePropertiesDialog newInstance(String path, String gameId, int revision,
-          int platform)
+  public static GamePropertiesDialog newInstance(GameFile gameFile)
   {
     GamePropertiesDialog fragment = new GamePropertiesDialog();
 
     Bundle arguments = new Bundle();
-    arguments.putString(ARG_PATH, path);
-    arguments.putString(ARG_GAMEID, gameId);
-    arguments.putInt(ARG_REVISION, revision);
-    arguments.putInt(ARG_PLATFORM, platform);
+    arguments.putString(ARG_PATH, gameFile.getPath());
+    arguments.putString(ARG_GAMEID, gameFile.getGameId());
+    arguments.putInt(ARG_REVISION, gameFile.getRevision());
+    arguments.putInt(ARG_PLATFORM, gameFile.getPlatform());
     fragment.setArguments(arguments);
 
     return fragment;
