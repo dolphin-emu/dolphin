@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-16 22:51+0200\n"
-"PO-Revision-Date: 2020-06-16 20:51+0000\n"
+"POT-Creation-Date: 2020-06-23 11:17+0200\n"
+"PO-Revision-Date: 2020-06-23 09:17+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
@@ -133,6 +133,11 @@ msgstr "%1 (skiva %2, revision %3)"
 msgid "%1 (Revision %3)"
 msgstr "%1 (revision %3)"
 
+#. i18n: %1 is the name of a compression method (e.g. LZMA)
+#: Source/Core/DolphinQt/ConvertDialog.cpp:239
+msgid "%1 (slow)"
+msgstr ""
+
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:281
 msgid ""
 "%1 FIFO bytes\n"
@@ -228,6 +233,7 @@ msgid "%1x Native (%2x%3)"
 msgstr "%1x ursprunglig (%2x%3)"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:259
+#: Source/Core/DiscIO/WIABlob.cpp:1651
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i av %i block. Komprimeringsgrad %i%%"
@@ -833,7 +839,7 @@ msgstr "AR-koder"
 msgid "ASCII"
 msgstr "ASCII"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:293
+#: Source/Core/DolphinQt/ConvertDialog.cpp:415
 msgid "Abort"
 msgstr "Avbryt"
 
@@ -1110,19 +1116,15 @@ msgstr "Alla filer (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:689
 msgid ""
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"dff *.m3u);;All Files (*)"
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
+"rvz *.wad *.dff *.m3u);;All Files (*)"
 msgstr ""
-"Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"dff *.m3u);;Alla filer (*)"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:47
 msgid ""
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"m3u);;All Files (*)"
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
+"rvz *.wad *.m3u);;All Files (*)"
 msgstr ""
-"Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"m3u);;Alla filer (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1203
 #: Source/Core/DolphinQt/MainWindow.cpp:1210
@@ -1151,7 +1153,7 @@ msgstr "Tillåt rapportering av användningsstatistik"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:110
 msgid "Allow Writes to SD Card"
-msgstr ""
+msgstr "Tillåt ändringar på SD-kort"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:229
 msgid ""
@@ -1296,7 +1298,7 @@ msgstr "Är du säker på att du vill radera det här paketet?"
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "Är du säker på att du vill avsluta nätspelssessionen?"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:188
+#: Source/Core/DolphinQt/ConvertDialog.cpp:299
 msgid "Are you sure?"
 msgstr "Är du säker?"
 
@@ -1504,7 +1506,7 @@ msgstr "Beta (en gång i månaden)"
 msgid "Bitrate (kbps):"
 msgstr "Bithastighet (kbps):"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:64
+#: Source/Core/DolphinQt/ConvertDialog.cpp:72
 msgid "Block Size:"
 msgstr "Blockstorlek:"
 
@@ -1942,9 +1944,13 @@ msgstr "Kompilera shaders före start"
 msgid "Compiling Shaders"
 msgstr "Kompilerar shaders"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:234
-msgid "Compressed GC/Wii images (*.gcz)"
-msgstr "Komprimerade GC/Wii-skivavbildningar (*.gcz)"
+#: Source/Core/DolphinQt/ConvertDialog.cpp:80
+msgid "Compression Level:"
+msgstr ""
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:76
+msgid "Compression:"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:80
 msgid "Condition"
@@ -1973,8 +1979,8 @@ msgid "Configure Output"
 msgstr "Konfigurera utmatning"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:204
-#: Source/Core/DolphinQt/ConvertDialog.cpp:187
-#: Source/Core/DolphinQt/ConvertDialog.cpp:282
+#: Source/Core/DolphinQt/ConvertDialog.cpp:298
+#: Source/Core/DolphinQt/ConvertDialog.cpp:404
 #: Source/Core/DolphinQt/GameList/GameList.cpp:505
 #: Source/Core/DolphinQt/GameList/GameList.cpp:621
 #: Source/Core/DolphinQt/MainWindow.cpp:825
@@ -2175,8 +2181,8 @@ msgstr ""
 msgid "Convergence:"
 msgstr "Konvergens:"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:51
-#: Source/Core/DolphinQt/ConvertDialog.cpp:73
+#: Source/Core/DolphinQt/ConvertDialog.cpp:52
+#: Source/Core/DolphinQt/ConvertDialog.cpp:89
 msgid "Convert"
 msgstr "Konvertera"
 
@@ -2188,7 +2194,7 @@ msgstr "Konvertera fil..."
 msgid "Convert Selected Files..."
 msgstr "Konvertera valda filer..."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:216
+#: Source/Core/DolphinQt/ConvertDialog.cpp:330
 msgid ""
 "Converting Wii disc images to GCZ without removing junk data does not save "
 "any noticeable amount of space compared to converting to ISO. Do you want to "
@@ -2198,8 +2204,8 @@ msgstr ""
 "sparar knappt någon plats jämfört med att konvertera till ISO. Vill du "
 "fortsätta ändå?"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:293
-#: Source/Core/DolphinQt/ConvertDialog.cpp:300
+#: Source/Core/DolphinQt/ConvertDialog.cpp:415
+#: Source/Core/DolphinQt/ConvertDialog.cpp:422
 msgid "Converting..."
 msgstr "Konverterar..."
 
@@ -2769,11 +2775,11 @@ msgstr "Inaktivera EFB-VRAM-kopior"
 
 #: Source/Core/Core/HotkeyManager.cpp:47
 msgid "Disable Emulation Speed Limit"
-msgstr "Stäng av emuleringshastighetsgräns"
+msgstr "Inaktivera emuleringshastighetsgräns"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:814
 msgid "Disable Fastmem"
-msgstr ""
+msgstr "Inaktivera fastmem"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:89
 msgid "Disable Fog"
@@ -2922,7 +2928,7 @@ msgstr ""
 "Dolphin kunde inte hitta några ISO/WAD-filer för GameCube/Wii.\n"
 "Dubbelklicka här för att ställa in en spelmapp…"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:366
+#: Source/Core/DolphinQt/ConvertDialog.cpp:502
 msgid "Dolphin failed to complete the requested action."
 msgstr "Dolphin kunde inte slutföra den begärda åtgärden."
 
@@ -3528,8 +3534,8 @@ msgstr "Lika med"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:234
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:208
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
-#: Source/Core/DolphinQt/ConvertDialog.cpp:332
-#: Source/Core/DolphinQt/ConvertDialog.cpp:365
+#: Source/Core/DolphinQt/ConvertDialog.cpp:454
+#: Source/Core/DolphinQt/ConvertDialog.cpp:501
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:476
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:482
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:505
@@ -3990,11 +3996,12 @@ msgstr ""
 msgid "Failed to open server"
 msgstr "Misslyckades att öppna servern"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:333
+#: Source/Core/DolphinQt/ConvertDialog.cpp:455
 msgid "Failed to open the input file \"%1\"."
 msgstr "Misslyckades att öppna indatafilen \"%1\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:280 Source/Core/DiscIO/FileBlob.cpp:52
+#: Source/Core/DiscIO/WIABlob.cpp:1986
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -4016,6 +4023,7 @@ msgid "Failed to read %s"
 msgstr "Misslyckades att läsa %s"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:371 Source/Core/DiscIO/FileBlob.cpp:92
+#: Source/Core/DiscIO/WIABlob.cpp:2001
 #, c-format
 msgid "Failed to read from the input file \"%s\"."
 msgstr "Misslyckades att läsa från indatafilen \"%s\"."
@@ -4028,7 +4036,7 @@ msgstr "Misslyckades att läsa unikt ID från skivavbildningen"
 msgid "Failed to remove file"
 msgstr "Misslyckades att ta bort filen"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:314
+#: Source/Core/DolphinQt/ConvertDialog.cpp:436
 msgid ""
 "Failed to remove junk data from file \"%1\".\n"
 "\n"
@@ -4095,6 +4103,7 @@ msgid "Failed to write config file!"
 msgstr "Kunde inte skriva inställningsfil!"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:375 Source/Core/DiscIO/FileBlob.cpp:98
+#: Source/Core/DiscIO/WIABlob.cpp:2005
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -4331,7 +4340,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta markerat."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:60
+#: Source/Core/DolphinQt/ConvertDialog.cpp:68
 msgid "Format:"
 msgstr "Format:"
 
@@ -4505,6 +4514,10 @@ msgstr "GCI-mapp"
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:395
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock anropades med ogiltig blockadress"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:348
+msgid "GCZ GC/Wii images (*.gcz)"
+msgstr ""
 
 #: Source/Core/VideoCommon/CommandProcessor.cpp:528
 #, c-format
@@ -4906,21 +4919,23 @@ msgstr "IR-känslighet:"
 msgid "ISO Details"
 msgstr "ISO-detaljer"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:82
+#: Source/Core/DolphinQt/ConvertDialog.cpp:98
 msgid ""
 "ISO: A simple and robust format which is supported by many programs. It "
 "takes up more space than any other format.\n"
 "\n"
 "GCZ: A basic compressed format which is compatible with most versions of "
 "Dolphin and some other programs. It can't efficiently compress junk data "
-"(unless removed) or encrypted Wii data."
-msgstr ""
-"ISO: Ett enkelt och robust format som stöds av många program. Det tar upp "
-"mer utrymme än alla andra format.\n"
+"(unless removed) or encrypted Wii data.\n"
 "\n"
-"GCZ: Ett grundläggande komprimerat format som är kompatibelt med de flesta "
-"versioner av Dolphin och några andra program. Det kan inte komprimera "
-"skräpdata effektivt (om skräpdatan inte tas bort) eller krypterad Wii-data."
+"WIA: An advanced compressed format which is compatible with Dolphin "
+"5.0-12188 and later, and a few other programs. It can efficiently compress "
+"encrypted Wii data, but not junk data (unless removed).\n"
+"\n"
+"RVZ: An advanced compressed format which is compatible with Dolphin "
+"5.0-12188 and later. It can efficiently compress both junk data and "
+"encrypted Wii data."
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 msgid "Icon"
@@ -4943,6 +4958,8 @@ msgstr "Identitetsgenerering"
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:109
 msgid "If \"Allow Writes to SD Card\" is disabled this does not override it."
 msgstr ""
+"Om \"Tillåt ändringar på SD-kort\" är avstängt tar den inställningen "
+"prioritet över denna."
 
 #: Source/Core/DolphinQt/Main.cpp:232
 msgid ""
@@ -5100,7 +5117,7 @@ msgstr "Öka intern upplösning"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:49
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
-#: Source/Core/DolphinQt/ConvertDialog.cpp:91
+#: Source/Core/DolphinQt/ConvertDialog.cpp:112
 msgid "Info"
 msgstr "Info"
 
@@ -6182,6 +6199,10 @@ msgstr "Ingen adapter upptäcktes"
 msgid "No Audio Output"
 msgstr "Ingen ljuduppspelning"
 
+#: Source/Core/DolphinQt/ConvertDialog.cpp:241
+msgid "No Compression"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:649
 msgid "No Match"
 msgstr "Ingen sökträff"
@@ -6441,7 +6462,7 @@ msgstr "Operatörer"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
-#: Source/Core/DolphinQt/ConvertDialog.cpp:78
+#: Source/Core/DolphinQt/ConvertDialog.cpp:94
 msgid "Options"
 msgstr "Alternativ"
 
@@ -6796,7 +6817,7 @@ msgid "Program Counter"
 msgstr "Program Counter"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:288
-#: Source/Core/DolphinQt/ConvertDialog.cpp:295
+#: Source/Core/DolphinQt/ConvertDialog.cpp:417
 msgid "Progress"
 msgstr "Förlopp"
 
@@ -6826,7 +6847,7 @@ msgstr ""
 "Kvaliteten för DPLII-dekodern. Ljudlatensen ökar ju högre kvaliteten är."
 
 #: Source/Core/Common/MsgHandler.cpp:90
-#: Source/Core/DolphinQt/ConvertDialog.cpp:313
+#: Source/Core/DolphinQt/ConvertDialog.cpp:435
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:423
 #: Source/Core/DolphinQt/MainWindow.cpp:1516
 msgid "Question"
@@ -6862,6 +6883,10 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:283
 msgid "RUNNING"
+msgstr ""
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:356
+msgid "RVZ GC/Wii images (*.rvz)"
 msgstr ""
 
 #. i18n: A range of memory addresses
@@ -7026,7 +7051,7 @@ msgstr "Påminn mig senare"
 msgid "Remove"
 msgstr "Ta bort"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:68
+#: Source/Core/DolphinQt/ConvertDialog.cpp:84
 msgid "Remove Junk Data (Irreversible):"
 msgstr "Ta bort skräpdata (kan ej återställas):"
 
@@ -7046,7 +7071,7 @@ msgstr "Ta bort från bevakning"
 msgid "Remove tag"
 msgstr "Ta bort etikett"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:203
+#: Source/Core/DolphinQt/ConvertDialog.cpp:317
 msgid ""
 "Removing junk data does not save any space when converting to ISO (unless "
 "you package the ISO file in a compressed file format such as ZIP "
@@ -7620,11 +7645,11 @@ msgstr "Välj nyckelfil (OTP/SEEPROM-kopia)"
 msgid "Select the save file"
 msgstr "Välj sparningsfilen"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:256
+#: Source/Core/DolphinQt/ConvertDialog.cpp:378
 msgid "Select where you want to save the converted image"
 msgstr "Välj var du vill spara den konverterade skivavbildningen"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:247
+#: Source/Core/DolphinQt/ConvertDialog.cpp:369
 msgid "Select where you want to save the converted images"
 msgstr "Välj var du vill spara de konverterade skivavbildningarna"
 
@@ -8480,7 +8505,7 @@ msgstr "Penna"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:222
-#: Source/Core/DolphinQt/ConvertDialog.cpp:372
+#: Source/Core/DolphinQt/ConvertDialog.cpp:508
 #: Source/Core/DolphinQt/GameList/GameList.cpp:490
 #: Source/Core/DolphinQt/GameList/GameList.cpp:518
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
@@ -8498,7 +8523,7 @@ msgstr "Lyckades."
 msgid "Successfully added to the NetPlay index"
 msgstr "Lades till i nätspelindex"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:373
+#: Source/Core/DolphinQt/ConvertDialog.cpp:509
 #, c-format
 msgid "Successfully converted %n image(s)."
 msgstr "%n skivavbildning(ar) har konverterats."
@@ -8877,7 +8902,7 @@ msgstr ""
 "är antingen korrupt eller inte en GameCube-minneskortsfil.\n"
 "%2"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:283
+#: Source/Core/DolphinQt/ConvertDialog.cpp:405
 msgid ""
 "The file %1 already exists.\n"
 "Do you wish to replace it?"
@@ -9656,7 +9681,7 @@ msgstr "Kunde inte skriva till filen %s"
 msgid "Unbound"
 msgstr "Obunden"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:230
+#: Source/Core/DolphinQt/ConvertDialog.cpp:344
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "Okomprimerade GC/Wii-skivavbildningar (*.iso *.gcm)"
 
@@ -10064,6 +10089,10 @@ msgstr ""
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
 msgstr "WASAPI (exklusivt läge)"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:352
+msgid "WIA GC/Wii images (*.wia)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
 msgid ""

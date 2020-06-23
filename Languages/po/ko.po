@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-16 22:51+0200\n"
-"PO-Revision-Date: 2020-06-16 20:51+0000\n"
+"POT-Creation-Date: 2020-06-23 11:17+0200\n"
+"PO-Revision-Date: 2020-06-23 09:17+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -129,6 +129,11 @@ msgstr "%1 (디스크 %2, 개정 %3)"
 msgid "%1 (Revision %3)"
 msgstr "%1 (개정 %3)"
 
+#. i18n: %1 is the name of a compression method (e.g. LZMA)
+#: Source/Core/DolphinQt/ConvertDialog.cpp:239
+msgid "%1 (slow)"
+msgstr ""
+
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:281
 msgid ""
 "%1 FIFO bytes\n"
@@ -224,6 +229,7 @@ msgid "%1x Native (%2x%3)"
 msgstr "%1x 원본 (%2x%3)"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:259
+#: Source/Core/DiscIO/WIABlob.cpp:1651
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i  / %i 블록. 압축 비율 %i%%"
@@ -826,7 +832,7 @@ msgstr "AR 코드"
 msgid "ASCII"
 msgstr "애스키"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:293
+#: Source/Core/DolphinQt/ConvertDialog.cpp:415
 msgid "Abort"
 msgstr "중단"
 
@@ -1098,19 +1104,15 @@ msgstr "모든 파일 (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:689
 msgid ""
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"dff *.m3u);;All Files (*)"
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
+"rvz *.wad *.dff *.m3u);;All Files (*)"
 msgstr ""
-"모든 GC/Wii 파일 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"dff *.m3u);;모든 파일 (*)"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:47
 msgid ""
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"m3u);;All Files (*)"
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
+"rvz *.wad *.m3u);;All Files (*)"
 msgstr ""
-"모든 GC/Wii 파일 (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *."
-"m3u);;모든 파일 (*)"
 
 #: Source/Core/DolphinQt/MainWindow.cpp:1203
 #: Source/Core/DolphinQt/MainWindow.cpp:1210
@@ -1139,7 +1141,7 @@ msgstr "사용 통계 보고 허용"
 
 #: Source/Core/DolphinQt/Settings/WiiPane.cpp:110
 msgid "Allow Writes to SD Card"
-msgstr ""
+msgstr "SD 카드에 쓰기 허용"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:229
 msgid ""
@@ -1283,7 +1285,7 @@ msgstr "이 팩을 정말로 삭제하시겠습니까?"
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "정말로 넷플레이를 종료하고 싶습니까?"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:188
+#: Source/Core/DolphinQt/ConvertDialog.cpp:299
 msgid "Are you sure?"
 msgstr "확신합니까?"
 
@@ -1490,7 +1492,7 @@ msgstr "베타 (한 달에 한 번)"
 msgid "Bitrate (kbps):"
 msgstr "비트레이트 (kbps):"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:64
+#: Source/Core/DolphinQt/ConvertDialog.cpp:72
 msgid "Block Size:"
 msgstr "블락 크기:"
 
@@ -1931,9 +1933,13 @@ msgstr "시작하기 전에 쉐이더들 컴파일"
 msgid "Compiling Shaders"
 msgstr "쉐이더들 컴파일하기"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:234
-msgid "Compressed GC/Wii images (*.gcz)"
-msgstr "압축된 GC/Wii 이미지들 (*.gcz)"
+#: Source/Core/DolphinQt/ConvertDialog.cpp:80
+msgid "Compression Level:"
+msgstr ""
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:76
+msgid "Compression:"
+msgstr ""
 
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:80
 msgid "Condition"
@@ -1962,8 +1968,8 @@ msgid "Configure Output"
 msgstr "출력 설정"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:204
-#: Source/Core/DolphinQt/ConvertDialog.cpp:187
-#: Source/Core/DolphinQt/ConvertDialog.cpp:282
+#: Source/Core/DolphinQt/ConvertDialog.cpp:298
+#: Source/Core/DolphinQt/ConvertDialog.cpp:404
 #: Source/Core/DolphinQt/GameList/GameList.cpp:505
 #: Source/Core/DolphinQt/GameList/GameList.cpp:621
 #: Source/Core/DolphinQt/MainWindow.cpp:825
@@ -2161,8 +2167,8 @@ msgstr ""
 msgid "Convergence:"
 msgstr "수렴:"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:51
-#: Source/Core/DolphinQt/ConvertDialog.cpp:73
+#: Source/Core/DolphinQt/ConvertDialog.cpp:52
+#: Source/Core/DolphinQt/ConvertDialog.cpp:89
 msgid "Convert"
 msgstr "변환"
 
@@ -2174,7 +2180,7 @@ msgstr "파일 변환..."
 msgid "Convert Selected Files..."
 msgstr "선택된 파일 변환..."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:216
+#: Source/Core/DolphinQt/ConvertDialog.cpp:330
 msgid ""
 "Converting Wii disc images to GCZ without removing junk data does not save "
 "any noticeable amount of space compared to converting to ISO. Do you want to "
@@ -2183,8 +2189,8 @@ msgstr ""
 "정크 데이터 제거 없이 Wii 디스크 이미지를 GCZ 로 변환하기는 ISO 로 변환하기"
 "와 비교해서 뚜렷하게 공간을 절약하지는 않습니다. 아무튼 계속 하시겠습니까?"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:293
-#: Source/Core/DolphinQt/ConvertDialog.cpp:300
+#: Source/Core/DolphinQt/ConvertDialog.cpp:415
+#: Source/Core/DolphinQt/ConvertDialog.cpp:422
 msgid "Converting..."
 msgstr "변환중..."
 
@@ -2752,7 +2758,7 @@ msgstr "에뮬레이션 속도 제한 끄기"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:814
 msgid "Disable Fastmem"
-msgstr ""
+msgstr "Fastmem 비활성"
 
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:89
 msgid "Disable Fog"
@@ -2901,7 +2907,7 @@ msgstr ""
 "돌핀이 어떠한 게임큐브/Wii ISO나 WAD를 찾을 수 없습니다.\n"
 "게임 디렉토리를 설정하려면 여기를 더블클릭하세요..."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:366
+#: Source/Core/DolphinQt/ConvertDialog.cpp:502
 msgid "Dolphin failed to complete the requested action."
 msgstr "돌핀이 요청된 액션 완수에 실패했습니다."
 
@@ -3502,8 +3508,8 @@ msgstr "같은"
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:234
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:208
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
-#: Source/Core/DolphinQt/ConvertDialog.cpp:332
-#: Source/Core/DolphinQt/ConvertDialog.cpp:365
+#: Source/Core/DolphinQt/ConvertDialog.cpp:454
+#: Source/Core/DolphinQt/ConvertDialog.cpp:501
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:476
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:482
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:505
@@ -3963,11 +3969,12 @@ msgstr ""
 msgid "Failed to open server"
 msgstr "서버 열기에 실패했습니다"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:333
+#: Source/Core/DolphinQt/ConvertDialog.cpp:455
 msgid "Failed to open the input file \"%1\"."
 msgstr "입력 파일 \"%1\" 열기에 실패했습니다."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:280 Source/Core/DiscIO/FileBlob.cpp:52
+#: Source/Core/DiscIO/WIABlob.cpp:1986
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3989,6 +3996,7 @@ msgid "Failed to read %s"
 msgstr "%s 을 읽을 수 없습니다."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:371 Source/Core/DiscIO/FileBlob.cpp:92
+#: Source/Core/DiscIO/WIABlob.cpp:2001
 #, c-format
 msgid "Failed to read from the input file \"%s\"."
 msgstr "입력 파일 \"%s\" 로 부터 읽기에 실패했습니다."
@@ -4001,7 +4009,7 @@ msgstr "디스크 이미지의 ID를 읽기에 실패했습니다"
 msgid "Failed to remove file"
 msgstr "파일 삭제에 실패했습니다"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:314
+#: Source/Core/DolphinQt/ConvertDialog.cpp:436
 msgid ""
 "Failed to remove junk data from file \"%1\".\n"
 "\n"
@@ -4064,6 +4072,7 @@ msgid "Failed to write config file!"
 msgstr "환경 파일 쓰기에 실패했습니다!"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:375 Source/Core/DiscIO/FileBlob.cpp:98
+#: Source/Core/DiscIO/WIABlob.cpp:2005
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -4299,7 +4308,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크해 두세요."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:60
+#: Source/Core/DolphinQt/ConvertDialog.cpp:68
 msgid "Format:"
 msgstr "포맷:"
 
@@ -4473,6 +4482,10 @@ msgstr "GCI 폴더"
 #: Source/Core/Core/HW/GCMemcard/GCMemcardDirectory.cpp:395
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블록"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:348
+msgid "GCZ GC/Wii images (*.gcz)"
+msgstr ""
 
 #: Source/Core/VideoCommon/CommandProcessor.cpp:528
 #, c-format
@@ -4869,21 +4882,23 @@ msgstr "IR 감도:"
 msgid "ISO Details"
 msgstr "ISO 세부사항"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:82
+#: Source/Core/DolphinQt/ConvertDialog.cpp:98
 msgid ""
 "ISO: A simple and robust format which is supported by many programs. It "
 "takes up more space than any other format.\n"
 "\n"
 "GCZ: A basic compressed format which is compatible with most versions of "
 "Dolphin and some other programs. It can't efficiently compress junk data "
-"(unless removed) or encrypted Wii data."
-msgstr ""
-"ISO:  많은 프로그램에서 지원되는 단순하고 강력한 포맷. 다른 어느 포맷보다 더 "
-"많은 공간을 차지합니다.\n"
+"(unless removed) or encrypted Wii data.\n"
 "\n"
-"GCZ: 대부분의 돌핀 버전과 일부 다른 프로그램과 호환되는 기본 압축된 포맷. 정"
-"크 데이터(제거 되지 않으면)나 암호화된 Wii 데이터를 효과적으로 압축할 수 없습"
-"니다."
+"WIA: An advanced compressed format which is compatible with Dolphin "
+"5.0-12188 and later, and a few other programs. It can efficiently compress "
+"encrypted Wii data, but not junk data (unless removed).\n"
+"\n"
+"RVZ: An advanced compressed format which is compatible with Dolphin "
+"5.0-12188 and later. It can efficiently compress both junk data and "
+"encrypted Wii data."
+msgstr ""
 
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 msgid "Icon"
@@ -4907,6 +4922,7 @@ msgstr "식별자 생성"
 #: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:109
 msgid "If \"Allow Writes to SD Card\" is disabled this does not override it."
 msgstr ""
+"만일 \"SD 카드에 쓰기 허용\" 이 비활성되면 이것은 그것보다 우선하지 않습니다."
 
 #: Source/Core/DolphinQt/Main.cpp:232
 msgid ""
@@ -5058,7 +5074,7 @@ msgstr "IR 증가"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:49
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
-#: Source/Core/DolphinQt/ConvertDialog.cpp:91
+#: Source/Core/DolphinQt/ConvertDialog.cpp:112
 msgid "Info"
 msgstr "정보"
 
@@ -6136,6 +6152,10 @@ msgstr "감지된 어댑터가 없습니다"
 msgid "No Audio Output"
 msgstr "오디오 출력 없음"
 
+#: Source/Core/DolphinQt/ConvertDialog.cpp:241
+msgid "No Compression"
+msgstr ""
+
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:649
 msgid "No Match"
 msgstr "일치 없음"
@@ -6395,7 +6415,7 @@ msgstr "연산자들"
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
-#: Source/Core/DolphinQt/ConvertDialog.cpp:78
+#: Source/Core/DolphinQt/ConvertDialog.cpp:94
 msgid "Options"
 msgstr "옵션"
 
@@ -6747,7 +6767,7 @@ msgid "Program Counter"
 msgstr "프로그램 카운터"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:288
-#: Source/Core/DolphinQt/ConvertDialog.cpp:295
+#: Source/Core/DolphinQt/ConvertDialog.cpp:417
 msgid "Progress"
 msgstr "진행"
 
@@ -6776,7 +6796,7 @@ msgid "Quality of the DPLII decoder. Audio latency increases with quality."
 msgstr "DPLII 디코더의 품질. 오디오 지연이 품질로 증가합니다."
 
 #: Source/Core/Common/MsgHandler.cpp:90
-#: Source/Core/DolphinQt/ConvertDialog.cpp:313
+#: Source/Core/DolphinQt/ConvertDialog.cpp:435
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:423
 #: Source/Core/DolphinQt/MainWindow.cpp:1516
 msgid "Question"
@@ -6813,6 +6833,10 @@ msgstr "RSO 자동-감지"
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:283
 msgid "RUNNING"
 msgstr "구동"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:356
+msgid "RVZ GC/Wii images (*.rvz)"
+msgstr ""
 
 #. i18n: A range of memory addresses
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:287
@@ -6977,7 +7001,7 @@ msgstr "나중에 다시 알려주기"
 msgid "Remove"
 msgstr "제거"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:68
+#: Source/Core/DolphinQt/ConvertDialog.cpp:84
 msgid "Remove Junk Data (Irreversible):"
 msgstr "정크 데이터 제거 (되돌릴 수 없음):"
 
@@ -6997,7 +7021,7 @@ msgstr "관찰에서 제거"
 msgid "Remove tag"
 msgstr "태그 제거"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:203
+#: Source/Core/DolphinQt/ConvertDialog.cpp:317
 msgid ""
 "Removing junk data does not save any space when converting to ISO (unless "
 "you package the ISO file in a compressed file format such as ZIP "
@@ -7567,11 +7591,11 @@ msgstr "키 파일 선택 (OTP/SEEPROM 덤프)"
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:256
+#: Source/Core/DolphinQt/ConvertDialog.cpp:378
 msgid "Select where you want to save the converted image"
 msgstr "변환된 이미지를 저장하고 싶은 곳을 선택하세요"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:247
+#: Source/Core/DolphinQt/ConvertDialog.cpp:369
 msgid "Select where you want to save the converted images"
 msgstr "변환된 이미지들을 저장하고 싶은 곳을 선택하세요"
 
@@ -8423,7 +8447,7 @@ msgstr "스타일러스"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:222
-#: Source/Core/DolphinQt/ConvertDialog.cpp:372
+#: Source/Core/DolphinQt/ConvertDialog.cpp:508
 #: Source/Core/DolphinQt/GameList/GameList.cpp:490
 #: Source/Core/DolphinQt/GameList/GameList.cpp:518
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
@@ -8441,7 +8465,7 @@ msgstr "성공."
 msgid "Successfully added to the NetPlay index"
 msgstr "넷플레이 목록에 성공적으로 추가되었습니다"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:373
+#: Source/Core/DolphinQt/ConvertDialog.cpp:509
 #, c-format
 msgid "Successfully converted %n image(s)."
 msgstr "%n 이미지를 성공적으로 변환했습니다."
@@ -8816,7 +8840,7 @@ msgstr ""
 "은 맛이 갔거나 게임큐브 메모리 카드 파일이 아닙니다.\n"
 "%2"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:283
+#: Source/Core/DolphinQt/ConvertDialog.cpp:405
 msgid ""
 "The file %1 already exists.\n"
 "Do you wish to replace it?"
@@ -9576,7 +9600,7 @@ msgstr "%s 파일에 쓸 수 없습니다"
 msgid "Unbound"
 msgstr "풀림"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:230
+#: Source/Core/DolphinQt/ConvertDialog.cpp:344
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "압축풀린 GC/Wii 이미지들 (*.iso *.gcm)"
 
@@ -9983,6 +10007,10 @@ msgstr ""
 #: Source/Core/Core/ConfigManager.h:57
 msgid "WASAPI (Exclusive Mode)"
 msgstr "WASAPI (전용 모드)"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:352
+msgid "WIA GC/Wii images (*.wia)"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:259
 msgid ""
