@@ -54,6 +54,7 @@ public:
 
   void IncreaseFovX(float fov);
   void IncreaseFovY(float fov);
+  float GetFovStepSize() const;
 
   void Reset();
 
@@ -68,6 +69,8 @@ private:
   float m_fov_y = 1.0f;
   std::optional<FreelookControlType> m_current_type;
   std::unique_ptr<CameraController> m_camera_controller;
+
+  float m_fov_step_size = 0.025f;
 };
 
 extern FreeLookCamera g_freelook_camera;

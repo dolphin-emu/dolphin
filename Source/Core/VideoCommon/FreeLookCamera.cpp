@@ -236,13 +236,18 @@ void FreeLookCamera::Rotate(const Common::Vec3& amt)
 void FreeLookCamera::IncreaseFovX(float fov)
 {
   m_fov_x += fov;
-  m_fov_x = std::clamp(m_fov_x, 0.1f, m_fov_x);
+  m_fov_x = std::clamp(m_fov_x, m_fov_step_size, m_fov_x);
 }
 
 void FreeLookCamera::IncreaseFovY(float fov)
 {
   m_fov_y += fov;
-  m_fov_y = std::clamp(m_fov_y, 0.1f, m_fov_y);
+  m_fov_y = std::clamp(m_fov_y, m_fov_step_size, m_fov_y);
+}
+
+float FreeLookCamera::GetFovStepSize() const
+{
+  return m_fov_step_size;
 }
 
 void FreeLookCamera::Reset()
