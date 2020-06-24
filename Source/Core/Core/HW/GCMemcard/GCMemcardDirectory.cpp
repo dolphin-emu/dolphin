@@ -26,9 +26,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";
@@ -145,11 +149,11 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
   return filenames;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
-                                       bool shift_jis, int game_id)
-    : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
-      m_hdr(slot, size_mbits, shift_jis), m_bat1(size_mbits), m_saves(0),
-      m_save_directory(directory), m_exiting(false)
+GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
+                                       const Memcard::HeaderData& header_data, u32 game_id)
+    : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
+      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory),
+      m_exiting(false)
 {
   // Use existing header data if available
   {
@@ -195,7 +199,8 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
   }
 
   // leave about 10% of free space on the card if possible
-  const int total_blocks = m_hdr.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
+  const int total_blocks =
+      m_hdr.m_data.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
   const int reserved_blocks = total_blocks / 10;
 
   // load files for other games

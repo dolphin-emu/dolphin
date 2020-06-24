@@ -9,6 +9,11 @@
 
 class PointerWrap;
 
+namespace Memcard
+{
+struct HeaderData;
+}
+
 namespace ExpansionInterface
 {
 enum TEXIDevices : int
@@ -65,5 +70,6 @@ private:
   virtual void TransferByte(u8& byte);
 };
 
-std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num);
+std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num,
+                                             const Memcard::HeaderData& memcard_header_data);
 }  // namespace ExpansionInterface
