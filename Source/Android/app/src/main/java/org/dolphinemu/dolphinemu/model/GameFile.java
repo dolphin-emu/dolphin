@@ -38,6 +38,8 @@ public class GameFile
 
   public native int getRevision();
 
+  public native int getBlobType();
+
   public native String getBlobTypeString();
 
   public native long getBlockSize();
@@ -47,6 +49,8 @@ public class GameFile
   public native boolean shouldShowFileFormatDetails();
 
   public native long getFileSize();
+
+  public native boolean isDatelDisc();
 
   public native int[] getBanner();
 

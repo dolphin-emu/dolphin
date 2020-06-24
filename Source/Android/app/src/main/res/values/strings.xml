@@ -330,6 +330,29 @@
     <string name="game_details_block_size">Block Size</string>
     <string name="game_details_no_compression">No Compression</string>
 
+    <!-- Convert Screen -->
+    <string name="convert_format">Format</string>
+    <string name="convert_block_size">Block Size</string>
+    <string name="convert_compression">Compression</string>
+    <string name="convert_compression_level">Compression Level</string>
+    <string name="convert_remove_junk_data">Remove Junk Data (Irreversible)</string>
+    <string name="convert_convert">Convert</string>
+    <string name="convert_warning_iso">Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?</string>
+    <string name="convert_warning_gcz">Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?</string>
+    <string name="convert_success_message">The disc image was successfully converted.</string>
+    <string name="convert_failure_message">Dolphin failed to complete the requested action.</string>
+    <string name="convert_format_info">
+ISO: A simple and robust format which is supported by many programs. It takes up more space
+than any other format.
+\n\nGCZ: A basic compressed format which is compatible with most versions of Dolphin and some
+other programs. It can\'t efficiently compress junk data (unless removed) or encrypted Wii data.
+\n\nWIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later,
+and a few other programs. It can efficiently compress encrypted Wii data, but not junk data
+(unless removed).
+\n\nRVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later.
+It can efficiently compress both junk data and encrypted Wii data.
+    </string>
+
     <!-- Emulation Menu -->
     <string name="pause_emulation">Pause Emulation</string>
     <string name="unpause_emulation">Unpause Emulation</string>

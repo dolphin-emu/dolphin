@@ -1,0 +1,371 @@
+package org.dolphinemu.dolphinemu.fragments;
+
+import android.content.Context;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.Spinner;
+
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.ui.platform.Platform;
+
+import java.util.ArrayList;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+
+public class ConvertFragment extends Fragment implements View.OnClickListener
+{
+  private static class SpinnerValue implements AdapterView.OnItemSelectedListener
+  {
+    private int mValuesId = -1;
+    private int mCurrentPosition = -1;
+    private ArrayList<Runnable> mCallbacks = new ArrayList<>();
+
+    @Override
+    public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id)
+    {
+      if (mCurrentPosition != position)
+        setPosition(position);
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> adapterView)
+    {
+      mCurrentPosition = -1;
+    }
+
+    int getPosition()
+    {
+      return mCurrentPosition;
+    }
+
+    void setPosition(int position)
+    {
+      mCurrentPosition = position;
+      for (Runnable callback : mCallbacks)
+        callback.run();
+    }
+
+    void populate(int valuesId)
+    {
+      mValuesId = valuesId;
+    }
+
+    boolean hasValues()
+    {
+      return mValuesId != -1;
+    }
+
+    int getValue(Context context)
+    {
+      return context.getResources().getIntArray(mValuesId)[mCurrentPosition];
+    }
+
+    int getValueOr(Context context, int defaultValue)
+    {
+      return hasValues() ? getValue(context) : defaultValue;
+    }
+
+    void addCallback(Runnable callback)
+    {
+      mCallbacks.add(callback);
+    }
+  }
+
+  private static final String ARG_GAME_PATH = "game_path";
+
+  private static final String KEY_FORMAT = "convert_format";
+  private static final String KEY_BLOCK_SIZE = "convert_block_size";
+  private static final String KEY_COMPRESSION = "convert_compression";
+  private static final String KEY_COMPRESSION_LEVEL = "convert_compression_level";
+  private static final String KEY_REMOVE_JUNK_DATA = "remove_junk_data";
+
+  private static final int BLOB_TYPE_PLAIN = 0;
+  private static final int BLOB_TYPE_GCZ = 3;
+  private static final int BLOB_TYPE_WIA = 7;
+  private static final int BLOB_TYPE_RVZ = 8;
+
+  private static final int COMPRESSION_NONE = 0;
+  private static final int COMPRESSION_PURGE = 1;
+  private static final int COMPRESSION_BZIP2 = 2;
+  private static final int COMPRESSION_LZMA = 3;
+  private static final int COMPRESSION_LZMA2 = 4;
+  private static final int COMPRESSION_ZSTD = 5;
+
+  private SpinnerValue mFormat = new SpinnerValue();
+  private SpinnerValue mBlockSize = new SpinnerValue();
+  private SpinnerValue mCompression = new SpinnerValue();
+  private SpinnerValue mCompressionLevel = new SpinnerValue();
+
+  private GameFile gameFile;
+
+  public static ConvertFragment newInstance(String gamePath)
+  {
+    Bundle args = new Bundle();
+    args.putString(ARG_GAME_PATH, gamePath);
+
+    ConvertFragment fragment = new ConvertFragment();
+    fragment.setArguments(args);
+    return fragment;
+  }
+
+  @Override
+  public void onCreate(Bundle savedInstanceState)
+  {
+    super.onCreate(savedInstanceState);
+    gameFile = GameFileCacheService.addOrGet(requireArguments().getString(ARG_GAME_PATH));
+  }
+
+  @Override
+  public View onCreateView(LayoutInflater inflater, ViewGroup container,
+          Bundle savedInstanceState)
+  {
+    return inflater.inflate(R.layout.fragment_convert, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
+  {
+    populateFormats();
+    populateBlockSize();
+    populateCompression();
+    populateCompressionLevel();
+    populateRemoveJunkData();
+
+    mFormat.addCallback(this::populateBlockSize);
+    mFormat.addCallback(this::populateCompression);
+    mCompression.addCallback(this::populateCompressionLevel);
+    mFormat.addCallback(this::populateRemoveJunkData);
+
+    view.findViewById(R.id.button_convert).setOnClickListener(this);
+
+    if (savedInstanceState != null)
+    {
+      setSpinnerSelection(R.id.spinner_format, mFormat, savedInstanceState.getInt(KEY_FORMAT));
+      setSpinnerSelection(R.id.spinner_block_size, mBlockSize,
+              savedInstanceState.getInt(KEY_BLOCK_SIZE));
+      setSpinnerSelection(R.id.spinner_compression, mCompression,
+              savedInstanceState.getInt(KEY_COMPRESSION));
+      setSpinnerSelection(R.id.spinner_compression_level, mCompressionLevel,
+              savedInstanceState.getInt(KEY_COMPRESSION_LEVEL));
+
+      CheckBox removeJunkData = requireView().findViewById(R.id.checkbox_remove_junk_data);
+      removeJunkData.setChecked(savedInstanceState.getBoolean(KEY_REMOVE_JUNK_DATA));
+    }
+  }
+
+  @Override
+  public void onSaveInstanceState(@NonNull Bundle outState)
+  {
+    outState.putInt(KEY_FORMAT, mFormat.getPosition());
+    outState.putInt(KEY_BLOCK_SIZE, mBlockSize.getPosition());
+    outState.putInt(KEY_COMPRESSION, mCompression.getPosition());
+    outState.putInt(KEY_COMPRESSION_LEVEL, mCompressionLevel.getPosition());
+
+    CheckBox removeJunkData = requireView().findViewById(R.id.checkbox_remove_junk_data);
+    outState.putBoolean(KEY_REMOVE_JUNK_DATA, removeJunkData.isChecked());
+  }
+
+  private void setSpinnerSelection(int id, SpinnerValue valueWrapper, int i)
+  {
+    ((Spinner) requireView().findViewById(id)).setSelection(i);
+    valueWrapper.setPosition(i);
+  }
+
+  private Spinner populateSpinner(int spinnerId, int entriesId, int valuesId,
+          SpinnerValue valueWrapper)
+  {
+    Spinner spinner = requireView().findViewById(spinnerId);
+
+    ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(requireContext(),
+            entriesId, android.R.layout.simple_spinner_item);
+    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+    spinner.setAdapter(adapter);
+
+    spinner.setEnabled(spinner.getCount() > 1);
+
+    valueWrapper.populate(valuesId);
+    valueWrapper.setPosition(spinner.getSelectedItemPosition());
+    spinner.setOnItemSelectedListener(valueWrapper);
+
+    return spinner;
+  }
+
+  private Spinner clearSpinner(int spinnerId, SpinnerValue valueWrapper)
+  {
+    Spinner spinner = requireView().findViewById(spinnerId);
+
+    spinner.setAdapter(null);
+
+    spinner.setEnabled(false);
+
+    valueWrapper.populate(-1);
+    valueWrapper.setPosition(-1);
+    spinner.setOnItemSelectedListener(valueWrapper);
+
+    return spinner;
+  }
+
+  private void populateFormats()
+  {
+    Spinner spinner = populateSpinner(R.id.spinner_format, R.array.convertFormatEntries,
+            R.array.convertFormatValues, mFormat);
+
+    if (gameFile.getBlobType() == BLOB_TYPE_PLAIN)
+      spinner.setSelection(spinner.getCount() - 1);
+  }
+
+  private void populateBlockSize()
+  {
+    switch (mFormat.getValue(requireContext()))
+    {
+      case BLOB_TYPE_GCZ:
+        // In the equivalent DolphinQt code, we have some logic for avoiding block sizes that can
+        // trigger bugs in Dolphin versions older than 5.0-11893, but it was too annoying to port.
+        // TODO: Port it?
+        populateSpinner(R.id.spinner_block_size, R.array.convertBlockSizeGczEntries,
+                R.array.convertBlockSizeGczValues, mBlockSize);
+        break;
+      case BLOB_TYPE_WIA:
+        populateSpinner(R.id.spinner_block_size, R.array.convertBlockSizeWiaEntries,
+                R.array.convertBlockSizeWiaValues, mBlockSize);
+        break;
+      case BLOB_TYPE_RVZ:
+        populateSpinner(R.id.spinner_block_size, R.array.convertBlockSizeRvzEntries,
+                R.array.convertBlockSizeRvzValues, mBlockSize).setSelection(2);
+        break;
+      default:
+        clearSpinner(R.id.spinner_block_size, mBlockSize);
+    }
+  }
+
+  private void populateCompression()
+  {
+    switch (mFormat.getValue(requireContext()))
+    {
+      case BLOB_TYPE_GCZ:
+        populateSpinner(R.id.spinner_compression, R.array.convertCompressionGczEntries,
+                R.array.convertCompressionGczValues, mCompression);
+        break;
+      case BLOB_TYPE_WIA:
+        populateSpinner(R.id.spinner_compression, R.array.convertCompressionWiaEntries,
+                R.array.convertCompressionWiaValues, mCompression);
+        break;
+      case BLOB_TYPE_RVZ:
+        populateSpinner(R.id.spinner_compression, R.array.convertCompressionRvzEntries,
+                R.array.convertCompressionRvzValues, mCompression).setSelection(4);
+        break;
+      default:
+        clearSpinner(R.id.spinner_compression, mCompression);
+    }
+  }
+
+  private void populateCompressionLevel()
+  {
+    switch (mCompression.getValueOr(requireContext(), COMPRESSION_NONE))
+    {
+      case COMPRESSION_BZIP2:
+      case COMPRESSION_LZMA:
+      case COMPRESSION_LZMA2:
+        populateSpinner(R.id.spinner_compression_level, R.array.convertCompressionLevelEntries,
+                R.array.convertCompressionLevelValues, mCompressionLevel).setSelection(4);
+        break;
+      case COMPRESSION_ZSTD:
+        // TODO: Query DiscIO for the supported compression levels, like we do in DolphinQt?
+        populateSpinner(R.id.spinner_compression_level, R.array.convertCompressionLevelZstdEntries,
+                R.array.convertCompressionLevelZstdValues, mCompressionLevel).setSelection(4);
+        break;
+      default:
+        clearSpinner(R.id.spinner_compression_level, mCompressionLevel);
+    }
+  }
+
+  private void populateRemoveJunkData()
+  {
+    boolean scrubbingAllowed = mFormat.getValue(requireContext()) != BLOB_TYPE_RVZ &&
+            !gameFile.isDatelDisc();
+
+    CheckBox removeJunkData = requireView().findViewById(R.id.checkbox_remove_junk_data);
+    removeJunkData.setEnabled(scrubbingAllowed);
+    if (!scrubbingAllowed)
+      removeJunkData.setChecked(false);
+  }
+
+  private boolean getRemoveJunkData()
+  {
+    CheckBox checkBoxScrub = requireView().findViewById(R.id.checkbox_remove_junk_data);
+    return checkBoxScrub.isChecked();
+  }
+
+  @Override
+  public void onClick(View view)
+  {
+    Context context = requireContext();
+
+    boolean scrub = getRemoveJunkData();
+    int format = mFormat.getValue(context);
+
+    boolean iso_warning = scrub && format == BLOB_TYPE_PLAIN;
+    boolean gcz_warning = !scrub && format == BLOB_TYPE_GCZ && !gameFile.isDatelDisc() &&
+            gameFile.getPlatform() == Platform.WII.toInt();
+
+    if (iso_warning || gcz_warning)
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+      builder.setMessage(iso_warning ? R.string.convert_warning_iso : R.string.convert_warning_gcz)
+              .setPositiveButton(R.string.yes, (dialog, i) ->
+              {
+                dialog.dismiss();
+                convert();
+              })
+              .setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
+      AlertDialog alert = builder.create();
+      alert.show();
+    }
+    else
+    {
+      convert();
+    }
+  }
+
+  private void convert()
+  {
+    Context context = requireContext();
+
+    // TODO: Let the user select a path
+    String outPath = gameFile.getPath() + ".converted";
+
+    boolean success = NativeLibrary.ConvertDiscImage(gameFile.getPath(), outPath,
+            gameFile.getPlatform(), mFormat.getValue(context), mBlockSize.getValueOr(context,0),
+            mCompression.getValueOr(context,0), mCompressionLevel.getValueOr(context,0),
+            getRemoveJunkData());
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+    if (success)
+    {
+      builder.setMessage(R.string.convert_success_message)
+              .setCancelable(false)
+              .setPositiveButton(R.string.ok, (dialog, i) ->
+              {
+                dialog.dismiss();
+                requireActivity().finish();
+              });
+    }
+    else
+    {
+      builder.setMessage(R.string.convert_failure_message)
+              .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+    }
+    AlertDialog alert = builder.create();
+    alert.show();
+  }
+}

@@ -9,6 +9,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.ConvertActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -67,6 +68,9 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
+                  ConvertActivity.launch(getContext(), path);
+                  break;
+                case 2:
                   try (Settings settings = new Settings())
                   {
                     settings.loadSettings(null);
@@ -74,23 +78,23 @@ public class GamePropertiesDialog extends DialogFragment
                     settings.saveSettings(null, getContext());
                   }
                   break;
-                case 2:
+                case 3:
                   SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision);
                   break;
-                case 3:
+                case 4:
                   SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision);
                   break;
-                case 4:
+                case 5:
                   SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision);
                   break;
-                case 5:
+                case 6:
                   // Clear option for GC, Wii controls for else
                   if (platform == Platform.GAMECUBE.toInt())
                     clearGameSettings(gameId);
                   else
                     SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision);
                   break;
-                case 6:
+                case 7:
                   clearGameSettings(gameId);
                   break;
               }
