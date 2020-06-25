@@ -196,7 +196,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   }
 
   mmio->Register(base | FIFO_BP_LO, MMIO::DirectRead<u16>(MMIO::Utils::LowPart(&fifo.CPBreakpoint)),
-                 MMIO::ComplexWrite<u16>([WMASK_LO_ALIGN_32BIT](u32, u16 val) {
+                 MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    WriteLow(fifo.CPBreakpoint, val & WMASK_LO_ALIGN_32BIT);
                  }));
   mmio->Register(base | FIFO_BP_HI,
