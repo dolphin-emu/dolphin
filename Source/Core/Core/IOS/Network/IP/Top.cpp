@@ -310,7 +310,7 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_POLL:
     return HandlePollRequest(request);
   case IOCTL_SO_GETHOSTBYNAME:
-    return HandleGetHostByNameRequest(request);
+    return AsyncTask(&NetIPTop::HandleGetHostByNameRequest, request);
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
@@ -332,7 +332,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_RECVFROM:
     return HandleRecvFromRequest(request);
   case IOCTLV_SO_GETADDRINFO:
-    return HandleGetAddressInfoRequest(request);
+    return AsyncTask(&NetIPTop::HandleGetAddressInfoRequest, request);
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
@@ -345,6 +345,23 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
 
 void NetIPTop::Update()
 {
+  // Handle async tasks in order
+  auto it = m_tasks.begin();
+  while (it != m_tasks.end())
+  {
+    if (!it->future.valid())
+    {
+      it->task();
+      it->future = it->task.get_future().get();
+    }
+
+    if (it->future.wait_for(std::chrono::seconds(0)) != std::future_status::ready)
+      break;
+
+    GetIOS()->EnqueueIPCReply(it->request, it->future.get().return_value);
+    it = m_tasks.erase(it);
+  }
+
   WiiSockMan::GetInstance().Update();
 }
 

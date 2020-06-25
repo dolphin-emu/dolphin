@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include <future>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
@@ -76,6 +78,22 @@ public:
   void Update() override;
 
 private:
+  struct async_task
+  {
+    IOS::HLE::Request request;
+    std::packaged_task<std::future<IPCCommandResult>()> task;
+    std::future<IPCCommandResult> future;
+  };
+
+  template <typename Method, typename Request>
+  IPCCommandResult AsyncTask(Method method, const Request& request)
+  {
+    std::packaged_task<std::future<IPCCommandResult>()> task(
+        [this, method, request] { return std::async(std::launch::async, method, this, request); });
+    m_tasks.emplace_back(async_task{request, std::move(task)});
+    return GetNoReply();
+  }
+
   IPCCommandResult HandleInitInterfaceRequest(const IOCtlRequest& request);
   IPCCommandResult HandleSocketRequest(const IOCtlRequest& request);
   IPCCommandResult HandleICMPSocketRequest(const IOCtlRequest& request);
@@ -104,6 +122,7 @@ private:
 #ifdef _WIN32
   WSADATA InitData;
 #endif
+  std::vector<async_task> m_tasks;
 };
 }  // namespace Device
 }  // namespace IOS::HLE
