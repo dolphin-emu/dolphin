@@ -56,6 +56,9 @@ public:
     COL_SIZE,
     COL_FILE_NAME,
     COL_FILE_PATH,
+    COL_FILE_FORMAT,
+    COL_BLOCK_SIZE,
+    COL_COMPRESSION,
     COL_TAGS,
     NUM_COLS
   };

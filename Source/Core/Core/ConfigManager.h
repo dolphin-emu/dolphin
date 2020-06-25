@@ -271,6 +271,9 @@ struct SConfig
   bool m_showIDColumn;
   bool m_showRegionColumn;
   bool m_showSizeColumn;
+  bool m_showFileFormatColumn;
+  bool m_showBlockSizeColumn;
+  bool m_showCompressionColumn;
   bool m_showTagsColumn;
 
   std::string m_WirelessMac;

@@ -166,6 +166,28 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     if (role == Qt::InitialSortOrderRole)
       return static_cast<quint64>(game.GetFileSize());
     break;
+  case COL_FILE_FORMAT:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      if (game.ShouldShowFileFormatDetails())
+        return QString::fromStdString(DiscIO::GetName(game.GetBlobType(), true));
+      else
+        return {};
+    }
+    break;
+  case COL_BLOCK_SIZE:
+    if (role == Qt::DisplayRole)
+      return QString::fromStdString(UICommon::FormatSize(game.GetBlockSize()));
+    if (role == Qt::InitialSortOrderRole)
+      return static_cast<quint64>(game.GetBlockSize());
+    break;
+  case COL_COMPRESSION:
+    if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
+    {
+      const QString compression = QString::fromStdString(game.GetCompressionMethod());
+      return compression.isEmpty() ? tr("No Compression") : compression;
+    }
+    break;
   case COL_TAGS:
     if (role == Qt::DisplayRole || role == Qt::InitialSortOrderRole)
     {
@@ -202,6 +224,12 @@ QVariant GameListModel::headerData(int section, Qt::Orientation orientation, int
     return tr("File Path");
   case COL_SIZE:
     return tr("Size");
+  case COL_FILE_FORMAT:
+    return tr("File Format");
+  case COL_BLOCK_SIZE:
+    return tr("Block Size");
+  case COL_COMPRESSION:
+    return tr("Compression");
   case COL_TAGS:
     return tr("Tags");
   }
