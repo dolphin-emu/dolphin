@@ -493,6 +493,10 @@ void ConvertDialog::Convert()
           return good;
         });
         break;
+
+      default:
+        ASSERT(false);
+        break;
       }
 
       progress_dialog.GetRaw()->exec();
