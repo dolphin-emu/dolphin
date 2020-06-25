@@ -38,4 +38,7 @@ jclass GetIniFileSectionClass();
 jfieldID GetIniFileSectionPointer();
 jmethodID GetIniFileSectionConstructor();
 
+jclass GetCompressCallbackClass();
+jmethodID GetCompressCallbackRun();
+
 }  // namespace IDCache

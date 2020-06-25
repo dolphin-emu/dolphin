@@ -27,6 +27,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -668,7 +669,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallW
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertDiscImage(
     JNIEnv* env, jobject obj, jstring jInPath, jstring jOutPath, jint jPlatform, jint jFormat,
-    jint jBlockSize, jint jCompression, jint jCompressionLevel, jboolean jScrub)
+    jint jBlockSize, jint jCompression, jint jCompressionLevel, jboolean jScrub, jobject jCallback)
 {
   const std::string in_path = GetJString(env, jInPath);
   const std::string out_path = GetJString(env, jOutPath);
@@ -687,7 +688,14 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
   if (!blob_reader)
     return static_cast<jboolean>(false);
 
-  const auto callback = [](const std::string& text, float percent) { return true; };
+  jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
+  Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
+
+  const auto callback = [&jCallbackGlobal](const std::string& text, float completion) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallbackGlobal, IDCache::GetCompressCallbackRun(), ToJString(env, text), completion));
+  };
 
   bool success = false;
 

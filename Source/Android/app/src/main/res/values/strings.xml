@@ -337,6 +337,7 @@
     <string name="convert_compression_level">Compression Level</string>
     <string name="convert_remove_junk_data">Remove Junk Data (Irreversible)</string>
     <string name="convert_convert">Convert</string>
+    <string name="convert_converting">Converting</string>
     <string name="convert_warning_iso">Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?</string>
     <string name="convert_warning_gcz">Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?</string>
     <string name="convert_success_message">The disc image was successfully converted.</string>

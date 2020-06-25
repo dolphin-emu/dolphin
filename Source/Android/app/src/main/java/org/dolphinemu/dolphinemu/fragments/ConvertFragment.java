@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.fragments;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -108,6 +109,9 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
   private GameFile gameFile;
 
+  private volatile boolean mCanceled;
+  private volatile Thread mThread = null;
+
   public static ConvertFragment newInstance(String gamePath)
   {
     Bundle args = new Bundle();
@@ -179,6 +183,15 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   {
     ((Spinner) requireView().findViewById(id)).setSelection(i);
     valueWrapper.setPosition(i);
+  }
+
+  @Override
+  public void onStop()
+  {
+    super.onStop();
+
+    mCanceled = true;
+    joinThread();
   }
 
   private Spinner populateSpinner(int spinnerId, int entriesId, int valuesId,
@@ -339,33 +352,88 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
   private void convert()
   {
+    final int PROGRESS_RESOLUTION = 1000;
+
     Context context = requireContext();
 
     // TODO: Let the user select a path
     String outPath = gameFile.getPath() + ".converted";
 
-    boolean success = NativeLibrary.ConvertDiscImage(gameFile.getPath(), outPath,
-            gameFile.getPlatform(), mFormat.getValue(context), mBlockSize.getValueOr(context,0),
-            mCompression.getValueOr(context,0), mCompressionLevel.getValueOr(context,0),
-            getRemoveJunkData());
+    joinThread();
 
-    AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
-    if (success)
+    mCanceled = false;
+
+    ProgressDialog progressDialog = new ProgressDialog(context, R.style.DolphinDialogBase);
+
+    progressDialog.setTitle(R.string.convert_converting);
+
+    progressDialog.setIndeterminate(false);
+    progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+    progressDialog.setMax(PROGRESS_RESOLUTION);
+
+    progressDialog.setCancelable(true);
+    progressDialog.setOnCancelListener((dialog) -> mCanceled = true);
+
+    progressDialog.show();
+
+    mThread = new Thread(() ->
     {
-      builder.setMessage(R.string.convert_success_message)
-              .setCancelable(false)
-              .setPositiveButton(R.string.ok, (dialog, i) ->
+      boolean success = NativeLibrary.ConvertDiscImage(gameFile.getPath(), outPath,
+              gameFile.getPlatform(), mFormat.getValue(context), mBlockSize.getValueOr(context, 0),
+              mCompression.getValueOr(context, 0), mCompressionLevel.getValueOr(context, 0),
+              getRemoveJunkData(), (text, completion) ->
               {
-                dialog.dismiss();
-                requireActivity().finish();
+                requireActivity().runOnUiThread(() ->
+                {
+                  progressDialog.setMessage(text);
+                  progressDialog.setProgress((int) (completion * PROGRESS_RESOLUTION));
+                });
+
+                return !mCanceled;
               });
-    }
-    else
+
+      if (!mCanceled)
+      {
+        requireActivity().runOnUiThread(() ->
+        {
+          progressDialog.dismiss();
+
+          AlertDialog.Builder builder = new AlertDialog.Builder(context, R.style.DolphinDialogBase);
+          if (success)
+          {
+            builder.setMessage(R.string.convert_success_message)
+                    .setCancelable(false)
+                    .setPositiveButton(R.string.ok, (dialog, i) ->
+                    {
+                      dialog.dismiss();
+                      requireActivity().finish();
+                    });
+          }
+          else
+          {
+            builder.setMessage(R.string.convert_failure_message)
+                    .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+          }
+          AlertDialog alert = builder.create();
+          alert.show();
+        });
+      }
+    });
+
+    mThread.start();
+  }
+
+  private void joinThread()
+  {
+    if (mThread != null)
     {
-      builder.setMessage(R.string.convert_failure_message)
-              .setPositiveButton(R.string.ok, (dialog, i) -> dialog.dismiss());
+      try
+      {
+        mThread.join();
+      }
+      catch (InterruptedException ignored)
+      {
+      }
     }
-    AlertDialog alert = builder.create();
-    alert.show();
   }
 }

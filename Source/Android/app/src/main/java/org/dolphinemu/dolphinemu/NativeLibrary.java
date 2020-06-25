@@ -12,6 +12,7 @@ import android.view.Surface;
 import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.utils.CompressCallback;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
@@ -430,7 +431,8 @@ public final class NativeLibrary
   public static native boolean InstallWAD(String file);
 
   public static native boolean ConvertDiscImage(String inPath, String outPath, int platform,
-          int format, int blockSize, int compression, int compressionLevel, boolean scrub);
+          int format, int blockSize, int compression, int compressionLevel, boolean scrub,
+          CompressCallback callback);
 
   public static native String FormatSize(long bytes, int decimals);
 
