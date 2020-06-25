@@ -146,6 +146,9 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_PATH, QHeaderView::Interactive);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_FORMAT, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_BLOCK_SIZE, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_COMPRESSION, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_TAGS, QHeaderView::Interactive);
 
   // There's some odd platform-specific behavior with default minimum section size
@@ -191,6 +194,12 @@ void GameList::UpdateColumnVisibility()
                           !SConfig::GetInstance().m_showFileNameColumn);
   m_list->setColumnHidden(GameListModel::COL_FILE_PATH,
                           !SConfig::GetInstance().m_showFilePathColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_FORMAT,
+                          !SConfig::GetInstance().m_showFileFormatColumn);
+  m_list->setColumnHidden(GameListModel::COL_BLOCK_SIZE,
+                          !SConfig::GetInstance().m_showBlockSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_COMPRESSION,
+                          !SConfig::GetInstance().m_showCompressionColumn);
   m_list->setColumnHidden(GameListModel::COL_TAGS, !SConfig::GetInstance().m_showTagsColumn);
 }
 
@@ -784,6 +793,9 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Game ID"), GameListModel::COL_ID},
       {tr("Region"), GameListModel::COL_COUNTRY},
       {tr("File Size"), GameListModel::COL_SIZE},
+      {tr("File Format"), GameListModel::COL_FILE_FORMAT},
+      {tr("Block Size"), GameListModel::COL_BLOCK_SIZE},
+      {tr("Compression"), GameListModel::COL_COMPRESSION},
       {tr("Tags"), GameListModel::COL_TAGS}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);

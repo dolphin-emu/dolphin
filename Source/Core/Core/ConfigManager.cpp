@@ -191,6 +191,9 @@ void SConfig::SaveGameListSettings(IniFile& ini)
   gamelist->Set("ColumnID", m_showIDColumn);
   gamelist->Set("ColumnRegion", m_showRegionColumn);
   gamelist->Set("ColumnSize", m_showSizeColumn);
+  gamelist->Set("ColumnFileFormat", m_showFileFormatColumn);
+  gamelist->Set("ColumnBlockSize", m_showBlockSizeColumn);
+  gamelist->Set("ColumnCompression", m_showCompressionColumn);
   gamelist->Set("ColumnTags", m_showTagsColumn);
 }
 
@@ -455,6 +458,9 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnID", &m_showIDColumn, false);
   gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
   gamelist->Get("ColumnSize", &m_showSizeColumn, true);
+  gamelist->Get("ColumnFileFormat", &m_showFileFormatColumn, false);
+  gamelist->Get("ColumnBlockSize", &m_showBlockSizeColumn, false);
+  gamelist->Get("ColumnCompression", &m_showCompressionColumn, false);
   gamelist->Get("ColumnTags", &m_showTagsColumn, false);
 }
 
