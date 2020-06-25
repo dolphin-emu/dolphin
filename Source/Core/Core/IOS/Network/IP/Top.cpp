@@ -65,6 +65,13 @@ enum SOResultCode : s32
 NetIPTopDevice::NetIPTopDevice(Kernel& ios, const std::string& device_name)
     : Device(ios, device_name)
 {
+  m_work_queue.Reset([this](AsyncTask task) {
+    const IPCReply reply = task.handler();
+    {
+      std::lock_guard lg(m_async_reply_lock);
+      m_async_replies.emplace(AsyncReply{task.request, reply.return_value});
+    }
+  });
 }
 
 void NetIPTopDevice::DoState(PointerWrap& p)
@@ -320,7 +327,7 @@ std::optional<IPCReply> NetIPTopDevice::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_POLL:
     return HandlePollRequest(request);
   case IOCTL_SO_GETHOSTBYNAME:
-    return HandleGetHostByNameRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetHostByNameRequest, request);
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
@@ -342,7 +349,7 @@ std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_RECVFROM:
     return HandleRecvFromRequest(request);
   case IOCTLV_SO_GETADDRINFO:
-    return HandleGetAddressInfoRequest(request);
+    return LaunchAsyncTask(&NetIPTopDevice::HandleGetAddressInfoRequest, request);
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
@@ -355,6 +362,15 @@ std::optional<IPCReply> NetIPTopDevice::IOCtlV(const IOCtlVRequest& request)
 
 void NetIPTopDevice::Update()
 {
+  {
+    std::lock_guard lg(m_async_reply_lock);
+    while (!m_async_replies.empty())
+    {
+      const auto& reply = m_async_replies.front();
+      GetIOS()->EnqueueIPCReply(reply.request, reply.return_value);
+      m_async_replies.pop();
+    }
+  }
   WiiSockMan::GetInstance().Update();
 }
 
