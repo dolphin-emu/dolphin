@@ -38,7 +38,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
 
 #include "VideoCommon/OnScreenDisplay.h"

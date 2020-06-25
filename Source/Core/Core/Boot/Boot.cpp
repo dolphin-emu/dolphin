@@ -58,7 +58,7 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWad.h"
 
 static std::vector<std::string> ReadM3UFile(const std::string& m3u_path,

@@ -99,6 +99,7 @@
     <ClCompile Include="WIACompression.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
+    <ClCompile Include="VolumeDisc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -182,6 +183,7 @@
     <ClInclude Include="WIACompression.h">
       <Filter>Volume\Blob</Filter>
     </ClInclude>
+    <ClInclude Include="VolumeDisc.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

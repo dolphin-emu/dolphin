@@ -33,7 +33,7 @@
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace
 {

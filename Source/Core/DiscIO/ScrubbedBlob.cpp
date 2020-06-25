@@ -12,7 +12,7 @@
 #include "Common/Align.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/DiscScrubber.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace DiscIO
 {

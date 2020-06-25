@@ -23,6 +23,7 @@ namespace DiscIO
 class BlobReader;
 enum class BlobType;
 class FileSystem;
+class VolumeDisc;
 class VolumeWAD;
 
 struct Partition final
@@ -160,10 +161,6 @@ protected:
   static const IOS::ES::TicketReader INVALID_TICKET;
   static const IOS::ES::TMDReader INVALID_TMD;
   static const std::vector<u8> INVALID_CERT_CHAIN;
-};
-
-class VolumeDisc : public Volume
-{
 };
 
 std::unique_ptr<VolumeDisc> CreateDisc(const std::string& path);

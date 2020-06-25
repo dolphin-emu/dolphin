@@ -32,6 +32,8 @@ add_library(discio
   TGCBlob.h
   Volume.cpp
   Volume.h
+  VolumeDisc.cpp
+  VolumeDisc.h
   VolumeFileBlobReader.cpp
   VolumeFileBlobReader.h
   VolumeGC.cpp

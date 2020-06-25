@@ -23,7 +23,7 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/FileSystemGCWii.h"
 #include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace DiscIO
 {
