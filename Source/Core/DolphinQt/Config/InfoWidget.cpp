@@ -27,7 +27,8 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   QVBoxLayout* layout = new QVBoxLayout();
 
-  layout->addWidget(CreateISODetails());
+  layout->addWidget(CreateFileDetails());
+  layout->addWidget(CreateGameDetails());
 
   if (!game.GetLanguages().empty())
     layout->addWidget(CreateBannerDetails());
@@ -35,19 +36,54 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   setLayout(layout);
 }
 
-QGroupBox* InfoWidget::CreateISODetails()
+QGroupBox* InfoWidget::CreateFileDetails()
 {
-  const QString UNKNOWN_NAME = tr("Unknown");
-
-  QGroupBox* group = new QGroupBox(tr("ISO Details"));
+  QGroupBox* group = new QGroupBox(tr("File Details"));
   QFormLayout* layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  QLineEdit* file_path = CreateValueDisplay(
-      QStringLiteral("%1 (%2)")
-          .arg(QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath())))
-          .arg(QString::fromStdString(UICommon::FormatSize(m_game.GetFileSize()))));
+  QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
+  layout->addRow(tr("Path:"), CreateValueDisplay(path));
+
+  const std::string file_size = UICommon::FormatSize(m_game.GetFileSize());
+
+  if (!m_game.ShouldShowFileFormatDetails())
+  {
+    layout->addRow(tr("File Size:"), CreateValueDisplay(file_size));
+  }
+  else
+  {
+    const QString file_format =
+        QStringLiteral("%1 (%2)")
+            .arg(QString::fromStdString(DiscIO::GetName(m_game.GetBlobType(), true)))
+            .arg(QString::fromStdString(file_size));
+    layout->addRow(tr("File Format:"), CreateValueDisplay(file_format));
+
+    QString compression = QString::fromStdString(m_game.GetCompressionMethod());
+    if (compression.isEmpty())
+      compression = tr("No Compression");
+    layout->addRow(tr("Compression:"), CreateValueDisplay(compression));
+
+    if (m_game.GetBlockSize() > 0)
+    {
+      const std::string block_size = UICommon::FormatSize(m_game.GetBlockSize(), 0);
+      layout->addRow(tr("Block Size:"), CreateValueDisplay(block_size));
+    }
+  }
+
+  group->setLayout(layout);
+  return group;
+}
+
+QGroupBox* InfoWidget::CreateGameDetails()
+{
+  const QString UNKNOWN_NAME = tr("Unknown");
+
+  QGroupBox* group = new QGroupBox(tr("Game Details"));
+  QFormLayout* layout = new QFormLayout;
+
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   const QString game_name = QString::fromStdString(m_game.GetInternalName());
 
@@ -79,7 +115,6 @@ QGroupBox* InfoWidget::CreateISODetails()
                          m_game.GetMakerID() + ")");
 
   layout->addRow(tr("Name:"), internal_name);
-  layout->addRow(tr("File:"), file_path);
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);

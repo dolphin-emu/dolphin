@@ -41,6 +41,8 @@ enum class BlobType
   RVZ,
 };
 
+std::string GetName(BlobType blob_type, bool translate);
+
 class BlobReader
 {
 public:
@@ -55,6 +57,7 @@ public:
   // Returns 0 if the format does not use blocks
   virtual u64 GetBlockSize() const = 0;
   virtual bool HasFastRandomAccessInBlock() const = 0;
+  virtual std::string GetCompressionMethod() const = 0;
 
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;

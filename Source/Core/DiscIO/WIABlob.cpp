@@ -291,6 +291,26 @@ BlobType WIARVZFileReader<RVZ>::GetBlobType() const
 }
 
 template <bool RVZ>
+std::string WIARVZFileReader<RVZ>::GetCompressionMethod() const
+{
+  switch (m_compression_type)
+  {
+  case WIARVZCompressionType::Purge:
+    return "Purge";
+  case WIARVZCompressionType::Bzip2:
+    return "bzip2";
+  case WIARVZCompressionType::LZMA:
+    return "LZMA";
+  case WIARVZCompressionType::LZMA2:
+    return "LZMA2";
+  case WIARVZCompressionType::Zstd:
+    return "Zstandard";
+  default:
+    return {};
+  }
+}
+
+template <bool RVZ>
 bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
 {
   if (offset + size > Common::swap64(m_header_1.iso_file_size))

@@ -449,6 +449,8 @@ public final class NativeLibrary
 
   public static native boolean InstallWAD(String file);
 
+  public static native String FormatSize(long bytes, int decimals);
+
   private static boolean alertResult = false;
 
   public static boolean displayAlertMsg(final String caption, final String text,
