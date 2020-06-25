@@ -212,6 +212,20 @@ private:
 class WiiSockMan
 {
 public:
+  enum class ConvertDirection
+  {
+    WiiToNative,
+    NativeToWii
+  };
+
+  struct PollCommand
+  {
+    u32 request_addr;
+    u32 buffer_out;
+    std::vector<pollfd_t> wii_fds;
+    s64 timeout;
+  };
+
   static s32 GetNetErrorCode(s32 ret, const char* caller, bool isRW);
   static char* DecodeError(s32 ErrorCode);
 
@@ -223,6 +237,10 @@ public:
   void Update();
   static void Convert(WiiSockAddrIn const& from, sockaddr_in& to);
   static void Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen = -1);
+  static s32 ConvertEvents(s32 events, ConvertDirection dir);
+
+  void DoState(PointerWrap& p);
+  void AddPollCommand(const PollCommand& cmd);
   // NON-BLOCKING FUNCTIONS
   s32 NewSocket(s32 af, s32 type, s32 protocol);
   s32 AddSocket(s32 fd, bool is_rw);
@@ -256,7 +274,12 @@ private:
   WiiSockMan(WiiSockMan&&) = delete;
   WiiSockMan& operator=(WiiSockMan&&) = delete;
 
+  void UpdatePollCommands();
+
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last;
+  std::vector<PollCommand> pending_polls;
+  std::chrono::time_point<std::chrono::high_resolution_clock> last_time =
+      std::chrono::high_resolution_clock::now();
 };
 }  // namespace IOS::HLE
