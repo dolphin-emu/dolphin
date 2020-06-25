@@ -457,12 +457,12 @@ void ConvertDialog::Convert()
     }
     else
     {
-      std::future<bool> good;
+      std::future<bool> success;
 
       switch (format)
       {
       case DiscIO::BlobType::PLAIN:
-        good = std::async(std::launch::async, [&] {
+        success = std::async(std::launch::async, [&] {
           const bool good =
               DiscIO::ConvertToPlain(blob_reader.get(), original_path, dst_path.toStdString(),
                                      &CompressCB, &progress_dialog);
@@ -472,7 +472,7 @@ void ConvertDialog::Convert()
         break;
 
       case DiscIO::BlobType::GCZ:
-        good = std::async(std::launch::async, [&] {
+        success = std::async(std::launch::async, [&] {
           const bool good =
               DiscIO::ConvertToGCZ(blob_reader.get(), original_path, dst_path.toStdString(),
                                    file->GetPlatform() == DiscIO::Platform::WiiDisc ? 1 : 0,
@@ -484,7 +484,7 @@ void ConvertDialog::Convert()
 
       case DiscIO::BlobType::WIA:
       case DiscIO::BlobType::RVZ:
-        good = std::async(std::launch::async, [&] {
+        success = std::async(std::launch::async, [&] {
           const bool good = DiscIO::ConvertToWIAOrRVZ(
               blob_reader.get(), original_path, dst_path.toStdString(),
               format == DiscIO::BlobType::RVZ, compression, compression_level, block_size,
@@ -500,7 +500,7 @@ void ConvertDialog::Convert()
       }
 
       progress_dialog.GetRaw()->exec();
-      if (!good.get())
+      if (!success.get())
       {
         ModalMessageBox::critical(this, tr("Error"),
                                   tr("Dolphin failed to complete the requested action."));
