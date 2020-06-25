@@ -241,6 +241,8 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   add_compile_options(/Zc:throwingNew)
   # Enforce strict volatile semantics as per ISO C++
   add_compile_options(/volatile:iso)
+  # Fix non-conformant lambda behavior (constexpr variables shouldn't need capturing)
+  add_compile_options(/experimental:newLambdaProcessor)
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
 else()
