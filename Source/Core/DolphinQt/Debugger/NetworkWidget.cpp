@@ -90,6 +90,15 @@ QTableWidgetItem* GetSocketState(s32 host_fd)
   return new QTableWidgetItem(QTableWidget::tr("Unbound"));
 }
 
+QTableWidgetItem* GetSocketBlocking(s32 wii_fd)
+{
+  const auto& socket_manager = IOS::HLE::WiiSockMan::GetInstance();
+  if (socket_manager.GetHostSocket(wii_fd) < 0)
+    return new QTableWidgetItem();
+  const bool is_blocking = socket_manager.IsSocketBlocking(wii_fd);
+  return new QTableWidgetItem(is_blocking ? QTableWidget::tr("Yes") : QTableWidget::tr("No"));
+}
+
 static QString GetAddressAndPort(const sockaddr_in& addr)
 {
   char buffer[16];
@@ -219,7 +228,8 @@ void NetworkWidget::Update()
     m_socket_table->setItem(wii_fd, 1, GetSocketDomain(host_fd));
     m_socket_table->setItem(wii_fd, 2, GetSocketType(host_fd));
     m_socket_table->setItem(wii_fd, 3, GetSocketState(host_fd));
-    m_socket_table->setItem(wii_fd, 4, GetSocketName(host_fd));
+    m_socket_table->setItem(wii_fd, 4, GetSocketBlocking(wii_fd));
+    m_socket_table->setItem(wii_fd, 5, GetSocketName(host_fd));
   }
   m_socket_table->resizeColumnsToContents();
 
@@ -258,7 +268,7 @@ QGroupBox* NetworkWidget::CreateSocketTableGroup()
 
   m_socket_table = new QTableWidget();
   // i18n: FD stands for file descriptor (and in this case refers to sockets, not regular files)
-  QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Name")};
+  QStringList header{tr("FD"), tr("Domain"), tr("Type"), tr("State"), tr("Blocking"), tr("Name")};
   m_socket_table->setColumnCount(header.size());
 
   m_socket_table->setHorizontalHeaderLabels(header);
