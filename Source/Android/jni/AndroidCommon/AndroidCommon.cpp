@@ -11,6 +11,7 @@
 #include <jni.h>
 
 #include "Common/StringUtil.h"
+#include "jni/AndroidCommon/IDCache.h"
 
 std::string GetJString(JNIEnv* env, jstring jstr)
 {
@@ -39,4 +40,21 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
     result.push_back(GetJString(env, (jstring)env->GetObjectArrayElement(array, i)));
 
   return result;
+}
+
+int OpenAndroidContent(const std::string& uri, const std::string& mode)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  const jint fd = env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
+                                           IDCache::GetContentHandlerOpenFd(), ToJString(env, uri),
+                                           ToJString(env, mode));
+
+  // We can get an IllegalArgumentException when passing an invalid mode
+  if (env->ExceptionCheck())
+  {
+    env->ExceptionDescribe();
+    abort();
+  }
+
+  return fd;
 }

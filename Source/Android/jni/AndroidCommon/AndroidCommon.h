@@ -11,3 +11,5 @@
 std::string GetJString(JNIEnv* env, jstring jstr);
 jstring ToJString(JNIEnv* env, const std::string& str);
 std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array);
+
+int OpenAndroidContent(const std::string& uri, const std::string& mode);

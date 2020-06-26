@@ -39,6 +39,9 @@ static jmethodID s_ini_file_section_constructor;
 static jclass s_compress_cb_class;
 static jmethodID s_compress_cb_run;
 
+static jclass s_content_handler_class;
+static jmethodID s_content_handler_open_fd;
+
 namespace IDCache
 {
 JNIEnv* GetEnvForThread()
@@ -174,6 +177,16 @@ jmethodID GetCompressCallbackRun()
   return s_compress_cb_run;
 }
 
+jclass GetContentHandlerClass()
+{
+  return s_content_handler_class;
+}
+
+jmethodID GetContentHandlerOpenFd()
+{
+  return s_content_handler_open_fd;
+}
+
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -241,6 +254,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_compress_cb_class = reinterpret_cast<jclass>(env->NewGlobalRef(compress_cb_class));
   s_compress_cb_run = env->GetMethodID(s_compress_cb_class, "run", "(Ljava/lang/String;F)Z");
 
+  const jclass content_handler_class =
+      env->FindClass("org/dolphinemu/dolphinemu/utils/ContentHandler");
+  s_content_handler_class = reinterpret_cast<jclass>(env->NewGlobalRef(content_handler_class));
+  s_content_handler_open_fd = env->GetStaticMethodID(s_content_handler_class, "openFd",
+                                                     "(Ljava/lang/String;Ljava/lang/String;)I");
+
   return JNI_VERSION;
 }
 
@@ -258,6 +277,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_ini_file_class);
   env->DeleteGlobalRef(s_ini_file_section_class);
   env->DeleteGlobalRef(s_compress_cb_class);
+  env->DeleteGlobalRef(s_content_handler_class);
 }
 
 #ifdef __cplusplus
