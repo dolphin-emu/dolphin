@@ -64,8 +64,7 @@ public:
 
   static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
                                       File::IOFile* outfile, WIARVZCompressionType compression_type,
-                                      int compression_level, int chunk_size, CompressCB callback,
-                                      void* arg);
+                                      int compression_level, int chunk_size, CompressCB callback);
 
 private:
   using SHA1 = std::array<u8, 20>;
@@ -351,8 +350,7 @@ private:
                                      std::mutex* reusable_groups_mutex, GroupEntry* group_entry,
                                      u64* bytes_written);
   static ConversionResultCode RunCallback(size_t groups_written, u64 bytes_read, u64 bytes_written,
-                                          u32 total_groups, u64 iso_size, CompressCB callback,
-                                          void* arg);
+                                          u32 total_groups, u64 iso_size, CompressCB callback);
 
   bool m_valid;
   WIARVZCompressionType m_compression_type;

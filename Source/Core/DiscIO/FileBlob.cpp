@@ -42,7 +42,7 @@ bool PlainFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 }
 
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, CompressCB callback, void* arg)
+                    const std::string& outfile_path, CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
 
@@ -78,7 +78,7 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     if (i % progress_monitor == 0)
     {
       const bool was_cancelled =
-          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers, arg);
+          !callback(Common::GetStringT("Unpacking"), (float)i / (float)num_buffers);
       if (was_cancelled)
       {
         success = false;
