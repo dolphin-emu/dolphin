@@ -1,8 +1,12 @@
 package org.dolphinemu.dolphinemu.fragments;
 
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,6 +21,7 @@ import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 
+import java.io.File;
 import java.util.ArrayList;
 
 import androidx.annotation.NonNull;
@@ -89,6 +94,8 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   private static final String KEY_COMPRESSION = "convert_compression";
   private static final String KEY_COMPRESSION_LEVEL = "convert_compression_level";
   private static final String KEY_REMOVE_JUNK_DATA = "remove_junk_data";
+
+  private static final int REQUEST_CODE_SAVE_FILE = 0;
 
   private static final int BLOB_TYPE_PLAIN = 0;
   private static final int BLOB_TYPE_GCZ = 3;
@@ -338,7 +345,7 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
               .setPositiveButton(R.string.yes, (dialog, i) ->
               {
                 dialog.dismiss();
-                convert();
+                showSavePrompt();
               })
               .setNegativeButton(R.string.no, (dialog, i) -> dialog.dismiss());
       AlertDialog alert = builder.create();
@@ -346,18 +353,57 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
     }
     else
     {
-      convert();
+      showSavePrompt();
     }
   }
 
-  private void convert()
+  private void showSavePrompt()
+  {
+    String originalPath = gameFile.getPath();
+
+    StringBuilder path = new StringBuilder(new File(originalPath).getName());
+    int dotIndex = path.lastIndexOf(".");
+    if (dotIndex != -1)
+      path.setLength(dotIndex);
+    switch (mFormat.getValue(requireContext()))
+    {
+      case BLOB_TYPE_PLAIN:
+        path.append(".iso");
+        break;
+      case BLOB_TYPE_GCZ:
+        path.append(".gcz");
+        break;
+      case BLOB_TYPE_WIA:
+        path.append(".wia");
+        break;
+      case BLOB_TYPE_RVZ:
+        path.append(".rvz");
+        break;
+    }
+
+    Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("application/octet-stream");
+    intent.putExtra(Intent.EXTRA_TITLE, path.toString());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, originalPath);
+    startActivityForResult(intent, REQUEST_CODE_SAVE_FILE);
+  }
+
+  @Override
+  public void onActivityResult(int requestCode, int resultCode, Intent data)
+  {
+    if (requestCode == REQUEST_CODE_SAVE_FILE && resultCode == Activity.RESULT_OK)
+    {
+      convert(data.getData().toString());
+    }
+  }
+
+  private void convert(String outPath)
   {
     final int PROGRESS_RESOLUTION = 1000;
 
     Context context = requireContext();
-
-    // TODO: Let the user select a path
-    String outPath = gameFile.getPath() + ".converted";
 
     joinThread();
 
