@@ -158,6 +158,7 @@
     <ClCompile Include="HW\GCMemcard\GCMemcard.cpp" />
     <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp" />
     <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcardUtils.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
     <ClCompile Include="HW\GCPadEmu.cpp" />
     <ClCompile Include="HW\GPFifo.cpp" />
@@ -517,6 +518,7 @@
     <ClInclude Include="HW\GCMemcard\GCMemcardBase.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h" />
     <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardUtils.h" />
     <ClInclude Include="HW\GCPad.h" />
     <ClInclude Include="HW\GCPadEmu.h" />
     <ClInclude Include="HW\GPFifo.h" />

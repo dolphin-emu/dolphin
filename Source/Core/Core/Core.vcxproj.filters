@@ -481,6 +481,9 @@
     <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClCompile>
+    <ClCompile Include="HW\GCMemcard\GCMemcardUtils.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClCompile>
     <ClCompile Include="HW\GCPad.cpp">
       <Filter>HW %28Flipper/Hollywood%29\GCPad</Filter>
     </ClCompile>
@@ -1252,6 +1255,9 @@
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h">
+      <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\GCMemcard\GCMemcardUtils.h">
       <Filter>HW %28Flipper/Hollywood%29\GCMemcard</Filter>
     </ClInclude>
     <ClInclude Include="HW\GCPadEmu.h">
