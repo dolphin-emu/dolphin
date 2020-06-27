@@ -563,6 +563,18 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_FREELOOK_ZOOM_OUT, true))
       g_freelook_camera.Zoom(-fl_speed);
 
+    if (IsHotkey(HK_FREELOOK_INCREASE_FOV_X, true))
+      g_freelook_camera.IncreaseFovX(g_freelook_camera.GetFovStepSize());
+
+    if (IsHotkey(HK_FREELOOK_DECREASE_FOV_X, true))
+      g_freelook_camera.IncreaseFovX(-1.0f * g_freelook_camera.GetFovStepSize());
+
+    if (IsHotkey(HK_FREELOOK_INCREASE_FOV_Y, true))
+      g_freelook_camera.IncreaseFovY(g_freelook_camera.GetFovStepSize());
+
+    if (IsHotkey(HK_FREELOOK_DECREASE_FOV_Y, true))
+      g_freelook_camera.IncreaseFovY(-1.0f * g_freelook_camera.GetFovStepSize());
+
     if (IsHotkey(HK_FREELOOK_RESET, true))
       g_freelook_camera.Reset();
 
