@@ -43,5 +43,6 @@ jmethodID GetCompressCallbackRun();
 
 jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
+jmethodID GetContentHandlerDelete();
 
 }  // namespace IDCache

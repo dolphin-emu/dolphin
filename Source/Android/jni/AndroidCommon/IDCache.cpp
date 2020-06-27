@@ -41,6 +41,7 @@ static jmethodID s_compress_cb_run;
 
 static jclass s_content_handler_class;
 static jmethodID s_content_handler_open_fd;
+static jmethodID s_content_handler_delete;
 
 namespace IDCache
 {
@@ -187,6 +188,11 @@ jmethodID GetContentHandlerOpenFd()
   return s_content_handler_open_fd;
 }
 
+jmethodID GetContentHandlerDelete()
+{
+  return s_content_handler_delete;
+}
+
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -259,6 +265,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_content_handler_class = reinterpret_cast<jclass>(env->NewGlobalRef(content_handler_class));
   s_content_handler_open_fd = env->GetStaticMethodID(s_content_handler_class, "openFd",
                                                      "(Ljava/lang/String;Ljava/lang/String;)I");
+  s_content_handler_delete =
+      env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
 
   return JNI_VERSION;
 }

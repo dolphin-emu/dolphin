@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.ContentResolver;
 import android.net.Uri;
+import android.provider.DocumentsContract;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 
@@ -18,6 +20,20 @@ public class ContentHandler
     catch (FileNotFoundException | NullPointerException e)
     {
       return -1;
+    }
+  }
+
+  public static boolean delete(String uri)
+  {
+    try
+    {
+      ContentResolver resolver = DolphinApplication.getAppContext().getContentResolver();
+      return DocumentsContract.deleteDocument(resolver, Uri.parse(uri));
+    }
+    catch (FileNotFoundException e)
+    {
+      // Return true because we care about the file not being there, not the actual delete.
+      return true;
     }
   }
 }

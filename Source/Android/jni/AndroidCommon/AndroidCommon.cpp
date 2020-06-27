@@ -58,3 +58,10 @@ int OpenAndroidContent(const std::string& uri, const std::string& mode)
 
   return fd;
 }
+
+bool DeleteAndroidContent(const std::string& uri)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
+                                      IDCache::GetContentHandlerDelete(), ToJString(env, uri));
+}
