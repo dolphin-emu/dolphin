@@ -820,7 +820,8 @@ void Update(u64 ticks)
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
-  Movie::FrameUpdate();
+  if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
+    Movie::FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
@@ -843,7 +844,7 @@ void Update(u64 ticks)
     EndField();
   }
 
-  // If this half-line is at a field boundary, deal with updating movie state before potentially
+  // If this half-line is at a field boundary, deal with frame stepping before potentially
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
   if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
