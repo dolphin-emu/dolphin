@@ -64,7 +64,6 @@ endif()
 
 if(APPLE)
   option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
-  option(SKIP_POSTPROCESS_BUNDLE "Skip postprocessing bundle for redistributability" OFF)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
