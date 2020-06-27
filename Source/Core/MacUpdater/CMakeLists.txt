@@ -13,6 +13,8 @@ set(SOURCES
 add_executable(MacUpdater ${SOURCES})
 
 set(MacUpdater_NAME "Dolphin Updater")
+set(MacUpdater_BIN_DIR ${CMAKE_BINARY_DIR}/Binaries)
+set(MacUpdater_BUNDLE_PATH ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app)
 
 set_target_properties(MacUpdater PROPERTIES
   MACOSX_BUNDLE true
@@ -53,8 +55,12 @@ foreach(sb ${STORYBOARDS})
 
   add_custom_command(TARGET MacUpdater POST_BUILD
                      COMMAND ${IBTOOL} --errors --warnings --notices --output-format human-readable-text
-                                       --compile ${MacUpdater_BIN_DIR}/${MacUpdater_NAME}.app/Contents/Resources/${sb}c
+                                       --compile ${MacUpdater_BUNDLE_PATH}/Contents/Resources/${sb}c
                      ${CMAKE_CURRENT_SOURCE_DIR}/${sb}
                      COMMENT "Compiling Storyboard ${sb}...")
 endforeach()
 
+if(MACOS_CODE_SIGNING)
+  add_custom_command(TARGET MacUpdater POST_BUILD
+  COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep ${MacUpdater_BUNDLE_PATH})
+endif()

@@ -463,6 +463,12 @@ if(APPLE)
     POST_BUILD COMMAND 
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
+
+  if(MACOS_CODE_SIGNING)
+    add_custom_command(TARGET dolphin-emu
+      POST_BUILD COMMAND
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep ${BUNDLE_PATH})
+  endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
 endif()

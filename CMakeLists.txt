@@ -64,6 +64,8 @@ endif()
 
 if(APPLE)
   option(MACOS_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
+  option(MACOS_CODE_SIGNING "Enable codesigning" OFF)
+  set(MACOS_CODE_SIGNING_IDENTITY "The identity used for codesigning." CACHE STRING "")
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
