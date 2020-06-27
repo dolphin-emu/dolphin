@@ -48,6 +48,8 @@ public class GameFile
 
   public native boolean shouldShowFileFormatDetails();
 
+  public native boolean shouldAllowConversion();
+
   public native long getFileSize();
 
   public native boolean isDatelDisc();

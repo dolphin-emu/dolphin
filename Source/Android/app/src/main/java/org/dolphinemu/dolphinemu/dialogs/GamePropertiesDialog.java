@@ -29,6 +29,7 @@ public class GamePropertiesDialog extends DialogFragment
   private static final String ARG_GAMEID = "game_id";
   public static final String ARG_REVISION = "revision";
   private static final String ARG_PLATFORM = "platform";
+  private static final String ARG_SHOULD_ALLOW_CONVERSION = "should_allow_conversion";
 
   public static GamePropertiesDialog newInstance(GameFile gameFile)
   {
@@ -39,6 +40,7 @@ public class GamePropertiesDialog extends DialogFragment
     arguments.putString(ARG_GAMEID, gameFile.getGameId());
     arguments.putInt(ARG_REVISION, gameFile.getRevision());
     arguments.putInt(ARG_PLATFORM, gameFile.getPlatform());
+    arguments.putBoolean(ARG_SHOULD_ALLOW_CONVERSION, gameFile.shouldAllowConversion());
     fragment.setArguments(arguments);
 
     return fragment;
@@ -52,6 +54,7 @@ public class GamePropertiesDialog extends DialogFragment
     String gameId = requireArguments().getString(ARG_GAMEID);
     int revision = requireArguments().getInt(ARG_REVISION);
     int platform = requireArguments().getInt(ARG_PLATFORM);
+    boolean shouldAllowConversion = requireArguments().getBoolean(ARG_SHOULD_ALLOW_CONVERSION);
 
     AlertDialogItemsBuilder itemsBuilder = new AlertDialogItemsBuilder(requireContext());
 
@@ -59,8 +62,11 @@ public class GamePropertiesDialog extends DialogFragment
             GameDetailsDialog.newInstance(path).show(requireActivity()
                     .getSupportFragmentManager(), "game_details"));
 
-    itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
-            ConvertActivity.launch(getContext(), path));
+    if (shouldAllowConversion)
+    {
+      itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
+              ConvertActivity.launch(getContext(), path));
+    }
 
     itemsBuilder.add(R.string.properties_set_default_iso, (dialog, i) ->
     {

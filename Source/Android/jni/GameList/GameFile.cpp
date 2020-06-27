@@ -73,6 +73,8 @@ JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFile_getCompressionMethod(JNIEnv* env, jobject obj);
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj);
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_shouldAllowConversion(JNIEnv* env, jobject obj);
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
                                                                                   jobject obj);
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_isDatelDisc(JNIEnv* env,
@@ -186,6 +188,12 @@ JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj)
 {
   return static_cast<jboolean>(GetRef(env, obj)->ShouldShowFileFormatDetails());
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_shouldAllowConversion(JNIEnv* env, jobject obj)
+{
+  return static_cast<jboolean>(GetRef(env, obj)->ShouldAllowConversion());
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
