@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AlertDialogItemsBuilder;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -47,61 +48,55 @@ public class GamePropertiesDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
-            R.style.DolphinDialogBase);
-
     String path = requireArguments().getString(ARG_PATH);
     String gameId = requireArguments().getString(ARG_GAMEID);
     int revision = requireArguments().getInt(ARG_REVISION);
     int platform = requireArguments().getInt(ARG_PLATFORM);
 
+    AlertDialogItemsBuilder itemsBuilder = new AlertDialogItemsBuilder(requireContext());
+
+    itemsBuilder.add(R.string.properties_details, (dialog, i) ->
+            GameDetailsDialog.newInstance(path).show(requireActivity()
+                    .getSupportFragmentManager(), "game_details"));
+
+    itemsBuilder.add(R.string.properties_convert, (dialog, i) ->
+            ConvertActivity.launch(getContext(), path));
+
+    itemsBuilder.add(R.string.properties_set_default_iso, (dialog, i) ->
+    {
+      try (Settings settings = new Settings())
+      {
+        settings.loadSettings(null);
+        StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
+        settings.saveSettings(null, getContext());
+      }
+    });
+
+    itemsBuilder.add(R.string.properties_core_settings, (dialog, i) ->
+            SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision));
+
+    itemsBuilder.add(R.string.properties_gfx_settings, (dialog, i) ->
+            SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision));
+
+    itemsBuilder.add(R.string.properties_gc_controller, (dialog, i) ->
+            SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision));
+
+    if (platform != Platform.GAMECUBE.toInt())
+    {
+      itemsBuilder.add(R.string.properties_wii_controller, (dialog, i) ->
+              SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision));
+    }
+
+    itemsBuilder.add(R.string.properties_clear_game_settings, (dialog, i) ->
+            clearGameSettings(gameId));
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
+            R.style.DolphinDialogBase);
+    itemsBuilder.applyToBuilder(builder);
     builder.setTitle(requireContext()
-            .getString(R.string.preferences_game_properties) + ": " + gameId)
-            .setItems(platform == Platform.GAMECUBE.toInt() ?
-                    R.array.gameSettingsMenusGC :
-                    R.array.gameSettingsMenusWii, (dialog, which) ->
-            {
-              switch (which)
-              {
-                case 0:
-                  GameDetailsDialog.newInstance(path).show((requireActivity())
-                          .getSupportFragmentManager(), "game_details");
-                  break;
-                case 1:
-                  ConvertActivity.launch(getContext(), path);
-                  break;
-                case 2:
-                  try (Settings settings = new Settings())
-                  {
-                    settings.loadSettings(null);
-                    StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
-                    settings.saveSettings(null, getContext());
-                  }
-                  break;
-                case 3:
-                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision);
-                  break;
-                case 4:
-                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision);
-                  break;
-                case 5:
-                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision);
-                  break;
-                case 6:
-                  // Clear option for GC, Wii controls for else
-                  if (platform == Platform.GAMECUBE.toInt())
-                    clearGameSettings(gameId);
-                  else
-                    SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision);
-                  break;
-                case 7:
-                  clearGameSettings(gameId);
-                  break;
-              }
-            });
+            .getString(R.string.preferences_game_properties) + ": " + gameId);
     return builder.create();
   }
-
 
   private void clearGameSettings(String gameId)
   {
