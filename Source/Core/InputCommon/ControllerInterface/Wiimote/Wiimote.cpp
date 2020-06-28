@@ -288,8 +288,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   AddInput(new AnalogInput<float>(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
 
   // Specialty inputs:
-  AddInput(new UndetectableAnalogInput<u8>(
-      &m_battery, "Battery", WiimoteCommon::MAX_BATTERY_LEVEL / ciface::BATTERY_INPUT_MAX_VALUE));
+  AddInput(new UndetectableAnalogInput<float>(&m_battery, "Battery", 1.f));
   AddInput(new UndetectableAnalogInput<WiimoteEmu::ExtensionNumber>(
       &m_extension_number_input, "Attached Extension", WiimoteEmu::ExtensionNumber(1)));
   AddInput(new UndetectableAnalogInput<bool>(&m_mplus_attached_input, "Attached MotionPlus", 1));
@@ -1550,7 +1549,7 @@ void Device::ProcessStatusReport(const InputReportStatus& status)
   // Update status periodically to keep battery level value up to date.
   m_status_outdated_time = Clock::now() + std::chrono::seconds(10);
 
-  m_battery = status.battery;
+  m_battery = status.GetEstimatedCharge() * BATTERY_INPUT_MAX_VALUE;
   m_leds = status.leds;
 
   if (!status.ir)
