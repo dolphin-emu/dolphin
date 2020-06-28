@@ -274,6 +274,8 @@ void FreeLookCamera::DoState(PointerWrap& p)
   {
     const auto old_type = m_current_type;
     p.Do(m_current_type);
+    p.Do(m_fov_x);
+    p.Do(m_fov_y);
     if (old_type == m_current_type)
     {
       m_camera_controller->DoState(p);
