@@ -5,6 +5,7 @@
 #include "Common/StringUtil.h"
 
 #include <algorithm>
+#include <codecvt>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -33,7 +34,6 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
-#include <codecvt>
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
@@ -589,6 +589,18 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 }
 
 #endif
+
+std::string UTF16ToUTF8(std::u16string_view input)
+{
+  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+  return converter.to_bytes(input.data(), input.data() + input.size());
+}
+
+std::u16string UTF8ToUTF16(std::string_view input)
+{
+  std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
+  return converter.from_bytes(input.data(), input.data() + input.size());
+}
 
 #ifdef HAS_STD_FILESYSTEM
 // This is a replacement for path::u8path, which is deprecated starting with C++20.

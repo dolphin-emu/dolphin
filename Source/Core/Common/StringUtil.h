@@ -173,6 +173,8 @@ std::string SHIFTJISToUTF8(std::string_view str);
 std::string UTF8ToSHIFTJIS(std::string_view str);
 std::string WStringToUTF8(std::wstring_view str);
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size);  // Stops at \0
+std::string UTF16ToUTF8(std::u16string_view str);
+std::u16string UTF8ToUTF16(std::string_view str);
 
 #ifdef _WIN32
 
