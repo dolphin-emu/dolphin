@@ -17,6 +17,7 @@
 #include <locale>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include <fmt/format.h>
@@ -574,7 +575,10 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
 
 std::string WStringToUTF8(std::wstring_view input)
 {
-  std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> converter;
+  using codecvt = std::conditional_t<sizeof(wchar_t) == 2, std::codecvt_utf8_utf16<wchar_t>,
+                                     std::codecvt_utf8<wchar_t>>;
+
+  std::wstring_convert<codecvt, wchar_t> converter;
   return converter.to_bytes(input.data(), input.data() + input.size());
 }
 
