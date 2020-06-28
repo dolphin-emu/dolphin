@@ -268,9 +268,16 @@ public:
 };
 
 void Init(const std::string&);
+
+// pad_id is numbered 0 to 3 for GC pads and 4 to 7 for Wiimotes
 bool GetButtonPressed(int pad_id, ButtonType button);
 float GetAxisValue(int pad_id, ButtonType axis);
+
+// emu_pad_id is numbered 0 to 3 for both GC pads and Wiimotes
+double GetInputRadiusAtAngle(int emu_pad_id, ButtonType stick, double angle);
+
 bool GamepadEvent(const std::string& dev, int button, int action);
 void GamepadAxisEvent(const std::string& dev, int axis, float value);
+
 void Shutdown();
 }  // namespace ButtonManager
