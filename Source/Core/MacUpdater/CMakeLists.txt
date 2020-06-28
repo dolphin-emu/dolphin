@@ -62,5 +62,5 @@ endforeach()
 
 if(MACOS_CODE_SIGNING)
   add_custom_command(TARGET MacUpdater POST_BUILD
-  COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep ${MacUpdater_BUNDLE_PATH})
+  COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
 endif()
