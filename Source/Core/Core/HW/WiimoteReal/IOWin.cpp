@@ -556,7 +556,7 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
       WinWriteMethod write_method = GetInitialWriteMethod(IsUsingToshibaStack);
 
-      if (!IsNewWiimote(UTF16ToUTF8(device_path)) || !IsWiimote(device_path, write_method))
+      if (!IsNewWiimote(WStringToUTF8(device_path)) || !IsWiimote(device_path, write_method))
       {
         free(detail_data);
         continue;
@@ -608,7 +608,7 @@ bool WiimoteWindows::ConnectInternal()
   if (IsConnected())
     return true;
 
-  if (!IsNewWiimote(UTF16ToUTF8(m_devicepath)))
+  if (!IsNewWiimote(WStringToUTF8(m_devicepath)))
     return false;
 
   auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
@@ -886,7 +886,7 @@ void ProcessWiimotes(bool new_scan, const T& callback)
         DEBUG_LOG(WIIMOTE, "Authenticated %i connected %i remembered %i ", btdi.fAuthenticated,
                   btdi.fConnected, btdi.fRemembered);
 
-        if (IsValidDeviceName(UTF16ToUTF8(btdi.szName)))
+        if (IsValidDeviceName(WStringToUTF8(btdi.szName)))
         {
           callback(hRadio, radioInfo, btdi);
         }
