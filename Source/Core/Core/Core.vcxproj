@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|ARM64">
@@ -140,7 +140,8 @@
     <ClCompile Include="HW\DVD\DVDMath.cpp" />
     <ClCompile Include="HW\DVD\DVDThread.cpp" />
     <ClCompile Include="HW\DVD\FileMonitor.cpp" />
-    <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp" />
+    <ClCompile Include="HW\EXI\BBA\TAP_Win32.cpp" />
+    <ClCompile Include="HW\EXI\BBA\XLINK_KAI_BBA.cpp" />
     <ClCompile Include="HW\EXI\EXI.cpp" />
     <ClCompile Include="HW\EXI\EXI_Channel.cpp" />
     <ClCompile Include="HW\EXI\EXI_Device.cpp" />
@@ -498,7 +499,7 @@
     <ClInclude Include="HW\DVD\DVDMath.h" />
     <ClInclude Include="HW\DVD\DVDThread.h" />
     <ClInclude Include="HW\DVD\FileMonitor.h" />
-    <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h" />
+    <ClInclude Include="HW\EXI\BBA\TAP_Win32.h" />
     <ClInclude Include="HW\EXI\EXI.h" />
     <ClInclude Include="HW\EXI\EXI_Channel.h" />
     <ClInclude Include="HW\EXI\EXI_Device.h" />
