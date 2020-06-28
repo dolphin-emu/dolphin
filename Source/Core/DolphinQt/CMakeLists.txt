@@ -467,7 +467,7 @@ if(APPLE)
   if(MACOS_CODE_SIGNING)
     add_custom_command(TARGET dolphin-emu
       POST_BUILD COMMAND
-      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep ${BUNDLE_PATH})
+      /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime --entitlements ${CMAKE_SOURCE_DIR}/Source/Core/DolphinQt/Entitlements.plist ${BUNDLE_PATH})
   endif()
 else()
   install(TARGETS dolphin-emu RUNTIME DESTINATION ${bindir})
