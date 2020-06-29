@@ -50,6 +50,9 @@
 #define IMPORT_FUNC(x) static decltype(x) * api_##x;
 JACK_API_VISIT(IMPORT_FUNC);
 
+#define JACK_DEFAULT_IN "JACK capture"
+#define JACK_DEFAULT_OUT "JACK playback"
+
 static const int MAX_STREAMS = 16;
 static const int MAX_CHANNELS  = 8;
 static const int FIFO_SIZE = 4096 * sizeof(float);
@@ -119,7 +122,6 @@ static struct cubeb_ops const cbjack_ops = {
   .get_max_channel_count = cbjack_get_max_channel_count,
   .get_min_latency = cbjack_get_min_latency,
   .get_preferred_sample_rate = cbjack_get_preferred_sample_rate,
-  .get_preferred_channel_layout = NULL,
   .enumerate_devices = cbjack_enumerate_devices,
   .device_collection_destroy = cbjack_device_collection_destroy,
   .destroy = cbjack_destroy,
@@ -130,8 +132,8 @@ static struct cubeb_ops const cbjack_ops = {
   .stream_reset_default_device = NULL,
   .stream_get_position = cbjack_stream_get_position,
   .stream_get_latency = cbjack_get_latency,
+  .stream_get_input_latency = NULL,
   .stream_set_volume = cbjack_stream_set_volume,
-  .stream_set_panning = NULL,
   .stream_get_current_device = cbjack_stream_get_current_device,
   .stream_device_destroy = cbjack_stream_device_destroy,
   .stream_register_device_changed_callback = NULL,
@@ -139,7 +141,10 @@ static struct cubeb_ops const cbjack_ops = {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
 
   /**< Mutex for each stream */
   pthread_mutex_t mutex;
@@ -149,7 +154,6 @@ struct cubeb_stream {
 
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
-  void * user_ptr;
   cubeb_stream_params in_params;
   cubeb_stream_params out_params;
 
@@ -211,6 +215,9 @@ load_jack_lib(cubeb * context)
 # endif
 #else
   context->libjack = dlopen("libjack.so.0", RTLD_LAZY);
+  if (!context->libjack) {
+    context->libjack = dlopen("libjack.so", RTLD_LAZY);
+  }
 #endif
   if (!context->libjack) {
     return CUBEB_ERROR;
@@ -231,9 +238,10 @@ load_jack_lib(cubeb * context)
   return CUBEB_OK;
 }
 
-static void
+static int
 cbjack_connect_ports (cubeb_stream * stream)
 {
+  int r = CUBEB_ERROR;
   const char ** phys_in_ports = api_jack_get_ports (stream->context->jack_client,
                                                    NULL, NULL,
                                                    JackPortIsInput
@@ -243,7 +251,7 @@ cbjack_connect_ports (cubeb_stream * stream)
                                                     JackPortIsOutput
                                                     | JackPortIsPhysical);
 
- if (*phys_in_ports == NULL) {
+ if (phys_in_ports == NULL || *phys_in_ports == NULL) {
     goto skipplayback;
   }
 
@@ -253,9 +261,10 @@ cbjack_connect_ports (cubeb_stream * stream)
 
     api_jack_connect (stream->context->jack_client, src_port, phys_in_ports[c]);
   }
+  r = CUBEB_OK;
 
 skipplayback:
-  if (*phys_out_ports == NULL) {
+  if (phys_out_ports == NULL || *phys_out_ports == NULL) {
     goto end;
   }
   // Connect inputs to capture
@@ -264,9 +273,15 @@ skipplayback:
 
     api_jack_connect (stream->context->jack_client, phys_out_ports[c], src_port);
   }
+  r = CUBEB_OK;
 end:
-  api_jack_free(phys_out_ports);
-  api_jack_free(phys_in_ports);
+  if (phys_out_ports) {
+    api_jack_free(phys_out_ports);
+  }
+  if (phys_in_ports) {
+    api_jack_free(phys_in_ports);
+  }
+  return r;
 }
 
 static int
@@ -732,8 +747,16 @@ cbjack_stream_init(cubeb * context, cubeb_stream ** stream, char const * stream_
     return CUBEB_ERROR_INVALID_FORMAT;
   }
 
-  if (input_device || output_device)
+  if ((input_device && input_device != JACK_DEFAULT_IN) ||
+      (output_device && output_device != JACK_DEFAULT_OUT)) {
     return CUBEB_ERROR_NOT_SUPPORTED;
+  }
+
+  // Loopback is unsupported
+  if ((input_stream_params && (input_stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK)) ||
+      (output_stream_params && (output_stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK))) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
 
   *stream = NULL;
 
@@ -866,7 +889,11 @@ cbjack_stream_init(cubeb * context, cubeb_stream ** stream, char const * stream_
     }
   }
 
-  cbjack_connect_ports(stm);
+  if (cbjack_connect_ports(stm) != CUBEB_OK) {
+    pthread_mutex_unlock(&stm->mutex);
+    cbjack_stream_destroy(stm);
+    return CUBEB_ERROR;
+  }
 
   *stream = stm;
 
@@ -946,8 +973,8 @@ cbjack_stream_get_current_device(cubeb_stream * stm, cubeb_device ** const devic
   if (*device == NULL)
     return CUBEB_ERROR;
 
-  const char * j_in = "JACK capture";
-  const char * j_out = "JACK playback";
+  const char * j_in = JACK_DEFAULT_IN;
+  const char * j_out = JACK_DEFAULT_OUT;
   const char * empty = "";
 
   if (stm->devs == DUPLEX) {
@@ -975,9 +1002,6 @@ cbjack_stream_device_destroy(cubeb_stream * /*stream*/,
   free(device);
   return CUBEB_OK;
 }
-
-#define JACK_DEFAULT_IN "JACK capture"
-#define JACK_DEFAULT_OUT "JACK playback"
 
 static int
 cbjack_enumerate_devices(cubeb * context, cubeb_device_type type,

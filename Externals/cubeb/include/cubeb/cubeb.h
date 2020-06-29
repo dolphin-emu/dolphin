@@ -31,19 +31,13 @@ extern "C" {
 
     @code
     cubeb * app_ctx;
-    cubeb_init(&app_ctx, "Example Application");
+    cubeb_init(&app_ctx, "Example Application", NULL);
     int rv;
     uint32_t rate;
     uint32_t latency_frames;
     uint64_t ts;
 
-    rv = cubeb_get_min_latency(app_ctx, &output_params, &latency_frames);
-    if (rv != CUBEB_OK) {
-      fprintf(stderr, "Could not get minimum latency");
-      return rv;
-    }
-
-    rv = cubeb_get_preferred_sample_rate(app_ctx, output_params, &rate);
+    rv = cubeb_get_preferred_sample_rate(app_ctx, &rate);
     if (rv != CUBEB_OK) {
       fprintf(stderr, "Could not get preferred sample-rate");
       return rv;
@@ -53,16 +47,26 @@ extern "C" {
     output_params.format = CUBEB_SAMPLE_FLOAT32NE;
     output_params.rate = rate;
     output_params.channels = 2;
+    output_params.layout = CUBEB_LAYOUT_UNDEFINED;
+    output_params.prefs = CUBEB_STREAM_PREF_NONE;
+
+    rv = cubeb_get_min_latency(app_ctx, &output_params, &latency_frames);
+    if (rv != CUBEB_OK) {
+      fprintf(stderr, "Could not get minimum latency");
+      return rv;
+    }
 
     cubeb_stream_params input_params;
-    output_params.format = CUBEB_SAMPLE_FLOAT32NE;
-    output_params.rate = rate;
-    output_params.channels = 1;
+    input_params.format = CUBEB_SAMPLE_FLOAT32NE;
+    input_params.rate = rate;
+    input_params.channels = 1;
+    input_params.layout = CUBEB_LAYOUT_UNDEFINED;
+    input_params.prefs = CUBEB_STREAM_PREF_NONE;
 
     cubeb_stream * stm;
     rv = cubeb_stream_init(app_ctx, &stm, "Example Stream 1",
-                           NULL, input_params,
-                           NULL, output_params,
+                           NULL, &input_params,
+                           NULL, &output_params,
                            latency_frames,
                            data_cb, state_cb,
                            NULL);
@@ -93,14 +97,14 @@ extern "C" {
 
     @code
     long data_cb(cubeb_stream * stm, void * user,
-                 void * input_buffer, void * output_buffer, long nframes)
+                 const void * input_buffer, void * output_buffer, long nframes)
     {
-      float * in  = input_buffer;
+      const float * in  = input_buffer;
       float * out = output_buffer;
 
-      for (i = 0; i < nframes; ++i) {
-        for (c = 0; c < 2; ++c) {
-          buf[i][c] = in[i];
+      for (int i = 0; i < nframes; ++i) {
+        for (int c = 0; c < 2; ++c) {
+          out[2 * i + c] = in[i];
         }
       }
       return nframes;
@@ -155,63 +159,84 @@ typedef enum {
   CUBEB_LOG_VERBOSE = 2, /**< Verbose logging of callbacks, can have performance implications. */
 } cubeb_log_level;
 
-/** SMPTE channel layout (also known as wave order)
- * DUAL-MONO      L   R
- * DUAL-MONO-LFE  L   R   LFE
- * MONO           M
- * MONO-LFE       M   LFE
- * STEREO         L   R
- * STEREO-LFE     L   R   LFE
- * 3F             L   R   C
- * 3F-LFE         L   R   C    LFE
- * 2F1            L   R   S
- * 2F1-LFE        L   R   LFE  S
- * 3F1            L   R   C    S
- * 3F1-LFE        L   R   C    LFE S
- * 2F2            L   R   LS   RS
- * 2F2-LFE        L   R   LFE  LS   RS
- * 3F2            L   R   C    LS   RS
- * 3F2-LFE        L   R   C    LFE  LS   RS
- * 3F3R-LFE       L   R   C    LFE  RC   LS   RS
- * 3F4-LFE        L   R   C    LFE  RLS  RRS  LS   RS
- *
- * The abbreviation of channel name is defined in following table:
- * Abbr  Channel name
- * ---------------------------
- * M     Mono
- * L     Left
- * R     Right
- * C     Center
- * LS    Left Surround
- * RS    Right Surround
- * RLS   Rear Left Surround
- * RC    Rear Center
- * RRS   Rear Right Surround
- * LFE   Low Frequency Effects
- */
-
 typedef enum {
-  CUBEB_LAYOUT_UNDEFINED, // Indicate the speaker's layout is undefined.
-  CUBEB_LAYOUT_DUAL_MONO,
-  CUBEB_LAYOUT_DUAL_MONO_LFE,
-  CUBEB_LAYOUT_MONO,
-  CUBEB_LAYOUT_MONO_LFE,
-  CUBEB_LAYOUT_STEREO,
-  CUBEB_LAYOUT_STEREO_LFE,
-  CUBEB_LAYOUT_3F,
-  CUBEB_LAYOUT_3F_LFE,
-  CUBEB_LAYOUT_2F1,
-  CUBEB_LAYOUT_2F1_LFE,
-  CUBEB_LAYOUT_3F1,
-  CUBEB_LAYOUT_3F1_LFE,
-  CUBEB_LAYOUT_2F2,
-  CUBEB_LAYOUT_2F2_LFE,
-  CUBEB_LAYOUT_3F2,
-  CUBEB_LAYOUT_3F2_LFE,
-  CUBEB_LAYOUT_3F3R_LFE,
-  CUBEB_LAYOUT_3F4_LFE,
-  CUBEB_LAYOUT_MAX
-} cubeb_channel_layout;
+  CHANNEL_UNKNOWN = 0,
+  CHANNEL_FRONT_LEFT = 1 << 0,
+  CHANNEL_FRONT_RIGHT = 1 << 1,
+  CHANNEL_FRONT_CENTER = 1 << 2,
+  CHANNEL_LOW_FREQUENCY = 1 << 3,
+  CHANNEL_BACK_LEFT = 1 << 4,
+  CHANNEL_BACK_RIGHT = 1 << 5,
+  CHANNEL_FRONT_LEFT_OF_CENTER = 1 << 6,
+  CHANNEL_FRONT_RIGHT_OF_CENTER = 1 << 7,
+  CHANNEL_BACK_CENTER = 1 << 8,
+  CHANNEL_SIDE_LEFT = 1 << 9,
+  CHANNEL_SIDE_RIGHT = 1 << 10,
+  CHANNEL_TOP_CENTER = 1 << 11,
+  CHANNEL_TOP_FRONT_LEFT = 1 << 12,
+  CHANNEL_TOP_FRONT_CENTER = 1 << 13,
+  CHANNEL_TOP_FRONT_RIGHT = 1 << 14,
+  CHANNEL_TOP_BACK_LEFT = 1 << 15,
+  CHANNEL_TOP_BACK_CENTER = 1 << 16,
+  CHANNEL_TOP_BACK_RIGHT = 1 << 17
+} cubeb_channel;
+
+typedef uint32_t cubeb_channel_layout;
+// Some common layout definitions.
+enum {
+  CUBEB_LAYOUT_UNDEFINED = 0, // Indicate the speaker's layout is undefined.
+  CUBEB_LAYOUT_MONO = CHANNEL_FRONT_CENTER,
+  CUBEB_LAYOUT_MONO_LFE = CUBEB_LAYOUT_MONO | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_STEREO = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT,
+  CUBEB_LAYOUT_STEREO_LFE = CUBEB_LAYOUT_STEREO | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_3F =
+    CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT | CHANNEL_FRONT_CENTER,
+  CUBEB_LAYOUT_3F_LFE = CUBEB_LAYOUT_3F | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_2F1 =
+    CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT | CHANNEL_BACK_CENTER,
+  CUBEB_LAYOUT_2F1_LFE = CUBEB_LAYOUT_2F1 | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_3F1 = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                     CHANNEL_FRONT_CENTER | CHANNEL_BACK_CENTER,
+  CUBEB_LAYOUT_3F1_LFE = CUBEB_LAYOUT_3F1 | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_2F2 = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                     CHANNEL_SIDE_LEFT | CHANNEL_SIDE_RIGHT,
+  CUBEB_LAYOUT_2F2_LFE = CUBEB_LAYOUT_2F2 | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_QUAD = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                      CHANNEL_BACK_LEFT | CHANNEL_BACK_RIGHT,
+  CUBEB_LAYOUT_QUAD_LFE = CUBEB_LAYOUT_QUAD | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_3F2 = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                     CHANNEL_FRONT_CENTER | CHANNEL_SIDE_LEFT |
+                     CHANNEL_SIDE_RIGHT,
+  CUBEB_LAYOUT_3F2_LFE = CUBEB_LAYOUT_3F2 | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_3F2_BACK = CUBEB_LAYOUT_QUAD | CHANNEL_FRONT_CENTER,
+  CUBEB_LAYOUT_3F2_LFE_BACK = CUBEB_LAYOUT_3F2_BACK | CHANNEL_LOW_FREQUENCY,
+  CUBEB_LAYOUT_3F3R_LFE = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                          CHANNEL_FRONT_CENTER | CHANNEL_LOW_FREQUENCY |
+                          CHANNEL_BACK_CENTER | CHANNEL_SIDE_LEFT |
+                          CHANNEL_SIDE_RIGHT,
+  CUBEB_LAYOUT_3F4_LFE = CHANNEL_FRONT_LEFT | CHANNEL_FRONT_RIGHT |
+                         CHANNEL_FRONT_CENTER | CHANNEL_LOW_FREQUENCY |
+                         CHANNEL_BACK_LEFT | CHANNEL_BACK_RIGHT |
+                         CHANNEL_SIDE_LEFT | CHANNEL_SIDE_RIGHT,
+};
+
+/** Miscellaneous stream preferences. */
+typedef enum {
+  CUBEB_STREAM_PREF_NONE     = 0x00, /**< No stream preferences are requested. */
+  CUBEB_STREAM_PREF_LOOPBACK = 0x01, /**< Request a loopback stream. Should be
+                                         specified on the input params and an
+                                         output device to loopback from should
+                                         be passed in place of an input device. */
+  CUBEB_STREAM_PREF_DISABLE_DEVICE_SWITCHING = 0x02, /**< Disable switching
+                                                          default device on OS
+                                                          changes. */
+  CUBEB_STREAM_PREF_VOICE = 0x04  /**< This stream is going to transport voice data.
+                                       Depending on the backend and platform, this can
+                                       change the audio input or output devices
+                                       selected, as well as the quality of the stream,
+                                       for example to accomodate bluetooth SCO modes on
+                                       bluetooth devices. */
+} cubeb_stream_prefs;
 
 /** Stream format initialization parameters. */
 typedef struct {
@@ -219,7 +244,8 @@ typedef struct {
                                      #cubeb_sample_format. */
   uint32_t rate;                /**< Requested sample rate.  Valid range is [1000, 192000]. */
   uint32_t channels;            /**< Requested channel count.  Valid range is [1, 8]. */
-  cubeb_channel_layout layout;  /**< Requested channel layout. This must be consistent with the provided channels. */
+  cubeb_channel_layout layout;  /**< Requested channel layout. This must be consistent with the provided channels. CUBEB_LAYOUT_UNDEFINED if unknown */
+  cubeb_stream_prefs prefs;     /**< Requested preferences. */
 } cubeb_stream_params;
 
 /** Audio device description */
@@ -354,8 +380,12 @@ typedef struct {
     @param output_buffer A pointer to a buffer to be filled with audio samples,
                          or nullptr if this is an input-only stream.
     @param nframes The number of frames of the two buffer.
-    @retval Number of frames written to the output buffer. If this number is
-            less than nframes, then the stream will start to drain.
+    @retval If the stream has output, this is the number of frames written to
+            the output buffer. In this case, if this number is less than
+            nframes then the stream will start to drain. If the stream is
+            input only, then returning nframes indicates data has been read.
+            In this case, a value less than nframes will result in the stream
+            being stopped.
     @retval CUBEB_ERROR on error, in which case the data callback will stop
             and the stream will enter a shutdown state. */
 typedef long (* cubeb_data_callback)(cubeb_stream * stream,
@@ -389,6 +419,10 @@ typedef void (* cubeb_log_callback)(char const * fmt, ...);
 
 /** Initialize an application context.  This will perform any library or
     application scoped initialization.
+
+    Note: On Windows platforms, COM must be initialized in MTA mode on
+    any thread that will call the cubeb API.
+
     @param context A out param where an opaque pointer to the application
                    context will be returned.
     @param context_name A name for the context. Depending on the platform this
@@ -442,15 +476,6 @@ CUBEB_EXPORT int cubeb_get_min_latency(cubeb * context,
     @retval CUBEB_ERROR_NOT_SUPPORTED */
 CUBEB_EXPORT int cubeb_get_preferred_sample_rate(cubeb * context, uint32_t * rate);
 
-/** Get the preferred layout for this backend: this is hardware and
-    platform dependent.
-    @param context A pointer to the cubeb context.
-    @param layout The layout of the current speaker configuration.
-    @retval CUBEB_OK
-    @retval CUBEB_ERROR_INVALID_PARAMETER
-    @retval CUBEB_ERROR_NOT_SUPPORTED */
-CUBEB_EXPORT int cubeb_get_preferred_channel_layout(cubeb * context, cubeb_channel_layout * layout);
-
 /** Destroy an application context. This must be called after all stream have
  *  been destroyed.
     @param context A pointer to the cubeb context.*/
@@ -462,11 +487,17 @@ CUBEB_EXPORT void cubeb_destroy(cubeb * context);
                   cubeb stream.
     @param stream_name A name for this stream.
     @param input_device Device for the input side of the stream. If NULL the
-                        default input device is used.
+                        default input device is used. Passing a valid cubeb_devid
+                        means the stream only ever uses that device. Passing a NULL
+                        cubeb_devid allows the stream to follow that device type's
+                        OS default.
     @param input_stream_params Parameters for the input side of the stream, or
                                NULL if this stream is output only.
     @param output_device Device for the output side of the stream. If NULL the
-                         default output device is used.
+                         default output device is used. Passing a valid cubeb_devid
+                         means the stream only ever uses that device. Passing a NULL
+                         cubeb_devid allows the stream to follow that device type's
+                         OS default.
     @param output_stream_params Parameters for the output side of the stream, or
                                 NULL if this stream is input only.
     @param latency_frames Stream latency in frames.  Valid range
@@ -534,6 +565,16 @@ CUBEB_EXPORT int cubeb_stream_get_position(cubeb_stream * stream, uint64_t * pos
     @retval CUBEB_ERROR */
 CUBEB_EXPORT int cubeb_stream_get_latency(cubeb_stream * stream, uint32_t * latency);
 
+/** Get the input latency for this stream, in frames. This is the number of
+    frames between the time the audio input devices records the data, and they
+    are available in the data callback.
+    This returns CUBEB_ERROR when the stream is output-only.
+    @param stream
+    @param latency Current approximate stream latency in frames.
+    @retval CUBEB_OK
+    @retval CUBEB_ERROR_NOT_SUPPORTED
+    @retval CUBEB_ERROR */
+CUBEB_EXPORT int cubeb_stream_get_input_latency(cubeb_stream * stream, uint32_t * latency);
 /** Set the volume for a stream.
     @param stream the stream for which to adjust the volume.
     @param volume a float between 0.0 (muted) and 1.0 (maximum volume)
@@ -542,20 +583,6 @@ CUBEB_EXPORT int cubeb_stream_get_latency(cubeb_stream * stream, uint32_t * late
             stream is an invalid pointer
     @retval CUBEB_ERROR_NOT_SUPPORTED */
 CUBEB_EXPORT int cubeb_stream_set_volume(cubeb_stream * stream, float volume);
-
-/** If the stream is stereo, set the left/right panning. If the stream is mono,
-    this has no effect.
-    @param stream the stream for which to change the panning
-    @param panning a number from -1.0 to 1.0. -1.0 means that the stream is
-           fully mixed in the left channel, 1.0 means the stream is fully
-           mixed in the right channel. 0.0 is equal power in the right and
-           left channel (default).
-    @retval CUBEB_OK
-    @retval CUBEB_ERROR_INVALID_PARAMETER if stream is null or if panning is
-            outside the [-1.0, 1.0] range.
-    @retval CUBEB_ERROR_NOT_SUPPORTED
-    @retval CUBEB_ERROR stream is not mono nor stereo */
-CUBEB_EXPORT int cubeb_stream_set_panning(cubeb_stream * stream, float panning);
 
 /** Get the current output device for this stream.
     @param stm the stream for which to query the current output device
@@ -587,6 +614,11 @@ CUBEB_EXPORT int cubeb_stream_device_destroy(cubeb_stream * stream,
 CUBEB_EXPORT int cubeb_stream_register_device_changed_callback(cubeb_stream * stream,
                                                                cubeb_device_changed_callback device_changed_callback);
 
+/** Return the user data pointer registered with the stream with cubeb_stream_init.
+    @param stream the stream for which to retrieve user data pointer.
+    @retval user data pointer */
+CUBEB_EXPORT void * cubeb_stream_user_ptr(cubeb_stream * stream);
+
 /** Returns enumerated devices.
     @param context
     @param devtype device type to include
@@ -609,9 +641,13 @@ CUBEB_EXPORT int cubeb_device_collection_destroy(cubeb * context,
 /** Registers a callback which is called when the system detects
     a new device or a device is removed.
     @param context
-    @param devtype device type to include
+    @param devtype device type to include. Different callbacks and user pointers
+           can be registered for each devtype. The hybrid devtype
+           `CUBEB_DEVICE_TYPE_INPUT | CUBEB_DEVICE_TYPE_OUTPUT` is also valid
+           and will register the provided callback and user pointer in both sides.
     @param callback a function called whenever the system device list changes.
-           Passing NULL allow to unregister a function
+           Passing NULL allow to unregister a function. You have to unregister
+           first before you register a new callback.
     @param user_ptr pointer to user specified data which will be present in
            subsequent callbacks.
     @retval CUBEB_ERROR_NOT_SUPPORTED */

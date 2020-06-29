@@ -333,6 +333,10 @@ private:
   auto_array<T> ar;
 };
 
+extern "C" {
+  size_t cubeb_sample_size(cubeb_sample_format format);
+}
+
 using auto_lock = std::lock_guard<owned_critical_section>;
 #endif // __cplusplus
 
