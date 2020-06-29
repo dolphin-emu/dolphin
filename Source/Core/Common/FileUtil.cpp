@@ -20,6 +20,9 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#ifdef __APPLE__
+#include "Common/DynamicLibrary.h"
+#endif
 #include "Common/FileUtil.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
@@ -64,6 +67,18 @@ namespace File
 {
 #ifdef ANDROID
 static std::string s_android_sys_directory;
+#endif
+
+#ifdef __APPLE__
+static Common::DynamicLibrary s_security_framework;
+
+using DolSecTranslocateIsTranslocatedURL = Boolean (*)(CFURLRef path, bool* isTranslocated,
+                                                       CFErrorRef* __nullable error);
+using DolSecTranslocateCreateOriginalPathForURL = CFURLRef
+__nullable (*)(CFURLRef translocatedPath, CFErrorRef* __nullable error);
+
+static DolSecTranslocateIsTranslocatedURL s_is_translocated_url;
+static DolSecTranslocateCreateOriginalPathForURL s_create_orig_path;
 #endif
 
 #ifdef _WIN32
@@ -776,16 +791,49 @@ std::string GetTempFilenameForAtomicWrite(std::string path)
 #if defined(__APPLE__)
 std::string GetBundleDirectory()
 {
-  CFURLRef BundleRef;
-  char AppBundlePath[MAXPATHLEN];
-  // Get the main bundle for the app
-  BundleRef = CFBundleCopyBundleURL(CFBundleGetMainBundle());
-  CFStringRef BundlePath = CFURLCopyFileSystemPath(BundleRef, kCFURLPOSIXPathStyle);
-  CFStringGetFileSystemRepresentation(BundlePath, AppBundlePath, sizeof(AppBundlePath));
-  CFRelease(BundleRef);
-  CFRelease(BundlePath);
+  CFURLRef bundle_ref = CFBundleCopyBundleURL(CFBundleGetMainBundle());
 
-  return AppBundlePath;
+  // Starting in macOS Sierra, apps downloaded from the Internet may be
+  // "translocated" to a read-only DMG and executed from there. This is
+  // done to prevent a scenario where an attacker can replace a trusted
+  // app's resources to load untrusted code.
+  //
+  // We should return Dolphin's actual location on the filesystem in
+  // this function, so bundle_ref will be untranslocated if necessary.
+  //
+  // More information: https://objective-see.com/blog/blog_0x15.html
+  if (__builtin_available(macOS 10.12, *))
+  {
+    // The APIs to deal with translocated paths are private, so we have
+    // to dynamically load them from the Security framework.
+    //
+    // The headers can be found under "Security" on opensource.apple.com:
+    // Security/OSX/libsecurity_translocate/lib/SecTranslocate.h
+    if (!s_security_framework.IsOpen())
+    {
+      s_security_framework.Open("/System/Library/Frameworks/Security.framework/Security");
+      s_security_framework.GetSymbol("SecTranslocateIsTranslocatedURL", &s_is_translocated_url);
+      s_security_framework.GetSymbol("SecTranslocateCreateOriginalPathForURL", &s_create_orig_path);
+    }
+
+    bool is_translocated = false;
+    s_is_translocated_url(bundle_ref, &is_translocated, nullptr);
+
+    if (is_translocated)
+    {
+      CFURLRef untranslocated_ref = s_create_orig_path(bundle_ref, nullptr);
+      CFRelease(bundle_ref);
+      bundle_ref = untranslocated_ref;
+    }
+  }
+
+  char app_bundle_path[MAXPATHLEN];
+  CFStringRef bundle_path = CFURLCopyFileSystemPath(bundle_ref, kCFURLPOSIXPathStyle);
+  CFStringGetFileSystemRepresentation(bundle_path, app_bundle_path, sizeof(app_bundle_path));
+  CFRelease(bundle_ref);
+  CFRelease(bundle_path);
+
+  return app_bundle_path;
 }
 #endif
 
