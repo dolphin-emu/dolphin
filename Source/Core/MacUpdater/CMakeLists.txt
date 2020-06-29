@@ -61,6 +61,10 @@ foreach(sb ${STORYBOARDS})
 endforeach()
 
 if(MACOS_CODE_SIGNING)
+  if (MACOS_CODE_SIGNING_IDENTITY_UPDATER STREQUAL "")
+    set(MACOS_CODE_SIGNING_IDENTITY_UPDATER "${MACOS_CODE_SIGNING_IDENTITY}")
+  endif()
+
   add_custom_command(TARGET MacUpdater POST_BUILD
-  COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
+    COMMAND /usr/bin/codesign -f -s "${MACOS_CODE_SIGNING_IDENTITY_UPDATER}" --deep --options runtime ${MacUpdater_BUNDLE_PATH})
 endif()
