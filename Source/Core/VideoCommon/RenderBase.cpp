@@ -557,6 +557,10 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayProjStats)
     g_stats.DisplayProj();
+
+  const std::string profile_output = Common::Profiler::ToString();
+  if (!profile_output.empty())
+    ImGui::TextUnformatted(profile_output.c_str());
 }
 
 float Renderer::CalculateDrawAspectRatio() const
