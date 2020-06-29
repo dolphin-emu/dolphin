@@ -121,7 +121,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate)
     mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
   }
@@ -256,7 +256,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     MOVI2R(XA, imm_addr);
     EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
@@ -599,7 +599,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  FALLBACK_IF(jo.memcheck);
+  FALLBACK_IF(jo.memcheck || !jo.fastmem_arena);
   FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA, b = inst.RB;
