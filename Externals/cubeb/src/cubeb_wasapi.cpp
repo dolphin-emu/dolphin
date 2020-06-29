@@ -1777,7 +1777,7 @@ handle_channel_layout(cubeb_stream * stm,  EDataFlow direction, com_heap_ptr<WAV
   waveformatex_update_derived_properties(mix_format.get());
 
   /* Check if wasapi will accept our channel layout request. */
-  WAVEFORMATEX * closest = nullptr;
+  WAVEFORMATEX * closest;
   HRESULT hr = audio_client->IsFormatSupported(AUDCLNT_SHAREMODE_SHARED,
                                                mix_format.get(),
                                                &closest);
@@ -1802,7 +1802,6 @@ handle_channel_layout(cubeb_stream * stm,  EDataFlow direction, com_heap_ptr<WAV
   } else {
     LOG("IsFormatSupported unhandled error: %lx", hr);
   }
-  CoTaskMemFree(closest);
 }
 
 static bool
@@ -1956,23 +1955,20 @@ int setup_wasapi_stream_one_side(cubeb_stream * stm,
       }
     }
 
-    // IAudioClient3 has problems with capture sessions:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1590902
-    bool has_capture = direction == eCapture || direction == eAll;
-
     /* Get a client. We will get all other interfaces we need from
      * this pointer. */
-    if (!has_capture)
-    {
-      hr = device->Activate(__uuidof(IAudioClient3),
-        CLSCTX_INPROC_SERVER,
-        NULL, audio_client.receive_vpp());
-    }
-    if (has_capture || hr == E_NOINTERFACE) {
+#if 0 // See https://bugzilla.mozilla.org/show_bug.cgi?id=1590902
+    hr = device->Activate(__uuidof(IAudioClient3),
+                          CLSCTX_INPROC_SERVER,
+                          NULL, audio_client.receive_vpp());
+    if (hr == E_NOINTERFACE) {
+#endif
       hr = device->Activate(__uuidof(IAudioClient),
                             CLSCTX_INPROC_SERVER,
                             NULL, audio_client.receive_vpp());
+#if 0
     }
+#endif
 
     if (FAILED(hr)) {
       LOG("Could not activate the device to get an audio"
@@ -2038,16 +2034,20 @@ int setup_wasapi_stream_one_side(cubeb_stream * stm,
     flags |= AUDCLNT_STREAMFLAGS_EVENTCALLBACK;
   }
 
-  if (!has_capture && initialize_iaudioclient3(audio_client, stm, mix_format, flags, direction)) {
+#if 0 // See https://bugzilla.mozilla.org/show_bug.cgi?id=1590902
+  if (initialize_iaudioclient3(audio_client, stm, mix_format, flags, direction)) {
     LOG("Initialized with IAudioClient3");
   } else {
+#endif
     hr = audio_client->Initialize(AUDCLNT_SHAREMODE_SHARED,
                                   flags,
                                   frames_to_hns(stm, stm->latency),
                                   0,
                                   mix_format.get(),
                                   NULL);
+#if 0
   }
+#endif
   if (FAILED(hr)) {
     LOG("Unable to initialize audio client for %s: %lx.", DIRECTION_NAME, hr);
     return CUBEB_ERROR;
