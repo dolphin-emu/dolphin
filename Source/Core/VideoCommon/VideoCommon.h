@@ -20,7 +20,7 @@ constexpr u32 MAX_XFB_WIDTH = 720;
 // that are next to each other in memory (TODO: handle that situation).
 constexpr u32 MAX_XFB_HEIGHT = 576;
 
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL == 1)
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
 #else
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, ##__VA_ARGS__)
