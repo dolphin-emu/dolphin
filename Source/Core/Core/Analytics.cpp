@@ -12,7 +12,7 @@
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
-#include <CoreServices/CoreServices.h>
+#include <objc/message.h>
 #elif defined(ANDROID)
 #include <functional>
 #include "Common/AndroidAnalytics.h"
@@ -268,20 +268,26 @@ void DolphinAnalytics::MakeBaseBuilder()
 #elif defined(__APPLE__)
   builder.AddData("os-type", "osx");
 
-  SInt32 osxmajor, osxminor, osxbugfix;
-// Gestalt is deprecated, but the replacement (NSProcessInfo
-// operatingSystemVersion) is only available on OS X 10.10, so we need to use
-// it anyway.  Change this someday when Dolphin depends on 10.10+.
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  Gestalt(gestaltSystemVersionMajor, &osxmajor);
-  Gestalt(gestaltSystemVersionMinor, &osxminor);
-  Gestalt(gestaltSystemVersionBugFix, &osxbugfix);
-#pragma GCC diagnostic pop
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+  if (processInfo)
+  {
+    struct OSVersion  // NSOperatingSystemVersion
+    {
+      s64 major_version;  // NSInteger majorVersion
+      s64 minor_version;  // NSInteger minorVersion
+      s64 patch_version;  // NSInteger patchVersion
+    };
 
-  builder.AddData("osx-ver-major", osxmajor);
-  builder.AddData("osx-ver-minor", osxminor);
-  builder.AddData("osx-ver-bugfix", osxbugfix);
+    // NSOperatingSystemVersion version = [processInfo operatingSystemVersion]
+    OSVersion version = reinterpret_cast<OSVersion (*)(id, SEL)>(objc_msgSend_stret)(
+        processInfo, sel_getUid("operatingSystemVersion"));
+
+    builder.AddData("osx-ver-major", version.major_version);
+    builder.AddData("osx-ver-minor", version.minor_version);
+    builder.AddData("osx-ver-bugfix", version.patch_version);
+  }
 #elif defined(__linux__)
   builder.AddData("os-type", "linux");
 #elif defined(__FreeBSD__)
