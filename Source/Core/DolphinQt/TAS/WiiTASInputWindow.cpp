@@ -160,19 +160,19 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new TASCheckBox(QStringLiteral("&A"));
-  m_b_button = new TASCheckBox(QStringLiteral("&B"));
-  m_1_button = new TASCheckBox(QStringLiteral("&1"));
-  m_2_button = new TASCheckBox(QStringLiteral("&2"));
-  m_plus_button = new TASCheckBox(QStringLiteral("&+"));
-  m_minus_button = new TASCheckBox(QStringLiteral("&-"));
-  m_home_button = new TASCheckBox(QStringLiteral("&HOME"));
-  m_left_button = new TASCheckBox(QStringLiteral("&Left"));
-  m_up_button = new TASCheckBox(QStringLiteral("&Up"));
-  m_down_button = new TASCheckBox(QStringLiteral("&Down"));
-  m_right_button = new TASCheckBox(QStringLiteral("&Right"));
-  m_c_button = new TASCheckBox(QStringLiteral("&C"));
-  m_z_button = new TASCheckBox(QStringLiteral("&Z"));
+  m_a_button = CreateButton(QStringLiteral("&A"));
+  m_b_button = CreateButton(QStringLiteral("&B"));
+  m_1_button = CreateButton(QStringLiteral("&1"));
+  m_2_button = CreateButton(QStringLiteral("&2"));
+  m_plus_button = CreateButton(QStringLiteral("&+"));
+  m_minus_button = CreateButton(QStringLiteral("&-"));
+  m_home_button = CreateButton(QStringLiteral("&HOME"));
+  m_left_button = CreateButton(QStringLiteral("&Left"));
+  m_up_button = CreateButton(QStringLiteral("&Up"));
+  m_down_button = CreateButton(QStringLiteral("&Down"));
+  m_right_button = CreateButton(QStringLiteral("&Right"));
+  m_c_button = CreateButton(QStringLiteral("&C"));
+  m_z_button = CreateButton(QStringLiteral("&Z"));
 
   auto* buttons_layout = new QGridLayout;
   buttons_layout->addWidget(m_a_button, 0, 0);
@@ -201,21 +201,21 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_nunchuk_buttons_box = new QGroupBox(tr("Nunchuk Buttons"));
   m_nunchuk_buttons_box->setLayout(nunchuk_buttons_layout);
 
-  m_classic_a_button = new TASCheckBox(QStringLiteral("&A"));
-  m_classic_b_button = new TASCheckBox(QStringLiteral("&B"));
-  m_classic_x_button = new TASCheckBox(QStringLiteral("&X"));
-  m_classic_y_button = new TASCheckBox(QStringLiteral("&Y"));
-  m_classic_l_button = new TASCheckBox(QStringLiteral("&L"));
-  m_classic_r_button = new TASCheckBox(QStringLiteral("&R"));
-  m_classic_zl_button = new TASCheckBox(QStringLiteral("&ZL"));
-  m_classic_zr_button = new TASCheckBox(QStringLiteral("ZR"));
-  m_classic_plus_button = new TASCheckBox(QStringLiteral("&+"));
-  m_classic_minus_button = new TASCheckBox(QStringLiteral("&-"));
-  m_classic_home_button = new TASCheckBox(QStringLiteral("&HOME"));
-  m_classic_left_button = new TASCheckBox(QStringLiteral("L&eft"));
-  m_classic_up_button = new TASCheckBox(QStringLiteral("&Up"));
-  m_classic_down_button = new TASCheckBox(QStringLiteral("&Down"));
-  m_classic_right_button = new TASCheckBox(QStringLiteral("R&ight"));
+  m_classic_a_button = CreateButton(QStringLiteral("&A"));
+  m_classic_b_button = CreateButton(QStringLiteral("&B"));
+  m_classic_x_button = CreateButton(QStringLiteral("&X"));
+  m_classic_y_button = CreateButton(QStringLiteral("&Y"));
+  m_classic_l_button = CreateButton(QStringLiteral("&L"));
+  m_classic_r_button = CreateButton(QStringLiteral("&R"));
+  m_classic_zl_button = CreateButton(QStringLiteral("&ZL"));
+  m_classic_zr_button = CreateButton(QStringLiteral("ZR"));
+  m_classic_plus_button = CreateButton(QStringLiteral("&+"));
+  m_classic_minus_button = CreateButton(QStringLiteral("&-"));
+  m_classic_home_button = CreateButton(QStringLiteral("&HOME"));
+  m_classic_left_button = CreateButton(QStringLiteral("L&eft"));
+  m_classic_up_button = CreateButton(QStringLiteral("&Up"));
+  m_classic_down_button = CreateButton(QStringLiteral("&Down"));
+  m_classic_right_button = CreateButton(QStringLiteral("R&ight"));
 
   auto* classic_buttons_layout = new QGridLayout;
   classic_buttons_layout->addWidget(m_classic_a_button, 0, 0);
@@ -248,7 +248,7 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   layout->addWidget(m_remote_buttons_box);
   layout->addWidget(m_nunchuk_buttons_box);
   layout->addWidget(m_classic_buttons_box);
-  layout->addWidget(m_use_controller);
+  layout->addWidget(m_settings_box);
 
   setLayout(layout);
 
