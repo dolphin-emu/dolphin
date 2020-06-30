@@ -545,6 +545,8 @@ else()
 endif()
 add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/imgui)
+add_subdirectory(Externals/Slippi)
+include_directories(Externals/Slippi)
 
 find_package(pugixml)
 if(NOT pugixml_FOUND)
