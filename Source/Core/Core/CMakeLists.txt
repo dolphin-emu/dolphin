@@ -558,6 +558,7 @@ PUBLIC
   videoogl
   videosoftware
   videovulkan
+	Slippi
 
 PRIVATE
   fmt::fmt
