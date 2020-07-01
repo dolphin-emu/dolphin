@@ -33,6 +33,7 @@ wants to join your party." = "%1
 "%1 (Copy)" = "%1 (Копировать)";
 "%1 (Disc %2, Revision %3)" = "%1 (Диск %2, ревизия %3)";
 "%1 (Revision %3)" = "%1 (Ревизия %3)";
+"%1 (slow)" = "%1 (медленно)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 байт FIFO
@@ -295,15 +296,15 @@ Some titles may recognize the larger memory arena(s) and take advantage of it, t
 "Advanced" = "Расширенные";
 "Africa" = "Африка";
 "All Files (*)" = "Все файлы (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "Все файлы GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;Все файлы (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "Все файлы GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;Все файлы (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "Все файлы GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;Все файлы (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "Все файлы GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;Все файлы (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "Файлы быстрых сохранений (*.sav, *.s##);; Все файлы (*)";
 "All devices" = "Все устройства";
 "All players' codes synchronized." = "Коды всех игроков синхронизированы.";
 "All players' saves synchronized." = "Сохранения всех игроков синхронизированы.";
 "Allow Mismatched Region Settings" = "Разрешить несовпадение настроек региона";
 "Allow Usage Statistics Reporting" = "Разрешить отправку статистики об использовании";
-"Allow Writes to SD Card" = "Allow Writes to SD Card";
+"Allow Writes to SD Card" = "Разрешить запись на SD-карту";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -383,6 +384,7 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Auxiliary" = "Вспомогательное";
 "B" = "Б";
 "BAT incorrect. Dolphin will now exit" = "Некорректная BAT. Dolphin завершит работу";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "Регистр в ТО ";
 "Back Chain" = "Цепочка возврата";
 "Backend Multithreading" = "Многопоточный бэкенд";
@@ -405,7 +407,9 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Battery" = "Батарея";
 "Beta (once a month)" = "Бета (раз в месяц)";
 "Bitrate (kbps):" = "Битрейт (кбит/с):";
+"Block Size" = "Размер блока";
 "Block Size:" = "Размер блока:";
+"Blocking" = "Blocking";
 "Blocks" = "Блоков";
 "Blue" = "Синяя";
 "Blue Left" = "Синяя слева";
@@ -422,7 +426,9 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Breakpoint" = "Точка останова";
 "Breakpoint encountered! Step out aborted." = "Попадание в точку останова! Шаг с выходом отменён.";
 "Breakpoints" = "Точки останова";
-"Broadband Adapter" = "Широкополосный адаптер";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "MAC-адрес широкополосного адаптера";
 "Browse &NetPlay Sessions...." = "Просмотр &сессий сетевой игры...";
 "Buffer Size:" = "Размер буфера:";
@@ -519,7 +525,9 @@ Orbital: Rotates the free camera around the original camera. Has no lateral move
 "Common" = "Общее";
 "Compile Shaders Before Starting" = "Компилировать шейдеры перед запуском";
 "Compiling Shaders" = "Компиляция шейдеров";
-"Compressed GC/Wii images (*.gcz)" = "Сжатые образы GC/Wii (*.gcz)";
+"Compression" = "Сжатие";
+"Compression Level:" = "Уровень сжатия:";
+"Compression:" = "Сжатие:";
 "Condition" = "Условие";
 "Config" = "Настройки";
 "Configure" = "Настройка";
@@ -956,6 +964,9 @@ If unsure, leave this unchecked." = "Кодирует дампы кадров с
 "Enet Didn't Initialize" = "Enet не был инициализирован";
 "English" = "Английский";
 "Enhancements" = "Улучшения";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Введите ID USB-устройства";
 "Enter new Broadband Adapter MAC address:" = "Введите новый MAC-адрес широкополосного адаптера:";
 "Enter password" = "Введите пароль";
@@ -1067,7 +1078,6 @@ Check that you have permissions to write the target folder and that the media ca
 "Failed to parse Redump.org data" = "Не удалось обработать данные с Redump.org";
 "Failed to read %s" = "Не удалось прочесть %s";
 "Failed to read from the input file \"%s\"." = "Не удалось прочесть входной файл \"%s\".";
-"Failed to read unique ID from disc image" = "Не удалось прочитать уникальный ID с образа диска";
 "Failed to remove file" = "Не удалось удалить файл";
 "Failed to remove junk data from file \"%1\".
 
@@ -1095,13 +1105,16 @@ Check that you have enough space available on the target drive." = "Не уда�
 "Fast" = "Быстрое";
 "Fast Depth Calculation" = "Быстрое вычисление глубины";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Критическая рассинхронизация. Остановка воспроизведения. (Ошибка в PlayWiimote: %u != %u, байт %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "Информация о файле";
 "File Name" = "Имя файла";
 "File Path" = "Путь к файлу";
 "File Size" = "Размер файла";
+"File Size:" = "File Size:";
 "File contained no codes." = "Файл не содержит кодов.";
 "File write failed" = "Запись файла не удалась";
-"File:" = "Файл:";
 "Files opened, ready to compress." = "Файлы открыты и готовы к сжатию.";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "Не найдены следующие файлы, указанные в M3U-файле \"%s\":
@@ -1127,7 +1140,7 @@ If unsure, leave this unchecked." = "Фильтрует все текстуры,
 This can take a while." = "Завершение обновления...
 Это может занять некоторое время.";
 "First Block" = "Первый блок";
-"First Person" = "First Person";
+"First Person" = "От первого лица";
 "Fix Checksums" = "Исправить контрольные суммы";
 "Flags" = "Флаги";
 "Float" = "Float";
@@ -1172,7 +1185,11 @@ If unsure, leave this checked." = "Цветовые каналы будут пр
 "France" = "Франция";
 "Free Look" = "Свободный обзор";
 "Freelook" = "Свободный обзор";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "Свободный обзор: умен. скорость";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "Свободный обзор: увел. скорость";
 "Freelook Move Down" = "Свободный обзор: движение вниз";
 "Freelook Move Left" = "Свободный обзор: движение влево";
@@ -1197,6 +1214,7 @@ If unsure, leave this checked." = "Цветовые каналы будут пр
 "GC Port %1" = "Порт GC %1";
 "GCI Folder" = "Папка GCI";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: вызван ClearBlock некорректного адреса блока";
+"GCZ GC/Wii images (*.gcz)" = "GCZ образы GC/Wii (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1218,6 +1236,7 @@ Dolphin, скорее всего, зависнет или упадёт. Насл
 "Game" = "Игра";
 "Game Boy Advance Carts (*.gba)" = "Картриджи от Game Boy Advance (*.gba)";
 "Game Config" = "Настройки игры";
+"Game Details" = "Game Details";
 "Game Folders" = "Папки с играми";
 "Game ID" = "ID игры";
 "Game ID:" = "ID игры:";
@@ -1299,12 +1318,19 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IPL Settings" = "Настройки IPL";
 "IR" = "ИК";
 "IR Sensitivity:" = "Чувствительность ИК:";
-"ISO Details" = "Данные образа";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: простой и надежный формат, который поддерживается многими программами. Он занимает больше места, чем любой другой формат.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: основной сжатый формат, совместимый с большинством версий Dolphin и некоторыми другими программами. Он не может эффективно сжимать мусорные данные (если их не удалить) или зашифрованные данные Wii.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: Простой и надежный формат, который поддерживается многими программами. Занимает больше места, чем любой другой формат.
+
+GCZ: Базовый сжатый формат, совместимый с большинством версий Dolphin и некоторыми другими программами. Не может эффективно сжимать данные-пустышки (если их не удалить) или зашифрованные данные Wii.
+
+WIA: Продвинутый сжатый формат, совместимый с Dolphin 5.0-12188 и более поздними версиями, а также с некоторыми другими программами. Может эффективно сжимать зашифрованные данные Wii кроме данных-пустышек (если их не удалить).
+
+RVZ: Продвинутый сжатый формат, совместимый с Dolphin 5.0-12188 и более поздними версиями. Может эффективно сжимать данные-пустышки и зашифрованные данные Wii.";
 "Icon" = "Иконка";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Похоже на \"Хост управляет вводом\" за исключением того, что хоста (у кого нулевая задержка) можно менять во время игры.
@@ -1644,6 +1670,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "No" = "Нет";
 "No Adapter Detected" = "Адаптеров не обнаружено";
 "No Audio Output" = "Нет вывода звука";
+"No Compression" = "Без сжатия";
 "No Match" = "Нет совпадений";
 "No Value Given" = "Не задано значение";
 "No description available" = "Нет описания";
@@ -1730,6 +1757,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Patch Editor" = "Редактор патчей";
 "Patch name" = "Название патча";
 "Patches" = "Патчи";
+"Path:" = "Path:";
 "Paths" = "Пути";
 "Pause" = "Пауза";
 "Pause at End of Movie" = "Пауза в конце ролика";
@@ -1800,6 +1828,7 @@ Not recommended, only use if the other options give poor results." = "Предо
 "RSO Modules" = "Модули RSO";
 "RSO auto-detection" = "Автообнаружение RSO";
 "RUNNING" = "РАБОТАЕТ";
+"RVZ GC/Wii images (*.rvz)" = "RVZ образы GC/Wii (*.rvz)";
 "Range" = "Диапазон";
 "Re&place instruction" = "За&менить инструкцию";
 "Read" = "Чтение";
@@ -2616,6 +2645,7 @@ If unsure, leave this unchecked." = "Выводит изображение в г
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ВНИМАНИЕ: Настройки в колонках \"Акселерометр\" и \"Гироскоп\" предназначены для прямого взаимодействия с сенсорами. С их помощью нельзя назначить обычные кнопки, рычажки и оси. Для задействования этих настроек вам может потребоваться настроить другие источники ввода.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ВНИМАНИЕ: Данные настройки предназначены для прямого взаимодействия с сенсорами. С их помощью нельзя назначить обычные кнопки, рычажки и оси. Для задействования этих настроек вам может потребоваться настроить другие источники ввода.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Эксклюзивный режим)";
+"WIA GC/Wii images (*.wia)" = "WIA образы GC/Wii (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "Дожидается завершения компиляции всех шейдеров перед началом игры. Включение данной настройки может уменьшить подтормаживания и подвисания игры сразу после запуска ценой её более долгого запуска. Для систем с двумя и менее ядрами рекомендуется включить эту настройку, т.к. большая очередь шейдеров может уменьшить частоту кадров.

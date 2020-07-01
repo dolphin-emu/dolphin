@@ -33,6 +33,7 @@ wil lid worden van uw partij.";
 "%1 (Copy)" = "%1 (Kopie)";
 "%1 (Disc %2, Revision %3)" = "%1 (Schijf %2, Revisie %3)";
 "%1 (Revision %3)" = "%1 (Revisie %3)";
+"%1 (slow)" = "%1 (langzaam)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 FIFO bytes
@@ -295,15 +296,15 @@ Sommige titels kunnen de grotere geheugenarena(s) herkennen en hiervan profitere
 "Advanced" = "Geavanceerd";
 "Africa" = "Afrika";
 "All Files (*)" = "Alle Bestanden (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "Alle GC/Wii bestanden (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;Alle Bestanden (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "All GC/Wii bestanden (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;Alle Bestanden (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "Alle GC/Wii bestanden (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;Alle Bestanden (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "Alle GC/Wii bestanden (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;Alle Bestanden (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "Alle Save States (*.sav *.s##);; Alle Bestanden (*)";
 "All devices" = "Alle apparaten";
 "All players' codes synchronized." = "Codes van alle spelers gesynchroniseerd.";
 "All players' saves synchronized." = "Saves van alle spelers gesynchroniseerd.";
 "Allow Mismatched Region Settings" = "Sta Niet-Overeenkomende Regio-instellingen toe";
 "Allow Usage Statistics Reporting" = "Gebruiksstatistiekrapportage Toestaan";
-"Allow Writes to SD Card" = "Allow Writes to SD Card";
+"Allow Writes to SD Card" = "Sta Schrijven naar SD-Kaart toe";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -383,6 +384,7 @@ In geval van twijfel leeg laten.";
 "Auxiliary" = "Auxiliary";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT is fout. Dolphin sluit zich nu af";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "BP register ";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multi-threading";
@@ -405,7 +407,9 @@ In geval van twijfel leeg laten.";
 "Battery" = "Batterij";
 "Beta (once a month)" = "Bèta (één keer per maand)";
 "Bitrate (kbps):" = "Bitrate (kbps):";
+"Block Size" = "Blokgrootte";
 "Block Size:" = "Blokgrootte:";
+"Blocking" = "Blocking";
 "Blocks" = "Blokken";
 "Blue" = "Blauw";
 "Blue Left" = "Blauw Links";
@@ -422,7 +426,9 @@ In geval van twijfel leeg laten.";
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breekpunt tegengekomen! Uitstappen afgebroken.";
 "Breakpoints" = "Breekpunten";
-"Broadband Adapter" = "Breedband Adapter";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "Breedbandadapter MAC-adres";
 "Browse &NetPlay Sessions...." = "Blader &NetPlay Sessies....";
 "Buffer Size:" = "Buffergrootte:";
@@ -519,7 +525,9 @@ Orbitaal: Draait de vrije camera rond de originele camera. Heeft geen zijwaartse
 "Common" = "Gemeenschappelijk";
 "Compile Shaders Before Starting" = "Compileer Shaders Voor Starten";
 "Compiling Shaders" = "Shaders Compileren";
-"Compressed GC/Wii images (*.gcz)" = "Gecomprimeerde GC/Wii-afbeelding (*.gcz)";
+"Compression" = "Compressie";
+"Compression Level:" = "Compressie Level:";
+"Compression:" = "Compressie:";
 "Condition" = "Conditie";
 "Config" = "Config";
 "Configure" = "Configureer";
@@ -581,7 +589,7 @@ Een hogere waarde creëert een sterker gevoel van diepte terwijl een lagere waar
 "Convert" = "Converteer";
 "Convert File..." = "Converteer Bestand...";
 "Convert Selected Files..." = "Converteer Geselecteerde Bestanden...";
-"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Het converteren van Wii-schijfimages naar GCZ zonder het verwijderen van loze data bespaart geen merkbare hoeveelheid ruimte in vergelijking met het converteren naar ISO. Wilt u toch doorgaan?";
+"Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Het converteren van Wii-schijfimages naar GCZ zonder het verwijderen van junk data bespaart geen merkbare hoeveelheid ruimte in vergelijking met het converteren naar ISO. Wilt u toch doorgaan?";
 "Converting..." = "Converteren...";
 "Copy" = "Kopieer";
 "Copy &function" = "Kopieer &functie";
@@ -734,7 +742,7 @@ Wilt u echt Direct3D 11 gebruiken? In geval van twijfel 'Nee' selecteren.";
 "Disable Copy Filter" = "Schakel Kopieerfilter uit";
 "Disable EFB VRAM Copies" = "Schakel EFB VRAM Kopieën uit";
 "Disable Emulation Speed Limit" = "Schakel Emulatie Snelheidslimit uit";
-"Disable Fastmem" = "Disable Fastmem";
+"Disable Fastmem" = "Schakel Fastmem uit";
 "Disable Fog" = "Schakel Mist uit";
 "Disable JIT Cache" = "JIT Cache uitschakelen";
 "Disables bounding box emulation.
@@ -951,6 +959,9 @@ In geval van twijfel leeg laten.";
 "Enet Didn't Initialize" = "Enet niet geïnitialiseerd";
 "English" = "Engels";
 "Enhancements" = "Verbeteringen";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Voer USB apparaat ID in";
 "Enter new Broadband Adapter MAC address:" = "Voer een nieuw MAC-adres voor de breedbandadapter in:";
 "Enter password" = "Voer wachtwoord in";
@@ -1062,11 +1073,10 @@ Controleer of u permissies heeft om de map te maken, en dat de media geschreven 
 "Failed to parse Redump.org data" = "Ontleden van Redump.org gegevens mislukt";
 "Failed to read %s" = "Lezen van %s is mislukt";
 "Failed to read from the input file \"%s\"." = "Kan het invoerbestand \"%s\" niet lezen.";
-"Failed to read unique ID from disc image" = "Het lezen van de unieke ID van de schijfafbeelding is mislukt";
 "Failed to remove file" = "Kon bestand niet verwijderen";
 "Failed to remove junk data from file \"%1\".
 
-Would you like to convert it without removing junk data?" = "Kan onnodige data niet verwijderen uit bestand \"% 1\".
+Would you like to convert it without removing junk data?" = "Kan junk data niet verwijderen uit bestand \"% 1\".
 
 Wilt u het converteren zonder ongewenste gegevens te verwijderen?";
 "Failed to remove this title from the NAND." = "Kon deze titel niet van de NAND verwijderen.";
@@ -1090,13 +1100,16 @@ Controleer of u genoeg ruimte hebt op het doel.";
 "Fast" = "Snel";
 "Fast Depth Calculation" = "Snelle Diepteberekening";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Fatale desync. Terugspelen wordt geannuleerd. (Fout in PlayWiimote: %u != %u, byte %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "Bestandsinfo";
 "File Name" = "Bestandsnaam";
 "File Path" = "Bestandspad";
 "File Size" = "Bestandsgrootte";
+"File Size:" = "File Size:";
 "File contained no codes." = "Bestand bevat geen codes.";
 "File write failed" = "Bestand schrijven mislukt";
-"File:" = "Bestand:";
 "Files opened, ready to compress." = "Bestanden geopend, gereed voor compressie.";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "Bestanden gespecificeerd in het M3U-bestand \"%s\" werden niet gevonden:
@@ -1167,7 +1180,11 @@ In geval van twijfel geselecteerd laten.";
 "France" = "Frankrijk";
 "Free Look" = "Vrije Kijk";
 "Freelook" = "Vrije Kijk";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "Vrij kijken Verlaag Snelheid";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "Vrij kijken Verhoog Snelheid";
 "Freelook Move Down" = "Vrij kijken Beweeg Omlaag";
 "Freelook Move Left" = "Vrij kijken Beweeg Links";
@@ -1192,6 +1209,7 @@ In geval van twijfel geselecteerd laten.";
 "GC Port %1" = "GC Poort %1";
 "GCI Folder" = "GCI Map";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock aangeroepen met ongeldige blok adres";
+"GCZ GC/Wii images (*.gcz)" = "GCZ GC/Wii schijfafbeeldingen (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1212,6 +1230,7 @@ Opkomende foutmeldingen zullen worden gelogd. Dolphin zal nu waarschijnlijk vast
 "Game" = "Spel";
 "Game Boy Advance Carts (*.gba)" = "Game Boy Advance Carts (*.gba)";
 "Game Config" = "Spelconfiguratie";
+"Game Details" = "Game Details";
 "Game Folders" = "Spelmappen";
 "Game ID" = "Spel ID";
 "Game ID:" = "Spel ID:";
@@ -1292,18 +1311,25 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IPL Settings" = "IPL Instellingen";
 "IR" = "IR";
 "IR Sensitivity:" = "IR Gevoeligheid:";
-"ISO Details" = "ISO Details";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: een eenvoudig en robuust formaat dat door veel programma's wordt ondersteund. Het neemt meer ruimte in beslag dan elk ander formaat.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: een basaal gecomprimeerd formaat dat compatibel is met de meeste versies van Dolphin en enkele andere programma's. Het kan onnodige data (tenzij verwijderd) of gecodeerde Wii-data niet efficiënt comprimeren.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: Een simpel en robust formaat dat wordt ondersteund door vele programma's. Het gebruik meer opslagruimte in dan andere formaten.
+
+GCZ: Een basis gecomprimeerd formaat dat compatibel is met de meeste versies van Dolphin en een aantal andere programma's. Het kan junk data (tenzij verwijdert) en versleuteld Wii data niet efficiënt comprimeren.
+
+WIA: Een geavanceerd gecomprimeerd formaat dat compatibel is met Dolphin 5.0-12188 en latere versies en een aantal andere programma's. Het kan versleuteld Wii data efficiënt comprimeren maar junk data niet (tenzij verwijdert).
+
+RVZ: Een geavanceerd gecomprimeerd formaat dat compatibel is met Dolphin 5.0-12188 en latere versies. Het kan versleuteld Wii data en junk data efficiënt comprimeren.";
 "Icon" = "Icoon";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Hetzelfde als Host Invoer Autoriteit, behalve dat de \"Host\" (die geen vertraging heeft) op elk moment gewisseld kan worden.
 Geschikt voor turn-based spellen met timing gevoelige bediening, zoals golf.";
 "Identity Generation" = "Genereer Identiteit";
-"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "Als \"Sta Schrijven naar SD-Kaart toe\" is uitgeschakeld, wordt dat niet overschreven.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1636,6 +1662,7 @@ In geval van twijfel leeg laten.";
 "No" = "Nee";
 "No Adapter Detected" = "Geen Adapter Gedetecteerd";
 "No Audio Output" = "Geen Audio-uitvoer";
+"No Compression" = "Geen Compressie";
 "No Match" = "Geen Overeenkomst";
 "No Value Given" = "Geen Waarde Gegeven";
 "No description available" = "Geen omschrijving beschikbaar";
@@ -1722,6 +1749,7 @@ In geval van twijfel leeg laten.";
 "Patch Editor" = "Patch Bewerker";
 "Patch name" = "Patchnaam";
 "Patches" = "Patches";
+"Path:" = "Path:";
 "Paths" = "Pad";
 "Pause" = "Pauze";
 "Pause at End of Movie" = "Pauzeer aan het Einde van de Film";
@@ -1792,6 +1820,7 @@ Niet aanbevolen, gebruik alleen als de andere opties slechte resultaten oplevere
 "RSO Modules" = "RSO Modules";
 "RSO auto-detection" = "RSO autodetectie";
 "RUNNING" = "LOPEND";
+"RVZ GC/Wii images (*.rvz)" = "RVZ GC/Wii schijfafbeeldingen (*.rvz)";
 "Range" = "Afstand";
 "Re&place instruction" = "Ver&vang instructie";
 "Read" = "Lezen";
@@ -1830,12 +1859,12 @@ In geval van twijfel \"Geen\" selecteren.";
 "Relative Input Hold" = "Relatieve Invoer Houden";
 "Remind Me Later" = "Herinner Me Later";
 "Remove" = "Verwijder";
-"Remove Junk Data (Irreversible):" = "Verwijder Onnodige Data (Onomkeerbaar):";
+"Remove Junk Data (Irreversible):" = "Verwijder Junk Data (Onomkeerbaar):";
 "Remove Tag..." = "Tag Verwijderen...";
 "Remove failed" = "Verwijderen mislukt";
 "Remove from Watch" = "Verwijderen uit Watchvenster";
 "Remove tag" = "Tag verwijderen";
-"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Het verwijderen van onnodige data bespaart geen ruimte bij het converteren naar ISO (tenzij u het ISO-bestand verpakt in een gecomprimeerd bestandsformaat zoals ZIP achteraf). Wilt u toch doorgaan?";
+"Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?" = "Het verwijderen van Junk data bespaart geen ruimte bij het converteren naar ISO (tenzij u het ISO-bestand verpakt in een gecomprimeerd bestandsformaat zoals ZIP achteraf). Wilt u toch doorgaan?";
 "Rename symbol" = "Hernoem symbool";
 "Render Window" = "Render Scherm";
 "Render to Main Window" = "Geef weer op hoofdvenster";
@@ -2609,6 +2638,7 @@ In geval van twijfel leeg laten.";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "Waarschuwing: De bediening van Accelerometer en Gyroscoop is ontworpen om rechtstreeks te worden gekoppeld aan bewegingssensors. Het is niet bedoeld om te koppelen met traditionele knoppen, trekkers of sticks. Mogelijk moet u alternatieve invoerbronnen configureren voordat u deze besturing kan gebruiken.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "Waarschuwing: Deze bediening is ontworpen om rechtstreeks te worden gekoppeld aan bewegingssensors. Het is niet bedoeld om te koppelen met traditionele knoppen, trekkers of sticks. Mogelijk moet u alternatieve invoerbronnen configureren voordat u deze besturing kan gebruiken.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusieve Modus)";
+"WIA GC/Wii images (*.wia)" = "WIA GC/Wii schijfafbeeldingen (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "Wacht totdat alle shaders klaar zijn met compileren vóór het begin van een spel. Als u deze optie inschakelt, kan het stotteren of haperen gedurende korte tijd na het starten van het spel worden verminderd, ten koste van een langere vertraging voordat het spel start. Voor systemen met twee of minder cores wordt het aangeraden om deze optie in te schakelen, omdat een grote shader-wachtrij de framerate kan verminderen.

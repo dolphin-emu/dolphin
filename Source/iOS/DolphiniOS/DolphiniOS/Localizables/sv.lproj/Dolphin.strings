@@ -33,6 +33,7 @@ vill vara med i din grupp.";
 "%1 (Copy)" = "%1 (kopia)";
 "%1 (Disc %2, Revision %3)" = "%1 (skiva %2, revision %3)";
 "%1 (Revision %3)" = "%1 (revision %3)";
+"%1 (slow)" = "%1 (långsamt)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 FIFO-byte
@@ -295,15 +296,15 @@ Vissa titlar kan känna av det utökade minnet och använda det, men de flesta t
 "Advanced" = "Avancerat";
 "Africa" = "Afrika";
 "All Files (*)" = "Alla filer (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;Alla filer (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;Alla filer (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;Alla filer (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "Alla GC/Wii-filer (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;Alla filer (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "Alla snabbsparningar (*.sav *.s##);; Alla filer (*)";
 "All devices" = "Alla enheter";
 "All players' codes synchronized." = "Alla spelares koder har synkroniserats.";
 "All players' saves synchronized." = "Alla spelares sparfiler har synkroniserats.";
 "Allow Mismatched Region Settings" = "Tillåt regionsinställningar som inte matchar";
 "Allow Usage Statistics Reporting" = "Tillåt rapportering av användningsstatistik";
-"Allow Writes to SD Card" = "Allow Writes to SD Card";
+"Allow Writes to SD Card" = "Tillåt ändringar på SD-kort";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -383,6 +384,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Auxiliary" = "ARAM";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT är inkorrekt. Dolphin kommer nu avslutas";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "BP-register";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Flertrådning i backend";
@@ -405,7 +407,9 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Battery" = "Batteri";
 "Beta (once a month)" = "Beta (en gång i månaden)";
 "Bitrate (kbps):" = "Bithastighet (kbps):";
+"Block Size" = "Blockstorlek";
 "Block Size:" = "Blockstorlek:";
+"Blocking" = "Blocking";
 "Blocks" = "Block";
 "Blue" = "Blå";
 "Blue Left" = "Blå vänster";
@@ -422,7 +426,9 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Breakpoint" = "Brytpunkt";
 "Breakpoint encountered! Step out aborted." = "Brytpunkt påträffades! Urstegning avbruten.";
 "Breakpoints" = "Brytpunkter";
-"Broadband Adapter" = "Bredbandsadapter";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "MAC-adress för bredbandsadapter";
 "Browse &NetPlay Sessions...." = "Bläddra bland &nätspelssessioner...";
 "Buffer Size:" = "Buffertstorlek:";
@@ -519,7 +525,9 @@ Orbital: Rotates the free camera around the original camera. Has no lateral move
 "Common" = "Gemensamt";
 "Compile Shaders Before Starting" = "Kompilera shaders före start";
 "Compiling Shaders" = "Kompilerar shaders";
-"Compressed GC/Wii images (*.gcz)" = "Komprimerade GC/Wii-skivavbildningar (*.gcz)";
+"Compression" = "Komprimering";
+"Compression Level:" = "Komprimeringsnivå:";
+"Compression:" = "Komprimering:";
 "Condition" = "Villkor";
 "Config" = "Konfig.";
 "Configure" = "Konfigurera";
@@ -736,8 +744,8 @@ Vill du verkligen byta till Direct3D 11? Om du är osäker, välj 'Nej'.";
 "Disable Bounding Box" = "Inaktivera Bounding Box";
 "Disable Copy Filter" = "Inaktivera kopieringsfilter";
 "Disable EFB VRAM Copies" = "Inaktivera EFB-VRAM-kopior";
-"Disable Emulation Speed Limit" = "Stäng av emuleringshastighetsgräns";
-"Disable Fastmem" = "Disable Fastmem";
+"Disable Emulation Speed Limit" = "Inaktivera emuleringshastighetsgräns";
+"Disable Fastmem" = "Inaktivera fastmem";
 "Disable Fog" = "Inaktivera dimma";
 "Disable JIT Cache" = "Inaktivera JIT-cache";
 "Disables bounding box emulation.
@@ -955,6 +963,9 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Enet Didn't Initialize" = "Enet initialiserades inte";
 "English" = "Engelska";
 "Enhancements" = "Förbättringar";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Ange ID för en USB-enhet";
 "Enter new Broadband Adapter MAC address:" = "Ange ny MAC-adress för bredbandsadaptern:";
 "Enter password" = "Ange lösenord";
@@ -1066,7 +1077,6 @@ Kontrollera att du har tillåtelse att skriva till mappen i fråga och att enhet
 "Failed to parse Redump.org data" = "Misslyckades att tolka data från Redump.org";
 "Failed to read %s" = "Misslyckades att läsa %s";
 "Failed to read from the input file \"%s\"." = "Misslyckades att läsa från indatafilen \"%s\".";
-"Failed to read unique ID from disc image" = "Misslyckades att läsa unikt ID från skivavbildningen";
 "Failed to remove file" = "Misslyckades att ta bort filen";
 "Failed to remove junk data from file \"%1\".
 
@@ -1094,13 +1104,16 @@ Kontrollera att det finns tillräckligt med utrymme på målenheten.";
 "Fast" = "Snabb";
 "Fast Depth Calculation" = "Snabb djupberäkning";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Allvarlig desynkronisering. Avbryter uppspelning. (Fel i PlayWiimote: %u != %u, byte %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "Filinformation";
 "File Name" = "Filnamn";
 "File Path" = "Sökväg";
 "File Size" = "Filstorlek";
+"File Size:" = "File Size:";
 "File contained no codes." = "Filen innehöll inga koder.";
 "File write failed" = "Misslyckades att skriva till fil";
-"File:" = "Fil:";
 "Files opened, ready to compress." = "Filerna har öppnats. Redo att komprimera.";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "Filer specificerade i M3U-filen \"%s\" hittades inte:
@@ -1171,7 +1184,11 @@ Om du är osäker kan du lämna detta markerat.";
 "France" = "Frankrike";
 "Free Look" = "Fri kamera";
 "Freelook" = "Fri kamera";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "Fri kamera - Sänk hastighet";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "Fri kamera - Öka hastighet";
 "Freelook Move Down" = "Fri kamera - Flytta nedåt";
 "Freelook Move Left" = "Fri kamera - Flytta till vänster";
@@ -1196,6 +1213,7 @@ Om du är osäker kan du lämna detta markerat.";
 "GC Port %1" = "GC-uttag %1";
 "GCI Folder" = "GCI-mapp";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock anropades med ogiltig blockadress";
+"GCZ GC/Wii images (*.gcz)" = "GCZ-GC/Wii-skivavbildningar (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1216,6 +1234,7 @@ Fel utöver detta kommer skickas till Video Backend-loggen. Dolphin kommer nu an
 "Game" = "Spel";
 "Game Boy Advance Carts (*.gba)" = "Game Boy Advance-kassetter (*.gba)";
 "Game Config" = "Spelkonfiguration";
+"Game Details" = "Game Details";
 "Game Folders" = "Spelmappar";
 "Game ID" = "Spel-ID";
 "Game ID:" = "Spel-ID:";
@@ -1297,18 +1316,25 @@ Lämplig för casual spel med 3+ spelare, eventuellt på instabila eller höga l
 "IPL Settings" = "IPL-inställningar";
 "IR" = "IR";
 "IR Sensitivity:" = "IR-känslighet:";
-"ISO Details" = "ISO-detaljer";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: Ett enkelt och robust format som stöds av många program. Det tar upp mer utrymme än alla andra format.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: Ett grundläggande komprimerat format som är kompatibelt med de flesta versioner av Dolphin och några andra program. Det kan inte komprimera skräpdata effektivt (om skräpdatan inte tas bort) eller krypterad Wii-data.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: Ett enkelt och robust format som stöds av många program. Det tar upp mer utrymme än alla andra format.
+
+GCZ: Ett grundläggande komprimerat format som är kompatibelt med de flesta versioner av Dolphin och några andra program. Det kan inte komprimera skräpdata (om skräpdatan inte tas bort) eller krypterad Wii-data effektivt.
+
+WIA: Ett avancerat komprimerat format som är kompatibelt med Dolphin 5.0-12188 och senare, och några få andra program. Det kan komprimera krypterad Wii-data effektivt, men inte skräpdata (om skräpdatan inte tas bort).
+
+RVZ: Ett avancerat komprimerat format som är kompatibelt med Dolphin 5.0-12188 och senare. Det kan komprimera både skräpdata och krypterad Wii-data effektivt.";
 "Icon" = "Ikon";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identisk med Värdauktoritet för indata, förutom att \"Värden\" (som har noll latens) kan ändras när som helst.
 Lämplig för turbaserade spel med tidskänsliga kontroller, till exempel golf.";
 "Identity Generation" = "Identitetsgenerering";
-"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "Om \"Tillåt ändringar på SD-kort\" är avstängt tar den inställningen prioritet över denna.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1642,6 +1668,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "No" = "Nej";
 "No Adapter Detected" = "Ingen adapter upptäcktes";
 "No Audio Output" = "Ingen ljuduppspelning";
+"No Compression" = "Ingen komprimering";
 "No Match" = "Ingen sökträff";
 "No Value Given" = "Inget Värde Angivet";
 "No description available" = "Ingen beskrivning tillgänglig";
@@ -1728,6 +1755,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Patch Editor" = "Patchredigerare";
 "Patch name" = "Patchnamn";
 "Patches" = "Patcher";
+"Path:" = "Path:";
 "Paths" = "Sökvägar";
 "Pause" = "Pausa";
 "Pause at End of Movie" = "Pausa vid slutet av inspelningar";
@@ -1798,6 +1826,7 @@ Rekommenderas inte. Använd bara detta om de andra alternativen inte ger bra res
 "RSO Modules" = "RSO-moduler";
 "RSO auto-detection" = "RSO auto-detection";
 "RUNNING" = "RUNNING";
+"RVZ GC/Wii images (*.rvz)" = "RVZ-GC/Wii-skivavbildningar (*.rvz)";
 "Range" = "Räckvidd";
 "Re&place instruction" = "Byt &ut instruktion";
 "Read" = "Läs";
@@ -2611,6 +2640,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "VARNING: Kontrollerna under accelerometer och gyroskop är designade för att kopplas direkt till rörelsesensorhårdvara. De är inte tänkta att användas för att mappa vanliga knappar eller spakar. Du kan behöva konfigurera alternativa inmatningskällor före du använder de här kontrollerna.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "VARNING: Dessa kontroller är designade för att kopplas direkt till rörelsesensorhårdvara. De är inte tänkta att användas för att mappa vanliga knappar eller spakar. Du kan behöva konfigurera alternativa inmatningskällor före du använder de här kontrollerna.";
 "WASAPI (Exclusive Mode)" = "WASAPI (exklusivt läge)";
+"WIA GC/Wii images (*.wia)" = "WIA-GC/Wii-skivavbildningar (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "Väntar på att alla shaders kompileras färdigt före ett spel startas. Att slå på det här alternativet kan få bort korta pauser som uppstår under en kort tid efter att ett spel har startats, men i utbyte är det längre att vänta före spelet startas. För system med två eller färre kärnor rekommenderas det att ha det här alternativet påslaget eftersom en stor shaderkö kan försämra prestandan.

@@ -33,6 +33,7 @@ wants to join your party." = "%1 さんが
 "%1 (Copy)" = "%1 (コピー)";
 "%1 (Disc %2, Revision %3)" = "%1 (ディスク番号 %2, リビジョン %3)";
 "%1 (Revision %3)" = "%1 (リビジョン %3)";
+"%1 (slow)" = "%1 (slow)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 FIFO バイト
@@ -297,8 +298,8 @@ Some titles may recognize the larger memory arena(s) and take advantage of it, t
 "Advanced" = "高度な設定";
 "Africa" = "アフリカ";
 "All Files (*)" = "すべてのファイル (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "すべてのGC / Wiiファイル (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;すべてのファイル (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "すべてのGC / Wiiファイル (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;すべてのファイル (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "全てのステートセーブファイル (*.sav *.s##);; 全てのファイル (*)";
 "All devices" = "すべてのデバイス";
 "All players' codes synchronized." = "すべてのプレイヤーのチートコードは同期されました";
@@ -389,6 +390,7 @@ If unsure, leave this unchecked." = "内部解像度に合わせてウィンド�
 "Auxiliary" = "Auxiliary";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT incorrect. Dolphin will now exit";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "BP register ";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multithreading";
@@ -411,7 +413,9 @@ If unsure, leave this unchecked." = "内部解像度に合わせてウィンド�
 "Battery" = "バッテリー残量";
 "Beta (once a month)" = "ベータ版 (ひと月に一度)";
 "Bitrate (kbps):" = "ビットレート (kbps):";
+"Block Size" = "Block Size";
 "Block Size:" = "Block Size:";
+"Blocking" = "Blocking";
 "Blocks" = "ブロック数";
 "Blue" = "青";
 "Blue Left" = "青 - 左";
@@ -429,7 +433,9 @@ If unsure, leave this unchecked." = "内部解像度に合わせてウィンド�
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breakpoint encountered! Step out aborted.";
 "Breakpoints" = "Breakpoints";
-"Broadband Adapter" = "ブロードバンドアダプタ";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "ブロードバンドアダプタMACアドレス";
 "Browse &NetPlay Sessions...." = "ネットプレイセッションブラウザ(&N)";
 "Buffer Size:" = "バッファサイズ";
@@ -525,7 +531,9 @@ Orbital: Rotates the free camera around the original camera. Has no lateral move
 "Common" = "全般";
 "Compile Shaders Before Starting" = "ゲーム開始前にシェーダをコンパイルする";
 "Compiling Shaders" = "シェーダをコンパイル中...";
-"Compressed GC/Wii images (*.gcz)" = "圧縮されたGC/Wii ISOファイル (gcz)";
+"Compression" = "Compression";
+"Compression Level:" = "Compression Level:";
+"Compression:" = "Compression:";
 "Condition" = "Condition";
 "Config" = "設定";
 "Configure" = "設定";
@@ -961,6 +969,9 @@ If unsure, leave this unchecked." = "ダンプしたフレームのエンコー�
 "Enet Didn't Initialize" = "Enet Didn't Initialize";
 "English" = "英語";
 "Enhancements" = "画質向上の設定";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "デバイス（ハードウェア）IDを入力";
 "Enter new Broadband Adapter MAC address:" = "ブロードバンドアダプタのMACアドレスを入力";
 "Enter password" = "ここにパスワードを入力";
@@ -1072,7 +1083,6 @@ Check that you have permissions to write the target folder and that the media ca
 "Failed to parse Redump.org data" = "Failed to parse Redump.org data";
 "Failed to read %s" = "Failed to read %s";
 "Failed to read from the input file \"%s\"." = "Failed to read from the input file \"%s\".";
-"Failed to read unique ID from disc image" = "Failed to read unique ID from disc image";
 "Failed to remove file" = "ファイルの削除に失敗しました";
 "Failed to remove junk data from file \"%1\".
 
@@ -1100,13 +1110,16 @@ Check that you have enough space available on the target drive." = "次のファ
 "Fast" = "Fast";
 "Fast Depth Calculation" = "Fast Depth Calculation";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "致命的なdesyncが発生したため再生を中止します。 (Error in PlayWiimote: %u != %u, byte %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "ファイル情報";
 "File Name" = "ファイル名";
 "File Path" = "File Path";
 "File Size" = "ファイルサイズ";
+"File Size:" = "File Size:";
 "File contained no codes." = "コードを含まないファイルです";
 "File write failed" = "ファイルの書込に失敗";
-"File:" = "ファイルの場所";
 "Files opened, ready to compress." = "圧縮処理の待機中です...";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "M3Uファイル\"%s\" 内に指定された次のファイルが見つかりませんでした
@@ -1176,7 +1189,11 @@ If unsure, leave this checked." = "強制的にRGB 24bitカラーでレンダリ
 "France" = "フランス";
 "Free Look" = "フリールック";
 "Freelook" = "フリールック";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "フリールック速度 増加";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "フリールック速度 減少";
 "Freelook Move Down" = "フリールック 下へ";
 "Freelook Move Left" = "フリールック 左へ";
@@ -1201,6 +1218,7 @@ If unsure, leave this checked." = "強制的にRGB 24bitカラーでレンダリ
 "GC Port %1" = "GCポート %1";
 "GCI Folder" = "GCI フォルダ";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock called with invalid block address";
+"GCZ GC/Wii images (*.gcz)" = "GCZ GC/Wii images (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1222,6 +1240,7 @@ Video Backendログにエラー内容を送ります。
 "Game" = "タイトル";
 "Game Boy Advance Carts (*.gba)" = "ゲームボーイアドバンスROMファイル (*.gba)";
 "Game Config" = "ゲーム設定";
+"Game Details" = "Game Details";
 "Game Folders" = "ゲームファイルのあるフォルダ";
 "Game ID" = "ゲームID";
 "Game ID:" = "ゲームID";
@@ -1303,12 +1322,19 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IPL Settings" = "IPL設定";
 "IR" = "ポインタ";
 "IR Sensitivity:" = "Wiiリモコンの感度";
-"ISO Details" = "ゲームの詳細";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
+
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data.";
 "Icon" = "アイコン";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
@@ -1651,6 +1677,7 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "No" = "いいえ";
 "No Adapter Detected" = "タップは未接続です";
 "No Audio Output" = "出力しない";
+"No Compression" = "No Compression";
 "No Match" = "No Match";
 "No Value Given" = "No Value Given";
 "No description available" = "説明なし";
@@ -1737,6 +1764,7 @@ If unsure, leave this unchecked." = "テクスチャがどのフォーマット�
 "Patch Editor" = "パッチエディタ";
 "Patch name" = "パッチ名を入力...";
 "Patches" = "パッチ";
+"Path:" = "Path:";
 "Paths" = "フォルダ";
 "Pause" = "一時停止";
 "Pause at End of Movie" = "再生終了時に一時停止";
@@ -1805,6 +1833,7 @@ Not recommended, only use if the other options give poor results." = "Ubershader
 "RSO Modules" = "RSO Modules";
 "RSO auto-detection" = "RSO auto-detection";
 "RUNNING" = "RUNNING";
+"RVZ GC/Wii images (*.rvz)" = "RVZ GC/Wii images (*.rvz)";
 "Range" = "範囲／強さ";
 "Re&place instruction" = "Re&place instruction";
 "Read" = "Read";
@@ -2624,6 +2653,7 @@ If unsure, leave this unchecked." = "ゲーム画面として別のウィンド�
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "注意：このページの加速度欄およびジャイロスコープ欄は、モーションセンサーを持つ外部入力装置のためのものです。事前に外部入力設定が必要です。";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "注意：このページはモーションセンサーを持つ外部入力装置のためのものです。事前に外部入力設定が必要です。";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusive Mode)";
+"WIA GC/Wii images (*.wia)" = "WIA GC/Wii images (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "すべてのシェーダコンパイルをゲーム起動前に行います。

@@ -33,6 +33,7 @@ wants to join your party.";
 "%1 (Copy)" = "%1 (Copy)";
 "%1 (Disc %2, Revision %3)" = "%1 (Disc %2, Revision %3)";
 "%1 (Revision %3)" = "%1 (Revision %3)";
+"%1 (slow)" = "%1 (slow)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 FIFO bytes
@@ -295,8 +296,8 @@ Some titles may recognize the larger memory arena(s) and take advantage of it, t
 "Advanced" = "Advanced";
 "Africa" = "Africa";
 "All Files (*)" = "All Files (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "All Save States (*.sav *.s##);; All Files (*)";
 "All devices" = "All devices";
 "All players' codes synchronized." = "All players' codes synchronized.";
@@ -383,6 +384,7 @@ If unsure, leave this unchecked.";
 "Auxiliary" = "Auxiliary";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT incorrect. Dolphin will now exit";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "BP register ";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multithreading";
@@ -405,7 +407,9 @@ If unsure, leave this unchecked.";
 "Battery" = "Battery";
 "Beta (once a month)" = "Beta (once a month)";
 "Bitrate (kbps):" = "Bitrate (kbps):";
+"Block Size" = "Block Size";
 "Block Size:" = "Block Size:";
+"Blocking" = "Blocking";
 "Blocks" = "Blocks";
 "Blue" = "Blue";
 "Blue Left" = "Blue Left";
@@ -422,7 +426,9 @@ If unsure, leave this unchecked.";
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breakpoint encountered! Step out aborted.";
 "Breakpoints" = "Breakpoints";
-"Broadband Adapter" = "Broadband Adapter";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "Broadband Adapter MAC address";
 "Browse &NetPlay Sessions...." = "Browse &NetPlay Sessions....";
 "Buffer Size:" = "Buffer Size:";
@@ -519,7 +525,9 @@ Orbital: Rotates the free camera around the original camera. Has no lateral move
 "Common" = "Common";
 "Compile Shaders Before Starting" = "Compile Shaders Before Starting";
 "Compiling Shaders" = "Compiling Shaders";
-"Compressed GC/Wii images (*.gcz)" = "Compressed GC/Wii images (*.gcz)";
+"Compression" = "Compression";
+"Compression Level:" = "Compression Level:";
+"Compression:" = "Compression:";
 "Condition" = "Condition";
 "Config" = "Config";
 "Configure" = "Configure";
@@ -957,6 +965,9 @@ If unsure, leave this unchecked.";
 "Enet Didn't Initialize" = "Enet Didn't Initialize";
 "English" = "English";
 "Enhancements" = "Enhancements";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Enter USB device ID";
 "Enter new Broadband Adapter MAC address:" = "Enter new Broadband Adapter MAC address:";
 "Enter password" = "Enter password";
@@ -1068,7 +1079,6 @@ Check that you have permissions to write the target folder and that the media ca
 "Failed to parse Redump.org data" = "Failed to parse Redump.org data";
 "Failed to read %s" = "Failed to read %s";
 "Failed to read from the input file \"%s\"." = "Failed to read from the input file \"%s\".";
-"Failed to read unique ID from disc image" = "Failed to read unique ID from disc image";
 "Failed to remove file" = "Failed to remove file";
 "Failed to remove junk data from file \"%1\".
 
@@ -1096,13 +1106,16 @@ Check that you have enough space available on the target drive.";
 "Fast" = "Fast";
 "Fast Depth Calculation" = "Fast Depth Calculation";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "File Info";
 "File Name" = "File Name";
 "File Path" = "File Path";
 "File Size" = "File Size";
+"File Size:" = "File Size:";
 "File contained no codes." = "File contained no codes.";
 "File write failed" = "File write failed";
-"File:" = "File:";
 "Files opened, ready to compress." = "Files opened, ready to compress.";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "Files specified in the M3U file \"%s\" were not found:
@@ -1173,7 +1186,11 @@ If unsure, leave this checked.";
 "France" = "France";
 "Free Look" = "Free Look";
 "Freelook" = "Freelook";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "Freelook Decrease Speed";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "Freelook Increase Speed";
 "Freelook Move Down" = "Freelook Move Down";
 "Freelook Move Left" = "Freelook Move Left";
@@ -1198,6 +1215,7 @@ If unsure, leave this checked.";
 "GC Port %1" = "GC Port %1";
 "GCI Folder" = "GCI Folder";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock called with invalid block address";
+"GCZ GC/Wii images (*.gcz)" = "GCZ GC/Wii images (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1219,6 +1237,7 @@ Dolphin will now likely crash or hang. Enjoy.";
 "Game" = "Game";
 "Game Boy Advance Carts (*.gba)" = "Game Boy Advance Carts (*.gba)";
 "Game Config" = "Game Config";
+"Game Details" = "Game Details";
 "Game Folders" = "Game Folders";
 "Game ID" = "Game ID";
 "Game ID:" = "Game ID:";
@@ -1300,12 +1319,19 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "IPL Settings" = "IPL Settings";
 "IR" = "IR";
 "IR Sensitivity:" = "IR Sensitivity:";
-"ISO Details" = "ISO Details";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
+
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
+
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data.";
 "Icon" = "Icon";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
@@ -1645,6 +1671,7 @@ If unsure, leave this unchecked.";
 "No" = "No";
 "No Adapter Detected" = "No Adapter Detected";
 "No Audio Output" = "No Audio Output";
+"No Compression" = "No Compression";
 "No Match" = "No Match";
 "No Value Given" = "No Value Given";
 "No description available" = "No description available";
@@ -1731,6 +1758,7 @@ If unsure, leave this unchecked.";
 "Patch Editor" = "Patch Editor";
 "Patch name" = "Patch name";
 "Patches" = "Patches";
+"Path:" = "Path:";
 "Paths" = "Paths";
 "Pause" = "Pause";
 "Pause at End of Movie" = "Pause at End of Movie";
@@ -1801,6 +1829,7 @@ Not recommended, only use if the other options give poor results.";
 "RSO Modules" = "RSO Modules";
 "RSO auto-detection" = "RSO auto-detection";
 "RUNNING" = "RUNNING";
+"RVZ GC/Wii images (*.rvz)" = "RVZ GC/Wii images (*.rvz)";
 "Range" = "Range";
 "Re&place instruction" = "Re&place instruction";
 "Read" = "Read";
@@ -2617,6 +2646,7 @@ If unsure, leave this unchecked.";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Exclusive Mode)";
+"WIA GC/Wii images (*.wia)" = "WIA GC/Wii images (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.

@@ -33,6 +33,7 @@ vuole entrare nel party.";
 "%1 (Copy)" = "%1 (Copia)";
 "%1 (Disc %2, Revision %3)" = "%1 (Disco %2, Revisione %3)";
 "%1 (Revision %3)" = "%1 (Revisione %3)";
+"%1 (slow)" = "%1 (lento)";
 "%1 FIFO bytes
 %2 memory bytes
 %3 frames" = "%1 byte FIFO
@@ -296,15 +297,15 @@ Alcuni titoli potrebbero riconoscere ed usufruire della memoria più estesa, ma 
 "Advanced" = "Avanzate";
 "Africa" = "Africa";
 "All Files (*)" = "Tutti i File (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;All Files (*)" = "Tutti i file GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;Tutti i  File (*)";
-"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;All Files (*)" = "Tutti i file GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;Tutti i  File (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;All Files (*)" = "Tutti i file GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.dff *.m3u);;Tutti i  File (*)";
+"All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)" = "Tutti i file GC/Wii (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad *.m3u);;Tutti i  File (*)";
 "All Save States (*.sav *.s##);; All Files (*)" = "Tutti i Salvataggi di Stati di Gioco (*.sav *.s##);; Tutti i File (*)";
 "All devices" = "Tutti i dispositivi";
 "All players' codes synchronized." = "Tutti i codici dei giocatori sono sincronizzati.";
 "All players' saves synchronized." = "Tutti i salvataggi dei giocatori sono sincronizzati.";
 "Allow Mismatched Region Settings" = "Permetti Impostazioni Regione Discordanti";
 "Allow Usage Statistics Reporting" = "Permetti Report Statistiche d'Uso";
-"Allow Writes to SD Card" = "Allow Writes to SD Card";
+"Allow Writes to SD Card" = "Permetti Scrittura su Scheda SD";
 "Allows manipulation of the in-game camera. Move the mouse while holding the right button to pan or middle button to roll.
 
 Use the WASD keys while holding SHIFT to move the camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R to reset the camera or SHIFT+F to reset the speed.
@@ -384,6 +385,7 @@ Nel dubbio, lascia deselezionato.";
 "Auxiliary" = "Ausiliario";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT errato. Dolphin verrà chiuso.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
 "BP register " = "Registro BP";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Multithreading Backend";
@@ -406,7 +408,9 @@ Nel dubbio, lascia deselezionato.";
 "Battery" = "Batteria";
 "Beta (once a month)" = "Beta (una volta al mese)";
 "Bitrate (kbps):" = "Bitrate (kbps):";
+"Block Size" = "Dimensione Blocco";
 "Block Size:" = "Dimensione Blocco:";
+"Blocking" = "Blocking";
 "Blocks" = "Blocchi";
 "Blue" = "Blu";
 "Blue Left" = "Blu Sinistro";
@@ -423,7 +427,9 @@ Nel dubbio, lascia deselezionato.";
 "Breakpoint" = "Punto di interruzione";
 "Breakpoint encountered! Step out aborted." = "Raggiunto punto di interruzione! Comando di uscita dall'istruzione annullato.";
 "Breakpoints" = "Punti di interruzione";
-"Broadband Adapter" = "Adattatore Broadband";
+"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
 "Broadband Adapter MAC address" = "Indirizzo MAC Adattatore Broadband";
 "Browse &NetPlay Sessions...." = "Sfoglia Sessioni %NetPlay...";
 "Buffer Size:" = "Dimensione Buffer:";
@@ -520,7 +526,9 @@ Orbita: Ruota la telecamera attorno il punto originale. Non ha movimento lateral
 "Common" = "Condiviso";
 "Compile Shaders Before Starting" = "Compila gli Shader Prima dell'Avvio";
 "Compiling Shaders" = "Compilazione degli Shader";
-"Compressed GC/Wii images (*.gcz)" = "Immagine GC/Wii compressa (*.gcz)";
+"Compression" = "Compressione";
+"Compression Level:" = "Livello di Compressione:";
+"Compression:" = "Compressione:";
 "Condition" = "Condizione";
 "Config" = "Configurazione";
 "Configure" = "Configura";
@@ -738,7 +746,7 @@ Vuoi davvero passare a Direct3D 11? Nel dubbio, seleziona 'No'.";
 "Disable Copy Filter" = "Disabilita Copia Filtro";
 "Disable EFB VRAM Copies" = "Disattiva Copie EFB VRAM";
 "Disable Emulation Speed Limit" = "Disabilita Limite Velocità di Emulazione";
-"Disable Fastmem" = "Disable Fastmem";
+"Disable Fastmem" = "Disabilita Fastmem";
 "Disable Fog" = "Disabilita Nebbia";
 "Disable JIT Cache" = "Disabilita Cache JIT";
 "Disables bounding box emulation.
@@ -959,6 +967,9 @@ Nel dubbio, lascia deselezionato.";
 "Enet Didn't Initialize" = "Enet non è stato inizializzato";
 "English" = "Inglese";
 "Enhancements" = "Miglioramenti";
+"Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Inserisci ID del dispositivo USB";
 "Enter new Broadband Adapter MAC address:" = "Inserisci il nuovo indirizzo MAC dell'Adattatore Broadband:";
 "Enter password" = "Inserisci la password";
@@ -1070,7 +1081,6 @@ Controlla di avere i permessi di scrittura nella cartella di destinazione e che 
 "Failed to parse Redump.org data" = "Fallito parsing dei dati di Redump.org";
 "Failed to read %s" = "Fallita lettura di %s";
 "Failed to read from the input file \"%s\"." = "Fallita la lettura dal file di input \"%s\".";
-"Failed to read unique ID from disc image" = "Lettura dell'ID univoco dall'immagine del disco non riuscita";
 "Failed to remove file" = "Rimozione del file non riuscita";
 "Failed to remove junk data from file \"%1\".
 
@@ -1098,13 +1108,16 @@ Controlla di avere abbastanza spazio sul dispositivo di destinazione.";
 "Fast" = "Rapida";
 "Fast Depth Calculation" = "Calcolo Rapido della Profondità";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Desincronizzazione fatale. Interruzione della riproduzione. (Errore in PlayWiimote: %u != %u, byte %u.)%s";
+"File Details" = "File Details";
+"File Format" = "File Format";
+"File Format:" = "File Format:";
 "File Info" = "Info File";
 "File Name" = "Nome File";
 "File Path" = "Percorso:";
 "File Size" = "Dimensioni del File";
+"File Size:" = "File Size:";
 "File contained no codes." = "Il file non contiene codici.";
 "File write failed" = "Fallita la scrittura del file";
-"File:" = "File:";
 "Files opened, ready to compress." = "File aperti, pronti alla compressione.";
 "Files specified in the M3U file \"%s\" were not found:
 %s" = "I file specificati nel flie M3U \"%s\" non esistono:
@@ -1175,7 +1188,11 @@ Nel dubbio, lascia selezionato.";
 "France" = "Francia";
 "Free Look" = "Visuale Libera";
 "Freelook" = "Camera libera";
+"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
+"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
 "Freelook Decrease Speed" = "Riduci Velocità Telecamera Libera";
+"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
+"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
 "Freelook Increase Speed" = "Aumenta Velocità Telecamera Libera";
 "Freelook Move Down" = "Sposta in Basso la Telecamera Libera";
 "Freelook Move Left" = "Sposta a Sinistra la Telecamera Libera";
@@ -1200,6 +1217,7 @@ Nel dubbio, lascia selezionato.";
 "GC Port %1" = "Porta GC %1";
 "GCI Folder" = "Cartella GCI";
 "GCMemcardDirectory: ClearBlock called with invalid block address" = "GCMemcardDirectory: ClearBlock chiamato con indirizzo non valido";
+"GCZ GC/Wii images (*.gcz)" = "Immagini GCZ GC/Wii (*.gcz)";
 "GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).
 This means one of the following:
 * The emulated GPU got desynced, disabling dual core can help
@@ -1221,6 +1239,7 @@ Probabilmente Dolphin ora crasherà o si bloccherà. Auguri.";
 "Game" = "Gioco";
 "Game Boy Advance Carts (*.gba)" = "Schede di gioco Game Boy Advance (*.gba)";
 "Game Config" = "Configurazione di Gioco";
+"Game Details" = "Game Details";
 "Game Folders" = "Cartelle di Gioco";
 "Game ID" = "ID Gioco";
 "Game ID:" = "ID Gioco:";
@@ -1302,18 +1321,25 @@ Adatto a giochi casual con più di 3 giocatori, ma potenzialmente instabile su c
 "IPL Settings" = "Impostazioni IPL";
 "IR" = "Puntamento IR";
 "IR Sensitivity:" = "Sensibilità IR:";
-"ISO Details" = "Dettagli ISO";
 "ISO: A simple and robust format which is supported by many programs. It takes up more space than any other format.
 
-GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data." = "ISO: un formato semplice e robusto supportato da molti programmi. Richiede più spazio degli altri formati.
+GCZ: A basic compressed format which is compatible with most versions of Dolphin and some other programs. It can't efficiently compress junk data (unless removed) or encrypted Wii data.
 
-GCZ: un formato con una compressione base compatibile con la maggior parte delle versioni di Dolphin e alcuni altri programmi. Non può comprimere efficientemente i dati inutilizzati (a meno che non vengano rimossi) o i dati criptati Wii.";
+WIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later, and a few other programs. It can efficiently compress encrypted Wii data, but not junk data (unless removed).
+
+RVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later. It can efficiently compress both junk data and encrypted Wii data." = "ISO: un formato semplice e robusto supportato da molti programmi. Richiede più spazio degli altri formati.
+
+GCZ: un formato con una compressione base compatibile con la maggior parte delle versioni di Dolphin e alcuni altri programmi. Non può comprimere efficientemente i dati inutilizzati (a meno che non vengano rimossi) o i dati criptati Wii.
+
+WIA: Un formato di compressione avanzato compatibile con Dolphin 5.0-12188 e successivi, e alcuni altri programmi. Può comprimere efficientemente i dati Wii ma non i dati inutilizzati (a meno che non vengano rimossi).
+
+RVZ: Un formato di compressione avanzato compatibile con Dolphin 5.0-12188 e successivi. Può comprimere efficientemente sia i dati inutilizzati sia i dati criptati Wii.";
 "Icon" = "Icona";
 "Identical to Host Input Authority, except the \"Host\" (who has zero latency) can be switched at any time.
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Identico a Autorità Input Host, con la differenza che l'\"Host\" (che ha latenza zero) può cambiare in qualunque momento.
 Adatto a giochi a turni dipendenti dalle tempistiche dei controlli, come il golf.";
 "Identity Generation" = "Generazione Identità";
-"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "Se \"Permetti Scrittura su Scheda SD\" è disabilitato, questo non lo sovrascrive.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1647,6 +1673,7 @@ Nel dubbio, lascia deselezionato.";
 "No" = "No";
 "No Adapter Detected" = "Nessun Adattatore Rilevato";
 "No Audio Output" = "Nessun Output Audio";
+"No Compression" = "Nessuna Compressione";
 "No Match" = "Nessuna Corrispondenza";
 "No Value Given" = "Nessun Valore Inserito";
 "No description available" = "Non è disponibile una descrizione";
@@ -1733,6 +1760,7 @@ Nel dubbio, lascia deselezionato.";
 "Patch Editor" = "Patch Editor";
 "Patch name" = "Nome patch";
 "Patches" = "Patch";
+"Path:" = "Path:";
 "Paths" = "Percorsi";
 "Pause" = "Pausa";
 "Pause at End of Movie" = "Pausa al Termine del Filmato";
@@ -1803,6 +1831,7 @@ Non raccomandato, usa soltanto se le altre opzioni non danno i risultati sperati
 "RSO Modules" = "Moduli RSO";
 "RSO auto-detection" = "Auto-rilevamento RSO";
 "RUNNING" = "IN ESECUZIONE";
+"RVZ GC/Wii images (*.rvz)" = "Immagini RVZ GC/Wii (*.rvz)";
 "Range" = "Intensità";
 "Re&place instruction" = "(&p) Sostituisci istruzione";
 "Read" = "Lettura";
@@ -2620,6 +2649,7 @@ Nel dubbio, lascia deselezionato.";
 "WARNING: The controls under Accelerometer and Gyroscope are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ATTENZIONE: I controlli sotto Accelerometro e Giroscopio sono programmati per interfacciarsi direttamente con l'hardware dei sensori di movimento. Non sono fatti per essere mappati a pulsanti tradizionali, grilletti o assi. Dovresti configurare sorgenti di input diverse prima di usarli.";
 "WARNING: These controls are designed to interface directly with motion sensor hardware. They are not intended for mapping traditional buttons, triggers or axes. You might need to configure alternate input sources before using these controls." = "ATTENZIONE: questi controlli sono progettati per interfacciarsi direttamente con l'hardware dei sensori di movimento. Non sono fatti per essere mappati a pulsanti tradizionali, grilletti o assi. Dovresti configurare sorgenti di input diverse prima di usarli.";
 "WASAPI (Exclusive Mode)" = "WASAPI (Modalità Esclusiva)";
+"WIA GC/Wii images (*.wia)" = "Immagini WIA GC/Wii (*.wia)";
 "Waits for all shaders to finish compiling before starting a game. Enabling this option may reduce stuttering or hitching for a short time after the game is started, at the cost of a longer delay before the game starts. For systems with two or fewer cores, it is recommended to enable this option, as a large shader queue may reduce frame rates.
 
 Otherwise, if unsure, leave this unchecked." = "Attende la compilazione di tutti gli shader prima di avviare il gioco. Attivando questa opzione potrebbero ridursi i rallentamenti dopo l'avvio del gioco, al prezzo di un tempo di avvio maggiore. Se possiedi un sistema con due processori o meno ti conviene attivare questa opzione in quanto shader pesanti potrebbero ridurre il framerate.
