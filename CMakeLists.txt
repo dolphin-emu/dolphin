@@ -547,6 +547,8 @@ add_subdirectory(Externals/glslang)
 add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/Slippi)
 include_directories(Externals/Slippi)
+add_subdirectory(Externals/semver)
+include_directories(Externals/semver/include)
 add_subdirectory(Externals/open-vcdiff)
 include_directories(Externals/open-vcdiff)
 
