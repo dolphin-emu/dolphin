@@ -42,11 +42,11 @@ Even C only targets may cause problems in certain situations. Some problems have
 
 ## Build targets with sanitizer support
 
-To enable sanitizer support you simply have to add ``add_sanitizers(<TARGET>)`` after defining your target. To provide a sanitizer blacklist file you can use the ``add_sanitizer_blacklist(<FILE>)`` function:
+To enable sanitizer support you simply have to add ``add_sanitizers(<TARGET>)`` after defining your target. To provide a sanitizer blacklist file you can use the ``sanitizer_add_blacklist_file(<FILE>)`` function:
 ```CMake
 find_package(Sanitizers)
 
-add_sanitizer_blacklist("blacklist.txt")
+sanitizer_add_blacklist_file("blacklist.txt")
 
 add_executable(some_exe foo.c bar.c)
 add_sanitizers(some_exe)

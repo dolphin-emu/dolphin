@@ -24,7 +24,9 @@
 
 # Helper function to get the language of a source file.
 function (sanitizer_lang_of_source FILE RETURN_VAR)
-    get_filename_component(FILE_EXT "${FILE}" EXT)
+    get_filename_component(LONGEST_EXT "${FILE}" EXT)
+    # Get shortest extension as some files can have dot in their names
+    string(REGEX REPLACE "^.*(\\.[^.]+)$" "\\1" FILE_EXT ${LONGEST_EXT})
     string(TOLOWER "${FILE_EXT}" FILE_EXT)
     string(SUBSTRING "${FILE_EXT}" 1 -1 FILE_EXT)
 
@@ -150,7 +152,7 @@ endfunction ()
 
 
 # Helper to assign sanitizer flags for TARGET.
-function (saitizer_add_flags TARGET NAME PREFIX)
+function (sanitizer_add_flags TARGET NAME PREFIX)
     # Get list of compilers used by target and check, if sanitizer is available
     # for this target. Other compiler checks like check for conflicting
     # compilers will be done in add_sanitizers function.

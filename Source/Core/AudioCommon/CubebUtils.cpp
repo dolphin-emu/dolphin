@@ -12,6 +12,10 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/StringUtil.h"
 
+#ifdef _WIN32
+#include <comdef.h>
+#endif
+
 #include <cubeb/cubeb.h>
 
 static ptrdiff_t s_path_cutoff_point = 0;
@@ -61,6 +65,11 @@ std::shared_ptr<cubeb> CubebUtils::GetContext()
   {
     ERROR_LOG(AUDIO, "Error setting cubeb log callback");
   }
+
+#ifdef _WIN32
+  // Cubeb requires us to do it ourselves
+  CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+#endif
 
   cubeb* ctx;
   if (cubeb_init(&ctx, "Dolphin", nullptr) != CUBEB_OK)

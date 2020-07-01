@@ -60,7 +60,6 @@
     <ClInclude Include="..\src\cubeb_assert.h" />
     <ClInclude Include="..\src\cubeb_log.h" />
     <ClInclude Include="..\src\cubeb_mixer.h" />
-    <ClInclude Include="..\src\cubeb_panner.h" />
     <ClInclude Include="..\src\cubeb_resampler.h" />
     <ClInclude Include="..\src\cubeb_resampler_internal.h" />
     <ClInclude Include="..\src\cubeb_ringbuffer.h" />
@@ -81,9 +80,9 @@
     <ClCompile Include="..\src\cubeb.c" />
     <ClCompile Include="..\src\cubeb_log.cpp" />
     <ClCompile Include="..\src\cubeb_mixer.cpp" />
-    <ClCompile Include="..\src\cubeb_panner.cpp" />
     <ClCompile Include="..\src\cubeb_resampler.cpp" />
     <ClCompile Include="..\src\cubeb_strings.c" />
+    <ClCompile Include="..\src\cubeb_utils.cpp" />
     <ClCompile Include="..\src\cubeb_wasapi.cpp" />
     <ClCompile Include="..\src\cubeb_winmm.c" />
     <ClCompile Include="..\src\speex\resample.c" />

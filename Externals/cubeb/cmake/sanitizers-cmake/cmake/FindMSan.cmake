@@ -53,5 +53,5 @@ function (add_sanitize_memory TARGET)
         return()
     endif ()
 
-    saitizer_add_flags(${TARGET} "MemorySanitizer" "MSan")
+    sanitizer_add_flags(${TARGET} "MemorySanitizer" "MSan")
 endfunction ()
