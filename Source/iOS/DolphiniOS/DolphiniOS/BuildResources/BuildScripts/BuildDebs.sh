@@ -9,7 +9,7 @@ DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_deb_root/"
 CSDBGD_EXPORT_PATH="$EXPORT_PATH/csdbgd_deb_root/"
 CONTROL_FILE=$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/DebFiles/control.in
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Applications/DolphiniOS.app
-CODESIGN_ARGS='-f -s OatmealDome'
+CODESIGN_ARGS='-f -s 0059C24602FCB60DA511DCAA08727C70C1FF9A99'
 BUNDLE_ID="me.oatmealdome.DolphiniOS"
 VERSION_STRING=$(cat $PROJECT_DIR/DolphiniOS.xcodeproj/project.pbxproj | grep -m1 'MARKETING_VERSION' | cut -d'=' -f2 | tr -d ';' | tr -d ' ')
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
