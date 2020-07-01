@@ -25,7 +25,7 @@
 #define NOMEDIA_FILE ".nomedia"
 #else
 #define USERDATA_DIR "user"
-#define DOLPHIN_DATA_DIR "dolphin-emu"
+#define DOLPHIN_DATA_DIR "SlippiOnline"
 #endif
 
 // Dirs in both User and Sys

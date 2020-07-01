@@ -163,6 +163,9 @@ bool DeleteDirRecursively(const std::string& directory);
 // Returns the current directory
 std::string GetCurrentDir();
 
+// Gets the last modified time of a file
+u64 GetFileModTime(const std::string& path);
+
 // Create directory and copy contents (optionally overwrites existing files)
 void CopyDir(const std::string& source_path, const std::string& dest_path,
              bool destructive = false);
@@ -200,6 +203,7 @@ std::string GetBundleDirectory();
 
 std::string GetExePath();
 std::string GetExeDirectory();
+std::string GetHomeDirectory();
 
 bool WriteStringToFile(const std::string& filename, std::string_view str);
 bool ReadFileToString(const std::string& filename, std::string& str);

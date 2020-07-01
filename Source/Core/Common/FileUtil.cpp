@@ -30,6 +30,8 @@
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
+#include <ShlObj.h>
+#include <winerror.h>
 #else
 #include <dirent.h>
 #include <errno.h>
@@ -531,6 +533,28 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
+// SLIPPITODO: replace with C++17 https://en.cppreference.com/w/cpp/filesystem/last_write_time
+u64 GetFileModTime(const std::string& filename)
+{
+  struct stat file_info;
+
+  std::string copy(filename);
+  StripTailDirSlashes(copy);
+
+#ifdef _WIN32
+  int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
+#else
+  int result = stat(copy.c_str(), &file_info);
+#endif
+
+  if (result < 0)
+  {
+    return 0;
+  }
+
+  return file_info.st_mtime;
+}
+
 // Create directory and copy contents (does not overwrite existing files)
 void CopyDir(const std::string& source_path, const std::string& dest_path, bool destructive)
 {
@@ -709,6 +733,32 @@ std::string GetExePath()
   return dolphin_path;
 }
 
+// SLIPPITODO: refactor with c++17 std::filesystem?
+std::string GetHomeDirectory()
+{
+  std::string homeDir;
+#ifdef _WIN32
+  wchar_t* path = nullptr;
+
+  if (SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &path))) {
+    char pathStr[MAX_PATH];
+    wcstombs(pathStr, path, MAX_PATH);
+
+    homeDir = std::string(pathStr);
+    CoTaskMemFree(path);
+  }
+  else {
+    const char* home = getenv("USERPROFILE");
+    homeDir = std::string(home) + "\\Documents";
+  }
+#else
+  const char* home = getenv("HOME");
+  homeDir = std::string(home);
+#endif
+
+  return homeDir;
+}
+
 std::string GetExeDirectory()
 {
   std::string exe_path = GetExePath();
@@ -736,16 +786,22 @@ std::string GetSysDirectory()
 #endif
 
 #if defined(__APPLE__)
-  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR;
+  sysDir = GetBundleDirectory() + DIR_SEP + SYSDATA_DIR + DIR_SEP;
 #elif defined(_WIN32) || defined(LINUX_LOCAL_DEV)
-  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR;
+  sysDir = GetExeDirectory() + DIR_SEP + SYSDATA_DIR + DIR_SEP;
 #elif defined ANDROID
   sysDir = s_android_sys_directory;
   ASSERT_MSG(COMMON, !sysDir.empty(), "Sys directory has not been set");
 #else
-  sysDir = SYSDATA_DIR;
+  const char* home = getenv("HOME");
+  if (!home) home = getenv("PWD");
+  if (!home) home = "";
+  std::string home_path = std::string(home) + DIR_SEP;
+  const char* config_home = getenv("XDG_CONFIG_HOME");
+  sysDir = std::string(config_home && config_home[0] == '/'
+    ? config_home : (home_path + ".config"))
+    + DIR_SEP DOLPHIN_DATA_DIR DIR_SEP "Sys" DIR_SEP;
 #endif
-  sysDir += DIR_SEP;
 
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
