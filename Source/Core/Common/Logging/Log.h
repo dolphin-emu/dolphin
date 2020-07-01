@@ -51,6 +51,8 @@ enum LOG_TYPE
   PROCESSORINTERFACE,
   POWERPC,
   SERIALINTERFACE,
+  SLIPPI,
+  SLIPPI_ONLINE,
   SP1,
   SYMBOLS,
   VIDEO,
@@ -71,6 +73,18 @@ enum LOG_LEVELS
 };
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
+
+// Short File code taken from https://blog.galowicz.de/2016/02/20/short_file_macro/
+static constexpr const char* past_last_slash(const char* str, const char* last_slash)
+{
+  return *str == '\0' ? last_slash
+    : *str == '/' || *str == '\\' ? past_last_slash(str + 1, str + 1) : past_last_slash(str + 1, last_slash);
+}
+
+static constexpr const char* past_last_slash(const char* str)
+{
+  return past_last_slash(str, str);
+}
 
 void GenericLog(Common::Log::LOG_LEVELS level, Common::Log::LOG_TYPE type, const char* file,
                 int line, const char* fmt, ...)
@@ -93,7 +107,7 @@ void GenericLog(Common::Log::LOG_LEVELS level, Common::Log::LOG_TYPE type, const
   do                                                                                               \
   {                                                                                                \
     if (v <= MAX_LOGLEVEL)                                                                         \
-      Common::Log::GenericLog(v, t, __FILE__, __LINE__, __VA_ARGS__);                              \
+      Common::Log::GenericLog(v, t, Common::Log::past_last_slash(__FILE__), __LINE__, __VA_ARGS__);             \
   } while (0)
 
 #define ERROR_LOG(t, ...)                                                                          \

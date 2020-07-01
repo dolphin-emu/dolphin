@@ -109,6 +109,8 @@ LogManager::LogManager()
   m_log[DVDINTERFACE] = {"DVD", "DVD Interface"};
   m_log[DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
+  m_log[SLIPPI] = {"SLIPPI", "Slippi"};
+  m_log[SLIPPI_ONLINE] = {"SLIPPI_ONLINE", "Slippi Online"};
   m_log[FILEMON] = {"FileMon", "File Monitor"};
   m_log[GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[GPFIFO] = {"GP", "GatherPipe FIFO"};
