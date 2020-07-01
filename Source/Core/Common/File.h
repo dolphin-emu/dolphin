@@ -21,6 +21,7 @@ public:
   IOFile();
   IOFile(std::FILE* file);
   IOFile(const std::string& filename, const char openmode[]);
+  IOFile(const std::string& filename, const char openmode[], int shflag);
 
   ~IOFile();
 
@@ -33,6 +34,9 @@ public:
   void Swap(IOFile& other) noexcept;
 
   bool Open(const std::string& filename, const char openmode[]);
+
+  bool OpenShared(const std::string& filename, const char openmode[], int shflag);
+
   bool Close();
 
   template <typename T>
