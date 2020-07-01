@@ -1,0 +1,71 @@
+Source: open-vcdiff
+Priority: optional
+Maintainer: Google Inc. <opensource@google.com>
+Build-Depends: debhelper (>= 7.0.0), autotools-dev
+Standards-Version: 3.8.4
+Section: libs
+
+Package: libvcdcom0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: open-vcdiff common library
+ This library includes common modules needed by the open-vcdiff package.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: libvcddec0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: open-vcdiff decoder library
+ This library is part of the open-vcdiff package and provides a decoder for the
+ VCDIFF (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: libvcdenc0
+Section: libs
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: open-vcdiff encoder library
+ This library is part of the open-vcdiff package and provides an encoder for the
+ VCDIFF (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: libvcdcom-dev
+Section: libdevel
+Architecture: any
+Depends: libvcdcom0 (= ${binary:Version}), ${misc:Depends}
+Description: Development files for open-vcdiff common library
+ This library is needed to compile code that calls open-vcdiff, an encoder and
+ decoder for the VCDIFF (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: libvcddec-dev
+Section: libdevel
+Architecture: any
+Depends: libvcddec0 (= ${binary:Version}), libvcdcom-dev (= ${binary:Version}),
+         ${misc:Depends}
+Description: Development files for open-vcdiff decoder library
+ This package contains the header file and library needed to compile code that
+ calls the open-vcdiff decoder for the VCDIFF (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: libvcdenc-dev
+Section: libdevel
+Architecture: any
+Depends: libvcdenc0 (= ${binary:Version}), libvcdcom-dev (= ${binary:Version}),
+         ${misc:Depends}
+Description: Development files for open-vcdiff encoder library
+ This package contains the header file and library needed to compile code that
+ calls the open-vcdiff encoder for the VCDIFF (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+
+Package: open-vcdiff0
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}, ${misc:Depends}
+Description: An encoder and decoder for the VCDIFF (RFC 3284) format
+ A command-line interface to open-vcdiff, an encoder and decoder for the VCDIFF
+ (RFC 3284) format.
+ For details, please see https://github.com/google/open-vcdiff
+

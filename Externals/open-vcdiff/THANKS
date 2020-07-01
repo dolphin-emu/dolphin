@@ -1,0 +1,57 @@
+open-vcdiff has originally been written by Lincoln Smith with
+significant code contributions by Chandra Chereddi, Jeff Dean,
+Sanjay Ghemawat, Craig Silverstein, and Zhanyong Wan.  Special
+thanks to Craig Silverstein and Daniel Berlin as tireless
+champions of open-source projects.
+
+Many people further contributed to open-vcdiff by reporting
+problems, suggesting various improvements or submitting actual
+code.  Here is a list of these people.  Please help me keep it
+complete and free of errors.  (Authors of new code and patches,
+in particular, should also appear in the CONTRIBUTORS file.)
+
+Stephen Adams
+Jens Alfke
+Daniel Berlin
+Steve Block
+Mostyn Bramley-Moore
+Jon Butler
+Wiltse Carpenter
+Jagannadh Chukka
+Matthieu Crapet
+James deBoer
+Fabrice de Gans-Riberi
+Eric Dorland
+Eric Flatt
+David Glasser
+Jeff Gustafson
+Pawel Hajdan jr
+Bijun He
+Mark Heffernan
+Jacob Hoffman-Andrews
+Ashu Jain
+Martin Jonsson
+Daniel Kegel
+Michael Kleber
+Leonidas Kontothanassis
+Alexander Kornienko
+Wei-Hsin Lee
+Frank Lin
+Josh MacDonald
+Bryan McQuade
+Ken Mixter
+Jim Morrison
+Max Motovilov
+Paul Pluzhnikov
+Alex Raikman
+David Rochberg
+Jim Roskind
+Marius Schilder
+Craig Schlenter
+Robin Shostack
+Adeodato Simo
+Ben Smith
+Todd Turnidge
+Linus Upson
+Xianzhu Wang
+

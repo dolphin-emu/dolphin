@@ -1,0 +1,2 @@
+ERROR: The length of the delta encoding does not match the size of the header plus the sizes of the data sections
+Error trying to decode data chunk of length 139
