@@ -162,7 +162,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
     {
       // d = -(-a * c + b)
       // rounding is incorrect if the rounding mode is +/- infinity
-      m_float_emit.FMLS(size, VD, VB, VC);
+      m_float_emit.FMLS(size, VD, VA, VC);
       m_float_emit.FNEG(size, VD, VD);
     }
     else if (d != a && d != c)
