@@ -32,7 +32,7 @@ namespace Slippi {
 
   static uint8_t* data;
 
-  typedef struct {
+  struct PlayerFrameData {
     // Every player update has its own rng seed because it might change in between players
     uint32_t randomSeed;
 
@@ -62,9 +62,9 @@ namespace Slippi {
     float rTrigger;
 
     uint8_t joystickXRaw;
-  } PlayerFrameData;
+  };
 
-  typedef struct {
+  struct FrameData {
     int32_t frame;
     uint32_t numSinceStart;
     bool randomSeedExists = false;
@@ -72,18 +72,18 @@ namespace Slippi {
     bool inputsFullyFetched = false;
     std::unordered_map<uint8_t, PlayerFrameData> players;
     std::unordered_map<uint8_t, PlayerFrameData> followers;
-  } FrameData;
+  };
 
-  typedef struct {
+  struct PlayerSettings {
     //Static data
     uint8_t characterId;
     uint8_t characterColor;
     uint8_t playerType;
     uint8_t controllerPort;
     std::array<uint16_t, NAMETAG_SIZE> nametag;
-  } PlayerSettings;
+  };
 
-  typedef struct {
+  struct GameSettings {
     uint16_t stage; //Stage ID
     uint32_t randomSeed;
     std::array<uint32_t, GAME_INFO_HEADER_SIZE> header;
@@ -92,9 +92,9 @@ namespace Slippi {
     uint8_t isPAL;
     uint8_t isFrozenPS;
     std::vector<uint8_t> geckoCodes;
-  } GameSettings;
+  };
 
-  typedef struct {
+  struct Game {
     std::array<uint8_t, 4> version;
     std::unordered_map<int32_t, FrameData*> framesByIndex;
     std::vector<std::unique_ptr<FrameData>> frames;
@@ -105,7 +105,7 @@ namespace Slippi {
 
     //From OnGameEnd event
     uint8_t winCondition;
-  } Game;
+  };
 
   class SlippiGame {
   public:
