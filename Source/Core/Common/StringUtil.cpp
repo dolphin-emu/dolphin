@@ -18,6 +18,12 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
+
+// SLIPPITODO: codecvt is deprecated, refactor code with std::filesystem
+#ifdef _WIN32
+#include <codecvt>
+#endif
 
 #include <fmt/format.h>
 
@@ -412,6 +418,69 @@ void StringPopBackIf(std::string* s, char c)
     s->pop_back();
 }
 
+// SLIPPITODO: look into boost locale maybe
+void ConvertNarrowSpecialSHIFTJIS(std::string& input)
+{
+  // Melee doesn't correctly display special characters in narrow form We need to convert them to wide form.
+  // I couldn't find a library to do this so for now let's just do it manually
+  static std::unordered_map<char, char16_t> specialCharConvert = {
+      {'!', (char16_t)0x8149}, {'"', (char16_t)0x8168}, {'#', (char16_t)0x8194},  {'$', (char16_t)0x8190},
+      {'%', (char16_t)0x8193}, {'&', (char16_t)0x8195}, {'\'', (char16_t)0x8166}, {'(', (char16_t)0x8169},
+      {')', (char16_t)0x816a}, {'*', (char16_t)0x8196}, {'+', (char16_t)0x817b},  {',', (char16_t)0x8143},
+      {'-', (char16_t)0x817c}, {'.', (char16_t)0x8144}, {'/', (char16_t)0x815e},  {':', (char16_t)0x8146},
+      {';', (char16_t)0x8147}, {'<', (char16_t)0x8183}, {'=', (char16_t)0x8181},  {'>', (char16_t)0x8184},
+      {'?', (char16_t)0x8148}, {'@', (char16_t)0x8197}, {'[', (char16_t)0x816d},  {'\\', (char16_t)0x815f},
+      {']', (char16_t)0x816e}, {'^', (char16_t)0x814f}, {'_', (char16_t)0x8151},  {'`', (char16_t)0x814d},
+      {'{', (char16_t)0x816f}, {'|', (char16_t)0x8162}, {'}', (char16_t)0x8170},  {'~', (char16_t)0x8160},
+  };
+
+  int pos = 0;
+  while (pos < input.length())
+  {
+    auto c = input[pos];
+    if ((u8)(0x80 & (u8)c) == 0x80)
+    {
+      // This is a 2 char rune, move to next
+      pos += 2;
+      continue;
+    }
+
+    bool hasConversion = specialCharConvert.count(c);
+    if (!hasConversion)
+    {
+      pos += 1;
+      continue;
+    }
+
+    // Remove previous character
+    input.erase(pos, 1);
+
+    // Add new chars to pos to replace
+    auto newChars = (char*)& specialCharConvert[c];
+    input.insert(input.begin() + pos, 1, newChars[0]);
+    input.insert(input.begin() + pos, 1, newChars[1]);
+  }
+}
+
+std::string ConvertStringForGame(const std::string& input, int length)
+{
+  auto utf32 = UTF8ToUTF32(input);
+
+  // Limit length
+  if (utf32.length() > length)
+  {
+    utf32.resize(length);
+  }
+
+  auto utf8 = UTF32toUTF8(utf32);
+  auto shiftJis = UTF8ToSHIFTJIS(utf8);
+  ConvertNarrowSpecialSHIFTJIS(shiftJis);
+
+  // Make fixed size
+  shiftJis.resize(length * 2 + 1);
+  return shiftJis;
+}
+
 #ifdef _WIN32
 
 std::wstring CPToUTF16(u32 code_page, std::string_view input)
@@ -480,6 +549,24 @@ std::string UTF8ToSHIFTJIS(std::string_view input)
 std::string CP1252ToUTF8(std::string_view input)
 {
   return UTF16ToUTF8(CPToUTF16(CODEPAGE_WINDOWS_1252, input));
+}
+
+// SLIPPITODO: can't use string_view because still using deprecated codecvt stuff
+// Unfortunately, there is no good replacement because all text encoding libraries suck.
+#pragma warning( disable : 4996 )
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING // SLIPPITODO: look into MultiByteToWideChar() and WideCharToMultiByte() from <Windows.h>?
+std::u32string UTF8ToUTF32(const std::string& input)
+{
+  std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> utf32Convert;
+  auto asInt = utf32Convert.from_bytes(input);
+  return std::u32string(reinterpret_cast<char32_t const*>(asInt.data()), asInt.length());
+}
+
+std::string UTF32toUTF8(const std::u32string& input)
+{
+  std::wstring_convert<std::codecvt_utf8<int32_t>, int32_t> utf8Convert;
+  auto p = reinterpret_cast<const int32_t*>(input.data());
+  return utf8Convert.to_bytes(p, p + input.size());
 }
 
 std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
@@ -582,6 +669,20 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 {
   const char16_t* str_end = std::find(str, str + max_size, '\0');
   return CodeToUTF8("UTF-16BE", std::u16string_view(str, static_cast<size_t>(str_end - str)));
+}
+
+std::u32string UTF8ToUTF32(const std::string_view input)
+{
+  auto val = CodeTo("UTF-32LE", "UTF-8", input);
+  auto utf32Data = (char32_t*)val.data();
+  return std::u32string(utf32Data, utf32Data + (val.size() / 4));
+}
+
+std::string UTF32toUTF8(const std::u32string& input)
+{
+  auto utf8Data = (char*)input.data();
+  auto str = std::string(utf8Data, utf8Data + (input.size() * 4));
+  return CodeTo("UTF-8", "UTF-32LE", str);
 }
 
 #endif

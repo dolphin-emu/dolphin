@@ -168,6 +168,13 @@ bool StringBeginsWith(std::string_view str, std::string_view begin);
 bool StringEndsWith(std::string_view str, std::string_view end);
 void StringPopBackIf(std::string* s, char c);
 
+#ifdef _WIN32
+std::u32string UTF8ToUTF32(const std::string& input);
+#else
+std::u32string UTF8ToUTF32(const std::string_view input);
+#endif
+std::string UTF32toUTF8(const std::u32string& input);
+std::string ConvertStringForGame(const std::string& input, int length);
 std::string CP1252ToUTF8(std::string_view str);
 std::string SHIFTJISToUTF8(std::string_view str);
 std::string UTF8ToSHIFTJIS(std::string_view str);
