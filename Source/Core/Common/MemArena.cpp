@@ -122,7 +122,7 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 #elif defined(IPHONEOS)
   vm_address_t target = reinterpret_cast<vm_address_t>(base);
   uint64_t mask = 0;
-  bool anywhere = false;
+  bool anywhere = base == nullptr;
   vm_address_t source = vm_mem + offset;
   vm_prot_t cur_protection = 0;
   vm_prot_t max_protection = 0;
