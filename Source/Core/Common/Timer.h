@@ -23,6 +23,8 @@ public:
   u64 GetTimeDifference();
   void AddTimeDifference();
 
+  bool IsRunning() const { return m_Running; }
+
   static void IncreaseResolution();
   static void RestoreResolution();
   static u64 GetTimeSinceJan1970();

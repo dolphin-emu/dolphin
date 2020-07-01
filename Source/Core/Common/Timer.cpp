@@ -118,10 +118,9 @@ void Timer::AddTimeDifference()
 // Get the time elapsed since the Start()
 u64 Timer::GetTimeElapsed()
 {
-  // If we have not started yet, return 1 (because then I don't
-  // have to change the FPS calculation in CoreRerecording.cpp .
+  // If we have not started yet, return zero
   if (m_StartTime == 0)
-    return 1;
+    return 0;
 
   // Return the final timer time if the timer is stopped
   if (!m_Running)
