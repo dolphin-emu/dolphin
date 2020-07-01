@@ -533,6 +533,15 @@ bool DeleteDirRecursively(const std::string& directory)
   return success;
 }
 
+static void StripTailDirSlashes(std::string& fname)
+{
+  if (fname.length() > 1)
+  {
+    while (fname.back() == DIR_SEP_CHR)
+      fname.pop_back();
+  }
+}
+
 // SLIPPITODO: replace with C++17 https://en.cppreference.com/w/cpp/filesystem/last_write_time
 u64 GetFileModTime(const std::string& filename)
 {
