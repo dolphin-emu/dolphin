@@ -17,6 +17,9 @@
 		B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B92431C52400DFC600D5FF0A /* GraphicsSettings.storyboard */; };
 		B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924321D2401F61300D5FF0A /* InGameSettings.storyboard */; };
 		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
+		B927118624A3FF8000A21182 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118524A3FF8000A21182 /* libbz2.tbd */; };
+		B927118824A3FFB200A21182 /* liblzma.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118724A3FFB200A21182 /* liblzma.tbd */; };
+		B927118A24A4007B00A21182 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118924A4007B00A21182 /* libzstd.a */; };
 		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
 		B92C380324142B960023D808 /* GraphicsAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */; };
@@ -329,6 +332,9 @@
 		B924DCA323DA873000831A1A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Settings.storyboard; sourceTree = "<group>"; };
 		B924DCA623DA88FA00831A1A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/Settings.strings; sourceTree = "<group>"; };
 		B924DCA823DA890800831A1A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Settings.strings; sourceTree = "<group>"; };
+		B927118524A3FF8000A21182 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = usr/lib/libbz2.tbd; sourceTree = SDKROOT; };
+		B927118724A3FFB200A21182 /* liblzma.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = liblzma.tbd; path = usr/lib/liblzma.tbd; sourceTree = SDKROOT; };
+		B927118924A4007B00A21182 /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = "../../../build-Debug/libs/Externals/libzstd.a"; sourceTree = "<group>"; };
 		B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtensions.swift; sourceTree = "<group>"; };
 		B928112523C0A24700B53145 /* TCClassicWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCClassicWiiPad.xib; sourceTree = "<group>"; };
 		B92C380124142B960023D808 /* GraphicsAdvancedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsAdvancedViewController.h; sourceTree = "<group>"; };
@@ -648,7 +654,10 @@
 				B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */,
 				B99B05BF23A323600076C7D8 /* MetalKit.framework in Frameworks */,
 				B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */,
+				B927118624A3FF8000A21182 /* libbz2.tbd in Frameworks */,
+				B927118824A3FFB200A21182 /* liblzma.tbd in Frameworks */,
 				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
+				B927118A24A4007B00A21182 /* libzstd.a in Frameworks */,
 				B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */,
 				B945A3DC2362DBB200B21680 /* libfmt.a in Frameworks */,
 				B945A3DD2362DBB200B21680 /* libiconv.a in Frameworks */,
@@ -856,6 +865,9 @@
 		B945A3932362D98300B21680 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				B927118924A4007B00A21182 /* libzstd.a */,
+				B927118724A3FFB200A21182 /* liblzma.tbd */,
+				B927118524A3FF8000A21182 /* libbz2.tbd */,
 				B9DCAC9E23AC9C83002B95C8 /* GameController.framework */,
 				B99B05BE23A323600076C7D8 /* MetalKit.framework */,
 				B95A09472385DE9600DBBB01 /* AudioToolbox.framework */,
