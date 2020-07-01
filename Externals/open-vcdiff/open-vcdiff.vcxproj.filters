@@ -1,0 +1,73 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="google">
+      <UniqueIdentifier>{ad5488a0-1616-4cee-ad0d-11f3e2b48032}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="zlib">
+      <UniqueIdentifier>{d1a913eb-382b-4a23-9947-8f3f49da7368}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\config.h" />
+    <ClInclude Include="src\zlib\zconf.h">
+      <Filter>zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\zlib\zlib.h">
+      <Filter>zlib</Filter>
+    </ClInclude>
+    <ClInclude Include="src\addrcache.h" />
+    <ClInclude Include="src\blockhash.h" />
+    <ClInclude Include="src\checksum.h" />
+    <ClInclude Include="src\codetable.h" />
+    <ClInclude Include="src\decodetable.h" />
+    <ClInclude Include="src\headerparser.h" />
+    <ClInclude Include="src\logging.h" />
+    <ClInclude Include="src\rolling_hash.h" />
+    <ClInclude Include="src\unique_ptr.h" />
+    <ClInclude Include="src\varint_bigendian.h" />
+    <ClInclude Include="src\vcdiff_defs.h" />
+    <ClInclude Include="src\vcdiffengine.h" />
+    <ClInclude Include="src\compile_assert.h" />
+    <ClInclude Include="src\google\codetablewriter_interface.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\encodetable.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\format_extension_flags.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\jsonwriter.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\output_string.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\vcdecoder.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\google\vcencoder.h">
+      <Filter>google</Filter>
+    </ClInclude>
+    <ClInclude Include="src\instruction_map.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\zlib\adler32.c">
+      <Filter>zlib</Filter>
+    </ClCompile>
+    <ClCompile Include="src\addrcache.cc" />
+    <ClCompile Include="src\blockhash.cc" />
+    <ClCompile Include="src\codetable.cc" />
+    <ClCompile Include="src\decodetable.cc" />
+    <ClCompile Include="src\headerparser.cc" />
+    <ClCompile Include="src\logging.cc" />
+    <ClCompile Include="src\varint_bigendian.cc" />
+    <ClCompile Include="src\vcdecoder.cc" />
+    <ClCompile Include="src\vcdiffengine.cc" />
+    <ClCompile Include="src\vcencoder.cc" />
+    <ClCompile Include="src\jsonwriter.cc" />
+    <ClCompile Include="src\encodetable.cc" />
+    <ClCompile Include="src\instruction_map.cc" />
+  </ItemGroup>
+</Project>

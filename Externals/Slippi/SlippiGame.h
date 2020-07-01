@@ -96,8 +96,8 @@ namespace Slippi {
 
   typedef struct {
     std::array<uint8_t, 4> version;
-    std::unordered_map<int32_t, FrameData*> framesByIndex;
-    std::vector<std::unique_ptr<FrameData>> frames;
+    std::unordered_map<int32_t, FrameData> framesByIndex;
+    std::vector<FrameData> frames;
     GameSettings settings;
     bool areSettingsLoaded = false;
 
@@ -112,8 +112,8 @@ namespace Slippi {
     bool AreSettingsLoaded();
     bool DoesFrameExist(int32_t frame);
     std::array<uint8_t, 4> GetVersion();
-    FrameData* GetFrame(int32_t frame);
-    FrameData* GetFrameAt(uint32_t pos);
+    std::shared_ptr<FrameData> GetFrame(int32_t frame);
+    std::shared_ptr<FrameData> GetFrameAt(uint32_t pos);
     int32_t GetLatestIndex();
     GameSettings* GetSettings();
     bool DoesPlayerExist(int8_t port);

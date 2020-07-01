@@ -559,6 +559,9 @@ PUBLIC
   videosoftware
   videovulkan
   Slippi
+  vcdcom
+  vcddec
+  vcdenc
 
 PRIVATE
   fmt::fmt

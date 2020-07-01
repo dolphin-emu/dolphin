@@ -140,17 +140,16 @@ namespace Slippi {
     int32_t frameCount = readWord(data, idx, maxSize, 0);
     game.frameCount = frameCount;
 
-    auto frameUniquePtr = std::make_unique<FrameData>();
-    FrameData* frame = frameUniquePtr.get();
+    FrameData frame;
 
-    frame->frame = frameCount;
-    frame->randomSeedExists = true;
-    frame->randomSeed = readWord(data, idx, maxSize, 0);
+    frame.frame = frameCount;
+    frame.randomSeedExists = true;
+    frame.randomSeed = readWord(data, idx, maxSize, 0);
 
     // Add frame to game. The frames are stored in multiple ways because
     // for games with rollback, the same frame may be replayed multiple times
-    frame->numSinceStart = game.frames.size();
-    game.frames.push_back(std::move(frameUniquePtr));
+    frame.numSinceStart = game.frames.size();
+    game.frames.emplace_back(std::move(frame));
     game.framesByIndex[frameCount] = frame;
   }
 
@@ -161,17 +160,16 @@ namespace Slippi {
     int32_t frameCount = readWord(data, idx, maxSize, 0);
     game.frameCount = frameCount;
 
-    auto frameUniquePtr = std::make_unique<FrameData>();
-    FrameData* frame = frameUniquePtr.get();
+    FrameData frame;
     bool isNewFrame = true;
 
     if (game.framesByIndex.count(frameCount)) {
       // If this frame already exists, get the current frame
-      frame = game.frames.back().get();
+      frame = game.frames.back();
       isNewFrame = false;
     }
 
-    frame->frame = frameCount;
+    frame.frame = frameCount;
 
     PlayerFrameData p;
 
@@ -209,15 +207,15 @@ namespace Slippi {
 
     // Add player data to frame
     std::unordered_map<uint8_t, PlayerFrameData>* target;
-    target = isFollower ? &frame->followers : &frame->players;
+    target = isFollower ? &frame.followers : &frame.players;
 
     // Set the player data for the player or follower
     target->operator[](playerSlot) = p;
 
     // Add frame to game
     if (isNewFrame) {
-      frame->numSinceStart = game.frames.size();
-      game.frames.push_back(std::move(frameUniquePtr));
+      frame.numSinceStart = game.frames.size();
+      game.frames.emplace_back(frame);
       game.framesByIndex[frameCount] = frame;
     }
   }
@@ -228,20 +226,20 @@ namespace Slippi {
     //Check frame count
     int32_t frameCount = readWord(data, idx, maxSize, 0);
 
-    FrameData* frame;
+    FrameData frame;
     if (game.framesByIndex.count(frameCount)) {
       // If this frame already exists, get the current frame
-      frame = game.frames.back().get();
+      auto test = game.frames.back();
     }
 
     // As soon as a post frame update happens, we know we have received all the inputs
     // This is used to determine if a frame is ready to be used for a replay (for mirroring)
-    frame->inputsFullyFetched = true;
+    frame.inputsFullyFetched = true;
 
     uint8_t playerSlot = readByte(data, idx, maxSize, 0);
     uint8_t isFollower = readByte(data, idx, maxSize, 0);
 
-    PlayerFrameData* p = isFollower ? &frame->followers[playerSlot] : &frame->players[playerSlot];
+    PlayerFrameData* p = isFollower ? &frame.followers[playerSlot] : &frame.players[playerSlot];
 
     p->internalCharacterId = readByte(data, idx, maxSize, 0);
 
@@ -253,7 +251,7 @@ namespace Slippi {
     // Set settings loaded if this is the last character
     if (frameCount == GAME_FIRST_FRAME) {
       uint8_t lastPlayerIndex = 0;
-      for (auto it = frame->players.begin(); it != frame->players.end(); ++it) {
+      for (auto it = frame.players.begin(); it != frame.players.end(); ++it) {
         if (it->first <= lastPlayerIndex) {
           continue;
         }
@@ -350,18 +348,18 @@ namespace Slippi {
     return game.version;
   }
 
-  FrameData* SlippiGame::GetFrame(int32_t frame) {
+  std::shared_ptr<FrameData> SlippiGame::GetFrame(int32_t frame) {
     // Get the frame we want
-    return game.framesByIndex.at(frame);
+    return std::make_shared<FrameData>(game.framesByIndex.at(frame));
   };
 
-  FrameData* SlippiGame::GetFrameAt(uint32_t pos) {
+  std::shared_ptr<FrameData> SlippiGame::GetFrameAt(uint32_t pos) {
     if (pos >= game.frames.size()) {
       return nullptr;
     }
 
     // Get the frame we want
-    return game.frames[pos].get();
+    return std::make_shared<FrameData>(game.frames[pos]);
   };
 
   int32_t SlippiGame::GetLatestIndex() {
