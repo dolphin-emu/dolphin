@@ -2,13 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-  <!-- TODO: Dolphin needs JIT, but doesn't use MAP_JIT yet -->
+  <!-- Required for JIT usage -->
   <key>com.apple.security.cs.allow-jit</key>
   <true/>
-  <!-- Since we don't use MAP_JIT, we need this so we can allocate executable memory -->
-  <key>com.apple.security.cs.allow-unsigned-executable-memory</key>
-  <true/>
-  <!-- Needed so for GameCube microphone emulation -->
+  <!-- Needed for GameCube microphone emulation -->
   <key>com.apple.security.device.audio-input</key>
   <true/>
   <!-- TODO: What is using AppleEvents? -->

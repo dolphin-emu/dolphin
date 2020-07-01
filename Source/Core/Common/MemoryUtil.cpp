@@ -38,8 +38,12 @@ void* AllocateExecutableMemory(size_t size)
 #if defined(_WIN32)
   void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
-  void* ptr =
-      mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
+  int flags = MAP_ANON | MAP_PRIVATE;
+#ifdef __APPLE__
+  flags |= MAP_JIT;
+#endif
+
+  void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, flags, -1, 0);
 
   if (ptr == MAP_FAILED)
     ptr = nullptr;
