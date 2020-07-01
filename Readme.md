@@ -15,7 +15,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Windows (7 SP1 or higher).
     * Linux.
-    * macOS (10.12 Sierra or higher).
+    * macOS (10.12 Sierra or higher). // TODO: figure this out
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -38,9 +38,9 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 
 ## Building for Windows
 
-Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
-able to build Dolphin on Windows but have not been tested and are not
+Visual Studio 2019 16.3 or later is a hard requirement.
+Open the folder that contains the base CMakeLists.txt file to build Dolphin on Windows.
+Other compilers might able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK must be installed when building.
 
 Make sure to pull submodules before building:
@@ -90,7 +90,7 @@ Useful for development as root access is not required.
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
 4. `make`
-5. `ln -s ../../Data/Sys Binaries/`
+5. `ln -s ../../Overwrite/{Sys,User} Binaries/`
 
 ### Linux Portable Build Steps:
 
@@ -101,7 +101,7 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 2. `cd Build`
 3. `cmake .. -DLINUX_LOCAL_DEV=true`
 4. `make`
-5. `cp -r ../Data/Sys/ Binaries/`
+5. `cp -r ../Overwrite/{Sys,User} Binaries/`
 6. `touch Binaries/portable.txt`
 
 ## Building for Android

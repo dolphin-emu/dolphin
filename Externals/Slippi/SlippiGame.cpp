@@ -1,7 +1,7 @@
 #include "SlippiGame.h"
 
 namespace Slippi {
-  // TODO: maybe refactor with std::byte and std::filesystem
+  // SLIPPITODO: maybe refactor with std::byte and std::filesystem
 
   //**********************************************************************
   //*                         Event Handlers                             *
@@ -526,8 +526,8 @@ namespace Slippi {
 #ifdef _WIN32
     // On Windows, we need to convert paths to std::wstring to deal with UTF-8
 
-    // TODO: codecvt is deprecated. C++17 msvc support std::filesystem::u8path
-    // TODO: c++20 std::filesystem::path natively supports utf8
+    // SLIPPITODO: codecvt is deprecated. C++17 msvc support std::filesystem::u8path
+    // SLIPPITODO: c++20 std::filesystem::path natively supports utf8
     std::wstring convertedPath = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(path);
     result->file = std::make_unique<std::ifstream>(convertedPath, std::ios::in | std::ios::binary);
 #else
