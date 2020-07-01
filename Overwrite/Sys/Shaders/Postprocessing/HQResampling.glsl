@@ -1,0 +1,1 @@
+void main() { SetOutput(ApplyGCGamma(SampleBicubic())); }
