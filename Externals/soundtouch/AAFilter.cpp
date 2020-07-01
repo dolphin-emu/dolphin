@@ -12,13 +12,6 @@
 ///
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Last changed  : $Date: 2014-01-05 23:40:22 +0200 (Sun, 05 Jan 2014) $
-// File revision : $Revision: 4 $
-//
-// $Id: AAFilter.cpp 177 2014-01-05 21:40:22Z oparviai $
-//
-////////////////////////////////////////////////////////////////////////////////
-//
 // License :
 //
 //  SoundTouch audio processing library
@@ -49,7 +42,7 @@
 
 using namespace soundtouch;
 
-#define PI        3.141592655357989
+#define PI       3.14159265358979323846
 #define TWOPI    (2 * PI)
 
 // define this to save AA filter coefficients to a file
@@ -75,7 +68,6 @@ using namespace soundtouch;
     #define _DEBUG_SAVE_AAFIR_COEFFS(x, y)
 #endif
 
-
 /*****************************************************************************
  *
  * Implementation of the class 'AAFilter'
@@ -90,12 +82,10 @@ AAFilter::AAFilter(uint len)
 }
 
 
-
 AAFilter::~AAFilter()
 {
     delete pFIR;
 }
-
 
 
 // Sets new anti-alias filter cut-off edge frequency, scaled to
@@ -108,14 +98,12 @@ void AAFilter::setCutoffFreq(double newCutoffFreq)
 }
 
 
-
 // Sets number of FIR filter taps
 void AAFilter::setLength(uint newLength)
 {
     length = newLength;
     calculateCoeffs();
 }
-
 
 
 // Calculates coefficients for a low-pass FIR filter using Hamming window
@@ -177,12 +165,10 @@ void AAFilter::calculateCoeffs()
     for (i = 0; i < length; i ++) 
     {
         temp = work[i] * scaleCoeff;
-//#if SOUNDTOUCH_INTEGER_SAMPLES
         // scale & round to nearest integer
         temp += (temp >= 0) ? 0.5 : -0.5;
         // ensure no overfloods
         assert(temp >= -32768 && temp <= 32767);
-//#endif
         coeffs[i] = (SAMPLETYPE)temp;
     }
 
