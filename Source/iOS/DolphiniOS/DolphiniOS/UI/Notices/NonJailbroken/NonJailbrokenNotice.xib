@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16096" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -38,11 +38,13 @@
                     <rect key="frame" x="0.0" y="247.66666666666666" width="375" height="445.33333333333337"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
-                            <rect key="frame" x="20" y="0.0" width="335" height="243.33333333333334"/>
+                            <rect key="frame" x="20" y="0.0" width="335" height="324.33333333333331"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Donate Text">
-                                    <rect key="frame" x="2.3333333333333428" y="0.0" width="330.66666666666663" height="223.33333333333334"/>
-                                    <string key="text">You are running the version of DolphiniOS for non-jailbroken devices.
+                                    <rect key="frame" x="2" y="0.0" width="331.33333333333331" height="304.33333333333331"/>
+                                    <string key="text">You are using the version of DolphiniOS for non-jailbroken devices running iOS 13.5.
+
+Performance will be 20% to 60% slower versus the jailbroken version because of restrictions put in place by Apple.
 
 When you are finished with DolphiniOS, please go to Settings and press the "Quit" button.
 
@@ -52,7 +54,7 @@ Otherwise, DolphiniOS may begin crashing on launch due to a bug in iOS. If this 
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
-                                    <rect key="frame" x="47.666666666666686" y="243.33333333333334" width="240" height="0.0"/>
+                                    <rect key="frame" x="47.666666666666686" y="324.33333333333337" width="240" height="0.0"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" id="kge-k2-qnG"/>
