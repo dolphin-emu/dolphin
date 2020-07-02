@@ -160,6 +160,7 @@ void VideoConfig::Refresh()
   bEFBEmulateFormatChanges = Config::Get(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES);
   bVertexRounding = Config::Get(Config::GFX_HACK_VERTEX_ROUDING);
   iEFBAccessTileSize = Config::Get(Config::GFX_HACK_EFB_ACCESS_TILE_SIZE);
+  bLogicOpsFallback = Config::Get(Config::GFX_HACK_FORCE_LOGICOPS_FALLBACK);
 
   bPerfQueriesEnable = Config::Get(Config::GFX_PERF_QUERIES_ENABLE);
 

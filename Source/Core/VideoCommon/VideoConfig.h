@@ -142,6 +142,7 @@ struct VideoConfig final
   bool bFastDepthCalc;
   bool bVertexRounding;
   int iEFBAccessTileSize;
+  bool bLogicOpsFallback;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
 

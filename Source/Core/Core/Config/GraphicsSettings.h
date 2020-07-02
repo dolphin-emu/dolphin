@@ -124,6 +124,7 @@ extern const Info<bool> GFX_HACK_SKIP_DUPLICATE_XFBS;
 extern const Info<bool> GFX_HACK_COPY_EFB_SCALED;
 extern const Info<bool> GFX_HACK_EFB_EMULATE_FORMAT_CHANGES;
 extern const Info<bool> GFX_HACK_VERTEX_ROUDING;
+extern const Info<bool> GFX_HACK_FORCE_LOGICOPS_FALLBACK;
 
 // Graphics.GameSpecific
 

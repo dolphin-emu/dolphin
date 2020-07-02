@@ -584,7 +584,7 @@ AbstractPipelineConfig ShaderCache::GetGXPipelineConfig(
   config.blending_state = blending_state;
   config.framebuffer_state = g_framebuffer_manager->GetEFBFramebufferState();
 
-  if (config.blending_state.logicopenable && !g_ActiveConfig.backend_info.bSupportsLogicOp)
+  if (config.blending_state.logicopenable && (!g_ActiveConfig.backend_info.bSupportsLogicOp || g_ActiveConfig.bLogicOpsFallback))
   {
     WARN_LOG(VIDEO, "Approximating logic op with blending, this will produce incorrect rendering.");
     config.blending_state.ApproximateLogicOpWithBlending();
