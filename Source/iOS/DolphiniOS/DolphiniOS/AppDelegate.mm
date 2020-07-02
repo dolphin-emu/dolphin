@@ -379,6 +379,10 @@
   
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
+#ifdef NONJAILBROKEN
+  SConfig::GetInstance().bFastmem = false;
+#endif
+  
   [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];
 
 #ifdef ANALYTICS
