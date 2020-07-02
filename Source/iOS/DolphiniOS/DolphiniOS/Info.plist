@@ -112,6 +112,8 @@
 				<key>public.filename-extension</key>
 				<array>
 					<string>iso</string>
+					<string>wia</string>
+					<string>rvz</string>
 					<string>dol</string>
 					<string>elf</string>
 				</array>
