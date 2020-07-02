@@ -3,7 +3,7 @@ project(Slippi
 
 set(SRCS
   SlippiGame.h
-	SlippiGame.cpp
+  SlippiGame.cpp
 )
 cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
