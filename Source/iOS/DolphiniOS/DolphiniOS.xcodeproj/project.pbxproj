@@ -70,7 +70,6 @@
 		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
 		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
 		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
-		B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */ = {isa = PBXBuildFile; fileRef = B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */; };
 		B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
@@ -107,7 +106,7 @@
 		B971156423E15004001C6BD6 /* SpeedLimitViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156323E15004001C6BD6 /* SpeedLimitViewController.mm */; };
 		B971156723E1511A001C6BD6 /* SpeedCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B971156623E1511A001C6BD6 /* SpeedCell.m */; };
 		B971156B23E1D378001C6BD6 /* ConfigSoundViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */; };
-		B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */; };
+		B971E1C5245E040500D2A698 /* Entitlements_NJB.plist in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C4245E040500D2A698 /* Entitlements_NJB.plist */; };
 		B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */; };
 		B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */; };
 		B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B971E1CD245E7F2200D2A698 /* OSTooNewNotice.xib */; };
@@ -397,7 +396,6 @@
 		B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = WiiSystemUpdate.storyboard; sourceTree = "<group>"; };
 		B946AF15245BFF110043767A /* WiiSystemUpdateViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = WiiSystemUpdateViewController.h; sourceTree = "<group>"; };
 		B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = WiiSystemUpdateViewController.mm; sourceTree = "<group>"; };
-		B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = Entitlements_PsychicPaper.txt; path = BuildResources/Entitlements_PsychicPaper.txt; sourceTree = "<group>"; };
 		B94817D32489758300CD27AD /* InGameChangeDiscViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameChangeDiscViewController.h; sourceTree = "<group>"; };
 		B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameChangeDiscViewController.mm; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
@@ -461,7 +459,7 @@
 		B971156923E1D378001C6BD6 /* ConfigSoundViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ConfigSoundViewController.h; sourceTree = "<group>"; };
 		B971156A23E1D378001C6BD6 /* ConfigSoundViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigSoundViewController.mm; sourceTree = "<group>"; };
 		B971E1C3245E034E00D2A698 /* BuildIpa.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildIpa.sh; path = BuildResources/BuildScripts/BuildIpa.sh; sourceTree = "<group>"; };
-		B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_PsychicPaper_Release.plist; path = BuildResources/Entitlements_PsychicPaper_Release.plist; sourceTree = "<group>"; };
+		B971E1C4245E040500D2A698 /* Entitlements_NJB.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Entitlements_NJB.plist; path = BuildResources/Entitlements_NJB.plist; sourceTree = "<group>"; };
 		B971E1C7245E210400D2A698 /* NonJailbrokenNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = NonJailbrokenNotice.xib; path = DolphiniOS/UI/Notices/NonJailbroken/NonJailbrokenNotice.xib; sourceTree = SOURCE_ROOT; };
 		B971E1C9245E288B00D2A698 /* NonJailbrokenNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NonJailbrokenNoticeViewController.h; sourceTree = "<group>"; };
 		B971E1CA245E288B00D2A698 /* NonJailbrokenNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = NonJailbrokenNoticeViewController.m; sourceTree = "<group>"; };
@@ -1199,8 +1197,7 @@
 				B996C85623D586F900700D6F /* Tools */,
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
-				B946AF18245D036C0043767A /* Entitlements_PsychicPaper.txt */,
-				B971E1C4245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist */,
+				B971E1C4245E040500D2A698 /* Entitlements_NJB.plist */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -1617,7 +1614,7 @@
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
-				B971E1C5245E040500D2A698 /* Entitlements_PsychicPaper_Release.plist in Resources */,
+				B971E1C5245E040500D2A698 /* Entitlements_NJB.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B99577AD24673EC0008C5115 /* NetPlaySetup.storyboard in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
@@ -1628,7 +1625,6 @@
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
 				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
-				B946AF19245D036C0043767A /* Entitlements_PsychicPaper.txt in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 				B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */,
 			);

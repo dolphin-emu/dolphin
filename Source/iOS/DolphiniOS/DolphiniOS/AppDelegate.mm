@@ -93,33 +93,6 @@
   }
 #endif
   
-#ifdef NONJAILBROKEN
-  if (@available(iOS 13.5, *))
-  {
-    // Show the OS incompatibilty warning
-    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
-    [self.window makeKeyAndVisible];
-    
-    return true;
-  }
-  
-  const size_t memory_size = 0x400000000;
-  vm_address_t addr = 0;
-  kern_return_t retval = vm_allocate(mach_task_self(), &addr, memory_size, VM_FLAGS_ANYWHERE);
-  if (retval != KERN_SUCCESS)
-  {
-    // Show the bad install warning
-    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"ImproperlySignedNotice" bundle:nil];
-    [self.window makeKeyAndVisible];
-    
-    return true;
-  }
-
-  vm_deallocate(mach_task_self(), addr, memory_size);
-#endif
-  
   if ([[NSUserDefaults standardUserDefaults] boolForKey:@"is_killed"])
   {
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
@@ -302,7 +275,7 @@
   if (launch_times == 0)
   {
 #ifdef NONJAILBROKEN
-    //[nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
+    [nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
 #endif
     
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
