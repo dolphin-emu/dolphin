@@ -272,12 +272,17 @@
     }
   }
   
+#ifdef NONJAILBROKEN
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"seen_njb_notice"])
+  {
+    [nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
+    
+    [[NSUserDefaults standardUserDefaults] setBool:true forKey:@"seen_njb_notice"];
+  }
+#endif
+  
   if (launch_times == 0)
   {
-#ifdef NONJAILBROKEN
-    [nav_controller pushViewController:[[NonJailbrokenNoticeViewController alloc] initWithNibName:@"NonJailbrokenNotice" bundle:nil] animated:true];
-#endif
-    
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
   }
   else if (launch_times % 10 == 0)

@@ -39,5 +39,7 @@
 	<string>https://dolphinios.oatmealdome.me/update</string>
 	<key>show_status_bar</key>
 	<false/>
+	<key>seen_njb_notice</key>
+	<false/>
 </dict>
 </plist>
