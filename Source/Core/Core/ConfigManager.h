@@ -146,6 +146,15 @@ struct SConfig
   bool bWii = false;
   bool m_is_mios = false;
 
+  // Slippi 
+  std::string m_strSlippiInput;
+  int m_slippiOnlineDelay = 2;
+  bool m_slippiSaveReplays = true;
+  bool m_slippiReplayMonthFolders = false;
+  std::string m_strSlippiReplayDir;
+  bool bBootDefaultISO = false; //move maybe
+  bool m_InterfaceSeekbar; // move maybe
+
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
@@ -157,7 +166,7 @@ struct SConfig
   std::string m_analytics_id;
   bool m_analytics_enabled = false;
   bool m_analytics_permission_asked = false;
-
+  bool m_analytics_will_prompt = false;
   // Bluetooth passthrough mode settings
   bool m_bt_passthrough_enabled = false;
   int m_bt_passthrough_pid = -1;

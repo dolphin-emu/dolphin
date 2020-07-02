@@ -152,9 +152,27 @@ static Installation InstallCodeHandlerLocked()
     }
   }
 
-  const u32 codelist_base_address =
-      INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
-  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
+  u32 codelist_base_address;
+  u32 codelist_end_address;
+  // Let the Gecko codehandler use free space from Melee's tournament mode region
+  if (SConfig::GetInstance().GetGameID() == "GALE01")
+  {
+    INFO_LOG(ACTIONREPLAY,
+      "Detected GALE01 - using tournament mode region for Gecko codelist");
+
+    // Set codelist base to the tournament mode region
+    codelist_base_address = 0x801910E0;
+    codelist_end_address = 0x8019AF4C;
+
+    // Patch codehandler to use tournament mode region
+    PowerPC::HostWrite_U32(0x3DE08019, 0x80001904); // lis r15, 0x8019
+    PowerPC::HostWrite_U32(0x61EF10E0, 0x80001908); // ori r15, r15, 0x10e0
+  }
+  else
+  {
+    codelist_base_address = INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
+    codelist_end_address = INSTALLER_END_ADDRESS;
+  }
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
   // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
