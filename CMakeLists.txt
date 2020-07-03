@@ -550,7 +550,7 @@ include_directories(Externals/Slippi)
 add_subdirectory(Externals/semver)
 include_directories(Externals/semver/include)
 add_subdirectory(Externals/open-vcdiff)
-include_directories(Externals/open-vcdiff)
+include_directories(Externals)
 
 find_package(pugixml)
 if(NOT pugixml_FOUND)

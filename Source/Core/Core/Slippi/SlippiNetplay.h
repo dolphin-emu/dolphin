@@ -6,7 +6,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/FifoQueue.h"
 #include "Common/Timer.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
@@ -21,6 +20,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <queue>
 
 #ifdef _WIN32
 #include <Qos2.h>
@@ -140,7 +140,7 @@ protected:
     std::recursive_mutex async_queue_write;
   } m_crit;
 
-  Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
+  std::queue<std::unique_ptr<sf::Packet>> m_async_queue;
 
   std::string oppName = "";
 
@@ -178,7 +178,7 @@ protected:
   u64 pingUs;
   std::deque<std::unique_ptr<SlippiPad>> localPadQueue;  // most recent inputs at start of deque
   std::deque<std::unique_ptr<SlippiPad>> remotePadQueue; // most recent inputs at start of deque
-  Common::FifoQueue<FrameTiming, false> ackTimers;
+  std::queue<FrameTiming> ackTimers;
   SlippiConnectStatus slippiConnectStatus = SlippiConnectStatus::NET_CONNECT_STATUS_UNSET;
   SlippiMatchInfo matchInfo;
 

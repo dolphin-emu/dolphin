@@ -203,19 +203,19 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
     lastFrameAcked = frame > lastFrameAcked ? frame : lastFrameAcked;
 
     // Remove old timings
-    while (!ackTimers.Empty() && ackTimers.Front().frame < frame)
+    while (!ackTimers.empty() && ackTimers.front().frame < frame)
     {
-      ackTimers.Pop();
+      ackTimers.pop();
     }
 
     // Don't get a ping if we do not have the right ack frame
-    if (ackTimers.Empty() || ackTimers.Front().frame != frame)
+    if (ackTimers.empty() || ackTimers.front().frame != frame)
     {
       break;
     }
 
-    auto sendTime = ackTimers.Front().timeUs;
-    ackTimers.Pop();
+    auto sendTime = ackTimers.front().timeUs;
+    ackTimers.pop();
 
     pingUs = Common::Timer::GetTimeUs() - sendTime;
     if (g_ActiveConfig.bShowNetPlayPing && frame % SLIPPI_PING_DISPLAY_INTERVAL == 0)
@@ -340,7 +340,7 @@ void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-    m_async_queue.Push(std::move(packet));
+    m_async_queue.push(std::move(packet));
   }
   ENetUtil::WakeupThread(m_client);
 }
@@ -431,10 +431,10 @@ void SlippiNetplayClient::ThreadFunc()
     ENetEvent netEvent;
     int net;
     net = enet_host_service(m_client, &netEvent, 250);
-    while (!m_async_queue.Empty())
+    while (!m_async_queue.empty())
     {
-      Send(*(m_async_queue.Front().get()));
-      m_async_queue.Pop();
+      Send(*(m_async_queue.front().get()));
+      m_async_queue.pop();
     }
     if (net > 0)
     {
