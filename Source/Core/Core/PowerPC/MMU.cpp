@@ -7,10 +7,12 @@
 #include <cstddef>
 #include <cstring>
 #include <string>
+#include <unordered_map>
 
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Slippi/SlippiSavestate.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
@@ -18,6 +20,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -426,6 +429,269 @@ u32 HostRead_Instruction(const u32 address)
   UGeckoInstruction inst = HostRead_U32(address);
   return inst.hex;
 }
+
+// Taken from Ishii. SLIPPITODO: ask jas
+//static void Memcheck(u32 address, u32 var, bool write, size_t size)
+//{
+  //*********************************************************************
+  //* How to test memory sections
+  //*********************************************************************
+  // 1. Uncomment once of the memory analysis blocks below
+  // 2. Start the application (release version is fine)
+  // 3. At a bp somewhere before where you want to start looking for mem access
+  // 4. Once hit, add a MBP in code section (something that will never get hit)
+  //    and turn off JIT Core
+  // 5. Start the emulation again and memory accesses should get logged
+  // 6. Make sure you have logging enabled for MI memmap
+
+  //*********************************************************************
+  //* Looking for heap writes?
+  //*********************************************************************
+  // if (!write || size != 4)
+  //{
+  //	return;
+  // }
+
+  // static u32 heapStart = 0x80bd5c40;
+  // static u32 heapEnd = 0x811AD5A0;
+
+  // static std::unordered_map<u32, bool> visited;
+
+  // // If we are writting to somewhere in heap, return
+  // if (address >= heapStart && address < heapEnd)
+  //  return;
+
+  // // If we are not writting a pointer the somewhere in heap, return
+  // if (var < heapStart || var >= heapEnd)
+  //  return;
+
+  // if (visited.count(address))
+  //	return;
+
+  // visited[address] = true;
+  // ERROR_LOG(SLIPPI_ONLINE, "%x (%s) %x -> %x", PC, PowerPC::debug_interface.GetDescription(PC).c_str(), address,
+  // var);
+
+  //*********************************************************************
+  //* Looking for camera player position memory
+  //*********************************************************************
+  // static std::unordered_map<u32, bool> visited = {};
+  // static std::unordered_map<std::string, bool> whitelist = {
+  // {"PlayerThink_CameraBehavior", true}, // Per-Player update camera position function
+  // {"CameraFunctionBlrl", true}, // Update camera position
+  //};
+
+  // static std::vector<SlippiSavestate::PreserveBlock> soundStuff = {
+  //
+  //};
+
+  // auto sceneController = ReadFromHardware<FLAG_READ, u32>(0x80479d30);
+  // if ((sceneController & 0xFF0000FF) != 0x08000002)
+  //{
+  // return;
+  //}
+
+  // auto isLoading = ReadFromHardware<FLAG_READ, u32>(0x80479d64);
+  // if (isLoading)
+  //{
+  // return;
+  //}
+
+  // if (!write)
+  //{
+  //	return;
+  //}
+
+  // if (address >= 0x804dec00 && address < 0x804eec00)
+  //{
+  // return;
+  //}
+
+  // if (visited.count(address))
+  //{
+  // return;
+  //}
+
+  // visited[address] = true;
+
+  // for (auto it = soundStuff.begin(); it != soundStuff.end(); ++it)
+  //{
+  // if (address >= it->address && address < it->address + it->length)
+  // {
+  //     return;
+  // }
+  //}
+
+  // if ((address & 0xFF000000) == 0xcc000000)
+  //{
+  // return;
+  //}
+
+  // std::vector<Dolphin_Debugger::CallstackEntry> callstack;
+  // Dolphin_Debugger::GetCallstack(callstack);
+
+  // bool isFound = false;
+  // for (auto it = callstack.begin(); it != callstack.end(); ++it)
+  //{
+  // std::string func = PowerPC::debug_interface.GetDescription(it->vAddress).c_str();
+  // if (whitelist.count(func))
+  // {
+  //     isFound = true;
+  //     break;
+  // }
+  //}
+
+  // if (!isFound)
+  //{
+  // return;
+  //}
+
+  // NOTICE_LOG(MEMMAP, "(%s) %x (%s) | %x (%x) <-> %x", write ? "Write" : "Read", PC,
+  //        PowerPC::debug_interface.GetDescription(PC).c_str(), var, size, address);
+
+  //*********************************************************************
+  //* Looking for sound memory
+  //*********************************************************************
+  // static std::unordered_map<u32, bool> visited = {};
+  // static std::unordered_map<std::string, bool> whitelist = {
+  // {"__AIDHandler", true},      // lol
+  // {"__AXOutAiCallback", true}, // lol
+  // {"__AXOutNewFrame", true},   // lol
+  // {"__AXSyncPBs", true},       // lol
+  // {"SFX_PlaySFX", true},       // lol
+  // {"__DSPHandler", true},
+  //};
+
+  // static std::vector<SlippiSavestate::PreserveBlock> soundStuff = {
+  // {0x804031A0, 0x24},    // [804031A0 - 804031C4)
+  // {0x80407FB4, 0x34C},   // [80407FB4 - 80408300)
+  // {0x80433C64, 0x1EE80}, // [80433C64 - 80452AE4)
+  // {0x804A8D78, 0x17A68}, // [804A8D78 - 804C07E0)
+  // {0x804C28E0, 0x399C},  // [804C28E0 - 804C627C)
+  // {0x804D7474, 0x8},     // [804D7474 - 804D747C)
+  // {0x804D74F0, 0x50},    // [804D74F0 - 804D7540)
+  // {0x804D7548, 0x4},     // [804D7548 - 804D754C)
+  // {0x804D7558, 0x24},    // [804D7558 - 804D757C)
+  // {0x804D7580, 0xC},     // [804D7580 - 804D758C)
+  // {0x804D759C, 0x4},     // [804D759C - 804D75A0)
+  // {0x804D7720, 0x4},     // [804D7720 - 804D7724)
+  // {0x804D7744, 0x4},     // [804D7744 - 804D7748)
+  // {0x804D774C, 0x8},     // [804D774C - 804D7754)
+  // {0x804D7758, 0x8},     // [804D7758 - 804D7760)
+  // {0x804D7788, 0x10},    // [804D7788 - 804D7798)
+  // {0x804D77C8, 0x4},     // [804D77C8 - 804D77CC)
+  // {0x804D77D0, 0x4},     // [804D77D0 - 804D77D4)
+  // {0x804D77E0, 0x4},     // [804D77E0 - 804D77E4)
+  // {0x804DE358, 0x80},    // [804DE358 - 804DE3D8)
+  // {0x804DE800, 0x70},    // [804DE800 - 804DE870)
+  //};
+
+  // auto sceneController = ReadFromHardware<FLAG_READ, u32>(0x80479d30);
+  // if ((sceneController & 0xFF0000FF) != 0x08000002)
+  //{
+  // return;
+  //}
+
+  // auto isLoading = ReadFromHardware<FLAG_READ, u32>(0x80479d64);
+  // if (isLoading)
+  //{
+  // return;
+  //}
+
+  // if (address >= 0x804dec00)
+  //{
+  // return;
+  //}
+  ////if (!write)
+  ////{
+  ////	return;
+  ////}
+
+  // if (visited.count(address))
+  //{
+  // return;
+  //}
+
+  // visited[address] = true;
+
+  // for (auto it = soundStuff.begin(); it != soundStuff.end(); ++it)
+  //{
+  // if (address >= it->address && address < it->address + it->length)
+  // {
+  //     return;
+  // }
+  //}
+
+  // if ((address & 0xFF000000) == 0xcc000000)
+  //{
+  // return;
+  //}
+
+  // std::vector<Dolphin_Debugger::CallstackEntry> callstack;
+  // Dolphin_Debugger::GetCallstack(callstack);
+
+  // bool isFound = false;
+  // for (auto it = callstack.begin(); it != callstack.end(); ++it)
+  //{
+  // std::string func = PowerPC::debug_interface.GetDescription(it->vAddress).c_str();
+  // if (whitelist.count(func))
+  // {
+  //     isFound = true;
+  //     break;
+  // }
+  //}
+
+  // if (!isFound)
+  //{
+  // return;
+  //}
+
+  // NOTICE_LOG(MEMMAP, "(%s) %x (%s) | %x (%x) <-> %x", write ? "Write" : "Read", PC,
+  //        PowerPC::debug_interface.GetDescription(PC).c_str(), var, size, address);
+
+  //*********************************************************************
+  //* Detect writes in unknown memory region
+  //*********************************************************************
+  //static std::unordered_map<u32, bool> visited = {};
+
+  //auto sceneController = ReadFromHardware<FLAG_READ, u32>(0x80479d30);
+  //if ((sceneController & 0xFF0000FF) != 0x08000002)
+  //{
+  //	return;
+  //}
+
+  //auto isLoading = ReadFromHardware<FLAG_READ, u32>(0x80479d64);
+  //if (isLoading)
+  //{
+  //	return;
+  //}
+
+  //if (!write)
+  //{
+  //	return;
+  //}
+
+  //// [804fec00 - 80BD5C40)
+  //if (address < 0x8071b000 || address >= 0x80bb0000)
+  //{
+  //	return;
+  //}
+
+  //if (visited.count(address))
+  //{
+  //	return;
+  //}
+
+  //visited[address] = true;
+
+  //if ((address & 0xFF000000) == 0xcc000000)
+  //{
+  //	return;
+  //}
+
+  //NOTICE_LOG(MEMMAP, "(%s) %x (%s) | %x (%x) <-> %x", write ? "Write" : "Read", PC,
+  //           PowerPC::debug_interface.GetDescription(PC).c_str(), var, size, address);
+//}
 
 static void Memcheck(u32 address, u32 var, bool write, size_t size)
 {
