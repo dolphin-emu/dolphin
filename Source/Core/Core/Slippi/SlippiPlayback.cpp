@@ -7,7 +7,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI_DeviceSlippi.h"
+#include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
 #include "SlippiPlayback.h"

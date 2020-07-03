@@ -8,8 +8,9 @@
 #include <enet/enet.h>
 #include <unordered_map>
 #include <vector>
+#include <random>
 
-#include <json.hpp>
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
 
 class SlippiMatchmaking

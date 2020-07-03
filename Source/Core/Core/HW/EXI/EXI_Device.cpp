@@ -146,7 +146,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
     break;
 
   case EXIDEVICE_SLIPPI:
-    result = std::make_unique<CEXISlippi>(channel_num);
+    result = std::make_unique<CEXISlippi>();
     break;
 
   case EXIDEVICE_AM_BASEBOARD:
