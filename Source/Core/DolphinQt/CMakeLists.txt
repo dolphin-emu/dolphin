@@ -257,6 +257,8 @@ add_executable(dolphin-emu
   Settings/InterfacePane.h
   Settings/PathPane.cpp
   Settings/PathPane.h
+  Settings/SlippiPane.cpp
+  Settings/SlippiPane.h
   Settings/WiiPane.cpp
   Settings/WiiPane.h
   Settings/USBDeviceAddToWhitelistDialog.cpp
