@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "EXI_Device.h"
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
@@ -176,7 +177,7 @@ namespace ExpansionInterface
 
     void FileWriteThread(void);
 
-    Common::FifoQueue<std::unique_ptr<WriteMessage>, false> fileWriteQueue;
+    std::queue<std::unique_ptr<WriteMessage>> fileWriteQueue;
     bool writeThreadRunning = false;
     std::thread m_fileWriteThread;
 

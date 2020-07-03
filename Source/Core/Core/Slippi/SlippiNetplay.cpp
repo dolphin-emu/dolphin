@@ -6,19 +6,22 @@
 #include "Common/Common.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/ENetUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
+#include "Core/NetplayProto.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/SI.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/Config/NetplaySettings.h"
+//#include "Core/HW/EXI_DeviceIPL.h"
+//#include "Core/HW/SI.h"
+//#include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+//#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -122,12 +125,12 @@ SlippiNetplayClient::SlippiNetplayClient(bool isDecider)
 // called from ---NETPLAY--- thread
 unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 {
-  MessageId mid;
+  NetPlay::MessageId mid;
   packet >> mid;
 
   switch (mid)
   {
-  case NP_MSG_SLIPPI_PAD:
+  case NetPlay::NP_MSG_SLIPPI_PAD:
   {
     int32_t frame;
     packet >> frame;
@@ -186,13 +189,13 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
     // Send Ack
     sf::Packet spac;
-    spac << (MessageId)NP_MSG_SLIPPI_PAD_ACK;
+    spac << (NetPlay::MessageId)NetPlay::NP_MSG_SLIPPI_PAD_ACK;
     spac << frame;
     Send(spac);
   }
   break;
 
-  case NP_MSG_SLIPPI_PAD_ACK:
+  case NetPlay::NP_MSG_SLIPPI_PAD_ACK:
   {
     std::lock_guard<std::mutex> lk(ack_mutex); // Trying to fix rare crash on ackTimers.count
 
@@ -226,7 +229,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   }
   break;
 
-  case NP_MSG_SLIPPI_MATCH_SELECTIONS:
+  case NetPlay::NP_MSG_SLIPPI_MATCH_SELECTIONS:
   {
     auto s = readSelectionsFromPacket(packet);
     ERROR_LOG(SLIPPI_ONLINE, "[Received Selections] Char: 0x%X, Color: 0x%X", s->characterId, s->characterId);
@@ -246,7 +249,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   }
   break;
 
-  case NP_MSG_SLIPPI_CONN_SELECTED:
+  case NetPlay::NP_MSG_SLIPPI_CONN_SELECTED:
   {
     // Currently this is unused but the intent is to support two-way simultaneous connection attempts
     isConnectionSelected = true;
@@ -263,7 +266,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
 
 void SlippiNetplayClient::writeToPacket(sf::Packet& packet, SlippiPlayerSelections& s)
 {
-  packet << static_cast<MessageId>(NP_MSG_SLIPPI_MATCH_SELECTIONS);
+  packet << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_MATCH_SELECTIONS);
   packet << s.characterId << s.characterColor << s.isCharacterSelected;
   packet << s.stageId << s.isStageSelected;
   packet << s.rngOffset;
@@ -294,8 +297,8 @@ void SlippiNetplayClient::Send(sf::Packet& packet)
   enet_uint32 flags = ENET_PACKET_FLAG_RELIABLE;
   u8 channelId = 0;
 
-  MessageId mid = ((u8*)packet.getData())[0];
-  if (mid == NP_MSG_SLIPPI_PAD || mid == NP_MSG_SLIPPI_PAD_ACK)
+  NetPlay::MessageId mid = ((u8*)packet.getData())[0];
+  if (mid == NetPlay::NP_MSG_SLIPPI_PAD || mid == NetPlay::NP_MSG_SLIPPI_PAD_ACK)
   {
     // Slippi communications do not need reliable connection and do not need to
     // be received in order. Channel is changed so that other reliable communications
@@ -340,7 +343,7 @@ void SlippiNetplayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
-    m_async_queue.push(std::move(packet));
+    m_async_queue.emplace(std::move(packet));
   }
   ENetUtil::WakeupThread(m_client);
 }
@@ -388,7 +391,7 @@ void SlippiNetplayClient::ThreadFunc()
 #ifdef _WIN32
   QOS_VERSION ver = { 1, 0 };
 
-  if (SConfig::GetInstance().bQoSEnabled && QOSCreateHandle(&ver, &m_qos_handle))
+  if (Config::Get(Config::NETPLAY_ENABLE_QOS) && QOSCreateHandle(&ver, &m_qos_handle))
   {
     // from win32.c
     struct sockaddr_in sin = { 0 };
@@ -516,7 +519,7 @@ void SlippiNetplayClient::StartSlippiGame()
   matchInfo.Reset();
 
   // Reset ack timers
-  ackTimers.Clear();
+  ackTimers = {};
 }
 
 void SlippiNetplayClient::SendConnectionSelected()
@@ -524,7 +527,7 @@ void SlippiNetplayClient::SendConnectionSelected()
   isConnectionSelected = true;
 
   auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_SLIPPI_CONN_SELECTED);
+  *spac << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_CONN_SELECTED);
   SendAsync(std::move(spac));
 }
 
@@ -565,7 +568,7 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
   auto frame = localPadQueue.front()->frame;
 
   auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_SLIPPI_PAD);
+  *spac << static_cast<NetPlay::MessageId>(NetPlay::NP_MSG_SLIPPI_PAD);
   *spac << frame;
 
   INFO_LOG(SLIPPI_ONLINE, "Sending a packet of inputs [%d]...", frame);
@@ -592,7 +595,7 @@ void SlippiNetplayClient::SendSlippiPad(std::unique_ptr<SlippiPad> pad)
   FrameTiming sendTime;
   sendTime.frame = frame;
   sendTime.timeUs = time;
-  ackTimers.Push(sendTime);
+  ackTimers.emplace(sendTime);
 }
 
 void SlippiNetplayClient::SetMatchSelections(SlippiPlayerSelections& s)

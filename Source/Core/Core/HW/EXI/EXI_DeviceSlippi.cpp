@@ -379,18 +379,18 @@ void CEXISlippi::writeToFileAsync(u8* payload, u32 length, std::string fileOptio
   writeMsg->data = payloadData;
   writeMsg->operation = fileOption;
 
-  fileWriteQueue.Push(std::move(writeMsg));
+  fileWriteQueue.push(std::move(writeMsg));
 }
 
 void CEXISlippi::FileWriteThread(void)
 {
-  while (writeThreadRunning || !fileWriteQueue.Empty())
+  while (writeThreadRunning || !fileWriteQueue.empty())
   {
     // Process all messages
-    while (!fileWriteQueue.Empty())
+    while (!fileWriteQueue.empty())
     {
-      writeToFile(std::move(fileWriteQueue.Front()));
-      fileWriteQueue.Pop();
+      writeToFile(std::move(fileWriteQueue.front()));
+      fileWriteQueue.pop();
 
       Common::SleepCurrentThread(0);
     }
