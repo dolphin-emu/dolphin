@@ -89,6 +89,7 @@ void GameCubePane::CreateWidgets()
        {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
         std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
         std::make_pair(tr("Memory Card"), ExpansionInterface::EXIDEVICE_MEMORYCARD),
+        std::make_pair(tr("Slippi"), ExpansionInterface::EXIDEVICE_SLIPPI),
         std::make_pair(tr("GCI Folder"), ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER),
         std::make_pair(tr("USB Gecko"), ExpansionInterface::EXIDEVICE_GECKO),
         std::make_pair(tr("Advance Game Port"), ExpansionInterface::EXIDEVICE_AGP),

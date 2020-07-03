@@ -20,18 +20,8 @@ namespace Common
 
 #define SLIPPI_REV_STR "2.1.1"
 
-const std::string scm_rev_str = "Faster Melee - Slippi (" SLIPPI_REV_STR ")";
 const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
-
-#if !SCM_IS_MASTER
-                                "[" SCM_BRANCH_STR "] "
-#endif
-
-#ifdef __INTEL_COMPILER
-    BUILD_TYPE_STR SCM_DESC_STR "-ICC";
-#else
-    BUILD_TYPE_STR SCM_DESC_STR;
-#endif
+const std::string scm_rev_str = "Faster Melee - Slippi (" SLIPPI_REV_STR ")" BUILD_TYPE_STR;
 
 const std::string scm_rev_git_str = SCM_REV_STR;
 const std::string scm_desc_str = SCM_DESC_STR;

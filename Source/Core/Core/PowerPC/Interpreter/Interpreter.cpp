@@ -348,9 +348,18 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
     NOTICE_LOG(POWERPC, "r%d: 0x%08x r%d: 0x%08x r%d:0x%08x r%d: 0x%08x", i, rGPR[i], i + 1,
                rGPR[i + 1], i + 2, rGPR[i + 2], i + 3, rGPR[i + 3]);
   }
-  ASSERT_MSG(POWERPC, 0,
-             "\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n",
-             inst.hex, PC, last_pc, LR);
+
+  std::string msg;
+
+  msg.append(StringFromFormat("\nIntCPU: Unknown instruction %08x at PC = %08x  last_PC = %08x  LR = %08x\n\n", inst.hex, PC, last_pc, LR));
+
+  std::vector<Dolphin_Debugger::CallstackEntry> callstack;
+  Dolphin_Debugger::GetCallstack(callstack);
+
+  for (auto &it : callstack)
+    msg.append(it.Name);
+
+  ASSERT_MSG(POWERPC, 0, msg.c_str());
 }
 
 void Interpreter::ClearCache()
