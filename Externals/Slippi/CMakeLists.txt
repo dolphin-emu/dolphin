@@ -17,5 +17,3 @@ endif()
 
 add_library(Slippi STATIC ${SRCS})
 
-target_include_directories(Slippi PUBLIC "../nlohmann")
-
