@@ -301,10 +301,6 @@ u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition
 
 std::string VolumeWii::GetGameTDBID(const Partition& partition) const
 {
-  // Don't return an ID for Datel discs
-  if (m_game_partition == PARTITION_NONE)
-    return "";
-
   return GetGameID(partition);
 }
 
