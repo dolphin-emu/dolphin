@@ -284,6 +284,11 @@ Platform VolumeWAD::GetVolumeType() const
   return Platform::WiiWAD;
 }
 
+bool VolumeWAD::IsDatelDisc() const
+{
+  return false;
+}
+
 std::map<Language, std::string> VolumeWAD::GetLongNames() const
 {
   if (!m_tmd.IsValid() || !IOS::ES::IsChannel(m_tmd.GetTitleId()))
