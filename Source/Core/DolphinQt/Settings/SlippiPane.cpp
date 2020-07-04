@@ -4,8 +4,8 @@
 #include <QDir>
 #include <QFileDialog>
 #include <QFormLayout>
-#include <QGroupBox>
 #include <QGridLayout>
+#include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
 #include <QPushButton>
@@ -41,17 +41,18 @@ void SlippiPane::CreateLayout()
   layout->addWidget(replay_settings);
 
   m_enable_replay_save_checkbox = new QCheckBox(tr("Save Slippi Replays"));
-  m_enable_replay_save_checkbox->setToolTip(tr(
-      "Enable this to make Slippi automatically save .slp recordings of your games."));
+  m_enable_replay_save_checkbox->setToolTip(
+      tr("Enable this to make Slippi automatically save .slp recordings of your games."));
   replay_settings_layout->addWidget(m_enable_replay_save_checkbox);
 
-  m_enable_monthly_replay_folders_checkbox = new QCheckBox(tr("Save Replays to Monthly Subfolders"));
-  m_enable_monthly_replay_folders_checkbox->setToolTip(tr(
-      "Enable this to save your replays into subfolders by month (YYYY-MM)."));
+  m_enable_monthly_replay_folders_checkbox =
+      new QCheckBox(tr("Save Replays to Monthly Subfolders"));
+  m_enable_monthly_replay_folders_checkbox->setToolTip(
+      tr("Enable this to save your replays into subfolders by month (YYYY-MM)."));
   replay_settings_layout->addWidget(m_enable_monthly_replay_folders_checkbox);
 
-  auto *replay_folder_layout = new QGridLayout();
-  m_replay_folder_edit = new QLineEdit(); // XXX fill in default string
+  auto* replay_folder_layout = new QGridLayout();
+  m_replay_folder_edit = new QLineEdit();  // XXX fill in default string
   m_replay_folder_edit->setToolTip(tr("Choose where your Slippi replay files are saved."));
   QPushButton* replay_folder_open = new QPushButton(QStringLiteral("..."));
   connect(replay_folder_open, &QPushButton::clicked, this, &SlippiPane::BrowseReplayFolder);
@@ -68,8 +69,8 @@ void SlippiPane::CreateLayout()
   m_delay_spin = new QSpinBox();
   m_delay_spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   m_delay_spin->setRange(1, 9);
-  m_delay_spin->setToolTip(tr(
-    "Leave this at 2 unless consistently playing on 120+ ping. "
-    "Increasing this can cause unplayable input delay, and lowering it can cause visual artifacts/lag."));
+  m_delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
+                              "Increasing this can cause unplayable input delay, and lowering it "
+                              "can cause visual artifacts/lag."));
   online_settings_layout->addRow(tr("Delay Frames:"), m_delay_spin);
 }
