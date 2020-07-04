@@ -334,6 +334,11 @@ Platform VolumeWii::GetVolumeType() const
   return Platform::WiiDisc;
 }
 
+bool VolumeWii::IsDatelDisc() const
+{
+  return m_game_partition == PARTITION_NONE;
+}
+
 BlobType VolumeWii::GetBlobType() const
 {
   return m_reader->GetBlobType();
