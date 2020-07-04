@@ -21,7 +21,11 @@ namespace Common
 #define SLIPPI_REV_STR "2.1.1"
 
 const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
+#ifdef IS_PLAYBACK
+const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ") - Playback" BUILD_TYPE_STR;
+#else
 const std::string scm_rev_str = "Mainline - Slippi (" SLIPPI_REV_STR ")" BUILD_TYPE_STR;
+#endif
 
 const std::string scm_rev_git_str = SCM_REV_STR;
 const std::string scm_desc_str = SCM_DESC_STR;
