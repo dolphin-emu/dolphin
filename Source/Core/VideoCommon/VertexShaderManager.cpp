@@ -455,9 +455,6 @@ void VertexShaderManager::SetConstants()
 
     dirty = true;
   }
-
-  // Handle a potential config change
-  g_freelook_camera.SetControlType(Config::Get(Config::GFX_FREE_LOOK_CONTROL_TYPE));
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)
