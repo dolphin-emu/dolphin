@@ -128,16 +128,21 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
   }
 
   // SetWiimoteSpeakerVolume expects values from 0 to 255.
-  // Multiply by 256, cast to int, and clamp to 255 for a uniform conversion.
-  const double volume = float(reg_data.volume) / volume_divisor * 256;
+  // Multiply by 256, floor to int, and clamp to 255 for a uniformly mapped conversion.
+  const double volume = float(reg_data.volume) * 256.f / volume_divisor;
 
-  // Speaker pan using "Constant Power Pan Law"
-  const double pan_prime = MathUtil::PI * (speaker_pan + 1) / 4;
+  // This used the "Constant Power Pan Law", but it is undesirable
+  // if the pan is 0, and it implied that the loudness of a wiimote speaker
+  // is equal to the loudness of your device speakers, which isn't true at all.
+  // This way, if the pan is 0, it's like if it is not there.
+  // We should play the samples from the wiimote at the native volume they came with,
+  // because you can lower their volume from the Wii settings and because they are
+  // already extremely low quality, so any additional quality loss isn't welcome.
+  speaker_pan = std::clamp(speaker_pan, -1.f, 1.f);
+  const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
+  const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
-  const auto left_volume = std::min(int(std::cos(pan_prime) * volume), 255);
-  const auto right_volume = std::min(int(std::sin(pan_prime) * volume), 255);
-
-  g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
+  g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(l_volume, r_volume);
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
   const unsigned int sample_rate = sample_rate_dividend / reg_data.sample_rate;
