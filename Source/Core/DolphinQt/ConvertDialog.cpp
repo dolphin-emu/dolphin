@@ -83,8 +83,6 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   m_scrub = new QCheckBox;
   grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
   grid_layout->addWidget(m_scrub, 4, 1);
-  m_scrub->setEnabled(
-      std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc)));
 
   QPushButton* convert_button = new QPushButton(tr("Convert"));
 
@@ -267,8 +265,12 @@ void ConvertDialog::OnFormatChanged()
   m_block_size->setEnabled(m_block_size->count() > 1);
   m_compression->setEnabled(m_compression->count() > 1);
 
-  m_scrub->setEnabled(format != DiscIO::BlobType::RVZ);
-  if (format == DiscIO::BlobType::RVZ)
+  const bool scrubbing_allowed =
+      format != DiscIO::BlobType::RVZ &&
+      std::none_of(m_files.begin(), m_files.end(), std::mem_fn(&UICommon::GameFile::IsDatelDisc));
+
+  m_scrub->setEnabled(scrubbing_allowed);
+  if (!scrubbing_allowed)
     m_scrub->setChecked(false);
 }
 
