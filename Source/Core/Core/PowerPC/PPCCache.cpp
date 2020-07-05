@@ -8,6 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/Swap.h"
+#include "Core/ConfigManager.h"
 #include "Core/DolphinAnalytics.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -110,7 +111,7 @@ void InstructionCache::Init()
 
 void InstructionCache::Invalidate(u32 addr)
 {
-  if (!HID0.ICE)
+  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)
     return;
 
   // Invalidates the whole set
@@ -133,7 +134,7 @@ void InstructionCache::Invalidate(u32 addr)
 
 u32 InstructionCache::ReadInstruction(u32 addr)
 {
-  if (!HID0.ICE)  // instruction cache is disabled
+  if (!HID0.ICE || SConfig::GetInstance().bDisableICache)  // instruction cache is disabled
     return Memory::Read_U32(addr);
   u32 set = (addr >> 5) & 0x7f;
   u32 tag = addr >> 12;

@@ -58,6 +58,7 @@ struct NetSettings
   bool m_PerfQueriesEnable;
   bool m_FPRF;
   bool m_AccurateNaNs;
+  bool m_DisableICache;
   bool m_SyncOnSkipIdle;
   bool m_SyncGPU;
   int m_SyncGpuMaxDistance;

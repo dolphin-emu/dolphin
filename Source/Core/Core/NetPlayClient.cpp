@@ -691,6 +691,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_net_settings.m_PerfQueriesEnable;
       packet >> m_net_settings.m_FPRF;
       packet >> m_net_settings.m_AccurateNaNs;
+      packet >> m_net_settings.m_DisableICache;
       packet >> m_net_settings.m_SyncOnSkipIdle;
       packet >> m_net_settings.m_SyncGPU;
       packet >> m_net_settings.m_SyncGpuMaxDistance;

@@ -1331,6 +1331,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_PerfQueriesEnable;
   spac << m_settings.m_FPRF;
   spac << m_settings.m_AccurateNaNs;
+  spac << m_settings.m_DisableICache;
   spac << m_settings.m_SyncOnSkipIdle;
   spac << m_settings.m_SyncGPU;
   spac << m_settings.m_SyncGpuMaxDistance;
