@@ -3,13 +3,13 @@
 #include "Common/MemoryUtil.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/VideoInterface.h"
 #include <vector>
 

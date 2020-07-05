@@ -2,45 +2,50 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/Debugger/Debugger_SymbolMap.h"
 
-#include <SlippiGame.h>
-#include "Core/Slippi/SlippiReplayComm.h"
-#include "Core/Slippi/SlippiPlayback.h"
 #include <semver/include/semver200.h>
 #include <utility> // std::move
-
+#include <algorithm>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
-#include "Core/HW/Memmap.h"
+#include "Common/Version.h"
 
-#include "Core/NetPlayClient.h"
 #include "Core/Core.h"
+#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
-
-#include "Core/HW/EXI_DeviceSlippi.h"
+#include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/EXI/EXI_DeviceSlippi.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/NetPlayClient.h"
+#include "Core/Slippi/SlippiReplayComm.h"
+#include "Core/Slippi/SlippiPlayback.h"
+
+
 #include "Core/State.h"
 
 // Not clean but idk a better way atm
 //#ifndef LINUX_LOCAL_DEV
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/Main.h"
+//#include "DolphinWX/Frame.h"
+//#include "DolphinWX/Main.h"
 //#endif
 
-namespace ExpansionInterface {
+
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
 #define WRITE_FILE_SLEEP_TIME_MS 85
 
 //#define LOCAL_TESTING
 //#define CREATE_DIFF_FILES
+
+namespace ExpansionInterface {
 
 static std::unordered_map<u8, std::string> slippi_names;
 static std::unordered_map<u8, std::string> slippi_connect_codes;
@@ -247,22 +252,6 @@ std::unordered_map<u8, std::string> CEXISlippi::getNetplayNames()
   if (slippi_names.size())
   {
     names = slippi_names;
-  }
-
-  else if (netplay_client && netplay_client->IsConnected())
-  {
-    auto netplayPlayers = netplay_client->GetPlayers();
-    for (auto it = netplayPlayers.begin(); it != netplayPlayers.end(); ++it)
-    {
-      auto player = *it;
-      u8 portIndex = netplay_client->FindPlayerPad(player);
-      if (portIndex < 0)
-      {
-        continue;
-      }
-
-      names[portIndex] = player->name;
-    }
   }
 
   return names;
@@ -1058,7 +1047,7 @@ void CEXISlippi::prepareGeckoList()
   geckoList.insert(geckoList.end(), { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 }
 
-void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 isFollower)
+void CEXISlippi::prepareCharacterFrameData(std::shared_ptr<Slippi::FrameData> frame, u8 port, u8 isFollower)
 {
   std::unordered_map<uint8_t, Slippi::PlayerFrameData> source;
   source = isFollower ? frame->followers : frame->players;
@@ -1107,7 +1096,7 @@ bool CEXISlippi::checkFrameFullyFetched(s32 frameIndex)
   if (!doesFrameExist)
     return false;
 
-  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
+  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
 
   // This flag is set to true after a post frame update has been received. At that point
   // we know we have received all of the input data for the frame
@@ -1258,7 +1247,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
   m_read_queue.push_back(requestResultCode);
 
   // Get frame
-  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
+  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
   if (commSettings.rollbackDisplayMethod != "off")
   {
     auto previousFrame = m_current_game->GetFrameAt(frameSeqIdx - 1);
@@ -1362,7 +1351,7 @@ void CEXISlippi::prepareIsStockSteal(u8* payload)
   }
 
   // Load the data from this frame into the read buffer
-  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
+  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
   auto players = frame->players;
 
   u8 playerIsBack = players.count(playerIndex) ? 1 : 0;
@@ -1441,7 +1430,7 @@ void CEXISlippi::handleOnlineInputs(u8* payload)
   prepareOpponentInputs(payload);
 }
 
-bool CEXISlippi::shouldSkipOnlineFrame(int32_t frame)
+bool CEXISlippi::shouldSkipOnlineFrame(s32 frame)
 {
   auto status = slippi_netplay->GetSlippiConnectStatus();
   bool connectionFailed = status == SlippiNetplayClient::SlippiConnectStatus::NET_CONNECT_STATUS_FAILED;
@@ -1891,7 +1880,7 @@ u16 CEXISlippi::getRandomStage()
   // use a random number to select an index but idk the generator was giving a lot
   // of the same stage (same index) many times in a row or so it seemed to I figured
   // this can't hurt
-  std::random_shuffle(stagesToConsider.begin(), stagesToConsider.end());
+  std::shuffle(stagesToConsider.begin(), stagesToConsider.end(), generator);
 
   // Get random stage
   int randIndex = generator() % stagesToConsider.size();
@@ -1984,11 +1973,11 @@ void CEXISlippi::logMessageFromGame(u8* payload)
   if (payload[0] == 0)
   {
     // The first byte indicates whether to log the time or not
-    GENERIC_LOG(LogTypes::SLIPPI, (LogTypes::LOG_LEVELS)payload[1], "%s", (char*)& payload[2]);
+    GENERIC_LOG(Common::Log::SLIPPI, (Common::Log::LOG_LEVELS)payload[1], "%s", (char*)& payload[2]);
   }
   else
   {
-    GENERIC_LOG(LogTypes::SLIPPI, (LogTypes::LOG_LEVELS)payload[1], "%s: %llu", (char*)& payload[2],
+    GENERIC_LOG(Common::Log::SLIPPI, (Common::Log::LOG_LEVELS)payload[1], "%s: %llu", (char*)& payload[2],
       Common::Timer::GetTimeUs());
   }
 }
@@ -1999,7 +1988,7 @@ void CEXISlippi::handleLogInRequest()
   if (!logInRes)
   {
     //#ifndef LINUX_LOCAL_DEV
-    main_frame->LowerRenderWindow();
+    //main_frame->LowerRenderWindow();  SLIPPITODO: figure out replacement. 
     //#endif
     user->OpenLogInPage();
     user->ListenForLogIn();
@@ -2016,7 +2005,7 @@ void CEXISlippi::handleUpdateAppRequest()
 #ifdef __APPLE__
   CriticalAlertT("Automatic updates are not available for macOS, please update manually.");
 #else
-  main_frame->LowerRenderWindow();
+  // main_frame->LowerRenderWindow(); SLIPPITODO: figure out replacement // mainwindow hide render widget
   user->UpdateApp();
   main_frame->DoExit();
 #endif
@@ -2034,7 +2023,7 @@ void CEXISlippi::prepareOnlineStatus()
   {
     // Check if we have the latest version, and if not, indicate we need to update
     version::Semver200_version latestVersion(userInfo.latestVersion);
-    version::Semver200_version currentVersion(scm_slippi_semver_str);
+    version::Semver200_version currentVersion(Common::scm_slippi_semver_str);
 
     appState = latestVersion > currentVersion ? 2 : 1;
   }
@@ -2092,7 +2081,7 @@ void CEXISlippi::DMAWrite(u32 _uAddr, u32 _uSize)
   if (memPtr == nullptr)
   {
     NOTICE_LOG(SLIPPI, "DMA Write was passed an invalid address: %x", _uAddr);
-    Dolphin_Debugger::PrintCallstack(LogTypes::LOG_TYPE::SLIPPI, LogTypes::LOG_LEVELS::LNOTICE);
+    Dolphin_Debugger::PrintCallstack(Common::Log::SLIPPI, Common::Log::LNOTICE);
     m_read_queue.clear();
     return;
   }

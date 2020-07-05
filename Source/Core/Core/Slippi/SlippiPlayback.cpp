@@ -7,6 +7,7 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
@@ -128,7 +129,7 @@ void SlippiPlaybackStatus::resetPlayback()
   inSlippiPlayback = false;
 }
 
-void SlippiPlaybackStatus::processInitialState(std::vector<u8>& iState)
+void SlippiPlaybackStatus::processInitialState()
 {
   INFO_LOG(SLIPPI, "saving iState");
   State::SaveToBuffer(iState);
@@ -161,7 +162,7 @@ void SlippiPlaybackStatus::SavestateThread()
 
     if (!inSlippiPlayback && isStartFrame)
     {
-      processInitialState(iState);
+      processInitialState();
       inSlippiPlayback = true;
     }
     else if (!hasStateBeenProcessed && !isStartFrame)
@@ -194,8 +195,8 @@ void SlippiPlaybackStatus::SeekThread()
       if (replayCommSettings.mode == "queue")
         clearWatchSettingsStartEnd();
 
-      bool paused = (Core::GetState() == Core::CORE_PAUSE);
-      Core::SetState(Core::CORE_PAUSE);
+      bool paused = (Core::GetState() == Core::State::Paused);
+      Core::SetState(Core::State::Paused);
 
       u32 jumpInterval = 300; // 5 seconds;
 

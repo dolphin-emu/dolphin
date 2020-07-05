@@ -213,6 +213,8 @@ add_library(core
   HW/EXI/EXI_DeviceMemoryCard.h
   HW/EXI/EXI_DeviceMic.cpp
   HW/EXI/EXI_DeviceMic.h
+	HW/EXI/EXI_DeviceSlippi.cpp
+  HW/EXI/EXI_DeviceSlippi.h
   HW/GCKeyboard.cpp
   HW/GCKeyboard.h
   HW/GCKeyboardEmu.cpp
@@ -580,7 +582,7 @@ PUBLIC
   videoogl
   videosoftware
   videovulkan
-  Slippi
+  SlippiLib
   vcdcom
   vcddec
   vcdenc

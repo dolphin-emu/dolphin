@@ -37,7 +37,7 @@ public:
 private:
   void SavestateThread(void);
   void SeekThread(void);
-  void processInitialState(std::vector<u8>& iState);
+  void processInitialState();
   void clearWatchSettingsStartEnd();
 
   std::unordered_map<int32_t, std::shared_future<std::string>>

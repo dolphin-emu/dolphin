@@ -13,6 +13,7 @@
 #include "Core/Slippi/SlippiGameFileLoader.h"
 #include "Core/Slippi/SlippiMatchmaking.h"
 #include "Core/Slippi/SlippiNetplay.h"
+#include "Core/Slippi/SlippiPlayback.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/Slippi/SlippiSavestate.h"
 #include "Core/Slippi/SlippiUser.h"
@@ -165,7 +166,7 @@ namespace ExpansionInterface
     // replay playback stuff
     void prepareGameInfo(u8* payload);
     void prepareGeckoList();
-    void prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 isFollower);
+    void prepareCharacterFrameData(std::shared_ptr<Slippi::FrameData> frame, u8 port, u8 isFollower);
     void prepareFrameData(u8* payload);
     void prepareIsStockSteal(u8* payload);
     void prepareIsFileReady();
