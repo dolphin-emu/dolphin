@@ -251,7 +251,11 @@ void ConvertDialog::OnFormatChanged()
 
     if (format == DiscIO::BlobType::RVZ)
     {
-      AddToCompressionComboBox(QStringLiteral("Zstandard"), DiscIO::WIARVZCompressionType::Zstd);
+      // i18n: %1 is the name of a compression method (e.g. Zstandard)
+      const QString recommended = tr("%1 (recommended)");
+
+      AddToCompressionComboBox(recommended.arg(QStringLiteral("Zstandard")),
+                               DiscIO::WIARVZCompressionType::Zstd);
       m_compression->setCurrentIndex(m_compression->count() - 1);
     }
 
