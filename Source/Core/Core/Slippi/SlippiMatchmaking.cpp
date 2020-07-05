@@ -1,5 +1,6 @@
 #include "SlippiMatchmaking.h"
 #include "Common/Common.h"
+#include "Common/Version.h"
 #include "Common/ENetUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -27,7 +28,7 @@ SlippiMatchmaking::SlippiMatchmaking(SlippiUser* user)
   m_client = nullptr;
   m_server = nullptr;
 
-  MM_HOST = scm_slippi_semver_str.find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
+  MM_HOST = Common::scm_slippi_semver_str.find("dev") == std::string::npos ? MM_HOST_PROD : MM_HOST_DEV;
 
   generator = std::default_random_engine(Common::Timer::GetTimeMs());
 }
@@ -287,7 +288,7 @@ void SlippiMatchmaking::startMatchmaking()
   request["type"] = MmMessageType::CREATE_TICKET;
   request["user"] = { {"uid", userInfo.uid}, {"playKey", userInfo.playKey} };
   request["search"] = { {"mode", m_searchSettings.mode}, {"connectCode", connectCodeBuf} };
-  request["appVersion"] = scm_slippi_semver_str;
+  request["appVersion"] = Common::scm_slippi_semver_str;
   sendMessage(request);
 
   // Get response from server
@@ -388,8 +389,7 @@ void SlippiMatchmaking::handleMatchmaking()
 
 void SlippiMatchmaking::handleConnecting()
 {
-  std::vector<std::string> ipParts;
-  SplitString(m_oppIp, ':', ipParts);
+  std::vector<std::string> ipParts = SplitString(m_oppIp, ':');
 
   // Is host is now used to specify who the decider is
   auto client = std::make_unique<SlippiNetplayClient>(ipParts[0], std::stoi(ipParts[1]), m_hostPort, m_isHost);

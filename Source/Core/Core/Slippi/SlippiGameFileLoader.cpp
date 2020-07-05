@@ -2,10 +2,10 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/FileUtil.h"
+#include "Common/File.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
-#include "Core/Common/FileUtil.h"
 
 std::string getFilePath(std::string fileName)
 {
@@ -40,7 +40,7 @@ void ReadFileToBuffer(std::string& fileName, std::vector<u8>& buf)
   auto fileSize = file.GetSize();
   buf.resize(fileSize);
   size_t bytes_read;
-  file.ReadArray<u8>(vector->data(), std::min<u64>(file.GetSize(), vector->size()), &bytes_read);  
+  file.ReadArray<u8>(buf.data(), std::min<u64>(file.GetSize(), buf.size()), &bytes_read);  
 }
 
 u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
