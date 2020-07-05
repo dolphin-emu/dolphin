@@ -386,8 +386,7 @@ void VolumeVerifier::Start()
     m_redump_verifier.Start(m_volume);
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
-  m_is_datel = IsDisc(m_volume.GetVolumeType()) &&
-               !GetBootDOLOffset(m_volume, m_volume.GetGamePartition()).has_value();
+  m_is_datel = m_volume.IsDatelDisc();
   m_is_not_retail =
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
