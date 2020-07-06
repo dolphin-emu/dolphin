@@ -12,7 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/NetplayProto.h"
+#include "Core/NetPlayProto.h"
 #include "Core/Core.h"
 #include "Core/Config/NetplaySettings.h"
 //#include "Core/HW/EXI_DeviceIPL.h"
@@ -414,7 +414,8 @@ void SlippiNetplayClient::ThreadFunc()
     }
   }
 #else
-  if (SConfig::GetInstance().bQoSEnabled)
+  //if (SConfig::GetInstance().bQoSEnabled)
+  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
   {
 #ifdef __linux__
     // highest priority
