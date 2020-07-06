@@ -213,7 +213,7 @@ add_library(core
   HW/EXI/EXI_DeviceMemoryCard.h
   HW/EXI/EXI_DeviceMic.cpp
   HW/EXI/EXI_DeviceMic.h
-	HW/EXI/EXI_DeviceSlippi.cpp
+  HW/EXI/EXI_DeviceSlippi.cpp
   HW/EXI/EXI_DeviceSlippi.h
   HW/GCKeyboard.cpp
   HW/GCKeyboard.h
@@ -465,24 +465,24 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Paired.cpp
   PowerPC/Interpreter/Interpreter_SystemRegisters.cpp
   PowerPC/Interpreter/Interpreter_Tables.cpp
-	Slippi/SlippiGameFileLoader.cpp
-	Slippi/SlippiGameFileLoader.h
-	Slippi/SlippiMatchmaking.cpp
-	Slippi/SlippiMatchmaking.h
-	Slippi/SlippiNetplay.cpp
-	Slippi/SlippiNetplay.h
-	Slippi/SlippiPad.cpp
-	Slippi/SlippiPad.h
-	Slippi/SlippiPlayback.cpp
-	Slippi/SlippiPlayback.h
-	Slippi/SlippiReplayComm.cpp
-	Slippi/SlippiReplayComm.h
-	Slippi/SlippiSavestate.cpp
-	Slippi/SlippiSavestate.h
-	Slippi/SlippiTimer.cpp
-	Slippi/SlippiTimer.h
-	Slippi/SlippiUser.cpp
-	Slippi/SlippiUser.h
+  Slippi/SlippiGameFileLoader.cpp
+  Slippi/SlippiGameFileLoader.h
+  Slippi/SlippiMatchmaking.cpp
+  Slippi/SlippiMatchmaking.h
+  Slippi/SlippiNetplay.cpp
+  Slippi/SlippiNetplay.h
+  Slippi/SlippiPad.cpp
+  Slippi/SlippiPad.h
+  Slippi/SlippiPlayback.cpp
+  Slippi/SlippiPlayback.h
+  Slippi/SlippiReplayComm.cpp
+  Slippi/SlippiReplayComm.h
+  Slippi/SlippiSavestate.cpp
+  Slippi/SlippiSavestate.h
+  Slippi/SlippiTimer.cpp
+  Slippi/SlippiTimer.h
+  Slippi/SlippiUser.cpp
+  Slippi/SlippiUser.h
 )
 
 if(_M_X86)
@@ -563,8 +563,8 @@ elseif(_M_ARM_64)
 endif()
 
 target_include_directories(core PUBLIC
-	${CMAKE_CURRENT_SOURCE_DIR}/../Core
-	${CMAKE_CURRENT_SOURCE_DIR}/../Common
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Core
+  ${CMAKE_CURRENT_SOURCE_DIR}/../Common
 )
 target_link_libraries(core
 PUBLIC
@@ -582,12 +582,12 @@ PUBLIC
   videoogl
   videosoftware
   videovulkan
-	semver
+  semver
   SlippiLib
   vcdcom
   vcddec
   vcdenc
-	z
+  z
 
 PRIVATE
   fmt::fmt
