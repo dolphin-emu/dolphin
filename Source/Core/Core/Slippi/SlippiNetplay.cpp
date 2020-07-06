@@ -12,7 +12,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/NetplayProto.h"
+#include "Core/NetPlayProto.h"
 #include "Core/Core.h"
 #include "Core/Config/NetplaySettings.h"
 //#include "Core/HW/EXI_DeviceIPL.h"
