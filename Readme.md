@@ -6,8 +6,7 @@ This is a WIP effort to port the functionality of https://github.com/project-sli
 
 The project board is visible here: https://github.com/r2dliu/dolphin/projects/1
 
-Read through the list of issues, and assign one to yourself or create a subissue if you are working on it. Create a pull request and then submit it for approval.
-Issues must have descriptions, a priority label, and must be assigned to the "Slippi port to mainline" Project so we it appears on the board. 
+Read through the list of issues, and comment on one to claim it. You can also create a new issue if one does not exist already. Create a pull request and then submit it for approval.
 
 ### Other questions
 
