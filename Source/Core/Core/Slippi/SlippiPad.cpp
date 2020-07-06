@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "SlippiPad.h"
 
 #include <string.h>
