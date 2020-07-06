@@ -47,10 +47,12 @@ import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.MotionListener;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
+import java.io.File;
 import java.lang.annotation.Retention;
 import java.util.List;
 
@@ -962,10 +964,14 @@ public final class EmulationActivity extends AppCompatActivity
             (dialog, indexSelected) ->
             {
               editor.putInt("wiiController", indexSelected);
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+
+              File wiimoteNewFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_WIIMOTE);
+              IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+              wiimoteNewIni.setString("Wiimote1", "Extension",
                       getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1",
-                      "Options/Sideways Wiimote", indexSelected == 2 ? "True" : "False");
+              wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", indexSelected == 2);
+              wiimoteNewIni.save(wiimoteNewFile);
+
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
@@ -994,8 +1000,11 @@ public final class EmulationActivity extends AppCompatActivity
               else
                 mMotionListener.disable();
 
-              NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "IMUIR/Enabled",
-                      indexSelected != 1 ? "True" : "False");
+              File wiimoteNewFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_WIIMOTE);
+              IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+              wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", indexSelected != 1);
+              wiimoteNewIni.save(wiimoteNewFile);
+
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) -> editor.apply());
@@ -1137,15 +1146,15 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      NativeLibrary.LoadGameIniFile(mSelectedGameId);
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_PITCH, text_slider_value_pitch.getText().toString());
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_YAW, text_slider_value_yaw.getText().toString());
-      NativeLibrary.SetUserSetting(mSelectedGameId, Settings.SECTION_CONTROLS,
-              SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
+      File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
+      IniFile ini = new IniFile(file);
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
+              text_slider_value_pitch.getText().toString());
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
+              text_slider_value_yaw.getText().toString());
+      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
               text_slider_value_vertical_offset.getText().toString());
-      NativeLibrary.SaveGameIniFile(mSelectedGameId);
+      ini.save(file);
 
       NativeLibrary.ReloadWiimoteConfig();
 

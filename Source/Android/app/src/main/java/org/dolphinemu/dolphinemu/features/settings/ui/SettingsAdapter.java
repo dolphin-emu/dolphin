@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHold
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -319,8 +320,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     FilePicker filePicker = (FilePicker) mClickedItem;
 
-    NativeLibrary.SetConfig(filePicker.getFile(), filePicker.getSection(), filePicker.getKey(),
-            file);
+    IniFile ini = new IniFile(filePicker.getFile());
+    ini.setString(filePicker.getSection(), filePicker.getKey(), file);
+    ini.save(filePicker.getFile());
+
     NativeLibrary.ReloadConfig();
 
     mClickedItem = null;

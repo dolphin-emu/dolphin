@@ -3,6 +3,7 @@ add_library(main SHARED
   AndroidCommon/IDCache.cpp
   GameList/GameFile.cpp
   GameList/GameFileCache.cpp
+  IniFile.cpp
   MainAndroid.cpp
 )
 

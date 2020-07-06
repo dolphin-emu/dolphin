@@ -7,7 +7,9 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +42,9 @@ public class Settings
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
-  private static final String DSP_HLE = "0";
-  private static final String DSP_LLE_RECOMPILER = "1";
-  private static final String DSP_LLE_INTERPRETER = "2";
+  private static final int DSP_HLE = 0;
+  private static final int DSP_LLE_RECOMPILER = 1;
+  private static final int DSP_LLE_INTERPRETER = 2;
 
   public static final String SECTION_ANALYTICS = "Analytics";
 
@@ -195,37 +197,29 @@ public class Settings
 
       if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
       {
-        switch (NativeLibrary
-                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_ANDROID,
-                        SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+        File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
+        IniFile dolphinIni = new IniFile(dolphinFile);
+
+        switch (dolphinIni.getInt(Settings.SECTION_INI_ANDROID, SettingsFile.KEY_DSP_ENGINE,
+                DSP_HLE))
         {
           case DSP_HLE:
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                            SettingsFile.KEY_DSP_HLE, "True");
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, true);
+            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
             break;
 
           case DSP_LLE_RECOMPILER:
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                            SettingsFile.KEY_DSP_HLE, "False");
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
+            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
             break;
 
           case DSP_LLE_INTERPRETER:
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                            SettingsFile.KEY_DSP_HLE, "False");
-            NativeLibrary
-                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                            SettingsFile.KEY_DSP_ENABLE_JIT, "False");
+            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
+            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, false);
             break;
         }
+
+        dolphinIni.save(dolphinFile);
       }
 
       // Notify the native code of the changes

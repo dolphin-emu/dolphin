@@ -33,6 +33,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -51,9 +52,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public static final int OVERLAY_WIIMOTE_CLASSIC = 4;
   public static final int OVERLAY_NONE = 5;
 
-  private static final String DISABLED_GAMECUBE_CONTROLLER = "0";
-  private static final String EMULATED_GAMECUBE_CONTROLLER = "6";
-  private static final String GAMECUBE_ADAPTER = "12";
+  private static final int DISABLED_GAMECUBE_CONTROLLER = 0;
+  private static final int EMULATED_GAMECUBE_CONTROLLER = 6;
+  private static final int GAMECUBE_ADAPTER = 12;
 
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
   private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
@@ -703,9 +704,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       // Add all the enabled overlay items back to the HashSet.
       if (EmulationActivity.isGameCubeGame())
       {
-        switch (NativeLibrary
-                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                        SettingsFile.KEY_GCPAD_PLAYER_1, EMULATED_GAMECUBE_CONTROLLER))
+        IniFile dolphinIni =
+                new IniFile(SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN));
+
+        switch (dolphinIni.getInt(Settings.SECTION_INI_CORE, SettingsFile.KEY_GCPAD_PLAYER_1,
+                EMULATED_GAMECUBE_CONTROLLER))
         {
           case DISABLED_GAMECUBE_CONTROLLER:
             if (mIsFirstRun)

@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.io.File;
 import java.util.HashSet;
@@ -82,9 +83,10 @@ public class GameFileCache
    */
   public boolean scanLibrary(Context context)
   {
-    boolean recursiveScan = NativeLibrary
-            .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_RECURSIVE_ISO_PATHS, "False").equals("True");
+    IniFile dolphinIni =
+            new IniFile(SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN));
+    boolean recursiveScan = dolphinIni.getBoolean(Settings.SECTION_INI_GENERAL,
+            SettingsFile.KEY_RECURSIVE_ISO_PATHS, false);
 
     removeNonExistentGameFolders(context);
 

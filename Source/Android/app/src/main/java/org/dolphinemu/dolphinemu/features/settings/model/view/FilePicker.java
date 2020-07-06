@@ -2,6 +2,9 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+
+import java.io.File;
 
 public final class FilePicker extends SettingsItem
 {
@@ -18,9 +21,9 @@ public final class FilePicker extends SettingsItem
     mRequestType = requestType;
   }
 
-  public String getFile()
+  public File getFile()
   {
-    return mFile + ".ini";
+    return SettingsFile.getSettingsFile(mFile);
   }
 
   public String getSelectedValue()

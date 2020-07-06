@@ -16,6 +16,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -65,8 +66,12 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
-                  NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini",
-                          Settings.SECTION_INI_CORE, SettingsFile.KEY_DEFAULT_ISO, path);
+                  File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
+                  IniFile dolphinIni = new IniFile(dolphinFile);
+                  dolphinIni.setString(Settings.SECTION_INI_CORE, SettingsFile.KEY_DEFAULT_ISO,
+                          path);
+                  dolphinIni.save(dolphinFile);
+
                   NativeLibrary.ReloadConfig();
                   Toast.makeText(getContext(), "Default ISO set", Toast.LENGTH_SHORT).show();
                   break;

@@ -33,8 +33,11 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
+
+import java.io.File;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -272,24 +275,19 @@ public final class MainActivity extends AppCompatActivity implements MainView
       public void onTabSelected(@NonNull TabLayout.Tab tab)
       {
         super.onTabSelected(tab);
-        NativeLibrary
-                .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_ANDROID,
-                        SettingsFile.KEY_LAST_PLATFORM_TAB, Integer.toString(tab.getPosition()));
+
+        File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
+        IniFile dolphinIni = new IniFile(dolphinFile);
+        dolphinIni.setInt(Settings.SECTION_INI_ANDROID, SettingsFile.KEY_LAST_PLATFORM_TAB,
+                tab.getPosition());
+        dolphinIni.save(dolphinFile);
       }
     });
 
-    String platformTab = NativeLibrary
-            .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_ANDROID,
-                    SettingsFile.KEY_LAST_PLATFORM_TAB, "0");
-
-    try
-    {
-      mViewPager.setCurrentItem(Integer.parseInt(platformTab));
-    }
-    catch (NumberFormatException ex)
-    {
-      mViewPager.setCurrentItem(0);
-    }
+    IniFile dolphinIni =
+            new IniFile(SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN));
+    mViewPager.setCurrentItem(dolphinIni.getInt(Settings.SECTION_INI_ANDROID,
+            SettingsFile.KEY_LAST_PLATFORM_TAB, 0));
 
     showGames();
     GameFileCacheService.startLoad(this);
