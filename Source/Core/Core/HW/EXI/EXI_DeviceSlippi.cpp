@@ -21,7 +21,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Host.h"
+#include "Core/Host.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
