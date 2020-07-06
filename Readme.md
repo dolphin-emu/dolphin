@@ -1,3 +1,18 @@
+#Slippi Mainline
+
+This is a WIP effort to port the functionality of https://github.com/project-slippi/Ishiiruka to mainline Dolphin. Currently, we are/were on par with master upstream and close to on par with project-slippi/Ishii upstream. 
+
+##How can I contribute?
+
+The project board is visible here: https://github.com/r2dliu/dolphin/projects/1
+
+Read through the list of issues, and assign one to yourself or create a subissue if you are working on it. Create a pull request and then submit it for approval.
+Issues must have descriptions, a priority label, and must be assigned to the "Slippi port to mainline" Project so we it appears on the board. 
+
+###Other questions
+
+Ping or message @r2dliu in the slippi discord.
+
 # Dolphin - A GameCube and Wii Emulator
 
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
