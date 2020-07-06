@@ -582,10 +582,12 @@ PUBLIC
   videoogl
   videosoftware
   videovulkan
+	semver
   SlippiLib
   vcdcom
   vcddec
   vcdenc
+	z
 
 PRIVATE
   fmt::fmt

@@ -106,6 +106,9 @@ void Host_TitleChanged()
 #endif
 }
 
+void Host_LowerWindow() {}
+void Host_Exit() {}
+
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {
   std::string platform_name = static_cast<const char*>(options.get("platform"));
