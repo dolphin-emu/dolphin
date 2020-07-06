@@ -21,6 +21,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Host.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -44,14 +45,13 @@
 
 //#define LOCAL_TESTING
 //#define CREATE_DIFF_FILES
+extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiReplayComm> g_replayComm;
 
 namespace ExpansionInterface {
 
 static std::unordered_map<u8, std::string> slippi_names;
 static std::unordered_map<u8, std::string> slippi_connect_codes;
-
-extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
-extern std::unique_ptr<SlippiReplayComm> g_replayComm;
 
 template <typename T> bool isFutureReady(std::future<T>& t)
 {
@@ -1988,7 +1988,7 @@ void CEXISlippi::handleLogInRequest()
   if (!logInRes)
   {
     //#ifndef LINUX_LOCAL_DEV
-    //main_frame->LowerRenderWindow();  SLIPPITODO: figure out replacement. 
+    Host_LowerWindow();
     //#endif
     user->OpenLogInPage();
     user->ListenForLogIn();
@@ -2007,7 +2007,7 @@ void CEXISlippi::handleUpdateAppRequest()
 #else
   // main_frame->LowerRenderWindow(); SLIPPITODO: figure out replacement // mainwindow hide render widget
   user->UpdateApp();
-  main_frame->DoExit();
+  Host_Exit();
 #endif
 }
 
@@ -2036,7 +2036,7 @@ void CEXISlippi::prepareOnlineStatus()
 
   // Write connect code (10 bytes)
   std::string connectCode = userInfo.connectCode;
-  char shiftJisHashtag[] = { (char)0x81, (char)0x94, (char)0x00 };
+  char shiftJisHashtag[] = { '\x81', '\x94', '\x00' };
   connectCode.resize(CONNECT_CODE_LENGTH);
   connectCode = ReplaceAll(connectCode, "#", shiftJisHashtag);
   auto codeBuf = connectCode.c_str();
