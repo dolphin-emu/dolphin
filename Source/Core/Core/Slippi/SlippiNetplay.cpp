@@ -414,7 +414,7 @@ void SlippiNetplayClient::ThreadFunc()
     }
   }
 #else
-  if (SConfig::GetInstance().bQoSEnabled)
+  if (Config::Get(Config::NETPLAY_ENABLE_QOS))
   {
 #ifdef __linux__
     // highest priority
