@@ -1,4 +1,4 @@
-project(Slippi
+project(SlippiLib
   VERSION 1.0.0)
 
 set(SRCS
@@ -15,7 +15,5 @@ if(NOT MSVC)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wno-unused-parameter")
 endif()
 
-add_library(Slippi STATIC ${SRCS})
-
-target_include_directories(Slippi PUBLIC "../nlohmann")
+add_library(SlippiLib STATIC ${SRCS})
 

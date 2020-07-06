@@ -109,6 +109,7 @@ namespace Slippi {
 
   class SlippiGame {
   public:
+    static std::unique_ptr<SlippiGame> FromFile(std::string path);
     bool AreSettingsLoaded();
     bool DoesFrameExist(int32_t frame);
     std::array<uint8_t, 4> GetVersion();
@@ -118,6 +119,7 @@ namespace Slippi {
     GameSettings* GetSettings();
     bool DoesPlayerExist(int8_t port);
     bool IsProcessingComplete();
+
   private:
     Game game;
     std::unique_ptr<std::ifstream> file;
@@ -136,7 +138,5 @@ namespace Slippi {
     bool isProcessingComplete = false;
 
     void processData();
-
-    static std::unique_ptr<SlippiGame> FromFile(std::string path);
   };
 }

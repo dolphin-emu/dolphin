@@ -53,6 +53,7 @@
   } while (0)
 #endif
 
+#undef ASSERT
 #define ASSERT(_a_)                                                                                \
   do                                                                                               \
   {                                                                                                \

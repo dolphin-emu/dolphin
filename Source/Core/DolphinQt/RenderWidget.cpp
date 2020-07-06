@@ -57,7 +57,8 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 
     resize(w / dpr, h / dpr);
   });
-
+  connect(Host::GetInstance(), &Host::RequestLowerWindow, this, &RenderWidget::LowerWindow);
+  connect(Host::GetInstance(), &Host::RequestExit, this, &RenderWidget::Exit);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
       SetImGuiKeyMap();
@@ -334,3 +335,18 @@ void RenderWidget::SetImGuiKeyMap()
   for (auto entry : key_map)
     ImGui::GetIO().KeyMap[entry[0]] = entry[1] & 0x1FF;
 }
+
+void RenderWidget::LowerWindow()
+{
+  if (Config::Get(Config::MAIN_RENDER_TO_MAIN))
+    return;
+
+  lower();
+}
+
+void RenderWidget::Exit()
+{
+  close();
+}
+
+

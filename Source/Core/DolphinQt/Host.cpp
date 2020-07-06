@@ -173,3 +173,13 @@ void Host_TitleChanged()
     Discord::UpdateDiscordPresence();
 #endif
 }
+
+void Host_LowerWindow()
+{
+  Host::GetInstance()->RequestLowerWindow();
+}
+
+void Host_Exit()
+{
+  Host::GetInstance()->RequestExit();
+}
