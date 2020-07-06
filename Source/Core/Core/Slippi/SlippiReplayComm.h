@@ -1,5 +1,6 @@
 #pragma once
 
+#include <limits.h>
 #include <queue>
 #include <string>
 #include <nlohmann/json.hpp>
