@@ -671,9 +671,9 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
   return CodeToUTF8("UTF-16BE", std::u16string_view(str, static_cast<size_t>(str_end - str)));
 }
 
-std::u32string UTF8ToUTF32(const std::string_view input)
+std::u32string UTF8ToUTF32(const std::string& input)
 {
-  auto val = CodeTo("UTF-32LE", "UTF-8", input);
+  auto val = CodeTo("UTF-32LE", "UTF-8", std::string_view(input));
   auto utf32Data = (char32_t*)val.data();
   return std::u32string(utf32Data, utf32Data + (val.size() / 4));
 }
@@ -682,7 +682,7 @@ std::string UTF32toUTF8(const std::u32string& input)
 {
   auto utf8Data = (char*)input.data();
   auto str = std::string(utf8Data, utf8Data + (input.size() * 4));
-  return CodeTo("UTF-8", "UTF-32LE", str);
+  return CodeTo("UTF-8", "UTF-32LE", std::string_view(str));
 }
 
 #endif
