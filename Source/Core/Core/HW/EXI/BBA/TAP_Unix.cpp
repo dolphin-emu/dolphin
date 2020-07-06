@@ -28,7 +28,7 @@ namespace ExpansionInterface
 #define NOTIMPLEMENTED(Name)                                                                       \
   NOTICE_LOG(SP1, "CEXIETHERNET::%s not implemented for your UNIX", Name);
 
-bool CEXIETHERNET::Activate()
+bool CEXIETHERNET::TAPNetworkInterface::Activate()
 {
 #ifdef __linux__
   if (IsActivated())
@@ -50,7 +50,7 @@ bool CEXIETHERNET::Activate()
   const int MAX_INTERFACES = 32;
   for (int i = 0; i < MAX_INTERFACES; ++i)
   {
-    strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ - 1);
+    strncpy(ifr.ifr_name, StringFromFormat("Dolphin%d", i).c_str(), IFNAMSIZ);
 
     int err;
     if ((err = ioctl(fd, TUNSETIFF, (void*)&ifr)) < 0)
@@ -78,7 +78,7 @@ bool CEXIETHERNET::Activate()
 #endif
 }
 
-void CEXIETHERNET::Deactivate()
+void CEXIETHERNET::TAPNetworkInterface::Deactivate()
 {
 #ifdef __linux__
   close(fd);
@@ -93,7 +93,7 @@ void CEXIETHERNET::Deactivate()
 #endif
 }
 
-bool CEXIETHERNET::IsActivated()
+bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 {
 #ifdef __linux__
   return fd != -1 ? true : false;
@@ -102,7 +102,7 @@ bool CEXIETHERNET::IsActivated()
 #endif
 }
 
-bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
   DEBUG_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
@@ -115,7 +115,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   }
   else
   {
-    SendComplete();
+    m_eth_ref->SendComplete();
     return true;
   }
 #else
@@ -125,7 +125,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 }
 
 #ifdef __linux__
-void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
+void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
@@ -139,7 +139,7 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
     if (select(self->fd + 1, &rfds, nullptr, nullptr, &timeout) <= 0)
       continue;
 
-    int readBytes = read(self->fd, self->mRecvBuffer.get(), BBA_RECV_SIZE);
+    int readBytes = read(self->fd, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE);
     if (readBytes < 0)
     {
       ERROR_LOG(SP1, "Failed to read from BBA, err=%d", readBytes);
@@ -147,15 +147,15 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
     else if (self->readEnabled.IsSet())
     {
       DEBUG_LOG(SP1, "Read data: %s",
-                ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
-      self->mRecvBufferLength = readBytes;
-      self->RecvHandlePacket();
+                ArrayToString(self->m_eth_ref->mRecvBuffer.get(), readBytes, 0x10).c_str());
+      self->m_eth_ref->mRecvBufferLength = readBytes;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }
 #endif
 
-bool CEXIETHERNET::RecvInit()
+bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
 {
 #ifdef __linux__
   readThread = std::thread(ReadThreadHandler, this);
@@ -166,7 +166,7 @@ bool CEXIETHERNET::RecvInit()
 #endif
 }
 
-void CEXIETHERNET::RecvStart()
+void CEXIETHERNET::TAPNetworkInterface::RecvStart()
 {
 #ifdef __linux__
   readEnabled.Set();
@@ -175,7 +175,7 @@ void CEXIETHERNET::RecvStart()
 #endif
 }
 
-void CEXIETHERNET::RecvStop()
+void CEXIETHERNET::TAPNetworkInterface::RecvStop()
 {
 #ifdef __linux__
   readEnabled.Clear();

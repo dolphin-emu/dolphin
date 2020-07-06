@@ -56,11 +56,12 @@ RedumpVerifier::DownloadState RedumpVerifier::m_wii_download_state;
 
 void RedumpVerifier::Start(const Volume& volume)
 {
-  // We use GetGameTDBID instead of GetGameID so that Datel discs will be represented by an empty
-  // string, which matches Redump not having any serials for Datel discs.
-  m_game_id = volume.GetGameTDBID();
-  if (m_game_id.size() > 4)
-    m_game_id = m_game_id.substr(0, 4);
+  if (!volume.IsDatelDisc())
+  {
+    m_game_id = volume.GetGameID();
+    if (m_game_id.size() > 4)
+      m_game_id = m_game_id.substr(0, 4);
+  }
 
   m_revision = volume.GetRevision().value_or(0);
   m_disc_number = volume.GetDiscNumber().value_or(0);
@@ -385,8 +386,7 @@ void VolumeVerifier::Start()
     m_redump_verifier.Start(m_volume);
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
-  m_is_datel = IsDisc(m_volume.GetVolumeType()) &&
-               !GetBootDOLOffset(m_volume, m_volume.GetGamePartition()).has_value();
+  m_is_datel = m_volume.IsDatelDisc();
   m_is_not_retail =
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();

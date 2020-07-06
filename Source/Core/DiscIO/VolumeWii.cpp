@@ -301,10 +301,6 @@ u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition
 
 std::string VolumeWii::GetGameTDBID(const Partition& partition) const
 {
-  // Don't return an ID for Datel discs
-  if (m_game_partition == PARTITION_NONE)
-    return "";
-
   return GetGameID(partition);
 }
 
@@ -336,6 +332,11 @@ std::vector<u32> VolumeWii::GetBanner(u32* width, u32* height) const
 Platform VolumeWii::GetVolumeType() const
 {
   return Platform::WiiDisc;
+}
+
+bool VolumeWii::IsDatelDisc() const
+{
+  return m_game_partition == PARTITION_NONE;
 }
 
 BlobType VolumeWii::GetBlobType() const

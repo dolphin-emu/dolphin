@@ -115,6 +115,7 @@ public:
     return 0;
   }
   virtual Platform GetVolumeType() const = 0;
+  virtual bool IsDatelDisc() const = 0;
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckH3TableIntegrity(const Partition& partition) const { return false; }
   virtual bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,

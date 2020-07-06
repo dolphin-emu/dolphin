@@ -79,6 +79,7 @@ public:
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
 
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
   bool SupportsIntegrityCheck() const override { return m_encrypted; }
   bool CheckH3TableIntegrity(const Partition& partition) const override;
   bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,

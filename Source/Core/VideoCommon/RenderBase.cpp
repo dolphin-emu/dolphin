@@ -63,6 +63,7 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
@@ -406,6 +407,11 @@ void Renderer::CheckForConfigChanges()
 
   UpdateActiveConfig();
 
+  if (g_ActiveConfig.bFreeLook)
+  {
+    g_freelook_camera.SetControlType(g_ActiveConfig.iFreelookControlType);
+  }
+
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
@@ -557,6 +563,10 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayProjStats)
     g_stats.DisplayProj();
+
+  const std::string profile_output = Common::Profiler::ToString();
+  if (!profile_output.empty())
+    ImGui::TextUnformatted(profile_output.c_str());
 }
 
 float Renderer::CalculateDrawAspectRatio() const

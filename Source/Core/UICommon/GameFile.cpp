@@ -120,8 +120,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_file_size = volume->GetRawSize();
       m_volume_size = volume->GetSize();
       m_volume_size_is_accurate = volume->IsSizeAccurate();
-      m_is_datel_disc = DiscIO::IsDisc(m_platform) &&
-                        !DiscIO::GetBootDOLOffset(*volume, volume->GetGamePartition());
+      m_is_datel_disc = volume->IsDatelDisc();
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
