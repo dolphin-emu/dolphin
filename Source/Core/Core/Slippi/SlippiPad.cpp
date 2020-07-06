@@ -1,3 +1,5 @@
+#include <memory>
+
 #include "SlippiPad.h"
 
 // TODO: Confirm the default and padding values are right
