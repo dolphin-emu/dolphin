@@ -43,22 +43,22 @@ void SlippiPane::CreateLayout()
   replay_settings->setLayout(replay_settings_layout);
   layout->addWidget(replay_settings);
 
-  m_enable_replay_save_checkbox = new QCheckBox(tr("Save Slippi Replays"));
-  m_enable_replay_save_checkbox->setToolTip(
+  auto* enable_replay_save_checkbox = new QCheckBox(tr("Save Slippi Replays"));
+  enable_replay_save_checkbox->setToolTip(
       tr("Enable this to make Slippi automatically save .slp recordings of your games."));
-  replay_settings_layout->addWidget(m_enable_replay_save_checkbox);
-  m_enable_replay_save_checkbox->setChecked(SConfig::GetInstance().m_slippiSaveReplays);
-  connect(m_enable_replay_save_checkbox, &QCheckBox::toggled, this,
+  replay_settings_layout->addWidget(enable_replay_save_checkbox);
+  enable_replay_save_checkbox->setChecked(SConfig::GetInstance().m_slippiSaveReplays);
+  connect(enable_replay_save_checkbox, &QCheckBox::toggled, this,
           [](bool checked) { SConfig::GetInstance().m_slippiSaveReplays = checked; });
 
-  m_enable_monthly_replay_folders_checkbox =
+  auto* enable_monthly_replay_folders_checkbox =
       new QCheckBox(tr("Save Replays to Monthly Subfolders"));
-  m_enable_monthly_replay_folders_checkbox->setToolTip(
+  enable_monthly_replay_folders_checkbox->setToolTip(
       tr("Enable this to save your replays into subfolders by month (YYYY-MM)."));
-  replay_settings_layout->addWidget(m_enable_monthly_replay_folders_checkbox);
-  m_enable_monthly_replay_folders_checkbox->setChecked(
+  replay_settings_layout->addWidget(enable_monthly_replay_folders_checkbox);
+  enable_monthly_replay_folders_checkbox->setChecked(
       SConfig::GetInstance().m_slippiReplayMonthFolders);
-  connect(m_enable_monthly_replay_folders_checkbox, &QCheckBox::toggled, this,
+  connect(enable_monthly_replay_folders_checkbox, &QCheckBox::toggled, this,
           [](bool checked) { SConfig::GetInstance().m_slippiReplayMonthFolders = checked; });
 
   auto* replay_folder_layout = new QGridLayout();
@@ -80,14 +80,14 @@ void SlippiPane::CreateLayout()
   online_settings->setLayout(online_settings_layout);
   layout->addWidget(online_settings);
 
-  m_delay_spin = new QSpinBox();
-  m_delay_spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_delay_spin->setRange(1, 9);
-  m_delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
-                              "Increasing this can cause unplayable input delay, and lowering it "
-                              "can cause visual artifacts/lag."));
-  online_settings_layout->addRow(tr("Delay Frames:"), m_delay_spin);
-  m_delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
-  connect(m_delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
+  auto* delay_spin = new QSpinBox();
+  delay_spin->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  delay_spin->setRange(1, 9);
+  delay_spin->setToolTip(tr("Leave this at 2 unless consistently playing on 120+ ping. "
+                            "Increasing this can cause unplayable input delay, and lowering it "
+                            "can cause visual artifacts/lag."));
+  online_settings_layout->addRow(tr("Delay Frames:"), delay_spin);
+  delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
+  connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
 }
