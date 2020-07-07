@@ -13,6 +13,8 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.IntSliderSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedCheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.PercentSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
@@ -226,7 +228,7 @@ public final class SettingsFragmentPresenter
             false));
     sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
             SettingsFile.KEY_AUTO_DISC_CHANGE, R.string.auto_disc_change, 0, false));
-    sl.add(new FloatSliderSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
+    sl.add(new PercentSliderSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
             SettingsFile.KEY_SPEED_LIMIT, R.string.speed_limit, 0, 200, "%", 100));
     sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_ANALYTICS,
             SettingsFile.KEY_ANALYTICS_ENABLED, R.string.analytics, 0, false));
@@ -356,7 +358,7 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
             SettingsFile.KEY_OVERCLOCK_ENABLE, R.string.overclock_enable,
             R.string.overclock_enable_description, false));
-    sl.add(new FloatSliderSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
+    sl.add(new PercentSliderSetting(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE,
             SettingsFile.KEY_OVERCLOCK_PERCENT, R.string.overclock_title,
             R.string.overclock_title_description, 400, "%", 100));
   }
@@ -544,10 +546,10 @@ public final class SettingsFragmentPresenter
   private void addHackSettings(ArrayList<SettingsItem> sl)
   {
     sl.add(new HeaderSetting(null, R.string.embedded_frame_buffer, 0));
-    sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_GFX, Settings.SECTION_GFX_HACKS,
+    sl.add(new InvertedCheckBoxSetting(SettingsFile.FILE_NAME_GFX, Settings.SECTION_GFX_HACKS,
             SettingsFile.KEY_SKIP_EFB, R.string.skip_efb_access,
             R.string.skip_efb_access_description, false));
-    sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_GFX, Settings.SECTION_GFX_HACKS,
+    sl.add(new InvertedCheckBoxSetting(SettingsFile.FILE_NAME_GFX, Settings.SECTION_GFX_HACKS,
             SettingsFile.KEY_IGNORE_FORMAT, R.string.ignore_format_changes,
             R.string.ignore_format_changes_description, true));
     sl.add(new CheckBoxSetting(SettingsFile.FILE_NAME_GFX, Settings.SECTION_GFX_HACKS,
