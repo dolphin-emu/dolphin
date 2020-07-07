@@ -10,7 +10,6 @@ import android.view.InputDevice;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public class Rumble
@@ -29,15 +28,16 @@ public class Rumble
 
     for (int i = 0; i < 8; i++)
     {
-      StringSetting deviceName =
-              (StringSetting) activity.getSettings().getSection(Settings.SECTION_BINDINGS)
-                      .getSetting(SettingsFile.KEY_EMU_RUMBLE + i);
-      if (deviceName != null && !deviceName.getValue().isEmpty())
+      String deviceName = activity.getSettings()
+              .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_BINDINGS)
+              .getString(SettingsFile.KEY_EMU_RUMBLE + i, "");
+
+      if (!deviceName.isEmpty())
       {
         for (int id : InputDevice.getDeviceIds())
         {
           InputDevice device = InputDevice.getDevice(id);
-          if (deviceName.getValue().equals(device.getDescriptor()))
+          if (deviceName.equals(device.getDescriptor()))
           {
             Vibrator vib = device.getVibrator();
             if (vib != null && vib.hasVibrator())

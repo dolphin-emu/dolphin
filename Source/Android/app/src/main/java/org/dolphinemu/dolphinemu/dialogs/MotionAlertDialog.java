@@ -9,6 +9,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
@@ -27,6 +28,7 @@ public final class MotionAlertDialog extends AlertDialog
   private final ArrayList<Float> mPreviousValues = new ArrayList<>();
   private int mPrevDeviceId = 0;
   private boolean mWaitingForEvent = true;
+  private SettingsAdapter mAdapter;
 
   /**
    * Constructor
@@ -34,11 +36,12 @@ public final class MotionAlertDialog extends AlertDialog
    * @param context The current {@link Context}.
    * @param setting The Preference to show this dialog for.
    */
-  public MotionAlertDialog(Context context, InputBindingSetting setting)
+  public MotionAlertDialog(Context context, InputBindingSetting setting, SettingsAdapter adapter)
   {
     super(context);
 
     this.setting = setting;
+    mAdapter = adapter;
   }
 
   public boolean onKeyEvent(int keyCode, KeyEvent event)
@@ -48,7 +51,7 @@ public final class MotionAlertDialog extends AlertDialog
     {
       if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
       {
-        setting.onKeyInput(event);
+        setting.onKeyInput(mAdapter.getSettings(), event);
         dismiss();
       }
       // Even if we ignore the key, we still consume it. Thus return true regardless.
@@ -63,7 +66,7 @@ public final class MotionAlertDialog extends AlertDialog
     // Option to clear by long back is only needed on the TV interface
     if (TvUtil.isLeanback(getContext()) && keyCode == KeyEvent.KEYCODE_BACK)
     {
-      setting.clearValue();
+      setting.clearValue(mAdapter.getSettings());
       dismiss();
       return true;
     }
@@ -158,7 +161,7 @@ public final class MotionAlertDialog extends AlertDialog
       if (numMovedAxis == 1)
       {
         mWaitingForEvent = false;
-        setting.onMotionInput(input, lastMovedRange, lastMovedDir);
+        setting.onMotionInput(mAdapter.getSettings(), input, lastMovedRange, lastMovedDir);
         dismiss();
       }
     }

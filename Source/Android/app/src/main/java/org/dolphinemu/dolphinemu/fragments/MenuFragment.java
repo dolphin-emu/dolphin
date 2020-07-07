@@ -15,7 +15,6 @@ import android.widget.TextView;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
@@ -72,12 +71,11 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       showUnpauseEmulationButton();
     }
 
-    BooleanSetting enableSaveStates =
-            (BooleanSetting) ((EmulationActivity) getActivity()).getSettings()
-                    .getSection(Settings.SECTION_INI_CORE)
-                    .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
+    boolean enableSaveStates = ((EmulationActivity) getActivity()).getSettings()
+            .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
+            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false);
 
-    if (enableSaveStates != null && enableSaveStates.getValue())
+    if (enableSaveStates)
     {
       options.findViewById(R.id.menu_quicksave).setVisibility(View.VISIBLE);
       options.findViewById(R.id.menu_quickload).setVisibility(View.VISIBLE);

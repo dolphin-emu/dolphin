@@ -2,33 +2,14 @@ package org.dolphinemu.dolphinemu.features.settings.utils;
 
 import androidx.annotation.NonNull;
 
-import android.text.TextUtils;
-
-import org.dolphinemu.dolphinemu.NativeLibrary;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.SettingSection;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.BiMap;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
@@ -308,196 +289,103 @@ public final class SettingsFile
   }
 
   /**
-   * Reads a given .ini file from disk and returns it as a HashMap of Settings, themselves
-   * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
-   * failed.
+   * Reads a given .ini file from disk and returns it.
+   * If unsuccessful, outputs an error telling why it failed.
    *
-   * @param ini  The ini file to load the settings from
+   * @param file The ini file to load the settings from
+   * @param ini  The object to load into
    * @param view The current view.
    */
-  static HashMap<String, SettingSection> readFile(final File ini, boolean isCustomGame,
-          SettingsActivityView view)
+  static void readFile(final File file, IniFile ini, SettingsActivityView view)
   {
-    HashMap<String, SettingSection> sections = new Settings.SettingsSectionMap();
-
-    BufferedReader reader = null;
-
-    try
+    if (!ini.load(file, true))
     {
-      reader = new BufferedReader(new FileReader(ini));
-
-      SettingSection current = null;
-      for (String line; (line = reader.readLine()) != null; )
-      {
-        if (line.startsWith("[") && line.endsWith("]"))
-        {
-          current = sectionFromLine(line, isCustomGame);
-          sections.put(current.getName(), current);
-        }
-        else if ((current != null))
-        {
-          Setting setting = settingFromLine(current, line);
-          if (setting != null)
-          {
-            current.putSetting(setting);
-          }
-        }
-      }
-    }
-    catch (FileNotFoundException e)
-    {
-      Log.error("[SettingsFile] File not found: " + ini.getAbsolutePath() + e.getMessage());
+      Log.error("[SettingsFile] Error reading from: " + file.getAbsolutePath());
       if (view != null)
         view.onSettingsFileNotFound();
     }
-    catch (IOException e)
-    {
-      Log.error("[SettingsFile] Error reading from: " + ini.getAbsolutePath() + e.getMessage());
-      if (view != null)
-        view.onSettingsFileNotFound();
-    }
-    finally
-    {
-      if (reader != null)
-      {
-        try
-        {
-          reader.close();
-        }
-        catch (IOException e)
-        {
-          Log.error("[SettingsFile] Error closing: " + ini.getAbsolutePath() + e.getMessage());
-        }
-      }
-    }
-
-    return sections;
   }
 
-  public static HashMap<String, SettingSection> readFile(final String fileName,
-          SettingsActivityView view)
+  public static void readFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
-    HashMap<String, SettingSection> sections = readFile(getSettingsFile(fileName), false, view);
+    readFile(getSettingsFile(fileName), ini, view);
 
     if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
     {
-      addGcPadSettingsIfTheyDontExist(sections);
+      addGcPadSettingsIfTheyDontExist(ini);
     }
-
-    return sections;
   }
 
   /**
-   * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
-   * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
-   * failed.
+   * Reads a given .ini file from disk and returns it.
+   * If unsuccessful, outputs an error telling why it failed.
    *
-   * @param gameId the id of the game to load it's settings.
+   * @param gameId the id of the game to load settings for.
+   * @param ini    The object to load into
    * @param view   The current view.
    */
-  public static HashMap<String, SettingSection> readCustomGameSettings(final String gameId,
+  public static void readCustomGameSettings(final String gameId, IniFile ini,
           SettingsActivityView view)
   {
-    return readFile(getCustomGameSettingsFile(gameId), true, view);
+    readFile(getCustomGameSettingsFile(gameId), ini, view);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettings(final String gameId,
+  public static void readGenericGameSettings(final String gameId, IniFile ini,
           SettingsActivityView view)
   {
-    return readFile(getGenericGameSettingsFile(gameId), true, view);
+    readFile(getGenericGameSettingsFile(gameId), ini, view);
   }
 
-  public static HashMap<String, SettingSection> readGenericGameSettingsForAllRegions(
-          final String gameId, SettingsActivityView view)
+  public static void readGenericGameSettingsForAllRegions(final String gameId,
+          IniFile ini, SettingsActivityView view)
   {
-    return readFile(getGenericGameSettingsForAllRegions(gameId), true, view);
+    readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
   }
 
-  public static HashMap<String, SettingSection> readWiimoteProfile(final String gameId,
-          final String padId)
+  public static void readWiimoteProfile(final String gameId, IniFile ini, final int padId)
   {
     String profile = gameId + "_Wii" + padId;
-    return readFile(getWiiProfile(profile, padId), true, null);
+    readFile(getWiiProfile(profile), ini, null);
   }
 
   /**
-   * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
-   * telling why it failed.
+   * Saves a given .ini file on disk.
+   * If unsuccessful, outputs an error telling why it failed.
    *
    * @param fileName The target filename without a path or extension.
-   * @param sections The HashMap containing the Settings we want to serialize.
+   * @param ini      The IniFile we want to serialize.
    * @param view     The current view.
    */
-  public static void saveFile(final String fileName, TreeMap<String, SettingSection> sections,
-          SettingsActivityView view)
+  public static void saveFile(final String fileName, IniFile ini, SettingsActivityView view)
   {
-    File ini = getSettingsFile(fileName);
-
-    try (PrintWriter writer = new PrintWriter(ini, "UTF-8"))
+    if (!ini.save(getSettingsFile(fileName)))
     {
-
-      Set<String> keySet = sections.keySet();
-      Set<String> sortedKeySet = new TreeSet<>(keySet);
-
-      for (String key : sortedKeySet)
-      {
-        SettingSection section = sections.get(key);
-        writeSection(writer, section);
-      }
-    }
-    catch (FileNotFoundException e)
-    {
-      Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
+      Log.error("[SettingsFile] Error saving to: " + fileName + ".ini");
       if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-    }
-    catch (UnsupportedEncodingException e)
-    {
-      Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " +
-              e.getMessage());
-      if (view != null)
-        view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+        view.showToastMessage("Error saving " + fileName + ".ini");
     }
   }
 
-  public static void saveCustomGameSettings(final String gameId,
-          final HashMap<String, SettingSection> sections)
+  public static void saveCustomGameSettings(final String gameId, IniFile ini)
   {
-    Set<String> sortedSections = new TreeSet<>(sections.keySet());
+    IniFile iniCopy = new IniFile(ini);
 
-    IniFile ini = new IniFile();
-    for (String sectionKey : sortedSections)
+    // Profile options(wii extension) are not saved, only used to properly display values
+    iniCopy.deleteSection(Settings.SECTION_PROFILE);
+
+    for (int i = 0; i < 3; i++)
     {
-      SettingSection section = sections.get(sectionKey);
-      HashMap<String, Setting> settings = section.getSettings();
-      Set<String> sortedKeySet = new TreeSet<>(settings.keySet());
-
-      // Profile options(wii extension) are not saved, only used to properly display values
-      if (sectionKey.contains(Settings.SECTION_PROFILE))
+      String key = SettingsFile.KEY_WIIMOTE_EXTENSION + i;
+      if (iniCopy.exists(Settings.SECTION_CONTROLS, key))
       {
-        continue;
-      }
-
-      for (String settingKey : sortedKeySet)
-      {
-        Setting setting = settings.get(settingKey);
         // Special case. Extension gets saved into a controller profile
-        if (settingKey.contains(SettingsFile.KEY_WIIMOTE_EXTENSION))
-        {
-          String padId =
-                  setting.getKey()
-                          .substring(setting.getKey().length() - 1, setting.getKey().length());
-          saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, setting.getValueAsString(),
-                  padId);
-        }
-        else
-        {
-          ini.setString(mapSectionNameFromIni(section.getName()), setting.getKey(),
-                  setting.getValueAsString());
-        }
+        String value = iniCopy.getString(Settings.SECTION_CONTROLS, key, "");
+        saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, value, i);
+        iniCopy.deleteKey(Settings.SECTION_CONTROLS, key);
       }
     }
-    ini.save(getCustomGameSettingsFile(gameId));
+
+    iniCopy.save(getCustomGameSettingsFile(gameId));
   }
 
   /**
@@ -509,13 +397,13 @@ public final class SettingsFile
    * @param padId
    */
   private static void saveCustomWiimoteSetting(final String gameId, final String key,
-          final String value, final String padId)
+          final String value, final int padId)
   {
     String profile = gameId + "_Wii" + padId;
     String wiiConfigPath =
             DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
                     profile + ".ini";
-    File wiiProfile = getWiiProfile(profile, padId);
+    File wiiProfile = getWiiProfile(profile);
     // If it doesn't exist, create it
     boolean wiiProfileExists = wiiProfile.exists();
     if (!wiiProfileExists)
@@ -531,7 +419,7 @@ public final class SettingsFile
     if (!wiiProfileExists)
     {
       wiiProfileIni.setString(Settings.SECTION_PROFILE, "Device",
-              "Android/" + (Integer.parseInt(padId) + 4) + "/Touchscreen");
+              "Android/" + (padId + 4) + "/Touchscreen");
     }
 
     wiiProfileIni.setString(Settings.SECTION_PROFILE, key, value);
@@ -540,12 +428,12 @@ public final class SettingsFile
     // Enable the profile
     File gameSettingsFile = SettingsFile.getCustomGameSettingsFile(gameId);
     IniFile gameSettingsIni = new IniFile(gameSettingsFile);
-    gameSettingsIni.setString(Settings.SECTION_CONTROLS,
-            KEY_WIIMOTE_PROFILE + (Integer.parseInt(padId) + 1), profile);
+    gameSettingsIni.setString(Settings.SECTION_CONTROLS, KEY_WIIMOTE_PROFILE + (padId + 1),
+            profile);
     gameSettingsIni.save(gameSettingsFile);
   }
 
-  private static String mapSectionNameFromIni(String generalSectionName)
+  public static String mapSectionNameFromIni(String generalSectionName)
   {
     if (sectionsMap.getForward(generalSectionName) != null)
     {
@@ -555,7 +443,7 @@ public final class SettingsFile
     return generalSectionName;
   }
 
-  private static String mapSectionNameToIni(String generalSectionName)
+  public static String mapSectionNameToIni(String generalSectionName)
   {
     if (sectionsMap.getBackward(generalSectionName) != null)
     {
@@ -594,7 +482,7 @@ public final class SettingsFile
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
   }
 
-  private static File getWiiProfile(String profile, String padId)
+  private static File getWiiProfile(String profile)
   {
     String wiiConfigPath =
             DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
@@ -603,136 +491,29 @@ public final class SettingsFile
     return new File(wiiConfigPath);
   }
 
-  private static SettingSection sectionFromLine(String line, boolean isCustomGame)
+  private static void addGcPadSettingsIfTheyDontExist(IniFile ini)
   {
-    String sectionName = line.substring(1, line.length() - 1);
-    if (isCustomGame)
-    {
-      sectionName = mapSectionNameToIni(sectionName);
-    }
-    return new SettingSection(sectionName);
-  }
-
-  private static void addGcPadSettingsIfTheyDontExist(HashMap<String, SettingSection> sections)
-  {
-    SettingSection coreSection = sections.get(Settings.SECTION_INI_CORE);
+    IniFile.Section coreSection = ini.getOrCreateSection(Settings.SECTION_INI_CORE);
 
     for (int i = 0; i < 4; i++)
     {
       String key = SettingsFile.KEY_GCPAD_TYPE + i;
-      if (coreSection.getSetting(key) == null)
+      if (!coreSection.exists(key))
       {
         // Set GameCube controller 1 to enabled, all others disabled
-        Setting gcPadSetting = new IntSetting(key, Settings.SECTION_INI_CORE, i == 0 ? 6 : 0);
-        coreSection.putSetting(gcPadSetting);
+        coreSection.setInt(key, i == 0 ? 6 : 0);
       }
     }
-
-    sections.put(Settings.SECTION_INI_CORE, coreSection);
   }
 
   public static void firstAnalyticsAdd(boolean enabled)
   {
-    HashMap<String, SettingSection> dolphinSections =
-            readFile(SettingsFile.FILE_NAME_DOLPHIN, null);
-    SettingSection analyticsSection = dolphinSections.get(Settings.SECTION_ANALYTICS);
+    IniFile dolphinIni = new IniFile();
+    readFile(SettingsFile.FILE_NAME_DOLPHIN, dolphinIni, null);
 
-    Setting analyticsEnabled = new StringSetting(KEY_ANALYTICS_ENABLED, Settings.SECTION_ANALYTICS,
-            enabled ? "True" : "False");
-    Setting analyticsFirstAsk =
-            new StringSetting(KEY_ANALYTICS_PERMISSION_ASKED, Settings.SECTION_ANALYTICS, "True");
+    dolphinIni.setBoolean(Settings.SECTION_ANALYTICS, KEY_ANALYTICS_ENABLED, enabled);
+    dolphinIni.setBoolean(Settings.SECTION_ANALYTICS, KEY_ANALYTICS_PERMISSION_ASKED, true);
 
-    analyticsSection.putSetting(analyticsFirstAsk);
-    analyticsSection.putSetting(analyticsEnabled);
-
-    dolphinSections.put(Settings.SECTION_ANALYTICS, analyticsSection);
-
-    TreeMap<String, SettingSection> saveSection = new TreeMap<>(dolphinSections);
-    saveFile(SettingsFile.FILE_NAME_DOLPHIN, saveSection, null);
-  }
-
-  /**
-   * For a line of text, determines what type of data is being represented, and returns
-   * a Setting object containing this data.
-   *
-   * @param current The section currently being parsed by the consuming method.
-   * @param line    The line of text being parsed.
-   * @return A typed Setting containing the key/value contained in the line.
-   */
-  private static Setting settingFromLine(SettingSection current, String line)
-  {
-    String[] splitLine = line.split("=");
-
-    if (splitLine.length != 2)
-    {
-      Log.warning("Skipping invalid config line \"" + line + "\"");
-      return null;
-    }
-
-    String key = splitLine[0].trim();
-    String value = splitLine[1].trim();
-
-    try
-    {
-      int valueAsInt = Integer.parseInt(value);
-
-      return new IntSetting(key, current.getName(), valueAsInt);
-    }
-    catch (NumberFormatException ignored)
-    {
-    }
-
-    try
-    {
-      float valueAsFloat = Float.parseFloat(value);
-
-      return new FloatSetting(key, current.getName(), valueAsFloat);
-    }
-    catch (NumberFormatException ignored)
-    {
-    }
-
-    switch (value)
-    {
-      case "True":
-        return new BooleanSetting(key, current.getName(), true);
-      case "False":
-        return new BooleanSetting(key, current.getName(), false);
-      default:
-        return new StringSetting(key, current.getName(), value);
-    }
-  }
-
-  /**
-   * Writes the contents of a Section HashMap to disk.
-   *
-   * @param writer  A PrintWriter pointed at a file on disk.
-   * @param section A section containing settings to be written to the file.
-   */
-  private static void writeSection(PrintWriter writer, SettingSection section)
-  {
-    // Write the section header.
-    String header = sectionAsString(section);
-    writer.println(header);
-
-    // Write this section's values.
-    HashMap<String, Setting> settings = section.getSettings();
-    Set<String> keySet = settings.keySet();
-    Set<String> sortedKeySet = new TreeSet<>(keySet);
-
-    for (String key : sortedKeySet)
-    {
-      Setting setting = settings.get(key);
-      String valueAsString = setting.getValueAsString();
-      if (!TextUtils.isEmpty(valueAsString))
-      {
-        writer.println(setting.getKey() + " = " + valueAsString);
-      }
-    }
-  }
-
-  private static String sectionAsString(SettingSection section)
-  {
-    return "[" + section.getName() + "]";
+    saveFile(SettingsFile.FILE_NAME_DOLPHIN, dolphinIni, null);
   }
 }

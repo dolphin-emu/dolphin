@@ -32,7 +32,6 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
@@ -521,10 +520,8 @@ public final class EmulationActivity extends AppCompatActivity
       showUnpauseEmulationButton();
     }
 
-    BooleanSetting enableSaveStates =
-            (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
-                    .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
-    if (enableSaveStates != null && enableSaveStates.getValue())
+    if (mSettings.getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
+            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false))
     {
       menu.findItem(R.id.menu_quicksave).setVisible(true);
       menu.findItem(R.id.menu_quickload).setVisible(true);

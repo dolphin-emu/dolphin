@@ -57,7 +57,7 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
       mTextSettingDescription.setText("");
     }
 
-    mCheckbox.setChecked(mItem.isChecked());
+    mCheckbox.setChecked(mItem.isChecked(getAdapter().getSettings()));
   }
 
   @Override

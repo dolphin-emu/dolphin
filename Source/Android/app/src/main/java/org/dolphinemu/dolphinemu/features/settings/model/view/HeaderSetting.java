@@ -1,12 +1,10 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-
 public final class HeaderSetting extends SettingsItem
 {
-  public HeaderSetting(String key, Setting setting, int titleId, int descriptionId)
+  public HeaderSetting(String key, int titleId, int descriptionId)
   {
-    super(key, null, setting, titleId, descriptionId);
+    super(null, null, key, titleId, descriptionId);
   }
 
   @Override

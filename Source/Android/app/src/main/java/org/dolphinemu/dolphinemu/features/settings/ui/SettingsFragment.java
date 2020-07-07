@@ -14,7 +14,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
 
@@ -188,9 +188,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void putSetting(Setting setting)
+  public Settings getSettings()
   {
-    mPresenter.putSetting(setting);
+    return mPresenter.getSettings();
   }
 
   @Override

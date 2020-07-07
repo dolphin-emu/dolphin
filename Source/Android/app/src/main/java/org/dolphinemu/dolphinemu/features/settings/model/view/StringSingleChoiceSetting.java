@@ -1,8 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public class StringSingleChoiceSetting extends SettingsItem
@@ -13,37 +12,37 @@ public class StringSingleChoiceSetting extends SettingsItem
   private String[] mValuesId;
   private MenuTag mMenuTag;
 
-  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          String[] choicesId, String[] valuesId, String defaultValue, Setting setting,
+  public StringSingleChoiceSetting(String file, String section, String key, int titleId,
+          int descriptionId, String[] choicesId, String[] valuesId, String defaultValue,
           MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(file, section, key, titleId, descriptionId);
     mChoicesId = choicesId;
     mValuesId = valuesId;
     mDefaultValue = defaultValue;
     mMenuTag = menuTag;
   }
 
-  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          String[] choicesId, String[] valuesId, String defaultValue, Setting setting)
+  public StringSingleChoiceSetting(String file, String section, String key, int titleId,
+          int descriptionId, String[] choicesId, String[] valuesId, String defaultValue)
   {
-    this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
+    this(file, section, key, titleId, descriptionId, choicesId, valuesId, defaultValue, null);
   }
 
-  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          int choicesId, int valuesId, String defaultValue, Setting setting, MenuTag menuTag)
+  public StringSingleChoiceSetting(String file, String section, String key, int titleId,
+          int descriptionId, int choicesId, int valuesId, String defaultValue, MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(file, section, key, titleId, descriptionId);
     mChoicesId = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
     mValuesId = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
     mDefaultValue = defaultValue;
     mMenuTag = menuTag;
   }
 
-  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
-          int choicesId, int valuesId, String defaultValue, Setting setting)
+  public StringSingleChoiceSetting(String file, String section, String key, int titleId,
+          int descriptionId, int choicesId, int valuesId, String defaultValue)
   {
-    this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
+    this(file, section, key, titleId, descriptionId, choicesId, valuesId, defaultValue, null);
   }
 
   public String[] getChoicesId()
@@ -69,22 +68,14 @@ public class StringSingleChoiceSetting extends SettingsItem
     return "";
   }
 
-  public String getSelectedValue()
+  public String getSelectedValue(Settings settings)
   {
-    if (getSetting() == null || !(getSetting() instanceof StringSetting))
-    {
-      return mDefaultValue;
-    }
-    else
-    {
-      StringSetting setting = (StringSetting) getSetting();
-      return setting.getValue();
-    }
+    return settings.getSection(getFile(), getSection()).getString(getKey(), mDefaultValue);
   }
 
-  public int getSelectValueIndex()
+  public int getSelectValueIndex(Settings settings)
   {
-    String selectedValue = getSelectedValue();
+    String selectedValue = getSelectedValue(settings);
     for (int i = 0; i < mValuesId.length; i++)
     {
       if (mValuesId[i].equals(selectedValue))
@@ -101,27 +92,9 @@ public class StringSingleChoiceSetting extends SettingsItem
     return mMenuTag;
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public StringSetting setSelectedValue(String selection)
+  public void setSelectedValue(Settings settings, String selection)
   {
-    if (getSetting() == null || !(getSetting() instanceof StringSetting))
-    {
-      StringSetting setting = new StringSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      StringSetting setting = (StringSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
+    settings.getSection(getFile(), getSection()).setString(getKey(), selection);
   }
 
   @Override

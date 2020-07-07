@@ -15,6 +15,26 @@ public class IniFile
     {
       mPointer = pointer;
     }
+
+    public native boolean exists(String key);
+
+    public native boolean delete(String key);
+
+    public native String getString(String key, String defaultValue);
+
+    public native boolean getBoolean(String key, boolean defaultValue);
+
+    public native int getInt(String key, int defaultValue);
+
+    public native float getFloat(String key, float defaultValue);
+
+    public native void setString(String key, String newValue);
+
+    public native void setBoolean(String key, boolean newValue);
+
+    public native void setInt(String key, int newValue);
+
+    public native void setFloat(String key, float newFloat);
   }
 
   private long mPointer;  // Do not rename or move without editing the native code
@@ -22,6 +42,11 @@ public class IniFile
   public IniFile()
   {
     mPointer = newIniFile();
+  }
+
+  public IniFile(IniFile other)
+  {
+    mPointer = copyIniFile(other);
   }
 
   public IniFile(String path)
@@ -50,11 +75,23 @@ public class IniFile
     return save(file.getPath());
   }
 
+  public native Section getOrCreateSection(String sectionName);
+
+  public native boolean exists(String sectionName);
+
+  public native boolean exists(String sectionName, String key);
+
+  public native boolean deleteSection(String sectionName);
+
+  public native boolean deleteKey(String sectionName, String key);
+
   public native String getString(String sectionName, String key, String defaultValue);
 
   public native boolean getBoolean(String sectionName, String key, boolean defaultValue);
 
   public native int getInt(String sectionName, String key, int defaultValue);
+
+  public native float getFloat(String sectionName, String key, float defaultValue);
 
   public native void setString(String sectionName, String key, String newValue);
 
@@ -62,8 +99,12 @@ public class IniFile
 
   public native void setInt(String sectionName, String key, int newValue);
 
+  public native void setFloat(String sectionName, String key, float newValue);
+
   @Override
   public native void finalize();
 
   private native long newIniFile();
+
+  private native long copyIniFile(IniFile other);
 }
