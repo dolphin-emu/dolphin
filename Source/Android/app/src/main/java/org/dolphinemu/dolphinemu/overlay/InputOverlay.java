@@ -328,6 +328,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     int fingerPositionX = (int) event.getX(pointerIndex);
     int fingerPositionY = (int) event.getY(pointerIndex);
 
+    final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+    int controller = sPrefs.getInt("wiiController", 3);
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
                     "-Portrait" : "";
@@ -366,7 +368,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             // Persist button position by saving new place.
             saveControlPosition(mButtonBeingConfigured.getId(),
                     mButtonBeingConfigured.getBounds().left,
-                    mButtonBeingConfigured.getBounds().top, orientation);
+                    mButtonBeingConfigured.getBounds().top, controller, orientation);
             mButtonBeingConfigured = null;
           }
           break;
@@ -404,7 +406,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             // Persist button position by saving new place.
             saveControlPosition(mDpadBeingConfigured.getId(0),
                     mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top,
-                    orientation);
+                    controller, orientation);
             mDpadBeingConfigured = null;
           }
           break;
@@ -437,7 +439,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
           {
             saveControlPosition(mJoystickBeingConfigured.getId(),
                     mJoystickBeingConfigured.getBounds().left,
-                    mJoystickBeingConfigured.getBounds().top, orientation);
+                    mJoystickBeingConfigured.getBounds().top, controller, orientation);
             mJoystickBeingConfigured = null;
           }
           break;
@@ -790,13 +792,40 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     refreshControls();
   }
 
-  private void saveControlPosition(int sharedPrefsId, int x, int y, String orientation)
+  private void saveControlPosition(int sharedPrefsId, int x, int y, int controller,
+          String orientation)
   {
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
     SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
-    sPrefsEditor.putFloat(sharedPrefsId + orientation + "-X", x);
-    sPrefsEditor.putFloat(sharedPrefsId + orientation + "-Y", y);
+    sPrefsEditor.putFloat(getXKey(sharedPrefsId, controller, orientation), x);
+    sPrefsEditor.putFloat(getYKey(sharedPrefsId, controller, orientation), y);
     sPrefsEditor.apply();
+  }
+
+  private static String getKey(int sharedPrefsId, int controller, String orientation, String suffix)
+  {
+    if (controller == 2 && WIIMOTE_H_BUTTONS.contains(sharedPrefsId))
+    {
+      return sharedPrefsId + "_H" + orientation + suffix;
+    }
+    else if (controller == 1 && WIIMOTE_O_BUTTONS.contains(sharedPrefsId))
+    {
+      return sharedPrefsId + "_O" + orientation + suffix;
+    }
+    else
+    {
+      return sharedPrefsId + orientation + suffix;
+    }
+  }
+
+  private static String getXKey(int sharedPrefsId, int controller, String orientation)
+  {
+    return getKey(sharedPrefsId, controller, orientation, "-X");
+  }
+
+  private static String getYKey(int sharedPrefsId, int controller, String orientation)
+  {
+    return getKey(sharedPrefsId, controller, orientation, "-Y");
   }
 
   /**
@@ -900,27 +929,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    String xKey;
-    String yKey;
-
-    if (controller == 2 && WIIMOTE_H_BUTTONS.contains(buttonId))
-    {
-      xKey = buttonId + "_H" + orientation + "-X";
-      yKey = buttonId + "_H" + orientation + "-Y";
-    }
-    else if (controller == 1 && WIIMOTE_O_BUTTONS.contains(buttonId))
-    {
-      xKey = buttonId + "_O" + orientation + "-X";
-      yKey = buttonId + "_O" + orientation + "-Y";
-    }
-    else
-    {
-      xKey = buttonId + orientation + "-X";
-      yKey = buttonId + orientation + "-Y";
-    }
-
-    int drawableX = (int) sPrefs.getFloat(xKey, 0f);
-    int drawableY = (int) sPrefs.getFloat(yKey, 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(buttonId, controller, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(buttonId, controller, orientation), 0f);
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -1003,26 +1013,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    String xKey;
-    String yKey;
-
-    if (controller == 2 && WIIMOTE_H_BUTTONS.contains(buttonUp))
-    {
-      xKey = buttonUp + "_H" + orientation + "-X";
-      yKey = buttonUp + "_H" + orientation + "-Y";
-    }
-    else if (controller == 1 && WIIMOTE_O_BUTTONS.contains(buttonUp))
-    {
-      xKey = buttonUp + "_O" + orientation + "-X";
-      yKey = buttonUp + "_O" + orientation + "-Y";
-    }
-    else
-    {
-      xKey = buttonUp + orientation + "-X";
-      yKey = buttonUp + orientation + "-Y";
-    }
-    int drawableX = (int) sPrefs.getFloat(xKey, 0f);
-    int drawableY = (int) sPrefs.getFloat(yKey, 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(buttonUp, controller, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(buttonUp, controller, orientation), 0f);
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -1055,6 +1047,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+    int controller = sPrefs.getInt("wiiController", 3);
 
     // Decide scale based on user preference
     float scale = 0.275f;
@@ -1069,8 +1062,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(joystick + orientation + "-X", 0f);
-    int drawableY = (int) sPrefs.getFloat(joystick + orientation + "-Y", 0f);
+    int drawableX = (int) sPrefs.getFloat(getXKey(joystick, controller, orientation), 0f);
+    int drawableY = (int) sPrefs.getFloat(getYKey(joystick, controller, orientation), 0f);
 
     // Decide inner scale based on joystick ID
     float innerScale;
