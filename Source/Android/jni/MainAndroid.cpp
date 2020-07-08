@@ -201,6 +201,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMov
     JNIEnv* env, jobject obj, jstring jDevice, jint Axis, jfloat Value);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSensorsEnabled(
     JNIEnv* env, jobject obj, jboolean accelerometer_enabled, jboolean gyroscope_enabled);
+JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
+    JNIEnv* env, jobject obj, int emu_pad_id, int stick, double angle);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env, jobject obj);
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
@@ -313,6 +315,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSen
     JNIEnv* env, jobject obj, jboolean accelerometer_enabled, jboolean gyroscope_enabled)
 {
   ciface::Android::SetMotionSensorsEnabled(accelerometer_enabled, gyroscope_enabled);
+}
+
+JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRadiusAtAngle(
+    JNIEnv* env, jobject obj, int emu_pad_id, int stick, double angle)
+{
+  const auto casted_stick = static_cast<ButtonManager::ButtonType>(stick);
+  return ButtonManager::GetInputRadiusAtAngle(emu_pad_id, casted_stick, angle);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,

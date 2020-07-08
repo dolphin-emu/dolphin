@@ -269,6 +269,9 @@ public final class NativeLibrary
   public static native void SetMotionSensorsEnabled(boolean accelerometerEnabled,
           boolean gyroscopeEnabled);
 
+  // Angle is in radians and should be non-negative
+  public static native double GetInputRadiusAtAngle(int emu_pad_id, int stick, double angle);
+
   public static native void NewGameIniFile();
 
   public static native void LoadGameIniFile(String gameId);

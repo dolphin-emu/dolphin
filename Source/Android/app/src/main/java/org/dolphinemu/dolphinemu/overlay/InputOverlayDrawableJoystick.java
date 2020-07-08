@@ -14,6 +14,8 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+
 /**
  * Custom {@link BitmapDrawable} that is capable
  * of storing it's own ID.
@@ -214,21 +216,27 @@ public final class InputOverlayDrawableJoystick
 
   private void SetInnerBounds()
   {
-    int X = getVirtBounds().centerX() + (int) ((axises[1]) * (getVirtBounds().width() / 2));
-    int Y = getVirtBounds().centerY() + (int) ((axises[0]) * (getVirtBounds().height() / 2));
+    double y = axises[0];
+    double x = axises[1];
 
-    if (X > getVirtBounds().centerX() + (getVirtBounds().width() / 2))
-      X = getVirtBounds().centerX() + (getVirtBounds().width() / 2);
-    if (X < getVirtBounds().centerX() - (getVirtBounds().width() / 2))
-      X = getVirtBounds().centerX() - (getVirtBounds().width() / 2);
-    if (Y > getVirtBounds().centerY() + (getVirtBounds().height() / 2))
-      Y = getVirtBounds().centerY() + (getVirtBounds().height() / 2);
-    if (Y < getVirtBounds().centerY() - (getVirtBounds().height() / 2))
-      Y = getVirtBounds().centerY() - (getVirtBounds().height() / 2);
+    double angle = Math.atan2(y, x) + Math.PI + Math.PI;
+    double radius = Math.hypot(y, x);
+    double maxRadius = NativeLibrary.GetInputRadiusAtAngle(0, mJoystickType, angle);
+    if (radius > maxRadius)
+    {
+      y = maxRadius * Math.sin(angle);
+      x = maxRadius * Math.cos(angle);
+      axises[0] = (float) y;
+      axises[1] = (float) x;
+    }
+
+    int pixelX = getVirtBounds().centerX() + (int) (x * (getVirtBounds().width() / 2));
+    int pixelY = getVirtBounds().centerY() + (int) (y * (getVirtBounds().height() / 2));
 
     int width = mPressedStateInnerBitmap.getBounds().width() / 2;
     int height = mPressedStateInnerBitmap.getBounds().height() / 2;
-    mDefaultStateInnerBitmap.setBounds(X - width, Y - height, X + width, Y + height);
+    mDefaultStateInnerBitmap.setBounds(pixelX - width, pixelY - height, pixelX + width,
+            pixelY + height);
     mPressedStateInnerBitmap.setBounds(mDefaultStateInnerBitmap.getBounds());
   }
 
