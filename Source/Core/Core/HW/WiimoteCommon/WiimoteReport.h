@@ -207,6 +207,22 @@ struct InputReportStatus
   u8 leds : 4;
   u8 padding2[2];
   u8 battery;
+
+  constexpr float GetEstimatedCharge() const
+  {
+    return battery * BATTERY_LEVEL_M / BATTERY_MAX + BATTERY_LEVEL_B;
+  }
+  void SetEstimatedCharge(float charge)
+  {
+    battery = u8(std::lround((charge - BATTERY_LEVEL_B) / BATTERY_LEVEL_M * BATTERY_MAX));
+  }
+
+private:
+  static constexpr auto BATTERY_MAX = std::numeric_limits<decltype(battery)>::max();
+
+  // Linear fit of battery level mid-point for charge bars in home menu.
+  static constexpr float BATTERY_LEVEL_M = 2.46f;
+  static constexpr float BATTERY_LEVEL_B = -0.013f;
 };
 static_assert(sizeof(InputReportStatus) == 6, "Wrong size");
 

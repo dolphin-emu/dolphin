@@ -233,7 +233,7 @@ private:
 
   // Status report is requested every so often to update the battery level.
   Clock::time_point m_status_outdated_time = Clock::now();
-  u8 m_battery = 0;
+  float m_battery = 0;
   u8 m_leds = 0;
 
   bool m_speaker_configured = false;
