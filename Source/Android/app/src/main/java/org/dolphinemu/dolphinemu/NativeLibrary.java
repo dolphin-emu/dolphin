@@ -138,7 +138,7 @@ public final class NativeLibrary
     public static final int CLASSIC_STICK_LEFT_RIGHT = 317;
     public static final int CLASSIC_STICK_RIGHT = 318;
     public static final int CLASSIC_STICK_RIGHT_UP = 319;
-    public static final int CLASSIC_STICK_RIGHT_DOWN = 100;
+    public static final int CLASSIC_STICK_RIGHT_DOWN = 320;
     public static final int CLASSIC_STICK_RIGHT_LEFT = 321;
     public static final int CLASSIC_STICK_RIGHT_RIGHT = 322;
     public static final int CLASSIC_TRIGGER_L = 323;
