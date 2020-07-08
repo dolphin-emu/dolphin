@@ -717,10 +717,10 @@ Renderer::Renderer(std::unique_ptr<GLContext> main_gl_context, float backbuffer_
     // MSAA on default framebuffer isn't working because of glBlitFramebuffer.
     // It also isn't useful as we don't render anything to the default framebuffer.
     // We also try to get a non-msaa fb, so this only happens when forced by the driver.
-    PanicAlert("MSAA on default framebuffer isn't supported.\n"
-               "Please avoid forcing Dolphin to use MSAA by the driver.\n"
-               "%d samples on default framebuffer found.",
-               samples);
+    PanicAlertT("The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to "
+                "turn this off in the graphics driver's settings in order for Dolphin to work.\n\n"
+                "(MSAA with %d samples found on default framebuffer)",
+                samples);
     bSuccess = false;
   }
 
