@@ -919,6 +919,7 @@ void CEXISlippi::prepareGeckoList()
       {0x8006b0dc, true}, // Recording/SendGamePreFrame.asm
       {0x803219ec, true}, // 3.4.0: Recording/FlushFrameBuffer.asm (Have to keep old ones for backward compatibility)
       {0x8006da34, true}, // 3.4.0: Recording/SendGamePostFrame.asm
+      {0x8016d884, true}, // 3.7.0: Recording/SendGameEnd.asm
 
       {0x8021aae4, true}, // Binary/FasterMeleeSettings/DisableFdTransitions.bin
       {0x801cbb90, true}, // Binary/FasterMeleeSettings/LaglessFod.bin
@@ -971,6 +972,8 @@ void CEXISlippi::prepareGeckoList()
       {0x804ddb84, true}, // External/Widescreen/Nametag Fixes/Adjust Nametag Text X Scale.asm
       {0x803BB05C, true}, // External/Widescreen/Fix Screen Flash.asm
       {0x8036A4A8, true}, // External/Widescreen/Overwrite CObj Values.asm
+      {0x800C0148, true}, // External/FlashRedFailedLCancel/ChangeColor.asm
+      {0x8008D690, true}, // External/FlashRedFailedLCancel/TriggerColor.asm
 
       {0x8006A880, true}, // Online/Core/BrawlOffscreenDamage.asm
       {0x801A4DB4, true}, // Online/Core/ForceEngineOnRollback.asm
