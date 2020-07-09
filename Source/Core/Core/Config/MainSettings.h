@@ -130,4 +130,10 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
 // Main.Interface
 
 extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
+
+// Main.Debug
+
+extern const Info<bool> MAIN_DEBUG_LOAD_STORE_FLOATING_OFF;
+extern const Info<bool> MAIN_DEBUG_LOAD_STORE_PAIRED_OFF;
+
 }  // namespace Config

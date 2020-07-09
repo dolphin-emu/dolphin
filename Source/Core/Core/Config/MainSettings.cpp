@@ -154,4 +154,10 @@ const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLD
 // Main.Interface
 
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
+
+// Main.Debug
+
+const Info<bool> MAIN_DEBUG_LOAD_STORE_FLOATING_OFF{{System::Main, "Debug", "JitLoadStoreFloatingOff"}, false};
+const Info<bool> MAIN_DEBUG_LOAD_STORE_PAIRED_OFF{{System::Main, "Debug", "JitLoadStorePairedOff"}, false};
+
 }  // namespace Config

@@ -8,6 +8,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitArm64/Jit.h"
@@ -22,6 +23,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
+  JITDISABLE_LAYERED(MAIN_DEBUG_LOAD_STORE_FLOATING_OFF);
   FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB;
@@ -184,6 +186,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreFloatingOff);
+  JITDISABLE_LAYERED(MAIN_DEBUG_LOAD_STORE_FLOATING_OFF);
   FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB;
