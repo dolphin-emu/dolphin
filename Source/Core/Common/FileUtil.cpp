@@ -760,6 +760,7 @@ std::string GetHomeDirectory()
     const char* home = getenv("USERPROFILE");
     homeDir = std::string(home) + "\\Documents";
   }
+  homeDir = ReplaceAll(std::move(homeDir), "\\", DIR_SEP);
 #else
   const char* home = getenv("HOME");
   homeDir = std::string(home);

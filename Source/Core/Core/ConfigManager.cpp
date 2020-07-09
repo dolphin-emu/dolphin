@@ -88,6 +88,7 @@ void SConfig::SaveSettings()
   SaveInterfaceSettings(ini);
   SaveGameListSettings(ini);
   SaveCoreSettings(ini);
+  SaveSlippiSettings(ini);
   SaveMovieSettings(ini);
   SaveDSPSettings(ini);
   SaveInputSettings(ini);
@@ -252,6 +253,16 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("CustomRTCValue", m_customRTCValue);
 }
 
+void SConfig::SaveSlippiSettings(IniFile& ini)
+{
+  IniFile::Section* slippi = ini.GetOrCreateSection("Slippi");
+
+  slippi->Set("OnlineDelay", m_slippiOnlineDelay);
+  slippi->Set("SaveReplays", m_slippiSaveReplays);
+  slippi->Set("ReplayMonthFolders", m_slippiReplayMonthFolders);
+  slippi->Set("ReplayDir", m_strSlippiReplayDir);
+}
+
 void SConfig::SaveMovieSettings(IniFile& ini)
 {
   IniFile::Section* movie = ini.GetOrCreateSection("Movie");
@@ -364,6 +375,7 @@ void SConfig::LoadSettings()
   LoadInterfaceSettings(ini);
   LoadGameListSettings(ini);
   LoadCoreSettings(ini);
+  LoadSlippiSettings(ini);
   LoadMovieSettings(ini);
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
@@ -531,6 +543,19 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
   core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
+}
+
+void SConfig::LoadSlippiSettings(IniFile& ini)
+{
+  IniFile::Section* slippi = ini.GetOrCreateSection("Slippi");
+
+  slippi->Get("OnlineDelay", &m_slippiOnlineDelay, 2);
+  slippi->Get("SaveReplays", &m_slippiSaveReplays, true);
+  slippi->Get("ReplayMonthFolders", &m_slippiReplayMonthFolders, false);
+  std::string default_replay_dir = File::GetHomeDirectory() + DIR_SEP + "Slippi";
+  slippi->Get("ReplayDir", &m_strSlippiReplayDir, default_replay_dir);
+  if (m_strSlippiReplayDir.empty())
+    m_strSlippiReplayDir = default_replay_dir;
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)

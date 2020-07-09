@@ -146,7 +146,7 @@ struct SConfig
   bool bWii = false;
   bool m_is_mios = false;
 
-  // Slippi 
+  // Slippi
   std::string m_strSlippiInput;
   int m_slippiOnlineDelay = 2;
   bool m_slippiSaveReplays = true;
@@ -349,6 +349,7 @@ private:
   void SaveInterfaceSettings(IniFile& ini);
   void SaveGameListSettings(IniFile& ini);
   void SaveCoreSettings(IniFile& ini);
+  void SaveSlippiSettings(IniFile& ini);
   void SaveDSPSettings(IniFile& ini);
   void SaveInputSettings(IniFile& ini);
   void SaveMovieSettings(IniFile& ini);
@@ -363,6 +364,7 @@ private:
   void LoadInterfaceSettings(IniFile& ini);
   void LoadGameListSettings(IniFile& ini);
   void LoadCoreSettings(IniFile& ini);
+  void LoadSlippiSettings(IniFile& ini);
   void LoadDSPSettings(IniFile& ini);
   void LoadInputSettings(IniFile& ini);
   void LoadMovieSettings(IniFile& ini);
