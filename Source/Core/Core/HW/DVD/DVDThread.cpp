@@ -32,7 +32,9 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/ES/Formats.h"
 
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
 namespace DVDThread
@@ -391,6 +393,20 @@ static void DVDThread()
       if (s_dvd_thread_exiting.IsSet())
         return;
     }
+  }
+}
+
+void ReadFile(std::string& fileName, std::vector<u8>& buf) {
+  if (HasDisc()) {
+    const DiscIO::FileSystem* filesystem = s_disc->GetFileSystem(DiscIO::PARTITION_NONE);
+    auto fileInfo = filesystem->FindFileInfo(fileName);
+    auto fileSize = fileInfo->GetSize();
+    WaitUntilIdle();
+    buf.resize(fileSize);
+    DiscIO::ReadFile(*s_disc, DiscIO::PARTITION_NONE, fileInfo.get(), buf.data(), fileSize);
+  }
+  else {
+    INFO_LOG(SLIPPI, "Failed to open file: %s", fileName.c_str());
   }
 }
 }  // namespace DVDThread

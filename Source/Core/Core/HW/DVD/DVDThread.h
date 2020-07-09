@@ -7,7 +7,7 @@
 #include <memory>
 #include <optional>
 #include <vector>
-
+#include <string>
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
@@ -60,4 +60,6 @@ void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
 void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                             const DiscIO::Partition& partition, DVDInterface::ReplyType reply_type,
                             s64 ticks_until_completion);
+
+void ReadFile(std::string& fileName, std::vector<u8>& buf);
 }  // namespace DVDThread

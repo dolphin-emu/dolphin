@@ -3,6 +3,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/FileUtil.h"
 #include "Common/File.h"
+#include "Core/HW/DVD/DVDThread.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
@@ -10,6 +11,7 @@
 std::string getFilePath(std::string fileName)
 {
   std::string dirPath = File::GetSysDirectory();
+
   std::string filePath = dirPath + "GameFiles/GALE01/" + fileName; // TODO: Handle other games?
 
   if (File::Exists(filePath))
@@ -24,23 +26,6 @@ std::string getFilePath(std::string fileName)
   }
 
   return "";
-}
-
-// SLIPPITODO: Revisit. Modified this function a bit, unsure of functionality
-void ReadFileToBuffer(std::string& fileName, std::vector<u8>& buf)
-{
-  // Clear anything that was in the buffer
-  buf.clear();
-
-  // Don't do anything if a game is not running
-  if (Core::GetState() != Core::State::Running)
-    return;
-
-  File::IOFile file(fileName, "rb");
-  auto fileSize = file.GetSize();
-  buf.resize(fileSize);
-  size_t bytes_read;
-  file.ReadArray<u8>(buf.data(), std::min<u64>(file.GetSize(), buf.size()), &bytes_read);  
 }
 
 u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
@@ -64,14 +49,13 @@ u32 SlippiGameFileLoader::LoadFile(std::string fileName, std::string& data)
   std::string fileContents;
   File::ReadFileToString(gameFilePath, fileContents);
 
-  if (gameFilePath.substr(gameFilePath.length() - 5) == ".diff")
+  // If the file was a diff file and the game is running, load the main file from ISO and apply patch
+  if (gameFilePath.substr(gameFilePath.length() - 5) == ".diff" && Core::GetState() == Core::State::Running)
   {
-    // If the file was a diff file, load the main file from ISO and apply patch
     std::vector<u8> buf;
     INFO_LOG(SLIPPI, "Will process diff");
-    ReadFileToBuffer(fileName, buf);
+    DVDThread::ReadFile(fileName, buf);
     std::string diffContents = fileContents;
-
     decoder.Decode((char*)buf.data(), buf.size(), diffContents, &fileContents);
   }
 
