@@ -149,7 +149,7 @@ void SlippiUser::UpdateFile()
 void SlippiUser::UpdateApp()
 {
 #ifdef _WIN32
-  auto isoPath = SConfig::GetInstance().m_strBootROM;
+  auto isoPath = SConfig::GetInstance().m_strIsoPath;
 
   std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
   std::string echoMsg = "echo Starting update process. If nothing happen after a few "
