@@ -530,13 +530,13 @@
                                     <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1Kp-Z1-s0m">
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="750" text="Name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="1Kp-Z1-s0m">
                                             <rect key="frame" x="20" y="0.0" width="285" height="44"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
                                         </label>
-                                        <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="l9m-A7-13T">
+                                        <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="751" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="l9m-A7-13T">
                                             <rect key="frame" x="305" y="6.5" width="51" height="31"/>
                                             <connections>
                                                 <action selector="EnabledChanged:" destination="8ZT-Dw-ErR" eventType="valueChanged" id="UIy-f1-0V3"/>
@@ -545,7 +545,7 @@
                                         </switch>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="l9m-A7-13T" firstAttribute="leading" secondItem="1Kp-Z1-s0m" secondAttribute="trailing" id="IfL-fR-cq1"/>
+                                        <constraint firstItem="l9m-A7-13T" firstAttribute="leading" secondItem="1Kp-Z1-s0m" secondAttribute="trailing" priority="999" id="IfL-fR-cq1"/>
                                         <constraint firstAttribute="trailingMargin" secondItem="l9m-A7-13T" secondAttribute="trailing" id="L7V-su-rhS"/>
                                         <constraint firstAttribute="bottom" secondItem="1Kp-Z1-s0m" secondAttribute="bottom" id="RK2-b7-uuH"/>
                                         <constraint firstItem="1Kp-Z1-s0m" firstAttribute="top" secondItem="kR0-gD-xmG" secondAttribute="top" id="TXS-0J-Yhb"/>
