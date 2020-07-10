@@ -43,18 +43,18 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new TASCheckBox(QStringLiteral("&A"));
-  m_b_button = new TASCheckBox(QStringLiteral("&B"));
-  m_x_button = new TASCheckBox(QStringLiteral("&X"));
-  m_y_button = new TASCheckBox(QStringLiteral("&Y"));
-  m_z_button = new TASCheckBox(QStringLiteral("&Z"));
-  m_l_button = new TASCheckBox(QStringLiteral("&L"));
-  m_r_button = new TASCheckBox(QStringLiteral("&R"));
-  m_start_button = new TASCheckBox(QStringLiteral("&START"));
-  m_left_button = new TASCheckBox(QStringLiteral("L&eft"));
-  m_up_button = new TASCheckBox(QStringLiteral("&Up"));
-  m_down_button = new TASCheckBox(QStringLiteral("&Down"));
-  m_right_button = new TASCheckBox(QStringLiteral("R&ight"));
+  m_a_button = CreateButton(QStringLiteral("&A"));
+  m_b_button = CreateButton(QStringLiteral("&B"));
+  m_x_button = CreateButton(QStringLiteral("&X"));
+  m_y_button = CreateButton(QStringLiteral("&Y"));
+  m_z_button = CreateButton(QStringLiteral("&Z"));
+  m_l_button = CreateButton(QStringLiteral("&L"));
+  m_r_button = CreateButton(QStringLiteral("&R"));
+  m_start_button = CreateButton(QStringLiteral("&START"));
+  m_left_button = CreateButton(QStringLiteral("L&eft"));
+  m_up_button = CreateButton(QStringLiteral("&Up"));
+  m_down_button = CreateButton(QStringLiteral("&Down"));
+  m_right_button = CreateButton(QStringLiteral("R&ight"));
 
   auto* buttons_layout = new QGridLayout;
   buttons_layout->addWidget(m_a_button, 0, 0);
@@ -80,7 +80,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   layout->addLayout(top_layout);
   layout->addWidget(m_triggers_box);
   layout->addWidget(m_buttons_box);
-  layout->addWidget(m_use_controller);
+  layout->addWidget(m_settings_box);
 
   setLayout(layout);
 }

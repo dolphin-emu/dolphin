@@ -50,6 +50,8 @@ private:
   QLabel* m_system_language_choice_label;
   QComboBox* m_aspect_ratio_choice;
   QLabel* m_aspect_ratio_choice_label;
+  QComboBox* m_sound_mode_choice;
+  QLabel* m_sound_mode_choice_label;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;

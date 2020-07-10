@@ -235,13 +235,12 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
 
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
-
-  m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
+  m_status.SetEstimatedCharge(m_battery_setting.GetValue() / ciface::BATTERY_INPUT_MAX_VALUE);
 
   if (Core::WantsDeterminism())
   {
     // One less thing to break determinism:
-    m_status.battery = MAX_BATTERY_LEVEL;
+    m_status.SetEstimatedCharge(1.f);
   }
 
   // Less than 0x20 triggers the low-battery flag:
