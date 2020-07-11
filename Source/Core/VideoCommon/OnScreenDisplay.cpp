@@ -13,6 +13,7 @@
 #include <imgui.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -36,6 +37,7 @@ struct Message
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
+static int value = 0;
 
 static ImVec4 RGBAToImVec4(const u32 rgba)
 {
@@ -126,5 +128,39 @@ void ClearMessages()
 {
   std::lock_guard lock{s_messages_mutex};
   s_messages.clear();
+}
+
+void DrawSlippiPlaybackControls()
+{
+  const auto height = ImGui::GetWindowHeight();
+  // We have to provide a window name, and these shouldn't be duplicated.
+  // So instead, we generate a name based on the number of messages drawn.
+  const std::string window_name = fmt::format("Slippi Playback Controls");
+
+  const float alpha = 0.5f;
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+
+  if (ImGui::Begin(window_name.c_str(), nullptr,
+    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+  {
+    if (ImGui::Button("start")) {
+      INFO_LOG(SLIPPI, "pressed button!");
+    };
+    if (ImGui::Button("stop")) {
+      INFO_LOG(SLIPPI, "pressed button!");
+    };
+
+    ImGui::PushItemWidth(ImGui::GetWindowWidth());
+    ImGui::SliderCustom("test", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &value, 0, 8000, 1.0);
+    ImGui::SetWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, std::min(static_cast<float>(50.0), ImGui::GetWindowHeight())));
+    ImGui::SetWindowPos(
+      ImVec2(0, ImGui::GetIO().DisplaySize.y - ImGui::GetWindowHeight()),
+      true);
+  }
+
+  ImGui::End();
+  ImGui::PopStyleVar();
 }
 }  // namespace OSD

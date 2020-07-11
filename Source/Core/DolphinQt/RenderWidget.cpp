@@ -20,6 +20,10 @@
 #include <QTimer>
 #include <QWindow>
 
+//test ui stuff
+#include <QVBoxLayout>
+#include <QPushButton>
+
 #include "imgui.h"
 
 #include "Core/Config/MainSettings.h"

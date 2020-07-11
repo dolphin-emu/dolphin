@@ -2414,6 +2414,122 @@ bool ImGui::SliderBehavior(const ImRect& bb, ImGuiID id, ImGuiDataType data_type
     return false;
 }
 
+bool ImGui::SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max, float power, ImGuiSliderFlags flags, ImVec4 color, ImVec2 valuesize, const char* label, char* value)
+{
+  ImGuiContext& g = *GImGui;
+  const ImGuiStyle& style = g.Style;
+  ImGuiWindow* window = GetCurrentWindow();
+  const bool hovered = ItemHoverable(bb, id);
+  const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
+  const bool is_decimal = false; // TODO handle other types
+  const bool is_power = (power != 1.0f) && is_decimal;
+
+  const float grab_padding = 2.0f;
+  const float slider_sz = (bb.Max[axis] - bb.Min[axis]) - grab_padding * 2.0f;
+  float grab_sz = ImMin(ImMax(1.0f * (slider_sz / ((v_min < v_max ? v_max - v_min : v_min - v_max) + 1.0f)), style.GrabMinSize), slider_sz);
+  int v_range = (v_min < v_max ? v_max - v_min : v_min - v_max);
+  if (!is_decimal && v_range >= 0)                                             // v_range < 0 may happen on integer overflows
+    grab_sz = ImMax((float)(slider_sz / (v_range + 1)), style.GrabMinSize);  // For integer sliders: if possible have the grab size represent 1 unit
+  grab_sz = ImMin(grab_sz, slider_sz);
+  const float slider_usable_sz = slider_sz - grab_sz;
+  const float slider_usable_pos_min = bb.Min[axis] + grab_padding + grab_sz * 0.5f;
+  const float slider_usable_pos_max = bb.Max[axis] - grab_padding - grab_sz * 0.5f;
+
+  float linear_zero_pos = 0.0f;
+  if (is_power && v_min * v_max < 0.0f)
+  {
+    const float linear_dist_min_to_0 = ImPow(v_min >= 0 ? (float)v_min : -(float)v_min, (float)1.0f / power);
+    const float linear_dist_max_to_0 = ImPow(v_max >= 0 ? (float)v_max : -(float)v_max, (float)1.0f / power);
+    linear_zero_pos = (float)(linear_dist_min_to_0 / (linear_dist_min_to_0 + linear_dist_max_to_0));
+  }
+  else
+  {
+    linear_zero_pos = v_min < 0.0f ? 1.0f : 0.0f;
+  }
+
+  bool isDown = false;
+  bool value_changed = false;
+  if (g.ActiveId == id)
+  {
+    if (!g.IO.MouseDown[0])
+    {
+      ClearActiveID();
+    }
+    else
+    {
+      isDown = true;
+      const float mouse_abs_pos = g.IO.MousePos[axis];
+      float clicked_t = (slider_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_usable_sz, 0.0f, 1.0f) : 0.0f;
+      if (axis == ImGuiAxis_Y)
+        clicked_t = 1.0f - clicked_t;
+
+      int new_value;
+      if (is_power)
+      {
+        if (clicked_t < linear_zero_pos)
+        {
+          float a = 1.0f - (clicked_t / linear_zero_pos);
+          a = ImPow(a, power);
+          new_value = ImLerp(ImMin(v_max, 0), v_min, a);
+        }
+        else
+        {
+          float a;
+          if (ImFabs(linear_zero_pos - 1.0f) > 1.e-6f)
+            a = (clicked_t - linear_zero_pos) / (1.0f - linear_zero_pos);
+          else
+            a = clicked_t;
+          a = ImPow(a, power);
+          new_value = ImLerp(ImMax(v_min, 0), v_max, a);
+        }
+      }
+      else
+      {
+        new_value = ImLerp(v_min, v_max, clicked_t);
+      }
+
+      if (*v != new_value)
+      {
+        *v = new_value;
+        value_changed = true;
+      }
+    }
+
+  }
+
+  float grab_t = SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max, power, linear_zero_pos);
+
+  if (axis == ImGuiAxis_Y)
+    grab_t = 1.0f - grab_t;
+  const float grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, grab_t);
+  ImRect grab_bb;
+  if (axis == ImGuiAxis_X)
+    grab_bb = ImRect(ImVec2(grab_pos - grab_sz * 0.5f, bb.Min.y + grab_padding), ImVec2(grab_pos + grab_sz * 0.5f, bb.Max.y - grab_padding));
+  else
+    grab_bb = ImRect(ImVec2(bb.Min.x + grab_padding, grab_pos - grab_sz * 0.5f), ImVec2(bb.Max.x - grab_padding, grab_pos + grab_sz * 0.5f));
+
+  // Draw all the things
+
+  // Grey background line
+  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(bb.Max.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f)), 4);
+
+  // Whiter, more opaque line up to mouse position
+  if (hovered)
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
+
+  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
+  if (isDown) {
+    window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x + 6, grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2)), 8, ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
+    float width = (valuesize.x + 2 * 2.f); //width = (textWidth + 2 * padding)
+    window->DrawList->AddText(ImVec2(grab_bb.GetCenter().x - valuesize.x / 2, bb.Min.y), ImColor(255, 255, 255), value, label);
+  }
+  //window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x + 6, grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2)), 5, ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)));
+  
+  window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
+
+  return value_changed;
+}
+
 bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* v, const void* v_min, const void* v_max, const char* format, float power)
 {
     ImGuiWindow* window = GetCurrentWindow();
@@ -2518,6 +2634,63 @@ bool ImGui::SliderScalarN(const char* label, ImGuiDataType data_type, void* v, i
     TextEx(label, FindRenderedTextEnd(label));
     EndGroup();
     return value_changed;
+}
+
+// TODO: this really should be templated but I'm lazy
+bool ImGui::SliderCustom(const char* label, ImVec4 color, int* v, int v_min, int v_max, float power, const char* format)
+{
+  ImGuiWindow* window = GetCurrentWindow();
+  if (window->SkipItems)
+    return false;
+
+  ImGuiContext& g = *GImGui;
+  const ImGuiStyle& style = g.Style;
+  const ImGuiID id = window->GetID(label);
+  const float w = CalcItemWidth();
+
+  const ImVec2 label_size = CalcTextSize(label, NULL, true) * 2.7;
+  const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 0.5f));
+  const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
+
+  if (!ItemAdd(total_bb, id))
+  {
+    ItemSize(total_bb, style.FramePadding.y);
+    return false;
+  }
+
+  const bool hovered = ItemHoverable(frame_bb, id);
+  if (hovered)
+    SetHoveredID(id);
+
+  if (!format)
+    format = "%d";
+
+  bool start_text_input = false;
+  const bool tab_focus_requested = FocusableItemRegister(window, g.ActiveId == id);
+  if (tab_focus_requested || (hovered && g.IO.MouseClicked[0]))
+  {
+    SetActiveID(id, window);
+    FocusWindow(window);
+
+    if (tab_focus_requested || g.IO.KeyCtrl)
+    {
+      start_text_input = true;
+      g.ScalarAsInputTextId = 0;
+    }
+  }
+  if (start_text_input || (g.ActiveId == id && g.ScalarAsInputTextId == id))
+    return InputScalarAsWidgetReplacement(frame_bb, id, label, ImGuiDataType_S32, v, format);
+
+  ItemSize(total_bb, style.FramePadding.y);
+
+  char value_buf[64];
+  const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
+  const bool value_changed = SliderCustomBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color, CalcTextSize(value_buf, NULL, true), value_buf_end, value_buf);
+
+  if (label_size.x > 0.0f)
+    RenderText(ImVec2(frame_bb.Min.x + style.ItemInnerSpacing.x, frame_bb.Min.y + 25), label);
+
+  return value_changed;
 }
 
 bool ImGui::SliderFloat(const char* label, float* v, float v_min, float v_max, const char* format, float power)
