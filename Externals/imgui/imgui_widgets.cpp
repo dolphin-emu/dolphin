@@ -2419,7 +2419,6 @@ bool ImGui::SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min
   ImGuiContext& g = *GImGui;
   const ImGuiStyle& style = g.Style;
   ImGuiWindow* window = GetCurrentWindow();
-  const bool hovered = ItemHoverable(bb, id);
   const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
   const bool is_decimal = false; // TODO handle other types
   const bool is_power = (power != 1.0f) && is_decimal;
@@ -2447,67 +2446,75 @@ bool ImGui::SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min
     linear_zero_pos = v_min < 0.0f ? 1.0f : 0.0f;
   }
 
-  bool isDown = false;
+  const bool isDown = g.IO.MouseDown[0];
   bool value_changed = false;
-  if (g.ActiveId == id)
-  {
-    if (!g.IO.MouseDown[0])
-    {
-      ClearActiveID();
-    }
-    else
-    {
-      isDown = true;
-      const float mouse_abs_pos = g.IO.MousePos[axis];
-      float clicked_t = (slider_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_usable_sz, 0.0f, 1.0f) : 0.0f;
-      if (axis == ImGuiAxis_Y)
-        clicked_t = 1.0f - clicked_t;
+  bool isActive = g.ActiveId == id;
+  const bool hovered = ItemHoverable(bb, id);
 
-      int new_value;
-      if (is_power)
+  if (!isDown && isActive)
+    ClearActiveID();
+
+  // Calculate mouse position if hovered
+  int new_value = 0;
+  if (hovered || isDown) {
+    const float mouse_abs_pos = g.IO.MousePos[axis];
+    float clicked_t = (slider_usable_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_usable_sz, 0.0f, 1.0f) : 0.0f;
+    if (axis == ImGuiAxis_Y)
+      clicked_t = 1.0f - clicked_t;
+
+
+    if (is_power)
+    {
+      if (clicked_t < linear_zero_pos)
       {
-        if (clicked_t < linear_zero_pos)
-        {
-          float a = 1.0f - (clicked_t / linear_zero_pos);
-          a = ImPow(a, power);
-          new_value = ImLerp(ImMin(v_max, 0), v_min, a);
-        }
-        else
-        {
-          float a;
-          if (ImFabs(linear_zero_pos - 1.0f) > 1.e-6f)
-            a = (clicked_t - linear_zero_pos) / (1.0f - linear_zero_pos);
-          else
-            a = clicked_t;
-          a = ImPow(a, power);
-          new_value = ImLerp(ImMax(v_min, 0), v_max, a);
-        }
+        float a = 1.0f - (clicked_t / linear_zero_pos);
+        a = ImPow(a, power);
+        new_value = ImLerp(ImMin(v_max, 0), v_min, a);
       }
       else
       {
-        new_value = ImLerp(v_min, v_max, clicked_t);
-      }
-
-      if (*v != new_value)
-      {
-        *v = new_value;
-        value_changed = true;
+        float a;
+        if (ImFabs(linear_zero_pos - 1.0f) > 1.e-6f)
+          a = (clicked_t - linear_zero_pos) / (1.0f - linear_zero_pos);
+        else
+          a = clicked_t;
+        a = ImPow(a, power);
+        new_value = ImLerp(ImMax(v_min, 0), v_max, a);
       }
     }
+    else
+    {
+      new_value = ImLerp(v_min, v_max, clicked_t);
+    }
 
+    // Only change value if left mouse button is actually down
+    if (*v != new_value && isDown)
+    {
+      *v = new_value;
+      value_changed = true;
+    }
   }
 
-  float grab_t = SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max, power, linear_zero_pos);
+  float new_grab_t = SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, new_value, v_min, v_max, power, linear_zero_pos);
+  float curr_grab_t = SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max, power, linear_zero_pos);
 
-  if (axis == ImGuiAxis_Y)
-    grab_t = 1.0f - grab_t;
-  const float grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, grab_t);
-  ImRect grab_bb;
-  if (axis == ImGuiAxis_X)
-    grab_bb = ImRect(ImVec2(grab_pos - grab_sz * 0.5f, bb.Min.y + grab_padding), ImVec2(grab_pos + grab_sz * 0.5f, bb.Max.y - grab_padding));
+  if (axis == ImGuiAxis_Y) {
+    new_grab_t = 1.0f - new_grab_t;
+    curr_grab_t = 1.0f - curr_grab_t;
+  }
+  const float new_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, new_grab_t);
+  const float curr_grab_pos = ImLerp(slider_usable_pos_min, slider_usable_pos_max, curr_grab_t);
+  ImRect new_grab_bb;
+  ImRect curr_grab_bb;
+  if (axis == ImGuiAxis_X) {
+    new_grab_bb = ImRect(ImVec2(new_grab_pos - grab_sz * 0.5f, bb.Min.y + grab_padding), ImVec2(new_grab_pos + grab_sz * 0.5f, bb.Max.y - grab_padding));
+    curr_grab_bb = ImRect(ImVec2(curr_grab_pos - grab_sz * 0.5f, bb.Min.y + grab_padding), ImVec2(curr_grab_pos + grab_sz * 0.5f, bb.Max.y - grab_padding));
+  }
   else
-    grab_bb = ImRect(ImVec2(bb.Min.x + grab_padding, grab_pos - grab_sz * 0.5f), ImVec2(bb.Max.x - grab_padding, grab_pos + grab_sz * 0.5f));
-
+  {
+    new_grab_bb = ImRect(ImVec2(bb.Min.x + grab_padding, new_grab_pos - grab_sz * 0.5f), ImVec2(bb.Max.x - grab_padding, new_grab_pos + grab_sz * 0.5f));
+    curr_grab_bb = ImRect(ImVec2(bb.Min.x + grab_padding, curr_grab_pos - grab_sz * 0.5f), ImVec2(bb.Max.x - grab_padding, curr_grab_pos + grab_sz * 0.5f));
+  }
   // Draw all the things
 
   // Grey background line
@@ -2515,17 +2522,20 @@ bool ImGui::SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min
 
   // Whiter, more opaque line up to mouse position
   if (hovered)
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(new_grab_bb.Min.x + grab_padding * 2, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
 
-  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
   if (isDown) {
-    window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x + 6, grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2)), 8, ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(new_grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
+    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x + 6, new_grab_bb.Min.y + ((new_grab_bb.Max.y - new_grab_bb.Min.y) / 2)), 8, ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
     float width = (valuesize.x + 2 * 2.f); //width = (textWidth + 2 * padding)
-    window->DrawList->AddText(ImVec2(grab_bb.GetCenter().x - valuesize.x / 2, bb.Min.y), ImColor(255, 255, 255), value, label);
+    window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Min.y), ImColor(255, 255, 255), value, label);
   }
-  //window->DrawList->AddCircleFilled(ImVec2(grab_bb.Min.x + 6, grab_bb.Min.y + ((grab_bb.Max.y - grab_bb.Min.y) / 2)), 5, ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)));
+
+  if (!isDown)
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(curr_grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)), 4);
+
   
-  window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
+  //window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
 
   return value_changed;
 }
