@@ -44,4 +44,7 @@ void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::S
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();
 void ClearMessages();
+
+// Draw playback controls when playing Slippi replays
+void DrawSlippiPlaybackControls();
 }  // namespace OSD
