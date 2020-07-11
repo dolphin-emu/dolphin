@@ -400,6 +400,12 @@ static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
 static_assert(std::is_trivially_copyable_v<BlockAlloc>);
 #pragma pack(pop)
 
+struct Savefile
+{
+  DEntry dir_entry;
+  std::vector<GCMBlock> blocks;
+};
+
 class GCMemcard
 {
 private:
