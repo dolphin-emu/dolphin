@@ -71,8 +71,12 @@ private slots:
 
     m_is_setting_value = true;
 
-    while (m_last_received_progress != m_dialog.value())
+    int last_set_progress;
+    do
+    {
+      last_set_progress = m_last_received_progress;
       m_dialog.setValue(m_last_received_progress);
+    } while (m_last_received_progress != last_set_progress);
 
     m_is_setting_value = false;
   }
