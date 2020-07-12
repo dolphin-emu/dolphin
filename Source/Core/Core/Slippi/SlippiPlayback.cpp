@@ -283,4 +283,8 @@ void SlippiPlaybackStatus::clearWatchSettingsStartEnd()
   }
 }
 
-SlippiPlaybackStatus::~SlippiPlaybackStatus() {}
+SlippiPlaybackStatus::~SlippiPlaybackStatus()
+{
+  // Kill threads to prevent cleanup crash
+  resetPlayback();
+}
