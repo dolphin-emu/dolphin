@@ -13,6 +13,7 @@
 // ---------------------------------------------------------------------------------------------
 
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/IconsFontAwesome4.h"
 
 #include <algorithm>
 #include <cinttypes>
@@ -912,6 +913,11 @@ bool Renderer::InitializeImGui()
     PanicAlert("Creating ImGui context failed");
     return false;
   }
+
+  ImGui::GetIO().Fonts->AddFontDefault();
+  static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
+  ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
+  ImGui::GetIO().Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FA, 20.0f, &icons_config, icons_ranges);
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;

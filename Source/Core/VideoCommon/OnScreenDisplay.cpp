@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/OnScreenDisplay.h"
-
+#include "VideoCommon/IconsFontAwesome4.h"
 #include <algorithm>
 #include <map>
 #include <mutex>
@@ -15,7 +15,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
-
+#include "Core/Core.h"
 #include "Core/ConfigManager.h"
 #include "imgui.h"
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
@@ -135,38 +135,50 @@ void ClearMessages()
   s_messages.clear();
 }
 
-void DrawSlippiPlaybackControls()
+bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags = 0)
 {
-  const auto height = ImGui::GetWindowHeight();
-  // We have to provide a window name, and these shouldn't be duplicated.
-  // So instead, we generate a name based on the number of messages drawn.
-  const std::string window_name = fmt::format("Slippi Playback Controls");
+  ImGuiWindow* window = ImGui::GetCurrentWindow();
+  if (window->SkipItems)
+    return false;
 
-  const float alpha = 0.5f;
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+  ImGuiContext& g = *GImGui;
+  const ImGuiStyle& style = g.Style;
+  const ImGuiID id = window->GetID(label);
+  const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true);
 
-  ImGui::SetNextWindowPos(ImVec2(0, 0));
-  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+  ImVec2 pos = window->DC.CursorPos;
+  if ((flags & ImGuiButtonFlags_AlignTextBaseLine) && style.FramePadding.y < window->DC.CurrentLineTextBaseOffset) // Try to vertically align buttons that are smaller/have no padding so that text baseline matches (bit hacky, since it shouldn't be a flag)
+    pos.y += window->DC.CurrentLineTextBaseOffset - style.FramePadding.y;
+  ImVec2 size = ImGui::CalcItemSize(size_arg, label_size.x + style.FramePadding.x * 2.0f, label_size.y + style.FramePadding.y * 2.0f);
 
-  if (ImGui::Begin(window_name.c_str(), nullptr,
-    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
-    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
-    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
-  {
-    //if (ImGui::Button("start")) {
-    //  INFO_LOG(SLIPPI, "pressed button!");
-    //};
-    //if (ImGui::Button("stop")) {
-    //  INFO_LOG(SLIPPI, "pressed button!");
-    //};
+  const ImRect bb(pos, pos + size);
+  ImGui::ItemSize(size, style.FramePadding.y);
+  if (!ImGui::ItemAdd(bb, id))
+    return false;
 
-    ImGui::PushItemWidth(ImGui::GetWindowWidth());
-    ImGui::Dummy(ImVec2(0.0f, ImGui::GetWindowHeight() - 50));
-    ImGui::SliderCustom("test", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, 0, 8000, 1.0);
-  }
+  if (window->DC.ItemFlags & ImGuiItemFlags_ButtonRepeat)
+    flags |= ImGuiButtonFlags_Repeat;
+  bool hovered, held;
+  bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, flags);
+  if (pressed)
+    ImGui::MarkItemEdited(id);
 
-  ImGui::End();
-  ImGui::PopStyleVar();
+  // Render
+  const ImU32 col = ImGui::GetColorU32(ImVec4(0.0f, 0.0f, 0.0f, 0.0f));
+  ImGui::RenderNavHighlight(bb, id);
+  ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
+
+  if (hovered || held)
+    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+  else
+    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, 0.6f));
+
+  // Automatically close popups
+  //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
+  //    CloseCurrentPopup();
+
+  IMGUI_TEST_ENGINE_ITEM_INFO(id, label, window->DC.LastItemStatusFlags);
+  return pressed;
 }
 
 bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max, float power, ImGuiSliderFlags flags, ImVec4 color, ImVec2 valuesize, const char* label, char* value)
@@ -239,6 +251,7 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     {
       *v = new_value;
       value_changed = true;
+      ImGui::MarkItemEdited(id);
     }
   }
 
@@ -254,7 +267,7 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   ImRect new_grab_bb;
   ImRect curr_grab_bb;
   if (axis == ImGuiAxis_X) {
-    new_grab_bb = ImRect(ImVec2(new_grab_pos, bb.Min.y), ImVec2(new_grab_pos * 0.5f, bb.Max.y));
+    new_grab_bb = ImRect(ImVec2(new_grab_pos, bb.Min.y), ImVec2(new_grab_pos, bb.Max.y));
     curr_grab_bb = ImRect(ImVec2(curr_grab_pos, bb.Min.y), ImVec2(curr_grab_pos, bb.Max.y));
   }
   else
@@ -264,27 +277,32 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   }
 
   // Draw all the things
+
+  // Darken screen when seeking
   if (isDown && hovered)
     window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f)));
 
-  // Whiter, more opaque line up to mouse position
-  if (hovered)
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(new_grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
+  // Grey background line
+  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f)), 4);
 
+  // Whiter, more opaque line up to mouse position
+  if (hovered && !isDown)
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
+
+  // Colored line, circle indicator, and text
   if (isDown && hovered) {
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(new_grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
-    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Min.y + ((new_grab_bb.Max.y - new_grab_bb.Min.y) / 2)), 8, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
-    window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Min.y), ImColor(255, 255, 255), value, label);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
+    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
+    window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), value, label);
   }
 
   // Progress bar
-  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(curr_grab_bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)), 4);
+  if (!(isDown && hovered)) 
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)), 4);
 
-  // Grey background line
-  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImVec2(bb.Max.x, bb.Min.y + ((bb.Max.y - bb.Min.y) / 2)), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f)), 4);
+  
 
   //window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
-
   return value_changed;
 }
 
@@ -299,15 +317,8 @@ bool SliderCustom(const char* label, ImVec4 color, int* v, int v_min, int v_max,
   const ImGuiID id = window->GetID(label);
   const float w = ImGui::CalcItemWidth();
 
-  const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true) * 2.7f;
-  const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y + style.FramePadding.y * 0.5f));
-  const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
-
-  if (!ImGui::ItemAdd(total_bb, id))
-  {
-    ImGui::ItemSize(total_bb, style.FramePadding.y);
-    return false;
-  }
+  const ImVec2 label_size = ImGui::CalcTextSize(label, NULL, true) * 1.0f;
+  const ImRect frame_bb(window->DC.CursorPos, window->DC.CursorPos + ImVec2(w, label_size.y));
 
   const bool hovered = ImGui::ItemHoverable(frame_bb, id);
   if (hovered)
@@ -332,8 +343,6 @@ bool SliderCustom(const char* label, ImVec4 color, int* v, int v_min, int v_max,
   if (start_text_input || (g.ActiveId == id && g.ScalarAsInputTextId == id))
     return ImGui::InputScalarAsWidgetReplacement(frame_bb, id, label, ImGuiDataType_S32, v, format);
 
-  ImGui::ItemSize(total_bb, style.FramePadding.y);
-
   char value_buf[64];
   const char* value_buf_end = value_buf + ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, *v);
   const bool value_changed = SliderCustomBehavior(frame_bb, id, v, v_min, v_max, power, ImGuiSliderFlags_None, color, ImGui::CalcTextSize(value_buf, NULL, true), value_buf_end, value_buf);
@@ -342,5 +351,55 @@ bool SliderCustom(const char* label, ImVec4 color, int* v, int v_min, int v_max,
     ImGui::RenderText(ImVec2(frame_bb.Min.x + style.ItemInnerSpacing.x, frame_bb.Min.y + 25), label);
 
   return value_changed;
+}
+
+void DrawSlippiPlaybackControls()
+{
+  const auto height = ImGui::GetWindowHeight();
+  // We have to provide a window name, and these shouldn't be duplicated.
+  // So instead, we generate a name based on the number of messages drawn.
+  const std::string window_name = fmt::format("Slippi Playback Controls");
+
+  const float alpha = 1.0f;
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+  
+  
+  ImGui::SetNextWindowPos(ImVec2(0, 0));
+  ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+
+  if (ImGui::Begin(window_name.c_str(), nullptr,
+    ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
+    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoNav | ImGuiWindowFlags_NoBackground |
+    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoFocusOnAppearing))
+  {
+    ImGui::PushItemWidth(ImGui::GetWindowWidth());
+    ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
+    SliderCustom("", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, 0, 8000, 1.0, "%d");
+    ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
+    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(1.0f, 0.5f));
+    if (ButtonCustom(ICON_FA_PLAY, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "playing");
+    }
+    ImGui::PopStyleVar(1);
+    ImGui::SameLine(0.0f);
+    if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "fast back");
+    }
+    ImGui::SameLine(0.0f, 0.0f);
+    if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "step back");
+    }
+    ImGui::SameLine(0.0f, 0.0f);
+    if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "step forward");
+    }
+    ImGui::SameLine(0.0f, 0.0f);
+    if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "fast_foward");
+    }
+  }
+
+  ImGui::End();
+  ImGui::PopStyleVar();
 }
 }  // namespace OSD
