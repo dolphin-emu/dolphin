@@ -610,22 +610,27 @@ void Device::RunTasks()
 
           WiimoteEmu::UpdateCalibrationDataChecksum(calibration_data, 2);
 
+          Checksum checksum = Checksum::Good;
+
           if (read_checksum != std::pair(calibration_data[CALIBRATION_SIZE - 2],
                                          calibration_data[CALIBRATION_SIZE - 1]))
           {
             // We could potentially try another block or call the extension unusable.
             WARN_LOG(WIIMOTE, "WiiRemote: Bad extension calibration checksum.");
+            checksum = Checksum::Bad;
           }
 
           if (m_extension_id == ExtensionID::Nunchuk)
           {
             m_nunchuk_state.SetCalibrationData(
-                Common::BitCastPtr<WiimoteEmu::Nunchuk::CalibrationData>(calibration_data.data()));
+                Common::BitCastPtr<WiimoteEmu::Nunchuk::CalibrationData>(calibration_data.data()),
+                checksum);
           }
           else if (m_extension_id == ExtensionID::Classic)
           {
             m_classic_state.SetCalibrationData(
-                Common::BitCastPtr<WiimoteEmu::Classic::CalibrationData>(calibration_data.data()));
+                Common::BitCastPtr<WiimoteEmu::Classic::CalibrationData>(calibration_data.data()),
+                checksum);
           }
         });
 
@@ -730,24 +735,76 @@ void Device::MotionPlusState::SetCalibrationData(
   calibration->slow = data.slow;
 }
 
-void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::CalibrationData& data)
+Device::NunchukState::Calibration::Calibration() : accel{}, stick{}
+{
+  accel.zero.data.fill(1 << (accel.BITS_OF_PRECISION - 1));
+  // Approximate 1G value per WiiBrew:
+  accel.max.data.fill(740);
+
+  stick.zero.data.fill(1 << (stick.BITS_OF_PRECISION - 1));
+  stick.max.data.fill((1 << stick.BITS_OF_PRECISION) - 1);
+}
+
+void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::CalibrationData& data,
+                                              Checksum checksum)
 {
   DEBUG_LOG(WIIMOTE, "WiiRemote: Set Nunchuk calibration.");
 
   calibration.emplace();
 
-  calibration->stick = data.GetStick();
-  calibration->accel = data.GetAccel();
+  if (checksum == Checksum::Bad)
+    return;
+
+  // Genuine Nunchuks have been observed with "min" and "max" values of zero.
+  // We catch that here and fall back to "full range" calibration.
+  const auto stick_calibration = data.GetStick();
+  if (stick_calibration.IsSane())
+    calibration->stick = stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: Nunchuk stick calibration is not sane. Using fallback values.");
+
+  // No known reports of bad accelerometer calibration but we'll handle it just in case.
+  const auto accel_calibration = data.GetAccel();
+  if (accel_calibration.IsSane())
+    calibration->accel = accel_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: Nunchuk accel calibration is not sane. Using fallback values.");
 }
 
-void Device::ClassicState::SetCalibrationData(const WiimoteEmu::Classic::CalibrationData& data)
+Device::ClassicState::Calibration::Calibration()
+    : left_stick{}, right_stick{}, left_trigger{}, right_trigger{}
+{
+  left_stick.zero.data.fill(1 << (left_stick.BITS_OF_PRECISION - 1));
+  left_stick.max.data.fill((1 << left_stick.BITS_OF_PRECISION) - 1);
+
+  right_stick.zero.data.fill(1 << (right_stick.BITS_OF_PRECISION - 1));
+  right_stick.max.data.fill((1 << right_stick.BITS_OF_PRECISION) - 1);
+
+  left_trigger.max = (1 << left_trigger.BITS_OF_PRECISION) - 1;
+  right_trigger.max = (1 << right_trigger.BITS_OF_PRECISION) - 1;
+}
+
+void Device::ClassicState::SetCalibrationData(const WiimoteEmu::Classic::CalibrationData& data,
+                                              Checksum checksum)
 {
   DEBUG_LOG(WIIMOTE, "WiiRemote: Set Classic Controller calibration.");
 
   calibration.emplace();
 
-  calibration->left_stick = data.GetLeftStick();
-  calibration->right_stick = data.GetRightStick();
+  if (checksum == Checksum::Bad)
+    return;
+
+  const auto left_stick_calibration = data.GetLeftStick();
+  if (left_stick_calibration.IsSane())
+    calibration->left_stick = left_stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: CC left stick calibration is not sane. Using fallback values.");
+
+  const auto right_stick_calibration = data.GetRightStick();
+  if (right_stick_calibration.IsSane())
+    calibration->right_stick = right_stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: CC right stick calibration is not sane. Using fallback values.");
 
   calibration->left_trigger = data.GetLeftTrigger();
   calibration->right_trigger = data.GetRightTrigger();
