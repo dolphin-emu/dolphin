@@ -42,6 +42,7 @@ add_library(videocommon
   HiresTextures.cpp
   HiresTextures.h
   HiresTextures_DDSLoader.cpp
+	IconsFontAwesome4.h
   ImageWrite.cpp
   ImageWrite.h
   IndexGenerator.cpp
