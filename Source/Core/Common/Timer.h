@@ -41,7 +41,7 @@ public:
 
   // Arbitrarily chosen value (38 years) that is subtracted in GetDoubleTime()
   // to increase sub-second precision of the resulting double timestamp
-  static const int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
+  static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 private:
   u64 m_LastTime;
