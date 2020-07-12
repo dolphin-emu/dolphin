@@ -246,7 +246,7 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
   // Options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
 
-  m_options->AddSetting(&m_speaker_pan_setting,
+  m_options->AddSetting(&m_speaker_logic.m_speaker_pan_setting,
                         {_trans("Speaker Pan"),
                          // i18n: The percent symbol.
                          _trans("%")},

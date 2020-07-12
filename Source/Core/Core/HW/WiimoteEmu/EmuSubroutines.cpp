@@ -389,10 +389,9 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     }
     else
     {
-      // Speaker Pan
-      const auto pan = m_speaker_pan_setting.GetValue() / 100;
-
-      m_speaker_logic.SpeakerData(rpt.data, rpt.length, pan);
+      // Speaker data reports result in a write to the speaker hardware at offset 0x00.
+      m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
+                         rpt.data);
     }
   }
 
