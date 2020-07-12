@@ -64,7 +64,7 @@ public final class DirectoryInitialization
     {
       if (PermissionsHandler.hasWriteAccess(context))
       {
-        if (setDolphinUserDirectory())
+        if (setDolphinUserDirectory(context))
         {
           initializeInternalStorage(context);
           initializeExternalStorage(context);
@@ -88,22 +88,27 @@ public final class DirectoryInitialization
     sendBroadcastState(directoryState, context);
   }
 
-  private static boolean setDolphinUserDirectory()
+  private static boolean setDolphinUserDirectory(Context context)
   {
-    if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
-    {
-      File externalPath = Environment.getExternalStorageDirectory();
-      if (externalPath != null)
-      {
-        userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
-        Log.debug("[DirectoryInitialization] User Dir: " + userPath);
-        NativeLibrary.SetUserDirectory(userPath);
-        return true;
-      }
+    if (!Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState()))
+      return false;
 
-    }
+    File externalPath = Environment.getExternalStorageDirectory();
+    if (externalPath == null)
+      return false;
 
-    return false;
+    userPath = externalPath.getAbsolutePath() + "/dolphin-emu";
+    Log.debug("[DirectoryInitialization] User Dir: " + userPath);
+    NativeLibrary.SetUserDirectory(userPath);
+
+    File cacheDir = context.getExternalCacheDir();
+    if (cacheDir == null)
+      return false;
+
+    Log.debug("[DirectoryInitialization] Cache Dir: " + cacheDir.getPath());
+    NativeLibrary.SetCacheDirectory(cacheDir.getPath());
+
+    return true;
   }
 
   private static void initializeInternalStorage(Context context)

@@ -366,6 +366,8 @@ public final class NativeLibrary
    */
   public static native String GetUserDirectory();
 
+  public static native void SetCacheDirectory(String directory);
+
   public static native int DefaultCPUCore();
 
   public static native void ReloadConfig();
