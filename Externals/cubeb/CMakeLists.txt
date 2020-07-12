@@ -6,9 +6,7 @@ project(cubeb
   VERSION 0.0.0)
 
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
-option(BUILD_TESTS "Build tests" ON)
 option(BUILD_RUST_LIBS "Build rust backends" OFF)
-option(BUILD_TOOLS "Build tools" ON)
 
 if(NOT CMAKE_BUILD_TYPE)
   set(CMAKE_BUILD_TYPE "RelWithDebInfo" CACHE STRING
@@ -27,17 +25,6 @@ if(NOT COMMAND add_sanitizers)
   find_package(Sanitizers)
   if(NOT COMMAND add_sanitizers)
     message(FATAL_ERROR "Could not find sanitizers-cmake: run\n\tgit submodule update --init --recursive\nin base git checkout")
-  endif()
-endif()
-
-if(BUILD_TESTS)
-  if(NOT TARGET gtest_main)
-    if(NOT EXISTS "${PROJECT_SOURCE_DIR}/googletest/CMakeLists.txt")
-      message(FATAL_ERROR "Could not find googletest: run\n\tgit submodule update --init --recursive\nin base git checkout")
-    endif()
-    add_definitions(-DGTEST_HAS_TR1_TUPLE=0)
-    set(gtest_force_shared_crt ON CACHE BOOL "")
-    add_subdirectory(googletest)
   endif()
 endif()
 
@@ -276,59 +263,4 @@ if(DOXYGEN_FOUND)
     ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/docs/Doxyfile
     WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs
     COMMENT "Generating API documentation with Doxygen" VERBATIM)
-endif()
-
-if(BUILD_TESTS)
-  enable_testing()
-
-  macro(cubeb_add_test NAME)
-    add_executable(test_${NAME} test/test_${NAME}.cpp)
-    target_include_directories(test_${NAME} PRIVATE ${gtest_SOURCE_DIR}/include)
-    target_include_directories(test_${NAME} PRIVATE src)
-    target_link_libraries(test_${NAME} PRIVATE cubeb gtest_main)
-    add_test(${NAME} test_${NAME})
-    add_sanitizers(test_${NAME})
-    install(TARGETS test_${NAME} DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
-  endmacro(cubeb_add_test)
-
-  cubeb_add_test(sanity)
-  cubeb_add_test(tone)
-  cubeb_add_test(audio)
-  cubeb_add_test(record)
-  cubeb_add_test(devices)
-  cubeb_add_test(callback_ret)
-
-  add_executable(test_resampler test/test_resampler.cpp src/cubeb_resampler.cpp $<TARGET_OBJECTS:speex>)
-  target_include_directories(test_resampler PRIVATE ${gtest_SOURCE_DIR}/include)
-  target_include_directories(test_resampler PRIVATE src)
-  target_compile_definitions(test_resampler PRIVATE OUTSIDE_SPEEX)
-  target_compile_definitions(test_resampler PRIVATE FLOATING_POINT)
-  target_compile_definitions(test_resampler PRIVATE EXPORT=)
-  target_compile_definitions(test_resampler PRIVATE RANDOM_PREFIX=speex)
-  target_link_libraries(test_resampler PRIVATE cubeb gtest_main)
-  add_test(resampler test_resampler)
-  add_sanitizers(test_resampler)
-  install(TARGETS test_resampler DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
-
-  cubeb_add_test(duplex)
-
-  if (USE_WASAPI)
-    cubeb_add_test(overload_callback)
-    cubeb_add_test(loopback)
-  endif()
-
-  cubeb_add_test(latency test_latency)
-  cubeb_add_test(ring_array)
-
-  cubeb_add_test(utils)
-  cubeb_add_test(ring_buffer)
-  cubeb_add_test(device_changed_callback)
-endif()
-
-if(BUILD_TOOLS)
-  add_executable(cubeb-test tools/cubeb-test.cpp)
-  target_include_directories(cubeb-test PRIVATE src)
-  target_link_libraries(cubeb-test PRIVATE cubeb)
-  add_sanitizers(cubeb-test)
-  install(TARGETS cubeb-test DESTINATION ${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR})
 endif()

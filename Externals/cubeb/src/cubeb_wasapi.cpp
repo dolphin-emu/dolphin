@@ -1926,6 +1926,10 @@ int setup_wasapi_stream_one_side(cubeb_stream * stm,
     return CUBEB_ERROR;
   }
 
+  // IAudioClient3 has problems with capture sessions:
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=1590902
+  bool has_capture = direction == eCapture || direction == eAll;
+
   stm->stream_reset_lock.assert_current_thread_owns();
   bool try_again = false;
   // This loops until we find a device that works, or we've exhausted all
@@ -1951,10 +1955,6 @@ int setup_wasapi_stream_one_side(cubeb_stream * stm,
         return CUBEB_ERROR;
       }
     }
-
-    // IAudioClient3 has problems with capture sessions:
-    // https://bugzilla.mozilla.org/show_bug.cgi?id=1590902
-    bool has_capture = direction == eCapture || direction == eAll;
 
     /* Get a client. We will get all other interfaces we need from
      * this pointer. */

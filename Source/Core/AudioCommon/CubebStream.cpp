@@ -66,6 +66,8 @@ bool CubebStream::Init()
 
 bool CubebStream::SetRunning(bool running)
 {
+  // Can be called by multiple threads (main and emulation)
+  CubebUtils::ScopedThreadAccess thread_access;
   if (running)
     return cubeb_stream_start(m_stream) == CUBEB_OK;
   else
@@ -75,11 +77,14 @@ bool CubebStream::SetRunning(bool running)
 CubebStream::~CubebStream()
 {
   SetRunning(false);
+  CubebUtils::ScopedThreadAccess thread_access;
   cubeb_stream_destroy(m_stream);
   m_ctx.reset();
 }
 
 void CubebStream::SetVolume(int volume)
 {
+  // Can be called by multiple threads (main and emulation)
+  CubebUtils::ScopedThreadAccess thread_access;
   cubeb_stream_set_volume(m_stream, volume / 100.0f);
 }
