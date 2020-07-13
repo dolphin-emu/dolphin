@@ -63,6 +63,8 @@ add_executable(dolphin-emu
   Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
+  Config/ControllerInterface/ServerStringValidator.cpp
+  Config/ControllerInterface/ServerStringValidator.h
   Config/ControllersWindow.cpp
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp

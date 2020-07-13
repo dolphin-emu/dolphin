@@ -75,6 +75,22 @@ void DualShockUDPClientWidget::RefreshServerList()
 {
   m_server_list->clear();
 
+  const auto server_address_setting =
+      Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT);
+
+  // Update our servers setting if the user is using old configuration
+  if (!server_address_setting.empty() && server_port_setting != 0)
+  {
+    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+                             servers_setting + fmt::format("{}:{}:{};", "DS4",
+                                                           server_address_setting,
+                                                           server_port_setting));
+    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS, "");
+    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_PORT, 0);
+  }
+
   const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
   const auto server_details = SplitString(servers_setting, ';');
   for (const std::string& server_detail : server_details)

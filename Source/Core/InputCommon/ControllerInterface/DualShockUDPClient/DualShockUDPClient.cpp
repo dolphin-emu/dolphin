@@ -30,6 +30,9 @@ namespace ciface::DualShockUDPClient
 {
 namespace Settings
 {
+const Config::Info<std::string> SERVER_ADDRESS{
+    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, ""};
+const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"}, 0};
 const Config::Info<std::string> SERVERS{{Config::System::DualShockUDPClient, "Server", "Entries"},
                                         ""};
 const Config::Info<bool> SERVERS_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
@@ -361,6 +364,21 @@ static void ConfigChanged()
 
 void Init()
 {
+  // The following is added for backwards compatibility
+  const auto server_address_setting = Config::Get(Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Config::Get(Settings::SERVER_PORT);
+
+  if (!server_address_setting.empty() && server_port_setting != 0)
+  {
+    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+                             servers_setting + fmt::format("{}:{}:{};", "DS4",
+                                                           server_address_setting,
+                                                           server_port_setting));
+    Config::SetBase(Settings::SERVER_ADDRESS, "");
+    Config::SetBase(Settings::SERVER_PORT, 0);
+  }
+
   Config::AddConfigChangedCallback(ConfigChanged);
 }
 

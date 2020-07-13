@@ -127,6 +127,7 @@
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
+    <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
@@ -216,6 +217,7 @@
     <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllerInterfaceWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ServerStringValidator.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ConvertDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DiscordHandler.cpp" />
@@ -330,6 +332,7 @@
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
+    <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />

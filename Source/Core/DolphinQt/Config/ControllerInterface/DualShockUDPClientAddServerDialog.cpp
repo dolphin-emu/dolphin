@@ -14,9 +14,11 @@
 #include <QLineEdit>
 #include <QPushButton>
 #include <QSpinBox>
+#include <QString>
 #include <QWidget>
 
 #include "Common/Config/Config.h"
+#include "DolphinQt/Config/ControllerInterface/ServerStringValidator.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 DualShockUDPClientAddServerDialog::DualShockUDPClientAddServerDialog(QWidget* parent)
@@ -35,9 +37,11 @@ void DualShockUDPClientAddServerDialog::CreateWidgets()
 
   m_description = new QLineEdit();
   m_description->setPlaceholderText(tr("BetterJoy, DS4Windows, etc"));
+  m_description->setValidator(new ServerStringValidator(m_description));
 
   m_server_address =
       new QLineEdit(QString::fromStdString(ciface::DualShockUDPClient::DEFAULT_SERVER_ADDRESS));
+  m_server_address->setValidator(new ServerStringValidator(m_server_address));
 
   m_server_port = new QSpinBox();
   m_server_port->setMaximum(65535);
