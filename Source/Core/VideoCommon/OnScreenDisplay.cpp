@@ -2,27 +2,26 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/IconsFontAwesome4.h"
 #include <algorithm>
+#include <chrono>
 #include <map>
 #include <mutex>
 #include <string>
 
 #include <fmt/format.h>
 #include <imgui.h>
+#ifndef IMGUI_DEFINE_MATH_OPERATORS
+#define IMGUI_DEFINE_MATH_OPERATORS
+#endif
+#include <imgui_internal.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
-#include "imgui.h"
-#ifndef IMGUI_DEFINE_MATH_OPERATORS
-#define IMGUI_DEFINE_MATH_OPERATORS
-#endif
-#include "imgui_internal.h"
-
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/IconsFontAwesome4.h"
 namespace OSD
 {
 constexpr float LEFT_MARGIN = 10.0f;    // Pixels to the left of OSD messages.
@@ -43,6 +42,7 @@ struct Message
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
 static int frame = 0;
+static std::chrono::time_point<std::chrono::steady_clock> last_active_tick = std::chrono::steady_clock::now();
 
 static ImVec4 RGBAToImVec4(const u32 rgba)
 {
@@ -208,14 +208,20 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   const bool isDown = g.IO.MouseDown[0];
   bool value_changed = false;
   bool isActive = g.ActiveId == id;
+  static bool isHeld = false;
   const bool hovered = ImGui::ItemHoverable(bb, id);
+  if (isHeld)
+    isHeld = isHeld && isDown;
+  else
+    isHeld = hovered && isDown;
 
   if (!isDown && isActive)
     ImGui::ClearActiveID();
 
   // Calculate mouse position if hovered
   int new_value = 0;
-  if (hovered || isDown) {
+  if (hovered || isHeld) {
+    last_active_tick = std::chrono::steady_clock::now();
     const float mouse_abs_pos = g.IO.MousePos[axis];
     float clicked_t = (slider_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_sz, 0.0f, 1.0f) : 0.0f;
     if (axis == ImGuiAxis_Y)
@@ -247,11 +253,11 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     }
 
     // Only change value if left mouse button is actually down
-    if (*v != new_value && isDown && hovered)
+    if (*v != new_value && isDown)
     {
       *v = new_value;
       value_changed = true;
-      ImGui::MarkItemEdited(id);
+      ImGui::MarkItemEdited(id); // TODO only mark on mouse up
     }
   }
 
@@ -279,7 +285,7 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   // Draw all the things
 
   // Darken screen when seeking
-  if (isDown && hovered)
+  if (isHeld)
     window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f)));
 
   // Grey background line
@@ -290,14 +296,14 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
 
   // Colored line, circle indicator, and text
-  if (isDown && hovered) {
+  if (isHeld) {
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
     window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
     window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), value, label);
   }
 
   // Progress bar
-  if (!(isDown && hovered)) 
+  if (!isHeld) 
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)), 4);
 
   
