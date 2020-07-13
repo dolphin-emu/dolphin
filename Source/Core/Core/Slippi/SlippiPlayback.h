@@ -25,10 +25,9 @@ public:
   s32 lastFFWFrame = INT_MIN;
   s32 currentPlaybackFrame = INT_MIN;
   s32 targetFrameNum = INT_MAX;
-  s32 latestFrame = Slippi::GAME_FIRST_FRAME;
+  s32 lastFrame = Slippi::PLAYBACK_FIRST_SAVE;
 
   std::thread m_savestateThread;
-  std::thread m_seekThread;
 
   void startThreads(void);
   void resetPlayback(void);
@@ -36,7 +35,7 @@ public:
 
 private:
   void SavestateThread(void);
-  void SeekThread(void);
+  void SeekToFrame(s32 targetFrameNum);
   void processInitialState();
   void clearWatchSettingsStartEnd();
 

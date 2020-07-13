@@ -1165,8 +1165,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   // data from this frame. Don't wait until next frame is processing is complete
   // (this is the last frame, in that case)
   auto isFrameFound = m_current_game->DoesFrameExist(frameIndex);
-  g_playbackStatus->latestFrame = m_current_game->GetLatestIndex();
-  auto isNextFrameFound = g_playbackStatus->latestFrame > frameIndex;
+  g_playbackStatus->lastFrame = m_current_game->GetLatestIndex();
+  auto isNextFrameFound = g_playbackStatus->lastFrame > frameIndex;
   auto isFrameComplete = checkFrameFullyFetched(frameIndex);
   auto isFrameReady = isFrameFound && (isProcessingComplete || isNextFrameFound || isFrameComplete);
 
@@ -1199,8 +1199,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   }
 
   // If RealTimeMode is enabled, let's trigger fast forwarding under certain conditions
-  auto isFarBehind = g_playbackStatus->latestFrame - frameIndex > 2;
-  auto isVeryFarBehind = g_playbackStatus->latestFrame - frameIndex > 25;
+  auto isFarBehind = g_playbackStatus->lastFrame - frameIndex > 2;
+  auto isVeryFarBehind = g_playbackStatus->lastFrame - frameIndex > 25;
   if (isFarBehind && commSettings.mode == "mirror" && commSettings.isRealTimeMode)
   {
     g_playbackStatus->isSoftFFW = true;
@@ -1211,7 +1211,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
       g_playbackStatus->isHardFFW = isVeryFarBehind;
   }
 
-  if (g_playbackStatus->latestFrame == frameIndex)
+  if (g_playbackStatus->lastFrame == frameIndex)
   {
     // The reason to disable fast forwarding here is in hopes
     // of disabling it on the last frame that we have actually received.
@@ -1257,14 +1257,11 @@ void CEXISlippi::prepareFrameData(u8* payload)
     rollbackCode = 1;
   }
 
-  // WARN_LOG(EXPANSIONINTERFACE, "[Frame %d] Playback current behind by: %d frames.", frameIndex,
-  //        g_playbackStatus->latestFrame - frameIndex);
-
   // Keep track of last FFW frame, used for soft FFW's
   if (shouldFFW)
   {
-    WARN_LOG(EXPANSIONINTERFACE, "[Frame %d] FFW frame, behind by: %d frames.", frameIndex,
-      g_playbackStatus->latestFrame - frameIndex);
+    WARN_LOG(SLIPPI, "[Frame %d] FFW frame, behind by: %d frames.", frameIndex,
+      g_playbackStatus->lastFrame - frameIndex);
     g_playbackStatus->lastFFWFrame = frameIndex;
   }
 
@@ -1291,23 +1288,6 @@ void CEXISlippi::prepareFrameData(u8* payload)
 
     frameSeqIdx += 1;
   }
-  // else
-  //{
-  //	std::vector<u8> fakePayload(8, 0);
-  //	*(s32 *)(&fakePayload[0]) = Common::swap32(frame->frame);
-
-  //	if (frame->frame == 400)
-  //	{
-  //		handleCaptureSavestate(&fakePayload[0]);
-  //	}
-
-  //	if (frame->frame == 950)
-  //	{
-  //		*(s32 *)(&fakePayload[0]) = Common::swap32(400);
-  //		handleLoadSavestate(&fakePayload[0]);
-  //		handleCaptureSavestate(&fakePayload[0]);
-  //	}
-  //}
 
   // For normal replays, modify slippi seek/playback data as needed
   // TODO: maybe handle other modes too?

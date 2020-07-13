@@ -21,6 +21,7 @@ extern std::unique_ptr<SlippiReplayComm> g_replayComm;
 
 static std::mutex mtx;
 static std::mutex seekMtx;
+static std::mutex ffwMtx;
 static std::mutex diffMtx;
 static std::unique_lock<std::mutex> processingLock(diffMtx);
 static std::condition_variable condVar;
@@ -61,14 +62,13 @@ SlippiPlaybackStatus::SlippiPlaybackStatus()
   lastFFWFrame = INT_MIN;
   currentPlaybackFrame = INT_MIN;
   targetFrameNum = INT_MAX;
-  latestFrame = Slippi::GAME_FIRST_FRAME;
+  lastFrame = Slippi::PLAYBACK_FIRST_SAVE;
 }
 
 void SlippiPlaybackStatus::startThreads()
 {
   shouldRunThreads = true;
   m_savestateThread = std::thread(&SlippiPlaybackStatus::SavestateThread, this);
-  m_seekThread = std::thread(&SlippiPlaybackStatus::SeekThread, this);
 }
 
 void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
@@ -112,9 +112,6 @@ void SlippiPlaybackStatus::resetPlayback()
 
     if (m_savestateThread.joinable())
       m_savestateThread.detach();
-
-    if (m_seekThread.joinable())
-      m_seekThread.detach();
 
     condVar.notify_one(); // Will allow thread to kill itself
     futureDiffs.clear();
@@ -178,96 +175,66 @@ void SlippiPlaybackStatus::SavestateThread()
   INFO_LOG(SLIPPI, "Exiting savestate thread");
 }
 
-void SlippiPlaybackStatus::SeekThread()
+void SlippiPlaybackStatus::SeekToFrame(s32 frameNum)
 {
-  Common::SetCurrentThreadName("Seek thread");
-  std::unique_lock<std::mutex> seekLock(seekMtx);
-
-  INFO_LOG(SLIPPI, "Entering seek thread");
-
-  while (shouldRunThreads)
-  {
-    bool shouldSeek = inSlippiPlayback && (shouldJumpBack || shouldJumpForward || targetFrameNum != INT_MAX);
-
-    if (shouldSeek)
-    {
-      auto replayCommSettings = g_replayComm->getSettings();
-      if (replayCommSettings.mode == "queue")
-        clearWatchSettingsStartEnd();
-
-      bool paused = (Core::GetState() == Core::State::Paused);
-      Core::SetState(Core::State::Paused);
-
-      u32 jumpInterval = 300; // 5 seconds;
-
-      if (shouldJumpForward)
-        targetFrameNum = currentPlaybackFrame + jumpInterval;
-
-      if (shouldJumpBack)
-        targetFrameNum = currentPlaybackFrame - jumpInterval;
-
-      // Handle edgecases for trying to seek before start or past end of game
-      if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE)
-        targetFrameNum = Slippi::PLAYBACK_FIRST_SAVE;
-
-      if (targetFrameNum > latestFrame)
-      {
-        targetFrameNum = latestFrame;
-      }
-
-      s32 closestStateFrame = targetFrameNum - emod(targetFrameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
-
-      bool isLoadingStateOptimal =
-        targetFrameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
-
-      if (isLoadingStateOptimal)
-      {
-        if (closestStateFrame <= Slippi::PLAYBACK_FIRST_SAVE)
-        {
-          State::LoadFromBuffer(iState);
-        }
-        else
-        {
-          // If this diff has been processed, load it
-          if (futureDiffs.count(closestStateFrame) > 0)
-          {
-            std::string stateString;
-            decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(),
-              &stateString);
-            std::vector<u8> stateToLoad(stateString.begin(), stateString.end());
-            State::LoadFromBuffer(stateToLoad);
-          };
-        }
-      }
-
-      // Fastforward until we get to the frame we want
-      if (targetFrameNum != closestStateFrame && targetFrameNum != latestFrame)
-      {
-        isHardFFW = true;
-        SConfig::GetInstance().m_OCEnable = true;
-        SConfig::GetInstance().m_OCFactor = 4.0f;
-
-        Core::SetState(Core::State::Running);
-        cv_waitingForTargetFrame.wait(seekLock);
-        Core::SetState(Core::State::Paused);
-
-        SConfig::GetInstance().m_OCFactor = 1.0f;
-        SConfig::GetInstance().m_OCEnable = false;
-        isHardFFW = false;
-      }
-
-      if (!paused)
-        Core::SetState(Core::State::Running);
-
-      shouldJumpBack = false;
-      shouldJumpForward = false;
-      targetFrameNum = INT_MAX;
+  if (seekMtx.try_lock()) {
+    if (frameNum < Slippi::PLAYBACK_FIRST_SAVE || frameNum > lastFrame) {
+      INFO_LOG(SLIPPI, "Error: Invalid seek to frame: %d", frameNum);
+      seekMtx.unlock();
+      return;
     }
 
-    Common::SleepCurrentThread(SLEEP_TIME_MS);
-  }
+    std::unique_lock<std::mutex> ffwLock(ffwMtx);
+    auto replayCommSettings = g_replayComm->getSettings();
+    if (replayCommSettings.mode == "queue")
+      clearWatchSettingsStartEnd();
 
-  INFO_LOG(SLIPPI, "Exit seek thread");
+    auto prevState = Core::GetState();
+    if (prevState != Core::State::Paused)
+      Core::SetState(Core::State::Paused);
+
+    s32 closestStateFrame = frameNum - emod(frameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
+    bool isLoadingStateOptimal = frameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
+    if (isLoadingStateOptimal)
+    {
+      if (closestStateFrame <= Slippi::PLAYBACK_FIRST_SAVE)
+      {
+        State::LoadFromBuffer(iState);
+      }
+      else
+      {
+        // If this diff has been processed, load it
+        if (futureDiffs.count(closestStateFrame) > 0)
+        {
+          std::string stateString;
+          decoder.Decode((char*)iState.data(), iState.size(), futureDiffs[closestStateFrame].get(),
+            &stateString);
+          std::vector<u8> stateToLoad(stateString.begin(), stateString.end());
+          State::LoadFromBuffer(stateToLoad);
+        };
+      }
+    }
+
+    // Fastforward until we get to the frame we want
+    if (frameNum != closestStateFrame && frameNum != lastFrame)
+    {
+      isHardFFW = true;
+      SConfig::GetInstance().m_OCEnable = true;
+      SConfig::GetInstance().m_OCFactor = 4.0f;
+
+      Core::SetState(Core::State::Running);
+      cv_waitingForTargetFrame.wait(ffwLock);
+      Core::SetState(Core::State::Paused);
+
+      SConfig::GetInstance().m_OCFactor = 1.0f;
+      SConfig::GetInstance().m_OCEnable = false;
+      isHardFFW = false;
+    }
+
+    Core::SetState(prevState);
+  } else {
+    INFO_LOG(SLIPPI, "Already seeking. Ignoring this call");
+  }
 }
 
 void SlippiPlaybackStatus::clearWatchSettingsStartEnd()

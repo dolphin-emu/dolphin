@@ -169,9 +169,9 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags fl
   ImGui::RenderFrame(bb.Min, bb.Max, col, true, style.FrameRounding);
 
   if (hovered || held)
-    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, 1.0f));
+    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, style.Alpha));
   else
-    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, 0.6f));
+    ImGui::RenderTextClipped(bb.Min + style.FramePadding, bb.Max - style.FramePadding, label, NULL, &label_size, style.ButtonTextAlign, &bb, ImVec4(0.9f, 0.9f, 0.9f, 0.6f * style.Alpha));
 
   // Automatically close popups
   //if (pressed && !(flags & ImGuiButtonFlags_DontClosePopups) && (window->Flags & ImGuiWindowFlags_Popup))
@@ -210,8 +210,14 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   bool isActive = g.ActiveId == id;
   static bool isHeld = false;
   const bool hovered = ImGui::ItemHoverable(bb, id);
-  if (isHeld)
+  if (isHeld) {
     isHeld = isHeld && isDown;
+    // If no longer held, slider was let go. Trigger mark edited
+    if (!isHeld) {
+      INFO_LOG(SLIPPI, "Do seek here!");
+      ImGui::MarkItemEdited(id); // TODO only mark on mouse up
+    }
+  }
   else
     isHeld = hovered && isDown;
 
@@ -257,7 +263,6 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     {
       *v = new_value;
       value_changed = true;
-      ImGui::MarkItemEdited(id); // TODO only mark on mouse up
     }
   }
 
@@ -365,13 +370,24 @@ void DrawSlippiPlaybackControls()
   // We have to provide a window name, and these shouldn't be duplicated.
   // So instead, we generate a name based on the number of messages drawn.
   const std::string window_name = fmt::format("Slippi Playback Controls");
-
-  const float alpha = 1.0f;
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
-  
-  
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
+
+  bool isActive = false;
+  auto mousePos = ImGui::GetMousePos();
+  auto mouseDown = GImGui->IO.MouseDown[0];
+  if (mousePos[1] > ImGui::GetIO().DisplaySize.y - 44 && mousePos[1] < ImGui::GetIO().DisplaySize.y || mouseDown) {
+    isActive = true;
+    last_active_tick = std::chrono::steady_clock::now();
+  }
+
+  if (isActive) {
+    INFO_LOG(SLIPPI, "hovering!");
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+  }
+  else {
+    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.00001f);
+  }
 
   if (ImGui::Begin(window_name.c_str(), nullptr,
     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
