@@ -98,8 +98,6 @@ GameFile::GameFile() = default;
 
 GameFile::GameFile(std::string path) : m_file_path(std::move(path))
 {
-  m_file_name = PathToFileName(m_file_path);
-
   {
     std::unique_ptr<DiscIO::Volume> volume(DiscIO::CreateVolume(m_file_path));
     if (volume != nullptr)
@@ -146,6 +144,13 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
     m_platform = DiscIO::Platform::ELFOrDOL;
     m_blob_type = DiscIO::BlobType::DIRECTORY;
   }
+
+  // If the game is extracted then use the folder name two/three directories up instead
+  if (m_blob_type == DiscIO::BlobType::DIRECTORY)
+    m_file_name = FindFolderName();
+
+  if (m_file_name.empty())
+    m_file_name = PathToFileName(m_file_path);
 }
 
 GameFile::~GameFile() = default;
@@ -344,6 +349,30 @@ bool GameFile::IsElfOrDol() const
   std::string name_end = m_file_path.substr(m_file_path.size() - 4);
   std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
   return name_end == ".elf" || name_end == ".dol";
+}
+
+// Function for finding the folder name two (three if a Wii game) directories up for use in the file
+// name column for extracted games Returns a blank string if the folder can't be found
+std::string GameFile::FindFolderName()
+{
+#ifdef HAS_STD_FILESYSTEM
+  std::filesystem::path game_file_path = StringToPath(m_file_path);
+  game_file_path = game_file_path.parent_path().parent_path();
+  if (m_platform == DiscIO::Platform::WiiDisc && PathToString(game_file_path.filename()) == "DATA")
+  {
+    game_file_path = game_file_path.parent_path();
+  }
+  return PathToString(game_file_path.filename());
+#else
+  std::vector<std::string> game_file_path = SplitString(m_file_path, '/');
+  // Make sure the folder is named "DATA" before moving up once more
+  if (game_file_path.size() >= 4 && m_platform == DiscIO::Platform::WiiDisc &&
+      game_file_path.end()[-3] == "DATA")
+  {
+    return game_file_path.end()[-4];
+  }
+  return game_file_path.size() >= 3 ? game_file_path.end()[-3] : "";
+#endif
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)
