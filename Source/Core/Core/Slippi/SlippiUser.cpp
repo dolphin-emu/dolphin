@@ -68,26 +68,21 @@ bool SlippiUser::AttemptLogin()
   INFO_LOG(SLIPPI_ONLINE, "Looking for file at: %s", userFilePath.c_str());
 
   {
-    std::string userFilePathTxt =
-      userFilePath + ".txt"; // Put the filename here in its own scope because we don't really need it elsewhere
-  // If both files exist we just log they exist and take no further action
-    if (File::Exists(userFilePathTxt) && File::Exists(userFilePath))
+    // Put the filename here in its own scope because we don't really need it elsewhere
+    std::string userFilePathTxt = userFilePath + ".txt";
+    if (File::Exists(userFilePathTxt))
     {
-      INFO_LOG(SLIPPI_ONLINE,
-        "Found both .json.txt and .json file for user data. Using .json and ignoring the .json.txt");
-    }
-    // If only the .txt file exists copy the contents to a json file and delete the text file
-    else if (File::Exists(userFilePathTxt))
-    {
-      // Attempt to copy the txt file to the json file path. If it fails log a warning
-      if (!File::Copy(userFilePathTxt, userFilePath))
+      // If both files exist we just log they exist and take no further action
+      if (File::Exists(userFilePath))
       {
-        WARN_LOG(SLIPPI_ONLINE, "Could not copy file %s to %s", userFilePathTxt.c_str(), userFilePath.c_str());
+        INFO_LOG(SLIPPI_ONLINE, "Found both .json.txt and .json file for user data. Using .json "
+                                "and ignoring the .json.txt");
       }
-      // Attempt to delete the txt file. If it fails log an info because this isn't as critical
-      if (!File::Delete(userFilePathTxt))
+      // If only the .txt file exists move the contents to a json file and log if it fails
+      else if (!File::Rename(userFilePathTxt, userFilePath))
       {
-        INFO_LOG(SLIPPI_ONLINE, "Failed to delete %s", userFilePathTxt.c_str());
+        WARN_LOG(SLIPPI_ONLINE, "Could not move file %s to %s", userFilePathTxt.c_str(),
+                 userFilePath.c_str());
       }
     }
   }
