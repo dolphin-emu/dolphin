@@ -240,6 +240,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
     JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env, jobject obj);
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
+    JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
                                                                                    jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
@@ -532,6 +534,13 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDi
                                                                                         jobject obj)
 {
   return ToJString(env, File::GetUserPath(D_USER_IDX).c_str());
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
+    JNIEnv* env, jobject obj, jstring jDirectory)
+{
+  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory) + DIR_SEP);
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
