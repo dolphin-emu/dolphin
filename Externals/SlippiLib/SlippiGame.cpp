@@ -1,12 +1,15 @@
+#include <string>
+#include <codecvt>
+#include <locale>
+
 #include "SlippiGame.h"
 
 namespace Slippi {
-  // SLIPPITODO: maybe refactor with std::byte and std::filesystem
 
   //**********************************************************************
-  //*                         Event Handlers                             *
+  //*                         Event Handlers
   //**********************************************************************
-  // The read operators will read a value and increment the index so the next read will read in the correct location
+  //The read operators will read a value and increment the index so the next read will read in the correct location
   uint8_t readByte(uint8_t* a, int& idx, uint32_t maxSize, uint8_t defaultValue) {
     if (idx >= (int)maxSize) {
       idx += 1;
@@ -43,27 +46,27 @@ namespace Slippi {
     return *(float*)(&bytes);
   }
 
-  void handleGameInit(Game &game, uint32_t maxSize) {
+  void handleGameInit(Game* game, uint32_t maxSize) {
     int idx = 0;
 
     // Read version number
     for (int i = 0; i < 4; i++) {
-      game.version[i] = readByte(data, idx, maxSize, 0);
+      game->version[i] = readByte(data, idx, maxSize, 0);
     }
 
     // Read entire game info header
     for (int i = 0; i < GAME_INFO_HEADER_SIZE; i++) {
-      game.settings.header[i] = readWord(data, idx, maxSize, 0);
+      game->settings.header[i] = readWord(data, idx, maxSize, 0);
     }
 
     // Load random seed
-    game.settings.randomSeed = readWord(data, idx, maxSize, 0);
+    game->settings.randomSeed = readWord(data, idx, maxSize, 0);
 
     // Read UCF toggle bytes
-    bool shouldRead = game.version[0] >= 1;
+    bool shouldRead = game->version[0] >= 1;
     for (int i = 0; i < UCF_TOGGLE_SIZE; i++) {
       uint32_t value = shouldRead ? readWord(data, idx, maxSize, 0) : 0;
-      game.settings.ucfToggles[i] = value;
+      game->settings.ucfToggles[i] = value;
     }
 
     // Read nametag for each player
@@ -75,14 +78,14 @@ namespace Slippi {
     }
 
     // Read isPAL byte
-    game.settings.isPAL = readByte(data, idx, maxSize, 0);
+    game->settings.isPAL = readByte(data, idx, maxSize, 0);
 
     // Read isFrozenPS byte
-    game.settings.isFrozenPS = readByte(data, idx, maxSize, 0);
+    game->settings.isFrozenPS = readByte(data, idx, maxSize, 0);
 
     // Pull header data into struct
     int player1Pos = 24; // This is the index of the first players character info
-    std::array<uint32_t, Slippi::GAME_INFO_HEADER_SIZE> gameInfoHeader = game.settings.header;
+    std::array<uint32_t, Slippi::GAME_INFO_HEADER_SIZE> gameInfoHeader = game->settings.header;
     for (int i = 0; i < 4; i++) {
       // this is the position in the array that this player's character info is stored
       int pos = player1Pos + (9 * i);
@@ -104,72 +107,74 @@ namespace Slippi {
       p.nametag = playerNametags[i];
 
       //Add player settings to result
-      game.settings.players[i] = p;
+      game->settings.players[i] = p;
     }
 
-    game.settings.stage = gameInfoHeader[3] & 0xFFFF;
+    game->settings.stage = gameInfoHeader[3] & 0xFFFF;
 
-    auto majorVersion = game.version[0];
-    auto minorVersion = game.version[1];
+    auto majorVersion = game->version[0];
+    auto minorVersion = game->version[1];
     if (majorVersion > 3 || (majorVersion == 3 && minorVersion >= 1)) {
       // After version 3.1.0 we added a dynamic gecko loading process. These
       // are needed before starting the game. areSettingsLoaded will be set
       // to true when they are received
-      game.areSettingsLoaded = false;
+      game->areSettingsLoaded = false;
     }
     else if (majorVersion > 1 || (majorVersion == 1 && minorVersion >= 6)) {
       // Indicate settings loaded immediately if after version 1.6.0
       // Sheik game info was added in this version and so we no longer
       // need to wait
-      game.areSettingsLoaded = true;
+      game->areSettingsLoaded = true;
     }
   }
 
-  void handleGeckoList(Game &game, uint32_t maxSize) {
-    game.settings.geckoCodes.clear();
-    game.settings.geckoCodes.insert(game.settings.geckoCodes.end(), data, data + maxSize);
+  void handleGeckoList(Game* game, uint32_t maxSize) {
+    game->settings.geckoCodes.clear();
+    game->settings.geckoCodes.insert(game->settings.geckoCodes.end(), data, data + maxSize);
 
     // File is good to load
-    game.areSettingsLoaded = true;
+    game->areSettingsLoaded = true;
   }
 
-  void handleFrameStart(Game &game, uint32_t maxSize) {
+  void handleFrameStart(Game* game, uint32_t maxSize) {
     int idx = 0;
 
     //Check frame count
     int32_t frameCount = readWord(data, idx, maxSize, 0);
-    game.frameCount = frameCount;
+    game->frameCount = frameCount;
 
-    FrameData frame;
+    auto frameUniquePtr = std::make_unique<FrameData>();
+    FrameData* frame = frameUniquePtr.get();
 
-    frame.frame = frameCount;
-    frame.randomSeedExists = true;
-    frame.randomSeed = readWord(data, idx, maxSize, 0);
+    frame->frame = frameCount;
+    frame->randomSeedExists = true;
+    frame->randomSeed = readWord(data, idx, maxSize, 0);
 
     // Add frame to game. The frames are stored in multiple ways because
     // for games with rollback, the same frame may be replayed multiple times
-    frame.numSinceStart = game.frames.size();
-    game.frames.emplace_back(std::move(frame));
-    game.framesByIndex[frameCount] = frame;
+    frame->numSinceStart = game->frames.size();
+    game->frames.push_back(std::move(frameUniquePtr));
+    game->framesByIndex[frameCount] = frame;
   }
 
-  void handlePreFrameUpdate(Game &game, uint8_t const preFrameUpdate, uint32_t maxSize) {
+  void handlePreFrameUpdate(Game* game, uint32_t maxSize) {
     int idx = 0;
 
     //Check frame count
     int32_t frameCount = readWord(data, idx, maxSize, 0);
-    game.frameCount = frameCount;
+    game->frameCount = frameCount;
 
-    FrameData frame;
+    auto frameUniquePtr = std::make_unique<FrameData>();
+    FrameData* frame = frameUniquePtr.get();
     bool isNewFrame = true;
 
-    if (game.framesByIndex.count(frameCount)) {
+    if (game->framesByIndex.count(frameCount)) {
       // If this frame already exists, get the current frame
-      frame = game.frames.back();
+      frame = game->frames.back().get();
       isNewFrame = false;
     }
 
-    frame.frame = frameCount;
+    frame->frame = frameCount;
 
     PlayerFrameData p;
 
@@ -198,7 +203,7 @@ namespace Slippi {
     p.lTrigger = readFloat(data, idx, maxSize, 0);
     p.rTrigger = readFloat(data, idx, maxSize, 0);
 
-    if (preFrameUpdate >= 59) {
+    if (asmEvents[EVENT_PRE_FRAME_UPDATE] >= 59) {
       p.joystickXRaw = readByte(data, idx, maxSize, 0);
     }
 
@@ -207,51 +212,51 @@ namespace Slippi {
 
     // Add player data to frame
     std::unordered_map<uint8_t, PlayerFrameData>* target;
-    target = isFollower ? &frame.followers : &frame.players;
+    target = isFollower ? &frame->followers : &frame->players;
 
     // Set the player data for the player or follower
     target->operator[](playerSlot) = p;
 
     // Add frame to game
     if (isNewFrame) {
-      frame.numSinceStart = game.frames.size();
-      game.frames.emplace_back(frame);
-      game.framesByIndex[frameCount] = frame;
+      frame->numSinceStart = game->frames.size();
+      game->frames.push_back(std::move(frameUniquePtr));
+      game->framesByIndex[frameCount] = frame;
     }
   }
 
-  void handlePostFrameUpdate(Game &game, uint32_t maxSize) {
+  void handlePostFrameUpdate(Game* game, uint32_t maxSize) {
     int idx = 0;
 
     //Check frame count
     int32_t frameCount = readWord(data, idx, maxSize, 0);
 
-    FrameData frame;
-    if (game.framesByIndex.count(frameCount)) {
+    FrameData* frame;
+    if (game->framesByIndex.count(frameCount)) {
       // If this frame already exists, get the current frame
-      auto test = game.frames.back();
+      frame = game->frames.back().get();
     }
 
     // As soon as a post frame update happens, we know we have received all the inputs
     // This is used to determine if a frame is ready to be used for a replay (for mirroring)
-    frame.inputsFullyFetched = true;
+    frame->inputsFullyFetched = true;
 
     uint8_t playerSlot = readByte(data, idx, maxSize, 0);
     uint8_t isFollower = readByte(data, idx, maxSize, 0);
 
-    PlayerFrameData* p = isFollower ? &frame.followers[playerSlot] : &frame.players[playerSlot];
+    PlayerFrameData* p = isFollower ? &frame->followers[playerSlot] : &frame->players[playerSlot];
 
     p->internalCharacterId = readByte(data, idx, maxSize, 0);
 
     // Check if a player started as sheik and update
     if (frameCount == GAME_FIRST_FRAME && p->internalCharacterId == GAME_SHEIK_INTERNAL_ID) {
-      game.settings.players[playerSlot].characterId = GAME_SHEIK_EXTERNAL_ID;
+      game->settings.players[playerSlot].characterId = GAME_SHEIK_EXTERNAL_ID;
     }
 
     // Set settings loaded if this is the last character
     if (frameCount == GAME_FIRST_FRAME) {
       uint8_t lastPlayerIndex = 0;
-      for (auto it = frame.players.begin(); it != frame.players.end(); ++it) {
+      for (auto it = frame->players.begin(); it != frame->players.end(); ++it) {
         if (it->first <= lastPlayerIndex) {
           continue;
         }
@@ -260,15 +265,15 @@ namespace Slippi {
       }
 
       if (playerSlot >= lastPlayerIndex) {
-        game.areSettingsLoaded = true;
+        game->areSettingsLoaded = true;
       }
     }
   }
 
-  void handleGameEnd(Game &game, uint32_t maxSize) {
+  void handleGameEnd(Game* game, uint32_t maxSize) {
     int idx = 0;
 
-    game.winCondition = readByte(data, idx, maxSize, 0);
+    game->winCondition = readByte(data, idx, maxSize, 0);
   }
 
   // This function gets the position where the raw data starts
@@ -300,7 +305,7 @@ namespace Slippi {
     f->seekg(position - 4, std::ios::beg);
     f->read(buffer, 4);
 
-    uint8_t* byteBuf = (uint8_t*)& buffer[0];
+    uint8_t* byteBuf = (uint8_t*)&buffer[0];
     uint32_t length = byteBuf[0] << 24 | byteBuf[1] << 16 | byteBuf[2] << 8 | byteBuf[3];
     return length;
   }
@@ -318,6 +323,7 @@ namespace Slippi {
       { EVENT_PAYLOAD_SIZES, payloadLength }
     };
 
+
     std::vector<char> messageSizesBuffer(payloadLength - 1);
     f->read(&messageSizesBuffer[0], payloadLength - 1);
     for (int i = 0; i < payloadLength - 1; i += 3) {
@@ -332,52 +338,6 @@ namespace Slippi {
     }
 
     return messageSizes;
-  }
-
-  bool SlippiGame::AreSettingsLoaded() {
-    processData();
-    return game.areSettingsLoaded;
-  };
-
-  bool SlippiGame::DoesFrameExist(int32_t frame) {
-    processData();
-    return (bool)game.framesByIndex.count(frame);
-  };
-
-  std::array<uint8_t, 4> SlippiGame::GetVersion() {
-    return game.version;
-  }
-
-  std::shared_ptr<FrameData> SlippiGame::GetFrame(int32_t frame) {
-    // Get the frame we want
-    return std::make_shared<FrameData>(game.framesByIndex.at(frame));
-  };
-
-  std::shared_ptr<FrameData> SlippiGame::GetFrameAt(uint32_t pos) {
-    if (pos >= game.frames.size()) {
-      return nullptr;
-    }
-
-    // Get the frame we want
-    return std::make_shared<FrameData>(game.frames[pos]);
-  };
-
-  int32_t SlippiGame::GetLatestIndex() {
-    processData();
-    return game.frameCount;
-  };
-
-  GameSettings* SlippiGame::GetSettings() {
-    processData();
-    return &game.settings;
-  };
-
-  bool SlippiGame::DoesPlayerExist(int8_t port) {
-    return game.settings.players.find(port) != game.settings.players.end();
-  };
-
-  bool SlippiGame::IsProcessingComplete() {
-    return isProcessingComplete;
   }
 
   void SlippiGame::processData() {
@@ -455,7 +415,7 @@ namespace Slippi {
         return;
       }
 
-      data = (uint8_t*)& newData[newDataPos + 1];
+      data = (uint8_t*)&newData[newDataPos + 1];
 
       uint8_t isSplitComplete = false;
       uint32_t outerPayloadSize = payloadSize;
@@ -485,22 +445,22 @@ namespace Slippi {
 
       switch (command) {
       case EVENT_GAME_INIT:
-        handleGameInit(game, payloadSize);
+        handleGameInit(game.get(), payloadSize);
         break;
       case EVENT_GECKO_LIST:
-        handleGeckoList(game, payloadSize);
+        handleGeckoList(game.get(), payloadSize);
         break;
       case EVENT_FRAME_START:
-        handleFrameStart(game, payloadSize);
+        handleFrameStart(game.get(), payloadSize);
         break;
       case EVENT_PRE_FRAME_UPDATE:
-        handlePreFrameUpdate(game, asmEvents[EVENT_PRE_FRAME_UPDATE], payloadSize);
+        handlePreFrameUpdate(game.get(), payloadSize);
         break;
       case EVENT_POST_FRAME_UPDATE:
-        handlePostFrameUpdate(game, payloadSize);
+        handlePostFrameUpdate(game.get(), payloadSize);
         break;
       case EVENT_GAME_END:
-        handleGameEnd(game, payloadSize);
+        handleGameEnd(game.get(), payloadSize);
         isProcessingComplete = true;
         break;
       case 0x55:
@@ -521,13 +481,11 @@ namespace Slippi {
 
   std::unique_ptr<SlippiGame> SlippiGame::FromFile(std::string path) {
     auto result = std::make_unique<SlippiGame>();
+    result->game = std::make_unique<Game>();
     result->path = path;
 
 #ifdef _WIN32
     // On Windows, we need to convert paths to std::wstring to deal with UTF-8
-
-    // SLIPPITODO: codecvt is deprecated. C++17 msvc support std::filesystem::u8path
-    // SLIPPITODO: c++20 std::filesystem::path natively supports utf8
     std::wstring convertedPath = std::wstring_convert<std::codecvt_utf8<wchar_t>>().from_bytes(path);
     result->file = std::make_unique<std::ifstream>(convertedPath, std::ios::in | std::ios::binary);
 #else
@@ -551,5 +509,52 @@ namespace Slippi {
     //SlippiGame* result = processFile((uint8_t*)&rawData[0], rawDataLength);
 
     return std::move(result);
+  }
+
+  bool SlippiGame::IsProcessingComplete() {
+    return isProcessingComplete;
+  }
+
+  bool SlippiGame::AreSettingsLoaded() {
+    processData();
+    return game->areSettingsLoaded;
+  }
+
+  bool SlippiGame::DoesFrameExist(int32_t frame) {
+    processData();
+    return (bool)game->framesByIndex.count(frame);
+  }
+
+  std::array<uint8_t, 4> SlippiGame::GetVersion()
+  {
+    return game->version;
+  }
+
+  FrameData* SlippiGame::GetFrame(int32_t frame) {
+    // Get the frame we want
+    return game->framesByIndex.at(frame);
+  }
+
+  FrameData* SlippiGame::GetFrameAt(uint32_t pos) {
+    if (pos >= game->frames.size()) {
+      return nullptr;
+    }
+
+    // Get the frame we want
+    return game->frames[pos].get();
+  }
+
+  int32_t SlippiGame::GetLatestIndex() {
+    processData();
+    return game->frameCount;
+  }
+
+  GameSettings* SlippiGame::GetSettings() {
+    processData();
+    return &game->settings;
+  }
+
+  bool SlippiGame::DoesPlayerExist(int8_t port) {
+    return game->settings.players.find(port) != game->settings.players.end();
   }
 }

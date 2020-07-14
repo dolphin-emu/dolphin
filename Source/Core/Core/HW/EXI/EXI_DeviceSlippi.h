@@ -166,7 +166,7 @@ namespace ExpansionInterface
     // replay playback stuff
     void prepareGameInfo(u8* payload);
     void prepareGeckoList();
-    void prepareCharacterFrameData(std::shared_ptr<Slippi::FrameData> frame, u8 port, u8 isFollower);
+    void prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 isFollower);
     void prepareFrameData(u8* payload);
     void prepareIsStockSteal(u8* payload);
     void prepareIsFileReady();

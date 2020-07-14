@@ -1071,7 +1071,7 @@ void CEXISlippi::prepareGeckoList()
   geckoList.insert(geckoList.end(), { 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 }
 
-void CEXISlippi::prepareCharacterFrameData(std::shared_ptr<Slippi::FrameData> frame, u8 port, u8 isFollower)
+void CEXISlippi::prepareCharacterFrameData(Slippi::FrameData* frame, u8 port, u8 isFollower)
 {
   std::unordered_map<uint8_t, Slippi::PlayerFrameData> source;
   source = isFollower ? frame->followers : frame->players;
@@ -1120,7 +1120,7 @@ bool CEXISlippi::checkFrameFullyFetched(s32 frameIndex)
   if (!doesFrameExist)
     return false;
 
-  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
+  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
 
   // This flag is set to true after a post frame update has been received. At that point
   // we know we have received all of the input data for the frame
@@ -1268,7 +1268,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
   m_read_queue.push_back(requestResultCode);
 
   // Get frame
-  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
+  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
   if (commSettings.rollbackDisplayMethod != "off")
   {
     auto previousFrame = m_current_game->GetFrameAt(frameSeqIdx - 1);
@@ -1355,7 +1355,7 @@ void CEXISlippi::prepareIsStockSteal(u8* payload)
   }
 
   // Load the data from this frame into the read buffer
-  std::shared_ptr<Slippi::FrameData> frame = m_current_game->GetFrame(frameIndex);
+  Slippi::FrameData* frame = m_current_game->GetFrame(frameIndex);
   auto players = frame->players;
 
   u8 playerIsBack = players.count(playerIndex) ? 1 : 0;

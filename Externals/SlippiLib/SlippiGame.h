@@ -7,8 +7,6 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
-#include <codecvt>
-#include <locale>
 
 namespace Slippi {
   const uint8_t EVENT_SPLIT_MESSAGE = 0x10;
@@ -32,7 +30,7 @@ namespace Slippi {
 
   static uint8_t* data;
 
-  struct PlayerFrameData {
+  typedef struct {
     // Every player update has its own rng seed because it might change in between players
     uint32_t randomSeed;
 
@@ -62,9 +60,9 @@ namespace Slippi {
     float rTrigger;
 
     uint8_t joystickXRaw;
-  };
+  } PlayerFrameData;
 
-  struct FrameData {
+  typedef struct FrameData {
     int32_t frame;
     uint32_t numSinceStart;
     bool randomSeedExists = false;
@@ -72,18 +70,18 @@ namespace Slippi {
     bool inputsFullyFetched = false;
     std::unordered_map<uint8_t, PlayerFrameData> players;
     std::unordered_map<uint8_t, PlayerFrameData> followers;
-  };
+  } FrameData;
 
-  struct PlayerSettings {
+  typedef struct {
     //Static data
     uint8_t characterId;
     uint8_t characterColor;
     uint8_t playerType;
     uint8_t controllerPort;
     std::array<uint16_t, NAMETAG_SIZE> nametag;
-  };
+  } PlayerSettings;
 
-  struct GameSettings {
+  typedef struct {
     uint16_t stage; //Stage ID
     uint32_t randomSeed;
     std::array<uint32_t, GAME_INFO_HEADER_SIZE> header;
@@ -92,12 +90,12 @@ namespace Slippi {
     uint8_t isPAL;
     uint8_t isFrozenPS;
     std::vector<uint8_t> geckoCodes;
-  };
+  } GameSettings;
 
-  struct Game {
+  typedef struct Game {
     std::array<uint8_t, 4> version;
-    std::unordered_map<int32_t, FrameData> framesByIndex;
-    std::vector<FrameData> frames;
+    std::unordered_map<int32_t, FrameData*> framesByIndex;
+    std::vector<std::unique_ptr<FrameData>> frames;
     GameSettings settings;
     bool areSettingsLoaded = false;
 
@@ -105,38 +103,41 @@ namespace Slippi {
 
     //From OnGameEnd event
     uint8_t winCondition;
+  } Game;
+
+  // TODO: This shouldn't be static. Doesn't matter too much atm because we always
+  // TODO: only read one file at a time
+  static std::unordered_map<uint8_t, uint32_t> asmEvents = {
+    { EVENT_GAME_INIT, 320 },
+    { EVENT_PRE_FRAME_UPDATE, 58 },
+    { EVENT_POST_FRAME_UPDATE, 33 },
+    { EVENT_GAME_END, 1 },
+    { EVENT_FRAME_START, 8 }
   };
 
-  class SlippiGame {
+  class SlippiGame
+  {
   public:
     static std::unique_ptr<SlippiGame> FromFile(std::string path);
     bool AreSettingsLoaded();
     bool DoesFrameExist(int32_t frame);
     std::array<uint8_t, 4> GetVersion();
-    std::shared_ptr<FrameData> GetFrame(int32_t frame);
-    std::shared_ptr<FrameData> GetFrameAt(uint32_t pos);
+    FrameData* GetFrame(int32_t frame);
+    FrameData* GetFrameAt(uint32_t pos);
     int32_t GetLatestIndex();
     GameSettings* GetSettings();
     bool DoesPlayerExist(int8_t port);
     bool IsProcessingComplete();
-
   private:
-    Game game;
+    std::unique_ptr<Game> game;
     std::unique_ptr<std::ifstream> file;
     std::vector<uint8_t> rawData;
     std::string path;
     std::ofstream log;
     std::vector<uint8_t> splitMessageBuf;
-    std::unordered_map<uint8_t, uint32_t> asmEvents = {
-      { EVENT_GAME_INIT, 320 },
-      { EVENT_PRE_FRAME_UPDATE, 58 },
-      { EVENT_POST_FRAME_UPDATE, 33 },
-      { EVENT_GAME_END, 1 },
-      { EVENT_FRAME_START, 8 }
-    };
     bool shouldResetSplitMessageBuf = false;
-    bool isProcessingComplete = false;
 
+    bool isProcessingComplete = false;
     void processData();
   };
 }
