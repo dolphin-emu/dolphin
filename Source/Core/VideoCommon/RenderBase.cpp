@@ -1255,7 +1255,6 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
 
         DrawDebugText();
         OSD::DrawMessages();
-        OSD::DrawSlippiPlaybackControls();
         ImGui::Render();
       }
 

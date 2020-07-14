@@ -28,16 +28,8 @@
 #include "Core/NetPlayClient.h"
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/Slippi/SlippiPlayback.h"
-
-
 #include "Core/State.h"
-
-// Not clean but idk a better way atm
-//#ifndef LINUX_LOCAL_DEV
-//#include "DolphinWX/Frame.h"
-//#include "DolphinWX/Main.h"
-//#endif
-
+#include "VideoCommon/OnScreenDisplay.h"
 
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8
@@ -723,6 +715,7 @@ void CEXISlippi::prepareGameInfo(u8* payload)
   if (replayCommSettings.rollbackDisplayMethod == "off" &&
     (replayCommSettings.mode == "normal" || replayCommSettings.mode == "queue"))
   {
+    OSD::DrawSlippiPlaybackControls();
     g_playbackStatus->startThreads();
   }
 }
