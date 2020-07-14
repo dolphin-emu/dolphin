@@ -15,6 +15,8 @@
 #import "Common/MsgHandler.h"
 #import "Common/StringUtil.h"
 
+#import "ControllerSettingsUtils.h"
+
 #import "Core/Config/MainSettings.h"
 #import "Core/Config/UISettings.h"
 #import "Core/ConfigManager.h"
@@ -22,6 +24,7 @@
 #import "Core/HW/GCKeyboard.h"
 #import "Core/HW/GCPad.h"
 #import "Core/HW/Wiimote.h"
+#import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #import "Core/IOS/ES/ES.h"
 #import "Core/IOS/IOS.h"
 #import "Core/PowerPC/PowerPC.h"
@@ -39,8 +42,12 @@
 
 #import "GameFileCacheHolder.h"
 
+#import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
+#import "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#import "InputCommon/ControllerEmu/ControlGroup/IMUCursor.h"
 #import "InputCommon/ControllerInterface/ControllerInterface.h"
 #import "InputCommon/ControllerInterface/Touch/ButtonManager.h"
+#import "InputCommon/InputConfig.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
@@ -388,6 +395,74 @@
   SConfig::GetInstance().bFastmem = false;
 #endif
   
+  // Apply latest touchscreen controller configuration
+  void(^update_input_config)(InputConfig*, bool) = ^(InputConfig* input_config, bool is_wii)
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      ControllerEmu::EmulatedController* controller = input_config->GetController(i);
+      if ([ControllerSettingsUtils IsControllerConnectedToTouchscreen:controller])
+      {
+        // This is terrible but we need to save some settings for consistency
+        // TODO: the code for upright and sideways Wiimotes will break at some point!
+        u32 selected_attachment = 0;
+        bool imu_point_enabled = false;
+        bool is_upright = false;
+        bool is_sideways = false;
+        if (is_wii)
+        {
+          ControllerEmu::Attachments* attachments = static_cast<ControllerEmu::Attachments*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Attachments));
+          selected_attachment = attachments->GetSelectedAttachment();
+          
+          ControllerEmu::IMUCursor* cursor = static_cast<ControllerEmu::IMUCursor*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::IMUPoint));
+          imu_point_enabled = cursor->enabled;
+          
+          ControllerEmu::ControlGroup* options_group = static_cast<ControllerEmu::ControlGroup*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Options));
+          std::unique_ptr<ControllerEmu::NumericSettingBase>& upright_setting_base = options_group->numeric_settings[2];
+          ControllerEmu::NumericSetting<bool>* upright_setting = static_cast<ControllerEmu::NumericSetting<bool>*>(upright_setting_base.get());
+          is_upright = upright_setting->GetValue();
+          
+          std::unique_ptr<ControllerEmu::NumericSettingBase>& sideways_setting_base = options_group->numeric_settings[3];
+          ControllerEmu::NumericSetting<bool>* sideways_setting = static_cast<ControllerEmu::NumericSetting<bool>*>(sideways_setting_base.get());
+          is_sideways = sideways_setting->GetValue();
+        }
+        
+        [ControllerSettingsUtils LoadDefaultProfileOnController:controller is_wii:is_wii type:@"Touch"];
+        
+        if (is_wii)
+        {
+          ControllerEmu::Attachments* attachments = static_cast<ControllerEmu::Attachments*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Attachments));
+          attachments->SetSelectedAttachment(selected_attachment);
+          
+          ControllerEmu::IMUCursor* cursor = static_cast<ControllerEmu::IMUCursor*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::IMUPoint));
+          cursor->enabled = imu_point_enabled;
+          
+          ControllerEmu::ControlGroup* options_group = static_cast<ControllerEmu::ControlGroup*>(Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Options));
+          
+          std::unique_ptr<ControllerEmu::NumericSettingBase>& upright_setting_base = options_group->numeric_settings[2];
+          ControllerEmu::NumericSetting<bool>* upright_setting = static_cast<ControllerEmu::NumericSetting<bool>*>(upright_setting_base.get());
+          upright_setting->SetValue(is_upright);
+          
+          std::unique_ptr<ControllerEmu::NumericSettingBase>& sideways_setting_base = options_group->numeric_settings[3];
+          ControllerEmu::NumericSetting<bool>* sideways_setting = static_cast<ControllerEmu::NumericSetting<bool>*>(sideways_setting_base.get());
+          sideways_setting->SetValue(is_sideways);
+        }
+      }
+    }
+    
+    input_config->SaveConfig();
+  };
+  
+  const NSInteger latest_tscontroller_config_version = 1;
+  
+  if ([[NSUserDefaults standardUserDefaults] integerForKey:@"tscontroller_config_version"] != latest_tscontroller_config_version)
+  {
+    update_input_config(Pad::GetConfig(), false);
+    update_input_config(Wiimote::GetConfig(), true);
+    
+    [[NSUserDefaults standardUserDefaults] setInteger:latest_tscontroller_config_version forKey:@"tscontroller_config_version"];
+  }
+
   [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];
 
 #ifdef ANALYTICS

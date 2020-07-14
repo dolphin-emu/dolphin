@@ -41,5 +41,7 @@
 	<false/>
 	<key>seen_njb_notice</key>
 	<false/>
+	<key>tscontroller_config_version</key>
+	<integer>0</integer>
 </dict>
 </plist>
