@@ -50,6 +50,8 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
+#include "Core/Slippi/SlippiReplayComm.h"
+#include "Core/Slippi/SlippiPlayback.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -85,6 +87,9 @@
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+extern std::unique_ptr<SlippiReplayComm> g_replayComm;
 
 std::unique_ptr<Renderer> g_renderer;
 
@@ -1253,8 +1258,12 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         auto lock = GetImGuiLock();
 
+        if (g_replayComm->getSettings().rollbackDisplayMethod == "off" && g_playbackStatus->inSlippiPlayback)
+          OSD::DrawSlippiPlaybackControls();
+
         DrawDebugText();
         OSD::DrawMessages();
+
         ImGui::Render();
       }
 

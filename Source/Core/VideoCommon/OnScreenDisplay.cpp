@@ -20,8 +20,12 @@
 #include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Slippi/SlippiPlayback.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/IconsFontAwesome4.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+
 namespace OSD
 {
 constexpr float LEFT_MARGIN = 10.0f;    // Pixels to the left of OSD messages.
@@ -295,6 +299,8 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   if (isHeld)
     window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f)));
 
+  window->DrawList->AddRectFilled(ImVec2(0, ImGui::GetWindowHeight() - 36), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
+
   // Grey background line
   window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
 
@@ -310,10 +316,10 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   }
 
   // Progress bar
-  if (!isHeld) 
+  if (!isHeld)
+    frame = g_playbackStatus->currentPlaybackFrame;
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
 
-  //window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
   return value_changed;
 }
 
@@ -384,7 +390,11 @@ void DrawSlippiPlaybackControls()
   s32 diff = currTime - idle_tick;
   diff = diff < 1000 ? 0 : diff - 1000;
   auto alpha = std::max(0.0001f, 1.0f - (diff / 1000.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
+
+  ImGuiStyle& style = ImGui::GetStyle();
+  style.WindowBorderSize = 0.0f;
+  style.Alpha = alpha;
+  style.WindowPadding = ImVec2(0.0f, 0.0f);
 
   if (ImGui::Begin(window_name.c_str(), nullptr,
     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
@@ -417,7 +427,6 @@ void DrawSlippiPlaybackControls()
       INFO_LOG(SLIPPI, "fast_foward");
     }
   }
-  ImGui::PopStyleVar();
   ImGui::End();
 }
 }  // namespace OSD
