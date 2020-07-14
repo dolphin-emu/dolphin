@@ -42,7 +42,9 @@ struct Message
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
 static int frame = 0;
-static std::chrono::time_point<std::chrono::steady_clock> last_active_tick = std::chrono::steady_clock::now();
+
+u32 idle_tick = Common::Timer::GetTimeMs();
+ImVec2 prev_mouse(0,0);
 
 static ImVec4 RGBAToImVec4(const u32 rgba)
 {
@@ -184,6 +186,7 @@ bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags fl
 bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v_max, float power, ImGuiSliderFlags flags, ImVec4 color, ImVec2 valuesize, const char* label, char* value)
 {
   ImGuiContext& g = *GImGui;
+  const ImGuiStyle& style = g.Style;
   ImGuiWindow* window = ImGui::GetCurrentWindow();
   const ImGuiAxis axis = (flags & ImGuiSliderFlags_Vertical) ? ImGuiAxis_Y : ImGuiAxis_X;
   const bool is_decimal = false; // TODO handle other types
@@ -227,7 +230,6 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   // Calculate mouse position if hovered
   int new_value = 0;
   if (hovered || isHeld) {
-    last_active_tick = std::chrono::steady_clock::now();
     const float mouse_abs_pos = g.IO.MousePos[axis];
     float clicked_t = (slider_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_sz, 0.0f, 1.0f) : 0.0f;
     if (axis == ImGuiAxis_Y)
@@ -294,24 +296,22 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f)));
 
   // Grey background line
-  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f)), 4);
+  window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
 
   // Whiter, more opaque line up to mouse position
   if (hovered && !isDown)
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 1.0f)), 4);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 4);
 
   // Colored line, circle indicator, and text
   if (isHeld) {
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.00f)), 4);
-    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)));
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
+    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)));
     window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), value, label);
   }
 
   // Progress bar
   if (!isHeld) 
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0f)), 4);
-
-  
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
 
   //window->DrawList->AddRectFilled(ImVec2(grab_bb.Min.x, bb.Min.y + 2), ImVec2(grab_bb.Max.x + valuesize.x, bb.Min.y + 14), ColorConvertFloat4ToU32(ImVec4(0.21f, 0.20f, 0.21f, 1.00f)), 3);
   return value_changed;
@@ -373,21 +373,18 @@ void DrawSlippiPlaybackControls()
   ImGui::SetNextWindowPos(ImVec2(0, 0));
   ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize);
 
-  bool isActive = false;
   auto mousePos = ImGui::GetMousePos();
-  auto mouseDown = GImGui->IO.MouseDown[0];
-  if (mousePos[1] > ImGui::GetIO().DisplaySize.y - 44 && mousePos[1] < ImGui::GetIO().DisplaySize.y || mouseDown) {
-    isActive = true;
-    last_active_tick = std::chrono::steady_clock::now();
-  }
 
-  if (isActive) {
-    INFO_LOG(SLIPPI, "hovering!");
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 1.0f);
+  auto currTime = Common::Timer::GetTimeMs();
+  if (!(mousePos[0] == prev_mouse[0] && mousePos[1] == prev_mouse[1])) {
+    idle_tick = currTime;
   }
-  else {
-    ImGui::PushStyleVar(ImGuiStyleVar_Alpha, 0.00001f);
-  }
+  prev_mouse = mousePos;
+
+  s32 diff = currTime - idle_tick;
+  diff = diff < 1000 ? 0 : diff - 1000;
+  auto alpha = std::max(0.0001f, 1.0f - (diff / 1000.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_Alpha, alpha);
 
   if (ImGui::Begin(window_name.c_str(), nullptr,
     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoSavedSettings |
@@ -402,7 +399,7 @@ void DrawSlippiPlaybackControls()
     if (ButtonCustom(ICON_FA_PLAY, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "playing");
     }
-    ImGui::PopStyleVar(1);
+    ImGui::PopStyleVar();
     ImGui::SameLine(0.0f);
     if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast back");
@@ -420,8 +417,7 @@ void DrawSlippiPlaybackControls()
       INFO_LOG(SLIPPI, "fast_foward");
     }
   }
-
-  ImGui::End();
   ImGui::PopStyleVar();
+  ImGui::End();
 }
 }  // namespace OSD
