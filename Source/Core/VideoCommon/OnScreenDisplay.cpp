@@ -422,7 +422,7 @@ void DrawSlippiPlaybackControls()
     }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(1.0f, 0.5f));
-    if (ButtonCustom(ICON_FA_PLAY, ImVec2(32.0f, 32.0f))) {
+    if (ButtonCustom(ICON_FA_PAUSE, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "playing");
     }
     ImGui::PopStyleVar();

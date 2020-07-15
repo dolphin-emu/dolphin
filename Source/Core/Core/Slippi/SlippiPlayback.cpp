@@ -227,11 +227,12 @@ void SlippiPlaybackStatus::SeekToFrame()
       Core::SetState(Core::State::Paused);
       SConfig::GetInstance().m_OCFactor = 1.0f;
       SConfig::GetInstance().m_OCEnable = false;
-      targetFrameNum = INT_MAX;
       isHardFFW = false;
     }
 
+    targetFrameNum = INT_MAX;
     Core::SetState(prevState);
+    seekMtx.unlock();
   } else {
     INFO_LOG(SLIPPI, "Already seeking. Ignoring this call");
   }
