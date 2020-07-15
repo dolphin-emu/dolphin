@@ -46,3 +46,4 @@ void Host_YieldToUI();
 void Host_TitleChanged();
 void Host_LowerWindow();
 void Host_Exit();
+void Host_PlaybackSeek();

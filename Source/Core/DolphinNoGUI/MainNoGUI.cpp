@@ -108,6 +108,7 @@ void Host_TitleChanged()
 
 void Host_LowerWindow() {}
 void Host_Exit() {}
+void Host_PlaybackSeek() {}
 
 static std::unique_ptr<Platform> GetPlatform(const optparse::Values& options)
 {

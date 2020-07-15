@@ -30,6 +30,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
+#include "Core/Slippi/SlippiPlayback.h"
 
 #include "DolphinQt/Host.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
@@ -40,6 +41,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
 
 RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
 {
@@ -63,6 +66,7 @@ RenderWidget::RenderWidget(QWidget* parent) : QWidget(parent)
   });
   connect(Host::GetInstance(), &Host::RequestLowerWindow, this, &RenderWidget::LowerWindow);
   connect(Host::GetInstance(), &Host::RequestExit, this, &RenderWidget::Exit);
+  connect(Host::GetInstance(), &Host::RequestSeek, this, &RenderWidget::PlaybackSeek);
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     if (state == Core::State::Running)
       SetImGuiKeyMap();
@@ -351,6 +355,11 @@ void RenderWidget::LowerWindow()
 void RenderWidget::Exit()
 {
   close();
+}
+
+void RenderWidget::PlaybackSeek()
+{
+  g_playbackStatus->SeekToFrame();
 }
 
 

@@ -41,6 +41,7 @@ private:
   void dropEvent(QDropEvent* event) override;
   void LowerWindow();
   void Exit();
+  void PlaybackSeek();
 
   static constexpr int MOUSE_HIDE_DELAY = 3000;
   QTimer* m_mouse_timer;

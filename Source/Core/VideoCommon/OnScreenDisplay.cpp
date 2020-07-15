@@ -20,6 +20,7 @@
 #include "Common/Timer.h"
 #include "Core/Core.h"
 #include "Core/ConfigManager.h"
+#include "Core/Host.h"
 #include "Core/Slippi/SlippiPlayback.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/IconsFontAwesome4.h"
@@ -45,7 +46,17 @@ struct Message
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
-static int frame = 0;
+static s32 frame = 0;
+
+static std::string GetTimeForFrame(s32 currFrame) {
+  int currSeconds = int((currFrame - Slippi::GAME_FIRST_FRAME) / 60);
+  int currMinutes = (int)(currSeconds / 60);
+  int currRemainder = (int)(currSeconds % 60);
+  // Position string (i.e. MM:SS)
+  char currTime[6];
+  sprintf(currTime, "%02d:%02d", currMinutes, currRemainder);
+  return std::string(currTime);
+}
 
 u32 idle_tick = Common::Timer::GetTimeMs();
 ImVec2 prev_mouse(0,0);
@@ -217,16 +228,6 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   bool isActive = g.ActiveId == id;
   static bool isHeld = false;
   const bool hovered = ImGui::ItemHoverable(bb, id);
-  if (isHeld) {
-    isHeld = isHeld && isDown;
-    // If no longer held, slider was let go. Trigger mark edited
-    if (!isHeld) {
-      INFO_LOG(SLIPPI, "Do seek here!");
-      ImGui::MarkItemEdited(id); // TODO only mark on mouse up
-    }
-  }
-  else
-    isHeld = hovered && isDown;
 
   if (!isDown && isActive)
     ImGui::ClearActiveID();
@@ -238,7 +239,6 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     float clicked_t = (slider_sz > 0.0f) ? ImClamp((mouse_abs_pos - slider_usable_pos_min) / slider_sz, 0.0f, 1.0f) : 0.0f;
     if (axis == ImGuiAxis_Y)
       clicked_t = 1.0f - clicked_t;
-
 
     if (is_power)
     {
@@ -268,9 +268,20 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     if (*v != new_value && isDown)
     {
       *v = new_value;
-      value_changed = true;
     }
   }
+
+  if (isHeld) {
+    isHeld = isHeld && isDown;
+    // If no longer held, slider was let go. Trigger mark edited
+    if (!isHeld) {
+      INFO_LOG(SLIPPI, "Seeking to frame %d!", *v);
+      value_changed = true;
+      g_playbackStatus->targetFrameNum = *v;
+    }
+  }
+  else
+    isHeld = hovered && isDown;
 
   float new_grab_t = ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, new_value, v_min, v_max, power, linear_zero_pos);
   float curr_grab_t = ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType_S32, *v, v_min, v_max, power, linear_zero_pos);
@@ -297,7 +308,7 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
 
   // Darken screen when seeking
   if (isHeld)
-    window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.5f)));
+    window->DrawList->AddRectFilled(ImVec2(0, 0), ImGui::GetIO().DisplaySize, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.6f)));
 
   window->DrawList->AddRectFilled(ImVec2(0, ImGui::GetWindowHeight() - 36), ImVec2(ImGui::GetWindowWidth(), ImGui::GetWindowHeight()), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.75f * style.Alpha)));
 
@@ -305,19 +316,21 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
   window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(bb.Max.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, 0.5f * style.Alpha)), 4);
 
   // Whiter, more opaque line up to mouse position
-  if (hovered && !isDown)
+  if (hovered && !isHeld)
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(1.0f, 1.0f, 1.0f, style.Alpha)), 4);
+
+  if (hovered || isHeld)
+    window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), GetTimeForFrame(new_value).c_str());
 
   // Colored line, circle indicator, and text
   if (isHeld) {
-    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
-    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)));
-    window->DrawList->AddText(ImVec2(new_grab_bb.GetCenter().x - valuesize.x / 2, bb.Max.y - 30), ImColor(255, 255, 255), value, label);
+    window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(new_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)), 4);
+    window->DrawList->AddCircleFilled(ImVec2(new_grab_bb.Min.x, new_grab_bb.Max.y - 6), 6, ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, 1.0)));
   }
 
   // Progress bar
   if (!isHeld)
-    frame = g_playbackStatus->currentPlaybackFrame;
+    frame = (g_playbackStatus->targetFrameNum == INT_MAX) ? g_playbackStatus->currentPlaybackFrame : g_playbackStatus->targetFrameNum;
     window->DrawList->AddLine(ImVec2(bb.Min.x, bb.Max.y - 6), ImVec2(curr_grab_bb.Min.x, bb.Max.y - 6), ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 1.0f, 0.0f, style.Alpha)), 4);
 
   return value_changed;
@@ -403,7 +416,10 @@ void DrawSlippiPlaybackControls()
   {
     ImGui::PushItemWidth(ImGui::GetWindowWidth());
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
-    SliderCustom("", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, 0, 8000, 1.0, "%d");
+    if (SliderCustom("", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
+      INFO_LOG(SLIPPI, "seek");
+      Host_PlaybackSeek();
+    }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(1.0f, 0.5f));
     if (ButtonCustom(ICON_FA_PLAY, ImVec2(32.0f, 32.0f))) {
@@ -426,6 +442,13 @@ void DrawSlippiPlaybackControls()
     if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast_foward");
     }
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    ImGui::SetCursorPos(ImVec2(180.0f, window->DC.CursorPosPrevLine.y + 6.0f));
+
+    auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
+    auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
+    auto timeString = playbackTime + " / " + endTime;
+    ImGui::Text(timeString.c_str());
   }
   ImGui::End();
 }

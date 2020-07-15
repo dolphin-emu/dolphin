@@ -32,10 +32,10 @@ public:
   void startThreads(void);
   void resetPlayback(void);
   void prepareSlippiPlayback(s32& frameIndex);
+  void SeekToFrame();
 
 private:
   void SavestateThread(void);
-  void SeekToFrame(s32 targetFrameNum);
   void processInitialState();
   void clearWatchSettingsStartEnd();
 

@@ -175,11 +175,11 @@ void SlippiPlaybackStatus::SavestateThread()
   INFO_LOG(SLIPPI, "Exiting savestate thread");
 }
 
-void SlippiPlaybackStatus::SeekToFrame(s32 frameNum)
+void SlippiPlaybackStatus::SeekToFrame()
 {
   if (seekMtx.try_lock()) {
-    if (frameNum < Slippi::PLAYBACK_FIRST_SAVE || frameNum > lastFrame) {
-      INFO_LOG(SLIPPI, "Error: Invalid seek to frame: %d", frameNum);
+    if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE || targetFrameNum > lastFrame) {
+      INFO_LOG(SLIPPI, "Error: Invalid seek to frame: %d", targetFrameNum);
       seekMtx.unlock();
       return;
     }
@@ -193,13 +193,14 @@ void SlippiPlaybackStatus::SeekToFrame(s32 frameNum)
     if (prevState != Core::State::Paused)
       Core::SetState(Core::State::Paused);
 
-    s32 closestStateFrame = frameNum - emod(frameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
-    bool isLoadingStateOptimal = frameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
+    s32 closestStateFrame = targetFrameNum - emod(targetFrameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
+    bool isLoadingStateOptimal = targetFrameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
     if (isLoadingStateOptimal)
     {
       if (closestStateFrame <= Slippi::PLAYBACK_FIRST_SAVE)
       {
         State::LoadFromBuffer(iState);
+        INFO_LOG(SLIPPI, "loaded a state");
       }
       else
       {
@@ -216,18 +217,17 @@ void SlippiPlaybackStatus::SeekToFrame(s32 frameNum)
     }
 
     // Fastforward until we get to the frame we want
-    if (frameNum != closestStateFrame && frameNum != lastFrame)
+    if (targetFrameNum != closestStateFrame && targetFrameNum != lastFrame)
     {
       isHardFFW = true;
       SConfig::GetInstance().m_OCEnable = true;
       SConfig::GetInstance().m_OCFactor = 4.0f;
-
       Core::SetState(Core::State::Running);
       cv_waitingForTargetFrame.wait(ffwLock);
       Core::SetState(Core::State::Paused);
-
       SConfig::GetInstance().m_OCFactor = 1.0f;
       SConfig::GetInstance().m_OCEnable = false;
+      targetFrameNum = INT_MAX;
       isHardFFW = false;
     }
 

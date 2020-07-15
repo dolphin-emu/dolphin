@@ -183,3 +183,8 @@ void Host_Exit()
 {
   Host::GetInstance()->RequestExit();
 }
+
+void Host_PlaybackSeek()
+{
+  Host::GetInstance()->RequestSeek();
+}

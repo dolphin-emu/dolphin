@@ -39,6 +39,7 @@ signals:
   void NotifyMapLoaded();
   void RequestLowerWindow();
   void RequestExit();
+  void RequestSeek();
 
 private:
   Host();
