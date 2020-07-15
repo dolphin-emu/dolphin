@@ -11,12 +11,12 @@ import androidx.fragment.app.FragmentActivity;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public final class StartupHandler
 {
   public static final String LAST_CLOSED = "LAST_CLOSED";
-  public static final long SESSION_TIMEOUT = 21600000L; // 6 hours in milliseconds
 
   public static void HandleInit(FragmentActivity parent)
   {
@@ -61,7 +61,7 @@ public final class StartupHandler
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     SharedPreferences.Editor sPrefsEditor = preferences.edit();
-    sPrefsEditor.putLong(LAST_CLOSED, new Date(System.currentTimeMillis()).getTime());
+    sPrefsEditor.putLong(LAST_CLOSED, System.currentTimeMillis());
     sPrefsEditor.apply();
   }
 
@@ -70,10 +70,11 @@ public final class StartupHandler
    */
   public static void checkSessionReset(Context context)
   {
-    long currentTime = new Date(System.currentTimeMillis()).getTime();
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     long lastOpen = preferences.getLong(LAST_CLOSED, 0);
-    if (currentTime > (lastOpen + SESSION_TIMEOUT))
+    final Instant current = Instant.now();
+    final Instant lastOpened = Instant.ofEpochMilli(lastOpen);
+    if (current.isAfter(lastOpened.plus(6, ChronoUnit.HOURS)))
     {
       new AfterDirectoryInitializationRunner().run(context, false,
               NativeLibrary::ReportStartToAnalytics);
