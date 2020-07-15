@@ -505,6 +505,9 @@ public:
   // adds the file to the directory and copies its contents
   GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
 
+  // Fetches the savefile at the given directory index, if any.
+  std::optional<Savefile> ExportFile(u8 index) const;
+
   // delete a file from the directory
   GCMemcardRemoveFileRetVal RemoveFile(u8 index);
 

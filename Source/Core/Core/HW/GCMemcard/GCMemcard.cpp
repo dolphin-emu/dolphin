@@ -909,6 +909,22 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   return GCMemcardImportFileRetVal::SUCCESS;
 }
 
+std::optional<Savefile> GCMemcard::ExportFile(u8 index) const
+{
+  if (!m_valid || index >= DIRLEN)
+    return std::nullopt;
+
+  Savefile savefile;
+  savefile.dir_entry = GetActiveDirectory().m_dir_entries[index];
+  if (savefile.dir_entry.m_gamecode == DEntry::UNINITIALIZED_GAMECODE)
+    return std::nullopt;
+
+  if (GetSaveData(index, savefile.blocks) != GCMemcardGetSaveDataRetVal::SUCCESS)
+    return std::nullopt;
+
+  return savefile;
+}
+
 GCMemcardRemoveFileRetVal GCMemcard::RemoveFile(u8 index)  // index in the directory array
 {
   if (!m_valid)
