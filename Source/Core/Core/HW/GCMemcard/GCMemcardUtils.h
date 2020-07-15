@@ -33,4 +33,7 @@ enum class SavefileFormat
 
 // Writes a Gamecube memory card savefile to a file.
 bool WriteSavefile(const std::string& filename, const Savefile& savefile, SavefileFormat format);
+
+// Generates a filename (without extension) for the given directory entry.
+std::string GenerateFilename(const DEntry& entry);
 }  // namespace Memcard

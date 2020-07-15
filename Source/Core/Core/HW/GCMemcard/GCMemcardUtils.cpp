@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
+#include "Common/NandPaths.h"
 
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
@@ -282,5 +283,25 @@ bool WriteSavefile(const std::string& filename, const Savefile& savefile, Savefi
   default:
     return false;
   }
+}
+
+std::string GenerateFilename(const DEntry& entry)
+{
+  std::string maker(reinterpret_cast<const char*>(entry.m_makercode.data()),
+                    entry.m_makercode.size());
+  std::string gamecode(reinterpret_cast<const char*>(entry.m_gamecode.data()),
+                       entry.m_gamecode.size());
+
+  // prevent going out of bounds when all bytes of m_filename are non-null
+  size_t length = 0;
+  for (size_t i = 0; i < entry.m_filename.size(); ++i)
+  {
+    if (entry.m_filename[i] == 0)
+      break;
+    ++length;
+  }
+  std::string filename(reinterpret_cast<const char*>(entry.m_filename.data()), length);
+
+  return Common::EscapeFileName(maker + '-' + gamecode + '-' + filename);
 }
 }  // namespace Memcard
