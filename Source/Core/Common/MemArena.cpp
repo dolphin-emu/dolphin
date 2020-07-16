@@ -23,6 +23,7 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #ifdef ANDROID
+#include <dlfcn.h>
 #include <linux/ashmem.h>
 #include <sys/ioctl.h>
 #endif
@@ -35,6 +36,18 @@ namespace Common
 
 static int AshmemCreateFileMapping(const char* name, size_t size)
 {
+  // ASharedMemory path - works on API >= 26 and falls through on API < 26:
+
+  // We can't call ASharedMemory_create the normal way without increasing the
+  // minimum version requirement to API 26, so we use dlopen/dlsym instead
+  static void* libandroid = dlopen("libandroid.so", RTLD_LAZY | RTLD_LOCAL);
+  static auto shared_memory_create =
+      reinterpret_cast<int (*)(const char*, size_t)>(dlsym(libandroid, "ASharedMemory_create"));
+  if (shared_memory_create)
+    return shared_memory_create(name, size);
+
+  // /dev/ashmem path - works on API < 29:
+
   int fd, ret;
   fd = open(ASHMEM_DEVICE, O_RDWR);
   if (fd < 0)
