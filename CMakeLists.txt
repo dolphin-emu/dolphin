@@ -17,9 +17,6 @@ project(dolphin-emu)
 # unique name here.
 set(DISTRIBUTOR "None" CACHE STRING "Name of the distributor.")
 
-# Slippi Playback build option
-add_compile_definitions(IS_PLAYBACK)
-
 if(UNIX AND NOT APPLE AND NOT ANDROID)
   option(ENABLE_X11 "Enables X11 Support" ON)
 endif()
@@ -46,7 +43,10 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 #    launch).
 #  * The Dolphin team relies on the data in order to understand the behavior
 #    of our software in the wild.
-option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
+option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
+
+# Enable Playback build for Slippi. TODO: turn off for normal builds
+option(SLIPPI_PLAYBACK "Enable Playback changes" ON) 
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
@@ -509,6 +509,11 @@ endif()
 if(ENABLE_ANALYTICS)
   message(STATUS "Enabling analytics collection (subject to end-user opt-in)")
   add_definitions(-DUSE_ANALYTICS=1)
+endif()
+
+if(SLIPPI_PLAYBACK)
+  # Slippi Playback build option
+  add_compile_definitions(IS_PLAYBACK)
 endif()
 
 ########################################
