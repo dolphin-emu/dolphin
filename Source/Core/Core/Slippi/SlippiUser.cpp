@@ -229,6 +229,7 @@ std::string SlippiUser::getUserFilePath()
   std::string dirPath = File::GetExeDirectory();
 #else
   std::string dirPath = File::GetSysDirectory();
+  dirPath.pop_back();
 #endif
   std::string userFilePath = dirPath + DIR_SEP + "user.json";
   return userFilePath;
