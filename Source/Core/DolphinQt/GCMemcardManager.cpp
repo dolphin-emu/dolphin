@@ -29,11 +29,17 @@
 
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include "DolphinQt/GCMemcardCreateNewDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-constexpr float ROW_HEIGHT = 28;
+constexpr int ROW_HEIGHT = 36;
+constexpr int COLUMN_INDEX_BANNER = 0;
+constexpr int COLUMN_INDEX_TEXT = 1;
+constexpr int COLUMN_INDEX_ICON = 2;
+constexpr int COLUMN_INDEX_BLOCKS = 3;
+constexpr int COLUMN_COUNT = 4;
 
 struct GCMemcardManager::IconAnimationData
 {
@@ -189,11 +195,10 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 {
   m_slot_active_icons[slot].clear();
   m_slot_table[slot]->clear();
-  m_slot_table[slot]->setColumnCount(6);
+  m_slot_table[slot]->setColumnCount(COLUMN_COUNT);
   m_slot_table[slot]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
-  m_slot_table[slot]->verticalHeader()->setDefaultSectionSize(QHeaderView::Fixed);
   m_slot_table[slot]->setHorizontalHeaderLabels(
-      {tr("Banner"), tr("Title"), tr("Comment"), tr("Icon"), tr("Blocks"), tr("First Block")});
+      {tr("Banner"), tr("Title"), tr("Icon"), tr("Blocks")});
 
   if (m_slot_memcard[slot] == nullptr)
     return;
@@ -201,54 +206,51 @@ void GCMemcardManager::UpdateSlotTable(int slot)
   auto& memcard = m_slot_memcard[slot];
   auto* table = m_slot_table[slot];
 
-  const auto create_item = [](const QString& string = {}) {
-    QTableWidgetItem* item = new QTableWidgetItem(string);
-    item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
-    return item;
-  };
-
   const u8 num_files = memcard->GetNumFiles();
+  const u8 free_files = Memcard::DIRLEN - num_files;
+  const u16 free_blocks = memcard->GetFreeBlocks();
   m_slot_active_icons[slot].reserve(num_files);
+  table->setRowCount(num_files);
   for (int i = 0; i < num_files; i++)
   {
-    int file_index = memcard->GetFileIndex(i);
-    table->setRowCount(i + 1);
+    const u8 file_index = memcard->GetFileIndex(i);
 
     const auto file_comments = memcard->GetSaveComments(file_index);
+    const u16 block_count = memcard->DEntry_BlockCount(file_index);
 
-    QString title;
-    QString comment;
-    if (file_comments)
-    {
-      title = QString::fromStdString(file_comments->first);
-      comment = QString::fromStdString(file_comments->second);
-    }
-
-    QString blocks = QStringLiteral("%1").arg(memcard->DEntry_BlockCount(file_index));
-    QString block_count = QStringLiteral("%1").arg(memcard->DEntry_FirstBlock(file_index));
-
-    auto* banner = new QTableWidgetItem;
-    banner->setData(Qt::DecorationRole, GetBannerFromSaveFile(file_index, slot));
-    banner->setFlags(banner->flags() ^ Qt::ItemIsEditable);
-
+    const QString title =
+        file_comments ? QString::fromStdString(file_comments->first).trimmed() : QString();
+    const QString comment =
+        file_comments ? QString::fromStdString(file_comments->second).trimmed() : QString();
+    auto banner = GetBannerFromSaveFile(file_index, slot);
     auto icon_data = GetIconFromSaveFile(file_index, slot);
-    auto* icon = new QTableWidgetItem;
-    icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
+
+    auto* item_banner = new QTableWidgetItem();
+    auto* item_text = new QTableWidgetItem(QStringLiteral("%1\n%2").arg(title, comment));
+    auto* item_icon = new QTableWidgetItem();
+    auto* item_blocks = new QTableWidgetItem(QString::number(block_count));
+
+    item_banner->setData(Qt::DecorationRole, banner);
+    item_icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
+
+    for (auto* item : {item_banner, item_text, item_icon, item_blocks})
+    {
+      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setData(Qt::UserRole, static_cast<int>(file_index));
+    }
 
     m_slot_active_icons[slot].emplace_back(std::move(icon_data));
 
-    table->setItem(i, 0, banner);
-    table->setItem(i, 1, create_item(title));
-    table->setItem(i, 2, create_item(comment));
-    table->setItem(i, 3, icon);
-    table->setItem(i, 4, create_item(blocks));
-    table->setItem(i, 5, create_item(block_count));
-    table->resizeRowToContents(i);
+    table->setItem(i, COLUMN_INDEX_BANNER, item_banner);
+    table->setItem(i, COLUMN_INDEX_TEXT, item_text);
+    table->setItem(i, COLUMN_INDEX_ICON, item_icon);
+    table->setItem(i, COLUMN_INDEX_BLOCKS, item_blocks);
   }
 
-  m_slot_stat_label[slot]->setText(tr("%1 Free Blocks; %2 Free Dir Entries")
-                                       .arg(memcard->GetFreeBlocks())
-                                       .arg(Memcard::DIRLEN - memcard->GetNumFiles()));
+  const QString free_blocks_string = tr("Free Blocks: %1").arg(free_blocks);
+  const QString free_files_string = tr("Free Files: %1").arg(free_files);
+  m_slot_stat_label[slot]->setText(
+      QStringLiteral("%1      %2").arg(free_blocks_string, free_files_string));
 }
 
 void GCMemcardManager::UpdateActions()
@@ -473,7 +475,7 @@ void GCMemcardManager::CreateNewCard(int slot)
 
 void GCMemcardManager::DrawIcons()
 {
-  const auto column = 3;
+  const int column = COLUMN_INDEX_ICON;
   for (int slot = 0; slot < SLOT_COUNT; slot++)
   {
     // skip loop if the table is empty
@@ -502,11 +504,8 @@ void GCMemcardManager::DrawIcons()
       if (prev_frame == current_frame)
         continue;
 
-      auto* item = new QTableWidgetItem;
+      auto* item = m_slot_table[slot]->item(row, column);
       item->setData(Qt::DecorationRole, icon.m_frames[current_frame]);
-      item->setFlags(item->flags() ^ Qt::ItemIsEditable);
-
-      m_slot_table[slot]->setItem(row, column, item);
     }
   }
 
