@@ -377,15 +377,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (m_players.size() >= 255)
     return CON_ERR_SERVER_FULL;
 
-  // cause pings to be updated
-  m_update_pings = true;
-
   Client player;
   player.pid = pid;
   player.socket = socket;
 
   rpac >> player.revision;
   rpac >> player.name;
+
+  if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
+    return CON_ERR_NAME_TOO_LONG;
+
+  // cause pings to be updated
+  m_update_pings = true;
 
   // try to automatically assign new user a pad
   for (PlayerId& mapping : m_pad_map)

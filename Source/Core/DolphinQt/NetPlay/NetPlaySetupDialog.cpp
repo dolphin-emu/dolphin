@@ -17,9 +17,11 @@
 #include <QTabWidget>
 
 #include "Core/Config/NetplaySettings.h"
+#include "Core/NetPlayProto.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
 #include "DolphinQt/Settings.h"
 
 #include "UICommon/NetPlayIndex.h"
@@ -86,6 +88,9 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_connection_type = new QComboBox;
   m_reset_traversal_button = new QPushButton(tr("Reset Traversal Settings"));
   m_tab_widget = new QTabWidget;
+
+  m_nickname_edit->setValidator(
+      new UTF8CodePointCountValidator(NetPlay::MAX_NAME_LENGTH, m_nickname_edit));
 
   // Connection widget
   auto* connection_widget = new QWidget;
