@@ -19,7 +19,6 @@ public:
   bool shouldJumpBack = false;
   bool shouldJumpForward = false;
   bool inSlippiPlayback = false;
-  volatile bool shouldPause = false;
   volatile bool shouldRunThreads = false;
   bool isHardFFW = false;
   bool isSoftFFW = false;

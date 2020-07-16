@@ -232,7 +232,6 @@ void SlippiPlaybackStatus::SeekToFrame()
     }
 
     targetFrameNum = INT_MAX;
-    shouldPause = false;
     Core::SetState(prevState);
     seekMtx.unlock();
   } else {

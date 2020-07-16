@@ -3,7 +3,6 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <chrono>
 #include <map>
 #include <mutex>
 #include <string>
@@ -18,10 +17,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
-#include "Core/Core.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/Host.h"
 #include "Core/Slippi/SlippiPlayback.h"
+
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/IconsFontAwesome4.h"
 
@@ -46,6 +47,7 @@ struct Message
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
+
 static s32 frame = 0;
 
 static std::string GetTimeForFrame(s32 currFrame) {
@@ -422,9 +424,7 @@ void DrawSlippiPlaybackControls()
     }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
-    //auto const paused = g_playbackStatus->shouldPause;
     //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
-    //  g_playbackStatus->shouldPause = !paused;
     //  INFO_LOG(SLIPPI, "playing");
     //}
     //ImGui::SameLine(0.0f, 5.0f);

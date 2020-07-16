@@ -919,12 +919,14 @@ bool Renderer::InitializeImGui()
     return false;
   }
 
+#ifdef IS_PLAYBACK
   ImFontConfig config;
   config.MergeMode = true;
   ImGui::GetIO().Fonts->AddFontFromFileTTF("Roboto-Medium.ttf", 14.0f, 0, ImGui::GetIO().Fonts->GetGlyphRangesDefault());
   static const ImWchar icons_ranges[] = { ICON_MIN_FA, ICON_MAX_FA, 0 };
   ImFontConfig icons_config; icons_config.MergeMode = true; icons_config.PixelSnapH = true;
   ImGui::GetIO().Fonts->AddFontFromFileTTF(FONT_ICON_FILE_NAME_FA, 16.0f, &icons_config, icons_ranges);
+#endif
 
   // Don't create an ini file. TODO: Do we want this in the future?
   ImGui::GetIO().IniFilename = nullptr;

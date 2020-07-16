@@ -1168,7 +1168,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
   g_playbackStatus->lastFrame = m_current_game->GetLatestIndex();
   auto isNextFrameFound = g_playbackStatus->lastFrame > frameIndex;
   auto isFrameComplete = checkFrameFullyFetched(frameIndex);
-  auto isFrameReady = !g_playbackStatus->shouldPause && isFrameFound && (isProcessingComplete || isNextFrameFound || isFrameComplete);
+  auto isFrameReady = isFrameFound && (isProcessingComplete || isNextFrameFound || isFrameComplete);
 
   // If there is a startFrame configured, manage the fast-forward flag
   if (watchSettings.startFrame > Slippi::GAME_FIRST_FRAME)

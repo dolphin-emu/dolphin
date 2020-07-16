@@ -234,7 +234,7 @@ void HotkeyScheduler::Run()
 
         if (device != nullptr)
           std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
-              IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
+            IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
       }
 
       if (SConfig::GetInstance().bEnableDebugging)
@@ -267,7 +267,7 @@ void HotkeyScheduler::Run()
         if (IsHotkey(HK_TOGGLE_USB_KEYBOARD))
         {
           Settings::Instance().SetUSBKeyboardConnected(
-              !Settings::Instance().IsUSBKeyboardConnected());
+            !Settings::Instance().IsUSBKeyboardConnected());
         }
       }
 
@@ -313,9 +313,9 @@ void HotkeyScheduler::Run()
 
       auto ShowVolume = []() {
         OSD::AddMessage(std::string("Volume: ") +
-                        (SConfig::GetInstance().m_IsMuted ?
-                             "Muted" :
-                             std::to_string(SConfig::GetInstance().m_Volume) + "%"));
+          (SConfig::GetInstance().m_IsMuted ?
+            "Muted" :
+            std::to_string(SConfig::GetInstance().m_Volume) + "%"));
       };
 
       // Volume
@@ -401,20 +401,20 @@ void HotkeyScheduler::Run()
 
       auto ShowXFBCopies = []() {
         OSD::AddMessage(StringFromFormat(
-            "Copy XFB: %s%s", Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
-            Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM) ? "to Texture" : "to RAM"));
+          "Copy XFB: %s%s", Config::Get(Config::GFX_HACK_IMMEDIATE_XFB) ? " (Immediate)" : "",
+          Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM) ? "to Texture" : "to RAM"));
       };
 
       if (IsHotkey(HK_TOGGLE_XFBCOPIES))
       {
         Config::SetCurrent(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM,
-                           !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
+          !Config::Get(Config::GFX_HACK_SKIP_XFB_COPY_TO_RAM));
         ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_IMMEDIATE_XFB))
       {
         Config::SetCurrent(Config::GFX_HACK_IMMEDIATE_XFB,
-                           !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
+          !Config::Get(Config::GFX_HACK_IMMEDIATE_XFB));
         ShowXFBCopies();
       }
       if (IsHotkey(HK_TOGGLE_FOG))
@@ -434,10 +434,10 @@ void HotkeyScheduler::Run()
 
       auto ShowEmulationSpeed = []() {
         OSD::AddMessage(
-            SConfig::GetInstance().m_EmulationSpeed <= 0 ?
-                "Speed Limit: Unlimited" :
-                StringFromFormat("Speed Limit: %li%%",
-                                 std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)));
+          SConfig::GetInstance().m_EmulationSpeed <= 0 ?
+          "Speed Limit: Unlimited" :
+          StringFromFormat("Speed Limit: %li%%",
+            std::lround(SConfig::GetInstance().m_EmulationSpeed * 100.f)));
       };
 
       if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
@@ -509,40 +509,45 @@ void HotkeyScheduler::Run()
           Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
         }
       }
+    }
 
 #ifdef IS_PLAYBACK
-      // Slippi Playback
-      if (IsHotkey(HK_SLIPPI_JUMP_BACK))
-      {
-        if (g_playbackStatus->targetFrameNum == INT_MAX) {
-          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
-          Host_PlaybackSeek();
-        }
+    // Slippi Playback
+    if (IsHotkey(HK_SLIPPI_JUMP_BACK))
+    {
+      INFO_LOG(SLIPPI, "jump back");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        Host_PlaybackSeek();
       }
+    }
 
-      if (IsHotkey(HK_SLIPPI_STEP_BACK))
-      {
-        if (g_playbackStatus->targetFrameNum == INT_MAX) {
-          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
-          Host_PlaybackSeek();
-        }
+    if (IsHotkey(HK_SLIPPI_STEP_BACK))
+    {
+      INFO_LOG(SLIPPI, "step back");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+        Host_PlaybackSeek();
       }
+    }
 
-      if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
-      {
-        if (g_playbackStatus->targetFrameNum == INT_MAX) {
-          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
-          Host_PlaybackSeek();
-        }
+    if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
+    {
+      INFO_LOG(SLIPPI, "step forward");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+        Host_PlaybackSeek();
       }
+    }
 
-      if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
-      {
-        if (g_playbackStatus->targetFrameNum == INT_MAX) {
-          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
-          Host_PlaybackSeek();
-        }
+    if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
+    {
+      INFO_LOG(SLIPPI, "jump forward");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
+        Host_PlaybackSeek();
       }
+    }
 #endif
 
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
@@ -552,7 +557,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_INCREASE_DEPTH, true))
       Config::SetCurrent(Config::GFX_STEREO_DEPTH,
-                         std::min(stereo_depth + 1, Config::GFX_STEREO_DEPTH_MAXIMUM));
+        std::min(stereo_depth + 1, Config::GFX_STEREO_DEPTH_MAXIMUM));
 
     const auto stereo_convergence = Config::Get(Config::GFX_STEREO_CONVERGENCE);
 
@@ -561,7 +566,7 @@ void HotkeyScheduler::Run()
 
     if (IsHotkey(HK_INCREASE_CONVERGENCE, true))
       Config::SetCurrent(Config::GFX_STEREO_CONVERGENCE,
-                         std::min(stereo_convergence + 5, Config::GFX_STEREO_CONVERGENCE_MAXIMUM));
+        std::min(stereo_convergence + 5, Config::GFX_STEREO_CONVERGENCE_MAXIMUM));
 
     // Freelook
     static float fl_speed = 1.0;
