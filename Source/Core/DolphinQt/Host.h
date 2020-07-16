@@ -40,11 +40,6 @@ signals:
   void RequestLowerWindow();
   void RequestExit();
   void RequestSeek();
-  void RequestPausePlay();
-  void RequestSkipBack();
-  void RequestSkipBackBig();
-  void RequestSkipForward();
-  void RequestSkipForwardBig();
   
 private:
   Host();

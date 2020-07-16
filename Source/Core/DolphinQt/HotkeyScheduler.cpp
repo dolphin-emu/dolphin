@@ -24,6 +24,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/State.h"
+#include "Core/Slippi/SlippiPlayback.h"
 
 #include "DolphinQt/Settings.h"
 
@@ -35,6 +36,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+
+extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
 
 constexpr const char* DUBOIS_ALGORITHM_SHADER = "dubois";
 
@@ -506,7 +509,41 @@ void HotkeyScheduler::Run()
           Config::SetCurrent(Config::GFX_ENHANCE_POST_SHADER, "");
         }
       }
-    }
+
+#ifdef IS_PLAYBACK
+      // Slippi Playback
+      if (IsHotkey(HK_SLIPPI_JUMP_BACK))
+      {
+        if (g_playbackStatus->targetFrameNum == INT_MAX) {
+          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+          Host_PlaybackSeek();
+        }
+      }
+
+      if (IsHotkey(HK_SLIPPI_STEP_BACK))
+      {
+        if (g_playbackStatus->targetFrameNum == INT_MAX) {
+          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+          Host_PlaybackSeek();
+        }
+      }
+
+      if (IsHotkey(HK_SLIPPI_STEP_FORWARD))
+      {
+        if (g_playbackStatus->targetFrameNum == INT_MAX) {
+          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+          Host_PlaybackSeek();
+        }
+      }
+
+      if (IsHotkey(HK_SLIPPI_JUMP_FORWARD))
+      {
+        if (g_playbackStatus->targetFrameNum == INT_MAX) {
+          g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
+          Host_PlaybackSeek();
+        }
+      }
+#endif
 
     const auto stereo_depth = Config::Get(Config::GFX_STEREO_DEPTH);
 

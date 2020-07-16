@@ -452,7 +452,6 @@ namespace Slippi {
         break;
       case EVENT_FRAME_START:
         handleFrameStart(game.get(), payloadSize);
-        isProcessingComplete = false; // SLIPPITODO remove after getting on par with ishii
         break;
       case EVENT_PRE_FRAME_UPDATE:
         handlePreFrameUpdate(game.get(), payloadSize);

@@ -20,6 +20,7 @@ namespace Common
 
 #define SLIPPI_REV_STR "2.1.1"
 
+#define IS_PLAYBACK 1
 const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
 
 #ifdef IS_PLAYBACK

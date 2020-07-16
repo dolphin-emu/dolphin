@@ -29,7 +29,6 @@
 #include "Core/Slippi/SlippiReplayComm.h"
 #include "Core/Slippi/SlippiPlayback.h"
 #include "Core/State.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 #define FRAME_INTERVAL 900
 #define SLEEP_TIME_MS 8

@@ -55,3 +55,6 @@ void Host_LowerWindow()
 void Host_Exit()
 {
 }
+void Host_PlaybackSeek()
+{
+}

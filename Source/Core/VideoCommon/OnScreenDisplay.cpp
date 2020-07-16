@@ -422,12 +422,12 @@ void DrawSlippiPlaybackControls()
     }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
-    auto const paused = g_playbackStatus->shouldPause;
-    if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
-      g_playbackStatus->shouldPause = !paused;
-      INFO_LOG(SLIPPI, "playing");
-    }
-    ImGui::SameLine(0.0f, 5.0f);
+    //auto const paused = g_playbackStatus->shouldPause;
+    //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
+    //  g_playbackStatus->shouldPause = !paused;
+    //  INFO_LOG(SLIPPI, "playing");
+    //}
+    //ImGui::SameLine(0.0f, 5.0f);
     if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast back");
       if (g_playbackStatus->targetFrameNum == INT_MAX) {
@@ -461,7 +461,7 @@ void DrawSlippiPlaybackControls()
     }
     ImGui::PopStyleVar();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    ImGui::SetCursorPos(ImVec2(180.0f, window->DC.CursorPosPrevLine.y + 6.0f));
+    ImGui::SetCursorPos(ImVec2(135.0f, window->DC.CursorPosPrevLine.y + 6.0f));
 
     auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
     auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
