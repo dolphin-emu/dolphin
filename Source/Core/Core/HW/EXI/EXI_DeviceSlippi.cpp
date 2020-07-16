@@ -1868,31 +1868,16 @@ u16 CEXISlippi::getRandomStage()
       0x20, // Final Destination
   };
 
-  std::vector<u16> stagesToConsider;
-
-  // stagesToConsider = stages;
-  // Add all stages to consider to the vector
-  for (auto it = stages.begin(); it != stages.end(); ++it)
-  {
-    auto stageId = *it;
-    if (lastSelectedStage != nullptr && stageId == *lastSelectedStage)
-      continue;
-
-    stagesToConsider.push_back(stageId);
-  }
-
-  // Shuffle the stages to consider. This isn't really necessary considering we
-  // use a random number to select an index but idk the generator was giving a lot
-  // of the same stage (same index) many times in a row or so it seemed to I figured
-  // this can't hurt
-  std::shuffle(stagesToConsider.begin(), stagesToConsider.end(), generator);
+  // Reset stage pool if it's empty
+  if (stagePool.empty())
+    stagePool.insert(stagePool.end(), stages.begin(), stages.end());
 
   // Get random stage
-  int randIndex = generator() % stagesToConsider.size();
-  selectedStage = stagesToConsider[randIndex];
+  int randIndex = generator() % stagePool.size();
+  selectedStage = stagePool[randIndex];
 
-  // Set last selected stage
-  lastSelectedStage = &selectedStage;
+  // Remove last selection from stage pool
+  stagePool.erase(stagePool.begin() + randIndex);
 
   return selectedStage;
 }
@@ -2073,6 +2058,9 @@ void CEXISlippi::handleConnectionCleanup()
 
   // Clear character selections
   localSelections.Reset();
+
+  // Reset random stage pool
+  stagePool.clear();
 
   ERROR_LOG(SLIPPI_ONLINE, "Connection cleanup completed...");
 }
