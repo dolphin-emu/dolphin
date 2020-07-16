@@ -421,27 +421,45 @@ void DrawSlippiPlaybackControls()
       Host_PlaybackSeek();
     }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
-    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(1.0f, 0.5f));
-    if (ButtonCustom(ICON_FA_PAUSE, ImVec2(32.0f, 32.0f))) {
+    ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
+    auto const paused = g_playbackStatus->shouldPause;
+    if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
+      g_playbackStatus->shouldPause = !paused;
       INFO_LOG(SLIPPI, "playing");
     }
-    ImGui::PopStyleVar();
-    ImGui::SameLine(0.0f);
+    ImGui::SameLine(0.0f, 5.0f);
     if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast back");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        Host_PlaybackSeek();
+      }
     }
     ImGui::SameLine(0.0f, 0.0f);
     if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "step back");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
+        Host_PlaybackSeek();
+      }
     }
     ImGui::SameLine(0.0f, 0.0f);
     if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "step forward");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
+        Host_PlaybackSeek();
+      }
     }
     ImGui::SameLine(0.0f, 0.0f);
     if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast_foward");
+      if (g_playbackStatus->targetFrameNum == INT_MAX) {
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        Host_PlaybackSeek();
+      }
     }
+    ImGui::PopStyleVar();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGui::SetCursorPos(ImVec2(180.0f, window->DC.CursorPosPrevLine.y + 6.0f));
 

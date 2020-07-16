@@ -361,5 +361,3 @@ void RenderWidget::PlaybackSeek()
 {
   g_playbackStatus->SeekToFrame();
 }
-
-

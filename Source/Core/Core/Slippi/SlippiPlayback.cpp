@@ -178,10 +178,11 @@ void SlippiPlaybackStatus::SavestateThread()
 void SlippiPlaybackStatus::SeekToFrame()
 {
   if (seekMtx.try_lock()) {
-    if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE || targetFrameNum > lastFrame) {
-      INFO_LOG(SLIPPI, "Error: Invalid seek to frame: %d", targetFrameNum);
-      seekMtx.unlock();
-      return;
+    if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE)
+      targetFrameNum = Slippi::PLAYBACK_FIRST_SAVE;
+
+    if (targetFrameNum > lastFrame) {
+      targetFrameNum = lastFrame;
     }
 
     std::unique_lock<std::mutex> ffwLock(ffwMtx);
@@ -231,6 +232,7 @@ void SlippiPlaybackStatus::SeekToFrame()
     }
 
     targetFrameNum = INT_MAX;
+    shouldPause = false;
     Core::SetState(prevState);
     seekMtx.unlock();
   } else {
