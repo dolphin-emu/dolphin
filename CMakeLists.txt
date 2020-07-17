@@ -46,7 +46,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
 
 # Enable Playback build for Slippi. TODO: turn off for normal builds
-option(SLIPPI_PLAYBACK "Enable Playback changes" ON) 
+option(SLIPPI_PLAYBACK "Enable Playback changes" ON)
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
@@ -856,6 +856,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
 endif()
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
   install(FILES Data/license.txt DESTINATION ${datadir})
+  install(FILES Data/portable.txt DESTINATION ${datadir})
 endif()
 if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
   # Install the application icon and menu item
