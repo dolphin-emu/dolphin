@@ -47,12 +47,12 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
 <a href='https://forums.dolphin-emu.org/'>%SUPPORT%</a>
 )")
           .replace(QStringLiteral("%VERSION_STRING%"),
-                   QString::fromUtf8(Common::scm_desc_str.c_str()))
+                   QString::fromUtf8(Common::scm_slippi_semver_str.c_str()))
           .replace(QStringLiteral("%BRANCH%"),
                    // i18n: "Branch" means the version control term, not a literal tree branch.
                    tr("Branch: %1").arg(QString::fromUtf8(Common::scm_branch_str.c_str())))
           .replace(QStringLiteral("%REVISION%"),
-                   tr("Revision: %1").arg(QString::fromUtf8(Common::scm_rev_git_str.c_str())))
+                   tr("Revision: %1").arg(QString::fromUtf8("")))
           .replace(QStringLiteral("%QT_VERSION%"),
                    tr("Using Qt %1").arg(QStringLiteral(QT_VERSION_STR)))
           .replace(QStringLiteral("%CHECK_FOR_UPDATES%"), tr("Check for updates"))

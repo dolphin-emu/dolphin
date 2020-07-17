@@ -232,7 +232,7 @@ unsigned int SlippiNetplayClient::OnData(sf::Packet& packet)
   case NetPlay::NP_MSG_SLIPPI_MATCH_SELECTIONS:
   {
     auto s = readSelectionsFromPacket(packet);
-    ERROR_LOG(SLIPPI_ONLINE, "[Received Selections] Char: 0x%X, Color: 0x%X", s->characterId, s->characterId);
+    INFO_LOG(SLIPPI_ONLINE, "[Netplay] Received selections from opponent");
     matchInfo.remotePlayerSelections.Merge(*s);
 
     // Set player name is not empty
