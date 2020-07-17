@@ -1889,7 +1889,7 @@ void CEXISlippi::prepareOnlineMatchState()
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 
   // Add error message if there is one
-  auto errorStr = auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
+  auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
   errorStr = ConvertStringForGame(errorStr, 120);
   m_read_queue.insert(m_read_queue.end(), errorStr.begin(), errorStr.end());
 
@@ -2105,7 +2105,7 @@ void CEXISlippi::handleConnectionCleanup()
   stagePool.clear();
 
   // Reset any forced errors
-  forcedError.clear()
+  forcedError.clear();
 
 #ifdef LOCAL_TESTING
   isLocalConnected = false;
