@@ -205,6 +205,8 @@ namespace ExpansionInterface
 
     std::default_random_engine generator;
 
+	std::string forcedError = "";
+
     // Frame skipping variables
     int framesToSkip = 0;
     bool isCurrentlySkipping = false;

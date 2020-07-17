@@ -1702,7 +1702,9 @@ void CEXISlippi::prepareOnlineMatchState()
 
   m_read_queue.clear();
 
-  SlippiMatchmaking::ProcessState mmState = matchmaking->GetMatchmakeState();
+  auto errorState = SlippiMatchmaking::ProcessState::ERROR_ENCOUNTERED;
+
+  SlippiMatchmaking::ProcessState mmState = !forcedError.empty() ? errorState : matchmaking->GetMatchmakeState();
 
 #ifdef LOCAL_TESTING
   if (localSelections.isCharacterSelected || isLocalConnected)
@@ -1761,6 +1763,8 @@ void CEXISlippi::prepareOnlineMatchState()
 #ifndef LOCAL_TESTING
       // If we get here, our opponent likely disconnected. Let's trigger a clean up
       handleConnectionCleanup();
+      prepareOnlineMatchState();
+      return;
 #endif
     }
   }
@@ -1778,6 +1782,8 @@ void CEXISlippi::prepareOnlineMatchState()
   std::string p1Name = "";
   std::string p2Name = "";
 
+  auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
+
   if (localPlayerReady && remotePlayerReady)
   {
     auto isDecider = slippi_netplay->IsDecider();
@@ -1791,10 +1797,27 @@ void CEXISlippi::prepareOnlineMatchState()
     onlineMatchBlock[0x63 + localPlayerIndex * 0x24] = lps.characterColor;
 
 #ifdef LOCAL_TESTING
-    rps.characterId = 2;
+    rps.characterId = 0x2;
     rps.characterColor = 2;
     rps.playerName = std::string("Player");
 #endif
+
+    // Check if someone is picking dumb characters in non-direct
+    auto localCharOk = lps.characterId < 26;
+    auto remoteCharOk = rps.characterId < 26;
+    if (lastSearch.mode != directMode && (!localCharOk || !remoteCharOk))
+    {
+      // If we get here, someone is doing something bad, clear the lobby
+      handleConnectionCleanup();
+      if (!localCharOk)
+        forcedError = "The character you selected is not allowed in this mode";
+      prepareOnlineMatchState();
+      return;
+    }
+
+    // Overwrite local player character
+    onlineMatchBlock[0x60 + localPlayerIndex * 0x24] = lps.characterId;
+    onlineMatchBlock[0x63 + localPlayerIndex * 0x24] = lps.characterColor;
 
     // Overwrite remote player character
     onlineMatchBlock[0x60 + remotePlayerIndex * 0x24] = rps.characterId;
@@ -1856,7 +1879,7 @@ void CEXISlippi::prepareOnlineMatchState()
   m_read_queue.insert(m_read_queue.end(), oppName.begin(), oppName.end());
 
   // Add error message if there is one
-  auto errorStr = matchmaking->GetErrorMessage();
+  auto errorStr = auto errorStr = !forcedError.empty() ? forcedError : matchmaking->GetErrorMessage();
   errorStr = ConvertStringForGame(errorStr, 120);
   m_read_queue.insert(m_read_queue.end(), errorStr.begin(), errorStr.end());
 
@@ -2070,6 +2093,9 @@ void CEXISlippi::handleConnectionCleanup()
 
   // Reset random stage pool
   stagePool.clear();
+
+  // Reset any forced errors
+  forcedError.clear()
 
 #ifdef LOCAL_TESTING
   isLocalConnected = false;
