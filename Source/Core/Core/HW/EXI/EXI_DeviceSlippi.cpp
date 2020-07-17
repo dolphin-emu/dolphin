@@ -1660,6 +1660,16 @@ void CEXISlippi::startFindMatch(u8* payload)
   // Store this search so we know what was queued for
   lastSearch = search;
 
+  // While we do have another condition that checks characters after being connected, it's nice to give
+  // someone an early error before they even queue so that they wont enter the queue and make someone
+  // else get force removed from queue and have to requeue
+  auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
+  if (search.mode != directMode && localSelections.characterId >= 26)
+  {
+    forcedError = "The character you selected is not allowed in this mode";
+    return;
+  }
+
 #ifndef LOCAL_TESTING
   if (!isEnetInitialized)
   {
