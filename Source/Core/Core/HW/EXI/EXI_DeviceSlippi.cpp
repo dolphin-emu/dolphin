@@ -1870,7 +1870,7 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Turn pause on in direct, off in everything else
     u8* gameBitField3 = (u8*)& onlineMatchBlock[2];
-    auto directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
+    directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
     *gameBitField3 = lastSearch.mode == directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
   }
 

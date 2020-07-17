@@ -20,6 +20,7 @@
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 
@@ -158,6 +159,7 @@ int main(int argc, char* argv[])
       });
 
   optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+
   std::vector<std::string> args = parser->args();
 
   std::optional<std::string> save_state_path;
@@ -206,6 +208,13 @@ int main(int argc, char* argv[])
 
   UICommon::SetUserDirectory(user_directory);
   UICommon::Init();
+
+  std::optional<std::string> slippi_input_path;
+  if (options.is_set("slippi_input"))
+  {
+    slippi_input_path = static_cast<const char*>(options.get("slippi_input"));
+    SConfig::GetInstance().m_strSlippiInput = slippi_input_path.value();
+  }
 
   s_platform = GetPlatform(options);
   if (!s_platform || !s_platform->Init())
