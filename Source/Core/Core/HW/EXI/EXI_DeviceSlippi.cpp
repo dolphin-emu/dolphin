@@ -1900,13 +1900,13 @@ void CEXISlippi::setMatchSelections(u8* payload)
   s.isCharacterSelected = payload[2];
 
   s.stageId = Common::swap16(&payload[3]);
-  s.isStageSelected = payload[5];
+  u8 stageSelectOption = payload[5];
 
-  if (!s.isStageSelected)
+  s.isStageSelected = stageSelectOption == 1 || stageSelectOption == 3;
+  if (stageSelectOption == 3)
   {
-    // If stage is not selected, select a random stage
+    // If stage requested is random, select a random stage
     s.stageId = getRandomStage();
-    s.isStageSelected = true;
   }
 
   s.rngOffset = generator() % 0xFFFF;
