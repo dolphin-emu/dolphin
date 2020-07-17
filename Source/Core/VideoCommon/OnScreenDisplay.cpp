@@ -24,6 +24,7 @@
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
+
 #include <imgui_internal.h>
 #include "Core/Core.h"
 #include "Core/Host.h"
@@ -472,7 +473,7 @@ void DrawSlippiPlaybackControls()
     auto playbackTime = GetTimeForFrame(g_playbackStatus->currentPlaybackFrame);
     auto endTime = GetTimeForFrame(g_playbackStatus->lastFrame);
     auto timeString = playbackTime + " / " + endTime;
-    ImGui::Text(timeString.c_str());
+    ImGui::Text("%s", timeString.c_str());
   }
   ImGui::End();
 }

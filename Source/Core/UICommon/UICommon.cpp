@@ -297,18 +297,19 @@ void SetUserDirectory(const std::string& custom_path)
       home = "";
     std::string home_path = std::string(home) + DIR_SEP;
 
-#if defined(__APPLE__) || defined(ANDROID)
+#if defined(__APPLE__)
     // Mainline Dolphin switched to storing things elsewhere some time ago.
     // To get it working for now, let's just use the Slippi route.
-    /*if (env_path)
+    user_path = File::GetBundleDirectory() + "/Contents/Resources/User" DIR_SEP;
+#elif defined(ANDROID)
+    if (env_path)
     {
       user_path = env_path;
     }
     else
     {
       user_path = home_path + DOLPHIN_DATA_DIR DIR_SEP;
-    }*/
-    user_path = File::GetBundleDirectory() + "/Contents/Resources/User" DIR_SEP;
+    }
 #else
     // We are on a non-Apple and non-Android POSIX system, there are 4 cases:
     // 1. GetExeDirectory()/portable.txt exists

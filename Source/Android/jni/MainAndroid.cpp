@@ -145,6 +145,18 @@ void Host_TitleChanged()
 {
 }
 
+void Host_LowerWindow()
+{
+}
+
+void Host_Exit()
+{
+}
+
+void Host_PlaybackSeek()
+{
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
