@@ -134,6 +134,7 @@ void WiiPane::CreateMisc()
   m_sound_mode_choice = new QComboBox();
   m_sound_mode_choice->addItem(tr("Mono"));
   m_sound_mode_choice->addItem(tr("Stereo"));
+  // i18n: Surround audio (Dolby Pro Logic II)
   m_sound_mode_choice->addItem(tr("Surround"));
 
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
