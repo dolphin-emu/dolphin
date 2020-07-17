@@ -44,6 +44,9 @@ public:
   bool ShouldDisplayGameListItem(int index) const;
   void SetSearchTerm(const QString& term);
 
+  // Using a custom sort role as it sometimes differs slightly from the default Qt::DisplayRole.
+  static constexpr int SORT_ROLE = Qt::UserRole;
+
   enum
   {
     COL_PLATFORM = 0,

@@ -59,7 +59,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_model = Settings::Instance().GetGameListModel();
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
-  m_list_proxy->setSortRole(Qt::InitialSortOrderRole);
+  m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_list_proxy->setSourceModel(m_model);
   m_grid_proxy = new GridProxyModel(this);
   m_grid_proxy->setSourceModel(m_model);
