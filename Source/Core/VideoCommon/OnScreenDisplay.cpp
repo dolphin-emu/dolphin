@@ -9,24 +9,29 @@
 
 #include <fmt/format.h>
 #include <imgui.h>
+
+#include "Common/CommonTypes.h"
+
+#include "Common/Timer.h"
+
+#include "Core/ConfigManager.h"
+
+#include "Core/Slippi/SlippiPlayback.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
+
+#ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
 #include <imgui_internal.h>
-
-#include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
-#include "Common/Timer.h"
-
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
-#include "Core/Slippi/SlippiPlayback.h"
-
-#include "VideoCommon/OnScreenDisplay.h"
+#include "Common/Logging/Log.h"
 #include "VideoCommon/IconsFontAwesome4.h"
 
 extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
+#endif
 
 namespace OSD
 {
@@ -47,21 +52,6 @@ struct Message
 };
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
-
-static s32 frame = 0;
-
-static std::string GetTimeForFrame(s32 currFrame) {
-  int currSeconds = int((currFrame - Slippi::GAME_FIRST_FRAME) / 60);
-  int currMinutes = (int)(currSeconds / 60);
-  int currRemainder = (int)(currSeconds % 60);
-  // Position string (i.e. MM:SS)
-  char currTime[6];
-  sprintf(currTime, "%02d:%02d", currMinutes, currRemainder);
-  return std::string(currTime);
-}
-
-u32 idle_tick = Common::Timer::GetTimeMs();
-ImVec2 prev_mouse(0,0);
 
 static ImVec4 RGBAToImVec4(const u32 rgba)
 {
@@ -153,6 +143,22 @@ void ClearMessages()
   std::lock_guard lock{s_messages_mutex};
   s_messages.clear();
 }
+
+#ifdef IS_PLAYBACK
+static s32 frame = 0;
+
+static std::string GetTimeForFrame(s32 currFrame) {
+  int currSeconds = int((currFrame - Slippi::GAME_FIRST_FRAME) / 60);
+  int currMinutes = (int)(currSeconds / 60);
+  int currRemainder = (int)(currSeconds % 60);
+  // Position string (i.e. MM:SS)
+  char currTime[6];
+  sprintf(currTime, "%02d:%02d", currMinutes, currRemainder);
+  return std::string(currTime);
+}
+
+u32 idle_tick = Common::Timer::GetTimeMs();
+ImVec2 prev_mouse(0, 0);
 
 bool ButtonCustom(const char* label, const ImVec2& size_arg, ImGuiButtonFlags flags = 0)
 {
@@ -470,4 +476,5 @@ void DrawSlippiPlaybackControls()
   }
   ImGui::End();
 }
+#endif
 }  // namespace OSD

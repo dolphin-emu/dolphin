@@ -261,6 +261,7 @@ void SConfig::SaveSlippiSettings(IniFile& ini)
   slippi->Set("SaveReplays", m_slippiSaveReplays);
   slippi->Set("ReplayMonthFolders", m_slippiReplayMonthFolders);
   slippi->Set("ReplayDir", m_strSlippiReplayDir);
+  slippi->Set("PlaybackControls", m_slippiEnableSeek);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -549,6 +550,7 @@ void SConfig::LoadSlippiSettings(IniFile& ini)
 {
   IniFile::Section* slippi = ini.GetOrCreateSection("Slippi");
 
+  slippi->Get("PlaybackControls", &m_slippiEnableSeek, true);
   slippi->Get("OnlineDelay", &m_slippiOnlineDelay, 2);
   slippi->Get("SaveReplays", &m_slippiSaveReplays, true);
   slippi->Get("ReplayMonthFolders", &m_slippiReplayMonthFolders, false);

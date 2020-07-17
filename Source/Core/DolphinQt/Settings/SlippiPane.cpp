@@ -38,6 +38,8 @@ void SlippiPane::CreateLayout()
   auto* layout = new QVBoxLayout();
   setLayout(layout);
 
+#ifndef IS_PLAYBACK
+  // Replay Settings
   auto* replay_settings = new QGroupBox(tr("Replay Settings"));
   auto* replay_settings_layout = new QVBoxLayout();
   replay_settings->setLayout(replay_settings_layout);
@@ -75,6 +77,7 @@ void SlippiPane::CreateLayout()
   replay_folder_layout->addWidget(replay_folder_open, 0, 2);
   replay_settings_layout->addLayout(replay_folder_layout);
 
+  // Online Settings
   auto* online_settings = new QGroupBox(tr("Online Settings"));
   auto* online_settings_layout = new QFormLayout();
   online_settings->setLayout(online_settings_layout);
@@ -90,4 +93,26 @@ void SlippiPane::CreateLayout()
   delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
   connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
+
+#endif
+
+#ifdef IS_PLAYBACK
+  //Playback Settings
+  auto* playback_settings = new QGroupBox(tr("Playback Settings"));
+  auto* playback_settings_layout = new QVBoxLayout();
+  playback_settings->setLayout(playback_settings_layout);
+  layout->addWidget(playback_settings);
+
+  auto* enable_playback_seek_checkbox = new QCheckBox(tr("Enable Seekbar"));
+  char seekbarTooltip[] = "<html><head/><body><p>Enables video player style controls while watching Slippi replays. Uses more cpu resources and can be stuttery. " \
+    "Space: Pause/Play " \
+    "Left/Right: Jump 5 seconds back/forward" \
+    "Shift + Left/Right: Jump 20 seconds back/forward" \
+    "Period (while paused): Advance one frame";
+  enable_playback_seek_checkbox->setToolTip(tr(seekbarTooltip));
+  playback_settings_layout->addWidget(enable_playback_seek_checkbox);
+  enable_playback_seek_checkbox->setChecked(SConfig::GetInstance().m_slippiEnableSeek);
+  connect(enable_playback_seek_checkbox, &QCheckBox::toggled, this,
+    [](bool checked) { SConfig::GetInstance().m_slippiEnableSeek = checked; });
 }
+#endif

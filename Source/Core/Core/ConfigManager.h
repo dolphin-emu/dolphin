@@ -149,6 +149,7 @@ struct SConfig
   // Slippi
   std::string m_strSlippiInput;
   int m_slippiOnlineDelay = 2;
+  bool m_slippiEnableSeek = true;
   bool m_slippiSaveReplays = true;
   bool m_slippiReplayMonthFolders = false;
   std::string m_strSlippiReplayDir;

@@ -11,6 +11,7 @@
 
 #include <fmt/format.h>
 
+#include "Core/ConfigManager.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -498,27 +499,31 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_UNDO_SAVE_STATE, SHIFT + " & `F12`");
 
   // Slippi Playback
-  // #ifdef PLAYBACK
+#ifdef IS_PLAYBACK
+  if (SConfig::GetInstance().m_slippiEnableSeek) {
 #ifdef _WIN32
-  set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `LEFT`");
-  set_key_expression(HK_SLIPPI_STEP_BACK, NON + " & `LEFT`");
-  set_key_expression(HK_FRAME_ADVANCE, NON + " & `PERIOD`");
-  set_key_expression(HK_PLAY_PAUSE, NON + " & `SPACE`");
-  set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `RIGHT`");
-  set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `RIGHT`");
+
+    set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `LEFT`");
+    set_key_expression(HK_SLIPPI_STEP_BACK, NON + " & `LEFT`");
+    set_key_expression(HK_FRAME_ADVANCE, NON + " & `PERIOD`");
+    set_key_expression(HK_PLAY_PAUSE, NON + " & `SPACE`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `RIGHT`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `RIGHT`");
 #elif __APPLE__
-  set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left Arrow`");
-  set_key_expression(HK_SLIPPI_JUMP_BACK, NON + " & `Left Arrow`");
-  set_key_expression(HK_FRAME_ADVANCE, NON + " & `.`");
-  set_key_expression(HK_PLAY_PAUSE, NON + "& `Space`");
-  set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right Arrow`");
-  set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `Right Arrow`");
+    set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left Arrow`");
+    set_key_expression(HK_SLIPPI_JUMP_BACK, NON + " & `Left Arrow`");
+    set_key_expression(HK_FRAME_ADVANCE, NON + " & `.`");
+    set_key_expression(HK_PLAY_PAUSE, NON + "& `Space`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right Arrow`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `Right Arrow`");
 #else
-  set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left`");
-  set_key_expression(HK_SLIPPI_JUMP_BACK, NON + "Left");
-  set_key_expression(HK_FRAME_ADVANCE, NON + " & `period`");
-  set_key_expression(HK_PLAY_PAUSE, NON + "& `space`");
-  set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right`");
-  set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `Right`");
+    set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left`");
+    set_key_expression(HK_SLIPPI_JUMP_BACK, NON + "Left");
+    set_key_expression(HK_FRAME_ADVANCE, NON + " & `period`");
+    set_key_expression(HK_PLAY_PAUSE, NON + "& `space`");
+    set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right`");
+    set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `Right`");
+#endif
+  }
 #endif
 }

@@ -46,5 +46,7 @@ void DrawMessages();
 void ClearMessages();
 
 // Draw playback controls when playing Slippi replays
+#ifdef IS_PLAYBACK
 void DrawSlippiPlaybackControls();
+#endif
 }  // namespace OSD

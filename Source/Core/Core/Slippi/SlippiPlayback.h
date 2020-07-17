@@ -36,8 +36,9 @@ public:
 
 private:
   void SavestateThread(void);
+  void loadState(s32 closestStateFrame);
   void processInitialState();
-  void clearWatchSettingsStartEnd();
+  void updateWatchSettingsStartEnd();
 
   std::unordered_map<int32_t, std::shared_future<std::string>>
     futureDiffs;        // State diffs keyed by frameIndex, processed async
