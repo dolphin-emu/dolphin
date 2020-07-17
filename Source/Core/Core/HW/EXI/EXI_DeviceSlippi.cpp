@@ -201,6 +201,8 @@ CEXISlippi::~CEXISlippi()
 
   localSelections.Reset();
 
+  g_playbackStatus->resetPlayback();
+
   // TODO: ENET shutdown should maybe be done at app shutdown instead.
   // Right now this might be problematic in the case where someone starts a netplay client
   // and then queues into online matchmaking, and then stops the game. That might deinit
