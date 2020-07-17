@@ -511,14 +511,14 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
     set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `RIGHT`");
 #elif __APPLE__
     set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left Arrow`");
-    set_key_expression(HK_SLIPPI_JUMP_BACK, NON + " & `Left Arrow`");
+    set_key_expression(HK_SLIPPI_STEP_BACK, NON + " & `Left Arrow`");
     set_key_expression(HK_FRAME_ADVANCE, NON + " & `.`");
     set_key_expression(HK_PLAY_PAUSE, NON + "& `Space`");
     set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right Arrow`");
     set_key_expression(HK_SLIPPI_JUMP_FORWARD, SHIFT + " & `Right Arrow`");
 #else
     set_key_expression(HK_SLIPPI_JUMP_BACK, SHIFT + " & `Left`");
-    set_key_expression(HK_SLIPPI_JUMP_BACK, NON + "Left");
+    set_key_expression(HK_SLIPPI_STEP_BACK, NON + "Left");
     set_key_expression(HK_FRAME_ADVANCE, NON + " & `period`");
     set_key_expression(HK_PLAY_PAUSE, NON + "& `space`");
     set_key_expression(HK_SLIPPI_STEP_FORWARD, NON + " & `Right`");
