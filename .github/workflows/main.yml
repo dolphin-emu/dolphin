@@ -119,8 +119,6 @@ jobs:
       steps:
         - name: "Checkout"
           uses: actions/checkout@v2
-          with:
-            submodules: recursive
         - name: 'Fetch Git Tags'
           if: success()
           run: |
@@ -157,8 +155,6 @@ jobs:
             libsoundtouch-dev \
             libswscale-dev \
             libusb-1.0-0-dev \
-            libwxbase3.0-dev \
-            libwxgtk3.0-dev \
             libxext-dev \
             libxrandr-dev \
             portaudio19-dev \
@@ -176,11 +172,13 @@ jobs:
           if: success()
           working-directory: ${{ github.workspace }}
           run: |
+            chmod +x ./build-linux.sh
             ./build-linux.sh
         - name: "Build Netplay AppImage"
           if: success()
           working-directory: ${{ github.workspace }}
           run: |
+            chmod +x ./build-appimage.sh
             ./build-appimage.sh
         - name: "Package Netplay"
           if: success()
@@ -202,8 +200,6 @@ jobs:
       steps:
         - name: "Checkout"
           uses: actions/checkout@v2
-          with:
-            submodules: recursive
         - name: 'Fetch Git Tags'
           if: success()
           run: |
@@ -240,8 +236,6 @@ jobs:
             libsoundtouch-dev \
             libswscale-dev \
             libusb-1.0-0-dev \
-            libwxbase3.0-dev \
-            libwxgtk3.0-dev \
             libxext-dev \
             libxrandr-dev \
             portaudio19-dev \
@@ -259,11 +253,13 @@ jobs:
           if: success()
           working-directory: ${{ github.workspace }}
           run: |
+            chmod +x ./build-linux.sh
             ./build-linux.sh playback
         - name: "Build Playback AppImage"
           if: success()
           working-directory: ${{ github.workspace }}
           run: |
+            chmod +x ./build-appimage.sh
             ./build-appimage.sh playback
         - name: "Package Playback"
           if: success()
@@ -285,8 +281,6 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
       - name: 'Fetch Git Tags'
         if: success()
         run: |
@@ -320,24 +314,8 @@ jobs:
           pkgconfig \
           libao \
           sound-touch \
-          hidapi
-      - name: "Cache wxWidgets 3.1.3"
-        uses: actions/cache@v1
-        env:
-          cache-name: "wxWidgets-3.1.3-macOS"
-        with:
-          path: ./wxWidgets-3.1.3/build
-          key: "wxWidgets-3.1.3-macOS-Catalina"
-      - name: "Install wxWidgets 3.1.3"
-        if: success()
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: |
-          cd wxWidgets-3.1.3
-          cd build
-          ../configure
-          make -j7
-          sudo make install
+          hidapi \
+          qt
       - name: "Build Netplay"
         if: success()
         shell: bash
@@ -345,7 +323,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ..
+          cmake -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 ..
           make -j7
       - name: "Package Netplay"
         if: success()
@@ -371,8 +349,6 @@ jobs:
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
       - name: 'Fetch Git Tags'
         if: success()
         run: |
@@ -406,24 +382,8 @@ jobs:
           pkgconfig \
           libao \
           sound-touch \
-          hidapi
-      - name: "Cache wxWidgets 3.1.3"
-        uses: actions/cache@v1
-        env:
-          cache-name: "wxWidgets-3.1.3-macOS"
-        with:
-          path: ./wxWidgets-3.1.3/build
-          key: "wxWidgets-3.1.3-macOS-Catalina"
-      - name: "Install wxWidgets 3.1.3"
-        if: success()
-        shell: bash
-        working-directory: ${{ github.workspace }}
-        run: |
-          cd wxWidgets-3.1.3
-          cd build
-          ../configure
-          make -j7
-          sudo make install
+          hidapi \
+          qt
       - name: "Build Playback"
         if: success()
         shell: bash
@@ -431,7 +391,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DIS_PLAYBACK=true ..
+          cmake -DIS_PLAYBACK=true -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 ..
           make -j7
       - name: "Package Playback"
         if: success()
