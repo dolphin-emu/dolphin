@@ -45,9 +45,9 @@ void Init()
 
 void Shutdown()
 {
-  for (int i = 0; i < NUM_OBJECT_BUFFERS; i++)
+  for (auto& slot : ObjectBuffer)
   {
-    delete[] ObjectBuffer[i];
+    delete[] slot;
   }
 }
 
