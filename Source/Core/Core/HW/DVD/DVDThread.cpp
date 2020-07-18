@@ -396,16 +396,19 @@ static void DVDThread()
   }
 }
 
-void ReadFile(std::string& fileName, std::vector<u8>& buf) {
-  if (HasDisc()) {
+void ReadFile(std::string& fileName, std::vector<u8>& buf)
+{
+  if (HasDisc())
+  {
+    WaitUntilIdle();
     const DiscIO::FileSystem* filesystem = s_disc->GetFileSystem(DiscIO::PARTITION_NONE);
     auto fileInfo = filesystem->FindFileInfo(fileName);
     auto fileSize = fileInfo->GetSize();
-    WaitUntilIdle();
     buf.resize(fileSize);
     DiscIO::ReadFile(*s_disc, DiscIO::PARTITION_NONE, fileInfo.get(), buf.data(), fileSize);
   }
-  else {
+  else
+  {
     INFO_LOG(SLIPPI, "Failed to open file: %s", fileName.c_str());
   }
 }
