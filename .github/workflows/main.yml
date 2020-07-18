@@ -302,9 +302,6 @@ jobs:
         if: success()
         shell: bash
         run: |
-          wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2
-          tar -xf wxWidgets-3.1.3.tar.bz2
-          rm wxWidgets-3.1.3.tar.bz2
           brew update
           brew upgrade cmake
           brew install \
@@ -323,7 +320,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 ..
+          cmake -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 -DENABLE_NOGUI=false ..
           make -j7
       - name: "Package Netplay"
         if: success()
@@ -370,9 +367,6 @@ jobs:
         if: success()
         shell: bash
         run: |
-          wget https://github.com/wxWidgets/wxWidgets/releases/download/v3.1.3/wxWidgets-3.1.3.tar.bz2
-          tar -xf wxWidgets-3.1.3.tar.bz2
-          rm wxWidgets-3.1.3.tar.bz2
           brew update
           brew upgrade cmake
           brew install \
@@ -391,7 +385,7 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake -DIS_PLAYBACK=true -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 ..
+          cmake -DIS_PLAYBACK=true -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 -DENABLE_NOGUI=false ..
           make -j7
       - name: "Package Playback"
         if: success()
