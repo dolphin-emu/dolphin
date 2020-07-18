@@ -36,4 +36,10 @@ bool WriteSavefile(const std::string& filename, const Savefile& savefile, Savefi
 
 // Generates a filename (without extension) for the given directory entry.
 std::string GenerateFilename(const DEntry& entry);
+
+// Returns the expected extension for a filename in the given format. Includes the leading dot.
+std::string GetDefaultExtension(SavefileFormat format);
+
+// Reads multiple savefiles from a card. Returns empty vector if even a single file can't be read.
+std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>& file_indices);
 }  // namespace Memcard

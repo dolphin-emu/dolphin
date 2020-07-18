@@ -1,6 +1,7 @@
 #include "Core/HW/GCMemcard/GCMemcardUtils.h"
 
 #include <array>
+#include <cassert>
 #include <string>
 #include <vector>
 
@@ -303,5 +304,35 @@ std::string GenerateFilename(const DEntry& entry)
   std::string filename(reinterpret_cast<const char*>(entry.m_filename.data()), length);
 
   return Common::EscapeFileName(maker + '-' + gamecode + '-' + filename);
+}
+
+std::string GetDefaultExtension(SavefileFormat format)
+{
+  switch (format)
+  {
+  case SavefileFormat::GCI:
+    return ".gci";
+  case SavefileFormat::GCS:
+    return ".gcs";
+  case SavefileFormat::SAV:
+    return ".sav";
+  default:
+    assert(0);
+    return ".gci";
+  }
+}
+
+std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>& file_indices)
+{
+  std::vector<Savefile> files;
+  files.reserve(file_indices.size());
+  for (const u8 index : file_indices)
+  {
+    std::optional<Savefile> file = card.ExportFile(index);
+    if (!file)
+      return {};
+    files.emplace_back(std::move(*file));
+  }
+  return files;
 }
 }  // namespace Memcard

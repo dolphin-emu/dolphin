@@ -5,6 +5,11 @@
 #include "DolphinQt/GCMemcardManager.h"
 
 #include <algorithm>
+#include <cassert>
+#include <string>
+#include <vector>
+
+#include <fmt/format.h>
 
 #include <QDialogButtonBox>
 #include <QDir>
@@ -15,13 +20,16 @@
 #include <QImage>
 #include <QLabel>
 #include <QLineEdit>
+#include <QMenu>
 #include <QPixmap>
 #include <QPushButton>
 #include <QString>
 #include <QStringList>
 #include <QTableWidget>
 #include <QTimer>
+#include <QToolButton>
 
+#include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -84,11 +92,20 @@ void GCMemcardManager::CreateWidgets()
   // Actions
   m_select_button = new QPushButton;
   m_copy_button = new QPushButton;
-
-  // Contents will be set by their appropriate functions
   m_delete_button = new QPushButton(tr("&Delete"));
-  m_export_button = new QPushButton(tr("&Export..."));
-  m_export_all_button = new QPushButton(tr("Export &All..."));
+
+  m_export_button = new QToolButton(this);
+  m_export_menu = new QMenu(m_export_button);
+  m_export_gci_action = new QAction(tr("&Export as .gci..."), m_export_menu);
+  m_export_gcs_action = new QAction(tr("Export as .&gcs..."), m_export_menu);
+  m_export_sav_action = new QAction(tr("Export as .&sav..."), m_export_menu);
+  m_export_menu->addAction(m_export_gci_action);
+  m_export_menu->addAction(m_export_gcs_action);
+  m_export_menu->addAction(m_export_sav_action);
+  m_export_button->setDefaultAction(m_export_gci_action);
+  m_export_button->setPopupMode(QToolButton::MenuButtonPopup);
+  m_export_button->setMenu(m_export_menu);
+
   m_import_button = new QPushButton(tr("&Import..."));
   m_fix_checksums_button = new QPushButton(tr("Fix Checksums"));
 
@@ -120,7 +137,7 @@ void GCMemcardManager::CreateWidgets()
     slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 3);
     slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
 
-    layout->addWidget(m_slot_group[i], 0, i * 2, 9, 1);
+    layout->addWidget(m_slot_group[i], 0, i * 2, 8, 1);
 
     UpdateSlotTable(i);
   }
@@ -129,10 +146,9 @@ void GCMemcardManager::CreateWidgets()
   layout->addWidget(m_copy_button, 2, 1);
   layout->addWidget(m_delete_button, 3, 1);
   layout->addWidget(m_export_button, 4, 1);
-  layout->addWidget(m_export_all_button, 5, 1);
-  layout->addWidget(m_import_button, 6, 1);
-  layout->addWidget(m_fix_checksums_button, 7, 1);
-  layout->addWidget(m_button_box, 9, 2);
+  layout->addWidget(m_import_button, 5, 1);
+  layout->addWidget(m_fix_checksums_button, 6, 1);
+  layout->addWidget(m_button_box, 8, 2);
 
   setLayout(layout);
 }
@@ -141,8 +157,12 @@ void GCMemcardManager::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
   connect(m_select_button, &QPushButton::clicked, [this] { SetActiveSlot(!m_active_slot); });
-  connect(m_export_button, &QPushButton::clicked, [this] { ExportFiles(true); });
-  connect(m_export_all_button, &QPushButton::clicked, this, &GCMemcardManager::ExportAllFiles);
+  connect(m_export_gci_action, &QAction::triggered,
+          [this] { ExportFiles(Memcard::SavefileFormat::GCI); });
+  connect(m_export_gcs_action, &QAction::triggered,
+          [this] { ExportFiles(Memcard::SavefileFormat::GCS); });
+  connect(m_export_sav_action, &QAction::triggered,
+          [this] { ExportFiles(Memcard::SavefileFormat::SAV); });
   connect(m_delete_button, &QPushButton::clicked, this, &GCMemcardManager::DeleteFiles);
   connect(m_import_button, &QPushButton::clicked, this, &GCMemcardManager::ImportFile);
   connect(m_copy_button, &QPushButton::clicked, this, &GCMemcardManager::CopyFiles);
@@ -262,7 +282,6 @@ void GCMemcardManager::UpdateActions()
 
   m_copy_button->setEnabled(have_selection && have_memcard_other);
   m_export_button->setEnabled(have_selection);
-  m_export_all_button->setEnabled(have_memcard);
   m_import_button->setEnabled(have_memcard);
   m_delete_button->setEnabled(have_selection);
   m_fix_checksums_button->setEnabled(have_memcard);
@@ -300,60 +319,142 @@ void GCMemcardManager::SetSlotFileInteractive(int slot)
     m_slot_file_edit[slot]->setText(path);
 }
 
-void GCMemcardManager::ExportFiles(bool prompt)
+std::vector<u8> GCMemcardManager::GetSelectedFileIndices()
 {
-  auto selection = m_slot_table[m_active_slot]->selectedItems();
-  auto& memcard = m_slot_memcard[m_active_slot];
-
-  auto count = selection.count() / m_slot_table[m_active_slot]->columnCount();
-
-  for (int i = 0; i < count; i++)
+  const auto selection = m_slot_table[m_active_slot]->selectedItems();
+  std::vector<bool> lookup(Memcard::DIRLEN);
+  for (const auto* item : selection)
   {
-    auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
-    int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
+    const int index = item->data(Qt::UserRole).toInt();
+    if (index < 0 || index >= static_cast<int>(Memcard::DIRLEN))
+    {
+      ModalMessageBox::warning(this, tr("Error"),
+                               tr("Data inconsistency in GCMemcardManager, aborting action."));
+      return {};
+    }
+    lookup[index] = true;
+  }
 
-    std::string gci_filename;
-    if (!memcard->GCI_FileName(file_index, gci_filename))
+  std::vector<u8> selected_indices;
+  for (u8 i = 0; i < Memcard::DIRLEN; ++i)
+  {
+    if (lookup[i])
+      selected_indices.push_back(i);
+  }
+
+  return selected_indices;
+}
+
+static QString GetFormatDescription(Memcard::SavefileFormat format)
+{
+  switch (format)
+  {
+  case Memcard::SavefileFormat::GCI:
+    return QObject::tr("Native GCI File");
+  case Memcard::SavefileFormat::GCS:
+    return QObject::tr("MadCatz Gameshark files");
+  case Memcard::SavefileFormat::SAV:
+    return QObject::tr("Datel MaxDrive/Pro files");
+  default:
+    assert(0);
+    return QObject::tr("Native GCI File");
+  }
+}
+
+void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
+{
+  const auto& memcard = m_slot_memcard[m_active_slot];
+  if (!memcard)
+    return;
+
+  const auto selected_indices = GetSelectedFileIndices();
+  if (selected_indices.empty())
+    return;
+
+  const auto savefiles = Memcard::GetSavefiles(*memcard, selected_indices);
+  if (savefiles.empty())
+  {
+    ModalMessageBox::warning(this, tr("Export Failed"),
+                             tr("Failed to read selected savefile(s) from memory card."));
+    return;
+  }
+
+  std::string extension = Memcard::GetDefaultExtension(format);
+
+  if (savefiles.size() == 1)
+  {
+    // when exporting a single save file, let user specify exact path
+    const std::string basename = Memcard::GenerateFilename(savefiles[0].dir_entry);
+    const QString qformatdesc = GetFormatDescription(format);
+    const std::string default_path =
+        fmt::format("{}/{}{}", File::GetUserPath(D_GCUSER_IDX), basename, extension);
+    const QString qfilename = QFileDialog::getSaveFileName(
+        this, tr("Export Save File"), QString::fromStdString(default_path),
+        QStringLiteral("%1 (*%2);;%3 (*)")
+            .arg(qformatdesc, QString::fromStdString(extension), tr("All Files")));
+    if (qfilename.isEmpty())
       return;
 
-    QString path;
-    if (prompt)
+    const std::string filename = qfilename.toStdString();
+    if (!Memcard::WriteSavefile(filename, savefiles[0], format))
     {
-      path = QFileDialog::getSaveFileName(
-          this, tr("Export Save File"),
-          QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)) +
-              QStringLiteral("/%1").arg(QString::fromStdString(gci_filename)),
-          tr("Native GCI File (*.gci)") + QStringLiteral(";;") +
-              tr("MadCatz Gameshark files(*.gcs)") + QStringLiteral(";;") +
-              tr("Datel MaxDrive/Pro files(*.sav)"));
-
-      if (path.isEmpty())
-        return;
-    }
-    else
-    {
-      path = QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)) +
-             QStringLiteral("/%1").arg(QString::fromStdString(gci_filename));
+      File::Delete(filename);
+      ModalMessageBox::warning(this, tr("Export Failed"), tr("Failed to write savefile to disk."));
     }
 
-    // TODO: This is obviously intended to check for success instead.
-    const auto exportRetval = memcard->ExportGci(file_index, path.toStdString(), "");
-    if (exportRetval == Memcard::GCMemcardExportFileRetVal::UNUSED)
+    return;
+  }
+
+  const QString qdirpath =
+      QFileDialog::getExistingDirectory(this, QObject::tr("Export Save Files"),
+                                        QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)));
+  if (qdirpath.isEmpty())
+    return;
+
+  const std::string dirpath = qdirpath.toStdString();
+  size_t failures = 0;
+  for (const auto& savefile : savefiles)
+  {
+    // find a free filename so we don't overwrite anything
+    const std::string basepath = dirpath + DIR_SEP + Memcard::GenerateFilename(savefile.dir_entry);
+    std::string filename = basepath + extension;
+    if (File::Exists(filename))
     {
-      File::Delete(path.toStdString());
+      size_t tmp = 0;
+      std::string free_name;
+      do
+      {
+        free_name = fmt::format("{}_{}{}", basepath, tmp, extension);
+        ++tmp;
+      } while (File::Exists(free_name));
+      filename = free_name;
+    }
+
+    if (!Memcard::WriteSavefile(filename, savefile, format))
+    {
+      File::Delete(filename);
+      ++failures;
     }
   }
 
-  QString text = count == 1 ? tr("Successfully exported the save file.") :
-                              tr("Successfully exported the %1 save files.").arg(count);
-  ModalMessageBox::information(this, tr("Success"), text);
-}
-
-void GCMemcardManager::ExportAllFiles()
-{
-  // This is nothing but a thin wrapper around ExportFiles()
-  m_slot_table[m_active_slot]->selectAll();
-  ExportFiles(false);
+  if (failures > 0)
+  {
+    QString failure_string =
+        tr("Failed to export %n out of %1 save file(s).", "", static_cast<int>(failures))
+            .arg(savefiles.size());
+    if (failures == savefiles.size())
+    {
+      ModalMessageBox::warning(this, tr("Export Failed"), failure_string);
+    }
+    else
+    {
+      QString success_string = tr("Successfully exported %n out of %1 save file(s).", "",
+                                  static_cast<int>(savefiles.size() - failures))
+                                   .arg(savefiles.size());
+      ModalMessageBox::warning(this, tr("Export Failed"),
+                               QStringLiteral("%1\n%2").arg(failure_string, success_string));
+    }
+  }
 }
 
 void GCMemcardManager::ImportFile()

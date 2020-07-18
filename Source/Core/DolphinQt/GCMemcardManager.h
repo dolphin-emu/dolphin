@@ -17,17 +17,21 @@ namespace Memcard
 {
 class GCMemcard;
 class GCMemcardErrorCode;
+enum class SavefileFormat;
 }  // namespace Memcard
 
+class QAction;
 class QDialogButtonBox;
 class QGroupBox;
 class QLabel;
 class QLineEdit;
+class QMenu;
 class QPixmap;
 class QPushButton;
 class QString;
 class QTableWidget;
 class QTimer;
+class QToolButton;
 
 class GCMemcardManager : public QDialog
 {
@@ -51,11 +55,12 @@ private:
   void SetSlotFileInteractive(int slot);
   void SetActiveSlot(int slot);
 
+  std::vector<u8> GetSelectedFileIndices();
+
   void CopyFiles();
   void ImportFile();
   void DeleteFiles();
-  void ExportFiles(bool prompt);
-  void ExportAllFiles();
+  void ExportFiles(Memcard::SavefileFormat format);
   void FixChecksums();
   void CreateNewCard(int slot);
   void DrawIcons();
@@ -67,8 +72,11 @@ private:
   // Actions
   QPushButton* m_select_button;
   QPushButton* m_copy_button;
-  QPushButton* m_export_button;
-  QPushButton* m_export_all_button;
+  QToolButton* m_export_button;
+  QMenu* m_export_menu;
+  QAction* m_export_gci_action;
+  QAction* m_export_gcs_action;
+  QAction* m_export_sav_action;
   QPushButton* m_import_button;
   QPushButton* m_delete_button;
   QPushButton* m_fix_checksums_button;
