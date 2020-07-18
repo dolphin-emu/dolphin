@@ -93,10 +93,7 @@ void SlippiPane::CreateLayout()
   delay_spin->setValue(SConfig::GetInstance().m_slippiOnlineDelay);
   connect(delay_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           [](int delay) { SConfig::GetInstance().m_slippiOnlineDelay = delay; });
-
-#endif
-
-#ifdef IS_PLAYBACK
+#else
   //Playback Settings
   auto* playback_settings = new QGroupBox(tr("Playback Settings"));
   auto* playback_settings_layout = new QVBoxLayout();
@@ -114,5 +111,5 @@ void SlippiPane::CreateLayout()
   enable_playback_seek_checkbox->setChecked(SConfig::GetInstance().m_slippiEnableSeek);
   connect(enable_playback_seek_checkbox, &QCheckBox::toggled, this,
     [](bool checked) { SConfig::GetInstance().m_slippiEnableSeek = checked; });
-}
 #endif
+}
