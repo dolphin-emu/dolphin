@@ -359,7 +359,7 @@ void Interpreter::unknown_instruction(UGeckoInstruction inst)
   for (auto &it : callstack)
     msg.append(it.Name);
 
-  ASSERT_MSG(POWERPC, 0, msg.c_str());
+  ASSERT_MSG(POWERPC, 0, "%s", msg.c_str());
 }
 
 void Interpreter::ClearCache()
