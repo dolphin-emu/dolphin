@@ -8,15 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -65,14 +63,10 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
-                  File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
-                  IniFile dolphinIni = new IniFile(dolphinFile);
-                  dolphinIni.setString(Settings.SECTION_INI_CORE, SettingsFile.KEY_DEFAULT_ISO,
-                          path);
-                  dolphinIni.save(dolphinFile);
-
-                  NativeLibrary.ReloadConfig();
-                  Toast.makeText(getContext(), "Default ISO set", Toast.LENGTH_SHORT).show();
+                  Settings settings = new Settings();
+                  settings.loadSettings(null);
+                  Setting.MAIN_DEFAULT_ISO.setString(settings, path);
+                  settings.saveSettings(null, getContext());
                   break;
                 case 2:
                   SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId);

@@ -10,17 +10,29 @@ import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class InputBindingSetting extends SettingsItem
 {
-  private String gameId;
+  private String mFile;
+  private String mSection;
+  private String mKey;
+
+  private String mGameId;
 
   public InputBindingSetting(String file, String section, String key, int titleId, String gameId)
   {
-    super(file, section, key, titleId, 0);
-    this.gameId = gameId;
+    super(titleId, 0);
+    mFile = file;
+    mSection = section;
+    mKey = key;
+    mGameId = gameId;
+  }
+
+  public String getKey()
+  {
+    return mKey;
   }
 
   public String getValue(Settings settings)
   {
-    return settings.getSection(getFile(), getSection()).getString(getKey(), "");
+    return settings.getSection(mFile, mSection).getString(mKey, "");
   }
 
   /**
@@ -60,10 +72,10 @@ public class InputBindingSetting extends SettingsItem
             preferences =
             PreferenceManager.getDefaultSharedPreferences(DolphinApplication.getAppContext());
     SharedPreferences.Editor editor = preferences.edit();
-    editor.putString(getKey() + gameId, ui);
+    editor.putString(mKey + mGameId, ui);
     editor.apply();
 
-    settings.getSection(getFile(), getSection()).setString(getKey(), bind);
+    settings.getSection(mFile, mSection).setString(mKey, bind);
   }
 
   public void clearValue(Settings settings)
@@ -79,6 +91,6 @@ public class InputBindingSetting extends SettingsItem
 
   public String getGameId()
   {
-    return gameId;
+    return mGameId;
   }
 }

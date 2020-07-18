@@ -10,9 +10,6 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public final class SettingsActivityPresenter
 {
   private static final String KEY_SHOULD_SAVE = "should_save";
@@ -28,8 +25,6 @@ public final class SettingsActivityPresenter
   private MenuTag menuTag;
   private String gameId;
   private Context context;
-
-  private final Set<String> modifiedSettings = new HashSet<>();
 
   SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
@@ -98,7 +93,7 @@ public final class SettingsActivityPresenter
   public void clearSettings()
   {
     mSettings.clearSettings();
-    onSettingChanged(null);
+    onSettingChanged();
   }
 
   public void onStop(boolean finishing)
@@ -112,7 +107,7 @@ public final class SettingsActivityPresenter
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView, context, modifiedSettings);
+      mSettings.saveSettings(mView, context);
     }
   }
 
@@ -127,13 +122,8 @@ public final class SettingsActivityPresenter
     return false;
   }
 
-  public void onSettingChanged(String key)
+  public void onSettingChanged()
   {
-    if (key != null)
-    {
-      modifiedSettings.add(key);
-    }
-
     mShouldSave = true;
   }
 

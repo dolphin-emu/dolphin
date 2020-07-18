@@ -224,9 +224,9 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void onSettingChanged(String key)
+  public void onSettingChanged()
   {
-    mPresenter.onSettingChanged(key);
+    mPresenter.onSettingChanged();
   }
 
   @Override

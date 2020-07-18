@@ -16,8 +16,8 @@ import androidx.fragment.app.Fragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
@@ -83,11 +83,8 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 
     updatePauseUnpauseVisibility();
 
-    boolean enableSaveStates = ((EmulationActivity) getActivity()).getSettings()
-            .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
-            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false);
-
-    if (enableSaveStates)
+    Settings settings = ((EmulationActivity) getActivity()).getSettings();
+    if (Setting.MAIN_ENABLE_SAVESTATES.getBoolean(settings, false))
     {
       options.findViewById(R.id.menu_quicksave).setVisibility(View.VISIBLE);
       options.findViewById(R.id.menu_quickload).setVisibility(View.VISIBLE);

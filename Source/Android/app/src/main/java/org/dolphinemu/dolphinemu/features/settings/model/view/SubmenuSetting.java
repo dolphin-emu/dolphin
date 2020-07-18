@@ -6,9 +6,9 @@ public final class SubmenuSetting extends SettingsItem
 {
   private MenuTag mMenuKey;
 
-  public SubmenuSetting(String key, int titleId, MenuTag menuKey)
+  public SubmenuSetting(int titleId, MenuTag menuKey)
   {
-    super(null, null, key, titleId, 0);
+    super(titleId, 0);
     mMenuKey = menuKey;
   }
 

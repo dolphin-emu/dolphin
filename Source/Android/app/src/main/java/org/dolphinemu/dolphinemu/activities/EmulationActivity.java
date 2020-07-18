@@ -33,6 +33,7 @@ import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
@@ -855,7 +856,7 @@ public final class EmulationActivity extends AppCompatActivity
             {
               editor.putInt("wiiController", indexSelected);
 
-              File wiimoteNewFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_WIIMOTE);
+              File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
               wiimoteNewIni.setString("Wiimote1", "Extension",
                       getResources().getStringArray(R.array.controllersValues)[indexSelected]);
@@ -889,7 +890,7 @@ public final class EmulationActivity extends AppCompatActivity
               else
                 mMotionListener.disable();
 
-              File wiimoteNewFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_WIIMOTE);
+              File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
               wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", indexSelected != 1);
               wiimoteNewIni.save(wiimoteNewFile);

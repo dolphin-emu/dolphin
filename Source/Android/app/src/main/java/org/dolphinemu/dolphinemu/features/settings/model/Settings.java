@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 
 import android.content.Context;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
@@ -9,13 +10,17 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public class Settings
 {
+  public static final String FILE_DOLPHIN = "Dolphin";
+  public static final String FILE_GFX = "GFX";
+  public static final String FILE_LOGGER = "Logger";
+  public static final String FILE_GCPAD = "GCPadNew";
+  public static final String FILE_WIIMOTE = "WiimoteNew";
+
   public static final String SECTION_INI_ANDROID = "Android";
   public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
@@ -39,21 +44,18 @@ public class Settings
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
-  private static final int DSP_HLE = 0;
-  private static final int DSP_LLE_RECOMPILER = 1;
-  private static final int DSP_LLE_INTERPRETER = 2;
-
   public static final String SECTION_ANALYTICS = "Analytics";
 
   public static final String GAME_SETTINGS_PLACEHOLDER_FILE_NAME = "";
 
   private String gameId;
 
-  private static final String[] configFiles = new String[]{SettingsFile.FILE_NAME_DOLPHIN,
-          SettingsFile.FILE_NAME_GFX, SettingsFile.FILE_NAME_LOGGER,
-          SettingsFile.FILE_NAME_WIIMOTE};
+  private static final String[] configFiles = new String[]{FILE_DOLPHIN, FILE_GFX, FILE_LOGGER,
+          FILE_WIIMOTE};
 
   private HashMap<String, IniFile> mIniFiles = new HashMap<>();
+
+  private boolean mLoadedRecursiveIsoPathsValue = false;
 
   private IniFile getGameSpecificFile()
   {
@@ -93,6 +95,8 @@ public class Settings
     {
       loadCustomGameSettings(gameId, view);
     }
+
+    mLoadedRecursiveIsoPathsValue = Setting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this, false);
   }
 
   private void loadDolphinSettings(SettingsActivityView view)
@@ -123,42 +127,16 @@ public class Settings
     loadSettings(view);
   }
 
-  public void saveSettings(SettingsActivityView view, Context context, Set<String> modifiedSettings)
+  public void saveSettings(SettingsActivityView view, Context context)
   {
     if (TextUtils.isEmpty(gameId))
     {
-      view.showToastMessage("Saved settings to INI files");
+      if (context != null)
+        Toast.makeText(context, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
 
       for (Map.Entry<String, IniFile> entry : mIniFiles.entrySet())
       {
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
-      }
-
-      if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
-      {
-        File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
-        IniFile dolphinIni = new IniFile(dolphinFile);
-
-        switch (dolphinIni.getInt(Settings.SECTION_INI_ANDROID, SettingsFile.KEY_DSP_ENGINE,
-                DSP_HLE))
-        {
-          case DSP_HLE:
-            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, true);
-            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
-            break;
-
-          case DSP_LLE_RECOMPILER:
-            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
-            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
-            break;
-
-          case DSP_LLE_INTERPRETER:
-            dolphinIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
-            dolphinIni.setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, false);
-            break;
-        }
-
-        dolphinIni.save(dolphinFile);
       }
 
       // Notify the native code of the changes
@@ -167,18 +145,19 @@ public class Settings
       NativeLibrary.ReloadLoggerConfig();
       NativeLibrary.UpdateGCAdapterScanThread();
 
-      if (modifiedSettings.contains(SettingsFile.KEY_RECURSIVE_ISO_PATHS))
+      if (mLoadedRecursiveIsoPathsValue != Setting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this, false))
       {
         // Refresh game library
         GameFileCacheService.startRescan(context);
       }
-
-      modifiedSettings.clear();
     }
     else
     {
       // custom game settings
-      view.showToastMessage("Saved settings for " + gameId);
+
+      if (context != null)
+        Toast.makeText(context, "Saved settings for " + gameId, Toast.LENGTH_SHORT).show();
+
       SettingsFile.saveCustomGameSettings(gameId, getGameSpecificFile());
     }
   }
@@ -214,6 +193,6 @@ public class Settings
     if (TextUtils.isEmpty(gameId))
       return false;
 
-    return getSection(SettingsFile.FILE_NAME_DOLPHIN, SECTION_INI_INTERFACE).exists("ThemeName");
+    return getSection(Settings.FILE_DOLPHIN, SECTION_INI_INTERFACE).exists("ThemeName");
   }
 }

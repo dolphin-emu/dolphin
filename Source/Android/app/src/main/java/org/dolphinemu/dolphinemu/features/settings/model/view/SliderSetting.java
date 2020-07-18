@@ -7,10 +7,9 @@ public abstract class SliderSetting extends SettingsItem
   private int mMax;
   private String mUnits;
 
-  public SliderSetting(String file, String section, String key, int nameId, int descriptionId,
-          int max, String units)
+  public SliderSetting(int nameId, int descriptionId, int max, String units)
   {
-    super(file, section, key, nameId, descriptionId);
+    super(nameId, descriptionId);
     mMax = max;
     mUnits = units;
   }

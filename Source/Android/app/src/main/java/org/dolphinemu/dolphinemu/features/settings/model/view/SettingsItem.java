@@ -21,54 +21,20 @@ public abstract class SettingsItem
   public static final int TYPE_FILE_PICKER = 9;
   public static final int TYPE_CONFIRM_RUNNABLE = 10;
 
-  private String mFile;
-  private String mSection;
-  private String mKey;
-
   private int mNameId;
   private int mDescriptionId;
 
   /**
    * Base constructor.
    *
-   * @param file          File to which the Setting belongs.
-   * @param section       Section to which the Setting belongs.
-   * @param key           Identifier for the Setting represented by this Item.
    * @param nameId        Resource ID for a text string to be displayed as this setting's name.
    * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
    */
 
-  public SettingsItem(String file, String section, String key, int nameId, int descriptionId)
+  public SettingsItem(int nameId, int descriptionId)
   {
-    mFile = file;
-    mSection = section;
-    mKey = key;
     mNameId = nameId;
     mDescriptionId = descriptionId;
-  }
-
-  /**
-   * @return The file in which the backing setting belongs.
-   */
-  public String getFile()
-  {
-    return mFile;
-  }
-
-  /**
-   * @return The header under which the backing setting belongs.
-   */
-  public String getSection()
-  {
-    return mSection;
-  }
-
-  /**
-   * @return The identifier for the backing setting.
-   */
-  public String getKey()
-  {
-    return mKey;
   }
 
   /**

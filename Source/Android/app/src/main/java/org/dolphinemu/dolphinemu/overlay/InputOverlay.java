@@ -706,8 +706,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       // Add all the enabled overlay items back to the HashSet.
       if (EmulationActivity.isGameCubeGame())
       {
-        IniFile dolphinIni =
-                new IniFile(SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN));
+        IniFile dolphinIni = new IniFile(SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN));
 
         switch (dolphinIni.getInt(Settings.SECTION_INI_CORE, SettingsFile.KEY_GCPAD_PLAYER_1,
                 EMULATED_GAMECUBE_CONTROLLER))

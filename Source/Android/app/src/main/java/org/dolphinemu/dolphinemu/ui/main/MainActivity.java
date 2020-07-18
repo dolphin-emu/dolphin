@@ -20,21 +20,18 @@ import com.google.android.material.tabs.TabLayout;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
+import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.ui.platform.PlatformGamesView;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
-
-import java.io.File;
 
 /**
  * The main Activity of the Lollipop style UI. Manages several PlatformGamesFragments, which
@@ -273,18 +270,19 @@ public final class MainActivity extends AppCompatActivity implements MainView
       {
         super.onTabSelected(tab);
 
-        File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
-        IniFile dolphinIni = new IniFile(dolphinFile);
-        dolphinIni.setInt(Settings.SECTION_INI_ANDROID, SettingsFile.KEY_LAST_PLATFORM_TAB,
-                tab.getPosition());
-        dolphinIni.save(dolphinFile);
+        Settings settings = new Settings();
+        settings.loadSettings(null);
+
+        Setting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
+
+        // Context is set to null to avoid toasts
+        settings.saveSettings(null, null);
       }
     });
 
-    IniFile dolphinIni =
-            new IniFile(SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN));
-    mViewPager.setCurrentItem(dolphinIni.getInt(Settings.SECTION_INI_ANDROID,
-            SettingsFile.KEY_LAST_PLATFORM_TAB, 0));
+    Settings settings = new Settings();
+    settings.loadSettings(null);
+    mViewPager.setCurrentItem(Setting.MAIN_LAST_PLATFORM_TAB.getInt(settings, 0));
 
     showGames();
     GameFileCacheService.startLoad(this);

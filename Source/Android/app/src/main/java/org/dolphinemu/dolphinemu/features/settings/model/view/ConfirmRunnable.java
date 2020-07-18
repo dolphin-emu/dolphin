@@ -9,7 +9,7 @@ public final class ConfirmRunnable extends SettingsItem
   public ConfirmRunnable(int titleId, int descriptionId, int alertText, int confirmationText,
           Runnable runnable)
   {
-    super(null, null, null, titleId, descriptionId);
+    super(titleId, descriptionId);
     mAlertText = alertText;
     mConfirmationText = confirmationText;
     mRunnable = runnable;

@@ -287,7 +287,7 @@
     <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
     <string name="debug_jitintegeroff">Jit Integer Disabled</string>
     <string name="debug_jitpairedoff">Jit Paired Disabled</string>
-    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
+    <string name="debug_jitsystemregistersoff">Jit System Registers Disabled</string>
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
     <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
