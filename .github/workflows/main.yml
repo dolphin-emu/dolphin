@@ -320,6 +320,7 @@ jobs:
         run: |
           mkdir build
           cd build
+          export LIBRARY_PATH=/usr/lib/
           cmake -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 -DENABLE_NOGUI=false ..
           make -j7
       - name: "Package Netplay"
@@ -384,6 +385,7 @@ jobs:
         working-directory: ${{ github.workspace }}
         run: |
           mkdir build
+          export LD_LIBRARY_PATH=/usr/lib/
           cd build
           cmake -DIS_PLAYBACK=true -DQt5_DIR=$(brew --prefix qt)/lib/cmake/Qt5 -DENABLE_NOGUI=false ..
           make -j7
