@@ -32,7 +32,6 @@
 #include "VideoCommon/IconsFontAwesome4.h"
 
 extern std::unique_ptr<SlippiPlaybackStatus> g_playbackStatus;
-extern template IMGUI_API float ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType data_type, int v, int v_min, int v_max, float power, float linear_zero_pos);
 #endif
 
 namespace OSD
