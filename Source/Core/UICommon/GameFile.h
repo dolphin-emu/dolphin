@@ -89,6 +89,7 @@ public:
   u64 GetBlockSize() const { return m_block_size; }
   const std::string& GetCompressionMethod() const { return m_compression_method; }
   bool ShouldShowFileFormatDetails() const;
+  std::string GetFileFormatName() const;
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
@@ -115,6 +116,7 @@ private:
                                    const std::map<DiscIO::Language, std::string>& strings);
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
+  std::string GetExtension() const;
   bool IsElfOrDol() const;
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);

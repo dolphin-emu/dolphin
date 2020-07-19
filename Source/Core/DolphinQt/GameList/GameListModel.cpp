@@ -168,12 +168,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     break;
   case COL_FILE_FORMAT:
     if (role == Qt::DisplayRole || role == SORT_ROLE)
-    {
-      if (game.ShouldShowFileFormatDetails())
-        return QString::fromStdString(DiscIO::GetName(game.GetBlobType(), true));
-      else
-        return {};
-    }
+      return QString::fromStdString(game.GetFileFormatName());
     break;
   case COL_BLOCK_SIZE:
     if (role == Qt::DisplayRole)

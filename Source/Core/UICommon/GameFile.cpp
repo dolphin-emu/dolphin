@@ -336,14 +336,17 @@ void GameFile::DoState(PointerWrap& p)
   m_custom_cover.DoState(p);
 }
 
+std::string GameFile::GetExtension() const
+{
+  std::string extension;
+  SplitPath(m_file_path, nullptr, nullptr, &extension);
+  return extension;
+}
+
 bool GameFile::IsElfOrDol() const
 {
-  if (m_file_path.size() < 4)
-    return false;
-
-  std::string name_end = m_file_path.substr(m_file_path.size() - 4);
-  std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
-  return name_end == ".elf" || name_end == ".dol";
+  const std::string extension = GetExtension();
+  return extension == ".elf" || extension == ".dol";
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)
@@ -589,6 +592,25 @@ bool GameFile::ShouldShowFileFormatDetails() const
     return false;
   default:
     return true;
+  }
+}
+
+std::string GameFile::GetFileFormatName() const
+{
+  switch (m_platform)
+  {
+  case DiscIO::Platform::WiiWAD:
+    return "WAD";
+  case DiscIO::Platform::ELFOrDOL:
+  {
+    std::string extension = GetExtension();
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+
+    // substr removes the dot
+    return extension.substr(std::min<size_t>(1, extension.size()));
+  }
+  default:
+    return DiscIO::GetName(m_blob_type, true);
   }
 }
 
