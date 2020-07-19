@@ -6,10 +6,11 @@ CMAKE_FLAGS='-DLINUX_LOCAL_DEV=true'
 # Build type
 if [ -z "$1" ]
     then
+        # TODO: move this around, playback should be the secondary build
+        CMAKE_FLAGS+=" -DSLIPPI_PLAYBACK=false"
         echo "Using Netplay build config"
 elif [ "$1" == "playback" ]
     then
-        CMAKE_FLAGS+=" -DSLIPPI_PLAYBACK=true"
         echo "Using Playback build config"
 fi
 
