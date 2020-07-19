@@ -20,6 +20,11 @@ public final class FilePicker extends SettingsItem
     return settings.getSection(getFile(), getSection()).getString(getKey(), mDefaultValue);
   }
 
+  public void setSelectedValue(Settings settings, String selection)
+  {
+    settings.getSection(getFile(), getSection()).setString(getKey(), selection);
+  }
+
   public int getRequestType()
   {
     return mRequestType;

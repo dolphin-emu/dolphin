@@ -310,12 +310,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     FilePicker filePicker = (FilePicker) mClickedItem;
 
-    File file = SettingsFile.getSettingsFile(filePicker.getFile());
-    IniFile ini = new IniFile(file);
-    ini.setString(filePicker.getSection(), filePicker.getKey(), selectedFile);
-    ini.save(file);
+    if (!filePicker.getSelectedValue(mView.getSettings()).equals(selectedFile))
+      mView.onSettingChanged(filePicker.getKey());
 
-    NativeLibrary.ReloadConfig();
+    filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
     mClickedItem = null;
   }
