@@ -217,7 +217,7 @@ std::string Timer::GetTimeFormatted()
 #ifdef _WIN32
   struct timeb tp;
   (void)::ftime(&tp);
-  return UTF16ToUTF8(tmp) + fmt::format(":{:03}", tp.millitm);
+  return WStringToUTF8(tmp) + fmt::format(":{:03}", tp.millitm);
 #elif defined __APPLE__
   struct timeval t;
   (void)gettimeofday(&t, nullptr);
@@ -255,7 +255,7 @@ std::string Timer::GetDateTimeFormatted(double time)
 #ifdef _WIN32
   wchar_t tmp[32] = {};
   wcsftime(tmp, sizeof(tmp), L"%x %X", localTime);
-  return UTF16ToUTF8(tmp);
+  return WStringToUTF8(tmp);
 #else
   char tmp[32] = {};
   strftime(tmp, sizeof(tmp), "%x %X", localTime);

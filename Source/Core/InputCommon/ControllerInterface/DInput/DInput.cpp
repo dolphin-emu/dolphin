@@ -38,7 +38,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   std::string result;
   if (SUCCEEDED(device->GetProperty(DIPROP_PRODUCTNAME, &str.diph)))
   {
-    result = StripSpaces(UTF16ToUTF8(str.wsz));
+    result = StripSpaces(WStringToUTF8(str.wsz));
   }
   else
   {

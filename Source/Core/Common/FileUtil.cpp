@@ -114,7 +114,7 @@ bool Exists(const std::string& path)
 bool IsDirectory(const std::string& path)
 {
 #ifdef _WIN32
-  return PathIsDirectory(UTF8ToUTF16(path).c_str());
+  return PathIsDirectory(UTF8ToWString(path).c_str());
 #else
   return FileInfo(path).IsDirectory();
 #endif
