@@ -9,7 +9,7 @@ if [ -z "$1" ]
         echo "Using Netplay build config"
 elif [ "$1" == "playback" ]
     then
-        CMAKE_FLAGS+=" -DIS_PLAYBACK=true"
+        CMAKE_FLAGS+=" -DSLIPPI_PLAYBACK=true"
         echo "Using Playback build config"
 fi
 
