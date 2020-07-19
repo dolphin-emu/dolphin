@@ -81,6 +81,7 @@ private:
 
   void AutoStep(CodeTrace::AutoStop option = CodeTrace::AutoStop::Always);
   void OnFollowBranch();
+  void OnNavFunction(bool up);
   void OnCopyAddress();
   void OnCopyTargetAddress();
   void OnShowInMemory();
@@ -111,6 +112,7 @@ private:
   u32 m_address = 0;
   bool m_lock_address = false;
   u32 m_context_address = 0;
+  bool m_refresh = false;
 
   std::vector<CodeViewBranch> m_branches;
 

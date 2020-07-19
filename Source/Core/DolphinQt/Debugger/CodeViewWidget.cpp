@@ -17,6 +17,7 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QProxyStyle>
 #include <QResizeEvent>
 #include <QScrollBar>
 #include <QStyleHints>
@@ -124,6 +125,24 @@ private:
   }
 };
 
+// There is no easier way to remove the forced focus outline on a cell, without breaking something
+// else.
+class NoFocusProxyStyle : public QProxyStyle
+{
+public:
+  NoFocusProxyStyle(QStyle* baseStyle = nullptr) : QProxyStyle(baseStyle) {}
+
+  void drawPrimitive(PrimitiveElement element, const QStyleOption* option, QPainter* painter,
+                     const QWidget* widget) const
+  {
+    if (element == QStyle::PE_FrameFocusRect)
+    {
+      return;
+    }
+    QProxyStyle::drawPrimitive(element, option, painter, widget);
+  }
+};
+
 // "Most mouse types work in steps of 15 degrees, in which case the delta value is a multiple of
 // 120; i.e., 120 units * 1/8 = 15 degrees." (http://doc.qt.io/qt-5/qwheelevent.html#angleDelta)
 constexpr double SCROLL_FRACTION_DEGREES = 15.;
@@ -143,11 +162,19 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
   setColumnCount(CODE_VIEW_COLUMNCOUNT);
   setShowGrid(false);
   setContextMenuPolicy(Qt::CustomContextMenu);
-  setSelectionMode(QAbstractItemView::SingleSelection);
-  setSelectionBehavior(QAbstractItemView::SelectRows);
+
+  // Selection gives us behaviors we don't want. We want m_address to always be colored as selected
+  // and PC to always be green. Added right click coloring to confirm what line the context menu
+  // applies to.  Dotted lines from being selected are removed with the stylesheet. Various issues
+  // with displaying the table headers are made much worse with NoSelection. Using hide() then
+  // show() to fix.
+  setSelectionMode(QAbstractItemView::NoSelection);
+  setStyle(new NoFocusProxyStyle());
 
   setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
   setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+  // Don't want auto-scrolling to the right when clicking parameters.
+  setAutoScroll(false);
 
   verticalHeader()->hide();
   horizontalHeader()->setSectionResizeMode(CODE_VIEW_COLUMN_BREAKPOINT, QHeaderView::Fixed);
@@ -170,7 +197,6 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
 #endif
 
   connect(this, &CodeViewWidget::customContextMenuRequested, this, &CodeViewWidget::OnContextMenu);
-  connect(this, &CodeViewWidget::itemSelectionChanged, this, &CodeViewWidget::OnSelectionChanged);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &QWidget::setFont);
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this,
           &CodeViewWidget::FontBasedSizing);
@@ -178,6 +204,7 @@ CodeViewWidget::CodeViewWidget() : m_system(Core::System::GetInstance())
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this] {
     if (!m_lock_address && Core::GetState() == Core::State::Paused)
       m_address = m_system.GetPPCState().pc;
+    m_refresh = true;
     Update();
   });
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, [this] {
@@ -289,7 +316,6 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
   m_updating = true;
 
-  clearSelection();
   if (rowCount() == 0)
     setRowCount(1);
 
@@ -355,13 +381,18 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
 
     for (auto* item : {bp_item, addr_item, ins_item, param_item, description_item, branch_item})
     {
-      item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
+      item->setFlags(Qt::ItemIsEnabled);
       item->setData(Qt::UserRole, addr);
 
       if (addr == pc && item != bp_item)
       {
         item->setBackground(QColor(Qt::green));
         item->setForeground(QColor(Qt::black));
+      }
+      else if (addr == m_address && item != bp_item)
+      {
+        item->setBackground(QColor(0x0078d7));
+        item->setForeground(QColor(Qt::white));
       }
       else if (color != 0xFFFFFF)
       {
@@ -415,18 +446,24 @@ void CodeViewWidget::Update(const Core::CPUThreadGuard* guard)
     setItem(i, CODE_VIEW_COLUMN_PARAMETERS, param_item);
     setItem(i, CODE_VIEW_COLUMN_DESCRIPTION, description_item);
     setItem(i, CODE_VIEW_COLUMN_BRANCH_ARROWS, branch_item);
-
-    if (addr == GetAddress())
-    {
-      selectRow(addr_item->row());
-    }
   }
 
   CalculateBranchIndentation();
 
   g_symbolDB.FillInCallers();
 
-  repaint();
+  // Various bugs with the table header require a hide then show. Appears to work fine.
+  if (m_refresh)
+  {
+    hide();
+    show();
+    m_refresh = false;
+  }
+  else
+  {
+    update();
+  }
+
   m_updating = false;
 }
 
@@ -583,6 +620,10 @@ void CodeViewWidget::OnContextMenu()
 
   auto* follow_branch_action =
       menu->addAction(tr("Follow &branch"), this, &CodeViewWidget::OnFollowBranch);
+  menu->addAction(tr("J&ump to top of function"),
+                  [this]() { CodeViewWidget::OnNavFunction(true); });
+  menu->addAction(tr("&Jump to end of function"),
+                  [this]() { CodeViewWidget::OnNavFunction(false); });
 
   menu->addSeparator();
 
@@ -1038,8 +1079,33 @@ void CodeViewWidget::OnRestoreInstruction()
   Update(&guard);
 }
 
+void CodeViewWidget::OnNavFunction(bool up)
+{
+  u32 address = GetContextAddress();
+  {
+    Core::CPUThreadGuard guard(m_system);
+    int distance = 0;
+
+    // Distance to prevent it from going too far out of range, if it's outside of any function. Not
+    // sure what a good value is.
+    while (PowerPC::MMU::HostIsInstructionRAMAddress(guard, address) && distance != 5000)
+    {
+      if (PowerPC::MMU::HostRead_U32(guard, address) == 0x4e800020)
+      {
+        address += up ? 0x4 : -0x4;
+        break;
+      }
+
+      distance += 1;
+      address += up ? -0x4 : 0x4;
+    }
+  }
+  SetAddress(address, SetAddressUpdate::WithUpdate);
+}
+
 void CodeViewWidget::resizeEvent(QResizeEvent*)
 {
+  m_refresh = true;
   Update();
 }
 
@@ -1083,24 +1149,32 @@ void CodeViewWidget::wheelEvent(QWheelEvent* event)
 
 void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 {
-  auto* item = itemAt(event->pos());
-  if (item == nullptr)
+  // itemPressed signal has poor responsiveness to fast clicking.
+  auto* item_sel = itemAt(event->pos());
+
+  if (item_sel == nullptr)
     return;
 
-  const u32 addr = item->data(Qt::UserRole).toUInt();
+  const int row = item_sel->row();
+  const u32 addr = item_sel->data(Qt::UserRole).toUInt();
 
   m_context_address = addr;
 
   switch (event->button())
   {
   case Qt::LeftButton:
-    if (column(item) == CODE_VIEW_COLUMN_BREAKPOINT)
+    if (column(item_sel) == CODE_VIEW_COLUMN_BREAKPOINT)
       ToggleBreakpoint();
     else
       SetAddress(addr, SetAddressUpdate::WithDetailedUpdate);
 
     Update();
     break;
+  case Qt::RightButton:
+    for (int i = 1; i <= 4; i++)
+    {
+      item(row, i)->setBackground(QColor(Qt::cyan));
+    }
   default:
     break;
   }
@@ -1108,7 +1182,8 @@ void CodeViewWidget::mousePressEvent(QMouseEvent* event)
 
 void CodeViewWidget::showEvent(QShowEvent* event)
 {
-  Update();
+  if (!m_refresh)
+    Update();
 }
 
 void CodeViewWidget::ToggleBreakpoint()
