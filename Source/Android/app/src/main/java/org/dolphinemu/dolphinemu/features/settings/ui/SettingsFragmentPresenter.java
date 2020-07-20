@@ -500,13 +500,14 @@ public final class SettingsFragmentPresenter
 
   private void addGraphicsSettings(ArrayList<SettingsItem> sl)
   {
-    IntSetting videoBackend =
-            new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
-                    getVideoBackendValue());
+    Setting videoBackend = null;
     Setting showFps = null;
     Setting shaderCompilationMode = null;
     Setting waitForShaders = null;
     Setting aspectRatio = null;
+
+    SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
+    videoBackend = coreSection.getSetting(SettingsFile.KEY_VIDEO_BACKEND);
 
     SettingSection gfxSection = mSettings.getSection(Settings.SECTION_GFX_SETTINGS);
     showFps = gfxSection.getSetting(SettingsFile.KEY_SHOW_FPS);
@@ -515,9 +516,9 @@ public final class SettingsFragmentPresenter
     aspectRatio = gfxSection.getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
     sl.add(new HeaderSetting(null, null, R.string.graphics_general, 0));
-    sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, Settings.SECTION_INI_CORE,
+    sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
             R.string.video_backend, 0, R.array.videoBackendEntries,
-            R.array.videoBackendValues, 0, videoBackend));
+            R.array.videoBackendValues, "OGL", videoBackend));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_SHOW_FPS, Settings.SECTION_GFX_SETTINGS,
             R.string.show_fps, R.string.show_fps_description, false, showFps));
     sl.add(new SingleChoiceSettingDynamicDescriptions(SettingsFile.KEY_SHADER_COMPILATION_MODE,
@@ -985,28 +986,26 @@ public final class SettingsFragmentPresenter
     // But game game specific extension settings are saved in their own profile. These profiles
     // do not have any way to specify the controller that is loaded outside of knowing the filename
     // of the profile that was loaded.
-    IntSetting extension;
+    Setting extension;
     if (mGameID.equals(""))
     {
-      extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-              Settings.SECTION_WIIMOTE + wiimoteNumber, getExtensionValue(wiimoteNumber - 3),
-              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
-      sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
+      extension = mSettings.getSection(Settings.SECTION_WIIMOTE + (wiimoteNumber - 3)).
+              getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION);
+      sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
               Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), R.string.wiimote_extensions,
               0, R.array.wiimoteExtensionsEntries,
-              R.array.wiimoteExtensionsValues, 0, extension,
+              R.array.wiimoteExtensionsValues, getExtensionValue(wiimoteNumber - 3), extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }
     else
     {
       mSettings.loadWiimoteProfile(mGameID, String.valueOf(wiimoteNumber - 4));
-      extension = new IntSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
-              Settings.SECTION_CONTROLS, getExtensionValue(wiimoteNumber - 4),
-              MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber));
-      sl.add(new SingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
+      extension = mSettings.getSection(Settings.SECTION_CONTROLS).
+              getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4));
+      sl.add(new StringSingleChoiceSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
               Settings.SECTION_CONTROLS, R.string.wiimote_extensions,
               0, R.array.wiimoteExtensionsEntries,
-              R.array.wiimoteExtensionsValues, 0, extension,
+              R.array.wiimoteExtensionsValues, getExtensionValue(wiimoteNumber - 4), extension,
               MenuTag.getWiimoteExtensionMenuTag(wiimoteNumber)));
     }
 
@@ -1555,99 +1554,25 @@ public final class SettingsFragmentPresenter
     }
   }
 
-  private int getVideoBackendValue()
+  private String getExtensionValue(int wiimoteNumber)
   {
-    SettingSection coreSection = mSettings.getSection(Settings.SECTION_INI_CORE);
-
-    int videoBackendValue;
-
     try
     {
-      String videoBackend =
-              ((StringSetting) coreSection.getSetting(SettingsFile.KEY_VIDEO_BACKEND)).getValue();
-      if (videoBackend.equals("OGL"))
-      {
-        videoBackendValue = 0;
-      }
-      else if (videoBackend.equals("Vulkan"))
-      {
-        videoBackendValue = 1;
-      }
-      else if (videoBackend.equals("Software Renderer"))
-      {
-        videoBackendValue = 2;
-      }
-      else if (videoBackend.equals("Null"))
-      {
-        videoBackendValue = 3;
-      }
-      else
-      {
-        videoBackendValue = 0;
-      }
-    }
-    catch (NullPointerException ex)
-    {
-      videoBackendValue = 0;
-    }
-
-    return videoBackendValue;
-  }
-
-  private int getExtensionValue(int wiimoteNumber)
-  {
-    int extensionValue;
-
-    try
-    {
-      String extension;
       if (mGameID.equals("")) // Main settings
       {
-        extension =
-                ((StringSetting) mSettings.getSection(Settings.SECTION_WIIMOTE + wiimoteNumber)
-                        .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
+        return ((StringSetting) mSettings.getSection(Settings.SECTION_WIIMOTE + wiimoteNumber)
+                .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
       }
       else // Game settings
       {
-        extension = ((StringSetting) mSettings.getSection(Settings.SECTION_PROFILE)
+        return ((StringSetting) mSettings.getSection(Settings.SECTION_PROFILE)
                 .getSetting(SettingsFile.KEY_WIIMOTE_EXTENSION)).getValue();
-      }
-
-      if (extension.equals("None"))
-      {
-        extensionValue = 0;
-      }
-      else if (extension.equals("Nunchuk"))
-      {
-        extensionValue = 1;
-      }
-      else if (extension.equals("Classic"))
-      {
-        extensionValue = 2;
-      }
-      else if (extension.equals("Guitar"))
-      {
-        extensionValue = 3;
-      }
-      else if (extension.equals("Drums"))
-      {
-        extensionValue = 4;
-      }
-      else if (extension.equals("Turntable"))
-      {
-        extensionValue = 5;
-      }
-      else
-      {
-        extensionValue = 0;
       }
     }
     catch (NullPointerException ex)
     {
-      extensionValue = 0;
+      return "None";
     }
-
-    return extensionValue;
   }
 
   public static String getDefaultNANDRootPath()

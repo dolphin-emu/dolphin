@@ -286,9 +286,6 @@ public final class SettingsFile
   public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
   public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
-  // Internal only, not actually found in settings file.
-  public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
-
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 
   static

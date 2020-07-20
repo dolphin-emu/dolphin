@@ -369,6 +369,27 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     sView.onSettingChanged(null);
   }
 
+  private void handleMenuTag(MenuTag menuTag, int value)
+  {
+    if (menuTag != null)
+    {
+      if (menuTag.isGCPadMenu())
+      {
+        mView.onGcPadSettingChanged(menuTag, value);
+      }
+
+      if (menuTag.isWiimoteMenu())
+      {
+        mView.onWiimoteSettingChanged(menuTag, value);
+      }
+
+      if (menuTag.isWiimoteExtensionMenu())
+      {
+        mView.onExtensionSettingChanged(menuTag, value);
+      }
+    }
+  }
+
   @Override
   public void onClick(DialogInterface dialog, int which)
   {
@@ -380,49 +401,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (scSetting.getSelectedValue() != value)
         mView.onSettingChanged(mClickedItem.getKey());
 
-      MenuTag menuTag = scSetting.getMenuTag();
-      if (menuTag != null)
-      {
-        if (menuTag.isGCPadMenu())
-        {
-          mView.onGcPadSettingChanged(menuTag, value);
-        }
-
-        if (menuTag.isWiimoteMenu())
-        {
-          mView.onWiimoteSettingChanged(menuTag, value);
-        }
-
-        if (menuTag.isWiimoteExtensionMenu())
-        {
-          mView.onExtensionSettingChanged(menuTag, value);
-        }
-      }
+      handleMenuTag(scSetting.getMenuTag(), value);
 
       // Get the backing Setting, which may be null (if for example it was missing from the file)
       IntSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
       {
         mView.putSetting(setting);
-      }
-      else
-      {
-        if (scSetting.getKey().equals(SettingsFile.KEY_VIDEO_BACKEND_INDEX))
-        {
-          putVideoBackendSetting(which);
-        }
-        else if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
-        {
-          putExtensionSetting(which, Character.getNumericValue(
-                  scSetting.getSection().charAt(scSetting.getSection().length() - 1)), false);
-        }
-        else if (scSetting.getKey().contains(SettingsFile.KEY_WIIMOTE_EXTENSION) &&
-                scSetting.getSection().equals(Settings.SECTION_CONTROLS))
-        {
-          putExtensionSetting(which, Character
-                          .getNumericValue(scSetting.getKey().charAt(scSetting.getKey().length() - 1)),
-                  true);
-        }
       }
 
       closeDialog();
@@ -451,6 +436,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue().equals(value))
         mView.onSettingChanged(mClickedItem.getKey());
+
+      handleMenuTag(scSetting.getMenuTag(), which);
 
       StringSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
@@ -612,53 +599,5 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
 
     return -1;
-  }
-
-  private void putVideoBackendSetting(int which)
-  {
-    StringSetting gfxBackend = null;
-    switch (which)
-    {
-      case 0:
-        gfxBackend =
-                new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "OGL");
-        break;
-
-      case 1:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Vulkan");
-        break;
-
-      case 2:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Software Renderer");
-        break;
-
-      case 3:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Null");
-        break;
-    }
-
-    mView.putSetting(gfxBackend);
-  }
-
-  private void putExtensionSetting(int which, int wiimoteNumber, boolean isGame)
-  {
-    if (!isGame)
-    {
-      StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-              Settings.SECTION_WIIMOTE + wiimoteNumber,
-              mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-      mView.putSetting(extension);
-    }
-    else
-    {
-      StringSetting extension =
-              new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + wiimoteNumber,
-                      Settings.SECTION_CONTROLS, mContext.getResources()
-                      .getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-      mView.putSetting(extension);
-    }
   }
 }
