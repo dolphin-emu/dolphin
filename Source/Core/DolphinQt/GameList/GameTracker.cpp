@@ -8,7 +8,9 @@
 #include <QDirIterator>
 #include <QFile>
 
-#include "Core/ConfigManager.h"
+#include "Common/Config/Config.h"
+
+#include "Core/Config/UISettings.h"
 
 #include "DiscIO/DirectoryBlob.h"
 
@@ -224,7 +226,7 @@ void GameTracker::AddDirectoryInternal(const QString& dir)
 static std::unique_ptr<QDirIterator> GetIterator(const QString& dir)
 {
   return std::make_unique<QDirIterator>(dir, game_filters, QDir::NoFilter,
-                                        SConfig::GetInstance().m_RecursiveISOFolder ?
+                                        Config::Get(Config::MAIN_RECURSIVE_ISO_PATHS) ?
                                             QDirIterator::Subdirectories :
                                             QDirIterator::NoIteratorFlags);
 }
