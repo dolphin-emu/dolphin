@@ -515,14 +515,14 @@ void Settings::SetAnalyticsEnabled(bool enabled)
   if (enabled == IsAnalyticsEnabled())
     return;
 
-  SConfig::GetInstance().m_analytics_enabled = enabled;
+  Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, enabled);
 
   emit AnalyticsToggled(enabled);
 }
 
 bool Settings::IsAnalyticsEnabled() const
 {
-  return SConfig::GetInstance().m_analytics_enabled;
+  return Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED);
 }
 
 void Settings::SetToolBarVisible(bool visible)

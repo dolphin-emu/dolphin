@@ -21,6 +21,7 @@
 #include "Common/Analytics.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Random.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -65,7 +66,7 @@ void DolphinAnalytics::ReloadConfig()
 
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (SConfig::GetInstance().m_analytics_enabled)
+  if (Config::Get(Config::MAIN_ANALYTICS_ENABLED))
   {
 #if defined(ANDROID)
     new_backend = std::make_unique<Common::AndroidAnalyticsBackend>(ANALYTICS_ENDPOINT);
@@ -76,7 +77,7 @@ void DolphinAnalytics::ReloadConfig()
   m_reporter.SetBackend(std::move(new_backend));
 
   // Load the unique ID or generate it if needed.
-  m_unique_id = SConfig::GetInstance().m_analytics_id;
+  m_unique_id = Config::Get(Config::MAIN_ANALYTICS_ID);
   if (m_unique_id.empty())
   {
     GenerateNewIdentity();
@@ -90,8 +91,8 @@ void DolphinAnalytics::GenerateNewIdentity()
   m_unique_id = fmt::format("{:016x}{:016x}", id_high, id_low);
 
   // Save the new id in the configuration.
-  SConfig::GetInstance().m_analytics_id = m_unique_id;
-  SConfig::GetInstance().SaveSettings();
+  Config::SetBase(Config::MAIN_ANALYTICS_ID, m_unique_id);
+  Config::Save();
 }
 
 std::string DolphinAnalytics::MakeUniqueId(std::string_view data) const

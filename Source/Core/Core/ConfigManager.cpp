@@ -92,7 +92,6 @@ void SConfig::SaveSettings()
   SaveDSPSettings(ini);
   SaveInputSettings(ini);
   SaveFifoPlayerSettings(ini);
-  SaveAnalyticsSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
   SaveUSBPassthroughSettings(ini);
   SaveAutoUpdateSettings(ini);
@@ -127,7 +126,6 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
     general->Set(fmt::format("ISOPath{}", i), m_ISOFolder[i]);
   }
 
-  general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("WirelessMac", m_WirelessMac);
 
 #ifdef USE_GDBSTUB
@@ -143,8 +141,6 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Set("ConfirmStop", bConfirmStop);
-  interface->Set("UsePanicHandlers", bUsePanicHandlers);
-  interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
   interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
@@ -295,15 +291,6 @@ void SConfig::SaveFifoPlayerSettings(IniFile& ini)
   fifoplayer->Set("LoopReplay", bLoopFifoReplay);
 }
 
-void SConfig::SaveAnalyticsSettings(IniFile& ini)
-{
-  IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
-
-  analytics->Set("ID", m_analytics_id);
-  analytics->Set("Enabled", m_analytics_enabled);
-  analytics->Set("PermissionAsked", m_analytics_permission_asked);
-}
-
 void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
@@ -368,7 +355,6 @@ void SConfig::LoadSettings()
   LoadDSPSettings(ini);
   LoadInputSettings(ini);
   LoadFifoPlayerSettings(ini);
-  LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
   LoadUSBPassthroughSettings(ini);
   LoadAutoUpdateSettings(ini);
@@ -401,7 +387,6 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
     }
   }
 
-  general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("WirelessMac", &m_WirelessMac);
 }
 
@@ -410,8 +395,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
-  interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
@@ -576,15 +559,6 @@ void SConfig::LoadFifoPlayerSettings(IniFile& ini)
   IniFile::Section* fifoplayer = ini.GetOrCreateSection("FifoPlayer");
 
   fifoplayer->Get("LoopReplay", &bLoopFifoReplay, true);
-}
-
-void SConfig::LoadAnalyticsSettings(IniFile& ini)
-{
-  IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
-
-  analytics->Get("ID", &m_analytics_id, "");
-  analytics->Get("Enabled", &m_analytics_enabled, false);
-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
@@ -771,12 +745,6 @@ void SConfig::LoadDefaults()
   iLatency = 20;
   m_audio_stretch = false;
   m_audio_stretch_max_latency = 80;
-  bUsePanicHandlers = true;
-  bOnScreenDisplayMessages = true;
-
-  m_analytics_id = "";
-  m_analytics_enabled = false;
-  m_analytics_permission_asked = false;
 
   bLoopFifoReplay = true;
 
