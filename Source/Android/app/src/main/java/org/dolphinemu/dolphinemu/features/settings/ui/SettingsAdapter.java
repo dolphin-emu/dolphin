@@ -13,9 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacySetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
@@ -319,12 +319,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     Settings settings = mView.getSettings();
 
-    Setting.MAIN_DEFAULT_ISO.delete(settings);
-    Setting.MAIN_FS_PATH.delete(settings);
-    Setting.MAIN_DUMP_PATH.delete(settings);
-    Setting.MAIN_LOAD_PATH.delete(settings);
-    Setting.MAIN_RESOURCEPACK_PATH.delete(settings);
-    Setting.MAIN_SD_PATH.delete(settings);
+    StringSetting.MAIN_DEFAULT_ISO.delete(settings);
+    StringSetting.MAIN_FS_PATH.delete(settings);
+    StringSetting.MAIN_DUMP_PATH.delete(settings);
+    StringSetting.MAIN_LOAD_PATH.delete(settings);
+    StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
+    StringSetting.MAIN_SD_PATH.delete(settings);
 
     mView.onSettingChanged();
   }
@@ -335,8 +335,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
     {
-      new LegacySetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey())
-              .setBoolean(settings, value);
+      new LegacyBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
+              false).setBoolean(settings, value);
     }
 
     mView.onSettingChanged();

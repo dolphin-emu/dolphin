@@ -96,7 +96,7 @@ public class Settings
       loadCustomGameSettings(gameId, view);
     }
 
-    mLoadedRecursiveIsoPathsValue = Setting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this, false);
+    mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this);
   }
 
   private void loadDolphinSettings(SettingsActivityView view)
@@ -145,7 +145,7 @@ public class Settings
       NativeLibrary.ReloadLoggerConfig();
       NativeLibrary.UpdateGCAdapterScanThread();
 
-      if (mLoadedRecursiveIsoPathsValue != Setting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this, false))
+      if (mLoadedRecursiveIsoPathsValue != BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this))
       {
         // Refresh game library
         GameFileCacheService.startRescan(context);

@@ -1,33 +1,31 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class SingleChoiceSetting extends SettingsItem
 {
-  private IntSetting mSetting;
-  private int mDefaultValue;
+  private AbstractIntSetting mSetting;
 
   private int mChoicesId;
   private int mValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSetting(IntSetting setting, int titleId, int descriptionId, int choicesId,
-          int valuesId, int defaultValue, MenuTag menuTag)
+  public SingleChoiceSetting(AbstractIntSetting setting, int titleId, int descriptionId,
+          int choicesId, int valuesId, MenuTag menuTag)
   {
     super(titleId, descriptionId);
     mSetting = setting;
-    mDefaultValue = defaultValue;
     mValuesId = valuesId;
     mChoicesId = choicesId;
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSetting(IntSetting setting, int titleId, int descriptionId, int choicesId,
-          int valuesId, int defaultValue)
+  public SingleChoiceSetting(AbstractIntSetting setting, int titleId, int descriptionId,
+          int choicesId, int valuesId)
   {
-    this(setting, titleId, descriptionId, choicesId, valuesId, defaultValue, null);
+    this(setting, titleId, descriptionId, choicesId, valuesId, null);
   }
 
   public int getChoicesId()
@@ -42,7 +40,7 @@ public final class SingleChoiceSetting extends SettingsItem
 
   public int getSelectedValue(Settings settings)
   {
-    return mSetting.getInt(settings, mDefaultValue);
+    return mSetting.getInt(settings);
   }
 
   public MenuTag getMenuTag()

@@ -4,7 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 import java.io.File;
@@ -83,7 +83,7 @@ public class GameFileCache
   {
     Settings settings = new Settings();
     settings.loadSettings(null);
-    boolean recursiveScan = Setting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(settings, false);
+    boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(settings);
 
     removeNonExistentGameFolders(context);
 

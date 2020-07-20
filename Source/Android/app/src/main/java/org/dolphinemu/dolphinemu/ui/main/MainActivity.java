@@ -20,7 +20,7 @@ import com.google.android.material.tabs.TabLayout;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.adapters.PlatformPagerAdapter;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
@@ -273,7 +273,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
         Settings settings = new Settings();
         settings.loadSettings(null);
 
-        Setting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
+        IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
 
         // Context is set to null to avoid toasts
         settings.saveSettings(null, null);
@@ -282,7 +282,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     Settings settings = new Settings();
     settings.loadSettings(null);
-    mViewPager.setCurrentItem(Setting.MAIN_LAST_PLATFORM_TAB.getInt(settings, 0));
+    mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
 
     showGames();
     GameFileCacheService.startLoad(this);

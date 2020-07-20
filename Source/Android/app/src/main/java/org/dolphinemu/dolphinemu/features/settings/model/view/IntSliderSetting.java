@@ -1,24 +1,22 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public final class IntSliderSetting extends SliderSetting
 {
-  private IntSetting mSetting;
-  private int mDefaultValue;
+  private AbstractIntSetting mSetting;
 
-  public IntSliderSetting(IntSetting setting, int titleId, int descriptionId, int max,
-          String units, int defaultValue)
+  public IntSliderSetting(AbstractIntSetting setting, int titleId, int descriptionId, int max,
+          String units)
   {
     super(titleId, descriptionId, max, units);
     mSetting = setting;
-    mDefaultValue = defaultValue;
   }
 
   public int getSelectedValue(Settings settings)
   {
-    return mSetting.getInt(settings, mDefaultValue);
+    return mSetting.getInt(settings);
   }
 
   public void setSelectedValue(Settings settings, int selection)

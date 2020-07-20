@@ -9,8 +9,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
@@ -65,7 +65,7 @@ public class GamePropertiesDialog extends DialogFragment
                 case 1:
                   Settings settings = new Settings();
                   settings.loadSettings(null);
-                  Setting.MAIN_DEFAULT_ISO.setString(settings, path);
+                  StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
                   settings.saveSettings(null, getContext());
                   break;
                 case 2:

@@ -10,7 +10,7 @@ import com.android.volley.toolbox.StringRequest;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class Analytics
@@ -26,7 +26,7 @@ public class Analytics
     {
       Settings settings = new Settings();
       settings.loadSettings(null);
-      if (!Setting.MAIN_ANALYTICS_PERMISSION_ASKED.getBoolean(settings, false))
+      if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBoolean(settings))
       {
         showMessage(context, settings);
       }
@@ -51,8 +51,8 @@ public class Analytics
 
   private static void firstAnalyticsAdd(Settings settings, boolean enabled)
   {
-    Setting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
-    Setting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);
+    BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
+    BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);
 
     // Context is set to null to avoid toasts
     settings.saveSettings(null, null);

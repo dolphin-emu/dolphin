@@ -1,24 +1,21 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class CheckBoxSetting extends SettingsItem
 {
-  protected BooleanSetting mSetting;
-  protected boolean mDefaultValue;
+  protected AbstractBooleanSetting mSetting;
 
-  public CheckBoxSetting(BooleanSetting setting, int titleId, int descriptionId,
-          boolean defaultValue)
+  public CheckBoxSetting(AbstractBooleanSetting setting, int titleId, int descriptionId)
   {
     super(titleId, descriptionId);
     mSetting = setting;
-    mDefaultValue = defaultValue;
   }
 
   public boolean isChecked(Settings settings)
   {
-    return mSetting.getBoolean(settings, mDefaultValue);
+    return mSetting.getBoolean(settings);
   }
 
   public void setChecked(Settings settings, boolean checked)
