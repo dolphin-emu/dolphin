@@ -402,43 +402,43 @@ void ImGui::BulletTextV(const char* fmt, va_list args)
 // See the series of events below and the corresponding state reported by dear imgui:
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // with PressedOnClickRelease:             return-value  IsItemHovered()  IsItemActive()  IsItemActivated()  IsItemDeactivated()  IsItemClicked()
-//   Frame N+0 (mouse is outside bb)        -             -                -               -                  -                    -    
-//   Frame N+1 (mouse moves inside bb)      -             true             -               -                  -                    -    
+//   Frame N+0 (mouse is outside bb)        -             -                -               -                  -                    -
+//   Frame N+1 (mouse moves inside bb)      -             true             -               -                  -                    -
 //   Frame N+2 (mouse button is down)       -             true             true            true               -                    true
-//   Frame N+3 (mouse button is down)       -             true             true            -                  -                    -    
+//   Frame N+3 (mouse button is down)       -             true             true            -                  -                    -
 //   Frame N+4 (mouse moves outside bb)     -             -                true            -                  -                    -
 //   Frame N+5 (mouse moves inside bb)      -             true             true            -                  -                    -
-//   Frame N+6 (mouse button is released)   true          true             -               -                  true                 -    
-//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -    
-//   Frame N+8 (mouse moves outside bb)     -             -                -               -                  -                    -    
+//   Frame N+6 (mouse button is released)   true          true             -               -                  true                 -
+//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -
+//   Frame N+8 (mouse moves outside bb)     -             -                -               -                  -                    -
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // with PressedOnClick:                    return-value  IsItemHovered()  IsItemActive()  IsItemActivated()  IsItemDeactivated()  IsItemClicked()
 //   Frame N+2 (mouse button is down)       true          true             true            true               -                    true
-//   Frame N+3 (mouse button is down)       -             true             true            -                  -                    -    
-//   Frame N+6 (mouse button is released)   -             true             -               -                  true                 -    
-//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -    
+//   Frame N+3 (mouse button is down)       -             true             true            -                  -                    -
+//   Frame N+6 (mouse button is released)   -             true             -               -                  true                 -
+//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // with PressedOnRelease:                  return-value  IsItemHovered()  IsItemActive()  IsItemActivated()  IsItemDeactivated()  IsItemClicked()
 //   Frame N+2 (mouse button is down)       -             true             -               -                  -                    true
-//   Frame N+3 (mouse button is down)       -             true             -               -                  -                    -    
+//   Frame N+3 (mouse button is down)       -             true             -               -                  -                    -
 //   Frame N+6 (mouse button is released)   true          true             -               -                  -                    -
-//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -    
+//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // with PressedOnDoubleClick:              return-value  IsItemHovered()  IsItemActive()  IsItemActivated()  IsItemDeactivated()  IsItemClicked()
 //   Frame N+0 (mouse button is down)       -             true             -               -                  -                    true
-//   Frame N+1 (mouse button is down)       -             true             -               -                  -                    -    
+//   Frame N+1 (mouse button is down)       -             true             -               -                  -                    -
 //   Frame N+2 (mouse button is released)   -             true             -               -                  -                    -
-//   Frame N+3 (mouse button is released)   -             true             -               -                  -                    -    
+//   Frame N+3 (mouse button is released)   -             true             -               -                  -                    -
 //   Frame N+4 (mouse button is down)       true          true             true            true               -                    true
-//   Frame N+5 (mouse button is down)       -             true             true            -                  -                    -    
+//   Frame N+5 (mouse button is down)       -             true             true            -                  -                    -
 //   Frame N+6 (mouse button is released)   -             true             -               -                  true                 -
-//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -    
+//   Frame N+7 (mouse button is released)   -             true             -               -                  -                    -
 //------------------------------------------------------------------------------------------------------------------------------------------------
 // The behavior of the return-value changes when ImGuiButtonFlags_Repeat is set:
 //                                         Repeat+                  Repeat+           Repeat+             Repeat+
 //                                         PressedOnClickRelease    PressedOnClick    PressedOnRelease    PressedOnDoubleClick
 //-------------------------------------------------------------------------------------------------------------------------------------------------
-//   Frame N+0 (mouse button is down)       -                        true              -                   true 
+//   Frame N+0 (mouse button is down)       -                        true              -                   true
 //   ...                                    -                        -                 -                   -
 //   Frame N + RepeatDelay                  true                     true              -                   true
 //   ...                                    -                        -                 -                   -
@@ -2207,6 +2207,8 @@ float ImGui::SliderCalcRatioFromValueT(ImGuiDataType data_type, TYPE v, TYPE v_m
     // Linear slider
     return (float)((FLOATTYPE)(v_clamped - v_min) / (FLOATTYPE)(v_max - v_min));
 }
+
+template float ImGui::SliderCalcRatioFromValueT<int, float>(ImGuiDataType, int, int, int, float, float);
 
 // FIXME: Move some of the code into SliderBehavior(). Current responsability is larger than what the equivalent DragBehaviorT<> does, we also do some rendering, etc.
 template<typename TYPE, typename SIGNEDTYPE, typename FLOATTYPE>
