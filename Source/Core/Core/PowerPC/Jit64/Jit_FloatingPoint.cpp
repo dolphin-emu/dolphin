@@ -437,7 +437,21 @@ void Jit64::fselx(UGeckoInstruction inst)
   else
     CMPSD(XMM0, Ra, CMP_NLE);
 
-  if (cpu_info.bSSE4_1)
+  if (cpu_info.bAVX)
+  {
+    X64Reg src1 = XMM1;
+    if (Rc.IsSimpleReg())
+    {
+      src1 = Rc.GetSimpleReg();
+    }
+    else
+    {
+      MOVAPD(XMM1, Rc);
+    }
+
+    VBLENDVPD(XMM1, src1, Rb, XMM0);
+  }
+  else if (cpu_info.bSSE4_1)
   {
     MOVAPD(XMM1, Rc);
     BLENDVPD(XMM1, Rb);
