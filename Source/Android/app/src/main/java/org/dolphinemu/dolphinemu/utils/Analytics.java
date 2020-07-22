@@ -3,7 +3,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Build;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.StringRequest;

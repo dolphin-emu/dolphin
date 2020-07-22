@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.view.View;
 import android.widget.TextView;
 
