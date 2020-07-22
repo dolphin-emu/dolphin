@@ -92,8 +92,6 @@ dependencies {
 
     // For loading huge screenshots from the disk.
     implementation 'com.squareup.picasso:picasso:2.71828'
-
-    implementation 'com.nononsenseapps:filepicker:4.2.1'
 }
 
 def getVersion() {
