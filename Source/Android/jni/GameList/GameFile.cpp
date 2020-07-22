@@ -188,7 +188,7 @@ JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBan
                                                                                     jobject obj)
 {
   const std::vector<u32>& buffer = GetRef(env, obj)->GetBannerImage().buffer;
-  const jsize size = static_cast<jsize>(buffer.size());
+  const auto size = static_cast<jsize>(buffer.size());
   const jintArray out_array = env->NewIntArray(size);
   if (!out_array)
     return nullptr;
