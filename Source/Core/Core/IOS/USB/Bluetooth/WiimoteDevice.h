@@ -27,9 +27,6 @@ public:
 
   void DoState(PointerWrap& p);
 
-  // ugly Host handling....
-  // we really have to clean all this code
-
   bool IsConnected() const { return m_connection_state == ConnectionState::Complete; }
   bool IsInactive() const { return m_connection_state == ConnectionState::Inactive; }
   bool LinkChannel();

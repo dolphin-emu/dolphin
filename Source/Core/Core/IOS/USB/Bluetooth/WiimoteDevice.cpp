@@ -116,18 +116,6 @@ void WiimoteDevice::DoState(PointerWrap& p)
 
   p.Do(m_channel);
 }
-
-//
-//
-//
-//
-// ---  Simple and ugly state machine
-//
-//
-//
-//
-//
-
 bool WiimoteDevice::LinkChannel()
 {
   if (m_connection_state != ConnectionState::Linking)
@@ -186,16 +174,6 @@ bool WiimoteDevice::LinkChannel()
   return false;
 }
 
-//
-//
-//
-//
-// ---  Events
-//
-//
-//
-//
-//
 void WiimoteDevice::Activate(bool ready)
 {
   if (ready && (m_connection_state == ConnectionState::Inactive))
@@ -242,21 +220,9 @@ void WiimoteDevice::ResetChannels()
   m_hid_interrupt_channel = {};
 }
 
-//
-//
-//
-//
-// ---  Input parsing
-//
-//
-//
-//
-//
-
 // This function receives L2CAP commands from the CPU
 void WiimoteDevice::ExecuteL2capCmd(u8* ptr, u32 size)
 {
-  // parse the command
   l2cap_hdr_t* header = (l2cap_hdr_t*)ptr;
   u8* data = ptr + sizeof(l2cap_hdr_t);
   const u32 data_size = size - sizeof(l2cap_hdr_t);
@@ -364,17 +330,6 @@ void WiimoteDevice::SignalChannel(u8* data, u32 size)
     data += cmd_hdr->length;
   }
 }
-
-//
-//
-//
-//
-// ---  Receive Commands from CPU
-//
-//
-//
-//
-//
 
 void WiimoteDevice::ReceiveConnectionReq(u8 ident, u8* data, u32 size)
 {
@@ -543,17 +498,6 @@ void WiimoteDevice::ReceiveDisconnectionReq(u8 ident, u8* data, u32 size)
   SendCommandToACL(ident, L2CAP_DISCONNECT_RSP, sizeof(l2cap_discon_req_cp), (u8*)&rsp);
 }
 
-//
-//
-//
-//
-// ---  Send Commands To CPU
-//
-//
-//
-//
-//
-
 // We assume Wiimote is always connected
 void WiimoteDevice::SendConnectionRequest(u16 scid, u16 psm)
 {
@@ -642,17 +586,6 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
 
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
-
-//
-//
-//
-//
-// ---  SDP
-//
-//
-//
-//
-//
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09
@@ -848,17 +781,6 @@ void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
     break;
   }
 }
-
-//
-//
-//
-//
-// ---  Data Send Functions
-//
-//
-//
-//
-//
 
 void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data)
 {
