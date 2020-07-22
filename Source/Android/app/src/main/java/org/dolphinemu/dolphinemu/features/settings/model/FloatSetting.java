@@ -23,18 +23,40 @@ public enum FloatSetting implements AbstractFloatSetting
   @Override
   public boolean delete(Settings settings)
   {
-    return settings.getSection(mFile, mSection).delete(mKey);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).delete(mKey);
+    }
   }
 
   @Override
   public float getFloat(Settings settings)
   {
-    return settings.getSection(mFile, mSection).getFloat(mKey, mDefaultValue);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      return NativeConfig.getFloat(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
+              mDefaultValue);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).getFloat(mKey, mDefaultValue);
+    }
   }
 
   @Override
   public void setFloat(Settings settings, float newValue)
   {
-    settings.getSection(mFile, mSection).setFloat(mKey, newValue);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      NativeConfig.setFloat(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
+    }
+    else
+    {
+      settings.getSection(mFile, mSection).setFloat(mKey, newValue);
+    }
   }
 }

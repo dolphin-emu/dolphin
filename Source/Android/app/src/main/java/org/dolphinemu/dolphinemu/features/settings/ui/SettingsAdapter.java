@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
@@ -335,7 +335,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
     {
-      new LegacyBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
+      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
               false).setBoolean(settings, value);
     }
 

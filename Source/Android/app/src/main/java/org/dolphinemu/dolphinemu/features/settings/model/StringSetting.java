@@ -36,18 +36,40 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public boolean delete(Settings settings)
   {
-    return settings.getSection(mFile, mSection).delete(mKey);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).delete(mKey);
+    }
   }
 
   @Override
   public String getString(Settings settings)
   {
-    return settings.getSection(mFile, mSection).getString(mKey, mDefaultValue);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      return NativeConfig.getString(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
+              mDefaultValue);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).getString(mKey, mDefaultValue);
+    }
   }
 
   @Override
   public void setString(Settings settings, String newValue)
   {
-    settings.getSection(mFile, mSection).setString(mKey, newValue);
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    {
+      NativeConfig.setString(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
+    }
+    else
+    {
+      settings.getSection(mFile, mSection).setString(mKey, newValue);
+    }
   }
 }

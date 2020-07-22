@@ -1,6 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.LegacyBooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class LogCheckBoxSetting extends CheckBoxSetting
@@ -9,7 +9,7 @@ public class LogCheckBoxSetting extends CheckBoxSetting
 
   public LogCheckBoxSetting(String key, int titleId, int descriptionId)
   {
-    super(new LegacyBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, key, false),
+    super(new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, key, false),
             titleId, descriptionId);
     mKey = key;
   }

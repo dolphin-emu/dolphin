@@ -59,7 +59,7 @@ public class Settings
 
   private IniFile getGameSpecificFile()
   {
-    if (TextUtils.isEmpty(gameId) || mIniFiles.size() != 1)
+    if (!isGameSpecific() || mIniFiles.size() != 1)
       throw new IllegalStateException();
 
     return mIniFiles.get(GAME_SETTINGS_PLACEHOLDER_FILE_NAME);
@@ -67,7 +67,7 @@ public class Settings
 
   public IniFile.Section getSection(String fileName, String sectionName)
   {
-    if (TextUtils.isEmpty(gameId))
+    if (!isGameSpecific())
     {
       return mIniFiles.get(fileName).getOrCreateSection(sectionName);
     }
@@ -76,6 +76,11 @@ public class Settings
       return getGameSpecificFile()
               .getOrCreateSection(SettingsFile.mapSectionNameFromIni(sectionName));
     }
+  }
+
+  public boolean isGameSpecific()
+  {
+    return !TextUtils.isEmpty(gameId);
   }
 
   public boolean isEmpty()
@@ -87,7 +92,7 @@ public class Settings
   {
     mIniFiles = new HashMap<>();
 
-    if (TextUtils.isEmpty(gameId))
+    if (!isGameSpecific())
     {
       loadDolphinSettings(view);
     }
@@ -129,7 +134,7 @@ public class Settings
 
   public void saveSettings(SettingsActivityView view, Context context)
   {
-    if (TextUtils.isEmpty(gameId))
+    if (!isGameSpecific())
     {
       if (context != null)
         Toast.makeText(context, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
@@ -138,6 +143,8 @@ public class Settings
       {
         SettingsFile.saveFile(entry.getKey(), entry.getValue(), view);
       }
+
+      NativeConfig.save(NativeConfig.LAYER_BASE_OR_CURRENT);
 
       // Notify the native code of the changes
       NativeLibrary.ReloadConfig();
@@ -190,7 +197,7 @@ public class Settings
     // possible to know which lines were added intentionally by the user and which lines were added
     // unintentionally, which is why we have to delete the whole file in order to fix everything.
 
-    if (TextUtils.isEmpty(gameId))
+    if (!isGameSpecific())
       return false;
 
     return getSection(Settings.FILE_DOLPHIN, SECTION_INI_INTERFACE).exists("ThemeName");

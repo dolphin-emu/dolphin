@@ -5,6 +5,7 @@ add_library(main SHARED
   GameList/GameFileCache.cpp
   IniFile.cpp
   MainAndroid.cpp
+  NativeConfig.cpp
 )
 
 target_link_libraries(main
