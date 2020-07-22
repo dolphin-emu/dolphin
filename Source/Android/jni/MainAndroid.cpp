@@ -63,7 +63,7 @@
 
 namespace
 {
-static constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
+constexpr char DOLPHIN_TAG[] = "DolphinEmuNative";
 
 ANativeWindow* s_surf;
 IniFile s_ini;
@@ -157,7 +157,7 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   return result != JNI_FALSE;
 }
 
-static void ReportSend(std::string endpoint, std::string report)
+static void ReportSend(const std::string& endpoint, const std::string& report)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
@@ -169,11 +169,11 @@ static void ReportSend(std::string endpoint, std::string report)
                             ToJString(env, endpoint), output_array);
 }
 
-static std::string GetAnalyticValue(std::string key)
+static std::string GetAnalyticValue(const std::string& key)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
-  jstring value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
+  auto value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
       IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), ToJString(env, key)));
 
   std::string stdvalue = GetJString(env, value);
@@ -329,13 +329,13 @@ JNIEXPORT double JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetInputRa
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, Common::scm_rev_str.c_str());
+  return ToJString(env, Common::scm_rev_str);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetGitRevision(JNIEnv* env,
                                                                                       jobject obj)
 {
-  return ToJString(env, Common::scm_rev_git_str.c_str());
+  return ToJString(env, Common::scm_rev_git_str);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -372,12 +372,12 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserSe
   std::string section = GetJString(env, jSection);
   std::string key = GetJString(env, jKey);
 
-  ini = SConfig::GetInstance().LoadGameIni(gameid, 0);
+  ini = SConfig::LoadGameIni(gameid, 0);
   std::string value;
 
   ini.GetOrCreateSection(section)->Get(key, &value, "-1");
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_NewGameIniFile(JNIEnv* env,
@@ -457,7 +457,7 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetConfig
 
   ini.GetOrCreateSection(section)->Get(key, &value, defaultValue);
 
-  return ToJString(env, value.c_str());
+  return ToJString(env, value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetConfig(
@@ -533,7 +533,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
                                                                                         jobject obj)
 {
-  return ToJString(env, File::GetUserPath(D_USER_IDX).c_str());
+  return ToJString(env, File::GetUserPath(D_USER_IDX));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDirectory(
@@ -683,7 +683,8 @@ static float GetRenderSurfaceScale(JNIEnv* env)
 }
 
 static void Run(JNIEnv* env, const std::vector<std::string>& paths,
-                std::optional<std::string> savestate_path = {}, bool delete_savestate = false)
+                const std::optional<std::string>& savestate_path = {},
+                bool delete_savestate = false)
 {
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());

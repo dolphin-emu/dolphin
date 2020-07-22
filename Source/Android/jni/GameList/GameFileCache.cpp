@@ -89,7 +89,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_up
 
   for (jsize i = 0; i < size; ++i)
   {
-    const jstring path = reinterpret_cast<jstring>(env->GetObjectArrayElement(folder_paths, i));
+    const auto path = reinterpret_cast<jstring>(env->GetObjectArrayElement(folder_paths, i));
     folder_paths_vector.push_back(GetJString(env, path));
     env->DeleteLocalRef(path);
   }
