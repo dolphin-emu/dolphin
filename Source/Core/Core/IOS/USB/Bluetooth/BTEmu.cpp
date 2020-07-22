@@ -1170,8 +1170,6 @@ void BluetoothEmu::CommandCreateCon(const u8* input)
   DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", create_connection.bdaddr[0],
             create_connection.bdaddr[1], create_connection.bdaddr[2], create_connection.bdaddr[3],
             create_connection.bdaddr[4], create_connection.bdaddr[5]);
-  INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");
-
   DEBUG_LOG(IOS_WIIMOTE, "  pkt_type: %i", create_connection.pkt_type);
   DEBUG_LOG(IOS_WIIMOTE, "  page_scan_rep_mode: %i", create_connection.page_scan_rep_mode);
   DEBUG_LOG(IOS_WIIMOTE, "  page_scan_mode: %i", create_connection.page_scan_mode);
