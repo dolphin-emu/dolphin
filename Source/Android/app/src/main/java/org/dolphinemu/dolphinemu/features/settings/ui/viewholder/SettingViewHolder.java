@@ -1,11 +1,16 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+
+import android.graphics.Paint;
 import android.graphics.Typeface;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.recyclerview.widget.RecyclerView;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
@@ -34,6 +39,15 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
   {
     boolean overridden = settingsItem.isOverridden(mAdapter.getSettings());
     textView.setTypeface(null, overridden ? Typeface.BOLD : Typeface.NORMAL);
+
+    if (!settingsItem.isEditable())
+      textView.setPaintFlags(textView.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+  }
+
+  protected static void showNotRuntimeEditableError()
+  {
+    Toast.makeText(DolphinApplication.getAppContext(), R.string.setting_not_runtime_editable,
+            Toast.LENGTH_SHORT).show();
   }
 
   /**

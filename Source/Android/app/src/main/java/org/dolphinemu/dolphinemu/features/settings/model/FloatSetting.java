@@ -30,6 +30,12 @@ public enum FloatSetting implements AbstractFloatSetting
   }
 
   @Override
+  public boolean isRuntimeEditable()
+  {
+    return NativeConfig.isSettingSaveable(mFile, mSection, mKey);
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))

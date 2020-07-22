@@ -4,5 +4,7 @@ public interface AbstractSetting
 {
   boolean isOverridden(Settings settings);
 
+  boolean isRuntimeEditable();
+
   boolean delete(Settings settings);
 }

@@ -1,5 +1,9 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public enum BooleanSetting implements AbstractBooleanSetting
 {
   // These entries have the same names and order as in C++, just for consistency.
@@ -94,6 +98,17 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_JIT_REGISTER_CACHE_OFF(Settings.FILE_DOLPHIN, Settings.SECTION_DEBUG, "JitRegisterCacheOff",
           false);
 
+  private static final BooleanSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new BooleanSetting[]{
+          MAIN_DSP_HLE,
+          MAIN_CPU_THREAD,
+          MAIN_OVERRIDE_REGION_SETTINGS,
+          MAIN_WII_SD_CARD,  // Can actually be changed, but specific code is required
+          MAIN_DSP_JIT
+  };
+
+  private static final Set<BooleanSetting> NOT_RUNTIME_EDITABLE =
+          new HashSet<>(Arrays.asList(NOT_RUNTIME_EDITABLE_ARRAY));
+
   private final String mFile;
   private final String mSection;
   private final String mKey;
@@ -114,6 +129,18 @@ public enum BooleanSetting implements AbstractBooleanSetting
       return settings.getSection(mFile, mSection).exists(mKey);
     else
       return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
+  public boolean isRuntimeEditable()
+  {
+    for (BooleanSetting setting : NOT_RUNTIME_EDITABLE)
+    {
+      if (setting == this)
+        return false;
+    }
+
+    return NativeConfig.isSettingSaveable(mFile, mSection, mKey);
   }
 
   @Override

@@ -301,6 +301,13 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
+      public boolean isRuntimeEditable()
+      {
+        return BooleanSetting.MAIN_DSP_HLE.isRuntimeEditable() &&
+                BooleanSetting.MAIN_DSP_JIT.isRuntimeEditable();
+      }
+
+      @Override
       public boolean delete(Settings settings)
       {
         // Not short circuiting

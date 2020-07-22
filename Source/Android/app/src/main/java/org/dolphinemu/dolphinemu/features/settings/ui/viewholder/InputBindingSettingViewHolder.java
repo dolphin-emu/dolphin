@@ -51,6 +51,12 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     getAdapter().onInputBindingClick(mItem, getAdapterPosition());
 
     setStyle(mTextSettingName, mItem);

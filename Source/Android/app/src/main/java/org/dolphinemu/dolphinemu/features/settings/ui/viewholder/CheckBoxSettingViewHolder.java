@@ -66,6 +66,12 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     mCheckbox.toggle();
 
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());

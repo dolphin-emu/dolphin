@@ -34,6 +34,8 @@ import androidx.fragment.app.FragmentManager;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
@@ -101,7 +103,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS})
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SETTINGS_CORE,
+          MENU_ACTION_SETTINGS_GRAPHICS})
   public @interface MenuAction
   {
   }
@@ -140,6 +143,8 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_PAUSE_EMULATION = 31;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
+  public static final int MENU_ACTION_SETTINGS_CORE = 34;
+  public static final int MENU_ACTION_SETTINGS_GRAPHICS = 35;
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -646,6 +651,14 @@ public final class EmulationActivity extends AppCompatActivity
 
       case MENU_ACTION_MOTION_CONTROLS:
         showMotionControlsOptions();
+        return;
+
+      case MENU_ACTION_SETTINGS_CORE:
+        SettingsActivity.launch(this, MenuTag.CONFIG);
+        return;
+
+      case MENU_ACTION_SETTINGS_GRAPHICS:
+        SettingsActivity.launch(this, MenuTag.GRAPHICS);
         return;
 
       case MENU_ACTION_EXIT:

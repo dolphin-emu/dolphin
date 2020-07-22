@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
@@ -66,5 +67,14 @@ public abstract class SettingsItem
   {
     AbstractSetting setting = getSetting();
     return setting != null && setting.isOverridden(settings);
+  }
+
+  public boolean isEditable()
+  {
+    if (!NativeLibrary.IsRunning())
+      return true;
+
+    AbstractSetting setting = getSetting();
+    return setting != null && setting.isRuntimeEditable();
   }
 }

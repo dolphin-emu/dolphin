@@ -52,6 +52,12 @@ public final class FilePickerViewHolder extends SettingViewHolder
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
       getAdapter().onFilePickerDirectoryClick(mItem);

@@ -20,6 +20,12 @@ public class AbstractLegacySetting implements AbstractSetting
   }
 
   @Override
+  public boolean isRuntimeEditable()
+  {
+    return false;
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     return settings.getSection(mFile, mSection).delete(mKey);

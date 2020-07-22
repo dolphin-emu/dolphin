@@ -31,6 +31,16 @@
             android:orientation="vertical">
 
             <Button
+                android:id="@+id/menu_settings_core"
+                android:text="@string/grid_menu_config"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_settings_graphics"
+                android:text="@string/grid_menu_graphics_settings"
+                style="@style/InGameMenuOption"/>
+
+            <Button
                 android:id="@+id/menu_pause_emulation"
                 android:text="@string/pause_emulation"
                 style="@style/InGameMenuOption"/>

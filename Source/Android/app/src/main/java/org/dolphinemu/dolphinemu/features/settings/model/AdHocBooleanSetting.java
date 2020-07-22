@@ -27,6 +27,12 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
+  public boolean isRuntimeEditable()
+  {
+    return true;
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);

@@ -50,6 +50,9 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             .append(R.id.menu_screen_orientation, EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+    buttonsActionsMap.append(R.id.menu_settings_core, EmulationActivity.MENU_ACTION_SETTINGS_CORE);
+    buttonsActionsMap.append(R.id.menu_settings_graphics,
+            EmulationActivity.MENU_ACTION_SETTINGS_GRAPHICS);
   }
 
   public static MenuFragment newInstance(String title)
@@ -82,15 +85,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
 
     updatePauseUnpauseVisibility();
-
-    Settings settings = ((EmulationActivity) getActivity()).getSettings();
-    if (BooleanSetting.MAIN_ENABLE_SAVESTATES.getBoolean(settings))
-    {
-      options.findViewById(R.id.menu_quicksave).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_quickload).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_emulation_save_root).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_emulation_load_root).setVisibility(View.VISIBLE);
-    }
 
     PackageManager packageManager = requireActivity().getPackageManager();
 
@@ -144,6 +138,22 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     }
 
     return rootView;
+  }
+
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+
+    LinearLayout options = requireView().findViewById(R.id.layout_options);
+
+    Settings settings = ((EmulationActivity) requireActivity()).getSettings();
+    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBoolean(settings);
+    int savestateVisibility = savestatesEnabled ? View.VISIBLE : View.GONE;
+    options.findViewById(R.id.menu_quicksave).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_quickload).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_emulation_save_root).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_emulation_load_root).setVisibility(savestateVisibility);
   }
 
   private void updatePauseUnpauseVisibility()

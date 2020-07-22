@@ -105,6 +105,10 @@ public class Settings implements Closeable
     }
     else
     {
+      // Loading game INIs while the core is running will mess with the game INIs loaded by the core
+      if (NativeLibrary.IsRunning())
+        throw new IllegalStateException("Attempted to load game INI while emulating");
+
       NativeConfig.loadGameInis(mGameId, mRevision);
       loadCustomGameSettings(mGameId, view);
     }
@@ -155,9 +159,14 @@ public class Settings implements Closeable
 
       NativeConfig.save(NativeConfig.LAYER_BASE_OR_CURRENT);
 
-      // Notify the native code of the changes
-      NativeLibrary.ReloadConfig();
-      NativeLibrary.ReloadWiimoteConfig();
+      if (!NativeLibrary.IsRunning())
+      {
+        // Notify the native code of the changes to legacy settings
+        NativeLibrary.ReloadConfig();
+        NativeLibrary.ReloadWiimoteConfig();
+      }
+
+      // LogManager does use the new config system, but doesn't pick up on changes automatically
       NativeLibrary.ReloadLoggerConfig();
       NativeLibrary.UpdateGCAdapterScanThread();
 

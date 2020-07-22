@@ -2,6 +2,10 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public enum IntSetting implements AbstractIntSetting
 {
   // These entries have the same names and order as in C++, just for consistency.
@@ -34,6 +38,16 @@ public enum IntSetting implements AbstractIntSetting
 
   LOGGER_VERBOSITY(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_OPTIONS, "Verbosity", 1);
 
+  private static final IntSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new IntSetting[]{
+          MAIN_CPU_CORE,
+          MAIN_GC_LANGUAGE,
+          MAIN_SLOT_A,  // Can actually be changed, but specific code is required
+          MAIN_SLOT_B,  // Can actually be changed, but specific code is required
+  };
+
+  private static final Set<IntSetting> NOT_RUNTIME_EDITABLE =
+          new HashSet<>(Arrays.asList(NOT_RUNTIME_EDITABLE_ARRAY));
+
   private final String mFile;
   private final String mSection;
   private final String mKey;
@@ -54,6 +68,18 @@ public enum IntSetting implements AbstractIntSetting
       return settings.getSection(mFile, mSection).exists(mKey);
     else
       return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
+  public boolean isRuntimeEditable()
+  {
+    for (IntSetting setting : NOT_RUNTIME_EDITABLE)
+    {
+      if (setting == this)
+        return false;
+    }
+
+    return NativeConfig.isSettingSaveable(mFile, mSection, mKey);
   }
 
   @Override

@@ -56,6 +56,12 @@ public final class SliderViewHolder extends SettingViewHolder
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     getAdapter().onSliderClick(mItem, getAdapterPosition());
 
     setStyle(mTextSettingName, mItem);

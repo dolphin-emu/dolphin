@@ -87,6 +87,12 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     int position = getAdapterPosition();
     if (mItem instanceof SingleChoiceSetting)
     {

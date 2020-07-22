@@ -2,6 +2,10 @@ package org.dolphinemu.dolphinemu.features.settings.model;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public enum StringSetting implements AbstractStringSetting
 {
   // These entries have the same names and order as in C++, just for consistency.
@@ -19,6 +23,13 @@ public enum StringSetting implements AbstractStringSetting
 
   GFX_ENHANCE_POST_SHADER(Settings.FILE_GFX, Settings.SECTION_GFX_ENHANCEMENTS,
           "PostProcessingShader", "");
+
+  private static final StringSetting[] NOT_RUNTIME_EDITABLE_ARRAY = new StringSetting[]{
+          MAIN_GFX_BACKEND,
+  };
+
+  private static final Set<StringSetting> NOT_RUNTIME_EDITABLE =
+          new HashSet<>(Arrays.asList(NOT_RUNTIME_EDITABLE_ARRAY));
 
   private final String mFile;
   private final String mSection;
@@ -40,6 +51,18 @@ public enum StringSetting implements AbstractStringSetting
       return settings.getSection(mFile, mSection).exists(mKey);
     else
       return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
+  public boolean isRuntimeEditable()
+  {
+    for (StringSetting setting : NOT_RUNTIME_EDITABLE)
+    {
+      if (setting == this)
+        return false;
+    }
+
+    return NativeConfig.isSettingSaveable(mFile, mSection, mKey);
   }
 
   @Override
