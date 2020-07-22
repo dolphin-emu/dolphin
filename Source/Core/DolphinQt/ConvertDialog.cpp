@@ -84,7 +84,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
   grid_layout->addWidget(new QLabel(tr("Remove Junk Data (Irreversible):")), 4, 0);
   grid_layout->addWidget(m_scrub, 4, 1);
 
-  QPushButton* convert_button = new QPushButton(tr("Convert"));
+  QPushButton* convert_button = new QPushButton(tr("Convert..."));
 
   QVBoxLayout* options_layout = new QVBoxLayout;
   options_layout->addLayout(grid_layout);
