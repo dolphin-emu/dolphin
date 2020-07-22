@@ -92,5 +92,9 @@ ObjCSpaceAfterProperty: false
 ObjCSpaceBeforeProtocolList: true
 BraceWrapping:
   AfterObjCDeclaration: true
+---
+# Java Specific Config
+Language:        Java
+BreakAfterJavaFieldAnnotations: true
 ...
 
