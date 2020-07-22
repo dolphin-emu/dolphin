@@ -49,7 +49,7 @@ ConvertDialog::ConvertDialog(QList<std::shared_ptr<const UICommon::GameFile>> fi
 {
   ASSERT(!m_files.empty());
 
-  setWindowTitle(tr("Convert"));
+  setWindowTitle(tr("Convert..."));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   QGridLayout* grid_layout = new QGridLayout;
