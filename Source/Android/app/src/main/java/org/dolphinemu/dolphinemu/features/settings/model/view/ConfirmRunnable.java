@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+
 public final class ConfirmRunnable extends SettingsItem
 {
   private int mAlertText;
@@ -34,5 +36,11 @@ public final class ConfirmRunnable extends SettingsItem
   public int getType()
   {
     return TYPE_CONFIRM_RUNNABLE;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return null;
   }
 }

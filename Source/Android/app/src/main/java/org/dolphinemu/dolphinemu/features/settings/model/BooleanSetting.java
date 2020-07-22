@@ -108,6 +108,15 @@ public enum BooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
+  public boolean isOverridden(Settings settings)
+  {
+    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+      return settings.getSection(mFile, mSection).exists(mKey);
+    else
+      return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))

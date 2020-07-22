@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
@@ -34,5 +35,11 @@ public final class FilePicker extends SettingsItem
   public int getType()
   {
     return TYPE_FILE_PICKER;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

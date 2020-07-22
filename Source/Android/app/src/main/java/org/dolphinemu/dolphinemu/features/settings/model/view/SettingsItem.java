@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 
 /**
@@ -57,4 +59,12 @@ public abstract class SettingsItem
    * @return An integer (ideally, one of the constants defined in this file)
    */
   public abstract int getType();
+
+  protected abstract AbstractSetting getSetting();
+
+  public boolean isOverridden(Settings settings)
+  {
+    AbstractSetting setting = getSetting();
+    return setting != null && setting.isOverridden(settings);
+  }
 }

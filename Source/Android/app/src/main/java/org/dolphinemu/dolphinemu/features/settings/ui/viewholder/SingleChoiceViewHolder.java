@@ -80,6 +80,8 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
         }
       }
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
@@ -99,5 +101,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       getAdapter().onSingleChoiceDynamicDescriptionsClick(
               (SingleChoiceSettingDynamicDescriptions) mItem, position);
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 }

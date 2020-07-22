@@ -21,6 +21,12 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
+  public boolean isOverridden(Settings settings)
+  {
+    return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);

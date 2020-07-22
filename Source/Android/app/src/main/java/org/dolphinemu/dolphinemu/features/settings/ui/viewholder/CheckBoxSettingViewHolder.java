@@ -59,6 +59,8 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     }
 
     mCheckbox.setChecked(mItem.isChecked(getAdapter().getSettings()));
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
@@ -67,5 +69,7 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     mCheckbox.toggle();
 
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
+
+    setStyle(mTextSettingName, mItem);
   }
 }

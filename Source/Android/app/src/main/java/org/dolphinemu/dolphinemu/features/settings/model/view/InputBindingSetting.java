@@ -6,6 +6,7 @@ import android.view.InputDevice;
 import android.view.KeyEvent;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class InputBindingSetting extends SettingsItem
@@ -92,5 +93,11 @@ public class InputBindingSetting extends SettingsItem
   public String getGameId()
   {
     return mGameId;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return null;
   }
 }

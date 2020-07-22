@@ -13,6 +13,8 @@ public class NativeConfig
 
   public static native void save(int layer);
 
+  public static native boolean isOverridden(String file, String section, String key);
+
   public static native boolean deleteKey(int layer, String file, String section, String key);
 
   public static native String getString(int layer, String file, String section, String key,

@@ -14,6 +14,12 @@ public class AbstractLegacySetting implements AbstractSetting
   }
 
   @Override
+  public boolean isOverridden(Settings settings)
+  {
+    return settings.isGameSpecific() && settings.getSection(mFile, mSection).exists(mKey);
+  }
+
+  @Override
   public boolean delete(Settings settings)
   {
     return settings.getSection(mFile, mSection).delete(mKey);

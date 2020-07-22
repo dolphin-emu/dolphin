@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
@@ -101,6 +102,12 @@ public class StringSingleChoiceSetting extends SettingsItem
   public int getType()
   {
     return TYPE_STRING_SINGLE_CHOICE;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }
 

@@ -113,6 +113,15 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_Na
 }
 
 JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_isOverridden(
+    JNIEnv* env, jclass obj, jstring file, jstring section, jstring key)
+{
+  const Config::Location location = GetLocation(env, file, section, key);
+  const bool result = Config::GetActiveLayerForConfig(location) != Config::LayerType::Base;
+  return static_cast<jboolean>(result);
+}
+
+JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_deleteKey(
     JNIEnv* env, jclass obj, jint layer, jstring file, jstring section, jstring key)
 {

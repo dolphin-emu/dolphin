@@ -1,6 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+import android.graphics.Typeface;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -26,6 +28,12 @@ public abstract class SettingViewHolder extends RecyclerView.ViewHolder
   protected SettingsAdapter getAdapter()
   {
     return mAdapter;
+  }
+
+  protected void setStyle(TextView textView, SettingsItem settingsItem)
+  {
+    boolean overridden = settingsItem.isOverridden(mAdapter.getSettings());
+    textView.setTypeface(null, overridden ? Typeface.BOLD : Typeface.NORMAL);
   }
 
   /**

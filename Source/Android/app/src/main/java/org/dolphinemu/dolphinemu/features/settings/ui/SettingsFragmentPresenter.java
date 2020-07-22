@@ -294,6 +294,13 @@ public final class SettingsFragmentPresenter
       }
 
       @Override
+      public boolean isOverridden(Settings settings)
+      {
+        return BooleanSetting.MAIN_DSP_HLE.isOverridden(settings) ||
+                BooleanSetting.MAIN_DSP_JIT.isOverridden(settings);
+      }
+
+      @Override
       public boolean delete(Settings settings)
       {
         // Not short circuiting

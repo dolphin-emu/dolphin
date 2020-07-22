@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class CheckBoxSetting extends SettingsItem
@@ -27,5 +28,11 @@ public class CheckBoxSetting extends SettingsItem
   public int getType()
   {
     return TYPE_CHECKBOX;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

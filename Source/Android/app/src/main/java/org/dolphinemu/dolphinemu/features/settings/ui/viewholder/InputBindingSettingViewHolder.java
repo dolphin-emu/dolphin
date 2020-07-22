@@ -44,11 +44,15 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
     mTextSettingName.setText(mItem.getNameId());
     mTextSettingDescription
             .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
     getAdapter().onInputBindingClick(mItem, getAdapterPosition());
+
+    setStyle(mTextSettingName, mItem);
   }
 }

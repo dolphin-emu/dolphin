@@ -45,6 +45,8 @@ public final class FilePickerViewHolder extends SettingViewHolder
     {
       mTextSettingDescription.setText(mFilePicker.getSelectedValue(getAdapter().getSettings()));
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
@@ -58,5 +60,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
     {
       getAdapter().onFilePickerFileClick(mItem);
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 }
