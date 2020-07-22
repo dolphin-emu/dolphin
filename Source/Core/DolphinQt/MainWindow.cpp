@@ -1705,10 +1705,12 @@ void MainWindow::OnConnectWiiRemote(int id)
   if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
   Core::RunAsCPUThread([&] {
-    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    const bool is_connected = bt && bt->AccessWiimoteByIndex(id)->IsConnected();
-    Wiimote::Connect(id, !is_connected);
+    if (const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+            ios->GetDeviceByName("/dev/usb/oh1/57e/305")))
+    {
+      const auto wm = bt->AccessWiimoteByIndex(id);
+      wm->Activate(!wm->IsConnected());
+    }
   });
 }
 

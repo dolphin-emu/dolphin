@@ -15,6 +15,9 @@
 
 namespace WiimoteReal
 {
+constexpr u16 L2CAP_PSM_HID_CNTL = 0x0011;
+constexpr u16 L2CAP_PSM_HID_INTR = 0x0013;
+
 WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 {
   // Get the id of the first Bluetooth device.
@@ -139,8 +142,8 @@ bool WiimoteLinux::ConnectInternal()
   addr.l2_bdaddr = m_bdaddr;
   addr.l2_cid = 0;
 
-  // Output channel
-  addr.l2_psm = htobs(WC_OUTPUT);
+  // Control channel
+  addr.l2_psm = htobs(L2CAP_PSM_HID_CNTL);
   if ((m_cmd_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
@@ -149,7 +152,7 @@ bool WiimoteLinux::ConnectInternal()
       // If opening channel fails sleep and try again
       if (retry == 3)
       {
-        WARN_LOG(WIIMOTE, "Unable to connect output channel to Wiimote: %s", strerror(errno));
+        WARN_LOG(WIIMOTE, "Unable to connect control channel of Wiimote: %s", strerror(errno));
         close(m_cmd_sock);
         m_cmd_sock = -1;
         return false;
@@ -160,12 +163,12 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open output socket to Wiimote: %s", strerror(errno));
+    WARN_LOG(WIIMOTE, "Unable to open control socket to Wiimote: %s", strerror(errno));
     return false;
   }
 
-  // Input channel
-  addr.l2_psm = htobs(WC_INPUT);
+  // Interrupt channel
+  addr.l2_psm = htobs(L2CAP_PSM_HID_INTR);
   if ((m_int_sock = socket(AF_BLUETOOTH, SOCK_SEQPACKET, BTPROTO_L2CAP)))
   {
     int retry = 0;
@@ -174,7 +177,7 @@ bool WiimoteLinux::ConnectInternal()
       // If opening channel fails sleep and try again
       if (retry == 3)
       {
-        WARN_LOG(WIIMOTE, "Unable to connect input channel to Wiimote: %s", strerror(errno));
+        WARN_LOG(WIIMOTE, "Unable to connect interrupt channel of Wiimote: %s", strerror(errno));
         close(m_int_sock);
         close(m_cmd_sock);
         m_int_sock = m_cmd_sock = -1;
@@ -186,7 +189,7 @@ bool WiimoteLinux::ConnectInternal()
   }
   else
   {
-    WARN_LOG(WIIMOTE, "Unable to open input socket from Wiimote: %s", strerror(errno));
+    WARN_LOG(WIIMOTE, "Unable to open interrupt socket to Wiimote: %s", strerror(errno));
     close(m_cmd_sock);
     m_int_sock = m_cmd_sock = -1;
     return false;

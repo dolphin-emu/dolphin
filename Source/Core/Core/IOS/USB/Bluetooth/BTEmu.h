@@ -52,16 +52,18 @@ public:
   void Update() override;
 
   // Send ACL data back to Bluetooth stack
-  void SendACLPacket(u16 connection_handle, const u8* data, u32 size);
+  void SendACLPacket(const bdaddr_t& source, const u8* data, u32 size);
 
-  bool RemoteDisconnect(u16 connection_handle);
+  // Returns true if controller is configured to see the connection request.
+  bool RemoteConnect(WiimoteDevice&);
+  bool RemoteDisconnect(const bdaddr_t& address);
 
   WiimoteDevice* AccessWiimoteByIndex(std::size_t index);
 
   void DoState(PointerWrap& p) override;
 
 private:
-  std::vector<WiimoteDevice> m_wiimotes;
+  std::vector<std::unique_ptr<WiimoteDevice>> m_wiimotes;
 
   bdaddr_t m_controller_bd{{0x11, 0x02, 0x19, 0x79, 0x00, 0xff}};
 
@@ -100,8 +102,12 @@ private:
   u32 m_packet_count[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
 
+  static u16 GetConnectionHandle(const bdaddr_t&);
+
   WiimoteDevice* AccessWiimote(const bdaddr_t& address);
   WiimoteDevice* AccessWiimote(u16 connection_handle);
+
+  static u32 GetWiimoteNumberFromConnectionHandle(u16 connection_handle);
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 connection_handle);
@@ -115,7 +121,7 @@ private:
   bool SendEventInquiryComplete();
   bool SendEventRemoteNameReq(const bdaddr_t& bd);
   bool SendEventRequestConnection(const WiimoteDevice& wiimote);
-  bool SendEventConnectionComplete(const bdaddr_t& bd);
+  bool SendEventConnectionComplete(const bdaddr_t& bd, u8 status);
   bool SendEventReadClockOffsetComplete(u16 connection_handle);
   bool SendEventConPacketTypeChange(u16 connection_handle, u16 packet_type);
   bool SendEventReadRemoteVerInfo(u16 connection_handle);
@@ -175,8 +181,6 @@ private:
   // OGF 0x3F - Vendor specific
   void CommandVendorSpecific_FC4C(const u8* input, u32 size);
   void CommandVendorSpecific_FC4F(const u8* input, u32 size);
-
-  static void DisplayDisconnectMessage(int wiimote_number, int reason);
 
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10

@@ -85,7 +85,7 @@ void UpdateCalibrationDataChecksum(T& data, int cksum_bytes)
   }
 }
 
-class Wiimote : public ControllerEmu::EmulatedController
+class Wiimote : public ControllerEmu::EmulatedController, public WiimoteCommon::HIDWiimote
 {
 public:
   static constexpr u16 IR_LOW_X = 0x7F;
@@ -124,12 +124,12 @@ public:
   ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
   ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
 
-  void Update();
-  void StepDynamics();
+  void Update() override;
+  void EventLinked() override;
+  void EventUnlinked() override;
+  void InterruptDataOutput(const u8* data, u32 size) override;
+  bool IsButtonPressed() override;
 
-  void InterruptChannel(u16 channel_id, const void* data, u32 size);
-  void ControlChannel(u16 channel_id, const void* data, u32 size);
-  bool CheckForButtonPress();
   void Reset();
 
   void DoState(PointerWrap& p);
@@ -145,6 +145,7 @@ private:
   // This is the region exposed over bluetooth:
   static constexpr int EEPROM_FREE_SIZE = 0x1700;
 
+  void StepDynamics();
   void UpdateButtonsStatus();
 
   // Returns simulated accelerometer data in m/s^2.
@@ -166,8 +167,6 @@ private:
   Common::Vec3 GetTotalAcceleration() const;
   Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;
-
-  void HIDOutputReport(const void* data, u32 size);
 
   void HandleReportRumble(const WiimoteCommon::OutputReportRumble&);
   void HandleReportLeds(const WiimoteCommon::OutputReportLeds&);
@@ -191,7 +190,6 @@ private:
 
   void SetRumble(bool on);
 
-  void CallbackInterruptChannel(const u8* data, u32 size);
   void SendAck(WiimoteCommon::OutputReportID rpt_id, WiimoteCommon::ErrorCode err);
 
   bool IsSideways() const;
@@ -276,7 +274,6 @@ private:
   // Wiimote index, 0-3
   const u8 m_index;
 
-  u16 m_reporting_channel;
   WiimoteCommon::InputReportID m_reporting_mode;
   bool m_reporting_continuous;
 
