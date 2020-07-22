@@ -24,15 +24,18 @@ public class GamePropertiesDialog extends DialogFragment
   public static final String TAG = "GamePropertiesDialog";
   public static final String ARG_PATH = "path";
   public static final String ARG_GAMEID = "game_id";
+  public static final String ARG_REVISION = "revision";
   public static final String ARG_PLATFORM = "platform";
 
-  public static GamePropertiesDialog newInstance(String path, String gameId, int platform)
+  public static GamePropertiesDialog newInstance(String path, String gameId, int revision,
+          int platform)
   {
     GamePropertiesDialog fragment = new GamePropertiesDialog();
 
     Bundle arguments = new Bundle();
     arguments.putString(ARG_PATH, path);
     arguments.putString(ARG_GAMEID, gameId);
+    arguments.putInt(ARG_REVISION, revision);
     arguments.putInt(ARG_PLATFORM, platform);
     fragment.setArguments(arguments);
 
@@ -48,6 +51,7 @@ public class GamePropertiesDialog extends DialogFragment
 
     String path = requireArguments().getString(ARG_PATH);
     String gameId = requireArguments().getString(ARG_GAMEID);
+    int revision = requireArguments().getInt(ARG_REVISION);
     int platform = requireArguments().getInt(ARG_PLATFORM);
 
     builder.setTitle(requireContext()
@@ -63,26 +67,28 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
-                  Settings settings = new Settings();
-                  settings.loadSettings(null);
-                  StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
-                  settings.saveSettings(null, getContext());
+                  try (Settings settings = new Settings())
+                  {
+                    settings.loadSettings(null);
+                    StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
+                    settings.saveSettings(null, getContext());
+                  }
                   break;
                 case 2:
-                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision);
                   break;
                 case 3:
-                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision);
                   break;
                 case 4:
-                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision);
                   break;
                 case 5:
                   // Clear option for GC, Wii controls for else
                   if (platform == Platform.GAMECUBE.toInt())
                     clearGameSettings(gameId);
                   else
-                    SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId);
+                    SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision);
                   break;
                 case 6:
                   clearGameSettings(gameId);

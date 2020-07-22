@@ -364,6 +364,13 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    mSettings.close();
+  }
+
+  @Override
   public void onBackPressed()
   {
     if (!closeSubmenu())

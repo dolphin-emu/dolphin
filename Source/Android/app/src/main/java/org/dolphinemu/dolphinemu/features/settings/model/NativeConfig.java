@@ -7,6 +7,10 @@ public class NativeConfig
 
   public static native boolean isSettingSaveable(String file, String section, String key);
 
+  public static native void loadGameInis(String gameId, int revision);
+
+  public static native void unloadGameInis();
+
   public static native void save(int layer);
 
   public static native boolean deleteKey(int layer, String file, String section, String key);

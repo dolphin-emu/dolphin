@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
 
@@ -83,6 +84,26 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_isSettingSav
 {
   const Config::Location location = GetLocation(env, file, section, key);
   return static_cast<jboolean>(ConfigLoaders::IsSettingSaveable(location));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_loadGameInis(JNIEnv* env,
+                                                                                 jclass obj,
+                                                                                 jstring jGameId,
+                                                                                 jint jRevision)
+{
+  const std::string game_id = GetJString(env, jGameId);
+  const u16 revision = static_cast<u16>(jRevision);
+  Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
+  Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_unloadGameInis(JNIEnv* env,
+                                                                                   jclass obj)
+{
+  Config::RemoveLayer(Config::LayerType::GlobalGame);
+  Config::RemoveLayer(Config::LayerType::LocalGame);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_save(

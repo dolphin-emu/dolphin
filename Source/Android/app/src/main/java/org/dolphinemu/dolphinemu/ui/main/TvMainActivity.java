@@ -145,7 +145,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchSettingsActivity(MenuTag menuTag)
   {
-    SettingsActivity.launch(this, menuTag, "");
+    SettingsActivity.launch(this, menuTag);
   }
 
   @Override

@@ -10,10 +10,11 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 
+import java.io.Closeable;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Settings
+public class Settings implements Closeable
 {
   public static final String FILE_DOLPHIN = "Dolphin";
   public static final String FILE_GFX = "GFX";
@@ -48,7 +49,8 @@ public class Settings
 
   public static final String GAME_SETTINGS_PLACEHOLDER_FILE_NAME = "";
 
-  private String gameId;
+  private String mGameId;
+  private int mRevision;
 
   private static final String[] configFiles = new String[]{FILE_DOLPHIN, FILE_GFX, FILE_LOGGER,
           FILE_WIIMOTE};
@@ -80,7 +82,12 @@ public class Settings
 
   public boolean isGameSpecific()
   {
-    return !TextUtils.isEmpty(gameId);
+    return !TextUtils.isEmpty(mGameId);
+  }
+
+  public int getActiveLayer()
+  {
+    return isGameSpecific() ? NativeConfig.LAYER_LOCAL_GAME : NativeConfig.LAYER_BASE_OR_CURRENT;
   }
 
   public boolean isEmpty()
@@ -98,7 +105,8 @@ public class Settings
     }
     else
     {
-      loadCustomGameSettings(gameId, view);
+      NativeConfig.loadGameInis(mGameId, mRevision);
+      loadCustomGameSettings(mGameId, view);
     }
 
     mLoadedRecursiveIsoPathsValue = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(this);
@@ -126,9 +134,10 @@ public class Settings
     SettingsFile.readWiimoteProfile(gameId, getGameSpecificFile(), padId);
   }
 
-  public void loadSettings(String gameId, SettingsActivityView view)
+  public void loadSettings(String gameId, int revision, SettingsActivityView view)
   {
-    this.gameId = gameId;
+    mGameId = gameId;
+    mRevision = revision;
     loadSettings(view);
   }
 
@@ -163,9 +172,11 @@ public class Settings
       // custom game settings
 
       if (context != null)
-        Toast.makeText(context, "Saved settings for " + gameId, Toast.LENGTH_SHORT).show();
+        Toast.makeText(context, "Saved settings for " + mGameId, Toast.LENGTH_SHORT).show();
 
-      SettingsFile.saveCustomGameSettings(gameId, getGameSpecificFile());
+      SettingsFile.saveCustomGameSettings(mGameId, getGameSpecificFile());
+
+      NativeConfig.save(NativeConfig.LAYER_LOCAL_GAME);
     }
   }
 
@@ -201,5 +212,14 @@ public class Settings
       return false;
 
     return getSection(Settings.FILE_DOLPHIN, SECTION_INI_INTERFACE).exists("ThemeName");
+  }
+
+  @Override
+  public void close()
+  {
+    if (isGameSpecific())
+    {
+      NativeConfig.unloadGameInis();
+    }
   }
 }

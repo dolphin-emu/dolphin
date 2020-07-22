@@ -50,9 +50,9 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public boolean delete(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -63,10 +63,9 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public int getInt(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getInt(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
-              mDefaultValue);
+      return NativeConfig.getInt(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
     }
     else
     {
@@ -77,9 +76,9 @@ public enum IntSetting implements AbstractIntSetting
   @Override
   public void setInt(Settings settings, int newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setInt(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
+      NativeConfig.setInt(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

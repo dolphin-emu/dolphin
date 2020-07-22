@@ -1,12 +1,17 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
-public class AdHocBooleanSetting extends AbstractLegacySetting implements AbstractBooleanSetting
+public class AdHocBooleanSetting implements AbstractBooleanSetting
 {
+  private final String mFile;
+  private final String mSection;
+  private final String mKey;
   private final boolean mDefaultValue;
 
   public AdHocBooleanSetting(String file, String section, String key, boolean defaultValue)
   {
-    super(file, section, key);
+    mFile = file;
+    mSection = section;
+    mKey = key;
     mDefaultValue = defaultValue;
 
     if (!NativeConfig.isSettingSaveable(file, section, key))
@@ -18,40 +23,18 @@ public class AdHocBooleanSetting extends AbstractLegacySetting implements Abstra
   @Override
   public boolean delete(Settings settings)
   {
-    if (!settings.isGameSpecific())
-    {
-      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).delete(mKey);
-    }
+    return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
   }
 
   @Override
   public boolean getBoolean(Settings settings)
   {
-    if (!settings.isGameSpecific())
-    {
-      return NativeConfig.getBoolean(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
-              mDefaultValue);
-    }
-    else
-    {
-      return settings.getSection(mFile, mSection).getBoolean(mKey, mDefaultValue);
-    }
+    return NativeConfig.getBoolean(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setBoolean(Settings settings, boolean newValue)
   {
-    if (!settings.isGameSpecific())
-    {
-      NativeConfig.setBoolean(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
-    }
-    else
-    {
-      settings.getSection(mFile, mSection).setBoolean(mKey, newValue);
-    }
+    NativeConfig.setBoolean(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
   }
 }

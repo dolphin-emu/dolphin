@@ -23,9 +23,9 @@ public enum FloatSetting implements AbstractFloatSetting
   @Override
   public boolean delete(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -36,10 +36,9 @@ public enum FloatSetting implements AbstractFloatSetting
   @Override
   public float getFloat(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getFloat(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
-              mDefaultValue);
+      return NativeConfig.getFloat(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
     }
     else
     {
@@ -50,9 +49,9 @@ public enum FloatSetting implements AbstractFloatSetting
   @Override
   public void setFloat(Settings settings, float newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setFloat(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
+      NativeConfig.setFloat(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

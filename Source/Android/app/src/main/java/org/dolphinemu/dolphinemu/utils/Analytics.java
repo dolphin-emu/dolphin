@@ -30,6 +30,10 @@ public class Analytics
       {
         showMessage(context, settings);
       }
+      else
+      {
+        settings.close();
+      }
     });
   }
 
@@ -56,6 +60,8 @@ public class Analytics
 
     // Context is set to null to avoid toasts
     settings.saveSettings(null, null);
+
+    settings.close();
   }
 
   public static void sendReport(String endpoint, byte[] data)

@@ -36,9 +36,9 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public boolean delete(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -49,9 +49,9 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public String getString(Settings settings)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getString(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey,
+      return NativeConfig.getString(settings.getActiveLayer(), mFile, mSection, mKey,
               mDefaultValue);
     }
     else
@@ -63,9 +63,9 @@ public enum StringSetting implements AbstractStringSetting
   @Override
   public void setString(Settings settings, String newValue)
   {
-    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey) && !settings.isGameSpecific())
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setString(NativeConfig.LAYER_BASE_OR_CURRENT, mFile, mSection, mKey, newValue);
+      NativeConfig.setString(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

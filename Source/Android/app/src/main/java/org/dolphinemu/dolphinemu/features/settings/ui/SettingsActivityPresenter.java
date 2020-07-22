@@ -24,6 +24,7 @@ public final class SettingsActivityPresenter
 
   private MenuTag menuTag;
   private String gameId;
+  private int revision;
   private Context context;
 
   SettingsActivityPresenter(SettingsActivityView view, Settings settings)
@@ -32,13 +33,24 @@ public final class SettingsActivityPresenter
     mSettings = settings;
   }
 
-  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
+  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, int revision,
+          Context context)
   {
     this.menuTag = menuTag;
     this.gameId = gameId;
+    this.revision = revision;
     this.context = context;
 
     mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+  }
+
+  public void onDestroy()
+  {
+    if (mSettings != null)
+    {
+      mSettings.close();
+      mSettings = null;
+    }
   }
 
   public void onStart()
@@ -52,7 +64,7 @@ public final class SettingsActivityPresenter
     {
       if (!TextUtils.isEmpty(gameId))
       {
-        mSettings.loadSettings(gameId, mView);
+        mSettings.loadSettings(gameId, revision, mView);
 
         if (mSettings.gameIniContainsJunk())
         {

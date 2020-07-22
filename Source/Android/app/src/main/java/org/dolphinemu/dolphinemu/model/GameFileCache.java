@@ -81,9 +81,12 @@ public class GameFileCache
    */
   public boolean scanLibrary(Context context)
   {
-    Settings settings = new Settings();
-    settings.loadSettings(null);
-    boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(settings);
+    boolean recursiveScan;
+    try (Settings settings = new Settings())
+    {
+      settings.loadSettings(null);
+      recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(settings);
+    }
 
     removeNonExistentGameFolders(context);
 

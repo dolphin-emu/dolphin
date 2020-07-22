@@ -26,16 +26,27 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 {
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
+  private static final String ARG_REVISION = "revision";
   private static final String FRAGMENT_TAG = "settings";
   private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
-  public static void launch(Context context, MenuTag menuTag, String gameId)
+  public static void launch(Context context, MenuTag menuTag, String gameId, int revision)
   {
     Intent settings = new Intent(context, SettingsActivity.class);
     settings.putExtra(ARG_MENU_TAG, menuTag);
     settings.putExtra(ARG_GAME_ID, gameId);
+    settings.putExtra(ARG_REVISION, revision);
+    context.startActivity(settings);
+  }
+
+  public static void launch(Context context, MenuTag menuTag)
+  {
+    Intent settings = new Intent(context, SettingsActivity.class);
+    settings.putExtra(ARG_MENU_TAG, menuTag);
+    settings.putExtra(ARG_GAME_ID, "");
+    settings.putExtra(ARG_REVISION, 0);
     context.startActivity(settings);
   }
 
@@ -57,10 +68,11 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
+    int revision = launcher.getIntExtra(ARG_REVISION, 0);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
 
     mPresenter = new SettingsActivityPresenter(this, getSettings());
-    mPresenter.onCreate(savedInstanceState, menuTag, gameID, getApplicationContext());
+    mPresenter.onCreate(savedInstanceState, menuTag, gameID, revision, getApplicationContext());
   }
 
   @Override
@@ -95,15 +107,20 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 
   /**
    * If this is called, the user has left the settings screen (potentially through the
-   * home button) and will expect their changes to be persisted. So we kick off an
-   * IntentService which will do so on a background thread.
+   * home button) and will expect their changes to be persisted.
    */
   @Override
   protected void onStop()
   {
     super.onStop();
-
     mPresenter.onStop(isFinishing());
+  }
+
+  @Override
+  protected void onDestroy()
+  {
+    super.onDestroy();
+    mPresenter.onDestroy();
   }
 
   @Override

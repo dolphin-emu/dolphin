@@ -100,9 +100,9 @@ public final class GameRowPresenter extends Presenter
         return true;
       }
 
-      GamePropertiesDialog fragment =
-              GamePropertiesDialog.newInstance(holder.gameFile.getPath(), gameId,
-                      holder.gameFile.getPlatform());
+      GamePropertiesDialog fragment = GamePropertiesDialog.newInstance(holder.gameFile.getPath(),
+              gameId, holder.gameFile.getRevision(), holder.gameFile.getPlatform());
+
       ((FragmentActivity) view.getContext()).getSupportFragmentManager().beginTransaction()
               .add(fragment, GamePropertiesDialog.TAG).commit();
 

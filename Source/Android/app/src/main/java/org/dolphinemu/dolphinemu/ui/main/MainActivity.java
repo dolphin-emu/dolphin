@@ -143,7 +143,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   @Override
   public void launchSettingsActivity(MenuTag menuTag)
   {
-    SettingsActivity.launch(this, menuTag, "");
+    SettingsActivity.launch(this, menuTag);
   }
 
   @Override
@@ -270,19 +270,23 @@ public final class MainActivity extends AppCompatActivity implements MainView
       {
         super.onTabSelected(tab);
 
-        Settings settings = new Settings();
-        settings.loadSettings(null);
+        try (Settings settings = new Settings())
+        {
+          settings.loadSettings(null);
 
-        IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
+          IntSetting.MAIN_LAST_PLATFORM_TAB.setInt(settings, tab.getPosition());
 
-        // Context is set to null to avoid toasts
-        settings.saveSettings(null, null);
+          // Context is set to null to avoid toasts
+          settings.saveSettings(null, null);
+        }
       }
     });
 
-    Settings settings = new Settings();
-    settings.loadSettings(null);
-    mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
+    try (Settings settings = new Settings())
+    {
+      settings.loadSettings(null);
+      mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
+    }
 
     showGames();
     GameFileCacheService.startLoad(this);
