@@ -4,7 +4,7 @@ matrix:
     - os: linux
       env: NAME="linux appimage"
       sudo: required
-      dist: bionic
+      dist: trusty
       services: docker
       addons:
         apt:
