@@ -25,6 +25,7 @@
     <ClCompile Include="Boot\Boot_WiiWAD.cpp" />
     <ClCompile Include="Boot\DolReader.cpp" />
     <ClCompile Include="Boot\ElfReader.cpp" />
+    <ClCompile Include="Config\FreeLookSettings.cpp" />
     <ClCompile Include="Config\GraphicsSettings.cpp" />
     <ClCompile Include="Config\MainSettings.cpp" />
     <ClCompile Include="Config\NetplaySettings.cpp" />
@@ -83,6 +84,7 @@
     <ClCompile Include="FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
+    <ClCompile Include="FreeLookConfig.cpp" />
     <ClCompile Include="GeckoCode.cpp" />
     <ClCompile Include="GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
@@ -386,6 +388,7 @@
     <ClInclude Include="Boot\ElfReader.h" />
     <ClInclude Include="Boot\ElfTypes.h" />
     <ClInclude Include="CheatCodes.h" />
+    <ClInclude Include="Config\FreeLookSettings.h" />
     <ClInclude Include="Config\GraphicsSettings.h" />
     <ClInclude Include="Config\MainSettings.h" />
     <ClInclude Include="Config\NetplaySettings.h" />
@@ -436,6 +439,7 @@
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
+    <ClInclude Include="FreeLookConfig.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />

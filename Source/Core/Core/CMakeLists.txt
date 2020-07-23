@@ -17,6 +17,8 @@ add_library(core
   CoreTiming.h
   DSPEmulator.cpp
   DSPEmulator.h
+  FreeLookConfig.cpp
+  FreeLookConfig.h
   GeckoCodeConfig.cpp
   GeckoCodeConfig.h
   GeckoCode.cpp
@@ -58,6 +60,8 @@ add_library(core
   Boot/ElfReader.cpp
   Boot/ElfReader.h
   Boot/ElfTypes.h
+  Config/FreeLookSettings.cpp
+  Config/FreeLookSettings.h
   Config/GraphicsSettings.cpp
   Config/GraphicsSettings.h
   Config/MainSettings.cpp

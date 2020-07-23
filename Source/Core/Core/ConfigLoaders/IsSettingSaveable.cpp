@@ -16,8 +16,9 @@ namespace ConfigLoaders
 {
 bool IsSettingSaveable(const Config::Location& config_location)
 {
-  for (Config::System system : {Config::System::SYSCONF, Config::System::GFX,
-                                Config::System::DualShockUDPClient, Config::System::Logger})
+  for (Config::System system :
+       {Config::System::SYSCONF, Config::System::GFX, Config::System::DualShockUDPClient,
+        Config::System::Logger, Config::System::FreeLook})
   {
     if (config_location.system == system)
       return true;
