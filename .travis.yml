@@ -10,7 +10,7 @@ matrix:
         apt:
           packages:
             - p7zip-full
-      install: "./travis/appimage/deps.sh"
+      install: "docker pull quriouspixel/yuzu:latest"
       script: "./travis/appimage/build.sh"
       after_success: "./travis/appimage/appimage.sh"
       cache: ccache
