@@ -1,0 +1,25 @@
+language: cpp
+matrix:
+  include:
+    - os: linux
+      env: NAME="linux appimage"
+      sudo: required
+      dist: bionic
+      services: docker
+      addons:
+        apt:
+          packages:
+            - p7zip-full
+      install: "./.travis/appimage/deps.sh"
+      script: "./.travis/appimage/build.sh"
+      after_success: "./.travis/appimage/appimage.sh"
+      cache: ccache
+deploy:
+  provider: releases
+  api_key:
+    secure: $GITHUB_OAUTH_TOKEN
+  file_glob: true
+  file: "artifacts/*"
+  skip_cleanup: true
+  on:
+    tags: true
