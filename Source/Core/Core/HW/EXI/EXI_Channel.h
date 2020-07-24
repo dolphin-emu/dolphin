@@ -109,6 +109,9 @@ private:
   UEXI_CONTROL m_control;
   u32 m_imm_data = 0;
 
+  // Since channels operate a bit differently from each other
+  u32 m_channel_id;
+
   // This data is needed in order to reinitialize a GCI folder memory card when switching between
   // GCI folder and other devices in the memory card slot or after loading a savestate. Even though
   // this data is only vaguely related to the EXI_Channel, this seems to be the best place to store
@@ -122,8 +125,5 @@ private:
   };
 
   std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_devices;
-
-  // Since channels operate a bit differently from each other
-  u32 m_channel_id;
 };
 }  // namespace ExpansionInterface
