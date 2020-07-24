@@ -6,7 +6,6 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
 
 import android.widget.Toast;
 
@@ -18,6 +17,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
+import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 
@@ -97,12 +97,16 @@ public class GamePropertiesDialog extends DialogFragment
 
   private void clearGameSettings(String gameId)
   {
-    String path =
+    String gameSettingsPath =
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini";
-    File gameSettingsFile = new File(path);
-    if (gameSettingsFile.exists())
+    String gameProfilesPath = DirectoryInitialization.getUserDirectory() + "/Config/Profiles/";
+    File gameSettingsFile = new File(gameSettingsPath);
+    File gameProfilesDirectory = new File(gameProfilesPath);
+    boolean hadGameProfiles = recursivelyDeleteGameProfiles(gameProfilesDirectory, gameId);
+
+    if (gameSettingsFile.exists() || hadGameProfiles)
     {
-      if (gameSettingsFile.delete())
+      if (gameSettingsFile.delete() || hadGameProfiles)
       {
         Toast.makeText(getContext(), "Cleared settings for " + gameId, Toast.LENGTH_SHORT)
                 .show();
@@ -117,5 +121,34 @@ public class GamePropertiesDialog extends DialogFragment
     {
       Toast.makeText(getContext(), "No game settings to delete", Toast.LENGTH_SHORT).show();
     }
+  }
+
+  private boolean recursivelyDeleteGameProfiles(@NonNull final File file, String gameId)
+  {
+    boolean hadGameProfiles = false;
+
+    if (file.isDirectory())
+    {
+      File[] files = file.listFiles();
+
+      if (files == null)
+      {
+        return false;
+      }
+
+      for (File child : files)
+      {
+        if (child.getName().startsWith(gameId) && child.isFile())
+        {
+          if (!child.delete())
+          {
+            Log.error("[GamePropertiesDialog] Failed to delete " + child.getAbsolutePath());
+          }
+          hadGameProfiles = true;
+        }
+        hadGameProfiles |= recursivelyDeleteGameProfiles(child, gameId);
+      }
+    }
+    return hadGameProfiles;
   }
 }

@@ -12,6 +12,7 @@ import android.content.SharedPreferences;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.NonNull;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -173,14 +174,24 @@ public final class DirectoryInitialization
             context);
   }
 
-  private static void deleteDirectoryRecursively(File file)
+  private static void deleteDirectoryRecursively(@NonNull final File file)
   {
     if (file.isDirectory())
     {
-      for (File child : file.listFiles())
+      File[] files = file.listFiles();
+
+      if (files == null)
+      {
+        return;
+      }
+
+      for (File child : files)
         deleteDirectoryRecursively(child);
     }
-    file.delete();
+    if (!file.delete())
+    {
+      Log.error("[DirectoryInitialization] Failed to delete " + file.getAbsolutePath());
+    }
   }
 
   public static boolean areDolphinDirectoriesReady()
@@ -285,9 +296,8 @@ public final class DirectoryInitialization
       OutputStream out = new FileOutputStream(to);
       copyFile(in, out);
     }
-    catch (IOException e)
+    catch (IOException ignored)
     {
-
     }
   }
 

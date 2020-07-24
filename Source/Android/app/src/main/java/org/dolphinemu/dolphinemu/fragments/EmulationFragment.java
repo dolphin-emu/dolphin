@@ -446,9 +446,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       File file = new File(path);
       file.delete();
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
-      // fail safely
     }
   }
 }

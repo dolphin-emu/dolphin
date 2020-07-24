@@ -670,21 +670,21 @@ public final class SettingsFile
 
     try
     {
-      int valueAsInt = Integer.valueOf(value);
+      int valueAsInt = Integer.parseInt(value);
 
       return new IntSetting(key, current.getName(), valueAsInt);
     }
-    catch (NumberFormatException ex)
+    catch (NumberFormatException ignored)
     {
     }
 
     try
     {
-      float valueAsFloat = Float.valueOf(value);
+      float valueAsFloat = Float.parseFloat(value);
 
       return new FloatSetting(key, current.getName(), valueAsFloat);
     }
-    catch (NumberFormatException ex)
+    catch (NumberFormatException ignored)
     {
     }
 
