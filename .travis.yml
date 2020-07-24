@@ -16,6 +16,8 @@ matrix:
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin-emu -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
         - cd $HOME
+        - ls -al $HOME
+        - ls -al /dolphin-emu
         - mkdir build && cd build
         - cmake /dolphin-emu -DLINUX_LOCAL_DEV=true
         - make
