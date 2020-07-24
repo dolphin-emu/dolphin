@@ -24,5 +24,6 @@ deploy:
   file_glob: true
   file: "~/Artifacts/*"
   skip_cleanup: true
+  draft: true
   on:
     tags: true
