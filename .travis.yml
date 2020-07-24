@@ -4,7 +4,7 @@ matrix:
     - os: linux
       env: NAME="linux appimage"
       sudo: required
-      dist: trusty
+      dist: bionic
       services: docker
       addons:
         apt:
@@ -15,7 +15,7 @@ matrix:
       install: 
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
-        - $PWD
+        - echo $PWD
         - cd /home/travis/build/qurious-pixel/dolphin
         - ls -al /home/travis/build/qurious-pixel/dolphin
         - mkdir Build && cd Build
