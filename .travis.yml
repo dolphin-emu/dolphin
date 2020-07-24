@@ -10,6 +10,7 @@ matrix:
         apt:
           packages:
             - p7zip-full
+            - libxi-dev
       before_install: 
         - docker pull quriouspixel/yuzu:latest
       install: 
