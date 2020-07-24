@@ -465,7 +465,7 @@ void ThreadWidget::OnSelectionChanged(int row)
 {
   Common::Debug::PartialContext context;
 
-  if (row >= 0 && row < m_threads.size())
+  if (row >= 0 && size_t(row) < m_threads.size())
     context = m_threads[row]->GetContext();
 
   UpdateThreadContext(context);
