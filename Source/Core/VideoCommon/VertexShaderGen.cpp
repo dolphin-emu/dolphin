@@ -316,8 +316,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
       if ((uid_data->components & (VB_HAS_NRM1 | VB_HAS_NRM2)) != 0)
       {
         // transform the light dir into tangent space
-        out.Write("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
-                  LIGHT_POS_PARAMS(texinfo.embosslightshift));
+        out.WriteFmt("ldir = normalize(" LIGHT_POS ".xyz - pos.xyz);\n",
+                     LIGHT_POS_PARAMS(texinfo.embosslightshift));
         out.WriteFmt(
             "o.tex{}.xyz = o.tex{}.xyz + float3(dot(ldir, _norm1), dot(ldir, _norm2), 0.0);\n", i,
             texinfo.embosssourceshift);
