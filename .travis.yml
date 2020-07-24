@@ -13,13 +13,13 @@ matrix:
       before_install: 
         - docker pull quriouspixel/yuzu:latest
       install: 
-        - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin-emu -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
+        - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
-        - $(pwd)
-        - cd $HOME
-        - ls -al $HOME/build
-        - ls -al /
+        - $PWD
+        - cd /home/travis/build/qurious-pixel/dolphin
+        - ls -al /home/travis/build/qurious-pixel/dolphin
         - mkdir Build && cd Build
+        - ls -al 
         - cmake .. -DLINUX_LOCAL_DEV=true
         - make
         - ln -s ../../Data/Sys Binaries/
