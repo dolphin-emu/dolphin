@@ -18,19 +18,19 @@ matrix:
             - libc6-dev
             - libavformat-dev
             - libavdevice-dev
-            - libfmt-dev
+            - libfmt-dev		
             - qtbase5-dev
-            - qttools5-dev
+            - qttools5-dev 
             - qtbase5-private-dev
             - qtdeclarative5-dev
-	    - liblzma-dev
-	    - x11-utils
-      	script: 
+            - liblzma-dev
+            - x11-utils
+        script: 
             - mkdir Build && cd Build
             - cmake .. -DLINUX_LOCAL_DEV=true        
             - make
             - ln -s ../../Data/Sys Binaries/
-      	after_success: 
+        after_success: 
             - mkdir ~/Artifacts
             - mv linuxdeployqt-continuous-x86_64.AppImage ~/Artifacts
 deploy:
