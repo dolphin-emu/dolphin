@@ -14,14 +14,15 @@ matrix:
       script: 
             - curl -sLO "https://github.com/probonopd/linuxdeployqt/releases/download/continuous/linuxdeployqt-continuous-x86_64.AppImage"
       after_success: 
-            - mv linuxdeployqt-continuous-x86_64.AppImage /Artifacts
+            - mkdir ~/Artifacts
+            - mv linuxdeployqt-continuous-x86_64.AppImage ~/Artifacts
       cache: ccache
 deploy:
   provider: releases
   api_key:
     secure: $GITHUB_OAUTH_TOKEN
   file_glob: true
-  file: "/Artifacts/*"
+  file: "~/Artifacts/*"
   skip_cleanup: true
   on:
     tags: true
