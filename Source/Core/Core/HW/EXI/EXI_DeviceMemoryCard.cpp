@@ -185,8 +185,6 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     CurrentGameId = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
-  const bool shift_jis = header_data.m_encoding != 0;
-
   const auto [strDirectoryName, migrate] = GetGCIFolderPath(card_index, AllowMovieFolder::Yes);
 
   const File::FileInfo file_info(strDirectoryName);
