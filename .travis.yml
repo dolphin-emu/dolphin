@@ -10,8 +10,16 @@ matrix:
         apt:
           packages:
             - p7zip-full
-      install: "docker pull quriouspixel/yuzu:latest"
-      script: 'docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin-emu -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /yuzu/travis/appimage/docker.sh'
+      before_install: 
+        - docker pull quriouspixel/yuzu:latest
+      install: 
+        - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin-emu -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
+      script: 
+        - cd $HOME
+        - mkdir build && cd build
+        - cmake /dolphin-emu -DLINUX_LOCAL_DEV=true
+        - make
+        - ln -s ../../Data/Sys Binaries/
       after_success: "./travis/appimage/appimage.sh"
       cache: ccache
 deploy:
