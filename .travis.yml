@@ -11,16 +11,15 @@ matrix:
           packages:
             - p7zip-full
             - libxi-dev
+            - libavcodec-dev
+            - libudev-dev
+            - libevdev-dev
       before_install: 
         - docker pull quriouspixel/yuzu:latest
       install: 
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
-        - echo $PWD
-        - cd /home/travis/build/qurious-pixel/dolphin
-        - ls -al /home/travis/build/qurious-pixel/dolphin
         - mkdir Build && cd Build
-        - ls -al 
         - cmake .. -DLINUX_LOCAL_DEV=true
         - make
         - ln -s ../../Data/Sys Binaries/
