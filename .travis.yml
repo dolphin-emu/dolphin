@@ -14,9 +14,11 @@ matrix:
             - libavcodec-dev
             - libudev-dev
             - libevdev-dev
+            - libc6-dev
+            - libavformat-dev
+            - libavdevice-dev
       before_install: 
-        - docker pull quriouspixel/yuzu:latest
-      install: 
+        - docker pull quriouspixel/yuzu:latest 
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
         - mkdir Build && cd Build
