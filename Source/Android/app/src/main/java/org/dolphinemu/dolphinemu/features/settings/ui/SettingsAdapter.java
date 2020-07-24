@@ -50,6 +50,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
@@ -366,6 +367,15 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     sView.putSetting(resourcePackPath);
     sView.putSetting(sdPath);
 
+    sView.onSettingChanged(null);
+  }
+
+  public static void setAllLogTypes(String value)
+  {
+    for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
+    {
+      sView.putSetting(new StringSetting(entry.getKey(), Settings.SECTION_LOGGER_LOGS, value));
+    }
     sView.onSettingChanged(null);
   }
 

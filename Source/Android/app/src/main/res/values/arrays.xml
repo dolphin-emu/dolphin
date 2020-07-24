@@ -71,7 +71,7 @@
         <item>5</item>
     </integer-array>
 
-    <!-- Slot A Device Selection -->
+    <!-- Slot A & B Device selection -->
     <string-array name="slotDeviceEntries" translatable="false">
         <item>Nothing</item>
         <item>Dummy</item>
@@ -83,6 +83,34 @@
         <item>0</item>
         <item>1</item>
         <item>8</item>
+    </integer-array>
+
+    <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
+    <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelInfo" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+    <string-array name="logVerbosityEntriesMaxLevelDebug" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+        <item>Debug</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelDebug" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
     </integer-array>
 
     <!-- Video backend selection -->

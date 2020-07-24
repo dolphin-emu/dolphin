@@ -28,4 +28,8 @@ jmethodID GetGameFileConstructor();
 jclass GetGameFileCacheClass();
 jfieldID GetGameFileCachePointer();
 
+jclass GetLinkedHashMapClass();
+jmethodID GetLinkedHashMapInit();
+jmethodID GetLinkedHashMapPut();
+
 }  // namespace IDCache

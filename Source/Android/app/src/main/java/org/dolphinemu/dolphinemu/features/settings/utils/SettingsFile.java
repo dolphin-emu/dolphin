@@ -36,6 +36,7 @@ public final class SettingsFile
 {
   public static final String FILE_NAME_DOLPHIN = "Dolphin";
   public static final String FILE_NAME_GFX = "GFX";
+  public static final String FILE_NAME_LOGGER = "Logger";
   public static final String FILE_NAME_GCPAD = "GCPadNew";
   public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
 
@@ -285,6 +286,9 @@ public final class SettingsFile
   public static final String KEY_WII_SD_CARD_ALLOW_WRITES = "WiiSDCardAllowWrites";
   public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
   public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
+
+  public static final String KEY_ENABLE_LOGGING = "WriteToFile";
+  public static final String KEY_LOG_VERBOSITY = "Verbosity";
 
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 

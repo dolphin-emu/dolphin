@@ -15,6 +15,7 @@ import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
 import java.lang.ref.WeakReference;
+import java.util.LinkedHashMap;
 
 /**
  * Class which contains methods that interact
@@ -370,6 +371,8 @@ public final class NativeLibrary
 
   public static native int DefaultCPUCore();
 
+  public static native int GetMaxLogLevel();
+
   public static native void ReloadConfig();
 
   /**
@@ -451,6 +454,10 @@ public final class NativeLibrary
   public static native void RefreshWiimotes();
 
   public static native void ReloadWiimoteConfig();
+
+  public static native LinkedHashMap<String, String> GetLogTypeNames();
+
+  public static native void ReloadLoggerConfig();
 
   public static native boolean InstallWAD(String file);
 

@@ -265,6 +265,17 @@
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
 
+    <!-- Log Configuration -->
+    <string name="log_submenu">Log</string>
+    <string name="enable_logging">Enable Logging</string>
+    <string name="enable_logging_description">Log messages from enabled log types to dolphin-emu/Logs/. Will decrease performance.</string>
+    <string name="log_verbosity">Verbosity</string>
+    <string name="log_enable_all">Enable all Log Types</string>
+    <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
+    <string name="log_disable_all">Disable all Log Types</string>
+    <string name="log_disable_all_confirmation">Are you sure you want to disable all log types?</string>
+    <string name="log_types">Log Types</string>
+
     <!-- Debug -->
     <string name="debug_submenu">Debug</string>
     <string name="debug_warning">Warning: These settings will slow emulation</string>
