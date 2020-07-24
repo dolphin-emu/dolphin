@@ -25,6 +25,9 @@ matrix:
             - qtdeclarative5-dev
             - liblzma-dev
             - x11-utils
+        before_install: 
+            - docker pull quriouspixel/yuzu:latest 
+            - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
         script: 
             - mkdir Build && cd Build
             - cmake .. -DLINUX_LOCAL_DEV=true        
