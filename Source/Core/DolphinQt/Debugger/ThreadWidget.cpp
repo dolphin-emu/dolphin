@@ -265,9 +265,6 @@ void ThreadWidget::Update()
   const auto format_hex = [](u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
   };
-  const auto format_f64_as_u64 = [](double value) {
-    return QStringLiteral("%1").arg(Common::BitCast<u64>(value), 16, 16, QLatin1Char('0'));
-  };
   const auto format_hex_from = [&format_hex](u32 addr) {
     addr = PowerPC::HostIsRAMAddress(addr) ? PowerPC::HostRead_U32(addr) : 0;
     return format_hex(addr);
