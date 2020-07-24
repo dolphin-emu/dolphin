@@ -305,7 +305,6 @@ void GameList::ShowContextMenu(const QPoint&)
     if (DiscIO::IsDisc(platform))
     {
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
-      const auto blob_type = game->GetBlobType();
 
       if (can_convert(game))
         menu->addAction(tr("Convert File..."), this, &GameList::ConvertFile);

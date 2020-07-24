@@ -754,7 +754,7 @@ void WiiSockMan::UpdatePollCommands()
   const auto elapsed = elapsed_d.count();
   last_time = now;
 
-  for (auto& pcmd : pending_polls)
+  for (PollCommand& pcmd : pending_polls)
   {
     // Don't touch negative timeouts
     if (pcmd.timeout > 0)
@@ -764,7 +764,7 @@ void WiiSockMan::UpdatePollCommands()
   pending_polls.erase(
       std::remove_if(
           pending_polls.begin(), pending_polls.end(),
-          [this](auto& pcmd) {
+          [this](PollCommand& pcmd) {
             const auto request = Request(pcmd.request_addr);
             auto& pfds = pcmd.wii_fds;
             int ret = 0;

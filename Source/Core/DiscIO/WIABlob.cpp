@@ -603,9 +603,9 @@ WIARVZFileReader<RVZ>::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 
                                     u64 decompressed_size, u32 exception_lists,
                                     bool compressed_exception_lists, u32 rvz_packed_size,
                                     u64 data_offset, std::unique_ptr<Decompressor> decompressor)
-    : m_file(file), m_offset_in_file(offset_in_file), m_exception_lists(exception_lists),
-      m_compressed_exception_lists(compressed_exception_lists), m_rvz_packed_size(rvz_packed_size),
-      m_data_offset(data_offset), m_decompressor(std::move(decompressor))
+    : m_decompressor(std::move(decompressor)), m_file(file), m_offset_in_file(offset_in_file),
+      m_exception_lists(exception_lists), m_compressed_exception_lists(compressed_exception_lists),
+      m_rvz_packed_size(rvz_packed_size), m_data_offset(data_offset)
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
       Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, sizeof(SHA1)) / sizeof(SHA1) *
