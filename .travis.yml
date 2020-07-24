@@ -23,8 +23,8 @@ matrix:
             - qttools5-dev
             - qtbase5-private-dev
             - qtdeclarative5-dev
-	          - liblzma-dev
-	          - x11-utils
+	    - liblzma-dev
+	    - x11-utils
       script: 
             - mkdir Build && cd Build
             - cmake .. -DLINUX_LOCAL_DEV=true        
