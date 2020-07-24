@@ -21,7 +21,7 @@ deploy:
   api_key:
     secure: $GITHUB_OAUTH_TOKEN
   file_glob: true
-  file: "artifacts/*"
+  file: "/Artifacts/*"
   skip_cleanup: true
   on:
     tags: true
