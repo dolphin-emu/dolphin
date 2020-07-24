@@ -10,20 +10,12 @@ matrix:
         apt:
           packages:
             - p7zip-full
-            - libxi-dev
-            - libavcodec-dev
-            - libudev-dev
-            - libevdev-dev
-            - libc6-dev
-            - libavformat-dev
-            - libavdevice-dev
-            - libfmt-dev
       before_install: 
         - docker pull quriouspixel/yuzu:latest 
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
         - mkdir Build && cd Build
-        - ls -al /home/travis/build/qurious-pixel/dolphin/Externals/Qt/Qt5.14.1
+        - ls -al /opt
         - cmake .. -DLINUX_LOCAL_DEV=true -DQt5_DIR=/home/travis/build/qurious-pixel/dolphin/Externals/Qt/Qt5.14.1        
         - make
         - ln -s ../../Data/Sys Binaries/
