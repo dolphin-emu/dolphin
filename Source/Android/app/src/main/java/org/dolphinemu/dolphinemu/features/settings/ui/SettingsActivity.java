@@ -20,9 +20,11 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
@@ -45,6 +47,15 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvMainActivity.skipRescanningLibrary();
+    }
+    else
+    {
+      MainActivity.skipRescanningLibrary();
+    }
 
     setContentView(R.layout.activity_settings);
 

@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -265,6 +266,15 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onCreate(Bundle savedInstanceState)
   {
     super.onCreate(savedInstanceState);
+
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvMainActivity.skipRescanningLibrary();
+    }
+    else
+    {
+      MainActivity.skipRescanningLibrary();
+    }
 
     if (savedInstanceState == null)
     {
