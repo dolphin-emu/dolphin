@@ -23,8 +23,8 @@ matrix:
         - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash
       script: 
         - mkdir Build && cd Build
-        - ls -al $HOME/Externals/Qt
-        - cmake .. -DLINUX_LOCAL_DEV=true -DQt5_DIR=$HOME/Externals/Qt
+        - ls -al /home/travis/build/qurious-pixel/dolphin/Externals/Qt
+        - cmake .. -DLINUX_LOCAL_DEV=true -DQt5_DIR=/home/travis/build/qurious-pixel/dolphin/Externals/Qt
         - make
         - ln -s ../../Data/Sys Binaries/
       after_success: "./travis/appimage/appimage.sh"
