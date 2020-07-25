@@ -435,7 +435,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   // m_audio_stretch_max_latency if it was on. In the first case, the reason was to cache enough
   // samples to be able to withstand small hangs and changes in speed, but our new approach is to
   // play samples backwards when we are out of new ones so these are never problems.
-  double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_LATENCY) / 1000.0; //To read as low times as possible
+  double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_LATENCY) / 1000.0; //To read as low times as possible //To rename MAIN_AUDIO_MIXER_MAX_LATENCY
   //To double or disable when speed is unlimited (or if we can't reach target speed), to avoid constant fluctuations (the average speed will compensate temporary imprecisions anyway)
   if (!frame_limiter || m_time_below_target_speed_growing)
   {
@@ -444,7 +444,6 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   }
   double catch_up_speed;
   double target_latency;
-  max_latency = 100000000000; //To delete
 
   if (stretching)
   {
