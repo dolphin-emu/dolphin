@@ -300,18 +300,20 @@ void AudioPane::LoadSettings()
     m_ignore_save_settings = false;
   }
 
+  m_ignore_save_settings = true;
+
   // Sample rate
   m_use_os_sample_rate->setChecked(SConfig::GetInstance().bUseOSMixerSampleRate);
 
   // Stretch
   m_stretching_enable->setChecked(SConfig::GetInstance().m_audio_stretch);
-  m_ignore_save_settings = true;
   m_emu_speed_tolerance_slider->setValue(SConfig::GetInstance().m_audio_emu_speed_tolerance);
   if (m_emu_speed_tolerance_slider->value() < 0)
     m_emu_speed_tolerance_indicator->setText(tr("Disabled"));
   else
     m_emu_speed_tolerance_indicator->setText(
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
+
   m_ignore_save_settings = false;
 
 #ifdef _WIN32
@@ -442,7 +444,7 @@ void AudioPane::SaveSettings()
 
   std::string deviceSampleRate = "0";
 
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default" && !m_running;
+  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
   if (m_wasapi_device_sample_rate_combo->currentIndex() > 0 && canSelectDeviceSampleRate)
   {
     QString qs = m_wasapi_device_sample_rate_combo->currentText();
@@ -450,9 +452,10 @@ void AudioPane::SaveSettings()
     deviceSampleRate = qs.toStdString();
   }
 
-  if (!m_running)
+  if (SConfig::GetInstance().sWASAPIDeviceSampleRate != deviceSampleRate)
   {
     SConfig::GetInstance().sWASAPIDeviceSampleRate = deviceSampleRate;
+    backend_setting_changed = true;
   }
 #endif
 
@@ -527,7 +530,7 @@ void AudioPane::OnWASAPIDeviceChanged()
   // Don't allow users to select a sample rate for the default device,
   // even though that would be possible, the default device can change
   // at any time so it wouldn't make sense
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default" && !m_running;
+  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
   if (canSelectDeviceSampleRate)
   {
     m_wasapi_device_sample_rate_combo->setEnabled(true);
@@ -570,7 +573,7 @@ void AudioPane::OnWASAPIDeviceChanged()
 
 void AudioPane::LoadWASAPIDeviceSampleRate()
 {
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default" && !m_running;
+  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
   if (SConfig::GetInstance().sWASAPIDeviceSampleRate == "0" || !canSelectDeviceSampleRate)
   {
     m_wasapi_device_sample_rate_combo->setCurrentIndex(0);
@@ -624,19 +627,16 @@ void AudioPane::OnEmulationStateChanged(bool running)
 #ifdef _WIN32
   m_wasapi_device_label->setEnabled(!running || backend_supports_runtime_changes);
   m_wasapi_device_combo->setEnabled(!running || backend_supports_runtime_changes);
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default" && !m_running;
-  m_wasapi_device_sample_rate_label->setEnabled(!running && canSelectDeviceSampleRate);
-  m_wasapi_device_sample_rate_combo->setEnabled(!running && canSelectDeviceSampleRate); //To allow changes at runtime now?
+  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
+  m_wasapi_device_sample_rate_label->setEnabled(canSelectDeviceSampleRate);
+  m_wasapi_device_sample_rate_combo->setEnabled(canSelectDeviceSampleRate); //To allow changes at runtime now?
   bool is_wasapi = backend == BACKEND_WASAPI;
   if (is_wasapi)
   {
     OnWASAPIDeviceChanged();
-    if (!running)
-    {
-      m_ignore_save_settings = true;
-      LoadWASAPIDeviceSampleRate();
-      m_ignore_save_settings = false;
-    }
+    m_ignore_save_settings = true;
+    LoadWASAPIDeviceSampleRate();
+    m_ignore_save_settings = false;
   }
 #endif
 }

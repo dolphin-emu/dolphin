@@ -46,8 +46,10 @@ void SurroundDecoder::Clear()
 
 void SurroundDecoder::SetSampleRate(u32 sample_rate)
 {
+  m_fsdecoder = std::make_unique<DPL2FSDecoder>();
+  m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
   //To finish, also set DPL2QualityToFrameBlockSize and fix it by sample rate
-  // With "FreeSurroundDecoder" there is no need of setting the sample_rate, it's only used 
+  // We can't change the block size after starting unfortunately, old samples will be lost (maybe we can...)
 }
 
 // Currently only 6 channels are supported.

@@ -76,7 +76,7 @@ void Mixer::SetSampleRate(u32 sample_rate)
   m_sample_rate = sample_rate;
   m_stretcher.SetSampleRate(m_sample_rate);
   m_surround_decoder.SetSampleRate(m_sample_rate);
-  //To review: is this thread safe between the game and emu thread?
+  //To review: is this thread safe between the game and emu thread? Does it even make sense to do? Not after the first time
   if (!m_dma_speed.IsPaused())
     m_dma_speed.Start(true);
   //To do: reset m_fract, and also DPLII. Add method to reset DPLII

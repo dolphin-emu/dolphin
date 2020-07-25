@@ -112,17 +112,6 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
       samples[i * 2] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] >> 4);
       samples[i * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
     }
-    //for (int i = length; i > 0; --i)
-    //{
-    //  samples[(length - i) * 2] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] & 0xf);
-    //  samples[(length - i) * 2 + 1] = adpcm_yamaha_expand_nibble(adpcm_state, data[i] >> 4);
-    //}
-    //for (int n = length; n > 0; n--)
-    //{
-    //  u8 v = bytestream2_get_byteu(&gb);
-    //  *samples++ = adpcm_yamaha_expand_nibble(&c->status, v & 0x0F);
-    //  *samples++ = adpcm_yamaha_expand_nibble(&c->status, v >> 4);
-    //}
 
     // Following details from http://wiibrew.org/wiki/Wiimote#Speaker
     sample_rate_dividend = 6000000;
