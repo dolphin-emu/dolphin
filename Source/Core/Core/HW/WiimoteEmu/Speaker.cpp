@@ -144,8 +144,8 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // because you can lower their volume from the wii settings, and because they are
     // already extremely low quality, so any additional quality loss isn't welcome.
     speaker_pan = std::clamp(speaker_pan, -1.f, 1.f);
-    u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
-    u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
+    const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
+    const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
     g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(m_index, l_volume, r_volume);
 
