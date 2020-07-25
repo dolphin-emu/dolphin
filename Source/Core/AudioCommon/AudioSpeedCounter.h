@@ -5,6 +5,7 @@
 #pragma once
 
 #include <atomic>
+#include <deque>
 
 #include "Common/CommonTypes.h"
 
@@ -46,8 +47,8 @@ private:
   std::atomic<double> m_cached_last_delta{-1.0};
   // The max time we keep deltas for
   double m_average_time;
-  double m_ticks_per_upd;
   double m_ticks_per_sec;
+  double m_ticks_per_upd;
   // The expected time elapsed between two updates
   double m_target_delta = 1.0;
   u64 m_last_paused_time = 0;

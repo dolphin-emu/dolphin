@@ -27,6 +27,7 @@
 std::unique_ptr<SoundStream> g_sound_stream;
 
 std::mutex g_sound_stream_mutex;
+std::mutex g_sound_stream_running_mutex;
 
 namespace AudioCommon
 {
@@ -133,7 +134,7 @@ std::string GetDefaultSoundBackend()
 #if defined ANDROID
   backend = BACKEND_OPENSLES;
 #elif defined __linux__
-  if (AlsaSound::isValid())
+  if (AlsaSound::IsValid())
     backend = BACKEND_ALSA;
 #elif defined(__APPLE__) || defined(_WIN32)
   backend = BACKEND_CUBEB;
@@ -323,8 +324,6 @@ void UpdateSoundStreamSettings(bool volume_only)
     }
   }
 }
-
-std::mutex g_sound_stream_running_mutex;
 
 bool SetSoundStreamRunning(bool running, bool send_error)
 {

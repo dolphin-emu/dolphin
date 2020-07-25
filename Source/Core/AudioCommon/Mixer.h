@@ -6,7 +6,7 @@
 
 #include <array>
 #include <atomic>
-#include <deque>
+#include <vector>
 
 #include "AudioCommon/AudioStretcher.h"
 #include "AudioCommon/AudioSpeedCounter.h"

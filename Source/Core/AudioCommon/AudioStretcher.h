@@ -8,6 +8,8 @@
 
 #include <SoundTouch.h>
 
+#include "Common/CommonTypes.h"
+
 namespace AudioCommon
 {
 class AudioStretcher

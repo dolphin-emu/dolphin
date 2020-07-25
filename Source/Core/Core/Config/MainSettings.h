@@ -40,7 +40,7 @@ extern const Info<bool> MAIN_OVERRIDE_REGION_SETTINGS;
 extern const Info<bool> MAIN_DPL2_DECODER;
 extern const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY;
 extern const Info<int> MAIN_AUDIO_BACKEND_LATENCY;
-extern const Info<int> MAIN_AUDIO_MIXER_LATENCY;
+extern const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY;
 extern const Info<bool> MAIN_AUDIO_STRETCH;
 extern const Info<std::string> MAIN_MEMCARD_A_PATH;
 extern const Info<std::string> MAIN_MEMCARD_B_PATH;

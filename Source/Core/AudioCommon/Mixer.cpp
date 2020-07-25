@@ -5,6 +5,7 @@
 #include "AudioCommon/Mixer.h" //To try to delete some includes and see if it builds
 
 #include <algorithm>
+#include <climits>
 #include <cmath>
 #include <cstring>
 
@@ -238,8 +239,8 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
   // Do the swaps once instead of processing them for each iteration below
   for (u32 k = first_indexR; k != last_indexR + direction * NC; k += direction * NC)
   {
-    interpolation_buffer[k + 0 & INDEX_MASK] = Common::swap16(m_buffer[k + 0 & INDEX_MASK]);
-    interpolation_buffer[k + 1 & INDEX_MASK] = Common::swap16(m_buffer[k + 1 & INDEX_MASK]);
+    interpolation_buffer[(k + 0) & INDEX_MASK] = Common::swap16(m_buffer[(k + 0) & INDEX_MASK]);
+    interpolation_buffer[(k + 1) & INDEX_MASK] = Common::swap16(m_buffer[(k + 1) & INDEX_MASK]);
   }
 
   // fract requested to be reset so sure it will be 0 in the first cycle
@@ -435,7 +436,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   // m_audio_stretch_max_latency if it was on. In the first case, the reason was to cache enough
   // samples to be able to withstand small hangs and changes in speed, but our new approach is to
   // play samples backwards when we are out of new ones so these are never problems.
-  double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_LATENCY) / 1000.0; //To read as low times as possible //To rename MAIN_AUDIO_MIXER_MAX_LATENCY
+  double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0; //To read as little times as possible
   //To double or disable when speed is unlimited (or if we can't reach target speed), to avoid constant fluctuations (the average speed will compensate temporary imprecisions anyway)
   if (!frame_limiter || m_time_below_target_speed_growing)
   {
@@ -928,7 +929,7 @@ void Mixer::MixerFifo::UpdatePush(double time)
       if (!SConfig::GetInstance().m_audio_stretch)
       {
         u32 num_samples =
-            (Config::Get(Config::MAIN_AUDIO_MIXER_LATENCY) / 1000.0) * 0.5 * m_input_sample_rate;
+            (Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0) * 0.5 * m_input_sample_rate;
         num_samples = std::min(num_samples, MAX_SAMPLES);
         memset(m_mixer->m_conversion_buffer, 0,
                num_samples * NC * sizeof(m_mixer->m_conversion_buffer[0]));

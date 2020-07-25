@@ -1,4 +1,4 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2020 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -23,24 +23,24 @@ u64 AudioSpeedCounter::GetTime() const
 }
 double AudioSpeedCounter::GetTimeDelta(u64 old_time) const
 {
-  u64 time = GetTime();
-  u64 delta = time - old_time;
+  const u64 time = GetTime();
+  const u64 delta = time - old_time;
   return double(delta / TIME_CONVERSION);
 }
 double AudioSpeedCounter::GetTimeDeltaAndUpdateOldTime(std::atomic<u64>& old_time) const
 {
-  u64 time = GetTime();
-  u64 delta = time - old_time;
+  const u64 time = GetTime();
+  const u64 delta = time - old_time;
   old_time = time;
   return double(delta / TIME_CONVERSION);
 }
 
 void AudioSpeedCounter::OnSettingsChanged()
 {
-  double prev_target_delta = m_target_delta;
+  const double prev_target_delta = m_target_delta;
   m_target_delta = m_ticks_per_upd / m_ticks_per_sec;
   // Keep the previous speed by adjusting the last deltas
-  double relative_change = m_target_delta / prev_target_delta;
+  const double relative_change = m_target_delta / prev_target_delta;
   for (int i = 0; i < m_last_deltas.size(); ++i)
   {
     m_last_deltas[i] *= relative_change;
@@ -66,7 +66,7 @@ void AudioSpeedCounter::Start(bool simulate_full_speed)
   if (simulate_full_speed)
   {
     m_cached_last_delta = m_target_delta;
-    size_t size = std::max(size_t(m_average_time / m_target_delta), size_t(1));
+    const size_t size = std::max(size_t(m_average_time / m_target_delta), size_t(1));
     m_last_deltas.resize(size, m_target_delta);
   }
   else
@@ -82,7 +82,7 @@ void AudioSpeedCounter::Update(double elapsed_ticks)
     OnSettingsChanged();
   }
 
-  double delta = GetTimeDeltaAndUpdateOldTime(m_last_time);
+  const double delta = GetTimeDeltaAndUpdateOldTime(m_last_time);
   // If this ended up being 0 it would be ignored
   m_cached_last_delta = delta;
   double total_delta = delta;
@@ -106,7 +106,7 @@ double AudioSpeedCounter::GetLastSpeed(bool& in_out_predict, bool simulate_full_
 {
   if (in_out_predict)
   {
-    double delta = GetTimeDelta(m_last_time);
+    const double delta = GetTimeDelta(m_last_time);
     // If it's currently late for a new update
     if (delta > m_target_delta)
     {
@@ -131,7 +131,7 @@ double AudioSpeedCounter::GetAverageSpeed(bool predict, bool simulate_full_speed
 
   if (predict)
   {
-    double delta = GetTimeDelta(m_last_time);
+    const double delta = GetTimeDelta(m_last_time);
     // If it's currently late for a new update
     if (delta > m_target_delta)
     {
@@ -168,7 +168,7 @@ double AudioSpeedCounter::GetCachedAverageSpeed(bool alternative_speed, bool pre
 
   if (predict)
   {
-    double delta = GetTimeDelta(m_last_time);
+    const double delta = GetTimeDelta(m_last_time);
     // If it's currently late for a new update
     if (delta > m_target_delta)
     {
@@ -230,8 +230,8 @@ void AudioSpeedCounter::SetPaused(bool paused)
     }
     else
     {
-      s64 time = GetTime();
-      s64 delta = time - m_last_paused_time;
+      const s64 time = GetTime();
+      const s64 delta = time - m_last_paused_time;
       m_last_time += delta;
     }
   }

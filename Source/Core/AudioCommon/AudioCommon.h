@@ -16,6 +16,9 @@ class Mixer;
 
 extern std::unique_ptr<SoundStream> g_sound_stream;
 
+extern std::mutex g_sound_stream_mutex;
+extern std::mutex g_sound_stream_running_mutex;
+
 namespace AudioCommon
 {
 void InitSoundStream();

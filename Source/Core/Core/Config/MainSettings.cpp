@@ -40,7 +40,7 @@ const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY{{System::Main, "Core", "D
                                                        AudioCommon::GetDefaultDPL2Quality()};
 // TODO: rename "AudioBackendLatency", it's confusing
 const Info<int> MAIN_AUDIO_BACKEND_LATENCY{{System::Main, "Core", "AudioLatency"}, 20};
-const Info<int> MAIN_AUDIO_MIXER_LATENCY{{System::Main, "Core", "AudioMixerTargetLatency"}, 40};
+const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY{{System::Main, "Core", "AudioMixerMaxLatency"}, 40};
 const Info<bool> MAIN_AUDIO_STRETCH{{System::Main, "Core", "AudioStretch"}, false};
 const Info<std::string> MAIN_MEMCARD_A_PATH{{System::Main, "Core", "MemcardAPath"}, ""};
 const Info<std::string> MAIN_MEMCARD_B_PATH{{System::Main, "Core", "MemcardBPath"}, ""};
