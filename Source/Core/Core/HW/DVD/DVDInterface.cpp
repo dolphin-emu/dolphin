@@ -300,10 +300,20 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
 {
   // TODO: Should we use GetAISSampleRate instead of a fixed 48 KHz? The audio mixer is using
   // GetAISSampleRate. (This doesn't affect any actual games, since they all set it to 48 KHz.)
-  const u32 sample_rate = AudioInterface::Get48KHzSampleRate();
+  const double sample_rate = AudioInterface::Get48KHzSampleRate();
+  
+  //To review: here we used to just hardcode 48Khz, ignoring wether we are wii or gc (and also avoiding it being double). old comment:
+  // This determines which audio data to read next.
+  // Similarly to DMA audio, instead of sending a different number of samples each submission,
+  // we just change the frequency of the submission to match the sample rate. This causes more
+  // imprecision on GC, where sample rates aren't integer, but it should mostly be fine.
+  // The Mixer (Mixer.cpp) might assume the above is true, so if you change the samples submitted
+  // per submission, make sure you review the Mixer as well.
 
   // Determine which audio data to read next.
-  const u32 maximum_samples = sample_rate / 2000 * 7;  // 3.5 ms of samples
+  // 168 samples (3.5ms at 48kHz/5.25ms at 32kHz on Wii, similar numbers on GC)
+  const u32 maximum_samples = sample_rate / 2000 * 7;
+
   u64 read_offset = 0;
   u32 read_length = 0;
 
@@ -332,7 +342,10 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / sample_rate;
+  // With exact floating points values, GC sample rates multiply to precise
+  // integer numbers, no need to have a remainder or keep this as a double
+  s64 ticks_to_dtk =
+      (SystemTimers::GetTicksPerSecond() / AudioInterface::GetAISSampleRate()) * s_pending_samples;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
@@ -772,7 +785,7 @@ static bool CheckReadPreconditions()
   return true;
 }
 
-// Iff false is returned, ScheduleEvent must be used to finish executing the command
+// If false is returned, ScheduleEvent must be used to finish executing the command
 static bool ExecuteReadCommand(u64 dvd_offset, u32 output_address, u32 dvd_length,
                                u32 output_length, const DiscIO::Partition& partition,
                                ReplyType reply_type, DIInterruptType* interrupt_type)
@@ -1301,7 +1314,7 @@ void SetDriveError(DriveError error)
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
                             const std::vector<u8>& data)
 {
-  // The data parameter contains the requested data iff this was called from DVDThread, and is
+  // The data parameter contains the requested data if this was called from DVDThread, and is
   // empty otherwise. DVDThread is the only source of ReplyType::NoReply and ReplyType::DTK.
 
   u32 transfer_size = 0;

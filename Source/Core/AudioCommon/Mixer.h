@@ -6,8 +6,10 @@
 
 #include <array>
 #include <atomic>
+#include <deque>
 
 #include "AudioCommon/AudioStretcher.h"
+#include "AudioCommon/AudioSpeedCounter.h"
 #include "AudioCommon/SurroundDecoder.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
@@ -17,25 +19,27 @@ class PointerWrap;
 class Mixer final
 {
 public:
-  explicit Mixer(unsigned int BackendSampleRate);
+  explicit Mixer(u32 sample_rate);
   ~Mixer();
 
   void DoState(PointerWrap& p);
 
-  // Called from audio threads
-  unsigned int Mix(short* samples, unsigned int numSamples);
-  unsigned int MixSurround(float* samples, unsigned int num_samples);
+  void SetPaused(bool paused);
 
-  // Called from main thread
-  void PushSamples(const short* samples, unsigned int num_samples);
-  void PushStreamingSamples(const short* samples, unsigned int num_samples);
-  void PushWiimoteSpeakerSamples(const short* samples, unsigned int num_samples,
-                                 unsigned int sample_rate);
-  unsigned int GetSampleRate() const { return m_sampleRate; }
-  void SetDMAInputSampleRate(unsigned int rate);
-  void SetStreamInputSampleRate(unsigned int rate);
-  void SetStreamingVolume(unsigned int lvolume, unsigned int rvolume);
-  void SetWiimoteSpeakerVolume(unsigned int lvolume, unsigned int rvolume);
+  // Called from audio threads:
+  u32 Mix(s16* samples, u32 num_samples);
+  u32 MixSurround(float* samples, u32 num_samples);
+
+  // Called from main thread:
+  void PushDMASamples(const s16* samples, u32 num_samples);
+  void PushStreamingSamples(const s16* samples, u32 num_samples);
+  void PushWiimoteSpeakerSamples(u8 index, const s16* samples, u32 num_samples, u32 sample_rate);
+
+  void SetDMAInputSampleRate(double rate);
+  void SetStreamingInputSampleRate(double rate);
+
+  void SetStreamingVolume(u32 lVolume, u32 rVolume);
+  void SetWiimoteSpeakerVolume(u8 index, u32 lVolume, u32 rVolume);
 
   void StartLogDTKAudio(const std::string& filename);
   void StopLogDTKAudio();
@@ -43,54 +47,122 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
-  float GetCurrentSpeed() const { return m_speed.load(); }
-  void UpdateSpeed(float val) { m_speed.store(val); }
+  // Only call from main thread and when the mix is not running
+  void SetSampleRate(u32 sample_rate);
+
+  u32 GetSampleRate() const { return m_sample_rate; }
+  double GetCurrentSpeed() const { return m_target_speed; }
+
+  // 512ms at 32kHz and ~341ms at 48kHz (on Wii, GC has similar values).
+  // Make sure this is a power of 2 for INDEX_MASK to work,
+  // if not change all the "& INDEX_MASK" to "% (MAX_SAMPLES * NC)".
+  // It's important that this is high enough to allow for enough backwards
+  // samples to be played in a frame dip. It doesn't make much sense that
+  // this is independent from the sample rate, but it's fine
+  static constexpr u32 MAX_SAMPLES = 16384;
 
 private:
-  static constexpr u32 MAX_SAMPLES = 1024 * 4;  // 128 ms
-  static constexpr u32 INDEX_MASK = MAX_SAMPLES * 2 - 1;
-  static constexpr int MAX_FREQ_SHIFT = 200;  // Per 32000 Hz
-  static constexpr float CONTROL_FACTOR = 0.2f;
-  static constexpr u32 CONTROL_AVG = 32;  // In freq_shift per FIFO size offset
+  // Number of channels the mixer has. Shortened because it is constantly used.
+  // The main reason we made this is to allow for faster conversion to another number
+  // of channels, as most of the code is channel agnostic
+  static constexpr u32 NC = 2u;
+  static constexpr u32 SURROUND_CHANNELS = 6u;
 
-  const unsigned int SURROUND_CHANNELS = 6;
+  static constexpr u32 INDEX_MASK = MAX_SAMPLES * NC - 1;
 
+  // Interpolation reserved/required samples
+  static constexpr u8 INTERP_SAMPLES = 3u;
+
+  // A single mixer in/out buffer. The original alignment they might have had on real HW isn't kept
   class MixerFifo final
   {
   public:
-    MixerFifo(Mixer* mixer, unsigned sample_rate) : m_mixer(mixer), m_input_sample_rate(sample_rate)
+    MixerFifo(Mixer* mixer, unsigned sample_rate, bool constantly_pushed = true)
+        : m_mixer(mixer), m_input_sample_rate(sample_rate), m_constantly_pushed(constantly_pushed)
     {
     }
     void DoState(PointerWrap& p);
-    void PushSamples(const short* samples, unsigned int num_samples);
-    unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
-    void SetInputSampleRate(unsigned int rate);
-    unsigned int GetInputSampleRate() const;
-    void SetVolume(unsigned int lvolume, unsigned int rvolume);
-    unsigned int AvailableSamples() const;
+    void PushSamples(const s16* samples, u32 num_samples);
+    // Returns the actual mixed samples num, pads the rest with the last sample.
+    // Executed from sound stream thread
+    u32 Mix(s16* samples, u32 num_samples, bool stretching = false);
+    void SetInputSampleRate(double rate);
+    double GetInputSampleRate() const;
+    u32 GetRoundedInputSampleRate() const;
+    bool IsCurrentlyPushed() const { return m_currently_pushed; }
+    // Expects values from 0 to 255
+    void SetVolume(u32 lVolume, u32 rVolume);
+    // Returns the max number of samples we will be able to mix.
+    // This is not precise due to the interpolation fract, but it's close enough
+    u32 AvailableSamples() const;
+    u32 NumSamples() const;
+    u32 SamplesDifference(u32 indexW, u32 indexR) const;
+    u32 GetNextIndexR(u32 indexR) const;
+    void UpdatePush(double time);
+    
+    // Returns the actual number of samples written. Outputs the last played sample for padding
+    u32 CubicInterpolation(s16* samples, u32 num_samples, double rate, u32& indexR, u32 indexW,
+                           s16& l_s, s16& r_s, s32 lVolume, s32 rVolume, bool forwards = true);
 
   private:
     Mixer* m_mixer;
-    unsigned m_input_sample_rate;
-    std::array<short, MAX_SAMPLES * 2> m_buffer{};
-    std::atomic<u32> m_indexW{0};
+    std::atomic<double> m_input_sample_rate;
+    // Ring input buffer directly from emulated HW. In big endians.
+    // Even indexes are left channel, same as the output
+    std::array<s16, MAX_SAMPLES * NC> m_buffer{};
+
+    // Write (how many have been written - 1, index of the last one to have been written)
+    // Start from max so even indices will be left channel and odd right
+    // Start from INTERP_SAMPLES + 1 so that we gradually blend into the initial samples
+    std::atomic<u32> m_indexW{(INTERP_SAMPLES + 1) * NC};
+    //To describe
+    // Read (how many have been read - 1, index of last one to have been read)
     std::atomic<u32> m_indexR{0};
-    // Volume ranges from 0-256
-    std::atomic<s32> m_LVolume{256};
-    std::atomic<s32> m_RVolume{256};
-    float m_numLeftI = 0.0f;
-    u32 m_frac = 0;
+    // If their difference is 0, we will have read all the samples (or there are none left anyway).
+    // We could still re-read the current indexR to get the last sample value (0 if never written).
+    // This is because we don't want to increase indexR over indexW to tell that we have finished reading
+    // the pushed samples, it would be confusing.
+    // indexR is the last read (fully consumed, we moved over) value, while indexW is the last written + 1 (the next one to be written),
+    // so if they are the same, we have read over the last written. (???)
+    u32 m_backwards_indexR = 0;
+    // Volume range is 0-256
+    std::atomic<s32> m_lVolume{256};
+    std::atomic<s32> m_rVolume{256};
+    s16 m_last_output_samples[NC]{};
+    double m_fract = -1.0;
+    double m_backwards_fract = -1.0;
+    //To review: if this was off, that mixer won't gather a buffer/latency, and it would always be on the brink of playback
+    //Don't do any padding for the wiimote speaker, because samples are only submitted when played,
+    //so the last one might not be 0, which would end up offsetting every other sample forever
+    // Ignores simple sound stretching and padding and backwards playing
+    bool m_constantly_pushed;
+    std::atomic<bool> m_currently_pushed{false};
+    double m_last_push_timer = -1.0;
   };
 
   MixerFifo m_dma_mixer{this, 32000};
   MixerFifo m_streaming_mixer{this, 48000};
-  MixerFifo m_wiimote_speaker_mixer{this, 3000};
-  unsigned int m_sampleRate;
+  // There is no way of knowing when the wii mote speakers will have finished pushing samples
+  MixerFifo m_wiimote_speaker_mixer[4]{
+      {this, 3000, false}, {this, 3000, false}, {this, 3000, false}, {this, 3000, false}};
+  u32 m_sample_rate;
 
-  bool m_is_stretching = false;
+  std::vector<s16> m_scratch_buffer;
+  std::array<s16, MAX_SAMPLES * NC> m_interpolation_buffer;
+  s16 m_conversion_buffer[MAX_SAMPLES * NC];
+
+  int m_on_state_changed_handle = -1;
+
+  // Target emulation speed, but it can fallback to the actual emulation speed
+  double m_target_speed = 1.0; //To make atomic (m_fract as well???) (make sure they aren't used twice in a line if so)
+  double m_time_behind_target_speed = 0.0;
+  bool m_time_below_target_speed_growing = false; //To rename?
+  std::atomic<double> m_time_at_custom_speed{0.0};
+  bool m_latency_catching_up = false;
+
+  bool m_stretching = false;
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
-  std::array<short, MAX_SAMPLES * 2> m_scratch_buffer;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
@@ -98,6 +170,7 @@ private:
   bool m_log_dtk_audio = false;
   bool m_log_dsp_audio = false;
 
-  // Current rate of emulation (1.0 = 100% speed)
-  std::atomic<float> m_speed{0.0f};
+  // Average of the last 0.425 seconds, Start at the most
+  // common sample rate and pushed samples num per batch
+  AudioSpeedCounter m_dma_speed{0.425, 32000, 560};
 };

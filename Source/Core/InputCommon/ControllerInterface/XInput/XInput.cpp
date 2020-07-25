@@ -119,6 +119,11 @@ public:
   std::string GetName() const override { return "Battery"; }
   ControlState GetState() const override { return m_level; }
   bool IsDetectable() const override { return false; }
+  // We don't need focus to pass the battery level
+  virtual Core::Device::FocusFlags GetFocusFlags() const
+  {
+    return Core::Device::FocusFlags::IgnoreFocus;
+  }
 
 private:
   const ControlState& m_level;

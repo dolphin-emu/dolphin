@@ -1,6 +1,8 @@
 add_library(audiocommon
   AudioCommon.cpp
   AudioCommon.h
+  AudioSpeedCounter.cpp
+  AudioSpeedCounter.h
   AudioStretcher.cpp
   AudioStretcher.h
   CubebStream.cpp
@@ -14,6 +16,8 @@ add_library(audiocommon
   SurroundDecoder.h
   NullSoundStream.cpp
   NullSoundStream.h
+  SoundStream.cpp
+  SoundStream.h
   WaveFile.cpp
   WaveFile.h
 )

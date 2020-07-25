@@ -13,6 +13,8 @@
 
 namespace ciface::ExpressionParser
 {
+using namespace ciface::Core;
+
 enum TokenType
 {
   TOK_WHITESPACE,
@@ -166,6 +168,7 @@ public:
   virtual ControlState GetValue() const = 0;
   virtual void SetValue(ControlState state) = 0;
   virtual int CountNumControls() const = 0;
+  virtual Device::FocusFlags GetFocusFlags() const { return Device::FocusFlags::Default; }
   virtual void UpdateReferences(ControlEnvironment& finder) = 0;
 };
 

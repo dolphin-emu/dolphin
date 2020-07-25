@@ -228,7 +228,7 @@ WiimoteCommon::AccelData ConvertAccelData(const Common::Vec3& accel, u16 zero_g,
 
 void EmulatePoint(MotionState* state, ControllerEmu::Cursor* ir_group, float time_elapsed)
 {
-  const auto cursor = ir_group->GetState(true);
+  const auto cursor = ir_group->GetState(time_elapsed, false);
 
   if (!cursor.IsVisible())
   {

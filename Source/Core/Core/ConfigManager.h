@@ -52,7 +52,7 @@ struct BootParameters;
 #define BACKEND_NULLSOUND _trans("No Audio Output")
 #define BACKEND_ALSA "ALSA"
 #define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL "OpenAL"
+#define BACKEND_OPENAL _trans("OpenAL (Deprecated)")
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_OPENSLES "OpenSLES"
 #define BACKEND_WASAPI _trans("WASAPI (Exclusive Mode)")
@@ -113,7 +113,8 @@ struct SConfig
   bool bAccurateNaNs = false;
   bool bDisableICache = false;
 
-  int iTimingVariance = 40;  // in milli secounds
+  // 40 ms for one frame on 25 fps games
+  int iTimingVariance = 40;
   bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;
@@ -124,9 +125,11 @@ struct SConfig
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
+  // Don't access directly, use AudioInterface::GetUserTargetLatency()
   int iLatency = 20;
+  bool bUseOSMixerSampleRate = false;
   bool m_audio_stretch = false;
-  int m_audio_stretch_max_latency = 80;
+  int m_audio_emu_speed_tolerance = 10;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;
@@ -150,6 +153,8 @@ struct SConfig
   // Interface settings
   bool bConfirmStop = false;
   bool bHideCursor = false;
+  bool bUsePanicHandlers = true;
+  bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
   // Bluetooth passthrough mode settings
@@ -304,6 +309,7 @@ struct SConfig
 #ifdef _WIN32
   // WSAPI settings
   std::string sWASAPIDevice;
+  std::string sWASAPIDeviceSampleRate;
 #endif
 
   // Input settings

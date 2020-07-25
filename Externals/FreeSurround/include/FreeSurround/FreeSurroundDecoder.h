@@ -15,6 +15,10 @@
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301,
 // USA.
 
+// Dolphin: taken from https://hydrogenaud.io/index.php?topic=52235.0 but heavily modified
+// A more up to date version is available here:
+// https://github.com/kodi-adsp/adsp.freesurround/blob/master/src/FreeSurroundDecoder.cpp
+
 #ifndef FREESURROUND_DECODER_H
 #define FREESURROUND_DECODER_H
 #include "KissFFTR.h"

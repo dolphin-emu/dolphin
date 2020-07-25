@@ -165,10 +165,7 @@ class SettingValue
 public:
   ValueType GetValue() const
   {
-    // Only update dynamic values when the input gate is enabled.
-    // Otherwise settings will all change to 0 when window focus is lost.
-    // This is very undesirable for things like battery level or attached extension.
-    if (!IsSimpleValue() && ControlReference::GetInputGate())
+    if (!IsSimpleValue())
       m_value = m_input.GetState<ValueType>();
 
     return m_value;
@@ -189,7 +186,8 @@ private:
   mutable std::atomic<ValueType> m_value = {};
 
   // Unfortunately InputReference's state grabbing is non-const requiring mutable here.
-  mutable InputReference m_input;
+  // Use IgnoreGateInputReference so we don't lose the setting when we lose focus.
+  mutable IgnoreGateInputReference m_input;
 };
 
 }  // namespace ControllerEmu

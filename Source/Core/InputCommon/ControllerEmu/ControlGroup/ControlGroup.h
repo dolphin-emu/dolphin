@@ -69,9 +69,10 @@ public:
 
   void SetControlExpression(int index, const std::string& expression);
 
-  void AddInput(Translatability translate, std::string name);
-  void AddInput(Translatability translate, std::string name, std::string ui_name);
-  void AddOutput(Translatability translate, std::string name);
+  void AddInput(Translatability translate, std::string name, ControlState range = 1.0);
+  void AddInput(Translatability translate, std::string name, std::string ui_name,
+                ControlState range = 1.0);
+  void AddOutput(Translatability translate, std::string name, ControlState range = 1.0);
 
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,

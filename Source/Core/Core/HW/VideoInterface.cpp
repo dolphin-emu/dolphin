@@ -28,6 +28,8 @@
 
 #include "DiscIO/Enums.h"
 
+#include "InputCommon/ControlReference/ControlReference.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -867,7 +869,12 @@ void Update(u64 ticks)
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
-    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
+    // If we wanted to add an option to not block the mouse input when it's
+    // responsable for capturing focus on the game window, put it as the last param,
+    // though it would break the code to prevent mouse clicks from being accepted
+    // after we lost focus (more flags could be added for that)
+    InputReference::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput,
+                                    SConfig::GetInstance().bLockCursor, true);
     SerialInterface::UpdateDevices();
     s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }

@@ -14,7 +14,7 @@
 //
 // Not fully featured, no safety checking yet. Add features as needed.
 
-template <class T, int N>
+template <class T, unsigned int N>
 class FixedSizeQueue
 {
 public:
@@ -59,6 +59,7 @@ public:
 
   void pop()
   {
+    assert(count > 0);
     if constexpr (!std::is_trivial_v<T>)
       storage[head] = {};
 
@@ -73,15 +74,27 @@ public:
     return temp;
   }
 
+  T& operator[](size_t index)
+  {
+    assert(index < count);
+    return storage[(head + index) % N];
+  }
+  const T& operator[](size_t index) const
+  {
+    assert(index < count);
+    return storage[(head + index) % N];
+  }
+
   T& front() noexcept { return storage[head]; }
   const T& front() const noexcept { return storage[head]; }
   size_t size() const noexcept { return count; }
+  size_t max_size() const noexcept { return N; }
   bool empty() const noexcept { return size() == 0; }
 
 private:
   std::array<T, N> storage;
-  int head = 0;
-  int tail = 0;
-  // Sacrifice 4 bytes for a simpler implementation. may optimize away in the future.
-  int count = 0;
+  unsigned int head = 0;
+  unsigned int tail = 0;
+  // Not necessary but avoids a lot of calculations
+  unsigned int count = 0;
 };

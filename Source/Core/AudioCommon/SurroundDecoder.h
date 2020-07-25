@@ -7,6 +7,7 @@
 #include <array>
 #include <memory>
 
+#include "AudioCommon/Enums.h"
 #include "Common/CommonTypes.h"
 #include "Common/FixedSizeQueue.h"
 
@@ -17,11 +18,12 @@ namespace AudioCommon
 class SurroundDecoder
 {
 public:
-  explicit SurroundDecoder(u32 sample_rate, u32 frame_block_size);
+  explicit SurroundDecoder(u32 sample_rate, DPL2Quality quality);
   ~SurroundDecoder();
-  size_t QueryFramesNeededForSurroundOutput(const size_t output_frames) const;
-  void PutFrames(const short* in, const size_t num_frames_in);
-  void ReceiveFrames(float* out, const size_t num_frames_out);
+  size_t QuerySamplesNeededForSurroundOutput(const size_t output_samples) const;
+  void SetSampleRate(u32 sample_rate);
+  void PushSamples(const s16* in, const size_t num_samples);
+  void GetDecodedSamples(float* out, const size_t num_samples);
   void Clear();
 
 private:

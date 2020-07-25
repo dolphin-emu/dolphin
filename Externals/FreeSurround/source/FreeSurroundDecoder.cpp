@@ -72,8 +72,8 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
     set_center_image(1);
     set_front_separation(1);
     set_rear_separation(1);
-    set_low_cutoff(40.0f / samplerate * 2);
-    set_high_cutoff(90.0f / samplerate * 2);
+    set_low_cutoff(40.0f / (samplerate / 2.f));
+    set_high_cutoff(90.0f / (samplerate / 2.f));
     set_bass_redirection(false);
 
     initialized = true;

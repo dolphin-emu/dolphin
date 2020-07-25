@@ -10,6 +10,7 @@
 #include <thread>
 
 #include "AudioCommon/OpenALStream.h"
+#include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
@@ -84,7 +85,7 @@ static bool InitLibrary()
   return true;
 }
 
-bool OpenALStream::isValid()
+bool OpenALStream::IsValid()
 {
   return InitLibrary();
 }
@@ -118,6 +119,10 @@ bool OpenALStream::Init()
     return false;
   }
 
+  m_mixer->SetSampleRate(SConfig::GetInstance().bUseOSMixerSampleRate ?
+                             AudioCommon::GetOSMixerSampleRate() :
+                             AudioCommon::GetDefaultSampleRate());
+
   palcMakeContextCurrent(context);
   m_run_thread.Set();
   m_thread = std::thread(&OpenALStream::SoundLoop, this);
@@ -126,9 +131,8 @@ bool OpenALStream::Init()
 
 OpenALStream::~OpenALStream()
 {
-  m_run_thread.Clear();
   // kick the thread if it's waiting
-  m_sound_sync_event.Set();
+  m_run_thread.Clear();
 
   m_thread.join();
 
@@ -158,7 +162,6 @@ void OpenALStream::SetVolume(int volume)
 
 void OpenALStream::Update()
 {
-  m_sound_sync_event.Set();
 }
 
 bool OpenALStream::SetRunning(bool running)
@@ -230,16 +233,11 @@ void OpenALStream::SoundLoop()
 
   u32 frequency = m_mixer->GetSampleRate();
 
-  u32 frames_per_buffer;
   // Can't have zero samples per buffer
-  if (SConfig::GetInstance().iLatency > 0)
-  {
-    frames_per_buffer = frequency / 1000 * SConfig::GetInstance().iLatency / OAL_BUFFERS;
-  }
-  else
-  {
-    frames_per_buffer = frequency / 1000 * 1 / OAL_BUFFERS;
-  }
+  unsigned int target_latency = std::max(AudioCommon::GetUserTargetLatency(), 1ul);
+
+  u32 frames_per_buffer;
+  frames_per_buffer = frequency / 1000 * target_latency / OAL_BUFFERS;
 
   if (frames_per_buffer > OAL_MAX_FRAMES)
   {
@@ -277,7 +275,8 @@ void OpenALStream::SoundLoop()
 
   while (m_run_thread.IsSet())
   {
-    // Block until we have a free buffer
+    // TODO: WaitForMultipleObjects to stop the thread immediately or wait, like in WASAPIStream.cpp
+    // Block until we have a free buffer. We have clamped our latency to the length of this sleep
     int num_buffers_processed;
     palGetSourcei(m_source, AL_BUFFERS_PROCESSED, &num_buffers_processed);
     if (num_buffers_queued == OAL_BUFFERS && !num_buffers_processed)
@@ -286,7 +285,7 @@ void OpenALStream::SoundLoop()
       continue;
     }
 
-    // Remove the Buffer from the Queue.
+    // Remove the Buffer from the Queue
     if (num_buffers_processed)
     {
       std::array<ALuint, OAL_BUFFERS> unqueued_buffer_ids;
@@ -351,7 +350,7 @@ void OpenALStream::SoundLoop()
       err = CheckALError("buffering data");
       if (err == AL_INVALID_ENUM)
       {
-        // 5.1 is not supported by the host, fallback to stereo
+        // 5.1 is not supported by the host, fallback to stereo in the next audio frame
         WARN_LOG_FMT(
             AUDIO, "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
         use_surround = false;

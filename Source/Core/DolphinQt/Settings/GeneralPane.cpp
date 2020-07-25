@@ -158,11 +158,16 @@ void GeneralPane::CreateBasic()
   m_combobox_speedlimit = new QComboBox();
 
   m_combobox_speedlimit->addItem(tr("Unlimited"));
-  for (int i = 10; i <= 200; i += 10)  // from 10% to 200%
+  for (int i = 10; i <= 500; i += 10)  // from 10% to 200%
   {
     QString str;
     if (i != 100)
-      str = QStringLiteral("%1%").arg(i);
+    {
+      if (i > 200 && std::fmod((float)i, 50.f) != 0)
+        continue;
+      else
+        str = QStringLiteral("%1%").arg(i);
+    }
     else
       str = tr("%1% (Normal Speed)").arg(i);
 
@@ -354,6 +359,10 @@ void GeneralPane::OnSaveConfig()
   Config::SetBase(Config::MAIN_AUTO_DISC_CHANGE, m_checkbox_auto_disc_change->isChecked());
   Config::SetBaseOrCurrent(Config::MAIN_ENABLE_CHEATS, m_checkbox_cheats->isChecked());
   settings.m_EmulationSpeed = m_combobox_speedlimit->currentIndex() * 0.1f;
+  if (settings.m_EmulationSpeed > 2.f)
+  {
+    settings.m_EmulationSpeed = 2.f + (m_combobox_speedlimit->currentIndex() - 20) * 0.5f;
+  }
   Settings::Instance().SetFallbackRegion(
       UpdateFallbackRegionFromIndex(m_combobox_fallback_region->currentIndex()));
 

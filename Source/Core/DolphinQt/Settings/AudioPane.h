@@ -35,6 +35,10 @@ private:
 
   void OnEmulationStateChanged(bool running);
   void OnBackendChanged();
+#ifdef _WIN32
+  void OnWASAPIDeviceChanged();
+  void LoadWASAPIDeviceSampleRate();
+ #endif
   void OnDspChanged();
   void OnVolumeChanged(int volume);
 
@@ -44,6 +48,9 @@ private:
   QString GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const;
   QString GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value) const;
   void EnableDolbyQualityWidgets(bool enabled) const;
+
+  bool m_running;
+  bool m_ignore_save_settings;
 
   QGridLayout* m_main_layout;
 
@@ -67,14 +74,17 @@ private:
   QLabel* m_dolby_quality_latency_label;
   QLabel* m_latency_label;
   QSpinBox* m_latency_spin;
+  QCheckBox* m_use_os_sample_rate;
 #ifdef _WIN32
   QLabel* m_wasapi_device_label;
+  QLabel* m_wasapi_device_sample_rate_label;
   QComboBox* m_wasapi_device_combo;
+  QComboBox* m_wasapi_device_sample_rate_combo;
 #endif
 
   // Audio Stretching
   QCheckBox* m_stretching_enable;
-  QLabel* m_stretching_buffer_label;
-  QSlider* m_stretching_buffer_slider;
-  QLabel* m_stretching_buffer_indicator;
+  QLabel* m_emu_speed_tolerance_label;
+  QSlider* m_emu_speed_tolerance_slider;
+  QLabel* m_emu_speed_tolerance_indicator;
 };

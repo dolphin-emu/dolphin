@@ -13,7 +13,8 @@ namespace WiimoteEmu
 {
 struct ADPCMState
 {
-  s32 predictor, step;
+  double predictor;
+  double step;
 };
 
 class Wiimote;
@@ -31,7 +32,7 @@ public:
   void DoState(PointerWrap& p);
 
 private:
-  // Pan is -1.0 to +1.0
+  // Pan is -1.0 (L) to +1.0 (R)
   void SpeakerData(const u8* data, int length, float speaker_pan);
 
   // TODO: enum class
@@ -72,6 +73,9 @@ private:
   ADPCMState adpcm_state;
 
   ControllerEmu::SettingValue<double> m_speaker_pan_setting;
+
+  // Wiimote index, 0-3
+  u8 m_index;
 };
 
 }  // namespace WiimoteEmu

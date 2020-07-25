@@ -38,6 +38,10 @@ private:
     std::string GetName() const override;
     bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
+    Flags GetFlags() const override
+    {
+      return (Flags)((u8)Flags::RequiresFocus | (u8)Flags::RequiresFullFocus);
+    }
 
   private:
     const float& m_axis;
@@ -51,6 +55,11 @@ private:
     explicit Button(CGMouseButton button) : m_button(button) {}
     std::string GetName() const override;
     ControlState GetState() const override;
+    Flags GetFlags() const override
+    {
+      return (Flags)((u8)Flags::RequiresFocus | (u8)Flags::RequiresFullFocus |
+                     (u8)Flags::IgnoreOnFocusAcquired);
+    }
 
   private:
     CGMouseButton m_button;

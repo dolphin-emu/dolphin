@@ -343,7 +343,7 @@ AXMixControl AXUCode::ConvertMixerControl(u32 mixer_control)
     if (mixer_control & 0x2000)
       ret |= MIX_AUXB_S_RAMP;
 
-    // TODO: 0x4000 is used for Dolby Pro 2 sound mixing
+    // TODO: 0x4000 is used for DPLII (Dolby) sound mixing
   }
 
   return (AXMixControl)ret;

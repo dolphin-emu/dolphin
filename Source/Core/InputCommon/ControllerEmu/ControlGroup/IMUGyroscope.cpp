@@ -137,7 +137,7 @@ std::optional<IMUGyroscope::StateData> IMUGyroscope::GetState() const
   auto state = GetRawState();
 
   // If the input gate is disabled, miscalibration to zero values would occur.
-  if (ControlReference::GetInputGate())
+  if (InputReference::GetInputGate())
     UpdateCalibration(state);
 
   state -= m_calibration;

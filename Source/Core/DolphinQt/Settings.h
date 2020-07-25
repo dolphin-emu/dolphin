@@ -96,6 +96,8 @@ public:
   // Graphics
   void SetHideCursor(bool hide_cursor);
   bool GetHideCursor() const;
+  void SetLockCursor(bool lock_cursor);
+  bool GetLockCursor() const;
   void SetKeepWindowOnTop(bool top);
   bool IsKeepWindowOnTopEnabled() const;
 
@@ -164,6 +166,7 @@ signals:
   void MetadataRefreshCompleted();
   void AutoRefreshToggled(bool enabled);
   void HideCursorChanged();
+  void LockCursorChanged();
   void KeepWindowOnTopChanged(bool top);
   void VolumeChanged(int volume);
   void NANDRefresh();

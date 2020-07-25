@@ -16,6 +16,9 @@
 #include <QPainterPath>
 #include <QTimer>
 
+#include "Core/Core.h"
+#include "Core/HW/Wiimote.h"
+
 #include "Common/MathUtil.h"
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -293,7 +296,7 @@ void MappingIndicator::paintEvent(QPaintEvent*)
 
 void CursorIndicator::Draw()
 {
-  const auto adj_coord = m_cursor_group.GetState(true);
+  const auto adj_coord = m_cursor_group.GetState(0.f, true);
 
   DrawReshapableInput(m_cursor_group, CURSOR_TV_COLOR,
                       adj_coord.IsVisible() ?

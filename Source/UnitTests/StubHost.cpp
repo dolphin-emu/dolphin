@@ -43,6 +43,10 @@ bool Host_RendererHasFocus()
 {
   return false;
 }
+bool Host_RendererHasFullFocus()
+{
+  return false;
+}
 bool Host_RendererIsFullscreen()
 {
   return false;

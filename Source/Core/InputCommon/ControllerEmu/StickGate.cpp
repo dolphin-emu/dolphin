@@ -128,7 +128,7 @@ std::optional<u32> SquareStickGate::GetIdealCalibrationSampleCount() const
 ReshapableInput::ReshapableInput(std::string name_, std::string ui_name_, GroupType type_)
     : ControlGroup(std::move(name_), std::move(ui_name_), type_)
 {
-  AddDeadzoneSetting(&m_deadzone_setting, 50);
+  AddDeadzoneSetting(&m_deadzone_setting, 75);
 }
 
 ControlState ReshapableInput::GetDeadzoneRadiusAtAngle(double angle) const
@@ -280,10 +280,13 @@ void ReshapableInput::SaveConfig(IniFile::Section* section, const std::string& d
 }
 
 ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlState y,
-                                                      ControlState modifier)
+                                                      ControlState modifier, ControlState clamp)
 {
   x -= m_center.x;
   y -= m_center.y;
+
+  // We run this even if both x and y will be zero.
+  // The angle value will be random but dist will stay 0
 
   // TODO: make the AtAngle functions work with negative angles:
   ControlState angle = std::atan2(y, x) + MathUtil::TAU;
@@ -308,11 +311,7 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // This is affected by the modifier's "range" setting which defaults to 50%.
   if (modifier)
   {
-    // TODO: Modifier's range setting gets reset to 100% when the clear button is clicked.
-    // This causes the modifier to not behave how a user might suspect.
-    // Retaining the old scale-by-50% behavior until range is fixed to clear to 50%.
-    dist *= 0.5;
-    // dist *= modifier;
+    dist *= modifier;
   }
 
   // Apply deadzone as a percentage of the user-defined calibration shape/size:
@@ -321,8 +320,8 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   // Scale to the gate shape/radius:
   dist *= gate_max_dist;
 
-  return {std::clamp(std::cos(angle) * dist, -1.0, 1.0),
-          std::clamp(std::sin(angle) * dist, -1.0, 1.0)};
+  return {std::clamp(std::cos(angle) * dist, -clamp, clamp),
+          std::clamp(std::sin(angle) * dist, -clamp, clamp)};
 }
 
 }  // namespace ControllerEmu

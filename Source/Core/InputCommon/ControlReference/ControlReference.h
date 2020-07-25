@@ -10,6 +10,8 @@
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/CoreDevice.h"
 
+using namespace ciface::Core;
+
 // ControlReference
 //
 // These are what you create to actually use the inputs, InputReference or OutputReference.
@@ -19,14 +21,9 @@
 // when you change a ControlReference's expression,
 // you must use UpdateReference on it to rebind controls
 //
-
 class ControlReference
 {
 public:
-  // Note: this is per thread.
-  static void SetInputGate(bool enable);
-  static bool GetInputGate();
-
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual bool IsInput() const = 0;
@@ -42,7 +39,10 @@ public:
   // Returns a human-readable error description when the given expression is invalid.
   std::optional<std::string> SetExpression(std::string expr);
 
+  // State value multiplier
   ControlState range;
+  // Useful for resetting settings. Always 1 except for input modifies
+  ControlState default_range;
 
 protected:
   ControlReference();
@@ -78,8 +78,30 @@ inline ControlState ControlReference::GetState<ControlState>()
 class InputReference : public ControlReference
 {
 public:
+  // Note: the input gate is per thread.
+  // Set the gate to be fully open, ignoring focus
+  static void SetInputGateOpen();
+  // Check if the gate is fully open
+  static bool GetInputGate();
+  // This is mostly to cache values for cheaper retrieval and consistency within a frame
+  static void UpdateInputGate(bool require_focus, bool require_full_focus = false,
+                              bool ignore_input_on_focus_changed = false);
+
   InputReference();
+  bool FilterInput();
   bool IsInput() const override;
+  ControlState State(const ControlState state) override;
+};
+
+//
+// IgnoreGateInputReference
+//
+// Control reference for inputs that should ignore focus, like battery level
+//
+class IgnoreGateInputReference : public InputReference
+{
+public:
+  IgnoreGateInputReference();
   ControlState State(const ControlState state) override;
 };
 

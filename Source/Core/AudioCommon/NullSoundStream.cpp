@@ -4,10 +4,6 @@
 
 #include "AudioCommon/NullSoundStream.h"
 
-void NullSound::SoundLoop()
-{
-}
-
 bool NullSound::Init()
 {
   return true;
@@ -16,12 +12,4 @@ bool NullSound::Init()
 bool NullSound::SetRunning(bool running)
 {
   return true;
-}
-
-void NullSound::SetVolume(int volume)
-{
-}
-
-void NullSound::Update()
-{
 }

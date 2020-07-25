@@ -93,6 +93,8 @@ void ControllerInterface::ChangeWindow(void* hwnd)
 
 void ControllerInterface::RefreshDevices()
 {
+  //if (true) //To finish
+  //  return;
   if (!m_is_init)
     return;
 
@@ -265,14 +267,16 @@ void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::De
 }
 
 // Update input for all devices if lock can be acquired without waiting.
-void ControllerInterface::UpdateInput()
+void ControllerInterface::UpdateInput(bool update_mouse_axis)
 {
   // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
   if (m_devices_mutex.try_lock())
   {
     std::lock_guard lk(m_devices_mutex, std::adopt_lock);
+    should_update_mouse_axis = update_mouse_axis;
     for (const auto& d : m_devices)
       d->UpdateInput();
+    should_update_mouse_axis = false;
   }
 }
 

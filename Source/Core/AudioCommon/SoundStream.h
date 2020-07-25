@@ -9,19 +9,27 @@
 #include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 
+class Mixer;
+
+// Abstract class for different sound backends.
+// Needs to be created and destroyed within the same thread
 class SoundStream
 {
 protected:
   std::unique_ptr<Mixer> m_mixer;
 
 public:
-  SoundStream() : m_mixer(new Mixer(48000)) {}
+  SoundStream();
   virtual ~SoundStream() {}
-  static bool isValid() { return false; }
+  static bool IsValid() { return false; }
   Mixer* GetMixer() const { return m_mixer.get(); }
   virtual bool Init() { return false; }
   virtual void SetVolume(int) {}
   virtual void SoundLoop() {}
   virtual void Update() {}
+  virtual bool SupportsRuntimeSettingsChanges() const { return false; }
+  virtual void OnSettingsChanged() {}
+  // Can be called by the main thread or the emulator/video thread,
+  // never concurrently. Only call this through AudioCommons
   virtual bool SetRunning(bool running) { return false; }
 };
