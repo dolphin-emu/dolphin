@@ -175,11 +175,12 @@ void AudioPane::CreateWidgets()
   m_stretching_enable = new QCheckBox(tr("Enable Audio Stretching"));
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
+  m_emu_speed_tolerance_indicator->setAlignment(Qt::AlignRight);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   game_audio_box->setLayout(game_audio_layout);
 
   m_emu_speed_tolerance_slider->setMinimum(-1);
-  m_emu_speed_tolerance_slider->setMaximum(300);
+  m_emu_speed_tolerance_slider->setMaximum(100);
   m_emu_speed_tolerance_slider->setToolTip(
       tr("Time (ms) we need to fall behind the emulation for sound to start slowing down. If set "
          "too high, sound will crackle when we slow down or stutter, if set too low, sound might "
@@ -194,7 +195,6 @@ void AudioPane::CreateWidgets()
          "left for frame dips and if the audio playback loses alignment"));
   
   game_audio_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
-  //game_audio_layout->addWidget(m_stretching_enable, 0, 1); //To review
   game_audio_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
   game_audio_layout->addWidget(m_emu_speed_tolerance_slider, 1, 1);
   game_audio_layout->addWidget(m_emu_speed_tolerance_indicator, 1, 2);
@@ -305,13 +305,14 @@ void AudioPane::LoadSettings()
 
   // Stretch
   m_stretching_enable->setChecked(SConfig::GetInstance().m_audio_stretch);
+  m_ignore_save_settings = true;
   m_emu_speed_tolerance_slider->setValue(SConfig::GetInstance().m_audio_emu_speed_tolerance);
   if (m_emu_speed_tolerance_slider->value() < 0)
     m_emu_speed_tolerance_indicator->setText(tr("Disabled"));
   else
     m_emu_speed_tolerance_indicator->setText(
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
-  m_emu_speed_tolerance_indicator->setAlignment(Qt::AlignRight); //To review
+  m_ignore_save_settings = false;
 
 #ifdef _WIN32
   m_ignore_save_settings = true;
@@ -411,8 +412,11 @@ void AudioPane::SaveSettings()
   // Stretch
   SConfig::GetInstance().m_audio_stretch = m_stretching_enable->isChecked();
   SConfig::GetInstance().m_audio_emu_speed_tolerance = m_emu_speed_tolerance_slider->value();
-  m_emu_speed_tolerance_indicator->setText(
-      tr("%1 ms").arg(SConfig::GetInstance().m_audio_emu_speed_tolerance));
+  if (m_emu_speed_tolerance_slider->value() < 0)
+    m_emu_speed_tolerance_indicator->setText(tr("Disabled"));
+  else
+    m_emu_speed_tolerance_indicator->setText(
+        tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
 
 #ifdef _WIN32
   // If left at default, Dolphin will automatically
