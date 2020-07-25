@@ -18,7 +18,7 @@ namespace Common
 #define BUILD_TYPE_STR ""
 #endif
 
-#define SLIPPI_REV_STR "2.2.0"
+#define SLIPPI_REV_STR "2.2.1"
 
 const std::string scm_slippi_semver_str = SLIPPI_REV_STR;
 

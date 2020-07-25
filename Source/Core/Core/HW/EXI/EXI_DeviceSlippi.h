@@ -190,9 +190,6 @@ namespace ExpansionInterface
     u32 stallFrameCount = 0;
     bool isConnectionStalled = false;
 
-    bool isSoftFFW = false;
-    bool isHardFFW = false;
-    int32_t lastFFWFrame = INT_MIN;
     std::vector<u8> m_read_queue;
     std::unique_ptr<Slippi::SlippiGame> m_current_game = nullptr;
     SlippiMatchmaking::MatchSearchSettings lastSearch;

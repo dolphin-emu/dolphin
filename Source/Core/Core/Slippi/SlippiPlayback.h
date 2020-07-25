@@ -31,6 +31,7 @@ public:
 
   void startThreads(void);
   void resetPlayback(void);
+  bool shouldFFWFrame(s32 frameIndex) const;
   void prepareSlippiPlayback(s32& frameIndex);
   void SeekToFrame();
 

@@ -113,7 +113,6 @@ CEXISlippi::CEXISlippi()
 
   // Update user file and then listen for User
 #ifndef IS_PLAYBACK
-  user->UpdateFile();
   user->ListenForLogIn();
 #endif
 
@@ -1228,7 +1227,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
     g_playbackStatus->isHardFFW = false;
   }
 
-  bool shouldFFW = shouldFFWFrame(frameIndex);
+  bool shouldFFW = g_playbackStatus->shouldFFWFrame(frameIndex);
   u8 requestResultCode = shouldFFW ? FRAME_RESP_FASTFORWARD : FRAME_RESP_CONTINUE;
   if (!isFrameReady)
   {
@@ -1316,25 +1315,6 @@ void CEXISlippi::prepareFrameData(u8* payload)
     prepareCharacterFrameData(frame, port, 0);
     prepareCharacterFrameData(frame, port, 1);
   }
-}
-
-bool CEXISlippi::shouldFFWFrame(int32_t frameIndex)
-{
-  if (!g_playbackStatus->isSoftFFW && !g_playbackStatus->isHardFFW)
-  {
-    // If no FFW at all, don't FFW this frame
-    return false;
-  }
-
-  if (g_playbackStatus->isHardFFW)
-  {
-    // For a hard FFW, always FFW until it's turned off
-    return true;
-  }
-
-  // Here we have a soft FFW, we only want to turn on FFW for single frames once
-  // every X frames to FFW in a more smooth manner
-  return frameIndex - g_playbackStatus->lastFFWFrame >= 15;
 }
 
 void CEXISlippi::prepareIsStockSteal(u8* payload)
@@ -1802,10 +1782,6 @@ void CEXISlippi::prepareOnlineMatchState()
     SlippiPlayerSelections lps = matchInfo->localPlayerSelections;
     SlippiPlayerSelections rps = matchInfo->remotePlayerSelections;
 
-    // Overwrite local player character
-    onlineMatchBlock[0x60 + localPlayerIndex * 0x24] = lps.characterId;
-    onlineMatchBlock[0x63 + localPlayerIndex * 0x24] = lps.characterColor;
-
 #ifdef LOCAL_TESTING
     rps.characterId = 0x2;
     rps.characterColor = 2;
@@ -1870,7 +1846,6 @@ void CEXISlippi::prepareOnlineMatchState()
 
     // Turn pause on in direct, off in everything else
     u8* gameBitField3 = (u8*)& onlineMatchBlock[2];
-    directMode = SlippiMatchmaking::OnlinePlayMode::DIRECT;
     *gameBitField3 = lastSearch.mode == directMode ? *gameBitField3 & 0xF7 : *gameBitField3 | 0x8;
   }
 
@@ -2019,9 +1994,7 @@ void CEXISlippi::handleLogInRequest()
   bool logInRes = user->AttemptLogin();
   if (!logInRes)
   {
-    //#ifndef LINUX_LOCAL_DEV
     Host_LowerWindow();
-    //#endif
     user->OpenLogInPage();
     user->ListenForLogIn();
   }
@@ -2035,7 +2008,8 @@ void CEXISlippi::handleLogOutRequest()
 void CEXISlippi::handleUpdateAppRequest()
 {
 #ifdef __APPLE__
-  CriticalAlertT("Automatic updates are not available for macOS, please update manually.");
+  CriticalAlertT(
+    "Automatic updates are not available for macOS, please get the latest update from slippi.gg/netplay.");
 #else
   Host_LowerWindow();
   user->UpdateApp();
@@ -2250,5 +2224,4 @@ bool CEXISlippi::IsPresent() const
 }
 
 void CEXISlippi::TransferByte(u8& byte) {}
-
 }

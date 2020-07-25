@@ -11,6 +11,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Version.h"
 
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
@@ -177,7 +178,7 @@ void SlippiUser::OpenLogInPage()
 void SlippiUser::UpdateApp()
 {
 #ifdef _WIN32
-  auto isoPath = SConfig::GetInstance().m_strFilename;
+  auto isoPath = SConfig::GetInstance().m_strIsoPath;
 
   std::string path = File::GetExeDirectory() + "/dolphin-slippi-tools.exe";
   std::string echoMsg = "echo Starting update process. If nothing happen after a few "
@@ -185,8 +186,8 @@ void SlippiUser::UpdateApp()
   // std::string command =
   //    "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath + "\"";
   std::string command = "start /b cmd /c " + echoMsg + " && \"" + path + "\" app-update -launch -iso \"" + isoPath +
-    "\" -version \"" + scm_slippi_semver_str + "\"";
-  WARN_LOG(SLIPPI, "Executing app update command: %s", command);
+    "\" -version \"" + Common::scm_slippi_semver_str + "\"";
+  WARN_LOG(SLIPPI, "Executing app update command: %s", command.c_str());
   RunSystemCommand(command);
 #elif defined(__APPLE__)
 #else

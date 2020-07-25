@@ -267,6 +267,25 @@ void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
   }
 }
 
+bool SlippiPlaybackStatus::shouldFFWFrame(s32 frameIndex) const
+{
+  if (!isSoftFFW && !isHardFFW)
+  {
+    // If no FFW at all, don't FFW this frame
+    return false;
+  }
+
+  if (isHardFFW)
+  {
+    // For a hard FFW, always FFW until it's turned off
+    return true;
+  }
+
+  // Here we have a soft FFW, we only want to turn on FFW for single frames once
+  // every X frames to FFW in a more smooth manner
+  return (frameIndex - lastFFWFrame) >= 15;
+}
+
 void SlippiPlaybackStatus::updateWatchSettingsStartEnd()
 {
   int startFrame = g_replayComm->current.startFrame;

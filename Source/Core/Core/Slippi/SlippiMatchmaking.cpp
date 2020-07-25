@@ -364,8 +364,6 @@ void SlippiMatchmaking::handleMatchmaking()
     if (latestVersion != "")
     {
       // Update file to get new version number when the mm server tells us our version is outdated
-      m_user->UpdateFile();
-      m_user->AttemptLogin();
       m_user->OverwriteLatestVersion(latestVersion); // Force latest version for people whose file updates dont work
     }
 
