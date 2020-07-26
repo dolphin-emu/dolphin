@@ -1008,6 +1008,9 @@
     <ClCompile Include="API\Events.cpp">
       <Filter>API</Filter>
     </ClCompile>
+    <ClCompile Include="API\Memory.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1765,6 +1768,9 @@
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface\BBA</Filter>
     </ClInclude>
     <ClInclude Include="API\Events.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Memory.h">
       <Filter>API</Filter>
     </ClInclude>
   </ItemGroup>
