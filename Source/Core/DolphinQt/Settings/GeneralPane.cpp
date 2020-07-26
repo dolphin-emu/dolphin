@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Settings/GeneralPane.h"
 
+#include <cmath>
 #include <map>
 
 #include <QCheckBox>
@@ -163,7 +164,7 @@ void GeneralPane::CreateBasic()
     QString str;
     if (i != 100)
     {
-      if (i > 200 && std::fmod((float)i, 50.f) != 0)
+      if (i > 200 && std::fmod((float)i, 50.f) != 0.f)
         continue;
       else
         str = QStringLiteral("%1%").arg(i);
