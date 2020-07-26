@@ -100,9 +100,11 @@ private:
     u32 GetNextIndexR(u32 indexR) const;
     void UpdatePush(double time);
     
-    // Returns the actual number of samples written. Outputs the last played sample for padding
+    // Returns the actual number of samples written. Outputs the last played sample for padding.
+    // We pass in in/out samples to cache the last calculated value. It's in int32 range because
+    // cubic interpolation can produce values over int16 and we don't want to lose the extra
     u32 CubicInterpolation(s16* samples, u32 num_samples, double rate, u32& indexR, u32 indexW,
-                           s16& l_s, s16& r_s, s32 lVolume, s32 rVolume, bool forwards = true);
+                           s32& l_s, s32& r_s, s32 lVolume, s32 rVolume, bool forwards = true);
 
   private:
     Mixer* m_mixer;
@@ -128,7 +130,8 @@ private:
     // Volume range is 0-256
     std::atomic<s32> m_lVolume{256};
     std::atomic<s32> m_rVolume{256};
-    s16 m_last_output_samples[NC]{};
+    // Se comment on CubicInterpolation()
+    s32 m_last_output_samples[NC]{};
     double m_fract = -1.0;
     double m_backwards_fract = -1.0;
     //To review: if this was off, that mixer won't gather a buffer/latency, and it would always be on the brink of playback

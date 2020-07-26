@@ -10,7 +10,7 @@
 
 #include "AudioCommon/Enums.h"
 #include "AudioCommon/SurroundDecoder.h"
-#pragma optimize("", off) //To delete
+//#pragma optimize("", off) //To delete
 
 namespace AudioCommon
 {

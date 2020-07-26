@@ -20,7 +20,7 @@
 
 #include "Common/Logging/Log.h" //To delete and all the uses (or make debug log)
 #include "VideoCommon/OnScreenDisplay.h" //To delete and all the uses
-#pragma optimize("", off) //To delete
+//#pragma optimize("", off) //To delete
 
 Mixer::Mixer(u32 sample_rate)
     : m_sample_rate(sample_rate), m_stretcher(sample_rate),
@@ -103,7 +103,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
   s32 lVolume = m_lVolume.load();
   s32 rVolume = m_rVolume.load();
 
-  s16 s[NC]; // Padding samples
+  s32 s[NC];  // Padding samples
   s[0] = m_last_output_samples[1];
   s[1] = m_last_output_samples[1];
 
@@ -195,10 +195,10 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     unsigned int current_sample = actual_samples_count * 2;
     for (; current_sample < num_samples * 2; current_sample += 2)
     {
-      samples[current_sample + 0] =
-          std::clamp(m_last_output_samples[0] + samples[current_sample + 0], -SHRT_MAX, SHRT_MAX);
-      samples[current_sample + 1] =
-          std::clamp(m_last_output_samples[1] + samples[current_sample + 1], -SHRT_MAX, SHRT_MAX);
+      samples[current_sample + 0] = std::clamp(
+          samples[current_sample + 0] + m_last_output_samples[0], SHRT_MIN, SHRT_MAX);
+      samples[current_sample + 1] = std::clamp(
+          samples[current_sample + 1] + m_last_output_samples[1], SHRT_MIN, SHRT_MAX);
     }
   }
   //if (indexW > 8 && !m_constantly_pushed) OSD::AddMessage("last sample: " + std::to_string(m_last_output_samples[0]), 0U);
@@ -210,7 +210,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
 
 // Sounds better than linear interpolation
 u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double rate, u32& indexR,
-                                         u32 indexW, s16& l_s, s16& r_s, s32 lVolume, s32 rVolume,
+                                         u32 indexW, s32& l_s, s32& r_s, s32 lVolume, s32 rVolume,
                                          bool forwards)
 {
   // Coefficients copied from SoundTouch Copyright © Olli Parviainen 2001-2019
@@ -302,14 +302,14 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
                   y3 * interpolation_buffer[(indexR + 6 * direction + 1) & INDEX_MASK];
     //To test left and right on HW source
 
-    l_s = (s16(std::round(l_s_f)) * lVolume) >> 8;
-    r_s = (s16(std::round(r_s_f)) * rVolume) >> 8;
+    l_s = (s32(std::round(l_s_f)) * lVolume) >> 8; //To round again post vol? //To use std::rint?
+    r_s = (s32(std::round(r_s_f)) * rVolume) >> 8;
     // Clamp after adding to current sample, as if the cubic interpolation produced a sample over
     // the limits and the current sample has the opposite sign, then we'd keep the excess value,
     // while if it had the same sign, it would have been clamped anyway.
-    // We don't clamp to SHRT_MIN to keep the center at 0, though audio devices can take SHRT_MIN
-    samples[i * NC + 0] = std::clamp(samples[i * NC + 0] + l_s, -SHRT_MAX, SHRT_MAX);
-    samples[i * NC + 1] = std::clamp(samples[i * NC + 1] + r_s, -SHRT_MAX, SHRT_MAX);
+    // Instead of clamping to -SHORT_MAX like before to keep 0 centered, we use the full short range
+    samples[i * NC + 0] = std::clamp(samples[i * NC + 0] + l_s, SHRT_MIN, SHRT_MAX);
+    samples[i * NC + 1] = std::clamp(samples[i * NC + 1] + r_s, SHRT_MIN, SHRT_MAX);
 
     ++i;
   }
@@ -597,7 +597,8 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
   //To fix: we can't reach this at lower latencies? Or with stretching on
   if (available_samples != needed_samples)
   {
-    ERROR_LOG_FMT(AUDIO, "Error decoding surround frames.");
+    ERROR_LOG_FMT(AUDIO, "Error decoding surround samples");
+    // This needs to do padding
     return 0;
   }
 
