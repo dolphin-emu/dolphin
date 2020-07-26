@@ -4,6 +4,8 @@
 
 #include "DolphinQt/Settings/AudioPane.h"
 
+#include <cassert>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QPushButton>

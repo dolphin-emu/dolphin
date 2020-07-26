@@ -4,6 +4,7 @@
 
 #include <FreeSurround/FreeSurroundDecoder.h>
 
+#include <cassert>
 #include <limits>
 
 #include "Core/Config/MainSettings.h"
