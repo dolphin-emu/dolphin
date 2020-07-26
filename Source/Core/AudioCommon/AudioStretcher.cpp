@@ -39,10 +39,15 @@ void AudioStretcher::PushSamples(const s16* in, u32 num_in)
   }
 }
 
-void AudioStretcher::GetStretchedSamples(s16* out, u32 num_out)
+u32 AudioStretcher::GetStretchedSamples(s16* out, u32 num_out, bool pad)
 {
   // This won't return any samples a lot of times as they are processed in batches
-  const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
+  u32 samples_received = m_sound_touch.receiveSamples(out, num_out);
+
+  if (!pad)
+  {
+    return samples_received;
+  }
 
   if (samples_received != 0)
   {
@@ -50,12 +55,14 @@ void AudioStretcher::GetStretchedSamples(s16* out, u32 num_out)
     m_last_stretched_sample[1] = out[samples_received * 2 - 1];
   }
 
-  // Perform padding if we've run out of samples.
-  for (size_t i = samples_received; i < num_out; ++i)
+  // Perform padding if we've run out of samples
+  for (u32 i = samples_received; i < num_out; ++i)
   {
     out[i * 2 + 0] = m_last_stretched_sample[0];
     out[i * 2 + 1] = m_last_stretched_sample[1];
   }
+
+  return num_out;
 }
 
 // Call this before ProcessSamples()

@@ -119,7 +119,7 @@ bool OpenALStream::Init()
     return false;
   }
 
-  m_mixer->SetSampleRate(SConfig::GetInstance().bUseOSMixerSampleRate ?
+  m_mixer->UpdateSettings(SConfig::GetInstance().bUseOSMixerSampleRate ?
                              AudioCommon::GetOSMixerSampleRate() :
                              AudioCommon::GetDefaultSampleRate());
 

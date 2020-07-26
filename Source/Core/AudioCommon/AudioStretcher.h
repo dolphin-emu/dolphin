@@ -17,7 +17,7 @@ class AudioStretcher
 public:
   explicit AudioStretcher(u32 sample_rate);
   void PushSamples(const s16* in, u32 num_in);
-  void GetStretchedSamples(s16* out, u32 num_out);
+  u32 GetStretchedSamples(s16* out, u32 num_out, bool pad = true);
   void Clear();
   void SetTempo(double tempo, bool reset = false);
   void SetSampleRate(u32 sample_rate);

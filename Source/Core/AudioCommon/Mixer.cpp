@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <climits>
 #include <cmath>
+#include <cstdlib>
 #include <cstring>
 
 #include "Common/ChunkFile.h"
@@ -14,17 +15,16 @@
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
-#include <cstdlib>
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "Common/Logging/Log.h" //To delete and all the uses (or make debug log)
 #include "VideoCommon/OnScreenDisplay.h" //To delete and all the uses
-//#pragma optimize("", off) //To delete
+#pragma optimize("", off) //To delete
 
 Mixer::Mixer(u32 sample_rate)
     : m_sample_rate(sample_rate), m_stretcher(sample_rate),
-      m_surround_decoder(sample_rate, Config::Get(Config::MAIN_DPL2_QUALITY))
+      m_surround_decoder(sample_rate)
 {
   m_scratch_buffer.reserve(MAX_SAMPLES * NC);
   m_dma_speed.Start(true);
@@ -72,11 +72,11 @@ void Mixer::DoState(PointerWrap& p)
   }
 }
 
-void Mixer::SetSampleRate(u32 sample_rate)
+void Mixer::UpdateSettings(u32 sample_rate)
 {
   m_sample_rate = sample_rate;
   m_stretcher.SetSampleRate(m_sample_rate);
-  m_surround_decoder.SetSampleRate(m_sample_rate);
+  m_surround_decoder.InitAndSetSampleRate(m_sample_rate);
   //To do: reset m_fract, and also DPLII. Add method to reset DPLII
 }
 
@@ -140,7 +140,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
   s32 behind_samples = num_samples - actual_samples_count;
   // This might sound bad if we are constantly missing a few samples, but that should never happen,
   // and we couldn't predict it anyway (meaning we should start playing backwards as soon as we can)
-  if (behind_samples > 0 && m_constantly_pushed && !stretching)
+  if (behind_samples > 0 && m_constantly_pushed && !stretching) //To add a setting to disable this?
   {
     rate = m_input_sample_rate / m_mixer->m_sample_rate; //To review (this should actually follow the rate but with no prediction...)
     s16* back_samples = samples + actual_samples_count * NC;
@@ -422,9 +422,10 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     m_time_at_custom_speed = 0.0;
   }
 
-  //To test on GC with weird sample rates again. And with DVD Streaming
+  //To test on GC with weird sample rates again. And with DVD Streaming. Review when entering the galaxy stars view in SMG, it crackles a bit
   //To test latency/buffer buildup (auto adjustment/sync) when we pass from stretching to not stretching. If they are always on the edge... We'll need to slow it down. Have a mirrored version of max_latency (min)?
   //To review: this should be done per mixer
+  //To review, the stretcher can get stuck looping while stopping the process (breakpoint) for like 20 seconds? Only with DPLII?
   double latency;
   // The target latency used to be iTimingVariance if stretching was off and
   // m_audio_stretch_max_latency if it was on. In the first case, the reason was to cache enough
@@ -437,6 +438,10 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     static double mult = 1.0;
     max_latency *= mult;
   }
+  //To fix max_latency does NOT work with stretching and DPLII at the same time, just do the min of max latency and out_samples. Make sure this doesn't trigger when we are asked 0 samples?
+  bool is_surround = m_scratch_buffer.data() == samples;
+  if (is_surround)
+    max_latency = std::max(time_delta, max_latency);
   double catch_up_speed;
   double target_latency;
 
@@ -540,14 +545,25 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   {
     memset(samples, 0, num_samples * NC * sizeof(samples[0]));
 
+    if (m_stretching)
+    {
+      // Play out whatever we had left. Unprocessed samples will be lost.
+      // Of course this behaves weirdly when toggling stretching every audio frame,
+      // but it's better than nothing
+      u32 received_samples = m_stretcher.GetStretchedSamples(samples, num_samples, false);
+      num_samples -= received_samples;
+      samples += received_samples * NC;
+
+      if (m_stretcher.GetProcessedLatency() <= 0.0)
+        m_stretching = false;
+    }
+
     m_dma_mixer.Mix(samples, num_samples, false);
     m_streaming_mixer.Mix(samples, num_samples, false);
     m_wiimote_speaker_mixer[0].Mix(samples, num_samples, false);
     m_wiimote_speaker_mixer[1].Mix(samples, num_samples, false);
     m_wiimote_speaker_mixer[2].Mix(samples, num_samples, false);
     m_wiimote_speaker_mixer[3].Mix(samples, num_samples, false);
-
-    m_stretching = false;
   }
 
   return num_samples;
@@ -557,20 +573,27 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
 {
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
   
-  //To clear on settings changed (num_samples): m_surround_decoder.Clear() (thread safe?)
+  //To clear on settings changed (num_samples): m_surround_decoder.Clear() (thread safe?), no, this code just seems wrong?
   //To fix QuerySamplesNeededForSurroundOutput doesn't work with num_samples 0 or small
-  size_t needed_samples = m_surround_decoder.QuerySamplesNeededForSurroundOutput(num_samples);
+  u32 needed_samples = m_surround_decoder.QuerySamplesNeededForSurroundOutput(num_samples);
 
   // If we set our latency too high, we might need more samples than we have,
   // as the surround decoder can only accept exactly "needed_samples"
   m_scratch_buffer.reserve(needed_samples * NC);
+
+  //To have another intermediary buffer here? So we constantly read from mix and when we have enough we put into DPLII.
+  //We have no alternative as the sound stretcher returns a random number of samples every time, the rest will be padded,
+  //we can't just ask for 0 and then all of sudden ask for a ton of samples, it won't work.
+  //We need to put them aside as we go. Also, there is no way of predicting how many samples the mixer will be able to
+  //produce, nor revert the changes in case it did not produce enough.
+  //Reduce MAX_BLOCKS_BUFFERED if you do
 
   // Time stretching can be applied before decoding 5.1, it should be fine theoretically (untested).
   // Mix() may also use m_scratch_buffer internally, but is safe because we alternate reads
   // and writes. It returns the actual number of computed samples, which might be less
   // than the required ones, but as long as it computed something (it's not just all padding)
   // then we should use it for surround, otherwise these sounds would be missed
-  size_t available_samples = Mix(m_scratch_buffer.data(), u32(needed_samples));
+  u32 available_samples = Mix(m_scratch_buffer.data(), needed_samples);
   //To fix: we can't reach this at lower latencies? Or with stretching on
   if (available_samples != needed_samples)
   {

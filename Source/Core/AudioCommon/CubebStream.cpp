@@ -39,7 +39,7 @@ bool CubebStream::Init()
   if (!m_ctx)
     return false;
 
-  m_mixer->SetSampleRate(SConfig::GetInstance().bUseOSMixerSampleRate ?
+  m_mixer->UpdateSettings(SConfig::GetInstance().bUseOSMixerSampleRate ?
                              AudioCommon::GetOSMixerSampleRate() :
                              AudioCommon::GetDefaultSampleRate());
 

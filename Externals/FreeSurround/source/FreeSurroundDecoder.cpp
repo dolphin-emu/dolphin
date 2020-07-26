@@ -39,45 +39,43 @@ DPL2FSDecoder::~DPL2FSDecoder() {
 
 void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
                          unsigned int sample_rate) {
-  if (!initialized) {
-    setup = chsetup;
-    N = blsize;
-    samplerate = sample_rate;
+  setup = chsetup;
+  N = blsize;
+  samplerate = sample_rate;
 
-    // Initialize the parameters
-    wnd = std::vector<double>(N);
-    inbuf = std::vector<float>(3 * N);
-    lt = std::vector<double>(N);
-    rt = std::vector<double>(N);
-    dst = std::vector<double>(N);
-    lf = std::vector<cplx>(N / 2 + 1);
-    rf = std::vector<cplx>(N / 2 + 1);
-    forward = kiss_fftr_alloc(N, 0, 0, 0);
-    inverse = kiss_fftr_alloc(N, 1, 0, 0);
-    C = static_cast<unsigned int>(chn_alloc[setup].size());
+  // Initialize the parameters
+  wnd = std::vector<double>(N);
+  inbuf = std::vector<float>(3 * N);
+  lt = std::vector<double>(N);
+  rt = std::vector<double>(N);
+  dst = std::vector<double>(N);
+  lf = std::vector<cplx>(N / 2 + 1);
+  rf = std::vector<cplx>(N / 2 + 1);
+  forward = kiss_fftr_alloc(N, 0, 0, 0);
+  inverse = kiss_fftr_alloc(N, 1, 0, 0);
+  C = static_cast<unsigned int>(chn_alloc[setup].size());
 
-    // Allocate per-channel buffers
-    outbuf.resize((N + N / 2) * C);
-    signal.resize(C, std::vector<cplx>(N));
+  // Allocate per-channel buffers
+  outbuf.resize((N + N / 2) * C);
+  signal.resize(C, std::vector<cplx>(N));
 
-    // Init the window function
-    for (unsigned int k = 0; k < N; k++)
-      wnd[k] = sqrt(0.5 * (1 - cos(2 * pi * k / N)) / N);
+  // Init the window function
+  for (unsigned int k = 0; k < N; k++)
+    wnd[k] = sqrt(0.5 * (1 - cos(2 * pi * k / N)) / N);
 
-    // set default parameters
-    set_circular_wrap(90);
-    set_shift(0);
-    set_depth(1);
-    set_focus(0);
-    set_center_image(1);
-    set_front_separation(1);
-    set_rear_separation(1);
-    set_low_cutoff(40.0f / (samplerate / 2.f));
-    set_high_cutoff(90.0f / (samplerate / 2.f));
-    set_bass_redirection(false);
+  // set default parameters
+  set_circular_wrap(90);
+  set_shift(0);
+  set_depth(1);
+  set_focus(0);
+  set_center_image(1);
+  set_front_separation(1);
+  set_rear_separation(1);
+  set_low_cutoff(40.0f / (samplerate / 2.f));
+  set_high_cutoff(90.0f / (samplerate / 2.f));
+  set_bass_redirection(false);
 
-    initialized = true;
-  }
+  initialized = true;
 }
 
 // decode a stereo chunk, produces a multichannel chunk of the same size

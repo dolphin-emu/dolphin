@@ -39,6 +39,7 @@ extern const Info<int> MAIN_GC_LANGUAGE;
 extern const Info<bool> MAIN_OVERRIDE_REGION_SETTINGS;
 extern const Info<bool> MAIN_DPL2_DECODER;
 extern const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY;
+extern const Info<bool> MAIN_DPL2_BASS_REDIRECTION;
 extern const Info<int> MAIN_AUDIO_BACKEND_LATENCY;
 extern const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY;
 extern const Info<bool> MAIN_AUDIO_STRETCH;

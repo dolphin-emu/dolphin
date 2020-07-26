@@ -3,40 +3,104 @@
 // Refer to the license.txt file included.
 
 #include <FreeSurround/FreeSurroundDecoder.h>
+
 #include <limits>
 
+#include "Core/Config/MainSettings.h"
+
+#include "AudioCommon/Enums.h"
 #include "AudioCommon/SurroundDecoder.h"
+#pragma optimize("", off) //To delete
 
 namespace AudioCommon
 {
-constexpr size_t STEREO_CHANNELS = 2;
-constexpr size_t SURROUND_CHANNELS = 6;
+static s32 NearestPowerOfTwo(s32 n)
+{
+  assert(n > 1);
+  s32 v = n;
 
-// Quality (higher quality also means more latency)
+  v--;
+  v |= v >> 1;
+  v |= v >> 2;
+  v |= v >> 4;
+  v |= v >> 8;
+  v |= v >> 16;
+  v++;  // next power of 2
+
+  s32 x = v >> 1;  // previous power of 2
+
+  return (v - n) > (n - x) ? x : v;
+}
+
+// Quality (higher quality also means more latency). Needs to be a pow of 2 so we find the closest
 static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
 {
+  u32 frame_block_time; // ms
   switch (quality)
   {
   case DPL2Quality::Lowest:
-    return 512;
-  case DPL2Quality::Low:
-    return 1024;
+    frame_block_time = 10;
+    break;
+  case DPL2Quality::High:
+    frame_block_time = 40;
+    break;
+  // TODO: review this case, it's too much, FreeSurround said to not go over 20ms.
+  // The quality/latency trade off is not worth it and it might introduce crackling.
   case DPL2Quality::Highest:
-    return 4096;
-  default:  // AudioCommon::DPL2Quality::High
-    return 2048;
+    frame_block_time = 80;
+    break;
+  case DPL2Quality::Low:
+  default:
+    frame_block_time = 20;
   }
+  u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
+  return NearestPowerOfTwo(frame_block);
 }
 
-SurroundDecoder::SurroundDecoder(u32 sample_rate, DPL2Quality quality)
-    : m_sample_rate(sample_rate), m_frame_block_size(DPL2QualityToFrameBlockSize(quality, sample_rate))
+// Currently only 6 channels are supported.
+u32 SurroundDecoder::QuerySamplesNeededForSurroundOutput(u32 output_samples) const
+{
+  //To review: what would happen if they are ==?
+  if (output_samples > u32(m_decoded_fifo.size()) / SURROUND_CHANNELS)
+  {
+    // Output stereo samples needed to have at least the desired number of surround samples
+    u32 samples_needed = output_samples - (u32(m_decoded_fifo.size()) / SURROUND_CHANNELS);
+    return samples_needed + m_frame_block_size - (samples_needed % m_frame_block_size);
+  }
+
+  return 0;
+}
+
+SurroundDecoder::SurroundDecoder(u32 sample_rate)
 {
   m_fsdecoder = std::make_unique<DPL2FSDecoder>();
-  m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
-  //To review (make config and remove comment, also, move to re-init): m_fsdecoder->set_bass_redirection(false);
+  InitAndSetSampleRate(sample_rate);
 }
 
 SurroundDecoder::~SurroundDecoder() = default;
+
+void SurroundDecoder::InitAndSetSampleRate(u32 sample_rate)
+{
+  if (m_sample_rate == sample_rate)
+    return;
+  m_sample_rate = sample_rate;
+
+  m_frame_block_size =
+      DPL2QualityToFrameBlockSize(Config::Get(Config::MAIN_DPL2_QUALITY), m_sample_rate);
+
+  // This DPLII quality at this sample rate is not supported, increase the size or lower your
+  // settings
+  assert(m_frame_block_size * STEREO_CHANNELS <= m_float_conversion_buffer.max_size());
+  assert(m_frame_block_size * SURROUND_CHANNELS * MAX_BLOCKS_BUFFERED <= m_decoded_fifo.max_size());
+
+  //To review: at max quality 192kHz sound only plays from the left speaker??? Only if we changed the settings first?
+  //To review: this can crash. It can also crash WASAPI m_audio_clock?
+  // Re-init. It should keep the samples in the buffer while just changing the settings
+  m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
+  // The LFE channel (bass redirection) is disabled in the surround decoder, as most people
+  // have their own low pass crossover
+  m_fsdecoder->set_bass_redirection(Config::Get(Config::MAIN_DPL2_BASS_REDIRECTION));
+}
 
 void SurroundDecoder::Clear()
 {
@@ -44,32 +108,14 @@ void SurroundDecoder::Clear()
   m_decoded_fifo.clear();
 }
 
-void SurroundDecoder::SetSampleRate(u32 sample_rate)
-{
-  m_fsdecoder = std::make_unique<DPL2FSDecoder>();
-  m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
-  //To finish, also set DPL2QualityToFrameBlockSize and fix it by sample rate
-  // We can't change the block size after starting unfortunately, old samples will be lost (maybe we can...)
-}
-
-// Currently only 6 channels are supported.
-size_t SurroundDecoder::QuerySamplesNeededForSurroundOutput(const size_t output_samples) const
-{
-  if (m_decoded_fifo.size() < output_samples * SURROUND_CHANNELS)
-  {
-    // Output stereo samples needed to have at least the desired number of surround samples
-    size_t samples_needed = output_samples - m_decoded_fifo.size() / SURROUND_CHANNELS;
-    return samples_needed + m_frame_block_size - samples_needed % m_frame_block_size;
-  }
-
-  return 0;
-}
-
 // Receive and decode samples
-void SurroundDecoder::PushSamples(const s16* in, const size_t num_samples)
+void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
 {
-  // Maybe check if it is really power-of-2?
-  s64 remaining_samples = static_cast<s64>(num_samples);
+  assert(num_samples % m_frame_block_size == 0);
+  // We support a max of MAX_BLOCKS_BUFFERED blocks in the buffer, because of m_decoded_fifo,
+  // just increase if you need. This might trigger if you have very high backend latencies
+  assert(num_samples <= m_frame_block_size * MAX_BLOCKS_BUFFERED);
+  u32 remaining_samples = num_samples;
   size_t sample_index = 0;
 
   while (remaining_samples > 0)
@@ -78,14 +124,13 @@ void SurroundDecoder::PushSamples(const s16* in, const size_t num_samples)
     for (size_t i = 0, end = m_frame_block_size * STEREO_CHANNELS; i < end; ++i)
     {
       m_float_conversion_buffer[i] = in[i + sample_index * STEREO_CHANNELS] /
-                                     static_cast<float>(std::numeric_limits<s16>::max());
+                                     float(std::numeric_limits<s16>::max());
     }
 
     // Decode
     const float* dpl2_fs = m_fsdecoder->decode(m_float_conversion_buffer.data());
 
     // Add to ring buffer and fix channel mapping
-    // Maybe modify FreeSurround to output the correct mapping?
     // FreeSurround:
     // FL | FC | FR | BL | BR | LFE
     // Most backends:
@@ -95,20 +140,19 @@ void SurroundDecoder::PushSamples(const s16* in, const size_t num_samples)
       m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 0]);  // LEFTFRONT
       m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 2]);  // RIGHTFRONT
       m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 1]);  // CENTREFRONT
-      // The LFE channel is disabled in the surround decoder, as most people
-      // have their own low pass crossover
-      m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 5]);  // sub/lfe
+      m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 5]);  // LFE/SUB
       m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 3]);  // LEFTREAR
       m_decoded_fifo.push(dpl2_fs[i * SURROUND_CHANNELS + 4]);  // RIGHTREAR
     }
 
-    remaining_samples = remaining_samples - static_cast<int>(m_frame_block_size);
+    remaining_samples = remaining_samples - s32(m_frame_block_size);
     sample_index = sample_index + m_frame_block_size;
   }
 }
 
-void SurroundDecoder::GetDecodedSamples(float* out, const size_t num_samples)
+void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
 {
+  // TODO: this could be optimized by copying the ring buffer in two parts
   // Copy to output array with desired num_samples
   for (size_t i = 0, num_samples_output = num_samples * SURROUND_CHANNELS;
        i < num_samples_output; ++i)
@@ -116,5 +160,4 @@ void SurroundDecoder::GetDecodedSamples(float* out, const size_t num_samples)
     out[i] = m_decoded_fifo.pop_front();
   }
 }
-
 }  // namespace AudioCommon

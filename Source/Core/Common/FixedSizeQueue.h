@@ -14,7 +14,7 @@
 //
 // Not fully featured, no safety checking yet. Add features as needed.
 
-template <class T, unsigned int N>
+template <class T, size_t N>
 class FixedSizeQueue
 {
 public:

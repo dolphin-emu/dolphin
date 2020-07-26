@@ -491,7 +491,7 @@ bool WASAPIStream::SetRunning(bool running)
 
   if (running)
   {
-    unsigned long sample_rate = 0;
+    unsigned long sample_rate = AudioCommon::GetDefaultSampleRate();
 
     // Make sure the selected mode is still supported (ignored if we are using the default device)
     char* pEnd = nullptr;
@@ -513,10 +513,7 @@ bool WASAPIStream::SetRunning(bool running)
     }
 
     // Recreate the mixer with our preferred sample rate
-    if (sample_rate > 0)
-    {
-      GetMixer()->SetSampleRate(sample_rate);
-    }
+    GetMixer()->UpdateSettings(sample_rate);
 
     m_surround = SConfig::GetInstance().ShouldUseDPL2Decoder();
     m_format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
@@ -817,6 +814,7 @@ bool WASAPIStream::SetRunning(bool running)
     m_audio_client = nullptr;
     if (m_audio_clock)
     {
+      //To review: as from the comment somewhere, this can crash if closed from another thread...
       m_audio_clock->Release();
       m_audio_clock = nullptr;
     }

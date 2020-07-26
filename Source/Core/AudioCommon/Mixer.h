@@ -47,8 +47,8 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
-  // Only call from main thread and when the mix is not running
-  void SetSampleRate(u32 sample_rate);
+  // Only call when the audio thread (Mix()) is not running
+  void UpdateSettings(u32 sample_rate);
 
   u32 GetSampleRate() const { return m_sample_rate; }
   double GetCurrentSpeed() const { return m_target_speed; }
@@ -57,7 +57,7 @@ public:
   // Make sure this is a power of 2 for INDEX_MASK to work,
   // if not change all the "& INDEX_MASK" to "% (MAX_SAMPLES * NC)".
   // It's important that this is high enough to allow for enough backwards
-  // samples to be played in a frame dip. It doesn't make much sense that
+  // samples to be played in during a stutter. It doesn't make much sense that
   // this is independent from the sample rate, but it's fine
   static constexpr u32 MAX_SAMPLES = 16384;
 
@@ -147,6 +147,7 @@ private:
       {this, 3000, false}, {this, 3000, false}, {this, 3000, false}, {this, 3000, false}};
   u32 m_sample_rate;
 
+  // the size is always left at 0
   std::vector<s16> m_scratch_buffer;
   std::array<s16, MAX_SAMPLES * NC> m_interpolation_buffer;
   s16 m_conversion_buffer[MAX_SAMPLES * NC];
