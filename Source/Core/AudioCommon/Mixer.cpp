@@ -47,6 +47,7 @@ Mixer::~Mixer()
 
 void Mixer::SetPaused(bool paused)
 {
+  //To review: this might not be thread safe? SetPaused is called from the main thread while the DMA is already pushing from the emu thread
   if (!m_dma_speed.IsPaused() && !paused)
   {
     // This happens on game start. The backend has already started reading actually
@@ -64,7 +65,7 @@ void Mixer::DoState(PointerWrap& p)
   m_wiimote_speaker_mixer[2].DoState(p);
   m_wiimote_speaker_mixer[3].DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.GetMode() == PointerWrap::MODE_READ) //To review, needs to be a state
   {
     m_dma_speed.SetTicksPerSecond(m_dma_mixer.GetInputSampleRate());
     // We could reset a few things here but it would require too much thread synchronization
@@ -76,9 +77,6 @@ void Mixer::SetSampleRate(u32 sample_rate)
   m_sample_rate = sample_rate;
   m_stretcher.SetSampleRate(m_sample_rate);
   m_surround_decoder.SetSampleRate(m_sample_rate);
-  //To review: is this thread safe between the game and emu thread? Does it even make sense to do? Not after the first time
-  if (!m_dma_speed.IsPaused())
-    m_dma_speed.Start(true);
   //To do: reset m_fract, and also DPLII. Add method to reset DPLII
 }
 
@@ -139,11 +137,6 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     m_fract = -1.0;
   }
 
-  // Padding (mix the remaining samples with the our last sample in case we didn't have enough)
-  // indexR is always "INTERP_SAMPLES" away from indexW,
-  // so pad by the current indexR, which was the biggest influence
-  // against the cubic interpolation of this frame
-
   s32 behind_samples = num_samples - actual_samples_count;
   // This might sound bad if we are constantly missing a few samples, but that should never happen,
   // and we couldn't predict it anyway (meaning we should start playing backwards as soon as we can)
@@ -190,8 +183,9 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     CubicInterpolation(back_samples, behind_samples, rate, m_backwards_indexR, indexW, s[0], s[1],
                        lVolume, rVolume, false);
   }
-  // If we are not constantly pushed, we always append some silent samples at the end of our buffer,
-  // so there won't be any need of panning until new samples are pushed
+  // Padding (constantly pushing the last sample when we run out to avoid sudden changes in the
+  // audio wave). This is only needed on mixers that don't constantly push but are currntly pushing,
+  // as they can't play samples backwards
   else if (behind_samples > 0 && (m_constantly_pushed || m_currently_pushed))
   {
     if (indexW > 8) OSD::AddMessage("Behind samples: " + std::to_string(behind_samples), 0U);
@@ -938,11 +932,7 @@ void Mixer::MixerFifo::UpdatePush(double time)
     }
     else
     {
-      //To do this: increase indexW by 4 more every time, with 4 samples of silence, if when new
-      //samples are pushed, we haven't finished reading (indexR), then we take out the last 4 samples
-      //(doesn't work with sound stretching). Or save a bool which will increase indexR by 4
-
-      OSD::AddMessage("last sample: " + std::to_string(m_buffer[(m_indexW - 2) & INDEX_MASK]), 0U);
+      //OSD::AddMessage("last sample: " + std::to_string(m_buffer[(m_indexW - 2) & INDEX_MASK]), 0U);
 
       constexpr u32 num_samples = INTERP_SAMPLES + 1;
       // Add enough samples of silence to make sure when it has finished reading it won't stop on a

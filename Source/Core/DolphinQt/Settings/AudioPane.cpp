@@ -97,7 +97,7 @@ void AudioPane::CreateWidgets()
     //To review: is this not visible?
     //To specify that it's the Target/min. A good one is from 3 to 40. It might not work on systems with not many CPU cores
     m_latency_spin->setToolTip(tr("Target latency (in ms). Higher values may reduce audio"
-                                  " crackling.\nCertain backends only. Values above 20ms are not suggested"));
+                                  " crackling.\nCertain backends only. Values above 20ms are not suggested."));
   }
 
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
@@ -116,7 +116,7 @@ void AudioPane::CreateWidgets()
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
          "emulation engines only.\nAutomatically disabled if not supported by your audio device."
          "\nAs on the original hardware, games will still be stereo,\nbut DPLII will"
-         " extrapolate information to output 5.1 channels.\nIf unsure, leave off. When changing at runtime, you will lose samples. You need to enable it in game for GC or in menu of Wii"));
+         " extrapolate information to output 5.1 channels.\nIf unsure, leave off. When changing at runtime, you will lose samples. You need to enable it in game for GC or in menu of Wii."));
 
   auto* dolby_quality_layout = new QHBoxLayout;
 
@@ -158,7 +158,7 @@ void AudioPane::CreateWidgets()
       tr("This will not only output at the specified sample rate, \nit will also run the internal "
          "mixer at that same sample rate.\nSelecting anything above 48kHz will have very minimal "
          "advanced stretching won't work if you don't see a high (or low?) enough backend latency?"
-         "improvements on sound quality, at the cost of performance.\nAdvantages will only be seen on 32kHz games or if you unlimit the FPS.\nThis is for 2 channel 16bit, surround will try to use the same or fallback to 48000"));
+         "improvements on sound quality, at the cost of performance.\nAdvantages will only be seen on 32kHz games or if you unlimit the FPS.\nThis is for 2 channel 16bit, surround will try to use the same or fallback to 48000."));
 
   backend_layout->addRow(m_wasapi_device_label, m_wasapi_device_combo);
   backend_layout->addRow(m_wasapi_device_sample_rate_label, m_wasapi_device_sample_rate_combo);
@@ -170,34 +170,32 @@ void AudioPane::CreateWidgets()
   backend_layout->addRow(dolby_quality_layout);
   backend_layout->addRow(m_dolby_quality_latency_label);
 
-  auto* game_audio_box = new QGroupBox(tr("Game Audio Settings"));
-  auto* game_audio_layout = new QGridLayout;
-  m_stretching_enable = new QCheckBox(tr("Enable Audio Stretching"));
+  auto* mixer_box = new QGroupBox(tr("Mixer Settings"));
+  auto* mixer_layout = new QGridLayout;
+  m_stretching_enable = new QCheckBox(tr("Audio Stretching"));
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
   m_emu_speed_tolerance_indicator->setAlignment(Qt::AlignRight);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
-  game_audio_box->setLayout(game_audio_layout);
+  mixer_box->setLayout(mixer_layout);
+
+  m_stretching_enable->setToolTip(
+      tr("Enables stretching of the audio (pitch correction) to match the emulation speed"));
 
   m_emu_speed_tolerance_slider->setMinimum(-1);
   m_emu_speed_tolerance_slider->setMaximum(100);
   m_emu_speed_tolerance_slider->setToolTip(
-      tr("Time (ms) we need to fall behind the emulation for sound to start slowing down. If set "
-         "too high, sound will crackle when we slow down or stutter, if set too low, sound might "
-         "lose quality if you have constant small stutters. Leave around 15ms if unsure. Slide all "
-         "the way left to disable. Below 10 is unsuggested unless you always want to enabled"));
-
-  m_stretching_enable->setToolTip(
-      tr("Enables stretching of the audio to match emulation speed (pitch correction)."
-         "\nA backend latency of at least 32ms is suggested to avoid"
-         "\nloss of quality. Having None will cause audio to stop if you dip FPS, but it will be "
-         "of max quality other times. Simple add an internal buffer/latency to have some samples "
-         "left for frame dips and if the audio playback loses alignment"));
+      tr("Time(ms) we need to fall behind the emulation for sound to start using the actual "
+         "emulation speed.\nIf set "
+         "too high (>40), sound will lose quality when we slow down or stutter.\nIf set too low (<10), "
+         "sound might "
+         "lose quality if you have frequent small stutters.\nSet 0 to "
+         "have it on all the times. Slide all the way left to disable.")); //To find best default
   
-  game_audio_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
-  game_audio_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
-  game_audio_layout->addWidget(m_emu_speed_tolerance_slider, 1, 1);
-  game_audio_layout->addWidget(m_emu_speed_tolerance_indicator, 1, 2);
+  mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
+  mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
+  mixer_layout->addWidget(m_emu_speed_tolerance_slider, 1, 1);
+  mixer_layout->addWidget(m_emu_speed_tolerance_indicator, 1, 2);
 
   m_main_layout = new QGridLayout;
 
@@ -208,7 +206,7 @@ void AudioPane::CreateWidgets()
   m_main_layout->addWidget(dsp_box, 0, 0);
   m_main_layout->addWidget(volume_box, 0, 1, -1, 1);
   m_main_layout->addWidget(backend_box, 1, 0);
-  m_main_layout->addWidget(game_audio_box, 2, 0);
+  m_main_layout->addWidget(mixer_box, 2, 0);
 
   setLayout(m_main_layout);
 }

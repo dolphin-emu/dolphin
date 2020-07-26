@@ -185,7 +185,7 @@ bool SupportsLatencyControl(std::string_view backend)
   // TODO: we should ask the backends whether they support this
 #ifdef _WIN32
   // Cubeb only supports custom latency on Windows
-  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI || backend == BACKEND_CUBEB;
+  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI || backend == BACKEND_CUBEB; //To review: not true
 #else
   return false;
 #endif
