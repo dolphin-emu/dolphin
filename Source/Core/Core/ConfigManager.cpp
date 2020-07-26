@@ -422,10 +422,10 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
 {
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
-  interface->Get("ConfirmStop", &bConfirmStop, true);
+  interface->Get("ConfirmStop", &bConfirmStop, false);
   interface->Get("UsePanicHandlers", &bUsePanicHandlers, true);
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
-  interface->Get("HideCursor", &bHideCursor, false);
+  interface->Get("HideCursor", &bHideCursor, true);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ShowActiveTitle", &m_show_active_title, true);
@@ -468,9 +468,9 @@ void SConfig::LoadGameListSettings(IniFile& ini)
   gamelist->Get("ColumnBanner", &m_showBannerColumn, true);
   gamelist->Get("ColumnTitle", &m_showTitleColumn, true);
   gamelist->Get("ColumnNotes", &m_showMakerColumn, true);
-  gamelist->Get("ColumnFileName", &m_showFileNameColumn, false);
+  gamelist->Get("ColumnFileName", &m_showFileNameColumn, true);
   gamelist->Get("ColumnFilePath", &m_showFilePathColumn, false);
-  gamelist->Get("ColumnID", &m_showIDColumn, false);
+  gamelist->Get("ColumnID", &m_showIDColumn, true);
   gamelist->Get("ColumnRegion", &m_showRegionColumn, true);
   gamelist->Get("ColumnSize", &m_showSizeColumn, true);
   gamelist->Get("ColumnFileFormat", &m_showFileFormatColumn, false);
@@ -494,14 +494,14 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("JITFollowBranch", &bJITFollowBranch, true);
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
-  core->Get("TimingVariance", &iTimingVariance, 40);
+  core->Get("TimingVariance", &iTimingVariance, 8);
   core->Get("CPUThread", &bCPUThread, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
-  core->Get("EnableCheats", &bEnableCheats, false);
+  core->Get("EnableCheats", &bEnableCheats, true);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideRegionSettings", &bOverrideRegionSettings, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
-  core->Get("AudioLatency", &iLatency, 20);
+  core->Get("AudioLatency", &iLatency, 0);
   core->Get("AudioStretch", &m_audio_stretch, false);
   core->Get("AudioStretchMaxLatency", &m_audio_stretch_max_latency, 80);
   core->Get("AgpCartAPath", &m_strGbaCartA);
@@ -611,7 +611,7 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
 
   analytics->Get("ID", &m_analytics_id, "");
   analytics->Get("Enabled", &m_analytics_enabled, false);
-  analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+  analytics->Get("PermissionAsked", &m_analytics_permission_asked, true);
 }
 
 void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
@@ -777,7 +777,7 @@ void SConfig::LoadDefaults()
 #endif
 
   cpu_core = PowerPC::DefaultCPUCore();
-  iTimingVariance = 40;
+  iTimingVariance = 8;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;
   bRunCompareServer = false;
