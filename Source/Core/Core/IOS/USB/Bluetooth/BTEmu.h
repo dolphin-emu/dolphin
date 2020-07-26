@@ -118,7 +118,7 @@ private:
   bool SendEventCommandStatus(u16 opcode);
   void SendEventCommandComplete(u16 opcode, const void* data, u32 data_size);
   bool SendEventInquiryResponse();
-  bool SendEventInquiryComplete();
+  bool SendEventInquiryComplete(u8 num_responses);
   bool SendEventRemoteNameReq(const bdaddr_t& bd);
   bool SendEventRequestConnection(const WiimoteDevice& wiimote);
   bool SendEventConnectionComplete(const bdaddr_t& bd, u8 status);

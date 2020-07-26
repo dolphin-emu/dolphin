@@ -394,7 +394,7 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endpoint)
   m_ios.EnqueueIPCReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
-bool BluetoothEmu::SendEventInquiryComplete()
+bool BluetoothEmu::SendEventInquiryComplete(u8 num_responses)
 {
   SQueuedEvent event(sizeof(SHCIEventInquiryComplete), 0);
 
@@ -402,6 +402,7 @@ bool BluetoothEmu::SendEventInquiryComplete()
   inquiry_complete->EventType = HCI_EVENT_INQUIRY_COMPL;
   inquiry_complete->PayloadLength = sizeof(SHCIEventInquiryComplete) - 2;
   inquiry_complete->EventStatus = 0x00;
+  inquiry_complete->num_responses = num_responses;
 
   AddEventToQueue(event);
 
@@ -412,48 +413,54 @@ bool BluetoothEmu::SendEventInquiryComplete()
 
 bool BluetoothEmu::SendEventInquiryResponse()
 {
-  static_assert(sizeof(SHCIEventInquiryResult) - 2 + (MAX_BBMOTES * sizeof(hci_inquiry_response)) <
-                256);
+  // We only respond with the first discoverable remote.
+  // The Wii instructs users to press 1+2 in the desired play order.
+  // Responding with all remotes at once can place them in undesirable slots.
+  // Additional scans will connect each remote in the proper order.
+  constexpr u8 num_responses = 1;
 
-  SQueuedEvent event(static_cast<u32>(sizeof(SHCIEventInquiryResult) +
-                                      m_wiimotes.size() * sizeof(hci_inquiry_response)),
-                     0);
+  static_assert(
+      sizeof(SHCIEventInquiryResult) - 2 + (num_responses * sizeof(hci_inquiry_response)) < 256);
 
-  SHCIEventInquiryResult* inquiry_result = (SHCIEventInquiryResult*)event.buffer;
-
-  inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
-  inquiry_result->num_responses = 0;
-
-  for (size_t i = 0; i != m_wiimotes.size(); ++i)
+  const auto iter = std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
+                                 std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
+  if (iter == m_wiimotes.end())
   {
-    if (!m_wiimotes[i]->IsInquiryScanEnabled())
-      continue;
-
-    ++inquiry_result->num_responses;
-
-    u8* buffer = event.buffer + sizeof(SHCIEventInquiryResult) + i * sizeof(hci_inquiry_response);
-    hci_inquiry_response* response = (hci_inquiry_response*)buffer;
-
-    response->bdaddr = m_wiimotes[i]->GetBD();
-    std::copy_n(m_wiimotes[i]->GetClass().begin(), HCI_CLASS_SIZE, response->uclass);
-
-    response->page_scan_rep_mode = 1;
-    response->page_scan_period_mode = 0;
-    response->page_scan_mode = 0;
-    response->clock_offset = 0x3818;
-
-    DEBUG_LOG(IOS_WIIMOTE, "Event: Send Fake Inquiry of one controller");
-    DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", response->bdaddr[0],
-              response->bdaddr[1], response->bdaddr[2], response->bdaddr[3], response->bdaddr[4],
-              response->bdaddr[5]);
+    // No remotes are discoverable.
+    SendEventInquiryComplete(0);
+    return false;
   }
+
+  const auto& wiimote = *iter;
+
+  SQueuedEvent event(
+      u32(sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response)), 0);
+
+  const auto inquiry_result = reinterpret_cast<SHCIEventInquiryResult*>(event.buffer);
+  inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
+  inquiry_result->num_responses = num_responses;
+
+  u8* const buffer = event.buffer + sizeof(SHCIEventInquiryResult);
+  const auto response = reinterpret_cast<hci_inquiry_response*>(buffer);
+
+  response->bdaddr = wiimote->GetBD();
+  response->page_scan_rep_mode = 1;
+  response->page_scan_period_mode = 0;
+  response->page_scan_mode = 0;
+  std::copy_n(wiimote->GetClass().begin(), HCI_CLASS_SIZE, response->uclass);
+  response->clock_offset = 0x3818;
+
+  DEBUG_LOG(IOS_WIIMOTE, "Event: Send Fake Inquiry of one controller");
+  DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", response->bdaddr[0],
+            response->bdaddr[1], response->bdaddr[2], response->bdaddr[3], response->bdaddr[4],
+            response->bdaddr[5]);
 
   inquiry_result->PayloadLength =
       u8(sizeof(SHCIEventInquiryResult) - 2 +
          (inquiry_result->num_responses * sizeof(hci_inquiry_response)));
 
   AddEventToQueue(event);
-
+  SendEventInquiryComplete(num_responses);
   return true;
 }
 
@@ -1109,7 +1116,6 @@ void BluetoothEmu::CommandInquiry(const u8* input)
 
   SendEventCommandStatus(HCI_CMD_INQUIRY);
   SendEventInquiryResponse();
-  SendEventInquiryComplete();
 }
 
 void BluetoothEmu::CommandInquiryCancel(const u8* input)

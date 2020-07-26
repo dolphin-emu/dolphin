@@ -72,7 +72,7 @@ WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd
 
   // UGLY: This prevents an OSD message in SetSource -> Activate.
   if (hid_source)
-    m_baseband_state = BasebandState::RequestConnection;
+    SetBasebandState(BasebandState::RequestConnection);
 
   SetSource(hid_source);
 }
@@ -110,7 +110,7 @@ void WiimoteDevice::DoState(PointerWrap& p)
   p.Do(m_link_key);
   p.Do(m_name);
   p.Do(m_channels);
-  p.Do(m_last_connect_request_counter);
+  p.Do(m_connection_request_counter);
 }
 
 u32 WiimoteDevice::GetNumber() const
@@ -133,6 +133,9 @@ bool WiimoteDevice::IsPageScanEnabled() const
 
 void WiimoteDevice::SetBasebandState(BasebandState new_state)
 {
+  // Prevent button press from immediately causing connection attempts.
+  m_connection_request_counter = ::Wiimote::UPDATE_FREQ;
+
   const bool was_connected = IsConnected();
 
   m_baseband_state = new_state;
@@ -230,11 +233,7 @@ void WiimoteDevice::Activate(bool connect)
   }
 
   if (message)
-  {
-    // Prevent button press from immediately causing a connection attempt.
-    m_last_connect_request_counter = ::Wiimote::UPDATE_FREQ;
     Core::DisplayMessage(fmt::format(message, GetNumber() + 1), CONNECTION_MESSAGE_TIME);
-  }
 }
 
 bool WiimoteDevice::EventConnectionRequest()
@@ -344,14 +343,14 @@ void WiimoteDevice::Update()
 
 void WiimoteDevice::UpdateInput()
 {
-  if (m_last_connect_request_counter)
-    --m_last_connect_request_counter;
+  if (m_connection_request_counter)
+    --m_connection_request_counter;
 
   if (!IsSourceValid())
     return;
 
-  // Allow button press to trigger activation once per second.
-  if (!m_last_connect_request_counter && m_baseband_state == BasebandState::Inactive)
+  // Allow button press to trigger activation after a second of no connection activity.
+  if (!m_connection_request_counter && m_baseband_state == BasebandState::Inactive)
   {
     if (Wiimote::NetPlay_GetButtonPress(GetNumber(), m_hid_source->IsButtonPressed()))
       Activate(true);

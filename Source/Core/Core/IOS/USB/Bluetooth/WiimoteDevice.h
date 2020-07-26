@@ -130,7 +130,7 @@ private:
   LinkKeyType m_link_key;
   std::string m_name;
   ChannelMap m_channels;
-  u8 m_last_connect_request_counter = 0;
+  u8 m_connection_request_counter = 0;
 
   void SetBasebandState(BasebandState);
 
