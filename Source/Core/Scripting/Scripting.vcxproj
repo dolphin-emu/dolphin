@@ -41,6 +41,12 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ScriptingEngine.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ScriptingEngine.h" />
+  </ItemGroup>
+  <ItemGroup>
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

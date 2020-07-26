@@ -48,7 +48,7 @@ struct ListenerID
   u64 value;
 };
 
-// an event container manages a single event
+// an event container manages a single event type
 template <typename T>
 class EventContainer final
 {

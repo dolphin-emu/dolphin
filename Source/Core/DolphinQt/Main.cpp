@@ -33,6 +33,7 @@
 
 #include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
+#include "Scripting/ScriptingEngine.h"
 
 static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no,
                               Common::MsgType style)
@@ -254,9 +255,13 @@ int main(int argc, char* argv[])
       updater->start();
     }
 
+    // Initialize the scripting engine after the ui,
+    // because then early script outputs are already visible in the logging ui.
+    Scripting::Init();
     retval = app.exec();
   }
 
+  Scripting::Shutdown();
   Core::Shutdown();
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();
