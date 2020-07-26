@@ -74,8 +74,7 @@ void AudioPane::CreateWidgets()
   m_volume_slider->setMinimum(0);
   m_volume_slider->setMaximum(100);
 
-  m_volume_slider->setToolTip(tr("Setting volume to values different from 100 might slightly"
-                                 " degrade sound quality."));
+  m_volume_slider->setToolTip(tr("Using this is preferred over the OS mixer volume"));
 
   m_volume_indicator->setAlignment(Qt::AlignVCenter | Qt::AlignHCenter);
   m_volume_indicator->setFixedWidth(QFontMetrics(font()).boundingRect(tr("%1 %").arg(100)).width());
@@ -96,29 +95,29 @@ void AudioPane::CreateWidgets()
     m_latency_spin = new QSpinBox();
     m_latency_spin->setMinimum(0);
     m_latency_spin->setMaximum(std::min((int)AudioCommon::GetMaxSupportedLatency(), 200));
-    //To review: is this not visible?
-    //To specify that it's the Target/min. A good one is from 3 to 40. It might not work on systems with not many CPU cores
     m_latency_spin->setToolTip(tr("Target latency (in ms). Higher values may reduce audio"
                                   " crackling.\nCertain backends only. Values above 20ms are not suggested."));
   }
 
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
 
-  std::string useOSSampleRateTooltip = "Directly mixes at the current OS mixer sample rate. As opposed to " + std::to_string(AudioCommon::GetDefaultSampleRate()) +
-                    "Hz. This will make resamplings from"
-                    " 32000Hz sources more accurate,\npossibly improving"
-                    " audio quality at the cost of performance. It won't adjust if you change it after starting. Also if you use 44.1, it will be better"
-                    "\nIf unsure, leave off.";
-  m_use_os_sample_rate->setToolTip(tr(useOSSampleRateTooltip.c_str()));
+  m_use_os_sample_rate->setToolTip(
+      tr("Directly mixes at the current OS mixer sample rate as opposed to %1"
+         "Hz.\nThis will make resampling from 32kHz sources more accurate, possibly improving "
+         "audio\n"
+         "quality at the cost of performance. It won't follow changes to your OS setting."
+         "\nIf unsure, leave off.")
+          .arg(AudioCommon::GetDefaultSampleRate()));
 
-  //To review: this might create an empty space when hidden
+  // Unfortunately this creates an empty space if added to the widget. We should find a better way
   m_use_os_sample_rate->setHidden(true);
 
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
          "emulation engines only.\nAutomatically disabled if not supported by your audio device."
-         "\nAs on the original hardware, games will still be stereo,\nbut DPLII will"
-         " extrapolate information to output 5.1 channels.\nIf unsure, leave off. When changing at runtime, you will lose samples. You need to enable it in game for GC or in menu of Wii."));
+         "\nYou need to enable it in the game settings for GC games or in the menu settings on Wii."
+         "\nThe console will still output 2.0, but the encoder will extract information for 5.1."
+         "\nIf unsure, leave off."));
 
   auto* dolby_quality_layout = new QHBoxLayout;
 
@@ -155,12 +154,10 @@ void AudioPane::CreateWidgets()
   m_wasapi_device_combo = new QComboBox;
   m_wasapi_device_sample_rate_combo = new QComboBox;
 
-  //To use AudioCommon::GetDefaultSampleRate(). Don't select anything below 48kHz!
+  m_wasapi_device_combo->setToolTip(tr("Some devices might not work with WASAPI Exclusive mode"));
   m_wasapi_device_sample_rate_combo->setToolTip(
-      tr("This will not only output at the specified sample rate, \nit will also run the internal "
-         "mixer at that same sample rate.\nSelecting anything above 48kHz will have very minimal "
-         "advanced stretching won't work if you don't see a high (or low?) enough backend latency?"
-         "improvements on sound quality, at the cost of performance.\nAdvantages will only be seen on 32kHz games or if you unlimit the FPS.\nThis is for 2 channel 16bit, surround will try to use the same or fallback to 48000."));
+      tr("Output (and mix) sample rate.\nAnything above 48kHz will have very minimal "
+         "improvements to quality at the cost of performance."));
 
   backend_layout->addRow(m_wasapi_device_label, m_wasapi_device_combo);
   backend_layout->addRow(m_wasapi_device_sample_rate_label, m_wasapi_device_sample_rate_combo);
@@ -192,7 +189,7 @@ void AudioPane::CreateWidgets()
          "too high (>40), sound will lose quality when we slow down or stutter.\nIf set too low (<10), "
          "sound might "
          "lose quality if you have frequent small stutters.\nSet 0 to "
-         "have it on all the times. Slide all the way left to disable.")); //To find best default
+         "have it on all the times. Slide all the way left to disable.")); //To find best default (and review description at 0)
   
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
   mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
@@ -265,7 +262,6 @@ void AudioPane::LoadSettings()
     m_backend_combo->addItem(tr(backend.c_str()), QVariant(QString::fromStdString(backend)));
     if (backend == current)
     {
-      //To specify that WASAPI (or any) might not work on all devices and stops other sounds
       m_backend_combo->setCurrentIndex(m_backend_combo->count() - 1);
       selection_set = true;
     }
@@ -288,8 +284,7 @@ void AudioPane::LoadSettings()
       GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
   if (AudioCommon::SupportsDPL2Decoder(current) && !m_dsp_hle->isChecked())
   {
-    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked() &&
-                              !m_running);
+    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
 
   // Latency
@@ -353,6 +348,7 @@ void AudioPane::SaveSettings()
 
   bool volume_changed = false;
   bool backend_setting_changed = false;
+  bool surround_enabled_changed = false;
 
   // DSP
   if (SConfig::GetInstance().bDSPHLE != m_dsp_hle->isChecked() ||
@@ -390,6 +386,7 @@ void AudioPane::SaveSettings()
   {
     SConfig::GetInstance().bDPL2Decoder = m_dolby_pro_logic->isChecked();
     backend_setting_changed = true;
+    surround_enabled_changed = true;
   }
   if (Config::Get(Config::MAIN_DPL2_QUALITY) !=
       static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()))
@@ -398,14 +395,11 @@ void AudioPane::SaveSettings()
                     static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
     m_dolby_quality_latency_label->setText(
         GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-    backend_setting_changed = true;
+    backend_setting_changed = true; // Not a mistake
   }
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
-    bool backend_supports_runtime_changes = AudioCommon::SupportsRuntimeSettingsChanges();
-    bool enable_dolby_pro_logic = !m_running || backend_supports_runtime_changes;
-    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked() &&
-                              enable_dolby_pro_logic);
+    EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
 
   // Latency
@@ -416,7 +410,11 @@ void AudioPane::SaveSettings()
   }
 
   // Sample rate
-  SConfig::GetInstance().bUseOSMixerSampleRate = m_use_os_sample_rate->isChecked();
+  if (m_use_os_sample_rate->isChecked() != SConfig::GetInstance().bUseOSMixerSampleRate)
+  {
+    SConfig::GetInstance().bUseOSMixerSampleRate = m_use_os_sample_rate->isChecked();
+    backend_setting_changed = true;
+  }
 
   // Stretch
   SConfig::GetInstance().m_audio_stretch = m_stretching_enable->isChecked();
@@ -466,10 +464,8 @@ void AudioPane::SaveSettings()
   }
 #endif
 
-  if (volume_changed || backend_setting_changed)
-  {
-    AudioCommon::UpdateSoundStreamSettings(!backend_setting_changed);
-  }
+  AudioCommon::UpdateSoundStreamSettings(volume_changed, backend_setting_changed,
+                                         surround_enabled_changed);
 }
 
 void AudioPane::OnDspChanged()
@@ -478,8 +474,7 @@ void AudioPane::OnDspChanged()
 
   m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
                                 !m_dsp_hle->isChecked());
-  EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked() &&
-                            !m_running);
+  EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
 }
 
 void AudioPane::OnBackendChanged()
@@ -487,10 +482,11 @@ void AudioPane::OnBackendChanged()
   const auto backend = SConfig::GetInstance().sBackend;
 
   m_use_os_sample_rate->setEnabled(backend != BACKEND_NULLSOUND);
+
   m_dolby_pro_logic->setEnabled(AudioCommon::SupportsDPL2Decoder(backend) &&
                                 !m_dsp_hle->isChecked());
-  EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked() &&
-                            !m_running); //To add other m_running checks
+  EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
+
   if (m_latency_control_supported)
   {
     m_latency_label->setEnabled(AudioCommon::SupportsLatencyControl(backend));
@@ -543,10 +539,8 @@ void AudioPane::OnWASAPIDeviceChanged()
     m_wasapi_device_sample_rate_combo->setEnabled(true);
     m_wasapi_device_sample_rate_label->setEnabled(true);
 
-    std::string default_sample_rate_text = "Default Dolphin Sample Rate (" +
-                                         std::to_string(AudioCommon::GetDefaultSampleRate()) +
-                                         "Hz)";
-    m_wasapi_device_sample_rate_combo->addItem(tr(default_sample_rate_text.c_str()));
+    m_wasapi_device_sample_rate_combo->addItem(
+        tr("Default Dolphin Sample Rate (%1Hz)").arg(AudioCommon::GetDefaultSampleRate()));
 
     for (const auto deviceSampleRate : WASAPIStream::GetSelectedDeviceSampleRates())
     {
@@ -558,21 +552,21 @@ void AudioPane::OnWASAPIDeviceChanged()
   {
     m_wasapi_device_sample_rate_combo->setEnabled(false);
     m_wasapi_device_sample_rate_label->setEnabled(false);
-    std::string sample_rate_text;
     if (m_running)
     {
+      std::string sample_rate_text;
       sample_rate_text = SConfig::GetInstance().sWASAPIDeviceSampleRate + "Hz";
       if (sample_rate_text == "0Hz")
       {
         sample_rate_text = std::to_string(AudioCommon::GetDefaultSampleRate()) + "Hz";
       }
+      m_wasapi_device_sample_rate_combo->addItem(tr(sample_rate_text.c_str()));
     }
     else
     {
-      sample_rate_text =
-          "Select a Device (" + std::to_string(AudioCommon::GetDefaultSampleRate()) + "Hz)";
+      m_wasapi_device_sample_rate_combo->addItem(
+          tr("Select a Device (%1Hz)").arg(AudioCommon::GetDefaultSampleRate()));
     }
-    m_wasapi_device_sample_rate_combo->addItem(tr(sample_rate_text.c_str()));
   }
 
   m_ignore_save_settings = false;
@@ -605,37 +599,41 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
   const auto backend = SConfig::GetInstance().sBackend;
 
-  bool backend_supports_runtime_changes = AudioCommon::SupportsRuntimeSettingsChanges();
+  bool supports_current_emulation_state =
+      !running || AudioCommon::BackendSupportsRuntimeSettingsChanges();
 
   m_dsp_hle->setEnabled(!running);
   m_dsp_lle->setEnabled(!running);
   m_dsp_interpreter->setEnabled(!running);
   m_backend_label->setEnabled(!running);
   m_backend_combo->setEnabled(!running);
-  m_use_os_sample_rate->setEnabled(!running && backend != BACKEND_NULLSOUND);
 
-  //To review this and all the m_dsp_hle->isChecked()
+  m_use_os_sample_rate->setEnabled(supports_current_emulation_state &&
+                                   backend != BACKEND_NULLSOUND);
+
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
-    bool enable_dolby_pro_logic = !running || backend_supports_runtime_changes;
+    // TODO: disable this later if the audio device turned out unable to support surround
+    bool enable_dolby_pro_logic = supports_current_emulation_state;
     m_dolby_pro_logic->setEnabled(enable_dolby_pro_logic);
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
   }
   if (m_latency_control_supported &&
       AudioCommon::SupportsLatencyControl(SConfig::GetInstance().sBackend))
   {
-    bool enable_latency = (!running || backend_supports_runtime_changes) &&
-                                AudioCommon::SupportsLatencyControl(backend);
+    bool enable_latency =
+        supports_current_emulation_state && AudioCommon::SupportsLatencyControl(backend);
     m_latency_label->setEnabled(enable_latency);
     m_latency_spin->setEnabled(enable_latency);
   }
 
 #ifdef _WIN32
-  m_wasapi_device_label->setEnabled(!running || backend_supports_runtime_changes);
-  m_wasapi_device_combo->setEnabled(!running || backend_supports_runtime_changes);
-  bool canSelectDeviceSampleRate = SConfig::GetInstance().sWASAPIDevice != "default";
+  m_wasapi_device_label->setEnabled(supports_current_emulation_state);
+  m_wasapi_device_combo->setEnabled(supports_current_emulation_state);
+  bool canSelectDeviceSampleRate =
+      SConfig::GetInstance().sWASAPIDevice != "default" && supports_current_emulation_state;
   m_wasapi_device_sample_rate_label->setEnabled(canSelectDeviceSampleRate);
-  m_wasapi_device_sample_rate_combo->setEnabled(canSelectDeviceSampleRate); //To allow changes at runtime now?
+  m_wasapi_device_sample_rate_combo->setEnabled(canSelectDeviceSampleRate);
   bool is_wasapi = backend == BACKEND_WASAPI;
   if (is_wasapi)
   {

@@ -31,7 +31,7 @@ DPL2Quality GetDefaultDPL2Quality();
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);
-bool SupportsRuntimeSettingsChanges();
+bool BackendSupportsRuntimeSettingsChanges();
 // Default "Dolphin" output and internal mixer sample rate
 unsigned long GetDefaultSampleRate();
 // Returns the min buffer time length it can hold (in ms), our backends can't have a latency
@@ -43,8 +43,11 @@ unsigned long GetMaxSupportedLatency();
 unsigned long GetUserTargetLatency();
 // Returns the OS mixer sample rate (based on the currently used audio device)
 unsigned long GetOSMixerSampleRate();
-// Either volume only, or any type of more advanced settings (e.g. Latency, DPLII)
-void UpdateSoundStreamSettings(bool volume_only);
+// Either volume only, or other settings that require a backend re-init (e.g. Latency, Device,
+// Sample Rate, DPLII Enabled, DPLII Quality), or DPLII Enabled which also requires to clean the
+// surround buffer
+void UpdateSoundStreamSettings(bool volume_changed, bool settings_changed = false,
+                               bool surround_changed = false);
 bool SetSoundStreamRunning(bool running, bool send_error = false);
 void SendAIBuffer(const short* samples, unsigned int num_samples);
 void StartAudioDump();

@@ -39,6 +39,8 @@ THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "FreeSurround/KissFFTR.h"
 #include "FreeSurround/_KissFFTGuts.h"
 
+#include <cassert>
+
 struct kiss_fftr_state {
   kiss_fft_cfg substate;
   kiss_fft_cpx *tmpbuf;
@@ -48,10 +50,11 @@ struct kiss_fftr_state {
 #endif
 };
 
-kiss_fftr_cfg kiss_fftr_alloc(int nfft, int inverse_fft, void *mem,
+char* kiss_fftr_alloc(int nfft, int inverse_fft, void *mem,
                               size_t *lenmem) {
   int i;
   kiss_fftr_cfg st = NULL;
+  char* char_st = NULL;
   size_t subsize = 65536 * 4, memneeded = 0;
 
   if (nfft & 1) {
@@ -65,10 +68,16 @@ kiss_fftr_cfg kiss_fftr_alloc(int nfft, int inverse_fft, void *mem,
               sizeof(kiss_fft_cpx) * (nfft * 3 / 2);
 
   if (lenmem == NULL) {
-    st = (kiss_fftr_cfg) new char[memneeded];
+    assert(memneeded >= sizeof(kiss_fftr_state));
+    char_st = new char[memneeded];
+    st = (kiss_fftr_cfg)char_st;
   } else {
     if (*lenmem >= memneeded)
+    {
+      assert(false); // Support removed by Dolphin
       st = (kiss_fftr_cfg)mem;
+      char_st = (char*)st;
+    }
     *lenmem = memneeded;
   }
   if (!st)
@@ -86,7 +95,7 @@ kiss_fftr_cfg kiss_fftr_alloc(int nfft, int inverse_fft, void *mem,
       phase *= -1;
     kf_cexp(st->super_twiddles + i, phase);
   }
-  return st;
+  return char_st;
 }
 
 void kiss_fftr(kiss_fftr_cfg st, const kiss_fft_scalar *timedata,

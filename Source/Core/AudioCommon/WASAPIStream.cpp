@@ -7,6 +7,7 @@
 #ifdef _WIN32
 
 // clang-format off
+#include <algorithm>
 #include <Audioclient.h>
 #include <cassert>
 #include <comdef.h>
@@ -487,7 +488,6 @@ bool WASAPIStream::SetRunning(bool running)
   if (!aci.Succeeded())
     return false;
 
-  // Keep trying if we fail before this
   m_should_restart = false;
 
   if (running)
@@ -815,7 +815,6 @@ bool WASAPIStream::SetRunning(bool running)
     m_audio_client = nullptr;
     if (m_audio_clock)
     {
-      //To review: as from the comment somewhere, this can crash if closed from another thread...
       m_audio_clock->Release();
       m_audio_clock = nullptr;
     }
@@ -932,17 +931,18 @@ void WASAPIStream::SoundLoop()
       unsigned int mixed_samples =
           GetMixer()->MixSurround(m_surround_samples.data(), m_frames_in_buffer);
 
-      // From float(32) (-1 to 1) to signed short(16)
+      // From float(32) (~-1 to ~1 but can go beyond limits) to signed short(16)
       for (u32 i = 0; i < mixed_samples * SURROUND_CHANNELS; ++i)
       {
-        // std::numeric_limits<s16>::min is actually smaller than max, like every signed min,
-        // so we don't need to clamp to -max (or min) if the float is clamped to -1.
-        // We assume the volume won't be more than 1, or we'd lose some amplifications.
-        // It would be better to round the result value, but the chance of that making
-        // a difference is not worth the performance hit
-        reinterpret_cast<s16*>(data)[i] =
-            static_cast<s16>(std::clamp(m_surround_samples[i] * volume, -1.f, 1.f) *
-                             std::numeric_limits<s16>::max());
+        m_surround_samples[i] *= volume * std::numeric_limits<s16>::max();
+        m_surround_samples[i] =
+            std::clamp(m_surround_samples[i], float(std::numeric_limits<s16>::min()),
+                       float(std::numeric_limits<s16>::max()));
+
+        // We assume the volume won't be more than 1, or we'll get some clipping. It would be better
+        // to round the result, but the chance of that making a difference is not worth the
+        // performance hit
+        reinterpret_cast<s16*>(data)[i] = static_cast<s16>(m_surround_samples[i]);
       }
     }
     // From signed short(16) to signed short(16)

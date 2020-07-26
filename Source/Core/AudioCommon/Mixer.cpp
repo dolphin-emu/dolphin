@@ -77,6 +77,11 @@ void Mixer::UpdateSettings(u32 sample_rate)
 {
   m_sample_rate = sample_rate;
   m_stretcher.SetSampleRate(m_sample_rate);
+  if (m_surround_changed)
+  {
+    m_surround_changed = false;
+    m_surround_decoder.Clear();
+  }
   m_surround_decoder.InitAndSetSampleRate(m_sample_rate);
   //To do: reset m_fract, and also DPLII. Add method to reset DPLII
 }
@@ -381,6 +386,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   // Filter out small inaccuracies (samples aren't submitted with perfect timing)
   else if (actual_speed / emulation_speed < 1.0 - FallbackDelta)
   {
+    //To review: this keeps trigger and going back to normal on GC due to the uneven sample rates? It also does NOT work with DPLII at the moment
     // Note: when not able to reach the target speed before m_time_below_target_speed_growing triggers, you might hear crackles due to (probably) having finished the samples
     //To review: this happens more often at higher backend latencies, smooth it over time? Ignore first missed frame?
     // If we fell behind of m_time_behind_target_speed seconds of samples, start using the actual emulation speed
@@ -423,7 +429,6 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     m_time_at_custom_speed = 0.0;
   }
 
-  //To test on GC with weird sample rates again. And with DVD Streaming. Review when entering the galaxy stars view in SMG, it crackles a bit
   //To test latency/buffer buildup (auto adjustment/sync) when we pass from stretching to not stretching. If they are always on the edge... We'll need to slow it down. Have a mirrored version of max_latency (min)?
   //To review: this should be done per mixer
   //To review, the stretcher can get stuck looping while stopping the process (breakpoint) for like 20 seconds? Only with DPLII?
@@ -439,10 +444,9 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     static double mult = 1.0;
     max_latency *= mult;
   }
-  //To fix max_latency does NOT work with stretching and DPLII at the same time, just do the min of max latency and out_samples. Make sure this doesn't trigger when we are asked 0 samples?
-  bool is_surround = m_scratch_buffer.data() == samples;
-  if (is_surround)
-    max_latency = std::max(time_delta, max_latency);
+  //To fix max_latency does NOT work with stretching and DPLII at the same time, just do the min of max latency and out_samples. Make sure this doesn't trigger when we are asked 0 samples? Or pass in the min block size required for latency
+  //bool is_surround = m_scratch_buffer.data() == samples;
+  //max_latency = std::max(time_delta, max_latency);
   double catch_up_speed;
   double target_latency;
 
@@ -574,7 +578,7 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
 {
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
   
-  //To clear on settings changed (num_samples): m_surround_decoder.Clear() (thread safe?), no, this code just seems wrong?
+  //To review this code just seems wrong and breaks if we change the sample rate?
   //To fix QuerySamplesNeededForSurroundOutput doesn't work with num_samples 0 or small
   u32 needed_samples = m_surround_decoder.QuerySamplesNeededForSurroundOutput(num_samples);
 

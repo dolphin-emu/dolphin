@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <memory>
 #include <vector>
@@ -18,7 +19,11 @@ public:
   ~CubebStream() override;
   bool Init() override;
   bool SetRunning(bool running) override;
+  void Update() override;
   void SetVolume(int) override;
+
+  bool SupportsRuntimeSettingsChanges() const override { return true; }
+  void OnSettingsChanged() override { m_should_restart = true; }
 
 private:
   bool m_stereo = false;
@@ -27,6 +32,9 @@ private:
 
   std::vector<short> m_short_buffer;
   std::vector<float> m_floatstereo_buffer;
+
+  std::atomic<bool> m_running = false;
+  std::atomic<bool> m_should_restart = false;
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                            void* output_buffer, long num_frames);

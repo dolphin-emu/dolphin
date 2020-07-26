@@ -58,10 +58,9 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
   return NearestPowerOfTwo(frame_block);
 }
 
-// Currently only 6 channels are supported.
 u32 SurroundDecoder::QuerySamplesNeededForSurroundOutput(u32 output_samples) const
 {
-  //To review: what would happen if they are ==?
+  //To review: what would happen if they are ==? How is the output fifo supposed to decide the input amount?
   if (output_samples > u32(m_decoded_fifo.size()) / SURROUND_CHANNELS)
   {
     // Output stereo samples needed to have at least the desired number of surround samples
@@ -94,9 +93,8 @@ void SurroundDecoder::InitAndSetSampleRate(u32 sample_rate)
   assert(m_frame_block_size * STEREO_CHANNELS <= m_float_conversion_buffer.max_size());
   assert(m_frame_block_size * SURROUND_CHANNELS * MAX_BLOCKS_BUFFERED <= m_decoded_fifo.max_size());
 
-  //To review: at max quality 192kHz sound only plays from the left speaker??? Only if we changed the settings first?
-  //To review: this can crash. It can also crash WASAPI m_audio_clock?
-  // Re-init. It should keep the samples in the buffer while just changing the settings
+  // Re-init. It should keep the samples in the buffer (and filling the rest with 0) while just
+  // changing the settings
   m_fsdecoder->Init(cs_5point1, m_frame_block_size, m_sample_rate);
   // The LFE channel (bass redirection) is disabled in the surround decoder, as most people
   // have their own low pass crossover
@@ -124,11 +122,11 @@ void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
     // Convert to float
     for (size_t i = 0, end = m_frame_block_size * STEREO_CHANNELS; i < end; ++i)
     {
-      m_float_conversion_buffer[i] = in[i + sample_index * STEREO_CHANNELS] /
-                                     float(std::numeric_limits<s16>::max());
+      m_float_conversion_buffer[i] =
+          in[i + sample_index * STEREO_CHANNELS] / float(std::numeric_limits<s16>::max());
     }
 
-    // Decode
+    // Decode. Note that output isn't clamped within -1.f and +1.f
     const float* dpl2_fs = m_fsdecoder->decode(m_float_conversion_buffer.data());
 
     // Add to ring buffer and fix channel mapping

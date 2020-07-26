@@ -28,13 +28,13 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 DPL2FSDecoder::DPL2FSDecoder() {
   initialized = false;
   buffer_empty = true;
+  forward = nullptr;
+  inverse = nullptr;
 }
 
 DPL2FSDecoder::~DPL2FSDecoder() {
-#pragma warning(suppress : 4150)
-  delete forward;
-#pragma warning(suppress : 4150)
-  delete inverse;
+    delete[] forward;
+    delete[] inverse;
 }
 
 void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
@@ -51,13 +51,19 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
   dst = std::vector<double>(N);
   lf = std::vector<cplx>(N / 2 + 1);
   rf = std::vector<cplx>(N / 2 + 1);
+  delete[] forward;
+  delete[] inverse;
   forward = kiss_fftr_alloc(N, 0, 0, 0);
   inverse = kiss_fftr_alloc(N, 1, 0, 0);
   C = static_cast<unsigned int>(chn_alloc[setup].size());
 
   // Allocate per-channel buffers
   outbuf.resize((N + N / 2) * C);
-  signal.resize(C, std::vector<cplx>(N));
+  for (unsigned int k = 0; k < signal.size(); k++)
+  {
+    signal[k].resize(N);
+  }
+  signal.resize(C, signal.size() > 0 ? signal.back() : std::vector<cplx>(N));
 
   // Init the window function
   for (unsigned int k = 0; k < N; k++)
@@ -83,13 +89,13 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
 float *DPL2FSDecoder::decode(float *input) {
   if (initialized) {
     // append incoming data to the end of the input buffer
-    memcpy(&inbuf[N], &input[0], 8 * N);
+    memcpy(&inbuf[N], &input[0], sizeof(float) * 2 * N);
     // process first and second half, overlapped
     buffered_decode(&inbuf[0]);
     buffered_decode(&inbuf[N]);
     // shift last half of the input to the beginning (for overlapping with a
     // future block)
-    memcpy(&inbuf[0], &inbuf[2 * N], 4 * N);
+    memcpy(&inbuf[0], &inbuf[2 * N], sizeof(float) * N);
     buffer_empty = false;
     return &outbuf[0];
   }
@@ -98,8 +104,8 @@ float *DPL2FSDecoder::decode(float *input) {
 
 // flush the internal buffers
 void DPL2FSDecoder::flush() {
-  memset(&outbuf[0], 0, outbuf.size() * 4);
-  memset(&inbuf[0], 0, inbuf.size() * 4);
+  memset(&outbuf[0], 0, outbuf.size() * sizeof(float));
+  memset(&inbuf[0], 0, inbuf.size() * sizeof(float));
   buffer_empty = true;
 }
 
@@ -161,8 +167,8 @@ void DPL2FSDecoder::buffered_decode(float *input) {
   }
 
   // map into spectral domain
-  kiss_fftr(forward, &lt[0], (kiss_fft_cpx *)&lf[0]);
-  kiss_fftr(forward, &rt[0], (kiss_fft_cpx *)&rf[0]);
+  kiss_fftr((kiss_fftr_cfg)forward, &lt[0], (kiss_fft_cpx *)&lf[0]);
+  kiss_fftr((kiss_fftr_cfg)forward, &rt[0], (kiss_fft_cpx *)&rf[0]);
 
   // compute multichannel output signal in the spectral domain
   for (unsigned int f = 1; f < N / 2; f++) {
@@ -227,13 +233,13 @@ void DPL2FSDecoder::buffered_decode(float *input) {
   }
 
   // shift the last 2/3 to the first 2/3 of the output buffer
-  memcpy(&outbuf[0], &outbuf[C * N / 2], N * C * 4);
+  memcpy(&outbuf[0], &outbuf[C * N / 2], N * C * sizeof(float));
   // and clear the rest
-  memset(&outbuf[C * N], 0, C * 4 * N / 2);
+  memset(&outbuf[C * N], 0, C * sizeof(float) * N / 2);
   // backtransform each channel and overlap-add
   for (unsigned int c = 0; c < C; c++) {
     // back-transform into time domain
-    kiss_fftri(inverse, (kiss_fft_cpx *)&signal[c][0], &dst[0]);
+    kiss_fftri((kiss_fftr_cfg)inverse, (kiss_fft_cpx *)&signal[c][0], &dst[0]);
     // add the result to the last 2/3 of the output buffer, windowed (and
     // remultiplex)
     for (unsigned int k = 0; k < N; k++)

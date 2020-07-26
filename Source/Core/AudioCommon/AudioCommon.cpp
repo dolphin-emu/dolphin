@@ -184,10 +184,12 @@ bool SupportsLatencyControl(std::string_view backend)
 {
   // TODO: we should ask the backends whether they support this
 #ifdef _WIN32
-  // Cubeb only supports custom latency on Windows
-  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI || backend == BACKEND_CUBEB; //To review: not true
+  return backend == BACKEND_OPENAL || backend == BACKEND_WASAPI;
 #else
-  return false;
+  // TODO: test whether cubeb supports latency on Mac OS X and Linux (different internal backends).
+  // It does NOT support latency on Win 10 (at least on my devices) despite exposing it and
+  // seemingly supporting it on WASAPI
+  return backend == BACKEND_CUBEB;
 #endif
 }
 
@@ -198,7 +200,7 @@ bool SupportsVolumeChanges(std::string_view backend)
          BACKEND_OPENSLES;
 }
 
-bool SupportsRuntimeSettingsChanges()
+bool BackendSupportsRuntimeSettingsChanges()
 {
   std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
   if (g_sound_stream)
@@ -308,16 +310,22 @@ unsigned long GetOSMixerSampleRate()
 #endif
 }
 
-void UpdateSoundStreamSettings(bool volume_only)
+void UpdateSoundStreamSettings(bool volume_changed, bool settings_changed, bool surround_changed)
 {
   // This can be called from any threads, needs to be protected
   std::lock_guard<std::mutex> guard(g_sound_stream_mutex);
   if (g_sound_stream)
   {
-    int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
-    g_sound_stream->SetVolume(volume);
-
-    if (!volume_only)
+    if (volume_changed)
+    {
+      int volume = SConfig::GetInstance().m_IsMuted ? 0 : SConfig::GetInstance().m_Volume;
+      g_sound_stream->SetVolume(volume);
+    }
+    if (surround_changed)
+    {
+      g_sound_stream->GetMixer()->SetSurroundChanged();
+    }
+    if (settings_changed || surround_changed)
     {
       // Some backends will be able to apply changes in settings at runtime
       g_sound_stream->OnSettingsChanged();

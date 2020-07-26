@@ -55,10 +55,10 @@ private:
     std::string GetName() const override { return name; }
     Button(unsigned int index, unsigned int* buttons);
     ControlState GetState() const override;
-    Flags GetFlags() const override
+    FocusFlags GetFocusFlags() const override
     {
-      return (Flags)((u8)Flags::RequiresFocus | (u8)Flags::RequiresFullFocus |
-                     (u8)Flags::IgnoreOnFocusAcquired);
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus) |
+                        u8(FocusFlags::IgnoreOnFocusChanged));
     }
 
   private:
@@ -74,9 +74,9 @@ private:
     bool IsDetectable() const override { return false; }
     Cursor(u8 index, bool positive, const float* cursor);
     ControlState GetState() const override;
-    Flags GetFlags() const override
+    FocusFlags GetFocusFlags() const override
     {
-      return (Flags)((u8)Flags::RequiresFocus | (u8)Flags::RequiresFullFocus);
+      return FocusFlags((u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus)));
     }
 
   private:
@@ -93,9 +93,9 @@ private:
     bool IsDetectable() const override { return false; }
     Axis(u8 index, bool positive, const float* axis);
     ControlState GetState() const override;
-    Flags GetFlags() const override
+    FocusFlags GetFocusFlags() const override
     {
-      return (Flags)((u8)Flags::RequiresFocus | (u8)Flags::RequiresFullFocus);
+      return FocusFlags(u8(FocusFlags::RequireFocus) | u8(FocusFlags::RequireFullFocus));
     }
 
   private:

@@ -161,7 +161,9 @@ private:
   std::vector<cplx> lf, rf;
 
   // FFT buffers
-  kiss_fftr_cfg forward, inverse;
+  // they used to be kiss_fftr_cfg but due to unsafe deletion Dolphin changed them to a char*
+  char* forward;
+  char* inverse;
 
   // buffers
   // whether the buffer is currently empty or dirty

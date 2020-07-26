@@ -49,6 +49,8 @@ public:
 
   // Only call when the audio thread (Mix()) is not running
   void UpdateSettings(u32 sample_rate);
+  // Useful to clean the surround buffer when we enable/disable it
+  void SetSurroundChanged() { m_surround_changed = true; }
 
   u32 GetSampleRate() const { return m_sample_rate; }
   double GetCurrentSpeed() const { return m_target_speed; }
@@ -165,6 +167,7 @@ private:
   bool m_latency_catching_up = false;
 
   bool m_stretching = false;
+  std::atomic<bool> m_surround_changed{false};
   AudioCommon::AudioStretcher m_stretcher;
   AudioCommon::SurroundDecoder m_surround_decoder;
 
