@@ -23,7 +23,11 @@ public:
   void SetVolume(int) override;
 
   bool SupportsRuntimeSettingsChanges() const override { return true; }
-  void OnSettingsChanged() override { m_should_restart = true; }
+  void OnSettingsChanged() override
+  {
+    m_settings_changed = true;
+    m_should_restart = true;
+  }
 
 private:
   bool m_stereo = false;
@@ -35,6 +39,7 @@ private:
 
   std::atomic<bool> m_running = false;
   std::atomic<bool> m_should_restart = false;
+  std::atomic<bool> m_settings_changed = false;
 
   static long DataCallback(cubeb_stream* stream, void* user_data, const void* /*input_buffer*/,
                            void* output_buffer, long num_frames);

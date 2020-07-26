@@ -182,14 +182,14 @@ void AudioPane::CreateWidgets()
       tr("Enables stretching of the audio (pitch correction) to match the emulation speed"));
 
   m_emu_speed_tolerance_slider->setMinimum(-1);
-  m_emu_speed_tolerance_slider->setMaximum(100);
+  m_emu_speed_tolerance_slider->setMaximum(125);
   m_emu_speed_tolerance_slider->setToolTip(
       tr("Time(ms) we need to fall behind the emulation for sound to start using the actual "
          "emulation speed.\nIf set "
-         "too high (>40), sound will lose quality when we slow down or stutter.\nIf set too low (<10), "
+         "too high (>40), sound will play old samples backwards when we slow down or stutter.\nIf set too low (<10), "
          "sound might "
          "lose quality if you have frequent small stutters.\nSet 0 to "
-         "have it on all the times. Slide all the way left to disable.")); //To find best default (and review description at 0)
+         "have it on all the times. Slide all the way left to disable.")); //To make sure you got the best value...
   
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
   mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);

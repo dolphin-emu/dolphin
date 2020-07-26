@@ -484,7 +484,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("AudioLatency", &iLatency, 20);
   core->Get("UseOSMixerSampleRate", &bUseOSMixerSampleRate, false);
   core->Get("AudioStretch", &m_audio_stretch, false);
-  core->Get("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance, 10);
+  core->Get("AudioEmuSpeedTolerance", &m_audio_emu_speed_tolerance, 20);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
   core->Get("SlotA", (int*)&m_EXIDevice[0], ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER);
@@ -769,7 +769,7 @@ void SConfig::LoadDefaults()
   bDPL2Decoder = false;
   iLatency = 20;
   m_audio_stretch = false;
-  m_audio_emu_speed_tolerance = 10;
+  m_audio_emu_speed_tolerance = 20;
   bUsePanicHandlers = true;
   bOnScreenDisplayMessages = true;
 

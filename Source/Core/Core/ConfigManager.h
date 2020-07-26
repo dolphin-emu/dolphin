@@ -129,7 +129,7 @@ struct SConfig
   int iLatency = 20;
   bool bUseOSMixerSampleRate = false;
   bool m_audio_stretch = false;
-  int m_audio_emu_speed_tolerance = 10;
+  int m_audio_emu_speed_tolerance = 20;
 
   bool bRunCompareServer = false;
   bool bRunCompareClient = false;

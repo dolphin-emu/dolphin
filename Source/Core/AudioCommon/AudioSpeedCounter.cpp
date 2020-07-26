@@ -41,7 +41,7 @@ void AudioSpeedCounter::OnSettingsChanged()
   m_target_delta = m_ticks_per_upd / m_ticks_per_sec;
   // Keep the previous speed by adjusting the last deltas
   const double relative_change = m_target_delta / prev_target_delta;
-  for (int i = 0; i < m_last_deltas.size(); ++i)
+  for (size_t i = 0; i < m_last_deltas.size(); ++i)
   {
     m_last_deltas[i] *= relative_change;
   }

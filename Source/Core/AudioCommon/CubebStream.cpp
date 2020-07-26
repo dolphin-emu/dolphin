@@ -41,8 +41,11 @@ bool CubebStream::SetRunning(bool running)
 {
   assert(running != m_running);
 
+  if (m_settings_changed)
+    m_settings_changed = false;
   m_should_restart = false;
 
+  //To fix: cubeb stutters on startup (pause/unpause), make sure sure reset is only called if settings have changed
   if (running)
   {
     m_mixer->UpdateSettings(SConfig::GetInstance().bUseOSMixerSampleRate ?
@@ -72,16 +75,14 @@ bool CubebStream::SetRunning(bool running)
     if (cubeb_get_min_latency(m_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
 		ERROR_LOG_FMT(AUDIO, "Error getting minimum latency");
 
-    u32 final_latency;
-
-    uint32_t target_latency = AudioCommon::GetUserTargetLatency() / 1000.0 * params.rate;
+    const u32 target_latency = AudioCommon::GetUserTargetLatency() / 1000.0 * params.rate;
 #ifdef _WIN32
     // WASAPI supports up to 5000ms but let's clamp to 500ms
-    uint32_t max_latency = 500 / 1000.0 * params.rate;
+    const u32 max_latency = 500 / 1000.0 * params.rate;
     // This doesn't actually seem to work, latency is ignored on Window 10
-    final_latency = std::clamp(target_latency, minimum_latency, max_latency);
+    const u32 final_latency = std::clamp(target_latency, minimum_latency, max_latency);
 #else
-    final_latency = std::clamp(target_latency, minimum_latency, 96000);
+    const u32 final_latency = std::clamp(target_latency, minimum_latency, 96000u);
 #endif
     INFO_LOG(AUDIO, "Latency: %u frames", final_latency);
 
