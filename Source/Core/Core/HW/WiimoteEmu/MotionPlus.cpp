@@ -388,11 +388,6 @@ bool MotionPlus::ReadDeviceDetectPin() const
   }
 }
 
-bool MotionPlus::IsButtonPressed() const
-{
-  return false;
-}
-
 void MotionPlus::Update()
 {
   if (m_progress_timer)

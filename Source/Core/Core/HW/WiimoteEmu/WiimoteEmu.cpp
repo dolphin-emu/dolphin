@@ -673,7 +673,7 @@ bool Wiimote::CheckForButtonPress()
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
-  return (buttons != 0 || GetActiveExtension()->IsButtonPressed());
+  return buttons != 0;
 }
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)

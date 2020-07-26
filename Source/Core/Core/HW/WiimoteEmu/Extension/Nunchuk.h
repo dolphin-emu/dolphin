@@ -151,7 +151,6 @@ public:
   Nunchuk();
 
   void Update() override;
-  bool IsButtonPressed() const override;
   void Reset() override;
   void DoState(PointerWrap& p) override;
 

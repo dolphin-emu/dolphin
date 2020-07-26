@@ -153,16 +153,6 @@ void Classic::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = classic_data;
 }
 
-bool Classic::IsButtonPressed() const
-{
-  u16 buttons = 0;
-  std::array<ControlState, 2> trigs{};
-  m_buttons->GetState(&buttons, classic_button_bitmasks.data());
-  m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
-  m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), trigs.data());
-  return buttons != 0;
-}
-
 void Classic::Reset()
 {
   EncryptedExtension::Reset();
