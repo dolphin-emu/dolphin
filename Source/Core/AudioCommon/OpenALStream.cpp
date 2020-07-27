@@ -4,12 +4,13 @@
 
 #ifdef _WIN32
 
+#include "AudioCommon/OpenALStream.h"
+
 #include <windows.h>
 #include <climits>
 #include <cstring>
 #include <thread>
 
-#include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/AudioCommon.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -120,8 +121,8 @@ bool OpenALStream::Init()
   }
 
   m_mixer->UpdateSettings(SConfig::GetInstance().bUseOSMixerSampleRate ?
-                             AudioCommon::GetOSMixerSampleRate() :
-                             AudioCommon::GetDefaultSampleRate());
+                              AudioCommon::GetOSMixerSampleRate() :
+                              AudioCommon::GetDefaultSampleRate());
 
   palcMakeContextCurrent(context);
   m_run_thread.Set();

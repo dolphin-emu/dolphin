@@ -7,36 +7,19 @@
 #include <cassert>
 #include <limits>
 
-#include "Core/Config/MainSettings.h"
-
 #include "AudioCommon/Enums.h"
 #include "AudioCommon/SurroundDecoder.h"
-//#pragma optimize("", off) //To delete
+#include "Common/MathUtil.h"
+#include "Core/Config/MainSettings.h"
+
+#pragma optimize("", off) //To delete
 
 namespace AudioCommon
 {
-static s32 NearestPowerOfTwo(s32 n)
-{
-  assert(n > 1);
-  s32 v = n;
-
-  v--;
-  v |= v >> 1;
-  v |= v >> 2;
-  v |= v >> 4;
-  v |= v >> 8;
-  v |= v >> 16;
-  v++;  // next power of 2
-
-  s32 x = v >> 1;  // previous power of 2
-
-  return (v - n) > (n - x) ? x : v;
-}
-
 // Quality (higher quality also means more latency). Needs to be a pow of 2 so we find the closest
 static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
 {
-  u32 frame_block_time; // ms
+  u32 frame_block_time;  // ms
   switch (quality)
   {
   case DPL2Quality::Lowest:
@@ -54,8 +37,9 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
   default:
     frame_block_time = 20;
   }
-  u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
-  return NearestPowerOfTwo(frame_block);
+  const u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
+  assert(frame_block > 1);
+  return MathUtil::NearestPowerOf2(frame_block);
 }
 
 u32 SurroundDecoder::QuerySamplesNeededForSurroundOutput(u32 output_samples) const
@@ -110,6 +94,7 @@ void SurroundDecoder::Clear()
 // Receive and decode samples
 void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
 {
+  //To make sure
   assert(num_samples % m_frame_block_size == 0);
   // We support a max of MAX_BLOCKS_BUFFERED blocks in the buffer, because of m_decoded_fifo,
   // just increase if you need. This might trigger if you have very high backend latencies
@@ -153,8 +138,8 @@ void SurroundDecoder::GetDecodedSamples(float* out, u32 num_samples)
 {
   // TODO: this could be optimized by copying the ring buffer in two parts
   // Copy to output array with desired num_samples
-  for (size_t i = 0, num_samples_output = num_samples * SURROUND_CHANNELS;
-       i < num_samples_output; ++i)
+  for (size_t i = 0, num_samples_output = num_samples * SURROUND_CHANNELS; i < num_samples_output;
+       ++i)
   {
     out[i] = m_decoded_fifo.pop_front();
   }

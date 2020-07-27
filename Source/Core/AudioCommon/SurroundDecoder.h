@@ -14,6 +14,7 @@ class DPL2FSDecoder;
 
 namespace AudioCommon
 {
+// GC/Wii encodes sounds for DPLII, so we only support 5.1, anything more wouldn't add anything
 class SurroundDecoder
 {
 public:
@@ -39,5 +40,4 @@ private:
   std::array<float, MAX_BLOCKS_SIZE * STEREO_CHANNELS> m_float_conversion_buffer;
   FixedSizeQueue<float, MAX_BLOCKS_SIZE * SURROUND_CHANNELS * MAX_BLOCKS_BUFFERED> m_decoded_fifo;
 };
-
 }  // namespace AudioCommon

@@ -31,7 +31,7 @@ struct AudioSpeedCounter
   double GetAverageTime() const { return m_average_time; }
   double GetTargetDelta() const { return m_target_delta; }
   void SetPaused(bool paused);
-  bool IsPaused() { return m_is_paused; }
+  bool IsPaused() const { return m_is_paused; }
   // Sets the length time to count the speed for
   void SetAverageTime(double average_time);
   void SetTicksPerSecond(double ticks_per_sec);

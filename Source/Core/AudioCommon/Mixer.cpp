@@ -2,18 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "AudioCommon/Mixer.h" //To try to delete some includes and see if it builds
+#include "AudioCommon/Mixer.h"
 
 #include <algorithm>
 #include <cassert> //To delete
 #include <climits>
 #include <cmath>
-#include <cstdlib>
 #include <cstring>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/Config/MainSettings.h"
@@ -21,7 +19,7 @@
 
 #include "Common/Logging/Log.h" //To delete and all the uses (or make debug log)
 #include "VideoCommon/OnScreenDisplay.h" //To delete and all the uses
-//#pragma optimize("", off) //To delete
+#pragma optimize("", off) //To delete
 
 Mixer::Mixer(u32 sample_rate)
     : m_sample_rate(sample_rate), m_stretcher(sample_rate),
@@ -48,12 +46,8 @@ Mixer::~Mixer()
 
 void Mixer::SetPaused(bool paused)
 {
-  //To review: this might not be thread safe? SetPaused is called from the main thread while the DMA is already pushing from the emu thread
-  if (!m_dma_speed.IsPaused() && !paused)
-  {
-    // This happens on game start. The backend has already started reading actually
-    m_dma_speed.Start(true);
-  }
+  // It would be nice to call m_dma_speed.Start(true) if m_dma_speed and paused are false,
+  // but it doesn't seem to be thread safe (needs more investigation, but it's not necessary)
   m_dma_speed.SetPaused(paused);
 }
 
@@ -66,7 +60,7 @@ void Mixer::DoState(PointerWrap& p)
   m_wiimote_speaker_mixer[2].DoState(p);
   m_wiimote_speaker_mixer[3].DoState(p);
 
-  if (p.GetMode() == PointerWrap::MODE_READ) //To review, needs to be a state
+  if (p.GetMode() == PointerWrap::MODE_READ)
   {
     m_dma_speed.SetTicksPerSecond(m_dma_mixer.GetInputSampleRate());
     // We could reset a few things here but it would require too much thread synchronization
@@ -83,7 +77,6 @@ void Mixer::UpdateSettings(u32 sample_rate)
     m_surround_decoder.Clear();
   }
   m_surround_decoder.InitAndSetSampleRate(m_sample_rate);
-  //To do: reset m_fract, and also DPLII. Add method to reset DPLII
 }
 
 // render num_samples sample pairs to samples[]
@@ -145,8 +138,9 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
 
   s32 behind_samples = num_samples - actual_samples_count;
   // This might sound bad if we are constantly missing a few samples, but that should never happen,
-  // and we couldn't predict it anyway (meaning we should start playing backwards as soon as we can)
-  if (behind_samples > 0 && m_constantly_pushed && !stretching) //To add a setting to disable this?
+  // and we couldn't predict it anyway (we should start playing backwards as soon as we can).
+  // If required, this could be disabled from a config
+  if (behind_samples > 0 && m_constantly_pushed && !stretching)
   {
     rate = m_input_sample_rate / m_mixer->m_sample_rate; //To review (this should actually follow the rate but with no prediction...)
     s16* back_samples = samples + actual_samples_count * NC;
@@ -190,7 +184,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
                        lVolume, rVolume, false);
   }
   // Padding (constantly pushing the last sample when we run out to avoid sudden changes in the
-  // audio wave). This is only needed on mixers that don't constantly push but are currntly pushing,
+  // audio wave). This is only needed on mixers that don't constantly push but are currently pushing,
   // as they can't play samples backwards
   else if (behind_samples > 0 && (m_constantly_pushed || m_currently_pushed))
   {
@@ -308,7 +302,7 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
                   y3 * interpolation_buffer[(indexR + 6 * direction + 1) & INDEX_MASK];
     //To test left and right on HW source
 
-    l_s = (s32(std::round(l_s_f)) * lVolume) >> 8; //To round again post vol? //To use std::rint?
+    l_s = (s32(std::round(l_s_f)) * lVolume) >> 8; //To round again post vol?
     r_s = (s32(std::round(r_s_f)) * rVolume) >> 8;
     // Clamp after adding to current sample, as if the cubic interpolation produced a sample over
     // the limits and the current sample has the opposite sign, then we'd keep the excess value,
@@ -372,7 +366,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   if (!frame_limiter)
   {
     m_time_behind_target_speed = 0.0; //To maybe find a way to maintain this during unlimited frame rate?
-    m_time_below_target_speed_growing = false;
+    m_time_behind_target_speed_growing = false;
     //To review: this can start over 30 in the first frames of game...
     target_speed = m_dma_speed.GetCachedAverageSpeed(true, true, true);
     m_time_at_custom_speed = m_time_at_custom_speed + time_delta;
@@ -387,17 +381,18 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   else if (actual_speed / emulation_speed < 1.0 - FallbackDelta)
   {
     //To review: this keeps trigger and going back to normal on GC due to the uneven sample rates? It also does NOT work with DPLII at the moment
-    // Note: when not able to reach the target speed before m_time_below_target_speed_growing triggers, you might hear crackles due to (probably) having finished the samples
+    //To review: what happens when m_audio_emu_speed_tolerance is 0???
+    // Note: when not able to reach the target speed before m_time_behind_target_speed_growing triggers, you might hear crackles due to (probably) having finished the samples
     //To review: this happens more often at higher backend latencies, smooth it over time? Ignore first missed frame?
     // If we fell behind of m_time_behind_target_speed seconds of samples, start using the actual emulation speed
     m_time_behind_target_speed += time_delta * (1.0 - (actual_speed / emulation_speed));
     if (SConfig::GetInstance().m_audio_emu_speed_tolerance >= 0 &&
         m_time_behind_target_speed > SConfig::GetInstance().m_audio_emu_speed_tolerance / 1000.0)
     {
-      if (!m_time_below_target_speed_growing)
-        OSD::AddMessage("m_time_below_target_speed_growing = true", 2000U);
+      if (!m_time_behind_target_speed_growing)
+        OSD::AddMessage("m_time_behind_target_speed_growing = true", 2000U);
       //m_time_behind_target_speed = SConfig::GetInstance().NonStretchCorrectionTolerance;
-      m_time_below_target_speed_growing = true; //To rename
+      m_time_behind_target_speed_growing = true; //To rename
     }
   }
   else
@@ -411,13 +406,13 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     static double FallbackDelta2 = 0.001;
     if (average_actual_speed >= emulation_speed - (FallbackDelta2 * emulation_speed))
     {
-      if (m_time_below_target_speed_growing)
-        OSD::AddMessage("m_time_below_target_speed_growing = false", 2000U, OSD::Color::GREEN);
-      m_time_below_target_speed_growing = false;
+      if (m_time_behind_target_speed_growing)
+        OSD::AddMessage("m_time_behind_target_speed_growing = false", 2000U, OSD::Color::GREEN);
+      m_time_behind_target_speed_growing = false;
       m_time_behind_target_speed = 0;
     }
   }
-  if (m_time_below_target_speed_growing)
+  if (m_time_behind_target_speed_growing)
   {
     //To review min. Also, maybe just use the same speed the frame_limiter would above?
     target_speed = frame_limiter ? std::min(average_actual_speed, emulation_speed) : average_actual_speed;
@@ -439,7 +434,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   // play samples backwards when we are out of new ones so these are never problems.
   double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0; //To read as little times as possible
   //To double or disable when speed is unlimited (or if we can't reach target speed), to avoid constant fluctuations (the average speed will compensate temporary imprecisions anyway)
-  if (!frame_limiter || m_time_below_target_speed_growing)
+  if (!frame_limiter || m_time_behind_target_speed_growing)
   {
     static double mult = 1.0;
     max_latency *= mult;
@@ -471,13 +466,13 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     // (predicted), not before. Otherwise if there is a sudden change of speed in between mixes,
     // or if the samples pushes and reads are done with very different timings, the latency won't
     // be stable at all and we will end up constantly adjusting it towards a value that makes no
-    // sense. Also, this way we can target a latency of 0
+    // sense. Also, this way we can target a latency of "0"
     double rate = m_dma_mixer.GetInputSampleRate() * target_speed / m_sample_rate;
     s32 post_mix_samples = m_dma_mixer.NumSamples();
     post_mix_samples -= num_samples * rate + INTERP_SAMPLES;
     latency = std::max(post_mix_samples, 0) / m_dma_mixer.GetInputSampleRate();
     // This isn't big enough to notice but it is enough to make a difference and recover latency
-    catch_up_speed = 1.015; //To review: this will be very slow if we are going at 0.1 speed already, maybe consider adding it up?
+    catch_up_speed = 1.015; //To review: this will be very slow if we are going at 0.1 speed already, maybe consider adding it up? Make constexpr?
     target_latency = max_latency * 0.5;
   }
   //INFO_LOG(AUDIO, "latency: %lf", latency);
@@ -522,8 +517,8 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     }
 
     bool scratch_buffer_equal_samples = m_scratch_buffer.data() == samples;
-
-    // If the input and output sample rates difference is too high, available_samples might over the max
+    
+    // If the in and out sample rates difference is too high, available_samples might over the max
     m_scratch_buffer.reserve(available_samples * NC);
     if (scratch_buffer_equal_samples)
     {
@@ -833,12 +828,6 @@ void Mixer::MixerFifo::DoState(PointerWrap& p)
   p.Do(m_input_sample_rate);
   p.Do(m_lVolume);
   p.Do(m_rVolume);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    // Restore fract to a neutral value
-    m_fract = -1.0;
-  }
 }
 
 void Mixer::MixerFifo::SetInputSampleRate(double rate)
@@ -961,7 +950,7 @@ void Mixer::MixerFifo::UpdatePush(double time)
     }
     else
     {
-      //OSD::AddMessage("last sample: " + std::to_string(m_buffer[(m_indexW - 2) & INDEX_MASK]), 0U);
+      //OSD::AddMessage("last sample: " + std::to_string(m_buffer[(m_indexW - 1) & INDEX_MASK]), 0U);
 
       constexpr u32 num_samples = INTERP_SAMPLES + 1;
       // Add enough samples of silence to make sure when it has finished reading it won't stop on a

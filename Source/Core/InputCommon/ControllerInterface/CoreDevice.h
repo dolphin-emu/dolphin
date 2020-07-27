@@ -67,11 +67,11 @@ public:
   // on outputs, and they are not limited to focus, if we came up with new blocking conditions.
   //
   // These flags are per Control, but they will get summed up with other expressions
-  // from the same ControlReference. This is because checking them per input/ouput
+  // from the same ControlReference. This is because checking them per input/output
   // would have been too complicated, expensive, and ultimately, useless.
   // So they are in order of priority, and some of them are mutually exclusive.
   // Users can use function expressions to customize the focus requirements of a
-  // ControlReference, but we manually hardcode them in some Inputs (e.g. mouse) so 
+  // ControlReference, but we manually hardcode them in some Inputs (e.g. mouse) so
   // users don't have to bother in most cases, as it's easy to understand as a concept.
   enum class FocusFlags : u8
   {

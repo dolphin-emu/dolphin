@@ -38,7 +38,7 @@ private:
 #ifdef _WIN32
   void OnWASAPIDeviceChanged();
   void LoadWASAPIDeviceSampleRate();
- #endif
+#endif
   void OnDspChanged();
   void OnVolumeChanged(int volume);
 

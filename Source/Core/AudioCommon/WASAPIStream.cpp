@@ -432,8 +432,9 @@ std::vector<unsigned long> WASAPIStream::GetSelectedDeviceSampleRates()
   }
 
   HandleWinAPI("Found no supported device formats, will default to " +
-               std::to_string(AudioCommon::GetDefaultSampleRate()) +
-               " whether supported or not", result);
+                   std::to_string(AudioCommon::GetDefaultSampleRate()) +
+                   " whether supported or not",
+               result);
 
   device->Release();
   audio_client->Release();
@@ -530,10 +531,12 @@ bool WASAPIStream::SetRunning(bool running)
     m_format.Format.nAvgBytesPerSec = m_format.Format.nSamplesPerSec * m_format.Format.nBlockAlign;
     m_format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
     m_format.Samples.wValidBitsPerSample = m_format.Format.wBitsPerSample;
+    // clang-format off
     m_format.dwChannelMask = m_surround ? (SPEAKER_FRONT_LEFT   | SPEAKER_FRONT_RIGHT   |
                                            SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY |
                                            SPEAKER_BACK_LEFT    | SPEAKER_BACK_RIGHT   ):
                                           (SPEAKER_FRONT_LEFT   | SPEAKER_FRONT_RIGHT  );
+    // clang-format on
     // Some sound cards might support KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, which would avoid a
     // conversion when using DPLII, though I didn't think it was worth implementing
     m_format.SubFormat = KSDATAFORMAT_SUBTYPE_PCM;
@@ -609,7 +612,7 @@ bool WASAPIStream::SetRunning(bool running)
       device->Release();
       return false;
     }
-    
+
     // Clamp by the minimum supported device period (latency).
     // Microsoft said it would automatically be clamped but setting
     // device_period to 1 or 0 failed the IAudioClient::Initialize.
@@ -637,9 +640,10 @@ bool WASAPIStream::SetRunning(bool running)
     // Fallback to stereo if surround 5.1 is not supported
     if (m_surround && result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
-      WARN_LOG(AUDIO, "WASAPI: Your current audio device doesn't support 5.1 16-bit %uHz"
-                      " PCM audio. Will fallback to 2.0 16-bit",
-                        GetMixer()->GetSampleRate());
+      WARN_LOG(AUDIO,
+               "WASAPI: Your current audio device doesn't support 5.1 16-bit %uHz"
+               " PCM audio. Will fallback to 2.0 16-bit",
+               GetMixer()->GetSampleRate());
 
       m_surround = false;
       m_format.Format.nChannels = STEREO_CHANNELS;
@@ -647,18 +651,19 @@ bool WASAPIStream::SetRunning(bool running)
       m_format.Format.nAvgBytesPerSec =
           m_format.Format.nSamplesPerSec * m_format.Format.nBlockAlign;
       m_format.dwChannelMask = SPEAKER_FRONT_LEFT | SPEAKER_FRONT_RIGHT;
-      
+
       result = m_audio_client->Initialize(AUDCLNT_SHAREMODE_EXCLUSIVE, stream_flags, device_period,
                                           device_period, &m_format.Format, nullptr);
     }
-    // TODO: just like we fallback here above if we don't support surround, we should add support for
-    // more devices (e.g. bitrate, channels, format) by falling back as well
+    // TODO: just like we fallback here above if we don't support surround, we should add support
+    // for more devices (e.g. bitrate, channels, format) by falling back as well
 
     if (result == AUDCLNT_E_UNSUPPORTED_FORMAT)
     {
-      WARN_LOG(AUDIO, "WASAPI: Your current audio device doesn't support 2.0 16-bit %uHz"
-                      " PCM audio. Exclusive mode (event driven) won't work",
-                        GetMixer()->GetSampleRate());
+      WARN_LOG(AUDIO,
+               "WASAPI: Your current audio device doesn't support 2.0 16-bit %uHz"
+               " PCM audio. Exclusive mode (event driven) won't work",
+               GetMixer()->GetSampleRate());
 
       device->Release();
       m_audio_client->Release();
@@ -837,7 +842,8 @@ void WASAPIStream::Update()
   // TODO: move this out of the game (main) thread, restarting WASAPI should not lock the game
   // thread, but as of now there isn't any other constant and safe access point to restart
 
-  // If the sound loop failed for some reason, re-initialize ASAPI to resume playback
+  // If the sound loop failed for some reason, or we changed settings,
+  // re-initialize WASAPI to resume playback
   if (m_should_restart)
   {
     m_should_restart = false;
@@ -918,7 +924,8 @@ void WASAPIStream::SoundLoop()
 
     if (SetRestartFromResult(result) ||
         !HandleWinAPI("Failed to get buffer from IAudioClient. Stopping sound playback."
-                      " Pausing and unpausing the emulation might fix the problem", result))
+                      " Pausing and unpausing the emulation might fix the problem",
+                      result))
     {
       // We don't set m_should_restart to true in the second case here
       // because we can't guarantee it wouldn't constantly fail again
@@ -949,7 +956,7 @@ void WASAPIStream::SoundLoop()
     else
     {
       GetMixer()->Mix(reinterpret_cast<s16*>(data), m_frames_in_buffer);
-      
+
       for (u32 i = 0; i < m_frames_in_buffer * STEREO_CHANNELS; ++i)
       {
         reinterpret_cast<s16*>(data)[i] =

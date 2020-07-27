@@ -8,12 +8,12 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QPushButton>
 #include <QFontMetrics>
 #include <QFormLayout>
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QLabel>
+#include <QPushButton>
 #include <QRadioButton>
 #include <QSlider>
 #include <QSpacerItem>
@@ -95,16 +95,17 @@ void AudioPane::CreateWidgets()
     m_latency_spin = new QSpinBox();
     m_latency_spin->setMinimum(0);
     m_latency_spin->setMaximum(std::min((int)AudioCommon::GetMaxSupportedLatency(), 200));
-    m_latency_spin->setToolTip(tr("Target latency (in ms). Higher values may reduce audio"
-                                  " crackling.\nCertain backends only. Values above 20ms are not suggested."));
+    m_latency_spin->setToolTip(
+        tr("Target latency (in ms). Higher values may reduce audio"
+           " crackling.\nCertain backends only. Values above 20ms are not suggested."));
   }
 
   m_use_os_sample_rate = new QCheckBox(tr("Use OS Mixer sample rate"));
 
   m_use_os_sample_rate->setToolTip(
       tr("Directly mixes at the current OS mixer sample rate as opposed to %1"
-         "Hz.\nThis will make resampling from 32kHz sources more accurate, possibly improving "
-         "audio\n"
+         "Hz.\nThis will make resampling from 32kHz sources more accurate, possibly improving"
+         " audio\n"
          "quality at the cost of performance. It won't follow changes to your OS setting."
          "\nIf unsure, leave off.")
           .arg(AudioCommon::GetDefaultSampleRate()));
@@ -115,7 +116,8 @@ void AudioPane::CreateWidgets()
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
          "emulation engines only.\nAutomatically disabled if not supported by your audio device."
-         "\nYou need to enable it in the game settings for GC games or in the menu settings on Wii."
+         "\nYou need to enable surround from the game settings in GC games or in the menu settings "
+         "on Wii."
          "\nThe console will still output 2.0, but the encoder will extract information for 5.1."
          "\nIf unsure, leave off."));
 
@@ -178,18 +180,19 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   mixer_box->setLayout(mixer_layout);
 
-  m_stretching_enable->setToolTip(
-      tr("Enables stretching of the audio (pitch correction) to match the emulation speed"));
+  m_stretching_enable->setToolTip(tr(
+      "Enables stretching of the audio (pitch correction) to match the emulation speed.\nIt might "
+      "incur in a slight loss of quality.\nIt might have undesired side effects with DPLII."));
 
   m_emu_speed_tolerance_slider->setMinimum(-1);
   m_emu_speed_tolerance_slider->setMaximum(125);
   m_emu_speed_tolerance_slider->setToolTip(
       tr("Time(ms) we need to fall behind the emulation for sound to start using the actual "
          "emulation speed.\nIf set "
-         "too high (>40), sound will play old samples backwards when we slow down or stutter.\nIf set too low (<10), "
-         "sound might "
-         "lose quality if you have frequent small stutters.\nSet 0 to "
-         "have it on all the times. Slide all the way left to disable.")); //To make sure you got the best value...
+         "too high (>40), sound will play old samples backwards when we slow down or stutter."
+         "\nif set too low (<10), sound might lose quality if you have frequent small stutters."
+         "\nSet 0 to have it on all the times. Slide all the way left to disable."));
+  //To make sure you got the best value (and review description at 0)
   
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
   mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
@@ -395,7 +398,7 @@ void AudioPane::SaveSettings()
                     static_cast<AudioCommon::DPL2Quality>(m_dolby_quality_slider->value()));
     m_dolby_quality_latency_label->setText(
         GetDPL2ApproximateLatencyLabel(Config::Get(Config::MAIN_DPL2_QUALITY)));
-    backend_setting_changed = true; // Not a mistake
+    backend_setting_changed = true;  // Not a mistake
   }
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {

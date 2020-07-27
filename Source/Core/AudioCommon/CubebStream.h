@@ -30,6 +30,9 @@ public:
   }
 
 private:
+  bool CreateStream();
+  void DestroyStream();
+
   bool m_stereo = false;
   std::shared_ptr<cubeb> m_ctx;
   cubeb_stream* m_stream = nullptr;

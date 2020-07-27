@@ -92,6 +92,14 @@ constexpr u32 NextPowerOf2(u32 value)
   return value;
 }
 
+constexpr s32 NearestPowerOf2(s32 value)
+{
+  const s32 next = NextPowerOf2(value);
+  const s32 prev = next >> 1;
+
+  return (next - value) > (value - prev) ? prev : next;
+}
+
 template <class T>
 struct Rectangle
 {

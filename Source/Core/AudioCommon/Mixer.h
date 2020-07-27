@@ -134,6 +134,8 @@ private:
     std::atomic<s32> m_rVolume{256};
     // Se comment on CubicInterpolation()
     s32 m_last_output_samples[NC]{};
+    // It would be nice to reset once in a while, like on do state, or when the in/out sample rates
+    // change, as it can fall out of alignment, but it would be wrong and the gains would be minimal
     double m_fract = -1.0;
     double m_backwards_fract = -1.0;
     //To review: if this was off, that mixer won't gather a buffer/latency, and it would always be on the brink of playback
@@ -162,7 +164,7 @@ private:
   // Target emulation speed, but it can fallback to the actual emulation speed
   double m_target_speed = 1.0; //To make atomic (m_fract as well???) (make sure they aren't used twice in a line if so)
   double m_time_behind_target_speed = 0.0;
-  bool m_time_below_target_speed_growing = false; //To rename?
+  bool m_time_behind_target_speed_growing = false;
   std::atomic<double> m_time_at_custom_speed{0.0};
   bool m_latency_catching_up = false;
 
