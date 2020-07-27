@@ -75,6 +75,10 @@ private:
   // Interpolation reserved/required samples
   static constexpr u8 INTERP_SAMPLES = 3u;
 
+  //To undo constexpr?
+  static constexpr double STRETCHING_CATCH_UP_SPEED = 1.25;
+  static constexpr double NON_STRETCHING_CATCH_UP_SPEED = 1.015;
+
   // A single mixer in/out buffer. The original alignment they might have had on real HW isn't kept
   class MixerFifo final
   {
@@ -153,7 +157,7 @@ private:
       {this, 3000, false}, {this, 3000, false}, {this, 3000, false}, {this, 3000, false}};
   u32 m_sample_rate;
 
-  // the size is always left at 0
+  // The size is always left at 0, they are never initialed
   std::vector<s16> m_scratch_buffer;
   std::array<s16, MAX_SAMPLES * NC> m_interpolation_buffer;
   s16 m_conversion_buffer[MAX_SAMPLES * NC];
@@ -163,7 +167,7 @@ private:
   // Target emulation speed, but it can fallback to the actual emulation speed
   double m_target_speed = 1.0; //To make atomic (m_fract as well???) (make sure they aren't used twice in a line if so)
   double m_time_behind_target_speed = 0.0;
-  bool m_time_behind_target_speed_growing = false;
+  bool m_behind_target_speed = false;
   std::atomic<double> m_time_at_custom_speed{0.0};
   bool m_latency_catching_up = false;
 

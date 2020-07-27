@@ -177,8 +177,14 @@ void AudioPane::CreateWidgets()
   m_emu_speed_tolerance_slider = new QSlider(Qt::Horizontal);
   m_emu_speed_tolerance_indicator = new QLabel();
   m_emu_speed_tolerance_indicator->setAlignment(Qt::AlignRight);
+  QSize min_size = m_emu_speed_tolerance_indicator->minimumSize();
+  min_size.setWidth(45);
+  // Avoid the slider in line with this resizing because of text length changes.
+  // it would be best to do it dynamically based on the translation
+  m_emu_speed_tolerance_indicator->setMinimumSize(min_size);
   m_emu_speed_tolerance_label = new QLabel(tr("Emulation Speed Tolerance:"));
   mixer_box->setLayout(mixer_layout);
+  //To review: maybe have a set of 4 or 5 options to keep it simpler
 
   m_stretching_enable->setToolTip(tr(
       "Enables stretching of the audio (pitch correction) to match the emulation speed.\nIt might "
@@ -192,7 +198,6 @@ void AudioPane::CreateWidgets()
          "too high (>40), sound will play old samples backwards when we slow down or stutter."
          "\nif set too low (<10), sound might lose quality if you have frequent small stutters."
          "\nSet 0 to have it on all the times. Slide all the way left to disable."));
-  //To make sure you got the best value (and review description at 0)
   
   mixer_layout->addWidget(m_stretching_enable, 0, 0, 1, -1);
   mixer_layout->addWidget(m_emu_speed_tolerance_label, 1, 0);
@@ -204,7 +209,6 @@ void AudioPane::CreateWidgets()
   m_main_layout->setRowStretch(0, 0);
 
   dsp_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
   m_main_layout->addWidget(dsp_box, 0, 0);
   m_main_layout->addWidget(volume_box, 0, 1, -1, 1);
   m_main_layout->addWidget(backend_box, 1, 0);
@@ -308,6 +312,8 @@ void AudioPane::LoadSettings()
   m_emu_speed_tolerance_slider->setValue(SConfig::GetInstance().m_audio_emu_speed_tolerance);
   if (m_emu_speed_tolerance_slider->value() < 0)
     m_emu_speed_tolerance_indicator->setText(tr("Disabled"));
+  else if (m_emu_speed_tolerance_slider->value() == 0)
+    m_emu_speed_tolerance_indicator->setText(tr("None"));
   else
     m_emu_speed_tolerance_indicator->setText(
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));
@@ -424,6 +430,8 @@ void AudioPane::SaveSettings()
   SConfig::GetInstance().m_audio_emu_speed_tolerance = m_emu_speed_tolerance_slider->value();
   if (m_emu_speed_tolerance_slider->value() < 0)
     m_emu_speed_tolerance_indicator->setText(tr("Disabled"));
+  else if (m_emu_speed_tolerance_slider->value() == 0)
+    m_emu_speed_tolerance_indicator->setText(tr("None"));
   else
     m_emu_speed_tolerance_indicator->setText(
         tr("%1 ms").arg(m_emu_speed_tolerance_slider->value()));

@@ -39,6 +39,7 @@ static u32 DPL2QualityToFrameBlockSize(DPL2Quality quality, u32 sample_rate)
   }
   const u32 frame_block = std::round(sample_rate * frame_block_time / 1000.0);
   assert(frame_block > 1);
+  //To make sure this is even needed...
   return MathUtil::NearestPowerOf2(frame_block);
 }
 
@@ -94,7 +95,7 @@ void SurroundDecoder::Clear()
 // Receive and decode samples
 void SurroundDecoder::PushSamples(const s16* in, u32 num_samples)
 {
-  //To make sure
+  //To make sure it works
   assert(num_samples % m_frame_block_size == 0);
   // We support a max of MAX_BLOCKS_BUFFERED blocks in the buffer, because of m_decoded_fifo,
   // just increase if you need. This might trigger if you have very high backend latencies

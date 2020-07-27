@@ -49,8 +49,8 @@ void AudioSpeedCounter::OnSettingsChanged()
 
 void AudioSpeedCounter::SetAverageTime(double average_time)
 {
+  // Don't immediately delete older deltas, it's not necessary for now
   m_average_time = average_time;
-  OnSettingsChanged();
 }
 void AudioSpeedCounter::SetTicksPerSecond(double ticks_per_sec)
 {

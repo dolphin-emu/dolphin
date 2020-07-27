@@ -22,7 +22,7 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/FileUtil.h"
 #endif
-//#pragma optimize("", off) //To delete
+#pragma optimize("", off) //To delete
 
 namespace WiimoteEmu
 {
@@ -34,22 +34,52 @@ static const s32 yamaha_difflookup[] = {1,  3,  5,  7,  9,  11,  13,  15,
 static const s32 yamaha_indexscale[] = {230, 230, 230, 230, 307, 409, 512, 614,
                                         230, 230, 230, 230, 307, 409, 512, 614};
 
-static double av_clip16(double a)
-{
-  if ((s32(a) + 32768) & ~65535)
-    return (s32(a) >> 31) ^ 32767;
-  else
-    return a;
-}
+//static s32 av_clip16(s32 a)
+//{
+//  //To simplify this and move to double (SHRT_MAX+1=32768)
+//  if ((a + 32768) & ~65535)
+//    return (a >> 31) ^ 32767;
+//  else
+//    return a;
+//}
 
+// In short, what this does is passing an encoded and approximate offset from the previous sample.
+// The nibble will determine how how our output sample grows from the previous one, based on
+// a limited table and range, and it will also determine how big our next sample offset is going to be (???).
+// Due to the nature of the encoding, which relies on a lot of conditions and clamping, the decoded
+// samples won't be centered around 0 anymore (even if they originally were) as the predictor will
+// accumulate errors which make it shift from 0 (or any original value) over time.
+// The loss in quality is more because of the limited offset range than this, but this bring
+// a padding/clipping problem where when there is no sound, it will still output a value
+// different from 0, causing clipping if mixed with other sound sources
 static s16 adpcm_yamaha_expand_nibble(ADPCMState& s, u8 nibble)
 {
-  s.predictor += (s.step * yamaha_difflookup[nibble]) / 8.0;
-  s.predictor = av_clip16(s.predictor);
+  double predictor_delta = (s.step * yamaha_difflookup[nibble]) / 8.0;
+  assert(predictor_delta == std::clamp(predictor_delta, -65536.0, 65535.0));
+  predictor_delta = std::clamp(predictor_delta, -65536.0, 65535.0); // Likely useless
+  s.predictor += predictor_delta;
+  s.predictor = std::clamp(s.predictor, -32768.0, 32767.0);
   s.step = (s.step * yamaha_indexscale[nibble]) / 256.0;
+  // If we didn't clip this, we could retrieve the original information of where we are within the wave
+  // spectrum. If we would be over the limits, then our predictor is wrong.
+  // We could also detect a wrong predictor by checking when the nibble changes direction two times,
+  // which LIKELY means the wave should have been centered in the middle of these two changes.
+  // We could also detect it when we get clipping (clamping) or the predictor.
   s.step = std::clamp(s.step, 127.0, 24576.0);
   return s.predictor;
 }
+//static s16 ExpandNibble(ADPCMState* s, u8 nibble)
+//{
+//  s32 predictor_delta = (s->step * yamaha_difflookup[nibble]) / 8;
+//  predictor_delta = std::clamp<s32>(predictor_delta, -0x10000, 0xffff);
+//  s->predictor = std::clamp<s32>(s->predictor + predictor_delta,
+//                                     std::numeric_limits<s16>::min(),
+//                                     std::numeric_limits<s16>::max());
+//  s->step =
+//      std::clamp<s32>(s->step * diff_lookup[nibble & 7], 0x7f, 0x6000);
+// 
+//  return s->predictor;
+//}
 
 #ifdef WIIMOTE_SPEAKER_DUMP
 std::ofstream ofile;
@@ -183,12 +213,13 @@ void SpeakerLogic::Reset()
   reg_data = {};
 
   // Yamaha ADPCM state initialize
-  adpcm_state.predictor = 0; //To make sure it's called (what about when the speaker is muted or disabled)
-  adpcm_state.step = 127;
+  adpcm_state.predictor = 0.0; //To make sure it's called (what about when the speaker is muted or disabled)
+  adpcm_state.step = 127.0;
 }
 
 void SpeakerLogic::DoState(PointerWrap& p)
 {
+  //To increase state type num
   p.Do(adpcm_state);
   p.Do(reg_data);
 }

@@ -136,9 +136,13 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     m_fract = -1.0;
   }
 
+  // I can't tell if this is better than padding (silence) when going at about 40% of the target speed
+  static bool enable_backwards = true; //To review
   s32 behind_samples = num_samples - actual_samples_count;
   // This might sound bad if we are constantly missing a few samples, but that should never happen,
   // and we couldn't predict it anyway (we should start playing backwards as soon as we can).
+  // We can't play backwards mixers that are not constantly pushed as we don't know when the
+  // last sound started (we could not, but it's not worth implementing).
   // If required, this could be disabled from a config
   if (behind_samples > 0 && m_constantly_pushed && !stretching)
   {
@@ -180,7 +184,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
     // really disturbing, they are very low, and it's not like dolphin didn't have them before.
     // Also in general, ping ponging wouldn't give you enough time to appreciate the sounds,
     // they would constantly be interrupted. The only solution to crackling would be cross fade?
-    CubicInterpolation(back_samples, behind_samples, rate, m_backwards_indexR, indexW, s[0], s[1],
+    CubicInterpolation(back_samples, enable_backwards * behind_samples, rate, m_backwards_indexR, indexW, s[0], s[1],
                        lVolume, rVolume, false);
   }
   // Padding (constantly pushing the last sample when we run out to avoid sudden changes in the
@@ -190,7 +194,7 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
   {
     if (indexW > 8) OSD::AddMessage("Behind samples: " + std::to_string(behind_samples), 0U);
 
-    //To review: if we re-enable padding on wii mote forever, make sure it's disabled once we disconnect it
+    //To review: if we re-enable padding on wii mote forever, make sure it's disabled once we disconnect it. Also, fill with padded samples when starting to push it
     unsigned int current_sample = actual_samples_count * 2;
     for (; current_sample < num_samples * 2; current_sample += 2)
     {
@@ -212,7 +216,6 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
                                          u32 indexW, s32& l_s, s32& r_s, s32 lVolume, s32 rVolume,
                                          bool forwards)
 {
-  // Coefficients copied from SoundTouch Copyright © Olli Parviainen 2001-2019
   constexpr float coeffs[] =
   { -0.5f,  1.0f, -0.5f, 0.0f,
      1.5f, -2.5f,  0.0f, 1.0f,
@@ -298,6 +301,7 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
                   y2 * interpolation_buffer[(indexR + 4 * direction) & INDEX_MASK] +
                   y3 * interpolation_buffer[(indexR + 6 * direction) & INDEX_MASK];
 
+    // Could this benefit from multiplying the volume as a float before the round?
     l_s = (s32(std::round(l_s_f)) * lVolume) >> 8;
     r_s = (s32(std::round(r_s_f)) * rVolume) >> 8;
     // Clamp after adding to current sample, as if the cubic interpolation produced a sample over
@@ -342,86 +346,86 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     m_target_speed = 1.0;
   }
 
-  // What we likely want to do is check the emulation speed difference between the target speed and the averaged emulation speed,
-  // but then use the last frame emulation speed for more accuracy (and clamping it to the target speed)
-  static double FallbackDelta = 0.0; //0.005 or before 0.1
-  // Only do if we are actually going slower, if we are going faster, it's likely to be a slight incorrection of the actual speed (because it's averaged).
-  // Given that we ignore the frames where we went faster, overall we will consume less audio samples that what we have received, causing less padding.
-  // This avoids missing (or padded) samples when we can't reach full speed. The delta is relative to the emulator target speed.
-  // OLD: (emulation_speed - average_actual_speed > FallbackDelta)
-  // Unfortunately this doesn't work when unpausing (or starting?) the emulation, so we'll need to
-  // work around that.
-  // When using the last 3 frames (?) averaged speed, this causes heavier crackling (and fluctuation), but overall the
-  // sound is much more accurate.
-  // When using the very last frame, the sound works much better and has less crackling and skips, at the cost of fluctuating in pitch a bit,
-  // just like the emulation itself is doing.
-  // Using the amount of samples in the buffer to calculate the emulation speed doesn't seem to be accurate at all because of so many timing/order fluctuations
-  // NonStretchCorrectionTolerance: we don't want to suddenly snap in and out of actual FPS speed, but only when we have confirmed the slow down is not due to a hiccup
-  // Small variances are already handled by the mixing, so we don't want to take care of these cases
-
   if (!frame_limiter)
   {
-    m_time_behind_target_speed = 0.0; //To maybe find a way to maintain this during unlimited frame rate?
-    m_time_behind_target_speed_growing = false;
-    //To review: this can start over 30 in the first frames of game...
     target_speed = m_dma_speed.GetCachedAverageSpeed(true, true, true);
     m_time_at_custom_speed = m_time_at_custom_speed + time_delta;
+    // We've managed to reach the target speed so clear the m_behind_target_speed state
+    if (target_speed >= emulation_speed)
+    {
+      m_time_behind_target_speed = 0.0;
+      m_behind_target_speed = false;
+    }
   }
-  //To avoid divisions all over, also, just do these things at the top every frame...
   // actual_speed varies by about 0.5% every audio frame so we need to go back and forth and then when we have lost enough,
   // we will start using the average actual speed. To come back at full emulation speed, we check for how long we had been
   // running at full speed, we don't wait for m_time_behind_target_speed to come back to 0 because that will never happen,
   // what's lost is lost (though recovery could still happen if for some reason we had cycles imprecisions within a frame???)
   // Stop using emulation speed, start using actual speed for audio playback, if we fell behind enough
   // Filter out small inaccuracies (samples aren't submitted with perfect timing)
-  else if (actual_speed / emulation_speed < 1.0 - FallbackDelta)
-  {
-    //To review: this keeps trigger and going back to normal on GC due to the uneven sample rates? It also does NOT work with DPLII at the moment
-    //To review: what happens when m_audio_emu_speed_tolerance is 0???
-    // Note: when not able to reach the target speed before m_time_behind_target_speed_growing triggers, you might hear crackles due to (probably) having finished the samples
-    //To review: this happens more often at higher backend latencies, smooth it over time? Ignore first missed frame?
-    // If we fell behind of m_time_behind_target_speed seconds of samples, start using the actual emulation speed
-    m_time_behind_target_speed += time_delta * (1.0 - (actual_speed / emulation_speed));
-    if (SConfig::GetInstance().m_audio_emu_speed_tolerance >= 0 &&
-        m_time_behind_target_speed > SConfig::GetInstance().m_audio_emu_speed_tolerance / 1000.0)
-    {
-      if (!m_time_behind_target_speed_growing)
-        OSD::AddMessage("m_time_behind_target_speed_growing = true", 2000U);
-      //m_time_behind_target_speed = SConfig::GetInstance().NonStretchCorrectionTolerance;
-      m_time_behind_target_speed_growing = true; //To rename
-    }
-  }
   else
   {
-    //To review: the time to recover is too small? When we have constant small (or big) dips with 100% speed in between,
-    //we immediately recover speed but then take some time to fall back... Alternatively we could have a "high attention" phase immediately after having recovered full speed
-    double gain_time_delta = time_delta * (1.0 - (actual_speed / emulation_speed));
+    const double audio_emu_speed_tolerance =
+        SConfig::GetInstance().m_audio_emu_speed_tolerance / 1000.0;
+    const bool dynamic_audio_speed_allowed = audio_emu_speed_tolerance >= 0.0;
+    const bool dynamic_audio_speed_forced = audio_emu_speed_tolerance == 0.0;
+
+    const double gain_time_delta = time_delta * (1.0 - (actual_speed / emulation_speed));
     m_time_behind_target_speed = std::max(m_time_behind_target_speed + gain_time_delta, 0.0);
-    // Time at target speed (to tell if we have recovered full speed)
-    //To review: this might not work perfectly with iTimingVariance which recovers speed after a small drop in speed
+
+    // What we likely want to do is check the emulation speed difference between the target speed and the averaged emulation speed,
+    // but then use the last frame emulation speed for more accuracy (and clamping it to the target speed)
+    static double FallbackDelta = 0.0; //0.005 or before 0.1 //To review and rename both
     static double FallbackDelta2 = 0.001;
-    if (average_actual_speed >= emulation_speed - (FallbackDelta2 * emulation_speed))
+    // Only do if we are actually going slower, if we are going faster, it's likely to be a slight incorrection of the actual speed (because it's averaged).
+    // Given that we ignore the frames where we went faster, overall we will consume less audio samples that what we have received, causing less padding.
+    // This avoids missing (or padded) samples when we can't reach full speed. The delta is relative to the emulator target speed.
+    // When using the very last frame, the sound works much better and has less crackling and skips, at the cost of fluctuating in pitch a bit,
+    // just like the emulation itself is doing.
+    // NonStretchCorrectionTolerance: we don't want to suddenly snap in and out of actual FPS speed, but only when we have confirmed the slow down is not due to a hiccup
+    // Small variances are already handled by the mixing, so we don't want to take care of these cases
+    if (actual_speed / emulation_speed < 1.0 - FallbackDelta)
     {
-      if (m_time_behind_target_speed_growing)
-        OSD::AddMessage("m_time_behind_target_speed_growing = false", 2000U, OSD::Color::GREEN);
-      m_time_behind_target_speed_growing = false;
-      m_time_behind_target_speed = 0;
+      //To make sure you got the best m_audio_emu_speed_tolerance value
+      //To review: this keeps trigger and going back to normal on GC due to the uneven sample rates? It also does NOT work with DPLII at the moment
+      //To review: how does this sound if we always use actual_speed with sound stretching?
+      //To review: test at higher backend latencies: smooth it over time? Ignore first missed frame?
+      // If we fell behind of m_time_behind_target_speed seconds of samples, start using the actual emulation speed
+      if (m_time_behind_target_speed > audio_emu_speed_tolerance)
+      {
+        if (!m_behind_target_speed && audio_emu_speed_tolerance > 0.0)
+          OSD::AddMessage("m_behind_target_speed = true", 2000U);
+        m_behind_target_speed = true;
+      }
+    }
+    // Rely on the average speed (and its length) to tell if we have recovered full speed
+    //To review: this might not work perfectly with iTimingVariance which recovers speed after a small stutter/drop.
+    else if (average_actual_speed >= emulation_speed - (FallbackDelta2 * emulation_speed))
+    {
+      if (m_behind_target_speed && audio_emu_speed_tolerance > 0.0)
+        OSD::AddMessage("m_behind_target_speed = false", 2000U, OSD::Color::GREEN);
+      m_behind_target_speed = false;
+      // Without this, it would never come back to 0, what's lost is lost
+      m_time_behind_target_speed = 0.0;
+    }
+
+    if (dynamic_audio_speed_allowed && (dynamic_audio_speed_forced || m_behind_target_speed))
+    {
+      //To1 review: maybe just use the same speed the frame_limiter would above? When re-enabling the frame_limiter we'll get missing samples
+      //as we'd use an average too long
+      static bool use_new_average = true;
+      target_speed = use_new_average ? m_dma_speed.GetCachedAverageSpeed(true, true, true) : average_actual_speed;
+      INFO_LOG(AUDIO, "                              actual_speed: %f               average_actual_speed: %f", actual_speed, average_actual_speed);
+      m_time_at_custom_speed = m_time_at_custom_speed + time_delta;
+    }
+    else
+    {
+      m_time_at_custom_speed = 0.0;
     }
   }
-  if (m_time_behind_target_speed_growing)
-  {
-    //To review min. Also, maybe just use the same speed the frame_limiter would above?
-    target_speed = frame_limiter ? std::min(average_actual_speed, emulation_speed) : average_actual_speed;
-    INFO_LOG(AUDIO, "                              actual_speed: %f               average_actual_speed: %f", actual_speed, average_actual_speed);
-    m_time_at_custom_speed = m_time_at_custom_speed + time_delta;
-  }
-  else if (frame_limiter)
-  {
-    m_time_at_custom_speed = 0.0;
-  }
 
-  //To test latency/buffer buildup (auto adjustment/sync) when we pass from stretching to not stretching. If they are always on the edge... We'll need to slow it down. Have a mirrored version of max_latency (min)?
-  //To review: this should be done per mixer
+  //To1 add a min latency as well for when we can't keep up with the target speed and we are running out of samples, better than playing backwards for the first part
+  //To1 review: this should be done per mixer
   //To review, the stretcher can get stuck looping while stopping the process (breakpoint) for like 20 seconds? Only with DPLII?
   double latency;
   // The target latency used to be iTimingVariance if stretching was off and
@@ -429,8 +433,9 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   // samples to be able to withstand small hangs and changes in speed, but our new approach is to
   // play samples backwards when we are out of new ones so these are never problems.
   double max_latency = Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0; //To read as little times as possible
-  //To double or disable when speed is unlimited (or if we can't reach target speed), to avoid constant fluctuations (the average speed will compensate temporary imprecisions anyway)
-  if (!frame_limiter || m_time_behind_target_speed_growing)
+  //To1 review: this doesn't seem to be needed when the frame_limiter is disabled (it does reach max latency more often, but it doesn't cause any problems), but when
+  //we can't reach the target sped, this might sound bad?
+  if (!frame_limiter || m_behind_target_speed)
   {
     static double mult = 1.0;
     max_latency *= mult;
@@ -453,8 +458,8 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     double acceptable_latency = m_stretcher.GetAcceptableLatency() - time_delta;
     target_latency = acceptable_latency + max_latency * 0.5;
     max_latency += acceptable_latency;
-    // When we are pitch correcting it's harder to hear the change so correct it faster
-    catch_up_speed = 1.25;
+    // When we are pitch correcting it's harder to hear the change so we correct faster
+    catch_up_speed = STRETCHING_CATCH_UP_SPEED;
   }
   else
   {
@@ -468,7 +473,7 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
     post_mix_samples -= num_samples * rate + INTERP_SAMPLES;
     latency = std::max(post_mix_samples, 0) / m_dma_mixer.GetInputSampleRate();
     // This isn't big enough to notice but it is enough to make a difference and recover latency
-    catch_up_speed = 1.015; //To review: this will be very slow if we are going at 0.1 speed already, maybe consider adding it up? Make constexpr?
+    catch_up_speed = NON_STRETCHING_CATCH_UP_SPEED;
     target_latency = max_latency * 0.5;
   }
   //INFO_LOG(AUDIO, "latency: %lf", latency);
@@ -483,6 +488,9 @@ u32 Mixer::Mix(s16* samples, u32 num_samples)
   if (latency > (m_latency_catching_up ? target_latency : max_latency))
   {
     m_latency_catching_up = true;
+    //To1 review: this will be very slow if we are going at 0.1 speed already.
+    //If we add instead, we'd hear the difference more when at low speeds, and we'd catch up slower at high speeds.
+    //Maybe have a minimum of catch_up_speed to apply (e.g. 0.5 speed)?
     target_speed *= catch_up_speed;
     OSD::AddMessage("Reached max latency", 0U);
   }
@@ -569,7 +577,7 @@ u32 Mixer::MixSurround(float* samples, u32 num_samples)
 {
   memset(samples, 0, num_samples * SURROUND_CHANNELS * sizeof(samples[0]));
   
-  //To review this code just seems wrong and breaks if we change the sample rate?
+  //To1 review this code just seems wrong and breaks if we change the sample rate?
   //To fix QuerySamplesNeededForSurroundOutput doesn't work with num_samples 0 or small
   u32 needed_samples = m_surround_decoder.QuerySamplesNeededForSurroundOutput(num_samples);
 
@@ -622,10 +630,6 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, u32 num_samples)
   // Checking if we received 0 samples to early out is not worth it as it only happens on startup.
   if (num_samples * NC + fifo_samples > MAX_SAMPLES * NC)
   {
-    static bool PrintRunOutOfSamples = false;
-    if (PrintRunOutOfSamples)
-      OSD::AddMessage("Run out of samples", 100, OSD::Color::RED);
-    //WARN_LOG(AUDIO, "Too many samples: %i", num_samples * NC + fifo_samples - (MAX_SAMPLES * NC));
     // Fallback to the max we can currently take
     num_samples = MAX_SAMPLES - fifo_samples / NC;
   }
@@ -652,7 +656,6 @@ void Mixer::MixerFifo::PushSamples(const s16* samples, u32 num_samples)
 
 void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
 {
-  assert(num_samples > 0); //To delete
   // Use the DMA samples to determine the emulation speed, the Streaming/DVD
   // samples submissions are more frequent, so we could get more precision from
   // them, but it's really not necessary. Also, DVD is not really used on Wii
@@ -670,12 +673,12 @@ void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
   // so we could easily either clamp the results within an accepted range, or compare it against another timer (e.g. from the mixer thread),
   // and see if that had a massive time between the last 2 calls, and if so, scale the second from the first
   m_dma_speed.Update(num_samples);
-  m_dma_speed.CacheAverageSpeed(false); //To test different lengths
+  m_dma_speed.CacheAverageSpeed(false); //To1 test different lengths
   // This average will be slightly outdated when retrieved later as m_time_at_custom_speed
   // could have increased in the meanwhile, but it's ok, the error is small enough
   m_dma_speed.CacheAverageSpeed(true, m_time_at_custom_speed);
 
-  bool PrintPushedSamples = true; //To delete
+  static bool PrintPushedSamples = true;
   if (PrintPushedSamples) INFO_LOG(AUDIO, "dma_mixer added samples: %u, speed: %lf", num_samples, m_dma_speed.GetCachedAverageSpeed());
   m_dma_mixer.PushSamples(samples, num_samples);
 
@@ -686,14 +689,11 @@ void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
 
 void Mixer::PushStreamingSamples(const s16* samples, u32 num_samples)
 {
-  bool PrintPushedSamples = false; //To delete
-  if (PrintPushedSamples) INFO_LOG(AUDIO, "streaming_mixer added samples: %u", num_samples);
   m_streaming_mixer.PushSamples(samples, num_samples);
 
-  //To review: this mixer varies a lot in num_samples?
   // Check whether the wii mote speaker mixers have finished pushing. We do it
-  // from this mixer as it's the one with the higher update frequency.
-  // Yes, it's a bit of a hack but it works fine
+  // from this mixer as it's the one with the higher update frequency
+  // (168 samples per push at 32 or 48kHz). Yes, it's a bit of a hack but it works fine
   double time_delta = double(num_samples) / m_dma_mixer.GetInputSampleRate();
   m_wiimote_speaker_mixer[0].UpdatePush(-time_delta);
   m_wiimote_speaker_mixer[1].UpdatePush(-time_delta);
@@ -832,13 +832,6 @@ void Mixer::MixerFifo::SetInputSampleRate(double rate)
   // but the reality of that happening on real hardware when there are non zero
   // samples is pretty low if not impossible
   m_input_sample_rate = rate;
-  //To review: this happens every frame it's called for the wii mote speaker
-  //To review: if in and out are the same but fract has been polluted by a small change in speed once, should we reset it?
-  // If we passed from an input sample rate different from the output one to
-  // one that is identical, "fract" would permanently stay offsetted, which we don't really want.
-  // This is likely to only happen before the game has actually played any sounds anyway
-  if (m_constantly_pushed)
-    m_fract = -1.0;
 }
 
 double Mixer::MixerFifo::GetInputSampleRate() const
@@ -908,36 +901,23 @@ void Mixer::MixerFifo::UpdatePush(double time)
     currently_pushed = false;
   }
 
+  //To review: could we use the: Wii Mote Speaker enabled/disabled information in any way?
   if (m_currently_pushed != currently_pushed)
   {
     m_currently_pushed = currently_pushed;
     if (m_currently_pushed)
     {
-      //To do more here? e.g. save the last playable backwards sample... (maybe, not easy to do)
-      //To now increase indexR by 1 or 3 or 4? Otherwise it would be slightly delayed, but I guess it's fine as it would be the same case even if we didn't add samples...
-      //Make sure the first read sample (index) will be the first pushed one
-      //m_indexR.fetch_add((INTERP_SAMPLES + 1) * NC);
-      //To review: add some silent samples to make sure we don't run out of samples. The target latency precisely.
-      // When stretching, we don't exactly need to add a latency on top to make sure it won't run out of samples,
-      // but we do to keep consistency (actually, don't do it! It add useless latency but what was the other problem??? Loss of sync between mixers? Just being useless?)
-      //To review: this works originally but then it breaks after enabling and disabling stretching???
-      //To review: make sure the post mix latency is correct. We can't know how many samples the backend will read and we can't know how many more samples we will receive before the next
-      //backend read, but we approximate... It should be fine
-      // Note that this wouldn't work if the backend/surround (mix) latency (requested samples) was too high, as you'd run out of samples in the first mix after this,
-      // as this possibly started towards the end of 2 mix calls, and it hasn't build up enough samples. 3 alternative solutions:
-      // -Find a way to always push silent wii mote speaker samples when the wii mote is not pushing any (e.g. from the DVD Stream push)
-      // -Slow down the first mix of this any time we start pushing, to the point where it would only exactly play the number of samples available,
-      //    to not incur in padding for the next audio frames
-      // -Predict the next mix accuracy (by calling queryNofFra...) and setting that as min latency, maybe also check how long it has elapsed since the last mix call,
-      //    to know whether we'd manage to fill it up already with the next wii mote speaker samples pushes (assuming the minimum length of a wii mote speaker push is like 0.2ms).
-      //    Then using the min between the backend latency and the target latency. This might result in going over the max latency so it would speed up the sound speed
-      // The wii mote pushes 40 samples at 6000Hz, which means 2.5 submissions per frame at 60fps. After pressing the input responsible for triggering samples, at least 2 batches of samples will be pushed in the next frame, though the mixing could happen at any time...
-      // On original HW, might have been turned off on the last sample, meaning that if the sample wasn't 0, it wouldn't have made any additional sounds
-      //To review: could we use the: Wii Mote Speaker enabled/disabled information in any way?
+      // Add some silent samples to make sure we don't run out of samples, the target latency
+      // precisely. When stretching, we don't need to add a latency it's not related to time.
+      // Real wii motes deal with this in 2 ways: by disabling the speaker after a sound and by
+      // padding the last sample otherwise
       if (!SConfig::GetInstance().m_audio_stretch)
       {
+        //To1 add: make sure the post mix latency is correct (== to target latency)
+        //So do the max between target latency AND backend/surround (mix) latency
+        //To review: also multiply this by game speed...
         u32 num_samples =
-            (Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 1000.0) * 0.5 * m_input_sample_rate;
+            (Config::Get(Config::MAIN_AUDIO_MIXER_MAX_LATENCY) / 2000.0) * m_input_sample_rate;
         num_samples = std::min(num_samples, MAX_SAMPLES);
         memset(m_mixer->m_conversion_buffer, 0,
                num_samples * NC * sizeof(m_mixer->m_conversion_buffer[0]));
@@ -950,7 +930,7 @@ void Mixer::MixerFifo::UpdatePush(double time)
 
       constexpr u32 num_samples = INTERP_SAMPLES + 1;
       // Add enough samples of silence to make sure when it has finished reading it won't stop on a
-      // non zero sample (which would break padding)
+      // non zero sample (which would restrict the range of the other mixers)
       s16 silent_samples[num_samples * NC]{};
       PushSamples(silent_samples, num_samples);
     }
