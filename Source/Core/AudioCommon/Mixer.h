@@ -112,15 +112,14 @@ private:
     Mixer* m_mixer;
     std::atomic<double> m_input_sample_rate;
     // Ring input buffer directly from emulated HW. In big endians.
-    // Even indexes are left channel, same as the output
+    // Even indexes are right channel, as opposed to the output
     std::array<s16, MAX_SAMPLES * NC> m_buffer{};
 
-    // Write (how many have been written - 1, index of the last one to have been written)
-    // Start from max so even indices will be left channel and odd right
+    // Write (how many have been written, index of the next one to write)
     // Start from INTERP_SAMPLES + 1 so that we gradually blend into the initial samples
     std::atomic<u32> m_indexW{(INTERP_SAMPLES + 1) * NC};
-    //To describe
-    // Read (how many have been read - 1, index of last one to have been read)
+    // Read (how many have been read - 1, index of last one to have been read and that we are
+    // currently interpolating)
     std::atomic<u32> m_indexR{0};
     // If their difference is 0, we will have read all the samples (or there are none left anyway).
     // We could still re-read the current indexR to get the last sample value (0 if never written).

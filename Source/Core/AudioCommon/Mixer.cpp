@@ -190,7 +190,6 @@ u32 Mixer::MixerFifo::Mix(s16* samples, u32 num_samples, bool stretching)
   {
     if (indexW > 8) OSD::AddMessage("Behind samples: " + std::to_string(behind_samples), 0U);
 
-    //To review: should padding play the last played sample or try to predict what the next one would have been? We will resume from the previous indexR as we have lost m_fract here
     //To review: if we re-enable padding on wii mote forever, make sure it's disabled once we disconnect it
     unsigned int current_sample = actual_samples_count * 2;
     for (; current_sample < num_samples * 2; current_sample += 2)
@@ -245,21 +244,21 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
 
   u32 i = 0;
   u32 next_available_samples = available_samples;
-  // Stop 3 (INTERP_SAMPLES) samples from the end as we need to interpolate with them.
+  // Stop 3 (INTERP_SAMPLES) samples from the end as we need to interpolate with them
   while (i < num_samples && (!forwards || (next_available_samples > INTERP_SAMPLES * NC &&
-                                          next_available_samples <= available_samples)))
+                                           next_available_samples <= available_samples)))
   {
-    // If rate is 1 it would like there was no interpolation.
+    // If rate is 1 it would be like there was no interpolation.
     // If rate is 0 fract won't never make a whole so it's basically like padding.
     // If rate is a recurring decimal fract often ends up being 0.99999 due to
     // loss of precision, but that is absolutely fine, it implies no quality loss.
-    // Fract imprecisions are the reason we don't pre-calculate the number of iterations
-    fract += rate;          // Update fraction position
-    u32 whole = u32(fract); // Update whole position
+    // Fract errors are the reason we don't pre-calculate the number of iterations
+    fract += rate;           // Update fraction position
+    u32 whole = u32(fract);  // Update whole position
     fract -= whole;
     // Increase indexR before reading it, not after like before. The old code had 3 problems:
     // - IndexR was increased after being read, so if the rate was very high,
-    //   it could go over indexW. This would require a flag to be fixed
+    //   it could go over indexW. This would have required a flag to be fixed
     // - In our first iteration, we would use the last fract calculated from the previous
     //   interpolation (last audio frame), meaning that it would have been based on the old
     //   rate, not the new one. Of course, over time the errors would cancel themselves out,
@@ -267,10 +266,8 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
     // - When suddenly changing playback direction, the indexR would have been moved to the
     //   next position to read in the opposite direction
     // The only "problems" with the new code is that in the very first iteration after a fract
-    // reset, fract won't be increased. It also denaturalizes the progress of indexR if we
-    // run out of samples, but that would sound bad anyway. We also can't really tell
-    // how many samples we will have available until we have found out our next play rate
-    //To review last condition above, how often does it happen? How bad it is? How could we improve on that? The wii mote speaker might be more sensible to that
+    // reset, fract won't be increased. It also resets the progress of indexR (fract) when we
+    // run out of samples, but that won't sound any worse
     indexR += NC * whole * direction;
 
     available_samples = next_available_samples;
@@ -289,20 +286,19 @@ u32 Mixer::MixerFifo::CubicInterpolation(s16* samples, u32 num_samples, double r
     // The first and last sample act as control points, the middle ones have more importance.
     // The very first and last samples might never directly be used but it shouldn't be a problem.
     // Theoretically we could linearly interpolate between the last 2 samples
-    // and trade latency with a small hit in quality, but it is not worth it.
+    // and trade latency with a small hit in quality, but it's not worth it.
     // We could have ignored the direction while playing backwards, and just read
-    // indexR over our actually play direction, but I thought that was "wrong"
-    float l_s_f = y0 * interpolation_buffer[indexR & INDEX_MASK] +
-                  y1 * interpolation_buffer[(indexR + 2 * direction) & INDEX_MASK] +
-                  y2 * interpolation_buffer[(indexR + 4 * direction) & INDEX_MASK] +
-                  y3 * interpolation_buffer[(indexR + 6 * direction) & INDEX_MASK];
-    float r_s_f = y0 * interpolation_buffer[(indexR + 1) & INDEX_MASK] +
+    // indexR over our actually play direction, but I thought that was wrong and weird
+    float l_s_f = y0 * interpolation_buffer[(indexR + 1) & INDEX_MASK] +
                   y1 * interpolation_buffer[(indexR + 2 * direction + 1) & INDEX_MASK] +
                   y2 * interpolation_buffer[(indexR + 4 * direction + 1) & INDEX_MASK] +
                   y3 * interpolation_buffer[(indexR + 6 * direction + 1) & INDEX_MASK];
-    //To test left and right on HW source
+    float r_s_f = y0 * interpolation_buffer[indexR & INDEX_MASK] +
+                  y1 * interpolation_buffer[(indexR + 2 * direction) & INDEX_MASK] +
+                  y2 * interpolation_buffer[(indexR + 4 * direction) & INDEX_MASK] +
+                  y3 * interpolation_buffer[(indexR + 6 * direction) & INDEX_MASK];
 
-    l_s = (s32(std::round(l_s_f)) * lVolume) >> 8; //To round again post vol?
+    l_s = (s32(std::round(l_s_f)) * lVolume) >> 8;
     r_s = (s32(std::round(r_s_f)) * rVolume) >> 8;
     // Clamp after adding to current sample, as if the cubic interpolation produced a sample over
     // the limits and the current sample has the opposite sign, then we'd keep the excess value,
@@ -678,7 +674,7 @@ void Mixer::PushDMASamples(const s16* samples, u32 num_samples)
   // This average will be slightly outdated when retrieved later as m_time_at_custom_speed
   // could have increased in the meanwhile, but it's ok, the error is small enough
   m_dma_speed.CacheAverageSpeed(true, m_time_at_custom_speed);
-  
+
   bool PrintPushedSamples = true; //To delete
   if (PrintPushedSamples) INFO_LOG(AUDIO, "dma_mixer added samples: %u, speed: %lf", num_samples, m_dma_speed.GetCachedAverageSpeed());
   m_dma_mixer.PushSamples(samples, num_samples);
