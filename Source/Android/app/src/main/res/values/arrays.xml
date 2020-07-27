@@ -225,6 +225,7 @@
         <item>Force 16:9</item>
         <item>Force 4:3</item>
         <item>Stretch To Window</item>
+        <item>Force 73:60 (Melee)</item>
     </string-array>
     <integer-array name="aspectRatioValues" translatable="false">
         <item>0</item>

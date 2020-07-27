@@ -387,8 +387,11 @@ void HotkeyScheduler::Run()
           OSD::AddMessage("Force 16:9");
           break;
         case AspectMode::Auto:
-        default:
           OSD::AddMessage("Auto");
+          break;
+        case AspectMode::Melee:
+        default:
+          OSD::AddMessage("Force 73:60 (Melee)");
           break;
         }
       }

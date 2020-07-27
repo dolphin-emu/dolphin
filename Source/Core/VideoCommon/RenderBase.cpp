@@ -583,6 +583,9 @@ float Renderer::CalculateDrawAspectRatio() const
 {
   const auto aspect_mode = g_ActiveConfig.aspect_mode;
 
+  if (aspect_mode == AspectMode::Melee)
+    return (static_cast<float>(73) / static_cast<float>(60));
+
   // If stretch is enabled, we prefer the aspect ratio of the window.
   if (aspect_mode == AspectMode::Stretch)
     return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));

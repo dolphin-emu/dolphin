@@ -56,7 +56,7 @@ void GeneralWidget::CreateWidgets()
 
   m_backend_combo = new QComboBox();
   m_aspect_combo =
-      new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window")},
+      new GraphicsChoice({tr("Auto"), tr("Force 16:9"), tr("Force 4:3"), tr("Stretch to Window"), tr("Force 73:60 (Melee)") },
                          Config::GFX_ASPECT_RATIO);
   m_adapter_combo = new QComboBox;
   m_enable_vsync = new GraphicsBool(tr("V-Sync"), Config::GFX_VSYNC);
@@ -222,7 +222,7 @@ void GeneralWidget::AddDescriptions()
       "Selects which aspect ratio to use when rendering.\n\nAuto: Uses the native aspect "
       "ratio\nForce 16:9: Mimics an analog TV with a widescreen aspect ratio.\nForce 4:3: "
       "Mimics a standard 4:3 analog TV.\nStretch to Window: Stretches the picture to the "
-      "window size.\n\nIf unsure, select Auto.");
+      "window size.\nForce 73:60 (Melee): Melee's standard resolution\nIf unsure, select Force 73:60 (Melee).");
   static const char TR_VSYNC_DESCRIPTION[] =
       QT_TR_NOOP("Waits for vertical blanks in order to prevent tearing.\n\nDecreases performance "
                  "if emulation speed is below 100%.\n\nIf unsure, leave this unchecked.");

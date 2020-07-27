@@ -31,6 +31,7 @@ enum class AspectMode : int
   AnalogWide,
   Analog,
   Stretch,
+  Melee
 };
 
 enum class StereoMode : int
