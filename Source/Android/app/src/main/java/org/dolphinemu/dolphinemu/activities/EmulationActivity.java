@@ -5,6 +5,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
@@ -22,6 +23,7 @@ import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
@@ -395,9 +397,7 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public void onBackPressed()
   {
-    boolean popResult = getSupportFragmentManager().popBackStackImmediate(
-            BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    if (!popResult)
+    if (!closeSubmenu())
     {
       toggleMenu();
     }
@@ -438,13 +438,22 @@ public final class EmulationActivity extends AppCompatActivity
             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
   }
 
+  private boolean closeSubmenu()
+  {
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_SUBMENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
+  private boolean closeMenu()
+  {
+    mMenuVisible = false;
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_MENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
   private void toggleMenu()
   {
-    boolean result = getSupportFragmentManager().popBackStackImmediate(
-            BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    mMenuVisible = false;
-
-    if (!result)
+    if (!closeMenu())
     {
       // Removing the menu failed, so that means it wasn't visible. Add it.
       Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
@@ -1127,6 +1136,52 @@ public final class EmulationActivity extends AppCompatActivity
             {
             })
             .show();
+  }
+
+  private static boolean areCoordinatesOutside(@Nullable View view, float x, float y)
+  {
+    if (view == null)
+    {
+      return true;
+    }
+
+    Rect viewBounds = new Rect();
+    view.getGlobalVisibleRect(viewBounds);
+    return !viewBounds.contains(Math.round(x), Math.round(y));
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent event)
+  {
+    if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
+    {
+      boolean anyMenuClosed = false;
+
+      Fragment submenu = getSupportFragmentManager().findFragmentById(R.id.frame_submenu);
+      if (submenu != null && areCoordinatesOutside(submenu.getView(), event.getX(), event.getY()))
+      {
+        closeSubmenu();
+        submenu = null;
+        anyMenuClosed = true;
+      }
+
+      if (submenu == null)
+      {
+        Fragment menu = getSupportFragmentManager().findFragmentById(R.id.frame_menu);
+        if (menu != null && areCoordinatesOutside(menu.getView(), event.getX(), event.getY()))
+        {
+          closeMenu();
+          anyMenuClosed = true;
+        }
+      }
+
+      if (anyMenuClosed)
+      {
+        return true;
+      }
+    }
+
+    return super.dispatchTouchEvent(event);
   }
 
   @Override
