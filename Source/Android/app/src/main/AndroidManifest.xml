@@ -73,7 +73,8 @@
 
         <activity
             android:name=".activities.EmulationActivity"
-            android:theme="@style/DolphinEmulationBase"/>
+            android:theme="@style/DolphinEmulationBase"
+            android:preferMinimalPostProcessing="true"/>
 
         <activity
             android:name=".activities.CustomFilePickerActivity"
