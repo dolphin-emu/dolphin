@@ -55,8 +55,16 @@ class EventContainer final
 public:
   void EmitEvent(T evt)
   {
-    for (auto& listener_pair : m_listener_pairs)
+    // avoid concurrent modification issues by iterating over a copy
+    std::vector<std::pair<ListenerID<T>, Listener<T>>> listener_pairs = m_listener_pairs;
+    for (auto& listener_pair : listener_pairs)
       listener_pair.second(evt);
+    // avoid concurrent modification issues by performing a swap
+    // with an fresh empty vector.
+    std::vector<Listener<T>> one_time_listeners;
+    std::swap(one_time_listeners, m_one_time_listeners);
+    for (auto& listener : one_time_listeners)
+      listener(evt);
   }
 
   ListenerID<T> ListenEvent(Listener<T> listener)
@@ -79,8 +87,14 @@ public:
     return false;
   }
 
+  void ListenEventOnce(Listener<T> listener)
+  {
+    m_one_time_listeners.emplace_back(std::move(listener));
+  }
+
 private:
   std::vector<std::pair<ListenerID<T>, Listener<T>>> m_listener_pairs{};
+  std::vector<Listener<T>> m_one_time_listeners{};
   u64 m_next_listener_id = 0;
 };
 
@@ -113,6 +127,12 @@ public:
   bool UnlistenEvent(ListenerID<T> listener_id)
   {
     return GetEventContainer<T>().UnlistenEvent(listener_id);
+  }
+
+  template <typename T>
+  void ListenEventOnce(Listener<T> listener)
+  {
+    GetEventContainer<T>().ListenEventOnce(listener);
   }
 
 private:
