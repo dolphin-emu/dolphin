@@ -7,7 +7,7 @@
 namespace Scripting
 {
 
-void Init()
+void Init(std::filesystem::path script_filepath)
 {
   INFO_LOG(SCRIPTING, "Initializing scripting engine...");
   // TODO initialize scripting backend

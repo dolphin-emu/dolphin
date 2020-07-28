@@ -187,6 +187,11 @@ int main(int argc, char* argv[])
     boot = BootParameters::GenerateFromFile(args.front(), save_state_path);
     game_specified = true;
   }
+  std::optional<std::string> script_filepath;
+  if (options.is_set("script"))
+  {
+    script_filepath = static_cast<const char*>(options.get("script"));
+  }
 
   int retval;
 
@@ -255,13 +260,19 @@ int main(int argc, char* argv[])
       updater->start();
     }
 
-    // Initialize the scripting engine after the ui,
-    // because then early script outputs are already visible in the logging ui.
-    Scripting::Init();
+    if (script_filepath.has_value())
+    {
+      // Initialize the scripting engine after the ui,
+      // because then early script outputs are already visible in the logging ui.
+      Scripting::Init(script_filepath.value());
+    }
     retval = app.exec();
   }
 
-  Scripting::Shutdown();
+  if (script_filepath.has_value())
+  {
+    Scripting::Shutdown();
+  }
   Core::Shutdown();
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();
