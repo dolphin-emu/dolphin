@@ -674,9 +674,6 @@ public final class EmulationActivity extends AppCompatActivity
         return;
 
       case MENU_ACTION_EXIT:
-        // Hide the menu (it will be showing since we just clicked it)
-        toggleMenu();
-
         mEmulationFragment.stopEmulation();
         finish();
         return;
