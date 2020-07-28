@@ -186,11 +186,11 @@ bool FrameDump::CreateVideoFile()
     s_codec_context->codec_tag = MKTAG('X', 'V', 'I', 'D');
 
   s_codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-  s_codec_context->bit_rate = g_Config.iBitrateKbps * 1000;
+  s_codec_context->bit_rate = static_cast<int64_t>(g_Config.iBitrateKbps) * 1000;
   s_codec_context->width = s_width;
   s_codec_context->height = s_height;
-  s_codec_context->time_base.num = 1;
-  s_codec_context->time_base.den = VideoInterface::GetTargetRefreshRate();
+  s_codec_context->time_base.num = VideoInterface::GetTargetRefreshRateDenominator();
+  s_codec_context->time_base.den = VideoInterface::GetTargetRefreshRateNumerator();
   s_codec_context->gop_size = 1;
   s_codec_context->level = 1;
   s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
