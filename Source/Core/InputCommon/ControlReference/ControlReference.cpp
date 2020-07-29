@@ -50,14 +50,7 @@ enum class InputGateFlags : u8
 // As of now these thread_local variables are only accessed by the host (UI) and the game thread.
 // Gate is "open" by default in case we don't bother setting it.
 static thread_local InputGateFlags tls_input_gate_flags = InputGateFlags::FullOpenMask;
-// This list in never cleaned but unless InputReference(s) are not constantly removed and re-added
-// on the fly, it's not a problem. We can't store the blocking in the object instance as it needs
-// to be per thread. But in any case, this is safe as we only ever compare values to it.
-// An alternative would be to have an ever increasing handle for each newly added InputReference.
-// An even better alternative would be to have an helper struct, which contains the std::vector,
-// and the helper struct would add itslef to a static (non thread_local) list on construction,
-// and remove itself on destruction, meaning that if an InputReference got destroyed, we
-// could safely remove all its references from the list in every thread.
+// InputReference(s)* never change
 static thread_local std::vector<InputReference*> tls_blocked_inputs;
 
 //
