@@ -28,6 +28,17 @@
             android:orientation="vertical">
 
             <Button
+                android:id="@+id/menu_pause_emulation"
+                android:text="@string/pause_emulation"
+                style="@style/InGameMenuOption"/>
+
+            <Button
+                android:id="@+id/menu_unpause_emulation"
+                android:text="@string/unpause_emulation"
+                style="@style/InGameMenuOption"
+                android:visibility="gone"/>
+
+            <Button
                 android:id="@+id/menu_take_screenshot"
                 android:text="@string/emulation_screenshot"
                 style="@style/InGameMenuOption"/>
