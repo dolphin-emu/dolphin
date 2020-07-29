@@ -624,7 +624,8 @@ void AudioPane::OnEmulationStateChanged(bool running)
 
   if (AudioCommon::SupportsDPL2Decoder(backend) && !m_dsp_hle->isChecked())
   {
-    // TODO: disable this later if the audio device turned out unable to support surround
+    // TODO: If the audio device turned out unable to support surround, add the text "failed" in the
+    // UI name, so the user can try to enable it again or disable surround from the game.
     bool enable_dolby_pro_logic = supports_current_emulation_state;
     m_dolby_pro_logic->setEnabled(enable_dolby_pro_logic);
     EnableDolbyQualityWidgets(m_dolby_pro_logic->isEnabled() && m_dolby_pro_logic->isChecked());
