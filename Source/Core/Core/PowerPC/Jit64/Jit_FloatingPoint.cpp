@@ -459,6 +459,12 @@ void Jit64::fselx(UGeckoInstruction inst)
   }
   else if (cpu_info.bSSE4_1)
   {
+    if (packed && d == c)
+    {
+      BLENDVPD(Rd, Rb);
+      return;
+    }
+
     MOVAPD(XMM1, Rc);
     BLENDVPD(XMM1, Rb);
   }
