@@ -12,7 +12,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSettin
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.Log;
-import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,8 +62,8 @@ public final class MotionAlertDialog extends AlertDialog
   @Override
   public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
   {
-    // Option to clear by long back is only needed on the TV interface
-    if (TvUtil.isLeanback(getContext()) && keyCode == KeyEvent.KEYCODE_BACK)
+    // Intended for devices with no touchscreen or mouse
+    if (keyCode == KeyEvent.KEYCODE_BACK)
     {
       setting.clearValue(mAdapter.getSettings());
       dismiss();
