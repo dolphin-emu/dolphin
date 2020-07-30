@@ -142,6 +142,7 @@ const Info<std::string> MAIN_FS_PATH{{System::Main, "General", "NANDRootPath"}, 
 const Info<std::string> MAIN_SD_PATH{{System::Main, "General", "WiiSDCardPath"}, ""};
 
 // Main.Network
+
 const Info<bool> MAIN_NETWORK_SSL_DUMP_READ{{System::Main, "Network", "SSLDumpRead"}, false};
 const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE{{System::Main, "Network", "SSLDumpWrite"}, false};
 const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES{
@@ -149,4 +150,8 @@ const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES{
 const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA{{System::Main, "Network", "SSLDumpRootCA"}, false};
 const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLDumpPeerCert"},
                                                  false};
+
+// Main.Interface
+
+const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
 }  // namespace Config

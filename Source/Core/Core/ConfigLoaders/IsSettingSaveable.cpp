@@ -32,7 +32,7 @@ bool IsSettingSaveable(const Config::Location& config_location)
     }
   }
 
-  static constexpr std::array<const Config::Location*, 12> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 13> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
@@ -46,6 +46,10 @@ bool IsSettingSaveable(const Config::Location& config_location)
       &Config::MAIN_MEM1_SIZE.location,
       &Config::MAIN_MEM2_SIZE.location,
       &Config::MAIN_GFX_BACKEND.location,
+
+      // Main.Interface
+
+      &Config::MAIN_SKIP_NKIT_WARNING.location,
 
       // UI.General
 
