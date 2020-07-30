@@ -4,42 +4,31 @@ matrix:
     - os: linux
       env: NAME="linux appimage"
       sudo: required
-      dist: bionic
+      dist: trusty
       services: docker
       addons:
         apt:
           packages:
             - p7zip-full 
             - curl
-            - libxi-dev
-            - libavcodec-dev
-            - libudev-dev
-            - libevdev-dev
-            - libc6-dev
-            - libavformat-dev
-            - libavdevice-dev
-            - libfmt-dev		
-            - qtbase5-dev
-            - qttools5-dev 
-            - qtbase5-private-dev
-            - qtdeclarative5-dev
-            - liblzma-dev
-            - x11-utils
         before_install: 
             - docker pull quriouspixel/yuzu:latest 
-            - docker run -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash
+            - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash
         script: 
             - mkdir Build && cd Build
             - cmake .. -DLINUX_LOCAL_DEV=true        
             - make
             - ln -s ../../Data/Sys Binaries/
-        after_success: 
-            - mkdir ~/Artifacts
-            - mv linuxdeployqt-continuous-x86_64.AppImage ~/Artifacts
+      after_success:
+      - ls -lh artifacts/* 
+      - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
+      - bash upload.sh artifacts/* 
+      branches:
+  except:
+    - /^(?i:continuous.*)$/
 deploy:
   provider: releases
-  api_key:
-    secure: $GITHUB_OAUTH_TOKEN
+  api_key: $GITHUB_TOKEN 
   file_glob: true
   file: "~/Artifacts/*"
   skip_cleanup: true
