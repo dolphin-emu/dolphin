@@ -11,14 +11,10 @@ matrix:
           packages:
             - p7zip-full 
             - curl
-        before_install: 
+        install: 
             - docker pull quriouspixel/yuzu:latest 
-            - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash
         script: 
-            - mkdir Build && cd Build
-            - cmake .. -DLINUX_LOCAL_DEV=true        
-            - make
-            - ln -s ../../Data/Sys Binaries/
+            - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
       after_success:
       - ls -lh artifacts/* 
       - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
