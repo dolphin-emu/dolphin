@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-cd $HOME
+cd /dolphin
 
 mkdir build
 cd build
