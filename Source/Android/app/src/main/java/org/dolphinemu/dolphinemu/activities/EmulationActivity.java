@@ -1177,11 +1177,6 @@ public final class EmulationActivity extends AppCompatActivity
             .commit();
   }
 
-  public boolean deviceHasTouchScreen()
-  {
-    return mDeviceHasTouchScreen;
-  }
-
   public String getSelectedTitle()
   {
     return mSelectedTitle;
@@ -1204,7 +1199,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void initInputPointer()
   {
-    if (deviceHasTouchScreen())
+    if (mDeviceHasTouchScreen)
       mEmulationFragment.initInputPointer();
   }
 }
