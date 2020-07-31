@@ -16,9 +16,9 @@
 
 namespace ControllerEmu
 {
-IMUCursor::IMUCursor(std::string name, std::string ui_name)
+IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
     : ControlGroup(
-          std::move(name), std::move(ui_name), GroupType::IMUCursor,
+          std::move(name_), std::move(ui_name_), GroupType::IMUCursor,
 #ifdef ANDROID
           // Enabling this on Android devices which have an accelerometer and gyroscope prevents
           // touch controls from being used for pointing, and touch controls generally work better
