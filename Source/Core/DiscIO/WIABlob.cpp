@@ -443,10 +443,10 @@ bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
         (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
     const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
 
-    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
-                        data_offset, data_size, Common::swap32(data.group_index),
-                        Common::swap32(data.number_of_groups),
-                        std::max<u64>(1, chunk_size / VolumeWii::GROUP_DATA_SIZE)))
+    if (!ReadFromGroups(
+            &offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE, data_offset,
+            data_size, Common::swap32(data.group_index), Common::swap32(data.number_of_groups),
+            std::max<u32>(1, static_cast<u32>(chunk_size / VolumeWii::GROUP_DATA_SIZE))))
     {
       return false;
     }
