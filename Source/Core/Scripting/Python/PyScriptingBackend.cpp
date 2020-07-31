@@ -11,6 +11,7 @@
 
 #include "DiscIO/Filesystem.h"
 #include "PyScriptingBackend.h"
+#include "Scripting/Python/Modules/doliomodule.h"
 #include "Scripting/Python/Utils/gil.h"
 
 namespace PyScripting
@@ -24,10 +25,22 @@ const std::wstring python_path =
 
 void InitPythonInterpreter()
 {
+
+  if (PyImport_AppendInittab("dolio_stdout", PyInit_dolio_stdout) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolio_stdout to builtins");
+  if (PyImport_AppendInittab("dolio_stderr", PyInit_dolio_stderr) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolio_stderr to builtins");
+
   Py_SetPythonHome(const_cast<wchar_t*>(python_home.c_str()));
   Py_SetPath(python_path.c_str());
   INFO_LOG(SCRIPTING, "Initializing embedded python... %s", Py_GetVersion());
   Py_InitializeEx(0);
+  PyObject* result_stdout = PyImport_ImportModule("dolio_stdout");
+  if (result_stdout == nullptr)
+    ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stdout for stdout");
+  PyObject* result_stderr = PyImport_ImportModule("dolio_stderr");
+  if (result_stderr == nullptr)
+    ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stderr for stderr");
 
   if (PyGILState_Check())
   {

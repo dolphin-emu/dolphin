@@ -2,14 +2,29 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="ScriptingEngine.cpp" />
+    <ClCompile Include="Python\Modules\doliomodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
     <ClCompile Include="Python\PyScriptingBackend.cpp">
       <Filter>Python</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ScriptingEngine.h" />
+    <ClInclude Include="Python\Modules\doliomodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Python\PyScriptingBackend.h">
       <Filter>Python</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Utils\as_py_func.h">
+      <Filter>Python\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Utils\fmt.h">
+      <Filter>Python\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Utils\module.h">
+      <Filter>Python\Utils</Filter>
     </ClInclude>
     <ClInclude Include="Python\Utils\gil.h">
       <Filter>Python\Utils</Filter>
@@ -21,6 +36,9 @@
     </Filter>
     <Filter Include="Python\Utils">
       <UniqueIdentifier>{eeff862f-8e3a-4c8b-a5d3-35a5e8c992f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Python\Modules">
+      <UniqueIdentifier>{426521fc-7e68-463d-87d4-15f9de79e826}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>

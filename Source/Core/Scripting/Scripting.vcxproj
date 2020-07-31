@@ -42,12 +42,17 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ScriptingEngine.cpp" />
+    <ClCompile Include="Python\Modules\doliomodule.cpp" />
     <ClCompile Include="Python\PyScriptingBackend.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Python\PyScriptingBackend.h" />
     <ClInclude Include="Python\Utils\gil.h" />
     <ClInclude Include="ScriptingEngine.h" />
+    <ClInclude Include="Python\Modules\doliomodule.h" />
+    <ClInclude Include="Python\Utils\as_py_func.h" />
+    <ClInclude Include="Python\Utils\fmt.h" />
+    <ClInclude Include="Python\Utils\module.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
