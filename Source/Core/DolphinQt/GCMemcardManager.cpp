@@ -598,46 +598,33 @@ void GCMemcardManager::CopyFiles()
 
 void GCMemcardManager::DeleteFiles()
 {
-  auto selection = m_slot_table[m_active_slot]->selectedItems();
-  auto& memcard = m_slot_memcard[m_active_slot];
+  auto& card = m_slot_memcard[m_active_slot];
+  if (!card)
+    return;
 
-  auto count = selection.count() / m_slot_table[m_active_slot]->columnCount();
+  const auto selected_indices = GetSelectedFileIndices();
+  if (selected_indices.empty())
+    return;
 
-  // Ask for confirmation if we are to delete multiple files
-  if (count > 1)
+  const QString text = tr("Do you want to delete the %n selected save file(s)?", "",
+                          static_cast<int>(selected_indices.size()));
+  const auto response = ModalMessageBox::question(this, tr("Question"), text);
+  if (response != QMessageBox::Yes)
+    return;
+
+  for (const u8 index : selected_indices)
   {
-    QString text = count == 1 ? tr("Do you want to delete the selected save file?") :
-                                tr("Do you want to delete the %1 selected save files?").arg(count);
-
-    auto response = ModalMessageBox::question(this, tr("Question"), text);
-    ;
-
-    if (response == QMessageBox::Abort)
-      return;
-  }
-
-  std::vector<int> file_indices;
-  for (int i = 0; i < count; i++)
-  {
-    auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
-    file_indices.push_back(memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel)));
-  }
-
-  for (int file_index : file_indices)
-  {
-    if (memcard->RemoveFile(file_index) != Memcard::GCMemcardRemoveFileRetVal::SUCCESS)
+    if (card->RemoveFile(index) != Memcard::GCMemcardRemoveFileRetVal::SUCCESS)
     {
-      ModalMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
+      ModalMessageBox::warning(this, tr("Remove Failed"), tr("Failed to remove file."));
+      break;
     }
   }
 
-  if (!memcard->Save())
+  if (!card->Save())
   {
-    PanicAlertFmtT("File write failed");
-  }
-  else
-  {
-    ModalMessageBox::information(this, tr("Success"), tr("Successfully deleted files."));
+    ModalMessageBox::warning(this, tr("Remove Failed"),
+                             tr("Failed to write modified memory card to disk."));
   }
 
   UpdateSlotTable(m_active_slot);
