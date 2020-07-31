@@ -573,31 +573,27 @@ void GCMemcardManager::ImportFile()
 
 void GCMemcardManager::CopyFiles()
 {
-  auto selection = m_slot_table[m_active_slot]->selectedItems();
-  auto& memcard = m_slot_memcard[m_active_slot];
+  const auto& source_card = m_slot_memcard[m_active_slot];
+  if (!source_card)
+    return;
 
-  auto count = selection.count() / m_slot_table[m_active_slot]->columnCount();
+  auto& target_card = m_slot_memcard[!m_active_slot];
+  if (!target_card)
+    return;
 
-  for (int i = 0; i < count; i++)
+  const auto selected_indices = GetSelectedFileIndices();
+  if (selected_indices.empty())
+    return;
+
+  const auto savefiles = Memcard::GetSavefiles(*source_card, selected_indices);
+  if (savefiles.empty())
   {
-    auto sel = selection[i * m_slot_table[m_active_slot]->columnCount()];
-    int file_index = memcard->GetFileIndex(m_slot_table[m_active_slot]->row(sel));
-
-    const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
-
-    if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
-    {
-      ModalMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
-    }
+    ModalMessageBox::warning(this, tr("Copy Failed"),
+                             tr("Failed to read selected savefile(s) from memory card."));
+    return;
   }
 
-  for (int i = 0; i < SLOT_COUNT; i++)
-  {
-    if (!m_slot_memcard[i]->Save())
-      PanicAlertFmtT("File write failed");
-
-    UpdateSlotTable(i);
-  }
+  ImportFiles(!m_active_slot, savefiles);
 }
 
 void GCMemcardManager::DeleteFiles()
