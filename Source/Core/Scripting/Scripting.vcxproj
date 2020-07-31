@@ -42,17 +42,24 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ScriptingEngine.cpp" />
+    <ClCompile Include="Python\coroutine.cpp" />
     <ClCompile Include="Python\Modules\doliomodule.cpp" />
+    <ClCompile Include="Python\Modules\eventmodule.cpp" />
     <ClCompile Include="Python\PyScriptingBackend.cpp" />
+    <ClCompile Include="Python\Utils\object_wrapper.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Python\PyScriptingBackend.h" />
-    <ClInclude Include="Python\Utils\gil.h" />
     <ClInclude Include="ScriptingEngine.h" />
+    <ClInclude Include="Python\coroutine.h" />
+    <ClInclude Include="Python\PyScriptingBackend.h" />
     <ClInclude Include="Python\Modules\doliomodule.h" />
+    <ClInclude Include="Python\Modules\eventmodule.h" />
     <ClInclude Include="Python\Utils\as_py_func.h" />
     <ClInclude Include="Python\Utils\fmt.h" />
+    <ClInclude Include="Python\Utils\gil.h" />
+    <ClInclude Include="Python\Utils\invoke.h" />
     <ClInclude Include="Python\Utils\module.h" />
+    <ClInclude Include="Python\Utils\object_wrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -8,10 +8,25 @@
     <ClCompile Include="Python\PyScriptingBackend.cpp">
       <Filter>Python</Filter>
     </ClCompile>
+    <ClCompile Include="Python\Modules\eventmodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Python\coroutine.cpp">
+      <Filter>Python</Filter>
+    </ClCompile>
+    <ClCompile Include="Python\Utils\object_wrapper.cpp">
+      <Filter>Python\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ScriptingEngine.h" />
+    <ClInclude Include="Python\coroutine.h">
+      <Filter>Python</Filter>
+    </ClInclude>
     <ClInclude Include="Python\Modules\doliomodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Modules\eventmodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Python\PyScriptingBackend.h">
@@ -23,10 +38,16 @@
     <ClInclude Include="Python\Utils\fmt.h">
       <Filter>Python\Utils</Filter>
     </ClInclude>
+    <ClInclude Include="Python\Utils\gil.h">
+      <Filter>Python\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Utils\invoke.h">
+      <Filter>Python\Utils</Filter>
+    </ClInclude>
     <ClInclude Include="Python\Utils\module.h">
       <Filter>Python\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Python\Utils\gil.h">
+    <ClInclude Include="Python\Utils\object_wrapper.h">
       <Filter>Python\Utils</Filter>
     </ClInclude>
   </ItemGroup>
