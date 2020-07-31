@@ -17,6 +17,7 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/FileSearch.h"
@@ -32,6 +33,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
@@ -716,7 +719,13 @@ void MigrateFromMemcardFile(const std::string& directory_name, int card_index)
     {
       for (u8 i = 0; i < Memcard::DIRLEN; i++)
       {
-        memcard->ExportGci(i, "", directory_name);
+        const auto savefile = memcard->ExportFile(i);
+        if (!savefile)
+          continue;
+
+        std::string filepath =
+            directory_name + DIR_SEP + Memcard::GenerateFilename(savefile->dir_entry) + ".gci";
+        Memcard::WriteSavefile(filepath, *savefile, Memcard::SavefileFormat::GCI);
       }
     }
   }
