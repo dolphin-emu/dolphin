@@ -17,6 +17,8 @@ namespace Memcard
 {
 class GCMemcard;
 class GCMemcardErrorCode;
+struct Savefile;
+enum class ReadSavefileErrorCode;
 enum class SavefileFormat;
 }  // namespace Memcard
 
@@ -41,6 +43,7 @@ public:
   ~GCMemcardManager();
 
   static QString GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code);
+  static QString GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code);
 
 private:
   struct IconAnimationData;
@@ -56,6 +59,8 @@ private:
   void SetActiveSlot(int slot);
 
   std::vector<u8> GetSelectedFileIndices();
+
+  void ImportFiles(int slot, const std::vector<Memcard::Savefile>& savefiles);
 
   void CopyFiles();
   void ImportFile();

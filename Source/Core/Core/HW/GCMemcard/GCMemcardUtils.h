@@ -42,4 +42,7 @@ std::string GetDefaultExtension(SavefileFormat format);
 
 // Reads multiple savefiles from a card. Returns empty vector if even a single file can't be read.
 std::vector<Savefile> GetSavefiles(const GCMemcard& card, const std::vector<u8>& file_indices);
+
+// Gets the total amount of blocks the given saves use.
+size_t GetBlockCount(const std::vector<Savefile>& savefiles);
 }  // namespace Memcard

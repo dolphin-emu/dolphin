@@ -34,6 +34,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/VariantUtil.h"
 
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
@@ -457,28 +458,117 @@ void GCMemcardManager::ExportFiles(Memcard::SavefileFormat format)
   }
 }
 
-void GCMemcardManager::ImportFile()
+void GCMemcardManager::ImportFiles(int slot, const std::vector<Memcard::Savefile>& savefiles)
 {
-  QString path = QFileDialog::getOpenFileName(
-      this, tr("Import Save File"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("Native GCI File (*.gci)") + QStringLiteral(";;") + tr("MadCatz Gameshark files(*.gcs)") +
-          QStringLiteral(";;") + tr("Datel MaxDrive/Pro files(*.sav)"));
-
-  if (path.isEmpty())
+  auto& card = m_slot_memcard[slot];
+  if (!card)
     return;
 
-  const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString());
+  const size_t number_of_files = savefiles.size();
+  const size_t number_of_blocks = Memcard::GetBlockCount(savefiles);
+  const size_t free_files = Memcard::DIRLEN - card->GetNumFiles();
+  const size_t free_blocks = card->GetFreeBlocks();
 
-  if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
+  QStringList error_messages;
+
+  if (number_of_files > free_files)
   {
-    ModalMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
+    error_messages.push_back(
+        tr("Not enough free files on the target memory card. At least %n free file(s) required.",
+           "", static_cast<int>(number_of_files)));
+  }
+
+  if (number_of_blocks > free_blocks)
+  {
+    error_messages.push_back(
+        tr("Not enough free blocks on the target memory card. At least %n free block(s) required.",
+           "", static_cast<int>(number_of_blocks)));
+  }
+
+  for (const Memcard::Savefile& savefile : savefiles)
+  {
+    if (card->TitlePresent(savefile.dir_entry))
+    {
+      const std::string filename = Memcard::GenerateFilename(savefile.dir_entry);
+      error_messages.push_back(tr("The target memory card already contains a file \"%1\".")
+                                   .arg(QString::fromStdString(filename)));
+    }
+  }
+
+  if (!error_messages.empty())
+  {
+    ModalMessageBox::warning(this, tr("Import Failed"), error_messages.join(QLatin1Char('\n')));
     return;
   }
 
-  if (!m_slot_memcard[m_active_slot]->Save())
-    PanicAlertFmtT("File write failed");
+  for (const Memcard::Savefile& savefile : savefiles)
+  {
+    std::vector<Memcard::GCMBlock> blocks(savefile.blocks);
+    const auto result = card->ImportFile(savefile.dir_entry, blocks);
 
-  UpdateSlotTable(m_active_slot);
+    // we've already checked everything that could realistically fail here, so this should only
+    // happen if the memory card data is corrupted in some way
+    if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
+    {
+      const std::string filename = Memcard::GenerateFilename(savefile.dir_entry);
+      ModalMessageBox::warning(
+          this, tr("Import Failed"),
+          tr("Failed to import \"%1\".").arg(QString::fromStdString(filename)));
+      break;
+    }
+  }
+
+  if (!card->Save())
+  {
+    ModalMessageBox::warning(this, tr("Import Failed"),
+                             tr("Failed to write modified memory card to disk."));
+  }
+
+  UpdateSlotTable(slot);
+}
+
+void GCMemcardManager::ImportFile()
+{
+  auto& card = m_slot_memcard[m_active_slot];
+  if (!card)
+    return;
+
+  const QStringList paths = QFileDialog::getOpenFileNames(
+      this, tr("Import Save File(s)"), QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
+      QStringLiteral("%1 (*.gci *.gcs *.sav);;%2 (*.gci);;%3 (*.gcs);;%4 (*.sav);;%5 (*)")
+          .arg(tr("Supported file formats"), GetFormatDescription(Memcard::SavefileFormat::GCI),
+               GetFormatDescription(Memcard::SavefileFormat::GCS),
+               GetFormatDescription(Memcard::SavefileFormat::SAV), tr("All Files")));
+
+  if (paths.isEmpty())
+    return;
+
+  std::vector<Memcard::Savefile> savefiles;
+  savefiles.reserve(paths.size());
+  QStringList errors;
+  for (const QString& path : paths)
+  {
+    auto read_result = Memcard::ReadSavefile(path.toStdString());
+    std::visit(overloaded{
+                   [&](Memcard::Savefile savefile) { savefiles.emplace_back(std::move(savefile)); },
+                   [&](Memcard::ReadSavefileErrorCode error_code) {
+                     errors.push_back(
+                         tr("%1: %2").arg(path, GetErrorMessageForErrorCode(error_code)));
+                   },
+               },
+               std::move(read_result));
+  }
+
+  if (!errors.empty())
+  {
+    ModalMessageBox::warning(
+        this, tr("Import Failed"),
+        tr("Encountered the following errors while opening save files:\n%1\n\nAborting import.")
+            .arg(errors.join(QStringLiteral("\n"))));
+    return;
+  }
+
+  ImportFiles(m_active_slot, savefiles);
 }
 
 void GCMemcardManager::CopyFiles()
@@ -712,4 +802,19 @@ QString GCMemcardManager::GetErrorMessagesForErrorCode(const Memcard::GCMemcardE
     return tr("No errors.");
 
   return sl.join(QLatin1Char{'\n'});
+}
+
+QString GCMemcardManager::GetErrorMessageForErrorCode(Memcard::ReadSavefileErrorCode code)
+{
+  switch (code)
+  {
+  case Memcard::ReadSavefileErrorCode::OpenFileFail:
+    return tr("Failed to open file.");
+  case Memcard::ReadSavefileErrorCode::IOError:
+    return tr("Failed to read from file.");
+  case Memcard::ReadSavefileErrorCode::DataCorrupted:
+    return tr("Data in unrecognized format or corrupted.");
+  default:
+    return tr("Unknown error.");
+  }
 }
