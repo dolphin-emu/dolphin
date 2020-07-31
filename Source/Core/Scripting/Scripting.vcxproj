@@ -42,8 +42,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="ScriptingEngine.cpp" />
+    <ClCompile Include="Python\PyScriptingBackend.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Python\PyScriptingBackend.h" />
+    <ClInclude Include="Python\Utils\gil.h" />
     <ClInclude Include="ScriptingEngine.h" />
   </ItemGroup>
   <ItemGroup>

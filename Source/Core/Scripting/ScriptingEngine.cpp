@@ -1,8 +1,7 @@
 
-#include "../Common/Logging/Log.h"
-#include "../Core/API/Events.h"
+#include "Common/Logging/Log.h"
+#include "Python/PyScriptingBackend.h"
 #include "ScriptingEngine.h"
-
 
 namespace Scripting
 {
@@ -10,13 +9,13 @@ namespace Scripting
 void Init(std::filesystem::path script_filepath)
 {
   INFO_LOG(SCRIPTING, "Initializing scripting engine...");
-  // TODO initialize scripting backend
+  PyScripting::Init(script_filepath);
 }
 
 void Shutdown()
 {
   INFO_LOG(SCRIPTING, "Shutting down scripting engine...");
-  // TODO shut down scripting backend
+  PyScripting::Shutdown();
 }
 
 }  // namespace Scripting
