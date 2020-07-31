@@ -15,7 +15,9 @@
 
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Modules/doliomodule.h"
+#include "Scripting/Python/Modules/dolphinmodule.h"
 #include "Scripting/Python/Modules/eventmodule.h"
+#include "Scripting/Python/Modules/memorymodule.h"
 #include "Scripting/Python/Utils/gil.h"
 
 namespace PyScripting
@@ -34,8 +36,13 @@ void InitPythonInterpreter()
     ERROR_LOG(SCRIPTING, "failed to add dolio_stdout to builtins");
   if (PyImport_AppendInittab("dolio_stderr", PyInit_dolio_stderr) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolio_stderr to builtins");
+  if (PyImport_AppendInittab("dolphin_memory", PyInit_memory) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolphin_memory to builtins");
   if (PyImport_AppendInittab("dolphin_event", PyInit_event) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin_event to builtins");
+
+  if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolphin to builtins");
 
   Py_SetPythonHome(const_cast<wchar_t*>(python_home.c_str()));
   Py_SetPath(python_path.c_str());

@@ -2,13 +2,19 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="ScriptingEngine.cpp" />
-    <ClCompile Include="Python\Modules\doliomodule.cpp">
-      <Filter>Python\Modules</Filter>
-    </ClCompile>
     <ClCompile Include="Python\PyScriptingBackend.cpp">
       <Filter>Python</Filter>
     </ClCompile>
+    <ClCompile Include="Python\Modules\doliomodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Python\Modules\dolphinmodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
     <ClCompile Include="Python\Modules\eventmodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
+    <ClCompile Include="Python\Modules\memorymodule.cpp">
       <Filter>Python\Modules</Filter>
     </ClCompile>
     <ClCompile Include="Python\coroutine.cpp">
@@ -26,7 +32,13 @@
     <ClInclude Include="Python\Modules\doliomodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
+    <ClInclude Include="Python\Modules\dolphinmodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClInclude>
     <ClInclude Include="Python\Modules\eventmodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Modules\memorymodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Python\PyScriptingBackend.h">
