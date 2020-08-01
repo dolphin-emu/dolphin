@@ -172,9 +172,9 @@ using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 
 static PyMethodDef EventMethods[] = {
     // EVENT CALLBACKS
-    // Has "on"-prefix, let's python code register a callback
-    Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("onframeadvance"),
-    Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("onmemorybreakpoint"),
+    // Has "on_"-prefix, let's python code register a callback
+    Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
+    Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
 
     {nullptr, nullptr, 0, nullptr} /* Sentinel */
 };
