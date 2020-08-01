@@ -23,7 +23,7 @@
 namespace PyScripting
 {
 
-const std::wstring python_home = UTF8ToWString(File::GetExeDirectory()) + L"/python38-embed";
+const std::wstring python_home = UTF8ToWString(File::GetExeDirectory()) + L"/python-embed";
 const std::wstring python_path =
     UTF8ToWString(File::GetExeDirectory()) + L"/python-embed/python38.zip;" +
     UTF8ToWString(File::GetExeDirectory()) + L"/python-embed;" +
