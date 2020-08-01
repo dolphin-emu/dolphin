@@ -503,8 +503,7 @@ void GCMemcardManager::ImportFiles(int slot, const std::vector<Memcard::Savefile
 
   for (const Memcard::Savefile& savefile : savefiles)
   {
-    std::vector<Memcard::GCMBlock> blocks(savefile.blocks);
-    const auto result = card->ImportFile(savefile.dir_entry, blocks);
+    const auto result = card->ImportFile(savefile);
 
     // we've already checked everything that could realistically fail here, so this should only
     // happen if the memory card data is corrupted in some way

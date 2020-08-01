@@ -834,11 +834,12 @@ GCMemcardGetSaveDataRetVal GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock
   return GCMemcardGetSaveDataRetVal::SUCCESS;
 }
 
-GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
-                                                std::vector<GCMBlock>& saveBlocks)
+GCMemcardImportFileRetVal GCMemcard::ImportFile(const Savefile& savefile)
 {
   if (!m_valid)
     return GCMemcardImportFileRetVal::NOMEMCARD;
+
+  const DEntry& direntry = savefile.dir_entry;
 
   if (GetNumFiles() >= DIRLEN)
   {
@@ -876,8 +877,9 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
 
   int fileBlocks = direntry.m_block_count;
 
-  FZEROGX_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
-  PSO_MakeSaveGameValid(m_header_block, direntry, saveBlocks);
+  std::vector<GCMBlock> blocks = savefile.blocks;
+  FZEROGX_MakeSaveGameValid(m_header_block, direntry, blocks);
+  PSO_MakeSaveGameValid(m_header_block, direntry, blocks);
 
   BlockAlloc UpdatedBat = GetActiveBat();
   u16 nextBlock;
@@ -886,7 +888,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   {
     if (firstBlock == 0xFFFF)
       PanicAlertFmt("Fatal Error");
-    m_data_blocks[firstBlock - MC_FST_BLOCKS] = saveBlocks[i];
+    m_data_blocks[firstBlock - MC_FST_BLOCKS] = blocks[i];
     if (i == fileBlocks - 1)
       nextBlock = 0xFFFF;
     else

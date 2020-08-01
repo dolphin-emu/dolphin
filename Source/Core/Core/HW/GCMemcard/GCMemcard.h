@@ -481,8 +481,8 @@ public:
 
   GCMemcardGetSaveDataRetVal GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
-  // adds the file to the directory and copies its contents
-  GCMemcardImportFileRetVal ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  // Adds the given savefile to the memory card, if possible.
+  GCMemcardImportFileRetVal ImportFile(const Savefile& savefile);
 
   // Fetches the savefile at the given directory index, if any.
   std::optional<Savefile> ExportFile(u8 index) const;
