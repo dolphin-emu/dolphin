@@ -10,6 +10,7 @@
 
 #include "eventmodule.h"
 #include "Scripting/Python/coroutine.h"
+#include "Scripting/Python/Utils/convert.h"
 #include "Scripting/Python/Utils/gil.h"
 #include "Scripting/Python/Utils/invoke.h"
 #include "Scripting/Python/Utils/module.h"
@@ -92,13 +93,8 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
     const Py::Object coro = awaiting_coroutines.front();
     awaiting_coroutines.pop_front();
     const std::tuple<TsArgs...> args = TFunc(event);
-    PyObject* args_tuple;
     Py::GIL lock;
-    if constexpr (sizeof...(TsArgs) == 0)
-      args_tuple = Py::Take(Py_None).Leak();
-    else
-      args_tuple = std::apply(
-          [=](auto&&... arg) { return Py_BuildValue(Py::fmts<TsArgs...>.c_str(), arg...); }, args);
+    PyObject* args_tuple = Py::BuildValueTuple(args);
     PyObject* newAsyncEventTuple = Py::CallMethod(coro, "send", args_tuple);
     if (newAsyncEventTuple != nullptr)
       HandleCoroutine(coro, Py::Wrap(newAsyncEventTuple));

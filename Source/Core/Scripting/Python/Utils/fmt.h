@@ -27,7 +27,12 @@ namespace Py
 template <typename T>
 constexpr const char* GetPyFmt()
 {
-  static_assert(sizeof(T) != sizeof(T), R"(
+  // I guess automatic boolean parsing could be done with enough metaprogramming,
+  // but it seems to be very complicated.
+  static_assert((!std::is_same_v<T, bool>),
+                "The Python C API does not have a boolean type. "
+                "Consider using PyObject* and checking with PyObject_IsTrue(PyObject*)");
+  static_assert(false, R"(
   no python format string known for type.
 
   If you get a compile error that ends in here, typically one of these things happened:
@@ -118,11 +123,6 @@ template <>
 constexpr const char* GetPyFmt<double>()
 {
   return "d";
-}
-template <>
-constexpr const char* GetPyFmt<bool>()
-{
-  return "p";
 }
 template <>
 constexpr const char* GetPyFmt<PyObject*>()

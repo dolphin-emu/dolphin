@@ -59,6 +59,7 @@
     <ClInclude Include="Python\Modules\eventmodule.h" />
     <ClInclude Include="Python\Modules\memorymodule.h" />
     <ClInclude Include="Python\Utils\as_py_func.h" />
+    <ClInclude Include="Python\Utils\convert.h" />
     <ClInclude Include="Python\Utils\fmt.h" />
     <ClInclude Include="Python\Utils\gil.h" />
     <ClInclude Include="Python\Utils\invoke.h" />

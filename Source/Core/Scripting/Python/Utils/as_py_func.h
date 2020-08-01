@@ -39,6 +39,7 @@
 #include <Python.h>
 #include <tuple>
 
+#include "Scripting/Python/Utils/convert.h"
 #include "Scripting/Python/Utils/fmt.h"
 
 namespace Py
@@ -84,7 +85,8 @@ struct PyCFunctionWrapperStruct<InnerCFunc<TRet, TsArgs...>, TFunc>
     else
     {
       TRet result = std::apply(TFunc, args_tpl);
-      return Py_BuildValue(Py::fmt<TRet>, result);
+      auto py_result = Py::ToPyCompatibleValue(result);
+      return Py_BuildValue(Py::fmt<decltype(py_result)>, py_result);
     }
   }
 };
