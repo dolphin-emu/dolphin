@@ -1,11 +1,10 @@
-
-/* Class = "UITabBarItem"; title = "Ajustes"; ObjectID = "5gb-G7-eot"; */
+/* Class = "UITabBarItem"; title = "Settings"; ObjectID = "5gb-G7-eot"; */
 "5gb-G7-eot.title" = "Ajustes";
 
 /* Class = "UITabBarItem"; title = "Games"; ObjectID = "9X2-kc-x4w"; */
 "9X2-kc-x4w.title" = "Games";
 
-/* Class = "UILabel"; text = "Etiqueta"; ObjectID = "8hS-Bf-M3f"; */
+/* Class = "UILabel"; text = "Label"; ObjectID = "8hS-Bf-M3f"; */
 "8hS-Bf-M3f.text" = "Etiqueta";
 
 /* Class = "UILabel"; text = "Game Name"; ObjectID = "vCO-Vx-zFU"; */

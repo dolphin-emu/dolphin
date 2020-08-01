@@ -1,26 +1,25 @@
-
 /* Class = "UILabel"; text = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers."; ObjectID = "4JH-mf-sk9"; */
 "4JH-mf-sk9.text" = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers.";
 
 /* Class = "UILabel"; text = "Patrons 2"; ObjectID = "4zt-R7-qCU"; */
 "4zt-R7-qCU.text" = "Patrons 2";
 
-/* Class = "UILabel"; text = "Grafisch"; ObjectID = "6BT-cH-KPV"; */
+/* Class = "UILabel"; text = "Graphics"; ObjectID = "6BT-cH-KPV"; */
 "6BT-cH-KPV.text" = "Grafisch";
 
-/* Class = "UILabel"; text = "Over Dolphin"; ObjectID = "AZC-s5-S3W"; */
+/* Class = "UILabel"; text = "About Dolphin"; ObjectID = "AZC-s5-S3W"; */
 "AZC-s5-S3W.text" = "Over Dolphin";
 
 /* Class = "UILabel"; text = "Thank you to the following generous Patrons!"; ObjectID = "Apg-2S-OEc"; */
 "Apg-2S-OEc.text" = "Thank you to the following generous Patrons!";
 
-/* Class = "UITableViewController"; title = "Instellingen"; ObjectID = "B4L-TL-IR8"; */
+/* Class = "UITableViewController"; title = "Settings"; ObjectID = "B4L-TL-IR8"; */
 "B4L-TL-IR8.title" = "Instellingen";
 
 /* Class = "UILabel"; text = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way."; ObjectID = "Iw7-Nn-kBa"; */
 "Iw7-Nn-kBa.text" = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way.";
 
-/* Class = "UINavigationItem"; title = "Over Dolphin"; ObjectID = "RI4-PG-OKc"; */
+/* Class = "UINavigationItem"; title = "About Dolphin"; ObjectID = "RI4-PG-OKc"; */
 "RI4-PG-OKc.title" = "Over Dolphin";
 
 /* Class = "UIButton"; normalTitle = "Source Code"; ObjectID = "Sud-8v-xe3"; */
@@ -32,7 +31,7 @@
 /* Class = "UILabel"; text = "DolphiniOS"; ObjectID = "YrK-0b-KPM"; */
 "YrK-0b-KPM.text" = "DolphiniOS";
 
-/* Class = "UINavigationItem"; title = "Instellingen"; ObjectID = "ack-ew-MP2"; */
+/* Class = "UINavigationItem"; title = "Settings"; ObjectID = "ack-ew-MP2"; */
 "ack-ew-MP2.title" = "Instellingen";
 
 /* Class = "UILabel"; text = "Donate"; ObjectID = "cRV-Hq-IOP"; */
@@ -41,10 +40,10 @@
 /* Class = "UILabel"; text = "Help"; ObjectID = "dfe-JF-PdQ"; */
 "dfe-JF-PdQ.text" = "Help";
 
-/* Class = "UILabel"; text = "Deze software moet niet worden gebruikt om spellen te spelen die u niet legaal bezit."; ObjectID = "f6q-Ez-JFr"; */
+/* Class = "UILabel"; text = "This software should not be used to play games you do not legally own."; ObjectID = "f6q-Ez-JFr"; */
 "f6q-Ez-JFr.text" = "Deze software moet niet worden gebruikt om spellen te spelen die u niet legaal bezit.";
 
-/* Class = "UILabel"; text = "Versie"; ObjectID = "fTF-PL-Io8"; */
+/* Class = "UILabel"; text = "Version"; ObjectID = "fTF-PL-Io8"; */
 "fTF-PL-Io8.text" = "Versie";
 
 /* Class = "UILabel"; text = "Config"; ObjectID = "n0Q-3C-VDC"; */
@@ -53,7 +52,7 @@
 /* Class = "UILabel"; text = "Patrons 1"; ObjectID = "qg5-mQ-I0A"; */
 "qg5-mQ-I0A.text" = "Patrons 1";
 
-/* Class = "UIViewController"; title = "Over Dolphin"; ObjectID = "u6n-zE-oUh"; */
+/* Class = "UIViewController"; title = "About Dolphin"; ObjectID = "u6n-zE-oUh"; */
 "u6n-zE-oUh.title" = "Over Dolphin";
 
 /* Class = "UILabel"; text = "Controllers"; ObjectID = "xpQ-qK-CHk"; */
@@ -101,10 +100,10 @@
 /* Class = "UILabel"; text = "Load Store Disabled"; ObjectID = "s98-qA-2g6"; */
 "s98-qA-2g6.text" = "Load Store Disabled";
 
-/* Class = "UITableViewSection"; headerTitle = "Overig"; ObjectID = "ssc-yG-eeX"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "ssc-yG-eeX"; */
 "ssc-yG-eeX.headerTitle" = "Overig";
 
-/* Class = "UILabel"; text = "Stoppen"; ObjectID = "1co-pK-Y2u"; */
+/* Class = "UILabel"; text = "Quit"; ObjectID = "1co-pK-Y2u"; */
 "1co-pK-Y2u.text" = "Stoppen";
 
 /* Class = "UILabel"; text = "Set Process As Debugged"; ObjectID = "3ho-Oh-qCP"; */

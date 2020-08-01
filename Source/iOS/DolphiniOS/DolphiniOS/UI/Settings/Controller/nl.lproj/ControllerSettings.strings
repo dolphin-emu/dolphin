@@ -1,5 +1,4 @@
-
-/* Class = "UILabel"; text = "Configureer"; ObjectID = "0TW-1a-IeH"; */
+/* Class = "UILabel"; text = "Configure"; ObjectID = "0TW-1a-IeH"; */
 "0TW-1a-IeH.text" = "Configureer";
 
 /* Class = "UILabel"; text = "Extension Name"; ObjectID = "0eE-YR-R88"; */
@@ -23,7 +22,7 @@
 /* Class = "UITableViewController"; title = "Profile Selector"; ObjectID = "6bQ-Dj-mFK"; */
 "6bQ-Dj-mFK.title" = "Profile Selector";
 
-/* Class = "UILabel"; text = "Inschakelen"; ObjectID = "7vY-8m-y7Y"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "7vY-8m-y7Y"; */
 "7vY-8m-y7Y.text" = "Inschakelen";
 
 /* Class = "UILabel"; text = "Port 2"; ObjectID = "8QZ-ZA-mzk"; */
@@ -38,7 +37,7 @@
 /* Class = "UILabel"; text = "Button Opacity"; ObjectID = "Ba8-9K-oXL"; */
 "Ba8-9K-oXL.text" = "Button Opacity";
 
-/* Class = "UILabel"; text = "Waarde"; ObjectID = "BoV-Ny-587"; */
+/* Class = "UILabel"; text = "Value"; ObjectID = "BoV-Ny-587"; */
 "BoV-Ny-587.text" = "Waarde";
 
 /* Class = "UITableViewController"; title = "DS4 Config"; ObjectID = "CBl-HU-ZTx"; */
@@ -47,13 +46,13 @@
 /* Class = "UILabel"; text = "Controller Type 3"; ObjectID = "Dqz-rz-WrZ"; */
 "Dqz-rz-WrZ.text" = "Controller Type 3";
 
-/* Class = "UILabel"; text = "Apparaat"; ObjectID = "FT1-rG-Tk3"; */
+/* Class = "UILabel"; text = "Device"; ObjectID = "FT1-rG-Tk3"; */
 "FT1-rG-Tk3.text" = "Apparaat";
 
-/* Class = "UILabel"; text = "IP Adres"; ObjectID = "Gq2-rT-Uq2"; */
+/* Class = "UILabel"; text = "IP Address"; ObjectID = "Gq2-rT-Uq2"; */
 "Gq2-rT-Uq2.text" = "IP Adres";
 
-/* Class = "UINavigationItem"; title = "Apparaat"; ObjectID = "IZx-UR-35B"; */
+/* Class = "UINavigationItem"; title = "Device"; ObjectID = "IZx-UR-35B"; */
 "IZx-UR-35B.title" = "Apparaat";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "J79-DY-CEt"; */
@@ -65,7 +64,7 @@
 /* Class = "UINavigationItem"; title = "Type"; ObjectID = "JWn-tN-bch"; */
 "JWn-tN-bch.title" = "Type";
 
-/* Class = "UINavigationItem"; title = "Configureer"; ObjectID = "Jcs-zW-f0t"; */
+/* Class = "UINavigationItem"; title = "Configure"; ObjectID = "Jcs-zW-f0t"; */
 "Jcs-zW-f0t.title" = "Configureer";
 
 /* Class = "UILabel"; text = "Profile Name"; ObjectID = "KqR-0N-gs6"; */
@@ -77,10 +76,10 @@
 /* Class = "UILabel"; text = "Option"; ObjectID = "LaI-lg-59f"; */
 "LaI-lg-59f.text" = "Option";
 
-/* Class = "UILabel"; text = "Opslaan"; ObjectID = "NB0-GD-Qur"; */
+/* Class = "UILabel"; text = "Save"; ObjectID = "NB0-GD-Qur"; */
 "NB0-GD-Qur.text" = "Opslaan";
 
-/* Class = "UILabel"; text = "Poort"; ObjectID = "PCF-H3-GB4"; */
+/* Class = "UILabel"; text = "Port"; ObjectID = "PCF-H3-GB4"; */
 "PCF-H3-GB4.text" = "Poort";
 
 /* Class = "UITableViewController"; title = "Controller Edit"; ObjectID = "R3b-Ox-sS8"; */
@@ -89,7 +88,7 @@
 /* Class = "UILabel"; text = "Port 1"; ObjectID = "SE1-G6-XZg"; */
 "SE1-G6-XZg.text" = "Port 1";
 
-/* Class = "UITableViewSection"; headerTitle = "Wii-afstandsbedieningen"; ObjectID = "SjZ-tz-Drd"; */
+/* Class = "UITableViewSection"; headerTitle = "Wii Remotes"; ObjectID = "SjZ-tz-Drd"; */
 "SjZ-tz-Drd.headerTitle" = "Wii-afstandsbedieningen";
 
 /* Class = "UILabel"; text = "Dummy/0/Dummy Device"; ObjectID = "TO2-0X-VA0"; */
@@ -98,7 +97,7 @@
 /* Class = "UILabel"; text = "Controller Type 3"; ObjectID = "Vg0-hK-03r"; */
 "Vg0-hK-03r.text" = "Controller Type 3";
 
-/* Class = "UITableViewSection"; headerTitle = "Overige"; ObjectID = "ZqS-Mg-O95"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "ZqS-Mg-O95"; */
 "ZqS-Mg-O95.headerTitle" = "Overige";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "b08-mZ-m35"; */
@@ -152,13 +151,13 @@
 /* Class = "UILabel"; text = "Port 3"; ObjectID = "jJz-l4-7o7"; */
 "jJz-l4-7o7.text" = "Port 3";
 
-/* Class = "UILabel"; text = "Laad"; ObjectID = "joW-Na-mVW"; */
+/* Class = "UILabel"; text = "Load"; ObjectID = "joW-Na-mVW"; */
 "joW-Na-mVW.text" = "Laad";
 
-/* Class = "UINavigationItem"; title = "Profiel"; ObjectID = "jsy-24-OXj"; */
+/* Class = "UINavigationItem"; title = "Profile"; ObjectID = "jsy-24-OXj"; */
 "jsy-24-OXj.title" = "Profiel";
 
-/* Class = "UILabel"; text = "Extensie"; ObjectID = "nZJ-JZ-d70"; */
+/* Class = "UILabel"; text = "Extension"; ObjectID = "nZJ-JZ-d70"; */
 "nZJ-JZ-d70.text" = "Extensie";
 
 /* Class = "UILabel"; text = "Port 4"; ObjectID = "oBE-Gs-oZH"; */
@@ -170,7 +169,7 @@
 /* Class = "UINavigationItem"; title = "Port 0"; ObjectID = "qeO-Qo-Gt8"; */
 "qeO-Qo-Gt8.title" = "Port 0";
 
-/* Class = "UILabel"; text = "Inschakelen"; ObjectID = "qhK-oa-Vec"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "qhK-oa-Vec"; */
 "qhK-oa-Vec.text" = "Inschakelen";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "qlf-xO-p0I"; */
@@ -188,13 +187,13 @@
 /* Class = "UILabel"; text = "Touchscreen"; ObjectID = "vlM-tm-wHj"; */
 "vlM-tm-wHj.text" = "Touchscreen";
 
-/* Class = "UITableViewSection"; headerTitle = "Profiel"; ObjectID = "w8A-mj-uDH"; */
+/* Class = "UITableViewSection"; headerTitle = "Profile"; ObjectID = "w8A-mj-uDH"; */
 "w8A-mj-uDH.headerTitle" = "Profiel";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "wqu-s3-jmH"; */
 "wqu-s3-jmH.text" = "Controller Type 4";
 
-/* Class = "UINavigationItem"; title = "Extensie"; ObjectID = "xW3-sC-el7"; */
+/* Class = "UINavigationItem"; title = "Extension"; ObjectID = "xW3-sC-el7"; */
 "xW3-sC-el7.title" = "Extensie";
 
 /* Class = "UITableViewController"; title = "Devices"; ObjectID = "xwN-gx-mk9"; */

@@ -1,53 +1,52 @@
-
-/* Class = "UITableViewSection"; headerTitle = "Компиляция шейдеров"; ObjectID = "0Hp-gJ-2eG"; */
+/* Class = "UITableViewSection"; headerTitle = "Shader Compilation"; ObjectID = "0Hp-gJ-2eG"; */
 "0Hp-gJ-2eG.headerTitle" = "Компиляция шейдеров";
 
-/* Class = "UILabel"; text = "Попискельное освещение"; ObjectID = "0JJ-Dl-Dzd"; */
+/* Class = "UILabel"; text = "Per-Pixel Lighting"; ObjectID = "0JJ-Dl-Dzd"; */
 "0JJ-Dl-Dzd.text" = "Попискельное освещение";
 
-/* Class = "UILabel"; text = "Отключить эмуляцию bounding box"; ObjectID = "1m0-8t-Mn1"; */
+/* Class = "UILabel"; text = "Disable Bounding Box"; ObjectID = "1m0-8t-Mn1"; */
 "1m0-8t-Mn1.text" = "Отключить эмуляцию bounding box";
 
-/* Class = "UILabel"; text = "Соотношение сторон"; ObjectID = "4Cz-mQ-iAR"; */
+/* Class = "UILabel"; text = "Aspect Ratio"; ObjectID = "4Cz-mQ-iAR"; */
 "4Cz-mQ-iAR.text" = "Соотношение сторон";
 
-/* Class = "UINavigationItem"; title = "Общие"; ObjectID = "5gK-bb-ym4"; */
+/* Class = "UINavigationItem"; title = "General"; ObjectID = "5gK-bb-ym4"; */
 "5gK-bb-ym4.title" = "Общие";
 
-/* Class = "UILabel"; text = "Родное 6x (3840x3168) для 4K"; ObjectID = "5wx-F7-0NK"; */
+/* Class = "UILabel"; text = "6x Native (3840x3168) for 4K"; ObjectID = "5wx-F7-0NK"; */
 "5wx-F7-0NK.text" = "Родное 6x (3840x3168) для 4K";
 
-/* Class = "UINavigationItem"; title = "Бэкенд"; ObjectID = "6a1-9U-EM4"; */
+/* Class = "UINavigationItem"; title = "Backend"; ObjectID = "6a1-9U-EM4"; */
 "6a1-9U-EM4.title" = "Бэкенд";
 
-/* Class = "UILabel"; text = "Показывать пинг в сетевой игре"; ObjectID = "8Le-el-gF3"; */
+/* Class = "UILabel"; text = "Show NetPlay Ping"; ObjectID = "8Le-el-gF3"; */
 "8Le-el-gF3.text" = "Показывать пинг в сетевой игре";
 
 /* Class = "UILabel"; text = "8x"; ObjectID = "Bjq-pC-89X"; */
 "Bjq-pC-89X.text" = "8x";
 
-/* Class = "UILabel"; text = "Декодирование текстур на ГП"; ObjectID = "CQB-7r-OLi"; */
+/* Class = "UILabel"; text = "GPU Texture Decoding"; ObjectID = "CQB-7r-OLi"; */
 "CQB-7r-OLi.text" = "Декодирование текстур на ГП";
 
-/* Class = "UINavigationItem"; title = "Улучшения"; ObjectID = "CTh-oC-ajn"; */
+/* Class = "UINavigationItem"; title = "Enhancements"; ObjectID = "CTh-oC-ajn"; */
 "CTh-oC-ajn.title" = "Улучшения";
 
-/* Class = "UITableViewSection"; headerTitle = "Прочие"; ObjectID = "D6g-cJ-B7W"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "D6g-cJ-B7W"; */
 "D6g-cJ-B7W.headerTitle" = "Прочие";
 
-/* Class = "UINavigationItem"; title = "Анизотропная фильтрация"; ObjectID = "E6W-P0-4HU"; */
+/* Class = "UINavigationItem"; title = "Anisotropic Filtering"; ObjectID = "E6W-P0-4HU"; */
 "E6W-P0-4HU.title" = "Анизотропная фильтрация";
 
-/* Class = "UILabel"; text = "Родное 5x (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
+/* Class = "UILabel"; text = "5x Native (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
 "EKI-bu-6U3.text" = "Родное 5x (3200x2640)";
 
-/* Class = "UITableViewSection"; headerTitle = "Встроенный буфер кадров (EFB)"; ObjectID = "Ett-Ts-rvO"; */
+/* Class = "UITableViewSection"; headerTitle = "Embedded Frame Buffer (EFB)"; ObjectID = "Ett-Ts-rvO"; */
 "Ett-Ts-rvO.headerTitle" = "Встроенный буфер кадров (EFB)";
 
-/* Class = "UILabel"; text = "Компилировать шейдеры перед запуском"; ObjectID = "F1L-Ic-sg5"; */
+/* Class = "UILabel"; text = "Compile Shaders Before Starting"; ObjectID = "F1L-Ic-sg5"; */
 "F1L-Ic-sg5.text" = "Компилировать шейдеры перед запуском";
 
-/* Class = "UILabel"; text = "Асинхронная (убершейдеры)"; ObjectID = "GRf-hV-FTp"; */
+/* Class = "UILabel"; text = "Asynchronous (Ubershaders)"; ObjectID = "GRf-hV-FTp"; */
 "GRf-hV-FTp.text" = "Асинхронная (убершейдеры)";
 
 /* Class = "UILabel"; text = "Mode"; ObjectID = "GXD-b5-okS"; */
@@ -56,239 +55,239 @@
 /* Class = "UILabel"; text = "4:3"; ObjectID = "HbW-Xk-1Jb"; */
 "HbW-Xk-1Jb.text" = "4:3";
 
-/* Class = "UITableViewSection"; headerTitle = "Внешний буфер кадров (XFB)"; ObjectID = "ITz-dG-oBq"; */
+/* Class = "UITableViewSection"; headerTitle = "External Frame Buffer (XFB)"; ObjectID = "ITz-dG-oBq"; */
 "ITz-dG-oBq.headerTitle" = "Внешний буфер кадров (XFB)";
 
-/* Class = "UILabel"; text = "Асинхронная (пропускать отрисовку)"; ObjectID = "JFv-mk-0yL"; */
+/* Class = "UILabel"; text = "Asynchronous (Skip Drawing)"; ObjectID = "JFv-mk-0yL"; */
 "JFv-mk-0yL.text" = "Асинхронная (пропускать отрисовку)";
 
-/* Class = "UILabel"; text = "Синхронная (убершейдеры)"; ObjectID = "JV5-g2-2Ro"; */
+/* Class = "UILabel"; text = "Synchronous (Ubershaders)"; ObjectID = "JV5-g2-2Ro"; */
 "JV5-g2-2Ro.text" = "Синхронная (убершейдеры)";
 
-/* Class = "UILabel"; text = "Отключить туман"; ObjectID = "Jp9-YG-fFU"; */
+/* Class = "UILabel"; text = "Disable Fog"; ObjectID = "Jp9-YG-fFU"; */
 "Jp9-YG-fFU.text" = "Отключить туман";
 
-/* Class = "UILabel"; text = "Бэкенд"; ObjectID = "KuT-dh-F8a"; */
+/* Class = "UILabel"; text = "Backend"; ObjectID = "KuT-dh-F8a"; */
 "KuT-dh-F8a.text" = "Бэкенд";
 
-/* Class = "UILabel"; text = "Быстрое"; ObjectID = "LCC-Te-e70"; */
+/* Class = "UILabel"; text = "Fast"; ObjectID = "LCC-Te-e70"; */
 "LCC-Te-e70.text" = "Быстрое";
 
-/* Class = "UILabel"; text = "Хранить копии XFB только в текстуре"; ObjectID = "M18-ia-W0B"; */
+/* Class = "UILabel"; text = "Store XFB Copies to Texture Only"; ObjectID = "M18-ia-W0B"; */
 "M18-ia-W0B.text" = "Хранить копии XFB только в текстуре";
 
-/* Class = "UILabel"; text = "Улучшения"; ObjectID = "PdH-nE-Ghg"; */
+/* Class = "UILabel"; text = "Enhancements"; ObjectID = "PdH-nE-Ghg"; */
 "PdH-nE-Ghg.text" = "Улучшения";
 
-/* Class = "UILabel"; text = "Точность"; ObjectID = "PhH-xb-F6t"; */
+/* Class = "UILabel"; text = "Accuracy"; ObjectID = "PhH-xb-F6t"; */
 "PhH-xb-F6t.text" = "Точность";
 
 /* Class = "UILabel"; text = "16:9"; ObjectID = "Q84-dr-3b6"; */
 "Q84-dr-3b6.text" = "16:9";
 
-/* Class = "UILabel"; text = "Внутреннее разрешение"; ObjectID = "QzX-GC-ybU"; */
+/* Class = "UILabel"; text = "Internal Resolution"; ObjectID = "QzX-GC-ybU"; */
 "QzX-GC-ybU.text" = "Внутреннее разрешение";
 
 /* Class = "UILabel"; text = "16x"; ObjectID = "RnS-Zb-Fvf"; */
 "RnS-Zb-Fvf.text" = "16x";
 
-/* Class = "UILabel"; text = "Родное 4x (2560x2112) для 1440p"; ObjectID = "SSy-g0-mPk"; */
+/* Class = "UILabel"; text = "4x Native (2560x2112) for 1440p"; ObjectID = "SSy-g0-mPk"; */
 "SSy-g0-mPk.text" = "Родное 4x (2560x2112) для 1440p";
 
-/* Class = "UILabel"; text = "Анизотропная фильтрация"; ObjectID = "Skl-PD-WnK"; */
+/* Class = "UILabel"; text = "Anisotropic Filtering"; ObjectID = "Skl-PD-WnK"; */
 "Skl-PD-WnK.text" = "Анизотропная фильтрация";
 
-/* Class = "UILabel"; text = "Безопасное"; ObjectID = "TGq-7C-aJD"; */
+/* Class = "UILabel"; text = "Safe"; ObjectID = "TGq-7C-aJD"; */
 "TGq-7C-aJD.text" = "Безопасное";
 
-/* Class = "UILabel"; text = "Родное (640x528)"; ObjectID = "U3R-RE-wrE"; */
+/* Class = "UILabel"; text = "Native (640x528)"; ObjectID = "U3R-RE-wrE"; */
 "U3R-RE-wrE.text" = "Родное (640x528)";
 
 /* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
 "U4x-0k-bbr.text" = "OpenGL";
 
-/* Class = "UILabel"; text = "Хаки"; ObjectID = "VGQ-Nc-rWb"; */
+/* Class = "UILabel"; text = "Hacks"; ObjectID = "VGQ-Nc-rWb"; */
 "VGQ-Nc-rWb.text" = "Хаки";
 
-/* Class = "UILabel"; text = "Принудительная 24-битная палитра"; ObjectID = "WX6-i9-QZE"; */
+/* Class = "UILabel"; text = "Force 24-Bit Color"; ObjectID = "WX6-i9-QZE"; */
 "WX6-i9-QZE.text" = "Принудительная 24-битная палитра";
 
-/* Class = "UILabel"; text = "Вертикальная синхронизация"; ObjectID = "Xcm-Jb-oAP"; */
+/* Class = "UILabel"; text = "V-Sync"; ObjectID = "Xcm-Jb-oAP"; */
 "Xcm-Jb-oAP.text" = "Вертикальная синхронизация";
 
-/* Class = "UILabel"; text = "Хранить копии EFB только в текстуре"; ObjectID = "Y8a-Ay-DoO"; */
+/* Class = "UILabel"; text = "Store EFB Copies to Texture Only"; ObjectID = "Y8a-Ay-DoO"; */
 "Y8a-Ay-DoO.text" = "Хранить копии EFB только в текстуре";
 
-/* Class = "UILabel"; text = "Тип"; ObjectID = "YYq-jr-mf8"; */
+/* Class = "UILabel"; text = "Type"; ObjectID = "YYq-jr-mf8"; */
 "YYq-jr-mf8.text" = "Тип";
 
-/* Class = "UITableViewSection"; headerTitle = "Кэширование текстур"; ObjectID = "bH4-hd-zlv"; */
+/* Class = "UITableViewSection"; headerTitle = "Texture Cache"; ObjectID = "bH4-hd-zlv"; */
 "bH4-hd-zlv.headerTitle" = "Кэширование текстур";
 
-/* Class = "UILabel"; text = "Отложенное копирование EFB в ОЗУ"; ObjectID = "bXh-Hx-pED"; */
+/* Class = "UILabel"; text = "Defer EFB Copies to RAM"; ObjectID = "bXh-Hx-pED"; */
 "bXh-Hx-pED.text" = "Отложенное копирование EFB в ОЗУ";
 
-/* Class = "UILabel"; text = "Растянуть по окну"; ObjectID = "bmF-fV-4T8"; */
+/* Class = "UILabel"; text = "Stretch to Window"; ObjectID = "bmF-fV-4T8"; */
 "bmF-fV-4T8.text" = "Растянуть по окну";
 
-/* Class = "UILabel"; text = "Пустой"; ObjectID = "boB-ud-v0p"; */
+/* Class = "UILabel"; text = "Null"; ObjectID = "boB-ud-v0p"; */
 "boB-ud-v0p.text" = "Пустой";
 
 /* Class = "UILabel"; text = "Vulkan"; ObjectID = "cUR-qy-iP1"; */
 "cUR-qy-iP1.text" = "Vulkan";
 
-/* Class = "UILabel"; text = "Расширенные"; ObjectID = "dQQ-I9-Ulq"; */
+/* Class = "UILabel"; text = "Advanced"; ObjectID = "dQQ-I9-Ulq"; */
 "dQQ-I9-Ulq.text" = "Расширенные";
 
-/* Class = "UILabel"; text = "Отключить фильтр копирования"; ObjectID = "eOJ-Ic-E7Z"; */
+/* Class = "UILabel"; text = "Disable Copy Filter"; ObjectID = "eOJ-Ic-E7Z"; */
 "eOJ-Ic-E7Z.text" = "Отключить фильтр копирования";
 
-/* Class = "UILabel"; text = "Показывать FPS"; ObjectID = "ed5-iw-Rp5"; */
+/* Class = "UILabel"; text = "Show FPS"; ObjectID = "ed5-iw-Rp5"; */
 "ed5-iw-Rp5.text" = "Показывать FPS";
 
-/* Class = "UINavigationItem"; title = "Внутреннее разрешение"; ObjectID = "f7Y-b5-U6K"; */
+/* Class = "UINavigationItem"; title = "Internal Resolution"; ObjectID = "f7Y-b5-U6K"; */
 "f7Y-b5-U6K.title" = "Внутреннее разрешение";
 
-/* Class = "UINavigationItem"; title = "Графика"; ObjectID = "f8i-gK-HxI"; */
+/* Class = "UINavigationItem"; title = "Graphics"; ObjectID = "f8i-gK-HxI"; */
 "f8i-gK-HxI.title" = "Графика";
 
-/* Class = "UILabel"; text = "Быстрое вычисление глубины"; ObjectID = "fNB-Qp-KPf"; */
+/* Class = "UILabel"; text = "Fast Depth Calculation"; ObjectID = "fNB-Qp-KPf"; */
 "fNB-Qp-KPf.text" = "Быстрое вычисление глубины";
 
-/* Class = "UILabel"; text = "Игнорировать изменение формата"; ObjectID = "g9b-oy-vim"; */
+/* Class = "UILabel"; text = "Ignore Format Changes"; ObjectID = "g9b-oy-vim"; */
 "g9b-oy-vim.text" = "Игнорировать изменение формата";
 
-/* Class = "UILabel"; text = "Синхронная"; ObjectID = "gmt-s1-lH4"; */
+/* Class = "UILabel"; text = "Synchronous"; ObjectID = "gmt-s1-lH4"; */
 "gmt-s1-lH4.text" = "Синхронная";
 
-/* Class = "UINavigationItem"; title = "Хаки"; ObjectID = "hAk-wO-QgI"; */
+/* Class = "UINavigationItem"; title = "Hacks"; ObjectID = "hAk-wO-QgI"; */
 "hAk-wO-QgI.title" = "Хаки";
 
-/* Class = "UILabel"; text = "Выводить XFB немедленно"; ObjectID = "hiz-TR-uFn"; */
+/* Class = "UILabel"; text = "Immediately Present XFB"; ObjectID = "hiz-TR-uFn"; */
 "hiz-TR-uFn.text" = "Выводить XFB немедленно";
 
-/* Class = "UILabel"; text = "Автоматически"; ObjectID = "jAa-cL-Rjh"; */
+/* Class = "UILabel"; text = "Auto"; ObjectID = "jAa-cL-Rjh"; */
 "jAa-cL-Rjh.text" = "Автоматически";
 
-/* Class = "UILabel"; text = "Родное 3x (1920x1584) для 1080p"; ObjectID = "jJs-ou-NxC"; */
+/* Class = "UILabel"; text = "3x Native (1920x1584) for 1080p"; ObjectID = "jJs-ou-NxC"; */
 "jJs-ou-NxC.text" = "Родное 3x (1920x1584) для 1080p";
 
-/* Class = "UILabel"; text = "Общие"; ObjectID = "jjY-Es-Kzy"; */
+/* Class = "UILabel"; text = "General"; ObjectID = "jjY-Es-Kzy"; */
 "jjY-Es-Kzy.text" = "Общие";
 
-/* Class = "UILabel"; text = "Округление вершин"; ObjectID = "kV2-YB-mFd"; */
+/* Class = "UILabel"; text = "Vertex Rounding"; ObjectID = "kV2-YB-mFd"; */
 "kV2-YB-mFd.text" = "Округление вершин";
 
-/* Class = "UILabel"; text = "Программный рендеринг"; ObjectID = "lIB-f6-qZI"; */
+/* Class = "UILabel"; text = "Software Renderer"; ObjectID = "lIB-f6-qZI"; */
 "lIB-f6-qZI.text" = "Программный рендеринг";
 
-/* Class = "UITableViewSection"; headerTitle = "Основные"; ObjectID = "mGF-H0-YAg"; */
+/* Class = "UITableViewSection"; headerTitle = "Basic"; ObjectID = "mGF-H0-YAg"; */
 "mGF-H0-YAg.headerTitle" = "Основные";
 
-/* Class = "UILabel"; text = "Широкоформатный хак"; ObjectID = "myf-Wb-hBV"; */
+/* Class = "UILabel"; text = "Widescreen Hack"; ObjectID = "myf-Wb-hBV"; */
 "myf-Wb-hBV.text" = "Широкоформатный хак";
 
-/* Class = "UILabel"; text = "Автоматически (Кратное 640x528)"; ObjectID = "nNo-B4-PCq"; */
+/* Class = "UILabel"; text = "Auto (Multiple of 640x528)"; ObjectID = "nNo-B4-PCq"; */
 "nNo-B4-PCq.text" = "Автоматически (Кратное 640x528)";
 
-/* Class = "UINavigationItem"; title = "Компиляция шейдеров"; ObjectID = "ohZ-y2-lIa"; */
+/* Class = "UINavigationItem"; title = "Shader Compilation"; ObjectID = "ohZ-y2-lIa"; */
 "ohZ-y2-lIa.title" = "Компиляция шейдеров";
 
-/* Class = "UILabel"; text = "Обнаружение произвольных MIP-текстур"; ObjectID = "pMs-1L-1dY"; */
+/* Class = "UILabel"; text = "Arbitrary Mipmap Detection"; ObjectID = "pMs-1L-1dY"; */
 "pMs-1L-1dY.text" = "Обнаружение произвольных MIP-текстур";
 
-/* Class = "UILabel"; text = "Увеличенная копия EFB"; ObjectID = "s0l-GD-nfn"; */
+/* Class = "UILabel"; text = "Scaled EFB Copy"; ObjectID = "s0l-GD-nfn"; */
 "s0l-GD-nfn.text" = "Увеличенная копия EFB";
 
-/* Class = "UILabel"; text = "Принудительная фильтрация текстур"; ObjectID = "sWs-Hb-DWK"; */
+/* Class = "UILabel"; text = "Force Texture Filtering"; ObjectID = "sWs-Hb-DWK"; */
 "sWs-Hb-DWK.text" = "Принудительная фильтрация текстур";
 
 /* Class = "UILabel"; text = "2x"; ObjectID = "tne-SZ-I6X"; */
 "tne-SZ-I6X.text" = "2x";
 
-/* Class = "UILabel"; text = "Родное 8x (5120x4224) для 5K"; ObjectID = "u1l-8D-mFj"; */
+/* Class = "UILabel"; text = "8x Native (5120x4224) for 5K"; ObjectID = "u1l-8D-mFj"; */
 "u1l-8D-mFj.text" = "Родное 8x (5120x4224) для 5K";
 
-/* Class = "UINavigationItem"; title = "Соотношение сторон"; ObjectID = "ubg-gf-CKs"; */
+/* Class = "UINavigationItem"; title = "Aspect Ratio"; ObjectID = "ubg-gf-CKs"; */
 "ubg-gf-CKs.title" = "Соотношение сторон";
 
 /* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
 "ufh-Et-UDN.text" = "1x";
 
-/* Class = "UILabel"; text = "Хранить кэш текстур в сохранении"; ObjectID = "v90-sm-gpO"; */
+/* Class = "UILabel"; text = "Save Texture Cache to State"; ObjectID = "v90-sm-gpO"; */
 "v90-sm-gpO.text" = "Хранить кэш текстур в сохранении";
 
-/* Class = "UILabel"; text = "Записывать время рендеринга в файл"; ObjectID = "vLt-rL-Jc6"; */
+/* Class = "UILabel"; text = "Log Render Time to File"; ObjectID = "vLt-rL-Jc6"; */
 "vLt-rL-Jc6.text" = "Записывать время рендеринга в файл";
 
-/* Class = "UILabel"; text = "Показывать сообщения в сетевой игре"; ObjectID = "vVd-gU-Rn3"; */
+/* Class = "UILabel"; text = "Show NetPlay Messages"; ObjectID = "vVd-gU-Rn3"; */
 "vVd-gU-Rn3.text" = "Показывать сообщения в сетевой игре";
 
-/* Class = "UILabel"; text = "Пропустить доступ к EFB из ЦП"; ObjectID = "xLh-SQ-2m3"; */
+/* Class = "UILabel"; text = "Skip EFB Access from CPU"; ObjectID = "xLh-SQ-2m3"; */
 "xLh-SQ-2m3.text" = "Пропустить доступ к EFB из ЦП";
 
-/* Class = "UITableViewSection"; headerTitle = "Прочие"; ObjectID = "xsF-Eo-4KA"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "xsF-Eo-4KA"; */
 "xsF-Eo-4KA.headerTitle" = "Прочие";
 
-/* Class = "UINavigationItem"; title = "Сглаживание"; ObjectID = "y9H-fG-lRi"; */
+/* Class = "UINavigationItem"; title = "Anti-Aliasing"; ObjectID = "y9H-fG-lRi"; */
 "y9H-fG-lRi.title" = "Сглаживание";
 
-/* Class = "UILabel"; text = "Родное 2x (1280x1056) для 720p"; ObjectID = "yPP-e3-670"; */
+/* Class = "UILabel"; text = "2x Native (1280x1056) for 720p"; ObjectID = "yPP-e3-670"; */
 "yPP-e3-670.text" = "Родное 2x (1280x1056) для 720p";
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
 
-/* Class = "UINavigationItem"; title = "Расширенные"; ObjectID = "22P-Fd-nFe"; */
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "22P-Fd-nFe"; */
 "22P-Fd-nFe.title" = "Расширенные";
 
-/* Class = "UILabel"; text = "Включить прогрессивную развёртку"; ObjectID = "CI3-Yd-p3T"; */
+/* Class = "UILabel"; text = "Enable Progressive Scan"; ObjectID = "CI3-Yd-p3T"; */
 "CI3-Yd-p3T.text" = "Включить прогрессивную развёртку";
 
-/* Class = "UITableViewSection"; headerTitle = "Отладка"; ObjectID = "CZC-bY-xS3"; */
+/* Class = "UITableViewSection"; headerTitle = "Debugging"; ObjectID = "CZC-bY-xS3"; */
 "CZC-bY-xS3.headerTitle" = "Отладка";
 
-/* Class = "UILabel"; text = "Показывать статистику"; ObjectID = "ElN-5L-QQr"; */
+/* Class = "UILabel"; text = "Show Statistics"; ObjectID = "ElN-5L-QQr"; */
 "ElN-5L-QQr.text" = "Показывать статистику";
 
-/* Class = "UILabel"; text = "Отключить копии EFB в VRAM"; ObjectID = "Gcz-D2-roM"; */
+/* Class = "UILabel"; text = "Disable EFB VRAM Copies"; ObjectID = "Gcz-D2-roM"; */
 "Gcz-D2-roM.text" = "Отключить копии EFB в VRAM";
 
-/* Class = "UILabel"; text = "Дампить текстуры"; ObjectID = "MTG-F0-x3O"; */
+/* Class = "UILabel"; text = "Dump Textures"; ObjectID = "MTG-F0-x3O"; */
 "MTG-F0-x3O.text" = "Дампить текстуры";
 
-/* Class = "UILabel"; text = "Включить каркас моделей"; ObjectID = "QoZ-49-5oY"; */
+/* Class = "UILabel"; text = "Enable Wireframe"; ObjectID = "QoZ-49-5oY"; */
 "QoZ-49-5oY.text" = "Включить каркас моделей";
 
-/* Class = "UILabel"; text = "Отложить инвалидацию кэша EFB"; ObjectID = "VjZ-g2-ee8"; */
+/* Class = "UILabel"; text = "Defer EFB Cache Invalidation"; ObjectID = "VjZ-g2-ee8"; */
 "VjZ-g2-ee8.text" = "Отложить инвалидацию кэша EFB";
 
-/* Class = "UILabel"; text = "Наложение форматов текстур"; ObjectID = "Xbr-VL-aeL"; */
+/* Class = "UILabel"; text = "Texture Format Overlay"; ObjectID = "Xbr-VL-aeL"; */
 "Xbr-VL-aeL.text" = "Наложение форматов текстур";
 
-/* Class = "UILabel"; text = "Многопоточный бэкенд"; ObjectID = "ajh-9c-Jam"; */
+/* Class = "UILabel"; text = "Backend Multithreading"; ObjectID = "ajh-9c-Jam"; */
 "ajh-9c-Jam.text" = "Многопоточный бэкенд";
 
-/* Class = "UILabel"; text = "Загружать свои текстуры"; ObjectID = "bb1-Eg-hBM"; */
+/* Class = "UILabel"; text = "Load Custom Textures"; ObjectID = "bb1-Eg-hBM"; */
 "bb1-Eg-hBM.text" = "Загружать свои текстуры";
 
-/* Class = "UITableViewSection"; headerTitle = "Экспериментальные"; ObjectID = "epL-g2-NAC"; */
+/* Class = "UITableViewSection"; headerTitle = "Experimental"; ObjectID = "epL-g2-NAC"; */
 "epL-g2-NAC.headerTitle" = "Экспериментальные";
 
-/* Class = "UILabel"; text = "Предзагружать свои текстуры"; ObjectID = "lDn-mk-Z1l"; */
+/* Class = "UILabel"; text = "Prefetch Custom Textures"; ObjectID = "lDn-mk-Z1l"; */
 "lDn-mk-Z1l.text" = "Предзагружать свои текстуры";
 
-/* Class = "UITableViewSection"; headerTitle = "Полезные"; ObjectID = "lHy-iP-KbA"; */
+/* Class = "UITableViewSection"; headerTitle = "Utility"; ObjectID = "lHy-iP-KbA"; */
 "lHy-iP-KbA.headerTitle" = "Полезные";
 
-/* Class = "UILabel"; text = "Обрезка"; ObjectID = "lQL-jc-ILl"; */
+/* Class = "UILabel"; text = "Crop"; ObjectID = "lQL-jc-ILl"; */
 "lQL-jc-ILl.text" = "Обрезка";
 
-/* Class = "UILabel"; text = "Включить слои проверки API"; ObjectID = "oCN-Sj-Use"; */
+/* Class = "UILabel"; text = "Enable API Validation Layers"; ObjectID = "oCN-Sj-Use"; */
 "oCN-Sj-Use.text" = "Включить слои проверки API";
 
-/* Class = "UITableViewSection"; headerTitle = "Разное"; ObjectID = "owU-hi-eK8"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "owU-hi-eK8"; */
 "owU-hi-eK8.headerTitle" = "Разное";
 
-/* Class = "UILabel"; text = "Дампить конечный EFB"; ObjectID = "xqh-iX-yt9"; */
+/* Class = "UILabel"; text = "Dump EFB Target"; ObjectID = "xqh-iX-yt9"; */
 "xqh-iX-yt9.text" = "Дампить конечный EFB";

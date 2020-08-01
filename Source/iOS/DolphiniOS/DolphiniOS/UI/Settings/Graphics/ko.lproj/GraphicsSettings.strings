@@ -1,53 +1,52 @@
-
-/* Class = "UITableViewSection"; headerTitle = "쉐이더 컴파일"; ObjectID = "0Hp-gJ-2eG"; */
+/* Class = "UITableViewSection"; headerTitle = "Shader Compilation"; ObjectID = "0Hp-gJ-2eG"; */
 "0Hp-gJ-2eG.headerTitle" = "쉐이더 컴파일";
 
-/* Class = "UILabel"; text = "픽셀단위 광원"; ObjectID = "0JJ-Dl-Dzd"; */
+/* Class = "UILabel"; text = "Per-Pixel Lighting"; ObjectID = "0JJ-Dl-Dzd"; */
 "0JJ-Dl-Dzd.text" = "픽셀단위 광원";
 
-/* Class = "UILabel"; text = "바운딩 박스 끄기"; ObjectID = "1m0-8t-Mn1"; */
+/* Class = "UILabel"; text = "Disable Bounding Box"; ObjectID = "1m0-8t-Mn1"; */
 "1m0-8t-Mn1.text" = "바운딩 박스 끄기";
 
-/* Class = "UILabel"; text = "종횡비"; ObjectID = "4Cz-mQ-iAR"; */
+/* Class = "UILabel"; text = "Aspect Ratio"; ObjectID = "4Cz-mQ-iAR"; */
 "4Cz-mQ-iAR.text" = "종횡비";
 
-/* Class = "UINavigationItem"; title = "일반"; ObjectID = "5gK-bb-ym4"; */
+/* Class = "UINavigationItem"; title = "General"; ObjectID = "5gK-bb-ym4"; */
 "5gK-bb-ym4.title" = "일반";
 
-/* Class = "UILabel"; text = "6x 원본 (3840x3168) 4K용"; ObjectID = "5wx-F7-0NK"; */
+/* Class = "UILabel"; text = "6x Native (3840x3168) for 4K"; ObjectID = "5wx-F7-0NK"; */
 "5wx-F7-0NK.text" = "6x 원본 (3840x3168) 4K용";
 
-/* Class = "UINavigationItem"; title = "백엔드"; ObjectID = "6a1-9U-EM4"; */
+/* Class = "UINavigationItem"; title = "Backend"; ObjectID = "6a1-9U-EM4"; */
 "6a1-9U-EM4.title" = "백엔드";
 
-/* Class = "UILabel"; text = "넷플레이 핑 보기"; ObjectID = "8Le-el-gF3"; */
+/* Class = "UILabel"; text = "Show NetPlay Ping"; ObjectID = "8Le-el-gF3"; */
 "8Le-el-gF3.text" = "넷플레이 핑 보기";
 
 /* Class = "UILabel"; text = "8x"; ObjectID = "Bjq-pC-89X"; */
 "Bjq-pC-89X.text" = "8x";
 
-/* Class = "UILabel"; text = "GPU 텍스처 디코딩"; ObjectID = "CQB-7r-OLi"; */
+/* Class = "UILabel"; text = "GPU Texture Decoding"; ObjectID = "CQB-7r-OLi"; */
 "CQB-7r-OLi.text" = "GPU 텍스처 디코딩";
 
-/* Class = "UINavigationItem"; title = "향상"; ObjectID = "CTh-oC-ajn"; */
+/* Class = "UINavigationItem"; title = "Enhancements"; ObjectID = "CTh-oC-ajn"; */
 "CTh-oC-ajn.title" = "향상";
 
-/* Class = "UITableViewSection"; headerTitle = "다른 것들"; ObjectID = "D6g-cJ-B7W"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "D6g-cJ-B7W"; */
 "D6g-cJ-B7W.headerTitle" = "다른 것들";
 
-/* Class = "UINavigationItem"; title = "비등방성 필터링"; ObjectID = "E6W-P0-4HU"; */
+/* Class = "UINavigationItem"; title = "Anisotropic Filtering"; ObjectID = "E6W-P0-4HU"; */
 "E6W-P0-4HU.title" = "비등방성 필터링";
 
-/* Class = "UILabel"; text = "5x 원본 (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
+/* Class = "UILabel"; text = "5x Native (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
 "EKI-bu-6U3.text" = "5x 원본 (3200x2640)";
 
-/* Class = "UITableViewSection"; headerTitle = "내장형 프레임 버퍼 (EFB)"; ObjectID = "Ett-Ts-rvO"; */
+/* Class = "UITableViewSection"; headerTitle = "Embedded Frame Buffer (EFB)"; ObjectID = "Ett-Ts-rvO"; */
 "Ett-Ts-rvO.headerTitle" = "내장형 프레임 버퍼 (EFB)";
 
-/* Class = "UILabel"; text = "시작하기 전에 쉐이더들 컴파일"; ObjectID = "F1L-Ic-sg5"; */
+/* Class = "UILabel"; text = "Compile Shaders Before Starting"; ObjectID = "F1L-Ic-sg5"; */
 "F1L-Ic-sg5.text" = "시작하기 전에 쉐이더들 컴파일";
 
-/* Class = "UILabel"; text = "비동기 (위버쉐이더스)"; ObjectID = "GRf-hV-FTp"; */
+/* Class = "UILabel"; text = "Asynchronous (Ubershaders)"; ObjectID = "GRf-hV-FTp"; */
 "GRf-hV-FTp.text" = "비동기 (위버쉐이더스)";
 
 /* Class = "UILabel"; text = "Mode"; ObjectID = "GXD-b5-okS"; */
@@ -56,239 +55,239 @@
 /* Class = "UILabel"; text = "4:3"; ObjectID = "HbW-Xk-1Jb"; */
 "HbW-Xk-1Jb.text" = "4:3";
 
-/* Class = "UITableViewSection"; headerTitle = "외부 프레임 버퍼 (XFB)"; ObjectID = "ITz-dG-oBq"; */
+/* Class = "UITableViewSection"; headerTitle = "External Frame Buffer (XFB)"; ObjectID = "ITz-dG-oBq"; */
 "ITz-dG-oBq.headerTitle" = "외부 프레임 버퍼 (XFB)";
 
-/* Class = "UILabel"; text = "비동기 (그리기 스킵)"; ObjectID = "JFv-mk-0yL"; */
+/* Class = "UILabel"; text = "Asynchronous (Skip Drawing)"; ObjectID = "JFv-mk-0yL"; */
 "JFv-mk-0yL.text" = "비동기 (그리기 스킵)";
 
-/* Class = "UILabel"; text = "동기 (위버쉐이더스)"; ObjectID = "JV5-g2-2Ro"; */
+/* Class = "UILabel"; text = "Synchronous (Ubershaders)"; ObjectID = "JV5-g2-2Ro"; */
 "JV5-g2-2Ro.text" = "동기 (위버쉐이더스)";
 
-/* Class = "UILabel"; text = "안개 끄기"; ObjectID = "Jp9-YG-fFU"; */
+/* Class = "UILabel"; text = "Disable Fog"; ObjectID = "Jp9-YG-fFU"; */
 "Jp9-YG-fFU.text" = "안개 끄기";
 
-/* Class = "UILabel"; text = "백엔드"; ObjectID = "KuT-dh-F8a"; */
+/* Class = "UILabel"; text = "Backend"; ObjectID = "KuT-dh-F8a"; */
 "KuT-dh-F8a.text" = "백엔드";
 
-/* Class = "UILabel"; text = "빠름"; ObjectID = "LCC-Te-e70"; */
+/* Class = "UILabel"; text = "Fast"; ObjectID = "LCC-Te-e70"; */
 "LCC-Te-e70.text" = "빠름";
 
-/* Class = "UILabel"; text = "XFB 복사를 텍스처에만 담기"; ObjectID = "M18-ia-W0B"; */
+/* Class = "UILabel"; text = "Store XFB Copies to Texture Only"; ObjectID = "M18-ia-W0B"; */
 "M18-ia-W0B.text" = "XFB 복사를 텍스처에만 담기";
 
-/* Class = "UILabel"; text = "향상"; ObjectID = "PdH-nE-Ghg"; */
+/* Class = "UILabel"; text = "Enhancements"; ObjectID = "PdH-nE-Ghg"; */
 "PdH-nE-Ghg.text" = "향상";
 
-/* Class = "UILabel"; text = "정확성"; ObjectID = "PhH-xb-F6t"; */
+/* Class = "UILabel"; text = "Accuracy"; ObjectID = "PhH-xb-F6t"; */
 "PhH-xb-F6t.text" = "정확성";
 
 /* Class = "UILabel"; text = "16:9"; ObjectID = "Q84-dr-3b6"; */
 "Q84-dr-3b6.text" = "16:9";
 
-/* Class = "UILabel"; text = "내부 해상도"; ObjectID = "QzX-GC-ybU"; */
+/* Class = "UILabel"; text = "Internal Resolution"; ObjectID = "QzX-GC-ybU"; */
 "QzX-GC-ybU.text" = "내부 해상도";
 
 /* Class = "UILabel"; text = "16x"; ObjectID = "RnS-Zb-Fvf"; */
 "RnS-Zb-Fvf.text" = "16x";
 
-/* Class = "UILabel"; text = "4x 원본 (2560x2112) 1440p용"; ObjectID = "SSy-g0-mPk"; */
+/* Class = "UILabel"; text = "4x Native (2560x2112) for 1440p"; ObjectID = "SSy-g0-mPk"; */
 "SSy-g0-mPk.text" = "4x 원본 (2560x2112) 1440p용";
 
-/* Class = "UILabel"; text = "비등방성 필터링"; ObjectID = "Skl-PD-WnK"; */
+/* Class = "UILabel"; text = "Anisotropic Filtering"; ObjectID = "Skl-PD-WnK"; */
 "Skl-PD-WnK.text" = "비등방성 필터링";
 
-/* Class = "UILabel"; text = "안전"; ObjectID = "TGq-7C-aJD"; */
+/* Class = "UILabel"; text = "Safe"; ObjectID = "TGq-7C-aJD"; */
 "TGq-7C-aJD.text" = "안전";
 
-/* Class = "UILabel"; text = "원본 (640x528)"; ObjectID = "U3R-RE-wrE"; */
+/* Class = "UILabel"; text = "Native (640x528)"; ObjectID = "U3R-RE-wrE"; */
 "U3R-RE-wrE.text" = "원본 (640x528)";
 
 /* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
 "U4x-0k-bbr.text" = "OpenGL";
 
-/* Class = "UILabel"; text = "핵"; ObjectID = "VGQ-Nc-rWb"; */
+/* Class = "UILabel"; text = "Hacks"; ObjectID = "VGQ-Nc-rWb"; */
 "VGQ-Nc-rWb.text" = "핵";
 
-/* Class = "UILabel"; text = "강제 24-비트 컬러"; ObjectID = "WX6-i9-QZE"; */
+/* Class = "UILabel"; text = "Force 24-Bit Color"; ObjectID = "WX6-i9-QZE"; */
 "WX6-i9-QZE.text" = "강제 24-비트 컬러";
 
-/* Class = "UILabel"; text = "수직-동기화"; ObjectID = "Xcm-Jb-oAP"; */
+/* Class = "UILabel"; text = "V-Sync"; ObjectID = "Xcm-Jb-oAP"; */
 "Xcm-Jb-oAP.text" = "수직-동기화";
 
-/* Class = "UILabel"; text = "EFB 복사를 텍스처에만 담기"; ObjectID = "Y8a-Ay-DoO"; */
+/* Class = "UILabel"; text = "Store EFB Copies to Texture Only"; ObjectID = "Y8a-Ay-DoO"; */
 "Y8a-Ay-DoO.text" = "EFB 복사를 텍스처에만 담기";
 
-/* Class = "UILabel"; text = "타입"; ObjectID = "YYq-jr-mf8"; */
+/* Class = "UILabel"; text = "Type"; ObjectID = "YYq-jr-mf8"; */
 "YYq-jr-mf8.text" = "타입";
 
-/* Class = "UITableViewSection"; headerTitle = "텍스처 캐시"; ObjectID = "bH4-hd-zlv"; */
+/* Class = "UITableViewSection"; headerTitle = "Texture Cache"; ObjectID = "bH4-hd-zlv"; */
 "bH4-hd-zlv.headerTitle" = "텍스처 캐시";
 
-/* Class = "UILabel"; text = "EFB 램에 복사 연기"; ObjectID = "bXh-Hx-pED"; */
+/* Class = "UILabel"; text = "Defer EFB Copies to RAM"; ObjectID = "bXh-Hx-pED"; */
 "bXh-Hx-pED.text" = "EFB 램에 복사 연기";
 
-/* Class = "UILabel"; text = "창으로 늘림"; ObjectID = "bmF-fV-4T8"; */
+/* Class = "UILabel"; text = "Stretch to Window"; ObjectID = "bmF-fV-4T8"; */
 "bmF-fV-4T8.text" = "창으로 늘림";
 
-/* Class = "UILabel"; text = "없음"; ObjectID = "boB-ud-v0p"; */
+/* Class = "UILabel"; text = "Null"; ObjectID = "boB-ud-v0p"; */
 "boB-ud-v0p.text" = "없음";
 
 /* Class = "UILabel"; text = "Vulkan"; ObjectID = "cUR-qy-iP1"; */
 "cUR-qy-iP1.text" = "Vulkan";
 
-/* Class = "UILabel"; text = "고급"; ObjectID = "dQQ-I9-Ulq"; */
+/* Class = "UILabel"; text = "Advanced"; ObjectID = "dQQ-I9-Ulq"; */
 "dQQ-I9-Ulq.text" = "고급";
 
-/* Class = "UILabel"; text = "복사 필터 비활성"; ObjectID = "eOJ-Ic-E7Z"; */
+/* Class = "UILabel"; text = "Disable Copy Filter"; ObjectID = "eOJ-Ic-E7Z"; */
 "eOJ-Ic-E7Z.text" = "복사 필터 비활성";
 
-/* Class = "UILabel"; text = "FPS 보기"; ObjectID = "ed5-iw-Rp5"; */
+/* Class = "UILabel"; text = "Show FPS"; ObjectID = "ed5-iw-Rp5"; */
 "ed5-iw-Rp5.text" = "FPS 보기";
 
-/* Class = "UINavigationItem"; title = "내부 해상도"; ObjectID = "f7Y-b5-U6K"; */
+/* Class = "UINavigationItem"; title = "Internal Resolution"; ObjectID = "f7Y-b5-U6K"; */
 "f7Y-b5-U6K.title" = "내부 해상도";
 
-/* Class = "UINavigationItem"; title = "그래픽"; ObjectID = "f8i-gK-HxI"; */
+/* Class = "UINavigationItem"; title = "Graphics"; ObjectID = "f8i-gK-HxI"; */
 "f8i-gK-HxI.title" = "그래픽";
 
-/* Class = "UILabel"; text = "빠른 깊이 계산"; ObjectID = "fNB-Qp-KPf"; */
+/* Class = "UILabel"; text = "Fast Depth Calculation"; ObjectID = "fNB-Qp-KPf"; */
 "fNB-Qp-KPf.text" = "빠른 깊이 계산";
 
-/* Class = "UILabel"; text = "포맷 변경들을 무시"; ObjectID = "g9b-oy-vim"; */
+/* Class = "UILabel"; text = "Ignore Format Changes"; ObjectID = "g9b-oy-vim"; */
 "g9b-oy-vim.text" = "포맷 변경들을 무시";
 
-/* Class = "UILabel"; text = "동기"; ObjectID = "gmt-s1-lH4"; */
+/* Class = "UILabel"; text = "Synchronous"; ObjectID = "gmt-s1-lH4"; */
 "gmt-s1-lH4.text" = "동기";
 
-/* Class = "UINavigationItem"; title = "핵"; ObjectID = "hAk-wO-QgI"; */
+/* Class = "UINavigationItem"; title = "Hacks"; ObjectID = "hAk-wO-QgI"; */
 "hAk-wO-QgI.title" = "핵";
 
-/* Class = "UILabel"; text = "XFB 를 즉시 표시합니다"; ObjectID = "hiz-TR-uFn"; */
+/* Class = "UILabel"; text = "Immediately Present XFB"; ObjectID = "hiz-TR-uFn"; */
 "hiz-TR-uFn.text" = "XFB 를 즉시 표시합니다";
 
-/* Class = "UILabel"; text = "자동"; ObjectID = "jAa-cL-Rjh"; */
+/* Class = "UILabel"; text = "Auto"; ObjectID = "jAa-cL-Rjh"; */
 "jAa-cL-Rjh.text" = "자동";
 
-/* Class = "UILabel"; text = "3x 원본 (1920x1584) 1080p용"; ObjectID = "jJs-ou-NxC"; */
+/* Class = "UILabel"; text = "3x Native (1920x1584) for 1080p"; ObjectID = "jJs-ou-NxC"; */
 "jJs-ou-NxC.text" = "3x 원본 (1920x1584) 1080p용";
 
-/* Class = "UILabel"; text = "일반"; ObjectID = "jjY-Es-Kzy"; */
+/* Class = "UILabel"; text = "General"; ObjectID = "jjY-Es-Kzy"; */
 "jjY-Es-Kzy.text" = "일반";
 
-/* Class = "UILabel"; text = "버텍스 반올림"; ObjectID = "kV2-YB-mFd"; */
+/* Class = "UILabel"; text = "Vertex Rounding"; ObjectID = "kV2-YB-mFd"; */
 "kV2-YB-mFd.text" = "버텍스 반올림";
 
-/* Class = "UILabel"; text = "소프트웨어 렌더러"; ObjectID = "lIB-f6-qZI"; */
+/* Class = "UILabel"; text = "Software Renderer"; ObjectID = "lIB-f6-qZI"; */
 "lIB-f6-qZI.text" = "소프트웨어 렌더러";
 
-/* Class = "UITableViewSection"; headerTitle = "기본"; ObjectID = "mGF-H0-YAg"; */
+/* Class = "UITableViewSection"; headerTitle = "Basic"; ObjectID = "mGF-H0-YAg"; */
 "mGF-H0-YAg.headerTitle" = "기본";
 
-/* Class = "UILabel"; text = "와이드스크린 핵"; ObjectID = "myf-Wb-hBV"; */
+/* Class = "UILabel"; text = "Widescreen Hack"; ObjectID = "myf-Wb-hBV"; */
 "myf-Wb-hBV.text" = "와이드스크린 핵";
 
-/* Class = "UILabel"; text = "자동 (640x528의 배수)"; ObjectID = "nNo-B4-PCq"; */
+/* Class = "UILabel"; text = "Auto (Multiple of 640x528)"; ObjectID = "nNo-B4-PCq"; */
 "nNo-B4-PCq.text" = "자동 (640x528의 배수)";
 
-/* Class = "UINavigationItem"; title = "쉐이더 컴파일"; ObjectID = "ohZ-y2-lIa"; */
+/* Class = "UINavigationItem"; title = "Shader Compilation"; ObjectID = "ohZ-y2-lIa"; */
 "ohZ-y2-lIa.title" = "쉐이더 컴파일";
 
-/* Class = "UILabel"; text = "독단적 밉맵 감지"; ObjectID = "pMs-1L-1dY"; */
+/* Class = "UILabel"; text = "Arbitrary Mipmap Detection"; ObjectID = "pMs-1L-1dY"; */
 "pMs-1L-1dY.text" = "독단적 밉맵 감지";
 
-/* Class = "UILabel"; text = "스케일된 EFB 복사"; ObjectID = "s0l-GD-nfn"; */
+/* Class = "UILabel"; text = "Scaled EFB Copy"; ObjectID = "s0l-GD-nfn"; */
 "s0l-GD-nfn.text" = "스케일된 EFB 복사";
 
-/* Class = "UILabel"; text = "강제 텍스처 필터링"; ObjectID = "sWs-Hb-DWK"; */
+/* Class = "UILabel"; text = "Force Texture Filtering"; ObjectID = "sWs-Hb-DWK"; */
 "sWs-Hb-DWK.text" = "강제 텍스처 필터링";
 
 /* Class = "UILabel"; text = "2x"; ObjectID = "tne-SZ-I6X"; */
 "tne-SZ-I6X.text" = "2x";
 
-/* Class = "UILabel"; text = "8x 원본 (5120x4224) 5K용"; ObjectID = "u1l-8D-mFj"; */
+/* Class = "UILabel"; text = "8x Native (5120x4224) for 5K"; ObjectID = "u1l-8D-mFj"; */
 "u1l-8D-mFj.text" = "8x 원본 (5120x4224) 5K용";
 
-/* Class = "UINavigationItem"; title = "종횡비"; ObjectID = "ubg-gf-CKs"; */
+/* Class = "UINavigationItem"; title = "Aspect Ratio"; ObjectID = "ubg-gf-CKs"; */
 "ubg-gf-CKs.title" = "종횡비";
 
 /* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
 "ufh-Et-UDN.text" = "1x";
 
-/* Class = "UILabel"; text = "텍스처 캐시를 상태로 저장"; ObjectID = "v90-sm-gpO"; */
+/* Class = "UILabel"; text = "Save Texture Cache to State"; ObjectID = "v90-sm-gpO"; */
 "v90-sm-gpO.text" = "텍스처 캐시를 상태로 저장";
 
-/* Class = "UILabel"; text = "렌더 타임을 파일에 로그"; ObjectID = "vLt-rL-Jc6"; */
+/* Class = "UILabel"; text = "Log Render Time to File"; ObjectID = "vLt-rL-Jc6"; */
 "vLt-rL-Jc6.text" = "렌더 타임을 파일에 로그";
 
-/* Class = "UILabel"; text = "넷플레이 메시지 보기"; ObjectID = "vVd-gU-Rn3"; */
+/* Class = "UILabel"; text = "Show NetPlay Messages"; ObjectID = "vVd-gU-Rn3"; */
 "vVd-gU-Rn3.text" = "넷플레이 메시지 보기";
 
-/* Class = "UILabel"; text = "CPU로부터 EFB 엑세스 스킵"; ObjectID = "xLh-SQ-2m3"; */
+/* Class = "UILabel"; text = "Skip EFB Access from CPU"; ObjectID = "xLh-SQ-2m3"; */
 "xLh-SQ-2m3.text" = "CPU로부터 EFB 엑세스 스킵";
 
-/* Class = "UITableViewSection"; headerTitle = "다른 것들"; ObjectID = "xsF-Eo-4KA"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "xsF-Eo-4KA"; */
 "xsF-Eo-4KA.headerTitle" = "다른 것들";
 
-/* Class = "UINavigationItem"; title = "안티-앨리어싱"; ObjectID = "y9H-fG-lRi"; */
+/* Class = "UINavigationItem"; title = "Anti-Aliasing"; ObjectID = "y9H-fG-lRi"; */
 "y9H-fG-lRi.title" = "안티-앨리어싱";
 
-/* Class = "UILabel"; text = "2x 원본 (1280x1056) 720p용"; ObjectID = "yPP-e3-670"; */
+/* Class = "UILabel"; text = "2x Native (1280x1056) for 720p"; ObjectID = "yPP-e3-670"; */
 "yPP-e3-670.text" = "2x 원본 (1280x1056) 720p용";
 
 /* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
 "yzN-eq-mOS.text" = "4x";
 
-/* Class = "UINavigationItem"; title = "고급"; ObjectID = "22P-Fd-nFe"; */
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "22P-Fd-nFe"; */
 "22P-Fd-nFe.title" = "고급";
 
-/* Class = "UILabel"; text = "프로그레시브 스캔 활성화"; ObjectID = "CI3-Yd-p3T"; */
+/* Class = "UILabel"; text = "Enable Progressive Scan"; ObjectID = "CI3-Yd-p3T"; */
 "CI3-Yd-p3T.text" = "프로그레시브 스캔 활성화";
 
-/* Class = "UITableViewSection"; headerTitle = "디버깅"; ObjectID = "CZC-bY-xS3"; */
+/* Class = "UITableViewSection"; headerTitle = "Debugging"; ObjectID = "CZC-bY-xS3"; */
 "CZC-bY-xS3.headerTitle" = "디버깅";
 
-/* Class = "UILabel"; text = "통계 보기"; ObjectID = "ElN-5L-QQr"; */
+/* Class = "UILabel"; text = "Show Statistics"; ObjectID = "ElN-5L-QQr"; */
 "ElN-5L-QQr.text" = "통계 보기";
 
-/* Class = "UILabel"; text = "EFB 비디오램 복사 비활성"; ObjectID = "Gcz-D2-roM"; */
+/* Class = "UILabel"; text = "Disable EFB VRAM Copies"; ObjectID = "Gcz-D2-roM"; */
 "Gcz-D2-roM.text" = "EFB 비디오램 복사 비활성";
 
-/* Class = "UILabel"; text = "텍스처 덤프"; ObjectID = "MTG-F0-x3O"; */
+/* Class = "UILabel"; text = "Dump Textures"; ObjectID = "MTG-F0-x3O"; */
 "MTG-F0-x3O.text" = "텍스처 덤프";
 
-/* Class = "UILabel"; text = "와이어프레임 활성화"; ObjectID = "QoZ-49-5oY"; */
+/* Class = "UILabel"; text = "Enable Wireframe"; ObjectID = "QoZ-49-5oY"; */
 "QoZ-49-5oY.text" = "와이어프레임 활성화";
 
-/* Class = "UILabel"; text = "EFB 캐시 무효화를 연기"; ObjectID = "VjZ-g2-ee8"; */
+/* Class = "UILabel"; text = "Defer EFB Cache Invalidation"; ObjectID = "VjZ-g2-ee8"; */
 "VjZ-g2-ee8.text" = "EFB 캐시 무효화를 연기";
 
-/* Class = "UILabel"; text = "텍스처 포맷 오버레이"; ObjectID = "Xbr-VL-aeL"; */
+/* Class = "UILabel"; text = "Texture Format Overlay"; ObjectID = "Xbr-VL-aeL"; */
 "Xbr-VL-aeL.text" = "텍스처 포맷 오버레이";
 
-/* Class = "UILabel"; text = "백엔드 멀티쓰레딩"; ObjectID = "ajh-9c-Jam"; */
+/* Class = "UILabel"; text = "Backend Multithreading"; ObjectID = "ajh-9c-Jam"; */
 "ajh-9c-Jam.text" = "백엔드 멀티쓰레딩";
 
-/* Class = "UILabel"; text = "커스텀 텍스처 로드"; ObjectID = "bb1-Eg-hBM"; */
+/* Class = "UILabel"; text = "Load Custom Textures"; ObjectID = "bb1-Eg-hBM"; */
 "bb1-Eg-hBM.text" = "커스텀 텍스처 로드";
 
-/* Class = "UITableViewSection"; headerTitle = "실험적"; ObjectID = "epL-g2-NAC"; */
+/* Class = "UITableViewSection"; headerTitle = "Experimental"; ObjectID = "epL-g2-NAC"; */
 "epL-g2-NAC.headerTitle" = "실험적";
 
-/* Class = "UILabel"; text = "커스텀 텍스처 프리패치"; ObjectID = "lDn-mk-Z1l"; */
+/* Class = "UILabel"; text = "Prefetch Custom Textures"; ObjectID = "lDn-mk-Z1l"; */
 "lDn-mk-Z1l.text" = "커스텀 텍스처 프리패치";
 
-/* Class = "UITableViewSection"; headerTitle = "유틸리티"; ObjectID = "lHy-iP-KbA"; */
+/* Class = "UITableViewSection"; headerTitle = "Utility"; ObjectID = "lHy-iP-KbA"; */
 "lHy-iP-KbA.headerTitle" = "유틸리티";
 
-/* Class = "UILabel"; text = "자르기"; ObjectID = "lQL-jc-ILl"; */
+/* Class = "UILabel"; text = "Crop"; ObjectID = "lQL-jc-ILl"; */
 "lQL-jc-ILl.text" = "자르기";
 
-/* Class = "UILabel"; text = "API 검증 레이어 활성화"; ObjectID = "oCN-Sj-Use"; */
+/* Class = "UILabel"; text = "Enable API Validation Layers"; ObjectID = "oCN-Sj-Use"; */
 "oCN-Sj-Use.text" = "API 검증 레이어 활성화";
 
-/* Class = "UITableViewSection"; headerTitle = "기타"; ObjectID = "owU-hi-eK8"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "owU-hi-eK8"; */
 "owU-hi-eK8.headerTitle" = "기타";
 
-/* Class = "UILabel"; text = "EFB 타겟 덤프"; ObjectID = "xqh-iX-yt9"; */
+/* Class = "UILabel"; text = "Dump EFB Target"; ObjectID = "xqh-iX-yt9"; */
 "xqh-iX-yt9.text" = "EFB 타겟 덤프";

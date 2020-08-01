@@ -1,56 +1,55 @@
-
-/* Class = "UILabel"; text = "Vibración de mando de Wii"; ObjectID = "0K1-Oi-viC"; */
+/* Class = "UILabel"; text = "Wii Remote Rumble"; ObjectID = "0K1-Oi-viC"; */
 "0K1-Oi-viC.text" = "Vibración de mando de Wii";
 
-/* Class = "UINavigationItem"; title = "Avanzado"; ObjectID = "0s6-c7-OwY"; */
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "0s6-c7-OwY"; */
 "0s6-c7-OwY.title" = "Avanzado";
 
-/* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "15i-sg-byP"; */
+/* Class = "UILabel"; text = "System Language"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "Idioma del sistema";
 
-/* Class = "UITableViewSection"; headerTitle = "Anulación de reloj"; ObjectID = "16h-jz-fQG"; */
+/* Class = "UITableViewSection"; headerTitle = "Clock Override"; ObjectID = "16h-jz-fQG"; */
 "16h-jz-fQG.headerTitle" = "Anulación de reloj";
 
-/* Class = "UILabel"; text = "Idioma del sistema"; ObjectID = "1L5-Kj-USx"; */
+/* Class = "UILabel"; text = "System Language"; ObjectID = "1L5-Kj-USx"; */
 "1L5-Kj-USx.text" = "Idioma del sistema";
 
 /* Class = "UINavigationItem"; title = "Audio"; ObjectID = "1tL-Cz-TAL"; */
 "1tL-Cz-TAL.title" = "Audio";
 
-/* Class = "UILabel"; text = "Holandés"; ObjectID = "2Eo-dx-eKL"; */
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "2Eo-dx-eKL"; */
 "2Eo-dx-eKL.text" = "Holandés";
 
-/* Class = "UITableViewSection"; headerTitle = "Opciones del procesador"; ObjectID = "3FW-wh-rEp"; */
+/* Class = "UITableViewSection"; headerTitle = "CPU Options"; ObjectID = "3FW-wh-rEp"; */
 "3FW-wh-rEp.headerTitle" = "Opciones del procesador";
 
-/* Class = "UILabel"; text = "Activar salvapantallas"; ObjectID = "3Gq-Ip-xn2"; */
+/* Class = "UILabel"; text = "Enable Screen Saver"; ObjectID = "3Gq-Ip-xn2"; */
 "3Gq-Ip-xn2.text" = "Activar salvapantallas";
 
 /* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
 "5dO-8H-gFe.text" = "4:3";
 
-/* Class = "UILabel"; text = "Cambiar discos automáticamente"; ObjectID = "6Jm-cq-bVY"; */
+/* Class = "UILabel"; text = "Change Discs Automatically"; ObjectID = "6Jm-cq-bVY"; */
 "6Jm-cq-bVY.text" = "Cambiar discos automáticamente";
 
 /* Class = "UILabel"; text = "Center Game Image"; ObjectID = "6K0-Zw-CzT"; */
 "6K0-Zw-CzT.text" = "Center Game Image";
 
-/* Class = "UILabel"; text = "Posición de la barra sensora"; ObjectID = "6Qs-g2-BTZ"; */
+/* Class = "UILabel"; text = "Sensor Bar Position"; ObjectID = "6Qs-g2-BTZ"; */
 "6Qs-g2-BTZ.text" = "Posición de la barra sensora";
 
-/* Class = "UILabel"; text = "Intérprete (muy lento)"; ObjectID = "6dX-G1-g6C"; */
+/* Class = "UILabel"; text = "Interpreter (slowest)"; ObjectID = "6dX-G1-g6C"; */
 "6dX-G1-g6C.text" = "Intérprete (muy lento)";
 
-/* Class = "UILabel"; text = "Alemán"; ObjectID = "6hU-jR-80J"; */
+/* Class = "UILabel"; text = "German"; ObjectID = "6hU-jR-80J"; */
 "6hU-jR-80J.text" = "Alemán";
 
 /* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
 "7aI-mV-ROW.text" = "Wii";
 
-/* Class = "UILabel"; text = "Ayuda"; ObjectID = "7wX-hc-fac"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "7wX-hc-fac"; */
 "7wX-hc-fac.text" = "Ayuda";
 
-/* Class = "UILabel"; text = "Interfaz"; ObjectID = "8QE-dy-7FY"; */
+/* Class = "UILabel"; text = "Interface"; ObjectID = "8QE-dy-7FY"; */
 "8QE-dy-7FY.text" = "Interfaz";
 
 /* Class = "UILabel"; text = "0ms"; ObjectID = "8fb-Ub-qRJ"; */
@@ -59,7 +58,7 @@
 /* Class = "UINavigationItem"; title = "GameCube"; ObjectID = "95Z-nw-IkP"; */
 "95Z-nw-IkP.title" = "GameCube";
 
-/* Class = "UILabel"; text = "Español"; ObjectID = "Ac5-y8-3WG"; */
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "Ac5-y8-3WG"; */
 "Ac5-y8-3WG.text" = "Español";
 
 /* Class = "UILabel"; text = "GameCube"; ObjectID = "B86-pG-KqL"; */
@@ -68,73 +67,73 @@
 /* Class = "UILabel"; text = "Audio"; ObjectID = "BPT-fd-wOl"; */
 "BPT-fd-wOl.text" = "Audio";
 
-/* Class = "UILabel"; text = "Usar modo PAL60 (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
+/* Class = "UILabel"; text = "Use PAL60 Mode (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
 "CGi-MG-0NE.text" = "Usar modo PAL60 (EuRGB60)";
 
-/* Class = "UILabel"; text = "Tamaño de búfer"; ObjectID = "CrC-lY-5Tq"; */
+/* Class = "UILabel"; text = "Buffer Size"; ObjectID = "CrC-lY-5Tq"; */
 "CrC-lY-5Tq.text" = "Tamaño de búfer";
 
-/* Class = "UILabel"; text = "Activar trucos"; ObjectID = "DAs-t0-7XG"; */
+/* Class = "UILabel"; text = "Enable Cheats"; ObjectID = "DAs-t0-7XG"; */
 "DAs-t0-7XG.text" = "Activar trucos";
 
-/* Class = "UINavigationItem"; title = "Relación de aspecto"; ObjectID = "F9G-27-Tjl"; */
+/* Class = "UINavigationItem"; title = "Aspect Ratio"; ObjectID = "F9G-27-Tjl"; */
 "F9G-27-Tjl.title" = "Relación de aspecto";
 
-/* Class = "UITableViewSection"; headerTitle = "Ajustes de latencia de audio"; ObjectID = "Gbe-Ah-d5T"; */
+/* Class = "UITableViewSection"; headerTitle = "Audio Stretching Settings"; ObjectID = "Gbe-Ah-d5T"; */
 "Gbe-Ah-d5T.headerTitle" = "Ajustes de latencia de audio";
 
-/* Class = "UILabel"; text = "Activar doble núcleo (más rápido)"; ObjectID = "Hqe-6i-IcW"; */
+/* Class = "UILabel"; text = "Enable Dual Core (speedup)"; ObjectID = "Hqe-6i-IcW"; */
 "Hqe-6i-IcW.text" = "Activar doble núcleo (más rápido)";
 
-/* Class = "UILabel"; text = "Mensajes en pantalla"; ObjectID = "I12-Zq-IDS"; */
+/* Class = "UILabel"; text = "Show On-Screen Display Messages"; ObjectID = "I12-Zq-IDS"; */
 "I12-Zq-IDS.text" = "Mensajes en pantalla";
 
-/* Class = "UITableViewSection"; headerTitle = "Otros ajustes"; ObjectID = "Is2-CQ-RYW"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc Settings"; ObjectID = "Is2-CQ-RYW"; */
 "Is2-CQ-RYW.headerTitle" = "Otros ajustes";
 
-/* Class = "UILabel"; text = "Permitir configuración de región independiente."; ObjectID = "JXJ-Qk-sNk"; */
+/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
 "JXJ-Qk-sNk.text" = "Permitir configuración de región independiente.";
 
-/* Class = "UINavigationItem"; title = "Configuración"; ObjectID = "M5b-kB-xlF"; */
+/* Class = "UINavigationItem"; title = "Config"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = "Configuración";
 
 /* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
 "MBg-6m-DDq.title" = "Wii";
 
-/* Class = "UILabel"; text = "Relación de aspecto"; ObjectID = "MUM-cb-6W0"; */
+/* Class = "UILabel"; text = "Aspect Ratio"; ObjectID = "MUM-cb-6W0"; */
 "MUM-cb-6W0.text" = "Relación de aspecto";
 
-/* Class = "UILabel"; text = "Habilitar"; ObjectID = "PUW-7n-hkA"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "PUW-7n-hkA"; */
 "PUW-7n-hkA.text" = "Habilitar";
 
-/* Class = "UILabel"; text = "Chino simplificado"; ObjectID = "QAt-xr-bbV"; */
+/* Class = "UILabel"; text = "Simplified Chinese"; ObjectID = "QAt-xr-bbV"; */
 "QAt-xr-bbV.text" = "Chino simplificado";
 
-/* Class = "UILabel"; text = "Recompilador JIT (recomendado)"; ObjectID = "QLN-FA-k5N"; */
+/* Class = "UILabel"; text = "JIT Recompiler (recommended)"; ObjectID = "QLN-FA-k5N"; */
 "QLN-FA-k5N.text" = "Recompilador JIT (recomendado)";
 
-/* Class = "UILabel"; text = "Activar MMU"; ObjectID = "RvK-8a-gsf"; */
+/* Class = "UILabel"; text = "Enable MMU"; ObjectID = "RvK-8a-gsf"; */
 "RvK-8a-gsf.text" = "Activar MMU";
 
-/* Class = "UILabel"; text = "Chino tradicional"; ObjectID = "SEK-Rf-1qk"; */
+/* Class = "UILabel"; text = "Traditional Chinese"; ObjectID = "SEK-Rf-1qk"; */
 "SEK-Rf-1qk.text" = "Chino tradicional";
 
-/* Class = "UILabel"; text = "Saltar menú principal"; ObjectID = "T9q-6x-qwt"; */
+/* Class = "UILabel"; text = "Skip Main Menu"; ObjectID = "T9q-6x-qwt"; */
 "T9q-6x-qwt.text" = "Saltar menú principal";
 
-/* Class = "UILabel"; text = "Motor de emulación de CPU"; ObjectID = "TS7-s0-dMM"; */
+/* Class = "UILabel"; text = "CPU Emulation Engine"; ObjectID = "TS7-s0-dMM"; */
 "TS7-s0-dMM.text" = "Motor de emulación de CPU";
 
-/* Class = "UILabel"; text = "Japonés"; ObjectID = "ThN-T3-iRi"; */
+/* Class = "UILabel"; text = "Japanese"; ObjectID = "ThN-T3-iRi"; */
 "ThN-T3-iRi.text" = "Japonés";
 
-/* Class = "UILabel"; text = "Italiano"; ObjectID = "UMf-Ls-Y2a"; */
+/* Class = "UILabel"; text = "Italian"; ObjectID = "UMf-Ls-Y2a"; */
 "UMf-Ls-Y2a.text" = "Italiano";
 
-/* Class = "UILabel"; text = "Confirmar detención"; ObjectID = "UWa-CA-YiK"; */
+/* Class = "UILabel"; text = "Confirm on Stop"; ObjectID = "UWa-CA-YiK"; */
 "UWa-CA-YiK.text" = "Confirmar detención";
 
-/* Class = "UILabel"; text = "Coreano"; ObjectID = "UuH-ey-51W"; */
+/* Class = "UILabel"; text = "Korean"; ObjectID = "UuH-ey-51W"; */
 "UuH-ey-51W.text" = "Coreano";
 
 /* Class = "UINavigationItem"; title = "General"; ObjectID = "VNc-Ms-o2f"; */
@@ -143,103 +142,103 @@
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
 
-/* Class = "UILabel"; text = "Insertar tarjeta SD"; ObjectID = "acr-9s-yir"; */
+/* Class = "UILabel"; text = "Insert SD Card"; ObjectID = "acr-9s-yir"; */
 "acr-9s-yir.text" = "Insertar tarjeta SD";
 
-/* Class = "UINavigationItem"; title = "Motor de emulación de CPU"; ObjectID = "bUR-fZ-pg3"; */
+/* Class = "UINavigationItem"; title = "CPU Emulation Engine"; ObjectID = "bUR-fZ-pg3"; */
 "bUR-fZ-pg3.title" = "Motor de emulación de CPU";
 
 /* Class = "UILabel"; text = "General"; ObjectID = "bZj-AD-NCb"; */
 "bZj-AD-NCb.text" = "General";
 
-/* Class = "UILabel"; text = "Inferior"; ObjectID = "diR-dc-PZQ"; */
+/* Class = "UILabel"; text = "Bottom"; ObjectID = "diR-dc-PZQ"; */
 "diR-dc-PZQ.text" = "Inferior";
 
-/* Class = "UINavigationItem"; title = "Límite de velocidad"; ObjectID = "fN5-W1-lFO"; */
+/* Class = "UINavigationItem"; title = "Speed Limit"; ObjectID = "fN5-W1-lFO"; */
 "fN5-W1-lFO.title" = "Límite de velocidad";
 
 /* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
 "fUQ-3L-qGc.text" = "16:9";
 
-/* Class = "UILabel"; text = "Avanzado"; ObjectID = "ffY-kZ-p24"; */
+/* Class = "UILabel"; text = "Advanced"; ObjectID = "ffY-kZ-p24"; */
 "ffY-kZ-p24.text" = "Avanzado";
 
-/* Class = "UILabel"; text = "Sensibilidad IR"; ObjectID = "gam-22-Oa4"; */
+/* Class = "UILabel"; text = "IR Sensitivity"; ObjectID = "gam-22-Oa4"; */
 "gam-22-Oa4.text" = "Sensibilidad IR";
 
-/* Class = "UILabel"; text = "Volumen del altavoz"; ObjectID = "hEq-jG-aOY"; */
+/* Class = "UILabel"; text = "Speaker Volume"; ObjectID = "hEq-jG-aOY"; */
 "hEq-jG-aOY.text" = "Volumen del altavoz";
 
-/* Class = "UINavigationItem"; title = "Posición de la barra sensora"; ObjectID = "hSw-Hy-ACo"; */
+/* Class = "UINavigationItem"; title = "Sensor Bar Position"; ObjectID = "hSw-Hy-ACo"; */
 "hSw-Hy-ACo.title" = "Posición de la barra sensora";
 
-/* Class = "UILabel"; text = "Límite de velocidad"; ObjectID = "ikA-Z6-A6b"; */
+/* Class = "UILabel"; text = "Speed Limit"; ObjectID = "ikA-Z6-A6b"; */
 "ikA-Z6-A6b.text" = "Límite de velocidad";
 
-/* Class = "UITableViewSection"; headerTitle = "Ajustes del mando de Wii"; ObjectID = "jyG-uN-4nV"; */
+/* Class = "UITableViewSection"; headerTitle = "Wii Remote Settings"; ObjectID = "jyG-uN-4nV"; */
 "jyG-uN-4nV.headerTitle" = "Ajustes del mando de Wii";
 
-/* Class = "UILabel"; text = "Alemán"; ObjectID = "mkw-NI-JPB"; */
+/* Class = "UILabel"; text = "German"; ObjectID = "mkw-NI-JPB"; */
 "mkw-NI-JPB.text" = "Alemán";
 
-/* Class = "UILabel"; text = "Francés"; ObjectID = "o0Y-zK-I1w"; */
+/* Class = "UILabel"; text = "French"; ObjectID = "o0Y-zK-I1w"; */
 "o0Y-zK-I1w.text" = "Francés";
 
-/* Class = "UILabel"; text = "Inglés"; ObjectID = "riQ-Hp-p07"; */
+/* Class = "UILabel"; text = "English"; ObjectID = "riQ-Hp-p07"; */
 "riQ-Hp-p07.text" = "Inglés";
 
-/* Class = "UILabel"; text = "Intérprete con caché (lento)"; ObjectID = "s3k-Uc-UWw"; */
+/* Class = "UILabel"; text = "Cached Interpreter (slower)"; ObjectID = "s3k-Uc-UWw"; */
 "s3k-Uc-UWw.text" = "Intérprete con caché (lento)";
 
-/* Class = "UINavigationItem"; title = "Idioma del sistema"; ObjectID = "txG-ij-PdN"; */
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "txG-ij-PdN"; */
 "txG-ij-PdN.title" = "Idioma del sistema";
 
-/* Class = "UILabel"; text = "Superior"; ObjectID = "u9J-1j-jvw"; */
+/* Class = "UILabel"; text = "Top"; ObjectID = "u9J-1j-jvw"; */
 "u9J-1j-jvw.text" = "Superior";
 
-/* Class = "UILabel"; text = "Español"; ObjectID = "vac-nW-Iuh"; */
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "vac-nW-Iuh"; */
 "vac-nW-Iuh.text" = "Español";
 
-/* Class = "UILabel"; text = "Habilitar"; ObjectID = "w8Z-IJ-Fbf"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
 "w8Z-IJ-Fbf.text" = "Habilitar";
 
-/* Class = "UILabel"; text = "Notificar errores y advertencias"; ObjectID = "wvb-0C-F6M"; */
+/* Class = "UILabel"; text = "Use Panic Handlers"; ObjectID = "wvb-0C-F6M"; */
 "wvb-0C-F6M.text" = "Notificar errores y advertencias";
 
-/* Class = "UINavigationItem"; title = "Idioma del sistema"; ObjectID = "xFX-NZ-sg9"; */
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "xFX-NZ-sg9"; */
 "xFX-NZ-sg9.title" = "Idioma del sistema";
 
-/* Class = "UILabel"; text = "Holandés"; ObjectID = "xuE-0a-y6h"; */
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "xuE-0a-y6h"; */
 "xuE-0a-y6h.text" = "Holandés";
 
-/* Class = "UILabel"; text = "Velocidad"; ObjectID = "yax-jm-ehL"; */
+/* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
 "yax-jm-ehL.text" = "Velocidad";
 
-/* Class = "UILabel"; text = "Italiano"; ObjectID = "yer-Iz-yOE"; */
+/* Class = "UILabel"; text = "Italian"; ObjectID = "yer-Iz-yOE"; */
 "yer-Iz-yOE.text" = "Italiano";
 
-/* Class = "UILabel"; text = "Francés"; ObjectID = "zZn-vO-FBV"; */
+/* Class = "UILabel"; text = "French"; ObjectID = "zZn-vO-FBV"; */
 "zZn-vO-FBV.text" = "Francés";
 
-/* Class = "UILabel"; text = "Inglés"; ObjectID = "zek-wt-iwk"; */
+/* Class = "UILabel"; text = "English"; ObjectID = "zek-wt-iwk"; */
 "zek-wt-iwk.text" = "Inglés";
 
-/* Class = "UINavigationItem"; title = "Interfaz"; ObjectID = "zlc-hO-hJt"; */
+/* Class = "UINavigationItem"; title = "Interface"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Interfaz";
 
-/* Class = "UITableViewSection"; headerTitle = "Ajustes de envíos estadísticos"; ObjectID = "5Ht-g1-iR3"; */
+/* Class = "UITableViewSection"; headerTitle = "Usage Statistics Reporting Settings"; ObjectID = "5Ht-g1-iR3"; */
 "5Ht-g1-iR3.headerTitle" = "Ajustes de envíos estadísticos";
 
-/* Class = "UILabel"; text = "Informar de estadísticas de uso"; ObjectID = "PDM-D7-IS2"; */
+/* Class = "UILabel"; text = "Enable Usage Statistics Reporting"; ObjectID = "PDM-D7-IS2"; */
 "PDM-D7-IS2.text" = "Informar de estadísticas de uso";
 
 /* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
 "Wb9-Jo-pkA.text" = "Enable Crash Reporting";
 
-/* Class = "UILabel"; text = "Generar un nuevo identificador para estadísticas"; ObjectID = "e3c-9x-rcK"; */
+/* Class = "UILabel"; text = "Generate a New Statistics Identity"; ObjectID = "e3c-9x-rcK"; */
 "e3c-9x-rcK.text" = "Generar un nuevo identificador para estadísticas";
 
-/* Class = "UITableViewSection"; headerTitle = "Configuración básica"; ObjectID = "gdG-9I-xOW"; */
+/* Class = "UITableViewSection"; headerTitle = "Basic Settings"; ObjectID = "gdG-9I-xOW"; */
 "gdG-9I-xOW.headerTitle" = "Configuración básica";
 
 /* Class = "UILabel"; text = "Swipe Down to Reveal"; ObjectID = "DKD-3b-KpQ"; */

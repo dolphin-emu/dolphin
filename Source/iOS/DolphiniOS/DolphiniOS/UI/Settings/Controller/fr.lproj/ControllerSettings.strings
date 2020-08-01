@@ -1,5 +1,4 @@
-
-/* Class = "UILabel"; text = "Configurer"; ObjectID = "0TW-1a-IeH"; */
+/* Class = "UILabel"; text = "Configure"; ObjectID = "0TW-1a-IeH"; */
 "0TW-1a-IeH.text" = "Configurer";
 
 /* Class = "UILabel"; text = "Extension Name"; ObjectID = "0eE-YR-R88"; */
@@ -23,13 +22,13 @@
 /* Class = "UITableViewController"; title = "Profile Selector"; ObjectID = "6bQ-Dj-mFK"; */
 "6bQ-Dj-mFK.title" = "Profile Selector";
 
-/* Class = "UILabel"; text = "Activer"; ObjectID = "7vY-8m-y7Y"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "7vY-8m-y7Y"; */
 "7vY-8m-y7Y.text" = "Activer";
 
 /* Class = "UILabel"; text = "Port 2"; ObjectID = "8QZ-ZA-mzk"; */
 "8QZ-ZA-mzk.text" = "Port 2";
 
-/* Class = "UINavigationItem"; title = "Manettes"; ObjectID = "99x-ag-YcU"; */
+/* Class = "UINavigationItem"; title = "Controllers"; ObjectID = "99x-ag-YcU"; */
 "99x-ag-YcU.title" = "Manettes";
 
 /* Class = "UILabel"; text = "Controller Type 1"; ObjectID = "BK8-2K-Qt0"; */
@@ -38,7 +37,7 @@
 /* Class = "UILabel"; text = "Button Opacity"; ObjectID = "Ba8-9K-oXL"; */
 "Ba8-9K-oXL.text" = "Button Opacity";
 
-/* Class = "UILabel"; text = "Valeur "; ObjectID = "BoV-Ny-587"; */
+/* Class = "UILabel"; text = "Value"; ObjectID = "BoV-Ny-587"; */
 "BoV-Ny-587.text" = "Valeur ";
 
 /* Class = "UITableViewController"; title = "DS4 Config"; ObjectID = "CBl-HU-ZTx"; */
@@ -47,13 +46,13 @@
 /* Class = "UILabel"; text = "Controller Type 3"; ObjectID = "Dqz-rz-WrZ"; */
 "Dqz-rz-WrZ.text" = "Controller Type 3";
 
-/* Class = "UILabel"; text = "Appareil"; ObjectID = "FT1-rG-Tk3"; */
+/* Class = "UILabel"; text = "Device"; ObjectID = "FT1-rG-Tk3"; */
 "FT1-rG-Tk3.text" = "Appareil";
 
-/* Class = "UILabel"; text = "Adresse IP "; ObjectID = "Gq2-rT-Uq2"; */
+/* Class = "UILabel"; text = "IP Address"; ObjectID = "Gq2-rT-Uq2"; */
 "Gq2-rT-Uq2.text" = "Adresse IP ";
 
-/* Class = "UINavigationItem"; title = "Appareil"; ObjectID = "IZx-UR-35B"; */
+/* Class = "UINavigationItem"; title = "Device"; ObjectID = "IZx-UR-35B"; */
 "IZx-UR-35B.title" = "Appareil";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "J79-DY-CEt"; */
@@ -65,7 +64,7 @@
 /* Class = "UINavigationItem"; title = "Type"; ObjectID = "JWn-tN-bch"; */
 "JWn-tN-bch.title" = "Type";
 
-/* Class = "UINavigationItem"; title = "Configurer"; ObjectID = "Jcs-zW-f0t"; */
+/* Class = "UINavigationItem"; title = "Configure"; ObjectID = "Jcs-zW-f0t"; */
 "Jcs-zW-f0t.title" = "Configurer";
 
 /* Class = "UILabel"; text = "Profile Name"; ObjectID = "KqR-0N-gs6"; */
@@ -77,10 +76,10 @@
 /* Class = "UILabel"; text = "Option"; ObjectID = "LaI-lg-59f"; */
 "LaI-lg-59f.text" = "Option";
 
-/* Class = "UILabel"; text = "Sauver"; ObjectID = "NB0-GD-Qur"; */
+/* Class = "UILabel"; text = "Save"; ObjectID = "NB0-GD-Qur"; */
 "NB0-GD-Qur.text" = "Sauver";
 
-/* Class = "UILabel"; text = "Port "; ObjectID = "PCF-H3-GB4"; */
+/* Class = "UILabel"; text = "Port"; ObjectID = "PCF-H3-GB4"; */
 "PCF-H3-GB4.text" = "Port ";
 
 /* Class = "UITableViewController"; title = "Controller Edit"; ObjectID = "R3b-Ox-sS8"; */
@@ -89,7 +88,7 @@
 /* Class = "UILabel"; text = "Port 1"; ObjectID = "SE1-G6-XZg"; */
 "SE1-G6-XZg.text" = "Port 1";
 
-/* Class = "UITableViewSection"; headerTitle = "Wiimotes"; ObjectID = "SjZ-tz-Drd"; */
+/* Class = "UITableViewSection"; headerTitle = "Wii Remotes"; ObjectID = "SjZ-tz-Drd"; */
 "SjZ-tz-Drd.headerTitle" = "Wiimotes";
 
 /* Class = "UILabel"; text = "Dummy/0/Dummy Device"; ObjectID = "TO2-0X-VA0"; */
@@ -98,7 +97,7 @@
 /* Class = "UILabel"; text = "Controller Type 3"; ObjectID = "Vg0-hK-03r"; */
 "Vg0-hK-03r.text" = "Controller Type 3";
 
-/* Class = "UITableViewSection"; headerTitle = "Autres"; ObjectID = "ZqS-Mg-O95"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "ZqS-Mg-O95"; */
 "ZqS-Mg-O95.headerTitle" = "Autres";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "b08-mZ-m35"; */
@@ -125,13 +124,13 @@
 /* Class = "UITableViewSection"; headerTitle = "GameCube"; ObjectID = "dLT-on-vPp"; */
 "dLT-on-vPp.headerTitle" = "GameCube";
 
-/* Class = "UILabel"; text = "Aide"; ObjectID = "dZI-b2-vNp"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "dZI-b2-vNp"; */
 "dZI-b2-vNp.text" = "Aide";
 
 /* Class = "UITableViewController"; title = "Group"; ObjectID = "e9W-dj-exp"; */
 "e9W-dj-exp.title" = "Group";
 
-/* Class = "UILabel"; text = "Aide"; ObjectID = "fcW-EL-79q"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "fcW-EL-79q"; */
 "fcW-EL-79q.text" = "Aide";
 
 /* Class = "UILabel"; text = "Controller Type 2"; ObjectID = "fdC-6f-15Y"; */
@@ -143,7 +142,7 @@
 /* Class = "UILabel"; text = "Wiimote 3"; ObjectID = "gq3-vA-FKC"; */
 "gq3-vA-FKC.text" = "Wiimote 3";
 
-/* Class = "UILabel"; text = "Client DSU"; ObjectID = "hP9-5w-9Pr"; */
+/* Class = "UILabel"; text = "DSU Client"; ObjectID = "hP9-5w-9Pr"; */
 "hP9-5w-9Pr.text" = "Client DSU";
 
 /* Class = "UINavigationItem"; title = "Group Name"; ObjectID = "i2F-vi-m2c"; */
@@ -152,10 +151,10 @@
 /* Class = "UILabel"; text = "Port 3"; ObjectID = "jJz-l4-7o7"; */
 "jJz-l4-7o7.text" = "Port 3";
 
-/* Class = "UILabel"; text = "Charger"; ObjectID = "joW-Na-mVW"; */
+/* Class = "UILabel"; text = "Load"; ObjectID = "joW-Na-mVW"; */
 "joW-Na-mVW.text" = "Charger";
 
-/* Class = "UINavigationItem"; title = "Profil"; ObjectID = "jsy-24-OXj"; */
+/* Class = "UINavigationItem"; title = "Profile"; ObjectID = "jsy-24-OXj"; */
 "jsy-24-OXj.title" = "Profil";
 
 /* Class = "UILabel"; text = "Extension"; ObjectID = "nZJ-JZ-d70"; */
@@ -170,7 +169,7 @@
 /* Class = "UINavigationItem"; title = "Port 0"; ObjectID = "qeO-Qo-Gt8"; */
 "qeO-Qo-Gt8.title" = "Port 0";
 
-/* Class = "UILabel"; text = "Activer"; ObjectID = "qhK-oa-Vec"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "qhK-oa-Vec"; */
 "qhK-oa-Vec.text" = "Activer";
 
 /* Class = "UILabel"; text = "Type"; ObjectID = "qlf-xO-p0I"; */
@@ -179,7 +178,7 @@
 /* Class = "UILabel"; text = "Wiimote 4"; ObjectID = "s3f-8P-DdD"; */
 "s3f-8P-DdD.text" = "Wiimote 4";
 
-/* Class = "UINavigationItem"; title = "Client DSU"; ObjectID = "s3w-kY-VxV"; */
+/* Class = "UINavigationItem"; title = "DSU Client"; ObjectID = "s3w-kY-VxV"; */
 "s3w-kY-VxV.title" = "Client DSU";
 
 /* Class = "UITableViewController"; title = "Group List"; ObjectID = "v4O-Xv-FbN"; */
@@ -188,7 +187,7 @@
 /* Class = "UILabel"; text = "Touchscreen"; ObjectID = "vlM-tm-wHj"; */
 "vlM-tm-wHj.text" = "Touchscreen";
 
-/* Class = "UITableViewSection"; headerTitle = "Profil"; ObjectID = "w8A-mj-uDH"; */
+/* Class = "UITableViewSection"; headerTitle = "Profile"; ObjectID = "w8A-mj-uDH"; */
 "w8A-mj-uDH.headerTitle" = "Profil";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "wqu-s3-jmH"; */

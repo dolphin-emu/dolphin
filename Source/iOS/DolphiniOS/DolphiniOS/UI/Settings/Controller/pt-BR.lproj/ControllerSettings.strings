@@ -1,5 +1,4 @@
-
-/* Class = "UILabel"; text = "Configuração"; ObjectID = "0TW-1a-IeH"; */
+/* Class = "UILabel"; text = "Configure"; ObjectID = "0TW-1a-IeH"; */
 "0TW-1a-IeH.text" = "Configuração";
 
 /* Class = "UILabel"; text = "Extension Name"; ObjectID = "0eE-YR-R88"; */
@@ -38,7 +37,7 @@
 /* Class = "UILabel"; text = "Button Opacity"; ObjectID = "Ba8-9K-oXL"; */
 "Ba8-9K-oXL.text" = "Button Opacity";
 
-/* Class = "UILabel"; text = "Valor"; ObjectID = "BoV-Ny-587"; */
+/* Class = "UILabel"; text = "Value"; ObjectID = "BoV-Ny-587"; */
 "BoV-Ny-587.text" = "Valor";
 
 /* Class = "UITableViewController"; title = "DS4 Config"; ObjectID = "CBl-HU-ZTx"; */
@@ -56,16 +55,16 @@
 /* Class = "UINavigationItem"; title = "Device"; ObjectID = "IZx-UR-35B"; */
 "IZx-UR-35B.title" = "Device";
 
-/* Class = "UILabel"; text = "Tipo"; ObjectID = "J79-DY-CEt"; */
+/* Class = "UILabel"; text = "Type"; ObjectID = "J79-DY-CEt"; */
 "J79-DY-CEt.text" = "Tipo";
 
 /* Class = "UITableViewController"; title = "Extensions"; ObjectID = "JPL-hJ-93c"; */
 "JPL-hJ-93c.title" = "Extensions";
 
-/* Class = "UINavigationItem"; title = "Tipo"; ObjectID = "JWn-tN-bch"; */
+/* Class = "UINavigationItem"; title = "Type"; ObjectID = "JWn-tN-bch"; */
 "JWn-tN-bch.title" = "Tipo";
 
-/* Class = "UINavigationItem"; title = "Configuração"; ObjectID = "Jcs-zW-f0t"; */
+/* Class = "UINavigationItem"; title = "Configure"; ObjectID = "Jcs-zW-f0t"; */
 "Jcs-zW-f0t.title" = "Configuração";
 
 /* Class = "UILabel"; text = "Profile Name"; ObjectID = "KqR-0N-gs6"; */
@@ -77,7 +76,7 @@
 /* Class = "UILabel"; text = "Option"; ObjectID = "LaI-lg-59f"; */
 "LaI-lg-59f.text" = "Option";
 
-/* Class = "UILabel"; text = "Guardar"; ObjectID = "NB0-GD-Qur"; */
+/* Class = "UILabel"; text = "Save"; ObjectID = "NB0-GD-Qur"; */
 "NB0-GD-Qur.text" = "Guardar";
 
 /* Class = "UILabel"; text = "Port"; ObjectID = "PCF-H3-GB4"; */
@@ -98,7 +97,7 @@
 /* Class = "UILabel"; text = "Controller Type 3"; ObjectID = "Vg0-hK-03r"; */
 "Vg0-hK-03r.text" = "Controller Type 3";
 
-/* Class = "UITableViewSection"; headerTitle = "Outro"; ObjectID = "ZqS-Mg-O95"; */
+/* Class = "UITableViewSection"; headerTitle = "Other"; ObjectID = "ZqS-Mg-O95"; */
 "ZqS-Mg-O95.headerTitle" = "Outro";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "b08-mZ-m35"; */
@@ -125,13 +124,13 @@
 /* Class = "UITableViewSection"; headerTitle = "GameCube"; ObjectID = "dLT-on-vPp"; */
 "dLT-on-vPp.headerTitle" = "GameCube";
 
-/* Class = "UILabel"; text = "Ajuda"; ObjectID = "dZI-b2-vNp"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "dZI-b2-vNp"; */
 "dZI-b2-vNp.text" = "Ajuda";
 
 /* Class = "UITableViewController"; title = "Group"; ObjectID = "e9W-dj-exp"; */
 "e9W-dj-exp.title" = "Group";
 
-/* Class = "UILabel"; text = "Ajuda"; ObjectID = "fcW-EL-79q"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "fcW-EL-79q"; */
 "fcW-EL-79q.text" = "Ajuda";
 
 /* Class = "UILabel"; text = "Controller Type 2"; ObjectID = "fdC-6f-15Y"; */
@@ -152,13 +151,13 @@
 /* Class = "UILabel"; text = "Port 3"; ObjectID = "jJz-l4-7o7"; */
 "jJz-l4-7o7.text" = "Port 3";
 
-/* Class = "UILabel"; text = "Carregar"; ObjectID = "joW-Na-mVW"; */
+/* Class = "UILabel"; text = "Load"; ObjectID = "joW-Na-mVW"; */
 "joW-Na-mVW.text" = "Carregar";
 
-/* Class = "UINavigationItem"; title = "Perfil"; ObjectID = "jsy-24-OXj"; */
+/* Class = "UINavigationItem"; title = "Profile"; ObjectID = "jsy-24-OXj"; */
 "jsy-24-OXj.title" = "Perfil";
 
-/* Class = "UILabel"; text = "Extensão"; ObjectID = "nZJ-JZ-d70"; */
+/* Class = "UILabel"; text = "Extension"; ObjectID = "nZJ-JZ-d70"; */
 "nZJ-JZ-d70.text" = "Extensão";
 
 /* Class = "UILabel"; text = "Port 4"; ObjectID = "oBE-Gs-oZH"; */
@@ -173,7 +172,7 @@
 /* Class = "UILabel"; text = "Enable"; ObjectID = "qhK-oa-Vec"; */
 "qhK-oa-Vec.text" = "Enable";
 
-/* Class = "UILabel"; text = "Tipo"; ObjectID = "qlf-xO-p0I"; */
+/* Class = "UILabel"; text = "Type"; ObjectID = "qlf-xO-p0I"; */
 "qlf-xO-p0I.text" = "Tipo";
 
 /* Class = "UILabel"; text = "Wiimote 4"; ObjectID = "s3f-8P-DdD"; */
@@ -188,13 +187,13 @@
 /* Class = "UILabel"; text = "Touchscreen"; ObjectID = "vlM-tm-wHj"; */
 "vlM-tm-wHj.text" = "Touchscreen";
 
-/* Class = "UITableViewSection"; headerTitle = "Perfil"; ObjectID = "w8A-mj-uDH"; */
+/* Class = "UITableViewSection"; headerTitle = "Profile"; ObjectID = "w8A-mj-uDH"; */
 "w8A-mj-uDH.headerTitle" = "Perfil";
 
 /* Class = "UILabel"; text = "Controller Type 4"; ObjectID = "wqu-s3-jmH"; */
 "wqu-s3-jmH.text" = "Controller Type 4";
 
-/* Class = "UINavigationItem"; title = "Extensão"; ObjectID = "xW3-sC-el7"; */
+/* Class = "UINavigationItem"; title = "Extension"; ObjectID = "xW3-sC-el7"; */
 "xW3-sC-el7.title" = "Extensão";
 
 /* Class = "UITableViewController"; title = "Devices"; ObjectID = "xwN-gx-mk9"; */

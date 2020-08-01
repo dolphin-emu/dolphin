@@ -1,56 +1,55 @@
-
-/* Class = "UILabel"; text = "Вибрация Wii Remote"; ObjectID = "0K1-Oi-viC"; */
+/* Class = "UILabel"; text = "Wii Remote Rumble"; ObjectID = "0K1-Oi-viC"; */
 "0K1-Oi-viC.text" = "Вибрация Wii Remote";
 
-/* Class = "UINavigationItem"; title = "Расширенные"; ObjectID = "0s6-c7-OwY"; */
+/* Class = "UINavigationItem"; title = "Advanced"; ObjectID = "0s6-c7-OwY"; */
 "0s6-c7-OwY.title" = "Расширенные";
 
-/* Class = "UILabel"; text = "Язык системы"; ObjectID = "15i-sg-byP"; */
+/* Class = "UILabel"; text = "System Language"; ObjectID = "15i-sg-byP"; */
 "15i-sg-byP.text" = "Язык системы";
 
-/* Class = "UITableViewSection"; headerTitle = "Переопределение частоты"; ObjectID = "16h-jz-fQG"; */
+/* Class = "UITableViewSection"; headerTitle = "Clock Override"; ObjectID = "16h-jz-fQG"; */
 "16h-jz-fQG.headerTitle" = "Переопределение частоты";
 
-/* Class = "UILabel"; text = "Язык системы"; ObjectID = "1L5-Kj-USx"; */
+/* Class = "UILabel"; text = "System Language"; ObjectID = "1L5-Kj-USx"; */
 "1L5-Kj-USx.text" = "Язык системы";
 
-/* Class = "UINavigationItem"; title = "Звук"; ObjectID = "1tL-Cz-TAL"; */
+/* Class = "UINavigationItem"; title = "Audio"; ObjectID = "1tL-Cz-TAL"; */
 "1tL-Cz-TAL.title" = "Звук";
 
-/* Class = "UILabel"; text = "Голландский"; ObjectID = "2Eo-dx-eKL"; */
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "2Eo-dx-eKL"; */
 "2Eo-dx-eKL.text" = "Голландский";
 
-/* Class = "UITableViewSection"; headerTitle = "Настройки ЦП"; ObjectID = "3FW-wh-rEp"; */
+/* Class = "UITableViewSection"; headerTitle = "CPU Options"; ObjectID = "3FW-wh-rEp"; */
 "3FW-wh-rEp.headerTitle" = "Настройки ЦП";
 
-/* Class = "UILabel"; text = "Включить скринсейвер"; ObjectID = "3Gq-Ip-xn2"; */
+/* Class = "UILabel"; text = "Enable Screen Saver"; ObjectID = "3Gq-Ip-xn2"; */
 "3Gq-Ip-xn2.text" = "Включить скринсейвер";
 
 /* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
 "5dO-8H-gFe.text" = "4:3";
 
-/* Class = "UILabel"; text = "Автоматически сменять диски"; ObjectID = "6Jm-cq-bVY"; */
+/* Class = "UILabel"; text = "Change Discs Automatically"; ObjectID = "6Jm-cq-bVY"; */
 "6Jm-cq-bVY.text" = "Автоматически сменять диски";
 
 /* Class = "UILabel"; text = "Center Game Image"; ObjectID = "6K0-Zw-CzT"; */
 "6K0-Zw-CzT.text" = "Center Game Image";
 
-/* Class = "UILabel"; text = "Месторасположение сенсора"; ObjectID = "6Qs-g2-BTZ"; */
+/* Class = "UILabel"; text = "Sensor Bar Position"; ObjectID = "6Qs-g2-BTZ"; */
 "6Qs-g2-BTZ.text" = "Месторасположение сенсора";
 
-/* Class = "UILabel"; text = "Интерпретатор (самый медленный)"; ObjectID = "6dX-G1-g6C"; */
+/* Class = "UILabel"; text = "Interpreter (slowest)"; ObjectID = "6dX-G1-g6C"; */
 "6dX-G1-g6C.text" = "Интерпретатор (самый медленный)";
 
-/* Class = "UILabel"; text = "Немецкий"; ObjectID = "6hU-jR-80J"; */
+/* Class = "UILabel"; text = "German"; ObjectID = "6hU-jR-80J"; */
 "6hU-jR-80J.text" = "Немецкий";
 
 /* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
 "7aI-mV-ROW.text" = "Wii";
 
-/* Class = "UILabel"; text = "Помощь"; ObjectID = "7wX-hc-fac"; */
+/* Class = "UILabel"; text = "Help"; ObjectID = "7wX-hc-fac"; */
 "7wX-hc-fac.text" = "Помощь";
 
-/* Class = "UILabel"; text = "Интерфейс"; ObjectID = "8QE-dy-7FY"; */
+/* Class = "UILabel"; text = "Interface"; ObjectID = "8QE-dy-7FY"; */
 "8QE-dy-7FY.text" = "Интерфейс";
 
 /* Class = "UILabel"; text = "0ms"; ObjectID = "8fb-Ub-qRJ"; */
@@ -59,187 +58,187 @@
 /* Class = "UINavigationItem"; title = "GameCube"; ObjectID = "95Z-nw-IkP"; */
 "95Z-nw-IkP.title" = "GameCube";
 
-/* Class = "UILabel"; text = "Испанский"; ObjectID = "Ac5-y8-3WG"; */
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "Ac5-y8-3WG"; */
 "Ac5-y8-3WG.text" = "Испанский";
 
 /* Class = "UILabel"; text = "GameCube"; ObjectID = "B86-pG-KqL"; */
 "B86-pG-KqL.text" = "GameCube";
 
-/* Class = "UILabel"; text = "Звук"; ObjectID = "BPT-fd-wOl"; */
+/* Class = "UILabel"; text = "Audio"; ObjectID = "BPT-fd-wOl"; */
 "BPT-fd-wOl.text" = "Звук";
 
-/* Class = "UILabel"; text = "Режим PAL60 (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
+/* Class = "UILabel"; text = "Use PAL60 Mode (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
 "CGi-MG-0NE.text" = "Режим PAL60 (EuRGB60)";
 
-/* Class = "UILabel"; text = "Размер буфера"; ObjectID = "CrC-lY-5Tq"; */
+/* Class = "UILabel"; text = "Buffer Size"; ObjectID = "CrC-lY-5Tq"; */
 "CrC-lY-5Tq.text" = "Размер буфера";
 
-/* Class = "UILabel"; text = "Включить чит-коды"; ObjectID = "DAs-t0-7XG"; */
+/* Class = "UILabel"; text = "Enable Cheats"; ObjectID = "DAs-t0-7XG"; */
 "DAs-t0-7XG.text" = "Включить чит-коды";
 
-/* Class = "UINavigationItem"; title = "Соотношение сторон"; ObjectID = "F9G-27-Tjl"; */
+/* Class = "UINavigationItem"; title = "Aspect Ratio"; ObjectID = "F9G-27-Tjl"; */
 "F9G-27-Tjl.title" = "Соотношение сторон";
 
-/* Class = "UITableViewSection"; headerTitle = "Настройки растяжения звука"; ObjectID = "Gbe-Ah-d5T"; */
+/* Class = "UITableViewSection"; headerTitle = "Audio Stretching Settings"; ObjectID = "Gbe-Ah-d5T"; */
 "Gbe-Ah-d5T.headerTitle" = "Настройки растяжения звука";
 
-/* Class = "UILabel"; text = "Включить двухядерный режим (ускорение)"; ObjectID = "Hqe-6i-IcW"; */
+/* Class = "UILabel"; text = "Enable Dual Core (speedup)"; ObjectID = "Hqe-6i-IcW"; */
 "Hqe-6i-IcW.text" = "Включить двухядерный режим (ускорение)";
 
-/* Class = "UILabel"; text = "Показывать наэкранные сообщения"; ObjectID = "I12-Zq-IDS"; */
+/* Class = "UILabel"; text = "Show On-Screen Display Messages"; ObjectID = "I12-Zq-IDS"; */
 "I12-Zq-IDS.text" = "Показывать наэкранные сообщения";
 
-/* Class = "UITableViewSection"; headerTitle = "Разное"; ObjectID = "Is2-CQ-RYW"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc Settings"; ObjectID = "Is2-CQ-RYW"; */
 "Is2-CQ-RYW.headerTitle" = "Разное";
 
-/* Class = "UILabel"; text = "Разрешить несовпадение настроек региона"; ObjectID = "JXJ-Qk-sNk"; */
+/* Class = "UILabel"; text = "Allow Mismatched Region Settings"; ObjectID = "JXJ-Qk-sNk"; */
 "JXJ-Qk-sNk.text" = "Разрешить несовпадение настроек региона";
 
-/* Class = "UINavigationItem"; title = "Настройки"; ObjectID = "M5b-kB-xlF"; */
+/* Class = "UINavigationItem"; title = "Config"; ObjectID = "M5b-kB-xlF"; */
 "M5b-kB-xlF.title" = "Настройки";
 
 /* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
 "MBg-6m-DDq.title" = "Wii";
 
-/* Class = "UILabel"; text = "Соотношение сторон"; ObjectID = "MUM-cb-6W0"; */
+/* Class = "UILabel"; text = "Aspect Ratio"; ObjectID = "MUM-cb-6W0"; */
 "MUM-cb-6W0.text" = "Соотношение сторон";
 
-/* Class = "UILabel"; text = "Включить"; ObjectID = "PUW-7n-hkA"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "PUW-7n-hkA"; */
 "PUW-7n-hkA.text" = "Включить";
 
-/* Class = "UILabel"; text = "Упрощ. китайский"; ObjectID = "QAt-xr-bbV"; */
+/* Class = "UILabel"; text = "Simplified Chinese"; ObjectID = "QAt-xr-bbV"; */
 "QAt-xr-bbV.text" = "Упрощ. китайский";
 
-/* Class = "UILabel"; text = "JIT-рекомпилятор (рекомендуется)"; ObjectID = "QLN-FA-k5N"; */
+/* Class = "UILabel"; text = "JIT Recompiler (recommended)"; ObjectID = "QLN-FA-k5N"; */
 "QLN-FA-k5N.text" = "JIT-рекомпилятор (рекомендуется)";
 
-/* Class = "UILabel"; text = "Включить MMU"; ObjectID = "RvK-8a-gsf"; */
+/* Class = "UILabel"; text = "Enable MMU"; ObjectID = "RvK-8a-gsf"; */
 "RvK-8a-gsf.text" = "Включить MMU";
 
-/* Class = "UILabel"; text = "Традиц. китайский"; ObjectID = "SEK-Rf-1qk"; */
+/* Class = "UILabel"; text = "Traditional Chinese"; ObjectID = "SEK-Rf-1qk"; */
 "SEK-Rf-1qk.text" = "Традиц. китайский";
 
-/* Class = "UILabel"; text = "Пропускать главное меню"; ObjectID = "T9q-6x-qwt"; */
+/* Class = "UILabel"; text = "Skip Main Menu"; ObjectID = "T9q-6x-qwt"; */
 "T9q-6x-qwt.text" = "Пропускать главное меню";
 
-/* Class = "UILabel"; text = "Движок эмуляции ЦП"; ObjectID = "TS7-s0-dMM"; */
+/* Class = "UILabel"; text = "CPU Emulation Engine"; ObjectID = "TS7-s0-dMM"; */
 "TS7-s0-dMM.text" = "Движок эмуляции ЦП";
 
-/* Class = "UILabel"; text = "Японский"; ObjectID = "ThN-T3-iRi"; */
+/* Class = "UILabel"; text = "Japanese"; ObjectID = "ThN-T3-iRi"; */
 "ThN-T3-iRi.text" = "Японский";
 
-/* Class = "UILabel"; text = "Итальянский"; ObjectID = "UMf-Ls-Y2a"; */
+/* Class = "UILabel"; text = "Italian"; ObjectID = "UMf-Ls-Y2a"; */
 "UMf-Ls-Y2a.text" = "Итальянский";
 
-/* Class = "UILabel"; text = "Подтверждать остановку"; ObjectID = "UWa-CA-YiK"; */
+/* Class = "UILabel"; text = "Confirm on Stop"; ObjectID = "UWa-CA-YiK"; */
 "UWa-CA-YiK.text" = "Подтверждать остановку";
 
-/* Class = "UILabel"; text = "Корейский"; ObjectID = "UuH-ey-51W"; */
+/* Class = "UILabel"; text = "Korean"; ObjectID = "UuH-ey-51W"; */
 "UuH-ey-51W.text" = "Корейский";
 
-/* Class = "UINavigationItem"; title = "Общие"; ObjectID = "VNc-Ms-o2f"; */
+/* Class = "UINavigationItem"; title = "General"; ObjectID = "VNc-Ms-o2f"; */
 "VNc-Ms-o2f.title" = "Общие";
 
 /* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
 "ab2-Af-AKe.text" = "100% (486MHz)";
 
-/* Class = "UILabel"; text = "Вставить SD-карту"; ObjectID = "acr-9s-yir"; */
+/* Class = "UILabel"; text = "Insert SD Card"; ObjectID = "acr-9s-yir"; */
 "acr-9s-yir.text" = "Вставить SD-карту";
 
-/* Class = "UINavigationItem"; title = "Движок эмуляции ЦП"; ObjectID = "bUR-fZ-pg3"; */
+/* Class = "UINavigationItem"; title = "CPU Emulation Engine"; ObjectID = "bUR-fZ-pg3"; */
 "bUR-fZ-pg3.title" = "Движок эмуляции ЦП";
 
-/* Class = "UILabel"; text = "Общие"; ObjectID = "bZj-AD-NCb"; */
+/* Class = "UILabel"; text = "General"; ObjectID = "bZj-AD-NCb"; */
 "bZj-AD-NCb.text" = "Общие";
 
-/* Class = "UILabel"; text = "снизу"; ObjectID = "diR-dc-PZQ"; */
+/* Class = "UILabel"; text = "Bottom"; ObjectID = "diR-dc-PZQ"; */
 "diR-dc-PZQ.text" = "снизу";
 
-/* Class = "UINavigationItem"; title = "Ограничение скорости"; ObjectID = "fN5-W1-lFO"; */
+/* Class = "UINavigationItem"; title = "Speed Limit"; ObjectID = "fN5-W1-lFO"; */
 "fN5-W1-lFO.title" = "Ограничение скорости";
 
 /* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
 "fUQ-3L-qGc.text" = "16:9";
 
-/* Class = "UILabel"; text = "Расширенные"; ObjectID = "ffY-kZ-p24"; */
+/* Class = "UILabel"; text = "Advanced"; ObjectID = "ffY-kZ-p24"; */
 "ffY-kZ-p24.text" = "Расширенные";
 
-/* Class = "UILabel"; text = "Чувствительность ИК"; ObjectID = "gam-22-Oa4"; */
+/* Class = "UILabel"; text = "IR Sensitivity"; ObjectID = "gam-22-Oa4"; */
 "gam-22-Oa4.text" = "Чувствительность ИК";
 
-/* Class = "UILabel"; text = "Громкость динамика"; ObjectID = "hEq-jG-aOY"; */
+/* Class = "UILabel"; text = "Speaker Volume"; ObjectID = "hEq-jG-aOY"; */
 "hEq-jG-aOY.text" = "Громкость динамика";
 
-/* Class = "UINavigationItem"; title = "Месторасположение сенсора"; ObjectID = "hSw-Hy-ACo"; */
+/* Class = "UINavigationItem"; title = "Sensor Bar Position"; ObjectID = "hSw-Hy-ACo"; */
 "hSw-Hy-ACo.title" = "Месторасположение сенсора";
 
-/* Class = "UILabel"; text = "Ограничение скорости"; ObjectID = "ikA-Z6-A6b"; */
+/* Class = "UILabel"; text = "Speed Limit"; ObjectID = "ikA-Z6-A6b"; */
 "ikA-Z6-A6b.text" = "Ограничение скорости";
 
-/* Class = "UITableViewSection"; headerTitle = "Настройки контроллера Wii"; ObjectID = "jyG-uN-4nV"; */
+/* Class = "UITableViewSection"; headerTitle = "Wii Remote Settings"; ObjectID = "jyG-uN-4nV"; */
 "jyG-uN-4nV.headerTitle" = "Настройки контроллера Wii";
 
-/* Class = "UILabel"; text = "Немецкий"; ObjectID = "mkw-NI-JPB"; */
+/* Class = "UILabel"; text = "German"; ObjectID = "mkw-NI-JPB"; */
 "mkw-NI-JPB.text" = "Немецкий";
 
-/* Class = "UILabel"; text = "Французский"; ObjectID = "o0Y-zK-I1w"; */
+/* Class = "UILabel"; text = "French"; ObjectID = "o0Y-zK-I1w"; */
 "o0Y-zK-I1w.text" = "Французский";
 
-/* Class = "UILabel"; text = "Английский"; ObjectID = "riQ-Hp-p07"; */
+/* Class = "UILabel"; text = "English"; ObjectID = "riQ-Hp-p07"; */
 "riQ-Hp-p07.text" = "Английский";
 
-/* Class = "UILabel"; text = "Кэширующий интерпретатор (медленнее)"; ObjectID = "s3k-Uc-UWw"; */
+/* Class = "UILabel"; text = "Cached Interpreter (slower)"; ObjectID = "s3k-Uc-UWw"; */
 "s3k-Uc-UWw.text" = "Кэширующий интерпретатор (медленнее)";
 
-/* Class = "UINavigationItem"; title = "Язык системы"; ObjectID = "txG-ij-PdN"; */
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "txG-ij-PdN"; */
 "txG-ij-PdN.title" = "Язык системы";
 
-/* Class = "UILabel"; text = "сверху"; ObjectID = "u9J-1j-jvw"; */
+/* Class = "UILabel"; text = "Top"; ObjectID = "u9J-1j-jvw"; */
 "u9J-1j-jvw.text" = "сверху";
 
-/* Class = "UILabel"; text = "Испанский"; ObjectID = "vac-nW-Iuh"; */
+/* Class = "UILabel"; text = "Spanish"; ObjectID = "vac-nW-Iuh"; */
 "vac-nW-Iuh.text" = "Испанский";
 
-/* Class = "UILabel"; text = "Включить"; ObjectID = "w8Z-IJ-Fbf"; */
+/* Class = "UILabel"; text = "Enable"; ObjectID = "w8Z-IJ-Fbf"; */
 "w8Z-IJ-Fbf.text" = "Включить";
 
-/* Class = "UILabel"; text = "Использовать обработчики ошибок"; ObjectID = "wvb-0C-F6M"; */
+/* Class = "UILabel"; text = "Use Panic Handlers"; ObjectID = "wvb-0C-F6M"; */
 "wvb-0C-F6M.text" = "Использовать обработчики ошибок";
 
-/* Class = "UINavigationItem"; title = "Язык системы"; ObjectID = "xFX-NZ-sg9"; */
+/* Class = "UINavigationItem"; title = "System Language"; ObjectID = "xFX-NZ-sg9"; */
 "xFX-NZ-sg9.title" = "Язык системы";
 
-/* Class = "UILabel"; text = "Голландский"; ObjectID = "xuE-0a-y6h"; */
+/* Class = "UILabel"; text = "Dutch"; ObjectID = "xuE-0a-y6h"; */
 "xuE-0a-y6h.text" = "Голландский";
 
-/* Class = "UILabel"; text = "Скорость"; ObjectID = "yax-jm-ehL"; */
+/* Class = "UILabel"; text = "Speed"; ObjectID = "yax-jm-ehL"; */
 "yax-jm-ehL.text" = "Скорость";
 
-/* Class = "UILabel"; text = "Итальянский"; ObjectID = "yer-Iz-yOE"; */
+/* Class = "UILabel"; text = "Italian"; ObjectID = "yer-Iz-yOE"; */
 "yer-Iz-yOE.text" = "Итальянский";
 
-/* Class = "UILabel"; text = "Французский"; ObjectID = "zZn-vO-FBV"; */
+/* Class = "UILabel"; text = "French"; ObjectID = "zZn-vO-FBV"; */
 "zZn-vO-FBV.text" = "Французский";
 
-/* Class = "UILabel"; text = "Английский"; ObjectID = "zek-wt-iwk"; */
+/* Class = "UILabel"; text = "English"; ObjectID = "zek-wt-iwk"; */
 "zek-wt-iwk.text" = "Английский";
 
-/* Class = "UINavigationItem"; title = "Интерфейс"; ObjectID = "zlc-hO-hJt"; */
+/* Class = "UINavigationItem"; title = "Interface"; ObjectID = "zlc-hO-hJt"; */
 "zlc-hO-hJt.title" = "Интерфейс";
 
-/* Class = "UITableViewSection"; headerTitle = "Настройки отправки статистики об использовании"; ObjectID = "5Ht-g1-iR3"; */
+/* Class = "UITableViewSection"; headerTitle = "Usage Statistics Reporting Settings"; ObjectID = "5Ht-g1-iR3"; */
 "5Ht-g1-iR3.headerTitle" = "Настройки отправки статистики об использовании";
 
-/* Class = "UILabel"; text = "Включить отправку статистики об использовании"; ObjectID = "PDM-D7-IS2"; */
+/* Class = "UILabel"; text = "Enable Usage Statistics Reporting"; ObjectID = "PDM-D7-IS2"; */
 "PDM-D7-IS2.text" = "Включить отправку статистики об использовании";
 
 /* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
 "Wb9-Jo-pkA.text" = "Enable Crash Reporting";
 
-/* Class = "UILabel"; text = "Сгенерировать новый ID сбора статистики"; ObjectID = "e3c-9x-rcK"; */
+/* Class = "UILabel"; text = "Generate a New Statistics Identity"; ObjectID = "e3c-9x-rcK"; */
 "e3c-9x-rcK.text" = "Сгенерировать новый ID сбора статистики";
 
-/* Class = "UITableViewSection"; headerTitle = "Основные настройки"; ObjectID = "gdG-9I-xOW"; */
+/* Class = "UITableViewSection"; headerTitle = "Basic Settings"; ObjectID = "gdG-9I-xOW"; */
 "gdG-9I-xOW.headerTitle" = "Основные настройки";
 
 /* Class = "UILabel"; text = "Swipe Down to Reveal"; ObjectID = "DKD-3b-KpQ"; */
