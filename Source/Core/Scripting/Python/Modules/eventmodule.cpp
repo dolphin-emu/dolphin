@@ -160,15 +160,21 @@ static const std::tuple<> PyFrameAdvance(const API::Events::FrameAdvance& evt)
 {
   return std::make_tuple();
 }
+static const std::tuple<bool, u32, u32> PyMemoryBreakpoint(const API::Events::MemoryBreakpoint& evt)
+{
+  return std::make_tuple(evt.write, evt.addr, evt.value);
+}
 
 // EVENT DEFINITIONS
 // Creates a PyEvent class from the signature.
 using PyFrameAdvanceEvent = PyEventFromMappingFunc<PyFrameAdvance>;
+using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 
 static PyMethodDef EventMethods[] = {
     // EVENT CALLBACKS
     // Has "on"-prefix, let's python code register a callback
     Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("onframeadvance"),
+    Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("onmemorybreakpoint"),
 
     {nullptr, nullptr, 0, nullptr} /* Sentinel */
 };
@@ -176,7 +182,7 @@ static PyMethodDef EventMethods[] = {
 // HOOKING UP PY EVENTS TO DOLPHIN EVENTS
 // For all python events listed here, listens to the respective API::Events event
 // deduced from the PyEvent signature's input argument.
-using EventContainer = PythonEventContainer<PyFrameAdvanceEvent>;
+using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
 
 std::optional<std::function<void(const Py::Object)>> GetCoroutineScheduler(std::string aeventname)
 {
@@ -184,7 +190,9 @@ std::optional<std::function<void(const Py::Object)>> GetCoroutineScheduler(std::
       // HOOKING UP PY EVENTS TO AWAITABLE STRING REPRESENTATION
       // All async-awaitable events must be listed twice:
       // Here, and under the same name in the event_module_pycode
-      {"frameadvance", PyFrameAdvanceEvent::ScheduleCoroutine}};
+      {"frameadvance", PyFrameAdvanceEvent::ScheduleCoroutine},
+      {"memorybreakpoint", PyMemoryBreakpointEvent::ScheduleCoroutine},
+  };
   auto iter = lookup.find(aeventname);
   if (iter == lookup.end())
     return std::optional<std::function<void(const Py::Object)>>{};
@@ -203,6 +211,9 @@ class _DolphinAsyncEvent:
 
 async def frameadvance():
     return (await _DolphinAsyncEvent("frameadvance"))
+
+async def memorybreakpoint():
+    return (await _DolphinAsyncEvent("memorybreakpoint"))
 
 )";
 
