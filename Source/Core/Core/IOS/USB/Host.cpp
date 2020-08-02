@@ -179,9 +179,8 @@ void USBHost::StartThreads()
   if (Core::WantsDeterminism())
     return;
 
-  if (!m_scan_thread_running.IsSet())
+  if (m_scan_thread_running.TestAndSet())
   {
-    m_scan_thread_running.Set();
     m_scan_thread = std::thread([this] {
       Common::SetCurrentThreadName("USB Scan Thread");
       while (m_scan_thread_running.IsSet())
