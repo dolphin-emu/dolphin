@@ -534,7 +534,7 @@ public final class NativeLibrary
         {
           lock.wait();
         }
-        catch (Exception e)
+        catch (Exception ignored)
         {
         }
       }
