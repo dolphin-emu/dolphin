@@ -300,7 +300,7 @@ void GCMemcardManager::SetSlotFile(int slot, QString path)
   else
   {
     m_slot_memcard[slot] = nullptr;
-    ModalMessageBox::critical(
+    ModalMessageBox::warning(
         this, tr("Error"),
         tr("Failed opening memory card:\n%1").arg(GetErrorMessagesForErrorCode(error_code)));
   }
@@ -315,7 +315,8 @@ void GCMemcardManager::SetSlotFileInteractive(int slot)
       this,
       slot == 0 ? tr("Set memory card file for Slot A") : tr("Set memory card file for Slot B"),
       QString::fromStdString(File::GetUserPath(D_GCUSER_IDX)),
-      tr("GameCube Memory Cards (*.raw *.gcp)") + QStringLiteral(";;") + tr("All Files (*)")));
+      QStringLiteral("%1 (*.raw *.gcp);;%2 (*)")
+          .arg(tr("GameCube Memory Cards"), tr("All Files"))));
   if (!path.isEmpty())
     m_slot_file_edit[slot]->setText(path);
 }
