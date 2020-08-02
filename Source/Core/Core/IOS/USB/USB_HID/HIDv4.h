@@ -22,7 +22,6 @@ class USB_HIDv4 final : public USBHost
 {
 public:
   USB_HIDv4(Kernel& ios, const std::string& device_name);
-  ~USB_HIDv4() override;
 
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 

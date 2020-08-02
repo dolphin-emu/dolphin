@@ -53,13 +53,14 @@ protected:
   virtual void OnDeviceChange(ChangeEvent event, std::shared_ptr<USB::Device> changed_device);
   virtual void OnDeviceChangeEnd();
   virtual bool ShouldAddDevice(const USB::Device& device) const;
-  void StartThreads();
-  void StopThreads();
 
   IPCCommandResult HandleTransfer(std::shared_ptr<USB::Device> device, u32 request,
                                   std::function<s32()> submit) const;
 
 private:
+  void StartThreads();
+  void StopThreads();
+
   bool AddDevice(std::unique_ptr<USB::Device> device);
   bool UpdateDevices(bool always_add_hooks = false);
 

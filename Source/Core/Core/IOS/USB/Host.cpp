@@ -31,7 +31,10 @@ USBHost::USBHost(Kernel& ios, const std::string& device_name) : Device(ios, devi
 {
 }
 
-USBHost::~USBHost() = default;
+USBHost::~USBHost()
+{
+  StopThreads();
+}
 
 IPCCommandResult USBHost::Open(const OpenRequest& request)
 {
