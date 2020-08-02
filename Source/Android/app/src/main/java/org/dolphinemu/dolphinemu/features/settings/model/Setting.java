@@ -39,7 +39,6 @@ public abstract class Setting
     return mSection;
   }
 
-
   /**
    * @return A representation of this Setting's backing value converted to a String (e.g. for serialization).
    */

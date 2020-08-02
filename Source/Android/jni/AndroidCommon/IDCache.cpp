@@ -12,6 +12,7 @@ static JavaVM* s_java_vm;
 
 static jclass s_native_library_class;
 static jmethodID s_display_alert_msg;
+static jmethodID s_do_rumble;
 static jmethodID s_get_update_touch_pointer;
 
 static jclass s_game_file_class;
@@ -25,7 +26,9 @@ static jclass s_analytics_class;
 static jmethodID s_send_analytics_report;
 static jmethodID s_get_analytics_value;
 
-static jmethodID s_do_rumble;
+static jclass s_linked_hash_map_class;
+static jmethodID s_linked_hash_map_init;
+static jmethodID s_linked_hash_map_put;
 
 namespace IDCache
 {
@@ -60,6 +63,11 @@ jclass GetNativeLibraryClass()
 jmethodID GetDisplayAlertMsg()
 {
   return s_display_alert_msg;
+}
+
+jmethodID GetDoRumble()
+{
+  return s_do_rumble;
 }
 
 jmethodID GetUpdateTouchPointer()
@@ -106,9 +114,19 @@ jfieldID GetGameFileCachePointer()
   return s_game_file_cache_pointer;
 }
 
-jmethodID GetDoRumble()
+jclass GetLinkedHashMapClass()
 {
-  return s_do_rumble;
+  return s_linked_hash_map_class;
+}
+
+jmethodID GetLinkedHashMapInit()
+{
+  return s_linked_hash_map_init;
+}
+
+jmethodID GetLinkedHashMapPut()
+{
+  return s_linked_hash_map_put;
 }
 
 }  // namespace IDCache
@@ -150,6 +168,12 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_get_analytics_value = env->GetStaticMethodID(s_analytics_class, "getValue",
                                                  "(Ljava/lang/String;)Ljava/lang/String;");
 
+  const jclass map_class = env->FindClass("java/util/LinkedHashMap");
+  s_linked_hash_map_class = reinterpret_cast<jclass>(env->NewGlobalRef(map_class));
+  s_linked_hash_map_init = env->GetMethodID(s_linked_hash_map_class, "<init>", "(I)V");
+  s_linked_hash_map_put = env->GetMethodID(
+      s_linked_hash_map_class, "put", "(Ljava/lang/Object;Ljava/lang/Object;)Ljava/lang/Object;");
+
   return JNI_VERSION;
 }
 
@@ -163,6 +187,7 @@ void JNI_OnUnload(JavaVM* vm, void* reserved)
   env->DeleteGlobalRef(s_game_file_class);
   env->DeleteGlobalRef(s_game_file_cache_class);
   env->DeleteGlobalRef(s_analytics_class);
+  env->DeleteGlobalRef(s_linked_hash_map_class);
 }
 
 #ifdef __cplusplus
