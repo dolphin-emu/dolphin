@@ -112,7 +112,7 @@ struct SConfig
   bool bFPRF = false;
   bool bAccurateNaNs = false;
 
-  int iTimingVariance = 40;  // in milli secounds
+  int iTimingVariance = 12;  // in milli secounds
   bool bCPUThread = true;
   bool bDSPThread = false;
   bool bDSPHLE = true;

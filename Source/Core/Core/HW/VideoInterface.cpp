@@ -817,6 +817,9 @@ static void EndField()
 // Run when: When a frame is scanned (progressive/interlace)
 void Update(u64 ticks)
 {
+  Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
+  SerialInterface::UpdateDevices();
+
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
@@ -854,8 +857,6 @@ void Update(u64 ticks)
 
   if (s_half_line_of_next_si_poll == s_half_line_count)
   {
-    Core::UpdateInputGate(!SConfig::GetInstance().m_BackgroundInput);
-    SerialInterface::UpdateDevices();
     s_half_line_of_next_si_poll += 2 * SerialInterface::GetPollXLines();
   }
 

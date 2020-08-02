@@ -276,7 +276,9 @@ static void BPWritten(const BPCmd& bp)
     }
     else
     {
+      // Temp hack to get lag reduction code working
       if (destAddr == 0x0) { destAddr = 0x4f0c00; }
+
       // We should be able to get away with deactivating the current bbox tracking
       // here. Not sure if there's a better spot to put this.
       // the number of lines copied is determined by the y scale * source efb height
