@@ -122,8 +122,8 @@ bool VideoBackend::InitializeGLExtensions(GLContext* context)
   if (!GLExtensions::Init(context))
   {
     // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
-    // extensions
-    PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
+    // extensions. For endusers it will ask for OpenGL 3.x version.
+    PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 3.x?");
     return false;
   }
 
