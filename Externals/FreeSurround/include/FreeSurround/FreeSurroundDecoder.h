@@ -17,7 +17,7 @@
 
 // Dolphin: taken from https://hydrogenaud.io/index.php?topic=52235.0 but heavily modified
 // A more up to date version is available here:
-// https://github.com/kodi-adsp/adsp.freesurround/blob/master/src/FreeSurroundDecoder.cpp
+// https://github.com/kodi-adsp/adsp.freesurround
 
 #ifndef FREESURROUND_DECODER_H
 #define FREESURROUND_DECODER_H
@@ -72,10 +72,11 @@ public:
   // @param setup The output channel setup -- determines the number of output
   // channels and their place in the sound field.
   // @param blocksize Granularity at which data is processed by the decode()
-  // function. Must be a power of two and should correspond to ca. 10ms worth
-  // of single-channel samples (default is 4096 for 44.1Khz data). Do not make
-  // it shorter or longer than 5ms to 20ms since the granularity at which
-  // locations are decoded changes with this.
+  // function. Must be a multiple of two (better if power of) and should
+  // correspond to ca. 10ms worth of single-channel samples
+  // (default is 4096 at 44.1Khz data (Dolphin: ???)).
+  // Do not make it shorter or longer than 5ms to 20ms since the granularity
+  // at which locations are decoded changes with this (Dolphin: not true, 40+).
   DPL2FSDecoder();
   ~DPL2FSDecoder();
 
@@ -90,7 +91,9 @@ public:
   // @return A pointer to an internal buffer of exactly blocksize (multiplexed)
   // multichannel samples. The actual number of values depends on the number of
   // output channels in the chosen channel setup.
-  float *decode(float *input);
+  // Modified by Dolphin to take a ring buffer in 2 parts
+  float* decode(const float* input_part_1, const float* input_part_2,
+    unsigned int part_1_num);
 
   // Flush the internal buffer.
   void flush();

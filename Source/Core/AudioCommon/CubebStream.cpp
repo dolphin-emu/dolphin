@@ -51,6 +51,7 @@ bool CubebStream::CreateStream()
                               AudioCommon::GetOSMixerSampleRate() :
                               AudioCommon::GetDefaultSampleRate());
 
+  // cubeb always accepts 6 channels and then downmixes to 2 if they are not natively supported
   m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
 
   cubeb_stream_params params;
@@ -68,14 +69,15 @@ bool CubebStream::CreateStream()
     params.layout = CUBEB_LAYOUT_3F2_LFE;
   }
 
-  // In samples
-  // Max supported by cubeb is 96000 and min is 1 (in samples)
+  // In samples. Max supported by cubeb is 96000 and min is 1 (in samples)
   u32 minimum_latency = 0;
   if (cubeb_get_min_latency(m_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
     ERROR_LOG_FMT(AUDIO, "Error getting minimum latency");
 
 #ifdef _WIN32
-  // Custom latency is ignored in Windows, despite being exposed (always 10ms, WASAPI max is 5000ms)
+  // Latency is ignored in Windows, despite being exposed (always 10ms, WASAPI max is 5000ms).
+  // However, it seems to somewhat be used when using its mixer (in case of up mixing
+  // or down mixing the n of channels) and audio thread runs too slow to keep up.
   const u32 final_latency = minimum_latency;
 #else
   const u32 target_latency = AudioCommon::GetUserTargetLatency() / 1000.0 * params.rate;
@@ -83,6 +85,8 @@ bool CubebStream::CreateStream()
 #endif
   INFO_LOG(AUDIO, "Latency: %u frames", final_latency);
 
+  // Note that cubeb latency might not be fixed and could dynamically adjust, especially
+  // when using its mixer and the audio thread can't keep up with itself.
   return cubeb_stream_init(m_ctx.get(), &m_stream, "Dolphin Audio Output", nullptr, nullptr,
                            nullptr, &params, final_latency, DataCallback, StateCallback,
                            this) == CUBEB_OK;
@@ -90,9 +94,12 @@ bool CubebStream::CreateStream()
 
 void CubebStream::DestroyStream()
 {
-  // Can't fail
-  cubeb_stream_destroy(m_stream);
-  m_stream = nullptr;
+  if (m_stream)
+  {
+    // Can't fail
+    cubeb_stream_destroy(m_stream);
+    m_stream = nullptr;
+  }
 }
 
 bool CubebStream::SetRunning(bool running)
@@ -102,13 +109,13 @@ bool CubebStream::SetRunning(bool running)
   m_should_restart = false;
   if (m_settings_changed && running)
   {
-    m_settings_changed = false;
     DestroyStream();
     // It's very hard for cubeb to fail starting a stream so we don't trigger a restart request
     if (!CreateStream())
     {
       return false;
     }
+    m_settings_changed = false;
   }
 
   if (running)
@@ -118,17 +125,16 @@ bool CubebStream::SetRunning(bool running)
       m_running = true;
       return true;
     }
-    return false;
   }
   else
   {
-    if (cubeb_stream_stop(m_stream) == CUBEB_OK)
+    if (!m_stream || cubeb_stream_stop(m_stream) == CUBEB_OK)
     {
       m_running = false;
       return true;
     }
-    return false;
   }
+  return false;
 }
 
 CubebStream::~CubebStream()

@@ -41,6 +41,9 @@ extern const Info<bool> MAIN_DPL2_DECODER;
 extern const Info<AudioCommon::DPL2Quality> MAIN_DPL2_QUALITY;
 extern const Info<bool> MAIN_DPL2_BASS_REDIRECTION;
 extern const Info<int> MAIN_AUDIO_BACKEND_LATENCY;
+// Only set this different from zero in case your audio backend constantly changes the number of
+// samples it asks the mixer for
+extern const Info<int> MAIN_AUDIO_MIXER_MIN_LATENCY;
 extern const Info<int> MAIN_AUDIO_MIXER_MAX_LATENCY;
 extern const Info<bool> MAIN_AUDIO_STRETCH;
 extern const Info<std::string> MAIN_MEMCARD_A_PATH;

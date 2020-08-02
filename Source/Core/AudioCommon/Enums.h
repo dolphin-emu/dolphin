@@ -8,9 +8,8 @@ namespace AudioCommon
 {
 enum class DPL2Quality
 {
-  Lowest = 0,
-  Low = 1,
-  High = 2,
-  Highest = 3
+  Normal = 0,
+  High = 1,
+  Extreme = 2
 };
 }  // namespace AudioCommon

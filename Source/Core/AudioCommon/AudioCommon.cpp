@@ -144,7 +144,7 @@ std::string GetDefaultSoundBackend()
 
 DPL2Quality GetDefaultDPL2Quality()
 {
-  return DPL2Quality::Low;
+  return DPL2Quality::Normal;
 }
 
 std::vector<std::string> GetSoundBackends()

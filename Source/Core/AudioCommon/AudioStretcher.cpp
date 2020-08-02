@@ -10,6 +10,7 @@ AudioStretcher::AudioStretcher(u32 sample_rate) : m_sample_rate(sample_rate)
 {
   m_sound_touch.setChannels(2);
   m_sound_touch.setSampleRate(m_sample_rate);
+  // Some "random" values that seemed good for Dolphin 
   m_sound_touch.setSetting(SETTING_SEQUENCE_MS, 62);
   m_sound_touch.setSetting(SETTING_SEEKWINDOW_MS, 28);
   // Unfortunately the AA filter is only applied on the sample rate transposer, which we don't use,
@@ -105,5 +106,4 @@ double AudioStretcher::GetAcceptableLatency() const
 {
   return m_sound_touch.getSetting(SETTING_NOMINAL_OUTPUT_SEQUENCE) / double(m_sample_rate);
 }
-
 }  // namespace AudioCommon

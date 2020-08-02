@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
@@ -58,6 +59,7 @@ public:
     tail = (tail + 1) % N;
   }
 
+  // From front
   void pop()
   {
     assert(count > 0);
@@ -75,6 +77,27 @@ public:
     return temp;
   }
 
+  // From front
+  void erase(size_t num)
+  {
+    assert(count >= num);
+    if constexpr (!std::is_trivial_v<T>)
+    {
+      while (num > 0)
+      {
+        storage[head] = {};
+        head = (head + 1) % N;
+        count--;
+        num--;
+      }
+    }
+    else
+    {
+      head = (head + num) % N;
+      count -= num;
+    }
+  }
+
   T& operator[](size_t index)
   {
     assert(index < count);
@@ -88,14 +111,21 @@ public:
 
   T& front() noexcept { return storage[head]; }
   const T& front() const noexcept { return storage[head]; }
+  T& back() noexcept { return storage[tail]; }
+  const T& back() const noexcept { return storage[tail]; }
+  // Only use if size_to_end() > size()
+  T& beginning() noexcept { return storage[0]; }
+  const T& beginning() const noexcept { return storage[0]; }
   size_t size() const noexcept { return count; }
   size_t max_size() const noexcept { return N; }
+  // Helper to know how many more samples we could read before needing to loop over
+  size_t size_to_end() const noexcept { return N - head; }
   bool empty() const noexcept { return size() == 0; }
 
 private:
   std::array<T, N> storage;
-  unsigned int head = 0;
-  unsigned int tail = 0;
+  size_t head = 0;
+  size_t tail = 0;
   // Not necessary but avoids a lot of calculations
-  unsigned int count = 0;
+  size_t count = 0;
 };

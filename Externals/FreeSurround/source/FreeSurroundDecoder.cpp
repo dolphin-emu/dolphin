@@ -57,8 +57,9 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
   inverse = kiss_fftr_alloc(N, 1, 0, 0);
   C = static_cast<unsigned int>(chn_alloc[setup].size());
 
-  // Allocate per-channel buffers
-  outbuf.resize((N + N / 2) * C);
+  // Allocate per-channel buffers (pad if we already have data)
+  float outputval = outbuf.size() > 0 ? outbuf.back() : 0.f;
+  outbuf.resize((N + N / 2) * C, outputval);
   for (unsigned int k = 0; k < signal.size(); k++)
   {
     signal[k].resize(N);
@@ -77,8 +78,8 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
   set_center_image(1);
   set_front_separation(1);
   set_rear_separation(1);
-  set_low_cutoff(40.0f / (samplerate / 2.f));
-  set_high_cutoff(90.0f / (samplerate / 2.f));
+  set_low_cutoff(40.0f);
+  set_high_cutoff(90.0f);
   set_bass_redirection(false);
 
   initialized = true;
@@ -86,15 +87,20 @@ void DPL2FSDecoder::Init(channel_setup chsetup, unsigned int blsize,
 
 // decode a stereo chunk, produces a multichannel chunk of the same size
 // (lagged)
-float *DPL2FSDecoder::decode(float *input) {
+float* DPL2FSDecoder::decode(const float* input_part_1,
+  const float* input_part_2, unsigned int part_1_num) {
   if (initialized) {
+    part_1_num = min(part_1_num, N);
     // append incoming data to the end of the input buffer
-    memcpy(&inbuf[N], &input[0], sizeof(float) * 2 * N);
+    memcpy(&inbuf[N], &input_part_1[0], sizeof(float) * 2 * part_1_num);
+    if (part_1_num < N)
+      memcpy(&inbuf[N + part_1_num * 2], &input_part_2[0], sizeof(float) * 2
+        * (N - part_1_num));
     // process first and second half, overlapped
     buffered_decode(&inbuf[0]);
     buffered_decode(&inbuf[N]);
-    // shift last half of the input to the beginning (for overlapping with a
-    // future block)
+    // shift the third half of the input to the beginning (for overlapping with
+    // a future block)
     memcpy(&inbuf[0], &inbuf[2 * N], sizeof(float) * N);
     buffer_empty = false;
     return &outbuf[0];
@@ -120,8 +126,12 @@ void DPL2FSDecoder::set_focus(float v) { focus = v; }
 void DPL2FSDecoder::set_center_image(float v) { center_image = v; }
 void DPL2FSDecoder::set_front_separation(float v) { front_separation = v; }
 void DPL2FSDecoder::set_rear_separation(float v) { rear_separation = v; }
-void DPL2FSDecoder::set_low_cutoff(float v) { lo_cut = v * (N / 2); }
-void DPL2FSDecoder::set_high_cutoff(float v) { hi_cut = v * (N / 2); }
+void DPL2FSDecoder::set_low_cutoff(float v) {
+  lo_cut = (v / (samplerate / 2.f)) * (N / 2);
+}
+void DPL2FSDecoder::set_high_cutoff(float v) {
+  hi_cut = (v / (samplerate / 2.f)) * (N / 2);
+}
 void DPL2FSDecoder::set_bass_redirection(bool v) { use_lfe = v; }
 
 // helper functions

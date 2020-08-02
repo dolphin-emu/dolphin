@@ -646,6 +646,10 @@ bool WASAPIStream::SetRunning(bool running)
                GetMixer()->GetSampleRate());
 
       m_surround = false;
+      // Let the mixer know so it can clean the samples left in the surround decoder
+      GetMixer()->SetSurroundChanged();
+      GetMixer()->UpdateSettings(sample_rate);
+
       m_format.Format.nChannels = STEREO_CHANNELS;
       m_format.Format.nBlockAlign = m_format.Format.nChannels * m_format.Format.wBitsPerSample / 8;
       m_format.Format.nAvgBytesPerSec =
@@ -941,7 +945,7 @@ void WASAPIStream::SoundLoop()
       // From float(32) (~-1 to ~1 but can go beyond limits) to signed short(16)
       for (u32 i = 0; i < mixed_samples * SURROUND_CHANNELS; ++i)
       {
-        m_surround_samples[i] *= volume * std::numeric_limits<s16>::max();
+        m_surround_samples[i] *= volume * -std::numeric_limits<s16>::min();
         m_surround_samples[i] =
             std::clamp(m_surround_samples[i], float(std::numeric_limits<s16>::min()),
                        float(std::numeric_limits<s16>::max()));

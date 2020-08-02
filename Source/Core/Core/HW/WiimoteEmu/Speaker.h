@@ -29,11 +29,11 @@ public:
   static constexpr u8 SPEAKER_DATA_OFFSET = 0x00;
 
   void Reset();
+  void ResetDecoder();
   void DoState(PointerWrap& p);
 
 private:
-  // Pan is -1.0 (L) to +1.0 (R)
-  void SpeakerData(const u8* data, int length, float speaker_pan);
+  void SpeakerData(const u8* data, int length);
 
   // TODO: enum class
   static const u8 DATA_FORMAT_ADPCM = 0x00;
@@ -47,7 +47,7 @@ private:
     u8 speaker_data;
     u8 unk_1;
     u8 format;
-    // seems to always play at 6khz no matter what this is set to?
+    // Seems to always play at 6kHz no matter what this is set to?
     // or maybe it only applies to pcm input
     // Little-endian:
     u16 sample_rate;

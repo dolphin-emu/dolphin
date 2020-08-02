@@ -113,12 +113,15 @@ void AudioPane::CreateWidgets()
   // Unfortunately this creates an empty space if added to the widget. We should find a better way
   m_use_os_sample_rate->setHidden(true);
 
+  //To specify that latency increases by at least half the block size. Align latencies for better results
   m_dolby_pro_logic->setToolTip(
       tr("Enables Dolby Pro Logic II emulation using 5.1 surround.\nCertain backends and DPS "
          "emulation engines only.\nAutomatically disabled if not supported by your audio device."
          "\nYou need to enable surround from the game settings in GC games or in the menu settings "
          "on Wii."
-         "\nThe console will still output 2.0, but the encoder will extract information for 5.1."
+         "\nThe emulation will still output 2.0, but the encoder will extract information for 5.1."
+         "\nIf you align your backend latency to the DPLII block size,"
+         "\nthe added latency will be half the DPLII block size."
          "\nIf unsure, leave off."));
 
   auto* dolby_quality_layout = new QHBoxLayout;
@@ -127,18 +130,18 @@ void AudioPane::CreateWidgets()
 
   m_dolby_quality_slider = new QSlider(Qt::Horizontal);
   m_dolby_quality_slider->setMinimum(0);
-  m_dolby_quality_slider->setMaximum(3);
+  m_dolby_quality_slider->setMaximum(2);
   m_dolby_quality_slider->setPageStep(1);
   m_dolby_quality_slider->setTickPosition(QSlider::TicksBelow);
   m_dolby_quality_slider->setToolTip(
       tr("Quality of the DPLII decoder. Also increases audio latency"));
   m_dolby_quality_slider->setTracking(true);
 
-  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Lowest));
+  m_dolby_quality_low_label = new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Normal));
   m_dolby_quality_highest_label =
-      new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Highest));
+      new QLabel(GetDPL2QualityLabel(AudioCommon::DPL2Quality::Extreme));
   m_dolby_quality_latency_label =
-      new QLabel(GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality::Highest));
+      new QLabel(GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality::Extreme));
 
   dolby_quality_layout->addWidget(m_dolby_quality_low_label);
   dolby_quality_layout->addWidget(m_dolby_quality_slider);
@@ -677,15 +680,13 @@ QString AudioPane::GetDPL2QualityLabel(AudioCommon::DPL2Quality value) const
 {
   switch (value)
   {
-  case AudioCommon::DPL2Quality::Lowest:
-    return tr("Lowest");
-  case AudioCommon::DPL2Quality::Low:
-    return tr("Low");
-  case AudioCommon::DPL2Quality::Highest:
-    return tr("Highest");
   case AudioCommon::DPL2Quality::High:
-  default:
     return tr("High");
+  case AudioCommon::DPL2Quality::Extreme:
+    return tr("Extreme");
+  case AudioCommon::DPL2Quality::Normal:
+  default:
+    return tr("Normal");
   }
 }
 
@@ -693,15 +694,13 @@ QString AudioPane::GetDPL2ApproximateLatencyLabel(AudioCommon::DPL2Quality value
 {
   switch (value)
   {
-  case AudioCommon::DPL2Quality::Lowest:
-    return tr("Latency: ~10ms");
-  case AudioCommon::DPL2Quality::Low:
-    return tr("Latency: ~20ms");
-  case AudioCommon::DPL2Quality::Highest:
-    return tr("Latency: ~80ms");
   case AudioCommon::DPL2Quality::High:
+    return tr("Block Size: 20ms");
+  case AudioCommon::DPL2Quality::Extreme:
+    return tr("Block Size: 40ms");
+  case AudioCommon::DPL2Quality::Normal:
   default:
-    return tr("Latency: ~40ms");
+    return tr("Block Size: 10ms");
   }
 }
 

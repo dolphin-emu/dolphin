@@ -92,11 +92,12 @@ void stopdamnwav()
 }
 #endif
 
-void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
+void SpeakerLogic::SpeakerData(const u8* data, int length)
 {
   if (reg_data.sample_rate == 0 || length == 0)
     return;
 
+  //To reivew: not sure about mute...
   // Even if volume is zero or WiimoteEnableSpeaker is off we process samples to maintain proper
   // decoder state
 
@@ -166,6 +167,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // Multiply by 256, floor to int, and clamp to 255 for a uniformly mapped conversion.
     const double volume = float(reg_data.volume) * 256.f / volume_divisor;
 
+    // Pan is -1.0 (L) to +1.0 (R)
     // This used the "Constant Power Pan Law", but it is undesiderable
     // if the pan is 0, and it implied that the loudness of a wiimote speaker
     // is equal to the loudness of your device speakers, which isn't true at all.
@@ -173,7 +175,7 @@ void SpeakerLogic::SpeakerData(const u8* data, int length, float speaker_pan)
     // We should play the samples from the wiimote at the native volume they came with,
     // because you can lower their volume from the wii settings, and because they are
     // already extremely low quality, so any additional quality loss isn't welcome.
-    speaker_pan = std::clamp(speaker_pan, -1.f, 1.f);
+    float speaker_pan = std::clamp(float(m_speaker_pan_setting.GetValue()) / 100, -1.f, 1.f);
     const u32 l_volume = std::min(u32(std::min(1.f - speaker_pan, 1.f) * volume), 255u);
     const u32 r_volume = std::min(u32(std::min(1.f + speaker_pan, 1.f) * volume), 255u);
 
@@ -212,14 +214,19 @@ void SpeakerLogic::Reset()
 {
   reg_data = {};
 
+  ResetDecoder();
+}
+
+//To call on re-connect for sure
+void SpeakerLogic::ResetDecoder()
+{
   // Yamaha ADPCM state initialize
-  adpcm_state.predictor = 0.0; //To make sure it's called (what about when the speaker is muted or disabled)
+  adpcm_state.predictor = 0.0;
   adpcm_state.step = 127.0;
 }
 
 void SpeakerLogic::DoState(PointerWrap& p)
 {
-  //To increase state type num
   p.Do(adpcm_state);
   p.Do(reg_data);
 }
@@ -239,7 +246,7 @@ int SpeakerLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
 
   if (0x00 == addr)
   {
-    SpeakerData(data_in, count, m_speaker_pan_setting.GetValue() / 100);
+    SpeakerData(data_in, count);
     return count;
   }
   else
