@@ -636,7 +636,10 @@ void GCMemcardManager::FixChecksums()
   memcard->FixChecksums();
 
   if (!memcard->Save())
-    PanicAlertFmtT("File write failed");
+  {
+    ModalMessageBox::warning(this, tr("Fix Checksums Failed"),
+                             tr("Failed to write modified memory card to disk."));
+  }
 }
 
 void GCMemcardManager::CreateNewCard(int slot)
