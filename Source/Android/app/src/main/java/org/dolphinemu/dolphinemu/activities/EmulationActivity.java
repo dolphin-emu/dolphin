@@ -70,6 +70,9 @@ public final class EmulationActivity extends AppCompatActivity
 
   private Settings mSettings;
 
+  private MenuItem mPauseEmulationButton;
+  private MenuItem mUnpauseEmulationButton;
+
   private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
@@ -81,12 +84,14 @@ public final class EmulationActivity extends AppCompatActivity
   private String mSelectedGameId;
   private int mPlatform;
   private String[] mPaths;
+  private static boolean sUserPausedEmulation;
   private boolean backPressedOnce = false;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
   public static final String EXTRA_PLATFORM = "Platform";
+  public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
 
   @Retention(SOURCE)
   @IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -98,7 +103,8 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT3, MENU_ACTION_LOAD_SLOT4, MENU_ACTION_LOAD_SLOT5,
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
-          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS})
+          MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
+          MENU_ACTION_UNPAUSE_EMULATION})
   public @interface MenuAction
   {
   }
@@ -134,6 +140,8 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_CHOOSE_DOUBLETAP = 28;
   public static final int MENU_ACTION_SCREEN_ORIENTATION = 29;
   public static final int MENU_ACTION_MOTION_CONTROLS = 30;
+  public static final int MENU_ACTION_PAUSE_EMULATION = 31;
+  public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
 
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
@@ -150,6 +158,10 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
     buttonsActionsMap
             .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
+    buttonsActionsMap
+            .append(R.id.menu_emulation_pause, EmulationActivity.MENU_ACTION_PAUSE_EMULATION);
+    buttonsActionsMap
+            .append(R.id.menu_emulation_unpause, EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION);
     buttonsActionsMap
             .append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
 
@@ -274,6 +286,7 @@ public final class EmulationActivity extends AppCompatActivity
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
       mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
+      sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       activityRecreated = false;
     }
     else
@@ -356,6 +369,7 @@ public final class EmulationActivity extends AppCompatActivity
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
     outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
+    outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
     super.onSaveInstanceState(outState);
   }
 
@@ -365,6 +379,7 @@ public final class EmulationActivity extends AppCompatActivity
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
     mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
+    sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
   }
 
   @Override
@@ -490,6 +505,14 @@ public final class EmulationActivity extends AppCompatActivity
       getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
     }
 
+    mPauseEmulationButton = menu.findItem(R.id.menu_emulation_pause);
+    mUnpauseEmulationButton = menu.findItem(R.id.menu_emulation_unpause);
+
+    if (sUserPausedEmulation)
+    {
+      showUnpauseEmulationButton();
+    }
+
     BooleanSetting enableSaveStates =
             (BooleanSetting) mSettings.getSection(Settings.SECTION_INI_CORE)
                     .getSetting(SettingsFile.KEY_ENABLE_SAVE_STATES);
@@ -576,6 +599,18 @@ public final class EmulationActivity extends AppCompatActivity
 
       case MENU_ACTION_REFRESH_WIIMOTES:
         NativeLibrary.RefreshWiimotes();
+        return;
+
+      case MENU_ACTION_PAUSE_EMULATION:
+        sUserPausedEmulation = true;
+        NativeLibrary.PauseEmulation();
+        showUnpauseEmulationButton();
+        return;
+
+      case MENU_ACTION_UNPAUSE_EMULATION:
+        sUserPausedEmulation = false;
+        NativeLibrary.UnPauseEmulation();
+        showPauseEmulationButton();
         return;
 
       // Screenshot capturing
@@ -686,6 +721,28 @@ public final class EmulationActivity extends AppCompatActivity
         finish();
         return;
     }
+  }
+
+  private void showPauseEmulationButton()
+  {
+    mUnpauseEmulationButton.setVisible(false);
+    mPauseEmulationButton.setVisible(true);
+  }
+
+  private void showUnpauseEmulationButton()
+  {
+    mPauseEmulationButton.setVisible(false);
+    mUnpauseEmulationButton.setVisible(true);
+  }
+
+  public static boolean getHasUserPausedEmulation()
+  {
+    return sUserPausedEmulation;
+  }
+
+  public static void setHasUserPausedEmulation(boolean value)
+  {
+    sUserPausedEmulation = value;
   }
 
   private void toggleJoystickRelCenter(boolean state)
