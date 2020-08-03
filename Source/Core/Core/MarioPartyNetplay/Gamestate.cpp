@@ -34,8 +34,8 @@ bool mpn_init_state()
     CurrentState.Title = "Mario Party 6";
     break;
   case MPN_GAMEID_MP7:
-    // CurrentState.Addresses    = &MP7_ADDRESSES;
-    // CurrentState.Boards       = MP7_BOARDS;
+    CurrentState.Addresses = &MP7_ADDRESSES;
+    CurrentState.Boards = MP7_BOARDS;
     CurrentState.Image = "box-mp7";
     CurrentState.IsMarioParty = true;
     CurrentState.Scenes = MP7_GAMESTATES;
