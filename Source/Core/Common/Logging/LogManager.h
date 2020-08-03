@@ -7,6 +7,7 @@
 #include <array>
 #include <cstdarg>
 #include <map>
+#include <string>
 
 #include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
