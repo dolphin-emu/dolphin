@@ -4,7 +4,6 @@ set -e
 
 ROOT_DOLPHIN_DIR=$PROJECT_DIR/../../..
 CMAKE_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$ARCHS-$DOLPHIN_BUILD_TYPE
-GENERIC_BUILD_DIR=$ROOT_DOLPHIN_DIR/build-$DOLPHIN_BUILD_TYPE
 ADDITIONAL_CMAKE_SETTINGS=
 
 IOS_PLATFORM=OS64
@@ -28,23 +27,22 @@ cd $CMAKE_BUILD_DIR
 
 ninja
 
-if [ ! -d "$GENERIC_BUILD_DIR" ]; then
-    mkdir $GENERIC_BUILD_DIR
-    mkdir $GENERIC_BUILD_DIR/libs
-    mkdir $GENERIC_BUILD_DIR/libs/Dolphin
-    mkdir $GENERIC_BUILD_DIR/libs/Externals
+if [ ! -d "$CMAKE_BUILD_DIR/libs" ]; then
+    mkdir $CMAKE_BUILD_DIR/libs
+    mkdir $CMAKE_BUILD_DIR/libs/Dolphin
+    mkdir $CMAKE_BUILD_DIR/libs/Externals
 fi
 
-rm -f $GENERIC_BUILD_DIR/libs/Dolphin/*.a
-rm -f $GENERIC_BUILD_DIR/libs/Externals/*.a
+rm -f $CMAKE_BUILD_DIR/libs/Dolphin/*.a
+rm -f $CMAKE_BUILD_DIR/libs/Externals/*.a
 
-find Source/ -name '*.a' -exec ln '{}' "$GENERIC_BUILD_DIR/libs/Dolphin/" ';'
+find Source/ -name '*.a' -exec ln '{}' "$CMAKE_BUILD_DIR/libs/Dolphin/" ';'
 
-find Externals/ -name '*.a' -exec ln '{}' "$GENERIC_BUILD_DIR/libs/Externals/" ';'
+find Externals/ -name '*.a' -exec ln '{}' "$CMAKE_BUILD_DIR/libs/Externals/" ';'
 
-if [ -f "$GENERIC_BUILD_DIR/libs/Externals/libfmtd.a" ]; then
-    rm $GENERIC_BUILD_DIR/libs/Externals/libfmt.a || true
-    cp $GENERIC_BUILD_DIR/libs/Externals/libfmtd.a $GENERIC_BUILD_DIR/libs/Externals/libfmt.a
+if [ -f "$CMAKE_BUILD_DIR/libs/Externals/libfmtd.a" ]; then
+    rm $CMAKE_BUILD_DIR/libs/Externals/libfmt.a || true
+    cp $CMAKE_BUILD_DIR/libs/Externals/libfmtd.a $CMAKE_BUILD_DIR/libs/Externals/libfmt.a
 fi
 
 rm $PROJECT_DIR/libMoltenVK.dylib || true

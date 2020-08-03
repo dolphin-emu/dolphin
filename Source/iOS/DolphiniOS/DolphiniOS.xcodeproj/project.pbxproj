@@ -19,7 +19,6 @@
 		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
 		B927118624A3FF8000A21182 /* libbz2.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118524A3FF8000A21182 /* libbz2.tbd */; };
 		B927118824A3FFB200A21182 /* liblzma.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118724A3FFB200A21182 /* liblzma.tbd */; };
-		B927118A24A4007B00A21182 /* libzstd.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B927118924A4007B00A21182 /* libzstd.a */; };
 		B928112423C095F000B53145 /* UINavigationControllerExtensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */; };
 		B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B928112523C0A24700B53145 /* TCClassicWiiPad.xib */; };
 		B92C380324142B960023D808 /* GraphicsAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92C380224142B960023D808 /* GraphicsAdvancedViewController.mm */; };
@@ -34,38 +33,6 @@
 		B945A3922362D90200B21680 /* EAGLView.m in Sources */ = {isa = PBXBuildFile; fileRef = B945A3912362D90200B21680 /* EAGLView.m */; };
 		B945A3952362D98400B21680 /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3942362D98400B21680 /* OpenGLES.framework */; };
 		B945A3972362D99000B21680 /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3962362D99000B21680 /* libz.tbd */; };
-		B945A3D02362DB9800B21680 /* libdiscio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C42362DB9800B21680 /* libdiscio.a */; };
-		B945A3D12362DB9800B21680 /* libuicommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C52362DB9800B21680 /* libuicommon.a */; };
-		B945A3D22362DB9800B21680 /* libvideocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C62362DB9800B21680 /* libvideocommon.a */; };
-		B945A3D32362DB9800B21680 /* libvideovulkan.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C72362DB9800B21680 /* libvideovulkan.a */; };
-		B945A3D42362DB9800B21680 /* libcore.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C82362DB9800B21680 /* libcore.a */; };
-		B945A3D52362DB9800B21680 /* libmain.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3C92362DB9800B21680 /* libmain.a */; };
-		B945A3D62362DB9800B21680 /* libvideonull.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CA2362DB9800B21680 /* libvideonull.a */; };
-		B945A3D72362DB9800B21680 /* libvideoogl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CB2362DB9800B21680 /* libvideoogl.a */; };
-		B945A3D82362DB9800B21680 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CC2362DB9800B21680 /* libcommon.a */; };
-		B945A3D92362DB9800B21680 /* libvideosoftware.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CD2362DB9800B21680 /* libvideosoftware.a */; };
-		B945A3DA2362DB9800B21680 /* libaudiocommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CE2362DB9800B21680 /* libaudiocommon.a */; };
-		B945A3DB2362DB9800B21680 /* libinputcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3CF2362DB9800B21680 /* libinputcommon.a */; };
-		B945A3DC2362DBB200B21680 /* libfmt.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A62362DB7C00B21680 /* libfmt.a */; };
-		B945A3DD2362DBB200B21680 /* libiconv.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AA2362DB7C00B21680 /* libiconv.a */; };
-		B945A3DE2362DBB200B21680 /* libcurl.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A02362DB7C00B21680 /* libcurl.a */; };
-		B945A3DF2362DBB200B21680 /* libmbedtls.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39A2362DB7C00B21680 /* libmbedtls.a */; };
-		B945A3E02362DBB200B21680 /* libmbedx509.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AD2362DB7C00B21680 /* libmbedx509.a */; };
-		B945A3E12362DBB200B21680 /* libmbedcrypto.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39D2362DB7C00B21680 /* libmbedcrypto.a */; };
-		B945A3E22362DBB200B21680 /* libsfml-network.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A72362DB7C00B21680 /* libsfml-network.a */; };
-		B945A3E32362DBB200B21680 /* libsfml-system.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A82362DB7C00B21680 /* libsfml-system.a */; };
-		B945A3E42362DBB200B21680 /* libSoundTouch.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AB2362DB7C00B21680 /* libSoundTouch.a */; };
-		B945A3E52362DBB200B21680 /* libed25519.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39B2362DB7C00B21680 /* libed25519.a */; };
-		B945A3E62362DBB200B21680 /* libFreeSurround.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39C2362DB7C00B21680 /* libFreeSurround.a */; };
-		B945A3E72362DBB200B21680 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A22362DB7C00B21680 /* libpng.a */; };
-		B945A3E82362DBB200B21680 /* liblzo2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AC2362DB7C00B21680 /* liblzo2.a */; };
-		B945A3E92362DBB200B21680 /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A32362DB7C00B21680 /* libminizip.a */; };
-		B945A3EA2362DBB200B21680 /* libxxhash.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39E2362DB7C00B21680 /* libxxhash.a */; };
-		B945A3EB2362DBB200B21680 /* libenet.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3AE2362DB7C00B21680 /* libenet.a */; };
-		B945A3EC2362DBB200B21680 /* libpugixml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A42362DB7C00B21680 /* libpugixml.a */; };
-		B945A3ED2362DBB200B21680 /* libimgui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A52362DB7C00B21680 /* libimgui.a */; };
-		B945A3EE2362DBB200B21680 /* libglslang.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A39F2362DB7C00B21680 /* libglslang.a */; };
-		B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3A92362DB7C00B21680 /* libcpp-optparse.a */; };
 		B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = B945A3F32362E24000B21680 /* libc++.tbd */; };
 		B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B946AF10245B953B0043767A /* TopBarModeViewController.m */; };
 		B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B946AF13245BFBCD0043767A /* WiiSystemUpdate.storyboard */; };
@@ -202,7 +169,6 @@
 		B9F03CB223B0598100423AE6 /* ControllerGroupViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CB123B0598100423AE6 /* ControllerGroupViewController.mm */; };
 		B9F03CBA23B05FD000423AE6 /* ControllerGroupButtonCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CB923B05FD000423AE6 /* ControllerGroupButtonCell.mm */; };
 		B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9F03CBC23B0627100423AE6 /* ControllerGroupCheckboxCell.mm */; };
-		F69D5053D151F77FA7991917 /* libPods-DolphiniOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93227A79A53E50FE37648CB5 /* libPods-DolphiniOS.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -333,7 +299,6 @@
 		B924DCA823DA890800831A1A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/Settings.strings; sourceTree = "<group>"; };
 		B927118524A3FF8000A21182 /* libbz2.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libbz2.tbd; path = usr/lib/libbz2.tbd; sourceTree = SDKROOT; };
 		B927118724A3FFB200A21182 /* liblzma.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = liblzma.tbd; path = usr/lib/liblzma.tbd; sourceTree = SDKROOT; };
-		B927118924A4007B00A21182 /* libzstd.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libzstd.a; path = "../../../build-Debug/libs/Externals/libzstd.a"; sourceTree = "<group>"; };
 		B928112323C095F000B53145 /* UINavigationControllerExtensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UINavigationControllerExtensions.swift; sourceTree = "<group>"; };
 		B928112523C0A24700B53145 /* TCClassicWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCClassicWiiPad.xib; sourceTree = "<group>"; };
 		B92C380124142B960023D808 /* GraphicsAdvancedViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsAdvancedViewController.h; sourceTree = "<group>"; };
@@ -357,39 +322,6 @@
 		B945A3942362D98400B21680 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		B945A3962362D99000B21680 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
 		B945A3982362DA7A00B21680 /* DolphiniOS */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DolphiniOS; sourceTree = "<group>"; };
-		B945A39A2362DB7C00B21680 /* libmbedtls.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedtls.a; path = ../../../build/libs/Externals/libmbedtls.a; sourceTree = "<group>"; };
-		B945A39B2362DB7C00B21680 /* libed25519.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libed25519.a; path = ../../../build/libs/Externals/libed25519.a; sourceTree = "<group>"; };
-		B945A39C2362DB7C00B21680 /* libFreeSurround.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFreeSurround.a; path = ../../../build/libs/Externals/libFreeSurround.a; sourceTree = "<group>"; };
-		B945A39D2362DB7C00B21680 /* libmbedcrypto.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedcrypto.a; path = ../../../build/libs/Externals/libmbedcrypto.a; sourceTree = "<group>"; };
-		B945A39E2362DB7C00B21680 /* libxxhash.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libxxhash.a; path = ../../../build/libs/Externals/libxxhash.a; sourceTree = "<group>"; };
-		B945A39F2362DB7C00B21680 /* libglslang.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libglslang.a; path = ../../../build/libs/Externals/libglslang.a; sourceTree = "<group>"; };
-		B945A3A02362DB7C00B21680 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = ../../../build/libs/Externals/libcurl.a; sourceTree = "<group>"; };
-		B945A3A12362DB7C00B21680 /* libbdisasm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libbdisasm.a; path = ../../../build/libs/Externals/libbdisasm.a; sourceTree = "<group>"; };
-		B945A3A22362DB7C00B21680 /* libpng.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpng.a; path = ../../../build/libs/Externals/libpng.a; sourceTree = "<group>"; };
-		B945A3A32362DB7C00B21680 /* libminizip.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libminizip.a; path = ../../../build/libs/Externals/libminizip.a; sourceTree = "<group>"; };
-		B945A3A42362DB7C00B21680 /* libpugixml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libpugixml.a; path = ../../../build/libs/Externals/libpugixml.a; sourceTree = "<group>"; };
-		B945A3A52362DB7C00B21680 /* libimgui.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libimgui.a; path = ../../../build/libs/Externals/libimgui.a; sourceTree = "<group>"; };
-		B945A3A62362DB7C00B21680 /* libfmt.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libfmt.a; path = ../../../build/libs/Externals/libfmt.a; sourceTree = "<group>"; };
-		B945A3A72362DB7C00B21680 /* libsfml-network.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-network.a"; path = "../../../build/libs/Externals/libsfml-network.a"; sourceTree = "<group>"; };
-		B945A3A82362DB7C00B21680 /* libsfml-system.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libsfml-system.a"; path = "../../../build/libs/Externals/libsfml-system.a"; sourceTree = "<group>"; };
-		B945A3A92362DB7C00B21680 /* libcpp-optparse.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libcpp-optparse.a"; path = "../../../build/libs/Externals/libcpp-optparse.a"; sourceTree = "<group>"; };
-		B945A3AA2362DB7C00B21680 /* libiconv.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libiconv.a; path = ../../../build/libs/Externals/libiconv.a; sourceTree = "<group>"; };
-		B945A3AB2362DB7C00B21680 /* libSoundTouch.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libSoundTouch.a; path = ../../../build/libs/Externals/libSoundTouch.a; sourceTree = "<group>"; };
-		B945A3AC2362DB7C00B21680 /* liblzo2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblzo2.a; path = ../../../build/libs/Externals/liblzo2.a; sourceTree = "<group>"; };
-		B945A3AD2362DB7C00B21680 /* libmbedx509.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmbedx509.a; path = ../../../build/libs/Externals/libmbedx509.a; sourceTree = "<group>"; };
-		B945A3AE2362DB7C00B21680 /* libenet.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libenet.a; path = ../../../build/libs/Externals/libenet.a; sourceTree = "<group>"; };
-		B945A3C42362DB9800B21680 /* libdiscio.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libdiscio.a; path = ../../../build/libs/Dolphin/libdiscio.a; sourceTree = "<group>"; };
-		B945A3C52362DB9800B21680 /* libuicommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libuicommon.a; path = ../../../build/libs/Dolphin/libuicommon.a; sourceTree = "<group>"; };
-		B945A3C62362DB9800B21680 /* libvideocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideocommon.a; path = ../../../build/libs/Dolphin/libvideocommon.a; sourceTree = "<group>"; };
-		B945A3C72362DB9800B21680 /* libvideovulkan.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideovulkan.a; path = ../../../build/libs/Dolphin/libvideovulkan.a; sourceTree = "<group>"; };
-		B945A3C82362DB9800B21680 /* libcore.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcore.a; path = ../../../build/libs/Dolphin/libcore.a; sourceTree = "<group>"; };
-		B945A3C92362DB9800B21680 /* libmain.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmain.a; path = ../../../build/libs/Dolphin/libmain.a; sourceTree = "<group>"; };
-		B945A3CA2362DB9800B21680 /* libvideonull.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideonull.a; path = ../../../build/libs/Dolphin/libvideonull.a; sourceTree = "<group>"; };
-		B945A3CB2362DB9800B21680 /* libvideoogl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideoogl.a; path = ../../../build/libs/Dolphin/libvideoogl.a; sourceTree = "<group>"; };
-		B945A3CC2362DB9800B21680 /* libcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcommon.a; path = ../../../build/libs/Dolphin/libcommon.a; sourceTree = "<group>"; };
-		B945A3CD2362DB9800B21680 /* libvideosoftware.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvideosoftware.a; path = ../../../build/libs/Dolphin/libvideosoftware.a; sourceTree = "<group>"; };
-		B945A3CE2362DB9800B21680 /* libaudiocommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudiocommon.a; path = ../../../build/libs/Dolphin/libaudiocommon.a; sourceTree = "<group>"; };
-		B945A3CF2362DB9800B21680 /* libinputcommon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libinputcommon.a; path = ../../../build/libs/Dolphin/libinputcommon.a; sourceTree = "<group>"; };
 		B945A3F32362E24000B21680 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		B946AF0F245B953B0043767A /* TopBarModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TopBarModeViewController.h; sourceTree = "<group>"; };
 		B946AF10245B953B0043767A /* TopBarModeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TopBarModeViewController.m; sourceTree = "<group>"; };
@@ -655,41 +587,7 @@
 				B927118624A3FF8000A21182 /* libbz2.tbd in Frameworks */,
 				B927118824A3FFB200A21182 /* liblzma.tbd in Frameworks */,
 				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
-				B927118A24A4007B00A21182 /* libzstd.a in Frameworks */,
 				B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */,
-				B945A3DC2362DBB200B21680 /* libfmt.a in Frameworks */,
-				B945A3DD2362DBB200B21680 /* libiconv.a in Frameworks */,
-				B945A3DE2362DBB200B21680 /* libcurl.a in Frameworks */,
-				B945A3DF2362DBB200B21680 /* libmbedtls.a in Frameworks */,
-				B945A3E02362DBB200B21680 /* libmbedx509.a in Frameworks */,
-				B945A3E12362DBB200B21680 /* libmbedcrypto.a in Frameworks */,
-				B945A3E22362DBB200B21680 /* libsfml-network.a in Frameworks */,
-				B945A3E32362DBB200B21680 /* libsfml-system.a in Frameworks */,
-				B945A3E42362DBB200B21680 /* libSoundTouch.a in Frameworks */,
-				B945A3E52362DBB200B21680 /* libed25519.a in Frameworks */,
-				B945A3E62362DBB200B21680 /* libFreeSurround.a in Frameworks */,
-				B945A3E72362DBB200B21680 /* libpng.a in Frameworks */,
-				B945A3E82362DBB200B21680 /* liblzo2.a in Frameworks */,
-				B945A3E92362DBB200B21680 /* libminizip.a in Frameworks */,
-				B945A3EA2362DBB200B21680 /* libxxhash.a in Frameworks */,
-				B945A3EB2362DBB200B21680 /* libenet.a in Frameworks */,
-				B945A3EC2362DBB200B21680 /* libpugixml.a in Frameworks */,
-				B945A3ED2362DBB200B21680 /* libimgui.a in Frameworks */,
-				B945A3EE2362DBB200B21680 /* libglslang.a in Frameworks */,
-				B945A3EF2362DBB200B21680 /* libcpp-optparse.a in Frameworks */,
-				B945A3D02362DB9800B21680 /* libdiscio.a in Frameworks */,
-				B945A3D12362DB9800B21680 /* libuicommon.a in Frameworks */,
-				B945A3D22362DB9800B21680 /* libvideocommon.a in Frameworks */,
-				B945A3D32362DB9800B21680 /* libvideovulkan.a in Frameworks */,
-				B945A3D42362DB9800B21680 /* libcore.a in Frameworks */,
-				B945A3D52362DB9800B21680 /* libmain.a in Frameworks */,
-				B945A3D62362DB9800B21680 /* libvideonull.a in Frameworks */,
-				B945A3D72362DB9800B21680 /* libvideoogl.a in Frameworks */,
-				B945A3D82362DB9800B21680 /* libcommon.a in Frameworks */,
-				B945A3D92362DB9800B21680 /* libvideosoftware.a in Frameworks */,
-				B945A3DA2362DB9800B21680 /* libaudiocommon.a in Frameworks */,
-				B945A3DB2362DB9800B21680 /* libinputcommon.a in Frameworks */,
-				F69D5053D151F77FA7991917 /* libPods-DolphiniOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -863,7 +761,6 @@
 		B945A3932362D98300B21680 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B927118924A4007B00A21182 /* libzstd.a */,
 				B927118724A3FFB200A21182 /* liblzma.tbd */,
 				B927118524A3FF8000A21182 /* libbz2.tbd */,
 				B9DCAC9E23AC9C83002B95C8 /* GameController.framework */,
@@ -874,39 +771,6 @@
 				B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */,
 				B91BF37B236BEEF700199BA7 /* Metal.framework */,
 				B945A3F32362E24000B21680 /* libc++.tbd */,
-				B945A3CE2362DB9800B21680 /* libaudiocommon.a */,
-				B945A3CC2362DB9800B21680 /* libcommon.a */,
-				B945A3C82362DB9800B21680 /* libcore.a */,
-				B945A3C42362DB9800B21680 /* libdiscio.a */,
-				B945A3CF2362DB9800B21680 /* libinputcommon.a */,
-				B945A3C92362DB9800B21680 /* libmain.a */,
-				B945A3C52362DB9800B21680 /* libuicommon.a */,
-				B945A3C62362DB9800B21680 /* libvideocommon.a */,
-				B945A3CA2362DB9800B21680 /* libvideonull.a */,
-				B945A3CB2362DB9800B21680 /* libvideoogl.a */,
-				B945A3CD2362DB9800B21680 /* libvideosoftware.a */,
-				B945A3C72362DB9800B21680 /* libvideovulkan.a */,
-				B945A3A12362DB7C00B21680 /* libbdisasm.a */,
-				B945A3A92362DB7C00B21680 /* libcpp-optparse.a */,
-				B945A3A02362DB7C00B21680 /* libcurl.a */,
-				B945A39B2362DB7C00B21680 /* libed25519.a */,
-				B945A3AE2362DB7C00B21680 /* libenet.a */,
-				B945A3A62362DB7C00B21680 /* libfmt.a */,
-				B945A39C2362DB7C00B21680 /* libFreeSurround.a */,
-				B945A39F2362DB7C00B21680 /* libglslang.a */,
-				B945A3AA2362DB7C00B21680 /* libiconv.a */,
-				B945A3A52362DB7C00B21680 /* libimgui.a */,
-				B945A3AC2362DB7C00B21680 /* liblzo2.a */,
-				B945A39D2362DB7C00B21680 /* libmbedcrypto.a */,
-				B945A39A2362DB7C00B21680 /* libmbedtls.a */,
-				B945A3AD2362DB7C00B21680 /* libmbedx509.a */,
-				B945A3A32362DB7C00B21680 /* libminizip.a */,
-				B945A3A22362DB7C00B21680 /* libpng.a */,
-				B945A3A42362DB7C00B21680 /* libpugixml.a */,
-				B945A3A72362DB7C00B21680 /* libsfml-network.a */,
-				B945A3A82362DB7C00B21680 /* libsfml-system.a */,
-				B945A3AB2362DB7C00B21680 /* libSoundTouch.a */,
-				B945A39E2362DB7C00B21680 /* libxxhash.a */,
 				B945A3982362DA7A00B21680 /* DolphiniOS */,
 				B945A3962362D99000B21680 /* libz.tbd */,
 				B945A3942362D98400B21680 /* OpenGLES.framework */,
@@ -2123,12 +1987,47 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -2165,7 +2064,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-njb";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2235,13 +2134,52 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				VALID_ARCHS = arm64;
 			};
@@ -2296,12 +2234,51 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -2340,7 +2317,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-debug";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2385,7 +2362,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = me.oatmealdome.DolphiniOS;
+				PRODUCT_BUNDLE_IDENTIFIER = use.your.own.bundle.id.DolphiniOS;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2449,12 +2426,47 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -2492,7 +2504,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-njb";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
@@ -2556,12 +2568,47 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -2599,7 +2646,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb-patreon-beta";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-njb-patreon-beta";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
@@ -2668,13 +2715,48 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				VALID_ARCHS = arm64;
 			};
@@ -2711,7 +2793,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-njb-debug";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-njb-debug";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -2775,12 +2857,51 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+				);
+				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				"OTHER_LDFLAGS[sdk=iphonesimulator*]" = "-lbdisasm";
+				OTHER_LDFLAGS = (
+					"-lFreeSurround",
+					"-lSoundTouch",
+					"-lcpp-optparse",
+					"-lmbedcrypto",
+					"-lmbedx509",
+					"-lmbedtls",
+					"-lcurl",
+					"-led25519",
+					"-lenet",
+					"-lfmt",
+					"-lglslang",
+					"-liconv",
+					"-limgui",
+					"-llzma",
+					"-llzo2",
+					"-lminizip",
+					"-lpng",
+					"-lpugixml",
+					"-lsfml-network",
+					"-lsfml-system",
+					"-lxxhash",
+					"-lzstd",
+					"-lcommon",
+					"-luicommon",
+					"-laudiocommon",
+					"-linputcommon",
+					"-lvideocommon",
+					"-ldiscio",
+					"-lcore",
+					"-lvideonull",
+					"-lvideoogl",
+					"-lvideosoftware",
+					"-lvideovulkan",
+					"-lmain",
+				);
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
@@ -2818,7 +2939,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 3.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "me.oatmealdome.DolphiniOS-patreon-beta";
+				PRODUCT_BUNDLE_IDENTIFIER = "use.your.own.bundle.id.DolphiniOS-patreon-beta";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_OBJC_BRIDGING_HEADER = "DolphiniOS/DolphiniOS-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
