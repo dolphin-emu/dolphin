@@ -38,17 +38,8 @@ bool GLContextEAGL::Initialize(const WindowSystemInfo& wsi, bool stereo, bool co
 {
   m_context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
   [EAGLContext setCurrentContext:m_context];
-
-  UIView* m_view = (__bridge UIView*)wsi.render_surface;
-  __block CAEAGLLayer* layer;
-
-  // [UIView layer] must be called on the UI thread
-  dispatch_sync(dispatch_get_main_queue(), ^
-  {
-    layer = (CAEAGLLayer*)[m_view layer];
-  });
-
-  m_layer = layer;
+    
+  m_layer = (__bridge CAEAGLLayer*)wsi.render_surface;
 
   CGRect bounds = [m_layer bounds];
   m_backbuffer_width = (u32)CGRectGetWidth(bounds);
