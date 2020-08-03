@@ -10,6 +10,7 @@
 #import "Core/ConfigManager.h"
 
 #import "SoftwareActionReplayCodeCell.h"
+#import "SoftwareActionReplayEditViewController.h"
 
 @interface SoftwareActionReplayViewController ()
 
@@ -34,9 +35,16 @@
 
   const IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, game_revision);
   self->m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
+  
+  [self.tableView reloadData];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
+{
+  [self SaveCodes];
+}
+
+- (void)SaveCodes
 {
   const auto ini_path =
   std::string(File::GetUserPath(D_GAMESETTINGS_IDX)).append(self.m_game_file->GetGameID()).append(".ini");
@@ -56,29 +64,42 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView*)tableView
 {
-  return 1;
+  return 2;
 }
 
 - (NSInteger)tableView:(UITableView*)tableView numberOfRowsInSection:(NSInteger)section
 {
-  return self->m_ar_codes.size();
+  return section == 0 ? 1 : self->m_ar_codes.size();
 }
 
 - (UITableViewCell*)tableView:(UITableView*)tableView cellForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  SoftwareActionReplayCodeCell* cell = [tableView dequeueReusableCellWithIdentifier:@"code_cell" forIndexPath:indexPath];
-  ActionReplay::ARCode code = self->m_ar_codes[indexPath.row];
-  
-  [cell.m_name_label setText:CppToFoundationString(code.name)];
-  [cell.m_enabled_switch setOn:code.active];
-  [cell.m_enabled_switch setTag:indexPath.row];
-  
-  return cell;
+  if (indexPath.section == 0)
+  {
+    // Add cell
+    return [tableView dequeueReusableCellWithIdentifier:@"add_cell" forIndexPath:indexPath];
+  }
+  else
+  {
+    SoftwareActionReplayCodeCell* cell = [tableView dequeueReusableCellWithIdentifier:@"code_cell" forIndexPath:indexPath];
+    ActionReplay::ARCode code = self->m_ar_codes[indexPath.row];
+    
+    [cell.m_name_label setText:CppToFoundationString(code.name)];
+    [cell.m_enabled_switch setOn:code.active];
+    [cell.m_enabled_switch setTag:indexPath.row];
+    
+    return cell;
+  }
+}
+
+- (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
+{
+  [self performSegueWithIdentifier:@"to_code_edit" sender:nil];
 }
 
 - (BOOL)tableView:(UITableView*)tableView canEditRowAtIndexPath:(NSIndexPath*)indexPath
 {
-  return true;
+  return indexPath.section == 1;
 }
 
 - (void)tableView:(UITableView*)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath*)indexPath {
@@ -86,17 +107,38 @@
   {
     self->m_ar_codes.erase(self->m_ar_codes.begin() + indexPath.row);
     [self.tableView deleteRowsAtIndexPaths:@[ indexPath ] withRowAnimation:UITableViewRowAnimationFade];
+    
+    [self SaveCodes];
   }
 }
 
-/*
 #pragma mark - Navigation
 
-// In a storyboard-based application, you will often want to do a little preparation before navigation
-- (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
-  // Get the new view controller using [segue destinationViewController].
-  // Pass the selected object to the new view controller.
+- (void)prepareForSegue:(UIStoryboardSegue*)segue sender:(id)sender
+{
+  if ([segue.identifier isEqualToString:@"to_code_edit"])
+  {
+    NSIndexPath* selected_row = self.tableView.indexPathForSelectedRow;
+    if (selected_row.section == 0)
+    {
+      return;
+    }
+    
+    SoftwareActionReplayEditViewController* edit_controller = (SoftwareActionReplayEditViewController*)segue.destinationViewController;
+    edit_controller.m_ar_code = &self->m_ar_codes[selected_row.row];
+  }
 }
-*/
+
+- (IBAction)unwindToActionReplayMenu:(UIStoryboardSegue*)segue
+{
+  SoftwareActionReplayEditViewController* edit_controller = (SoftwareActionReplayEditViewController*)segue.sourceViewController;
+  if ([edit_controller m_should_be_pushed_back])
+  {
+    self->m_ar_codes.push_back(*[edit_controller m_ar_code]);
+    
+    [self SaveCodes];
+  }
+}
+
 
 @end
