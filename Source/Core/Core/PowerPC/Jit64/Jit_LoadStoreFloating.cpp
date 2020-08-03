@@ -18,7 +18,7 @@ using namespace Gen;
 void Jit64::lfXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreFloatingOff);
+  JITDISABLE(LOAD_STORE_FLOATING_OFF);
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
@@ -89,7 +89,7 @@ void Jit64::lfXXX(UGeckoInstruction inst)
 void Jit64::stfXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreFloatingOff);
+  JITDISABLE(LOAD_STORE_FLOATING_OFF);
   bool indexed = inst.OPCD == 31;
   bool update = indexed ? !!(inst.SUBOP10 & 0x20) : !!(inst.OPCD & 1);
   bool single = indexed ? !(inst.SUBOP10 & 0x40) : !(inst.OPCD & 2);
@@ -190,7 +190,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 void Jit64::stfiwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreFloatingOff);
+  JITDISABLE(LOAD_STORE_FLOATING_OFF);
 
   int s = inst.RS;
   int a = inst.RA;

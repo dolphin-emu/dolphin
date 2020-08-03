@@ -28,7 +28,7 @@ using namespace Gen;
 void Jit64::lXXx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
@@ -230,7 +230,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
 void Jit64::dcbx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   X64Reg addr = RSCRATCH;
   X64Reg value = RSCRATCH2;
@@ -269,7 +269,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
 void Jit64::dcbt(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   // Prefetch. Since we don't emulate the data cache, we don't need to do anything.
 
@@ -289,7 +289,7 @@ void Jit64::dcbt(UGeckoInstruction inst)
 void Jit64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA;
@@ -342,7 +342,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
 void Jit64::stX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   int s = inst.RS;
   int a = inst.RA;
@@ -420,7 +420,7 @@ void Jit64::stX(UGeckoInstruction inst)
 void Jit64::stXx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
   bool update = !!(inst.SUBOP10 & 32);
@@ -475,7 +475,7 @@ void Jit64::stXx(UGeckoInstruction inst)
 void Jit64::lmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   int a = inst.RA, d = inst.RD;
 
@@ -498,7 +498,7 @@ void Jit64::lmw(UGeckoInstruction inst)
 void Jit64::stmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   int a = inst.RA, d = inst.RD;
 
@@ -526,7 +526,7 @@ void Jit64::stmw(UGeckoInstruction inst)
 void Jit64::eieio(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
   // which is generally safe. However postponing FIFO writes across eieio instructions

@@ -21,7 +21,7 @@ using namespace Gen;
 void Jit64::psq_stXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStorePairedOff);
+  JITDISABLE(LOAD_STORE_PAIRED_OFF);
 
   // For performance, the AsmCommon routines assume address translation is on.
   FALLBACK_IF(!MSR.DR);
@@ -112,7 +112,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 void Jit64::psq_lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStorePairedOff);
+  JITDISABLE(LOAD_STORE_PAIRED_OFF);
 
   // For performance, the AsmCommon routines assume address translation is on.
   FALLBACK_IF(!MSR.DR);

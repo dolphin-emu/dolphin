@@ -19,7 +19,7 @@ using namespace Arm64Gen;
 void JitArm64::psq_l(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStorePairedOff);
+  JITDISABLE(LOAD_STORE_PAIRED_OFF);
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.
@@ -102,7 +102,7 @@ void JitArm64::psq_l(UGeckoInstruction inst)
 void JitArm64::psq_st(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStorePairedOff);
+  JITDISABLE(LOAD_STORE_PAIRED_OFF);
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
   // The asm routines assume address translation is on.

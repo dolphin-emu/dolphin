@@ -153,7 +153,7 @@ void Jit64::HandleNaNs(UGeckoInstruction inst, X64Reg xmm_out, X64Reg xmm, X64Re
 void Jit64::fp_arith(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int a = inst.FA;
@@ -236,7 +236,7 @@ void Jit64::fp_arith(UGeckoInstruction inst)
 void Jit64::fmaddXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int a = inst.FA;
@@ -378,7 +378,7 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
 void Jit64::fsign(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int d = inst.FD;
@@ -412,7 +412,7 @@ void Jit64::fsign(UGeckoInstruction inst)
 void Jit64::fselx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int d = inst.FD;
@@ -459,7 +459,7 @@ void Jit64::fselx(UGeckoInstruction inst)
 void Jit64::fmrx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int d = inst.FD;
@@ -594,7 +594,7 @@ void Jit64::FloatCompare(UGeckoInstruction inst, bool upper)
 void Jit64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
 
   FloatCompare(inst);
 }
@@ -602,7 +602,7 @@ void Jit64::fcmpX(UGeckoInstruction inst)
 void Jit64::fctiwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   int d = inst.RD;
@@ -644,7 +644,7 @@ void Jit64::fctiwx(UGeckoInstruction inst)
 void Jit64::frspx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
@@ -661,7 +661,7 @@ void Jit64::frspx(UGeckoInstruction inst)
 void Jit64::frsqrtex(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
@@ -680,7 +680,7 @@ void Jit64::frsqrtex(UGeckoInstruction inst)
 void Jit64::fresx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;

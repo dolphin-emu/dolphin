@@ -779,7 +779,7 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bJITRegisterCacheOff)
+      if (Config::Get(Config::MAIN_DEBUG_JIT_REGISTER_CACHE_OFF))
       {
         gpr.Flush(FLUSH_ALL);
         fpr.Flush(FLUSH_ALL);

@@ -280,7 +280,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
 void JitArm64::lXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB, d = inst.RD;
@@ -351,7 +351,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
 void JitArm64::stX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(jo.memcheck);
 
   u32 a = inst.RA, b = inst.RB, s = inst.RS;
@@ -432,7 +432,7 @@ void JitArm64::stX(UGeckoInstruction inst)
 void JitArm64::lmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
   u32 a = inst.RA;
@@ -495,7 +495,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
 void JitArm64::stmw(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(!jo.fastmem || jo.memcheck);
 
   u32 a = inst.RA;
@@ -527,7 +527,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 void JitArm64::dcbx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   gpr.Lock(W30);
 
@@ -584,7 +584,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
 void JitArm64::dcbt(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   // Prefetch. Since we don't emulate the data cache, we don't need to do anything.
 
@@ -603,7 +603,7 @@ void JitArm64::dcbt(UGeckoInstruction inst)
 void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
   FALLBACK_IF(jo.memcheck || !jo.fastmem_arena);
   FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
@@ -669,7 +669,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 void JitArm64::eieio(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITLoadStoreOff);
+  JITDISABLE(LOAD_STORE_OFF);
 
   // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
   // which is generally safe. However postponing FIFO writes across eieio instructions

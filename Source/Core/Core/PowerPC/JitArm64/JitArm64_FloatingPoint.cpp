@@ -19,7 +19,7 @@ using namespace Arm64Gen;
 void JitArm64::fp_arith(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
@@ -122,7 +122,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
 void JitArm64::fp_logic(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 b = inst.FB, d = inst.FD;
@@ -198,7 +198,7 @@ void JitArm64::fp_logic(UGeckoInstruction inst)
 void JitArm64::fselx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
@@ -228,7 +228,7 @@ void JitArm64::fselx(UGeckoInstruction inst)
 void JitArm64::frspx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
@@ -255,7 +255,7 @@ void JitArm64::frspx(UGeckoInstruction inst)
 void JitArm64::fcmpX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
   u32 a = inst.FA, b = inst.FB;
@@ -317,7 +317,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 void JitArm64::fctiwzx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITFloatingPointOff);
+  JITDISABLE(FLOATING_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 b = inst.FB, d = inst.FD;

@@ -138,4 +138,18 @@ extern const Info<bool> MAIN_OSD_MESSAGES;
 extern const Info<std::string> MAIN_ANALYTICS_ID;
 extern const Info<bool> MAIN_ANALYTICS_ENABLED;
 extern const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED;
+
+// Main.Debug
+
+extern const Info<bool> MAIN_DEBUG_JIT_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_FLOATING_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_LOAD_STORE_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_FLOATING_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_INTEGER_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_SYSTEM_REGISTERS_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_BRANCH_OFF;
+extern const Info<bool> MAIN_DEBUG_JIT_REGISTER_CACHE_OFF;
+
 }  // namespace Config

@@ -93,19 +93,9 @@ struct SConfig
   bool bJITFollowBranch;
   bool bJITNoBlockCache = false;
   bool bJITNoBlockLinking = false;
-  bool bJITOff = false;
-  bool bJITLoadStoreOff = false;
   bool bJITLoadStorelXzOff = false;
   bool bJITLoadStorelwzOff = false;
   bool bJITLoadStorelbzxOff = false;
-  bool bJITLoadStoreFloatingOff = false;
-  bool bJITLoadStorePairedOff = false;
-  bool bJITFloatingPointOff = false;
-  bool bJITIntegerOff = false;
-  bool bJITPairedOff = false;
-  bool bJITSystemRegistersOff = false;
-  bool bJITBranchOff = false;
-  bool bJITRegisterCacheOff = false;
 
   bool bFastmem;
   bool bFPRF = false;

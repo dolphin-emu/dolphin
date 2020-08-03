@@ -17,7 +17,7 @@ using namespace Arm64Gen;
 void JitArm64::sc(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   gpr.Flush(FlushMode::FLUSH_ALL);
   fpr.Flush(FlushMode::FLUSH_ALL);
@@ -36,7 +36,7 @@ void JitArm64::sc(UGeckoInstruction inst)
 void JitArm64::rfi(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   gpr.Flush(FlushMode::FLUSH_ALL);
   fpr.Flush(FlushMode::FLUSH_ALL);
@@ -74,7 +74,7 @@ void JitArm64::rfi(UGeckoInstruction inst)
 void JitArm64::bx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   if (inst.LK)
   {
@@ -119,7 +119,7 @@ void JitArm64::bx(UGeckoInstruction inst)
 void JitArm64::bcx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   ARM64Reg WA = gpr.GetReg();
   FixupBranch pCTRDontBranch;
@@ -192,7 +192,7 @@ void JitArm64::bcx(UGeckoInstruction inst)
 void JitArm64::bcctrx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   // Rare condition seen in (just some versions of?) Nintendo's NES Emulator
   // BO_2 == 001zy -> b if false
@@ -230,7 +230,7 @@ void JitArm64::bcctrx(UGeckoInstruction inst)
 void JitArm64::bclrx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITBranchOff);
+  JITDISABLE(BRANCH_OFF);
 
   bool conditional =
       (inst.BO & BO_DONT_DECREMENT_FLAG) == 0 || (inst.BO & BO_DONT_CHECK_CONDITION) == 0;

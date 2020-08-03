@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -37,7 +38,8 @@
   } while (0)
 
 #define JITDISABLE(setting)                                                                        \
-  FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
+  FALLBACK_IF(Config::Get(Config::MAIN_DEBUG_JIT_OFF) ||                                           \
+              Config::Get(Config::MAIN_DEBUG_JIT_##setting))
 
 class JitBase : public CPUCoreBase
 {

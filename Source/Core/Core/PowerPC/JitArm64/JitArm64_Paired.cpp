@@ -19,7 +19,7 @@ using namespace Arm64Gen;
 void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
+  JITDISABLE(PAIRED_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 a = inst.FA, b = inst.FB, d = inst.FD;
@@ -69,7 +69,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
 void JitArm64::ps_mulsX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
+  JITDISABLE(PAIRED_OFF);
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
@@ -94,7 +94,7 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
 void JitArm64::ps_maddXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
+  JITDISABLE(PAIRED_OFF);
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 
@@ -252,7 +252,7 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
 void JitArm64::ps_sel(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
+  JITDISABLE(PAIRED_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 a = inst.FA, b = inst.FB, c = inst.FC, d = inst.FD;
@@ -286,7 +286,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
 void JitArm64::ps_sumX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITPairedOff);
+  JITDISABLE(PAIRED_OFF);
   FALLBACK_IF(inst.Rc);
   FALLBACK_IF(SConfig::GetInstance().bFPRF && js.op->wantsFPRF);
 

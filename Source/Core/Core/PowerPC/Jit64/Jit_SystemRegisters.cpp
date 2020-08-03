@@ -193,7 +193,7 @@ static void DoICacheReset()
 void Jit64::mtspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
   int d = inst.RD;
 
@@ -274,7 +274,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
 void Jit64::mfspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
   int d = inst.RD;
   switch (iIndex)
@@ -394,7 +394,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
 void Jit64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   {
     RCOpArg Rs = gpr.BindOrImm(inst.RS, RCMode::Read);
@@ -437,7 +437,7 @@ void Jit64::mtmsr(UGeckoInstruction inst)
 void Jit64::mfmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   // Privileged?
   RCX64Reg Rd = gpr.Bind(inst.RD, RCMode::Write);
   RegCache::Realize(Rd);
@@ -447,14 +447,14 @@ void Jit64::mfmsr(UGeckoInstruction inst)
 void Jit64::mftb(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   mfspr(inst);
 }
 
 void Jit64::mfcr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   int d = inst.RD;
 
   RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
@@ -468,7 +468,7 @@ void Jit64::mfcr(UGeckoInstruction inst)
 void Jit64::mtcrf(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   // USES_CR
   u32 crm = inst.CRM;
@@ -519,7 +519,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
 void Jit64::mcrf(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   // USES_CR
   if (inst.CRFS != inst.CRFD)
@@ -532,7 +532,7 @@ void Jit64::mcrf(UGeckoInstruction inst)
 void Jit64::mcrxr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   // Copy XER[0-3] into CR[inst.CRFD]
   MOVZX(32, 8, RSCRATCH, PPCSTATE(xer_ca));
@@ -554,7 +554,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
 void Jit64::crXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   DEBUG_ASSERT_MSG(DYNA_REC, inst.OPCD == 19, "Invalid crXXX");
 
   // TODO(merry): Futher optimizations can be performed here. For example,
@@ -629,7 +629,7 @@ void Jit64::crXXX(UGeckoInstruction inst)
 void Jit64::mcrfs(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u8 shift = 4 * (7 - inst.CRFS);
   u32 mask = 0xF << shift;
@@ -659,7 +659,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
 void Jit64::mffsx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   FALLBACK_IF(inst.Rc);
 
   MOV(32, R(RSCRATCH), PPCSTATE(fpscr));
@@ -701,7 +701,7 @@ void Jit64::UpdateMXCSR()
 void Jit64::mtfsb0x(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 mask = ~(0x80000000 >> inst.CRBD);
@@ -721,7 +721,7 @@ void Jit64::mtfsb0x(UGeckoInstruction inst)
 void Jit64::mtfsb1x(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 mask = 0x80000000 >> inst.CRBD;
@@ -745,7 +745,7 @@ void Jit64::mtfsb1x(UGeckoInstruction inst)
 void Jit64::mtfsfix(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   FALLBACK_IF(inst.Rc);
 
   u8 imm = (inst.hex >> (31 - 19)) & 0xF;
@@ -765,7 +765,7 @@ void Jit64::mtfsfix(UGeckoInstruction inst)
 void Jit64::mtfsfx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   FALLBACK_IF(inst.Rc);
 
   u32 mask = 0;

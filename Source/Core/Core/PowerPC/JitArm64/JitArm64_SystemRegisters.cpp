@@ -39,7 +39,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
 void JitArm64::mtmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindToRegister(inst.RS, true);
   STR(INDEX_UNSIGNED, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(msr));
@@ -57,7 +57,7 @@ void JitArm64::mtmsr(UGeckoInstruction inst)
 void JitArm64::mfmsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindToRegister(inst.RD, false);
   LDR(INDEX_UNSIGNED, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF(msr));
@@ -66,7 +66,7 @@ void JitArm64::mfmsr(UGeckoInstruction inst)
 void JitArm64::mcrf(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   if (inst.CRFS != inst.CRFD)
   {
@@ -78,7 +78,7 @@ void JitArm64::mcrf(UGeckoInstruction inst)
 void JitArm64::mcrxr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindCRToRegister(inst.CRFD, false);
   ARM64Reg WA = gpr.GetReg();
@@ -108,7 +108,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
 void JitArm64::mfsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindToRegister(inst.RD, false);
   LDR(INDEX_UNSIGNED, gpr.R(inst.RD), PPC_REG, PPCSTATE_OFF(sr[inst.SR]));
@@ -117,7 +117,7 @@ void JitArm64::mfsr(UGeckoInstruction inst)
 void JitArm64::mtsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindToRegister(inst.RS, true);
   STR(INDEX_UNSIGNED, gpr.R(inst.RS), PPC_REG, PPCSTATE_OFF(sr[inst.SR]));
@@ -126,7 +126,7 @@ void JitArm64::mtsr(UGeckoInstruction inst)
 void JitArm64::mfsrin(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u32 b = inst.RB, d = inst.RD;
   gpr.BindToRegister(d, d == b);
@@ -145,7 +145,7 @@ void JitArm64::mfsrin(UGeckoInstruction inst)
 void JitArm64::mtsrin(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u32 b = inst.RB, d = inst.RD;
   gpr.BindToRegister(d, d == b);
@@ -164,7 +164,7 @@ void JitArm64::mtsrin(UGeckoInstruction inst)
 void JitArm64::twx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   s32 a = inst.RA;
 
@@ -226,7 +226,7 @@ void JitArm64::twx(UGeckoInstruction inst)
 void JitArm64::mfspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
   int d = inst.RD;
@@ -352,14 +352,14 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 void JitArm64::mftb(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
   mfspr(inst);
 }
 
 void JitArm64::mtspr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
 
@@ -414,7 +414,7 @@ void JitArm64::mtspr(UGeckoInstruction inst)
 void JitArm64::crXXX(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   // Special case: crclr
   if (inst.CRBA == inst.CRBB && inst.CRBA == inst.CRBD && inst.SUBOP10 == 193)
@@ -612,7 +612,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 void JitArm64::mfcr(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   gpr.BindToRegister(inst.RD, false);
   ARM64Reg WA = gpr.R(inst.RD);
@@ -657,7 +657,7 @@ void JitArm64::mfcr(UGeckoInstruction inst)
 void JitArm64::mtcrf(UGeckoInstruction inst)
 {
   INSTRUCTION_START
-  JITDISABLE(bJITSystemRegistersOff);
+  JITDISABLE(SYSTEM_REGISTERS_OFF);
 
   u32 crm = inst.CRM;
   if (crm != 0)
