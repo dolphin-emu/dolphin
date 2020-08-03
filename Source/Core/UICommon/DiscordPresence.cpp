@@ -4,6 +4,9 @@
 
 #include "UICommon/DiscordPresence.h"
 
+#include "Common/Hash.h"
+#include "Common/StringUtil.h"
+
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
@@ -13,13 +16,10 @@
 #include <algorithm>
 #include <cctype>
 #include <ctime>
-#include <set>
+#include <discord_rpc.h>
 #include <string>
 
-#include <discord_rpc.h>
-#include <fmt/format.h>
-
-#include "Common/Hash.h"
+#include <Core/MarioPartyNetplay/Discord.h>
 
 #endif
 
@@ -38,15 +38,18 @@ void HandleDiscordReady(const DiscordUser* user)
 
 void HandleDiscordJoinRequest(const DiscordUser* user)
 {
+  /*
   if (event_handler == nullptr)
     return;
 
-  const std::string discord_tag = fmt::format("{}#{}", user->username, user->discriminator);
+  const std::string discord_tag = StringFromFormat("%s#%s", user->username, user->discriminator);
   event_handler->DiscordJoinRequest(user->userId, discord_tag, user->avatar);
+  */
 }
 
 void HandleDiscordJoin(const char* join_secret)
 {
+  /*
   if (event_handler == nullptr)
     return;
 
@@ -88,10 +91,12 @@ void HandleDiscordJoin(const char* join_secret)
   }
 
   event_handler->DiscordJoin();
+  */
 }
 
 std::string ArtworkForGameId(const std::string& gameid)
 {
+  /*
   static const std::set<std::string> REGISTERED_GAMES{
       "GAF",  // GAFE01: Animal Crossing
       "RUU",  // RUUE01: Animal Crossing: City Folk
@@ -172,6 +177,7 @@ std::string ArtworkForGameId(const std::string& gameid)
                    region_neutral_gameid.begin(), tolower);
     return "game_" + region_neutral_gameid;
   }
+  */
   return "";
 }
 
@@ -188,11 +194,12 @@ void Init()
 
   DiscordEventHandlers handlers = {};
 
-  handlers.ready = HandleDiscordReady;
-  handlers.joinRequest = HandleDiscordJoinRequest;
-  handlers.joinGame = HandleDiscordJoin;
-  // The number is the client ID for Dolphin, it's used for images and the application name
-  Discord_Initialize("455712169795780630", &handlers, 1, nullptr);
+  // handlers.ready = HandleDiscordReady;
+  // handlers.joinRequest = HandleDiscordJoinRequest;
+  // handlers.joinGame = HandleDiscordJoin;
+  // The number is the client ID for Dolphin, it's used for images and the appication name
+  // MPN - We change this so users don't risk loading a normal Dolphin install... sorry!
+  Discord_Initialize("532334261680865281", &handlers, 1, nullptr);
   UpdateDiscordPresence();
 #endif
 }
@@ -218,6 +225,7 @@ void InitNetPlayFunctionality(Handler& handler)
 void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
                            const std::string& current_game)
 {
+  /*
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
@@ -229,7 +237,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   DiscordRichPresence discord_presence = {};
   if (game_artwork.empty())
   {
-    discord_presence.largeImageKey = "dolphin_logo";
+    discord_presence.largeImageKey = "default";
     discord_presence.largeImageText = "Dolphin is an emulator for the GameCube and the Wii.";
   }
   else
@@ -242,6 +250,7 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 
+  /*
   if (party_size > 0)
   {
     if (party_size < 4)
@@ -279,8 +288,9 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   discord_presence.partyId = party_id.c_str();
   discord_presence.joinSecret = secret_final.c_str();
 
-  Discord_UpdatePresence(&discord_presence);
+  //Discord_UpdatePresence(&discord_presence);
 #endif
+  */
 }
 
 std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
