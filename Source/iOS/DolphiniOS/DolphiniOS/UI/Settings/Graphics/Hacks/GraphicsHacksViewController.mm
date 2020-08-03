@@ -26,7 +26,7 @@
   GSUSetInitialForBool(Config::GFX_HACK_EFB_ACCESS_ENABLE, true, self.m_skip_efb_cpu_switch, self.m_skip_efb_cpu_label);
   GSUSetInitialForBool(Config::GFX_HACK_EFB_EMULATE_FORMAT_CHANGES, true, self.m_ignore_format_changes_switch, self.m_ignore_format_changes_label);
   GSUSetInitialForBool(Config::GFX_HACK_SKIP_EFB_COPY_TO_RAM, false, self.m_store_efb_copies_switch, self.m_store_efb_copies_label);
-  GSUSetInitialForBool(Config::GFX_HACK_DEFER_EFB_COPIES, true, self.m_defer_efb_copies_switch, self.m_defer_efb_copies_label);
+  GSUSetInitialForBool(Config::GFX_HACK_DEFER_EFB_COPIES, false, self.m_defer_efb_copies_switch, self.m_defer_efb_copies_label);
   
   GSUSetInitialForTransitionCell(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES, self.m_accuracy_label);
   switch (Config::Get(Config::GFX_SAFE_TEXTURE_CACHE_COLOR_SAMPLES))
