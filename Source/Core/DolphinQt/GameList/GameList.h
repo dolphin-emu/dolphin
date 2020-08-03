@@ -32,6 +32,7 @@ public:
   bool HasMultipleSelected() const;
   std::shared_ptr<const UICommon::GameFile> FindGame(const std::string& path) const;
   std::shared_ptr<const UICommon::GameFile> FindSecondDisc(const UICommon::GameFile& game) const;
+  std::string GetNetPlayName(const UICommon::GameFile& game) const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
@@ -47,7 +48,7 @@ public:
 
 signals:
   void GameSelected();
-  void NetPlayHost(const QString& game_id);
+  void NetPlayHost(const UICommon::GameFile& game);
   void SelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file);
   void OpenGeneralSettings();
 

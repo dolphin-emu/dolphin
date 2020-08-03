@@ -18,6 +18,11 @@ class QPushButton;
 class QSpinBox;
 class QTabWidget;
 
+namespace UICommon
+{
+class GameFile;
+}
+
 class NetPlaySetupDialog : public QDialog
 {
   Q_OBJECT
@@ -29,7 +34,7 @@ public:
 
 signals:
   bool Join();
-  bool Host(const QString& game_identifier);
+  bool Host(const UICommon::GameFile& game);
 
 private:
   void CreateMainLayout();

@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include <mbedtls/sha1.h>
+
 #include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
@@ -135,6 +137,19 @@ Platform VolumeGC::GetVolumeType() const
 bool VolumeGC::IsDatelDisc() const
 {
   return !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
+}
+
+std::array<u8, 20> VolumeGC::GetSyncHash() const
+{
+  mbedtls_sha1_context context;
+  mbedtls_sha1_init(&context);
+  mbedtls_sha1_starts_ret(&context);
+
+  AddGamePartitionToSyncHash(&context);
+
+  std::array<u8, 20> hash;
+  mbedtls_sha1_finish_ret(&context, hash.data());
+  return hash;
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const

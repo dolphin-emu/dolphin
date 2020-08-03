@@ -4,11 +4,17 @@
 
 #include "DiscIO/VolumeDisc.h"
 
+#include <memory>
 #include <optional>
 #include <string>
+#include <vector>
+
+#include <mbedtls/sha1.h>
 
 #include "Common/CommonTypes.h"
+#include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/Filesystem.h"
 
 namespace DiscIO
 {
@@ -88,6 +94,37 @@ bool VolumeDisc::IsNKit() const
 {
   constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"
   return ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC;
+}
+
+void VolumeDisc::AddGamePartitionToSyncHash(mbedtls_sha1_context* context) const
+{
+  const Partition partition = GetGamePartition();
+
+  // All headers at the beginning of the partition, plus the apploader
+  ReadAndAddToSyncHash(context, 0, 0x2440 + GetApploaderSize(*this, partition).value_or(0),
+                       partition);
+
+  // Boot DOL (may be missing if this is a Datel disc)
+  const std::optional<u64> dol_offset = GetBootDOLOffset(*this, partition);
+  if (dol_offset)
+  {
+    ReadAndAddToSyncHash(context, *dol_offset,
+                         GetBootDOLSize(*this, partition, *dol_offset).value_or(0), partition);
+  }
+
+  // File system
+  const std::optional<u64> fst_offset = GetFSTOffset(*this, partition);
+  if (fst_offset)
+    ReadAndAddToSyncHash(context, *fst_offset, GetFSTSize(*this, partition).value_or(0), partition);
+
+  // opening.bnr (name and banner)
+  const FileSystem* file_system = GetFileSystem(partition);
+  if (file_system)
+  {
+    std::unique_ptr<FileInfo> file_info = file_system->FindFileInfo("opening.bnr");
+    if (file_info && !file_info->IsDirectory())
+      ReadAndAddToSyncHash(context, file_info->GetOffset(), file_info->GetSize(), partition);
+  }
 }
 
 }  // namespace DiscIO

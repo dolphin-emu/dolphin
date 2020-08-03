@@ -53,9 +53,11 @@
 #include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/SyncIdentifier.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
+#include "UICommon/GameFile.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -282,6 +284,22 @@ bool NetPlayClient::Connect()
 
     return true;
   }
+}
+
+static void ReceiveSyncIdentifier(sf::Packet& spac, SyncIdentifier& sync_identifier)
+{
+  // We use a temporary variable here due to a potential long vs long long mismatch
+  sf::Uint64 dol_elf_size;
+  spac >> dol_elf_size;
+  sync_identifier.dol_elf_size = dol_elf_size;
+
+  spac >> sync_identifier.game_id;
+  spac >> sync_identifier.revision;
+  spac >> sync_identifier.disc_number;
+  spac >> sync_identifier.is_datel;
+
+  for (u8& x : sync_identifier.sync_hash)
+    spac >> x;
 }
 
 // called from ---NETPLAY--- thread
@@ -572,24 +590,25 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_CHANGE_GAME:
   {
+    std::string netplay_name;
     {
       std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
-      packet >> m_selected_game;
+      ReceiveSyncIdentifier(packet, m_selected_game);
+      packet >> netplay_name;
     }
 
-    INFO_LOG(NETPLAY, "Game changed to %s", m_selected_game.c_str());
+    INFO_LOG(NETPLAY, "Game changed to %s", netplay_name.c_str());
 
     // update gui
-    m_dialog->OnMsgChangeGame(m_selected_game);
+    m_dialog->OnMsgChangeGame(m_selected_game, netplay_name);
 
     sf::Packet game_status_packet;
     game_status_packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
 
-    PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
-                                  PlayerGameStatus::NotFound :
-                                  PlayerGameStatus::Ok;
+    SyncIdentifierComparison result;
+    m_dialog->FindGameFile(m_selected_game, &result);
 
-    game_status_packet << static_cast<u32>(status);
+    game_status_packet << static_cast<u32>(result);
     Send(game_status_packet);
 
     sf::Packet ipl_status_packet;
@@ -609,7 +628,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       Player& player = m_players[pid];
       u32 status;
       packet >> status;
-      player.game_status = static_cast<PlayerGameStatus>(status);
+      player.game_status = static_cast<SyncIdentifierComparison>(status);
     }
 
     m_dialog->Update();
@@ -623,7 +642,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_current_game;
       packet >> m_net_settings.m_CPUthread;
 
-      INFO_LOG(NETPLAY, "Start of game %s", m_selected_game.c_str());
+      INFO_LOG(NETPLAY, "Start of game %s", m_selected_game.game_id.c_str());
 
       {
         std::underlying_type_t<PowerPC::CPUCore> core;
@@ -1172,10 +1191,10 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
   case NP_MSG_COMPUTE_MD5:
   {
-    std::string file_identifier;
-    packet >> file_identifier;
+    SyncIdentifier sync_identifier;
+    ReceiveSyncIdentifier(packet, sync_identifier);
 
-    ComputeMD5(file_identifier);
+    ComputeMD5(sync_identifier);
   }
   break;
 
@@ -1382,11 +1401,15 @@ void NetPlayClient::GetPlayerList(std::string& list, std::vector<int>& pid_list)
 
     switch (player.game_status)
     {
-    case PlayerGameStatus::Ok:
+    case SyncIdentifierComparison::SameGame:
       ss << "ready";
       break;
 
-    case PlayerGameStatus::NotFound:
+    case SyncIdentifierComparison::DifferentVersion:
+      ss << "wrong game version";
+      break;
+
+    case SyncIdentifierComparison::DifferentGame:
       ss << "game missing";
       break;
 
@@ -2286,23 +2309,24 @@ bool NetPlayClient::DoAllPlayersHaveGame()
 {
   std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
-  return std::all_of(std::begin(m_players), std::end(m_players),
-                     [](auto entry) { return entry.second.game_status == PlayerGameStatus::Ok; });
+  return std::all_of(std::begin(m_players), std::end(m_players), [](auto entry) {
+    return entry.second.game_status == SyncIdentifierComparison::SameGame;
+  });
 }
 
-void NetPlayClient::ComputeMD5(const std::string& file_identifier)
+void NetPlayClient::ComputeMD5(const SyncIdentifier& sync_identifier)
 {
   if (m_should_compute_MD5)
     return;
 
-  m_dialog->ShowMD5Dialog(file_identifier);
+  m_dialog->ShowMD5Dialog(sync_identifier.game_id);
   m_should_compute_MD5 = true;
 
   std::string file;
-  if (file_identifier == WII_SDCARD)
+  if (sync_identifier == GetSDCardIdentifier())
     file = File::GetUserPath(F_WIISDCARD_IDX);
-  else
-    file = m_dialog->FindGame(file_identifier);
+  else if (auto game = m_dialog->FindGameFile(sync_identifier))
+    file = game->GetFilePath();
 
   if (file.empty() || !File::Exists(file))
   {
@@ -2346,6 +2370,11 @@ void NetPlayClient::AdjustPadBufferSize(const unsigned int size)
 {
   m_target_buffer_size = size;
   m_dialog->OnPadBufferChanged(size);
+}
+
+SyncIdentifier NetPlayClient::GetSDCardIdentifier()
+{
+  return SyncIdentifier{{}, "sd", {}, {}, {}, {}};
 }
 
 bool IsNetPlayRunning()
