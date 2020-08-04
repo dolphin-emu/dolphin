@@ -96,6 +96,11 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       options.findViewById(R.id.menu_overlay_controls).setVisibility(View.GONE);
     }
 
+    if (EmulationActivity.isGameCubeGame())
+    {
+      options.findViewById(R.id.menu_refresh_wiimotes).setVisibility(View.GONE);
+    }
+
     // Old devices which support both portrait and landscape may report support for neither,
     // so we only hide the orientation button if the device only supports one orientation
     if (packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT) !=
