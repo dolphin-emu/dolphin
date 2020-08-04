@@ -11,80 +11,93 @@
 namespace PyScripting
 {
 
-static std::stringstream buffer_stdout;
-static std::stringstream buffer_stderr;
-
-void flush_stdout()
+struct DolioModuleState
 {
-  auto content = buffer_stdout.str();
+  std::stringstream buffer;
+};
+
+void flush_stdout(PyObject* module)
+{
+  DolioModuleState* state = Py::GetState<DolioModuleState>(module);
+  auto content = state->buffer.str();
   if (content.empty())
     return;
   NOTICE_LOG(SCRIPTING, "Script stdout: %s", content.c_str());
-  buffer_stdout.str("");
+  state->buffer.str("");
 }
 
-void flush_stderr()
+void flush_stderr(PyObject* module)
 {
-  auto content = buffer_stderr.str();
+  DolioModuleState* state = Py::GetState<DolioModuleState>(module);
+  auto content = state->buffer.str();
   if (content.empty())
     return;
   ERROR_LOG(SCRIPTING, "Script stderr: %s", content.c_str());
-  buffer_stderr.str("");
+  state->buffer.str("");
 }
 
-void dol_write_stdout(const char* what)
+void dol_write_stdout(PyObject* module, const char* what)
 {
+  DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   for (auto i = 0; what[i] != '\0'; ++i)
   {
     if (what[i] == '\n')
-      flush_stdout();
+      flush_stdout(module);
     else
-      buffer_stdout << what[i];
+      state->buffer << what[i];
   }
 }
 
-void dol_write_stderr(const char* what)
+void dol_write_stderr(PyObject* module, const char* what)
 {
+  DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   for (auto i = 0; what[i] != '\0'; ++i)
   {
     if (what[i] == '\n')
-      flush_stderr();
+      flush_stderr(module);
     else
-      buffer_stderr << what[i];
+      state->buffer << what[i];
   }
 }
 
-static PyMethodDef IOMethodsStdout[] = {
-    Py::MakeMethodDef<dol_write_stdout>("write"),
-    Py::MakeMethodDef<flush_stdout>("flush"),
-    {nullptr, nullptr, 0, nullptr}  // Sentinel
-};
+void setup_dolio_module_stdout(PyObject* module, DolioModuleState* state)
+{
+  PySys_SetObject("stdout", module);
+}
 
-static PyMethodDef IOMethodsStderr[] = {
-    Py::MakeMethodDef<dol_write_stderr>("write"),
-    Py::MakeMethodDef<flush_stderr>("flush"),
-    {nullptr, nullptr, 0, nullptr}  // Sentinel
-};
+void setup_dolio_module_stderr(PyObject* module, DolioModuleState* state)
+{
+  PySys_SetObject("stderr", module);
+}
 
-static struct PyModuleDef iomodule_stdout = Py::MakeModuleDef("dolio_stdout", IOMethodsStdout);
-static struct PyModuleDef iomodule_stderr = Py::MakeModuleDef("dolio_stderr", IOMethodsStderr);
+void cleanup_dolio_module(PyObject* module, DolioModuleState* state)
+{
+}
 
 PyMODINIT_FUNC PyInit_dolio_stdout()
 {
-  PyObject* m = PyModule_Create(&iomodule_stdout);
-  if (m == nullptr)
-    return nullptr;
-  PySys_SetObject("stdout", m);
-  return m;
+  static PyMethodDef method_defs[] = {
+      Py::MakeMethodDef<dol_write_stdout>("write"),
+      Py::MakeMethodDef<flush_stdout>("flush"),
+      {nullptr, nullptr, 0, nullptr}  // Sentinel
+  };
+  static PyModuleDef module_def =
+      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stdout, cleanup_dolio_module>(
+          "dolio_stdout", method_defs);
+  return PyModuleDef_Init(&module_def);
 }
 
 PyMODINIT_FUNC PyInit_dolio_stderr()
 {
-  PyObject* m = PyModule_Create(&iomodule_stderr);
-  if (m == nullptr)
-    return nullptr;
-  PySys_SetObject("stderr", m);
-  return m;
+  static PyMethodDef method_defs[] = {
+      Py::MakeMethodDef<dol_write_stderr>("write"),
+      Py::MakeMethodDef<flush_stderr>("flush"),
+      {nullptr, nullptr, 0, nullptr}  // Sentinel
+  };
+  static PyModuleDef module_def =
+      Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stderr, cleanup_dolio_module>(
+          "dolio_stderr", method_defs);
+  return PyModuleDef_Init(&module_def);
 }
 
 }  // namespace PyScripting

@@ -1,4 +1,5 @@
 
+#include "Core/API/Events.h"
 #include "Common/Logging/Log.h"
 #include "Python/PyScriptingBackend.h"
 #include "ScriptingEngine.h"
@@ -6,16 +7,35 @@
 namespace Scripting
 {
 
-void Init(std::filesystem::path script_filepath)
+ScriptingBackend::ScriptingBackend(std::filesystem::path script_filepath)
 {
   INFO_LOG(SCRIPTING, "Initializing scripting engine...");
-  PyScripting::Init(script_filepath);
+  // There is only support for python right now.
+  // If there was support for multiple backend, a fitting one could be
+  // detected based on the script file's extension for example.
+  m_state = new PyScripting::PyScriptingBackend(script_filepath, API::GetEventHub());
 }
 
-void Shutdown()
+ScriptingBackend::~ScriptingBackend() {
+  if (m_state != nullptr)
+  {
+    INFO_LOG(SCRIPTING, "Shutting down scripting engine...");
+    delete m_state;
+    m_state = nullptr;
+  }
+}
+
+ScriptingBackend::ScriptingBackend(ScriptingBackend&& other)
 {
-  INFO_LOG(SCRIPTING, "Shutting down scripting engine...");
-  PyScripting::Shutdown();
+  m_state = other.m_state;
+  other.m_state = nullptr;
+}
+
+ScriptingBackend& ScriptingBackend::operator=(ScriptingBackend&& other)
+{
+  m_state = other.m_state;
+  other.m_state = nullptr;
+  return *this;
 }
 
 }  // namespace Scripting

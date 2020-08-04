@@ -53,9 +53,6 @@
     <ClInclude Include="Python\Utils\fmt.h">
       <Filter>Python\Utils</Filter>
     </ClInclude>
-    <ClInclude Include="Python\Utils\gil.h">
-      <Filter>Python\Utils</Filter>
-    </ClInclude>
     <ClInclude Include="Python\Utils\invoke.h">
       <Filter>Python\Utils</Filter>
     </ClInclude>

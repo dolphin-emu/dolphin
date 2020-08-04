@@ -7,7 +7,7 @@
 //
 // Example:
 //
-//     static int FindIndex(char* haystack, char needle)
+//     static int FindIndex(PyObject* self, char* haystack, char needle)
 //     {
 //       for (int i = 0; haystack[i] != nullptr; i++)
 //         if (haystack[i] == needle) return i;
@@ -53,7 +53,7 @@ namespace Py
 // which then turns that into <TRet, TsArgs..., InnerCFunc<TRet, TsArgs...> TFunc>.
 // See https://stackoverflow.com/a/50775214/3688648 for a more elaborate explanation.
 template <typename TRet, typename... TsArgs>
-using InnerCFunc = TRet (*)(TsArgs...);
+using InnerCFunc = TRet (*)(PyObject*, TsArgs...);
 
 template <typename T, T>
 struct PyCFunctionWrapperStruct;
@@ -63,28 +63,20 @@ struct PyCFunctionWrapperStruct<InnerCFunc<TRet, TsArgs...>, TFunc>
 {
   static PyObject* PyCFunctionWrapper(PyObject* self, PyObject* args)
   {
-    std::tuple<TsArgs...> args_tpl;
-    if constexpr (sizeof...(TsArgs) > 0)
-    {
-      // PyArg_ParseTuple writes the parse results to passed-in pointers.
-      // Turn all our T into T* for that.
-      std::tuple<const TsArgs*...> args_pointers =
-          std::apply([&](const auto&... obj) { return std::make_tuple(&obj...); }, args_tpl);
-      const std::tuple<PyObject*, const char*> py_args_and_fmt =
-          std::make_tuple(args, Py::fmts<TsArgs...>.c_str());
-      auto invoke_args = std::tuple_cat(py_args_and_fmt, args_pointers);
-      if (!std::apply(PyArg_ParseTuple, invoke_args))
-        return nullptr;  // argument parsing failed, exception has been raised, must return null
-    }
+    auto args_tpl_opt = Py::ParseTuple<TsArgs...>(args);
+    if (!args_tpl_opt.has_value())
+      return nullptr;
+    std::tuple<TsArgs...> args_tpl = args_tpl_opt.value();
 
+    auto self_then_args = std::tuple_cat(std::make_tuple(self), args_tpl);
     if constexpr (std::is_same_v<TRet, void>)
     {
-      std::apply(TFunc, args_tpl);
+      std::apply(TFunc, self_then_args);
       Py_RETURN_NONE;
     }
     else
     {
-      TRet result = std::apply(TFunc, args_tpl);
+      TRet result = std::apply(TFunc, self_then_args);
       auto py_result = Py::ToPyCompatibleValue(result);
       return Py_BuildValue(Py::fmt<decltype(py_result)>, py_result);
     }
@@ -98,8 +90,5 @@ struct PyCFunctionWrapperWrappedStruct : PyCFunctionWrapperStruct<decltype(T), T
 
 template <auto T>
 static PyCFunction as_py_func = PyCFunctionWrapperWrappedStruct<T>::PyCFunctionWrapper;
-
-template <auto T>
-static PyCFunction as_py_func_decorated = PyCFunctionWrapperWrappedStruct<T>::PyCFunctionWrapper;
 
 }  // namespace Py

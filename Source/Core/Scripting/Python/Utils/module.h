@@ -26,14 +26,76 @@ constexpr PyModuleDef MakeModuleDef(const char* module_name, PyMethodDef func_de
   return moduleDefinition;
 }
 
-inline PyObject* LoadPyCodeIntoModule(PyObject* module, const char* pycode)
+inline Py::Object LoadPyCodeIntoModule(PyObject* module, const char* pycode)
 {
   PyObject* globals = PyModule_GetDict(module);
   if (globals == nullptr)
-    return nullptr;
-  if (PyRun_String(pycode, Py_file_input, globals, globals) == nullptr)
-    return nullptr;
-  return module;
+    return Py::Null();
+  return Py::Wrap(PyRun_String(pycode, Py_file_input, globals, globals));
+}
+
+template <typename TState>
+using FuncOnState = void(*)(PyObject* module, TState* state);
+
+template <typename TState, FuncOnState<TState> TCleanup>
+static PyObject* CleanupModuleWithState(PyObject* module, PyObject* args)
+{
+  TState** state_ptr = static_cast<TState**>(PyModule_GetState(module));
+  TCleanup(module, *state_ptr);
+  delete *state_ptr;
+  Py_RETURN_NONE;
+}
+
+template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TCleanup>
+static int SetupModuleWithState(PyObject* module)
+{
+  TState** state_ptr = static_cast<TState**>(PyModule_GetState(module));
+  *state_ptr = new TState();
+
+  // There doesn't seem to be a C-API to register atexit-callbacks,
+  // so let's do it in python code. atexit-callbacks are interpreter-local.
+  static PyMethodDef cleanup_module_methods[] = {
+      {"_dol_mod_cleanup", CleanupModuleWithState<TState, TCleanup>, METH_NOARGS, ""},
+      {nullptr, nullptr, 0, nullptr} /* sentinel */
+  };
+  PyModule_AddFunctions(module, cleanup_module_methods);
+  Py::Object result = LoadPyCodeIntoModule(module, R"(
+import atexit
+atexit.register(_dol_mod_cleanup)
+  )");
+  if (result.IsNull())
+  {
+    return -1;
+  }
+
+  TSetup(module, *state_ptr);
+  return 0;
+}
+
+template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TCleanup>
+constexpr PyModuleDef MakeStatefulModuleDef(const char* name, PyMethodDef func_defs[])
+{
+  static PyModuleDef_Slot slots_with_exec[] = {
+      {Py_mod_exec, SetupModuleWithState<TState, TSetup, TCleanup>}, {0, nullptr} /* sentinel */
+  };
+  static PyModuleDef moduleDefinition{
+      PyModuleDef_HEAD_INIT,
+      name,
+      nullptr,  // m_doc
+      sizeof(TState*),
+      func_defs,
+      slots_with_exec,
+      nullptr,  // m_traverse
+      nullptr,  // m_clear
+      nullptr   // m_free
+  };
+  return moduleDefinition;
+}
+
+template<typename TState>
+static TState* GetState(PyObject* module)
+{
+  return *static_cast<TState**>(PyModule_GetState(module));
 }
 
 }  // namespace Py

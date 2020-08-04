@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Scripting/Python/Utils/gil.h"
 #include "Scripting/Python/Utils/object_wrapper.h"
 
 namespace Py
@@ -12,7 +11,6 @@ Object& Object::operator=(Object&& other) noexcept
 {
   if (m_py_object_ != nullptr)
   {
-    Py::GIL lock;
     Py_DECREF(m_py_object_);
   }
   m_py_object_ = other.m_py_object_;
@@ -24,13 +22,17 @@ Object& Object::operator=(const Object& rhs)
 {
   if (m_py_object_ != nullptr || rhs.m_py_object_ != nullptr)
   {
-    Py::GIL lock;
     Py_XINCREF(rhs.m_py_object_);
     Py_XDECREF(m_py_object_);
   }
   m_py_object_ = rhs.m_py_object_;
   return *this;
 }
+
+Object::Object()
+{
+  m_py_object_ = nullptr;
+};
 
 Object::Object(Object&& other) noexcept
 {
@@ -43,7 +45,6 @@ Object::Object(const Object& other)
   m_py_object_ = other.m_py_object_;
   if (m_py_object_ != nullptr)
   {
-    Py::GIL lock;
     Py_INCREF(m_py_object_);
   }
 }
@@ -52,7 +53,6 @@ Object::~Object()
 {
   if (m_py_object_ != nullptr)
   {
-    Py::GIL lock;
     Py_DECREF(m_py_object_);
   }
   m_py_object_ = nullptr;
@@ -93,7 +93,6 @@ Object Take(PyObject* py_object)
 {
   if (py_object != nullptr)
   {
-    Py::GIL lock;
     Py_INCREF(py_object);
   }
   return Object::WrapExisting(py_object);

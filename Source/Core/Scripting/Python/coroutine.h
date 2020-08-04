@@ -13,11 +13,11 @@ namespace PyScripting
 // script execution (top-level await) or an async callback.
 // Those need to get started by initally calling "send" with None
 // and then hand them over to HandleCoroutine.
-void HandleNewCoroutine(const Py::Object obj);
+void HandleNewCoroutine(const Py::Object module, const Py::Object obj);
 
 // For an already-started coroutine and its event tuple describing what
 // is being awaited, decode that tuple and make sure the coroutine gets
 // resumed once the event being awaited is emitted.
-void HandleCoroutine(const Py::Object coro, Py::Object asyncEventTuple);
+void HandleCoroutine(const Py::Object module, const Py::Object coro, Py::Object asyncEventTuple);
 
 }  // namespace PyScripting

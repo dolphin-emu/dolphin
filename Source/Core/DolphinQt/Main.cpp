@@ -260,19 +260,17 @@ int main(int argc, char* argv[])
       updater->start();
     }
 
+    // Initialize the scripting engine after the ui,
+    // because then early script outputs are already visible in the logging ui.
+    std::optional<Scripting::ScriptingBackend> scripting_backend;
     if (script_filepath.has_value())
     {
-      // Initialize the scripting engine after the ui,
-      // because then early script outputs are already visible in the logging ui.
-      Scripting::Init(script_filepath.value());
+      scripting_backend.emplace(Scripting::ScriptingBackend(script_filepath.value()));
     }
+
     retval = app.exec();
   }
 
-  if (script_filepath.has_value())
-  {
-    Scripting::Shutdown();
-  }
   Core::Shutdown();
   UICommon::Shutdown();
   Host::GetInstance()->deleteLater();

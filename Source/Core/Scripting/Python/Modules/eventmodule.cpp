@@ -11,15 +11,23 @@
 #include "eventmodule.h"
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Utils/convert.h"
-#include "Scripting/Python/Utils/gil.h"
 #include "Scripting/Python/Utils/invoke.h"
 #include "Scripting/Python/Utils/module.h"
+#include "Scripting/Python/PyScriptingBackend.h"
 
 namespace PyScripting
 {
 
 // If you are looking for where the actual events are defined,
 // scroll to the bottom of this file.
+
+struct EventModuleState
+{
+  API::EventHub* event_hub;
+  std::optional<std::function<void()>> cleanup_listeners;
+  Py::Object callback;
+  std::deque<Py::Object> awaiting_coroutines;
+};
 
 // These template shenanigans are all required for PyEventFromMappingFunc
 // to be able to infer all of the mapping function signature's parts
@@ -37,7 +45,16 @@ struct PyEvent;
 template <typename TEvent, typename... TsArgs, MappingFunc<TEvent, TsArgs...> TFunc>
 struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
 {
-  static void Listener(const TEvent& event)
+  static std::function<void(const TEvent&)> GetListener(const Py::Object module)
+  {
+    PyThreadState* threadstate = PyThreadState_Get();
+    return [=](const TEvent& event) {
+      PyEval_RestoreThread(threadstate);
+      Listener(module, event);
+      PyEval_SaveThread();
+    };
+  }
+  static void Listener(const Py::Object module, const TEvent& event)
   {
     // We make the following assumption here:
     // - Events that originate from emulation (e.g. frameadvance)
@@ -47,75 +64,67 @@ struct PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>
     // and have the desired effect of
     // a) emulation events being processed synchronously to emulation, and
     // b) concurrent events be processed concurrently.
-    // The same assumptions apply to the one-time listeners registered in ScheduleCoroutine.
-
-    if (callback.IsNull())
+    EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
+    NotifyAwaitingCoroutines(module, event);
+    if (state->callback.IsNull())
       return;
     const std::tuple<TsArgs...> args = TFunc(event);
-    Py::GIL lock;
     PyObject* result =
-        std::apply([&](auto&&... arg) { return Py::CallFunction(callback, arg...); }, args);
+        std::apply([&](auto&&... arg) { return Py::CallFunction(state->callback, arg...); }, args);
     if (result == nullptr)
     {
       PyErr_Print();
       return;
     }
     if (PyCoro_CheckExact(result))
-      HandleNewCoroutine(Py::Wrap(result));
+      HandleNewCoroutine(module, Py::Wrap(result));
   }
-  static PyObject* SetCallback(PyObject* newCallback)
+  static PyObject* SetCallback(PyObject* module, PyObject* newCallback)
   {
+    EventModuleState* state = Py::GetState<EventModuleState>(module);
     if (newCallback == Py_None)
     {
-      callback = Py::Null();
+      state->callback = Py::Null();
       Py_RETURN_NONE;
     }
     if (!PyCallable_Check(newCallback))
     {
-      Py::GIL lock;
       PyErr_SetString(PyExc_TypeError, "event callback must be callable");
       return nullptr;
     }
-    callback = Py::Take(newCallback);
+    state->callback = Py::Take(newCallback);
     Py_RETURN_NONE;
   }
-  static void ScheduleCoroutine(const Py::Object coro)
+  static void ScheduleCoroutine(Py::Object module, const Py::Object coro)
   {
-    awaiting_coroutines.emplace_back(coro);
-    API::GetEventHub().ListenEventOnce<TEvent>(NotifyAwaitingCoroutine);
+    EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
+    state->awaiting_coroutines.emplace_back(coro);
   }
-  static void NotifyAwaitingCoroutine(const TEvent& event)
+  static void NotifyAwaitingCoroutines(const Py::Object module, const TEvent& event)
   {
-    if (awaiting_coroutines.empty())
-      return; // queue might have been cleared
-    // Since we schedule one notify event per coroutine,
-    // we only ever need to process 1 item.
-    const Py::Object coro = awaiting_coroutines.front();
-    awaiting_coroutines.pop_front();
-    const std::tuple<TsArgs...> args = TFunc(event);
-    Py::GIL lock;
-    PyObject* args_tuple = Py::BuildValueTuple(args);
-    PyObject* newAsyncEventTuple = Py::CallMethod(coro, "send", args_tuple);
-    if (newAsyncEventTuple != nullptr)
-      HandleCoroutine(coro, Py::Wrap(newAsyncEventTuple));
-    else if (!PyErr_ExceptionMatches(PyExc_StopIteration))
-      // coroutines signal completion by raising StopIteration
-      PyErr_Print();
+    EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
+    std::deque<Py::Object> awaiting_coroutines;
+    std::swap(state->awaiting_coroutines, awaiting_coroutines);
+    while (!awaiting_coroutines.empty())
+    {
+      const Py::Object coro = awaiting_coroutines.front();
+      awaiting_coroutines.pop_front();
+      const std::tuple<TsArgs...> args = TFunc(event);
+      PyObject* args_tuple = Py::BuildValueTuple(args);
+      PyObject* newAsyncEventTuple = Py::CallMethod(coro, "send", args_tuple);
+      if (newAsyncEventTuple != nullptr)
+        HandleCoroutine(module, coro, Py::Wrap(newAsyncEventTuple));
+      else if (!PyErr_ExceptionMatches(PyExc_StopIteration))
+        // coroutines signal completion by raising StopIteration
+        PyErr_Print();
+    }
   }
-  static void Clear()
+  static void Clear(EventModuleState* state)
   {
-    callback = Py::Null();
-    awaiting_coroutines.clear();
+    state->callback = Py::Null();
+    state->awaiting_coroutines.clear();
   }
-  static Py::Object callback;
-  static std::deque<Py::Object> awaiting_coroutines;
 };
-
-template <typename TEvent, typename... TsArgs, MappingFunc<TEvent, TsArgs...> TFunc>
-Py::Object PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>::callback = Py::Null();
-
-template <typename TEvent, typename... TsArgs, MappingFunc<TEvent, TsArgs...> TFunc>
-std::deque<Py::Object> PyEvent<MappingFunc<TEvent, TsArgs...>, TFunc>::awaiting_coroutines;
 
 template <auto T>
 struct PyEventFromMappingFunc : PyEvent<decltype(T), T>
@@ -126,27 +135,27 @@ template <class... Ts>
 struct PythonEventContainer
 {
 public:
-  static void RegisterListeners()
+  static void RegisterListeners(const Py::Object module)
   {
+    EventModuleState* state = Py::GetState<EventModuleState>(module.Lend());
     const auto listener_ids = std::apply(
-        [&](auto&... event) {
-          return std::make_tuple(API::GetEventHub().ListenEvent(event.Listener)...);
+        [&](auto&&... pyevent) {
+          return std::make_tuple(state->event_hub->ListenEvent(pyevent.GetListener(module))...);
         },
-        events);
-    cleanup.emplace([listener_ids{std::move(listener_ids)}]() {
-      std::apply(
-          [&](const auto&... listener_id) { (API::GetEventHub().UnlistenEvent(listener_id), ...); },
-          listener_ids);
+        pyevents);
+    state->cleanup_listeners.emplace([=]() {
+      std::apply([&](const auto&... listener_id) { (state->event_hub->UnlistenEvent(listener_id), ...); },
+                 listener_ids);
     });
   }
-  static void UnregisterListeners()
+  static void UnregisterListeners(EventModuleState* state)
   {
-    if (cleanup.has_value()) cleanup.value()();
-    std::apply([&](const auto&... event) { (event.Clear(), ...); }, events);
+    state->cleanup_listeners.value()();
+    state->cleanup_listeners.reset();
+    std::apply([&](const auto&... pyevent) { (pyevent.Clear(state), ...); }, pyevents);
   }
 private:
-  static const std::tuple<Ts...> events;
-  static std::optional<std::function<void()>> cleanup;
+  static const std::tuple<Ts...> pyevents;
 };
 
 /*********************************
@@ -170,38 +179,30 @@ static const std::tuple<bool, u32, u32> PyMemoryBreakpoint(const API::Events::Me
 using PyFrameAdvanceEvent = PyEventFromMappingFunc<PyFrameAdvance>;
 using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 
-static PyMethodDef EventMethods[] = {
-    // EVENT CALLBACKS
-    // Has "on_"-prefix, let's python code register a callback
-    Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
-    Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
-
-    {nullptr, nullptr, 0, nullptr} /* Sentinel */
-};
-
 // HOOKING UP PY EVENTS TO DOLPHIN EVENTS
 // For all python events listed here, listens to the respective API::Events event
 // deduced from the PyEvent signature's input argument.
 using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
 
-std::optional<std::function<void(const Py::Object)>> GetCoroutineScheduler(std::string aeventname)
+std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 {
-  static std::map<std::string, std::function<void(const Py::Object)>> lookup = {
+  static std::map<std::string, CoroutineScheduler> lookup = {
       // HOOKING UP PY EVENTS TO AWAITABLE STRING REPRESENTATION
       // All async-awaitable events must be listed twice:
-      // Here, and under the same name in the event_module_pycode
+      // Here, and under the same name in the setup python code
       {"frameadvance", PyFrameAdvanceEvent::ScheduleCoroutine},
       {"memorybreakpoint", PyMemoryBreakpointEvent::ScheduleCoroutine},
   };
   auto iter = lookup.find(aeventname);
   if (iter == lookup.end())
-    return std::optional<std::function<void(const Py::Object)>>{};
+    return std::optional<CoroutineScheduler>{};
   else
     return iter->second;
 }
 
-inline const char* event_module_pycode = R"(
-
+void SetupEventModule(PyObject* module, EventModuleState* state)
+{
+  Py::LoadPyCodeIntoModule(module, R"(
 class _DolphinAsyncEvent:
     def __init__(self, event_name, *args):
         self.event_name = event_name
@@ -214,32 +215,32 @@ async def frameadvance():
 
 async def memorybreakpoint():
     return (await _DolphinAsyncEvent("memorybreakpoint"))
+)");
+  API::EventHub* event_hub = PyScripting::PyScriptingBackend::GetCurrent()->GetEventHub();
+  state->event_hub = event_hub;
+  EventContainer::RegisterListeners(Py::Take(module));
+}
 
-)";
-
-/*********************************
- *  actual events defined above  *
- *********************************/
-
-std::optional<std::function<void()>> EventContainer::cleanup;
+void CleanupEventModule(PyObject* module, EventModuleState* state)
+{
+  EventContainer::UnregisterListeners(state);
+}
 
 PyMODINIT_FUNC PyInit_event()
 {
-  static PyModuleDef def = Py::MakeModuleDef("event", EventMethods);
-  PyObject* m = PyModule_Create(&def);
-  if (m == nullptr)
-    return nullptr;
-  return Py::LoadPyCodeIntoModule(m, event_module_pycode);
-}
+  static PyMethodDef EventMethods[] = {
+      // EVENT CALLBACKS
+      // Has "on_"-prefix, let's python code register a callback
+      Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
+      Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
 
-void InitPyListeners()
-{
-  EventContainer::RegisterListeners();
-}
-
-void ShutdownPyListeners()
-{
-  EventContainer::UnregisterListeners();
+      {nullptr, nullptr, 0, nullptr} /* Sentinel */
+  };
+  static PyModuleDef module_def =
+      Py::MakeStatefulModuleDef<EventModuleState, SetupEventModule, CleanupEventModule>(
+          "event", EventMethods);
+  PyObject* def_obj = PyModuleDef_Init(&module_def);
+  return def_obj;
 }
 
 }  // namespace PyScripting

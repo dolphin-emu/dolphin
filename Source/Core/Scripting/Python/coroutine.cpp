@@ -15,20 +15,18 @@
 namespace PyScripting
 {
 
-void HandleNewCoroutine(const Py::Object coro)
+void HandleNewCoroutine(const Py::Object module, const Py::Object coro)
 {
-  Py::GIL lock;
   PyObject* asyncEventTuple = Py::CallMethod(coro, "send", Py::Take(Py_None).Leak());
   if (asyncEventTuple != nullptr)
-    HandleCoroutine(coro, Py::Wrap(asyncEventTuple));
+    HandleCoroutine(module, coro, Py::Wrap(asyncEventTuple));
   else if (!PyErr_ExceptionMatches(PyExc_StopIteration))
     // coroutines signal completion by raising StopIteration
     PyErr_Print();
 }
 
-void HandleCoroutine(const Py::Object coro, const Py::Object asyncEventTuple)
+void HandleCoroutine(const Py::Object module, const Py::Object coro, const Py::Object asyncEventTuple)
 {
-  Py::GIL lock;
   const char* magic_string;
   const char* event_name;
   PyObject* args_tuple;
@@ -58,8 +56,8 @@ void HandleCoroutine(const Py::Object coro, const Py::Object asyncEventTuple)
     ERROR_LOG(SCRIPTING, error.c_str());
     return;
   }
-  std::function<void(const Py::Object)> scheduler = scheduler_opt.value();
-  scheduler(coro);
+  std::function<void(const Py::Object, const Py::Object)> scheduler = scheduler_opt.value();
+  scheduler(module, coro);
 }
 
 }  // namespace PyScripting

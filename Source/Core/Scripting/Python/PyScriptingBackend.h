@@ -6,11 +6,38 @@
 
 #include <filesystem>
 #include <functional>
+#include <map>
+#include <Python.h>
+
+#include <Core/API/Events.h>
 
 namespace PyScripting
 {
 
-void Init(std::filesystem::path script_filepath);
-void Shutdown();
+class PyScriptingBackend
+{
+public:
+  PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub);
+  ~PyScriptingBackend();
+  static PyScriptingBackend* GetCurrent();
+  API::EventHub* GetEventHub();
+
+  // this class somewhat is a wrapper around a python interpreter state,
+  // and that isn't copyable, so this class isn't copyable either.
+  // Moving could work if you get rid of the event_hub reference.
+  PyScriptingBackend(const PyScriptingBackend&) = delete;
+  PyScriptingBackend& operator=(const PyScriptingBackend&) = delete;
+  PyScriptingBackend(PyScriptingBackend&&) = delete;
+  PyScriptingBackend& operator=(PyScriptingBackend&&) = delete;
+
+private:
+  PyThreadState* m_interp_threadstate;
+  API::EventHub& m_event_hub;
+  static std::map<u64, PyScriptingBackend*> s_instances;
+  static PyThreadState* s_main_threadstate;
+  // creation and deletion of this class handles the bookkeeping of python's
+  // main- and sub-interpreters. None of that can safely run concurrently.
+  static std::mutex s_bookkeeping_lock;
+};
 
 }  // namespace PyScripting

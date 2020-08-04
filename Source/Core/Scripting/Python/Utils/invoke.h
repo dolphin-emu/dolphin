@@ -10,7 +10,6 @@
 
 #include "Scripting/Python/Utils/convert.h"
 #include "Scripting/Python/Utils/fmt.h"
-#include "Scripting/Python/Utils/gil.h"
 #include "Scripting/Python/Utils/object_wrapper.h"
 
 namespace Py
@@ -19,7 +18,6 @@ namespace Py
 template <typename... Ts>
 inline PyObject* CallFunction(const Py::Object& callable_object, Ts... ts)
 {
-  Py::GIL lock;
   if constexpr (sizeof...(Ts) == 0)
   {
     return PyObject_CallFunction(callable_object.Lend(), nullptr);
@@ -47,10 +45,9 @@ inline PyObject* CallFunction(const Py::Object& callable_object, Ts... ts)
 template <typename... Ts>
 inline PyObject* CallMethod(const Py::Object& callable_object, const char* name, Ts... ts)
 {
-  Py::GIL lock;
   if constexpr (sizeof...(Ts) == 0)
   {
-    return PyObject_CallMethod(callable_object.Lend(), name, nullptr); 
+    return PyObject_CallMethod(callable_object.Lend(), name, nullptr);
   }
   else if constexpr (sizeof...(Ts) == 1)
   {

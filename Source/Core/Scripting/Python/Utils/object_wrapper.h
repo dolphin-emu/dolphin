@@ -17,8 +17,6 @@
 
 #include <Python.h>
 
-#include "Scripting/Python/Utils/gil.h"
-
 namespace Py
 {
 
@@ -27,6 +25,7 @@ class Object
 public:
   Object& operator=(Object&& other) noexcept;
   Object& operator=(const Object& rhs);
+  Object();
   Object(Object&& other) noexcept;
   Object(const Object& other);
   ~Object();
