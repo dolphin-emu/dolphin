@@ -247,10 +247,6 @@ bool NetPlayClient::Connect()
     case CON_ERR_SERVER_FULL:
       m_dialog->OnConnectionError(_trans("The server is full."));
       break;
-    case CON_ERR_VERSION_MISMATCH:
-      m_dialog->OnConnectionError(
-          _trans("The server and client's NetPlay versions are incompatible."));
-      break;
     case CON_ERR_GAME_RUNNING:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
@@ -2171,15 +2167,6 @@ void NetPlayClient::Stop()
   m_first_pad_status_received_event.Set();
   m_wait_on_input_event.Set();
 
-  // Tell the server to stop if we have a pad mapped in game.
-  if (LocalPlayerHasControllerMapped())
-    SendStopGamePacket();
-  else
-    StopGame();
-}
-
-void NetPlayClient::RequestStopGame()
-{
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
     SendStopGamePacket();

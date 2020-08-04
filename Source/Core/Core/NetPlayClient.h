@@ -111,7 +111,6 @@ public:
   void Stop();
   bool ChangeGame(const std::string& game);
   void SendChatMessage(const std::string& msg);
-  void RequestStopGame();
   void SendPowerButtonEvent();
   void RequestGolfControl(PlayerId pid);
   void RequestGolfControl();

@@ -342,9 +342,6 @@ void NetPlayDialog::ConnectWidgets()
       GameStatusChanged(state != Core::State::Uninitialized);
       if ((state == Core::State::Uninitialized || state == Core::State::Stopping) &&
           !m_got_stop_request)
-      {
-        Settings::Instance().GetNetPlayClient()->RequestStopGame();
-      }
       if (state == Core::State::Uninitialized)
         DisplayMessage(tr("Stopped game"), "red");
     }
