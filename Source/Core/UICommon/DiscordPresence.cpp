@@ -38,18 +38,15 @@ void HandleDiscordReady(const DiscordUser* user)
 
 void HandleDiscordJoinRequest(const DiscordUser* user)
 {
-  /*
   if (event_handler == nullptr)
     return;
 
   const std::string discord_tag = StringFromFormat("%s#%s", user->username, user->discriminator);
   event_handler->DiscordJoinRequest(user->userId, discord_tag, user->avatar);
-  */
 }
 
 void HandleDiscordJoin(const char* join_secret)
 {
-  /*
   if (event_handler == nullptr)
     return;
 
@@ -91,7 +88,6 @@ void HandleDiscordJoin(const char* join_secret)
   }
 
   event_handler->DiscordJoin();
-  */
 }
 
 std::string ArtworkForGameId(const std::string& gameid)
@@ -168,20 +164,11 @@ std::string ArtworkForGameId(const std::string& gameid)
       "RZT",  // RZTE01: Wii Sports Resort
       "SX4",  // SX4E01: Xenoblade Chronicles
   };
-
-  std::string region_neutral_gameid = gameid.substr(0, 3);
-  if (REGISTERED_GAMES.count(region_neutral_gameid) != 0)
-  {
-    // Discord asset keys can only be lowercase.
-    std::transform(region_neutral_gameid.begin(), region_neutral_gameid.end(),
-                   region_neutral_gameid.begin(), tolower);
-    return "game_" + region_neutral_gameid;
-  }
   */
   return "";
 }
 
-}  // namespace
+}
 #endif
 
 Discord::Handler::~Handler() = default;
@@ -225,7 +212,6 @@ void InitNetPlayFunctionality(Handler& handler)
 void UpdateDiscordPresence(int party_size, SecretType type, const std::string& secret,
                            const std::string& current_game)
 {
-  /*
 #ifdef USE_DISCORD_PRESENCE
   if (!Config::Get(Config::MAIN_USE_DISCORD_PRESENCE))
     return;
@@ -250,7 +236,6 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 
-  /*
   if (party_size > 0)
   {
     if (party_size < 4)
@@ -288,9 +273,8 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   discord_presence.partyId = party_id.c_str();
   discord_presence.joinSecret = secret_final.c_str();
 
-  //Discord_UpdatePresence(&discord_presence);
+  Discord_UpdatePresence(&discord_presence);
 #endif
-  */
 }
 
 std::string CreateSecretFromIPAddress(const std::string& ip_address, int port)
