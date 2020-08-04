@@ -26,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -103,7 +104,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION})
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS})
   public @interface MenuAction
   {
   }
@@ -141,7 +142,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_MOTION_CONTROLS = 30;
   public static final int MENU_ACTION_PAUSE_EMULATION = 31;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
-
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -155,33 +156,6 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_adjust_scale, EmulationActivity.MENU_ACTION_ADJUST_SCALE);
     buttonsActionsMap.append(R.id.menu_emulation_choose_controller,
             EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
-    buttonsActionsMap
-            .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_pause, EmulationActivity.MENU_ACTION_PAUSE_EMULATION);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_unpause, EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
-
-    buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
-    buttonsActionsMap.append(R.id.menu_quickload, EmulationActivity.MENU_ACTION_QUICK_LOAD);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_save_root, EmulationActivity.MENU_ACTION_SAVE_ROOT);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
-    buttonsActionsMap.append(R.id.menu_emulation_save_1, EmulationActivity.MENU_ACTION_SAVE_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_save_2, EmulationActivity.MENU_ACTION_SAVE_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_save_3, EmulationActivity.MENU_ACTION_SAVE_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_save_4, EmulationActivity.MENU_ACTION_SAVE_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_save_5, EmulationActivity.MENU_ACTION_SAVE_SLOT5);
-    buttonsActionsMap.append(R.id.menu_emulation_load_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_load_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
-    buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-    buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
@@ -191,8 +165,6 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
-    buttonsActionsMap.append(R.id.menu_screen_orientation,
-            EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
@@ -470,35 +442,13 @@ public final class EmulationActivity extends AppCompatActivity
     }
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu)
+  public void showOverlayControlsMenu(@NonNull View anchor)
   {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    if (sIsGameCubeGame)
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation, menu);
-    }
-    else
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
-    }
+    PopupMenu popup = new PopupMenu(this, anchor);
+    Menu menu = popup.getMenu();
 
-    mPauseEmulationButton = menu.findItem(R.id.menu_emulation_pause);
-    mUnpauseEmulationButton = menu.findItem(R.id.menu_emulation_unpause);
-
-    if (sUserPausedEmulation)
-    {
-      showUnpauseEmulationButton();
-    }
-
-    if (mSettings.getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
-            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false))
-    {
-      menu.findItem(R.id.menu_quicksave).setVisible(true);
-      menu.findItem(R.id.menu_quickload).setVisible(true);
-      menu.findItem(R.id.menu_emulation_save_root).setVisible(true);
-      menu.findItem(R.id.menu_emulation_load_root).setVisible(true);
-    }
+    int id = sIsGameCubeGame ? R.menu.menu_overlay_controls_gc : R.menu.menu_overlay_controls_wii;
+    popup.getMenuInflater().inflate(id, menu);
 
     // Populate the checkbox value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
@@ -506,7 +456,9 @@ public final class EmulationActivity extends AppCompatActivity
     menu.findItem(R.id.menu_emulation_rumble)
             .setChecked(mPreferences.getBoolean("phoneRumble", true));
 
-    return true;
+    popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+    popup.show();
   }
 
   @SuppressWarnings("WrongConstant")
@@ -735,6 +687,8 @@ public final class EmulationActivity extends AppCompatActivity
     }
     else
     {
+      closeSubmenu();
+      closeMenu();
       mEmulationFragment.startConfiguringControls();
     }
   }
