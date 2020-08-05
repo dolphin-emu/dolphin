@@ -36,12 +36,12 @@
 
 - (void)viewWillAppear:(BOOL)animated
 {
-  [self viewWillAppear:animated];
+  [super viewWillAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
-  [self viewWillDisappear:animated];
+  [super viewWillDisappear:animated];
   
   [self SaveCodes];
 }
