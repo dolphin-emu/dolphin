@@ -134,6 +134,11 @@ constexpr const char* GetPyFmt<const char*>()
 {
   return "s";
 }
+template <>
+constexpr const char* GetPyFmt<PyBytesObject*>()
+{
+  return "S";
+}
 #pragma endregion
 
 template <typename T>
