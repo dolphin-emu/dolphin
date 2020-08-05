@@ -23,8 +23,6 @@ public final class SettingsActivityPresenter
 
   private Settings mSettings = new Settings();
 
-  private int mStackCount;
-
   private boolean mShouldSave;
 
   private DirectoryStateReceiver directoryStateReceiver;
@@ -144,24 +142,6 @@ public final class SettingsActivityPresenter
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
       mSettings.saveSettings(mView, context, modifiedSettings);
-    }
-  }
-
-  public void addToStack()
-  {
-    mStackCount++;
-  }
-
-  public void onBackPressed()
-  {
-    if (mStackCount > 0)
-    {
-      mView.popBackStack();
-      mStackCount--;
-    }
-    else
-    {
-      mView.finish();
     }
   }
 

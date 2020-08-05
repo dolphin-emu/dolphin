@@ -57,11 +57,6 @@ public interface SettingsActivityView
   void showToastMessage(String message);
 
   /**
-   * Show the previous fragment.
-   */
-  void popBackStack();
-
-  /**
    * End the activity.
    */
   void finish();
