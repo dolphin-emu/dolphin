@@ -763,6 +763,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="jkb-cS-zKB"/>
                     <connections>
+                        <outlet property="m_gear_image" destination="WLq-qa-wII" id="5pL-Im-Yt5"/>
                         <outlet property="m_progress_view" destination="fZw-bg-2UO" id="Y5N-Fx-8FO"/>
                         <segue destination="gUv-Ta-w0K" kind="show" identifier="to_results" id="pLD-Ei-ImS"/>
                         <segue destination="bQb-sm-yQg" kind="unwind" identifier="to_verify_start" unwindAction="unwindToVerifyStart:" id="8dw-9U-c5C"/>

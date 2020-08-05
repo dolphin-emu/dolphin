@@ -14,6 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface SoftwareVerifyComputeViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UIImageView* m_gear_image;
 @property (weak, nonatomic) IBOutlet UIProgressView* m_progress_view;
 
 @property(nonatomic) UICommon::GameFile* m_game_file;

@@ -34,6 +34,9 @@
   if (@available(iOS 13, *))
   {
     self.navigationController.modalInPresentation = true;
+    
+    // Set gear image
+    [self.m_gear_image setImage:[UIImage imageNamed:@"SF_gear"]];
   }
   
   [self.navigationController setNavigationBarHidden:true];
