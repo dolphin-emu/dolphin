@@ -368,7 +368,7 @@ public final class SettingsFragmentPresenter
             Settings.SECTION_INI_GENERAL, R.string.SD_card_path, 0, getDefaultSDPath(),
             MainPresenter.REQUEST_SD_FILE, wiiSDCardPath));
     sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
-            SettingsAdapter::resetPaths));
+            mView.getAdapter()::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -752,11 +752,9 @@ public final class SettingsFragmentPresenter
             R.string.log_verbosity, 0, getLogVerbosityEntries(), getLogVerbosityValues(), 1,
             logVerbosity));
     sl.add(new ConfirmRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
-            () -> SettingsAdapter.setAllLogTypes("True")));
-    sl.add(
-            new ConfirmRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation,
-                    0,
-                    () -> SettingsAdapter.setAllLogTypes("False")));
+            () -> mView.getAdapter().setAllLogTypes("True")));
+    sl.add(new ConfirmRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation,
+            0, () -> mView.getAdapter().setAllLogTypes("False")));
 
     sl.add(new HeaderSetting(null, null, R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())

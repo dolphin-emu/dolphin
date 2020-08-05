@@ -179,7 +179,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
-      mPresenter.onFileConfirmed(FileBrowserHelper.getSelectedPath(result));
+      String path = FileBrowserHelper.getSelectedPath(result);
+      getFragment().getAdapter().onFilePickerConfirmation(path);
 
       // Prevent duplicate Toasts.
       if (!mPresenter.shouldSave())

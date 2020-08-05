@@ -235,9 +235,4 @@ public final class SettingsActivityPresenter
       mView.showSettingsFragment(menuTag, bundle, true, gameId);
     }
   }
-
-  public void onFileConfirmed(String file)
-  {
-    SettingsAdapter.onFilePickerConfirmation(file);
-  }
 }
