@@ -78,15 +78,21 @@
 
     if ([values count] == 2)
     {
-      // Too lazy to allocate NSScanner, so we use std::stoul here
+      // Create NSCharacterSet for hexadecimal values
+      NSCharacterSet* hex_set = [[NSCharacterSet characterSetWithCharactersInString:@"ABCDEFabcdef0123456789"] invertedSet];
       
+      if ([values[0] rangeOfCharacterFromSet:hex_set].location == NSNotFound && [values[1] rangeOfCharacterFromSet:hex_set].location == NSNotFound)
+      {
+        // Too lazy to allocate NSScanner, so we use std::stoul here
       addr = (u32)std::stoul([values[0] UTF8String], nullptr, 16);
-
-      if (good)
         value = (u32)std::stoul([values[1] UTF8String], nullptr, 16);
 
-      if (good)
         entries.push_back(ActionReplay::AREntry(addr, value));
+    }
+    else
+    {
+        good = false;
+      }
     }
     else
     {
