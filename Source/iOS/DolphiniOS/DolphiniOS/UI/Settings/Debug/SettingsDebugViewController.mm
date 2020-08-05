@@ -35,6 +35,11 @@
   [self.m_register_cache_switch setOn:config.bJITRegisterCacheOff];
   
   [self.m_skip_idle_switch setOn:config.bSyncGPUOnSkipIdleHack];
+  [self.m_fastmem_switch setOn:config.bFastmem];
+  
+#ifdef NONJAILBROKEN
+  [self.m_fastmem_switch setEnabled:false];
+#endif
   
   if (IsProcessDebugged())
   {
@@ -98,6 +103,11 @@
   SConfig::GetInstance().bSyncGPUOnSkipIdleHack = [self.m_skip_idle_switch isOn];
 }
 
+- (IBAction)FastmemChanged:(id)sender
+{
+  SConfig::GetInstance().bFastmem = [self.m_fastmem_switch isOn];
+}
+
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath
 {
   // Jit help button
@@ -111,7 +121,7 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
-  else if (indexPath.section == 1 && indexPath.row == 1)
+  else if (indexPath.section == 1 && indexPath.row == 2)
   {
     if (!IsProcessDebugged())
     {
@@ -137,6 +147,16 @@
   }
   else if (indexPath.section == 1 && indexPath.row == 1)
   {
+    NSString* message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM.\n\nWARNING: Disabling this option will decrease performance (FPS). Non-jailbroken devices cannot enable this option due to iOS limitations.", nil);
+      
+    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
+    
+    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+    
+    [self presentViewController:controller animated:true completion:nil];
+  }
+  else if (indexPath.section == 1 && indexPath.row == 2)
+  {
     NSString* message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
       
     UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
@@ -150,7 +170,7 @@
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
 {
 //#ifndef NONJAILBROKEN
-  if (indexPath.section == 1 && indexPath.row == 1)
+  if (indexPath.section == 1 && indexPath.row == 2)
   {
     return CGFLOAT_MIN;
   }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
@@ -794,8 +794,37 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="cxM-QR-lkh">
                                         <rect key="frame" x="16" y="595.33333206176758" width="343" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="cxM-QR-lkh" id="Ls9-oQ-O6H">
+                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fastmem" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="M3l-U9-UrT">
+                                                    <rect key="frame" x="15" y="11.666666666666664" width="232" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ts1-id-DRO">
+                                                    <rect key="frame" x="247" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <connections>
+                                                        <action selector="FastmemChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="UkI-gK-GAO"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="trailingMargin" secondItem="ts1-id-DRO" secondAttribute="trailing" id="KMq-ze-h6i"/>
+                                                <constraint firstItem="ts1-id-DRO" firstAttribute="centerY" secondItem="Ls9-oQ-O6H" secondAttribute="centerY" id="NFv-YA-EN5"/>
+                                                <constraint firstItem="M3l-U9-UrT" firstAttribute="leading" secondItem="Ls9-oQ-O6H" secondAttribute="leadingMargin" id="S6R-5G-KnV"/>
+                                                <constraint firstItem="ts1-id-DRO" firstAttribute="leading" secondItem="M3l-U9-UrT" secondAttribute="trailing" id="ds7-wl-af8"/>
+                                                <constraint firstItem="M3l-U9-UrT" firstAttribute="centerY" secondItem="Ls9-oQ-O6H" secondAttribute="centerY" id="xJZ-dD-mL3"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
+                                        <rect key="frame" x="16" y="639.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tif-Kx-tey" id="NBc-oc-mVX">
                                             <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
@@ -826,6 +855,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                     <navigationItem key="navigationItem" title="Debug" id="ico-l1-GvZ"/>
                     <connections>
                         <outlet property="m_branch_switch" destination="kpl-jJ-akF" id="ecv-XU-wVM"/>
+                        <outlet property="m_fastmem_switch" destination="ts1-id-DRO" id="zGD-T1-SvU"/>
                         <outlet property="m_fp_switch" destination="hSW-ts-PuQ" id="qy4-Ut-8YZ"/>
                         <outlet property="m_integer_switch" destination="9Q7-Fm-UJm" id="mbm-E8-Z91"/>
                         <outlet property="m_load_store_fp_switch" destination="EHO-HA-zJE" id="BKh-Ed-t1c"/>
