@@ -137,9 +137,10 @@
   if ([edit_controller m_should_be_pushed_back])
   {
     self->m_ar_codes.push_back(*[edit_controller m_ar_code]);
-    
-    [self SaveCodes];
   }
+  
+  [self SaveCodes];
+  [self.tableView reloadData];
 }
 
 
