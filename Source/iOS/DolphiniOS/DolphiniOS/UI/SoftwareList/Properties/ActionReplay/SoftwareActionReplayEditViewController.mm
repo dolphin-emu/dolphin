@@ -84,13 +84,13 @@
       if ([values[0] rangeOfCharacterFromSet:hex_set].location == NSNotFound && [values[1] rangeOfCharacterFromSet:hex_set].location == NSNotFound)
       {
         // Too lazy to allocate NSScanner, so we use std::stoul here
-      addr = (u32)std::stoul([values[0] UTF8String], nullptr, 16);
+        addr = (u32)std::stoul([values[0] UTF8String], nullptr, 16);
         value = (u32)std::stoul([values[1] UTF8String], nullptr, 16);
-
+        
         entries.push_back(ActionReplay::AREntry(addr, value));
-    }
-    else
-    {
+      }
+      else
+      {
         good = false;
       }
     }
