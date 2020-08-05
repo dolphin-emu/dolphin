@@ -4,9 +4,9 @@
 
 #import "SoftwarePropertiesViewController.h"
 
-#import "SoftwareInfoViewController.h"
-
 #import "SoftwareActionReplayViewController.h"
+#import "SoftwareGeckoViewController.h"
+#import "SoftwareInfoViewController.h"
 #import "SoftwareVerifyStartViewController.h"
 
 @interface SoftwarePropertiesViewController ()
@@ -41,6 +41,10 @@
   else if ([segue.identifier isEqualToString:@"to_verify"])
   {
     ((SoftwareVerifyStartViewController*)(segue.destinationViewController)).m_game_file = self.m_game_file;
+  }
+  else if ([segue.identifier isEqualToString:@"to_gecko"])
+  {
+    ((SoftwareGeckoViewController*)segue.destinationViewController).m_game_file = self.m_game_file;
   }
   else if ([segue.identifier isEqualToString:@"to_ar"])
   {

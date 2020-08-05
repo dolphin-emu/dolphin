@@ -153,6 +153,8 @@
 		B9C956242461007C0095EC98 /* ImproperlySignedNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9C956232461007C0095EC98 /* ImproperlySignedNotice.xib */; };
 		B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */; };
 		B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */; };
+		B9DBDEAD24DAA2BB00014137 /* SoftwareGeckoViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9DBDEAC24DAA2BB00014137 /* SoftwareGeckoViewController.mm */; };
+		B9DBDEB024DAA67700014137 /* SoftwareGeckoEditViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9DBDEAF24DAA67700014137 /* SoftwareGeckoEditViewController.mm */; };
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
@@ -534,6 +536,10 @@
 		B9D1E1AA23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ConfigGameCubeViewController.mm; sourceTree = "<group>"; };
 		B9D1E1AF23E2B5E0008A6EE2 /* GameCubeLanguageViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameCubeLanguageViewController.h; sourceTree = "<group>"; };
 		B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GameCubeLanguageViewController.mm; sourceTree = "<group>"; };
+		B9DBDEAB24DAA2BB00014137 /* SoftwareGeckoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareGeckoViewController.h; sourceTree = "<group>"; };
+		B9DBDEAC24DAA2BB00014137 /* SoftwareGeckoViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareGeckoViewController.mm; sourceTree = "<group>"; };
+		B9DBDEAE24DAA67700014137 /* SoftwareGeckoEditViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareGeckoEditViewController.h; sourceTree = "<group>"; };
+		B9DBDEAF24DAA67700014137 /* SoftwareGeckoEditViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareGeckoEditViewController.mm; sourceTree = "<group>"; };
 		B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = TCSidewaysWiiPad.xib; sourceTree = "<group>"; };
 		B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCSidewaysWiiPad.swift; sourceTree = "<group>"; };
 		B9DCAC9523AB38F4002B95C8 /* control-patreon.in */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = "control-patreon.in"; path = "BuildResources/DebFiles/control-patreon.in"; sourceTree = "<group>"; };
@@ -836,6 +842,7 @@
 			isa = PBXGroup;
 			children = (
 				B964B15B24901D0500EE5A3B /* ActionReplay */,
+				B9DBDEAA24DA9C4900014137 /* Gecko */,
 				B964B142248F60D300EE5A3B /* Verify */,
 				B964B13C248EB63E00EE5A3B /* SoftwareInfoViewController.h */,
 				B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */,
@@ -872,9 +879,9 @@
 			children = (
 				B964B15F24901ED200EE5A3B /* SoftwareActionReplayCodeCell.h */,
 				B964B16024901ED200EE5A3B /* SoftwareActionReplayCodeCell.m */,
-				B964B15C24901D3C00EE5A3B /* SoftwareActionReplayViewController.h */,
 				B96E2C9A24D7B9C300AB4319 /* SoftwareActionReplayEditViewController.h */,
 				B96E2C9B24D7B9C300AB4319 /* SoftwareActionReplayEditViewController.mm */,
+				B964B15C24901D3C00EE5A3B /* SoftwareActionReplayViewController.h */,
 				B964B15D24901D3C00EE5A3B /* SoftwareActionReplayViewController.mm */,
 			);
 			path = ActionReplay;
@@ -1266,6 +1273,17 @@
 				B9D1E1B023E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm */,
 			);
 			path = GameCube;
+			sourceTree = "<group>";
+		};
+		B9DBDEAA24DA9C4900014137 /* Gecko */ = {
+			isa = PBXGroup;
+			children = (
+				B9DBDEAE24DAA67700014137 /* SoftwareGeckoEditViewController.h */,
+				B9DBDEAF24DAA67700014137 /* SoftwareGeckoEditViewController.mm */,
+				B9DBDEAB24DAA2BB00014137 /* SoftwareGeckoViewController.h */,
+				B9DBDEAC24DAA2BB00014137 /* SoftwareGeckoViewController.mm */,
+			);
+			path = Gecko;
 			sourceTree = "<group>";
 		};
 		B9DCAC9823AB42CA002B95C8 /* Deb FIles */ = {
@@ -1703,6 +1721,7 @@
 				B966124E2488DF7200006392 /* GameFileCacheHolder.mm in Sources */,
 				B9E983F4245A57EB00119883 /* SoftwareListViewController.mm in Sources */,
 				B9F03CBD23B0627100423AE6 /* ControllerGroupCheckboxCell.mm in Sources */,
+				B9DBDEAD24DAA2BB00014137 /* SoftwareGeckoViewController.mm in Sources */,
 				B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */,
 				B946AF11245B953B0043767A /* TopBarModeViewController.m in Sources */,
 				B9B536CB23DD8B2E00F03106 /* UpdateNoticeViewController.mm in Sources */,
@@ -1742,6 +1761,7 @@
 				B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */,
 				B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */,
 				B99D362523E3F949005627CE /* ConfigWiiViewController.mm in Sources */,
+				B9DBDEB024DAA67700014137 /* SoftwareGeckoEditViewController.mm in Sources */,
 				B9C85E0D23A9FECF008A4DD1 /* TCDeviceMotion.swift in Sources */,
 				B92CCE602431266D0057BC75 /* SettingsDebugViewController.mm in Sources */,
 				B99D361A23E3F313005627CE /* WiiLanguageViewController.mm in Sources */,
