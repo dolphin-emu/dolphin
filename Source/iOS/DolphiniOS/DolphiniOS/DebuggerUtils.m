@@ -98,6 +98,7 @@ void SetProcessDebuggedWithPTrace()
 
 void SetProcessDebugged()
 {
+#if !TARGET_OS_SIMULATOR
 #ifndef NONJAILBROKEN
   // Check for jailbreakd (Chimera)
   NSFileManager* file_manager = [NSFileManager defaultManager];
@@ -111,5 +112,6 @@ void SetProcessDebugged()
   }
 #else
   SetProcessDebuggedWithPTrace();
+#endif
 #endif
 }
