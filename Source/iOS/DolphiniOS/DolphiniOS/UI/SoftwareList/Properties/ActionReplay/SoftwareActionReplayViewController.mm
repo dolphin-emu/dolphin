@@ -23,10 +23,7 @@
   [super viewDidLoad];
   
   self.navigationItem.rightBarButtonItem = self.editButtonItem;
-}
-
-- (void)viewWillAppear:(BOOL)animated
-{
+  
   const std::string game_id = self.m_game_file->GetGameID();
   const u16 game_revision = self.m_game_file->GetRevision();
   
@@ -35,12 +32,17 @@
 
   const IniFile game_ini_default = SConfig::LoadDefaultGameIni(game_id, game_revision);
   self->m_ar_codes = ActionReplay::LoadCodes(game_ini_default, game_ini_local);
-  
-  [self.tableView reloadData];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [self viewWillAppear:animated];
 }
 
 - (void)viewWillDisappear:(BOOL)animated
 {
+  [self viewWillDisappear:animated];
+  
   [self SaveCodes];
 }
 
