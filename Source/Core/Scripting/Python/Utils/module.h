@@ -57,7 +57,7 @@ static int SetupModuleWithState(PyObject* module)
   // so let's do it in python code. atexit-callbacks are interpreter-local.
   static PyMethodDef cleanup_module_methods[] = {
       {"_dol_mod_cleanup", CleanupModuleWithState<TState, TCleanup>, METH_NOARGS, ""},
-      {nullptr, nullptr, 0, nullptr} /* sentinel */
+      {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   PyModule_AddFunctions(module, cleanup_module_methods);
   Py::Object result = LoadPyCodeIntoModule(module, R"(
@@ -77,7 +77,7 @@ template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TClea
 constexpr PyModuleDef MakeStatefulModuleDef(const char* name, PyMethodDef func_defs[])
 {
   static PyModuleDef_Slot slots_with_exec[] = {
-      {Py_mod_exec, SetupModuleWithState<TState, TSetup, TCleanup>}, {0, nullptr} /* sentinel */
+      {Py_mod_exec, SetupModuleWithState<TState, TSetup, TCleanup>}, {0, nullptr} // Sentinel
   };
   static PyModuleDef moduleDefinition{
       PyModuleDef_HEAD_INIT,

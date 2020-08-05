@@ -33,14 +33,14 @@ public:
   PyScriptingBackend& operator=(PyScriptingBackend&&) = delete;
 
 private:
-  PyThreadState* m_interp_threadstate;
-  API::EventHub& m_event_hub;
-  API::Gui& m_gui;
   static std::map<u64, PyScriptingBackend*> s_instances;
   static PyThreadState* s_main_threadstate;
   // creation and deletion of this class handles the bookkeeping of python's
   // main- and sub-interpreters. None of that can safely run concurrently.
   static std::mutex s_bookkeeping_lock;
+  PyThreadState* m_interp_threadstate;
+  API::EventHub& m_event_hub;
+  API::Gui& m_gui;
 };
 
 }  // namespace PyScripting

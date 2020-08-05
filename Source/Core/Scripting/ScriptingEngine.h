@@ -21,7 +21,7 @@ public:
   ScriptingBackend& operator=(ScriptingBackend&&);
 private:
   // We cannot name the actual used python scripting backend here,
-  // as that would expose the Python.h header, which we don't want.
+  // as that would transitively include the Python.h header, which we don't want.
   // TODO help! how can I do this better??
   void* m_state;
 };

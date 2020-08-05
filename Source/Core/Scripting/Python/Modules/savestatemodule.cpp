@@ -13,18 +13,14 @@ namespace PyScripting
 
 struct SavestateModuleState
 {
+  // If State wasn't static, you'd store an instance here:
+  //API::SavestateManager* stateManager; // or however it would be called
 };
-
-void SetupSavestateModule(PyObject* module, SavestateModuleState* state)
-{
-}
-
-void CleanupSavestateModule(PyObject* module, SavestateModuleState* state)
-{
-}
 
 PyObject* SaveToSlot(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   auto slot_opt = Py::ParseTuple<u32>(args);
   if (!slot_opt.has_value())
     return nullptr;
@@ -40,6 +36,8 @@ PyObject* SaveToSlot(PyObject* self, PyObject* args)
 
 PyObject* LoadFromSlot(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   auto slot_opt = Py::ParseTuple<u32>(args);
   if (!slot_opt.has_value())
     return nullptr;
@@ -55,6 +53,8 @@ PyObject* LoadFromSlot(PyObject* self, PyObject* args)
 
 PyObject* SaveToFile(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   auto filename_opt = Py::ParseTuple<const char*>(args);
   if (!filename_opt.has_value())
     return nullptr;
@@ -65,6 +65,8 @@ PyObject* SaveToFile(PyObject* self, PyObject* args)
 
 PyObject* LoadFromFile(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   auto filename_opt = Py::ParseTuple<const char*>(args);
   if (!filename_opt.has_value())
     return nullptr;
@@ -75,6 +77,8 @@ PyObject* LoadFromFile(PyObject* self, PyObject* args)
 
 PyObject* SaveToBytes(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   std::vector<u8> buffer;
   State::SaveToBuffer(buffer);
   const u8* data = buffer.data();
@@ -89,6 +93,8 @@ PyObject* SaveToBytes(PyObject* self, PyObject* args)
 
 PyObject* LoadFromBytes(PyObject* self, PyObject* args)
 {
+  // If State wasn't static, you'd get the state-manager instance from the module state:
+  //SavestateModuleState* state = Py::GetState<SavestateModuleState>();
   auto bytes_opt = Py::ParseTuple<PyBytesObject*>(args);
   if (!bytes_opt.has_value())
     return nullptr;
@@ -101,9 +107,20 @@ PyObject* LoadFromBytes(PyObject* self, PyObject* args)
   if (result == -1)
     return nullptr;
   // I don't understand where and why the buffer gets copied and why this is necessary...
-  buffer.assign(data, data+length); 
+  buffer.assign(data, data+length);
   State::LoadFromBuffer(buffer);
   Py_RETURN_NONE;
+}
+
+void SetupSavestateModule(PyObject* module, SavestateModuleState* state)
+{
+  // If State wasn't static, you'd store a state manager instance in the module state:
+  //API::StateManager* sm = PyScripting::PyScriptingBackend::GetCurrent()->GetStateManager();
+  //state->stateManager = sm;
+}
+
+void CleanupSavestateModule(PyObject* module, SavestateModuleState* state)
+{
 }
 
 PyMODINIT_FUNC PyInit_savestate()

@@ -11,7 +11,7 @@ namespace PyScripting
 
 PyMODINIT_FUNC PyInit_dolphin()
 {
-  static const char dolphin_module_pycode[] = R"(
+  static const char pycode[] = R"(
 """
 This module is an aggregator of all dolphin-provided modules.
 It lets people import the dolphin-provided modules in a more
@@ -31,15 +31,15 @@ import dolphin_savestate as savestate
 # using a star-import: from dolphin import *
 __all__ = [event, memory, gui, savestate]
 )";
-  static PyMethodDef DolphinMethods[] = {
-          // no functions defined in C++ code
-          {nullptr, nullptr, 0, nullptr} /* Sentinel */
+  static PyMethodDef methods[] = {
+      // no functions defined in C++ code
+      {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
-  static PyModuleDef def = Py::MakeModuleDef("dolphin", DolphinMethods);
+  static PyModuleDef def = Py::MakeModuleDef("dolphin", methods);
   PyObject* m = PyModule_Create(&def);
   if (m == nullptr)
     return nullptr;
-  if (Py::LoadPyCodeIntoModule(m, dolphin_module_pycode).IsNull())
+  if (Py::LoadPyCodeIntoModule(m, pycode).IsNull())
     return nullptr;
   return m;
 }

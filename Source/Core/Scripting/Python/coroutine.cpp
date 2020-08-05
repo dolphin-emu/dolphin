@@ -16,14 +16,17 @@
 namespace PyScripting
 {
 
-void HandleNewCoroutine(const Py::Object module, const Py::Object coro)
-{
-  PyObject* asyncEventTuple = Py::CallMethod(coro, "send", Py::Take(Py_None).Leak());
+void HandleNewCoroutine(const Py::Object module, const Py::Object coro) {
+  PyObject *asyncEventTuple = Py::CallMethod(coro, "send", Py::Take(Py_None).Leak());
   if (asyncEventTuple != nullptr)
+  {
     HandleCoroutine(module, coro, Py::Wrap(asyncEventTuple));
+  }
   else if (!PyErr_ExceptionMatches(PyExc_StopIteration))
+  {
     // coroutines signal completion by raising StopIteration
     PyErr_Print();
+  }
 }
 
 void HandleCoroutine(const Py::Object module, const Py::Object coro, const Py::Object asyncEventTuple)

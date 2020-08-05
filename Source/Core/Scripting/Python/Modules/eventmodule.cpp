@@ -203,7 +203,7 @@ std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 
 void SetupEventModule(PyObject* module, EventModuleState* state)
 {
-  Py::Object result = Py::LoadPyCodeIntoModule(module, R"(
+  static const char pycode[] = R"(
 class _DolphinAsyncEvent:
     def __init__(self, event_name, *args):
         self.event_name = event_name
@@ -216,7 +216,8 @@ async def frameadvance():
 
 async def memorybreakpoint():
     return (await _DolphinAsyncEvent("memorybreakpoint"))
-)");
+)";
+  Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
   {
     ERROR_LOG(SCRIPTING, "Failed to load embedded python code into event module");
@@ -233,17 +234,17 @@ void CleanupEventModule(PyObject* module, EventModuleState* state)
 
 PyMODINIT_FUNC PyInit_event()
 {
-  static PyMethodDef EventMethods[] = {
+  static PyMethodDef methods[] = {
       // EVENT CALLBACKS
       // Has "on_"-prefix, let's python code register a callback
       Py::MakeMethodDef<PyFrameAdvanceEvent::SetCallback>("on_frameadvance"),
       Py::MakeMethodDef<PyMemoryBreakpointEvent::SetCallback>("on_memorybreakpoint"),
 
-      {nullptr, nullptr, 0, nullptr} /* Sentinel */
+      {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
       Py::MakeStatefulModuleDef<EventModuleState, SetupEventModule, CleanupEventModule>(
-          "event", EventMethods);
+          "event", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }

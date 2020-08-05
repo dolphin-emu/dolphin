@@ -114,13 +114,15 @@ PyObject* draw_polyline(PyObject* self, PyObject* args)
                         &thickness))
     return nullptr;
   int num_points = PyList_Size(points_list_obj);
-  if (num_points < 0) return nullptr;
+  if (num_points < 0)
+    return nullptr;
   std::vector<Vec2f> points_collecting;
   for (int i = 0; i < num_points; ++i)
   {
     PyObject* item = PyList_GetItem(points_list_obj, i);
     float x, y;
-    if (!PyArg_ParseTuple(item, "ff", &x, &y)) return nullptr;
+    if (!PyArg_ParseTuple(item, "ff", &x, &y))
+      return nullptr;
     points_collecting.push_back({x, y});
   }
   const std::vector<Vec2f> points = points_collecting;
@@ -136,13 +138,15 @@ PyObject* draw_convex_poly_filled(PyObject* self, PyObject* args)
   if (!PyArg_ParseTuple(args, "O!I", &PyList_Type, &points_list_obj, &color))
     return nullptr;
   int num_points = PyList_Size(points_list_obj);
-  if (num_points < 0) return nullptr;
+  if (num_points < 0)
+    return nullptr;
   std::vector<Vec2f> points;
   for (int i = 0; i < num_points; ++i)
   {
     PyObject* item = PyList_GetItem(points_list_obj, i);
     float x, y;
-    if (!PyArg_ParseTuple(item, "ff", &x, &y)) return nullptr;
+    if (!PyArg_ParseTuple(item, "ff", &x, &y))
+      return nullptr;
     points.push_back({x, y});
   }
   GuiModuleState* state = Py::GetState<GuiModuleState>(self);
@@ -161,7 +165,7 @@ void draw_bezier_curve(PyObject* self, float pos0x, float pos0y, float cp0x, flo
 
 void SetupGuiModule(PyObject* module, GuiModuleState* state)
 {
-  Py::Object result = Py::LoadPyCodeIntoModule(module, R"(
+  static const char pycode[] = R"(
 def add_osd_message(message: str, duration_ms: int = 2000, color_argb: int = 0xFFFFFF30):
     return _add_osd_message(message, duration_ms, color_argb)
 
@@ -207,7 +211,8 @@ def draw_convex_poly_filled(points, color):
 
 def draw_bezier_curve(pos0, cp0, cp1, pos1, color, thickness = 1, num_segments = 0):
     _draw_bezier_curve(pos0[0], pos0[1], cp0[0], cp0[1], cp1[0], cp1[1], pos1[0], pos1[1], color, thickness, num_segments)
-)");
+)";
+  Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
   if (result.IsNull())
   {
     ERROR_LOG(SCRIPTING, "Failed to load embedded python code into gui module");

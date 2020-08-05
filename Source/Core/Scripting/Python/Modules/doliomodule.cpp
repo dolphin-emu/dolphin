@@ -90,14 +90,14 @@ PyMODINIT_FUNC PyInit_dolio_stdout()
 
 PyMODINIT_FUNC PyInit_dolio_stderr()
 {
-  static PyMethodDef method_defs[] = {
+  static PyMethodDef methods[] = {
       Py::MakeMethodDef<dol_write_stderr>("write"),
       Py::MakeMethodDef<flush_stderr>("flush"),
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =
       Py::MakeStatefulModuleDef<DolioModuleState, setup_dolio_module_stderr, cleanup_dolio_module>(
-          "dolio_stderr", method_defs);
+          "dolio_stderr", methods);
   return PyModuleDef_Init(&module_def);
 }
 

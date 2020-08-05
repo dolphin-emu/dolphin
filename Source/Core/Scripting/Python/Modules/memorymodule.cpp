@@ -93,7 +93,7 @@ void CleanupMemoryModule(PyObject* module, MemoryModuleState* state)
 
 PyMODINIT_FUNC PyInit_memory()
 {
-  static PyMethodDef MemoryMethods[] = {
+  static PyMethodDef methods[] = {
       {"add_memcheck", AddMemcheck, METH_VARARGS, ""},
       {"remove_memcheck", RemoveMemcheck, METH_VARARGS, ""},
 
@@ -127,7 +127,7 @@ PyMODINIT_FUNC PyInit_memory()
   };
   static PyModuleDef module_def =
       Py::MakeStatefulModuleDef<MemoryModuleState, SetupMemoryModule, CleanupMemoryModule>(
-          "memory", MemoryMethods);
+          "memory", methods);
   PyObject* def_obj = PyModuleDef_Init(&module_def);
   return def_obj;
 }
