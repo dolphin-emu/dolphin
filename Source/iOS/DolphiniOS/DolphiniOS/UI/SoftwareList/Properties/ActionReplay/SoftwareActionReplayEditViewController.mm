@@ -33,10 +33,11 @@
   NSMutableString* code_str = [[NSMutableString alloc] init];
   for (ActionReplay::AREntry& e : self.m_ar_code->ops)
   {
-    [code_str appendFormat:@"%08X %08X", e.cmd_addr, e.value];
+    [code_str appendFormat:@"%08X %08X\n", e.cmd_addr, e.value];
   }
   
-  [self.m_code_view setText:code_str];
+  NSString* trimmed_code_str = [code_str length] > 0 ? [code_str substringToIndex:[code_str length] - 1] : code_str;
+  [self.m_code_view setText:trimmed_code_str];
 }
 
 #pragma mark - Table view delegate
