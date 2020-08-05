@@ -89,7 +89,6 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
     super.onAttach(context);
 
     mActivity = (SettingsActivityView) context;
-    mPresenter.onAttach();
   }
 
   @Override
@@ -155,16 +154,6 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
           org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
   {
     mPresenter.setSettings(settings);
-  }
-
-  @Override
-  public void passSettingsToActivity(
-          org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    if (mActivity != null)
-    {
-      mActivity.setSettings(settings);
-    }
   }
 
   @Override

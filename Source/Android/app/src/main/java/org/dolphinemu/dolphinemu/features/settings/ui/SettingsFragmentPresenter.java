@@ -82,19 +82,6 @@ public final class SettingsFragmentPresenter
     setSettings(settings);
   }
 
-  /**
-   * If the screen is rotated, the Activity will forget the settings map. This fragment
-   * won't, though; so rather than have the Activity reload from disk, have the fragment pass
-   * the settings map back to the Activity.
-   */
-  public void onAttach()
-  {
-    if (mSettings != null)
-    {
-      mView.passSettingsToActivity(mSettings);
-    }
-  }
-
   public void putSetting(Setting setting)
   {
     mSettings.getSection(setting.getSection()).putSetting(setting);

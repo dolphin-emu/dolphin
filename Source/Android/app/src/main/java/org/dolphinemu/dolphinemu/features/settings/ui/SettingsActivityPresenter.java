@@ -21,7 +21,7 @@ public final class SettingsActivityPresenter
 
   private SettingsActivityView mView;
 
-  private Settings mSettings = new Settings();
+  private Settings mSettings;
 
   private int mStackCount;
 
@@ -35,9 +35,10 @@ public final class SettingsActivityPresenter
 
   private final Set<String> modifiedSettings = new HashSet<>();
 
-  SettingsActivityPresenter(SettingsActivityView view)
+  SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
     mView = view;
+    mSettings = settings;
   }
 
   public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
@@ -119,11 +120,6 @@ public final class SettingsActivityPresenter
 
       mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
     }
-  }
-
-  public void setSettings(Settings settings)
-  {
-    mSettings = settings;
   }
 
   public Settings getSettings()
