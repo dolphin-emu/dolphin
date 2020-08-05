@@ -147,7 +147,7 @@
   }
   else if (indexPath.section == 1 && indexPath.row == 1)
   {
-    NSString* message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM.\n\nWARNING: Disabling this option will decrease performance (FPS). Non-jailbroken devices cannot enable this option due to iOS limitations.", nil);
+    NSString* message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM. Non-jailbroken devices cannot enable this option due to iOS limitations.\n\nWARNING: Disabling this option will decrease performance (FPS).", nil);
       
     UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
     
