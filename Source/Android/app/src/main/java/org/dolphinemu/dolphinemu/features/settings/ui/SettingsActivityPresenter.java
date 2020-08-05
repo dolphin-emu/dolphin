@@ -42,16 +42,11 @@ public final class SettingsActivityPresenter
 
   public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
   {
-    if (savedInstanceState == null)
-    {
-      this.menuTag = menuTag;
-      this.gameId = gameId;
-      this.context = context;
-    }
-    else
-    {
-      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-    }
+    this.menuTag = menuTag;
+    this.gameId = gameId;
+    this.context = context;
+
+    mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
   }
 
   public void onStart()
