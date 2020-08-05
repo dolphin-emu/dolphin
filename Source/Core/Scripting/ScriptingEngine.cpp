@@ -1,9 +1,13 @@
+// Copyright 2018 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include "ScriptingEngine.h"
 
 #include "Core/API/Events.h"
 #include "Core/API/Gui.h"
 #include "Common/Logging/Log.h"
 #include "Python/PyScriptingBackend.h"
-#include "ScriptingEngine.h"
 
 namespace Scripting
 {

@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Scripting/Python/Utils/object_wrapper.h"
+#include "object_wrapper.h"
 
 namespace Py
 {

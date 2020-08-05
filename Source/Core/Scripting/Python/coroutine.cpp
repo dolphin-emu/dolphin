@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "coroutine.h"
+
 #include <map>
 
 #include "Common/Logging/Log.h"
 #include "Core/API/Events.h"
 
-#include "coroutine.h"
 #include "Scripting/Python/Modules/eventmodule.h"
 #include "Scripting/Python/PyScriptingBackend.h"
 #include "Scripting/Python/Utils/invoke.h"

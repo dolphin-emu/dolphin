@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "PyScriptingBackend.h"
+
 #include <Python.h>
 #include <string>
 
@@ -11,7 +13,6 @@
 
 #include "Core/API/Events.h"
 #include "DiscIO/Filesystem.h"
-#include "PyScriptingBackend.h"
 
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Modules/doliomodule.h"

@@ -9,8 +9,8 @@
 #include <map>
 #include <Python.h>
 
-#include <Core/API/Events.h>
-#include <Core/API/Gui.h>
+#include "Core/API/Events.h"
+#include "Core/API/Gui.h"
 
 namespace PyScripting
 {

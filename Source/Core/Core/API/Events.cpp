@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/API/Events.h"
+#include "Events.h"
 
 namespace API
 {

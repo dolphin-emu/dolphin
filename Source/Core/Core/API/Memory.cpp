@@ -2,7 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/API/Memory.h"
+#include "Memory.h"
+
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/BreakPoints.h"
 

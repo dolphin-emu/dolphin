@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "doliomodule.h"
+
 #include <sstream>
 
 #include "Common/Logging/Log.h"
-#include "doliomodule.h"
 #include "Scripting/Python/Utils/module.h"
 
 namespace PyScripting

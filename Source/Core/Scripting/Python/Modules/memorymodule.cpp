@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "memorymodule.h"
+
 #include "Core/API/Memory.h"
 #include "Core/HW/Memmap.h"
 
-#include "memorymodule.h"
 #include "Scripting/Python/Utils/module.h"
 #include "Scripting/Python/Utils/as_py_func.h"
 

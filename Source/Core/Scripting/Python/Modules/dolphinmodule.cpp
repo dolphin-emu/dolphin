@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "dolphinmodule.h"
+
 #include "Scripting/Python/Utils/module.h"
 
 namespace PyScripting

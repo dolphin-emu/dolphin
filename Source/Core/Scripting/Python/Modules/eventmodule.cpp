@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "eventmodule.h"
+
 #include <deque>
 #include <map>
 
 #include "Common/Logging/Log.h"
 #include "Core/API/Events.h"
 
-#include "eventmodule.h"
 #include "Scripting/Python/coroutine.h"
 #include "Scripting/Python/Utils/convert.h"
 #include "Scripting/Python/Utils/invoke.h"
