@@ -1011,6 +1011,9 @@
     <ClCompile Include="API\Memory.cpp">
       <Filter>API</Filter>
     </ClCompile>
+    <ClCompile Include="API\Gui.cpp">
+      <Filter>API</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1771,6 +1774,9 @@
       <Filter>API</Filter>
     </ClInclude>
     <ClInclude Include="API\Memory.h">
+      <Filter>API</Filter>
+    </ClInclude>
+    <ClInclude Include="API\Gui.h">
       <Filter>API</Filter>
     </ClInclude>
   </ItemGroup>

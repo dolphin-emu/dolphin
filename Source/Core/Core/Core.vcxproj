@@ -48,6 +48,7 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="API\Events.cpp" />
     <ClCompile Include="API\Memory.cpp" />
+    <ClCompile Include="API\Gui.cpp" />
     <ClCompile Include="ARDecrypt.cpp" />
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
@@ -417,6 +418,7 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="API\Events.h" />
     <ClInclude Include="API\Memory.h" />
+    <ClInclude Include="API\Gui.h" />
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />

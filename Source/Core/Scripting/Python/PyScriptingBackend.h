@@ -10,6 +10,7 @@
 #include <Python.h>
 
 #include <Core/API/Events.h>
+#include <Core/API/Gui.h>
 
 namespace PyScripting
 {
@@ -17,10 +18,11 @@ namespace PyScripting
 class PyScriptingBackend
 {
 public:
-  PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub);
+  PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui);
   ~PyScriptingBackend();
   static PyScriptingBackend* GetCurrent();
   API::EventHub* GetEventHub();
+  API::Gui* GetGui();
 
   // this class somewhat is a wrapper around a python interpreter state,
   // and that isn't copyable, so this class isn't copyable either.
@@ -33,6 +35,7 @@ public:
 private:
   PyThreadState* m_interp_threadstate;
   API::EventHub& m_event_hub;
+  API::Gui& m_gui;
   static std::map<u64, PyScriptingBackend*> s_instances;
   static PyThreadState* s_main_threadstate;
   // creation and deletion of this class handles the bookkeeping of python's

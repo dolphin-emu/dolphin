@@ -40,6 +40,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Analytics.h"
+#include "Core/API/Gui.h"
 #include "Core/Config/NetplaySettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
@@ -1247,6 +1248,7 @@ void Renderer::Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u6
       {
         auto lock = GetImGuiLock();
 
+        API::GetGui().Render();
         DrawDebugText();
         OSD::DrawMessages();
         ImGui::Render();

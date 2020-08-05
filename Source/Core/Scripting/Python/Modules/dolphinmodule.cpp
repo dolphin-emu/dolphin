@@ -23,10 +23,11 @@ instead of:
 
 import dolphin_event as event
 import dolphin_memory as memory
+import dolphin_gui as gui
 
 # defining __all__ let's people import everything
 # using a star-import: from dolphin import *
-__all__ = [event, memory]
+__all__ = [event, memory, gui]
 )";
   static PyMethodDef DolphinMethods[] = {
           // no functions defined in C++ code

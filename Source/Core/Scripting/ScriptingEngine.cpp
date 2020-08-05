@@ -1,5 +1,6 @@
 
 #include "Core/API/Events.h"
+#include "Core/API/Gui.h"
 #include "Common/Logging/Log.h"
 #include "Python/PyScriptingBackend.h"
 #include "ScriptingEngine.h"
@@ -13,7 +14,7 @@ ScriptingBackend::ScriptingBackend(std::filesystem::path script_filepath)
   // There is only support for python right now.
   // If there was support for multiple backend, a fitting one could be
   // detected based on the script file's extension for example.
-  m_state = new PyScripting::PyScriptingBackend(script_filepath, API::GetEventHub());
+  m_state = new PyScripting::PyScriptingBackend(script_filepath, API::GetEventHub(), API::GetGui());
 }
 
 ScriptingBackend::~ScriptingBackend() {

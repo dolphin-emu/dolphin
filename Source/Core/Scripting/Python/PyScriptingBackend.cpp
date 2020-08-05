@@ -17,6 +17,7 @@
 #include "Scripting/Python/Modules/doliomodule.h"
 #include "Scripting/Python/Modules/dolphinmodule.h"
 #include "Scripting/Python/Modules/eventmodule.h"
+#include "Scripting/Python/Modules/guimodule.h"
 #include "Scripting/Python/Modules/memorymodule.h"
 
 namespace PyScripting
@@ -38,6 +39,8 @@ PyThreadState* InitMainPythonInterpreter()
     ERROR_LOG(SCRIPTING, "failed to add dolphin_memory to builtins");
   if (PyImport_AppendInittab("dolphin_event", PyInit_event) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin_event to builtins");
+  if (PyImport_AppendInittab("dolphin_gui", PyInit_gui) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolphin_gui to builtins");
 
   if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin to builtins");
@@ -94,8 +97,8 @@ void ShutdownMainPythonInterpreter()
 }
 
 PyScriptingBackend::PyScriptingBackend(
-    std::filesystem::path script_filepath, API::EventHub& event_hub)
-    : m_event_hub(event_hub)
+    std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui)
+    : m_event_hub(event_hub), m_gui(gui)
 {
   std::lock_guard lock{s_bookkeeping_lock};
   if (s_instances.empty())
@@ -158,6 +161,11 @@ PyScriptingBackend* PyScriptingBackend::GetCurrent()
 API::EventHub* PyScriptingBackend::GetEventHub()
 {
   return &m_event_hub;
+}
+
+API::Gui* PyScriptingBackend::GetGui()
+{
+  return &m_gui;
 }
 
 std::map<u64, PyScriptingBackend*> PyScriptingBackend::s_instances;

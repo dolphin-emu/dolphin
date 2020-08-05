@@ -202,7 +202,7 @@ std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 
 void SetupEventModule(PyObject* module, EventModuleState* state)
 {
-  Py::LoadPyCodeIntoModule(module, R"(
+  Py::Object result = Py::LoadPyCodeIntoModule(module, R"(
 class _DolphinAsyncEvent:
     def __init__(self, event_name, *args):
         self.event_name = event_name
@@ -216,6 +216,10 @@ async def frameadvance():
 async def memorybreakpoint():
     return (await _DolphinAsyncEvent("memorybreakpoint"))
 )");
+  if (result.IsNull())
+  {
+    ERROR_LOG(SCRIPTING, "Failed to load embedded python code into event module");
+  }
   API::EventHub* event_hub = PyScripting::PyScriptingBackend::GetCurrent()->GetEventHub();
   state->event_hub = event_hub;
   EventContainer::RegisterListeners(Py::Take(module));
