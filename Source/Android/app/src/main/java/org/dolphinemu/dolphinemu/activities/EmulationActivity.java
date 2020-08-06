@@ -376,6 +376,18 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   @Override
+  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
+  {
+    if (keyCode == KeyEvent.KEYCODE_BACK)
+    {
+      mEmulationFragment.stopEmulation();
+      finish();
+      return true;
+    }
+    return super.onKeyLongPress(keyCode, event);
+  }
+
+  @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
@@ -697,7 +709,7 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public boolean dispatchKeyEvent(KeyEvent event)
   {
-    if (mMenuVisible)
+    if (mMenuVisible || event.getKeyCode() == KeyEvent.KEYCODE_BACK)
     {
       return super.dispatchKeyEvent(event);
     }
@@ -707,14 +719,6 @@ public final class EmulationActivity extends AppCompatActivity
     switch (event.getAction())
     {
       case KeyEvent.ACTION_DOWN:
-        // Handling the case where the back button is pressed.
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-        {
-          onBackPressed();
-          return true;
-        }
-
-        // Normal key events.
         action = NativeLibrary.ButtonState.PRESSED;
         break;
       case KeyEvent.ACTION_UP:
