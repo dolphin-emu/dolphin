@@ -15,6 +15,7 @@ endif()
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
   target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
+  target_sources(dolphin-nogui PRIVATE PlatformDRM.cpp)
 endif()
 
 set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
