@@ -417,6 +417,10 @@ add_library(core
   IOS/WFS/WFSSRV.h
   IOS/WFS/WFSI.cpp
   IOS/WFS/WFSI.h
+  MarioPartyNetplay/Discord.cpp
+  MarioPartyNetplay/Discord.h
+  MarioPartyNetplay/Gamestate.cpp
+  MarioPartyNetplay/Gamestate.h
   PowerPC/BreakPoints.cpp
   PowerPC/BreakPoints.h
   PowerPC/ConditionRegister.cpp
