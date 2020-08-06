@@ -132,10 +132,11 @@ private:
   void AddShowPlatformsMenu(QMenu* view_menu);
   void AddShowRegionsMenu(QMenu* view_menu);
 
+  void AddNetplayMenu();
   void AddOptionsMenu();
   void AddToolsMenu();
-  void AddHelpMenu();
-  void AddMovieMenu();
+  //void AddHelpMenu(); Adiaos, Removed Menu
+  //void AddMovieMenu(); //This isnt used for Netplay. Lets add it to Tools
   void AddJITMenu();
   void AddSymbolsMenu();
 

@@ -72,13 +72,14 @@ MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 
   AddFileMenu();
   AddEmulationMenu();
-  AddMovieMenu();
+  // AddMovieMenu(); //This isnt used for Netplay. Lets add it to Tools
   AddOptionsMenu();
+  AddNetplayMenu();
   AddToolsMenu();
   AddViewMenu();
   AddJITMenu();
   AddSymbolsMenu();
-  AddHelpMenu();
+  // AddHelpMenu(); Adiaos, Removed Menu
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state); });
@@ -219,6 +220,16 @@ void MenuBar::AddFileMenu()
   m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
 }
 
+void MenuBar::AddNetplayMenu()
+{
+  QMenu* netplay_menu = addMenu(tr("&Netplay"));
+
+  netplay_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  netplay_menu->addAction(tr("Browse &NetPlay Sessions..."), this, &MenuBar::BrowseNetPlay);
+
+}
+
+
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
@@ -235,11 +246,74 @@ void MenuBar::AddToolsMenu()
 
   tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
-  tools_menu->addSeparator();
+  QMenu* movie_menu = tools_menu->addMenu(tr("&Movie"));
+  m_recording_start = movie_menu->addAction(tr("Start Re&cording Input"), this,
+                                            [this] { emit StartRecording(); });
+  m_recording_play = movie_menu->addAction(tr("P&lay Input Recording..."), this,
+                                           [this] { emit PlayRecording(); });
+  m_recording_stop = movie_menu->addAction(tr("Stop Playing/Recording Input"), this,
+                                           [this] { emit StopRecording(); });
+  m_recording_export =
+      movie_menu->addAction(tr("Export Recording..."), this, [this] { emit ExportRecording(); });
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
+  m_recording_start->setEnabled(false);
+  m_recording_play->setEnabled(false);
+  m_recording_stop->setEnabled(false);
+  m_recording_export->setEnabled(false);
 
+  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
+  m_recording_read_only->setCheckable(true);
+  m_recording_read_only->setChecked(Movie::IsReadOnly());
+  connect(m_recording_read_only, &QAction::toggled,
+          [](bool value) { Movie::SetReadOnly(value); });
+
+  movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
+
+  movie_menu->addSeparator();
+
+  auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
+  pause_at_end->setCheckable(true);
+  pause_at_end->setChecked(SConfig::GetInstance().m_PauseMovie);
+  connect(pause_at_end, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
+
+  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
+  lag_counter->setCheckable(true);
+  lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);
+  connect(lag_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowLag = value; });
+
+  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
+  frame_counter->setCheckable(true);
+  frame_counter->setChecked(SConfig::GetInstance().m_ShowFrameCount);
+  connect(frame_counter, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowFrameCount = value; });
+
+  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
+  input_display->setCheckable(true);
+  input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
+  connect(input_display, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
+
+  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
+  system_clock->setCheckable(true);
+  system_clock->setChecked(SConfig::GetInstance().m_ShowRTC);
+  connect(system_clock, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_ShowRTC = value; });
+
+  movie_menu->addSeparator();
+
+  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
+  dump_frames->setCheckable(true);
+  dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
+  connect(dump_frames, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
+
+  auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
+  dump_audio->setCheckable(true);
+  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
+  connect(dump_audio, &QAction::toggled,
+          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
   tools_menu->addSeparator();
 
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
@@ -562,41 +636,6 @@ void MenuBar::InstallUpdateManually()
   track = previous_value;
 }
 
-void MenuBar::AddHelpMenu()
-{
-  QMenu* help_menu = addMenu(tr("&Help"));
-
-  QAction* website = help_menu->addAction(tr("&Website"));
-  connect(website, &QAction::triggered, this,
-          []() { QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/"))); });
-  QAction* documentation = help_menu->addAction(tr("Online &Documentation"));
-  connect(documentation, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://dolphin-emu.org/docs/guides")));
-  });
-  QAction* github = help_menu->addAction(tr("&GitHub Repository"));
-  connect(github, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
-  });
-  QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
-  connect(bugtracker, &QAction::triggered, this, []() {
-    QDesktopServices::openUrl(
-        QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
-  });
-
-  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
-  {
-    help_menu->addSeparator();
-
-    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
-  }
-
-#ifndef __APPLE__
-  help_menu->addSeparator();
-#endif
-
-  help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
-}
-
 void MenuBar::AddGameListTypeSection(QMenu* view_menu)
 {
   QAction* list_view = view_menu->addAction(tr("List View"));
@@ -710,77 +749,6 @@ void MenuBar::AddShowRegionsMenu(QMenu* view_menu)
       emit GameListRegionVisibilityToggled(key, value);
     });
   }
-}
-
-void MenuBar::AddMovieMenu()
-{
-  auto* movie_menu = addMenu(tr("&Movie"));
-  m_recording_start =
-      movie_menu->addAction(tr("Start Re&cording Input"), this, [this] { emit StartRecording(); });
-  m_recording_play =
-      movie_menu->addAction(tr("P&lay Input Recording..."), this, [this] { emit PlayRecording(); });
-  m_recording_stop = movie_menu->addAction(tr("Stop Playing/Recording Input"), this,
-                                           [this] { emit StopRecording(); });
-  m_recording_export =
-      movie_menu->addAction(tr("Export Recording..."), this, [this] { emit ExportRecording(); });
-
-  m_recording_start->setEnabled(false);
-  m_recording_play->setEnabled(false);
-  m_recording_stop->setEnabled(false);
-  m_recording_export->setEnabled(false);
-
-  m_recording_read_only = movie_menu->addAction(tr("&Read-Only Mode"));
-  m_recording_read_only->setCheckable(true);
-  m_recording_read_only->setChecked(Movie::IsReadOnly());
-  connect(m_recording_read_only, &QAction::toggled, [](bool value) { Movie::SetReadOnly(value); });
-
-  movie_menu->addAction(tr("TAS Input"), this, [this] { emit ShowTASInput(); });
-
-  movie_menu->addSeparator();
-
-  auto* pause_at_end = movie_menu->addAction(tr("Pause at End of Movie"));
-  pause_at_end->setCheckable(true);
-  pause_at_end->setChecked(SConfig::GetInstance().m_PauseMovie);
-  connect(pause_at_end, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_PauseMovie = value; });
-
-  auto* lag_counter = movie_menu->addAction(tr("Show Lag Counter"));
-  lag_counter->setCheckable(true);
-  lag_counter->setChecked(SConfig::GetInstance().m_ShowLag);
-  connect(lag_counter, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_ShowLag = value; });
-
-  auto* frame_counter = movie_menu->addAction(tr("Show Frame Counter"));
-  frame_counter->setCheckable(true);
-  frame_counter->setChecked(SConfig::GetInstance().m_ShowFrameCount);
-  connect(frame_counter, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_ShowFrameCount = value; });
-
-  auto* input_display = movie_menu->addAction(tr("Show Input Display"));
-  input_display->setCheckable(true);
-  input_display->setChecked(SConfig::GetInstance().m_ShowInputDisplay);
-  connect(input_display, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_ShowInputDisplay = value; });
-
-  auto* system_clock = movie_menu->addAction(tr("Show System Clock"));
-  system_clock->setCheckable(true);
-  system_clock->setChecked(SConfig::GetInstance().m_ShowRTC);
-  connect(system_clock, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_ShowRTC = value; });
-
-  movie_menu->addSeparator();
-
-  auto* dump_frames = movie_menu->addAction(tr("Dump Frames"));
-  dump_frames->setCheckable(true);
-  dump_frames->setChecked(SConfig::GetInstance().m_DumpFrames);
-  connect(dump_frames, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpFrames = value; });
-
-  auto* dump_audio = movie_menu->addAction(tr("Dump Audio"));
-  dump_audio->setCheckable(true);
-  dump_audio->setChecked(SConfig::GetInstance().m_DumpAudio);
-  connect(dump_audio, &QAction::toggled,
-          [](bool value) { SConfig::GetInstance().m_DumpAudio = value; });
 }
 
 void MenuBar::AddJITMenu()

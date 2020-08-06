@@ -20,7 +20,7 @@ namespace Common
 
 
 //MPN Dolphin Version
-#define MPN_REV_STR "08/02/20"
+#define MPN_REV_STR "08/06/20"
 const std::string scm_rev_str = "Dolphin MPN - (" MPN_REV_STR ")";
 
 const std::string scm_rev_git_str = SCM_REV_STR;
