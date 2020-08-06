@@ -169,6 +169,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public SettingsAdapter getAdapter()
+  {
+    return mAdapter;
+  }
+
+  @Override
   public void loadSubMenu(MenuTag menuKey)
   {
     mActivity.showSettingsFragment(menuKey, null, true, getArguments().getString(ARGUMENT_GAME_ID));

@@ -56,7 +56,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
   private SettingsFragmentView mView;
-  private static SettingsFragmentView sView;
   private Context mContext;
   private ArrayList<SettingsItem> mSettings;
 
@@ -67,14 +66,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   private AlertDialog mDialog;
   private TextView mTextSliderValue;
 
-  // TODO: Properly restore these two on activity recreation
-  private static FilePicker sFilePicker;
-  private static SettingsItem sItem;
-
   public SettingsAdapter(SettingsFragmentView view, Context context)
   {
     mView = view;
-    sView = view;
     mContext = context;
     mClickedPosition = -1;
   }
@@ -303,19 +297,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void onFilePickerDirectoryClick(SettingsItem item)
   {
-    sFilePicker = (FilePicker) item;
-    sItem = item;
+    mClickedItem = item;
 
     FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   public void onFilePickerFileClick(SettingsItem item)
   {
-    sFilePicker = (FilePicker) item;
-    sItem = item;
+    mClickedItem = item;
+    FilePicker filePicker = (FilePicker) item;
 
     HashSet<String> extensions;
-    switch (sFilePicker.getRequestType())
+    switch (filePicker.getRequestType())
     {
       case MainPresenter.REQUEST_SD_FILE:
         extensions = FileBrowserHelper.RAW_EXTENSION;
@@ -330,17 +323,22 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         throw new InvalidParameterException("Unhandled request code");
     }
 
-    FileBrowserHelper.openFilePicker(mView.getActivity(), sFilePicker.getRequestType(), false,
+    FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
             extensions);
   }
 
-  public static void onFilePickerConfirmation(String file)
+  public void onFilePickerConfirmation(String file)
   {
-    NativeLibrary.SetConfig(sFilePicker.getFile(), sItem.getSection(), sItem.getKey(), file);
+    FilePicker filePicker = (FilePicker) mClickedItem;
+
+    NativeLibrary.SetConfig(filePicker.getFile(), filePicker.getSection(), filePicker.getKey(),
+            file);
     NativeLibrary.ReloadConfig();
+
+    mClickedItem = null;
   }
 
-  public static void resetPaths()
+  public void resetPaths()
   {
     StringSetting defaultISO =
             new StringSetting(SettingsFile.KEY_DEFAULT_ISO, Settings.SECTION_INI_CORE, "");
@@ -360,23 +358,23 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
             new StringSetting(SettingsFile.KEY_WII_SD_CARD_PATH, Settings.SECTION_INI_GENERAL,
                     SettingsFragmentPresenter.getDefaultSDPath());
 
-    sView.putSetting(defaultISO);
-    sView.putSetting(NANDRootPath);
-    sView.putSetting(dumpPath);
-    sView.putSetting(loadPath);
-    sView.putSetting(resourcePackPath);
-    sView.putSetting(sdPath);
+    mView.putSetting(defaultISO);
+    mView.putSetting(NANDRootPath);
+    mView.putSetting(dumpPath);
+    mView.putSetting(loadPath);
+    mView.putSetting(resourcePackPath);
+    mView.putSetting(sdPath);
 
-    sView.onSettingChanged(null);
+    mView.onSettingChanged(null);
   }
 
-  public static void setAllLogTypes(String value)
+  public void setAllLogTypes(String value)
   {
     for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
     {
-      sView.putSetting(new StringSetting(entry.getKey(), Settings.SECTION_LOGGER_LOGS, value));
+      mView.putSetting(new StringSetting(entry.getKey(), Settings.SECTION_LOGGER_LOGS, value));
     }
-    sView.onSettingChanged(null);
+    mView.onSettingChanged(null);
   }
 
   private void handleMenuTag(MenuTag menuTag, int value)

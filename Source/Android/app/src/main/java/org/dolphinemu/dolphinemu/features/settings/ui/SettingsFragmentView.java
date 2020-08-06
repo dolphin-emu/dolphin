@@ -41,6 +41,11 @@ public interface SettingsFragmentView
   FragmentActivity getActivity();
 
   /**
+   * @return The Fragment's SettingsAdapter.
+   */
+  SettingsAdapter getAdapter();
+
+  /**
    * Tell the Fragment to tell the containing Activity to show a new
    * Fragment containing a submenu of settings.
    *
