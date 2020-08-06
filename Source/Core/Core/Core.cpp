@@ -713,26 +713,25 @@ static std::string GenerateScreenshotName()
   return name;
 }
 
-void SaveScreenShot(bool wait_for_completion)
+void SaveScreenShot()
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  g_renderer->SaveScreenshot(GenerateScreenshotName(), wait_for_completion);
+  g_renderer->SaveScreenshot(GenerateScreenshotName());
 
   if (!bPaused)
     SetState(State::Running);
 }
 
-void SaveScreenShot(std::string_view name, bool wait_for_completion)
+void SaveScreenShot(std::string_view name)
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name),
-                             wait_for_completion);
+  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 
   if (!bPaused)
     SetState(State::Running);

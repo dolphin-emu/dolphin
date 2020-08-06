@@ -199,7 +199,7 @@ public:
   float EFBToScaledYf(float y) const;
 
   // Random utilities
-  void SaveScreenshot(std::string filename, bool wait_for_completion);
+  void SaveScreenshot(std::string filename);
   void DrawDebugText();
 
   virtual void ClearScreen(const MathUtil::Rectangle<int>& rc, bool colorEnable, bool alphaEnable,
