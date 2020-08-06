@@ -14,6 +14,7 @@ matrix:
         install: 
             - docker pull quriouspixel/yuzu:latest 
         script: 
+            - echo "$TRAVIS_COMMIT"
             - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
       after_success:
       - ls -lh artifacts/* 
