@@ -336,7 +336,7 @@
     <string name="emulation_screenshot">Take Screenshot</string>
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
-    <string name="emulation_exit">Exit</string>
+    <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_slot1">Slot 1</string>
     <string name="emulation_slot2">Slot 2</string>
     <string name="emulation_slot3">Slot 3</string>
