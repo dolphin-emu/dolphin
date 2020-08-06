@@ -27,7 +27,7 @@ jobs:
         platform: linux
     # Setup Packages
     - name: Setup Packages
-      run: sudo apt update && sudo apt upgrade && sudo apt install curl ffmpeg git libao-dev libasound-dev libavcodec-dev libavformat-dev libbluetooth-dev libevdev-dev libgtk2.0-dev libhidapi-dev libmbedtls-dev libminiupnpc-dev libopenal-dev libpangocairo-1.0-0 libpulse-dev libsfml-dev libswscale-dev libudev-dev libusb-1.0-0-dev libwxbase3.0-dev libwxgtk3.0-dev libxrandr-dev ninja qt5-default qtbase5-private-dev 
+      run: sudo apt update && sudo apt upgrade && sudo apt install curl ffmpeg git libao-dev libasound-dev libavcodec-dev libavformat-dev libbluetooth-dev libevdev-dev libgtk2.0-dev libhidapi-dev libmbedtls-dev libminiupnpc-dev libopenal-dev libpangocairo-1.0-0 libpulse-dev libsfml-dev libswscale-dev libudev-dev libusb-1.0-0-dev libwxbase3.0-dev libwxgtk3.0-dev libxrandr-dev qt5-default qtbase5-private-dev 
     # Run CMake
     - name: Run CMake
       run: mkdir build && cd build && cmake .. -G Ninja -DLINUX_LOCAL_DEV=true
