@@ -222,17 +222,20 @@ target_sources(common PRIVATE
 )
 
 if(ENABLE_EGL AND EGL_FOUND)
-  find_package(DRM MODULE QUIET)
-
+  find_package(Libdrm)
+  find_package(Libgbm)
+  if (LIBDRM_FOUND AND LIBGBM_FOUND)
+    target_sources(common PRIVATE
+    GL/GLInterface/EGL.cpp
+    GL/GLInterface/EGL.h
+    GL/GLInterface/EGLDRM.cpp
+    GL/GLInterface/EGLDRM.h
+    )
+  else()
   target_sources(common PRIVATE
     GL/GLInterface/EGL.cpp
     GL/GLInterface/EGL.h
   )
-  if (DRM_FOUND)
-    target_sources(common PRIVATE
-    GL/GLInterface/EGLDRM.cpp
-    GL/GLInterface/EGLDRM.h
-    )
   endif()
   if(ANDROID)
     target_sources(common PRIVATE
@@ -245,9 +248,9 @@ if(ENABLE_EGL AND EGL_FOUND)
       GL/GLInterface/EGLX11.h
     )
   endif()
-  if (DRM_FOUND)
-    target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS} ${DRM_INCLUDE_DIRS})
-    target_link_libraries(common PUBLIC ${EGL_LIBRARIES} ${DRM_LIBRARY})
+  if (LIBDRM_FOUND AND LIBGBM_FOUND)
+    target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS} ${LIBDRM_INCLUDE_DIRS} ${LIBGBM_INCLUDE_DIRS})
+    target_link_libraries(common PUBLIC ${EGL_LIBRARIES} ${LIBDRM_LIBRARIES} ${LIBGBM_LIBRARIES})
   else()
     target_include_directories(common PRIVATE ${EGL_INCLUDE_DIRS})
     target_link_libraries(common PUBLIC ${EGL_LIBRARIES})
