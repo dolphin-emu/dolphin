@@ -108,10 +108,10 @@ void Init()
 
   DiscordEventHandlers handlers = {};
 
-  // handlers.ready = HandleDiscordReady;
-  // handlers.joinRequest = HandleDiscordJoinRequest;
-  // handlers.joinGame = HandleDiscordJoin;
-  // The number is the client ID for Dolphin, it's used for images and the appication name
+  handlers.ready = HandleDiscordReady;
+  handlers.joinRequest = HandleDiscordJoinRequest;
+  handlers.joinGame = HandleDiscordJoin;
+  // The number is the client ID for Dolphin, it's used for images and the application name
   // MPN - We change this so users don't risk loading a normal Dolphin install... sorry!
   Discord_Initialize("532334261680865281", &handlers, 1, nullptr);
   UpdateDiscordPresence();
