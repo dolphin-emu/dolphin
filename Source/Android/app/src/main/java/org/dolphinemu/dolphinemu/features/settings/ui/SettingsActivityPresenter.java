@@ -23,8 +23,6 @@ public final class SettingsActivityPresenter
 
   private Settings mSettings;
 
-  private int mStackCount;
-
   private boolean mShouldSave;
 
   private DirectoryStateReceiver directoryStateReceiver;
@@ -43,16 +41,11 @@ public final class SettingsActivityPresenter
 
   public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
   {
-    if (savedInstanceState == null)
-    {
-      this.menuTag = menuTag;
-      this.gameId = gameId;
-      this.context = context;
-    }
-    else
-    {
-      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-    }
+    this.menuTag = menuTag;
+    this.gameId = gameId;
+    this.context = context;
+
+    mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
   }
 
   public void onStart()
@@ -145,24 +138,6 @@ public final class SettingsActivityPresenter
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
       mSettings.saveSettings(mView, context, modifiedSettings);
-    }
-  }
-
-  public void addToStack()
-  {
-    mStackCount++;
-  }
-
-  public void onBackPressed()
-  {
-    if (mStackCount > 0)
-    {
-      mView.popBackStack();
-      mStackCount--;
-    }
-    else
-    {
-      mView.finish();
     }
   }
 
