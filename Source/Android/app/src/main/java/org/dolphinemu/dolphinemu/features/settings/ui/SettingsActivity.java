@@ -10,6 +10,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -31,7 +32,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
   private static final String FRAGMENT_TAG = "settings";
-  private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
+  private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
@@ -62,6 +63,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
+
+    mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, getApplicationContext());
   }
 
@@ -241,13 +244,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public org.dolphinemu.dolphinemu.features.settings.model.Settings getSettings()
   {
-    return mPresenter.getSettings();
-  }
-
-  @Override
-  public void setSettings(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    mPresenter.setSettings(settings);
+    return new ViewModelProvider(this).get(SettingsViewModel.class).getSettings();
   }
 
   @Override
