@@ -107,33 +107,8 @@ struct drm_fb
 /* TODO/FIXME - static globals */
 static GFXContextDRMData* g_drm = nullptr;
 
-bool drm_get_encoder(int fd);
-
 /* Restore the original CRTC. */
 bool drm_get_connector(int fd);
-
-static void egl_destroy(EGLContextData* egl)
-{
-  if (egl->dpy)
-  {
-    eglMakeCurrent(egl->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
-    if (egl->ctx != EGL_NO_CONTEXT)
-      eglDestroyContext(egl->dpy, egl->ctx);
-
-    if (egl->surf != EGL_NO_SURFACE)
-      eglDestroySurface(egl->dpy, egl->surf);
-    eglTerminate(egl->dpy);
-  }
-
-  /* Be as careful as possible in deinit.
-   * If we screw up, any TTY will not restore.
-   */
-
-  egl->ctx = EGL_NO_CONTEXT;
-  egl->surf = EGL_NO_SURFACE;
-  egl->dpy = EGL_NO_DISPLAY;
-  egl->config = 0;
-}
 
 static void egl_swap_buffers(void* data)
 {
@@ -141,26 +116,6 @@ static void egl_swap_buffers(void* data)
   if (egl && egl->dpy != EGL_NO_DISPLAY && egl->surf != EGL_NO_SURFACE)
   {
     eglSwapBuffers(egl->dpy, egl->surf);
-  }
-}
-
-static void egl_set_swap_interval(EGLContextData* egl, int interval)
-{
-  /* Can be called before initialization.
-   * Some contexts require that swap interval
-   * is known at startup time.
-   */
-  egl->interval = interval;
-
-  if (egl->dpy == EGL_NO_DISPLAY)
-    return;
-  if (!eglGetCurrentContext())
-    return;
-
-  INFO_LOG(VIDEO, "[EGL]: eglSwapInterval(%u)\n", interval);
-  if (!eglSwapInterval(egl->dpy, interval))
-  {
-    INFO_LOG(VIDEO, "[EGL]: eglSwapInterval() failed 0x%x.\n", eglGetError());
   }
 }
 
@@ -213,10 +168,9 @@ static bool check_egl_client_extension(const char* name)
   return false;
 }
 
-static bool check_egl_display_extension(void* data, const char* name)
+static bool check_egl_display_extension(EGLContextData* egl, const char* name)
 {
   size_t nameLen;
-  EGLContextData* egl = (EGLContextData*)data;
   if (!egl || egl->dpy == EGL_NO_DISPLAY)
     return false;
 
@@ -543,16 +497,6 @@ error:
   return nullptr;
 }
 
-static void gfx_ctx_drm_swap_interval(void* data, int interval)
-{
-  GFXContextDRMData* drm = (GFXContextDRMData*)data;
-  drm->interval = interval;
-
-  if (interval > 1)
-    INFO_LOG(VIDEO,
-             "[KMS]: Swap intervals > 1 currently not supported. Will use swap interval of 1.\n");
-}
-
 static void drm_flip_handler(int fd, unsigned frame, unsigned sec, unsigned usec, void* data)
 {
   *(bool*)data = false;
@@ -665,7 +609,25 @@ static void gfx_ctx_drm_destroy_resources(GFXContextDRMData* drm)
   /* Make sure we acknowledge all page-flips. */
   gfx_ctx_drm_wait_flip(drm, true);
 
-  egl_destroy(&drm->egl);
+  if (drm->egl.dpy)
+  {
+    eglMakeCurrent(drm->egl.dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+    if (drm->egl.ctx != EGL_NO_CONTEXT)
+      eglDestroyContext(drm->egl.dpy, drm->egl.ctx);
+
+    if (drm->egl.surf != EGL_NO_SURFACE)
+      eglDestroySurface(drm->egl.dpy, drm->egl.surf);
+    eglTerminate(drm->egl.dpy);
+  }
+
+  /* Be as careful as possible in deinit.
+   * If we screw up, any TTY will not restore.
+   */
+
+  drm->egl.ctx = EGL_NO_CONTEXT;
+  drm->egl.surf = EGL_NO_SURFACE;
+  drm->egl.dpy = EGL_NO_DISPLAY;
+  drm->egl.config = 0;
 
   free_drm_resources(drm);
 
@@ -986,10 +948,30 @@ void GLContextEGLDRM::Swap()
 
   gfx_ctx_drm_wait_flip(g_drm, true);
 }
+
 void GLContextEGLDRM::SwapInterval(int interval)
 {
-  gfx_ctx_drm_swap_interval(g_drm, interval);
-  egl_set_swap_interval(m_egl, interval);
+  g_drm->interval = interval;
+  if (interval > 1)
+    INFO_LOG(VIDEO,
+             "[KMS]: Swap intervals > 1 currently not supported. Will use swap interval of 1.\n");
+
+  /* Can be called before initialization.
+   * Some contexts require that swap interval
+   * is known at startup time.
+   */
+  m_egl->interval = interval;
+
+  if (m_egl->dpy == EGL_NO_DISPLAY)
+    return;
+  if (!eglGetCurrentContext())
+    return;
+
+  INFO_LOG(VIDEO, "[EGL]: eglSwapInterval(%u)\n", interval);
+  if (!eglSwapInterval(m_egl->dpy, interval))
+  {
+    INFO_LOG(VIDEO, "[EGL]: eglSwapInterval() failed 0x%x.\n", eglGetError());
+  }
 }
 
 void* GLContextEGLDRM::GetFuncAddress(const std::string& name)
@@ -1057,7 +1039,7 @@ bool GLContextEGLDRM::CreateWindowSurface()
   if (m_supports_surfaceless)
   {
     m_egl->surf = EGL_NO_SURFACE;
-    INFO_LOG(VIDEO, "\nCreated surfaceless context\n");
+    INFO_LOG(VIDEO, "\nCreated surfaceless EGL shared context\n");
     return true;
   }
 
@@ -1065,7 +1047,7 @@ bool GLContextEGLDRM::CreateWindowSurface()
   {
     if (!egl_create_surface(m_egl, (EGLNativeWindowType)g_drm->gbm_surface))
     {
-      INFO_LOG(VIDEO, "\negl_create_surface failed, trying pbuffer failed 0x%x\n", eglGetError());
+      INFO_LOG(VIDEO, "\negl_create_surface failed (error 0x%x), trying pbuffer instead...\n", eglGetError());
       goto pbuffer;
     }
     // Get dimensions from the surface.
