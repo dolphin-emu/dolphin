@@ -863,6 +863,7 @@ void Callback_FramePresented()
 {
   s_drawn_frame++;
   s_stop_frame_step.store(true);
+  API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
 }
 
 // Called from VideoInterface::Update (CPU thread) at emulated field boundaries
@@ -885,8 +886,6 @@ void Callback_NewField()
         s_on_state_changed_callback(Core::GetState());
     }
   }
-
-  API::GetEventHub().EmitEvent(API::Events::FrameAdvance{});
 }
 
 void UpdateTitle()
