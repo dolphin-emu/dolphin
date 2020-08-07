@@ -17,7 +17,9 @@
 #endif
 #if HAVE_EGL
 #include "Common/GL/GLInterface/EGL.h"
+#if HAVE_DRM
 #include "Common/GL/GLInterface/EGLDRM.h"
+#endif
 #if HAVE_X11
 #include "Common/GL/GLInterface/EGLX11.h"
 #endif

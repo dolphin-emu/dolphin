@@ -222,8 +222,6 @@ target_sources(common PRIVATE
 )
 
 if(ENABLE_EGL AND EGL_FOUND)
-  find_package(Libdrm)
-  find_package(Libgbm)
   if (LIBDRM_FOUND AND LIBGBM_FOUND)
     target_sources(common PRIVATE
       GL/GLInterface/EGL.cpp
