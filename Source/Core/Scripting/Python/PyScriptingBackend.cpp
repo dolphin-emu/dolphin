@@ -11,10 +11,10 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-#include "Core/API/Events.h"
 #include "DiscIO/Filesystem.h"
 
 #include "Scripting/Python/coroutine.h"
+#include "Scripting/Python/Modules/controllermodule.h"
 #include "Scripting/Python/Modules/doliomodule.h"
 #include "Scripting/Python/Modules/dolphinmodule.h"
 #include "Scripting/Python/Modules/eventmodule.h"
@@ -45,6 +45,8 @@ PyThreadState* InitMainPythonInterpreter()
     ERROR_LOG(SCRIPTING, "failed to add dolphin_gui to builtins");
   if (PyImport_AppendInittab("dolphin_savestate", PyInit_savestate) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin_savestate to builtins");
+  if (PyImport_AppendInittab("dolphin_controller", PyInit_controller) == -1)
+    ERROR_LOG(SCRIPTING, "failed to add dolphin_controller to builtins");
 
   if (PyImport_AppendInittab("dolphin", PyInit_dolphin) == -1)
     ERROR_LOG(SCRIPTING, "failed to add dolphin to builtins");
@@ -100,9 +102,10 @@ void ShutdownMainPythonInterpreter()
   }
 }
 
-PyScriptingBackend::PyScriptingBackend(
-    std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui)
-    : m_event_hub(event_hub), m_gui(gui)
+PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
+                                       API::EventHub& event_hub, API::Gui& gui,
+                                       API::GCManip& gc_manip)
+    : m_event_hub(event_hub), m_gui(gui), m_gc_manip(gc_manip)
 {
   std::lock_guard lock{s_bookkeeping_lock};
   if (s_instances.empty())
@@ -170,6 +173,11 @@ API::EventHub* PyScriptingBackend::GetEventHub()
 API::Gui* PyScriptingBackend::GetGui()
 {
   return &m_gui;
+}
+
+API::GCManip* PyScriptingBackend::GetGCManip()
+{
+  return &m_gc_manip;
 }
 
 std::map<u64, PyScriptingBackend*> PyScriptingBackend::s_instances;

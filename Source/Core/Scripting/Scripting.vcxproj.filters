@@ -29,6 +29,9 @@
     <ClCompile Include="Python\Modules\savestatemodule.cpp">
       <Filter>Python\Modules</Filter>
     </ClCompile>
+    <ClCompile Include="Python\Modules\controllermodule.cpp">
+      <Filter>Python\Modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ScriptingEngine.h" />
@@ -72,6 +75,9 @@
       <Filter>Python\Modules</Filter>
     </ClInclude>
     <ClInclude Include="Python\Modules\savestatemodule.h">
+      <Filter>Python\Modules</Filter>
+    </ClInclude>
+    <ClInclude Include="Python\Modules\controllermodule.h">
       <Filter>Python\Modules</Filter>
     </ClInclude>
   </ItemGroup>

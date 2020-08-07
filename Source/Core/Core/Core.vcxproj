@@ -46,6 +46,7 @@
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="API\Controller.cpp" />
     <ClCompile Include="API\Events.cpp" />
     <ClCompile Include="API\Memory.cpp" />
     <ClCompile Include="API\Gui.cpp" />
@@ -416,6 +417,7 @@
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
     <ClInclude Include="Analytics.h" />
+    <ClInclude Include="API\Controller.h" />
     <ClInclude Include="API\Events.h" />
     <ClInclude Include="API\Memory.h" />
     <ClInclude Include="API\Gui.h" />

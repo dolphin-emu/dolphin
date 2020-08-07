@@ -9,6 +9,7 @@
 #include <map>
 #include <Python.h>
 
+#include "Core/API/Controller.h"
 #include "Core/API/Events.h"
 #include "Core/API/Gui.h"
 
@@ -18,11 +19,13 @@ namespace PyScripting
 class PyScriptingBackend
 {
 public:
-  PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui);
+  PyScriptingBackend(std::filesystem::path script_filepath, API::EventHub& event_hub, API::Gui& gui,
+                     API::GCManip& gc_manip);
   ~PyScriptingBackend();
   static PyScriptingBackend* GetCurrent();
   API::EventHub* GetEventHub();
   API::Gui* GetGui();
+  API::GCManip* GetGCManip();
 
   // this class somewhat is a wrapper around a python interpreter state,
   // and that isn't copyable, so this class isn't copyable either.
@@ -41,6 +44,7 @@ private:
   PyThreadState* m_interp_threadstate;
   API::EventHub& m_event_hub;
   API::Gui& m_gui;
+  API::GCManip& m_gc_manip;
 };
 
 }  // namespace PyScripting
