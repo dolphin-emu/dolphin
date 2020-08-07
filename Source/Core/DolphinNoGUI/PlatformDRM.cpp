@@ -39,8 +39,6 @@ public:
 };
 
 PlatformDRM::~PlatformDRM() = default;
-{
-}
 
 bool PlatformDRM::Init()
 {

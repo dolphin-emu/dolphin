@@ -115,7 +115,7 @@ static drmModeModeInfo* g_drm_mode = nullptr;
 static drmModeRes* g_drm_resources = nullptr;
 static drmModeEncoder* g_drm_encoder = nullptr;
 
-static gfx_ctx_drm_data* g_drm = nullptr;
+static GFXContextDRMData* g_drm = nullptr;
 
 bool drm_get_encoder(int fd);
 
@@ -321,7 +321,7 @@ static bool egl_get_native_visual_id(EGLContextData* egl, EGLint* value)
 }
 
 static bool egl_init_context_common(EGLContextData* egl, EGLint* count, const EGLint* attrib_ptr,
-                                    egl_accept_config_cb_t cb, void* display_data)
+                                    EGLAcceptConfigCB cb, void* display_data)
 {
   EGLint i;
   EGLint matched = 0;
@@ -367,7 +367,7 @@ static bool egl_init_context_common(EGLContextData* egl, EGLint* count, const EG
 
 static bool egl_init_context(EGLContextData* egl, EGLenum platform, void* display_data,
                              EGLint* major, EGLint* minor, EGLint* count, const EGLint* attrib_ptr,
-                             egl_accept_config_cb_t cb)
+                             EGLAcceptConfigCB cb)
 {
   EGLDisplay dpy = get_egl_display(platform, display_data);
 
