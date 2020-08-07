@@ -36,8 +36,6 @@ public:
   void MainLoop() override;
 
   WindowSystemInfo GetWindowSystemInfo() const override;
-
-private:
 };
 
 PlatformDRM::~PlatformDRM() = default;
