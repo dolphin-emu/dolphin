@@ -40,7 +40,7 @@ public:
 private:
 };
 
-PlatformDRM::~PlatformDRM()
+PlatformDRM::~PlatformDRM() = default;
 {
 }
 
