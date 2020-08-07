@@ -226,16 +226,16 @@ if(ENABLE_EGL AND EGL_FOUND)
   find_package(Libgbm)
   if (LIBDRM_FOUND AND LIBGBM_FOUND)
     target_sources(common PRIVATE
-    GL/GLInterface/EGL.cpp
-    GL/GLInterface/EGL.h
-    GL/GLInterface/EGLDRM.cpp
-    GL/GLInterface/EGLDRM.h
+      GL/GLInterface/EGL.cpp
+      GL/GLInterface/EGL.h
+      GL/GLInterface/EGLDRM.cpp
+      GL/GLInterface/EGLDRM.h
     )
   else()
-  target_sources(common PRIVATE
-    GL/GLInterface/EGL.cpp
-    GL/GLInterface/EGL.h
-  )
+    target_sources(common PRIVATE
+      GL/GLInterface/EGL.cpp
+      GL/GLInterface/EGL.h
+    )
   endif()
   if(ANDROID)
     target_sources(common PRIVATE
