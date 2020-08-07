@@ -333,8 +333,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     NativeLibrary.SetConfig(filePicker.getFile(), filePicker.getSection(), filePicker.getKey(),
             file);
-    NativeLibrary.ReloadConfig();
 
+    StringSetting path = new StringSetting(filePicker.getKey(), filePicker.getSection(), file);
+
+    mView.putSetting(path);
+
+    mView.onSettingChanged(filePicker.getKey());
     mClickedItem = null;
   }
 

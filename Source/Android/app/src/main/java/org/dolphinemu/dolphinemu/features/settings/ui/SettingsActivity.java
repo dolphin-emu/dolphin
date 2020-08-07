@@ -171,26 +171,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onActivityResult(requestCode, resultCode, result);
 
-    // Save modified non-FilePicker settings beforehand since finish() won't save them.
-    // onStop() must come before handling the resultCode to properly save FilePicker selection.
-    mPresenter.onStop(true);
-
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
       String path = FileBrowserHelper.getSelectedPath(result);
       getFragment().getAdapter().onFilePickerConfirmation(path);
-
-      // Prevent duplicate Toasts.
-      if (!mPresenter.shouldSave())
-      {
-        Toast.makeText(this, "Saved settings to INI files", Toast.LENGTH_SHORT).show();
-      }
     }
-
-    // TODO: After result of FilePicker, duplicate SettingsActivity appears.
-    //       Finish to avoid this. Is there a better method?
-    finish();
   }
 
   @Override
