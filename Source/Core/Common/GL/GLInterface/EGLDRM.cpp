@@ -309,17 +309,6 @@ static EGLDisplay get_egl_display(EGLenum platform, void* native)
   return eglGetDisplay((EGLNativeDisplayType)native);
 }
 
-static bool egl_get_native_visual_id(EGLContextData* egl, EGLint* value)
-{
-  if (!eglGetConfigAttrib(egl->dpy, egl->config, EGL_NATIVE_VISUAL_ID, value))
-  {
-    INFO_LOG(VIDEO, "[EGL]: egl_get_native_visual_id failed.\n");
-    return false;
-  }
-
-  return true;
-}
-
 static bool egl_init_context_common(EGLContextData* egl, EGLint* count, const EGLint* attrib_ptr,
                                     EGLAcceptConfigCB cb, void* display_data)
 {
@@ -742,20 +731,6 @@ static void gfx_ctx_drm_swap_buffers(void* data)
   gfx_ctx_drm_wait_flip(drm, true);
 }
 
-static void gfx_ctx_drm_get_video_size(void* data, unsigned* width, unsigned* height)
-{
-  GFXContextDRMData* drm = (GFXContextDRMData*)data;
-
-  if (!drm)
-  {
-    INFO_LOG(VIDEO, "\nCannot  get drm video size\n");
-    return;
-  }
-
-  *width = drm->fb_width;
-  *height = drm->fb_height;
-}
-
 static void free_drm_resources(GFXContextDRMData* drm)
 {
   if (!drm)
@@ -811,10 +786,7 @@ static void gfx_ctx_drm_destroy_resources(GFXContextDRMData* drm)
 
 static void* gfx_ctx_drm_init()
 {
-  int fd, i;
-  unsigned monitor_index;
-  unsigned gpu_index = 0;
-  const char* gpu = nullptr;
+  int fd;
   GFXContextDRMData* drm = (GFXContextDRMData*)calloc(1, sizeof(GFXContextDRMData));
 
   if (!drm)
@@ -885,14 +857,6 @@ static void* gfx_ctx_drm_init()
   g_drm_fd = fd;
 
   return drm;
-
-error:
-  gfx_ctx_drm_destroy_resources(drm);
-
-  if (drm)
-    free(drm);
-
-  return nullptr;
 }
 
 static EGLint* gfx_ctx_drm_egl_fill_attribs(GFXContextDRMData* drm, EGLint* attr)
@@ -1148,8 +1112,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
   eglBindAPI(EGL_OPENGL_ES_API);
   EGLint egl_attribs[16];
   EGLint* egl_attribs_ptr = nullptr;
-  const EGLint* attrib_ptr = egl_attribs_gles3;
-  EGLint* attr = gfx_ctx_drm_egl_fill_attribs(g_drm, egl_attribs);
+  gfx_ctx_drm_egl_fill_attribs(g_drm, egl_attribs);
   egl_attribs_ptr = &egl_attribs[0];
   new_context->m_egl->ctx =
       eglCreateContext(m_egl->dpy, m_egl->config, m_egl->ctx, egl_attribs_ptr);
