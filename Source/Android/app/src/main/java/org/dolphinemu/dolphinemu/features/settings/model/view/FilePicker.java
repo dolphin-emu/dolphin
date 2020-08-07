@@ -4,16 +4,21 @@ import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
+import androidx.annotation.Nullable;
+
 public final class FilePicker extends SettingsItem
 {
   private AbstractStringSetting mSetting;
   private int mRequestType;
+  private String mDefaultPathRelativeToUserDirectory;
 
-  public FilePicker(AbstractStringSetting setting, int titleId, int descriptionId, int requestType)
+  public FilePicker(AbstractStringSetting setting, int titleId, int descriptionId, int requestType,
+          @Nullable String defaultPathRelativeToUserDirectory)
   {
     super(titleId, descriptionId);
     mSetting = setting;
     mRequestType = requestType;
+    mDefaultPathRelativeToUserDirectory = defaultPathRelativeToUserDirectory;
   }
 
   public String getSelectedValue(Settings settings)
@@ -29,6 +34,12 @@ public final class FilePicker extends SettingsItem
   public int getRequestType()
   {
     return mRequestType;
+  }
+
+  @Nullable
+  public String getDefaultPathRelativeToUserDirectory()
+  {
+    return mDefaultPathRelativeToUserDirectory;
   }
 
   @Override

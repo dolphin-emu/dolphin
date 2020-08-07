@@ -342,17 +342,17 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_RECURSIVE_ISO_PATHS, R.string.search_subfolders,
             0));
     sl.add(new FilePicker(StringSetting.MAIN_DEFAULT_ISO, R.string.default_ISO, 0,
-            MainPresenter.REQUEST_GAME_FILE));
+            MainPresenter.REQUEST_GAME_FILE, null));
     sl.add(new FilePicker(StringSetting.MAIN_FS_PATH, R.string.wii_NAND_root, 0,
-            MainPresenter.REQUEST_DIRECTORY));
+            MainPresenter.REQUEST_DIRECTORY, "/Wii"));
     sl.add(new FilePicker(StringSetting.MAIN_DUMP_PATH, R.string.dump_path, 0,
-            MainPresenter.REQUEST_DIRECTORY));
+            MainPresenter.REQUEST_DIRECTORY, "/Dump"));
     sl.add(new FilePicker(StringSetting.MAIN_LOAD_PATH, R.string.load_path, 0,
-            MainPresenter.REQUEST_DIRECTORY));
+            MainPresenter.REQUEST_DIRECTORY, "/Load"));
     sl.add(new FilePicker(StringSetting.MAIN_RESOURCEPACK_PATH, R.string.resource_pack_path, 0,
-            MainPresenter.REQUEST_DIRECTORY));
+            MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
-            MainPresenter.REQUEST_SD_FILE));
+            MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
     sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
             mView.getAdapter()::resetPaths));
   }

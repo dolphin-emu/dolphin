@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
+import android.text.TextUtils;
 import android.view.View;
 import android.widget.TextView;
 
@@ -8,6 +9,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
@@ -43,7 +45,18 @@ public final class FilePickerViewHolder extends SettingViewHolder
     }
     else
     {
-      mTextSettingDescription.setText(mFilePicker.getSelectedValue(getAdapter().getSettings()));
+      String path = mFilePicker.getSelectedValue(getAdapter().getSettings());
+
+      if (TextUtils.isEmpty(path))
+      {
+        String defaultPathRelative = mFilePicker.getDefaultPathRelativeToUserDirectory();
+        if (defaultPathRelative != null)
+        {
+          path = DirectoryInitialization.getUserDirectory() + defaultPathRelative;
+        }
+      }
+
+      mTextSettingDescription.setText(path);
     }
 
     setStyle(mTextSettingName, mItem);
