@@ -79,7 +79,7 @@
 
 using EGLAcceptConfigCB = bool (*)(void* display_data, EGLDisplay dpy, EGLConfig config);
 
-typedef struct gfx_ctx_drm_data
+struct GFXContextDRMData
 {
   EGLContextData egl;
   int fd;
@@ -93,7 +93,7 @@ typedef struct gfx_ctx_drm_data
   struct gbm_bo* next_bo;
   struct gbm_surface* gbm_surface;
   struct gbm_device* gbm_dev;
-} gfx_ctx_drm_data_t;
+};
 
 struct drm_fb
 {
@@ -634,7 +634,7 @@ error:
 
 static void gfx_ctx_drm_swap_interval(void* data, int interval)
 {
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)data;
+  GFXContextDRMData* drm = (GFXContextDRMData*)data;
   drm->interval = interval;
 
   if (interval > 1)
@@ -665,7 +665,7 @@ static void drm_flip_handler(int fd, unsigned frame, unsigned sec, unsigned usec
   *(bool*)data = false;
 }
 
-static bool gfx_ctx_drm_wait_flip(gfx_ctx_drm_data_t* drm, bool block)
+static bool gfx_ctx_drm_wait_flip(GFXContextDRMData* drm, bool block)
 {
   int timeout = 0;
 
@@ -696,7 +696,7 @@ static bool gfx_ctx_drm_wait_flip(gfx_ctx_drm_data_t* drm, bool block)
   return false;
 }
 
-static bool gfx_ctx_drm_queue_flip(gfx_ctx_drm_data_t* drm)
+static bool gfx_ctx_drm_queue_flip(GFXContextDRMData* drm)
 {
   struct drm_fb* fb = NULL;
 
@@ -717,7 +717,7 @@ static bool gfx_ctx_drm_queue_flip(gfx_ctx_drm_data_t* drm)
 
 static void gfx_ctx_drm_swap_buffers(void* data)
 {
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)data;
+  GFXContextDRMData* drm = (GFXContextDRMData*)data;
   unsigned max_swapchain_images = 2;  // settings->uints.video_max_swapchain_images;
 
   egl_swap_buffers(&drm->egl);
@@ -744,7 +744,7 @@ static void gfx_ctx_drm_swap_buffers(void* data)
 
 static void gfx_ctx_drm_get_video_size(void* data, unsigned* width, unsigned* height)
 {
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)data;
+  GFXContextDRMData* drm = (GFXContextDRMData*)data;
 
   if (!drm)
   {
@@ -756,7 +756,7 @@ static void gfx_ctx_drm_get_video_size(void* data, unsigned* width, unsigned* he
   *height = drm->fb_height;
 }
 
-static void free_drm_resources(gfx_ctx_drm_data_t* drm)
+static void free_drm_resources(GFXContextDRMData* drm)
 {
   if (!drm)
     return;
@@ -786,7 +786,7 @@ static void free_drm_resources(gfx_ctx_drm_data_t* drm)
   g_drm_fd = -1;
 }
 
-static void gfx_ctx_drm_destroy_resources(gfx_ctx_drm_data_t* drm)
+static void gfx_ctx_drm_destroy_resources(GFXContextDRMData* drm)
 {
   if (!drm)
     return;
@@ -815,7 +815,7 @@ static void* gfx_ctx_drm_init()
   unsigned monitor_index;
   unsigned gpu_index = 0;
   const char* gpu = NULL;
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)calloc(1, sizeof(gfx_ctx_drm_data_t));
+  GFXContextDRMData* drm = (GFXContextDRMData*)calloc(1, sizeof(GFXContextDRMData));
 
   if (!drm)
     return NULL;
@@ -895,7 +895,7 @@ error:
   return NULL;
 }
 
-static EGLint* gfx_ctx_drm_egl_fill_attribs(gfx_ctx_drm_data_t* drm, EGLint* attr)
+static EGLint* gfx_ctx_drm_egl_fill_attribs(GFXContextDRMData* drm, EGLint* attr)
 {
   *attr++ = EGL_CONTEXT_CLIENT_VERSION;
   *attr++ = drm->egl.major ? (EGLint)drm->egl.major : 2;
@@ -946,7 +946,7 @@ static const EGLint egl_attribs_gles3[] = {
 };
 #endif
 
-static bool gfx_ctx_drm_egl_set_video_mode(gfx_ctx_drm_data_t* drm)
+static bool gfx_ctx_drm_egl_set_video_mode(GFXContextDRMData* drm)
 {
   const EGLint* attrib_ptr = NULL;
   EGLint major;
@@ -991,7 +991,7 @@ static bool gfx_ctx_drm_set_video_mode(void* data, unsigned width, unsigned heig
 {
   int i, ret = 0;
   struct drm_fb* fb = NULL;
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)data;
+  GFXContextDRMData* drm = (GFXContextDRMData*)data;
   float video_refresh_rate = (float)VideoInterface::GetTargetRefreshRate();
 
   if (!drm)
@@ -1081,7 +1081,7 @@ error:
 
 static void gfx_ctx_drm_destroy(void* data)
 {
-  gfx_ctx_drm_data_t* drm = (gfx_ctx_drm_data_t*)data;
+  GFXContextDRMData* drm = (GFXContextDRMData*)data;
 
   if (!drm)
     return;
@@ -1121,7 +1121,7 @@ void* GLContextEGLDRM::GetFuncAddress(const std::string& name)
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool GLContextEGLDRM::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
-  g_drm = (gfx_ctx_drm_data_t*)gfx_ctx_drm_init();
+  g_drm = (GFXContextDRMData*)gfx_ctx_drm_init();
 
   eglBindAPI(EGL_OPENGL_ES_API);
 
