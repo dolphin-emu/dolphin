@@ -22,7 +22,7 @@ def save_to_bytes() -> bytes:
     """
 
 
-def load_from_slow(slot: int):
+def load_from_slot(slot: int):
     """
     Loads a savestate from the given slot.
     The slot number must be between 0 and 99.

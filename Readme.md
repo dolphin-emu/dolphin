@@ -115,17 +115,17 @@ Please file an issue!
 
 > **Why does this only exist for Windows?**
 
-There is nothing fundamentally stopping this to work on other OSes, it's just done yet:
+There is nothing fundamentally stopping this to work on other OSes, it's just not done yet:
 - The build steps are currently only implemented for Visual studio
   (e.g. [Source/VSProps/PyEmbed.props](Source/VSProps/PyEmbed.props), [Source/Core/Scripting/Scripting.vcxproj](Source/Core/Scripting/Scripting.vcxproj)),
   but building for anything but windows requires them to be implemented in CMake.
 - Currently only the [Python externals](Externals/python) for Windows x86-64 are bundled.
-  There are no embeddable Python distribution for Mac OS or *nix system readily available python.org,
+  There are no embeddable Python distribution for Mac OS or *nix system readily available on python.org,
   so preparing the right externals could be a bit difficult (I haven't tried).
 
 > **Why does it only exist for the x86-64 architecture?**
 
 Basically the same reason as above:
 Currently only the [Python externals](Externals/python) for Windows x86-64 are bundled.
-There are no embeddable Python distribution for ARM64 readily available python.org,
+There are no embeddable Python distribution for ARM64 readily available on python.org,
 so preparing the right externals could be a bit difficult (I haven't tried).
