@@ -21,7 +21,6 @@ struct EGLContextData
 
   unsigned major;
   unsigned minor;
-
 };
 
 class GLContextEGLDRM : public GLContext

@@ -403,7 +403,8 @@ static bool drm_get_connector(int fd)
 
     if (!g_drm->drm_connector)
       continue;
-    if (g_drm->drm_connector->connection == DRM_MODE_CONNECTED && g_drm->drm_connector->count_modes > 0)
+    if (g_drm->drm_connector->connection == DRM_MODE_CONNECTED &&
+        g_drm->drm_connector->count_modes > 0)
     {
       monitor_index_count++;
       if (monitor_index_count == monitor)
@@ -557,8 +558,9 @@ static void free_drm_resources(GFXContextDRMData* drm)
   /* Restore original CRTC. */
   if (drm->orig_crtc)
   {
-    drmModeSetCrtc(drm->drm_fd, drm->orig_crtc->crtc_id, drm->orig_crtc->buffer_id, drm->orig_crtc->x,
-                   drm->orig_crtc->y, &drm->connector_id, 1, &drm->orig_crtc->mode);
+    drmModeSetCrtc(drm->drm_fd, drm->orig_crtc->crtc_id, drm->orig_crtc->buffer_id,
+                   drm->orig_crtc->x, drm->orig_crtc->y, &drm->connector_id, 1,
+                   &drm->orig_crtc->mode);
 
     drmModeFreeCrtc(drm->orig_crtc);
     drm->orig_crtc = nullptr;
@@ -886,7 +888,8 @@ static bool gfx_ctx_drm_set_video_mode(void* data, unsigned width, unsigned heig
   if (!fb)
     fb = drm_fb_get_from_bo(drm->bo);
 
-  ret = drmModeSetCrtc(drm->drm_fd, drm->crtc_id, fb->fb_id, 0, 0, &drm->connector_id, 1, drm->drm_mode);
+  ret = drmModeSetCrtc(drm->drm_fd, drm->crtc_id, fb->fb_id, 0, 0, &drm->connector_id, 1,
+                       drm->drm_mode);
   if (ret < 0)
   {
     INFO_LOG(VIDEO, "[KMS/EGL]: drmModeSetCrtc failed\n");
@@ -922,7 +925,7 @@ bool GLContextEGLDRM::IsHeadless() const
 
 void GLContextEGLDRM::Swap()
 {
-  unsigned max_swapchain_images = 2; // double-buffering
+  unsigned max_swapchain_images = 2;  // double-buffering
 
   egl_swap_buffers(&g_drm->egl);
 
@@ -1044,7 +1047,8 @@ bool GLContextEGLDRM::CreateWindowSurface()
   {
     if (!egl_create_surface(m_egl, (EGLNativeWindowType)g_drm->gbm_surface))
     {
-      INFO_LOG(VIDEO, "\negl_create_surface failed (error 0x%x), trying pbuffer instead...\n", eglGetError());
+      INFO_LOG(VIDEO, "\negl_create_surface failed (error 0x%x), trying pbuffer instead...\n",
+               eglGetError());
       goto pbuffer;
     }
     // Get dimensions from the surface.
