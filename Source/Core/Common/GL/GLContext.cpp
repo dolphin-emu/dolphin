@@ -113,8 +113,10 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
 #if HAVE_EGL
   if (wsi.type == WindowSystemType::Headless || wsi.type == WindowSystemType::FBDev)
     context = std::make_unique<GLContextEGL>();
+#if HAVE_DRM
   else if (wsi.type == WindowSystemType::DRM)
     context = std::make_unique<GLContextEGLDRM>();
+#endif
 #endif
 
   if (!context)
