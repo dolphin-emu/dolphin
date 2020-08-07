@@ -123,7 +123,6 @@ bool drm_get_encoder(int fd);
 void drm_restore_crtc(void);
 bool drm_get_resources(int fd);
 void drm_setup(int fd);
-void drm_free(void);
 bool drm_get_connector(int fd);
 float drm_get_refresh_rate(void* data);
 
@@ -566,23 +565,6 @@ float drm_get_refresh_rate(void* data)
   return refresh_rate;
 }
 
-void drm_free(void)
-{
-  if (g_drm_encoder)
-    drmModeFreeEncoder(g_drm_encoder);
-  if (g_drm_connector)
-    drmModeFreeConnector(g_drm_connector);
-  if (g_drm_resources)
-    drmModeFreeResources(g_drm_resources);
-
-  memset(&g_drm_fds, 0, sizeof(struct pollfd));
-  memset(&g_drm_evctx, 0, sizeof(drmEventContext));
-
-  g_drm_encoder = nullptr;
-  g_drm_connector = nullptr;
-  g_drm_resources = nullptr;
-}
-
 static void drm_fb_destroy_callback(struct gbm_bo* bo, void* data)
 {
   struct drm_fb* fb = (struct drm_fb*)data;
@@ -704,33 +686,6 @@ static bool gfx_ctx_drm_queue_flip(GFXContextDRMData* drm)
   return false;
 }
 
-static void gfx_ctx_drm_swap_buffers(void* data)
-{
-  GFXContextDRMData* drm = (GFXContextDRMData*)data;
-  unsigned max_swapchain_images = 2;  // settings->uints.video_max_swapchain_images;
-
-  egl_swap_buffers(&drm->egl);
-
-  /* I guess we have to wait for flip to have taken
-   * place before another flip can be queued up.
-   *
-   * If true, we are still waiting for a flip
-   * (nonblocking mode, so just drop the frame). */
-  if (gfx_ctx_drm_wait_flip(drm, drm->interval))
-  {
-    INFO_LOG(VIDEO, "\nwait flip");
-    return;
-  }
-
-  drm->waiting_for_flip = gfx_ctx_drm_queue_flip(drm);
-
-  /* Triple-buffered page flips */
-  if (max_swapchain_images >= 3 && gbm_surface_has_free_buffers(drm->gbm_surface))
-    return;
-
-  gfx_ctx_drm_wait_flip(drm, true);
-}
-
 static void free_drm_resources(GFXContextDRMData* drm)
 {
   if (!drm)
@@ -745,7 +700,19 @@ static void free_drm_resources(GFXContextDRMData* drm)
   if (drm->gbm_dev)
     gbm_device_destroy(drm->gbm_dev);
 
-  drm_free();
+  if (g_drm_encoder)
+    drmModeFreeEncoder(g_drm_encoder);
+  if (g_drm_connector)
+    drmModeFreeConnector(g_drm_connector);
+  if (g_drm_resources)
+    drmModeFreeResources(g_drm_resources);
+
+  memset(&g_drm_fds, 0, sizeof(struct pollfd));
+  memset(&g_drm_evctx, 0, sizeof(drmEventContext));
+
+  g_drm_encoder = nullptr;
+  g_drm_connector = nullptr;
+  g_drm_resources = nullptr;
 
   if (drm->fd >= 0)
   {
@@ -1043,22 +1010,16 @@ error:
   return false;
 }
 
-static void gfx_ctx_drm_destroy(void* data)
-{
-  GFXContextDRMData* drm = (GFXContextDRMData*)data;
-
-  if (!drm)
-    return;
-
-  gfx_ctx_drm_destroy_resources(drm);
-  free(drm);
-}
-
 GLContextEGLDRM::~GLContextEGLDRM()
 {
   DestroyWindowSurface();
   DestroyContext();
-  gfx_ctx_drm_destroy(g_drm);
+
+  if (!g_drm)
+    return;
+
+  gfx_ctx_drm_destroy_resources(g_drm);
+  free(g_drm);
 }
 
 bool GLContextEGLDRM::IsHeadless() const
@@ -1068,7 +1029,28 @@ bool GLContextEGLDRM::IsHeadless() const
 
 void GLContextEGLDRM::Swap()
 {
-  gfx_ctx_drm_swap_buffers(g_drm);
+  unsigned max_swapchain_images = 2; // double-buffering
+
+  egl_swap_buffers(&g_drm->egl);
+
+  /* I guess we have to wait for flip to have taken
+   * place before another flip can be queued up.
+   *
+   * If true, we are still waiting for a flip
+   * (nonblocking mode, so just drop the frame). */
+  if (gfx_ctx_drm_wait_flip(g_drm, g_drm->interval))
+  {
+    INFO_LOG(VIDEO, "\nwait flip");
+    return;
+  }
+
+  g_drm->waiting_for_flip = gfx_ctx_drm_queue_flip(g_drm);
+
+  /* Triple-buffered page flips */
+  if (max_swapchain_images >= 3 && gbm_surface_has_free_buffers(g_drm->gbm_surface))
+    return;
+
+  gfx_ctx_drm_wait_flip(g_drm, true);
 }
 void GLContextEGLDRM::SwapInterval(int interval)
 {
