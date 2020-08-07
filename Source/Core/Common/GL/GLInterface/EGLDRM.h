@@ -11,7 +11,7 @@
 
 #include "Common/GL/GLContext.h"
 
-typedef struct
+struct EGLContextData
 {
   EGLContext ctx;
   EGLSurface surf;
@@ -22,7 +22,7 @@ typedef struct
   unsigned major;
   unsigned minor;
 
-} egl_ctx_data_t;
+};
 
 class GLContextEGLDRM : public GLContext
 {
@@ -51,5 +51,5 @@ protected:
   void DestroyContext();
 
   bool m_supports_surfaceless = false;
-  egl_ctx_data_t* m_egl;
+  EGLContextData* m_egl;
 };

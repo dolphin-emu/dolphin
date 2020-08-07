@@ -19,26 +19,27 @@
  *  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
+#include <array>
+#include <cerrno>
+#include <cmath>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <sstream>
+#include <vector>
+
 #include <fcntl.h>
-#include <math.h>
 #include <poll.h>
 #include <sched.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
 
-#include <array>
-#include <cstdio>
-#include <cstdlib>
 #include <gbm.h>
 #include <libdrm/drm.h>
-#include <sstream>
-#include <vector>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
 
@@ -80,7 +81,7 @@ using EGLAcceptConfigCB = bool (*)(void* display_data, EGLDisplay dpy, EGLConfig
 
 typedef struct gfx_ctx_drm_data
 {
-  egl_ctx_data_t egl;
+  EGLContextData egl;
   int fd;
   int interval;
   unsigned fb_width;
@@ -126,7 +127,7 @@ void drm_free(void);
 bool drm_get_connector(int fd);
 float drm_get_refresh_rate(void* data);
 
-static void egl_destroy(egl_ctx_data_t* egl)
+static void egl_destroy(EGLContextData* egl)
 {
   if (egl->dpy)
   {
@@ -151,14 +152,14 @@ static void egl_destroy(egl_ctx_data_t* egl)
 
 static void egl_swap_buffers(void* data)
 {
-  egl_ctx_data_t* egl = (egl_ctx_data_t*)data;
+  EGLContextData* egl = (EGLContextData*)data;
   if (egl && egl->dpy != EGL_NO_DISPLAY && egl->surf != EGL_NO_SURFACE)
   {
     eglSwapBuffers(egl->dpy, egl->surf);
   }
 }
 
-static void egl_set_swap_interval(egl_ctx_data_t* egl, int interval)
+static void egl_set_swap_interval(EGLContextData* egl, int interval)
 {
   /* Can be called before initialization.
    * Some contexts require that swap interval
@@ -230,7 +231,7 @@ static bool check_egl_client_extension(const char* name)
 static bool check_egl_display_extension(void* data, const char* name)
 {
   size_t nameLen;
-  egl_ctx_data_t* egl = (egl_ctx_data_t*)data;
+  EGLContextData* egl = (EGLContextData*)data;
   if (!egl || egl->dpy == EGL_NO_DISPLAY)
     return false;
 
@@ -308,7 +309,7 @@ static EGLDisplay get_egl_display(EGLenum platform, void* native)
   return eglGetDisplay((EGLNativeDisplayType)native);
 }
 
-static bool egl_get_native_visual_id(egl_ctx_data_t* egl, EGLint* value)
+static bool egl_get_native_visual_id(EGLContextData* egl, EGLint* value)
 {
   if (!eglGetConfigAttrib(egl->dpy, egl->config, EGL_NATIVE_VISUAL_ID, value))
   {
@@ -319,7 +320,7 @@ static bool egl_get_native_visual_id(egl_ctx_data_t* egl, EGLint* value)
   return true;
 }
 
-static bool egl_init_context_common(egl_ctx_data_t* egl, EGLint* count, const EGLint* attrib_ptr,
+static bool egl_init_context_common(EGLContextData* egl, EGLint* count, const EGLint* attrib_ptr,
                                     egl_accept_config_cb_t cb, void* display_data)
 {
   EGLint i;
@@ -364,7 +365,7 @@ static bool egl_init_context_common(egl_ctx_data_t* egl, EGLint* count, const EG
   return true;
 }
 
-static bool egl_init_context(egl_ctx_data_t* egl, EGLenum platform, void* display_data,
+static bool egl_init_context(EGLContextData* egl, EGLenum platform, void* display_data,
                              EGLint* major, EGLint* minor, EGLint* count, const EGLint* attrib_ptr,
                              egl_accept_config_cb_t cb)
 {
@@ -386,7 +387,7 @@ static bool egl_init_context(egl_ctx_data_t* egl, EGLenum platform, void* displa
   return egl_init_context_common(egl, count, attrib_ptr, cb, display_data);
 }
 
-static bool egl_create_context(egl_ctx_data_t* egl, const EGLint* egl_attribs)
+static bool egl_create_context(EGLContextData* egl, const EGLint* egl_attribs)
 {
   EGLContext ctx = eglCreateContext(egl->dpy, egl->config, EGL_NO_CONTEXT, egl_attribs);
 
@@ -398,7 +399,7 @@ static bool egl_create_context(egl_ctx_data_t* egl, const EGLint* egl_attribs)
   return true;
 }
 
-static bool egl_create_surface(egl_ctx_data_t* egl, void* native_window)
+static bool egl_create_surface(EGLContextData* egl, void* native_window)
 {
   EGLint window_attribs[] = {
       EGL_RENDER_BUFFER,
@@ -1141,8 +1142,8 @@ bool GLContextEGLDRM::Initialize(const WindowSystemInfo& wsi, bool stereo, bool 
 std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
 {
   std::unique_ptr<GLContextEGLDRM> new_context = std::make_unique<GLContextEGLDRM>();
-  new_context->m_egl = (egl_ctx_data_t*)malloc(sizeof(egl_ctx_data_t));
-  memcpy(new_context->m_egl, m_egl, sizeof(egl_ctx_data_t));
+  new_context->m_egl = (EGLContextData*)malloc(sizeof(EGLContextData));
+  memcpy(new_context->m_egl, m_egl, sizeof(EGLContextData));
 
   eglBindAPI(EGL_OPENGL_ES_API);
   EGLint egl_attribs[16];
