@@ -301,7 +301,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     RegCache::Realize(Ra, Rb);
 
     MOV_sum(32, RSCRATCH, Ra, Rb);
-    AND(32, R(RSCRATCH), Imm32(~31));
+    AND(32, R(RSCRATCH), Imm32(~31U));
   }
 
   bool emit_fast_path = MSR.DR && m_jit.jo.fastmem_arena;

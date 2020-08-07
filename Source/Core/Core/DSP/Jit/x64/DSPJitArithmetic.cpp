@@ -4,6 +4,8 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
+#include <limits>
+
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"
@@ -82,7 +84,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
     OR(16, sr_reg, Imm16(SR_LOGIC_ZERO));
     FixupBranch exit = J();
     SetJumpTarget(notLogicZero);
-    AND(16, sr_reg, Imm16(~SR_LOGIC_ZERO));
+    AND(16, sr_reg, Imm16(~SR_LOGIC_ZERO & 0xffff));
     SetJumpTarget(exit);
     m_gpr.PutReg(DSP_REG_SR);
   }
@@ -116,7 +118,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
     OR(16, sr_reg, Imm16(SR_LOGIC_ZERO));
     FixupBranch exit = J();
     SetJumpTarget(notLogicZero);
-    AND(16, sr_reg, Imm16(~SR_LOGIC_ZERO));
+    AND(16, sr_reg, Imm16(~SR_LOGIC_ZERO & 0xffff));
     SetJumpTarget(exit);
     m_gpr.PutReg(DSP_REG_SR);
   }
@@ -1005,7 +1007,7 @@ void DSPEmitter::dec(const UDSPInstruction opc)
   //	Update_SR_Register64(res, isCarry2(acc, res), isOverflow(acc, -1, res));
   if (FlagsNeeded())
   {
-    MOV(64, R(RDX), Imm64(-1));
+    MOV(64, R(RDX), Imm64(std::numeric_limits<u64>::max()));
     MOV(64, R(RCX), R(RAX));
     set_long_acc(dreg, RCX);
     Update_SR_Register64_Carry(EAX, tmp1, true);

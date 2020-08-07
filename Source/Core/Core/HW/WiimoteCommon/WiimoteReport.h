@@ -166,7 +166,7 @@ static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 // FYI: Also contains LSB of accel data:
 union ButtonData
 {
-  static constexpr u16 BUTTON_MASK = ~0x6060;
+  static constexpr u16 BUTTON_MASK = ~0x6060U & 0xffffU;
 
   u16 hex;
 

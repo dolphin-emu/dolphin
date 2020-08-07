@@ -126,11 +126,6 @@
       4714  function 'function' marked as __forceinline not inlined
       -->
       <DisableSpecificWarnings>4201;4127;4100;4244;4121;4324;4714;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-      <!-- Level4 warnings which should eventually be enabled
-      4245  'conversion' : conversion from 'type1' to 'type2', signed/unsigned mismatch
-                Currently jits use some annoying code patterns which makes this common
-      -->
-      <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Enable some off-by-default warnings
       4263  Non-virtual member function hides base class virtual function
       4265  Class has virtual functions, but destructor is not virtual

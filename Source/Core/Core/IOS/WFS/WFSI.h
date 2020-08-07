@@ -42,7 +42,7 @@ public:
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
-  u32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;
+  s32 GetTmd(u16 group_id, u32 title_id, u64 subtitle_id, u32 address, u32* size) const;
 
   void SetCurrentTitleIdAndGroupId(u64 tid, u16 gid);
   void SetImportTitleIdAndGroupId(u64 tid, u16 gid);
