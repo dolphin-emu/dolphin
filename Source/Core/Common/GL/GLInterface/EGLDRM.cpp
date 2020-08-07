@@ -107,15 +107,15 @@ static struct pollfd g_drm_fds;
 static uint32_t g_connector_id = 0;
 static int g_drm_fd = 0;
 static uint32_t g_crtc_id = 0;
-static drmModeCrtc* g_orig_crtc = NULL;
-static drmModeConnector* g_drm_connector = NULL;
-static drmModeModeInfo* g_drm_mode = NULL;
+static drmModeCrtc* g_orig_crtc = nullptr;
+static drmModeConnector* g_drm_connector = nullptr;
+static drmModeModeInfo* g_drm_mode = nullptr;
 
 /* TODO/FIXME - static globals */
-static drmModeRes* g_drm_resources = NULL;
-static drmModeEncoder* g_drm_encoder = NULL;
+static drmModeRes* g_drm_resources = nullptr;
+static drmModeEncoder* g_drm_encoder = nullptr;
 
-static gfx_ctx_drm_data* g_drm = NULL;
+static gfx_ctx_drm_data* g_drm = nullptr;
 
 bool drm_get_encoder(int fd);
 
@@ -276,7 +276,7 @@ static EGLDisplay get_egl_display(EGLenum platform, void* native)
 
       if (ptr_eglGetPlatformDisplay)
       {
-        EGLDisplay dpy = ptr_eglGetPlatformDisplay(platform, native, NULL);
+        EGLDisplay dpy = ptr_eglGetPlatformDisplay(platform, native, nullptr);
         if (dpy != EGL_NO_DISPLAY)
           return dpy;
       }
@@ -294,7 +294,7 @@ static EGLDisplay get_egl_display(EGLenum platform, void* native)
 
       if (ptr_eglGetPlatformDisplayEXT)
       {
-        EGLDisplay dpy = ptr_eglGetPlatformDisplayEXT(platform, native, NULL);
+        EGLDisplay dpy = ptr_eglGetPlatformDisplayEXT(platform, native, nullptr);
         if (dpy != EGL_NO_DISPLAY)
           return dpy;
       }
@@ -325,11 +325,11 @@ static bool egl_init_context_common(EGLContextData* egl, EGLint* count, const EG
 {
   EGLint i;
   EGLint matched = 0;
-  EGLConfig* configs = NULL;
+  EGLConfig* configs = nullptr;
   if (!egl)
     return false;
 
-  if (!eglGetConfigs(egl->dpy, NULL, 0, count) || *count < 1)
+  if (!eglGetConfigs(egl->dpy, nullptr, 0, count) || *count < 1)
   {
     INFO_LOG(VIDEO, "[EGL]: No configs to choose from.\n");
     return false;
@@ -451,7 +451,7 @@ void drm_restore_crtc(void)
                  g_orig_crtc->y, &g_connector_id, 1, &g_orig_crtc->mode);
 
   drmModeFreeCrtc(g_orig_crtc);
-  g_orig_crtc = NULL;
+  g_orig_crtc = nullptr;
 }
 
 bool drm_get_resources(int fd)
@@ -511,7 +511,7 @@ bool drm_get_connector(int fd)
     }
 
     drmModeFreeConnector(g_drm_connector);
-    g_drm_connector = NULL;
+    g_drm_connector = nullptr;
   }
 
   if (!g_drm_connector)
@@ -537,7 +537,7 @@ bool drm_get_encoder(int fd)
       break;
 
     drmModeFreeEncoder(g_drm_encoder);
-    g_drm_encoder = NULL;
+    g_drm_encoder = nullptr;
   }
 
   if (!g_drm_encoder)
@@ -589,9 +589,9 @@ void drm_free(void)
   memset(&g_drm_fds, 0, sizeof(struct pollfd));
   memset(&g_drm_evctx, 0, sizeof(drmEventContext));
 
-  g_drm_encoder = NULL;
-  g_drm_connector = NULL;
-  g_drm_resources = NULL;
+  g_drm_encoder = nullptr;
+  g_drm_connector = nullptr;
+  g_drm_resources = nullptr;
 }
 
 static void drm_fb_destroy_callback(struct gbm_bo* bo, void* data)
@@ -629,7 +629,7 @@ static struct drm_fb* drm_fb_get_from_bo(struct gbm_bo* bo)
 error:
   INFO_LOG(VIDEO, "[KMS]: Failed to create FB: %s\n", strerror(errno));
   free(fb);
-  return NULL;
+  return nullptr;
 }
 
 static void gfx_ctx_drm_swap_interval(void* data, int interval)
@@ -698,7 +698,7 @@ static bool gfx_ctx_drm_wait_flip(GFXContextDRMData* drm, bool block)
 
 static bool gfx_ctx_drm_queue_flip(GFXContextDRMData* drm)
 {
-  struct drm_fb* fb = NULL;
+  struct drm_fb* fb = nullptr;
 
   drm->next_bo = gbm_surface_lock_front_buffer(drm->gbm_surface);
   fb = (struct drm_fb*)gbm_bo_get_user_data(drm->next_bo);
@@ -781,8 +781,8 @@ static void free_drm_resources(GFXContextDRMData* drm)
     }
   }
 
-  drm->gbm_surface = NULL;
-  drm->gbm_dev = NULL;
+  drm->gbm_surface = nullptr;
+  drm->gbm_dev = nullptr;
   g_drm_fd = -1;
 }
 
@@ -798,15 +798,15 @@ static void gfx_ctx_drm_destroy_resources(GFXContextDRMData* drm)
 
   free_drm_resources(drm);
 
-  g_drm_mode = NULL;
+  g_drm_mode = nullptr;
   g_crtc_id = 0;
   g_connector_id = 0;
 
   drm->fb_width = 0;
   drm->fb_height = 0;
 
-  drm->bo = NULL;
-  drm->next_bo = NULL;
+  drm->bo = nullptr;
+  drm->next_bo = nullptr;
 }
 
 static void* gfx_ctx_drm_init()
@@ -814,11 +814,11 @@ static void* gfx_ctx_drm_init()
   int fd, i;
   unsigned monitor_index;
   unsigned gpu_index = 0;
-  const char* gpu = NULL;
+  const char* gpu = nullptr;
   GFXContextDRMData* drm = (GFXContextDRMData*)calloc(1, sizeof(GFXContextDRMData));
 
   if (!drm)
-    return NULL;
+    return nullptr;
   drm->fd = -1;
 
   free_drm_resources(drm);
@@ -892,7 +892,7 @@ error:
   if (drm)
     free(drm);
 
-  return NULL;
+  return nullptr;
 }
 
 static EGLint* gfx_ctx_drm_egl_fill_attribs(GFXContextDRMData* drm, EGLint* attr)
@@ -948,13 +948,13 @@ static const EGLint egl_attribs_gles3[] = {
 
 static bool gfx_ctx_drm_egl_set_video_mode(GFXContextDRMData* drm)
 {
-  const EGLint* attrib_ptr = NULL;
+  const EGLint* attrib_ptr = nullptr;
   EGLint major;
   EGLint minor;
   EGLint n;
   EGLint egl_attribs[16];
-  EGLint* egl_attribs_ptr = NULL;
-  EGLint* attr = NULL;
+  EGLint* egl_attribs_ptr = nullptr;
+  EGLint* attr = nullptr;
 
   attrib_ptr = egl_attribs_gles3;
 
@@ -967,7 +967,7 @@ static bool gfx_ctx_drm_egl_set_video_mode(GFXContextDRMData* drm)
   attr = gfx_ctx_drm_egl_fill_attribs(drm, egl_attribs);
   egl_attribs_ptr = &egl_attribs[0];
 
-  if (!egl_create_context(&drm->egl, (attr != egl_attribs_ptr) ? egl_attribs_ptr : NULL))
+  if (!egl_create_context(&drm->egl, (attr != egl_attribs_ptr) ? egl_attribs_ptr : nullptr))
   {
     INFO_LOG(VIDEO, "\n[EGL] Cannot create context error 0x%x", eglGetError());
     goto error;
@@ -990,7 +990,7 @@ error:
 static bool gfx_ctx_drm_set_video_mode(void* data, unsigned width, unsigned height, bool fullscreen)
 {
   int i, ret = 0;
-  struct drm_fb* fb = NULL;
+  struct drm_fb* fb = nullptr;
   GFXContextDRMData* drm = (GFXContextDRMData*)data;
   float video_refresh_rate = (float)VideoInterface::GetTargetRefreshRate();
 
@@ -1147,7 +1147,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
 
   eglBindAPI(EGL_OPENGL_ES_API);
   EGLint egl_attribs[16];
-  EGLint* egl_attribs_ptr = NULL;
+  EGLint* egl_attribs_ptr = nullptr;
   const EGLint* attrib_ptr = egl_attribs_gles3;
   EGLint* attr = gfx_ctx_drm_egl_fill_attribs(g_drm, egl_attribs);
   egl_attribs_ptr = &egl_attribs[0];
