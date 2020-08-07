@@ -76,7 +76,7 @@
 #define EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR 0x00000002
 #endif /* EGL_KHR_create_context */
 
-typedef bool (*egl_accept_config_cb_t)(void *display_data, EGLDisplay dpy, EGLConfig config);
+using EGLAcceptConfigCB = bool (*)(void *display_data, EGLDisplay dpy, EGLConfig config);
 
 typedef struct gfx_ctx_drm_data
 {
