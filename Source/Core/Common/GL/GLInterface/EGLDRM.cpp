@@ -107,9 +107,6 @@ struct drm_fb
 /* TODO/FIXME - static globals */
 static GFXContextDRMData* g_drm = nullptr;
 
-/* Restore the original CRTC. */
-bool drm_get_connector(int fd);
-
 static void egl_swap_buffers(void* data)
 {
   EGLContextData* egl = (EGLContextData*)data;
@@ -369,7 +366,7 @@ static bool drm_wait_flip(int timeout)
   return false;
 }
 
-bool drm_get_connector(int fd)
+static bool drm_get_connector(int fd)
 {
   unsigned i;
   unsigned monitor_index_count = 0;
@@ -425,7 +422,7 @@ bool drm_get_connector(int fd)
   return true;
 }
 
-bool drm_get_encoder(int fd)
+static bool drm_get_encoder(int fd)
 {
   unsigned i;
 
