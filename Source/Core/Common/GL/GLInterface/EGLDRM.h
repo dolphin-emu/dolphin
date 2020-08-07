@@ -27,7 +27,7 @@ typedef struct
 class GLContextEGLDRM : public GLContext
 {
 public:
-  virtual ~GLContextEGLDRM() override;
+  ~GLContextEGLDRM() override;
 
   bool IsHeadless() const override;
 
