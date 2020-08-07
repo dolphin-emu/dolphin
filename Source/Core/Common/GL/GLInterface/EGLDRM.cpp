@@ -44,6 +44,7 @@
 
 #include "Common/GL/GLInterface/EGLDRM.h"
 #include "Common/Logging/Log.h"
+#include "Core/HW/VideoInterface.h"  //for TargetRefreshRate
 
 #ifndef EGL_CONTEXT_FLAGS_KHR
 #define EGL_CONTEXT_FLAGS_KHR 0x30FC
@@ -1014,21 +1015,13 @@ static bool gfx_ctx_drm_set_video_mode(void *data,
       unsigned width, unsigned height,
       bool fullscreen)
 {
-   float refresh_mod;
    int i, ret                  = 0;
    struct drm_fb *fb           = NULL;
    gfx_ctx_drm_data_t *drm     = (gfx_ctx_drm_data_t*)data;
-   bool black_frame_insertion  = false; //settings->bools.video_black_frame_insertion;
-   float video_refresh_rate    = 60; //settings->floats.video_refresh_rate;
+   float video_refresh_rate    = (float)VideoInterface::GetTargetRefreshRate();
 
    if (!drm)
       return false;
-
-   /* If we use black frame insertion,
-    * we fake a 60 Hz monitor for 120 Hz one,
-    * etc, so try to match that. */
-   refresh_mod = black_frame_insertion
-      ? 0.5f : 1.0f;
 
    /* Find desired video mode, and use that.
     * If not fullscreen, we get desired windowed size,
@@ -1052,8 +1045,7 @@ static bool gfx_ctx_drm_set_video_mode(void *data,
                height != g_drm_connector->modes[i].vdisplay)
             continue;
 
-         diff = fabsf(refresh_mod * g_drm_connector->modes[i].vrefresh
-               - video_refresh_rate);
+         diff = fabsf(g_drm_connector->modes[i].vrefresh - video_refresh_rate);
 
          if (!g_drm_mode || diff < minimum_fps_diff)
          {
@@ -1165,9 +1157,10 @@ bool GLContextEGLDRM::Initialize(const WindowSystemInfo& wsi, bool stereo, bool 
 
   eglBindAPI(EGL_OPENGL_ES_API);
 
-  gfx_ctx_drm_set_video_mode(g_drm, 1920, 1080, true);
-  m_backbuffer_width = 1920;
-  m_backbuffer_height = 1080;
+  // Use current video mode, do not switch
+  gfx_ctx_drm_set_video_mode(g_drm, 0, 0, false);
+  m_backbuffer_width  = g_drm->fb_width;
+  m_backbuffer_height = g_drm->fb_height;
 
   m_egl = &g_drm->egl;
   m_opengl_mode = Mode::OpenGLES;
@@ -1193,7 +1186,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
   new_context->m_egl->ctx = eglCreateContext(m_egl->dpy, m_egl->config, m_egl->ctx, egl_attribs_ptr);
   if (!new_context->m_egl->ctx)
   {
-    INFO_LOG(VIDEO, "\nError: eglCreateContext failed 0x%x\n", eglGetError());
+    ERROR_LOG(VIDEO, "\nError: eglCreateContext failed 0x%x\n", eglGetError());
     return nullptr;
   }
   eglBindAPI(EGL_OPENGL_ES_API);
@@ -1202,7 +1195,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
   new_context->m_is_shared = true;
   if (!new_context->CreateWindowSurface())
   {
-    INFO_LOG(VIDEO, "\nError: CreateWindowSurface failed 0x%x\n", eglGetError());
+    ERROR_LOG(VIDEO, "\nError: CreateWindowSurface failed 0x%x\n", eglGetError());
     return nullptr;
   }
   return new_context;
@@ -1225,7 +1218,6 @@ bool GLContextEGLDRM::CreateWindowSurface()
       INFO_LOG(VIDEO, "\negl_create_surface failed, trying pbuffer failed 0x%x\n", eglGetError());
       goto pbuffer;
    }
-   INFO_LOG(VIDEO, "\nm_egl_surface=0x%x",m_egl->surf);
     // Get dimensions from the surface.
     EGLint surface_width = 1, surface_height = 1;
     if (!eglQuerySurface(m_egl->dpy, m_egl->surf, EGL_WIDTH, &surface_width) ||
