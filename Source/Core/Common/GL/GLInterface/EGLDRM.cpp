@@ -1,3 +1,9 @@
+// Copyright 2020 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+// EGL DRM GBM code based on RetroArch, RetroArch licenses follows
+
 /*  RetroArch - A frontend for libretro.
  *  Copyright (c) 2011-2017 - Daniel De Matteis
  *
@@ -12,10 +18,6 @@
  *  You should have received a copy of the GNU General Public License along with RetroArch.
  *  If not, see <http://www.gnu.org/licenses/>.
  */
-
-// Copyright 2012 Dolphin Emulator Project
-// Licensed under GPLv2+
-// Refer to the license.txt file included.
 
 #include <stdint.h>
 #include <stddef.h>
@@ -58,182 +60,82 @@
 #define EGL_PLATFORM_GBM_KHR 0x31D7
 #endif
 
-extern uint32_t g_connector_id;
-extern int g_drm_fd;
-extern uint32_t g_crtc_id;
-
-extern struct pollfd g_drm_fds;
-
-extern drmModeConnector *g_drm_connector;
-extern drmModeModeInfo *g_drm_mode;
-extern drmModeCrtc *g_orig_crtc;
-
-extern drmEventContext g_drm_evctx;
-
-
-void egl_report_error(void);
-
-void egl_destroy(egl_ctx_data_t *egl);
-
-void egl_terminate(EGLDisplay dpy);
-
-void egl_swap_buffers(void *data);
-
-void egl_set_swap_interval(egl_ctx_data_t *egl, int interval);
-
-void egl_get_video_size(egl_ctx_data_t *egl, unsigned *width, unsigned *height);
+#ifndef EGL_KHR_create_context
+#define EGL_KHR_create_context 1
+#define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
+#define EGL_CONTEXT_MINOR_VERSION_KHR 0x30FB
+#define EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR 0x30FD
+#define EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR 0x31BD
+#define EGL_NO_RESET_NOTIFICATION_KHR 0x31BE
+#define EGL_LOSE_CONTEXT_ON_RESET_KHR 0x31BF
+#define EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR 0x00000002
+#define EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR 0x00000004
+#define EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR 0x00000001
+#define EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR 0x00000002
+#endif /* EGL_KHR_create_context */
 
 typedef bool (*egl_accept_config_cb_t)(void *display_data, EGLDisplay dpy, EGLConfig config);
 
-bool egl_initialize(EGLDisplay dpy, EGLint *major, EGLint *minor);
-
-bool egl_init_context_common(
-      egl_ctx_data_t *egl, EGLint *count,
-      const EGLint *attrib_ptr,
-      egl_accept_config_cb_t cb,
-      void *display_data);
-
-bool egl_init_context(egl_ctx_data_t *egl,
-      EGLenum platform,
-      void *display_data,
-      EGLint *major,
-      EGLint *minor,
-      EGLint *n,
-      const EGLint *attrib_ptr,
-      egl_accept_config_cb_t cb);
-
-bool egl_bind_api(EGLenum egl_api);
-
-bool egl_create_context(egl_ctx_data_t *egl, const EGLint *egl_attribs);
-
-bool egl_create_surface(egl_ctx_data_t *egl, void *native_window);
-
-bool egl_get_native_visual_id(egl_ctx_data_t *egl, EGLint *value);
-
-bool egl_get_config_attrib(EGLDisplay dpy, EGLConfig config,
-      EGLint attribute, EGLint *value);
-
-bool egl_has_config(egl_ctx_data_t *egl);
-
-#define _egl_query_surface(a, b, c, d) eglQuerySurface(a, b, c, d)
-#define _egl_get_proc_address(a) eglGetProcAddress(a)
-#define _egl_create_window_surface(a, b, c, d) eglCreateWindowSurface(a, b, c, d)
-#define _egl_create_context(a, b, c, d) eglCreateContext(a, b, c, d)
-#define _egl_get_configs(a, b, c, d) eglGetConfigs(a, b, c, d)
-#define _egl_get_display(a) eglGetDisplay(a)
-#define _egl_choose_config(a, b, c, d, e) eglChooseConfig(a, b, c, d, e)
-#define _egl_make_current(a, b, c, d) eglMakeCurrent(a, b, c, d)
-#define _egl_initialize(a, b, c) eglInitialize(a, b, c)
-#define _egl_destroy_surface(a, b) eglDestroySurface(a, b)
-#define _egl_destroy_context(a, b) eglDestroyContext(a, b)
-#define _egl_get_current_context() eglGetCurrentContext()
-#define _egl_get_error() eglGetError()
-#define _egl_terminate(dpy) eglTerminate(dpy)
-#define _egl_bind_api(a) eglBindAPI(a)
-#define _egl_query_string(a, b) eglQueryString(a, b)
-#define _egl_get_config_attrib(a, b, c, d) eglGetConfigAttrib(a, b, c, d)
-#define _egl_swap_buffers(a, b) eglSwapBuffers(a, b)
-#define _egl_swap_interval(a, b) eglSwapInterval(a, b)
-
-void egl_report_error(void)
+typedef struct gfx_ctx_drm_data
 {
-   EGLint    error = _egl_get_error();
-   const char *str = NULL;
-   switch (error)
-   {
-      case EGL_SUCCESS:
-         str = "EGL_SUCCESS";
-         break;
+   egl_ctx_data_t egl;
+   int fd;
+   int interval;
+   unsigned fb_width;
+   unsigned fb_height;
 
-      case EGL_BAD_ACCESS:
-         str = "EGL_BAD_ACCESS";
-         break;
+   bool core_hw_context_enable;
+   bool waiting_for_flip;
+   struct gbm_bo *bo;
+   struct gbm_bo *next_bo;
+   struct gbm_surface *gbm_surface;
+   struct gbm_device  *gbm_dev;
+} gfx_ctx_drm_data_t;
 
-      case EGL_BAD_ALLOC:
-         str = "EGL_BAD_ALLOC";
-         break;
-
-      case EGL_BAD_ATTRIBUTE:
-         str = "EGL_BAD_ATTRIBUTE";
-         break;
-
-      case EGL_BAD_CONFIG:
-         str = "EGL_BAD_CONFIG";
-         break;
-
-      case EGL_BAD_CONTEXT:
-         str = "EGL_BAD_CONTEXT";
-         break;
-
-      case EGL_BAD_CURRENT_SURFACE:
-         str = "EGL_BAD_CURRENT_SURFACE";
-         break;
-
-      case EGL_BAD_DISPLAY:
-         str = "EGL_BAD_DISPLAY";
-         break;
-
-      case EGL_BAD_MATCH:
-         str = "EGL_BAD_MATCH";
-         break;
-
-      case EGL_BAD_NATIVE_PIXMAP:
-         str = "EGL_BAD_NATIVE_PIXMAP";
-         break;
-
-      case EGL_BAD_NATIVE_WINDOW:
-         str = "EGL_BAD_NATIVE_WINDOW";
-         break;
-
-      case EGL_BAD_PARAMETER:
-         str = "EGL_BAD_PARAMETER";
-         break;
-
-      case EGL_BAD_SURFACE:
-         str = "EGL_BAD_SURFACE";
-         break;
-
-      default:
-         str = "Unknown";
-         break;
-   }
-
-   printf("[EGL]: #0x%x, %s\n", (unsigned)error, str);
-}
-
-void egl_terminate(EGLDisplay dpy)
+struct drm_fb
 {
-   _egl_terminate(dpy);
-}
+   struct gbm_bo *bo;
+   uint32_t fb_id;
+};
 
-bool egl_get_config_attrib(EGLDisplay dpy, EGLConfig config, EGLint attribute,
-      EGLint *value)
-{
-   return _egl_get_config_attrib(dpy, config, attribute, value);
-}
+/* TODO/FIXME - globals */
+static drmEventContext g_drm_evctx;
+static struct pollfd g_drm_fds;
+static uint32_t g_connector_id           = 0;
+static int g_drm_fd                      = 0;
+static uint32_t g_crtc_id                = 0;
+static drmModeCrtc *g_orig_crtc          = NULL;
+static drmModeConnector *g_drm_connector = NULL;
+static drmModeModeInfo *g_drm_mode       = NULL;
 
-bool egl_initialize(EGLDisplay dpy, EGLint *major, EGLint *minor)
-{
-   return _egl_initialize(dpy, major, minor);
-}
+/* TODO/FIXME - static globals */
+static drmModeRes *g_drm_resources    = NULL;
+static drmModeEncoder *g_drm_encoder  = NULL;
 
-bool egl_bind_api(EGLenum egl_api)
-{
-   return _egl_bind_api(egl_api);
-}
+static gfx_ctx_drm_data* g_drm = NULL;
 
-void egl_destroy(egl_ctx_data_t *egl)
+bool drm_get_encoder(int fd);
+
+/* Restore the original CRTC. */
+void drm_restore_crtc(void);
+bool drm_get_resources(int fd);
+void drm_setup(int fd);
+void drm_free(void);
+bool drm_get_connector(int fd);
+float drm_get_refresh_rate(void *data);
+
+static void egl_destroy(egl_ctx_data_t *egl)
 {
    if (egl->dpy)
    {
-      _egl_make_current(egl->dpy,
+      eglMakeCurrent(egl->dpy,
             EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
       if (egl->ctx != EGL_NO_CONTEXT)
-         _egl_destroy_context(egl->dpy, egl->ctx);
+         eglDestroyContext(egl->dpy, egl->ctx);
 
       if (egl->surf != EGL_NO_SURFACE)
-         _egl_destroy_surface(egl->dpy, egl->surf);
-      egl_terminate(egl->dpy);
+         eglDestroySurface(egl->dpy, egl->surf);
+      eglTerminate(egl->dpy);
    }
 
    /* Be as careful as possible in deinit.
@@ -246,7 +148,7 @@ void egl_destroy(egl_ctx_data_t *egl)
    egl->config  = 0;
 }
 
-void egl_swap_buffers(void *data)
+static void egl_swap_buffers(void *data)
 {
    egl_ctx_data_t *egl = (egl_ctx_data_t*)data;
    if (  egl                         &&
@@ -254,13 +156,11 @@ void egl_swap_buffers(void *data)
          egl->surf != EGL_NO_SURFACE
          )
 	{
-      _egl_swap_buffers(egl->dpy, egl->surf);
+      eglSwapBuffers(egl->dpy, egl->surf);
 	}
- else
-   printf("\nSWAP FAILED");
 }
 
-void egl_set_swap_interval(egl_ctx_data_t *egl, int interval)
+static void egl_set_swap_interval(egl_ctx_data_t *egl, int interval)
 {
    /* Can be called before initialization.
     * Some contexts require that swap interval
@@ -270,38 +170,21 @@ void egl_set_swap_interval(egl_ctx_data_t *egl, int interval)
 
    if (egl->dpy  == EGL_NO_DISPLAY)
       return;
-   if (!_egl_get_current_context())
+   if (!eglGetCurrentContext())
       return;
 
    printf("[EGL]: eglSwapInterval(%u)\n", interval);
-   if (!_egl_swap_interval(egl->dpy, interval))
+   if (!eglSwapInterval(egl->dpy, interval))
    {
-      printf("[EGL]: eglSwapInterval() failed.\n");
-      egl_report_error();
+      printf("[EGL]: eglSwapInterval() failed 0x%x.\n", eglGetError());
    }
 }
 
-void egl_get_video_size(egl_ctx_data_t *egl, unsigned *width, unsigned *height)
-{
-   *width  = 0;
-   *height = 0;
-
-   if (egl->dpy != EGL_NO_DISPLAY && egl->surf != EGL_NO_SURFACE)
-   {
-      EGLint gl_width, gl_height;
-
-      _egl_query_surface(egl->dpy, egl->surf, EGL_WIDTH, &gl_width);
-      _egl_query_surface(egl->dpy, egl->surf, EGL_HEIGHT, &gl_height);
-      *width  = gl_width;
-      *height = gl_height;
-   }
-}
-
-bool check_egl_version(int minMajorVersion, int minMinorVersion)
+static bool check_egl_version(int minMajorVersion, int minMinorVersion)
 {
    int count;
    int major, minor;
-   const char *str = _egl_query_string(EGL_NO_DISPLAY, EGL_VERSION);
+   const char *str = eglQueryString(EGL_NO_DISPLAY, EGL_VERSION);
 
    if (!str)
       return false;
@@ -322,10 +205,10 @@ bool check_egl_version(int minMajorVersion, int minMinorVersion)
    return false;
 }
 
-bool check_egl_client_extension(const char *name)
+static bool check_egl_client_extension(const char *name)
 {
    size_t nameLen;
-   const char *str = _egl_query_string(EGL_NO_DISPLAY, EGL_EXTENSIONS);
+   const char *str = eglQueryString(EGL_NO_DISPLAY, EGL_EXTENSIONS);
 
    /* The EGL implementation doesn't support client extensions at all. */
    if (!str)
@@ -363,7 +246,7 @@ static EGLDisplay get_egl_display(EGLenum platform, void *native)
 
          printf("[EGL] Found EGL client version >= 1.5, trying eglGetPlatformDisplay\n");
          ptr_eglGetPlatformDisplay = (pfn_eglGetPlatformDisplay)
-            _egl_get_proc_address("eglGetPlatformDisplay");
+            eglGetProcAddress("eglGetPlatformDisplay");
 
          if (ptr_eglGetPlatformDisplay)
          {
@@ -381,7 +264,7 @@ static EGLDisplay get_egl_display(EGLenum platform, void *native)
 
          printf("[EGL] Found EGL_EXT_platform_base, trying eglGetPlatformDisplayEXT\n");
          ptr_eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC)
-            _egl_get_proc_address("eglGetPlatformDisplayEXT");
+            eglGetProcAddress("eglGetPlatformDisplayEXT");
 
          if (ptr_eglGetPlatformDisplayEXT)
          {
@@ -397,12 +280,12 @@ static EGLDisplay get_egl_display(EGLenum platform, void *native)
     * implementation doesn't support eglGetPlatformDisplay. In this case, try
     * eglGetDisplay and hope for the best. */
    printf("[EGL] Falling back to eglGetDisplay\n");
-   return _egl_get_display((EGLNativeDisplayType) native);
+   return eglGetDisplay((EGLNativeDisplayType) native);
 }
 
-bool egl_get_native_visual_id(egl_ctx_data_t *egl, EGLint *value)
+static bool egl_get_native_visual_id(egl_ctx_data_t *egl, EGLint *value)
 {
-   if (!egl_get_config_attrib(egl->dpy, egl->config,
+   if (!eglGetConfigAttrib(egl->dpy, egl->config,
          EGL_NATIVE_VISUAL_ID, value))
    {
       printf("[EGL]: egl_get_native_visual_id failed.\n");
@@ -412,7 +295,7 @@ bool egl_get_native_visual_id(egl_ctx_data_t *egl, EGLint *value)
    return true;
 }
 
-bool egl_init_context_common(
+static bool egl_init_context_common(
       egl_ctx_data_t *egl, EGLint *count,
       const EGLint *attrib_ptr,
       egl_accept_config_cb_t cb,
@@ -424,7 +307,7 @@ bool egl_init_context_common(
    if (!egl)
       return false;
 
-   if (!_egl_get_configs(egl->dpy, NULL, 0, count) || *count < 1)
+   if (!eglGetConfigs(egl->dpy, NULL, 0, count) || *count < 1)
    {
       printf("[EGL]: No configs to choose from.\n");
       return false;
@@ -434,7 +317,7 @@ bool egl_init_context_common(
    if (!configs)
       return false;
 
-   if (!_egl_choose_config(egl->dpy, attrib_ptr,
+   if (!eglChooseConfig(egl->dpy, attrib_ptr,
             configs, *count, &matched) || !matched)
    {
       printf("[EGL]: No EGL configs with appropriate attributes.\n");
@@ -462,7 +345,7 @@ bool egl_init_context_common(
 }
 
 
-bool egl_init_context(egl_ctx_data_t *egl,
+static bool egl_init_context(egl_ctx_data_t *egl,
       EGLenum platform,
       void *display_data,
       EGLint *major, EGLint *minor,
@@ -479,7 +362,7 @@ bool egl_init_context(egl_ctx_data_t *egl,
 
    egl->dpy = dpy;
 
-   if (!egl_initialize(egl->dpy, major, minor))
+   if (!eglInitialize(egl->dpy, major, minor))
       return false;
 
    printf("[EGL]: EGL version: %d.%d\n", *major, *minor);
@@ -488,9 +371,9 @@ bool egl_init_context(egl_ctx_data_t *egl,
          display_data);
 }
 
-bool egl_create_context(egl_ctx_data_t *egl, const EGLint *egl_attribs)
+static bool egl_create_context(egl_ctx_data_t *egl, const EGLint *egl_attribs)
 {
-   EGLContext ctx = _egl_create_context(egl->dpy, egl->config, EGL_NO_CONTEXT,
+   EGLContext ctx = eglCreateContext(egl->dpy, egl->config, EGL_NO_CONTEXT,
          egl_attribs);
 
    if (ctx == EGL_NO_CONTEXT)
@@ -501,53 +384,26 @@ bool egl_create_context(egl_ctx_data_t *egl, const EGLint *egl_attribs)
    return true;
 }
 
-bool egl_create_surface(egl_ctx_data_t *egl, void *native_window)
+static bool egl_create_surface(egl_ctx_data_t *egl, void *native_window)
 {
    EGLint window_attribs[] = {
      EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
      EGL_NONE,
    };
 
-   egl->surf = _egl_create_window_surface(egl->dpy, egl->config, (NativeWindowType)native_window, window_attribs);
+   egl->surf = eglCreateWindowSurface(egl->dpy, egl->config, (NativeWindowType)native_window, window_attribs);
 
    if (egl->surf == EGL_NO_SURFACE)
       return false;
 
    /* Connect the context to the surface. */
-   if (!_egl_make_current(egl->dpy, egl->surf, egl->surf, egl->ctx))
+   if (!eglMakeCurrent(egl->dpy, egl->surf, egl->surf, egl->ctx))
       return false;
 
-   printf("[EGL]: Current context: %p.\n", (void*)_egl_get_current_context());
+   printf("[EGL]: Current context: %p.\n", (void*)eglGetCurrentContext());
 
    return true;
 }
-
-bool egl_has_config(egl_ctx_data_t *egl)
-{
-   if (!egl->config)
-   {
-      printf("[EGL]: No EGL configurations available.\n");
-      return false;
-   }
-   return true;
-}
-
-
-
-bool drm_get_encoder(int fd);
-
-/* Restore the original CRTC. */
-void drm_restore_crtc(void);
-
-bool drm_get_resources(int fd);
-
-void drm_setup(int fd);
-
-void drm_free(void);
-
-bool drm_get_connector(int fd);
-
-float drm_get_refresh_rate(void *data);
 
 static bool drm_wait_flip(int timeout)
 {
@@ -567,20 +423,6 @@ static bool drm_wait_flip(int timeout)
 
    return false;
 }
-
-/* TODO/FIXME - globals */
-drmEventContext g_drm_evctx;
-struct pollfd g_drm_fds;
-uint32_t g_connector_id               = 0;
-int g_drm_fd                          = 0;
-uint32_t g_crtc_id                    = 0;
-drmModeCrtc *g_orig_crtc              = NULL;
-drmModeConnector *g_drm_connector     = NULL;
-drmModeModeInfo *g_drm_mode           = NULL;
-
-/* TODO/FIXME - static globals */
-static drmModeRes *g_drm_resources    = NULL;
-static drmModeEncoder *g_drm_encoder  = NULL;
 
 /* Restore the original CRTC. */
 void drm_restore_crtc(void)
@@ -653,10 +495,7 @@ bool drm_get_connector(int fd)
       {
          monitor_index_count++;
          if (monitor_index_count == monitor)
-	{
-	printf("\n[DRM]: Matched monitor / connector\n");
             break;
-	}
       }
 
       drmModeFreeConnector(g_drm_connector);
@@ -745,30 +584,6 @@ void drm_free(void)
    g_drm_connector    = NULL;
    g_drm_resources    = NULL;
 }
-
-typedef struct gfx_ctx_drm_data
-{
-   egl_ctx_data_t egl;
-   int fd;
-   int interval;
-   unsigned fb_width;
-   unsigned fb_height;
-
-   bool core_hw_context_enable;
-   bool waiting_for_flip;
-   struct gbm_bo *bo;
-   struct gbm_bo *next_bo;
-   struct gbm_surface *gbm_surface;
-   struct gbm_device  *gbm_dev;
-} gfx_ctx_drm_data_t;
-
-static gfx_ctx_drm_data* g_drm;
-
-struct drm_fb
-{
-   struct gbm_bo *bo;
-   uint32_t fb_id;
-};
 
 static void drm_fb_destroy_callback(struct gbm_bo *bo, void *data)
 {
@@ -1092,17 +907,17 @@ static bool gbm_choose_xrgb8888_cb(void *display_data, EGLDisplay dpy, EGLConfig
    (void)display_data;
 
    /* Makes sure we have 8 bit color. */
-   if (!egl_get_config_attrib(dpy, config, EGL_RED_SIZE, &r))
+   if (!eglGetConfigAttrib(dpy, config, EGL_RED_SIZE, &r))
       return false;
-   if (!egl_get_config_attrib(dpy, config, EGL_GREEN_SIZE, &g))
+   if (!eglGetConfigAttrib(dpy, config, EGL_GREEN_SIZE, &g))
       return false;
-   if (!egl_get_config_attrib(dpy, config, EGL_BLUE_SIZE, &b))
+   if (!eglGetConfigAttrib(dpy, config, EGL_BLUE_SIZE, &b))
       return false;
 
    if (r != 8 || g != 8 || b != 8)
       return false;
 
-   if (!egl_get_config_attrib(dpy, config, EGL_NATIVE_VISUAL_ID, &id))
+   if (!eglGetConfigAttrib(dpy, config, EGL_NATIVE_VISUAL_ID, &id))
       return false;
 
    return id == GBM_FORMAT_XRGB8888;
@@ -1140,7 +955,7 @@ static bool gfx_ctx_drm_egl_set_video_mode(gfx_ctx_drm_data_t *drm)
             (EGLNativeDisplayType)drm->gbm_dev, &major,
             &minor, &n, attrib_ptr, gbm_choose_xrgb8888_cb))
    {
-     printf("\n[EGL] Cannot init context");
+     printf("\n[EGL] Cannot init context error 0x%x",eglGetError());
       goto error;
    }
    attr            = gfx_ctx_drm_egl_fill_attribs(drm, egl_attribs);
@@ -1149,13 +964,13 @@ static bool gfx_ctx_drm_egl_set_video_mode(gfx_ctx_drm_data_t *drm)
    if (!egl_create_context(&drm->egl, (attr != egl_attribs_ptr)
             ? egl_attribs_ptr : NULL))
    {
-    printf("\n[EGL] Cannot create context");
+    printf("\n[EGL] Cannot create context error 0x%x",eglGetError());
       goto error;
    }
 
    if (!egl_create_surface(&drm->egl, (EGLNativeWindowType)drm->gbm_surface))
    {
-     printf("\n[EGL] Cannot create context");
+     printf("\n[EGL] Cannot create context error 0x%x",eglGetError());
       return false;
    }
 
@@ -1164,7 +979,6 @@ static bool gfx_ctx_drm_egl_set_video_mode(gfx_ctx_drm_data_t *drm)
    return true;
 
 error:
-   egl_report_error();
    return false;
 }
 
@@ -1287,24 +1101,12 @@ static void gfx_ctx_drm_destroy(void *data)
    free(drm);
 }
 
-#ifndef EGL_KHR_create_context
-#define EGL_KHR_create_context 1
-#define EGL_CONTEXT_MAJOR_VERSION_KHR 0x3098
-#define EGL_CONTEXT_MINOR_VERSION_KHR 0x30FB
-#define EGL_CONTEXT_OPENGL_PROFILE_MASK_KHR 0x30FD
-#define EGL_CONTEXT_OPENGL_RESET_NOTIFICATION_STRATEGY_KHR 0x31BD
-#define EGL_NO_RESET_NOTIFICATION_KHR 0x31BE
-#define EGL_LOSE_CONTEXT_ON_RESET_KHR 0x31BF
-#define EGL_CONTEXT_OPENGL_FORWARD_COMPATIBLE_BIT_KHR 0x00000002
-#define EGL_CONTEXT_OPENGL_ROBUST_ACCESS_BIT_KHR 0x00000004
-#define EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT_KHR 0x00000001
-#define EGL_CONTEXT_OPENGL_COMPATIBILITY_PROFILE_BIT_KHR 0x00000002
-#endif /* EGL_KHR_create_context */
 
 GLContextEGLDRM::~GLContextEGLDRM()
 {
   DestroyWindowSurface();
   DestroyContext();
+  gfx_ctx_drm_destroy(g_drm);
 }
 
 bool GLContextEGLDRM::IsHeadless() const
@@ -1331,25 +1133,18 @@ void* GLContextEGLDRM::GetFuncAddress(const std::string& name)
 // Call browser: Core.cpp:EmuThread() > main.cpp:Video_Initialize()
 bool GLContextEGLDRM::Initialize(const WindowSystemInfo& wsi, bool stereo, bool core)
 {
-  EGLint egl_major, egl_minor;
-  bool supports_core_profile = false;
-
   g_drm = (gfx_ctx_drm_data_t*)gfx_ctx_drm_init();
-  egl_bind_api(EGL_OPENGL_ES_API);
+
+  eglBindAPI(EGL_OPENGL_ES_API);
+
   gfx_ctx_drm_set_video_mode(g_drm, 1920, 1080, true);
   m_backbuffer_width = 1920;
   m_backbuffer_height = 1080;
 
   m_egl = &g_drm->egl;
   m_opengl_mode = Mode::OpenGLES;
+  m_supports_surfaceless = check_egl_client_extension("EGL_KHR_surfaceless_context");
 
-  m_supports_surfaceless = false;
-  const char* ext = eglQueryString(m_egl->dpy, EGL_EXTENSIONS);
-  if (strstr(ext, "EGL_KHR_surfaceless_context"))
-  {
-    printf("\nFound EGL_KHR_surfaceless_context\n");
-    m_supports_surfaceless =true;
-  }
   eglBindAPI(EGL_OPENGL_ES_API);
 
   return MakeCurrent();
@@ -1357,7 +1152,6 @@ bool GLContextEGLDRM::Initialize(const WindowSystemInfo& wsi, bool stereo, bool 
 
 std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
 {
-  printf("\nvoid GLContextEGLDRM::CreateSharedContext");
   std::unique_ptr<GLContextEGLDRM> new_context = std::make_unique<GLContextEGLDRM>();
   new_context->m_egl = (egl_ctx_data_t*)malloc(sizeof(egl_ctx_data_t));
   memcpy(new_context->m_egl, m_egl, sizeof(egl_ctx_data_t));
@@ -1371,8 +1165,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
   new_context->m_egl->ctx = eglCreateContext(m_egl->dpy, m_egl->config, m_egl->ctx, egl_attribs_ptr);
   if (!new_context->m_egl->ctx)
   {
-    printf("\nError: eglCreateContext failed\n");
-    egl_report_error();
+    printf("\nError: eglCreateContext failed 0x%x\n", eglGetError());
     return nullptr;
   }
   eglBindAPI(EGL_OPENGL_ES_API);
@@ -1381,8 +1174,7 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
   new_context->m_is_shared = true;
   if (!new_context->CreateWindowSurface())
   {
-    printf("\nError: CreateWindowSurface failed\n");
-    egl_report_error();
+    printf("\nError: CreateWindowSurface failed 0x%x\n", eglGetError());
     return nullptr;
   }
   return new_context;
@@ -1391,7 +1183,6 @@ std::unique_ptr<GLContext> GLContextEGLDRM::CreateSharedContext()
 bool GLContextEGLDRM::CreateWindowSurface()
 {
   EGLint attrib_list[] = { EGL_NONE, };
-  printf("\nvoid GLContextEGLDRM::CreateWindowSurface");
   if (m_supports_surfaceless)
   {
     m_egl->surf = EGL_NO_SURFACE;
@@ -1403,8 +1194,7 @@ bool GLContextEGLDRM::CreateWindowSurface()
   {
    if (!egl_create_surface(m_egl, (EGLNativeWindowType)g_drm->gbm_surface))
    {
-      printf("\negl_create_surface failed, trying pbuffer\n");
-      egl_report_error();
+      printf("\negl_create_surface failed, trying pbuffer failed 0x%x\n", eglGetError());
       goto pbuffer;
    }
    printf("\nm_egl_surface=0x%x",m_egl->surf);
@@ -1424,8 +1214,7 @@ pbuffer:
    m_egl->surf = eglCreatePbufferSurface(m_egl->dpy, m_egl->config, attrib_list);
    if (!m_egl->surf)
    {
-      printf("\nError: eglCreatePbufferSurface failed\n");
-      egl_report_error();
+      printf("\nError: eglCreatePbufferSurface failed 0x%x\n", eglGetError());
       return false;
    }
    return true;
@@ -1433,7 +1222,6 @@ pbuffer:
 
 void GLContextEGLDRM::DestroyWindowSurface()
 {
-  printf("\nvoid GLContextEGLDRM::DestroyWindowSurface");
   if (m_egl->surf == EGL_NO_SURFACE)
     return;
 
@@ -1446,13 +1234,11 @@ void GLContextEGLDRM::DestroyWindowSurface()
 
 bool GLContextEGLDRM::MakeCurrent()
 {
-  printf("\nvoid GLContextEGLDRM::MakeCurrent()");
-  return _egl_make_current(m_egl->dpy, g_drm->egl.surf, g_drm->egl.surf, m_egl->ctx);
+  return eglMakeCurrent(m_egl->dpy, g_drm->egl.surf, g_drm->egl.surf, m_egl->ctx);
 }
 
 void GLContextEGLDRM::UpdateSurface(void* window_handle)
 {
-  printf("\nvoid GLContextEGLDRM::UpdateSurface(void* window_handle)");
   ClearCurrent();
   DestroyWindowSurface();
   CreateWindowSurface();
@@ -1461,14 +1247,12 @@ void GLContextEGLDRM::UpdateSurface(void* window_handle)
 
 bool GLContextEGLDRM::ClearCurrent()
 {
-  printf("\nvoid GLContextEGLDRM::ClearCurrent()");
-  return _egl_make_current(m_egl->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
+  return eglMakeCurrent(m_egl->dpy, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
 }
 
 // Close backend
 void GLContextEGLDRM::DestroyContext()
 {
-  printf("\nGLContextEGLDRM::DestroyContext()");
 if (!m_egl->ctx)
     return;
 

@@ -50,10 +50,6 @@ protected:
   void DestroyWindowSurface();
   void DestroyContext();
 
-  WindowSystemInfo m_wsi = {};
-
   bool m_supports_surfaceless = false;
-  std::vector<int> m_attribs;
-
   egl_ctx_data_t* m_egl;
 };
