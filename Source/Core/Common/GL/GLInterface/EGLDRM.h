@@ -13,14 +13,14 @@
 
 typedef struct
 {
-   EGLContext ctx;
-   EGLSurface surf;
-   EGLDisplay dpy;
-   EGLConfig config;
-   int interval;
+  EGLContext ctx;
+  EGLSurface surf;
+  EGLDisplay dpy;
+  EGLConfig config;
+  int interval;
 
-   unsigned major;
-   unsigned minor;
+  unsigned major;
+  unsigned minor;
 
 } egl_ctx_data_t;
 

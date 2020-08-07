@@ -143,8 +143,7 @@ int main(int argc, char* argv[])
         "headless"
 #ifdef __linux__
             ,
-            "fbdev",
-            "drm"
+            "fbdev", "drm"
 #endif
 #if HAVE_X11
             ,
