@@ -391,8 +391,6 @@ void VolumeVerifier::Start()
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  if (m_volume.GetVolumeType() == Platform::WiiWAD)
-    CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
   CheckDiscSize(CheckPartitions());
   CheckMisc();
 
@@ -525,10 +523,24 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (!m_is_datel)
   {
-    CheckCorrectlySigned(
-        partition,
-        StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
-                         name.c_str()));
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTicket(partition), cert_chain) ||
+        IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTMD(partition), cert_chain))
+    {
+      AddProblem(
+          Severity::Low,
+          StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
+                           name.c_str()));
+    }
   }
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
@@ -662,25 +674,6 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     name = StringFromFormat(Common::GetStringT("%s (Masterpiece)").c_str(), name.c_str());
   }
   return name;
-}
-
-void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, std::string error_text)
-{
-  IOS::HLE::Kernel ios;
-  const auto es = ios.GetES();
-  const std::vector<u8> cert_chain = m_volume.GetCertificateChain(partition);
-
-  if (IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTicket(partition), cert_chain) ||
-      IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTMD(partition), cert_chain))
-  {
-    AddProblem(Severity::Low, std::move(error_text));
-  }
 }
 
 bool VolumeVerifier::IsDebugSigned() const
@@ -985,6 +978,30 @@ void VolumeVerifier::CheckMisc()
             specified_common_key_index, fixed_common_key_index);
         AddProblem(Severity::Low, std::move(text));
       }
+    }
+  }
+
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
+  {
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, m_ticket,
+                            cert_chain))
+    {
+      // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
+      AddProblem(Severity::Low, Common::GetStringT("The ticket is not correctly signed."));
+    }
+
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, tmd,
+                            cert_chain))
+    {
+      AddProblem(Severity::Low, Common::GetStringT("The TMD is not correctly signed."));
     }
   }
 
