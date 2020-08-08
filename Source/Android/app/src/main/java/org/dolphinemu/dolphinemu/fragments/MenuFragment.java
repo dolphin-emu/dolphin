@@ -72,10 +72,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     mPauseEmulation = options.findViewById(R.id.menu_pause_emulation);
     mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
 
-    if (EmulationActivity.getHasUserPausedEmulation())
-    {
-      showUnpauseEmulationButton();
-    }
+    updatePauseUnpauseVisibility();
 
     boolean enableSaveStates = ((EmulationActivity) getActivity()).getSettings()
             .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
@@ -126,16 +123,12 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return rootView;
   }
 
-  private void showPauseEmulationButton()
+  private void updatePauseUnpauseVisibility()
   {
-    mUnpauseEmulation.setVisibility(View.GONE);
-    mPauseEmulation.setVisibility(View.VISIBLE);
-  }
+    boolean paused = EmulationActivity.getHasUserPausedEmulation();
 
-  private void showUnpauseEmulationButton()
-  {
-    mPauseEmulation.setVisibility(View.GONE);
-    mUnpauseEmulation.setVisibility(View.VISIBLE);
+    mUnpauseEmulation.setVisibility(paused ? View.VISIBLE : View.GONE);
+    mPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
   }
 
   @SuppressWarnings("WrongConstant")
@@ -145,19 +138,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     int action = buttonsActionsMap.get(button.getId());
     EmulationActivity activity = (EmulationActivity) requireActivity();
 
-    if (action == EmulationActivity.MENU_ACTION_PAUSE_EMULATION)
-    {
-      EmulationActivity.setHasUserPausedEmulation(true);
-      NativeLibrary.PauseEmulation();
-      showUnpauseEmulationButton();
-    }
-    else if (action == EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION)
-    {
-      EmulationActivity.setHasUserPausedEmulation(false);
-      NativeLibrary.UnPauseEmulation();
-      showPauseEmulationButton();
-    }
-    else if (action == EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS)
+    if (action == EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS)
     {
       // We could use the button parameter as the anchor here, but this often results in a tiny menu
       // (because the button often is in the middle of the screen), so let's use mTitleText instead
@@ -166,6 +147,12 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     else if (action >= 0)
     {
       activity.handleMenuAction(action);
+    }
+
+    if (action == EmulationActivity.MENU_ACTION_PAUSE_EMULATION ||
+            action == EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION)
+    {
+      updatePauseUnpauseVisibility();
     }
   }
 }

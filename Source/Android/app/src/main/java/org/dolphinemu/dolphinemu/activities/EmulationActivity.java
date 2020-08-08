@@ -71,9 +71,6 @@ public final class EmulationActivity extends AppCompatActivity
 
   private Settings mSettings;
 
-  private MenuItem mPauseEmulationButton;
-  private MenuItem mUnpauseEmulationButton;
-
   private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
@@ -544,13 +541,11 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_PAUSE_EMULATION:
         sUserPausedEmulation = true;
         NativeLibrary.PauseEmulation();
-        showUnpauseEmulationButton();
         return;
 
       case MENU_ACTION_UNPAUSE_EMULATION:
         sUserPausedEmulation = false;
         NativeLibrary.UnPauseEmulation();
-        showPauseEmulationButton();
         return;
 
       // Screenshot capturing
@@ -653,26 +648,9 @@ public final class EmulationActivity extends AppCompatActivity
     }
   }
 
-  private void showPauseEmulationButton()
-  {
-    mUnpauseEmulationButton.setVisible(false);
-    mPauseEmulationButton.setVisible(true);
-  }
-
-  private void showUnpauseEmulationButton()
-  {
-    mPauseEmulationButton.setVisible(false);
-    mUnpauseEmulationButton.setVisible(true);
-  }
-
   public static boolean getHasUserPausedEmulation()
   {
     return sUserPausedEmulation;
-  }
-
-  public static void setHasUserPausedEmulation(boolean value)
-  {
-    sUserPausedEmulation = value;
   }
 
   private void toggleJoystickRelCenter(boolean state)
@@ -689,7 +667,6 @@ public final class EmulationActivity extends AppCompatActivity
     editor.apply();
     Rumble.setPhoneVibrator(state, this);
   }
-
 
   private void editControlsPlacement()
   {
