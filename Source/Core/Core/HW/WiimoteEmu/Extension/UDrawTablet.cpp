@@ -119,13 +119,6 @@ void UDrawTablet::Reset()
   m_reg.calibration.fill(0xff);
 }
 
-bool UDrawTablet::IsButtonPressed() const
-{
-  u8 buttons = 0;
-  m_buttons->GetState(&buttons, udraw_tablet_button_bitmasks.data());
-  return buttons != 0;
-}
-
 ControllerEmu::ControlGroup* UDrawTablet::GetGroup(UDrawTabletGroup group)
 {
   switch (group)

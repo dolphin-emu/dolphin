@@ -114,13 +114,6 @@ void Nunchuk::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = nc_data;
 }
 
-bool Nunchuk::IsButtonPressed() const
-{
-  u8 buttons = 0;
-  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
-  return buttons != 0;
-}
-
 void Nunchuk::Reset()
 {
   EncryptedExtension::Reset();
