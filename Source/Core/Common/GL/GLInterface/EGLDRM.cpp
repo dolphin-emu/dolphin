@@ -98,14 +98,14 @@ struct GFXContextDRMData
   drmModeEncoder* drm_encoder = nullptr;
 };
 
+/* TODO/FIXME - static globals */
+static GFXContextDRMData* g_drm = nullptr;
+
 struct drm_fb
 {
   struct gbm_bo* bo;
   uint32_t fb_id;
 };
-
-/* TODO/FIXME - static globals */
-static GFXContextDRMData* g_drm = nullptr;
 
 static void egl_swap_buffers(void* data)
 {
@@ -347,26 +347,26 @@ static bool egl_create_surface(EGLContextData* egl, void* native_window)
   return true;
 }
 
-static bool drm_wait_flip(int timeout)
+static bool drm_wait_flip(GFXContextDRMData* drm, int timeout)
 {
-  g_drm->drm_fds.revents = 0;
+  drm->drm_fds.revents = 0;
 
-  if (poll(&g_drm->drm_fds, 1, timeout) < 0)
+  if (poll(&drm->drm_fds, 1, timeout) < 0)
     return false;
 
-  if (g_drm->drm_fds.revents & (POLLHUP | POLLERR))
+  if (drm->drm_fds.revents & (POLLHUP | POLLERR))
     return false;
 
-  if (g_drm->drm_fds.revents & POLLIN)
+  if (drm->drm_fds.revents & POLLIN)
   {
-    drmHandleEvent(g_drm->drm_fd, &g_drm->drm_evctx);
+    drmHandleEvent(drm->drm_fd, &drm->drm_evctx);
     return true;
   }
 
   return false;
 }
 
-static bool drm_get_connector(int fd)
+static bool drm_get_connector(GFXContextDRMData* drm, int fd)
 {
   unsigned i;
   unsigned monitor_index_count = 0;
@@ -374,11 +374,11 @@ static bool drm_get_connector(int fd)
 
   /* Enumerate all connectors. */
 
-  INFO_LOG(VIDEO, "[DRM]: Found %d connectors.\n", g_drm->drm_resources->count_connectors);
+  INFO_LOG(VIDEO, "[DRM]: Found %d connectors.\n", drm->drm_resources->count_connectors);
 
-  for (i = 0; (int)i < g_drm->drm_resources->count_connectors; i++)
+  for (i = 0; (int)i < drm->drm_resources->count_connectors; i++)
   {
-    drmModeConnectorPtr conn = drmModeGetConnector(fd, g_drm->drm_resources->connectors[i]);
+    drmModeConnectorPtr conn = drmModeGetConnector(fd, drm->drm_resources->connectors[i]);
 
     if (conn)
     {
@@ -397,25 +397,24 @@ static bool drm_get_connector(int fd)
 
   monitor_index_count = 0;
 
-  for (i = 0; (int)i < g_drm->drm_resources->count_connectors; i++)
+  for (i = 0; (int)i < drm->drm_resources->count_connectors; i++)
   {
-    g_drm->drm_connector = drmModeGetConnector(fd, g_drm->drm_resources->connectors[i]);
+    drm->drm_connector = drmModeGetConnector(fd, drm->drm_resources->connectors[i]);
 
-    if (!g_drm->drm_connector)
+    if (!drm->drm_connector)
       continue;
-    if (g_drm->drm_connector->connection == DRM_MODE_CONNECTED &&
-        g_drm->drm_connector->count_modes > 0)
+    if (drm->drm_connector->connection == DRM_MODE_CONNECTED && drm->drm_connector->count_modes > 0)
     {
       monitor_index_count++;
       if (monitor_index_count == monitor)
         break;
     }
 
-    drmModeFreeConnector(g_drm->drm_connector);
-    g_drm->drm_connector = nullptr;
+    drmModeFreeConnector(drm->drm_connector);
+    drm->drm_connector = nullptr;
   }
 
-  if (!g_drm->drm_connector)
+  if (!drm->drm_connector)
   {
     INFO_LOG(VIDEO, "[DRM]: Couldn't get device connector.\n");
     return false;
@@ -423,35 +422,35 @@ static bool drm_get_connector(int fd)
   return true;
 }
 
-static bool drm_get_encoder(int fd)
+static bool drm_get_encoder(GFXContextDRMData* drm, int fd)
 {
   unsigned i;
 
-  for (i = 0; (int)i < g_drm->drm_resources->count_encoders; i++)
+  for (i = 0; (int)i < drm->drm_resources->count_encoders; i++)
   {
-    g_drm->drm_encoder = drmModeGetEncoder(fd, g_drm->drm_resources->encoders[i]);
+    drm->drm_encoder = drmModeGetEncoder(fd, drm->drm_resources->encoders[i]);
 
-    if (!g_drm->drm_encoder)
+    if (!drm->drm_encoder)
       continue;
 
-    if (g_drm->drm_encoder->encoder_id == g_drm->drm_connector->encoder_id)
+    if (drm->drm_encoder->encoder_id == drm->drm_connector->encoder_id)
       break;
 
-    drmModeFreeEncoder(g_drm->drm_encoder);
-    g_drm->drm_encoder = nullptr;
+    drmModeFreeEncoder(drm->drm_encoder);
+    drm->drm_encoder = nullptr;
   }
 
-  if (!g_drm->drm_encoder)
+  if (!drm->drm_encoder)
   {
     INFO_LOG(VIDEO, "[DRM]: Couldn't find DRM encoder.\n");
     return false;
   }
 
-  for (i = 0; (int)i < g_drm->drm_connector->count_modes; i++)
+  for (i = 0; (int)i < drm->drm_connector->count_modes; i++)
   {
-    INFO_LOG(VIDEO, "[DRM]: Mode %d: (%s) %d x %d, %u Hz\n", i, g_drm->drm_connector->modes[i].name,
-             g_drm->drm_connector->modes[i].hdisplay, g_drm->drm_connector->modes[i].vdisplay,
-             g_drm->drm_connector->modes[i].vrefresh);
+    INFO_LOG(VIDEO, "[DRM]: Mode %d: (%s) %d x %d, %u Hz\n", i, drm->drm_connector->modes[i].name,
+             drm->drm_connector->modes[i].hdisplay, drm->drm_connector->modes[i].vdisplay,
+             drm->drm_connector->modes[i].vrefresh);
   }
 
   return true;
@@ -461,13 +460,13 @@ static void drm_fb_destroy_callback(struct gbm_bo* bo, void* data)
 {
   struct drm_fb* fb = (struct drm_fb*)data;
 
-  if (fb && fb->fb_id)
+  if (fb && fb->fb_id && g_drm)
     drmModeRmFB(g_drm->drm_fd, fb->fb_id);
 
   free(fb);
 }
 
-static struct drm_fb* drm_fb_get_from_bo(struct gbm_bo* bo)
+static struct drm_fb* drm_fb_get_from_bo(GFXContextDRMData* drm, struct gbm_bo* bo)
 {
   int ret;
   unsigned width, height, stride, handle;
@@ -482,7 +481,7 @@ static struct drm_fb* drm_fb_get_from_bo(struct gbm_bo* bo)
 
   INFO_LOG(VIDEO, "[KMS]: New FB: %ux%u (stride: %u).\n", width, height, stride);
 
-  ret = drmModeAddFB(g_drm->drm_fd, width, height, 24, 32, stride, handle, &fb->fb_id);
+  ret = drmModeAddFB(drm->drm_fd, width, height, 24, 32, stride, handle, &fb->fb_id);
   if (ret < 0)
     goto error;
 
@@ -512,15 +511,12 @@ static bool gfx_ctx_drm_wait_flip(GFXContextDRMData* drm, bool block)
 
   while (drm->waiting_for_flip)
   {
-    if (!drm_wait_flip(timeout))
+    if (!drm_wait_flip(drm, timeout))
       break;
   }
 
   if (drm->waiting_for_flip)
-  {
-    INFO_LOG(VIDEO, "\nwait flip 2");
     return true;
-  }
 
   /* Page flip has taken place. */
 
@@ -539,9 +535,9 @@ static bool gfx_ctx_drm_queue_flip(GFXContextDRMData* drm)
   fb = (struct drm_fb*)gbm_bo_get_user_data(drm->next_bo);
 
   if (!fb)
-    fb = (struct drm_fb*)drm_fb_get_from_bo(drm->next_bo);
+    fb = (struct drm_fb*)drm_fb_get_from_bo(drm, drm->next_bo);
 
-  if (drmModePageFlip(g_drm->drm_fd, g_drm->crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
+  if (drmModePageFlip(drm->drm_fd, drm->crtc_id, fb->fb_id, DRM_MODE_PAGE_FLIP_EVENT,
                       &drm->waiting_for_flip) == 0)
     return true;
 
@@ -668,13 +664,13 @@ static void* gfx_ctx_drm_init()
     return nullptr;
   }
 
-  if (!drm_get_connector(fd))
+  if (!drm_get_connector(drm, fd))
   {
     INFO_LOG(VIDEO, "[KMS]: drm_get_connector failed\n");
     return nullptr;
   }
 
-  if (!drm_get_encoder(fd))
+  if (!drm_get_encoder(drm, fd))
   {
     INFO_LOG(VIDEO, "[KMS]: drm_get_encoder failed\n");
     return nullptr;
@@ -886,7 +882,7 @@ static bool gfx_ctx_drm_set_video_mode(void* data, unsigned width, unsigned heig
   fb = (struct drm_fb*)gbm_bo_get_user_data(drm->bo);
 
   if (!fb)
-    fb = drm_fb_get_from_bo(drm->bo);
+    fb = drm_fb_get_from_bo(drm, drm->bo);
 
   ret = drmModeSetCrtc(drm->drm_fd, drm->crtc_id, fb->fb_id, 0, 0, &drm->connector_id, 1,
                        drm->drm_mode);
