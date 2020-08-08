@@ -368,10 +368,15 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
   {
     u8* const ir_data = rpt.GetIRDataPtr();
 
-    u16 y = m_ir_y_value->value();
+    // The sensor bar is above the screen by default,
+    // and adding some fixed offset accommodates for that.
+    u16 y = m_ir_y_value->value() + 100;
     std::array<u16, 4> x;
-    x[0] = m_ir_x_value->value();
-    x[1] = x[0] + 100;
+    // Make up some x-coordinates of the sensor bar's 4 IR lights,
+    // so that their center will be at the desired x-coordinate.
+    u16 x_center = m_ir_x_value->value();
+    x[0] = x_center - 50;
+    x[1] = x_center + 50;
     x[2] = x[0] - 10;
     x[3] = x[1] + 10;
 
