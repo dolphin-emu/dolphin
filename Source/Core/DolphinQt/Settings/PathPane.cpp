@@ -42,10 +42,10 @@ void PathPane::Browse()
 
 void PathPane::BrowseDefaultGame()
 {
-  QString file = QDir::toNativeSeparators(QFileDialog::getOpenFileName(
-      this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.m3u);;"
-         "All Files (*)")));
+  QString file = QDir::toNativeSeparators(
+      QFileDialog::getOpenFileName(this, tr("Select a Game"), Settings::Instance().GetDefaultGame(),
+                                   tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs "
+                                      "*.ciso *.gcz *.wia *.rvz *.wad *.m3u);;All Files (*)")));
 
   if (!file.isEmpty())
     Settings::Instance().SetDefaultGame(file);

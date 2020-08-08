@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.content.Context;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -11,15 +12,16 @@ import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitiali
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public final class SettingsActivityPresenter
 {
   private static final String KEY_SHOULD_SAVE = "should_save";
 
   private SettingsActivityView mView;
 
-  private Settings mSettings = new Settings();
-
-  private int mStackCount;
+  private Settings mSettings;
 
   private boolean mShouldSave;
 
@@ -27,23 +29,23 @@ public final class SettingsActivityPresenter
 
   private MenuTag menuTag;
   private String gameId;
+  private Context context;
 
-  SettingsActivityPresenter(SettingsActivityView view)
+  private final Set<String> modifiedSettings = new HashSet<>();
+
+  SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
     mView = view;
+    mSettings = settings;
   }
 
-  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId)
+  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
   {
-    if (savedInstanceState == null)
-    {
-      this.menuTag = menuTag;
-      this.gameId = gameId;
-    }
-    else
-    {
-      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-    }
+    this.menuTag = menuTag;
+    this.gameId = gameId;
+    this.context = context;
+
+    mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
   }
 
   public void onStart()
@@ -113,11 +115,6 @@ public final class SettingsActivityPresenter
     }
   }
 
-  public void setSettings(Settings settings)
-  {
-    mSettings = settings;
-  }
-
   public Settings getSettings()
   {
     return mSettings;
@@ -126,7 +123,7 @@ public final class SettingsActivityPresenter
   public void clearSettings()
   {
     mSettings.clearSettings();
-    onSettingChanged();
+    onSettingChanged(null);
   }
 
   public void onStop(boolean finishing)
@@ -140,25 +137,7 @@ public final class SettingsActivityPresenter
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView);
-    }
-  }
-
-  public void addToStack()
-  {
-    mStackCount++;
-  }
-
-  public void onBackPressed()
-  {
-    if (mStackCount > 0)
-    {
-      mView.popBackStack();
-      mStackCount--;
-    }
-    else
-    {
-      mView.finish();
+      mSettings.saveSettings(mView, context, modifiedSettings);
     }
   }
 
@@ -174,8 +153,13 @@ public final class SettingsActivityPresenter
     return false;
   }
 
-  public void onSettingChanged()
+  public void onSettingChanged(String key)
   {
+    if (key != null)
+    {
+      modifiedSettings.add(key);
+    }
+
     mShouldSave = true;
   }
 
@@ -221,10 +205,5 @@ public final class SettingsActivityPresenter
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
       mView.showSettingsFragment(menuTag, bundle, true, gameId);
     }
-  }
-
-  public void onFileConfirmed(String file)
-  {
-    SettingsAdapter.onFilePickerConfirmation(file);
   }
 }

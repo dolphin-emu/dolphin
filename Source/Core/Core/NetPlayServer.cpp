@@ -377,15 +377,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (m_players.size() >= 255)
     return CON_ERR_SERVER_FULL;
 
-  // cause pings to be updated
-  m_update_pings = true;
-
   Client player;
   player.pid = pid;
   player.socket = socket;
 
   rpac >> player.revision;
   rpac >> player.name;
+
+  if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
+    return CON_ERR_NAME_TOO_LONG;
+
+  // cause pings to be updated
+  m_update_pings = true;
 
   // try to automatically assign new user a pad
   for (PlayerId& mapping : m_pad_map)
@@ -784,8 +787,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u8 size;
     packet >> map >> size;
     std::vector<u8> data(size);
-    for (size_t i = 0; i < data.size(); ++i)
-      packet >> data[i];
+    for (u8& byte : data)
+      packet >> byte;
 
     // If the data is not from the correct player,
     // then disconnect them.
@@ -1565,8 +1568,8 @@ bool NetPlayServer::SyncSaveData()
         // Header
         pac << sf::Uint64{header->tid};
         pac << header->banner_size << header->permissions << header->unk1;
-        for (size_t i = 0; i < header->md5.size(); i++)
-          pac << header->md5[i];
+        for (u8 byte : header->md5)
+          pac << byte;
         pac << header->unk2;
         for (size_t i = 0; i < header->banner_size; i++)
           pac << header->banner[i];
@@ -1575,11 +1578,11 @@ bool NetPlayServer::SyncSaveData()
         pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
             << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
             << bk_header->total_size;
-        for (size_t i = 0; i < bk_header->unk3.size(); i++)
-          pac << bk_header->unk3[i];
+        for (u8 byte : bk_header->unk3)
+          pac << byte;
         pac << sf::Uint64{bk_header->tid};
-        for (size_t i = 0; i < bk_header->mac_address.size(); i++)
-          pac << bk_header->mac_address[i];
+        for (u8 byte : bk_header->mac_address)
+          pac << byte;
 
         // Files
         for (const WiiSave::Storage::SaveFile& file : *files)

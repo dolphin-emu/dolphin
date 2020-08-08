@@ -23,6 +23,8 @@ public:
   u64 GetTimeDifference();
   void AddTimeDifference();
 
+  bool IsRunning() const { return m_Running; }
+
   static void IncreaseResolution();
   static void RestoreResolution();
   static u64 GetTimeSinceJan1970();
@@ -41,7 +43,7 @@ public:
 
   // Arbitrarily chosen value (38 years) that is subtracted in GetDoubleTime()
   // to increase sub-second precision of the resulting double timestamp
-  static const int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
+  static constexpr int DOUBLE_TIME_OFFSET = (38 * 365 * 24 * 60 * 60);
 
 private:
   u64 m_LastTime;

@@ -1212,8 +1212,8 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
 
     // Apply master volume to each quadrant.
-    for (size_t i = 0; i < 4; ++i)
-      quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> shift_factor;
+    for (s16& quadrant_volume : quadrant_volumes)
+      quadrant_volume = (quadrant_volume * vpb.dolby_volume_current) >> shift_factor;
 
     // Compute reverb volume and ramp deltas.
     s16 reverb_volumes[4], reverb_volume_deltas[4];
@@ -1400,9 +1400,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u32 mask = (1 << shift) - 1;
 
     u32 pos = vpb->current_pos_frac << shift;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
+      sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
       pos += vpb->resampling_ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
@@ -1412,9 +1412,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   case VPB::SRC_SAW_WAVE:
   {
     u32 pos = vpb->current_pos_frac;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = pos & 0xFFFF;
+      sample = pos & 0xFFFF;
       pos += (vpb->resampling_ratio) >> 1;
     }
     vpb->current_pos_frac = pos & 0xFFFF;
@@ -1758,10 +1758,9 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
-    for (size_t i = 0; i < 16; ++i)
+    for (s16 nibble : nibbles)
     {
-      s32 sample =
-          delta * nibbles[i] + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
+      s32 sample = delta * nibble + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
       sample >>= 11;
       sample = std::clamp(sample, -0x8000, 0x7fff);
       *dst++ = (s16)sample;

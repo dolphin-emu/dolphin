@@ -112,7 +112,6 @@ public final class MainPresenter
     {
       GameFileCache.addGameFolder(mDirToAdd, context);
       mDirToAdd = null;
-      GameFileCacheService.startRescan(context);
     }
   }
 

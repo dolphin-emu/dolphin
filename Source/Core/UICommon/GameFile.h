@@ -86,6 +86,10 @@ public:
   DiscIO::Country GetCountry() const { return m_country; }
   DiscIO::Platform GetPlatform() const { return m_platform; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
+  u64 GetBlockSize() const { return m_block_size; }
+  const std::string& GetCompressionMethod() const { return m_compression_method; }
+  bool ShouldShowFileFormatDetails() const;
+  std::string GetFileFormatName() const;
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }
@@ -112,6 +116,7 @@ private:
                                    const std::map<DiscIO::Language, std::string>& strings);
   const std::string&
   LookupUsingConfigLanguage(const std::map<DiscIO::Language, std::string>& strings) const;
+  std::string GetExtension() const;
   bool IsElfOrDol() const;
   bool ReadXMLMetadata(const std::string& path);
   bool ReadPNGBanner(const std::string& path);
@@ -144,6 +149,8 @@ private:
   DiscIO::Country m_country{DiscIO::Country::Unknown};
   DiscIO::Platform m_platform{};
   DiscIO::BlobType m_blob_type{};
+  u64 m_block_size{};
+  std::string m_compression_method{};
   u16 m_revision{};
   u8 m_disc_number{};
   std::string m_apploader_date;

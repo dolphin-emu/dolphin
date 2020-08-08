@@ -478,9 +478,9 @@ Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
   return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[index])));
 }
 
-Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptr(size_t index)
+Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptrs(size_t index)
 {
-  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptr[index])));
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptrs[index])));
 }
 
 }  // namespace DSP::JIT::x64

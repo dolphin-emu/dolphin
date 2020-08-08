@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
@@ -50,8 +51,17 @@ public final class GameDetailsDialog extends DialogFragment
     TextView textGameId = contents.findViewById(R.id.text_game_id);
     TextView textRevision = contents.findViewById(R.id.text_revision);
 
+    TextView textFileFormat = contents.findViewById(R.id.text_file_format);
+    TextView textCompression = contents.findViewById(R.id.text_compression);
+    TextView textBlockSize = contents.findViewById(R.id.text_block_size);
+
+    TextView labelFileFormat = contents.findViewById(R.id.label_file_format);
+    TextView labelCompression = contents.findViewById(R.id.label_compression);
+    TextView labelBlockSize = contents.findViewById(R.id.label_block_size);
+
     String country = getResources().getStringArray(R.array.countryNames)[gameFile.getCountry()];
     String description = gameFile.getDescription();
+    String fileSize = NativeLibrary.FormatSize(gameFile.getFileSize(), 2);
 
     textTitle.setText(gameFile.getTitle());
     textDescription.setText(gameFile.getDescription());
@@ -59,10 +69,48 @@ public final class GameDetailsDialog extends DialogFragment
     {
       textDescription.setVisibility(View.GONE);
     }
+
     textCountry.setText(country);
     textCompany.setText(gameFile.getCompany());
     textGameId.setText(gameFile.getGameId());
     textRevision.setText(Integer.toString(gameFile.getRevision()));
+
+    if (!gameFile.shouldShowFileFormatDetails())
+    {
+      labelFileFormat.setText(R.string.game_details_file_size);
+      textFileFormat.setText(fileSize);
+
+      labelCompression.setVisibility(View.GONE);
+      textCompression.setVisibility(View.GONE);
+      labelBlockSize.setVisibility(View.GONE);
+      textBlockSize.setVisibility(View.GONE);
+    }
+    else
+    {
+      long blockSize = gameFile.getBlockSize();
+      String compression = gameFile.getCompressionMethod();
+
+      textFileFormat.setText(String.format("%1$s (%2$s)", gameFile.getBlobTypeString(), fileSize));
+
+      if (compression.isEmpty())
+      {
+        textCompression.setText(R.string.game_details_no_compression);
+      }
+      else
+      {
+        textCompression.setText(gameFile.getCompressionMethod());
+      }
+
+      if (blockSize > 0)
+      {
+        textBlockSize.setText(NativeLibrary.FormatSize(blockSize, 0));
+      }
+      else
+      {
+        labelBlockSize.setVisibility(View.GONE);
+        textBlockSize.setVisibility(View.GONE);
+      }
+    }
 
     PicassoUtils.loadGameBanner(banner, gameFile);
 

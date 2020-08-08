@@ -69,9 +69,8 @@ public final class CoverHelper
       cover.compress(Bitmap.CompressFormat.PNG, 100, out);
       out.close();
     }
-    catch (Exception e)
+    catch (Exception ignored)
     {
-      // Do nothing
     }
   }
 }

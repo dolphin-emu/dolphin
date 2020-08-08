@@ -6,7 +6,10 @@
 
 #include <array>
 #include <memory>
+
 #include "Common/CommonTypes.h"
+
+#include "Core/HW/GCMemcard/GCMemcard.h"
 
 class PointerWrap;
 
@@ -23,7 +26,7 @@ enum TEXIDevices : int;
 class CEXIChannel
 {
 public:
-  explicit CEXIChannel(u32 channel_id);
+  explicit CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_header_data);
   ~CEXIChannel();
 
   // get device
@@ -106,6 +109,15 @@ private:
   UEXI_CONTROL m_control;
   u32 m_imm_data = 0;
 
+  // Since channels operate a bit differently from each other
+  u32 m_channel_id;
+
+  // This data is needed in order to reinitialize a GCI folder memory card when switching between
+  // GCI folder and other devices in the memory card slot or after loading a savestate. Even though
+  // this data is only vaguely related to the EXI_Channel, this seems to be the best place to store
+  // it, as this class creates the CEXIMemoryCard instances.
+  Memcard::HeaderData m_memcard_header_data;
+
   // Devices
   enum
   {
@@ -113,8 +125,5 @@ private:
   };
 
   std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_devices;
-
-  // Since channels operate a bit differently from each other
-  u32 m_channel_id;
 };
 }  // namespace ExpansionInterface

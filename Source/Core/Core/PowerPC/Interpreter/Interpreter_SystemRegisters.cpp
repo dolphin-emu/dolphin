@@ -459,6 +459,37 @@ void Interpreter::mtspr(UGeckoInstruction inst)
       PowerPC::IBATUpdated();
     }
     break;
+
+  case SPR_THRM1:
+  case SPR_THRM2:
+  case SPR_THRM3:
+  {
+    // We update both THRM1 and THRM2 when either of the 3 thermal control
+    // registers are updated. THRM1 and THRM2 are independent, but THRM3 has
+    // settings that impact both.
+    //
+    // TODO: Support thermal interrupts when enabled.
+    constexpr u32 SIMULATED_TEMP = 42;  // °C
+
+    auto UpdateThermalReg = [](UReg_THRM12* reg) {
+      if (!THRM3.E || !reg->V)
+      {
+        reg->TIV = 0;
+      }
+      else
+      {
+        reg->TIV = 1;
+        if (reg->TID)
+          reg->TIN = SIMULATED_TEMP < reg->THRESHOLD;
+        else
+          reg->TIN = SIMULATED_TEMP > reg->THRESHOLD;
+      }
+    };
+
+    UpdateThermalReg(&THRM1);
+    UpdateThermalReg(&THRM2);
+    break;
+  }
   }
 }
 

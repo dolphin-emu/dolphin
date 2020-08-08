@@ -44,6 +44,21 @@ u64 VolumeFileBlobReader::GetRawSize() const
   return GetDataSize();
 }
 
+u64 VolumeFileBlobReader::GetBlockSize() const
+{
+  return m_volume.GetBlobReader().GetBlockSize();
+}
+
+bool VolumeFileBlobReader::HasFastRandomAccessInBlock() const
+{
+  return m_volume.GetBlobReader().HasFastRandomAccessInBlock();
+}
+
+std::string VolumeFileBlobReader::GetCompressionMethod() const
+{
+  return m_volume.GetBlobReader().GetCompressionMethod();
+}
+
 bool VolumeFileBlobReader::Read(u64 offset, u64 length, u8* out_ptr)
 {
   if (offset + length > m_file_info->GetSize())

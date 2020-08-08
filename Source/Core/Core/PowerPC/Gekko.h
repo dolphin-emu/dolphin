@@ -744,6 +744,38 @@ union UReg_BAT_Lo
   explicit UReg_BAT_Lo(u32 hex_) : Hex{hex_} {}
 };
 
+union UReg_THRM12
+{
+  struct
+  {
+    u32 V : 1;    // Valid
+    u32 TIE : 1;  // Thermal Interrupt Enable
+    u32 TID : 1;  // Thermal Interrupt Direction
+    u32 : 20;
+    u32 THRESHOLD : 7;  // Temperature Threshold, 0-127°C
+    u32 TIV : 1;        // Thermal Interrupt Valid
+    u32 TIN : 1;        // Thermal Interrupt
+  };
+  u32 Hex = 0;
+
+  UReg_THRM12() = default;
+  explicit UReg_THRM12(u32 hex_) : Hex{hex_} {}
+};
+
+union UReg_THRM3
+{
+  struct
+  {
+    u32 E : 1;      // Enable
+    u32 SITV : 13;  // Sample Interval Timer Value
+    u32 : 18;
+  };
+  u32 Hex = 0;
+
+  UReg_THRM3() = default;
+  explicit UReg_THRM3(u32 hex_) : Hex{hex_} {}
+};
+
 union UReg_PTE
 {
   struct
@@ -854,6 +886,10 @@ enum
   SPR_MMCR1 = 956,
   SPR_PMC3 = 957,
   SPR_PMC4 = 958,
+
+  SPR_THRM1 = 1020,
+  SPR_THRM2 = 1021,
+  SPR_THRM3 = 1022,
 };
 
 // Exceptions

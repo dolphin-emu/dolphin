@@ -14,6 +14,11 @@
 class QCheckBox;
 class QComboBox;
 
+namespace DiscIO
+{
+enum class WIARVZCompressionType : u32;
+}
+
 namespace UICommon
 {
 class GameFile;
@@ -29,16 +34,20 @@ public:
 
 private slots:
   void OnFormatChanged();
+  void OnCompressionChanged();
   void Convert();
 
 private:
-  void AddToFormatComboBox(const QString& name, DiscIO::BlobType format);
   void AddToBlockSizeComboBox(int size);
+  void AddToCompressionComboBox(const QString& name, DiscIO::WIARVZCompressionType type);
+  void AddToCompressionLevelComboBox(int level);
 
   bool ShowAreYouSureDialog(const QString& text);
 
   QComboBox* m_format;
   QComboBox* m_block_size;
+  QComboBox* m_compression;
+  QComboBox* m_compression_level;
   QCheckBox* m_scrub;
   QList<std::shared_ptr<const UICommon::GameFile>> m_files;
 };

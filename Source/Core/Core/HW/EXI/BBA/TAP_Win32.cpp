@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/EXI/BBA-TAP/TAP_Win32.h"
+#include "Core/HW/EXI/BBA/TAP_Win32.h"
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -167,7 +167,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 
 namespace ExpansionInterface
 {
-bool CEXIETHERNET::Activate()
+bool CEXIETHERNET::TAPNetworkInterface::Activate()
 {
   if (IsActivated())
     return true;
@@ -233,7 +233,7 @@ bool CEXIETHERNET::Activate()
   return RecvInit();
 }
 
-void CEXIETHERNET::Deactivate()
+void CEXIETHERNET::TAPNetworkInterface::Deactivate()
 {
   if (!IsActivated())
     return;
@@ -258,19 +258,19 @@ void CEXIETHERNET::Deactivate()
   memset(&mWriteOverlapped, 0, sizeof(mWriteOverlapped));
 }
 
-bool CEXIETHERNET::IsActivated()
+bool CEXIETHERNET::TAPNetworkInterface::IsActivated()
 {
   return mHAdapter != INVALID_HANDLE_VALUE;
 }
 
-void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
+void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* self)
 {
   while (!self->readThreadShutdown.IsSet())
   {
     DWORD transferred;
 
     // Read from TAP into internal buffer.
-    if (ReadFile(self->mHAdapter, self->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
+    if (ReadFile(self->mHAdapter, self->m_eth_ref->mRecvBuffer.get(), BBA_RECV_SIZE, &transferred,
                  &self->mReadOverlapped))
     {
       // Returning immediately is not likely to happen, but if so, reset the event state manually.
@@ -300,16 +300,16 @@ void CEXIETHERNET::ReadThreadHandler(CEXIETHERNET* self)
 
     // Copy to BBA buffer, and fire interrupt if enabled.
     DEBUG_LOG(SP1, "Received %u bytes:\n %s", transferred,
-              ArrayToString(self->mRecvBuffer.get(), transferred, 0x10).c_str());
+              ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10).c_str());
     if (self->readEnabled.IsSet())
     {
-      self->mRecvBufferLength = transferred;
-      self->RecvHandlePacket();
+      self->m_eth_ref->mRecvBufferLength = transferred;
+      self->m_eth_ref->RecvHandlePacket();
     }
   }
 }
 
-bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
+bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
   DEBUG_LOG(SP1, "SendFrame %u bytes:\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
@@ -345,22 +345,22 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
   }
 
   // Always report the packet as being sent successfully, even though it might be a lie
-  SendComplete();
+  m_eth_ref->SendComplete();
   return true;
 }
 
-bool CEXIETHERNET::RecvInit()
+bool CEXIETHERNET::TAPNetworkInterface::RecvInit()
 {
   readThread = std::thread(ReadThreadHandler, this);
   return true;
 }
 
-void CEXIETHERNET::RecvStart()
+void CEXIETHERNET::TAPNetworkInterface::RecvStart()
 {
   readEnabled.Set();
 }
 
-void CEXIETHERNET::RecvStop()
+void CEXIETHERNET::TAPNetworkInterface::RecvStop()
 {
   readEnabled.Clear();
 }

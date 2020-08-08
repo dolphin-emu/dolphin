@@ -1944,16 +1944,16 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    LRR $D, @$S
+    LRR $D, @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
+    \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
           Perform an additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $D = MEM[$S]
+    $D = MEM[$arS]
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1964,18 +1964,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    LRRD $D, @$S
+    LRRD $D, @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
-          Decrements register \Register{\$S}.
+    \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
+          Decrements register \Register{\$arS}.
           Perform additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $D = MEM[$S]
-    $S--
+    $D = MEM[$arS]
+    $arS--
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -1986,18 +1986,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    LRRI $D, @$S
+    LRRI $D, @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
-          Increments register \Register{\$S}.
+    \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
+          Increments register \Register{\$arS}.
           Perform additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $D = MEM[$S]
-    $S++
+    $D = MEM[$arS]
+    $arS++
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2008,18 +2008,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    LRRN $D, @$S
+    LRRN $D, @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Move value from data memory pointed by addressing register \Register{\$S} to register \Register{\$D}.
-          Add indexing register \Register{\$(0x4+S)} to register \Register{\$S}.
+    \item Move value from data memory pointed by addressing register \Register{\$arS} to register \Register{\$D}.
+          Add indexing register \Register{\$ixS} to register \Register{\$arS}.
           Perform additional operation depending on destination register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $D = MEM[$S]
-    $S += $(4+S)
+    $D = MEM[$arS]
+    $arS += $ixS
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -2995,16 +2995,16 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRR @$D, $S
+    SRR @$arD, $S
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$D}. Perform additional operation depending on source register.
+          register \Register{\$arD}. Perform additional operation depending on source register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $S
+    MEM[$arD] = $S
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3015,17 +3015,17 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRRD @$D, $S
+    SRRD @$arD, $S
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$D}. Decrement register \Register{\$D}. Perform additional operation depending on source register.
+          register \Register{\$arD}. Decrement register \Register{\$arD}. Perform additional operation depending on source register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $S
-    $D--
+    MEM[$arD] = $S
+    $arD--
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3036,17 +3036,17 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRRI @$D, $S
+    SRRI @$arD, $S
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$D}. Increment register \Register{\$D}. Perform additional operation depending on source register.
+          register \Register{\$arD}. Increment register \Register{\$arD}. Perform additional operation depending on source register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $S
-    $D++
+    MEM[$arD] = $S
+    $arD++
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3057,18 +3057,18 @@ There are two pairs of conditions that work similar: \texttt{EQ}/\texttt{NE} and
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    SRRN @$D, $S
+    SRRN @$arD, $S
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
     \item Store value from source register \Register{\$S} to a memory location pointed by addressing
-          register \Register{\$D}. Add indexing register \Register{\$(0x4+D)} to register \Register{\$D}.
+          register \Register{\$arD}. Add indexing register \Register{\$ixD} to register \Register{\$arD}.
           Perform additional operation depending on source register.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $S
-    $D += $(4+D)
+    MEM[$arD] = $S
+    $arD += $ixD
     $pc++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
@@ -3305,17 +3305,17 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'L $(0x18+D), @$S
+    'L $(0x18+D), @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$S}.
-          Post increment register \Register{\$S}.
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
+          Post increment register \Register{\$arS}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$S]
-    $S++
+    $(0x18+D) = MEM[$arS]
+    $arS++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3325,17 +3325,17 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'LN $(0x18+D), @$S
+    'LN $(0x18+D), @$arS
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$S}.
-          Add indexing register register \Register{\$(0x04+S)} to register \Register{\$S}.
+    \item Load register \Register{\$(0x18+D)} with value from memory pointed by register \Register{\$arS}.
+          Add indexing register \Register{\$ixS} to register \Register{\$arS}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    $(0x18+D) = MEM[$S]
-    $S += $(0x04+S)
+    $(0x18+D) = MEM[$arS]
+    $arS += $ixS
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3474,17 +3474,17 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'S @$D, $(0x1c+D)
+    'S @$D, $(0x1c+S)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$D}.
-          Post increment register \Register{\$D}.
+    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
+          Post increment register \Register{\$arD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $(0x1c+D)
-    $S++
+    MEM[$arD] = $(0x1c+S)
+    $arD++
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 
@@ -3587,17 +3587,17 @@ allow extending (8 lower bits of opcode not used by opcode). Extended opcodes do
   \end{DSPOpcodeBytefield}
 
   \begin{DSPOpcodeFormat}
-    'SN @$D, $(0x1c+D)
+    'SN @$arD, $(0x1c+S)
   \end{DSPOpcodeFormat}
 
   \begin{DSPOpcodeDescription}
-    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$D}.
-          Add indexing register register \Register{\$(0x04+D)} to register \Register{\$D}.
+    \item Store value of register \Register{\$(0x1c+S)} in the memory pointed by register \Register{\$arD}.
+          Add indexing register \Register{\$ixD} to register \Register{\$arD}.
   \end{DSPOpcodeDescription}
 
   \begin{DSPOpcodeOperation}
-    MEM[$D] = $(0x1c+D)
-    $D += $(0x04+D)
+    MEM[$arD] = $(0x1c+S)
+    $arD += $ixD
   \end{DSPOpcodeOperation}
 \end{DSPOpcode}
 

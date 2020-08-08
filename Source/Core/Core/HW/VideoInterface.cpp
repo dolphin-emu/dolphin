@@ -60,7 +60,9 @@ static UVIBorderBlankRegister m_BorderHBlank;
 // 0xcc002076 - 0xcc00207f is full of 0x00FF: unknown
 // 0xcc002080 - 0xcc002100 even more unknown
 
-static u32 s_target_refresh_rate = 0;
+static double s_target_refresh_rate = 0;
+static u32 s_target_refresh_rate_numerator = 0;
+static u32 s_target_refresh_rate_denominator = 1;
 
 static constexpr std::array<u32, 2> s_clock_freqs{{
     27000000,
@@ -102,14 +104,11 @@ void DoState(PointerWrap& p)
   p.Do(m_DTVStatus);
   p.Do(m_FBWidth);
   p.Do(m_BorderHBlank);
-  p.Do(s_target_refresh_rate);
   p.Do(s_ticks_last_line_start);
   p.Do(s_half_line_count);
   p.Do(s_half_line_of_next_si_poll);
-  p.Do(s_even_field_first_hl);
-  p.Do(s_odd_field_first_hl);
-  p.Do(s_even_field_last_hl);
-  p.Do(s_odd_field_last_hl);
+
+  UpdateParameters();
 }
 
 // Executed after Init, before game boot
@@ -698,13 +697,25 @@ void UpdateParameters()
   s_even_field_first_hl = equ_hl + m_VBlankTimingEven.PRB + GetHalfLinesPerOddField();
   s_even_field_last_hl = s_even_field_first_hl + acv_hl - 1;
 
-  s_target_refresh_rate = lround(2.0 * SystemTimers::GetTicksPerSecond() /
-                                 (GetTicksPerEvenField() + GetTicksPerOddField()));
+  s_target_refresh_rate_numerator = SystemTimers::GetTicksPerSecond() * 2;
+  s_target_refresh_rate_denominator = GetTicksPerEvenField() + GetTicksPerOddField();
+  s_target_refresh_rate =
+      static_cast<double>(s_target_refresh_rate_numerator) / s_target_refresh_rate_denominator;
 }
 
-u32 GetTargetRefreshRate()
+double GetTargetRefreshRate()
 {
   return s_target_refresh_rate;
+}
+
+u32 GetTargetRefreshRateNumerator()
+{
+  return s_target_refresh_rate_numerator;
+}
+
+u32 GetTargetRefreshRateDenominator()
+{
+  return s_target_refresh_rate_denominator;
 }
 
 u32 GetTicksPerSample()
@@ -820,7 +831,8 @@ void Update(u64 ticks)
   // Movie's frame counter should be updated before actually rendering the frame,
   // in case frame counter display is enabled
 
-  Movie::FrameUpdate();
+  if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())
+    Movie::FrameUpdate();
 
   // If this half-line is at some boundary of the "active video lines" in either field, we either
   // need to (a) send a request to the GPU thread to actually render the XFB, or (b) increment
@@ -843,7 +855,7 @@ void Update(u64 ticks)
     EndField();
   }
 
-  // If this half-line is at a field boundary, deal with updating movie state before potentially
+  // If this half-line is at a field boundary, deal with frame stepping before potentially
   // dealing with SI polls, but after potentially sending a swap request to the GPU thread
 
   if (s_half_line_count == 0 || s_half_line_count == GetHalfLinesPerEvenField())

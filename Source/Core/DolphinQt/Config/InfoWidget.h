@@ -26,8 +26,9 @@ private:
   void ChangeLanguage();
   void SaveBanner();
 
+  QGroupBox* CreateFileDetails();
+  QGroupBox* CreateGameDetails();
   QGroupBox* CreateBannerDetails();
-  QGroupBox* CreateISODetails();
   QLineEdit* CreateValueDisplay(const QString& value);
   QLineEdit* CreateValueDisplay(const std::string& value = "");
   void CreateLanguageSelector();

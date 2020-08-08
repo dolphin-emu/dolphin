@@ -50,12 +50,12 @@ import org.dolphinemu.dolphinemu.utils.Log;
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Map;
 
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
   private SettingsFragmentView mView;
-  private static SettingsFragmentView sView;
   private Context mContext;
   private ArrayList<SettingsItem> mSettings;
 
@@ -66,14 +66,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   private AlertDialog mDialog;
   private TextView mTextSliderValue;
 
-  // TODO: Properly restore these two on activity recreation
-  private static FilePicker sFilePicker;
-  private static SettingsItem sItem;
-
   public SettingsAdapter(SettingsFragmentView view, Context context)
   {
     mView = view;
-    sView = view;
     mContext = context;
     mClickedPosition = -1;
   }
@@ -182,7 +177,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
     }
 
-    mView.onSettingChanged();
+    mView.onSettingChanged(item.getKey());
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -294,7 +289,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         mView.putSetting(setting);
       }
 
-      mView.onSettingChanged();
+      mView.onSettingChanged(item.getKey());
     });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
@@ -302,19 +297,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void onFilePickerDirectoryClick(SettingsItem item)
   {
-    sFilePicker = (FilePicker) item;
-    sItem = item;
+    mClickedItem = item;
 
     FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
   }
 
   public void onFilePickerFileClick(SettingsItem item)
   {
-    sFilePicker = (FilePicker) item;
-    sItem = item;
+    mClickedItem = item;
+    FilePicker filePicker = (FilePicker) item;
 
     HashSet<String> extensions;
-    switch (sFilePicker.getRequestType())
+    switch (filePicker.getRequestType())
     {
       case MainPresenter.REQUEST_SD_FILE:
         extensions = FileBrowserHelper.RAW_EXTENSION;
@@ -329,17 +323,22 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         throw new InvalidParameterException("Unhandled request code");
     }
 
-    FileBrowserHelper.openFilePicker(mView.getActivity(), sFilePicker.getRequestType(), false,
+    FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
             extensions);
   }
 
-  public static void onFilePickerConfirmation(String file)
+  public void onFilePickerConfirmation(String file)
   {
-    NativeLibrary.SetConfig(sFilePicker.getFile(), sItem.getSection(), sItem.getKey(), file);
+    FilePicker filePicker = (FilePicker) mClickedItem;
+
+    NativeLibrary.SetConfig(filePicker.getFile(), filePicker.getSection(), filePicker.getKey(),
+            file);
     NativeLibrary.ReloadConfig();
+
+    mClickedItem = null;
   }
 
-  public static void resetPaths()
+  public void resetPaths()
   {
     StringSetting defaultISO =
             new StringSetting(SettingsFile.KEY_DEFAULT_ISO, Settings.SECTION_INI_CORE, "");
@@ -359,14 +358,44 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
             new StringSetting(SettingsFile.KEY_WII_SD_CARD_PATH, Settings.SECTION_INI_GENERAL,
                     SettingsFragmentPresenter.getDefaultSDPath());
 
-    sView.putSetting(defaultISO);
-    sView.putSetting(NANDRootPath);
-    sView.putSetting(dumpPath);
-    sView.putSetting(loadPath);
-    sView.putSetting(resourcePackPath);
-    sView.putSetting(sdPath);
+    mView.putSetting(defaultISO);
+    mView.putSetting(NANDRootPath);
+    mView.putSetting(dumpPath);
+    mView.putSetting(loadPath);
+    mView.putSetting(resourcePackPath);
+    mView.putSetting(sdPath);
 
-    sView.onSettingChanged();
+    mView.onSettingChanged(null);
+  }
+
+  public void setAllLogTypes(String value)
+  {
+    for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
+    {
+      mView.putSetting(new StringSetting(entry.getKey(), Settings.SECTION_LOGGER_LOGS, value));
+    }
+    mView.onSettingChanged(null);
+  }
+
+  private void handleMenuTag(MenuTag menuTag, int value)
+  {
+    if (menuTag != null)
+    {
+      if (menuTag.isGCPadMenu())
+      {
+        mView.onGcPadSettingChanged(menuTag, value);
+      }
+
+      if (menuTag.isWiimoteMenu())
+      {
+        mView.onWiimoteSettingChanged(menuTag, value);
+      }
+
+      if (menuTag.isWiimoteExtensionMenu())
+      {
+        mView.onExtensionSettingChanged(menuTag, value);
+      }
+    }
   }
 
   @Override
@@ -378,51 +407,15 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue() != value)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
-      MenuTag menuTag = scSetting.getMenuTag();
-      if (menuTag != null)
-      {
-        if (menuTag.isGCPadMenu())
-        {
-          mView.onGcPadSettingChanged(menuTag, value);
-        }
-
-        if (menuTag.isWiimoteMenu())
-        {
-          mView.onWiimoteSettingChanged(menuTag, value);
-        }
-
-        if (menuTag.isWiimoteExtensionMenu())
-        {
-          mView.onExtensionSettingChanged(menuTag, value);
-        }
-      }
+      handleMenuTag(scSetting.getMenuTag(), value);
 
       // Get the backing Setting, which may be null (if for example it was missing from the file)
       IntSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
       {
         mView.putSetting(setting);
-      }
-      else
-      {
-        if (scSetting.getKey().equals(SettingsFile.KEY_VIDEO_BACKEND_INDEX))
-        {
-          putVideoBackendSetting(which);
-        }
-        else if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
-        {
-          putExtensionSetting(which, Character.getNumericValue(
-                  scSetting.getSection().charAt(scSetting.getSection().length() - 1)), false);
-        }
-        else if (scSetting.getKey().contains(SettingsFile.KEY_WIIMOTE_EXTENSION) &&
-                scSetting.getSection().equals(Settings.SECTION_CONTROLS))
-        {
-          putExtensionSetting(which, Character
-                          .getNumericValue(scSetting.getKey().charAt(scSetting.getKey().length() - 1)),
-                  true);
-        }
       }
 
       closeDialog();
@@ -434,7 +427,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which);
       if (scSetting.getSelectedValue() != value)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       // Get the backing Setting, which may be null (if for example it was missing from the file)
       IntSetting setting = scSetting.setSelectedValue(value);
@@ -450,7 +443,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue().equals(value))
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
+
+      handleMenuTag(scSetting.getMenuTag(), which);
 
       StringSetting setting = scSetting.setSelectedValue(value);
       if (setting != null)
@@ -464,7 +459,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       SliderSetting sliderSetting = (SliderSetting) mClickedItem;
       if (sliderSetting.getSelectedValue() != mSeekbarProgress)
-        mView.onSettingChanged();
+        mView.onSettingChanged(mClickedItem.getKey());
 
       if (sliderSetting.isPercentSetting() || sliderSetting.getSetting() instanceof FloatSetting)
       {
@@ -612,53 +607,5 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     }
 
     return -1;
-  }
-
-  private void putVideoBackendSetting(int which)
-  {
-    StringSetting gfxBackend = null;
-    switch (which)
-    {
-      case 0:
-        gfxBackend =
-                new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE, "OGL");
-        break;
-
-      case 1:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Vulkan");
-        break;
-
-      case 2:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Software Renderer");
-        break;
-
-      case 3:
-        gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, Settings.SECTION_INI_CORE,
-                "Null");
-        break;
-    }
-
-    mView.putSetting(gfxBackend);
-  }
-
-  private void putExtensionSetting(int which, int wiimoteNumber, boolean isGame)
-  {
-    if (!isGame)
-    {
-      StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION,
-              Settings.SECTION_WIIMOTE + wiimoteNumber,
-              mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-      mView.putSetting(extension);
-    }
-    else
-    {
-      StringSetting extension =
-              new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION + wiimoteNumber,
-                      Settings.SECTION_CONTROLS, mContext.getResources()
-                      .getStringArray(R.array.wiimoteExtensionsEntries)[which]);
-      mView.putSetting(extension);
-    }
   }
 }

@@ -124,8 +124,10 @@
     <QtMoc Include="Config\Graphics\HacksWidget.h" />
     <QtMoc Include="Config\Graphics\PostProcessingConfigWindow.h" />
     <QtMoc Include="Config\Graphics\SoftwareRendererWidget.h" />
+    <QtMoc Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.h" />
     <QtMoc Include="Config\ControllerInterface\DualShockUDPClientWidget.h" />
     <QtMoc Include="Config\ControllerInterface\ControllerInterfaceWindow.h" />
+    <QtMoc Include="Config\ControllerInterface\ServerStringValidator.h" />
     <QtMoc Include="Config\InfoWidget.h" />
     <QtMoc Include="Config\PatchesWidget.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
@@ -178,6 +180,7 @@
     <QtMoc Include="NetPlay\NetPlayDialog.h" />
     <QtMoc Include="NetPlay\NetPlaySetupDialog.h" />
     <QtMoc Include="NetPlay\PadMappingDialog.h" />
+    <QtMoc Include="NKitWarningDialog.h" />
     <QtMoc Include="QtUtils\AspectRatioWidget.h" />
     <QtMoc Include="QtUtils\BlockUserInputFilter.h" />
     <QtMoc Include="QtUtils\DoubleClickEventFilter.h" />
@@ -186,6 +189,7 @@
     <QtMoc Include="QtUtils\FlowLayout.h" />
     <QtMoc Include="QtUtils\ModalMessageBox.h" />
     <QtMoc Include="QtUtils\ParallelProgressDialog.h" />
+    <QtMoc Include="QtUtils\UTF8CodePointCountValidator.h" />
     <QtMoc Include="QtUtils\WindowActivationEventFilter.h" />
     <QtMoc Include="QtUtils\WrapInScrollArea.h" />
     <QtMoc Include="RenderWidget.h" />
@@ -212,8 +216,10 @@
     <ClCompile Include="$(QtMocOutPrefix)ChunkedProgressDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeViewWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)CodeWidget.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DualShockUDPClientWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllerInterfaceWindow.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)ServerStringValidator.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ControllersWindow.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ConvertDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)DiscordHandler.cpp" />
@@ -289,8 +295,10 @@
     <ClCompile Include="$(QtMocOutPrefix)NetPlaySetupDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewBreakpointDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)NewPatchDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)NKitWarningDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PadMappingDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)ParallelProgressDialog.cpp" />
+    <ClCompile Include="$(QtMocOutPrefix)UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PatchesWidget.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PatchInstructionDialog.cpp" />
     <ClCompile Include="$(QtMocOutPrefix)PathPane.cpp" />
@@ -325,8 +333,10 @@
     <ClCompile Include="Config\CheatCodeEditor.cpp" />
     <ClCompile Include="Config\ARCodeWidget.cpp" />
     <ClCompile Include="Config\CheatWarningWidget.cpp" />
+    <ClCompile Include="Config\ControllerInterface\DualShockUDPClientAddServerDialog.cpp" />
     <ClCompile Include="Config\ControllerInterface\DualShockUDPClientWidget.cpp" />
     <ClCompile Include="Config\ControllerInterface\ControllerInterfaceWindow.cpp" />
+    <ClCompile Include="Config\ControllerInterface\ServerStringValidator.cpp" />
     <ClCompile Include="Config\ControllersWindow.cpp" />
     <ClCompile Include="Config\FilesystemWidget.cpp" />
     <ClCompile Include="Config\GameConfigEdit.cpp" />
@@ -392,6 +402,7 @@
     <ClCompile Include="DiscordJoinRequestDialog.cpp" />
     <ClCompile Include="FIFO\FIFOAnalyzer.cpp" />
     <ClCompile Include="FIFO\FIFOPlayerWindow.cpp" />
+    <ClCompile Include="NKitWarningDialog.cpp" />
     <ClCompile Include="QtUtils\WinIconHelper.cpp" />
     <ClCompile Include="ResourcePackManager.cpp" />
     <ClCompile Include="TAS\GCTASInputWindow.cpp" />
@@ -433,6 +444,7 @@
     <ClCompile Include="QtUtils\FlowLayout.cpp" />
     <ClCompile Include="QtUtils\ImageConverter.cpp" />
     <ClCompile Include="QtUtils\ModalMessageBox.cpp" />
+    <ClCompile Include="QtUtils\UTF8CodePointCountValidator.cpp" />
     <ClCompile Include="QtUtils\WindowActivationEventFilter.cpp" />
     <ClCompile Include="QtUtils\WrapInScrollArea.cpp" />
     <ClCompile Include="RenderWidget.cpp" />
@@ -457,7 +469,6 @@
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Debugger\RegisterColumn.h" />
     <ClInclude Include="QtUtils\ActionHelper.h" />
-    <ClInclude Include="QtUtils\FontMetricsHelper.h" />
     <ClInclude Include="QtUtils\ImageConverter.h" />
     <ClInclude Include="QtUtils\QueueOnObject.h" />
     <ClInclude Include="QtUtils\RunOnObject.h" />

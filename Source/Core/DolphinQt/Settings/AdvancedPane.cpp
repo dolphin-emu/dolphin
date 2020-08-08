@@ -64,6 +64,8 @@ void AdvancedPane::CreateLayout()
   cpu_options_layout->addLayout(cpu_emulation_layout);
 
   m_enable_mmu_checkbox = new QCheckBox(tr("Enable MMU"));
+  m_enable_mmu_checkbox->setToolTip(tr(
+      "Enables the Memory Management Unit, needed for some games. (ON = Compatible, OFF = Fast)"));
   cpu_options_layout->addWidget(m_enable_mmu_checkbox);
 
   auto* clock_override = new QGroupBox(tr("Clock Override"));

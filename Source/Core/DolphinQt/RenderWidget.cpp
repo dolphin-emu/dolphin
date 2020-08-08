@@ -331,6 +331,7 @@ void RenderWidget::SetImGuiKeyMap()
       {ImGuiKey_Z, Qt::Key_Z},
   }};
   auto lock = g_renderer->GetImGuiLock();
-  for (auto entry : key_map)
-    ImGui::GetIO().KeyMap[entry[0]] = entry[1] & 0x1FF;
+
+  for (auto [imgui_key, qt_key] : key_map)
+    ImGui::GetIO().KeyMap[imgui_key] = (qt_key & 0x1FF);
 }

@@ -29,15 +29,6 @@ public interface SettingsActivityView
   Settings getSettings();
 
   /**
-   * Used to provide the Activity with Settings HashMaps if a Fragment already
-   * has one; for example, if a rotation occurs, the Fragment will not be killed,
-   * but the Activity will, so the Activity needs to have its HashMaps resupplied.
-   *
-   * @param settings The ArrayList of all the Settings HashMaps.
-   */
-  void setSettings(Settings settings);
-
-  /**
    * Called when an asynchronous load operation completes.
    *
    * @param settings The (possibly null) result of the ini load operation.
@@ -57,11 +48,6 @@ public interface SettingsActivityView
   void showToastMessage(String message);
 
   /**
-   * Show the previous fragment.
-   */
-  void popBackStack();
-
-  /**
    * End the activity.
    */
   void finish();
@@ -69,8 +55,10 @@ public interface SettingsActivityView
   /**
    * Called by a containing Fragment to tell the Activity that a setting was changed;
    * unless this has been called, the Activity will not save to disk.
+   *
+   * @param key Key of the modified setting.
    */
-  void onSettingChanged();
+  void onSettingChanged(String key);
 
   /**
    * Called by a containing Fragment to tell the containing Activity that a GCPad's setting

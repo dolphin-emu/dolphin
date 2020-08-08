@@ -1,23 +1,30 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
+import android.content.Context;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityView;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class Settings
 {
+  public static final String SECTION_INI_ANDROID = "Android";
   public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
   public static final String SECTION_INI_INTERFACE = "Interface";
   public static final String SECTION_INI_DSP = "DSP";
+
+  public static final String SECTION_LOGGER_LOGS = "Logs";
+  public static final String SECTION_LOGGER_OPTIONS = "Options";
 
   public static final String SECTION_GFX_SETTINGS = "Settings";
   public static final String SECTION_GFX_ENHANCEMENTS = "Enhancements";
@@ -46,12 +53,15 @@ public class Settings
   static
   {
     configFileSectionsMap.put(SettingsFile.FILE_NAME_DOLPHIN,
-            Arrays.asList(SECTION_INI_GENERAL, SECTION_INI_CORE, SECTION_INI_INTERFACE,
-                    SECTION_INI_DSP,
-                    SECTION_BINDINGS, SECTION_ANALYTICS, SECTION_DEBUG));
+            Arrays
+                    .asList(SECTION_INI_ANDROID, SECTION_INI_GENERAL, SECTION_INI_CORE,
+                            SECTION_INI_INTERFACE,
+                            SECTION_INI_DSP, SECTION_BINDINGS, SECTION_ANALYTICS, SECTION_DEBUG));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_GFX,
             Arrays.asList(SECTION_GFX_SETTINGS, SECTION_GFX_ENHANCEMENTS, SECTION_GFX_HACKS,
                     SECTION_STEREOSCOPY));
+    configFileSectionsMap.put(SettingsFile.FILE_NAME_LOGGER,
+            Arrays.asList(SECTION_LOGGER_LOGS, SECTION_LOGGER_OPTIONS));
     configFileSectionsMap.put(SettingsFile.FILE_NAME_WIIMOTE,
             Arrays.asList(SECTION_WIIMOTE + 1, SECTION_WIIMOTE + 2, SECTION_WIIMOTE + 3,
                     SECTION_WIIMOTE + 4));
@@ -164,7 +174,7 @@ public class Settings
     loadSettings(view);
   }
 
-  public void saveSettings(SettingsActivityView view)
+  public void saveSettings(SettingsActivityView view, Context context, Set<String> modifiedSettings)
   {
     if (TextUtils.isEmpty(gameId))
     {
@@ -183,38 +193,53 @@ public class Settings
         SettingsFile.saveFile(fileName, iniSections, view);
       }
 
-      switch (NativeLibrary
-              .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                      SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+      if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
       {
-        case DSP_HLE:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "True");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
-          break;
+        switch (NativeLibrary
+                .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_ANDROID,
+                        SettingsFile.KEY_DSP_ENGINE, DSP_HLE))
+        {
+          case DSP_HLE:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "True");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            break;
 
-        case DSP_LLE_RECOMPILER:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "False");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "True");
-          break;
+          case DSP_LLE_RECOMPILER:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "False");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "True");
+            break;
 
-        case DSP_LLE_INTERPRETER:
-          NativeLibrary
-                  .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
-                          SettingsFile.KEY_DSP_HLE, "False");
-          NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
-                  SettingsFile.KEY_DSP_ENABLE_JIT, "False");
-          break;
+          case DSP_LLE_INTERPRETER:
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_CORE,
+                            SettingsFile.KEY_DSP_HLE, "False");
+            NativeLibrary
+                    .SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_DSP,
+                            SettingsFile.KEY_DSP_ENABLE_JIT, "False");
+            break;
+        }
       }
 
       // Notify the native code of the changes
       NativeLibrary.ReloadConfig();
       NativeLibrary.ReloadWiimoteConfig();
+      NativeLibrary.ReloadLoggerConfig();
+
+      if (modifiedSettings.contains(SettingsFile.KEY_RECURSIVE_ISO_PATHS))
+      {
+        // Refresh game library
+        GameFileCacheService.startRescan(context);
+      }
+
+      modifiedSettings.clear();
     }
     else
     {

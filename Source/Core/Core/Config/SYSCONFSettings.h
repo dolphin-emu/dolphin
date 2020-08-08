@@ -22,6 +22,7 @@ extern const Info<u32> SYSCONF_COUNTRY;
 extern const Info<bool> SYSCONF_WIDESCREEN;
 extern const Info<bool> SYSCONF_PROGRESSIVE_SCAN;
 extern const Info<bool> SYSCONF_PAL60;
+extern const Info<u32> SYSCONF_SOUND_MODE;
 
 // SYSCONF.BT
 
@@ -36,6 +37,6 @@ struct SYSCONFSetting
   SysConf::Entry::Type type;
 };
 
-extern const std::array<SYSCONFSetting, 10> SYSCONF_SETTINGS;
+extern const std::array<SYSCONFSetting, 11> SYSCONF_SETTINGS;
 
 }  // namespace Config

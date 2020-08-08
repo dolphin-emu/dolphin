@@ -57,6 +57,8 @@ PRIVATE
 # Silence warnings on glslang by flagging it as a system include
 target_include_directories(videovulkan
 SYSTEM PRIVATE
+  ${CMAKE_SOURCE_DIR}/Externals/glslang/StandAlone
   ${CMAKE_SOURCE_DIR}/Externals/glslang/glslang/Public
   ${CMAKE_SOURCE_DIR}/Externals/glslang/SPIRV
+  ${CMAKE_SOURCE_DIR}/Externals/glslang
 )

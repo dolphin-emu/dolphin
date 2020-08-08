@@ -57,74 +57,17 @@ const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
   return m_file_system->get();
 }
 
-std::string VolumeGC::GetGameID(const Partition& partition) const
-{
-  static const std::string NO_UID("NO_UID");
-
-  char id[6];
-
-  if (!Read(0, sizeof(id), reinterpret_cast<u8*>(id), partition))
-  {
-    PanicAlertT("Failed to read unique ID from disc image");
-    return NO_UID;
-  }
-
-  return DecodeString(id);
-}
-
 std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 {
-  // Don't return an ID for Datel discs
-  if (!GetBootDOLOffset(*this, PARTITION_NONE).has_value())
-    return "";
+  const std::string game_id = GetGameID(partition);
 
-  return GetGameID(partition);
+  // Don't return an ID for Datel discs that are using the game ID of NHL Hitz 2002
+  return game_id == "GNHE5d" && IsDatelDisc() ? "" : game_id;
 }
 
 Region VolumeGC::GetRegion() const
 {
-  const std::optional<u32> region_code = ReadSwapped<u32>(0x458, PARTITION_NONE);
-  if (!region_code)
-    return Region::Unknown;
-  const Region region = static_cast<Region>(*region_code);
-  return region <= Region::PAL ? region : Region::Unknown;
-}
-
-Country VolumeGC::GetCountry(const Partition& partition) const
-{
-  // The 0 that we use as a default value is mapped to Country::Unknown and Region::Unknown
-  const u8 country = ReadSwapped<u8>(3, partition).value_or(0);
-  const Region region = GetRegion();
-  const std::optional<u16> revision = GetRevision();
-
-  if (CountryCodeToRegion(country, Platform::GameCubeDisc, region, revision) != region)
-    return TypicalCountryForRegion(region);
-
-  return CountryCodeToCountry(country, Platform::GameCubeDisc, region, revision);
-}
-
-std::string VolumeGC::GetMakerID(const Partition& partition) const
-{
-  char maker_id[2];
-  if (!Read(0x4, sizeof(maker_id), reinterpret_cast<u8*>(&maker_id), partition))
-    return std::string();
-
-  return DecodeString(maker_id);
-}
-
-std::optional<u16> VolumeGC::GetRevision(const Partition& partition) const
-{
-  std::optional<u8> revision = ReadSwapped<u8>(7, partition);
-  return revision ? *revision : std::optional<u16>();
-}
-
-std::string VolumeGC::GetInternalName(const Partition& partition) const
-{
-  char name[0x60];
-  if (Read(0x20, sizeof(name), reinterpret_cast<u8*>(name), partition))
-    return DecodeString(name);
-
-  return "";
+  return RegionCodeToRegion(m_reader->ReadSwapped<u32>(0x458));
 }
 
 std::map<Language, std::string> VolumeGC::GetShortNames() const
@@ -159,15 +102,6 @@ std::vector<u32> VolumeGC::GetBanner(u32* width, u32* height) const
   return m_converted_banner->image_buffer;
 }
 
-std::string VolumeGC::GetApploaderDate(const Partition& partition) const
-{
-  char date[16];
-  if (!Read(0x2440, sizeof(date), reinterpret_cast<u8*>(&date), partition))
-    return std::string();
-
-  return DecodeString(date);
-}
-
 BlobType VolumeGC::GetBlobType() const
 {
   return m_reader->GetBlobType();
@@ -188,14 +122,19 @@ u64 VolumeGC::GetRawSize() const
   return m_reader->GetRawSize();
 }
 
-std::optional<u8> VolumeGC::GetDiscNumber(const Partition& partition) const
+const BlobReader& VolumeGC::GetBlobReader() const
 {
-  return ReadSwapped<u8>(6, partition);
+  return *m_reader;
 }
 
 Platform VolumeGC::GetVolumeType() const
 {
   return Platform::GameCubeDisc;
+}
+
+bool VolumeGC::IsDatelDisc() const
+{
+  return !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const

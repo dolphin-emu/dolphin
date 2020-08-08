@@ -139,26 +139,26 @@ void VerifyWidget::Verify()
   progress.GetRaw()->setMinimumDuration(500);
   progress.GetRaw()->setWindowModality(Qt::WindowModal);
 
-  auto future = std::async(
-      std::launch::async,
-      [&verifier, &progress, DIVISOR]() -> std::optional<DiscIO::VolumeVerifier::Result> {
-        progress.SetValue(0);
-        verifier.Start();
-        while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
-        {
-          progress.SetValue(static_cast<int>(verifier.GetBytesProcessed() / DIVISOR));
-          if (progress.WasCanceled())
-            return std::nullopt;
+  auto future =
+      std::async(std::launch::async,
+                 [&verifier, &progress]() -> std::optional<DiscIO::VolumeVerifier::Result> {
+                   progress.SetValue(0);
+                   verifier.Start();
+                   while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
+                   {
+                     progress.SetValue(static_cast<int>(verifier.GetBytesProcessed() / DIVISOR));
+                     if (progress.WasCanceled())
+                       return std::nullopt;
 
-          verifier.Process();
-        }
-        verifier.Finish();
+                     verifier.Process();
+                   }
+                   verifier.Finish();
 
-        const DiscIO::VolumeVerifier::Result result = verifier.GetResult();
-        progress.Reset();
+                   const DiscIO::VolumeVerifier::Result result = verifier.GetResult();
+                   progress.Reset();
 
-        return result;
-      });
+                   return result;
+                 });
   progress.GetRaw()->exec();
 
   std::optional<DiscIO::VolumeVerifier::Result> result = future.get();

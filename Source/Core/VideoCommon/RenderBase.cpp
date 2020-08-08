@@ -63,6 +63,7 @@
 #include "VideoCommon/FrameDump.h"
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/FramebufferShaderGen.h"
+#include "VideoCommon/FreeLookCamera.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/NetPlayChatUI.h"
 #include "VideoCommon/NetPlayGolfUI.h"
@@ -377,20 +378,11 @@ Renderer::ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const
   return std::make_tuple(left_rc, right_rc);
 }
 
-void Renderer::SaveScreenshot(std::string filename, bool wait_for_completion)
+void Renderer::SaveScreenshot(std::string filename)
 {
-  // We must not hold the lock while waiting for the screenshot to complete.
-  {
-    std::lock_guard<std::mutex> lk(m_screenshot_lock);
-    m_screenshot_name = std::move(filename);
-    m_screenshot_request.Set();
-  }
-
-  if (wait_for_completion)
-  {
-    // This is currently only used by Android, and it was using a wait time of 2 seconds.
-    m_screenshot_completed.WaitFor(std::chrono::seconds(2));
-  }
+  std::lock_guard<std::mutex> lk(m_screenshot_lock);
+  m_screenshot_name = std::move(filename);
+  m_screenshot_request.Set();
 }
 
 void Renderer::CheckForConfigChanges()
@@ -405,6 +397,11 @@ void Renderer::CheckForConfigChanges()
   const bool old_bbox = g_ActiveConfig.bBBoxEnable;
 
   UpdateActiveConfig();
+
+  if (g_ActiveConfig.bFreeLook)
+  {
+    g_freelook_camera.SetControlType(g_ActiveConfig.iFreelookControlType);
+  }
 
   // Update texture cache settings with any changed options.
   g_texture_cache->OnConfigChanged(g_ActiveConfig);
@@ -557,6 +554,10 @@ void Renderer::DrawDebugText()
 
   if (g_ActiveConfig.bOverlayProjStats)
     g_stats.DisplayProj();
+
+  const std::string profile_output = Common::Profiler::ToString();
+  if (!profile_output.empty())
+    ImGui::TextUnformatted(profile_output.c_str());
 }
 
 float Renderer::CalculateDrawAspectRatio() const

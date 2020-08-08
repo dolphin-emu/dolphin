@@ -56,11 +56,12 @@ RedumpVerifier::DownloadState RedumpVerifier::m_wii_download_state;
 
 void RedumpVerifier::Start(const Volume& volume)
 {
-  // We use GetGameTDBID instead of GetGameID so that Datel discs will be represented by an empty
-  // string, which matches Redump not having any serials for Datel discs.
-  m_game_id = volume.GetGameTDBID();
-  if (m_game_id.size() > 4)
-    m_game_id = m_game_id.substr(0, 4);
+  if (!volume.IsDatelDisc())
+  {
+    m_game_id = volume.GetGameID();
+    if (m_game_id.size() > 4)
+      m_game_id = m_game_id.substr(0, 4);
+  }
 
   m_revision = volume.GetRevision().value_or(0);
   m_disc_number = volume.GetDiscNumber().value_or(0);
@@ -385,14 +386,11 @@ void VolumeVerifier::Start()
     m_redump_verifier.Start(m_volume);
 
   m_is_tgc = m_volume.GetBlobType() == BlobType::TGC;
-  m_is_datel = IsDisc(m_volume.GetVolumeType()) &&
-               !GetBootDOLOffset(m_volume, m_volume.GetGamePartition()).has_value();
+  m_is_datel = m_volume.IsDatelDisc();
   m_is_not_retail =
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  if (m_volume.GetVolumeType() == Platform::WiiWAD)
-    CheckCorrectlySigned(PARTITION_NONE, Common::GetStringT("This title is not correctly signed."));
   CheckDiscSize(CheckPartitions());
   CheckMisc();
 
@@ -525,10 +523,24 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
   if (!m_is_datel)
   {
-    CheckCorrectlySigned(
-        partition,
-        StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
-                         name.c_str()));
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(partition);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTicket(partition), cert_chain) ||
+        IOS::HLE::IPC_SUCCESS !=
+            es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                                IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
+                                m_volume.GetTMD(partition), cert_chain))
+    {
+      AddProblem(
+          Severity::Low,
+          StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
+                           name.c_str()));
+    }
   }
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
@@ -662,25 +674,6 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     name = StringFromFormat(Common::GetStringT("%s (Masterpiece)").c_str(), name.c_str());
   }
   return name;
-}
-
-void VolumeVerifier::CheckCorrectlySigned(const Partition& partition, std::string error_text)
-{
-  IOS::HLE::Kernel ios;
-  const auto es = ios.GetES();
-  const std::vector<u8> cert_chain = m_volume.GetCertificateChain(partition);
-
-  if (IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTicket(partition), cert_chain) ||
-      IOS::HLE::IPC_SUCCESS !=
-          es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
-                              IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore,
-                              m_volume.GetTMD(partition), cert_chain))
-  {
-    AddProblem(Severity::Low, std::move(error_text));
-  }
 }
 
 bool VolumeVerifier::IsDebugSigned() const
@@ -988,22 +981,42 @@ void VolumeVerifier::CheckMisc()
     }
   }
 
-  if (IsDisc(m_volume.GetVolumeType()))
+  if (m_volume.GetVolumeType() == Platform::WiiWAD)
   {
-    constexpr u32 NKIT_MAGIC = 0x4E4B4954;  // "NKIT"
-    if (m_volume.ReadSwapped<u32>(0x200, PARTITION_NONE) == NKIT_MAGIC)
+    IOS::HLE::Kernel ios;
+    const auto es = ios.GetES();
+    const std::vector<u8>& cert_chain = m_volume.GetCertificateChain(PARTITION_NONE);
+
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::Ticket,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, m_ticket,
+                            cert_chain))
     {
-      AddProblem(
-          Severity::Low,
-          Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
-                             "current form, but it might become a good dump if converted back. "
-                             "The CRC32 of this file might match the CRC32 of a good dump even "
-                             "though the files are not identical."));
+      // i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
+      AddProblem(Severity::Low, Common::GetStringT("The ticket is not correctly signed."));
     }
 
-    if (StringBeginsWith(game_id_unencrypted, "R8P"))
-      CheckSuperPaperMario();
+    if (IOS::HLE::IPC_SUCCESS !=
+        es->VerifyContainer(IOS::HLE::Device::ES::VerifyContainerType::TMD,
+                            IOS::HLE::Device::ES::VerifyMode::DoNotUpdateCertStore, tmd,
+                            cert_chain))
+    {
+      AddProblem(Severity::Low, Common::GetStringT("The TMD is not correctly signed."));
+    }
   }
+
+  if (m_volume.IsNKit())
+  {
+    AddProblem(
+        Severity::Low,
+        Common::GetStringT("This disc image is in the NKit format. It is not a good dump in its "
+                           "current form, but it might become a good dump if converted back. "
+                           "The CRC32 of this file might match the CRC32 of a good dump even "
+                           "though the files are not identical."));
+  }
+
+  if (IsDisc(m_volume.GetVolumeType()) && StringBeginsWith(game_id_unencrypted, "R8P"))
+    CheckSuperPaperMario();
 }
 
 void VolumeVerifier::CheckSuperPaperMario()

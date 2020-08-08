@@ -498,7 +498,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   else
   {
-    g_controller_interface.ChangeWindow(wsi.render_surface);
+    g_controller_interface.ChangeWindow(wsi.render_window);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
   }
@@ -713,26 +713,25 @@ static std::string GenerateScreenshotName()
   return name;
 }
 
-void SaveScreenShot(bool wait_for_completion)
+void SaveScreenShot()
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  g_renderer->SaveScreenshot(GenerateScreenshotName(), wait_for_completion);
+  g_renderer->SaveScreenshot(GenerateScreenshotName());
 
   if (!bPaused)
     SetState(State::Running);
 }
 
-void SaveScreenShot(std::string_view name, bool wait_for_completion)
+void SaveScreenShot(std::string_view name)
 {
   const bool bPaused = GetState() == State::Paused;
 
   SetState(State::Paused);
 
-  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name),
-                             wait_for_completion);
+  g_renderer->SaveScreenshot(fmt::format("{}{}.png", GenerateScreenshotFolderPath(), name));
 
   if (!bPaused)
     SetState(State::Running);

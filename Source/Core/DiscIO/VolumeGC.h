@@ -14,6 +14,7 @@
 #include "Common/Lazy.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace DiscIO
 {
@@ -33,27 +34,22 @@ public:
   bool Read(u64 offset, u64 length, u8* buffer,
             const Partition& partition = PARTITION_NONE) const override;
   const FileSystem* GetFileSystem(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
-  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetShortNames() const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::map<Language, std::string> GetShortMakers() const override;
   std::map<Language, std::string> GetLongMakers() const override;
   std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
-  std::string GetApploaderDate(const Partition& partition = PARTITION_NONE) const override;
-  std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
   Region GetRegion() const override;
-  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const override;
 
 private:
   static const u32 GC_BANNER_WIDTH = 96;

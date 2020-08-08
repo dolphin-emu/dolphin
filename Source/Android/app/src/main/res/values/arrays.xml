@@ -71,7 +71,7 @@
         <item>5</item>
     </integer-array>
 
-    <!-- Slot A Device Selection -->
+    <!-- Slot A & B Device selection -->
     <string-array name="slotDeviceEntries" translatable="false">
         <item>Nothing</item>
         <item>Dummy</item>
@@ -85,22 +85,50 @@
         <item>8</item>
     </integer-array>
 
+    <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
+    <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelInfo" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+    <string-array name="logVerbosityEntriesMaxLevelDebug" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+        <item>Debug</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelDebug" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
     <!-- Video backend selection -->
-    <string-array name="videoBackendEntries" translatable="false">
+    <string-array name="videoBackendEntries">
         <item>OpenGL</item>
         <item>Vulkan</item>
         <item>Software</item>
         <item>Null</item>
     </string-array>
-    <integer-array name="videoBackendValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </integer-array>
+    <string-array name="videoBackendValues" translatable="false">
+        <item>OGL</item>
+        <item>Vulkan</item>
+        <item>Software Renderer</item>
+        <item>Null</item>
+    </string-array>
 
     <!-- Wii Remote extensions -->
-    <string-array name="wiimoteExtensionsEntries" translatable="false">
+    <string-array name="wiimoteExtensionsEntries">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
@@ -108,14 +136,14 @@
         <item>Drums</item>
         <item>Turntable</item>
     </string-array>
-    <integer-array name="wiimoteExtensionsValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-    </integer-array>
+    <string-array name="wiimoteExtensionsValues" translatable="false">
+        <item>None</item>
+        <item>Nunchuk</item>
+        <item>Classic</item>
+        <item>Guitar</item>
+        <item>Drums</item>
+        <item>Turntable</item>
+    </string-array>
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
@@ -277,6 +305,7 @@
         <item>Horizontal Wii Remote</item>
         <item>Wii Remote + Nunchuk</item>
         <item>Classic Controller</item>
+        <item>None</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
@@ -284,6 +313,7 @@
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
+        <item>None</item>
     </string-array>
 
     <string-array name="gcpadButtons">

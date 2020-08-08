@@ -835,14 +835,7 @@ void DSPJitRegCache::WriteReg(int dreg, OpArg arg)
       m_emitter.MOV(32, reg, Imm32(arg.Imm32()));
       break;
     case 8:
-      if ((u32)arg.Imm64() == arg.Imm64())
-      {
-        m_emitter.MOV(64, reg, Imm32((u32)arg.Imm64()));
-      }
-      else
-      {
-        m_emitter.MOV(64, reg, Imm64(arg.Imm64()));
-      }
+      m_emitter.MOV(64, reg, Imm64(arg.Imm64()));
       break;
     default:
       ASSERT_MSG(DSPLLE, 0, "unsupported memory size");

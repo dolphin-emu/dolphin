@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <map>
 #include <memory>
 #include <optional>
@@ -18,6 +19,7 @@
 #include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 
 namespace DiscIO
 {
@@ -72,17 +74,12 @@ public:
   static u64 EncryptedPartitionOffsetToRawOffset(u64 offset, const Partition& partition,
                                                  u64 partition_data_offset);
   u64 PartitionOffsetToRawOffset(u64 offset, const Partition& partition) const override;
-  std::string GetGameID(const Partition& partition = PARTITION_NONE) const override;
   std::string GetGameTDBID(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetMakerID(const Partition& partition = PARTITION_NONE) const override;
-  std::optional<u16> GetRevision(const Partition& partition = PARTITION_NONE) const override;
-  std::string GetInternalName(const Partition& partition = PARTITION_NONE) const override;
   std::map<Language, std::string> GetLongNames() const override;
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
-  std::string GetApploaderDate(const Partition& partition) const override;
-  std::optional<u8> GetDiscNumber(const Partition& partition = PARTITION_NONE) const override;
 
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
   bool SupportsIntegrityCheck() const override { return m_encrypted; }
   bool CheckH3TableIntegrity(const Partition& partition) const override;
   bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
@@ -90,15 +87,28 @@ public:
   bool CheckBlockIntegrity(u64 block_index, const Partition& partition) const override;
 
   Region GetRegion() const override;
-  Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const override;
+
+  // The in parameter can either contain all the data to begin with,
+  // or read_function can write data into the in parameter when called.
+  // The latter lets reading run in parallel with hashing.
+  // This function returns false iff read_function returns false.
+  static bool HashGroup(const std::array<u8, BLOCK_DATA_SIZE> in[BLOCKS_PER_GROUP],
+                        HashBlock out[BLOCKS_PER_GROUP],
+                        const std::function<bool(size_t block)>& read_function = {});
 
   static bool EncryptGroup(u64 offset, u64 partition_data_offset, u64 partition_data_decrypted_size,
                            const std::array<u8, AES_KEY_SIZE>& key, BlobReader* blob,
-                           std::array<u8, GROUP_TOTAL_SIZE>* out);
+                           std::array<u8, GROUP_TOTAL_SIZE>* out,
+                           const std::function<void(HashBlock hash_blocks[BLOCKS_PER_GROUP])>&
+                               hash_exception_callback = {});
+
+  static void DecryptBlockHashes(const u8* in, HashBlock* out, mbedtls_aes_context* aes_context);
+  static void DecryptBlockData(const u8* in, u8* out, mbedtls_aes_context* aes_context);
 
 protected:
   u32 GetOffsetShift() const override { return 2; }

@@ -59,7 +59,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_model = Settings::Instance().GetGameListModel();
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
-  m_list_proxy->setSortRole(Qt::InitialSortOrderRole);
+  m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_list_proxy->setSourceModel(m_model);
   m_grid_proxy = new GridProxyModel(this);
   m_grid_proxy->setSourceModel(m_model);
@@ -146,6 +146,9 @@ void GameList::MakeListView()
   hor_header->setSectionResizeMode(GameListModel::COL_SIZE, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_NAME, QHeaderView::Interactive);
   hor_header->setSectionResizeMode(GameListModel::COL_FILE_PATH, QHeaderView::Interactive);
+  hor_header->setSectionResizeMode(GameListModel::COL_FILE_FORMAT, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_BLOCK_SIZE, QHeaderView::Fixed);
+  hor_header->setSectionResizeMode(GameListModel::COL_COMPRESSION, QHeaderView::Fixed);
   hor_header->setSectionResizeMode(GameListModel::COL_TAGS, QHeaderView::Interactive);
 
   // There's some odd platform-specific behavior with default minimum section size
@@ -191,6 +194,12 @@ void GameList::UpdateColumnVisibility()
                           !SConfig::GetInstance().m_showFileNameColumn);
   m_list->setColumnHidden(GameListModel::COL_FILE_PATH,
                           !SConfig::GetInstance().m_showFilePathColumn);
+  m_list->setColumnHidden(GameListModel::COL_FILE_FORMAT,
+                          !SConfig::GetInstance().m_showFileFormatColumn);
+  m_list->setColumnHidden(GameListModel::COL_BLOCK_SIZE,
+                          !SConfig::GetInstance().m_showBlockSizeColumn);
+  m_list->setColumnHidden(GameListModel::COL_COMPRESSION,
+                          !SConfig::GetInstance().m_showCompressionColumn);
   m_list->setColumnHidden(GameListModel::COL_TAGS, !SConfig::GetInstance().m_showTagsColumn);
 }
 
@@ -254,20 +263,24 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
 
+  const auto can_convert = [](const std::shared_ptr<const UICommon::GameFile>& game) {
+    // Converting from TGC is temporarily disabled because PR #8738 was merged prematurely.
+    // The TGC check will be removed by PR #8644.
+    return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate() &&
+           game->GetBlobType() != DiscIO::BlobType::TGC;
+  };
+
   if (HasMultipleSelected())
   {
-    if (std::all_of(GetSelectedGames().begin(), GetSelectedGames().end(), [](const auto& game) {
-          // Converting from TGC is temporarily disabled because PR #8738 was merged prematurely.
-          // The TGC check will be removed by PR #8644.
-          return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate() &&
-                 game->GetBlobType() != DiscIO::BlobType::TGC;
-        }))
+    const auto selected_games = GetSelectedGames();
+
+    if (std::all_of(selected_games.begin(), selected_games.end(), can_convert))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
     }
 
-    if (std::all_of(GetSelectedGames().begin(), GetSelectedGames().end(),
+    if (std::all_of(selected_games.begin(), selected_games.end(),
                     [](const auto& game) { return DiscIO::IsWii(game->GetPlatform()); }))
     {
       menu->addAction(tr("Export Wii Saves"), this, &GameList::ExportWiiSave);
@@ -292,9 +305,8 @@ void GameList::ShowContextMenu(const QPoint&)
     if (DiscIO::IsDisc(platform))
     {
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
-      const auto blob_type = game->GetBlobType();
 
-      if (game->IsVolumeSizeAccurate())
+      if (can_convert(game))
         menu->addAction(tr("Convert File..."), this, &GameList::ConvertFile);
 
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
@@ -780,6 +792,9 @@ void GameList::OnColumnVisibilityToggled(const QString& row, bool visible)
       {tr("Game ID"), GameListModel::COL_ID},
       {tr("Region"), GameListModel::COL_COUNTRY},
       {tr("File Size"), GameListModel::COL_SIZE},
+      {tr("File Format"), GameListModel::COL_FILE_FORMAT},
+      {tr("Block Size"), GameListModel::COL_BLOCK_SIZE},
+      {tr("Compression"), GameListModel::COL_COMPRESSION},
       {tr("Tags"), GameListModel::COL_TAGS}};
 
   m_list->setColumnHidden(rowname_to_col_index[row], !visible);

@@ -26,7 +26,7 @@ class WiimoteWindows final : public Wiimote
 public:
   WiimoteWindows(const std::basic_string<TCHAR>& path, WinWriteMethod initial_write_method);
   ~WiimoteWindows() override;
-  std::string GetId() const override { return UTF16ToUTF8(m_devicepath); }
+  std::string GetId() const override { return WStringToUTF8(m_devicepath); }
 
 protected:
   bool ConnectInternal() override;

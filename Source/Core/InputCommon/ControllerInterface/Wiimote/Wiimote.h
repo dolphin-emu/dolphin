@@ -46,6 +46,12 @@ private:
     Unsupported,
   };
 
+  enum class Checksum
+  {
+    Good,
+    Bad,
+  };
+
   class MotionPlusState
   {
   public:
@@ -70,7 +76,7 @@ private:
   {
     using CalibrationData = WiimoteEmu::Nunchuk::CalibrationData;
 
-    void SetCalibrationData(const CalibrationData&);
+    void SetCalibrationData(const CalibrationData&, Checksum);
     void ProcessData(const WiimoteEmu::Nunchuk::DataFormat&);
 
     Common::Vec2 stick = {};
@@ -80,6 +86,8 @@ private:
 
     struct Calibration
     {
+      Calibration();
+
       CalibrationData::AccelCalibration accel;
       CalibrationData::StickCalibration stick;
     };
@@ -91,7 +99,7 @@ private:
   {
     using CalibrationData = WiimoteEmu::Classic::CalibrationData;
 
-    void SetCalibrationData(const CalibrationData&);
+    void SetCalibrationData(const CalibrationData&, Checksum);
     void ProcessData(const WiimoteEmu::Classic::DataFormat&);
 
     std::array<Common::Vec2, 2> sticks = {};
@@ -101,6 +109,8 @@ private:
 
     struct Calibration
     {
+      Calibration();
+
       CalibrationData::StickCalibration left_stick;
       CalibrationData::StickCalibration right_stick;
 
@@ -233,7 +243,7 @@ private:
 
   // Status report is requested every so often to update the battery level.
   Clock::time_point m_status_outdated_time = Clock::now();
-  u8 m_battery = 0;
+  float m_battery = 0;
   u8 m_leds = 0;
 
   bool m_speaker_configured = false;

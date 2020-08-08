@@ -114,15 +114,15 @@ public:
   std::string GetName() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
 
-  ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
-  ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
-  ControllerEmu::ControlGroup* GetClassicGroup(ClassicGroup group);
-  ControllerEmu::ControlGroup* GetGuitarGroup(GuitarGroup group);
-  ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group);
-  ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
-  ControllerEmu::ControlGroup* GetUDrawTabletGroup(UDrawTabletGroup group);
-  ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group);
-  ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group);
+  ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group) const;
+  ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group) const;
+  ControllerEmu::ControlGroup* GetClassicGroup(ClassicGroup group) const;
+  ControllerEmu::ControlGroup* GetGuitarGroup(GuitarGroup group) const;
+  ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group) const;
+  ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group) const;
+  ControllerEmu::ControlGroup* GetUDrawTabletGroup(UDrawTabletGroup group) const;
+  ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const;
+  ControllerEmu::ControlGroup* GetTaTaConGroup(TaTaConGroup group) const;
 
   void Update();
   void StepDynamics();
@@ -149,10 +149,10 @@ private:
 
   // Returns simulated accelerometer data in m/s^2.
   Common::Vec3 GetAcceleration(
-      Common::Vec3 extra_acceleration = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION)));
+      Common::Vec3 extra_acceleration = Common::Vec3(0, 0, float(GRAVITY_ACCELERATION))) const;
 
   // Returns simulated gyroscope data in radians/s.
-  Common::Vec3 GetAngularVelocity(Common::Vec3 extra_angular_velocity = {});
+  Common::Vec3 GetAngularVelocity(Common::Vec3 extra_angular_velocity = {}) const;
 
   // Returns the transformation of the world around the wiimote.
   // Used for simulating camera data and for rotating acceleration data.
@@ -163,8 +163,8 @@ private:
   // Returns the world rotation from the effects of sideways/upright settings.
   Common::Matrix33 GetOrientation() const;
 
-  Common::Vec3 GetTotalAcceleration();
-  Common::Vec3 GetTotalAngularVelocity();
+  Common::Vec3 GetTotalAcceleration() const;
+  Common::Vec3 GetTotalAngularVelocity() const;
   Common::Matrix44 GetTotalTransformation() const;
 
   void HIDOutputReport(const void* data, u32 size);
@@ -263,7 +263,6 @@ private:
   ControllerEmu::SettingValue<bool> m_sideways_setting;
   ControllerEmu::SettingValue<bool> m_upright_setting;
   ControllerEmu::SettingValue<double> m_battery_setting;
-  ControllerEmu::SettingValue<double> m_speaker_pan_setting;
   ControllerEmu::SettingValue<bool> m_motion_plus_setting;
 
   SpeakerLogic m_speaker_logic;

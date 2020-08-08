@@ -105,6 +105,8 @@ void NetPlayDialog::CreateMainLayout()
   m_data_menu = m_menu_bar->addMenu(tr("Data"));
   m_data_menu->setToolTipsVisible(true);
   m_save_sd_action = m_data_menu->addAction(tr("Write Save/SD Data"));
+  m_save_sd_action->setToolTip(
+      tr("If \"Allow Writes to SD Card\" is disabled this does not override it."));
   m_save_sd_action->setCheckable(true);
   m_load_wii_action = m_data_menu->addAction(tr("Load Wii Save"));
   m_load_wii_action->setCheckable(true);

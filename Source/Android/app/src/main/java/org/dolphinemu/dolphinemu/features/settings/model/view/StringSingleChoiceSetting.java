@@ -1,7 +1,9 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public class StringSingleChoiceSetting extends SettingsItem
 {
@@ -9,14 +11,39 @@ public class StringSingleChoiceSetting extends SettingsItem
 
   private String[] mChoicesId;
   private String[] mValuesId;
+  private MenuTag mMenuTag;
+
+  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
+          String[] choicesId, String[] valuesId, String defaultValue, Setting setting,
+          MenuTag menuTag)
+  {
+    super(key, section, setting, titleId, descriptionId);
+    mChoicesId = choicesId;
+    mValuesId = valuesId;
+    mDefaultValue = defaultValue;
+    mMenuTag = menuTag;
+  }
 
   public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
           String[] choicesId, String[] valuesId, String defaultValue, Setting setting)
   {
+    this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
+  }
+
+  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
+          int choicesId, int valuesId, String defaultValue, Setting setting, MenuTag menuTag)
+  {
     super(key, section, setting, titleId, descriptionId);
-    mValuesId = valuesId;
-    mChoicesId = choicesId;
+    mChoicesId = DolphinApplication.getAppContext().getResources().getStringArray(choicesId);
+    mValuesId = DolphinApplication.getAppContext().getResources().getStringArray(valuesId);
     mDefaultValue = defaultValue;
+    mMenuTag = menuTag;
+  }
+
+  public StringSingleChoiceSetting(String key, String section, int titleId, int descriptionId,
+          int choicesId, int valuesId, String defaultValue, Setting setting)
+  {
+    this(key, section, titleId, descriptionId, choicesId, valuesId, defaultValue, setting, null);
   }
 
   public String[] getChoicesId()
@@ -67,6 +94,11 @@ public class StringSingleChoiceSetting extends SettingsItem
     }
 
     return -1;
+  }
+
+  public MenuTag getMenuTag()
+  {
+    return mMenuTag;
   }
 
   /**

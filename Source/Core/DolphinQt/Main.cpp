@@ -109,6 +109,18 @@ int main(int argc, char* argv[])
   }
 #endif
 
+#ifdef __APPLE__
+  // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
+  // the application is launched for the first time. This is to set the "ProcessSerialNumber",
+  // something used by the legacy Process Manager from Carbon. optparse will fail if it finds
+  // this as it isn't a valid Dolphin command line option, so pretend like it doesn't exist
+  // if found.
+  if (strncmp(argv[argc - 1], "-psn", 4) == 0)
+  {
+    argc--;
+  }
+#endif
+
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
   const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   const std::vector<std::string> args = parser->args();

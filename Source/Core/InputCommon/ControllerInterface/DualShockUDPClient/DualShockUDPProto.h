@@ -45,8 +45,8 @@ enum class DsConnection : u8
 enum class DsModel : u8
 {
   None = 0,
-  DS3 = 1,
-  DS4 = 2,
+  PartialGyro = 1,
+  FullGyro = 2,
   Generic = 3
 };
 

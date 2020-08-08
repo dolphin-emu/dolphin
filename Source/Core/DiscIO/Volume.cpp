@@ -17,6 +17,7 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeGC.h"
 #include "DiscIO/VolumeWad.h"
 #include "DiscIO/VolumeWii.h"

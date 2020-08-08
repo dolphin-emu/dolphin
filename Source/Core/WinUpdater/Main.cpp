@@ -28,7 +28,7 @@ std::vector<std::string> CommandLineToUtf8Argv(PCWSTR command_line)
   std::vector<std::string> argv(nargs);
   for (int i = 0; i < nargs; ++i)
   {
-    argv[i] = UTF16ToUTF8(tokenized[i]);
+    argv[i] = WStringToUTF8(tokenized[i]);
   }
 
   LocalFree(tokenized);

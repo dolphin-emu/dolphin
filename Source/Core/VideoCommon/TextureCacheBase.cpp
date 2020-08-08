@@ -920,7 +920,14 @@ void TextureCacheBase::DumpTexture(TCacheEntry* entry, std::string basename, uns
 
   if (level > 0)
   {
+    if (!g_ActiveConfig.bDumpMipmapTextures)
+      return;
     basename += fmt::format("_mip{}", level);
+  }
+  else
+  {
+    if (!g_ActiveConfig.bDumpBaseTextures)
+      return;
   }
 
   const std::string filename = fmt::format("{}/{}.png", szDir, basename);

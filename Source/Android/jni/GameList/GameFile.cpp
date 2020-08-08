@@ -10,6 +10,7 @@
 
 #include <jni.h>
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "UICommon/GameFile.h"
 #include "jni/AndroidCommon/AndroidCommon.h"
@@ -62,6 +63,16 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getDiscNumb
                                                                                    jobject obj);
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision(JNIEnv* env,
                                                                                  jobject obj);
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj);
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,
+                                                                                   jobject obj);
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getCompressionMethod(JNIEnv* env, jobject obj);
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj);
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
+                                                                                  jobject obj);
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,
                                                                                     jobject obj);
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerWidth(JNIEnv* env,
@@ -143,11 +154,41 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision
   return GetRef(env, obj)->GetRevision();
 }
 
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, DiscIO::GetName(GetRef(env, obj)->GetBlobType(), true));
+}
+
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  return GetRef(env, obj)->GetBlockSize();
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_getCompressionMethod(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, GetRef(env, obj)->GetCompressionMethod());
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_model_GameFile_shouldShowFileFormatDetails(JNIEnv* env, jobject obj)
+{
+  return GetRef(env, obj)->ShouldShowFileFormatDetails();
+}
+
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getFileSize(JNIEnv* env,
+                                                                                  jobject obj)
+{
+  return GetRef(env, obj)->GetFileSize();
+}
+
 JNIEXPORT jintArray JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBanner(JNIEnv* env,
                                                                                     jobject obj)
 {
   const std::vector<u32>& buffer = GetRef(env, obj)->GetBannerImage().buffer;
-  const jsize size = static_cast<jsize>(buffer.size());
+  const auto size = static_cast<jsize>(buffer.size());
   const jintArray out_array = env->NewIntArray(size);
   if (!out_array)
     return nullptr;

@@ -4,6 +4,19 @@
       tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
 
     <item
+        android:id="@+id/menu_emulation_pause"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/lb_ic_pause"
+        android:title="@string/pause_emulation"/>
+
+    <item
+        android:id="@+id/menu_emulation_unpause"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/lb_ic_play"
+        android:title="@string/unpause_emulation"
+        android:visible="false"/>
+
+    <item
         android:id="@+id/menu_emulation_screenshot"
         app:showAsAction="ifRoom"
         android:icon="@drawable/ic_screenshot"
@@ -82,9 +95,9 @@
     </item>
 
     <item
-        android:id="@+id/menu_emulation_configure_controls"
+        android:id="@+id/menu_emulation_overlay_controls"
         app:showAsAction="never"
-        android:title="@string/emulation_configure_controls">
+        android:title="@string/emulation_overlay_controls">
         <menu>
             <item
                 android:id="@+id/menu_emulation_edit_layout"

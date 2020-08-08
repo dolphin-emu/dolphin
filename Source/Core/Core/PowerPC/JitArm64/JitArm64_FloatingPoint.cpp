@@ -339,8 +339,12 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   }
   else
   {
-    m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
+    ARM64Reg V1 = gpr.GetReg();
+
+    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), ROUND_Z);
+    m_float_emit.FMOV(EncodeRegToSingle(VD), V1);
+
+    gpr.Unlock(V1);
   }
   m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
   fpr.Unlock(V0);

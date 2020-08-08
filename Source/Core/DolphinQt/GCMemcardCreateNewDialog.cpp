@@ -14,8 +14,11 @@
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/Timer.h"
 
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/Sram.h"
 
 GCMemcardCreateNewDialog::GCMemcardCreateNewDialog(QWidget* parent) : QDialog(parent)
 {
@@ -74,8 +77,16 @@ bool GCMemcardCreateNewDialog::CreateCard()
   if (path.isEmpty())
     return false;
 
+  // TODO: The dependency on g_SRAM here is sketchy. We should instead use sensible default values.
+  const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
+  const u32 rtc_bias = g_SRAM.settings.rtc_bias;
+  const u32 sram_language = static_cast<u32>(g_SRAM.settings.language);
+  const u64 format_time =
+      Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+
   const std::string p = path.toStdString();
-  auto memcard = GCMemcard::Create(p, size, is_shift_jis);
+  auto memcard = Memcard::GCMemcard::Create(p, flash_id, size, is_shift_jis, rtc_bias,
+                                            sram_language, format_time);
   if (memcard && memcard->Save())
   {
     m_card_path = p;

@@ -75,11 +75,11 @@ public:
 
   template <typename T>
   void AddSetting(SettingValue<T>* value, const NumericSettingDetails& details,
-                  std::common_type_t<T> default_value, std::common_type_t<T> min_value = {},
+                  std::common_type_t<T> default_value_, std::common_type_t<T> min_value = {},
                   std::common_type_t<T> max_value = T(100))
   {
     numeric_settings.emplace_back(
-        std::make_unique<NumericSetting<T>>(value, details, default_value, min_value, max_value));
+        std::make_unique<NumericSetting<T>>(value, details, default_value_, min_value, max_value));
   }
 
   void AddDeadzoneSetting(SettingValue<double>* value, double maximum_deadzone);

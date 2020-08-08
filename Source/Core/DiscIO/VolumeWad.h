@@ -59,6 +59,8 @@ public:
     return "";
   }
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
+  bool IsNKit() const override;
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
@@ -66,6 +68,7 @@ public:
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
+  const BlobReader& GetBlobReader() const override;
 
 private:
   std::unique_ptr<BlobReader> m_reader;

@@ -355,14 +355,17 @@ void VertexShaderManager::SetConstants()
     switch (xfmem.projection.type)
     {
     case GX_PERSPECTIVE:
-      g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW;
+    {
+      const Common::Vec2 fov =
+          g_ActiveConfig.bFreeLook ? g_freelook_camera.GetFieldOfView() : Common::Vec2{1, 1};
+      g_fProjectionMatrix[0] = rawProjection[0] * g_ActiveConfig.fAspectRatioHackW * fov.x;
       g_fProjectionMatrix[1] = 0.0f;
-      g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW;
+      g_fProjectionMatrix[2] = rawProjection[1] * g_ActiveConfig.fAspectRatioHackW * fov.x;
       g_fProjectionMatrix[3] = 0.0f;
 
       g_fProjectionMatrix[4] = 0.0f;
-      g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH;
-      g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH;
+      g_fProjectionMatrix[5] = rawProjection[2] * g_ActiveConfig.fAspectRatioHackH * fov.y;
+      g_fProjectionMatrix[6] = rawProjection[3] * g_ActiveConfig.fAspectRatioHackH * fov.y;
       g_fProjectionMatrix[7] = 0.0f;
 
       g_fProjectionMatrix[8] = 0.0f;
@@ -377,9 +380,11 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[15] = 0.0f;
 
       g_stats.gproj = g_fProjectionMatrix;
-      break;
+    }
+    break;
 
     case GX_ORTHOGRAPHIC:
+    {
       g_fProjectionMatrix[0] = rawProjection[0];
       g_fProjectionMatrix[1] = 0.0f;
       g_fProjectionMatrix[2] = 0.0f;
@@ -403,7 +408,8 @@ void VertexShaderManager::SetConstants()
 
       g_stats.g2proj = g_fProjectionMatrix;
       g_stats.proj = rawProjection;
-      break;
+    }
+    break;
 
     default:
       ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
@@ -418,6 +424,8 @@ void VertexShaderManager::SetConstants()
       corrected_matrix *= g_freelook_camera.GetView();
 
     memcpy(constants.projection.data(), corrected_matrix.data.data(), 4 * sizeof(float4));
+
+    g_freelook_camera.SetClean();
 
     dirty = true;
   }
@@ -447,9 +455,6 @@ void VertexShaderManager::SetConstants()
 
     dirty = true;
   }
-
-  // Handle a potential config change
-  g_freelook_camera.SetControlType(Config::Get(Config::GFX_FREE_LOOK_CONTROL_TYPE));
 }
 
 void VertexShaderManager::InvalidateXFRange(int start, int end)

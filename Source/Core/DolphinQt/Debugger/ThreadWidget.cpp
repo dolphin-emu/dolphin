@@ -17,7 +17,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinQt/Host.h"
-#include "DolphinQt/QtUtils/FontMetricsHelper.h"
 #include "DolphinQt/Settings.h"
 
 ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
@@ -135,7 +134,7 @@ QLineEdit* ThreadWidget::CreateLineEdit() const
   QLineEdit* line_edit = new QLineEdit(QLatin1Literal("00000000"));
   line_edit->setReadOnly(true);
   line_edit->setFixedWidth(
-      FontMetricsWidth(line_edit->fontMetrics(), QLatin1Literal(" 00000000 ")));
+      line_edit->fontMetrics().boundingRect(QLatin1Literal(" 00000000 ")).width());
   return line_edit;
 }
 
@@ -265,9 +264,6 @@ void ThreadWidget::Update()
 
   const auto format_hex = [](u32 value) {
     return QStringLiteral("%1").arg(value, 8, 16, QLatin1Char('0'));
-  };
-  const auto format_f64_as_u64 = [](double value) {
-    return QStringLiteral("%1").arg(Common::BitCast<u64>(value), 16, 16, QLatin1Char('0'));
   };
   const auto format_hex_from = [&format_hex](u32 addr) {
     addr = PowerPC::HostIsRAMAddress(addr) ? PowerPC::HostRead_U32(addr) : 0;
@@ -469,7 +465,7 @@ void ThreadWidget::OnSelectionChanged(int row)
 {
   Common::Debug::PartialContext context;
 
-  if (row >= 0 && row < m_threads.size())
+  if (row >= 0 && size_t(row) < m_threads.size())
     context = m_threads[row]->GetContext();
 
   UpdateThreadContext(context);

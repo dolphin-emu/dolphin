@@ -9,9 +9,12 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+
+#include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
+#include "Core/Movie.h"
 
 namespace ExpansionInterface
 {
@@ -22,7 +25,8 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(u32 channel_id) : m_channel_id(channel_id)
+CEXIChannel::CEXIChannel(u32 channel_id, const Memcard::HeaderData& memcard_header_data)
+    : m_channel_id(channel_id), m_memcard_header_data(memcard_header_data)
 {
   if (m_channel_id == 0 || m_channel_id == 1)
     m_status.EXTINT = 1;
@@ -30,7 +34,7 @@ CEXIChannel::CEXIChannel(u32 channel_id) : m_channel_id(channel_id)
     m_status.CHIP_SELECT = 1;
 
   for (auto& device : m_devices)
-    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id);
+    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id, m_memcard_header_data);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -166,13 +170,18 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-  AddDevice(EXIDevice_Create(device_type, m_channel_id), device_num);
+  AddDevice(EXIDevice_Create(device_type, m_channel_id, m_memcard_header_data), device_num);
 }
 
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
                             bool notify_presence_changed)
 {
   DEBUG_ASSERT(device_num < NUM_DEVICES);
+
+  INFO_LOG(EXPANSIONINTERFACE,
+           "Changing EXI channel %d, device %d to type %d (notify software: %s)",
+           static_cast<int>(m_channel_id), device_num, static_cast<int>(device->m_device_type),
+           notify_presence_changed ? "true" : "false");
 
   // Replace it with the new one
   m_devices[device_num] = std::move(device);
@@ -230,6 +239,9 @@ void CEXIChannel::DoState(PointerWrap& p)
   p.Do(m_control);
   p.Do(m_imm_data);
 
+  Memcard::HeaderData old_header_data = m_memcard_header_data;
+  p.DoPOD(m_memcard_header_data);
+
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
     std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
@@ -242,9 +254,32 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
     else
     {
-      std::unique_ptr<IEXIDevice> save_device = EXIDevice_Create(type, m_channel_id);
+      std::unique_ptr<IEXIDevice> save_device =
+          EXIDevice_Create(type, m_channel_id, m_memcard_header_data);
       save_device->DoState(p);
       AddDevice(std::move(save_device), device_index, false);
+    }
+
+    if (type == EXIDEVICE_MEMORYCARDFOLDER && old_header_data != m_memcard_header_data &&
+        !Movie::IsMovieActive())
+    {
+      // We have loaded a savestate that has a GCI folder memcard that is different to the virtual
+      // card that is currently active. In order to prevent the game from recognizing this card as a
+      // 'different' memory card and preventing saving on it, we need to reinitialize the GCI folder
+      // card here with the loaded header data.
+      // We're intentionally calling ExpansionInterface::ChangeDevice() here instead of changing it
+      // directly so we don't switch immediately but after a delay, as if changed in the GUI. This
+      // should prevent games from assuming any stale data about the memory card, such as location
+      // of the individual save blocks, which may be different on the reinitialized card.
+      // Additionally, we immediately force the memory card to None so that any 'in-flight' writes
+      // (if someone managed to savestate while saving...) don't happen to hit the card.
+      // TODO: It might actually be enough to just switch to the card with the
+      // notify_presence_changed flag set to true? Not sure how software behaves if the previous and
+      // the new device type are identical in this case. I assume there is a reason we have this
+      // grace period when switching in the GUI.
+      AddDevice(EXIDEVICE_NONE, device_index);
+      ExpansionInterface::ChangeDevice(m_channel_id, EXIDEVICE_MEMORYCARDFOLDER, device_index,
+                                       CoreTiming::FromThread::CPU);
     }
   }
 }

@@ -252,6 +252,9 @@ bool NetPlayClient::Connect()
     case CON_ERR_GAME_RUNNING:
       m_dialog->OnConnectionError(_trans("The game is currently running."));
       break;
+    case CON_ERR_NAME_TOO_LONG:
+      m_dialog->OnConnectionError(_trans("Nickname is too long."));
+      break;
     default:
       m_dialog->OnConnectionError(_trans("The server sent an unknown error message."));
       break;
@@ -781,9 +784,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   {
     const size_t sram_settings_len = sizeof(g_SRAM) - offsetof(Sram, settings);
     u8 sram[sram_settings_len];
-    for (size_t i = 0; i < sram_settings_len; ++i)
+    for (u8& cell : sram)
     {
-      packet >> sram[i];
+      packet >> cell;
     }
 
     {
@@ -939,8 +942,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> header.banner_size;
         packet >> header.permissions;
         packet >> header.unk1;
-        for (size_t i = 0; i < header.md5.size(); i++)
-          packet >> header.md5[i];
+        for (u8& byte : header.md5)
+          packet >> byte;
         packet >> header.unk2;
         for (size_t i = 0; i < header.banner_size; i++)
           packet >> header.banner[i];
@@ -955,11 +958,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> bk_header.unk1;
         packet >> bk_header.unk2;
         packet >> bk_header.total_size;
-        for (size_t i = 0; i < bk_header.unk3.size(); i++)
-          packet >> bk_header.unk3[i];
+        for (u8& byte : bk_header.unk3)
+          packet >> byte;
         packet >> bk_header.tid;
-        for (size_t i = 0; i < bk_header.mac_address.size(); i++)
-          packet >> bk_header.mac_address[i];
+        for (u8& byte : bk_header.mac_address)
+          packet >> byte;
 
         // Files
         std::vector<WiiSave::Storage::SaveFile> files;

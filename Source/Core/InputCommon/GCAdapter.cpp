@@ -38,12 +38,12 @@ enum
 };
 
 // Current adapter status: detected/not detected/in error (holds the error code)
-static int s_status = NO_ADAPTER_DETECTED;
+static std::atomic<int> s_status = NO_ADAPTER_DETECTED;
 static libusb_device_handle* s_handle = nullptr;
-static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
-static u8 s_controller_rumble[4];
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_rumble{};
 
 static std::mutex s_mutex;
 static u8 s_controller_payload[37];
@@ -60,6 +60,7 @@ static Common::Event s_rumble_data_available;
 static std::mutex s_init_mutex;
 static std::thread s_adapter_detect_thread;
 static Common::Flag s_adapter_detect_thread_running;
+static Common::Event s_hotplug_event;
 
 static std::function<void(void)> s_detect_callback;
 
@@ -125,15 +126,8 @@ static int HotplugCallback(libusb_context* ctx, libusb_device* dev, libusb_hotpl
 {
   if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED)
   {
-    if (s_handle == nullptr && CheckDeviceAccess(dev))
-    {
-      std::lock_guard<std::mutex> lk(s_init_mutex);
-      AddGCAdapter(dev);
-    }
-    else if (s_status < 0 && s_detect_callback != nullptr)
-    {
-      s_detect_callback();
-    }
+    if (s_handle == nullptr)
+      s_hotplug_event.Set();
   }
   else if (event == LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT)
   {
@@ -175,9 +169,6 @@ static void ScanThreadFunc()
   }
 #endif
 
-  if (s_libusb_hotplug_enabled)
-    return;
-
   while (s_adapter_detect_thread_running.IsSet())
   {
     if (s_handle == nullptr)
@@ -185,7 +176,11 @@ static void ScanThreadFunc()
       std::lock_guard<std::mutex> lk(s_init_mutex);
       Setup();
     }
-    Common::SleepCurrentThread(500);
+
+    if (s_libusb_hotplug_enabled)
+      s_hotplug_event.Wait();
+    else
+      Common::SleepCurrentThread(500);
   }
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread stopped");
 }
@@ -228,6 +223,7 @@ void StopScanThread()
 {
   if (s_adapter_detect_thread_running.TestAndClear())
   {
+    s_hotplug_event.Set();
     s_adapter_detect_thread.join();
   }
 }
@@ -240,11 +236,8 @@ static void Setup()
   if (s_status < 0)
     s_status = NO_ADAPTER_DETECTED;
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-  {
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
-    s_controller_rumble[i] = 0;
-  }
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
+  s_controller_rumble.fill(0);
 
   s_libusb_context.GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
@@ -306,6 +299,12 @@ static bool CheckDeviceAccess(libusb_device* device)
     if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
       ERROR_LOG(SERIALINTERFACE, "libusb_detach_kernel_driver failed with error: %d", ret);
   }
+
+  // This call makes Nyko-brand (and perhaps other) adapters work.
+  // However it returns LIBUSB_ERROR_PIPE with Mayflash adapters.
+  const int transfer = libusb_control_transfer(s_handle, 0x21, 11, 0x0001, 0, nullptr, 0, 1000);
+  if (transfer < 0)
+    WARN_LOG(SERIALINTERFACE, "libusb_control_transfer failed with error: %d", transfer);
 
   // this split is needed so that we don't avoid claiming the interface when
   // detaching the kernel driver is successful
@@ -393,8 +392,7 @@ static void Reset()
     s_adapter_output_thread.join();
   }
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
 
   s_status = NO_ADAPTER_DETECTED;
 
@@ -431,9 +429,9 @@ GCPadStatus Input(int chan)
   if (payload_size != sizeof(controller_payload_copy) ||
       controller_payload_copy[0] != LIBUSB_DT_HID)
   {
+    // This can occur for a few frames on initialization.
     ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
               controller_payload_copy[0]);
-    Reset();
   }
   else
   {
@@ -575,7 +573,7 @@ bool IsDetected(const char** error_message)
   }
 
   if (error_message)
-    *error_message = libusb_strerror(static_cast<libusb_error>(s_status));
+    *error_message = libusb_strerror(static_cast<libusb_error>(s_status.load()));
 
   return false;
 }

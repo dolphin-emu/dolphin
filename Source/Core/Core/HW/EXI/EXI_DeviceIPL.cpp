@@ -151,7 +151,7 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  p.Do(g_SRAM.rtc);
+  p.Do(g_SRAM);
   p.Do(g_rtc_flags);
   p.Do(m_command);
   p.Do(m_command_bytes_received);

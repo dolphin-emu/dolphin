@@ -21,6 +21,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
+
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
   const u64 factor = ((1024 * 1024) / 8);
@@ -31,6 +33,8 @@ static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
   return megabits;
 }
 
+namespace Memcard
+{
 bool GCMemcardErrorCode::HasCriticalErrors() const
 {
   return Test(GCMemcardValidityIssues::FAILED_TO_OPEN) || Test(GCMemcardValidityIssues::IO_ERROR) ||
@@ -62,14 +66,16 @@ GCMemcard::GCMemcard()
 {
 }
 
-std::optional<GCMemcard> GCMemcard::Create(std::string filename, u16 size_mbits, bool shift_jis)
+std::optional<GCMemcard> GCMemcard::Create(std::string filename, const CardFlashId& flash_id,
+                                           u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                                           u32 sram_language, u64 format_time)
 {
   GCMemcard card;
   card.m_filename = std::move(filename);
 
   // TODO: Format() not only formats the card but also writes it to disk at m_filename.
   // Those tasks should probably be separated.
-  if (!card.Format(shift_jis, size_mbits))
+  if (!card.Format(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time))
     return std::nullopt;
 
   return std::move(card);
@@ -300,7 +306,7 @@ void GCMemcard::UpdateBat(const BlockAlloc& bat)
 
 bool GCMemcard::IsShiftJIS() const
 {
-  return m_header_block.m_encoding != 0;
+  return m_header_block.m_data.m_encoding != 0;
 }
 
 bool GCMemcard::Save()
@@ -401,22 +407,19 @@ u16 GCMemcard::GetFreeBlocks() const
   return GetActiveBat().m_free_blocks;
 }
 
-u8 GCMemcard::TitlePresent(const DEntry& d) const
+std::optional<u8> GCMemcard::TitlePresent(const DEntry& d) const
 {
   if (!m_valid)
-    return DIRLEN;
+    return std::nullopt;
 
-  u8 i = 0;
-  while (i < DIRLEN)
+  const Directory& dir = GetActiveDirectory();
+  for (u8 i = 0; i < DIRLEN; ++i)
   {
-    if (GetActiveDirectory().m_dir_entries[i].m_gamecode == d.m_gamecode &&
-        GetActiveDirectory().m_dir_entries[i].m_filename == d.m_filename)
-    {
-      break;
-    }
-    i++;
+    if (HasSameIdentity(dir.m_dir_entries[i], d))
+      return i;
   }
-  return i;
+
+  return std::nullopt;
 }
 
 bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
@@ -849,7 +852,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   {
     return GCMemcardImportFileRetVal::OUTOFBLOCKS;
   }
-  if (TitlePresent(direntry) != DIRLEN)
+  if (TitlePresent(direntry))
   {
     return GCMemcardImportFileRetVal::TITLEPRESENT;
   }
@@ -1365,29 +1368,32 @@ std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> GCMemcard::ReadAnimRGBA
   return output;
 }
 
-bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
+bool GCMemcard::Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,
+                       u32 rtc_bias, u32 sram_language, u64 format_time)
 {
   if (!card_data)
     return false;
   memset(card_data, 0xFF, BLOCK_SIZE * 3);
   memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((Header*)card_data) = Header(SLOT_A, SizeMb, shift_jis);
+  *((Header*)card_data) =
+      Header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
 
   *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
   *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(SizeMb);
-  *((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(SizeMb);
+  *((BlockAlloc*)(card_data + BLOCK_SIZE * 3)) = BlockAlloc(size_mbits);
+  *((BlockAlloc*)(card_data + BLOCK_SIZE * 4)) = BlockAlloc(size_mbits);
   return true;
 }
 
-bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
+bool GCMemcard::Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                       u32 sram_language, u64 format_time)
 {
-  m_header_block = Header(SLOT_A, SizeMb, shift_jis);
+  m_header_block = Header(flash_id, size_mbits, shift_jis, rtc_bias, sram_language, format_time);
   m_directory_blocks[0] = m_directory_blocks[1] = Directory();
-  m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(SizeMb);
+  m_bat_blocks[0] = m_bat_blocks[1] = BlockAlloc(size_mbits);
 
-  m_size_mb = SizeMb;
+  m_size_mb = size_mbits;
   m_size_blocks = (u32)m_size_mb * MBIT_TO_BLOCKS;
   m_data_blocks.clear();
   m_data_blocks.resize(m_size_blocks - MC_FST_BLOCKS);
@@ -1536,30 +1542,65 @@ void GCMBlock::Erase()
   memset(m_block.data(), 0xFF, m_block.size());
 }
 
-Header::Header(int slot, u16 size_mbits, bool shift_jis)
+Header::Header()
+{
+  static_assert(std::is_trivially_copyable_v<Header>);
+  std::memset(this, 0xFF, BLOCK_SIZE);
+}
+
+void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
+                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time)
 {
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
   // Changing the constants will break memory card support
-  memset(this, 0xFF, BLOCK_SIZE);
-  m_size_mb = size_mbits;
-  m_encoding = shift_jis ? 1 : 0;
-  u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
-  m_format_time = rand;
+  data->m_size_mb = size_mbits;
+  data->m_encoding = shift_jis ? 1 : 0;
+  data->m_format_time = format_time;
+  u64 rand = format_time;
   for (int i = 0; i < 12; i++)
   {
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
-    m_serial[i] = (u8)(g_SRAM.settings_ex.flash_id[slot][i] + (u32)rand);
+    data->m_serial[i] = (u8)(flash_id[i] + (u32)rand);
     rand = (((rand * (u64)0x0000000041c64e6dULL) + (u64)0x0000000000003039ULL) >> 16);
     rand &= (u64)0x0000000000007fffULL;
   }
-  m_sram_bias = g_SRAM.settings.rtc_bias;
-  m_sram_language = static_cast<u32>(g_SRAM.settings.language);
+  data->m_sram_bias = rtc_bias;
+  data->m_sram_language = sram_language;
   // TODO: determine the purpose of m_unknown_2
   // 1 works for slot A, 0 works for both slot A and slot B
-  memset(m_unknown_2.data(), 0,
-         m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
-  m_device_id = 0;
+  std::memset(
+      data->m_unknown_2.data(), 0,
+      data->m_unknown_2.size());  // = _viReg[55];  static vu16* const _viReg = (u16*)0xCC002000;
+  data->m_device_id = 0;
+}
+
+bool operator==(const HeaderData& lhs, const HeaderData& rhs)
+{
+  static_assert(std::is_trivially_copyable_v<HeaderData>);
+  return std::memcmp(&lhs, &rhs, sizeof(HeaderData)) == 0;
+}
+
+bool operator!=(const HeaderData& lhs, const HeaderData& rhs)
+{
+  return !(lhs == rhs);
+}
+
+Header::Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+               u32 sram_language, u64 format_time)
+{
+  static_assert(std::is_trivially_copyable_v<Header>);
+  std::memset(this, 0xFF, BLOCK_SIZE);
+  InitializeHeaderData(&m_data, flash_id, size_mbits, shift_jis, rtc_bias, sram_language,
+                       format_time);
+  FixChecksums();
+}
+
+Header::Header(const HeaderData& data)
+{
+  static_assert(std::is_trivially_copyable_v<Header>);
+  std::memset(this, 0xFF, BLOCK_SIZE);
+  m_data = data;
   FixChecksums();
 }
 
@@ -1607,7 +1648,7 @@ std::pair<u16, u16> Header::CalculateChecksums() const
   std::array<u8, sizeof(Header)> raw;
   memcpy(raw.data(), this, raw.size());
 
-  constexpr size_t checksum_area_start = offsetof(Header, m_serial);
+  constexpr size_t checksum_area_start = offsetof(Header, m_data);
   constexpr size_t checksum_area_end = offsetof(Header, m_checksum);
   constexpr size_t checksum_area_size = checksum_area_end - checksum_area_start;
   return CalculateMemcardChecksums(&raw[checksum_area_start], checksum_area_size);
@@ -1618,7 +1659,7 @@ GCMemcardErrorCode Header::CheckForErrors(u16 card_size_mbits) const
   GCMemcardErrorCode error_code;
 
   // total card size should match card size in header
-  if (m_size_mb != card_size_mbits)
+  if (m_data.m_size_mb != card_size_mbits)
     error_code.Set(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE);
 
   // unused areas, should always be filled with 0xFF
@@ -1744,3 +1785,4 @@ GCMemcardErrorCode Directory::CheckForErrorsWithBat(const BlockAlloc& bat) const
 
   return error_code;
 }
+}  // namespace Memcard
