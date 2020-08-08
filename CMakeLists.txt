@@ -35,6 +35,7 @@ option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_TESTS "Enables building the unit tests" ON)
+option(FORCE_VENDORED_ZSTD "Use the vendored Zstandard library even if the system zstd is detected" ON)
 option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current game on Discord" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
@@ -611,7 +612,7 @@ else()
 endif()
 
 pkg_search_module(ZSTD QUIET libzstd)
-if(ZSTD_FOUND)
+if(ZSTD_FOUND AND NOT FORCE_VENDORED_ZSTD)
   message(STATUS "Using shared zstd")
 else()
   check_vendoring_approved(zstd)
