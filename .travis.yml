@@ -1,40 +1,21 @@
+sudo: false
 language: cpp
 compiler:
   - gcc
-matrix:
-  include:
-    - os: linux
-      env: NAME="linux appimage"
-      sudo: required
-      dist: trusty
-      services: docker
-      addons:
-        apt:
-          packages:
-            - p7zip-full 
-            - curl
-            - cmake
-            - git
-        install: 
-            - echo "$TRAVIS_COMMIT"
-            - docker pull quriouspixel/yuzu:latest 
-        script: 
-            - make
-            - make test
-            - docker run -u root --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
-      after_success:
-      - ls -lh artifacts/* 
-      - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
-      - bash upload.sh artifacts/* 
-      branches:
-  except:
-    - /^(?i:continuous.*)$/
-deploy:
-  provider: releases
-  api_key: $GITHUB_TOKEN 
-  file_glob: true
-  file: "~/Artifacts/*"
-  skip_cleanup: true
-  draft: true
-  on:
-    tags: true
+  - clang
+addons:
+  apt:
+    sources:
+    - ubuntu-toolchain-r-test
+    - llvm-toolchain-precise-3.8
+    packages:
+    - g++-6
+    - clang-3.8
+install:
+- "[ $CXX = g++ ] && export CXX=g++-6 || true"
+- "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
+script:
+  - make
+  - make test
+
+  
