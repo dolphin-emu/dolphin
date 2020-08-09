@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		2FC542D2157D8D814369C67D /* libPods-DolphiniOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 93227A79A53E50FE37648CB5 /* libPods-DolphiniOS.a */; };
 		4EDF824B246C7F4200ED9FFA /* MainTabBarController.m in Sources */ = {isa = PBXBuildFile; fileRef = 4EDF824A246C7F4200ED9FFA /* MainTabBarController.m */; };
 		4EDF824D246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4EDF824C246CA06F00ED9FFA /* UIImageView+FixVectorTemplate.swift */; };
 		4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */ = {isa = PBXBuildFile; fileRef = 4EF97B4D23B6B8F300F13FCF /* DefaultPreferences.plist */; };
@@ -597,6 +598,7 @@
 				B927118824A3FFB200A21182 /* liblzma.tbd in Frameworks */,
 				B945A3972362D99000B21680 /* libz.tbd in Frameworks */,
 				B945A3F52362E25500B21680 /* libc++.tbd in Frameworks */,
+				2FC542D2157D8D814369C67D /* libPods-DolphiniOS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1968,7 +1970,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2002,6 +2003,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2013,11 +2015,12 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lFreeSurround",
 					"-lSoundTouch",
@@ -2057,7 +2060,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = arm64;
 			};
 			name = "Release (Non-Jailbroken No Analytics)";
 		};
@@ -2109,7 +2111,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2143,6 +2144,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2160,12 +2162,12 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
 				);
 				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -2207,7 +2209,6 @@
 					"-lmain",
 				);
 				SDKROOT = iphoneos;
-				VALID_ARCHS = arm64;
 			};
 			name = "Debug (Jailbroken)";
 		};
@@ -2215,7 +2216,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2249,6 +2249,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2260,15 +2261,16 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
 				);
 				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lFreeSurround",
 					"-lSoundTouch",
@@ -2308,7 +2310,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = arm64;
 			};
 			name = "Release (Jailbroken)";
 		};
@@ -2407,7 +2408,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2441,6 +2441,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2452,11 +2453,12 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lFreeSurround",
 					"-lSoundTouch",
@@ -2496,7 +2498,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = arm64;
 			};
 			name = "Release (Non-Jailbroken)";
 		};
@@ -2549,7 +2550,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2583,6 +2583,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2594,11 +2595,12 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lFreeSurround",
 					"-lSoundTouch",
@@ -2638,7 +2640,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = arm64;
 			};
 			name = "Release (Patreon Non-Jailbroken)";
 		};
@@ -2690,7 +2691,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2724,6 +2724,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -2741,8 +2742,8 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -2784,7 +2785,6 @@
 					"-lmain",
 				);
 				SDKROOT = iphoneos;
-				VALID_ARCHS = arm64;
 			};
 			name = "Debug (Non-Jailbroken)";
 		};
@@ -2838,7 +2838,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ARCHS = arm64;
 				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
@@ -2872,6 +2871,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				EXCLUDED_ARCHS = "i386 armv7s armv7";
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -2883,15 +2883,16 @@
 				HEADER_SEARCH_PATHS = "$(SRCROOT)/../Interface";
 				IPHONEOS_DEPLOYMENT_TARGET = 12.0;
 				LIBRARY_SEARCH_PATHS = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)-jb/libs/Externals/**",
 				);
 				"LIBRARY_SEARCH_PATHS[sdk=iphonesimulator*]" = (
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
-					"$(SRCROOT)/../../../build-$(ARCHS)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Dolphin",
+					"$(SRCROOT)/../../../build-$(PLATFORM_NAME)-$(DOLPHIN_BUILD_TYPE)/libs/Externals/**",
 				);
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lFreeSurround",
 					"-lSoundTouch",
@@ -2931,7 +2932,6 @@
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
-				VALID_ARCHS = arm64;
 			};
 			name = "Release (Patreon)";
 		};
