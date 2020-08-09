@@ -11,6 +11,8 @@ matrix:
           packages:
             - p7zip-full 
             - curl
+            - cmake
+            - git
         install: 
             - echo "$TRAVIS_COMMIT"
             - docker pull quriouspixel/yuzu:latest 
