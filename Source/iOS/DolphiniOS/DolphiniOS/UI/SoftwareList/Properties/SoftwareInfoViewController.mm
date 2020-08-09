@@ -25,7 +25,7 @@
   std::string cpp_game_name = self.m_game_file->GetInternalName();
   if (cpp_game_name.empty())
   {
-    game_name = @"Unknown";
+    game_name = DOLocalizedString(@"Unknown");
   }
   else
   {
@@ -59,7 +59,7 @@
   std::string cpp_maker = self.m_game_file->GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
   if (cpp_maker.empty())
   {
-    maker = @"Unknown";
+    maker = DOLocalizedString(@"Unknown");
   }
   else
   {
