@@ -18,7 +18,7 @@
 
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
-#include <minizip/unzip.h>
+#include <unzip.h>
 #include <pugixml.hpp>
 #include <zlib.h>
 

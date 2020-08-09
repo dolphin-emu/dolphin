@@ -259,3 +259,35 @@ bool GCPad::GetMicButton() const
   const auto lock = GetStateLock();
   return m_mic->controls.back()->GetState<bool>();
 }
+
+bool GCPad::CheckSpringBallCtrl()
+{
+  return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
+}
+
+std::tuple<double, double> GCPad::GetPrimeStickXY()
+{
+  const auto stick_state = m_primehack_stick->GetState();
+
+  return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue() * 100, stick_state.y * m_primehack_vertical_sensitivity.GetValue() * -100);
+}
+
+bool GCPad::PrimeControllerMode()
+{
+  return m_primehack_modes->GetSelectedDevice() == 1;
+}
+
+void GCPad::SetPrimeMode(bool controller)
+{
+  m_primehack_modes->SetSelectedDevice(controller ? 1 : 0);
+}
+
+std::tuple<double, double, double, bool, bool> GCPad::GetPrimeSettings()
+{
+  std::tuple t = std::make_tuple(
+    m_primehack_camera_sensitivity.GetValue() * 100, 0.f,
+    m_primehack_fieldofview.GetValue() * 100, m_primehack_invert_x.GetValue(),
+    m_primehack_invert_y.GetValue());
+
+  return t;
+}

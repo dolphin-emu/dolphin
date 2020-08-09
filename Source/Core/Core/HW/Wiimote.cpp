@@ -23,6 +23,7 @@
 #include "InputCommon/InputConfig.h"
 
 #include "Core/PrimeHack/HackConfig.h"
+#include <Core\HW\WiimoteEmu\Extension\Nunchuk.h>
 
 // Limit the amount of wiimote connect requests, when a button is pressed in disconnected state
 static std::array<u8, MAX_BBMOTES> s_last_connect_request_counter;
@@ -257,6 +258,40 @@ bool CheckBeam(int beamcount)
   return wiimote->CheckBeamCtrl(beamcount);
 }
 
+bool CheckForward() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+    controls[0].get()->control_ref->State() > 0.5;
+}
+
+bool CheckBack() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+    controls[1].get()->control_ref->State() > 0.5;
+}
+
+bool CheckLeft() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+    controls[2].get()->control_ref->State() > 0.5;
+}
+
+bool CheckRight() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->GetNunchukGroup(WiimoteEmu::NunchukGroup::Stick)->
+    controls[3].get()->control_ref->State() > 0.5;
+}
+
+bool CheckJump() {
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->groups[0].get()->controls[1]->control_ref->State() > 0.5;
+}
+
 bool CheckSpringBall()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
@@ -285,18 +320,11 @@ bool PrimeUseController()
   return wiimote->PrimeControllerMode();
 }
 
-double GetPrimeStickX()
+std::tuple<double, double> GetPrimeStickXY()
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
 
-  return wiimote->GetPrimeStickX();
-}
-
-double GetPrimeStickY()
-{
-  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
-
-  return wiimote->GetPrimeStickY();
+  return wiimote->GetPrimeStickXY();
 }
 
 std::tuple<double, double, double, bool, bool> PrimeSettings()

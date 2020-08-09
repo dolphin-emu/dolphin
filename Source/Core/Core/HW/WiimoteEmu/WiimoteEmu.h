@@ -146,8 +146,8 @@ public:
   bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
   bool PrimeControllerMode();
-  double GetPrimeStickX();
-  double GetPrimeStickY();
+
+  std::tuple<double, double> GetPrimeStickXY();
 
   std::tuple <double, double, double, bool, bool> GetPrimeSettings();
 

@@ -64,11 +64,33 @@
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest-all.cc" />
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
     <!--Lump all of the tests (and supporting code) into one binary-->
-    <ClCompile Include="*.cpp" />
-    <ClCompile Include="*\*.cpp">
-      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="*\*\*.cpp" />
+    <ClCompile Include="Common\BitFieldTest.cpp" />
+    <ClCompile Include="Common\BitSetTest.cpp" />
+    <ClCompile Include="Common\BitUtilsTest.cpp" />
+    <ClCompile Include="Common\BlockingLoopTest.cpp" />
+    <ClCompile Include="Common\BusyLoopTest.cpp" />
+    <ClCompile Include="Common\CommonFuncsTest.cpp" />
+    <ClCompile Include="Common\Crypto\EcTest.cpp" />
+    <ClCompile Include="Common\EventTest.cpp" />
+    <ClCompile Include="Common\FixedSizeQueueTest.cpp" />
+    <ClCompile Include="Common\FlagTest.cpp" />
+    <ClCompile Include="Common\FloatUtilsTest.cpp" />
+    <ClCompile Include="Common\MathUtilTest.cpp" />
+    <ClCompile Include="Common\NandPathsTest.cpp" />
+    <ClCompile Include="Common\SPSCQueueTest.cpp" />
+    <ClCompile Include="Common\StringUtilTest.cpp" />
+    <ClCompile Include="Common\SwapTest.cpp" />
+    <ClCompile Include="Common\x64EmitterTest.cpp" />
+    <ClCompile Include="Core\CoreTimingTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPAcceleratorTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPAssemblyTest.cpp" />
+    <ClCompile Include="Core\DSP\DSPTestBinary.cpp" />
+    <ClCompile Include="Core\DSP\DSPTestText.cpp" />
+    <ClCompile Include="Core\DSP\HermesBinary.cpp" />
+    <ClCompile Include="Core\MMIOTest.cpp" />
+    <ClCompile Include="Core\PageFaultTest.cpp" />
+    <ClCompile Include="StubHost.cpp" />
+    <ClCompile Include="VideoCommon\VertexLoaderTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

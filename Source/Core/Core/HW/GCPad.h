@@ -31,4 +31,12 @@ void Rumble(int pad_num, ControlState strength);
 void ResetRumble(int pad_num);
 
 bool GetMicButton(int pad_num);
+
+bool PrimeUseController();
+
+void PrimeSetMode(bool controller);
+
+std::tuple<double, double> GetPrimeStickXY();
+
+std::tuple<double, double, double, bool, bool> PrimeSettings();
 }  // namespace Pad

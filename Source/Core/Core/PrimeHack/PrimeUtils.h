@@ -1,20 +1,31 @@
 #pragma once
 
 #include "Core/PrimeHack/PrimeMod.h"
+#include "Core/PrimeHack/Transform.h"
 
 #include <cmath>
 #include <sstream>
 
-#include "Core/PowerPC/PowerPC.h"
+#include "Core/PowerPC/MMU.h"
 #include "Core/PrimeHack/HackConfig.h"
 #include "InputCommon/GenericMouse.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 
-extern std::string cplayer_str;
+extern std::string info_str;
 
-namespace prime
-{
+namespace prime {
+u8 read8(u32 addr);
+u16 read16(u32 addr);
+u32 read32(u32 addr);
+u32 readi(u32 addr);
+u64 read64(u32 addr);
+void write8(u8 var, u32 addr);
+void write16(u16 var, u32 addr);
+void write32(u32 var, u32 addr);
+void write64(u64 var, u32 addr);
+void writef32(float var, u32 addr);
+
 constexpr float TURNRATE_RATIO = 0.00498665500569808449206349206349f;
 
 int get_beam_switch(std::array<int, 4> const& beams);
@@ -22,44 +33,20 @@ std::tuple<int, int> get_visor_switch(std::array<std::tuple<int, int>, 4> const&
 
 void handle_cursor(u32 x_address, u32 y_address, float right_bound, float bottom_bound);
 
-void springball_code(u32 base_offset, std::vector<CodeChange>* code_changes);
-void springball_check(u32 ball_address, u32 movement_address);
-
-void set_cplayer_str(u32 address);
-
 bool mem_check(u32 address);
 void write_invalidate(u32 address, u32 value);
-void write_if_different(u32 address, u32 value);
-float getAspectRatio();
+float get_aspect_ratio();
 
 void set_beam_owned(int index, bool owned);
 void set_visor_owned(int index, bool owned);
 void set_cursor_pos(float x, float y);
 
-void disable_culling(u32 address);
-void adjust_viewmodel(float fov, u32 arm_address, u32 znear_address, u32 znear_value);
+void DevInfo(const char* name, const char* format, ...);
+void DevInfoMatrix(const char* name, const Transform& t);
+std::tuple<u32, u32, u32> GetCheatsTime();
+void AddCheatsTime(int index, u32 time);
 
-class MenuNTSC : public PrimeMod
-{
-public:
-  Game game() const override { return Game::MENU; }
+std::string GetDevInfo();
+void ClrDevInfo();
 
-  Region region() const override { return Region::NTSC; }
-
-  void run_mod() override;
-
-  virtual ~MenuNTSC() {}
-};
-
-class MenuPAL : public PrimeMod
-{
-public:
-  Game game() const override { return Game::MENU; }
-
-  Region region() const override { return Region::PAL; }
-
-  void run_mod() override;
-
-  virtual ~MenuPAL() {}
-};
 }  // namespace prime

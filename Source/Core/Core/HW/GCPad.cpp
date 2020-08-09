@@ -76,4 +76,33 @@ bool GetMicButton(const int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
 }
+
+bool PrimeUseController()
+{
+  GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
+
+  return gcpad->PrimeControllerMode();
+}
+
+void PrimeSetMode(bool useController)
+{
+  GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
+
+  gcpad->SetPrimeMode(useController);
+}
+
+std::tuple<double, double> GetPrimeStickXY()
+{
+  GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
+
+  return gcpad->GetPrimeStickXY();
+}
+
+std::tuple<double, double, double, bool, bool> PrimeSettings()
+{
+  GCPad* gcpad = static_cast<GCPad*>(s_config.GetController(0));
+
+  return gcpad->GetPrimeSettings();
+}
+
 }  // namespace Pad

@@ -782,14 +782,11 @@ bool Wiimote::CheckSpringBallCtrl()
   return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
 }
 
-double Wiimote::GetPrimeStickX()
+std::tuple<double, double> Wiimote::GetPrimeStickXY()
 {
-  return m_primehack_stick->GetState().x * m_primehack_horizontal_sensitivity.GetValue();
-}
+  const auto stick_state = m_primehack_stick->GetState();
 
-double Wiimote::GetPrimeStickY()
-{
-  return m_primehack_stick->GetState().y * -m_primehack_vertical_sensitivity.GetValue();
+  return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue() * 100, stick_state.y * m_primehack_vertical_sensitivity.GetValue() * -100);
 }
 
 bool Wiimote::PrimeControllerMode()

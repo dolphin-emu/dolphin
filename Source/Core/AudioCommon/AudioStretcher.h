@@ -6,7 +6,7 @@
 
 #include <array>
 
-#include <soundtouch/SoundTouch.h>
+#include <SoundTouch.h>
 
 namespace AudioCommon
 {

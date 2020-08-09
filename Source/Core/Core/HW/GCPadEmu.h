@@ -9,6 +9,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
+#include "InputCommon/ControllerEmu/ControlGroup/PrimeHackModes.h"
 
 struct GCPadStatus;
 
@@ -17,6 +18,7 @@ namespace ControllerEmu
 class AnalogStick;
 class Buttons;
 class MixedTriggers;
+class PrimeHackModes;
 }  // namespace ControllerEmu
 
 enum class PadGroup
@@ -46,6 +48,15 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  bool CheckSpringBallCtrl();
+  bool PrimeControllerMode();
+
+  void SetPrimeMode(bool controller);
+
+  std::tuple<double, double> GetPrimeStickXY();
+
+  std::tuple<double, double, double, bool, bool> GetPrimeSettings();
+
   static const u8 MAIN_STICK_GATE_RADIUS = 87;
   static const u8 C_STICK_GATE_RADIUS = 74;
 
@@ -60,6 +71,19 @@ private:
   ControllerEmu::ControlGroup* m_options;
 
   ControllerEmu::SettingValue<bool> m_always_connected_setting;
+
+  ControllerEmu::ControlGroup* m_primehack_camera;
+  ControllerEmu::ControlGroup* m_primehack_misc;
+  ControllerEmu::AnalogStick* m_primehack_stick;
+  ControllerEmu::PrimeHackModes* m_primehack_modes;
+
+  ControllerEmu::SettingValue<bool> m_primehack_camera_sensitivity;
+  ControllerEmu::SettingValue<bool> m_primehack_horizontal_sensitivity;
+  ControllerEmu::SettingValue<bool> m_primehack_vertical_sensitivity;
+
+  ControllerEmu::SettingValue<int> m_primehack_fieldofview;
+  ControllerEmu::SettingValue<bool> m_primehack_invert_y;
+  ControllerEmu::SettingValue<bool> m_primehack_invert_x;
 
   const unsigned int m_index;
 };

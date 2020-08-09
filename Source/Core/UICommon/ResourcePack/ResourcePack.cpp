@@ -6,7 +6,7 @@
 
 #include <algorithm>
 
-#include <minizip/unzip.h>
+#include <unzip.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
