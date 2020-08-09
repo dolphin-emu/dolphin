@@ -1,24 +1,23 @@
-
 /* Class = "UINavigationItem"; title = "Action Replay"; ObjectID = "0HZ-6f-okH"; */
 "0HZ-6f-okH.title" = "Action Replay";
 
-/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "0Yf-cp-3Ay"; */
-"0Yf-cp-3Ay.normalTitle" = "Cancel";
+/* Class = "UIButton"; normalTitle = "取消"; ObjectID = "0Yf-cp-3Ay"; */
+"0Yf-cp-3Ay.normalTitle" = "取消";
 
-/* Class = "UILabel"; text = "Maker"; ObjectID = "1d0-SB-c59"; */
-"1d0-SB-c59.text" = "Maker";
+/* Class = "UILabel"; text = "制作者"; ObjectID = "1d0-SB-c59"; */
+"1d0-SB-c59.text" = "制作者";
 
-/* Class = "UILabel"; text = "Verifying"; ObjectID = "1oc-4p-Abs"; */
-"1oc-4p-Abs.text" = "Verifying";
+/* Class = "UILabel"; text = "正在验证"; ObjectID = "1oc-4p-Abs"; */
+"1oc-4p-Abs.text" = "正在验证";
 
-/* Class = "UILabel"; text = "Name"; ObjectID = "2gU-fl-7L1"; */
-"2gU-fl-7L1.text" = "Name";
+/* Class = "UILabel"; text = "名称"; ObjectID = "2gU-fl-7L1"; */
+"2gU-fl-7L1.text" = "名称";
 
-/* Class = "UITextField"; placeholder = "Name"; ObjectID = "3bd-sz-34O"; */
-"3bd-sz-34O.placeholder" = "Name";
+/* Class = "UITextField"; placeholder = "名称"; ObjectID = "3bd-sz-34O"; */
+"3bd-sz-34O.placeholder" = "名称";
 
-/* Class = "UILabel"; text = "Verify Integrity"; ObjectID = "4Vl-o8-nrh"; */
-"4Vl-o8-nrh.text" = "Verify Integrity";
+/* Class = "UILabel"; text = "验证完整性"; ObjectID = "4Vl-o8-nrh"; */
+"4Vl-o8-nrh.text" = "验证完整性";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "4uD-oM-PZ0"; */
 "4uD-oM-PZ0.text" = "Placeholder";
@@ -32,8 +31,8 @@
 /* Class = "UINavigationItem"; title = "Gecko"; ObjectID = "9Jo-SU-1eg"; */
 "9Jo-SU-1eg.title" = "Gecko";
 
-/* Class = "UILabel"; text = "Add"; ObjectID = "9bb-EH-DyQ"; */
-"9bb-EH-DyQ.text" = "Add";
+/* Class = "UILabel"; text = "添加"; ObjectID = "9bb-EH-DyQ"; */
+"9bb-EH-DyQ.text" = "添加";
 
 /* Class = "UILabel"; text = "Problem Description"; ObjectID = "AOa-oT-sYW"; */
 "AOa-oT-sYW.text" = "Problem Description";
@@ -41,47 +40,47 @@
 /* Class = "UILabel"; text = "Hash"; ObjectID = "B9k-Vg-Y1F"; */
 "B9k-Vg-Y1F.text" = "Hash";
 
-/* Class = "UILabel"; text = "Info"; ObjectID = "DSq-Js-FaB"; */
-"DSq-Js-FaB.text" = "Info";
+/* Class = "UILabel"; text = "信息"; ObjectID = "DSq-Js-FaB"; */
+"DSq-Js-FaB.text" = "信息";
 
-/* Class = "UILabel"; text = "Add"; ObjectID = "EJh-vm-eam"; */
-"EJh-vm-eam.text" = "Add";
+/* Class = "UILabel"; text = "添加"; ObjectID = "EJh-vm-eam"; */
+"EJh-vm-eam.text" = "添加";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "F8V-1c-ezn"; */
 "F8V-1c-ezn.text" = "Placeholder";
 
-/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "FJP-ey-wiX"; */
-"FJP-ey-wiX.title" = "Verify";
+/* Class = "UINavigationItem"; title = "验证"; ObjectID = "FJP-ey-wiX"; */
+"FJP-ey-wiX.title" = "验证";
 
-/* Class = "UILabel"; text = "Game ID"; ObjectID = "G6A-6a-Ic1"; */
-"G6A-6a-Ic1.text" = "Game ID";
+/* Class = "UILabel"; text = "游戏 ID"; ObjectID = "G6A-6a-Ic1"; */
+"G6A-6a-Ic1.text" = "游戏 ID";
 
-/* Class = "UITableViewSection"; headerTitle = "Code"; ObjectID = "GnR-Is-UQ0"; */
-"GnR-Is-UQ0.headerTitle" = "Code";
+/* Class = "UITableViewSection"; headerTitle = "代码"; ObjectID = "GnR-Is-UQ0"; */
+"GnR-Is-UQ0.headerTitle" = "代码";
 
-/* Class = "UILabel"; text = "Name"; ObjectID = "HVA-as-R0P"; */
-"HVA-as-R0P.text" = "Name";
+/* Class = "UILabel"; text = "名称"; ObjectID = "HVA-as-R0P"; */
+"HVA-as-R0P.text" = "名称";
 
-/* Class = "UILabel"; text = "Name"; ObjectID = "HZl-db-Sp5"; */
-"HZl-db-Sp5.text" = "Name";
+/* Class = "UILabel"; text = "名称"; ObjectID = "HZl-db-Sp5"; */
+"HZl-db-Sp5.text" = "名称";
 
-/* Class = "UINavigationItem"; title = "Info"; ObjectID = "Jn5-jH-F1r"; */
-"Jn5-jH-F1r.title" = "Info";
+/* Class = "UINavigationItem"; title = "信息"; ObjectID = "Jn5-jH-F1r"; */
+"Jn5-jH-F1r.title" = "信息";
 
-/* Class = "UILabel"; text = "Redump.org Status"; ObjectID = "Jpj-OM-E9b"; */
-"Jpj-OM-E9b.text" = "Redump.org Status";
+/* Class = "UILabel"; text = "Redump.org 状态"; ObjectID = "Jpj-OM-E9b"; */
+"Jpj-OM-E9b.text" = "Redump.org 状态";
 
 /* Class = "UILabel"; text = "CRC32"; ObjectID = "Kz0-TR-7tk"; */
 "Kz0-TR-7tk.text" = "CRC32";
 
-/* Class = "UILabel"; text = "Country"; ObjectID = "Lno-cW-flZ"; */
-"Lno-cW-flZ.text" = "Country";
+/* Class = "UILabel"; text = "国家"; ObjectID = "Lno-cW-flZ"; */
+"Lno-cW-flZ.text" = "国家";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "Nil-i8-vge"; */
 "Nil-i8-vge.text" = "Code...";
 
-/* Class = "UILabel"; text = "Severity"; ObjectID = "RfT-To-kEF"; */
-"RfT-To-kEF.text" = "Severity";
+/* Class = "UILabel"; text = "严重性"; ObjectID = "RfT-To-kEF"; */
+"RfT-To-kEF.text" = "严重性";
 
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "Rgk-i1-CKH"; */
 "Rgk-i1-CKH.title" = "Edit";
@@ -89,8 +88,8 @@
 /* Class = "UILabel"; text = "Gecko"; ObjectID = "S6g-zg-fRc"; */
 "S6g-zg-fRc.text" = "Gecko";
 
-/* Class = "UILabel"; text = "Verifying"; ObjectID = "T5X-a1-c3f"; */
-"T5X-a1-c3f.text" = "Verifying";
+/* Class = "UILabel"; text = "正在验证"; ObjectID = "T5X-a1-c3f"; */
+"T5X-a1-c3f.text" = "正在验证";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "UeC-Xt-sYj"; */
 "UeC-Xt-sYj.text" = "Code...";
@@ -101,8 +100,8 @@
 /* Class = "UILabel"; text = "Done"; ObjectID = "Zkk-lT-Hvq"; */
 "Zkk-lT-Hvq.text" = "Done";
 
-/* Class = "UITextField"; placeholder = "Name"; ObjectID = "cEe-nY-sEf"; */
-"cEe-nY-sEf.placeholder" = "Name";
+/* Class = "UITextField"; placeholder = "名称"; ObjectID = "cEe-nY-sEf"; */
+"cEe-nY-sEf.placeholder" = "名称";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "dUo-Y0-gpm"; */
 "dUo-Y0-gpm.text" = "Placeholder";
@@ -113,29 +112,29 @@
 /* Class = "UITableViewController"; title = "Verification Results"; ObjectID = "gUv-Ta-w0K"; */
 "gUv-Ta-w0K.title" = "Verification Results";
 
-/* Class = "UITextField"; placeholder = "Name"; ObjectID = "hpF-pe-AiA"; */
-"hpF-pe-AiA.placeholder" = "Name";
+/* Class = "UITextField"; placeholder = "名称"; ObjectID = "hpF-pe-AiA"; */
+"hpF-pe-AiA.placeholder" = "名称";
 
-/* Class = "UILabel"; text = "Creator"; ObjectID = "i0z-cZ-eqk"; */
-"i0z-cZ-eqk.text" = "Creator";
+/* Class = "UILabel"; text = "创建者"; ObjectID = "i0z-cZ-eqk"; */
+"i0z-cZ-eqk.text" = "创建者";
 
 /* Class = "UILabel"; text = "SHA-1"; ObjectID = "igE-uI-RRQ"; */
 "igE-uI-RRQ.text" = "SHA-1";
 
-/* Class = "UILabel"; text = "Download Codes from the WiiRD Database"; ObjectID = "kmC-ti-5fS"; */
-"kmC-ti-5fS.text" = "Download Codes from the WiiRD Database";
+/* Class = "UILabel"; text = "从 WiiRD 数据库中下载代码"; ObjectID = "kmC-ti-5fS"; */
+"kmC-ti-5fS.text" = "从 WiiRD 数据库中下载代码";
 
 /* Class = "UINavigationItem"; title = "Software"; ObjectID = "l9f-VS-QoX"; */
 "l9f-VS-QoX.title" = "Software";
 
-/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "ljk-Jn-RTH"; */
-"ljk-Jn-RTH.title" = "Verify";
+/* Class = "UINavigationItem"; title = "验证"; ObjectID = "ljk-Jn-RTH"; */
+"ljk-Jn-RTH.title" = "验证";
 
 /* Class = "UILabel"; text = "Action Replay"; ObjectID = "mgd-iA-q4d"; */
 "mgd-iA-q4d.text" = "Action Replay";
 
-/* Class = "UILabel"; text = "Apploader Date"; ObjectID = "ncC-46-Nqj"; */
-"ncC-46-Nqj.text" = "Apploader Date";
+/* Class = "UILabel"; text = "应用载入器时间"; ObjectID = "ncC-46-Nqj"; */
+"ncC-46-Nqj.text" = "应用载入器时间";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "tEX-Kn-zik"; */
 "tEX-Kn-zik.text" = "Placeholder";
@@ -146,11 +145,11 @@
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "uSb-Qu-25d"; */
 "uSb-Qu-25d.title" = "Edit";
 
-/* Class = "UILabel"; text = "Verify"; ObjectID = "vM1-bj-nh3"; */
-"vM1-bj-nh3.text" = "Verify";
+/* Class = "UILabel"; text = "验证"; ObjectID = "vM1-bj-nh3"; */
+"vM1-bj-nh3.text" = "验证";
 
-/* Class = "UILabel"; text = "Label"; ObjectID = "x8i-Pg-2Vq"; */
-"x8i-Pg-2Vq.text" = "Label";
+/* Class = "UILabel"; text = "标签"; ObjectID = "x8i-Pg-2Vq"; */
+"x8i-Pg-2Vq.text" = "标签";
 
-/* Class = "UILabel"; text = "Label"; ObjectID = "x8r-IF-RjN"; */
-"x8r-IF-RjN.text" = "Label";
+/* Class = "UILabel"; text = "标签"; ObjectID = "x8r-IF-RjN"; */
+"x8r-IF-RjN.text" = "标签";

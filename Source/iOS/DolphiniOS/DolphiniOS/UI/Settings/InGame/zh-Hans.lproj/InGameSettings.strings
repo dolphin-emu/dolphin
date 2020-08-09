@@ -1,49 +1,49 @@
 /* Class = "UILabel"; text = "Controller Type"; ObjectID = "CkD-S7-YYh"; */
 "CkD-S7-YYh.text" = "Controller Type";
 
-/* Class = "UITableViewSection"; headerTitle = "控制器"; ObjectID = "Hcg-Pf-vHF"; */
+/* Class = "UITableViewSection"; headerTitle = "Controllers"; ObjectID = "Hcg-Pf-vHF"; */
 "Hcg-Pf-vHF.headerTitle" = "控制器";
 
-/* Class = "UILabel"; text = "保存"; ObjectID = "K1u-Lf-ImR"; */
+/* Class = "UILabel"; text = "Save"; ObjectID = "K1u-Lf-ImR"; */
 "K1u-Lf-ImR.text" = "保存";
 
-/* Class = "UILabel"; text = "载入"; ObjectID = "Kj5-6t-VLU"; */
+/* Class = "UILabel"; text = "Load"; ObjectID = "Kj5-6t-VLU"; */
 "Kj5-6t-VLU.text" = "载入";
 
 /* Class = "UINavigationItem"; title = "Change Controller"; ObjectID = "LOg-ZN-hB0"; */
 "LOg-ZN-hB0.title" = "Change Controller";
 
-/* Class = "UITableViewSection"; headerTitle = "保存状态"; ObjectID = "OsQ-TK-bBV"; */
+/* Class = "UITableViewSection"; headerTitle = "Save State"; ObjectID = "OsQ-TK-bBV"; */
 "OsQ-TK-bBV.headerTitle" = "保存状态";
 
 /* Class = "UILabel"; text = "Game Name"; ObjectID = "Xpb-MD-Ttl"; */
 "Xpb-MD-Ttl.text" = "Game Name";
 
-/* Class = "UINavigationItem"; title = "保存"; ObjectID = "dYF-hp-EOu"; */
+/* Class = "UINavigationItem"; title = "Save"; ObjectID = "dYF-hp-EOu"; */
 "dYF-hp-EOu.title" = "保存";
 
-/* Class = "UILabel"; text = "设置"; ObjectID = "eS5-Gd-2Ef"; */
+/* Class = "UILabel"; text = "Settings"; ObjectID = "eS5-Gd-2Ef"; */
 "eS5-Gd-2Ef.text" = "设置";
 
-/* Class = "UINavigationItem"; title = "载入"; ObjectID = "elK-Yl-abI"; */
+/* Class = "UINavigationItem"; title = "Load"; ObjectID = "elK-Yl-abI"; */
 "elK-Yl-abI.title" = "载入";
 
-/* Class = "UINavigationItem"; title = "设置"; ObjectID = "ggR-Du-beY"; */
+/* Class = "UINavigationItem"; title = "Settings"; ObjectID = "ggR-Du-beY"; */
 "ggR-Du-beY.title" = "设置";
 
-/* Class = "UINavigationItem"; title = "切换光盘"; ObjectID = "jpz-Dz-fkp"; */
+/* Class = "UINavigationItem"; title = "Change Disc"; ObjectID = "jpz-Dz-fkp"; */
 "jpz-Dz-fkp.title" = "切换光盘";
 
 /* Class = "UITableViewController"; title = "Change Touchscreen"; ObjectID = "k2b-Zj-1F8"; */
 "k2b-Zj-1F8.title" = "Change Touchscreen";
 
-/* Class = "UITableViewController"; title = "设置"; ObjectID = "kpj-vC-v4K"; */
+/* Class = "UITableViewController"; title = "Settings"; ObjectID = "kpj-vC-v4K"; */
 "kpj-vC-v4K.title" = "设置";
 
 /* Class = "UILabel"; text = "State Slot 1"; ObjectID = "lY7-Nq-L4G"; */
 "lY7-Nq-L4G.text" = "State Slot 1";
 
-/* Class = "UITableViewSection"; headerTitle = "其它"; ObjectID = "m8l-i1-6aC"; */
+/* Class = "UITableViewSection"; headerTitle = "Misc"; ObjectID = "m8l-i1-6aC"; */
 "m8l-i1-6aC.headerTitle" = "其它";
 
 /* Class = "UILabel"; text = "Change Touchscreen Controller"; ObjectID = "o8N-ql-HBA"; */
@@ -55,5 +55,5 @@
 /* Class = "UILabel"; text = "State Slot 1"; ObjectID = "uVG-PZ-CTl"; */
 "uVG-PZ-CTl.text" = "State Slot 1";
 
-/* Class = "UILabel"; text = "切换光盘"; ObjectID = "wCh-P0-Prf"; */
+/* Class = "UILabel"; text = "Change Disc"; ObjectID = "wCh-P0-Prf"; */
 "wCh-P0-Prf.text" = "切换光盘";
