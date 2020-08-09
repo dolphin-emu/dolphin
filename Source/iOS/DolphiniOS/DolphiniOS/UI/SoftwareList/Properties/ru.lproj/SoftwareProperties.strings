@@ -1,22 +1,22 @@
 /* Class = "UINavigationItem"; title = "Action Replay"; ObjectID = "0HZ-6f-okH"; */
 "0HZ-6f-okH.title" = "Action Replay";
 
-/* Class = "UIButton"; normalTitle = "Отмена"; ObjectID = "0Yf-cp-3Ay"; */
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "0Yf-cp-3Ay"; */
 "0Yf-cp-3Ay.normalTitle" = "Отмена";
 
-/* Class = "UILabel"; text = "Создатель"; ObjectID = "1d0-SB-c59"; */
+/* Class = "UILabel"; text = "Maker"; ObjectID = "1d0-SB-c59"; */
 "1d0-SB-c59.text" = "Создатель";
 
-/* Class = "UILabel"; text = "Выполняется проверка"; ObjectID = "1oc-4p-Abs"; */
+/* Class = "UILabel"; text = "Verifying"; ObjectID = "1oc-4p-Abs"; */
 "1oc-4p-Abs.text" = "Выполняется проверка";
 
-/* Class = "UILabel"; text = "Имя"; ObjectID = "2gU-fl-7L1"; */
+/* Class = "UILabel"; text = "Name"; ObjectID = "2gU-fl-7L1"; */
 "2gU-fl-7L1.text" = "Имя";
 
-/* Class = "UITextField"; placeholder = "Имя"; ObjectID = "3bd-sz-34O"; */
+/* Class = "UITextField"; placeholder = "Name"; ObjectID = "3bd-sz-34O"; */
 "3bd-sz-34O.placeholder" = "Имя";
 
-/* Class = "UILabel"; text = "Проверить целостность"; ObjectID = "4Vl-o8-nrh"; */
+/* Class = "UILabel"; text = "Verify Integrity"; ObjectID = "4Vl-o8-nrh"; */
 "4Vl-o8-nrh.text" = "Проверить целостность";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "4uD-oM-PZ0"; */
@@ -31,7 +31,7 @@
 /* Class = "UINavigationItem"; title = "Gecko"; ObjectID = "9Jo-SU-1eg"; */
 "9Jo-SU-1eg.title" = "Gecko";
 
-/* Class = "UILabel"; text = "Добавить"; ObjectID = "9bb-EH-DyQ"; */
+/* Class = "UILabel"; text = "Add"; ObjectID = "9bb-EH-DyQ"; */
 "9bb-EH-DyQ.text" = "Добавить";
 
 /* Class = "UILabel"; text = "Problem Description"; ObjectID = "AOa-oT-sYW"; */
@@ -40,46 +40,46 @@
 /* Class = "UILabel"; text = "Hash"; ObjectID = "B9k-Vg-Y1F"; */
 "B9k-Vg-Y1F.text" = "Hash";
 
-/* Class = "UILabel"; text = "Информация"; ObjectID = "DSq-Js-FaB"; */
+/* Class = "UILabel"; text = "Info"; ObjectID = "DSq-Js-FaB"; */
 "DSq-Js-FaB.text" = "Информация";
 
-/* Class = "UILabel"; text = "Добавить"; ObjectID = "EJh-vm-eam"; */
+/* Class = "UILabel"; text = "Add"; ObjectID = "EJh-vm-eam"; */
 "EJh-vm-eam.text" = "Добавить";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "F8V-1c-ezn"; */
 "F8V-1c-ezn.text" = "Placeholder";
 
-/* Class = "UINavigationItem"; title = "Проверка"; ObjectID = "FJP-ey-wiX"; */
+/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "FJP-ey-wiX"; */
 "FJP-ey-wiX.title" = "Проверка";
 
-/* Class = "UILabel"; text = "ID игры"; ObjectID = "G6A-6a-Ic1"; */
+/* Class = "UILabel"; text = "Game ID"; ObjectID = "G6A-6a-Ic1"; */
 "G6A-6a-Ic1.text" = "ID игры";
 
-/* Class = "UITableViewSection"; headerTitle = "Код"; ObjectID = "GnR-Is-UQ0"; */
+/* Class = "UITableViewSection"; headerTitle = "Code"; ObjectID = "GnR-Is-UQ0"; */
 "GnR-Is-UQ0.headerTitle" = "Код";
 
-/* Class = "UILabel"; text = "Имя"; ObjectID = "HVA-as-R0P"; */
+/* Class = "UILabel"; text = "Name"; ObjectID = "HVA-as-R0P"; */
 "HVA-as-R0P.text" = "Имя";
 
-/* Class = "UILabel"; text = "Имя"; ObjectID = "HZl-db-Sp5"; */
+/* Class = "UILabel"; text = "Name"; ObjectID = "HZl-db-Sp5"; */
 "HZl-db-Sp5.text" = "Имя";
 
-/* Class = "UINavigationItem"; title = "Информация"; ObjectID = "Jn5-jH-F1r"; */
+/* Class = "UINavigationItem"; title = "Info"; ObjectID = "Jn5-jH-F1r"; */
 "Jn5-jH-F1r.title" = "Информация";
 
-/* Class = "UILabel"; text = "Статус на Redump.org"; ObjectID = "Jpj-OM-E9b"; */
+/* Class = "UILabel"; text = "Redump.org Status"; ObjectID = "Jpj-OM-E9b"; */
 "Jpj-OM-E9b.text" = "Статус на Redump.org";
 
 /* Class = "UILabel"; text = "CRC32"; ObjectID = "Kz0-TR-7tk"; */
 "Kz0-TR-7tk.text" = "CRC32";
 
-/* Class = "UILabel"; text = "Страна"; ObjectID = "Lno-cW-flZ"; */
+/* Class = "UILabel"; text = "Country"; ObjectID = "Lno-cW-flZ"; */
 "Lno-cW-flZ.text" = "Страна";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "Nil-i8-vge"; */
 "Nil-i8-vge.text" = "Code...";
 
-/* Class = "UILabel"; text = "Критичность"; ObjectID = "RfT-To-kEF"; */
+/* Class = "UILabel"; text = "Severity"; ObjectID = "RfT-To-kEF"; */
 "RfT-To-kEF.text" = "Критичность";
 
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "Rgk-i1-CKH"; */
@@ -88,7 +88,7 @@
 /* Class = "UILabel"; text = "Gecko"; ObjectID = "S6g-zg-fRc"; */
 "S6g-zg-fRc.text" = "Gecko";
 
-/* Class = "UILabel"; text = "Выполняется проверка"; ObjectID = "T5X-a1-c3f"; */
+/* Class = "UILabel"; text = "Verifying"; ObjectID = "T5X-a1-c3f"; */
 "T5X-a1-c3f.text" = "Выполняется проверка";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "UeC-Xt-sYj"; */
@@ -100,7 +100,7 @@
 /* Class = "UILabel"; text = "Done"; ObjectID = "Zkk-lT-Hvq"; */
 "Zkk-lT-Hvq.text" = "Done";
 
-/* Class = "UITextField"; placeholder = "Имя"; ObjectID = "cEe-nY-sEf"; */
+/* Class = "UITextField"; placeholder = "Name"; ObjectID = "cEe-nY-sEf"; */
 "cEe-nY-sEf.placeholder" = "Имя";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "dUo-Y0-gpm"; */
@@ -112,28 +112,28 @@
 /* Class = "UITableViewController"; title = "Verification Results"; ObjectID = "gUv-Ta-w0K"; */
 "gUv-Ta-w0K.title" = "Verification Results";
 
-/* Class = "UITextField"; placeholder = "Имя"; ObjectID = "hpF-pe-AiA"; */
+/* Class = "UITextField"; placeholder = "Name"; ObjectID = "hpF-pe-AiA"; */
 "hpF-pe-AiA.placeholder" = "Имя";
 
-/* Class = "UILabel"; text = "Создатель"; ObjectID = "i0z-cZ-eqk"; */
+/* Class = "UILabel"; text = "Creator"; ObjectID = "i0z-cZ-eqk"; */
 "i0z-cZ-eqk.text" = "Создатель";
 
 /* Class = "UILabel"; text = "SHA-1"; ObjectID = "igE-uI-RRQ"; */
 "igE-uI-RRQ.text" = "SHA-1";
 
-/* Class = "UILabel"; text = "Скачать коды из базы данных WiiRD"; ObjectID = "kmC-ti-5fS"; */
+/* Class = "UILabel"; text = "Download Codes from the WiiRD Database"; ObjectID = "kmC-ti-5fS"; */
 "kmC-ti-5fS.text" = "Скачать коды из базы данных WiiRD";
 
 /* Class = "UINavigationItem"; title = "Software"; ObjectID = "l9f-VS-QoX"; */
 "l9f-VS-QoX.title" = "Software";
 
-/* Class = "UINavigationItem"; title = "Проверка"; ObjectID = "ljk-Jn-RTH"; */
+/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "ljk-Jn-RTH"; */
 "ljk-Jn-RTH.title" = "Проверка";
 
 /* Class = "UILabel"; text = "Action Replay"; ObjectID = "mgd-iA-q4d"; */
 "mgd-iA-q4d.text" = "Action Replay";
 
-/* Class = "UILabel"; text = "Дата загрузчика"; ObjectID = "ncC-46-Nqj"; */
+/* Class = "UILabel"; text = "Apploader Date"; ObjectID = "ncC-46-Nqj"; */
 "ncC-46-Nqj.text" = "Дата загрузчика";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "tEX-Kn-zik"; */
@@ -145,11 +145,11 @@
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "uSb-Qu-25d"; */
 "uSb-Qu-25d.title" = "Edit";
 
-/* Class = "UILabel"; text = "Проверка"; ObjectID = "vM1-bj-nh3"; */
+/* Class = "UILabel"; text = "Verify"; ObjectID = "vM1-bj-nh3"; */
 "vM1-bj-nh3.text" = "Проверка";
 
-/* Class = "UILabel"; text = "Название"; ObjectID = "x8i-Pg-2Vq"; */
+/* Class = "UILabel"; text = "Label"; ObjectID = "x8i-Pg-2Vq"; */
 "x8i-Pg-2Vq.text" = "Название";
 
-/* Class = "UILabel"; text = "Название"; ObjectID = "x8r-IF-RjN"; */
+/* Class = "UILabel"; text = "Label"; ObjectID = "x8r-IF-RjN"; */
 "x8r-IF-RjN.text" = "Название";

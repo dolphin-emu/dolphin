@@ -1,10 +1,10 @@
 /* Class = "UINavigationItem"; title = "Action Replay"; ObjectID = "0HZ-6f-okH"; */
 "0HZ-6f-okH.title" = "Action Replay";
 
-/* Class = "UIButton"; normalTitle = "Abbrechen"; ObjectID = "0Yf-cp-3Ay"; */
+/* Class = "UIButton"; normalTitle = "Cancel"; ObjectID = "0Yf-cp-3Ay"; */
 "0Yf-cp-3Ay.normalTitle" = "Abbrechen";
 
-/* Class = "UILabel"; text = "Hersteller"; ObjectID = "1d0-SB-c59"; */
+/* Class = "UILabel"; text = "Maker"; ObjectID = "1d0-SB-c59"; */
 "1d0-SB-c59.text" = "Hersteller";
 
 /* Class = "UILabel"; text = "Verifying"; ObjectID = "1oc-4p-Abs"; */
@@ -16,7 +16,7 @@
 /* Class = "UITextField"; placeholder = "Name"; ObjectID = "3bd-sz-34O"; */
 "3bd-sz-34O.placeholder" = "Name";
 
-/* Class = "UILabel"; text = "Integrität verifizieren"; ObjectID = "4Vl-o8-nrh"; */
+/* Class = "UILabel"; text = "Verify Integrity"; ObjectID = "4Vl-o8-nrh"; */
 "4Vl-o8-nrh.text" = "Integrität verifizieren";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "4uD-oM-PZ0"; */
@@ -31,7 +31,7 @@
 /* Class = "UINavigationItem"; title = "Gecko"; ObjectID = "9Jo-SU-1eg"; */
 "9Jo-SU-1eg.title" = "Gecko";
 
-/* Class = "UILabel"; text = "Hinzufügen"; ObjectID = "9bb-EH-DyQ"; */
+/* Class = "UILabel"; text = "Add"; ObjectID = "9bb-EH-DyQ"; */
 "9bb-EH-DyQ.text" = "Hinzufügen";
 
 /* Class = "UILabel"; text = "Problem Description"; ObjectID = "AOa-oT-sYW"; */
@@ -43,16 +43,16 @@
 /* Class = "UILabel"; text = "Info"; ObjectID = "DSq-Js-FaB"; */
 "DSq-Js-FaB.text" = "Info";
 
-/* Class = "UILabel"; text = "Hinzufügen"; ObjectID = "EJh-vm-eam"; */
+/* Class = "UILabel"; text = "Add"; ObjectID = "EJh-vm-eam"; */
 "EJh-vm-eam.text" = "Hinzufügen";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "F8V-1c-ezn"; */
 "F8V-1c-ezn.text" = "Placeholder";
 
-/* Class = "UINavigationItem"; title = "Verifizieren"; ObjectID = "FJP-ey-wiX"; */
+/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "FJP-ey-wiX"; */
 "FJP-ey-wiX.title" = "Verifizieren";
 
-/* Class = "UILabel"; text = "Spielkennung"; ObjectID = "G6A-6a-Ic1"; */
+/* Class = "UILabel"; text = "Game ID"; ObjectID = "G6A-6a-Ic1"; */
 "G6A-6a-Ic1.text" = "Spielkennung";
 
 /* Class = "UITableViewSection"; headerTitle = "Code"; ObjectID = "GnR-Is-UQ0"; */
@@ -73,13 +73,13 @@
 /* Class = "UILabel"; text = "CRC32"; ObjectID = "Kz0-TR-7tk"; */
 "Kz0-TR-7tk.text" = "CRC32";
 
-/* Class = "UILabel"; text = "Land"; ObjectID = "Lno-cW-flZ"; */
+/* Class = "UILabel"; text = "Country"; ObjectID = "Lno-cW-flZ"; */
 "Lno-cW-flZ.text" = "Land";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "Nil-i8-vge"; */
 "Nil-i8-vge.text" = "Code...";
 
-/* Class = "UILabel"; text = "Schweregrad"; ObjectID = "RfT-To-kEF"; */
+/* Class = "UILabel"; text = "Severity"; ObjectID = "RfT-To-kEF"; */
 "RfT-To-kEF.text" = "Schweregrad";
 
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "Rgk-i1-CKH"; */
@@ -115,25 +115,25 @@
 /* Class = "UITextField"; placeholder = "Name"; ObjectID = "hpF-pe-AiA"; */
 "hpF-pe-AiA.placeholder" = "Name";
 
-/* Class = "UILabel"; text = "Ersteller"; ObjectID = "i0z-cZ-eqk"; */
+/* Class = "UILabel"; text = "Creator"; ObjectID = "i0z-cZ-eqk"; */
 "i0z-cZ-eqk.text" = "Ersteller";
 
 /* Class = "UILabel"; text = "SHA-1"; ObjectID = "igE-uI-RRQ"; */
 "igE-uI-RRQ.text" = "SHA-1";
 
-/* Class = "UILabel"; text = "Codes von der WiiRD-Datenbank herunterladen"; ObjectID = "kmC-ti-5fS"; */
+/* Class = "UILabel"; text = "Download Codes from the WiiRD Database"; ObjectID = "kmC-ti-5fS"; */
 "kmC-ti-5fS.text" = "Codes von der WiiRD-Datenbank herunterladen";
 
 /* Class = "UINavigationItem"; title = "Software"; ObjectID = "l9f-VS-QoX"; */
 "l9f-VS-QoX.title" = "Software";
 
-/* Class = "UINavigationItem"; title = "Verifizieren"; ObjectID = "ljk-Jn-RTH"; */
+/* Class = "UINavigationItem"; title = "Verify"; ObjectID = "ljk-Jn-RTH"; */
 "ljk-Jn-RTH.title" = "Verifizieren";
 
 /* Class = "UILabel"; text = "Action Replay"; ObjectID = "mgd-iA-q4d"; */
 "mgd-iA-q4d.text" = "Action Replay";
 
-/* Class = "UILabel"; text = "Apploader Datum"; ObjectID = "ncC-46-Nqj"; */
+/* Class = "UILabel"; text = "Apploader Date"; ObjectID = "ncC-46-Nqj"; */
 "ncC-46-Nqj.text" = "Apploader Datum";
 
 /* Class = "UILabel"; text = "Placeholder"; ObjectID = "tEX-Kn-zik"; */
@@ -145,11 +145,11 @@
 /* Class = "UINavigationItem"; title = "Edit"; ObjectID = "uSb-Qu-25d"; */
 "uSb-Qu-25d.title" = "Edit";
 
-/* Class = "UILabel"; text = "Verifizieren"; ObjectID = "vM1-bj-nh3"; */
+/* Class = "UILabel"; text = "Verify"; ObjectID = "vM1-bj-nh3"; */
 "vM1-bj-nh3.text" = "Verifizieren";
 
-/* Class = "UILabel"; text = "Bezeichnung"; ObjectID = "x8i-Pg-2Vq"; */
+/* Class = "UILabel"; text = "Label"; ObjectID = "x8i-Pg-2Vq"; */
 "x8i-Pg-2Vq.text" = "Bezeichnung";
 
-/* Class = "UILabel"; text = "Bezeichnung"; ObjectID = "x8r-IF-RjN"; */
+/* Class = "UILabel"; text = "Label"; ObjectID = "x8r-IF-RjN"; */
 "x8r-IF-RjN.text" = "Bezeichnung";
