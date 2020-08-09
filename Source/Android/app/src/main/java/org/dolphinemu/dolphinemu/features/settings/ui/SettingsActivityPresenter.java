@@ -21,9 +21,7 @@ public final class SettingsActivityPresenter
 
   private SettingsActivityView mView;
 
-  private Settings mSettings = new Settings();
-
-  private int mStackCount;
+  private Settings mSettings;
 
   private boolean mShouldSave;
 
@@ -35,23 +33,19 @@ public final class SettingsActivityPresenter
 
   private final Set<String> modifiedSettings = new HashSet<>();
 
-  SettingsActivityPresenter(SettingsActivityView view)
+  SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
     mView = view;
+    mSettings = settings;
   }
 
   public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
   {
-    if (savedInstanceState == null)
-    {
-      this.menuTag = menuTag;
-      this.gameId = gameId;
-      this.context = context;
-    }
-    else
-    {
-      mShouldSave = savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
-    }
+    this.menuTag = menuTag;
+    this.gameId = gameId;
+    this.context = context;
+
+    mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
   }
 
   public void onStart()
@@ -121,11 +115,6 @@ public final class SettingsActivityPresenter
     }
   }
 
-  public void setSettings(Settings settings)
-  {
-    mSettings = settings;
-  }
-
   public Settings getSettings()
   {
     return mSettings;
@@ -149,24 +138,6 @@ public final class SettingsActivityPresenter
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
       mSettings.saveSettings(mView, context, modifiedSettings);
-    }
-  }
-
-  public void addToStack()
-  {
-    mStackCount++;
-  }
-
-  public void onBackPressed()
-  {
-    if (mStackCount > 0)
-    {
-      mView.popBackStack();
-      mStackCount--;
-    }
-    else
-    {
-      mView.finish();
     }
   }
 
@@ -234,10 +205,5 @@ public final class SettingsActivityPresenter
       bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
       mView.showSettingsFragment(menuTag, bundle, true, gameId);
     }
-  }
-
-  public void onFileConfirmed(String file)
-  {
-    SettingsAdapter.onFilePickerConfirmation(file);
   }
 }

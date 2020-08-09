@@ -6,6 +6,8 @@
 
 #include <array>
 #include <cstdarg>
+#include <map>
+#include <string>
 
 #include "Common/BitSet.h"
 #include "Common/Logging/Log.h"
@@ -46,6 +48,8 @@ public:
 
   void SetEnable(LOG_TYPE type, bool enable);
   bool IsEnabled(LOG_TYPE type, LOG_LEVELS level = LNOTICE) const;
+
+  std::map<std::string, std::string> GetLogTypes();
 
   const char* GetShortName(LOG_TYPE type) const;
   const char* GetFullName(LOG_TYPE type) const;

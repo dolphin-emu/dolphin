@@ -30,6 +30,19 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
   });
 }
 
+bool BreakPoints::IsBreakPointBreakOnHit(u32 address) const
+{
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
+    return bp.address == address && bp.break_on_hit;
+  });
+}
+
+bool BreakPoints::IsBreakPointLogOnHit(u32 address) const
+{
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
+                     [address](const auto& bp) { return bp.address == address && bp.log_on_hit; });
+}
+
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
   TBreakPointsStr bp_strings;
@@ -38,7 +51,8 @@ BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
     if (!bp.is_temporary)
     {
       std::ostringstream ss;
-      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "");
+      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "")
+         << (bp.log_on_hit ? "l" : "") << (bp.break_on_hit ? "b" : "");
       bp_strings.push_back(ss.str());
     }
   }
@@ -55,6 +69,8 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     ss << std::hex << bp_string;
     ss >> bp.address;
     bp.is_enabled = bp_string.find('n') != bp_string.npos;
+    bp.log_on_hit = bp_string.find('l') != bp_string.npos;
+    bp.break_on_hit = bp_string.find('b') != bp_string.npos;
     bp.is_temporary = false;
     Add(bp);
   }
@@ -72,6 +88,11 @@ void BreakPoints::Add(const TBreakPoint& bp)
 
 void BreakPoints::Add(u32 address, bool temp)
 {
+  BreakPoints::Add(address, temp, true, false);
+}
+
+void BreakPoints::Add(u32 address, bool temp, bool break_on_hit, bool log_on_hit)
+{
   // Only add new addresses
   if (IsAddressBreakPoint(address))
     return;
@@ -79,6 +100,8 @@ void BreakPoints::Add(u32 address, bool temp)
   TBreakPoint bp;  // breakpoint settings
   bp.is_enabled = true;
   bp.is_temporary = temp;
+  bp.break_on_hit = break_on_hit;
+  bp.log_on_hit = log_on_hit;
   bp.address = address;
 
   m_breakpoints.push_back(bp);
@@ -154,7 +177,7 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     mc.is_break_on_read = mc_string.find('r') != mc_string.npos;
     mc.is_break_on_write = mc_string.find('w') != mc_string.npos;
     mc.log_on_hit = mc_string.find('l') != mc_string.npos;
-    mc.break_on_hit = mc_string.find('p') != mc_string.npos;
+    mc.break_on_hit = mc_string.find('b') != mc_string.npos;
     if (mc.is_ranged)
       ss >> mc.end_address;
     else

@@ -37,6 +37,8 @@ import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
 {
+  private static boolean sShouldRescanLibrary = true;
+
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
@@ -65,7 +67,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   {
     super.onResume();
     mPresenter.addDirIfNeeded(this);
-    GameFileCacheService.startRescan(this);
+    if (sShouldRescanLibrary)
+    {
+      GameFileCacheService.startRescan(this);
+    }
+    else
+    {
+      sShouldRescanLibrary = true;
+    }
   }
 
   @Override
@@ -315,5 +324,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
             new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
 
     return new ListRow(header, rowItems);
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
   }
 }

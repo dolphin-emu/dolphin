@@ -16,6 +16,7 @@
 #include "Core/DSP/Jit/x64/DSPEmitter.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
+#include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
@@ -34,6 +35,16 @@ u8 ReadHostMemory(u32 addr)
 void WriteHostMemory(u8 value, u32 addr)
 {
   DSP::WriteARAM(value, addr);
+}
+
+void DMAToDSP(u16* dst, u32 addr, u32 size)
+{
+  Memory::CopyFromEmuSwapped(dst, addr, size);
+}
+
+void DMAFromDSP(const u16* src, u32 addr, u32 size)
+{
+  Memory::CopyToEmuSwapped(addr, src, size);
 }
 
 void OSD_AddMessage(std::string str, u32 ms)
@@ -57,8 +68,14 @@ void InterruptRequest()
   DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
 }
 
-void CodeLoaded(const u8* ptr, int size)
+void CodeLoaded(u32 addr, size_t size)
 {
+  CodeLoaded(Memory::GetPointer(addr), size);
+}
+
+void CodeLoaded(const u8* ptr, size_t size)
+{
+  g_dsp.iram_crc = Common::HashEctor(ptr, size);
   if (SConfig::GetInstance().m_DumpUCode)
   {
     DSP::DumpDSPCode(ptr, size, g_dsp.iram_crc);

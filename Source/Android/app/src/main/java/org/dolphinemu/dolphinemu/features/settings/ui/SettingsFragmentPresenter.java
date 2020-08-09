@@ -31,10 +31,15 @@ import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class SettingsFragmentPresenter
 {
   private SettingsFragmentView mView;
+
+  public static final LinkedHashMap<String, String> LOG_TYPE_NAMES =
+          NativeLibrary.GetLogTypeNames();
 
   public static final String ARG_CONTROLLER_TYPE = "controller_type";
   private MenuTag mMenuTag;
@@ -75,19 +80,6 @@ public final class SettingsFragmentPresenter
   {
     this.mMenuTag = menuTag;
     setSettings(settings);
-  }
-
-  /**
-   * If the screen is rotated, the Activity will forget the settings map. This fragment
-   * won't, though; so rather than have the Activity reload from disk, have the fragment pass
-   * the settings map back to the Activity.
-   */
-  public void onAttach()
-  {
-    if (mSettings != null)
-    {
-      mView.passSettingsToActivity(mSettings);
-    }
   }
 
   public void putSetting(Setting setting)
@@ -176,6 +168,10 @@ public final class SettingsFragmentPresenter
         addHackSettings(sl);
         break;
 
+      case CONFIG_LOG:
+        addLogConfigurationSettings(sl);
+        break;
+
       case DEBUG:
         addDebugSettings(sl);
         break;
@@ -223,6 +219,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(null, null, R.string.gamecube_submenu, MenuTag.CONFIG_GAME_CUBE));
     sl.add(new SubmenuSetting(null, null, R.string.wii_submenu, MenuTag.CONFIG_WII));
     sl.add(new SubmenuSetting(null, null, R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
+    sl.add(new SubmenuSetting(null, null, R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(null, null, R.string.debug_submenu, MenuTag.DEBUG));
     sl.add(new HeaderSetting(null, null, R.string.gametdb_thanks, 0));
   }
@@ -358,7 +355,7 @@ public final class SettingsFragmentPresenter
             Settings.SECTION_INI_GENERAL, R.string.SD_card_path, 0, getDefaultSDPath(),
             MainPresenter.REQUEST_SD_FILE, wiiSDCardPath));
     sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
-            SettingsAdapter::resetPaths));
+            mView.getAdapter()::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
@@ -727,6 +724,34 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, Settings.SECTION_GFX_SETTINGS,
             R.string.fast_depth_calculation, R.string.fast_depth_calculation_description, true,
             fastDepth));
+  }
+
+  private void addLogConfigurationSettings(ArrayList<SettingsItem> sl)
+  {
+    SettingSection logsSection = mSettings.getSection(Settings.SECTION_LOGGER_LOGS);
+    SettingSection optionsSection = mSettings.getSection(Settings.SECTION_LOGGER_OPTIONS);
+    Setting enableLogging = optionsSection.getSetting(SettingsFile.KEY_ENABLE_LOGGING);
+    Setting logVerbosity = optionsSection.getSetting(SettingsFile.KEY_LOG_VERBOSITY);
+
+    sl.add(new CheckBoxSetting(SettingsFile.KEY_ENABLE_LOGGING, Settings.SECTION_LOGGER_OPTIONS,
+            R.string.enable_logging, R.string.enable_logging_description, false, enableLogging));
+    sl.add(new SingleChoiceSetting(SettingsFile.KEY_LOG_VERBOSITY, Settings.SECTION_LOGGER_OPTIONS,
+            R.string.log_verbosity, 0, getLogVerbosityEntries(), getLogVerbosityValues(), 1,
+            logVerbosity));
+    sl.add(new ConfirmRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
+            () -> mView.getAdapter().setAllLogTypes("True")));
+    sl.add(new ConfirmRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation,
+            0, () -> mView.getAdapter().setAllLogTypes("False")));
+
+    sl.add(new HeaderSetting(null, null, R.string.log_types, 0));
+    for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())
+    {
+      Setting setting = logsSection.getSetting(entry.getKey());
+      // TitleID is handled by special case in CheckBoxSettingViewHolder.
+      sl.add(
+              new CheckBoxSetting(entry.getKey(), Settings.SECTION_LOGGER_LOGS, 0, 0, false,
+                      setting));
+    }
   }
 
   private void addDebugSettings(ArrayList<SettingsItem> sl)
@@ -1598,5 +1623,31 @@ public final class SettingsFragmentPresenter
   public static String getDefaultSDPath()
   {
     return DirectoryInitialization.getUserDirectory() + "/Wii/sd.raw";
+  }
+
+  private static int getLogVerbosityEntries()
+  {
+    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    if (NativeLibrary.GetMaxLogLevel() == 5)
+    {
+      return R.array.logVerbosityEntriesMaxLevelDebug;
+    }
+    else
+    {
+      return R.array.logVerbosityEntriesMaxLevelInfo;
+    }
+  }
+
+  private static int getLogVerbosityValues()
+  {
+    // Value obtained from LOG_LEVELS in Common/Logging/Log.h
+    if (NativeLibrary.GetMaxLogLevel() == 5)
+    {
+      return R.array.logVerbosityValuesMaxLevelDebug;
+    }
+    else
+    {
+      return R.array.logVerbosityValuesMaxLevelInfo;
+    }
   }
 }

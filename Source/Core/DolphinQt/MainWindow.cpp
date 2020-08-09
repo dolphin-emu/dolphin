@@ -18,6 +18,7 @@
 
 #include <future>
 #include <optional>
+#include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 #include <signal.h>
@@ -83,6 +84,7 @@
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
@@ -822,7 +824,7 @@ bool MainWindow::RequestStop()
       Core::SetState(Core::State::Paused);
 
     auto confirm = ModalMessageBox::question(
-        this, tr("Confirm"),
+        m_rendering_to_main ? static_cast<QWidget*>(this) : m_render_widget, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
@@ -952,6 +954,15 @@ void MainWindow::StartGame(const std::vector<std::string>& paths,
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 {
+  if (std::holds_alternative<BootParameters::Disc>(parameters->parameters))
+  {
+    if (std::get<BootParameters::Disc>(parameters->parameters).volume->IsNKit())
+    {
+      if (!NKitWarningDialog::ShowUnlessDisabled())
+        return;
+    }
+  }
+
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {

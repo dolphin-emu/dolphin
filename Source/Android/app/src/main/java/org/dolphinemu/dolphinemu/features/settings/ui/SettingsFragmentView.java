@@ -23,15 +23,6 @@ public interface SettingsFragmentView
   void onSettingsFileLoaded(Settings settings);
 
   /**
-   * Pass a settings HashMap to the containing activity, so that it can
-   * share the HashMap with other SettingsFragments; useful so that rotations
-   * do not require an additional load operation.
-   *
-   * @param settings An ArrayList containing all the settings HashMaps.
-   */
-  void passSettingsToActivity(Settings settings);
-
-  /**
    * Pass an ArrayList to the View so that it can be displayed on screen.
    *
    * @param settingsList The result of converting the HashMap to an ArrayList
@@ -48,6 +39,11 @@ public interface SettingsFragmentView
    * @return The Fragment's containing activity.
    */
   FragmentActivity getActivity();
+
+  /**
+   * @return The Fragment's SettingsAdapter.
+   */
+  SettingsAdapter getAdapter();
 
   /**
    * Tell the Fragment to tell the containing Activity to show a new

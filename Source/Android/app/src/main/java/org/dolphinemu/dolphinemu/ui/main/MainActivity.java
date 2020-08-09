@@ -46,6 +46,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   private Toolbar mToolbar;
   private TabLayout mTabLayout;
   private FloatingActionButton mFab;
+  private static boolean sShouldRescanLibrary = true;
 
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
@@ -80,7 +81,14 @@ public final class MainActivity extends AppCompatActivity implements MainView
   {
     super.onResume();
     mPresenter.addDirIfNeeded(this);
-    GameFileCacheService.startRescan(this);
+    if (sShouldRescanLibrary)
+    {
+      GameFileCacheService.startRescan(this);
+    }
+    else
+    {
+      sShouldRescanLibrary = true;
+    }
   }
 
   @Override
@@ -283,5 +291,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     showGames();
     GameFileCacheService.startLoad(this);
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
   }
 }

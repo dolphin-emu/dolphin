@@ -37,9 +37,9 @@ constexpr u32 VERY_LONG = 10000;
 };  // namespace Duration
 
 // On-screen message display (colored yellow by default)
-void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 rgba = Color::YELLOW);
+void AddMessage(std::string message, u32 ms = Duration::SHORT, u32 argb = Color::YELLOW);
 void AddTypedMessage(MessageType type, std::string message, u32 ms = Duration::SHORT,
-                     u32 rgba = Color::YELLOW);
+                     u32 argb = Color::YELLOW);
 
 // Draw the current messages on the screen. Only call once per frame.
 void DrawMessages();

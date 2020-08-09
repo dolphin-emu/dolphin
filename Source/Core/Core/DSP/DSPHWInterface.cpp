@@ -11,7 +11,6 @@
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
-#include "Common/Hash.h"
 #include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
@@ -283,22 +282,15 @@ u16 gdsp_ifx_read(u16 addr)
 
 static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  u16* dst = g_dsp.iram + (dsp_addr / 2);
-
-  const u8* code = &g_dsp.cpu_ram[addr & 0x0fffffff];
-  g_dsp.iram_crc = Common::HashEctor(code, size);
-
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  memcpy(dst, code, size);
-  for (size_t i = 0; i < size / 2; i++)
-    dst[i] = Common::swap16(dst[i]);
+  Host::DMAToDSP(g_dsp.iram + dsp_addr / 2, addr, size);
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
-  Host::CodeLoaded(code, size);
+  Host::CodeLoaded(addr, size);
   NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr,
              g_dsp.iram_crc);
 
-  return reinterpret_cast<u8*>(dst);
+  return reinterpret_cast<u8*>(g_dsp.iram) + dsp_addr;
 }
 
 static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
@@ -309,80 +301,23 @@ static const u8* gdsp_idma_out(u16 dsp_addr, u32 addr, u32 size)
   return nullptr;
 }
 
-#if defined(_M_X86) || defined(_M_X86_64)
-static const __m128i s_mask = _mm_set_epi32(0x0E0F0C0DL, 0x0A0B0809L, 0x06070405L, 0x02030001L);
-
-FUNCTION_TARGET_SSSE3
-static void gdsp_ddma_in_SSSE3(u16 dsp_addr, u32 addr, u32 size, u8* dst)
-{
-  for (u32 i = 0; i < size; i += 16)
-  {
-    _mm_storeu_si128(
-        (__m128i*)&dst[dsp_addr + i],
-        _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]),
-                         s_mask));
-  }
-}
-
-FUNCTION_TARGET_SSSE3
-static void gdsp_ddma_out_SSSE3(u16 dsp_addr, u32 addr, u32 size, const u8* src)
-{
-  for (u32 i = 0; i < size; i += 16)
-  {
-    _mm_storeu_si128((__m128i*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF],
-                     _mm_shuffle_epi8(_mm_loadu_si128((__m128i*)&src[dsp_addr + i]), s_mask));
-  }
-}
-#endif
-
 // TODO: These should eat clock cycles.
 static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
 {
-  u8* dst = reinterpret_cast<u8*>(g_dsp.dram);
-
-#if defined(_M_X86) || defined(_M_X86_64)
-  if (cpu_info.bSSSE3 && !(size % 16))
-  {
-    gdsp_ddma_in_SSSE3(dsp_addr, addr, size, dst);
-  }
-  else
-#endif
-  {
-    for (u32 i = 0; i < size; i += 2)
-    {
-      *(u16*)&dst[dsp_addr + i] =
-          Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
-    }
-  }
+  Host::DMAToDSP(g_dsp.dram + dsp_addr / 2, addr, size);
   DEBUG_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr,
             dsp_addr / 2, size);
 
-  return dst + dsp_addr;
+  return reinterpret_cast<u8*>(g_dsp.dram) + dsp_addr;
 }
 
 static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
 {
-  const u8* src = reinterpret_cast<const u8*>(g_dsp.dram);
-
-#ifdef _M_X86
-  if (cpu_info.bSSSE3 && !(size % 16))
-  {
-    gdsp_ddma_out_SSSE3(dsp_addr, addr, size, src);
-  }
-  else
-#endif
-  {
-    for (u32 i = 0; i < size; i += 2)
-    {
-      *(u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF] =
-          Common::swap16(*(const u16*)&src[dsp_addr + i]);
-    }
-  }
-
+  Host::DMAFromDSP(g_dsp.dram + dsp_addr / 2, addr, size);
   DEBUG_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2,
             addr, size);
 
-  return src + dsp_addr;
+  return reinterpret_cast<const u8*>(g_dsp.dram) + dsp_addr;
 }
 
 static void gdsp_do_dma()

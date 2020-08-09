@@ -443,10 +443,10 @@ bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
         (Common::swap32(data.first_sector) - partition_first_sector) * VolumeWii::BLOCK_DATA_SIZE;
     const u64 data_size = Common::swap32(data.number_of_sectors) * VolumeWii::BLOCK_DATA_SIZE;
 
-    if (!ReadFromGroups(&offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE,
-                        data_offset, data_size, Common::swap32(data.group_index),
-                        Common::swap32(data.number_of_groups),
-                        std::max<u64>(1, chunk_size / VolumeWii::GROUP_DATA_SIZE)))
+    if (!ReadFromGroups(
+            &offset, &size, &out_ptr, chunk_size, VolumeWii::BLOCK_DATA_SIZE, data_offset,
+            data_size, Common::swap32(data.group_index), Common::swap32(data.number_of_groups),
+            std::max<u32>(1, static_cast<u32>(chunk_size / VolumeWii::GROUP_DATA_SIZE))))
     {
       return false;
     }
@@ -603,9 +603,9 @@ WIARVZFileReader<RVZ>::Chunk::Chunk(File::IOFile* file, u64 offset_in_file, u64 
                                     u64 decompressed_size, u32 exception_lists,
                                     bool compressed_exception_lists, u32 rvz_packed_size,
                                     u64 data_offset, std::unique_ptr<Decompressor> decompressor)
-    : m_file(file), m_offset_in_file(offset_in_file), m_exception_lists(exception_lists),
-      m_compressed_exception_lists(compressed_exception_lists), m_rvz_packed_size(rvz_packed_size),
-      m_data_offset(data_offset), m_decompressor(std::move(decompressor))
+    : m_decompressor(std::move(decompressor)), m_file(file), m_offset_in_file(offset_in_file),
+      m_exception_lists(exception_lists), m_compressed_exception_lists(compressed_exception_lists),
+      m_rvz_packed_size(rvz_packed_size), m_data_offset(data_offset)
 {
   constexpr size_t MAX_SIZE_PER_EXCEPTION_LIST =
       Common::AlignUp(VolumeWii::BLOCK_HEADER_SIZE, sizeof(SHA1)) / sizeof(SHA1) *

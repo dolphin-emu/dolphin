@@ -165,17 +165,6 @@ void Drums::Update()
   Common::BitCastPtr<DataFormat>(&m_reg.controller_data) = drum_data;
 }
 
-bool Drums::IsButtonPressed() const
-{
-  u8 buttons = 0;
-  m_buttons->GetState(&buttons, drum_button_bitmasks.data());
-
-  u8 pads = 0;
-  m_pads->GetState(&pads, drum_pad_bitmasks.data());
-
-  return buttons != 0 || pads != 0;
-}
-
 void Drums::Reset()
 {
   EncryptedExtension::Reset();

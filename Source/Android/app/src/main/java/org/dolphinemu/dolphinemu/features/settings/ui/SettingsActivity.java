@@ -10,6 +10,7 @@ import android.provider.Settings;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -20,16 +21,18 @@ import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
+import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+import org.dolphinemu.dolphinemu.utils.TvUtil;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
 {
   private static final String ARG_MENU_TAG = "menu_tag";
   private static final String ARG_GAME_ID = "game_id";
   private static final String FRAGMENT_TAG = "settings";
-  private SettingsActivityPresenter mPresenter = new SettingsActivityPresenter(this);
+  private SettingsActivityPresenter mPresenter;
 
   private ProgressDialog dialog;
 
@@ -46,11 +49,22 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   {
     super.onCreate(savedInstanceState);
 
+    if (TvUtil.isLeanback(getApplicationContext()))
+    {
+      TvMainActivity.skipRescanningLibrary();
+    }
+    else
+    {
+      MainActivity.skipRescanningLibrary();
+    }
+
     setContentView(R.layout.activity_settings);
 
     Intent launcher = getIntent();
     String gameID = launcher.getStringExtra(ARG_GAME_ID);
     MenuTag menuTag = (MenuTag) launcher.getSerializableExtra(ARG_MENU_TAG);
+
+    mPresenter = new SettingsActivityPresenter(this, getSettings());
     mPresenter.onCreate(savedInstanceState, menuTag, gameID, getApplicationContext());
   }
 
@@ -98,15 +112,12 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void onBackPressed()
-  {
-    mPresenter.onBackPressed();
-  }
-
-  @Override
   public void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack,
           String gameID)
   {
+    if (!addToStack && getFragment() != null)
+      return;
+
     FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
     if (addToStack)
@@ -121,7 +132,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       }
 
       transaction.addToBackStack(null);
-      mPresenter.addToStack();
     }
     transaction.replace(R.id.frame_content, SettingsFragment.newInstance(menuTag, gameID, extras),
             FRAGMENT_TAG);
@@ -168,7 +178,8 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
-      mPresenter.onFileConfirmed(FileBrowserHelper.getSelectedPath(result));
+      String path = FileBrowserHelper.getSelectedPath(result);
+      getFragment().getAdapter().onFilePickerConfirmation(path);
 
       // Prevent duplicate Toasts.
       if (!mPresenter.shouldSave())
@@ -230,13 +241,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   @Override
   public org.dolphinemu.dolphinemu.features.settings.model.Settings getSettings()
   {
-    return mPresenter.getSettings();
-  }
-
-  @Override
-  public void setSettings(org.dolphinemu.dolphinemu.features.settings.model.Settings settings)
-  {
-    mPresenter.setSettings(settings);
+    return new ViewModelProvider(this).get(SettingsViewModel.class).getSettings();
   }
 
   @Override
@@ -266,12 +271,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void showToastMessage(String message)
   {
     Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
-  }
-
-  @Override
-  public void popBackStack()
-  {
-    getSupportFragmentManager().popBackStackImmediate();
   }
 
   @Override

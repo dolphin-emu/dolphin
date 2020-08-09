@@ -79,7 +79,6 @@ public:
   Drums();
 
   void Update() override;
-  bool IsButtonPressed() const override;
   void Reset() override;
 
   ControllerEmu::ControlGroup* GetGroup(DrumsGroup group);

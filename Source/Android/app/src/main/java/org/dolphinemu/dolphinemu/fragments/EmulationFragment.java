@@ -417,9 +417,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       }
       else if (state == State.PAUSED)
       {
-        Log.debug("[EmulationFragment] Resuming emulation.");
         NativeLibrary.SurfaceChanged(mSurface);
-        NativeLibrary.UnPauseEmulation();
+        if (!EmulationActivity.getHasUserPausedEmulation())
+        {
+          Log.debug("[EmulationFragment] Resuming emulation.");
+          NativeLibrary.UnPauseEmulation();
+        }
       }
       else
       {
@@ -446,9 +449,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       File file = new File(path);
       file.delete();
     }
-    catch (Exception ex)
+    catch (Exception ignored)
     {
-      // fail safely
     }
   }
 }

@@ -244,6 +244,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDire
     JNIEnv* env, jobject obj, jstring jDirectory);
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
                                                                                    jobject obj);
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv* env,
+                                                                                   jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
                                                                                  jobject obj,
                                                                                  jboolean enable);
@@ -549,6 +551,12 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCo
   return static_cast<jint>(PowerPC::DefaultCPUCore());
 }
 
+JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetMaxLogLevel(JNIEnv* env,
+                                                                                   jobject obj)
+{
+  return static_cast<jint>(MAX_LOGLEVEL);
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling(JNIEnv* env,
                                                                                  jobject obj,
                                                                                  jboolean enable)
@@ -751,6 +759,28 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(J
   const std::string path = GetJString(env, jFile);
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
+}
+
+JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetLogTypeNames(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  std::map<std::string, std::string> map = Common::Log::LogManager::GetInstance()->GetLogTypes();
+
+  auto map_size = static_cast<jsize>(map.size());
+  jobject linked_hash_map =
+      env->NewObject(IDCache::GetLinkedHashMapClass(), IDCache::GetLinkedHashMapInit(), map_size);
+  for (const auto& entry : map)
+  {
+    env->CallObjectMethod(linked_hash_map, IDCache::GetLinkedHashMapPut(),
+                          ToJString(env, entry.first), ToJString(env, entry.second));
+  }
+  return linked_hash_map;
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadLoggerConfig(JNIEnv* env,
+                                                                                       jobject obj)
+{
+  Common::Log::LogManager::Init();
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallWAD(JNIEnv* env,

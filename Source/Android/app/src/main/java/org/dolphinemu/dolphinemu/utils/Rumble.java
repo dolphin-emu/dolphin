@@ -22,9 +22,7 @@ public class Rumble
   {
     clear();
 
-    if (activity.deviceHasTouchScreen() &&
-            PreferenceManager.getDefaultSharedPreferences(activity)
-                    .getBoolean("phoneRumble", true))
+    if (PreferenceManager.getDefaultSharedPreferences(activity).getBoolean("phoneRumble", true))
     {
       setPhoneVibrator(true, activity);
     }
