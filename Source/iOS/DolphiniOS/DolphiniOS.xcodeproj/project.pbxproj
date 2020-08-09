@@ -552,6 +552,15 @@
 		B9E1ACB323B34DBE0072EDF0 /* CleanBundle.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = CleanBundle.sh; path = BuildResources/BuildScripts/CleanBundle.sh; sourceTree = "<group>"; };
 		B9E1ACB623B355050072EDF0 /* postrm.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = postrm.sh; path = BuildResources/DebFiles/postrm.sh; sourceTree = "<group>"; };
 		B9E1ACB723B355860072EDF0 /* BuildDebs.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; name = BuildDebs.sh; path = BuildResources/BuildScripts/BuildDebs.sh; sourceTree = "<group>"; };
+		B9E4EA6B24E078D200CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/ConfigSettings.strings"; sourceTree = "<group>"; };
+		B9E4EA6C24E078D300CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/ControllerSettings.strings"; sourceTree = "<group>"; };
+		B9E4EA6D24E078D300CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/GraphicsSettings.strings"; sourceTree = "<group>"; };
+		B9E4EA6E24E078D300CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/InGameSettings.strings"; sourceTree = "<group>"; };
+		B9E4EA6F24E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Settings.strings"; sourceTree = "<group>"; };
+		B9E4EA7024E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Main.strings"; sourceTree = "<group>"; };
+		B9E4EA7124E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
+		B9E4EA7224E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Dolphin.strings"; sourceTree = "<group>"; };
+		B9E4EA7324E078D500CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
 		B9E983E524592A6800119883 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B9E983EC245A1F2700119883 /* SoftwareCollectionViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareCollectionViewCell.h; sourceTree = "<group>"; };
 		B9E983ED245A1F2700119883 /* SoftwareCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareCollectionViewCell.m; sourceTree = "<group>"; };
@@ -1456,6 +1465,7 @@
 				ru,
 				de,
 				es,
+				"zh-Hans",
 			);
 			mainGroup = B945A3672362908400B21680;
 			productRefGroup = B945A3712362908500B21680 /* Products */;
@@ -1809,6 +1819,7 @@
 				B92432012400E0E300D5FF0A /* ru */,
 				B92432092400E0F000D5FF0A /* de */,
 				B92432112400E10C00D5FF0A /* es */,
+				B9E4EA6D24E078D300CED657 /* zh-Hans */,
 			);
 			name = GraphicsSettings.storyboard;
 			sourceTree = "<group>";
@@ -1828,6 +1839,7 @@
 				B924322F2401F64A00D5FF0A /* ru */,
 				B92432312401F64C00D5FF0A /* es */,
 				B92432332401F64E00D5FF0A /* sv */,
+				B9E4EA6E24E078D300CED657 /* zh-Hans */,
 			);
 			name = InGameSettings.storyboard;
 			sourceTree = "<group>";
@@ -1847,6 +1859,7 @@
 				B92432022400E0E300D5FF0A /* ru */,
 				B924320A2400E0F000D5FF0A /* de */,
 				B92432122400E10C00D5FF0A /* es */,
+				B9E4EA6F24E078D400CED657 /* zh-Hans */,
 			);
 			name = Settings.storyboard;
 			sourceTree = "<group>";
@@ -1866,6 +1879,7 @@
 				B92432032400E0E400D5FF0A /* ru */,
 				B924320B2400E0F000D5FF0A /* de */,
 				B92432132400E10D00D5FF0A /* es */,
+				B9E4EA7024E078D400CED657 /* zh-Hans */,
 			);
 			name = Main.storyboard;
 			sourceTree = "<group>";
@@ -1885,6 +1899,7 @@
 				B92432142400E10E00D5FF0A /* es */,
 				B92432182400E12100D5FF0A /* ja */,
 				B924321A2400E12C00D5FF0A /* en */,
+				B9E4EA7124E078D400CED657 /* zh-Hans */,
 			);
 			name = LaunchScreen.storyboard;
 			sourceTree = "<group>";
@@ -1903,6 +1918,7 @@
 				B92432052400E0E600D5FF0A /* ru */,
 				B924320D2400E0F100D5FF0A /* de */,
 				B92432152400E10E00D5FF0A /* es */,
+				B9E4EA7224E078D400CED657 /* zh-Hans */,
 			);
 			name = Dolphin.strings;
 			sourceTree = "<group>";
@@ -1922,6 +1938,7 @@
 				B92431FF2400E0E100D5FF0A /* ru */,
 				B92432072400E0EE00D5FF0A /* de */,
 				B924320F2400E10B00D5FF0A /* es */,
+				B9E4EA6B24E078D200CED657 /* zh-Hans */,
 			);
 			name = ConfigSettings.storyboard;
 			sourceTree = "<group>";
@@ -1941,6 +1958,7 @@
 				B92432002400E0E200D5FF0A /* ru */,
 				B92432082400E0EF00D5FF0A /* de */,
 				B92432102400E10C00D5FF0A /* es */,
+				B9E4EA6C24E078D300CED657 /* zh-Hans */,
 			);
 			name = ControllerSettings.storyboard;
 			sourceTree = "<group>";
@@ -1959,6 +1977,7 @@
 				B92432062400E0E600D5FF0A /* ru */,
 				B924320E2400E0F100D5FF0A /* de */,
 				B92432162400E10F00D5FF0A /* es */,
+				B9E4EA7324E078D500CED657 /* zh-Hans */,
 			);
 			name = Localizable.strings;
 			sourceTree = "<group>";

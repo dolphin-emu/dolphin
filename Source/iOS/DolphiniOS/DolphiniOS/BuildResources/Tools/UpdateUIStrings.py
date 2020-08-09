@@ -37,6 +37,8 @@ for root, dirs, files in os.walk(sys.argv[1]):
     # Manual overrides
     if language == "pt":
       language = "pt-BR"
+    elif language == "zh_CN":
+      language = "zh-Hans"
     
     po = polib.pofile(os.path.join(sys.argv[1], po_path))
     

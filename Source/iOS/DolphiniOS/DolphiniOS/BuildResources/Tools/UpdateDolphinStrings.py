@@ -21,6 +21,8 @@ for root, dirs, files in os.walk(sys.argv[1]):
     # Manual overrides
     if language == "pt":
       language = "pt-BR"
+    elif language == "zh_CN":
+      language = "zh-Hans"
     
     strings_path = os.path.join(sys.argv[2], language + '.lproj', 'Dolphin.strings')
     

@@ -1,0 +1,263 @@
+/* Class = "UILabel"; text = "Wii 遥控器震动"; ObjectID = "0K1-Oi-viC"; */
+"0K1-Oi-viC.text" = "Wii 遥控器震动";
+
+/* Class = "UINavigationItem"; title = "高级"; ObjectID = "0s6-c7-OwY"; */
+"0s6-c7-OwY.title" = "高级";
+
+/* Class = "UILabel"; text = "系统语言"; ObjectID = "15i-sg-byP"; */
+"15i-sg-byP.text" = "系统语言";
+
+/* Class = "UITableViewSection"; headerTitle = "时钟频率覆盖"; ObjectID = "16h-jz-fQG"; */
+"16h-jz-fQG.headerTitle" = "时钟频率覆盖";
+
+/* Class = "UILabel"; text = "系统语言"; ObjectID = "1L5-Kj-USx"; */
+"1L5-Kj-USx.text" = "系统语言";
+
+/* Class = "UINavigationItem"; title = "音频"; ObjectID = "1tL-Cz-TAL"; */
+"1tL-Cz-TAL.title" = "音频";
+
+/* Class = "UILabel"; text = "荷兰语"; ObjectID = "2Eo-dx-eKL"; */
+"2Eo-dx-eKL.text" = "荷兰语";
+
+/* Class = "UITableViewSection"; headerTitle = "CPU 选项"; ObjectID = "3FW-wh-rEp"; */
+"3FW-wh-rEp.headerTitle" = "CPU 选项";
+
+/* Class = "UILabel"; text = "允许屏幕保护程序"; ObjectID = "3Gq-Ip-xn2"; */
+"3Gq-Ip-xn2.text" = "允许屏幕保护程序";
+
+/* Class = "UITableViewSection"; headerTitle = "使用情况统计报告设置"; ObjectID = "5Ht-g1-iR3"; */
+"5Ht-g1-iR3.headerTitle" = "使用情况统计报告设置";
+
+/* Class = "UILabel"; text = "4:3"; ObjectID = "5dO-8H-gFe"; */
+"5dO-8H-gFe.text" = "4:3";
+
+/* Class = "UILabel"; text = "自动切换光盘"; ObjectID = "6Jm-cq-bVY"; */
+"6Jm-cq-bVY.text" = "自动切换光盘";
+
+/* Class = "UILabel"; text = "Center Game Image"; ObjectID = "6K0-Zw-CzT"; */
+"6K0-Zw-CzT.text" = "Center Game Image";
+
+/* Class = "UILabel"; text = "感应条位置"; ObjectID = "6Qs-g2-BTZ"; */
+"6Qs-g2-BTZ.text" = "感应条位置";
+
+/* Class = "UILabel"; text = "解释器（最慢）"; ObjectID = "6dX-G1-g6C"; */
+"6dX-G1-g6C.text" = "解释器（最慢）";
+
+/* Class = "UILabel"; text = "德语"; ObjectID = "6hU-jR-80J"; */
+"6hU-jR-80J.text" = "德语";
+
+/* Class = "UILabel"; text = "Wii"; ObjectID = "7aI-mV-ROW"; */
+"7aI-mV-ROW.text" = "Wii";
+
+/* Class = "UILabel"; text = "帮助"; ObjectID = "7wX-hc-fac"; */
+"7wX-hc-fac.text" = "帮助";
+
+/* Class = "UILabel"; text = "界面"; ObjectID = "8QE-dy-7FY"; */
+"8QE-dy-7FY.text" = "界面";
+
+/* Class = "UILabel"; text = "0ms"; ObjectID = "8fb-Ub-qRJ"; */
+"8fb-Ub-qRJ.text" = "0ms";
+
+/* Class = "UINavigationItem"; title = "GameCube"; ObjectID = "95Z-nw-IkP"; */
+"95Z-nw-IkP.title" = "GameCube";
+
+/* Class = "UILabel"; text = "西班牙语"; ObjectID = "Ac5-y8-3WG"; */
+"Ac5-y8-3WG.text" = "西班牙语";
+
+/* Class = "UILabel"; text = "GameCube"; ObjectID = "B86-pG-KqL"; */
+"B86-pG-KqL.text" = "GameCube";
+
+/* Class = "UILabel"; text = "音频"; ObjectID = "BPT-fd-wOl"; */
+"BPT-fd-wOl.text" = "音频";
+
+/* Class = "UILabel"; text = "使用 PAL60 模式 (EuRGB60)"; ObjectID = "CGi-MG-0NE"; */
+"CGi-MG-0NE.text" = "使用 PAL60 模式 (EuRGB60)";
+
+/* Class = "UILabel"; text = "缓冲区大小"; ObjectID = "CrC-lY-5Tq"; */
+"CrC-lY-5Tq.text" = "缓冲区大小";
+
+/* Class = "UILabel"; text = "启用金手指"; ObjectID = "DAs-t0-7XG"; */
+"DAs-t0-7XG.text" = "启用金手指";
+
+/* Class = "UILabel"; text = "Swipe Down to Reveal"; ObjectID = "DKD-3b-KpQ"; */
+"DKD-3b-KpQ.text" = "Swipe Down to Reveal";
+
+/* Class = "UILabel"; text = "Show Status Bar"; ObjectID = "Dge-z6-TXb"; */
+"Dge-z6-TXb.text" = "Show Status Bar";
+
+/* Class = "UINavigationItem"; title = "宽高比"; ObjectID = "F9G-27-Tjl"; */
+"F9G-27-Tjl.title" = "宽高比";
+
+/* Class = "UITableViewSection"; headerTitle = "音频伸缩设置"; ObjectID = "Gbe-Ah-d5T"; */
+"Gbe-Ah-d5T.headerTitle" = "音频伸缩设置";
+
+/* Class = "UILabel"; text = "Top Bar Mode"; ObjectID = "GpF-ug-PIN"; */
+"GpF-ug-PIN.text" = "Top Bar Mode";
+
+/* Class = "UILabel"; text = "启用双核心（加速）"; ObjectID = "Hqe-6i-IcW"; */
+"Hqe-6i-IcW.text" = "启用双核心（加速）";
+
+/* Class = "UILabel"; text = "显示屏显消息"; ObjectID = "I12-Zq-IDS"; */
+"I12-Zq-IDS.text" = "显示屏显消息";
+
+/* Class = "UITableViewSection"; headerTitle = "其它设置"; ObjectID = "Is2-CQ-RYW"; */
+"Is2-CQ-RYW.headerTitle" = "其它设置";
+
+/* Class = "UILabel"; text = "允许不匹配的区域设置"; ObjectID = "JXJ-Qk-sNk"; */
+"JXJ-Qk-sNk.text" = "允许不匹配的区域设置";
+
+/* Class = "UINavigationItem"; title = "设置"; ObjectID = "M5b-kB-xlF"; */
+"M5b-kB-xlF.title" = "设置";
+
+/* Class = "UINavigationItem"; title = "Wii"; ObjectID = "MBg-6m-DDq"; */
+"MBg-6m-DDq.title" = "Wii";
+
+/* Class = "UILabel"; text = "宽高比"; ObjectID = "MUM-cb-6W0"; */
+"MUM-cb-6W0.text" = "宽高比";
+
+/* Class = "UILabel"; text = "Always Hidden"; ObjectID = "MaK-93-f0b"; */
+"MaK-93-f0b.text" = "Always Hidden";
+
+/* Class = "UILabel"; text = "启用使用情况统计报告"; ObjectID = "PDM-D7-IS2"; */
+"PDM-D7-IS2.text" = "启用使用情况统计报告";
+
+/* Class = "UILabel"; text = "启用"; ObjectID = "PUW-7n-hkA"; */
+"PUW-7n-hkA.text" = "启用";
+
+/* Class = "UILabel"; text = "简体中文"; ObjectID = "QAt-xr-bbV"; */
+"QAt-xr-bbV.text" = "简体中文";
+
+/* Class = "UILabel"; text = "JIT 重编译器（推荐）"; ObjectID = "QLN-FA-k5N"; */
+"QLN-FA-k5N.text" = "JIT 重编译器（推荐）";
+
+/* Class = "UILabel"; text = "启用 MMU"; ObjectID = "RvK-8a-gsf"; */
+"RvK-8a-gsf.text" = "启用 MMU";
+
+/* Class = "UILabel"; text = "繁体中文"; ObjectID = "SEK-Rf-1qk"; */
+"SEK-Rf-1qk.text" = "繁体中文";
+
+/* Class = "UILabel"; text = "跳过主菜单"; ObjectID = "T9q-6x-qwt"; */
+"T9q-6x-qwt.text" = "跳过主菜单";
+
+/* Class = "UILabel"; text = "CPU 模拟引擎"; ObjectID = "TS7-s0-dMM"; */
+"TS7-s0-dMM.text" = "CPU 模拟引擎";
+
+/* Class = "UILabel"; text = "日语"; ObjectID = "ThN-T3-iRi"; */
+"ThN-T3-iRi.text" = "日语";
+
+/* Class = "UILabel"; text = "意大利语"; ObjectID = "UMf-Ls-Y2a"; */
+"UMf-Ls-Y2a.text" = "意大利语";
+
+/* Class = "UILabel"; text = "停止游戏时确认"; ObjectID = "UWa-CA-YiK"; */
+"UWa-CA-YiK.text" = "停止游戏时确认";
+
+/* Class = "UILabel"; text = "韩语"; ObjectID = "UuH-ey-51W"; */
+"UuH-ey-51W.text" = "韩语";
+
+/* Class = "UINavigationItem"; title = "常规"; ObjectID = "VNc-Ms-o2f"; */
+"VNc-Ms-o2f.title" = "常规";
+
+/* Class = "UILabel"; text = "Enable Crash Reporting"; ObjectID = "Wb9-Jo-pkA"; */
+"Wb9-Jo-pkA.text" = "Enable Crash Reporting";
+
+/* Class = "UILabel"; text = "100% (486MHz)"; ObjectID = "ab2-Af-AKe"; */
+"ab2-Af-AKe.text" = "100% (486MHz)";
+
+/* Class = "UILabel"; text = "插入 SD 卡"; ObjectID = "acr-9s-yir"; */
+"acr-9s-yir.text" = "插入 SD 卡";
+
+/* Class = "UINavigationItem"; title = "CPU 模拟引擎"; ObjectID = "bUR-fZ-pg3"; */
+"bUR-fZ-pg3.title" = "CPU 模拟引擎";
+
+/* Class = "UILabel"; text = "常规"; ObjectID = "bZj-AD-NCb"; */
+"bZj-AD-NCb.text" = "常规";
+
+/* Class = "UILabel"; text = "底部"; ObjectID = "diR-dc-PZQ"; */
+"diR-dc-PZQ.text" = "底部";
+
+/* Class = "UILabel"; text = "生成一个新的统计标识"; ObjectID = "e3c-9x-rcK"; */
+"e3c-9x-rcK.text" = "生成一个新的统计标识";
+
+/* Class = "UINavigationItem"; title = "速度限制"; ObjectID = "fN5-W1-lFO"; */
+"fN5-W1-lFO.title" = "速度限制";
+
+/* Class = "UILabel"; text = "16:9"; ObjectID = "fUQ-3L-qGc"; */
+"fUQ-3L-qGc.text" = "16:9";
+
+/* Class = "UILabel"; text = "高级"; ObjectID = "ffY-kZ-p24"; */
+"ffY-kZ-p24.text" = "高级";
+
+/* Class = "UILabel"; text = "红外灵敏度"; ObjectID = "gam-22-Oa4"; */
+"gam-22-Oa4.text" = "红外灵敏度";
+
+/* Class = "UITableViewSection"; headerTitle = "基本设置"; ObjectID = "gdG-9I-xOW"; */
+"gdG-9I-xOW.headerTitle" = "基本设置";
+
+/* Class = "UILabel"; text = "扬声器音量"; ObjectID = "hEq-jG-aOY"; */
+"hEq-jG-aOY.text" = "扬声器音量";
+
+/* Class = "UINavigationItem"; title = "感应条位置"; ObjectID = "hSw-Hy-ACo"; */
+"hSw-Hy-ACo.title" = "感应条位置";
+
+/* Class = "UILabel"; text = "速度限制"; ObjectID = "ikA-Z6-A6b"; */
+"ikA-Z6-A6b.text" = "速度限制";
+
+/* Class = "UILabel"; text = "Always Visible"; ObjectID = "inO-fF-5fU"; */
+"inO-fF-5fU.text" = "Always Visible";
+
+/* Class = "UITableViewSection"; headerTitle = "Wii 遥控器设置"; ObjectID = "jyG-uN-4nV"; */
+"jyG-uN-4nV.headerTitle" = "Wii 遥控器设置";
+
+/* Class = "UILabel"; text = "德语"; ObjectID = "mkw-NI-JPB"; */
+"mkw-NI-JPB.text" = "德语";
+
+/* Class = "UILabel"; text = "法语"; ObjectID = "o0Y-zK-I1w"; */
+"o0Y-zK-I1w.text" = "法语";
+
+/* Class = "UILabel"; text = "Virtual Button Toggle"; ObjectID = "p30-XS-Tul"; */
+"p30-XS-Tul.text" = "Virtual Button Toggle";
+
+/* Class = "UILabel"; text = "英语"; ObjectID = "riQ-Hp-p07"; */
+"riQ-Hp-p07.text" = "英语";
+
+/* Class = "UILabel"; text = "缓存解释器（较慢）"; ObjectID = "s3k-Uc-UWw"; */
+"s3k-Uc-UWw.text" = "缓存解释器（较慢）";
+
+/* Class = "UINavigationItem"; title = "系统语言"; ObjectID = "txG-ij-PdN"; */
+"txG-ij-PdN.title" = "系统语言";
+
+/* Class = "UILabel"; text = "顶部"; ObjectID = "u9J-1j-jvw"; */
+"u9J-1j-jvw.text" = "顶部";
+
+/* Class = "UILabel"; text = "西班牙语"; ObjectID = "vac-nW-Iuh"; */
+"vac-nW-Iuh.text" = "西班牙语";
+
+/* Class = "UILabel"; text = "启用"; ObjectID = "w8Z-IJ-Fbf"; */
+"w8Z-IJ-Fbf.text" = "启用";
+
+/* Class = "UILabel"; text = "使用警告程序"; ObjectID = "wvb-0C-F6M"; */
+"wvb-0C-F6M.text" = "使用警告程序";
+
+/* Class = "UINavigationItem"; title = "系统语言"; ObjectID = "xFX-NZ-sg9"; */
+"xFX-NZ-sg9.title" = "系统语言";
+
+/* Class = "UILabel"; text = "荷兰语"; ObjectID = "xuE-0a-y6h"; */
+"xuE-0a-y6h.text" = "荷兰语";
+
+/* Class = "UINavigationItem"; title = "Top Bar Mode"; ObjectID = "xxn-2v-3zf"; */
+"xxn-2v-3zf.title" = "Top Bar Mode";
+
+/* Class = "UILabel"; text = "速度"; ObjectID = "yax-jm-ehL"; */
+"yax-jm-ehL.text" = "速度";
+
+/* Class = "UILabel"; text = "意大利语"; ObjectID = "yer-Iz-yOE"; */
+"yer-Iz-yOE.text" = "意大利语";
+
+/* Class = "UILabel"; text = "法语"; ObjectID = "zZn-vO-FBV"; */
+"zZn-vO-FBV.text" = "法语";
+
+/* Class = "UILabel"; text = "英语"; ObjectID = "zek-wt-iwk"; */
+"zek-wt-iwk.text" = "英语";
+
+/* Class = "UINavigationItem"; title = "界面"; ObjectID = "zlc-hO-hJt"; */
+"zlc-hO-hJt.title" = "界面";

@@ -1,0 +1,293 @@
+/* Class = "UITableViewSection"; headerTitle = "着色器编译"; ObjectID = "0Hp-gJ-2eG"; */
+"0Hp-gJ-2eG.headerTitle" = "着色器编译";
+
+/* Class = "UILabel"; text = "逐像素光照"; ObjectID = "0JJ-Dl-Dzd"; */
+"0JJ-Dl-Dzd.text" = "逐像素光照";
+
+/* Class = "UILabel"; text = "禁用边界框"; ObjectID = "1m0-8t-Mn1"; */
+"1m0-8t-Mn1.text" = "禁用边界框";
+
+/* Class = "UINavigationItem"; title = "高级"; ObjectID = "22P-Fd-nFe"; */
+"22P-Fd-nFe.title" = "高级";
+
+/* Class = "UILabel"; text = "宽高比"; ObjectID = "4Cz-mQ-iAR"; */
+"4Cz-mQ-iAR.text" = "宽高比";
+
+/* Class = "UINavigationItem"; title = "常规"; ObjectID = "5gK-bb-ym4"; */
+"5gK-bb-ym4.title" = "常规";
+
+/* Class = "UILabel"; text = "6x 原生  (3840x3168) 适合 4K"; ObjectID = "5wx-F7-0NK"; */
+"5wx-F7-0NK.text" = "6x 原生  (3840x3168) 适合 4K";
+
+/* Class = "UINavigationItem"; title = "后端"; ObjectID = "6a1-9U-EM4"; */
+"6a1-9U-EM4.title" = "后端";
+
+/* Class = "UILabel"; text = "显示联机延迟"; ObjectID = "8Le-el-gF3"; */
+"8Le-el-gF3.text" = "显示联机延迟";
+
+/* Class = "UILabel"; text = "8x"; ObjectID = "Bjq-pC-89X"; */
+"Bjq-pC-89X.text" = "8x";
+
+/* Class = "UILabel"; text = "启用逐行扫描"; ObjectID = "CI3-Yd-p3T"; */
+"CI3-Yd-p3T.text" = "启用逐行扫描";
+
+/* Class = "UILabel"; text = "GPU 纹理解码"; ObjectID = "CQB-7r-OLi"; */
+"CQB-7r-OLi.text" = "GPU 纹理解码";
+
+/* Class = "UINavigationItem"; title = "增强"; ObjectID = "CTh-oC-ajn"; */
+"CTh-oC-ajn.title" = "增强";
+
+/* Class = "UITableViewSection"; headerTitle = "调试"; ObjectID = "CZC-bY-xS3"; */
+"CZC-bY-xS3.headerTitle" = "调试";
+
+/* Class = "UITableViewSection"; headerTitle = "其他"; ObjectID = "D6g-cJ-B7W"; */
+"D6g-cJ-B7W.headerTitle" = "其他";
+
+/* Class = "UINavigationItem"; title = "各向异性过滤"; ObjectID = "E6W-P0-4HU"; */
+"E6W-P0-4HU.title" = "各向异性过滤";
+
+/* Class = "UILabel"; text = "5x 原生 (3200x2640)"; ObjectID = "EKI-bu-6U3"; */
+"EKI-bu-6U3.text" = "5x 原生 (3200x2640)";
+
+/* Class = "UILabel"; text = "显示统计数据"; ObjectID = "ElN-5L-QQr"; */
+"ElN-5L-QQr.text" = "显示统计数据";
+
+/* Class = "UITableViewSection"; headerTitle = "内置帧缓冲 (EFB)"; ObjectID = "Ett-Ts-rvO"; */
+"Ett-Ts-rvO.headerTitle" = "内置帧缓冲 (EFB)";
+
+/* Class = "UILabel"; text = "在开始前编译着色器"; ObjectID = "F1L-Ic-sg5"; */
+"F1L-Ic-sg5.text" = "在开始前编译着色器";
+
+/* Class = "UILabel"; text = "异步（超着色器）"; ObjectID = "GRf-hV-FTp"; */
+"GRf-hV-FTp.text" = "异步（超着色器）";
+
+/* Class = "UILabel"; text = "Mode"; ObjectID = "GXD-b5-okS"; */
+"GXD-b5-okS.text" = "Mode";
+
+/* Class = "UILabel"; text = "禁用 EFB VRAM 副本"; ObjectID = "Gcz-D2-roM"; */
+"Gcz-D2-roM.text" = "禁用 EFB VRAM 副本";
+
+/* Class = "UILabel"; text = "强制 16:9"; ObjectID = "HbW-Xk-1Jb"; */
+"HbW-Xk-1Jb.text" = "强制 16:9";
+
+/* Class = "UITableViewSection"; headerTitle = "外部帧缓冲 (XFB)"; ObjectID = "ITz-dG-oBq"; */
+"ITz-dG-oBq.headerTitle" = "外部帧缓冲 (XFB)";
+
+/* Class = "UILabel"; text = "异步（跳过绘制）"; ObjectID = "JFv-mk-0yL"; */
+"JFv-mk-0yL.text" = "异步（跳过绘制）";
+
+/* Class = "UILabel"; text = "同步（超着色器）"; ObjectID = "JV5-g2-2Ro"; */
+"JV5-g2-2Ro.text" = "同步（超着色器）";
+
+/* Class = "UILabel"; text = "禁用雾化"; ObjectID = "Jp9-YG-fFU"; */
+"Jp9-YG-fFU.text" = "禁用雾化";
+
+/* Class = "UILabel"; text = "后端"; ObjectID = "KuT-dh-F8a"; */
+"KuT-dh-F8a.text" = "后端";
+
+/* Class = "UILabel"; text = "快速"; ObjectID = "LCC-Te-e70"; */
+"LCC-Te-e70.text" = "快速";
+
+/* Class = "UILabel"; text = "仅存储 XFB 副本为纹理"; ObjectID = "M18-ia-W0B"; */
+"M18-ia-W0B.text" = "仅存储 XFB 副本为纹理";
+
+/* Class = "UILabel"; text = "转储纹理"; ObjectID = "MTG-F0-x3O"; */
+"MTG-F0-x3O.text" = "转储纹理";
+
+/* Class = "UILabel"; text = "增强"; ObjectID = "PdH-nE-Ghg"; */
+"PdH-nE-Ghg.text" = "增强";
+
+/* Class = "UILabel"; text = "精确度"; ObjectID = "PhH-xb-F6t"; */
+"PhH-xb-F6t.text" = "精确度";
+
+/* Class = "UILabel"; text = "强制 4:3"; ObjectID = "Q84-dr-3b6"; */
+"Q84-dr-3b6.text" = "强制 4:3";
+
+/* Class = "UILabel"; text = "启用线框"; ObjectID = "QoZ-49-5oY"; */
+"QoZ-49-5oY.text" = "启用线框";
+
+/* Class = "UILabel"; text = "内部分辨率"; ObjectID = "QzX-GC-ybU"; */
+"QzX-GC-ybU.text" = "内部分辨率";
+
+/* Class = "UILabel"; text = "16x"; ObjectID = "RnS-Zb-Fvf"; */
+"RnS-Zb-Fvf.text" = "16x";
+
+/* Class = "UILabel"; text = "4x 原生 (2560x2112) 适合 1440p"; ObjectID = "SSy-g0-mPk"; */
+"SSy-g0-mPk.text" = "4x 原生 (2560x2112) 适合 1440p";
+
+/* Class = "UILabel"; text = "各向异性过滤"; ObjectID = "Skl-PD-WnK"; */
+"Skl-PD-WnK.text" = "各向异性过滤";
+
+/* Class = "UILabel"; text = "安全"; ObjectID = "TGq-7C-aJD"; */
+"TGq-7C-aJD.text" = "安全";
+
+/* Class = "UILabel"; text = "原生 (640x528)"; ObjectID = "U3R-RE-wrE"; */
+"U3R-RE-wrE.text" = "原生 (640x528)";
+
+/* Class = "UILabel"; text = "OpenGL"; ObjectID = "U4x-0k-bbr"; */
+"U4x-0k-bbr.text" = "OpenGL";
+
+/* Class = "UILabel"; text = "修正"; ObjectID = "VGQ-Nc-rWb"; */
+"VGQ-Nc-rWb.text" = "修正";
+
+/* Class = "UILabel"; text = "推迟 EFB 缓存失效"; ObjectID = "VjZ-g2-ee8"; */
+"VjZ-g2-ee8.text" = "推迟 EFB 缓存失效";
+
+/* Class = "UILabel"; text = "强制 24 位色"; ObjectID = "WX6-i9-QZE"; */
+"WX6-i9-QZE.text" = "强制 24 位色";
+
+/* Class = "UILabel"; text = "显示纹理格式"; ObjectID = "Xbr-VL-aeL"; */
+"Xbr-VL-aeL.text" = "显示纹理格式";
+
+/* Class = "UILabel"; text = "垂直同步"; ObjectID = "Xcm-Jb-oAP"; */
+"Xcm-Jb-oAP.text" = "垂直同步";
+
+/* Class = "UILabel"; text = "仅存储 EFB 副本为纹理"; ObjectID = "Y8a-Ay-DoO"; */
+"Y8a-Ay-DoO.text" = "仅存储 EFB 副本为纹理";
+
+/* Class = "UILabel"; text = "类型"; ObjectID = "YYq-jr-mf8"; */
+"YYq-jr-mf8.text" = "类型";
+
+/* Class = "UILabel"; text = "后端多线程"; ObjectID = "ajh-9c-Jam"; */
+"ajh-9c-Jam.text" = "后端多线程";
+
+/* Class = "UITableViewSection"; headerTitle = "纹理缓存"; ObjectID = "bH4-hd-zlv"; */
+"bH4-hd-zlv.headerTitle" = "纹理缓存";
+
+/* Class = "UILabel"; text = "推迟 EFB 副本到内存"; ObjectID = "bXh-Hx-pED"; */
+"bXh-Hx-pED.text" = "推迟 EFB 副本到内存";
+
+/* Class = "UILabel"; text = "加载自定义纹理"; ObjectID = "bb1-Eg-hBM"; */
+"bb1-Eg-hBM.text" = "加载自定义纹理";
+
+/* Class = "UILabel"; text = "拉伸到窗口大小"; ObjectID = "bmF-fV-4T8"; */
+"bmF-fV-4T8.text" = "拉伸到窗口大小";
+
+/* Class = "UILabel"; text = "空"; ObjectID = "boB-ud-v0p"; */
+"boB-ud-v0p.text" = "空";
+
+/* Class = "UILabel"; text = "Vulkan"; ObjectID = "cUR-qy-iP1"; */
+"cUR-qy-iP1.text" = "Vulkan";
+
+/* Class = "UILabel"; text = "高级"; ObjectID = "dQQ-I9-Ulq"; */
+"dQQ-I9-Ulq.text" = "高级";
+
+/* Class = "UILabel"; text = "禁用复制过滤"; ObjectID = "eOJ-Ic-E7Z"; */
+"eOJ-Ic-E7Z.text" = "禁用复制过滤";
+
+/* Class = "UILabel"; text = "显示 FPS"; ObjectID = "ed5-iw-Rp5"; */
+"ed5-iw-Rp5.text" = "显示 FPS";
+
+/* Class = "UITableViewSection"; headerTitle = "实验性"; ObjectID = "epL-g2-NAC"; */
+"epL-g2-NAC.headerTitle" = "实验性";
+
+/* Class = "UINavigationItem"; title = "内部分辨率"; ObjectID = "f7Y-b5-U6K"; */
+"f7Y-b5-U6K.title" = "内部分辨率";
+
+/* Class = "UINavigationItem"; title = "图形"; ObjectID = "f8i-gK-HxI"; */
+"f8i-gK-HxI.title" = "图形";
+
+/* Class = "UILabel"; text = "快速深度计算"; ObjectID = "fNB-Qp-KPf"; */
+"fNB-Qp-KPf.text" = "快速深度计算";
+
+/* Class = "UILabel"; text = "忽略格式变化"; ObjectID = "g9b-oy-vim"; */
+"g9b-oy-vim.text" = "忽略格式变化";
+
+/* Class = "UILabel"; text = "同步"; ObjectID = "gmt-s1-lH4"; */
+"gmt-s1-lH4.text" = "同步";
+
+/* Class = "UINavigationItem"; title = "修正"; ObjectID = "hAk-wO-QgI"; */
+"hAk-wO-QgI.title" = "修正";
+
+/* Class = "UILabel"; text = "立即呈现 XFB"; ObjectID = "hiz-TR-uFn"; */
+"hiz-TR-uFn.text" = "立即呈现 XFB";
+
+/* Class = "UILabel"; text = "自动"; ObjectID = "jAa-cL-Rjh"; */
+"jAa-cL-Rjh.text" = "自动";
+
+/* Class = "UILabel"; text = "3x 原生 (1920x1584) 适合 1080p"; ObjectID = "jJs-ou-NxC"; */
+"jJs-ou-NxC.text" = "3x 原生 (1920x1584) 适合 1080p";
+
+/* Class = "UILabel"; text = "常规"; ObjectID = "jjY-Es-Kzy"; */
+"jjY-Es-Kzy.text" = "常规";
+
+/* Class = "UILabel"; text = "顶点取整"; ObjectID = "kV2-YB-mFd"; */
+"kV2-YB-mFd.text" = "顶点取整";
+
+/* Class = "UILabel"; text = "预读取自定义纹理"; ObjectID = "lDn-mk-Z1l"; */
+"lDn-mk-Z1l.text" = "预读取自定义纹理";
+
+/* Class = "UITableViewSection"; headerTitle = "实用功能"; ObjectID = "lHy-iP-KbA"; */
+"lHy-iP-KbA.headerTitle" = "实用功能";
+
+/* Class = "UILabel"; text = "软件渲染器"; ObjectID = "lIB-f6-qZI"; */
+"lIB-f6-qZI.text" = "软件渲染器";
+
+/* Class = "UILabel"; text = "裁切"; ObjectID = "lQL-jc-ILl"; */
+"lQL-jc-ILl.text" = "裁切";
+
+/* Class = "UITableViewSection"; headerTitle = "基本"; ObjectID = "mGF-H0-YAg"; */
+"mGF-H0-YAg.headerTitle" = "基本";
+
+/* Class = "UILabel"; text = "宽屏修正"; ObjectID = "myf-Wb-hBV"; */
+"myf-Wb-hBV.text" = "宽屏修正";
+
+/* Class = "UILabel"; text = "自动（640x528 的倍数）"; ObjectID = "nNo-B4-PCq"; */
+"nNo-B4-PCq.text" = "自动（640x528 的倍数）";
+
+/* Class = "UILabel"; text = "启用 API 验证层"; ObjectID = "oCN-Sj-Use"; */
+"oCN-Sj-Use.text" = "启用 API 验证层";
+
+/* Class = "UINavigationItem"; title = "着色器编译"; ObjectID = "ohZ-y2-lIa"; */
+"ohZ-y2-lIa.title" = "着色器编译";
+
+/* Class = "UITableViewSection"; headerTitle = "其它"; ObjectID = "owU-hi-eK8"; */
+"owU-hi-eK8.headerTitle" = "其它";
+
+/* Class = "UILabel"; text = "特殊多级纹理检测"; ObjectID = "pMs-1L-1dY"; */
+"pMs-1L-1dY.text" = "特殊多级纹理检测";
+
+/* Class = "UILabel"; text = "缩放 EFB 副本"; ObjectID = "s0l-GD-nfn"; */
+"s0l-GD-nfn.text" = "缩放 EFB 副本";
+
+/* Class = "UILabel"; text = "强制纹理过滤"; ObjectID = "sWs-Hb-DWK"; */
+"sWs-Hb-DWK.text" = "强制纹理过滤";
+
+/* Class = "UILabel"; text = "2x"; ObjectID = "tne-SZ-I6X"; */
+"tne-SZ-I6X.text" = "2x";
+
+/* Class = "UILabel"; text = "8x 原生 (5120x4224) 适合 5K"; ObjectID = "u1l-8D-mFj"; */
+"u1l-8D-mFj.text" = "8x 原生 (5120x4224) 适合 5K";
+
+/* Class = "UINavigationItem"; title = "宽高比"; ObjectID = "ubg-gf-CKs"; */
+"ubg-gf-CKs.title" = "宽高比";
+
+/* Class = "UILabel"; text = "1x"; ObjectID = "ufh-Et-UDN"; */
+"ufh-Et-UDN.text" = "1x";
+
+/* Class = "UILabel"; text = "保存纹理缓存到状态"; ObjectID = "v90-sm-gpO"; */
+"v90-sm-gpO.text" = "保存纹理缓存到状态";
+
+/* Class = "UILabel"; text = "记录渲染时间到文件"; ObjectID = "vLt-rL-Jc6"; */
+"vLt-rL-Jc6.text" = "记录渲染时间到文件";
+
+/* Class = "UILabel"; text = "显示联机信息"; ObjectID = "vVd-gU-Rn3"; */
+"vVd-gU-Rn3.text" = "显示联机信息";
+
+/* Class = "UILabel"; text = "跳过 CPU 对 EFB 访问"; ObjectID = "xLh-SQ-2m3"; */
+"xLh-SQ-2m3.text" = "跳过 CPU 对 EFB 访问";
+
+/* Class = "UILabel"; text = "转储 EFB 目标"; ObjectID = "xqh-iX-yt9"; */
+"xqh-iX-yt9.text" = "转储 EFB 目标";
+
+/* Class = "UITableViewSection"; headerTitle = "其他"; ObjectID = "xsF-Eo-4KA"; */
+"xsF-Eo-4KA.headerTitle" = "其他";
+
+/* Class = "UINavigationItem"; title = "抗锯齿"; ObjectID = "y9H-fG-lRi"; */
+"y9H-fG-lRi.title" = "抗锯齿";
+
+/* Class = "UILabel"; text = "2x 原生 (1280x1056) 适合 720p"; ObjectID = "yPP-e3-670"; */
+"yPP-e3-670.text" = "2x 原生 (1280x1056) 适合 720p";
+
+/* Class = "UILabel"; text = "4x"; ObjectID = "yzN-eq-mOS"; */
+"yzN-eq-mOS.text" = "4x";

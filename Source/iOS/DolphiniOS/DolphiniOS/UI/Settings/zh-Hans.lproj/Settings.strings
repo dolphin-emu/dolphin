@@ -1,0 +1,119 @@
+/* Class = "UILabel"; text = "退出"; ObjectID = "1co-pK-Y2u"; */
+"1co-pK-Y2u.text" = "退出";
+
+/* Class = "UILabel"; text = "Set Process As Debugged"; ObjectID = "3ho-Oh-qCP"; */
+"3ho-Oh-qCP.text" = "Set Process As Debugged";
+
+/* Class = "UILabel"; text = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers."; ObjectID = "4JH-mf-sk9"; */
+"4JH-mf-sk9.text" = "© 2019-2020+ OatmealDome and goob47. \nDolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers.";
+
+/* Class = "UILabel"; text = "Patrons 2"; ObjectID = "4zt-R7-qCU"; */
+"4zt-R7-qCU.text" = "Patrons 2";
+
+/* Class = "UILabel"; text = "图形"; ObjectID = "6BT-cH-KPV"; */
+"6BT-cH-KPV.text" = "图形";
+
+/* Class = "UILabel"; text = "调试"; ObjectID = "6JD-gF-g10"; */
+"6JD-gF-g10.text" = "调试";
+
+/* Class = "UILabel"; text = "1.0.0"; ObjectID = "9Bx-0J-21P"; */
+"9Bx-0J-21P.text" = "1.0.0";
+
+/* Class = "UILabel"; text = "Register Cache Disabled"; ObjectID = "9xh-DU-gOm"; */
+"9xh-DU-gOm.text" = "Register Cache Disabled";
+
+/* Class = "UILabel"; text = "关于 Dolphin"; ObjectID = "AZC-s5-S3W"; */
+"AZC-s5-S3W.text" = "关于 Dolphin";
+
+/* Class = "UILabel"; text = "Thank you to the following generous Patrons!"; ObjectID = "Apg-2S-OEc"; */
+"Apg-2S-OEc.text" = "Thank you to the following generous Patrons!";
+
+/* Class = "UITableViewController"; title = "设置"; ObjectID = "B4L-TL-IR8"; */
+"B4L-TL-IR8.title" = "设置";
+
+/* Class = "UILabel"; text = "Paired Disabled"; ObjectID = "G79-OZ-WTs"; */
+"G79-OZ-WTs.text" = "Paired Disabled";
+
+/* Class = "UILabel"; text = "System Registers Disabled"; ObjectID = "H8K-qf-aQf"; */
+"H8K-qf-aQf.text" = "System Registers Disabled";
+
+/* Class = "UILabel"; text = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way."; ObjectID = "Iw7-Nn-kBa"; */
+"Iw7-Nn-kBa.text" = "© 2003-2015+ Dolphin Team. “GameCube” and “Wii” are trademarks of Nintendo. \nDolphin is not affiliated with Nintendo in any way.";
+
+/* Class = "UILabel"; text = "Floating Point Disabled"; ObjectID = "L2G-aP-P6r"; */
+"L2G-aP-P6r.text" = "Floating Point Disabled";
+
+/* Class = "UILabel"; text = "Fastmem"; ObjectID = "M3l-U9-UrT"; */
+"M3l-U9-UrT.text" = "Fastmem";
+
+/* Class = "UILabel"; text = "Sync on Skip Idle"; ObjectID = "NGt-fz-75k"; */
+"NGt-fz-75k.text" = "Sync on Skip Idle";
+
+/* Class = "UILabel"; text = "Branch Disabled"; ObjectID = "NdS-eA-YTG"; */
+"NdS-eA-YTG.text" = "Branch Disabled";
+
+/* Class = "UINavigationItem"; title = "关于 Dolphin"; ObjectID = "RI4-PG-OKc"; */
+"RI4-PG-OKc.title" = "关于 Dolphin";
+
+/* Class = "UIButton"; normalTitle = "Source Code"; ObjectID = "Sud-8v-xe3"; */
+"Sud-8v-xe3.normalTitle" = "Source Code";
+
+/* Class = "UILabel"; text = "1.0.0"; ObjectID = "TO3-cy-H2Y"; */
+"TO3-cy-H2Y.text" = "1.0.0";
+
+/* Class = "UILabel"; text = "DolphiniOS"; ObjectID = "YrK-0b-KPM"; */
+"YrK-0b-KPM.text" = "DolphiniOS";
+
+/* Class = "UINavigationItem"; title = "设置"; ObjectID = "ack-ew-MP2"; */
+"ack-ew-MP2.title" = "设置";
+
+/* Class = "UILabel"; text = "Integer Disabled"; ObjectID = "bxk-99-Snh"; */
+"bxk-99-Snh.text" = "Integer Disabled";
+
+/* Class = "UILabel"; text = "Donate"; ObjectID = "cRV-Hq-IOP"; */
+"cRV-Hq-IOP.text" = "Donate";
+
+/* Class = "UILabel"; text = "帮助"; ObjectID = "dfe-JF-PdQ"; */
+"dfe-JF-PdQ.text" = "帮助";
+
+/* Class = "UILabel"; text = "该软件不能用于运行你非法持有的游戏。"; ObjectID = "f6q-Ez-JFr"; */
+"f6q-Ez-JFr.text" = "该软件不能用于运行你非法持有的游戏。";
+
+/* Class = "UILabel"; text = "版本"; ObjectID = "fTF-PL-Io8"; */
+"fTF-PL-Io8.text" = "版本";
+
+/* Class = "UILabel"; text = "帮助"; ObjectID = "gtb-Ne-ddc"; */
+"gtb-Ne-ddc.text" = "帮助";
+
+/* Class = "UILabel"; text = "Emulation Core"; ObjectID = "hMd-RA-rNX"; */
+"hMd-RA-rNX.text" = "Emulation Core";
+
+/* Class = "UINavigationItem"; title = "调试"; ObjectID = "ico-l1-GvZ"; */
+"ico-l1-GvZ.title" = "调试";
+
+/* Class = "UILabel"; text = "Load Store Floating Point Disabled"; ObjectID = "li5-FM-I1H"; */
+"li5-FM-I1H.text" = "Load Store Floating Point Disabled";
+
+/* Class = "UILabel"; text = "设置"; ObjectID = "n0Q-3C-VDC"; */
+"n0Q-3C-VDC.text" = "设置";
+
+/* Class = "UITableViewSection"; headerTitle = "JIT"; ObjectID = "p0Y-AI-hYS"; */
+"p0Y-AI-hYS.headerTitle" = "JIT";
+
+/* Class = "UILabel"; text = "Load Store Paired Disabled"; ObjectID = "pYP-Ko-kX7"; */
+"pYP-Ko-kX7.text" = "Load Store Paired Disabled";
+
+/* Class = "UILabel"; text = "Patrons 1"; ObjectID = "qg5-mQ-I0A"; */
+"qg5-mQ-I0A.text" = "Patrons 1";
+
+/* Class = "UILabel"; text = "Load Store Disabled"; ObjectID = "s98-qA-2g6"; */
+"s98-qA-2g6.text" = "Load Store Disabled";
+
+/* Class = "UITableViewSection"; headerTitle = "其它"; ObjectID = "ssc-yG-eeX"; */
+"ssc-yG-eeX.headerTitle" = "其它";
+
+/* Class = "UIViewController"; title = "关于 Dolphin"; ObjectID = "u6n-zE-oUh"; */
+"u6n-zE-oUh.title" = "关于 Dolphin";
+
+/* Class = "UILabel"; text = "控制器"; ObjectID = "xpQ-qK-CHk"; */
+"xpQ-qK-CHk.text" = "控制器";
