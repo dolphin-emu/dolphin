@@ -6,13 +6,14 @@ compiler:
 addons:
   apt:
     sources:
-    - ubuntu-toolchain-r-test
+    #- ubuntu-toolchain-r-test
     packages:
-    - g++-8
-    - cmake
+    #- g++-8
+    #- cmake
+    - p7zip-full
 install:
-- "[ $CXX = g++ ] && export CXX=g++-8 || true"
-- "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
+#- "[ $CXX = g++ ] && export CXX=g++-8 || true"
+#- "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
 - mkdir -p "$HOME/.ccache"
 - docker pull quriouspixel/yuzu:latest
 - docker run -u root --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
