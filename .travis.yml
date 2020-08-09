@@ -17,9 +17,7 @@ install:
 - docker pull quriouspixel/yuzu:latest
 - docker run -u root --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
 script:
-  - mkdir build && cd build
-  - cmake ..
-  - make
-  - make test
+  - ls -al
+
 
   
