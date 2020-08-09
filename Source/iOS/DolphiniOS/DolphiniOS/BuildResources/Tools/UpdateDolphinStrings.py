@@ -3,12 +3,26 @@
 import polib
 import os
 import sys
+import re
 
 # This tool writes the contents of the "po" files to the required ".strings" format
 # for iOS.
 
 # Usage:
 # python3 UpdateDolphinStrings.py <po files directory> <localizables directory>
+
+def strip_string_for_ios(str):
+  # Strip (&X) for Japanese
+  str = re.sub("\(&(\S)\)", "", str)
+  
+  # Remove & in &X
+  str = re.sub("&(\S)", "\g<1>", str)
+  
+  # Strip trailing : and ： (full-width)
+  if str.endswith(':') or str.endswith('：'):
+    str = str[:-1]
+  
+  return str
 
 for root, dirs, files in os.walk(sys.argv[1]):
   for po_path in files:
@@ -40,4 +54,7 @@ for root, dirs, files in os.walk(sys.argv[1]):
         if not entry.msgstr:
           msgstr = entry.msgid
         
-        strings_file.write('"' + entry.msgid.replace(r'"', r'\"') + '" = "' + msgstr.replace(r'\"', r'\\"').replace(r'"', r'\"') + '";\n')
+        msgid = strip_string_for_ios(entry.msgid)
+        msgstr = strip_string_for_ios(msgstr)
+        
+        strings_file.write('"' + msgid.replace(r'"', r'\"') + '" = "' + msgstr.replace(r'\"', r'\\"').replace(r'"', r'\"') + '";\n')
