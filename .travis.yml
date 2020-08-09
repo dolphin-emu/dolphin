@@ -1,6 +1,7 @@
 sudo: false
 language: cpp
 services: docker
+cache: ccache
 compiler:
   - gcc
 addons:
