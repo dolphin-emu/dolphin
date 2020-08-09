@@ -1,5 +1,9 @@
 #!/bin/bash -ex
 
+curl -sLO “http://launchpadlibrarian.net/325446110/libusb-1.0-0-dev_1.0.21-2_amd64.deb”
+curl -sLO “http://mirrors.kernel.org/ubuntu/pool/main/libu/libusb-1.0/libusb-1.0-0-dev_1.0.20-1_amd64.deb”
+dpkg -i *.deb
+
 cd /dolphin
 
 mkdir build
