@@ -17,6 +17,8 @@ matrix:
             - echo "$TRAVIS_COMMIT"
             - docker pull quriouspixel/yuzu:latest 
         script: 
+            - make
+            - make test
             - docker run -u root --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
       after_success:
       - ls -lh artifacts/* 
