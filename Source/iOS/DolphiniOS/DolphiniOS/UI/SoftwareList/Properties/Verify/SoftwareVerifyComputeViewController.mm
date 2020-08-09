@@ -114,7 +114,7 @@
       }
       else
       {
-        hash_str = @"N/A";
+        hash_str = DOLocalizedString(@"None");
       }
       
       [objc_result setValue:hash_str forKey:property_name];
@@ -130,7 +130,7 @@
     }
     else
     {
-      objc_result.m_redump_status = @"N/A";
+      objc_result.m_redump_status = DOLocalizedString(@"None");
     }
     
     objc_result.m_summary = CppToFoundationString(result.summary_text);
