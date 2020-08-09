@@ -958,6 +958,9 @@
                                         </label>
                                         <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="252" verticalHuggingPriority="251" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="CIX-Tf-JhE">
                                             <rect key="frame" x="305" y="6.5" width="51" height="31"/>
+                                            <connections>
+                                                <action selector="EnabledChanged:" destination="SnW-0v-NTK" eventType="valueChanged" id="zqU-yi-bOU"/>
+                                            </connections>
                                         </switch>
                                     </subviews>
                                     <constraints>
