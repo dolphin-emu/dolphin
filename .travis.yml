@@ -1,5 +1,6 @@
 sudo: false
 language: cpp
+services: docker
 compiler:
   - gcc
 addons:
@@ -12,6 +13,8 @@ addons:
 install:
 - "[ $CXX = g++ ] && export CXX=g++-8 || true"
 - "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
+- docker pull quriouspixel/yuzu:latest
+- docker run -u root --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
 script:
   - mkdir build && cd build
   - cmake ..
