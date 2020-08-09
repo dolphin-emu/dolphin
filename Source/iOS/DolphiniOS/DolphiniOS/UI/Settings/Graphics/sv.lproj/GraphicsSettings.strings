@@ -53,7 +53,7 @@
 "GXD-b5-okS.text" = "Mode";
 
 /* Class = "UILabel"; text = "Force 16:9"; ObjectID = "HbW-Xk-1Jb"; */
-"HbW-Xk-1Jb.text" = "4:3";
+"HbW-Xk-1Jb.text" = "Tvinga 16:9";
 
 /* Class = "UITableViewSection"; headerTitle = "External Frame Buffer (XFB)"; ObjectID = "ITz-dG-oBq"; */
 "ITz-dG-oBq.headerTitle" = "Extern bildrutebuffert (XFB)";
@@ -81,9 +81,6 @@
 
 /* Class = "UILabel"; text = "Accuracy"; ObjectID = "PhH-xb-F6t"; */
 "PhH-xb-F6t.text" = "Precision";
-
-/* Class = "UILabel"; text = "Force 4:3"; ObjectID = "Q84-dr-3b6"; */
-"Q84-dr-3b6.text" = "16:9";
 
 /* Class = "UILabel"; text = "Internal Resolution"; ObjectID = "QzX-GC-ybU"; */
 "QzX-GC-ybU.text" = "Intern upplösning";
@@ -291,3 +288,6 @@
 
 /* Class = "UILabel"; text = "Dump EFB Target"; ObjectID = "xqh-iX-yt9"; */
 "xqh-iX-yt9.text" = "Dumpa EFB-mål";
+
+/* Class = "UILabel"; text = "Force 4:3"; ObjectID = "Q84-dr-3b6"; */
+"Q84-dr-3b6.text" = "Tvinga 4:3";
