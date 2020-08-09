@@ -85,6 +85,8 @@ enum TOperator {
     EOpPreIncrement,
     EOpPreDecrement,
 
+    EOpCopyObject,
+
     // (u)int* -> bool
     EOpConvInt8ToBool,
     EOpConvUint8ToBool,
@@ -269,6 +271,14 @@ enum TOperator {
     EOpConvDoubleToFloat16,
     EOpConvDoubleToFloat,
 
+    // uint64_t <-> pointer
+    EOpConvUint64ToPtr,
+    EOpConvPtrToUint64,
+
+    // uvec2 <-> pointer
+    EOpConvUvec2ToPtr,
+    EOpConvPtrToUvec2,
+
     //
     // binary operations
     //
@@ -416,11 +426,9 @@ enum TOperator {
     EOpReflect,
     EOpRefract,
 
-#ifdef AMD_EXTENSIONS
     EOpMin3,
     EOpMax3,
     EOpMid3,
-#endif
 
     EOpDPdx,            // Fragment only
     EOpDPdy,            // Fragment only
@@ -435,10 +443,7 @@ enum TOperator {
     EOpInterpolateAtCentroid, // Fragment only
     EOpInterpolateAtSample,   // Fragment only
     EOpInterpolateAtOffset,   // Fragment only
-
-#ifdef AMD_EXTENSIONS
     EOpInterpolateAtVertex,
-#endif
 
     EOpMatrixTimesMatrix,
     EOpOuterProduct,
@@ -528,7 +533,6 @@ enum TOperator {
     EOpSubgroupQuadSwapVertical,
     EOpSubgroupQuadSwapDiagonal,
 
-#ifdef NV_EXTENSIONS
     EOpSubgroupPartition,
     EOpSubgroupPartitionedAdd,
     EOpSubgroupPartitionedMul,
@@ -551,11 +555,9 @@ enum TOperator {
     EOpSubgroupPartitionedExclusiveAnd,
     EOpSubgroupPartitionedExclusiveOr,
     EOpSubgroupPartitionedExclusiveXor,
-#endif
 
     EOpSubgroupGuardStop,
 
-#ifdef AMD_EXTENSIONS
     EOpMinInvocations,
     EOpMaxInvocations,
     EOpAddInvocations,
@@ -582,7 +584,6 @@ enum TOperator {
     EOpCubeFaceIndex,
     EOpCubeFaceCoord,
     EOpTime,
-#endif
 
     EOpAtomicAdd,
     EOpAtomicMin,
@@ -592,6 +593,8 @@ enum TOperator {
     EOpAtomicXor,
     EOpAtomicExchange,
     EOpAtomicCompSwap,
+    EOpAtomicLoad,
+    EOpAtomicStore,
 
     EOpAtomicCounterIncrement, // results in pre-increment value
     EOpAtomicCounterDecrement, // results in post-decrement value
@@ -609,6 +612,15 @@ enum TOperator {
     EOpAny,
     EOpAll,
 
+    EOpCooperativeMatrixLoad,
+    EOpCooperativeMatrixStore,
+    EOpCooperativeMatrixMulAdd,
+
+    EOpBeginInvocationInterlock, // Fragment only
+    EOpEndInvocationInterlock, // Fragment only
+
+    EOpIsHelperInvocation,
+
     //
     // Branch
     //
@@ -619,6 +631,7 @@ enum TOperator {
     EOpContinue,
     EOpCase,
     EOpDefault,
+    EOpDemote,          // Fragment only
 
     //
     // Constructors
@@ -636,9 +649,21 @@ enum TOperator {
     EOpConstructBool,
     EOpConstructFloat,
     EOpConstructDouble,
+    // Keep vector and matrix constructors in a consistent relative order for
+    // TParseContext::constructBuiltIn, which converts between 8/16/32 bit
+    // vector constructors
     EOpConstructVec2,
     EOpConstructVec3,
     EOpConstructVec4,
+    EOpConstructMat2x2,
+    EOpConstructMat2x3,
+    EOpConstructMat2x4,
+    EOpConstructMat3x2,
+    EOpConstructMat3x3,
+    EOpConstructMat3x4,
+    EOpConstructMat4x2,
+    EOpConstructMat4x3,
+    EOpConstructMat4x4,
     EOpConstructDVec2,
     EOpConstructDVec3,
     EOpConstructDVec4,
@@ -669,15 +694,6 @@ enum TOperator {
     EOpConstructU64Vec2,
     EOpConstructU64Vec3,
     EOpConstructU64Vec4,
-    EOpConstructMat2x2,
-    EOpConstructMat2x3,
-    EOpConstructMat2x4,
-    EOpConstructMat3x2,
-    EOpConstructMat3x3,
-    EOpConstructMat3x4,
-    EOpConstructMat4x2,
-    EOpConstructMat4x3,
-    EOpConstructMat4x4,
     EOpConstructDMat2x2,
     EOpConstructDMat2x3,
     EOpConstructDMat2x4,
@@ -730,6 +746,8 @@ enum TOperator {
     EOpConstructStruct,
     EOpConstructTextureSampler,
     EOpConstructNonuniform,     // expected to be transformed away, not present in final AST
+    EOpConstructReference,
+    EOpConstructCooperativeMatrix,
     EOpConstructGuardEnd,
 
     //
@@ -772,10 +790,8 @@ enum TOperator {
     EOpImageQuerySamples,
     EOpImageLoad,
     EOpImageStore,
-#ifdef AMD_EXTENSIONS
     EOpImageLoadLod,
     EOpImageStoreLod,
-#endif
     EOpImageAtomicAdd,
     EOpImageAtomicMin,
     EOpImageAtomicMax,
@@ -784,13 +800,13 @@ enum TOperator {
     EOpImageAtomicXor,
     EOpImageAtomicExchange,
     EOpImageAtomicCompSwap,
+    EOpImageAtomicLoad,
+    EOpImageAtomicStore,
 
     EOpSubpassLoad,
     EOpSubpassLoadMS,
     EOpSparseImageLoad,
-#ifdef AMD_EXTENSIONS
     EOpSparseImageLoadLod,
-#endif
 
     EOpImageGuardEnd,
 
@@ -828,13 +844,11 @@ enum TOperator {
     EOpTextureOffsetClamp,
     EOpTextureGradClamp,
     EOpTextureGradOffsetClamp,
-#ifdef AMD_EXTENSIONS
     EOpTextureGatherLod,
     EOpTextureGatherLodOffset,
     EOpTextureGatherLodOffsets,
     EOpFragmentMaskFetch,
     EOpFragmentFetch,
-#endif
 
     EOpSparseTextureGuardBegin,
 
@@ -854,13 +868,19 @@ enum TOperator {
     EOpSparseTextureOffsetClamp,
     EOpSparseTextureGradClamp,
     EOpSparseTextureGradOffsetClamp,
-#ifdef AMD_EXTENSIONS
     EOpSparseTextureGatherLod,
     EOpSparseTextureGatherLodOffset,
     EOpSparseTextureGatherLodOffsets,
-#endif
 
     EOpSparseTextureGuardEnd,
+
+    EOpImageFootprintGuardBegin,
+    EOpImageSampleFootprintNV,
+    EOpImageSampleFootprintClampNV,
+    EOpImageSampleFootprintLodNV,
+    EOpImageSampleFootprintGradNV,
+    EOpImageSampleFootprintGradClampNV,
+    EOpImageFootprintGuardEnd,
     EOpSamplingGuardEnd,
     EOpTextureGuardEnd,
 
@@ -879,6 +899,21 @@ enum TOperator {
     EOpFindLSB,
     EOpFindMSB,
 
+    EOpCountLeadingZeros,
+    EOpCountTrailingZeros,
+    EOpAbsDifference,
+    EOpAddSaturate,
+    EOpSubSaturate,
+    EOpAverage,
+    EOpAverageRounded,
+    EOpMul32x16,
+
+    EOpTraceNV,
+    EOpReportIntersectionNV,
+    EOpIgnoreIntersectionNV,
+    EOpTerminateRayNV,
+    EOpExecuteCallableNV,
+    EOpWritePackedPrimitiveIndices4x8NV,
     //
     // HLSL operations
     //
@@ -962,6 +997,10 @@ enum TOperator {
     EOpWaveGetLaneIndex,                 // Will decompose to gl_SubgroupInvocationID.
     EOpWaveActiveCountBits,              // Will decompose to subgroupBallotBitCount(subgroupBallot()).
     EOpWavePrefixCountBits,              // Will decompose to subgroupBallotInclusiveBitCount(subgroupBallot()).
+
+    // Shader Clock Ops
+    EOpReadClockSubgroupKHR,
+    EOpReadClockDeviceKHR,
 };
 
 class TIntermTraverser;
@@ -1063,6 +1102,8 @@ public:
     virtual bool isStruct() const { return type.isStruct(); }
     virtual bool isFloatingDomain() const { return type.isFloatingDomain(); }
     virtual bool isIntegerDomain() const { return type.isIntegerDomain(); }
+    bool isAtomic() const { return type.isAtomic(); }
+    bool isReference() const { return type.isReference(); }
     TString getCompleteString() const { return type.getCompleteString(); }
 
 protected:
@@ -1082,7 +1123,12 @@ public:
         first(testFirst),
         unroll(false),
         dontUnroll(false),
-        dependency(0)
+        dependency(0),
+        minIterations(0),
+        maxIterations(iterationsInfinite),
+        iterationMultiple(1),
+        peelCount(0),
+        partialCount(0)
     { }
 
     virtual       TIntermLoop* getAsLoopNode() { return this; }
@@ -1094,13 +1140,35 @@ public:
     bool testFirst() const { return first; }
 
     void setUnroll()     { unroll = true; }
-    void setDontUnroll() { dontUnroll = true; }
+    void setDontUnroll() {
+        dontUnroll = true;
+        peelCount = 0;
+        partialCount = 0;
+    }
     bool getUnroll()     const { return unroll; }
     bool getDontUnroll() const { return dontUnroll; }
 
     static const unsigned int dependencyInfinite = 0xFFFFFFFF;
+    static const unsigned int iterationsInfinite = 0xFFFFFFFF;
     void setLoopDependency(int d) { dependency = d; }
     int getLoopDependency() const { return dependency; }
+
+    void setMinIterations(unsigned int v) { minIterations = v; }
+    unsigned int getMinIterations() const { return minIterations; }
+    void setMaxIterations(unsigned int v) { maxIterations = v; }
+    unsigned int getMaxIterations() const { return maxIterations; }
+    void setIterationMultiple(unsigned int v) { iterationMultiple = v; }
+    unsigned int getIterationMultiple() const { return iterationMultiple; }
+    void setPeelCount(unsigned int v) {
+        peelCount = v;
+        dontUnroll = false;
+    }
+    unsigned int getPeelCount() const { return peelCount; }
+    void setPartialCount(unsigned int v) {
+        partialCount = v;
+        dontUnroll = false;
+    }
+    unsigned int getPartialCount() const { return partialCount; }
 
 protected:
     TIntermNode* body;       // code to loop over
@@ -1110,6 +1178,11 @@ protected:
     bool unroll;             // true if unroll requested
     bool dontUnroll;         // true if request to not unroll
     unsigned int dependency; // loop dependency hint; 0 means not set or unknown
+    unsigned int minIterations;      // as per the SPIR-V specification
+    unsigned int maxIterations;      // as per the SPIR-V specification
+    unsigned int iterationMultiple;  // as per the SPIR-V specification
+    unsigned int peelCount;          // as per the SPIR-V specification
+    unsigned int partialCount;       // as per the SPIR-V specification
 };
 
 //
@@ -1125,6 +1198,7 @@ public:
     virtual void traverse(TIntermTraverser*);
     TOperator getFlowOp() const { return flowOp; }
     TIntermTyped* getExpression() const { return expression; }
+    void setExpression(TIntermTyped* pExpression) { expression = pExpression; }
 protected:
     TOperator flowOp;
     TIntermTyped* expression;
@@ -1158,12 +1232,13 @@ public:
     // it is essential to use "symbol = sym" to assign to symbol
     TIntermSymbol(int i, const TString& n, const TType& t)
         : TIntermTyped(t), id(i),
-#ifdef ENABLE_HLSL
+#ifndef GLSLANG_WEB
         flattenSubset(-1),
 #endif
         constSubtree(nullptr)
           { name = n; }
     virtual int getId() const { return id; }
+    virtual void changeId(int i) { id = i; }
     virtual const TString& getName() const { return name; }
     virtual void traverse(TIntermTraverser*);
     virtual       TIntermSymbol* getAsSymbolNode()       { return this; }
@@ -1172,7 +1247,7 @@ public:
     const TConstUnionArray& getConstArray() const { return constArray; }
     void setConstSubtree(TIntermTyped* subtree) { constSubtree = subtree; }
     TIntermTyped* getConstSubtree() const { return constSubtree; }
-#ifdef ENABLE_HLSL
+#ifndef GLSLANG_WEB
     void setFlattenSubset(int subset) { flattenSubset = subset; }
     int getFlattenSubset() const { return flattenSubset; } // -1 means full object
 #endif
@@ -1183,7 +1258,7 @@ public:
 
 protected:
     int id;                      // the unique id of the symbol this node represents
-#ifdef ENABLE_HLSL
+#ifndef GLSLANG_WEB
     int flattenSubset;           // how deeply the flattened object rooted at id has been dereferenced
 #endif
     TString name;                // the name of the symbol this node represents
@@ -1223,9 +1298,7 @@ struct TCrackedTextureOp {
     bool grad;
     bool subpass;
     bool lodClamp;
-#ifdef AMD_EXTENSIONS
     bool fragMask;
-#endif
 };
 
 //
@@ -1241,9 +1314,19 @@ public:
     bool isConstructor() const;
     bool isTexture()  const { return op > EOpTextureGuardBegin  && op < EOpTextureGuardEnd; }
     bool isSampling() const { return op > EOpSamplingGuardBegin && op < EOpSamplingGuardEnd; }
+#ifdef GLSLANG_WEB
+    bool isImage()          const { return false; }
+    bool isSparseTexture()  const { return false; }
+    bool isImageFootprint() const { return false; }
+    bool isSparseImage()    const { return false; }
+    bool isSubgroup()       const { return false; }
+#else
     bool isImage()    const { return op > EOpImageGuardBegin    && op < EOpImageGuardEnd; }
     bool isSparseTexture() const { return op > EOpSparseTextureGuardBegin && op < EOpSparseTextureGuardEnd; }
+    bool isImageFootprint() const { return op > EOpImageFootprintGuardBegin && op < EOpImageFootprintGuardEnd; }
     bool isSparseImage()   const { return op == EOpSparseImageLoad; }
+    bool isSubgroup() const { return op > EOpSubgroupGuardStart && op < EOpSubgroupGuardStop; }
+#endif
 
     void setOperationPrecision(TPrecisionQualifier p) { operationPrecision = p; }
     TPrecisionQualifier getOperationPrecision() const { return operationPrecision != EpqNone ?
@@ -1273,9 +1356,7 @@ public:
         cracked.grad = false;
         cracked.subpass = false;
         cracked.lodClamp = false;
-#ifdef AMD_EXTENSIONS
         cracked.fragMask = false;
-#endif
 
         switch (op) {
         case EOpImageQuerySize:
@@ -1290,10 +1371,6 @@ public:
         case EOpTexture:
         case EOpSparseTexture:
             break;
-        case EOpTextureClamp:
-        case EOpSparseTextureClamp:
-            cracked.lodClamp = true;
-            break;
         case EOpTextureProj:
             cracked.proj = true;
             break;
@@ -1305,22 +1382,17 @@ public:
         case EOpSparseTextureOffset:
             cracked.offset = true;
             break;
-        case EOpTextureOffsetClamp:
-        case EOpSparseTextureOffsetClamp:
-            cracked.offset = true;
-            cracked.lodClamp = true;
-            break;
         case EOpTextureFetch:
         case EOpSparseTextureFetch:
             cracked.fetch = true;
-            if (sampler.dim == Esd1D || (sampler.dim == Esd2D && ! sampler.ms) || sampler.dim == Esd3D)
+            if (sampler.is1D() || (sampler.dim == Esd2D && ! sampler.isMultiSample()) || sampler.dim == Esd3D)
                 cracked.lod = true;
             break;
         case EOpTextureFetchOffset:
         case EOpSparseTextureFetchOffset:
             cracked.fetch = true;
             cracked.offset = true;
-            if (sampler.dim == Esd1D || (sampler.dim == Esd2D && ! sampler.ms) || sampler.dim == Esd3D)
+            if (sampler.is1D() || (sampler.dim == Esd2D && ! sampler.isMultiSample()) || sampler.dim == Esd3D)
                 cracked.lod = true;
             break;
         case EOpTextureProjOffset:
@@ -1345,11 +1417,6 @@ public:
         case EOpSparseTextureGrad:
             cracked.grad = true;
             break;
-        case EOpTextureGradClamp:
-        case EOpSparseTextureGradClamp:
-            cracked.grad = true;
-            cracked.lodClamp = true;
-            break;
         case EOpTextureGradOffset:
         case EOpSparseTextureGradOffset:
             cracked.grad = true;
@@ -1363,6 +1430,21 @@ public:
             cracked.grad = true;
             cracked.offset = true;
             cracked.proj = true;
+            break;
+#ifndef GLSLANG_WEB
+        case EOpTextureClamp:
+        case EOpSparseTextureClamp:
+            cracked.lodClamp = true;
+            break;
+        case EOpTextureOffsetClamp:
+        case EOpSparseTextureOffsetClamp:
+            cracked.offset = true;
+            cracked.lodClamp = true;
+            break;
+        case EOpTextureGradClamp:
+        case EOpSparseTextureGradClamp:
+            cracked.grad = true;
+            cracked.lodClamp = true;
             break;
         case EOpTextureGradOffsetClamp:
         case EOpSparseTextureGradOffsetClamp:
@@ -1384,7 +1466,6 @@ public:
             cracked.gather = true;
             cracked.offsets = true;
             break;
-#ifdef AMD_EXTENSIONS
         case EOpTextureGatherLod:
         case EOpSparseTextureGatherLod:
             cracked.gather = true;
@@ -1415,11 +1496,26 @@ public:
             cracked.subpass = sampler.dim == EsdSubpass;
             cracked.fragMask = true;
             break;
-#endif
+        case EOpImageSampleFootprintNV:
+            break;
+        case EOpImageSampleFootprintClampNV:
+            cracked.lodClamp = true;
+            break;
+        case EOpImageSampleFootprintLodNV:
+            cracked.lod = true;
+            break;
+        case EOpImageSampleFootprintGradNV:
+            cracked.grad = true;
+            break;
+        case EOpImageSampleFootprintGradClampNV:
+            cracked.lodClamp = true;
+            cracked.grad = true;
+            break;
         case EOpSubpassLoad:
         case EOpSubpassLoadMS:
             cracked.subpass = true;
             break;
+#endif
         default:
             break;
         }

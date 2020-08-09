@@ -35,7 +35,7 @@
 #include <limits>
 #include <type_traits>
 
-#include "Common/Compiler.h"
+#include "Common/Inline.h"
 
 /*
  * Abstract bitfield class

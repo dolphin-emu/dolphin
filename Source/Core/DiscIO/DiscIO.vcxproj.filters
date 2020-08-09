@@ -84,6 +84,22 @@
     <ClCompile Include="VolumeVerifier.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
+    <ClCompile Include="WiiEncryptionCache.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="ScrubbedBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="WIABlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="LaggedFibonacciGenerator.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="WIACompression.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeDisc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -149,6 +165,25 @@
     <ClInclude Include="VolumeVerifier.h">
       <Filter>Volume</Filter>
     </ClInclude>
+    <ClInclude Include="WiiEncryptionCache.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="ScrubbedBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="MultithreadedCompressor.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="WIABlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="LaggedFibonacciGenerator.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="WIACompression.h">
+      <Filter>Volume\Blob</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeDisc.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -46,6 +46,9 @@ private:
 
   void OnSelectionChanged();
 
+  void SaveSettings() const;
+  void RestoreSettings();
+
   QComboBox* m_region_combo;
   QLabel* m_status_label;
   QPushButton* m_button_refresh;
@@ -54,6 +57,7 @@ private:
   QLineEdit* m_edit_name;
   QLineEdit* m_edit_game_id;
   QCheckBox* m_check_hide_incompatible;
+  QCheckBox* m_check_hide_ingame;
 
   QRadioButton* m_radio_all;
   QRadioButton* m_radio_private;

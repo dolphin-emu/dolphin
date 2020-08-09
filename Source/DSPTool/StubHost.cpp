@@ -18,10 +18,6 @@ void Host_RefreshDSPDebuggerWindow()
 void Host_Message(HostMessageID)
 {
 }
-void* Host_GetRenderHandle()
-{
-  return nullptr;
-}
 void Host_UpdateTitle(const std::string&)
 {
 }
@@ -45,9 +41,10 @@ bool Host_RendererIsFullscreen()
 void Host_YieldToUI()
 {
 }
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-}
 void Host_TitleChanged()
 {
+}
+bool Host_UIBlocksControllerState()
+{
+  return false;
 }

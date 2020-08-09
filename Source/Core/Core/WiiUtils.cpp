@@ -40,7 +40,7 @@
 #include "DiscIO/DiscExtractor.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeFileBlobReader.h"
 #include "DiscIO/VolumeWad.h"
 
@@ -761,6 +761,18 @@ static NANDCheckResult CheckNAND(IOS::HLE::Kernel& ios, bool repair)
     ERROR_LOG(CORE, "CheckNAND: NAND was used with old versions, so it is likely to be damaged");
     if (repair)
       File::Delete(sys_replace_path);
+    else
+      result.bad = true;
+  }
+
+  // Clean up after a bug fixed in https://github.com/dolphin-emu/dolphin/pull/8802
+  const std::string rfl_db_path = Common::GetMiiDatabasePath(Common::FROM_CONFIGURED_ROOT);
+  const File::FileInfo rfl_db(rfl_db_path);
+  if (rfl_db.Exists() && rfl_db.GetSize() == 0)
+  {
+    ERROR_LOG(CORE, "CheckNAND: RFL_DB.dat exists but is empty");
+    if (repair)
+      File::Delete(rfl_db_path);
     else
       result.bad = true;
   }

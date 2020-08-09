@@ -36,8 +36,9 @@
 #include "Core/IOS/IOS.h"
 #include "Core/Movie.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/VolumeDisc.h"
 #include "DiscIO/VolumeWii.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
@@ -425,6 +426,17 @@ void SetDisc(std::unique_ptr<DiscIO::VolumeDisc> disc,
 {
   bool had_disc = IsDiscInside();
   bool has_disc = static_cast<bool>(disc);
+
+  if (has_disc)
+  {
+    const DiscIO::BlobReader& blob = disc->GetBlobReader();
+    if (!blob.HasFastRandomAccessInBlock() && blob.GetBlockSize() > 0x200000)
+    {
+      OSD::AddMessage("You are running a disc image with a very large block size.", 60000);
+      OSD::AddMessage("This will likely lead to performance problems.", 60000);
+      OSD::AddMessage("You can use Dolphin's convert feature to reduce the block size.", 60000);
+    }
+  }
 
   if (auto_disc_change_paths)
   {
@@ -1233,8 +1245,17 @@ void SetHighError(u32 high_error)
 void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
                             const std::vector<u8>& data)
 {
-  s_DIMAR += s_DILENGTH;
-  s_DILENGTH = 0;
+  // The data parameter contains the requested data iff this was called from DVDThread, and is
+  // empty otherwise. DVDThread is the only source of ReplyType::NoReply and ReplyType::DTK.
+
+  u32 transfer_size = 0;
+  if (reply_type == ReplyType::NoReply)
+    transfer_size = static_cast<u32>(data.size());
+  else if (reply_type == ReplyType::Interrupt || reply_type == ReplyType::IOS)
+    transfer_size = s_DILENGTH;
+
+  s_DIMAR += transfer_size;
+  s_DILENGTH -= transfer_size;
 
   switch (reply_type)
   {

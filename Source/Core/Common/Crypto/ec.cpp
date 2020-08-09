@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <cstring>
 
-#include "Common/Compiler.h"
 #include "Common/Crypto/bn.h"
 #include "Common/Crypto/ec.h"
+#include "Common/Inline.h"
 #include "Common/Random.h"
 #include "Common/StringUtil.h"
 

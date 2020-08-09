@@ -11,6 +11,7 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
+#include "Common/Debug/OSThread.h"
 #include "Common/GekkoDisassembler.h"
 
 #include "Core/Core.h"
@@ -162,6 +163,42 @@ void PPCDebugInterface::RemovePatch(std::size_t index)
 void PPCDebugInterface::ClearPatches()
 {
   m_patches.ClearPatches();
+}
+
+Common::Debug::Threads PPCDebugInterface::GetThreads() const
+{
+  Common::Debug::Threads threads;
+
+  constexpr u32 ACTIVE_QUEUE_HEAD_ADDR = 0x800000dc;
+  if (!PowerPC::HostIsRAMAddress(ACTIVE_QUEUE_HEAD_ADDR))
+    return threads;
+  u32 addr = PowerPC::HostRead_U32(ACTIVE_QUEUE_HEAD_ADDR);
+  if (!PowerPC::HostIsRAMAddress(addr))
+    return threads;
+
+  auto active_thread = std::make_unique<Common::Debug::OSThreadView>(addr);
+  if (!active_thread->IsValid())
+    return threads;
+  addr = active_thread->Data().thread_link.prev;
+
+  const auto insert_threads = [&threads](u32 addr, auto get_next_addr) {
+    while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
+    {
+      auto thread = std::make_unique<Common::Debug::OSThreadView>(addr);
+      if (!thread->IsValid())
+        break;
+      addr = get_next_addr(*thread);
+      threads.emplace_back(std::move(thread));
+    }
+  };
+
+  insert_threads(addr, [](const auto& thread) { return thread.Data().thread_link.prev; });
+  std::reverse(threads.begin(), threads.end());
+  addr = active_thread->Data().thread_link.next;
+  threads.emplace_back(std::move(active_thread));
+  insert_threads(addr, [](const auto& thread) { return thread.Data().thread_link.next; });
+
+  return threads;
 }
 
 std::string PPCDebugInterface::Disassemble(u32 address) const

@@ -1,5 +1,6 @@
 //
 // Copyright (C) 2014 LunarG, Inc.
+// Copyright (C) 2015-2018 Google, Inc.
 //
 // All rights reserved.
 //
@@ -38,7 +39,8 @@
     #pragma warning(disable : 4464) // relative include path contains '..'
 #endif
 
-#include "../glslang/Include/intermediate.h"
+#include "SpvTools.h"
+#include "glslang/Include/intermediate.h"
 
 #include <string>
 #include <vector>
@@ -46,14 +48,6 @@
 #include "Logger.h"
 
 namespace glslang {
-
-struct SpvOptions {
-    SpvOptions() : generateDebugInfo(false), disableOptimizer(true),
-        optimizeSize(false) { }
-    bool generateDebugInfo;
-    bool disableOptimizer;
-    bool optimizeSize;
-};
 
 void GetSpirvVersion(std::string&);
 int GetSpirvGeneratorVersion();

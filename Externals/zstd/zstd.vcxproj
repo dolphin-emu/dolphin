@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM64">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM64">
+      <Configuration>Release</Configuration>
+      <Platform>ARM64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{1BEA10F3-80CE-4BC4-9331-5769372CDF99}</ProjectGuid>
+    <RootNamespace>zstd</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v142</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\..\Source\VSProps\Base.props" />
+    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>lib;lib/common;lib/decompress;lib/compress;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>XXH_NAMESPACE=ZSTD_;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="lib\common\debug.c" />
+    <ClCompile Include="lib\common\entropy_common.c" />
+    <ClCompile Include="lib\common\error_private.c" />
+    <ClCompile Include="lib\common\fse_decompress.c" />
+    <ClCompile Include="lib\common\pool.c" />
+    <ClCompile Include="lib\common\threading.c" />
+    <ClCompile Include="lib\common\xxhash.c" />
+    <ClCompile Include="lib\common\zstd_common.c" />
+    <ClCompile Include="lib\compress\fse_compress.c" />
+    <ClCompile Include="lib\compress\hist.c" />
+    <ClCompile Include="lib\compress\huf_compress.c" />
+    <ClCompile Include="lib\compress\zstdmt_compress.c" />
+    <ClCompile Include="lib\compress\zstd_compress.c" />
+    <ClCompile Include="lib\compress\zstd_compress_literals.c" />
+    <ClCompile Include="lib\compress\zstd_compress_sequences.c" />
+    <ClCompile Include="lib\compress\zstd_double_fast.c" />
+    <ClCompile Include="lib\compress\zstd_fast.c" />
+    <ClCompile Include="lib\compress\zstd_lazy.c" />
+    <ClCompile Include="lib\compress\zstd_ldm.c" />
+    <ClCompile Include="lib\compress\zstd_opt.c" />
+    <ClCompile Include="lib\decompress\huf_decompress.c" />
+    <ClCompile Include="lib\decompress\zstd_ddict.c" />
+    <ClCompile Include="lib\decompress\zstd_decompress.c" />
+    <ClCompile Include="lib\decompress\zstd_decompress_block.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="lib\common\bitstream.h" />
+    <ClInclude Include="lib\common\compiler.h" />
+    <ClInclude Include="lib\common\cpu.h" />
+    <ClInclude Include="lib\common\debug.h" />
+    <ClInclude Include="lib\common\error_private.h" />
+    <ClInclude Include="lib\common\fse.h" />
+    <ClInclude Include="lib\common\huf.h" />
+    <ClInclude Include="lib\common\mem.h" />
+    <ClInclude Include="lib\common\pool.h" />
+    <ClInclude Include="lib\common\threading.h" />
+    <ClInclude Include="lib\common\xxhash.h" />
+    <ClInclude Include="lib\common\zstd_errors.h" />
+    <ClInclude Include="lib\common\zstd_internal.h" />
+    <ClInclude Include="lib\compress\hist.h" />
+    <ClInclude Include="lib\compress\zstdmt_compress.h" />
+    <ClInclude Include="lib\compress\zstd_compress_internal.h" />
+    <ClInclude Include="lib\compress\zstd_compress_literals.h" />
+    <ClInclude Include="lib\compress\zstd_compress_sequences.h" />
+    <ClInclude Include="lib\compress\zstd_cwksp.h" />
+    <ClInclude Include="lib\compress\zstd_double_fast.h" />
+    <ClInclude Include="lib\compress\zstd_fast.h" />
+    <ClInclude Include="lib\compress\zstd_lazy.h" />
+    <ClInclude Include="lib\compress\zstd_ldm.h" />
+    <ClInclude Include="lib\compress\zstd_opt.h" />
+    <ClInclude Include="lib\decompress\zstd_ddict.h" />
+    <ClInclude Include="lib\decompress\zstd_decompress_block.h" />
+    <ClInclude Include="lib\decompress\zstd_decompress_internal.h" />
+    <ClInclude Include="lib\zstd.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

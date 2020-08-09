@@ -50,11 +50,12 @@ enum class ShaderStage;
 enum class EFBAccessType;
 enum class EFBReinterpretType;
 enum class StagingTextureType;
+enum class AspectMode;
 
 namespace VideoCommon
 {
 class PostProcessing;
-}
+}  // namespace VideoCommon
 
 struct EfbPokeData
 {
@@ -181,6 +182,8 @@ public:
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   void UpdateDrawRectangle();
 
+  std::tuple<float, float> ApplyStandardAspectCrop(float width, float height) const;
+
   // Use this to convert a single target rectangle to two stereo rectangles
   std::tuple<MathUtil::Rectangle<int>, MathUtil::Rectangle<int>>
   ConvertStereoRectangle(const MathUtil::Rectangle<int>& rc) const;
@@ -217,6 +220,8 @@ public:
 
   // Finish up the current frame, print some stats
   void Swap(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks);
+
+  void UpdateWidescreenHeuristic();
 
   // Draws the specified XFB buffer to the screen, performing any post-processing.
   // Assumes that the backbuffer has already been bound and cleared.
@@ -300,7 +305,9 @@ protected:
   Common::Event m_screenshot_completed;
   std::mutex m_screenshot_lock;
   std::string m_screenshot_name;
-  bool m_aspect_wide = false;
+
+  bool m_is_game_widescreen = false;
+  bool m_was_orthographically_anamorphic = false;
 
   // The framebuffer size
   int m_target_width = 1;

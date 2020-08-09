@@ -45,7 +45,8 @@ public class GamePropertiesDialog extends DialogFragment
   @Override
   public Dialog onCreateDialog(Bundle savedInstanceState)
   {
-    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+    AlertDialog.Builder builder = new AlertDialog.Builder(requireContext(),
+            R.style.DolphinDialogBase);
 
     String path = requireArguments().getString(ARG_PATH);
     String gameId = requireArguments().getString(ARG_GAMEID);

@@ -136,10 +136,8 @@ void InterfacePane::CreateUI()
 
   for (const std::string& path : userstyle_search_results)
   {
-    std::string name;
-    SplitPath(path, nullptr, &name, nullptr);
-    const QString qt_name = QString::fromStdString(name);
-    m_combobox_userstyle->addItem(qt_name, QString::fromStdString(path));
+    const QFileInfo file_info(QString::fromStdString(path));
+    m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
 
   // Checkboxes
@@ -192,14 +190,11 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
+  connect(m_combobox_theme, qOverload<const QString&>(&QComboBox::currentIndexChanged),
           &Settings::Instance(), &Settings::SetThemeName);
-  connect(m_combobox_userstyle,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_userstyle, qOverload<const QString&>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
   connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
@@ -223,7 +218,7 @@ void InterfacePane::LoadConfig()
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
-  const int index = m_combobox_userstyle->findText(QFileInfo(userstyle).baseName());
+  const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
 
   if (index > 0)
     m_combobox_userstyle->setCurrentIndex(index);

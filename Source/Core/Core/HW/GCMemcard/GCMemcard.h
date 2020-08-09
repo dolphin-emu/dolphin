@@ -24,6 +24,8 @@ namespace File
 class IOFile;
 }
 
+namespace Memcard
+{
 enum
 {
   SLOT_A = 0,
@@ -158,37 +160,19 @@ constexpr u8 MEMORY_CARD_ICON_FORMAT_CI8_UNIQUE_PALETTE = 3;
 // each palette entry is 16 bits in RGB5A3 format
 constexpr u32 MEMORY_CARD_CI8_PALETTE_ENTRIES = 256;
 
-class MemoryCardBase
-{
-public:
-  explicit MemoryCardBase(int card_index = 0, int size_mbits = MBIT_SIZE_MEMORY_CARD_2043)
-      : m_card_index(card_index), m_nintendo_card_id(size_mbits)
-  {
-  }
-  virtual ~MemoryCardBase() {}
-  virtual s32 Read(u32 src_address, s32 length, u8* dest_address) = 0;
-  virtual s32 Write(u32 dest_address, s32 length, const u8* src_address) = 0;
-  virtual void ClearBlock(u32 address) = 0;
-  virtual void ClearAll() = 0;
-  virtual void DoState(PointerWrap& p) = 0;
-  u32 GetCardId() const { return m_nintendo_card_id; }
-  bool IsAddressInBounds(u32 address) const { return address <= (m_memory_card_size - 1); }
-
-protected:
-  int m_card_index;
-  u16 m_nintendo_card_id;
-  u32 m_memory_card_size;
-};
-
 struct GCMBlock
 {
   GCMBlock();
   void Erase();
   std::array<u8, BLOCK_SIZE> m_block;
 };
+static_assert(sizeof(GCMBlock) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<GCMBlock>);
 
 #pragma pack(push, 1)
-struct Header
+// split off from Header to have a small struct with all the data needed to regenerate the header
+// for GCI folders
+struct HeaderData
 {
   // NOTE: libogc refers to 'Serial' as the first 0x20 bytes of the header,
   // so the data from m_serial until m_unknown_2 (inclusive)
@@ -216,6 +200,18 @@ struct Header
 
   // 2 bytes at 0x0024: Encoding (Windows-1252 or Shift JIS)
   Common::BigEndianValue<u16> m_encoding;
+};
+static_assert(std::is_trivially_copyable_v<HeaderData>);
+
+void InitializeHeaderData(HeaderData* data, const CardFlashId& flash_id, u16 size_mbits,
+                          bool shift_jis, u32 rtc_bias, u32 sram_language, u64 format_time);
+
+bool operator==(const HeaderData& lhs, const HeaderData& rhs);
+bool operator!=(const HeaderData& lhs, const HeaderData& rhs);
+
+struct Header
+{
+  HeaderData m_data;
 
   // 468 bytes at 0x0026: Unused (0xff)
   std::array<u8, 468> m_unused_1;
@@ -233,8 +229,15 @@ struct Header
   // 0x1e00 bytes at 0x0200: Unused (0xff)
   std::array<u8, 7680> m_unused_2;
 
-  explicit Header(int slot = 0, u16 size_mbits = MBIT_SIZE_MEMORY_CARD_2043,
-                  bool shift_jis = false);
+  // initialize an unformatted header block
+  explicit Header();
+
+  // initialize a formatted header block
+  explicit Header(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                  u32 sram_language, u64 format_time);
+
+  // initialize a header block from existing HeaderData
+  explicit Header(const HeaderData& data);
 
   // Calculates the card serial numbers used for encrypting some save files.
   std::pair<u32, u32> CalculateSerial() const;
@@ -245,6 +248,7 @@ struct Header
   GCMemcardErrorCode CheckForErrors(u16 card_size_mbits) const;
 };
 static_assert(sizeof(Header) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<Header>);
 
 struct DEntry
 {
@@ -322,6 +326,7 @@ struct DEntry
   Common::BigEndianValue<u32> m_comments_address;
 };
 static_assert(sizeof(DEntry) == DENTRY_SIZE);
+static_assert(std::is_trivially_copyable_v<DEntry>);
 
 struct BlockAlloc;
 
@@ -357,6 +362,7 @@ struct Directory
   GCMemcardErrorCode CheckForErrorsWithBat(const BlockAlloc& bat) const;
 };
 static_assert(sizeof(Directory) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<Directory>);
 
 struct BlockAlloc
 {
@@ -391,6 +397,7 @@ struct BlockAlloc
   GCMemcardErrorCode CheckForErrors(u16 size_mbits) const;
 };
 static_assert(sizeof(BlockAlloc) == BLOCK_SIZE);
+static_assert(std::is_trivially_copyable_v<BlockAlloc>);
 #pragma pack(pop)
 
 class GCMemcard
@@ -421,7 +428,9 @@ private:
   void UpdateBat(const BlockAlloc& bat);
 
 public:
-  static std::optional<GCMemcard> Create(std::string filename, u16 size_mbits, bool shift_jis);
+  static std::optional<GCMemcard> Create(std::string filename, const CardFlashId& flash_id,
+                                         u16 size_mbits, bool shift_jis, u32 rtc_bias,
+                                         u32 sram_language, u64 format_time);
 
   static std::pair<GCMemcardErrorCode, std::optional<GCMemcard>> Open(std::string filename);
 
@@ -433,9 +442,10 @@ public:
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();
-  bool Format(bool shift_jis = false, u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
-  static bool Format(u8* card_data, bool shift_jis = false,
-                     u16 SizeMb = MBIT_SIZE_MEMORY_CARD_2043);
+  bool Format(const CardFlashId& flash_id, u16 size_mbits, bool shift_jis, u32 rtc_bias,
+              u32 sram_language, u64 format_time);
+  static bool Format(u8* card_data, const CardFlashId& flash_id, u16 size_mbits, bool shift_jis,
+                     u32 rtc_bias, u32 sram_language, u64 format_time);
   static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
   static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
@@ -511,3 +521,4 @@ public:
   // reads the animation frames
   std::optional<std::vector<GCMemcardAnimationFrameRGBA8>> ReadAnimRGBA8(u8 index) const;
 };
+}  // namespace Memcard

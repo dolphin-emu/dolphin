@@ -32,7 +32,7 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 void SetEnableAlert(bool enable);
 }  // namespace Common
 
-#ifdef _WIN32
+#if defined(_WIN32) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL == 1)
 #define SuccessAlert(format, ...)                                                                  \
   Common::MsgAlert(false, Common::MsgType::Information, format, __VA_ARGS__)
 

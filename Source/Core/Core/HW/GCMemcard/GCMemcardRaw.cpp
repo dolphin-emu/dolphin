@@ -22,9 +22,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/Sram.h"
 
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
@@ -51,9 +55,18 @@ MemoryCard::MemoryCard(const std::string& filename, int card_index, u16 size_mbi
     m_memory_card_size = size_mbits * SIZE_TO_Mb;
 
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
-    // Fills in MC_HDR_SIZE bytes
-    GCMemcard::Format(&m_memcard_data[0], m_filename.find(".JAP.raw") != std::string::npos,
-                      size_mbits);
+
+    // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
+    const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
+    const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
+    const u32 rtc_bias = g_SRAM.settings.rtc_bias;
+    const u32 sram_language = static_cast<u32>(g_SRAM.settings.language);
+    const u64 format_time =
+        Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+    Memcard::GCMemcard::Format(&m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias,
+                               sram_language, format_time);
+
+    // Fills in the remaining blocks
     memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, m_memory_card_size - MC_HDR_SIZE);
 
     INFO_LOG(EXPANSIONINTERFACE, "No memory card found. A new one was created instead.");
@@ -227,7 +240,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
 
 void MemoryCard::ClearBlock(u32 address)
 {
-  if (address & (BLOCK_SIZE - 1) || !IsAddressInBounds(address))
+  if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address))
   {
     PanicAlertT("MemoryCard: ClearBlock called on invalid address (0x%x)", address);
     return;
@@ -235,7 +248,7 @@ void MemoryCard::ClearBlock(u32 address)
   else
   {
     std::unique_lock<std::mutex> l(m_flush_mutex);
-    memset(&m_memcard_data[address], 0xFF, BLOCK_SIZE);
+    memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   }
   MakeDirty();
 }

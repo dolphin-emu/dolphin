@@ -26,17 +26,21 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
+
 #include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/Sram.h"
 #include "Core/NetPlayProto.h"
 
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-bool GCMemcardDirectory::LoadGCI(GCIFile gci)
+bool GCMemcardDirectory::LoadGCI(Memcard::GCIFile gci)
 {
   // check if any already loaded file has the same internal name as the new file
-  for (const GCIFile& already_loaded_gci : m_saves)
+  for (const Memcard::GCIFile& already_loaded_gci : m_saves)
   {
     if (gci.m_gci_header.GCI_FileName() == already_loaded_gci.m_gci_header.GCI_FileName())
     {
@@ -80,8 +84,8 @@ bool GCMemcardDirectory::LoadGCI(GCIFile gci)
 
   if (gci.HasCopyProtection())
   {
-    GCMemcard::PSO_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
-    GCMemcard::FZEROGX_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
+    Memcard::GCMemcard::PSO_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
+    Memcard::GCMemcard::FZEROGX_MakeSaveGameValid(m_hdr, gci.m_gci_header, gci.m_save_data);
   }
 
   // actually load save file into memory card
@@ -110,10 +114,10 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (!gci_file)
       continue;
 
-    GCIFile gci;
+    Memcard::GCIFile gci;
     gci.m_filename = file_name;
     gci.m_dirty = false;
-    if (!gci_file.ReadBytes(&gci.m_gci_header, DENTRY_SIZE))
+    if (!gci_file.ReadBytes(&gci.m_gci_header, Memcard::DENTRY_SIZE))
       continue;
 
     const std::string gci_filename = gci.m_gci_header.GCI_FileName();
@@ -126,9 +130,9 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
     if (num_blocks > 2043)
       continue;
 
-    const u32 size = num_blocks * BLOCK_SIZE;
+    const u32 size = num_blocks * Memcard::BLOCK_SIZE;
     const u64 file_size = gci_file.GetSize();
-    if (file_size != size + DENTRY_SIZE)
+    if (file_size != size + Memcard::DENTRY_SIZE)
       continue;
 
     // There's technically other available block checks to prevent overfilling the virtual memory
@@ -145,15 +149,15 @@ std::vector<std::string> GCMemcardDirectory::GetFileNamesForGameID(const std::st
   return filenames;
 }
 
-GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 size_mbits,
-                                       bool shift_jis, int game_id)
-    : MemoryCardBase(slot, size_mbits), m_game_id(game_id), m_last_block(-1),
-      m_hdr(slot, size_mbits, shift_jis), m_bat1(size_mbits), m_saves(0),
-      m_save_directory(directory), m_exiting(false)
+GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot,
+                                       const Memcard::HeaderData& header_data, u32 game_id)
+    : MemoryCardBase(slot, header_data.m_size_mb), m_game_id(game_id), m_last_block(-1),
+      m_hdr(header_data), m_bat1(header_data.m_size_mb), m_saves(0), m_save_directory(directory),
+      m_exiting(false)
 {
   // Use existing header data if available
   {
-    File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, BLOCK_SIZE);
+    File::IOFile((m_save_directory + MC_HDR), "rb").ReadBytes(&m_hdr, Memcard::BLOCK_SIZE);
   }
 
   const bool current_game_only = Config::Get(Config::MAIN_GCI_FOLDER_CURRENT_GAME_ONLY);
@@ -161,11 +165,11 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
 
   // split up into files for current games we should definitely load,
   // and files for other games that we don't care too much about
-  std::vector<GCIFile> gci_current_game;
-  std::vector<GCIFile> gci_other_games;
+  std::vector<Memcard::GCIFile> gci_current_game;
+  std::vector<Memcard::GCIFile> gci_other_games;
   for (const std::string& filename : filenames)
   {
-    GCIFile gci;
+    Memcard::GCIFile gci;
     gci.m_filename = filename;
     gci.m_dirty = false;
     if (!gci.LoadHeader())
@@ -180,11 +184,11 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
       gci_other_games.emplace_back(std::move(gci));
   }
 
-  m_saves.reserve(DIRLEN);
+  m_saves.reserve(Memcard::DIRLEN);
 
   // load files for current game
   size_t failed_loads_current_game = 0;
-  for (GCIFile& gci : gci_current_game)
+  for (Memcard::GCIFile& gci : gci_current_game)
   {
     if (!LoadGCI(std::move(gci)))
     {
@@ -195,11 +199,12 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
   }
 
   // leave about 10% of free space on the card if possible
-  const int total_blocks = m_hdr.m_size_mb * MBIT_TO_BLOCKS - MC_FST_BLOCKS;
+  const int total_blocks =
+      m_hdr.m_data.m_size_mb * Memcard::MBIT_TO_BLOCKS - Memcard::MC_FST_BLOCKS;
   const int reserved_blocks = total_blocks / 10;
 
   // load files for other games
-  for (GCIFile& gci : gci_other_games)
+  for (Memcard::GCIFile& gci : gci_other_games)
   {
     // leave some free file entries for new saves that might be created
     if (m_saves.size() > 112)
@@ -265,17 +270,17 @@ GCMemcardDirectory::~GCMemcardDirectory()
 
 s32 GCMemcardDirectory::Read(u32 src_address, s32 length, u8* dest_address)
 {
-  s32 block = src_address / BLOCK_SIZE;
-  u32 offset = src_address % BLOCK_SIZE;
+  s32 block = src_address / Memcard::BLOCK_SIZE;
+  u32 offset = src_address % Memcard::BLOCK_SIZE;
   s32 extra = 0;  // used for read calls that are across multiple blocks
 
-  if (offset + length > BLOCK_SIZE)
+  if (offset + length > Memcard::BLOCK_SIZE)
   {
-    extra = length + offset - BLOCK_SIZE;
+    extra = length + offset - Memcard::BLOCK_SIZE;
     length -= extra;
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
-    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (src_address + length) % BLOCK_SIZE == 0,
+    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (src_address + length) % Memcard::BLOCK_SIZE == 0,
                      "Memcard directory Read Logic Error");
   }
 
@@ -325,17 +330,17 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
   std::unique_lock<std::mutex> l(m_write_mutex);
   if (length != 0x80)
     INFO_LOG(EXPANSIONINTERFACE, "Writing to 0x%x. Length: 0x%x", dest_address, length);
-  s32 block = dest_address / BLOCK_SIZE;
-  u32 offset = dest_address % BLOCK_SIZE;
+  s32 block = dest_address / Memcard::BLOCK_SIZE;
+  u32 offset = dest_address % Memcard::BLOCK_SIZE;
   s32 extra = 0;  // used for write calls that are across multiple blocks
 
-  if (offset + length > BLOCK_SIZE)
+  if (offset + length > Memcard::BLOCK_SIZE)
   {
-    extra = length + offset - BLOCK_SIZE;
+    extra = length + offset - Memcard::BLOCK_SIZE;
     length -= extra;
 
     // verify that we haven't calculated a length beyond BLOCK_SIZE
-    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (dest_address + length) % BLOCK_SIZE == 0,
+    DEBUG_ASSERT_MSG(EXPANSIONINTERFACE, (dest_address + length) % Memcard::BLOCK_SIZE == 0,
                      "Memcard directory Write Logic Error");
   }
   if (m_last_block != block)
@@ -353,7 +358,7 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
       s32 bytes_written = 0;
       while (length > 0)
       {
-        s32 to_write = std::min<s32>(DENTRY_SIZE, length);
+        s32 to_write = std::min<s32>(Memcard::DENTRY_SIZE, length);
         bytes_written +=
             DirectoryWrite(dest_address + bytes_written, to_write, src_address + bytes_written);
         length -= to_write;
@@ -383,20 +388,20 @@ s32 GCMemcardDirectory::Write(u32 dest_address, s32 length, const u8* src_addres
   l.unlock();
   if (extra)
     extra = Write(dest_address + length, extra, src_address + length);
-  if (offset + length == BLOCK_SIZE)
+  if (offset + length == Memcard::BLOCK_SIZE)
     m_flush_trigger.Set();
   return length + extra;
 }
 
 void GCMemcardDirectory::ClearBlock(u32 address)
 {
-  if (address % BLOCK_SIZE)
+  if (address % Memcard::BLOCK_SIZE)
   {
     PanicAlertT("GCMemcardDirectory: ClearBlock called with invalid block address");
     return;
   }
 
-  u32 block = address / BLOCK_SIZE;
+  u32 block = address / Memcard::BLOCK_SIZE;
   INFO_LOG(EXPANSIONINTERFACE, "Clearing block %u", block);
   switch (block)
   {
@@ -425,34 +430,34 @@ void GCMemcardDirectory::ClearBlock(u32 address)
     if (m_last_block == -1)
       return;
   }
-  ((GCMBlock*)m_last_block_address)->Erase();
+  ((Memcard::GCMBlock*)m_last_block_address)->Erase();
 }
 
 inline void GCMemcardDirectory::SyncSaves()
 {
-  Directory* current = &m_dir2;
+  Memcard::Directory* current = &m_dir2;
 
   if (m_dir1.m_update_counter > m_dir2.m_update_counter)
   {
     current = &m_dir1;
   }
 
-  for (u32 i = 0; i < DIRLEN; ++i)
+  for (u32 i = 0; i < Memcard::DIRLEN; ++i)
   {
-    if (current->m_dir_entries[i].m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (current->m_dir_entries[i].m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
     {
       INFO_LOG(EXPANSIONINTERFACE, "Syncing save 0x%x",
                Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
       bool added = false;
       while (i >= m_saves.size())
       {
-        GCIFile temp;
+        Memcard::GCIFile temp;
         m_saves.push_back(temp);
         added = true;
       }
 
-      if (added ||
-          memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE))
+      if (added || memcmp((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+                          Memcard::DENTRY_SIZE))
       {
         m_saves[i].m_dirty = true;
         const u32 gamecode = Common::swap32(m_saves[i].m_gci_header.m_gamecode.data());
@@ -466,7 +471,8 @@ inline void GCMemcardDirectory::SyncSaves()
                       Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()),
                       Common::swap32(current->m_dir_entries[i].m_gamecode.data()));
         }
-        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]), DENTRY_SIZE);
+        memcpy((u8*)&(m_saves[i].m_gci_header), (u8*)&(current->m_dir_entries[i]),
+               Memcard::DENTRY_SIZE);
         if (old_start != new_start)
         {
           INFO_LOG(EXPANSIONINTERFACE, "Save moved from 0x%x to 0x%x", old_start, new_start);
@@ -483,7 +489,7 @@ inline void GCMemcardDirectory::SyncSaves()
     {
       INFO_LOG(EXPANSIONINTERFACE, "Clearing and/or deleting save 0x%x",
                Common::swap32(m_saves[i].m_gci_header.m_gamecode.data()));
-      m_saves[i].m_gci_header.m_gamecode = DEntry::UNINITIALIZED_GAMECODE;
+      m_saves[i].m_gci_header.m_gamecode = Memcard::DEntry::UNINITIALIZED_GAMECODE;
       m_saves[i].m_save_data.clear();
       m_saves[i].m_used_blocks.clear();
       m_saves[i].m_dirty = true;
@@ -494,7 +500,7 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 {
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
-    if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+    if (m_saves[i].m_gci_header.m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
     {
       if (m_saves[i].m_used_blocks.empty())
       {
@@ -530,12 +536,12 @@ inline s32 GCMemcardDirectory::SaveAreaRW(u32 block, bool writing)
 
 s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* src_address)
 {
-  u32 block = dest_address / BLOCK_SIZE;
-  u32 offset = dest_address % BLOCK_SIZE;
-  Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
-  u16 Dnum = offset / DENTRY_SIZE;
+  u32 block = dest_address / Memcard::BLOCK_SIZE;
+  u32 offset = dest_address % Memcard::BLOCK_SIZE;
+  Memcard::Directory* dest = (block == 1) ? &m_dir1 : &m_dir2;
+  u16 Dnum = offset / Memcard::DENTRY_SIZE;
 
-  if (Dnum == DIRLEN)
+  if (Dnum == Memcard::DIRLEN)
   {
     // first 58 bytes should always be 0xff
     // needed to update the update ctr, checksums
@@ -551,7 +557,7 @@ s32 GCMemcardDirectory::DirectoryWrite(u32 dest_address, u32 length, const u8* s
 
 bool GCMemcardDirectory::SetUsedBlocks(int save_index)
 {
-  BlockAlloc* current_bat;
+  Memcard::BlockAlloc* current_bat;
   if (m_bat2.m_update_counter > m_bat1.m_update_counter)
     current_bat = &m_bat2;
   else
@@ -586,12 +592,12 @@ void GCMemcardDirectory::FlushToFile()
 {
   std::unique_lock<std::mutex> l(m_write_mutex);
   int errors = 0;
-  DEntry invalid;
+  Memcard::DEntry invalid;
   for (u16 i = 0; i < m_saves.size(); ++i)
   {
     if (m_saves[i].m_dirty)
     {
-      if (m_saves[i].m_gci_header.m_gamecode != DEntry::UNINITIALIZED_GAMECODE)
+      if (m_saves[i].m_gci_header.m_gamecode != Memcard::DEntry::UNINITIALIZED_GAMECODE)
       {
         m_saves[i].m_dirty = false;
         if (m_saves[i].m_save_data.empty())
@@ -622,8 +628,9 @@ void GCMemcardDirectory::FlushToFile()
         File::IOFile gci(m_saves[i].m_filename, "wb");
         if (gci)
         {
-          gci.WriteBytes(&m_saves[i].m_gci_header, DENTRY_SIZE);
-          gci.WriteBytes(m_saves[i].m_save_data.data(), BLOCK_SIZE * m_saves[i].m_save_data.size());
+          gci.WriteBytes(&m_saves[i].m_gci_header, Memcard::DENTRY_SIZE);
+          gci.WriteBytes(m_saves[i].m_save_data.data(),
+                         Memcard::BLOCK_SIZE * m_saves[i].m_save_data.size());
 
           if (gci.IsGood())
           {
@@ -681,11 +688,11 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   m_last_block = -1;
   m_last_block_address = nullptr;
   p.Do(m_save_directory);
-  p.DoPOD<Header>(m_hdr);
-  p.DoPOD<Directory>(m_dir1);
-  p.DoPOD<Directory>(m_dir2);
-  p.DoPOD<BlockAlloc>(m_bat1);
-  p.DoPOD<BlockAlloc>(m_bat2);
+  p.DoPOD<Memcard::Header>(m_hdr);
+  p.DoPOD<Memcard::Directory>(m_dir1);
+  p.DoPOD<Memcard::Directory>(m_dir2);
+  p.DoPOD<Memcard::BlockAlloc>(m_bat1);
+  p.DoPOD<Memcard::BlockAlloc>(m_bat2);
   int num_saves = (int)m_saves.size();
   p.Do(num_saves);
   m_saves.resize(num_saves);
@@ -702,10 +709,10 @@ void MigrateFromMemcardFile(const std::string& directory_name, int card_index)
                                                 Config::Get(Config::MAIN_MEMCARD_B_PATH);
   if (File::Exists(ini_memcard))
   {
-    auto [error_code, memcard] = GCMemcard::Open(ini_memcard.c_str());
+    auto [error_code, memcard] = Memcard::GCMemcard::Open(ini_memcard.c_str());
     if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
     {
-      for (u8 i = 0; i < DIRLEN; i++)
+      for (u8 i = 0; i < Memcard::DIRLEN; i++)
       {
         memcard->ExportGci(i, "", directory_name);
       }

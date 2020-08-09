@@ -69,8 +69,10 @@ public interface SettingsActivityView
   /**
    * Called by a containing Fragment to tell the Activity that a setting was changed;
    * unless this has been called, the Activity will not save to disk.
+   *
+   * @param key Key of the modified setting.
    */
-  void onSettingChanged();
+  void onSettingChanged(String key);
 
   /**
    * Called by a containing Fragment to tell the containing Activity that a GCPad's setting

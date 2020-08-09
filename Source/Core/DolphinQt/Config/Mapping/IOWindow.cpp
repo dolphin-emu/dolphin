@@ -386,9 +386,7 @@ void IOWindow::ConnectWidgets()
 
   connect(m_button_box, &QDialogButtonBox::clicked, this, &IOWindow::OnDialogButtonPressed);
   connect(m_devices_combo, &QComboBox::currentTextChanged, this, &IOWindow::OnDeviceChanged);
-  connect(m_range_spinbox, static_cast<void (QSpinBox::*)(int value)>(&QSpinBox::valueChanged),
-          this, &IOWindow::OnRangeChanged);
-  connect(m_range_slider, static_cast<void (QSlider::*)(int value)>(&QSlider::valueChanged), this,
+  connect(m_range_spinbox, qOverload<int>(&QSpinBox::valueChanged), this,
           &IOWindow::OnRangeChanged);
 
   connect(m_expression_text, &QPlainTextEdit::textChanged, [this] {
@@ -396,7 +394,7 @@ void IOWindow::ConnectWidgets()
     m_apply_button->setText(m_apply_button->text() + QStringLiteral("*"));
   });
 
-  connect(m_operators_combo, QOverload<int>::of(&QComboBox::activated), [this](int index) {
+  connect(m_operators_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
     if (0 == index)
       return;
 
@@ -405,7 +403,7 @@ void IOWindow::ConnectWidgets()
     m_operators_combo->setCurrentIndex(0);
   });
 
-  connect(m_functions_combo, QOverload<int>::of(&QComboBox::activated), [this](int index) {
+  connect(m_functions_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
     if (0 == index)
       return;
 

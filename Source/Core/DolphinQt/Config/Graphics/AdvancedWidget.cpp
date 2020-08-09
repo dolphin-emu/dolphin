@@ -72,16 +72,27 @@ void AdvancedWidget::CreateWidgets()
   m_dump_efb_target = new GraphicsBool(tr("Dump EFB Target"), Config::GFX_DUMP_EFB_TARGET);
   m_disable_vram_copies =
       new GraphicsBool(tr("Disable EFB VRAM Copies"), Config::GFX_HACK_DISABLE_COPY_TO_VRAM);
-  m_enable_freelook = new GraphicsBool(tr("Free Look"), Config::GFX_FREE_LOOK);
 
   utility_layout->addWidget(m_load_custom_textures, 0, 0);
   utility_layout->addWidget(m_prefetch_custom_textures, 0, 1);
 
-  utility_layout->addWidget(m_enable_freelook, 1, 0);
-  utility_layout->addWidget(m_disable_vram_copies, 1, 1);
+  utility_layout->addWidget(m_disable_vram_copies, 1, 0);
+  utility_layout->addWidget(m_dump_textures, 1, 1);
 
-  utility_layout->addWidget(m_dump_textures, 2, 0);
-  utility_layout->addWidget(m_dump_efb_target, 2, 1);
+  utility_layout->addWidget(m_dump_efb_target, 2, 0);
+
+  // Freelook
+  auto* freelook_box = new QGroupBox(tr("Free Look"));
+  auto* freelook_layout = new QGridLayout();
+  freelook_box->setLayout(freelook_layout);
+
+  m_enable_freelook = new GraphicsBool(tr("Enable"), Config::GFX_FREE_LOOK);
+  m_freelook_control_type = new GraphicsChoice({tr("Six Axis"), tr("First Person"), tr("Orbital")},
+                                               Config::GFX_FREE_LOOK_CONTROL_TYPE);
+
+  freelook_layout->addWidget(m_enable_freelook, 0, 0);
+  freelook_layout->addWidget(new QLabel(tr("Control Type:")), 1, 0);
+  freelook_layout->addWidget(m_freelook_control_type, 1, 1);
 
   // Frame dumping
   auto* dump_box = new QGroupBox(tr("Frame Dumping"));
@@ -132,6 +143,7 @@ void AdvancedWidget::CreateWidgets()
 
   main_layout->addWidget(debugging_box);
   main_layout->addWidget(utility_box);
+  main_layout->addWidget(freelook_box);
   main_layout->addWidget(dump_box);
   main_layout->addWidget(misc_box);
   main_layout->addWidget(experimental_box);
@@ -145,6 +157,7 @@ void AdvancedWidget::ConnectWidgets()
   connect(m_load_custom_textures, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_dump_use_ffv1, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
   connect(m_enable_prog_scan, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
+  connect(m_enable_freelook, &QCheckBox::toggled, this, &AdvancedWidget::SaveSettings);
 }
 
 void AdvancedWidget::LoadSettings()
@@ -153,6 +166,8 @@ void AdvancedWidget::LoadSettings()
   m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   m_enable_prog_scan->setChecked(Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN));
+
+  m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
 }
 
 void AdvancedWidget::SaveSettings()
@@ -161,6 +176,8 @@ void AdvancedWidget::SaveSettings()
   m_dump_bitrate->setEnabled(!Config::Get(Config::GFX_USE_FFV1));
 
   Config::SetBase(Config::SYSCONF_PROGRESSIVE_SCAN, m_enable_prog_scan->isChecked());
+
+  m_freelook_control_type->setEnabled(Config::Get(Config::GFX_FREE_LOOK));
 }
 
 void AdvancedWidget::OnBackendChanged()
@@ -213,6 +230,14 @@ void AdvancedWidget::AddDescriptions()
       "to pan or middle button to roll.\n\nUse the WASD keys while holding SHIFT to move the "
       "camera. Press SHIFT+2 to increase speed or SHIFT+1 to decrease speed. Press SHIFT+R "
       "to reset the camera or SHIFT+F to reset the speed.\n\nIf unsure, leave this unchecked. ");
+  static const char TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION[] = QT_TR_NOOP(
+      "Changes the in-game camera type during freelook.\n\n"
+      "Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero "
+      "gravity. This is the most powerful freelook option but is the most challenging to use.\n"
+      "First Person: Controls the free camera similarly to a first person video game. The camera "
+      "can rotate and travel, but roll is impossible. Easy to use, but limiting.\n"
+      "Orbital: Rotates the free camera around the original camera. Has no lateral movement, only "
+      "rotation and you may zoom up to the camera's origin point.");
   static const char TR_CROPPING_DESCRIPTION[] =
       QT_TR_NOOP("Crops the picture from its native aspect ratio to 4:3 or "
                  "16:9.\n\nIf unsure, leave this unchecked.");
@@ -254,6 +279,7 @@ void AdvancedWidget::AddDescriptions()
   AddDescription(m_enable_cropping, TR_CROPPING_DESCRIPTION);
   AddDescription(m_enable_prog_scan, TR_PROGRESSIVE_SCAN_DESCRIPTION);
   AddDescription(m_enable_freelook, TR_FREE_LOOK_DESCRIPTION);
+  AddDescription(m_freelook_control_type, TR_FREE_LOOK_CONTROL_TYPE_DESCRIPTION);
   AddDescription(m_backend_multithreading, TR_BACKEND_MULTITHREADING_DESCRIPTION);
 #ifdef _WIN32
   AddDescription(m_borderless_fullscreen, TR_BORDERLESS_FULLSCREEN_DESCRIPTION);

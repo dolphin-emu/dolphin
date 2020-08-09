@@ -5,7 +5,10 @@
 #pragma once
 
 #include <functional>
-#include "VideoCommon/PixelShaderGen.h"
+#include "Common/CommonTypes.h"
+#include "VideoCommon/ShaderGenCommon.h"
+
+enum class APIType;
 
 namespace UberShader
 {

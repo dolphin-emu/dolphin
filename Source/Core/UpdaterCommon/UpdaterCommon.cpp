@@ -8,7 +8,7 @@
 #include <optional>
 
 #include <OptionParser.h>
-#include <ed25519/ed25519.h>
+#include <ed25519.h>
 #include <mbedtls/base64.h>
 #include <mbedtls/sha256.h>
 #include <zlib.h>

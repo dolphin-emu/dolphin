@@ -59,11 +59,11 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
   return filenames;
 }
 
-using ConfigLocation = Config::ConfigLocation;
-using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
+using Location = Config::Location;
+using INIToLocationMap = std::map<std::pair<std::string, std::string>, Location>;
 using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::string>>;
 
-// This is a mapping from the legacy section-key pairs to ConfigLocations.
+// This is a mapping from the legacy section-key pairs to Locations.
 // New settings do not need to be added to this mapping.
 // See also: MapINIToRealLocation and GetINILocationFromConfig.
 static const INIToLocationMap& GetINIToLocationMap()
@@ -95,11 +95,11 @@ static const INIToSectionMap& GetINIToSectionMap()
   return ini_to_section;
 }
 
-// Converts from a legacy GameINI section-key tuple to a ConfigLocation.
+// Converts from a legacy GameINI section-key tuple to a Location.
 // Also supports the following format:
 // [System.Section]
 // Key = Value
-static ConfigLocation MapINIToRealLocation(const std::string& section, const std::string& key)
+static Location MapINIToRealLocation(const std::string& section, const std::string& key)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
   const auto it = ini_to_location.find({section, key});
@@ -130,7 +130,7 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
   return {Config::System::Main, "", ""};
 }
 
-static std::pair<std::string, std::string> GetINILocationFromConfig(const ConfigLocation& location)
+static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
   const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
@@ -205,7 +205,7 @@ private:
       std::string path = "Profiles/" + std::get<1>(use_data) + "/";
 
       const auto control_section = [&](std::string key) {
-        return Config::ConfigLocation{std::get<2>(use_data), "Controls", key};
+        return Config::Location{std::get<2>(use_data), "Controls", key};
       };
 
       for (const char num : nums)
@@ -227,8 +227,8 @@ private:
           const IniFile::Section::SectionMap& section_map = ini_section->GetValues();
           for (const auto& value : section_map)
           {
-            Config::ConfigLocation location{std::get<2>(use_data), std::get<1>(use_data) + num,
-                                            value.first};
+            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
+                                      value.first};
             layer->Set(location, value.second);
           }
         }
@@ -269,7 +269,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   for (const auto& config : layer->GetLayerMap())
   {
-    const Config::ConfigLocation& location = config.first;
+    const Config::Location& location = config.first;
     const std::optional<std::string>& value = config.second;
 
     if (!IsSettingSaveable(location))

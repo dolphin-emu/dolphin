@@ -53,7 +53,7 @@ void JitArm64::ps_mergeXX(UGeckoInstruction inst)
       ARM64Reg V0 = fpr.GetReg();
       m_float_emit.INS(size, V0, 0, VA, 1);
       m_float_emit.INS(size, V0, 1, VB, 0);
-      m_float_emit.ORR(reg_encoder(VD), reg_encoder(V0), reg_encoder(V0));
+      m_float_emit.MOV(reg_encoder(VD), reg_encoder(V0));
       fpr.Unlock(V0);
     }
     break;
@@ -110,38 +110,134 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   ARM64Reg VB = reg_encoder(fpr.R(b, type));
   ARM64Reg VC = reg_encoder(fpr.R(c, type));
   ARM64Reg VD = reg_encoder(fpr.RW(d, type));
-  ARM64Reg V0Q = fpr.GetReg();
-  ARM64Reg V0 = reg_encoder(V0Q);
-
-  // TODO: Do FMUL and FADD/FSUB in *one* host call to save accuracy.
+  ARM64Reg V0Q = INVALID_REG;
+  ARM64Reg V0 = INVALID_REG;
+  if (d != b && (d == a || d == c))
+  {
+    V0Q = fpr.GetReg();
+    V0 = reg_encoder(V0Q);
+  }
 
   switch (op5)
   {
   case 14:  // ps_madds0
-    m_float_emit.FMUL(size, V0, VA, VC, 0);
-    m_float_emit.FADD(size, VD, V0, VB);
+    // d = a * c.ps0 + b
+    if (d == b)
+    {
+      m_float_emit.FMLA(size, VD, VA, VC, 0);
+    }
+    else if (d != a && d != c)
+    {
+      m_float_emit.MOV(VD, VB);
+      m_float_emit.FMLA(size, VD, VA, VC, 0);
+    }
+    else
+    {
+      m_float_emit.MOV(V0, VB);
+      m_float_emit.FMLA(size, V0, VA, VC, 0);
+      m_float_emit.MOV(VD, V0);
+    }
     break;
   case 15:  // ps_madds1
-    m_float_emit.FMUL(size, V0, VA, VC, 1);
-    m_float_emit.FADD(size, VD, V0, VB);
+    // d = a * c.ps1 + b
+    if (d == b)
+    {
+      m_float_emit.FMLA(size, VD, VA, VC, 1);
+    }
+    else if (d != a && d != c)
+    {
+      m_float_emit.MOV(VD, VB);
+      m_float_emit.FMLA(size, VD, VA, VC, 1);
+    }
+    else
+    {
+      m_float_emit.MOV(V0, VB);
+      m_float_emit.FMLA(size, V0, VA, VC, 1);
+      m_float_emit.MOV(VD, V0);
+    }
     break;
   case 28:  // ps_msub
-    m_float_emit.FMUL(size, V0, VA, VC);
-    m_float_emit.FSUB(size, VD, V0, VB);
+    // d = a * c - b
+    if (d == b)
+    {
+      // d = -(-a * c + b)
+      // rounding is incorrect if the rounding mode is +/- infinity
+      m_float_emit.FMLS(size, VD, VA, VC);
+      m_float_emit.FNEG(size, VD, VD);
+    }
+    else if (d != a && d != c)
+    {
+      m_float_emit.FNEG(size, VD, VB);
+      m_float_emit.FMLA(size, VD, VA, VC);
+    }
+    else
+    {
+      m_float_emit.FNEG(size, V0, VB);
+      m_float_emit.FMLA(size, V0, VA, VC);
+      m_float_emit.MOV(VD, V0);
+    }
     break;
   case 29:  // ps_madd
-    m_float_emit.FMUL(size, V0, VA, VC);
-    m_float_emit.FADD(size, VD, V0, VB);
+    // d = a * c + b
+    if (d == b)
+    {
+      m_float_emit.FMLA(size, VD, VA, VC);
+    }
+    else if (d != a && d != c)
+    {
+      m_float_emit.MOV(VD, VB);
+      m_float_emit.FMLA(size, VD, VA, VC);
+    }
+    else
+    {
+      m_float_emit.MOV(V0, VB);
+      m_float_emit.FMLA(size, V0, VA, VC);
+      m_float_emit.MOV(VD, V0);
+    }
     break;
   case 30:  // ps_nmsub
-    m_float_emit.FMUL(size, V0, VA, VC);
-    m_float_emit.FSUB(size, VD, V0, VB);
-    m_float_emit.FNEG(size, VD, VD);
+    // d = -(a * c - b)
+    // =>
+    // d = -a * c + b
+    // Note: PowerPC rounds before the final negation.
+    // We don't handle this at the moment because it's
+    // only relevant when rounding to +/- infinity.
+    if (d == b)
+    {
+      m_float_emit.FMLS(size, VD, VA, VC);
+    }
+    else if (d != a && d != c)
+    {
+      m_float_emit.MOV(VD, VB);
+      m_float_emit.FMLS(size, VD, VA, VC);
+    }
+    else
+    {
+      m_float_emit.MOV(V0, VB);
+      m_float_emit.FMLS(size, V0, VA, VC);
+      m_float_emit.MOV(VD, V0);
+    }
     break;
   case 31:  // ps_nmadd
-    m_float_emit.FMUL(size, V0, VA, VC);
-    m_float_emit.FADD(size, VD, V0, VB);
-    m_float_emit.FNEG(size, VD, VD);
+    // d = -(a * c + b)
+    if (d == b)
+    {
+      m_float_emit.FMLA(size, VD, VA, VC);
+      m_float_emit.FNEG(size, VD, VD);
+    }
+    else if (d != a && d != c)
+    {
+      // d = -a * c - b
+      // See rounding note at ps_nmsub.
+      m_float_emit.FNEG(size, VD, VB);
+      m_float_emit.FMLS(size, VD, VA, VC);
+    }
+    else
+    {
+      m_float_emit.MOV(V0, VB);
+      m_float_emit.FMLA(size, V0, VA, VC);
+      m_float_emit.FNEG(size, VD, V0);
+    }
     break;
   default:
     ASSERT_MSG(DYNA_REC, 0, "ps_madd - invalid op");
@@ -149,7 +245,8 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   }
   fpr.FixSinglePrecision(d);
 
-  fpr.Unlock(V0Q);
+  if (V0Q != INVALID_REG)
+    fpr.Unlock(V0Q);
 }
 
 void JitArm64::ps_sel(UGeckoInstruction inst)
@@ -181,7 +278,7 @@ void JitArm64::ps_sel(UGeckoInstruction inst)
     ARM64Reg V0 = reg_encoder(V0Q);
     m_float_emit.FCMGE(size, V0, VA);
     m_float_emit.BSL(V0, VC, VB);
-    m_float_emit.ORR(VD, V0, V0);
+    m_float_emit.MOV(VD, V0);
     fpr.Unlock(V0Q);
   }
 }

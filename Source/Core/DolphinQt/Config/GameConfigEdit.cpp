@@ -135,8 +135,8 @@ void GameConfigEdit::ConnectWidgets()
 {
   connect(m_edit, &QTextEdit::textChanged, this, &GameConfigEdit::SaveFile);
   connect(m_edit, &QTextEdit::selectionChanged, this, &GameConfigEdit::OnSelectionChanged);
-  connect(m_completer, static_cast<void (QCompleter::*)(const QString&)>(&QCompleter::activated),
-          this, &GameConfigEdit::OnAutoComplete);
+  connect(m_completer, qOverload<const QString&>(&QCompleter::activated), this,
+          &GameConfigEdit::OnAutoComplete);
 }
 
 void GameConfigEdit::OnSelectionChanged()

@@ -11,6 +11,10 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
+
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
 #include "DolphinQt/Config/Graphics/EnhancementsWidget.h"
 #include "DolphinQt/Config/Graphics/GeneralWidget.h"
@@ -35,7 +39,7 @@ GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindo
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -92,8 +96,7 @@ void GraphicsWindow::CreateMainLayout()
   m_wrapped_software = GetWrappedWidget(m_software_renderer, this, 50, 305);
 
   m_wrapped_prime = GetWrappedWidget(m_prime_widget, this, 50, 305);
-
-  if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
+  if (Config::Get(Config::MAIN_GFX_BACKEND) != "Software Renderer")
   {
     m_tab_widget->addTab(m_wrapped_general, tr("General"));
     m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
@@ -111,8 +114,8 @@ void GraphicsWindow::CreateMainLayout()
 
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
-  SConfig::GetInstance().m_strVideoBackend = backend_name.toStdString();
-  VideoBackendBase::PopulateBackendInfo();
+  Config::SetBase(Config::MAIN_GFX_BACKEND, backend_name.toStdString());
+  VideoBackendBase::PopulateBackendInfoFromUI();
 
   setWindowTitle(
       tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));

@@ -77,6 +77,7 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
 
+#include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -104,6 +105,7 @@ static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
 static bool s_is_throttler_temp_disabled = false;
 static bool s_frame_step = false;
+static std::atomic<bool> s_stop_frame_step;
 
 #ifdef USE_MEMORYWATCHER
 static std::unique_ptr<MemoryWatcher> s_memory_watcher;
@@ -457,11 +459,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     HLE::Clear();
   }};
 
-  // Backend info has to be initialized before we can initialize the backend.
-  // This is because when we load the config, we validate it against the current backend info.
-  // We also should have the correct adapter selected for creating the device in Initialize().
-  g_video_backend->InitBackendInfo();
-  g_Config.Refresh();
+  VideoBackendBase::PopulateBackendInfo();
 
   if (!g_video_backend->Initialize(wsi))
   {
@@ -500,7 +498,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
   else
   {
-    g_controller_interface.ChangeWindow(wsi.render_surface);
+    g_controller_interface.ChangeWindow(wsi.render_window);
     Pad::LoadConfig();
     Keyboard::LoadConfig();
   }
@@ -858,23 +856,33 @@ void VideoThrottle()
 
 // --- Callbacks for backends / engine ---
 
-// Should be called from GPU thread when a frame is drawn
-void Callback_VideoCopiedToXFB(bool video_update)
+// Called from Renderer::Swap (GPU thread) when a new (non-duplicate)
+// frame is presented to the host screen
+void Callback_FramePresented()
 {
-  if (video_update)
-    s_drawn_frame++;
+  s_drawn_frame++;
+  s_stop_frame_step.store(true);
 }
 
-// Called at field boundaries in `VideoInterface::Update()`
-void FrameUpdate()
+// Called from VideoInterface::Update (CPU thread) at emulated field boundaries
+void Callback_NewField()
 {
-  Movie::FrameUpdate();
   if (s_frame_step)
   {
-    s_frame_step = false;
-    CPU::Break();
-    if (s_on_state_changed_callback)
-      s_on_state_changed_callback(Core::GetState());
+    // To ensure that s_stop_frame_step is up to date, wait for the GPU thread queue to empty,
+    // since it is may contain a swap event (which will call Callback_FramePresented). This hurts
+    // the performance a little, but luckily, performance matters less when using frame stepping.
+    AsyncRequests::GetInstance()->WaitForEmptyQueue();
+
+    // Only stop the frame stepping if a new frame was displayed
+    // (as opposed to the previous frame being displayed for another frame).
+    if (s_stop_frame_step.load())
+    {
+      s_frame_step = false;
+      CPU::Break();
+      if (s_on_state_changed_callback)
+        s_on_state_changed_callback(Core::GetState());
+    }
   }
 }
 
@@ -1045,6 +1053,7 @@ void DoFrameStep()
   if (GetState() == State::Paused)
   {
     // if already paused, frame advance for 1 frame
+    s_stop_frame_step = false;
     s_frame_step = true;
     RequestRefreshInfo();
     SetState(State::Running);

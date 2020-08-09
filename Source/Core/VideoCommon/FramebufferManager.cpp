@@ -3,9 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/FramebufferManager.h"
+
 #include <memory>
-#include "VideoCommon/FramebufferShaderGen.h"
-#include "VideoCommon/VertexManagerBase.h"
 
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
@@ -17,7 +16,10 @@
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/DriverDetails.h"
+#include "VideoCommon/FramebufferShaderGen.h"
 #include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 // Maximum number of pixels poked in one batch * 6
@@ -188,11 +190,18 @@ bool FramebufferManager::CreateEFBFramebuffer()
     m_efb_resolve_color_texture = g_renderer->CreateTexture(
         TextureConfig(efb_color_texture_config.width, efb_color_texture_config.height, 1,
                       efb_color_texture_config.layers, 1, efb_color_texture_config.format, 0));
+    if (!m_efb_resolve_color_texture)
+      return false;
+  }
+
+  // We also need one to convert the D24S8 to R32F if that is being used (Adreno).
+  if (g_ActiveConfig.MultisamplingEnabled() || GetEFBDepthFormat() != AbstractTextureFormat::R32F)
+  {
     m_efb_depth_resolve_texture = g_renderer->CreateTexture(
         TextureConfig(efb_depth_texture_config.width, efb_depth_texture_config.height, 1,
                       efb_depth_texture_config.layers, 1, GetEFBDepthCopyFormat(),
                       AbstractTextureFlag_RenderTarget));
-    if (!m_efb_resolve_color_texture || !m_efb_depth_resolve_texture)
+    if (!m_efb_depth_resolve_texture)
       return false;
 
     m_efb_depth_resolve_framebuffer =
@@ -246,10 +255,14 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
   return m_efb_resolve_color_texture.get();
 }
 
-AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region)
+AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
+                                                            bool force_r32f)
 {
-  if (!IsEFBMultisampled())
+  if (!IsEFBMultisampled() || !force_r32f ||
+      m_efb_depth_texture->GetFormat() == AbstractTextureFormat::R32F)
+  {
     return m_efb_depth_texture.get();
+  }
 
   // It's not valid to resolve an out-of-range rectangle.
   MathUtil::Rectangle<int> clamped_region = region;
@@ -513,7 +526,8 @@ bool FramebufferManager::CreateReadbackFramebuffer()
 
   // Since we can't partially copy from a depth buffer directly to the staging texture in D3D, we
   // use an intermediate buffer to avoid copying the whole texture.
-  if ((IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
+  if (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
+      (IsUsingTiledEFBCache() && !g_ActiveConfig.backend_info.bSupportsPartialDepthCopies) ||
       !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                          GetEFBDepthCopyFormat()) ||
       g_renderer->GetEFBScale() != 1)
@@ -577,7 +591,8 @@ void FramebufferManager::PopulateEFBCache(bool depth, u32 tile_index)
   // buffer directly to a staging texture (must be the whole resource).
   const bool force_intermediate_copy =
       depth &&
-      ((!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
+      (!g_ActiveConfig.backend_info.bSupportsDepthReadback ||
+       (!g_ActiveConfig.backend_info.bSupportsPartialDepthCopies && IsUsingTiledEFBCache()) ||
        !AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
                                                           GetEFBDepthCopyFormat()));
 
@@ -896,7 +911,7 @@ void FramebufferManager::DoSaveState(PointerWrap& p)
   // This won't be bit-exact when loading, which could cause interesting rendering side-effects for
   // a frame. But whatever, MSAA doesn't exactly behave that well anyway.
   AbstractTexture* color_texture = ResolveEFBColorTexture(m_efb_color_texture->GetRect());
-  AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect());
+  AbstractTexture* depth_texture = ResolveEFBDepthTexture(m_efb_depth_texture->GetRect(), true);
 
   // We don't want to save these as rendertarget textures, just the data itself when deserializing.
   const TextureConfig color_texture_config(color_texture->GetWidth(), color_texture->GetHeight(),
@@ -904,39 +919,10 @@ void FramebufferManager::DoSaveState(PointerWrap& p)
                                            1, GetEFBColorFormat(), 0);
   g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
 
-  if (AbstractTexture::IsCompatibleDepthAndColorFormats(m_efb_depth_texture->GetFormat(),
-                                                        GetEFBDepthCopyFormat()))
-  {
-    const TextureConfig depth_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
-                                             depth_texture->GetLevels(), depth_texture->GetLayers(),
-                                             1, GetEFBDepthCopyFormat(), 0);
-    g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
-  }
-  else
-  {
-    // If the EFB is backed by a D24S8 texture, we first have to convert it to R32F.
-    const TextureConfig temp_texture_config(
-        depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
-        depth_texture->GetLayers(), 1, GetEFBDepthCopyFormat(), AbstractTextureFlag_RenderTarget);
-    std::unique_ptr<AbstractTexture> temp_texture = g_renderer->CreateTexture(temp_texture_config);
-    std::unique_ptr<AbstractFramebuffer> temp_fb =
-        g_renderer->CreateFramebuffer(temp_texture.get(), nullptr);
-    if (temp_texture && temp_fb)
-    {
-      g_renderer->ScaleTexture(temp_fb.get(), temp_texture->GetRect(), depth_texture,
-                               depth_texture->GetRect());
-
-      const TextureConfig depth_texture_config(
-          depth_texture->GetWidth(), depth_texture->GetHeight(), depth_texture->GetLevels(),
-          depth_texture->GetLayers(), 1, temp_texture->GetFormat(), 0);
-      g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
-    }
-    else
-    {
-      PanicAlert("Failed to create temp texture for depth saving");
-      g_texture_cache->SerializeTexture(color_texture, color_texture_config, p);
-    }
-  }
+  const TextureConfig depth_texture_config(depth_texture->GetWidth(), depth_texture->GetHeight(),
+                                           depth_texture->GetLevels(), depth_texture->GetLayers(),
+                                           1, GetEFBDepthCopyFormat(), 0);
+  g_texture_cache->SerializeTexture(depth_texture, depth_texture_config, p);
 }
 
 void FramebufferManager::DoLoadState(PointerWrap& p)

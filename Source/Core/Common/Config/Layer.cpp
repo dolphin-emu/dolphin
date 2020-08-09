@@ -37,13 +37,13 @@ Layer::~Layer()
   Save();
 }
 
-bool Layer::Exists(const ConfigLocation& location) const
+bool Layer::Exists(const Location& location) const
 {
   const auto iter = m_map.find(location);
   return iter != m_map.end() && iter->second.has_value();
 }
 
-bool Layer::DeleteKey(const ConfigLocation& location)
+bool Layer::DeleteKey(const Location& location)
 {
   m_is_dirty = true;
   bool had_value = false;
@@ -68,14 +68,14 @@ void Layer::DeleteAllKeys()
 
 Section Layer::GetSection(System system, const std::string& section)
 {
-  return Section{m_map.lower_bound(ConfigLocation{system, section, ""}),
-                 m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
+  return Section{m_map.lower_bound(Location{system, section, ""}),
+                 m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
 ConstSection Layer::GetSection(System system, const std::string& section) const
 {
-  return ConstSection{m_map.lower_bound(ConfigLocation{system, section, ""}),
-                      m_map.lower_bound(ConfigLocation{system, section + '\001', ""})};
+  return ConstSection{m_map.lower_bound(Location{system, section, ""}),
+                      m_map.lower_bound(Location{system, section + '\001', ""})};
 }
 
 void Layer::Load()

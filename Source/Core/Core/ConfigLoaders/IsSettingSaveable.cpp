@@ -14,7 +14,7 @@
 
 namespace ConfigLoaders
 {
-bool IsSettingSaveable(const Config::ConfigLocation& config_location)
+bool IsSettingSaveable(const Config::Location& config_location)
 {
   if (config_location.system == Config::System::DualShockUDPClient)
     return true;
@@ -28,23 +28,37 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       return true;
   }
 
-  static constexpr std::array<const Config::ConfigLocation*, 102> s_setting_saveable = {
+  static constexpr std::array<const Config::Location*, 113> s_setting_saveable = {
       // Main.Core
 
       &Config::MAIN_DEFAULT_ISO.location,
       &Config::MAIN_MEMCARD_A_PATH.location,
       &Config::MAIN_MEMCARD_B_PATH.location,
       &Config::MAIN_AUTO_DISC_CHANGE.location,
+      &Config::MAIN_ALLOW_SD_WRITES.location,
       &Config::MAIN_DPL2_DECODER.location,
       &Config::MAIN_DPL2_QUALITY.location,
+      &Config::MAIN_RAM_OVERRIDE_ENABLE.location,
+      &Config::MAIN_MEM1_SIZE.location,
+      &Config::MAIN_MEM2_SIZE.location,
+      &Config::MAIN_GFX_BACKEND.location,
 
       // Main.Display
+
       &Config::MAIN_FULLSCREEN_DISPLAY_RES.location,
       &Config::MAIN_FULLSCREEN.location,
       &Config::MAIN_RENDER_TO_MAIN.location,
       &Config::MAIN_RENDER_WINDOW_AUTOSIZE.location,
       &Config::MAIN_KEEP_WINDOW_ON_TOP.location,
       &Config::MAIN_DISABLE_SCREENSAVER.location,
+
+      // Main.Network
+
+      &Config::MAIN_NETWORK_SSL_DUMP_READ.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_WRITE.location,
+      &Config::MAIN_NETWORK_SSL_VERIFY_CERTIFICATES.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_ROOT_CA.location,
+      &Config::MAIN_NETWORK_SSL_DUMP_PEER_CERT.location,
 
       // Graphics.Hardware
 
@@ -69,6 +83,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
       &Config::GFX_DUMP_EFB_TARGET.location,
       &Config::GFX_DUMP_FRAMES_AS_IMAGES.location,
       &Config::GFX_FREE_LOOK.location,
+      &Config::GFX_FREE_LOOK_CONTROL_TYPE.location,
       &Config::GFX_USE_FFV1.location,
       &Config::GFX_DUMP_FORMAT.location,
       &Config::GFX_DUMP_CODEC.location,
@@ -163,7 +178,7 @@ bool IsSettingSaveable(const Config::ConfigLocation& config_location)
   };
 
   return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),
-                     [&config_location](const Config::ConfigLocation* location) {
+                     [&config_location](const Config::Location* location) {
                        return *location == config_location;
                      });
 }

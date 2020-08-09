@@ -14,9 +14,11 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config/Config.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
@@ -245,16 +247,19 @@ void VideoBackendBase::ActivateBackend(const std::string& name)
 
 void VideoBackendBase::PopulateBackendInfo()
 {
-  // If the core is running, the backend info will have been populated already.
-  // If we did it here, the UI thread can race with the with the GPU thread.
-  if (Core::IsRunning())
-    return;
-
   // We refresh the config after initializing the backend info, as system-specific settings
   // such as anti-aliasing, or the selected adapter may be invalid, and should be checked.
-  ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
   g_video_backend->InitBackendInfo();
   g_Config.Refresh();
+}
+
+void VideoBackendBase::PopulateBackendInfoFromUI()
+{
+  // If the core is running, the backend info will have been populated already.
+  // If we did it here, the UI thread can race with the with the GPU thread.
+  if (!Core::IsRunning())
+    PopulateBackendInfo();
 }
 
 void VideoBackendBase::DoState(PointerWrap& p)

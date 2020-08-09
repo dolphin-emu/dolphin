@@ -37,7 +37,6 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
-    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
@@ -274,6 +273,12 @@
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Debug\OSThread.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\Threads.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
     <ClInclude Include="GL\GLContext.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
@@ -281,6 +286,7 @@
     <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="Arm64Emitter.h" />
     <ClInclude Include="ArmCommon.h" />
+    <ClInclude Include="Inline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -357,6 +363,9 @@
     </ClCompile>
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\OSThread.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
     <ClCompile Include="GL\GLContext.cpp">

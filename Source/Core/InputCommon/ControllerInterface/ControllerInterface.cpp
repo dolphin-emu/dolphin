@@ -118,8 +118,8 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_OSX
   if (m_wsi.type == WindowSystemType::MacOS)
   {
-    ciface::OSX::PopulateDevices(m_wsi.render_surface);
-    ciface::Quartz::PopulateDevices(m_wsi.render_surface);
+    ciface::OSX::PopulateDevices(m_wsi.render_window);
+    ciface::Quartz::PopulateDevices(m_wsi.render_window);
   }
 #endif
 #ifdef CIFACE_USE_SDL

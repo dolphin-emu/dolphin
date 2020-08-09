@@ -82,9 +82,9 @@
     </item>
 
     <item
-        android:id="@+id/menu_emulation_configure_controls"
+        android:id="@+id/menu_emulation_overlay_controls"
         app:showAsAction="never"
-        android:title="@string/emulation_configure_controls">
+        android:title="@string/emulation_overlay_controls">
         <menu>
             <item
                 android:id="@+id/menu_emulation_edit_layout"

@@ -65,6 +65,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   {
     super.onResume();
     mPresenter.addDirIfNeeded(this);
+    GameFileCacheService.startRescan(this);
   }
 
   @Override
@@ -151,6 +152,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   }
 
   @Override
+  public void launchInstallWAD()
+  {
+    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
+            FileBrowserHelper.WAD_EXTENSION);
+  }
+
+  @Override
   public void showGames()
   {
     // Kicks off the program services to update all channels
@@ -185,6 +193,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
         if (resultCode == MainActivity.RESULT_OK)
         {
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+        }
+        break;
+
+      case MainPresenter.REQUEST_WAD_FILE:
+        // If the user picked a file, as opposed to just backing out.
+        if (resultCode == MainActivity.RESULT_OK)
+        {
+          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
         }
         break;
     }
@@ -285,6 +301,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     rowItems.add(new TvSettingsItem(R.id.menu_refresh,
             R.drawable.ic_refresh_tv,
             R.string.grid_menu_refresh));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_open_file,
+            R.drawable.ic_play,
+            R.string.grid_menu_open_file));
+
+    rowItems.add(new TvSettingsItem(R.id.menu_install_wad,
+            R.drawable.ic_folder,
+            R.string.grid_menu_install_wad));
 
     // Create a header for this row.
     HeaderItem header =

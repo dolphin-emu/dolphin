@@ -31,12 +31,12 @@ namespace Settings
 constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
 constexpr u16 DEFAULT_SERVER_PORT = 26760;
 
-const Config::ConfigInfo<bool> SERVER_ENABLED{
-    {Config::System::DualShockUDPClient, "Server", "Enabled"}, false};
-const Config::ConfigInfo<std::string> SERVER_ADDRESS{
+const Config::Info<bool> SERVER_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
+                                        false};
+const Config::Info<std::string> SERVER_ADDRESS{
     {Config::System::DualShockUDPClient, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
-const Config::ConfigInfo<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
-                                          DEFAULT_SERVER_PORT};
+const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
+                                    DEFAULT_SERVER_PORT};
 }  // namespace Settings
 
 // Clock type used for querying timeframes

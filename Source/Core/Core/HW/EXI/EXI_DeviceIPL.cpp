@@ -151,7 +151,7 @@ CEXIIPL::~CEXIIPL()
 }
 void CEXIIPL::DoState(PointerWrap& p)
 {
-  p.Do(g_SRAM.rtc);
+  p.Do(g_SRAM);
   p.Do(g_rtc_flags);
   p.Do(m_command);
   p.Do(m_command_bytes_received);
@@ -314,7 +314,7 @@ void CEXIIPL::TransferByte(u8& data)
       }
     };
 
-    if (IN_RANGE(ROM))
+    if (address < ROM_BASE + ROM_SIZE)
     {
       if (!m_command.is_write())
       {

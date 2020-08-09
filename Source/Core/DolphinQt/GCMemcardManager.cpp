@@ -30,6 +30,7 @@
 #include "Core/Config/MainSettings.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
+#include "DolphinQt/GCMemcardCreateNewDialog.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr float ROW_HEIGHT = 28;
@@ -91,7 +92,8 @@ void GCMemcardManager::CreateWidgets()
   {
     m_slot_group[i] = new QGroupBox(i == 0 ? tr("Slot A") : tr("Slot B"));
     m_slot_file_edit[i] = new QLineEdit;
-    m_slot_file_button[i] = new QPushButton(tr("&Browse..."));
+    m_slot_open_button[i] = new QPushButton(tr("&Open..."));
+    m_slot_create_button[i] = new QPushButton(tr("&Create..."));
     m_slot_table[i] = new QTableWidget;
     m_slot_table[i]->setTabKeyNavigation(false);
     m_slot_stat_label[i] = new QLabel;
@@ -107,8 +109,9 @@ void GCMemcardManager::CreateWidgets()
     m_slot_group[i]->setLayout(slot_layout);
 
     slot_layout->addWidget(m_slot_file_edit[i], 0, 0);
-    slot_layout->addWidget(m_slot_file_button[i], 0, 1);
-    slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 2);
+    slot_layout->addWidget(m_slot_open_button[i], 0, 1);
+    slot_layout->addWidget(m_slot_create_button[i], 0, 2);
+    slot_layout->addWidget(m_slot_table[i], 1, 0, 1, 3);
     slot_layout->addWidget(m_slot_stat_label[i], 2, 0);
 
     layout->addWidget(m_slot_group[i], 0, i * 2, 9, 1);
@@ -143,8 +146,10 @@ void GCMemcardManager::ConnectWidgets()
   {
     connect(m_slot_file_edit[slot], &QLineEdit::textChanged,
             [this, slot](const QString& path) { SetSlotFile(slot, path); });
-    connect(m_slot_file_button[slot], &QPushButton::clicked,
+    connect(m_slot_open_button[slot], &QPushButton::clicked,
             [this, slot] { SetSlotFileInteractive(slot); });
+    connect(m_slot_create_button[slot], &QPushButton::clicked,
+            [this, slot] { CreateNewCard(slot); });
     connect(m_slot_table[slot], &QTableWidget::itemSelectionChanged, this,
             &GCMemcardManager::UpdateActions);
   }
@@ -243,7 +248,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
   m_slot_stat_label[slot]->setText(tr("%1 Free Blocks; %2 Free Dir Entries")
                                        .arg(memcard->GetFreeBlocks())
-                                       .arg(DIRLEN - memcard->GetNumFiles()));
+                                       .arg(Memcard::DIRLEN - memcard->GetNumFiles()));
 }
 
 void GCMemcardManager::UpdateActions()
@@ -263,12 +268,12 @@ void GCMemcardManager::UpdateActions()
 
 void GCMemcardManager::SetSlotFile(int slot, QString path)
 {
-  auto [error_code, memcard] = GCMemcard::Open(path.toStdString());
+  auto [error_code, memcard] = Memcard::GCMemcard::Open(path.toStdString());
 
   if (!error_code.HasCriticalErrors() && memcard && memcard->IsValid())
   {
     m_slot_file_edit[slot]->setText(path);
-    m_slot_memcard[slot] = std::make_unique<GCMemcard>(std::move(*memcard));
+    m_slot_memcard[slot] = std::make_unique<Memcard::GCMemcard>(std::move(*memcard));
   }
   else
   {
@@ -331,7 +336,7 @@ void GCMemcardManager::ExportFiles(bool prompt)
 
     // TODO: This is obviously intended to check for success instead.
     const auto exportRetval = memcard->ExportGci(file_index, path.toStdString(), "");
-    if (exportRetval == GCMemcardExportFileRetVal::UNUSED)
+    if (exportRetval == Memcard::GCMemcardExportFileRetVal::UNUSED)
     {
       File::Delete(path.toStdString());
     }
@@ -361,7 +366,7 @@ void GCMemcardManager::ImportFile()
 
   const auto result = m_slot_memcard[m_active_slot]->ImportGci(path.toStdString());
 
-  if (result != GCMemcardImportFileRetVal::SUCCESS)
+  if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
   {
     ModalMessageBox::critical(this, tr("Import failed"), tr("Failed to import \"%1\".").arg(path));
     return;
@@ -387,7 +392,7 @@ void GCMemcardManager::CopyFiles()
 
     const auto result = m_slot_memcard[!m_active_slot]->CopyFrom(*memcard, file_index);
 
-    if (result != GCMemcardImportFileRetVal::SUCCESS)
+    if (result != Memcard::GCMemcardImportFileRetVal::SUCCESS)
     {
       ModalMessageBox::warning(this, tr("Copy failed"), tr("Failed to copy file"));
     }
@@ -431,7 +436,7 @@ void GCMemcardManager::DeleteFiles()
 
   for (int file_index : file_indices)
   {
-    if (memcard->RemoveFile(file_index) != GCMemcardRemoveFileRetVal::SUCCESS)
+    if (memcard->RemoveFile(file_index) != Memcard::GCMemcardRemoveFileRetVal::SUCCESS)
     {
       ModalMessageBox::warning(this, tr("Remove failed"), tr("Failed to remove file"));
     }
@@ -457,6 +462,13 @@ void GCMemcardManager::FixChecksums()
 
   if (!memcard->Save())
     PanicAlertT("File write failed");
+}
+
+void GCMemcardManager::CreateNewCard(int slot)
+{
+  GCMemcardCreateNewDialog dialog(this);
+  if (dialog.exec() == QDialog::Accepted)
+    m_slot_file_edit[slot]->setText(QString::fromStdString(dialog.GetMemoryCardPath()));
 }
 
 void GCMemcardManager::DrawIcons()
@@ -510,8 +522,8 @@ QPixmap GCMemcardManager::GetBannerFromSaveFile(int file_index, int slot)
   QImage image;
   if (pxdata)
   {
-    image = QImage(reinterpret_cast<u8*>(pxdata->data()), MEMORY_CARD_BANNER_WIDTH,
-                   MEMORY_CARD_BANNER_HEIGHT, QImage::Format_ARGB32);
+    image = QImage(reinterpret_cast<u8*>(pxdata->data()), Memcard::MEMORY_CARD_BANNER_WIDTH,
+                   Memcard::MEMORY_CARD_BANNER_HEIGHT, QImage::Format_ARGB32);
   }
 
   return QPixmap::fromImage(image);
@@ -533,7 +545,8 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
     for (size_t f = 0; f < decoded_data->size(); ++f)
     {
       QImage img(reinterpret_cast<const u8*>((*decoded_data)[f].image_data.data()),
-                 MEMORY_CARD_ICON_WIDTH, MEMORY_CARD_ICON_HEIGHT, QImage::Format_ARGB32);
+                 Memcard::MEMORY_CARD_ICON_WIDTH, Memcard::MEMORY_CARD_ICON_HEIGHT,
+                 QImage::Format_ARGB32);
       frame_data.m_frames.push_back(QPixmap::fromImage(img));
       for (int i = 0; i < (*decoded_data)[f].delay; ++i)
       {
@@ -567,32 +580,32 @@ GCMemcardManager::IconAnimationData GCMemcardManager::GetIconFromSaveFile(int fi
   return frame_data;
 }
 
-QString GCMemcardManager::GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code)
+QString GCMemcardManager::GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code)
 {
   QStringList sl;
 
-  if (code.Test(GCMemcardValidityIssues::FAILED_TO_OPEN))
+  if (code.Test(Memcard::GCMemcardValidityIssues::FAILED_TO_OPEN))
     sl.push_back(tr("Couldn't open file."));
 
-  if (code.Test(GCMemcardValidityIssues::IO_ERROR))
+  if (code.Test(Memcard::GCMemcardValidityIssues::IO_ERROR))
     sl.push_back(tr("Couldn't read file."));
 
-  if (code.Test(GCMemcardValidityIssues::INVALID_CARD_SIZE))
+  if (code.Test(Memcard::GCMemcardValidityIssues::INVALID_CARD_SIZE))
     sl.push_back(tr("Filesize does not match any known GameCube Memory Card size."));
 
-  if (code.Test(GCMemcardValidityIssues::MISMATCHED_CARD_SIZE))
+  if (code.Test(Memcard::GCMemcardValidityIssues::MISMATCHED_CARD_SIZE))
     sl.push_back(tr("Filesize in header mismatches actual card size."));
 
-  if (code.Test(GCMemcardValidityIssues::INVALID_CHECKSUM))
+  if (code.Test(Memcard::GCMemcardValidityIssues::INVALID_CHECKSUM))
     sl.push_back(tr("Invalid checksums."));
 
-  if (code.Test(GCMemcardValidityIssues::FREE_BLOCK_MISMATCH))
+  if (code.Test(Memcard::GCMemcardValidityIssues::FREE_BLOCK_MISMATCH))
     sl.push_back(tr("Mismatch between free block count in header and actually unused blocks."));
 
-  if (code.Test(GCMemcardValidityIssues::DIR_BAT_INCONSISTENT))
+  if (code.Test(Memcard::GCMemcardValidityIssues::DIR_BAT_INCONSISTENT))
     sl.push_back(tr("Mismatch between internal data structures."));
 
-  if (code.Test(GCMemcardValidityIssues::DATA_IN_UNUSED_AREA))
+  if (code.Test(Memcard::GCMemcardValidityIssues::DATA_IN_UNUSED_AREA))
     sl.push_back(tr("Data in area of file that should be unused."));
 
   if (sl.empty())

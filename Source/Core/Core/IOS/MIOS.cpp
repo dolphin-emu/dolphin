@@ -32,7 +32,7 @@ static void ReinitHardware()
   SConfig::GetInstance().bWii = false;
 
   // IOS clears mem2 and overwrites it with pseudo-random data (for security).
-  std::memset(Memory::m_pEXRAM, 0, Memory::EXRAM_SIZE);
+  std::memset(Memory::m_pEXRAM, 0, Memory::GetExRamSizeReal());
   // MIOS appears to only reset the DI and the PPC.
   // HACK However, resetting DI will reset the DTK config, which is set by the system menu
   // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually

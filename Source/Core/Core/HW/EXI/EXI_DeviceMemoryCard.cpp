@@ -106,7 +106,9 @@ void CEXIMemoryCard::Shutdown()
   s_et_transfer_complete.fill(nullptr);
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(index)
+CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder,
+                               const Memcard::HeaderData& header_data)
+    : card_index(index)
 {
   ASSERT_MSG(EXPANSIONINTERFACE, static_cast<std::size_t>(index) < s_et_cmd_done.size(),
              "Trying to create invalid memory card index %d.", index);
@@ -132,25 +134,13 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   // card_id = 0xc243;
   card_id = 0xc221;  // It's a Nintendo brand memcard
 
-  // The following games have issues with memory cards bigger than 16Mb
-  // Darkened Skye GDQE6S GDQP6S
-  // WTA Tour Tennis GWTEA4 GWTJA4 GWTPA4
-  // Disney Sports : Skate Boarding GDXEA4 GDXPA4 GDXJA4
-  // Disney Sports : Soccer GDKEA4
-  // Wallace and Gromit in Pet Zoo GWLE6L GWLX6L
-  // Use a 16Mb (251 block) memory card for these games
-  bool useMC251;
-  IniFile gameIni = SConfig::GetInstance().LoadGameIni();
-  gameIni.GetOrCreateSection("Core")->Get("MemoryCard251", &useMC251, false);
-  u16 sizeMb = useMC251 ? MBIT_SIZE_MEMORY_CARD_251 : MBIT_SIZE_MEMORY_CARD_2043;
-
   if (gciFolder)
   {
-    SetupGciFolder(sizeMb);
+    SetupGciFolder(header_data);
   }
   else
   {
-    SetupRawMemcard(sizeMb);
+    SetupRawMemcard(header_data.m_size_mb);
   }
 
   memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
@@ -185,7 +175,7 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
   return {std::move(path), !use_movie_folder};
 }
 
-void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
+void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 {
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
@@ -195,8 +185,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     CurrentGameId = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
-  const bool shift_jis =
-      SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region) == DiscIO::Region::NTSC_J;
+  const bool shift_jis = header_data.m_encoding != 0;
 
   const auto [strDirectoryName, migrate] = GetGCIFolderPath(card_index, AllowMovieFolder::Yes);
 
@@ -228,8 +217,8 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     }
   }
 
-  memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb,
-                                                    shift_jis, CurrentGameId);
+  memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index,
+                                                    header_data, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
@@ -245,7 +234,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
   MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
-  if (sizeMb == MBIT_SIZE_MEMORY_CARD_251)
+  if (sizeMb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
     filename.insert(filename.find_last_of("."), ".251");
 
   memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);
@@ -545,9 +534,9 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 {
   memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
 
-  if ((address + _uSize) % BLOCK_SIZE == 0)
+  if ((address + _uSize) % Memcard::BLOCK_SIZE == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
@@ -561,9 +550,9 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 {
   memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
 
-  if (((address + _uSize) % BLOCK_SIZE) == 0)
+  if (((address + _uSize) % Memcard::BLOCK_SIZE) == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

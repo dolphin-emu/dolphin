@@ -12,7 +12,6 @@
 #include <QFileInfo>
 #include <QIcon>
 #include <QMimeData>
-#include <QProgressDialog>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QWindow>
@@ -72,7 +71,9 @@
 #include "DolphinQt/Debugger/CodeWidget.h"
 #include "DolphinQt/Debugger/JITWidget.h"
 #include "DolphinQt/Debugger/MemoryWidget.h"
+#include "DolphinQt/Debugger/NetworkWidget.h"
 #include "DolphinQt/Debugger/RegisterWidget.h"
+#include "DolphinQt/Debugger/ThreadWidget.h"
 #include "DolphinQt/Debugger/WatchWidget.h"
 #include "DolphinQt/DiscordHandler.h"
 #include "DolphinQt/FIFO/FIFOPlayerWindow.h"
@@ -87,6 +88,7 @@
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 #include "DolphinQt/QtUtils/FileOpenEventFilter.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/QtUtils/RunOnObject.h"
 #include "DolphinQt/QtUtils/WindowActivationEventFilter.h"
@@ -389,21 +391,35 @@ void MainWindow::CreateComponents()
   m_log_widget = new LogWidget(this);
   m_log_config_widget = new LogConfigWidget(this);
   m_memory_widget = new MemoryWidget(this);
+  m_network_widget = new NetworkWidget(this);
   m_register_widget = new RegisterWidget(this);
+  m_thread_widget = new ThreadWidget(this);
   m_watch_widget = new WatchWidget(this);
   m_breakpoint_widget = new BreakpointWidget(this);
   m_code_widget = new CodeWidget(this);
   m_cheats_manager = new CheatsManager(this);
 
-  connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint,
-          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
-  connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint,
-          [this](u32 addr) { m_breakpoint_widget->AddAddressMBP(addr); });
-  connect(m_register_widget, &RegisterWidget::RequestViewInMemory, m_memory_widget,
-          [this](u32 addr) { m_memory_widget->SetAddress(addr); });
-  connect(m_register_widget, &RegisterWidget::RequestViewInCode, m_code_widget, [this](u32 addr) {
+  const auto request_watch = [this](QString name, u32 addr) {
+    m_watch_widget->AddWatch(name, addr);
+  };
+  const auto request_breakpoint = [this](u32 addr) { m_breakpoint_widget->AddBP(addr); };
+  const auto request_memory_breakpoint = [this](u32 addr) {
+    m_breakpoint_widget->AddAddressMBP(addr);
+  };
+  const auto request_view_in_memory = [this](u32 addr) { m_memory_widget->SetAddress(addr); };
+  const auto request_view_in_code = [this](u32 addr) {
     m_code_widget->SetAddress(addr, CodeViewWidget::SetAddressUpdate::WithUpdate);
-  });
+  };
+
+  connect(m_watch_widget, &WatchWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
+  connect(m_register_widget, &RegisterWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
+  connect(m_register_widget, &RegisterWidget::RequestViewInMemory, request_view_in_memory);
+  connect(m_register_widget, &RegisterWidget::RequestViewInCode, request_view_in_code);
+  connect(m_thread_widget, &ThreadWidget::RequestBreakpoint, request_breakpoint);
+  connect(m_thread_widget, &ThreadWidget::RequestMemoryBreakpoint, request_memory_breakpoint);
+  connect(m_thread_widget, &ThreadWidget::RequestWatch, request_watch);
+  connect(m_thread_widget, &ThreadWidget::RequestViewInMemory, request_view_in_memory);
+  connect(m_thread_widget, &ThreadWidget::RequestViewInCode, request_view_in_code);
 
   connect(m_code_widget, &CodeWidget::BreakpointsChanged, m_breakpoint_widget,
           &BreakpointWidget::Update);
@@ -615,8 +631,6 @@ void MainWindow::ConnectRenderWidget()
 
 void MainWindow::ConnectHost()
 {
-  connect(Host::GetInstance(), &Host::UpdateProgressDialog, this,
-          &MainWindow::OnUpdateProgressDialog);
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
 }
 
@@ -642,17 +656,21 @@ void MainWindow::ConnectStack()
   addDockWidget(Qt::LeftDockWidgetArea, m_log_config_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_code_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_register_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_thread_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_watch_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_breakpoint_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_memory_widget);
+  addDockWidget(Qt::LeftDockWidgetArea, m_network_widget);
   addDockWidget(Qt::LeftDockWidgetArea, m_jit_widget);
 
   tabifyDockWidget(m_log_widget, m_log_config_widget);
   tabifyDockWidget(m_log_widget, m_code_widget);
   tabifyDockWidget(m_log_widget, m_register_widget);
+  tabifyDockWidget(m_log_widget, m_thread_widget);
   tabifyDockWidget(m_log_widget, m_watch_widget);
   tabifyDockWidget(m_log_widget, m_breakpoint_widget);
   tabifyDockWidget(m_log_widget, m_memory_widget);
+  tabifyDockWidget(m_log_widget, m_network_widget);
   tabifyDockWidget(m_log_widget, m_jit_widget);
 }
 
@@ -668,8 +686,8 @@ QStringList MainWindow::PromptFileNames()
   QStringList paths = QFileDialog::getOpenFileNames(
       this, tr("Select a File"),
       settings.value(QStringLiteral("mainwindow/lastdir"), QString{}).toString(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad *.dff *.m3u);;"
-         "All Files (*)"));
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *.rvz *.wad "
+         "*.dff *.m3u);;All Files (*)"));
 
   if (!paths.isEmpty())
   {
@@ -1065,7 +1083,7 @@ void MainWindow::HideRenderWidget(bool reinit)
     // The controller interface will still be registered to the old render widget, if the core
     // has booted. Therefore, we should re-bind it to the main window for now. When the core
     // is next started, it will be swapped back to the new render widget.
-    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_surface);
+    g_controller_interface.ChangeWindow(GetWindowSystemInfo(windowHandle()).render_window);
   }
 }
 
@@ -1160,6 +1178,7 @@ void MainWindow::ShowNetPlaySetupDialog()
 void MainWindow::ShowNetPlayBrowser()
 {
   auto* browser = new NetPlayBrowser(this);
+  browser->setAttribute(Qt::WA_DeleteOnClose, true);
   connect(browser, &NetPlayBrowser::Join, this, &MainWindow::NetPlayJoin);
   browser->exec();
 }
@@ -1510,23 +1529,21 @@ void MainWindow::OnImportNANDBackup()
   if (file.isEmpty())
     return;
 
-  QProgressDialog* dialog = new QProgressDialog(this);
-  dialog->setMinimum(0);
-  dialog->setMaximum(0);
-  dialog->setLabelText(tr("Importing NAND backup"));
-  dialog->setCancelButton(nullptr);
+  ParallelProgressDialog dialog(this);
+  dialog.GetRaw()->setMinimum(0);
+  dialog.GetRaw()->setMaximum(0);
+  dialog.GetRaw()->setLabelText(tr("Importing NAND backup"));
+  dialog.GetRaw()->setCancelButton(nullptr);
 
   auto beginning = QDateTime::currentDateTime().toMSecsSinceEpoch();
 
-  auto result = std::async(std::launch::async, [&] {
+  std::future<void> result = std::async(std::launch::async, [&] {
     DiscIO::NANDImporter().ImportNANDBin(
         file.toStdString(),
         [&dialog, beginning] {
-          QueueOnObject(dialog, [&dialog, beginning] {
-            dialog->setLabelText(
-                tr("Importing NAND backup\n Time elapsed: %1s")
-                    .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
-          });
+          dialog.SetLabelText(
+              tr("Importing NAND backup\n Time elapsed: %1s")
+                  .arg((QDateTime::currentDateTime().toMSecsSinceEpoch() - beginning) / 1000));
         },
         [this] {
           std::optional<std::string> keys_file = RunOnObject(this, [this] {
@@ -1540,10 +1557,10 @@ void MainWindow::OnImportNANDBackup()
             return *keys_file;
           return std::string("");
         });
-    QueueOnObject(dialog, &QProgressDialog::close);
+    dialog.Reset();
   });
 
-  dialog->exec();
+  dialog.GetRaw()->exec();
 
   result.wait();
 
@@ -1701,28 +1718,6 @@ void MainWindow::ShowResourcePackManager()
 void MainWindow::ShowCheatsManager()
 {
   m_cheats_manager->show();
-}
-
-void MainWindow::OnUpdateProgressDialog(QString title, int progress, int total)
-{
-  if (!m_progress_dialog)
-  {
-    m_progress_dialog = new QProgressDialog(m_render_widget, Qt::WindowTitleHint);
-    m_progress_dialog->show();
-    m_progress_dialog->setCancelButton(nullptr);
-    m_progress_dialog->setWindowTitle(tr("Dolphin"));
-  }
-
-  m_progress_dialog->setValue(progress);
-  m_progress_dialog->setLabelText(title);
-  m_progress_dialog->setMaximum(total);
-
-  if (total < 0 || progress >= total)
-  {
-    m_progress_dialog->hide();
-    m_progress_dialog->deleteLater();
-    m_progress_dialog = nullptr;
-  }
 }
 
 void MainWindow::Show()

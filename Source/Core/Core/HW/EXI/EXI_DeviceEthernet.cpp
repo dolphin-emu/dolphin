@@ -4,6 +4,7 @@
 
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <string>
@@ -12,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI/EXI.h"
@@ -23,18 +25,15 @@ namespace ExpansionInterface
 // Multiple parts of this implementation depend on Dolphin
 // being compiled for a little endian host.
 
-CEXIETHERNET::CEXIETHERNET()
+CEXIETHERNET::CEXIETHERNET(BBADeviceType type)
 {
-  tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
-  mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
-  mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
-
-  MXHardReset();
-
   // Parse MAC address from config, and generate a new one if it doesn't
   // exist or can't be parsed.
   std::string& mac_addr_setting = SConfig::GetInstance().m_bba_mac;
   std::optional<Common::MACAddress> mac_addr = Common::StringToMacAddress(mac_addr_setting);
+
+  std::transform(mac_addr_setting.begin(), mac_addr_setting.end(), mac_addr_setting.begin(),
+                 [](unsigned char c) { return std::tolower(c); });
 
   if (!mac_addr)
   {
@@ -42,6 +41,42 @@ CEXIETHERNET::CEXIETHERNET()
     mac_addr_setting = Common::MacAddressToString(mac_addr.value());
     SConfig::GetInstance().SaveSettings();
   }
+
+  switch (type)
+  {
+  case BBADeviceType::TAP:
+    m_network_interface = std::make_unique<TAPNetworkInterface>(this);
+    INFO_LOG(SP1, "Created TAP physical network interface.");
+    break;
+  case BBADeviceType::XLINK:
+    // TODO start BBA with network link down, bring it up after "connected" response from XLink
+
+    // Perform sanity check on BBA MAC address, XLink requires the vendor OUI to be Nintendo's and
+    // to be one of the two used for the GameCube.
+    // Don't actually stop the BBA from initializing though
+    if (!StringBeginsWith(mac_addr_setting, "00:09:bf") &&
+        !StringBeginsWith(mac_addr_setting, "00:17:ab"))
+    {
+      PanicAlertT("BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address "
+                  "must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.",
+                  mac_addr_setting.c_str());
+    }
+
+    // m_client_mdentifier should be unique per connected emulator from the XLink kai client's
+    // perspective so lets use "dolphin<bba mac>"
+    m_network_interface = std::make_unique<XLinkNetworkInterface>(
+        this, SConfig::GetInstance().m_bba_xlink_ip, 34523,
+        "dolphin" + SConfig::GetInstance().m_bba_mac, SConfig::GetInstance().m_bba_xlink_chat_osd);
+    INFO_LOG(SP1, "Created XLink Kai BBA network interface connection to %s:34523",
+             SConfig::GetInstance().m_bba_xlink_ip.c_str());
+    break;
+  }
+
+  tx_fifo = std::make_unique<u8[]>(BBA_TXFIFO_SIZE);
+  mBbaMem = std::make_unique<u8[]>(BBA_MEM_SIZE);
+  mRecvBuffer = std::make_unique<u8[]>(BBA_RECV_SIZE);
+
+  MXHardReset();
 
   const auto& mac = mac_addr.value();
   memcpy(&mBbaMem[BBA_NAFR_PAR0], mac.data(), mac.size());
@@ -52,7 +87,7 @@ CEXIETHERNET::CEXIETHERNET()
 
 CEXIETHERNET::~CEXIETHERNET()
 {
-  Deactivate();
+  m_network_interface->Deactivate();
 }
 
 void CEXIETHERNET::SetCS(int cs)
@@ -303,7 +338,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
     {
       INFO_LOG(SP1, "Software reset");
       // MXSoftReset();
-      Activate();
+      m_network_interface->Activate();
     }
 
     if ((mBbaMem[BBA_NCRA] & NCRA_SR) ^ (data & NCRA_SR))
@@ -311,9 +346,9 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
       DEBUG_LOG(SP1, "%s rx", (data & NCRA_SR) ? "start" : "stop");
 
       if (data & NCRA_SR)
-        RecvStart();
+        m_network_interface->RecvStart();
       else
-        RecvStop();
+        m_network_interface->RecvStop();
     }
 
     // Only start transfer if there isn't one currently running
@@ -386,7 +421,7 @@ void CEXIETHERNET::DirectFIFOWrite(const u8* data, u32 size)
 
 void CEXIETHERNET::SendFromDirectFIFO()
 {
-  SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
+  m_network_interface->SendFrame(tx_fifo.get(), *(u16*)&mBbaMem[BBA_TXFIFOCNT]);
 }
 
 void CEXIETHERNET::SendFromPacketBuffer()
@@ -579,7 +614,7 @@ bool CEXIETHERNET::RecvHandlePacket()
 
 wait_for_next:
   if (mBbaMem[BBA_NCRA] & NCRA_SR)
-    RecvStart();
+    m_network_interface->RecvStart();
 
   return true;
 }

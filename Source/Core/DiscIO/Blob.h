@@ -25,6 +25,8 @@
 
 namespace DiscIO
 {
+enum class WIARVZCompressionType : u32;
+
 // Increment CACHE_REVISION (GameFileCache.cpp) if the enum below is modified
 enum class BlobType
 {
@@ -34,17 +36,28 @@ enum class BlobType
   GCZ,
   CISO,
   WBFS,
-  TGC
+  TGC,
+  WIA,
+  RVZ,
 };
+
+std::string GetName(BlobType blob_type, bool translate);
 
 class BlobReader
 {
 public:
   virtual ~BlobReader() {}
+
   virtual BlobType GetBlobType() const = 0;
+
   virtual u64 GetRawSize() const = 0;
   virtual u64 GetDataSize() const = 0;
   virtual bool IsDataSizeAccurate() const = 0;
+
+  // Returns 0 if the format does not use blocks
+  virtual u64 GetBlockSize() const = 0;
+  virtual bool HasFastRandomAccessInBlock() const = 0;
+  virtual std::string GetCompressionMethod() const = 0;
 
   // NOT thread-safe - can't call this from multiple threads.
   virtual bool Read(u64 offset, u64 size, u8* out_ptr) = 0;
@@ -58,7 +71,7 @@ public:
   }
 
   virtual bool SupportsReadWiiDecrypted() const { return false; }
-  virtual bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_offset)
+  virtual bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset)
   {
     return false;
   }
@@ -160,10 +173,15 @@ std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
 typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
 
-bool CompressFileToBlob(const std::string& infile_path, const std::string& outfile_path,
-                        u32 sub_type = 0, int sector_size = 16384, CompressCB callback = nullptr,
-                        void* arg = nullptr);
-bool DecompressBlobToFile(const std::string& infile_path, const std::string& outfile_path,
-                          CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
+                  const std::string& outfile_path, u32 sub_type, int sector_size = 16384,
+                  CompressCB callback = nullptr, void* arg = nullptr);
+bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
+                    const std::string& outfile_path, CompressCB callback = nullptr,
+                    void* arg = nullptr);
+bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
+                       const std::string& outfile_path, bool rvz,
+                       WIARVZCompressionType compression_type, int compression_level,
+                       int chunk_size, CompressCB callback = nullptr, void* arg = nullptr);
 
 }  // namespace DiscIO

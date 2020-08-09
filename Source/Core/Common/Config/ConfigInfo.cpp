@@ -9,18 +9,18 @@
 
 namespace Config
 {
-bool ConfigLocation::operator==(const ConfigLocation& other) const
+bool Location::operator==(const Location& other) const
 {
   return system == other.system && strcasecmp(section.c_str(), other.section.c_str()) == 0 &&
          strcasecmp(key.c_str(), other.key.c_str()) == 0;
 }
 
-bool ConfigLocation::operator!=(const ConfigLocation& other) const
+bool Location::operator!=(const Location& other) const
 {
   return !(*this == other);
 }
 
-bool ConfigLocation::operator<(const ConfigLocation& other) const
+bool Location::operator<(const Location& other) const
 {
   if (system != other.system)
     return system < other.system;

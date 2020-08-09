@@ -51,6 +51,13 @@ enum class ShaderCompilationMode : int
   AsynchronousSkipRendering
 };
 
+enum class FreelookControlType : int
+{
+  SixAxis,
+  FPS,
+  Orbital
+};
+
 // NEVER inherit from this class.
 struct VideoConfig final
 {
@@ -107,6 +114,7 @@ struct VideoConfig final
   std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
+  FreelookControlType iFreelookControlType;
   bool bBorderlessFullscreen;
   bool bEnableGPUTextureDecoding;
   int iBitrateKbps;
@@ -221,6 +229,7 @@ struct VideoConfig final
     bool bSupportsBackgroundCompiling;
     bool bSupportsLargePoints;
     bool bSupportsPartialDepthCopies;
+    bool bSupportsDepthReadback;
     bool bSupportsShaderBinaries;
     bool bSupportsPipelineCacheData;
   } backend_info;

@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 134> s_hotkey_labels{{
+constexpr std::array<const char*, 138> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -85,22 +85,22 @@ constexpr std::array<const char*, 134> s_hotkey_labels{{
     _trans("Toggle SD Card"),
     _trans("Toggle USB Keyboard"),
 
-    _trans("Next Profile for Wii Remote 1"),
-    _trans("Previous Profile for Wii Remote 1"),
-    _trans("Next Game Profile for Wii Remote 1"),
-    _trans("Previous Game Profile for Wii Remote 1"),
-    _trans("Next Profile for Wii Remote 2"),
-    _trans("Previous Profile for Wii Remote 2"),
-    _trans("Next Game Profile for Wii Remote 2"),
-    _trans("Previous Game Profile for Wii Remote 2"),
-    _trans("Next Profile for Wii Remote 3"),
-    _trans("Previous Profile for Wii Remote 3"),
-    _trans("Next Game Profile for Wii Remote 3"),
-    _trans("Previous Game Profile for Wii Remote 3"),
-    _trans("Next Profile for Wii Remote 4"),
-    _trans("Previous Profile for Wii Remote 4"),
-    _trans("Next Game Profile for Wii Remote 4"),
-    _trans("Previous Game Profile for Wii Remote 4"),
+    _trans("Next Profile"),
+    _trans("Previous Profile"),
+    _trans("Next Game Profile"),
+    _trans("Previous Game Profile"),
+    _trans("Next Profile"),
+    _trans("Previous Profile"),
+    _trans("Next Game Profile"),
+    _trans("Previous Game Profile"),
+    _trans("Next Profile"),
+    _trans("Previous Profile"),
+    _trans("Next Game Profile"),
+    _trans("Previous Game Profile"),
+    _trans("Next Profile"),
+    _trans("Previous Profile"),
+    _trans("Next Game Profile"),
+    _trans("Previous Game Profile"),
 
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
@@ -127,6 +127,10 @@ constexpr std::array<const char*, 134> s_hotkey_labels{{
     _trans("Freelook Zoom Out"),
     _trans("Freelook Reset"),
     _trans("Freelook Toggle"),
+    _trans("Freelook Increase Field of View X"),
+    _trans("Freelook Decrease Field of View X"),
+    _trans("Freelook Increase Field of View Y"),
+    _trans("Freelook Decrease Field of View Y"),
 
     _trans("Toggle 3D Side-by-Side"),
     _trans("Toggle 3D Top-Bottom"),
@@ -328,10 +332,13 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Program Counter"), HK_SHOW_PC, HK_SET_PC},
      {_trans("Breakpoint"), HK_BP_TOGGLE, HK_MBP_ADD},
      {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_TOGGLE_USB_KEYBOARD},
-     {_trans("Controller Profile"), HK_NEXT_WIIMOTE_PROFILE_1, HK_PREV_GAME_WIIMOTE_PROFILE_4},
+     {_trans("Controller Profile 1"), HK_NEXT_WIIMOTE_PROFILE_1, HK_PREV_GAME_WIIMOTE_PROFILE_1},
+     {_trans("Controller Profile 2"), HK_NEXT_WIIMOTE_PROFILE_2, HK_PREV_GAME_WIIMOTE_PROFILE_2},
+     {_trans("Controller Profile 3"), HK_NEXT_WIIMOTE_PROFILE_3, HK_PREV_GAME_WIIMOTE_PROFILE_3},
+     {_trans("Controller Profile 4"), HK_NEXT_WIIMOTE_PROFILE_4, HK_PREV_GAME_WIIMOTE_PROFILE_4},
      {_trans("Graphics Toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
      {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
-     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_TOGGLE},
+     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_DECREASE_FOV_Y},
      // i18n: Stereoscopic 3D
      {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_ANAGLYPH},
      // i18n: Stereoscopic 3D
@@ -466,6 +473,10 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_FREELOOK_ZOOM_IN, SHIFT + " & W");
   set_key_expression(HK_FREELOOK_ZOOM_OUT, SHIFT + " & S");
   set_key_expression(HK_FREELOOK_RESET, SHIFT + " & R");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_X, SHIFT + " & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_X, SHIFT + " & `Axis Z-`");
+  set_key_expression(HK_FREELOOK_INCREASE_FOV_Y, SHIFT + " & `Axis Z+`");
+  set_key_expression(HK_FREELOOK_DECREASE_FOV_Y, SHIFT + " & `Axis Z-`");
 
   // Savestates
   const std::string non_fmt = NON + " & `F{}`";

@@ -40,4 +40,11 @@ private:
 
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;
+
+  QCheckBox* m_ram_override_checkbox;
+  QSlider* m_mem1_override_slider;
+  QLabel* m_mem1_override_slider_label;
+  QSlider* m_mem2_override_slider;
+  QLabel* m_mem2_override_slider_label;
+  QLabel* m_ram_override_description;
 };

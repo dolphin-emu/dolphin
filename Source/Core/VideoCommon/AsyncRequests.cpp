@@ -97,6 +97,12 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
   }
 }
 
+void AsyncRequests::WaitForEmptyQueue()
+{
+  std::unique_lock<std::mutex> lock(m_mutex);
+  m_cond.wait(lock, [this] { return m_queue.empty(); });
+}
+
 void AsyncRequests::SetEnable(bool enable)
 {
   std::unique_lock<std::mutex> lock(m_mutex);

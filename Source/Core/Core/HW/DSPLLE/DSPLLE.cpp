@@ -265,7 +265,8 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   {
     if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
     {
-      ERROR_LOG(DSPLLE, "Mailbox isn't empty ... strange");
+      // the DSP didn't read the previous value
+      WARN_LOG(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
 #if PROFILE
@@ -343,9 +344,12 @@ void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
   {
     m_dsp_thread_mutex.unlock();
 
-    // Signal the DSP thread so it can perform any outstanding work now (if any)
-    s_ppc_event.Wait();
-    s_dsp_event.Set();
+    if (m_is_dsp_on_thread)
+    {
+      // Signal the DSP thread so it can perform any outstanding work now (if any)
+      s_ppc_event.Wait();
+      s_dsp_event.Set();
+    }
   }
 }
 }  // namespace DSP::LLE

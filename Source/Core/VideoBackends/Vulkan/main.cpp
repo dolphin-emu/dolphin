@@ -23,7 +23,7 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 #include <objc/message.h>
 #endif
 
@@ -280,7 +280,7 @@ void VideoBackend::Shutdown()
   UnloadVulkanLibrary();
 }
 
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
 static bool IsRunningOnMojaveOrHigher()
 {
   // id processInfo = [NSProcessInfo processInfo]
@@ -306,7 +306,7 @@ static bool IsRunningOnMojaveOrHigher()
 
 void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
 {
-#if defined(VK_USE_PLATFORM_MACOS_MVK)
+#if defined(VK_USE_PLATFORM_METAL_EXT)
   // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
   id view = reinterpret_cast<id>(wsi.render_surface);
   Class clsCAMetalLayer = objc_getClass("CAMetalLayer");

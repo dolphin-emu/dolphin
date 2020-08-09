@@ -9,6 +9,11 @@
 
 class PointerWrap;
 
+namespace Memcard
+{
+struct HeaderData;
+}
+
 namespace ExpansionInterface
 {
 enum TEXIDevices : int
@@ -27,6 +32,7 @@ enum TEXIDevices : int
   // Converted to EXIDEVICE_MEMORYCARD internally.
   EXIDEVICE_MEMORYCARDFOLDER,
   EXIDEVICE_AGP,
+  EXIDEVICE_ETHXLINK,
   EXIDEVICE_NONE = 0xFF
 };
 
@@ -65,5 +71,6 @@ private:
   virtual void TransferByte(u8& byte);
 };
 
-std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num);
+std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num,
+                                             const Memcard::HeaderData& memcard_header_data);
 }  // namespace ExpansionInterface

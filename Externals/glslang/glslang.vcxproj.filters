@@ -103,8 +103,14 @@
     <ClCompile Include="SPIRV\SpvBuilder.cpp">
       <Filter>SPIRV</Filter>
     </ClCompile>
+    <ClCompile Include="SPIRV\SpvPostProcess.cpp">
+      <Filter>SPIRV</Filter>
+    </ClCompile>
     <ClCompile Include="SPIRV\SPVRemapper.cpp">
       <Filter>SPIRV</Filter>
+    </ClCompile>
+    <ClCompile Include="StandAlone\ResourceLimits.cpp">
+      <Filter>StandAlone</Filter>
     </ClCompile>
     <ClCompile Include="OGLCompilersDLL\InitializeDll.cpp">
       <Filter>OGLCompilersDLL</Filter>
@@ -117,8 +123,8 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="glslang\Include\ResourceLimits.h">
-      <Filter>glslang\Include</Filter>
+    <ClInclude Include="StandAlone\ResourceLimits.h">
+      <Filter>StandAlone</Filter>
     </ClInclude>
     <ClInclude Include="glslang\Include\revision.h">
       <Filter>glslang\Include</Filter>

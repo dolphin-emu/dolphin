@@ -21,7 +21,7 @@ namespace DSP
 // clang-format off
 const std::array<DSPOPCTemplate, 214> s_opcodes =
 {{
-  //                                     # of parameters----+   {type, size, loc, lshift, mask}                                        branch        reads PC       // instruction approximation
+  //              # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask  size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
   {"NOP",      0x0000, 0xfffc,    1, 0, {},                                                                                     false, false, false, false, false}, // no operation
 
@@ -451,7 +451,7 @@ const std::array<pdlabel_t, 36> regnames =
   {0x0c, "ST0",       "Call stack",},
   {0x0d, "ST1",       "Data stack",},
   {0x0e, "ST2",       "Loop addr stack",},
-  {0x0f, "ST3",       "Loop counter",},
+  {0x0f, "ST3",       "Loop counter stack",},
   {0x10, "AC0.H",     "Accu High 0",},
   {0x11, "AC1.H",     "Accu High 1",},
   {0x12, "CR",        "Config Register",},

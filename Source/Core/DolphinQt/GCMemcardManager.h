@@ -13,8 +13,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace Memcard
+{
 class GCMemcard;
 class GCMemcardErrorCode;
+}  // namespace Memcard
 
 class QDialogButtonBox;
 class QGroupBox;
@@ -33,7 +36,7 @@ public:
   explicit GCMemcardManager(QWidget* parent = nullptr);
   ~GCMemcardManager();
 
-  static QString GetErrorMessagesForErrorCode(const GCMemcardErrorCode& code);
+  static QString GetErrorMessagesForErrorCode(const Memcard::GCMemcardErrorCode& code);
 
 private:
   struct IconAnimationData;
@@ -54,6 +57,7 @@ private:
   void ExportFiles(bool prompt);
   void ExportAllFiles();
   void FixChecksums();
+  void CreateNewCard(int slot);
   void DrawIcons();
 
   QPixmap GetBannerFromSaveFile(int file_index, int slot);
@@ -72,10 +76,11 @@ private:
   // Slots
   static constexpr int SLOT_COUNT = 2;
   std::array<std::vector<IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
-  std::array<std::unique_ptr<GCMemcard>, SLOT_COUNT> m_slot_memcard;
+  std::array<std::unique_ptr<Memcard::GCMemcard>, SLOT_COUNT> m_slot_memcard;
   std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
   std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;
-  std::array<QPushButton*, SLOT_COUNT> m_slot_file_button;
+  std::array<QPushButton*, SLOT_COUNT> m_slot_open_button;
+  std::array<QPushButton*, SLOT_COUNT> m_slot_create_button;
   std::array<QTableWidget*, SLOT_COUNT> m_slot_table;
   std::array<QLabel*, SLOT_COUNT> m_slot_stat_label;
 

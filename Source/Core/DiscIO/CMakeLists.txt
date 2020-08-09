@@ -21,12 +21,19 @@ add_library(discio
   FileSystemGCWii.h
   Filesystem.cpp
   Filesystem.h
+  LaggedFibonacciGenerator.cpp
+  LaggedFibonacciGenerator.h
+  MultithreadedCompressor.h
   NANDImporter.cpp
   NANDImporter.h
+  ScrubbedBlob.cpp
+  ScrubbedBlob.h
   TGCBlob.cpp
   TGCBlob.h
   Volume.cpp
   Volume.h
+  VolumeDisc.cpp
+  VolumeDisc.h
   VolumeFileBlobReader.cpp
   VolumeFileBlobReader.h
   VolumeGC.cpp
@@ -39,11 +46,22 @@ add_library(discio
   VolumeWii.h
   WbfsBlob.cpp
   WbfsBlob.h
+  WIABlob.cpp
+  WIABlob.h
+  WIACompression.cpp
+  WIACompression.h
+  WiiEncryptionCache.cpp
+  WiiEncryptionCache.h
   WiiSaveBanner.cpp
   WiiSaveBanner.h
 )
 
 target_link_libraries(discio
+PUBLIC
+  BZip2::BZip2
+  LibLZMA::LibLZMA
+  zstd
+
 PRIVATE
   minizip
   pugixml

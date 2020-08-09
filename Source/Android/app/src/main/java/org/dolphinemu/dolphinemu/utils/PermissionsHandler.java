@@ -62,7 +62,7 @@ public class PermissionsHandler
   private static void showMessageOKCancel(final FragmentActivity activity, String message,
           DialogInterface.OnClickListener okListener)
   {
-    new AlertDialog.Builder(activity)
+    new AlertDialog.Builder(activity, R.style.DolphinDialogBase)
             .setMessage(message)
             .setPositiveButton(android.R.string.ok, okListener)
             .setNegativeButton(android.R.string.cancel, (dialogInterface, i) ->
