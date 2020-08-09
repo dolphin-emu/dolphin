@@ -7,10 +7,10 @@ addons:
     sources:
     - ubuntu-toolchain-r-test
     packages:
-    - g++-6
+    - g++-8
     - cmake
 install:
-- "[ $CXX = g++ ] && export CXX=g++-6 || true"
+- "[ $CXX = g++ ] && export CXX=g++-8 || true"
 - "[ $CXX = clang++ ] && export CXX=clang++-3.8 || true"
 script:
   - mkdir build && cd build
