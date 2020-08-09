@@ -4,6 +4,6 @@ cd /dolphin
 
 mkdir build
 cd build
-cmake .. -DLINUX_LOCAL_DEV=true
-make
+cmake .. -G Ninja -DLINUX_LOCAL_DEV=true
+ninja
 ln -s ../../Data/Sys Binaries/
