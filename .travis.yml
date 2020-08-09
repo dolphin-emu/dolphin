@@ -17,7 +17,7 @@ matrix:
             - echo "$TRAVIS_COMMIT"
             - docker pull quriouspixel/yuzu:latest 
         script: 
-            - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache -u root quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
+            - docker run -u root -e ENABLE_COMPATIBILITY_REPORTING --env-file travis/common/travis-ci.env -v $(pwd):/dolphin -v "$HOME/.ccache":/root/.ccache quriouspixel/yuzu:latest /bin/bash /dolphin/travis/appimage/docker.sh
       after_success:
       - ls -lh artifacts/* 
       - wget -c https://github.com/probonopd/uploadtool/raw/master/upload.sh
