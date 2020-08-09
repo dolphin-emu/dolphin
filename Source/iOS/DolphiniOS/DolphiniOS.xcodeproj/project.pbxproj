@@ -51,7 +51,6 @@
 		B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */; };
 		B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
-		B964B13B248DFCA200EE5A3B /* SoftwareProperties.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B964B13A248DFCA200EE5A3B /* SoftwareProperties.storyboard */; };
 		B964B13E248EB63E00EE5A3B /* SoftwareInfoViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */; };
 		B964B141248ED58200EE5A3B /* SoftwarePropertiesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B140248ED58200EE5A3B /* SoftwarePropertiesViewController.mm */; };
 		B964B145248F613700EE5A3B /* SoftwareVerifyStartViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B144248F613700EE5A3B /* SoftwareVerifyStartViewController.mm */; };
@@ -159,6 +158,7 @@
 		B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9DCAC8423AAC46E002B95C8 /* TCSidewaysWiiPad.xib */; };
 		B9DCAC9023AAD98D002B95C8 /* TCSidewaysWiiPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B9DCAC8F23AAD98D002B95C8 /* TCSidewaysWiiPad.swift */; };
 		B9DCAC9F23AC9C83002B95C8 /* GameController.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B9DCAC9E23AC9C83002B95C8 /* GameController.framework */; };
+		B9E4EA7424E07AE700CED657 /* SoftwareProperties.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B9E4EA7624E07AE700CED657 /* SoftwareProperties.storyboard */; };
 		B9E983E624592A6800119883 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9E983E524592A6800119883 /* GoogleService-Info.plist */; };
 		B9E983EE245A1F2700119883 /* SoftwareCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9E983ED245A1F2700119883 /* SoftwareCollectionViewCell.m */; };
 		B9E983F4245A57EB00119883 /* SoftwareListViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9E983F3245A57EB00119883 /* SoftwareListViewController.mm */; };
@@ -351,7 +351,6 @@
 		B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsSettingsUtils.h; sourceTree = "<group>"; };
 		B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsSettingsUtils.mm; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
-		B964B13A248DFCA200EE5A3B /* SoftwareProperties.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = SoftwareProperties.storyboard; sourceTree = "<group>"; };
 		B964B13C248EB63E00EE5A3B /* SoftwareInfoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareInfoViewController.h; sourceTree = "<group>"; };
 		B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareInfoViewController.mm; sourceTree = "<group>"; };
 		B964B13F248ED58200EE5A3B /* SoftwarePropertiesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwarePropertiesViewController.h; sourceTree = "<group>"; };
@@ -561,6 +560,19 @@
 		B9E4EA7124E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/LaunchScreen.strings"; sourceTree = "<group>"; };
 		B9E4EA7224E078D400CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Dolphin.strings"; sourceTree = "<group>"; };
 		B9E4EA7324E078D500CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/Localizable.strings"; sourceTree = "<group>"; };
+		B9E4EA7524E07AE700CED657 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/SoftwareProperties.storyboard; sourceTree = "<group>"; };
+		B9E4EA7824E07AEE00CED657 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA7A24E07B1D00CED657 /* zh-Hans */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "zh-Hans"; path = "zh-Hans.lproj/SoftwareProperties.strings"; sourceTree = "<group>"; };
+		B9E4EA7C24E07B5A00CED657 /* nl */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = nl; path = nl.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA7E24E07BA300CED657 /* fr */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = fr; path = fr.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8024E07BE900CED657 /* de */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = de; path = de.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8224E07C1900CED657 /* it */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = it; path = it.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8424E07C5900CED657 /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8624E07C8C00CED657 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = ko.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8824E07CD100CED657 /* pt-BR */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "pt-BR"; path = "pt-BR.lproj/SoftwareProperties.strings"; sourceTree = "<group>"; };
+		B9E4EA8A24E07DB100CED657 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8C24E07DF600CED657 /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
+		B9E4EA8E24E07E3600CED657 /* sv */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = sv; path = sv.lproj/SoftwareProperties.strings; sourceTree = "<group>"; };
 		B9E983E524592A6800119883 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		B9E983EC245A1F2700119883 /* SoftwareCollectionViewCell.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareCollectionViewCell.h; sourceTree = "<group>"; };
 		B9E983ED245A1F2700119883 /* SoftwareCollectionViewCell.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SoftwareCollectionViewCell.m; sourceTree = "<group>"; };
@@ -859,7 +871,7 @@
 				B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */,
 				B964B13F248ED58200EE5A3B /* SoftwarePropertiesViewController.h */,
 				B964B140248ED58200EE5A3B /* SoftwarePropertiesViewController.mm */,
-				B964B13A248DFCA200EE5A3B /* SoftwareProperties.storyboard */,
+				B9E4EA7624E07AE700CED657 /* SoftwareProperties.storyboard */,
 			);
 			path = Properties;
 			sourceTree = "<group>";
@@ -1483,7 +1495,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */,
-				B964B13B248DFCA200EE5A3B /* SoftwareProperties.storyboard in Resources */,
+				B9E4EA7424E07AE700CED657 /* SoftwareProperties.storyboard in Resources */,
 				B9766AF523A5EACD00FF7F17 /* license.txt in Resources */,
 				B99B05B523A182B20076C7D8 /* Emulation.storyboard in Resources */,
 				B971E1CE245E7F2200D2A698 /* OSTooNewNotice.xib in Resources */,
@@ -1980,6 +1992,26 @@
 				B9E4EA7324E078D500CED657 /* zh-Hans */,
 			);
 			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+		B9E4EA7624E07AE700CED657 /* SoftwareProperties.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				B9E4EA7524E07AE700CED657 /* Base */,
+				B9E4EA7824E07AEE00CED657 /* en */,
+				B9E4EA7A24E07B1D00CED657 /* zh-Hans */,
+				B9E4EA7C24E07B5A00CED657 /* nl */,
+				B9E4EA7E24E07BA300CED657 /* fr */,
+				B9E4EA8024E07BE900CED657 /* de */,
+				B9E4EA8224E07C1900CED657 /* it */,
+				B9E4EA8424E07C5900CED657 /* ja */,
+				B9E4EA8624E07C8C00CED657 /* ko */,
+				B9E4EA8824E07CD100CED657 /* pt-BR */,
+				B9E4EA8A24E07DB100CED657 /* ru */,
+				B9E4EA8C24E07DF600CED657 /* es */,
+				B9E4EA8E24E07E3600CED657 /* sv */,
+			);
+			name = SoftwareProperties.storyboard;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */
