@@ -9,6 +9,7 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
+#include "discord_rpc.h"
 #include <memory>
 #include <mutex>
 #include <optional>

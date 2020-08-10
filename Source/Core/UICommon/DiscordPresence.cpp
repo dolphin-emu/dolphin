@@ -163,23 +163,6 @@ void UpdateDiscordPresence(int party_size, SecretType type, const std::string& s
   discord_presence.details = title.empty() ? "Not in-game" : title.c_str();
   discord_presence.startTimestamp = std::time(nullptr);
 
-  if (party_size > 0)
-  {
-    if (party_size < 4)
-    {
-      discord_presence.state = "In a party";
-      discord_presence.partySize = party_size;
-      discord_presence.partyMax = 4;
-    }
-    else
-    {
-      // others can still join to spectate
-      discord_presence.state = "In a full party";
-      discord_presence.partySize = party_size;
-      // Note: joining still works without partyMax
-    }
-  }
-
   std::string party_id;
   std::string secret_final;
   if (type != SecretType::Empty)

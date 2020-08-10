@@ -1,10 +1,15 @@
 #include "Discord.h"
+#include "Core/NetPlayClient.h"
 #include "UICommon/DiscordPresence.h"
+#include "UICommon/NetPlayIndex.h"
+
+
 bool mpn_update_discord()
 {
-  if (!Memory::IsInitialized())
-    return false;
+  NetPlaySession session;
   DiscordRichPresence RichPresence = {};
+  if (!Memory::IsInitialized())
+    RichPresence.state = "In a party";
   RichPresence.largeImageKey = CurrentState.Image ? CurrentState.Image : "default";
   RichPresence.largeImageText = CurrentState.Title ? CurrentState.Title : "In-Game";
   RichPresence.partyMax = 4;
@@ -19,7 +24,7 @@ bool mpn_update_discord()
     if (CurrentState.Boards && CurrentState.Board)
     {
       snprintf(Details, sizeof(Details), "Players: %d/%d Turn: %d/%d",
-          RichPresence.partySize,
+          session.player_count,
           RichPresence.partyMax,
           mpn_read_value(CurrentState.Addresses->CurrentTurn, 1),
           mpn_read_value(CurrentState.Addresses->TotalTurns, 1));
