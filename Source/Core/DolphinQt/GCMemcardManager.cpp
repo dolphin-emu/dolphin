@@ -44,15 +44,17 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr int ROW_HEIGHT = 36;
+constexpr int COLUMN_WIDTH_FILENAME = 100;
 constexpr int COLUMN_WIDTH_BANNER = Memcard::MEMORY_CARD_BANNER_WIDTH + 6;
 constexpr int COLUMN_WIDTH_TEXT = 160;
 constexpr int COLUMN_WIDTH_ICON = Memcard::MEMORY_CARD_ICON_WIDTH + 6;
 constexpr int COLUMN_WIDTH_BLOCKS = 40;
-constexpr int COLUMN_INDEX_BANNER = 0;
-constexpr int COLUMN_INDEX_TEXT = 1;
-constexpr int COLUMN_INDEX_ICON = 2;
-constexpr int COLUMN_INDEX_BLOCKS = 3;
-constexpr int COLUMN_COUNT = 4;
+constexpr int COLUMN_INDEX_FILENAME = 0;
+constexpr int COLUMN_INDEX_BANNER = 1;
+constexpr int COLUMN_INDEX_TEXT = 2;
+constexpr int COLUMN_INDEX_ICON = 3;
+constexpr int COLUMN_INDEX_BLOCKS = 4;
+constexpr int COLUMN_COUNT = 5;
 
 struct GCMemcardManager::IconAnimationData
 {
@@ -133,12 +135,15 @@ void GCMemcardManager::CreateWidgets()
     m_slot_table[i]->horizontalHeader()->setMinimumSectionSize(0);
     m_slot_table[i]->horizontalHeader()->setSortIndicatorShown(true);
     m_slot_table[i]->setColumnCount(COLUMN_COUNT);
+    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_FILENAME,
+                                             new QTableWidgetItem(tr("Filename")));
     m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BANNER,
                                              new QTableWidgetItem(tr("Banner")));
     m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_TEXT, new QTableWidgetItem(tr("Title")));
     m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_ICON, new QTableWidgetItem(tr("Icon")));
     m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BLOCKS,
                                              new QTableWidgetItem(tr("Blocks")));
+    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_FILENAME, COLUMN_WIDTH_FILENAME);
     m_slot_table[i]->setColumnWidth(COLUMN_INDEX_BANNER, COLUMN_WIDTH_BANNER);
     m_slot_table[i]->setColumnWidth(COLUMN_INDEX_TEXT, COLUMN_WIDTH_TEXT);
     m_slot_table[i]->setColumnWidth(COLUMN_INDEX_ICON, COLUMN_WIDTH_ICON);
@@ -255,6 +260,8 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
     const auto file_comments = memcard->GetSaveComments(file_index);
     const u16 block_count = memcard->DEntry_BlockCount(file_index);
+    const auto entry = memcard->GetDEntry(file_index);
+    const std::string filename = entry ? Memcard::GenerateFilename(*entry) : "";
 
     const QString title =
         file_comments ? QString::fromStdString(file_comments->first).trimmed() : QString();
@@ -263,6 +270,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     auto banner = GetBannerFromSaveFile(file_index, slot);
     auto icon_data = GetIconFromSaveFile(file_index, slot);
 
+    auto* item_filename = new QTableWidgetItem(QString::fromStdString(filename));
     auto* item_banner = new QTableWidgetItem();
     auto* item_text = new QTableWidgetItem(QStringLiteral("%1\n%2").arg(title, comment));
     auto* item_icon = new QTableWidgetItem();
@@ -272,7 +280,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     item_icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
     item_blocks->setData(Qt::DisplayRole, block_count);
 
-    for (auto* item : {item_banner, item_text, item_icon, item_blocks})
+    for (auto* item : {item_filename, item_banner, item_text, item_icon, item_blocks})
     {
       item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
       item->setData(Qt::UserRole, static_cast<int>(file_index));
@@ -280,6 +288,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
     m_slot_active_icons[slot].emplace(file_index, std::move(icon_data));
 
+    table->setItem(i, COLUMN_INDEX_FILENAME, item_filename);
     table->setItem(i, COLUMN_INDEX_BANNER, item_banner);
     table->setItem(i, COLUMN_INDEX_TEXT, item_text);
     table->setItem(i, COLUMN_INDEX_ICON, item_icon);
