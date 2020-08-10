@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
 #include <utility>
 #include <vector>
@@ -88,7 +89,7 @@ private:
 
   // Slots
   static constexpr int SLOT_COUNT = 2;
-  std::array<std::vector<IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
+  std::array<std::map<u8, IconAnimationData>, SLOT_COUNT> m_slot_active_icons;
   std::array<std::unique_ptr<Memcard::GCMemcard>, SLOT_COUNT> m_slot_memcard;
   std::array<QGroupBox*, SLOT_COUNT> m_slot_group;
   std::array<QLineEdit*, SLOT_COUNT> m_slot_file_edit;

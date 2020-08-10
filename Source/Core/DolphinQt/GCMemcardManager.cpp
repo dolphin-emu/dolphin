@@ -128,8 +128,10 @@ void GCMemcardManager::CreateWidgets()
 
     m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_slot_table[i]->setSortingEnabled(true);
     m_slot_table[i]->horizontalHeader()->setHighlightSections(false);
     m_slot_table[i]->horizontalHeader()->setMinimumSectionSize(0);
+    m_slot_table[i]->horizontalHeader()->setSortIndicatorShown(true);
     m_slot_table[i]->setColumnCount(COLUMN_COUNT);
     m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BANNER,
                                              new QTableWidgetItem(tr("Banner")));
@@ -241,11 +243,11 @@ void GCMemcardManager::UpdateSlotTable(int slot)
 
   auto& memcard = m_slot_memcard[slot];
   auto* table = m_slot_table[slot];
+  table->setSortingEnabled(false);
 
   const u8 num_files = memcard->GetNumFiles();
   const u8 free_files = Memcard::DIRLEN - num_files;
   const u16 free_blocks = memcard->GetFreeBlocks();
-  m_slot_active_icons[slot].reserve(num_files);
   table->setRowCount(num_files);
   for (int i = 0; i < num_files; i++)
   {
@@ -264,10 +266,11 @@ void GCMemcardManager::UpdateSlotTable(int slot)
     auto* item_banner = new QTableWidgetItem();
     auto* item_text = new QTableWidgetItem(QStringLiteral("%1\n%2").arg(title, comment));
     auto* item_icon = new QTableWidgetItem();
-    auto* item_blocks = new QTableWidgetItem(QString::number(block_count));
+    auto* item_blocks = new QTableWidgetItem();
 
     item_banner->setData(Qt::DecorationRole, banner);
     item_icon->setData(Qt::DecorationRole, icon_data.m_frames[0]);
+    item_blocks->setData(Qt::DisplayRole, block_count);
 
     for (auto* item : {item_banner, item_text, item_icon, item_blocks})
     {
@@ -275,7 +278,7 @@ void GCMemcardManager::UpdateSlotTable(int slot)
       item->setData(Qt::UserRole, static_cast<int>(file_index));
     }
 
-    m_slot_active_icons[slot].emplace_back(std::move(icon_data));
+    m_slot_active_icons[slot].emplace(file_index, std::move(icon_data));
 
     table->setItem(i, COLUMN_INDEX_BANNER, item_banner);
     table->setItem(i, COLUMN_INDEX_TEXT, item_text);
@@ -287,6 +290,8 @@ void GCMemcardManager::UpdateSlotTable(int slot)
   const QString free_files_string = tr("Free Files: %1").arg(free_files);
   m_slot_stat_label[slot]->setText(
       QStringLiteral("%1      %2").arg(free_blocks_string, free_files_string));
+
+  table->setSortingEnabled(true);
 }
 
 void GCMemcardManager::UpdateActions()
@@ -670,19 +675,34 @@ void GCMemcardManager::DrawIcons()
   const int column = COLUMN_INDEX_ICON;
   for (int slot = 0; slot < SLOT_COUNT; slot++)
   {
-    // skip loop if the table is empty
-    if (m_slot_table[slot]->rowCount() <= 0)
+    QTableWidget* table = m_slot_table[slot];
+    const int row_count = table->rowCount();
+
+    if (row_count <= 0)
       continue;
 
-    const auto viewport = m_slot_table[slot]->viewport();
-    u32 row = m_slot_table[slot]->indexAt(viewport->rect().topLeft()).row();
-    const auto max_table_index = m_slot_table[slot]->indexAt(viewport->rect().bottomLeft());
-    const u32 max_row =
-        max_table_index.row() < 0 ? (m_slot_table[slot]->rowCount() - 1) : max_table_index.row();
+    const auto viewport = table->viewport();
+    const int viewport_first_row = table->indexAt(viewport->rect().topLeft()).row();
+    if (viewport_first_row >= row_count)
+      continue;
 
-    for (; row <= max_row; row++)
+    const int first_row = viewport_first_row < 0 ? 0 : viewport_first_row;
+    const int viewport_last_row = table->indexAt(viewport->rect().bottomLeft()).row();
+    const int last_row =
+        viewport_last_row < 0 ? (row_count - 1) : std::min(viewport_last_row, row_count - 1);
+
+    for (int row = first_row; row <= last_row; ++row)
     {
-      const auto& icon = m_slot_active_icons[slot][row];
+      auto* item = table->item(row, column);
+      if (!item)
+        continue;
+
+      const u8 index = static_cast<u8>(item->data(Qt::UserRole).toInt());
+      auto it = m_slot_active_icons[slot].find(index);
+      if (it == m_slot_active_icons[slot].end())
+        continue;
+
+      const auto& icon = it->second;
 
       // this icon doesn't have an animation
       if (icon.m_frames.size() <= 1)
@@ -696,7 +716,6 @@ void GCMemcardManager::DrawIcons()
       if (prev_frame == current_frame)
         continue;
 
-      auto* item = m_slot_table[slot]->item(row, column);
       item->setData(Qt::DecorationRole, icon.m_frames[current_frame]);
     }
   }
