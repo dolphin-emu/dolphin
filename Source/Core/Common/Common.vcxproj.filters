@@ -261,6 +261,7 @@
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
     <ClInclude Include="File.h" />
+    <ClInclude Include="FileByHandle.h" />
     <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
@@ -355,6 +356,7 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="File.cpp" />
+    <ClCompile Include="FileByHandle.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
     <ClCompile Include="Config\ConfigInfo.cpp" />

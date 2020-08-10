@@ -12,6 +12,7 @@
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
+#include "Common/FileByHandle.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
@@ -177,16 +178,15 @@ void HostFileSystem::SaveFst()
 
   const std::string dest_path = GetFstFilePath();
   const std::string temp_path = File::GetTempFilenameForAtomicWrite(dest_path);
+
+  File::IOFileByHandle file(temp_path);
+  if (!file.WriteArray(to_write.data(), to_write.size()))
   {
-    // This temporary file must be closed before it can be renamed.
-    File::IOFile file{temp_path, "wb"};
-    if (!file.WriteArray(to_write.data(), to_write.size()))
-    {
-      PanicAlert("IOS_FS: Failed to write new FST");
-      return;
-    }
+    PanicAlert("IOS_FS: Failed to write new FST");
+    return;
   }
-  if (!File::Rename(temp_path, dest_path))
+
+  if (!file.Rename(dest_path))
     PanicAlert("IOS_FS: Failed to rename temporary FST file");
 }
 
