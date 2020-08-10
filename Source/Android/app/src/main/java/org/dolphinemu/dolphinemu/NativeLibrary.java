@@ -6,6 +6,7 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.util.DisplayMetrics;
 import android.view.Surface;
 
 import androidx.appcompat.app.AlertDialog;
@@ -569,6 +570,13 @@ public final class NativeLibrary
     {
       emulationActivity.runOnUiThread(emulationActivity::initInputPointer);
     }
+  }
+
+  public static float getRenderSurfaceScale()
+  {
+    DisplayMetrics metrics = new DisplayMetrics();
+    sEmulationActivity.get().getWindowManager().getDefaultDisplay().getMetrics(metrics);
+    return metrics.scaledDensity;
   }
 
   public static native float GetGameAspectRatio();
