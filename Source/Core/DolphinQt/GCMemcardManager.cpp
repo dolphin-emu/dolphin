@@ -44,6 +44,10 @@
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 constexpr int ROW_HEIGHT = 36;
+constexpr int COLUMN_WIDTH_BANNER = Memcard::MEMORY_CARD_BANNER_WIDTH + 6;
+constexpr int COLUMN_WIDTH_TEXT = 160;
+constexpr int COLUMN_WIDTH_ICON = Memcard::MEMORY_CARD_ICON_WIDTH + 6;
+constexpr int COLUMN_WIDTH_BLOCKS = 40;
 constexpr int COLUMN_INDEX_BANNER = 0;
 constexpr int COLUMN_INDEX_TEXT = 1;
 constexpr int COLUMN_INDEX_ICON = 2;
@@ -124,8 +128,20 @@ void GCMemcardManager::CreateWidgets()
 
     m_slot_table[i]->setSelectionMode(QAbstractItemView::ExtendedSelection);
     m_slot_table[i]->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_slot_table[i]->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     m_slot_table[i]->horizontalHeader()->setHighlightSections(false);
+    m_slot_table[i]->horizontalHeader()->setMinimumSectionSize(0);
+    m_slot_table[i]->setColumnCount(COLUMN_COUNT);
+    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BANNER,
+                                             new QTableWidgetItem(tr("Banner")));
+    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_TEXT, new QTableWidgetItem(tr("Title")));
+    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_ICON, new QTableWidgetItem(tr("Icon")));
+    m_slot_table[i]->setHorizontalHeaderItem(COLUMN_INDEX_BLOCKS,
+                                             new QTableWidgetItem(tr("Blocks")));
+    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_BANNER, COLUMN_WIDTH_BANNER);
+    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_TEXT, COLUMN_WIDTH_TEXT);
+    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_ICON, COLUMN_WIDTH_ICON);
+    m_slot_table[i]->setColumnWidth(COLUMN_INDEX_BLOCKS, COLUMN_WIDTH_BLOCKS);
+    m_slot_table[i]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
     m_slot_table[i]->verticalHeader()->hide();
     m_slot_table[i]->setShowGrid(false);
 
@@ -215,14 +231,13 @@ void GCMemcardManager::SetActiveSlot(int slot)
 void GCMemcardManager::UpdateSlotTable(int slot)
 {
   m_slot_active_icons[slot].clear();
-  m_slot_table[slot]->clear();
-  m_slot_table[slot]->setColumnCount(COLUMN_COUNT);
-  m_slot_table[slot]->verticalHeader()->setDefaultSectionSize(ROW_HEIGHT);
-  m_slot_table[slot]->setHorizontalHeaderLabels(
-      {tr("Banner"), tr("Title"), tr("Icon"), tr("Blocks")});
 
   if (m_slot_memcard[slot] == nullptr)
+  {
+    m_slot_table[slot]->setRowCount(0);
+    m_slot_stat_label[slot]->clear();
     return;
+  }
 
   auto& memcard = m_slot_memcard[slot];
   auto* table = m_slot_table[slot];
