@@ -389,7 +389,7 @@ void FpsControls::add_strafe_code_mp1_ntsc() {
   // fmuls f1, f1, f0
   // fdivs f1, f1, f3
   // lfs f0, 0xa4(r3) 
-  // stfs f0, 0x10(r1)
+  // stfs f0, 0x10(r1)  
   // fmuls f1, f1, f0 
   // lfs f0, -0x4260(r2) 
   // fcmpo cr0, f30, f0

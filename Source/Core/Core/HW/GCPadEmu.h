@@ -30,7 +30,14 @@ enum class PadGroup
   Triggers,
   Rumble,
   Mic,
-  Options
+  Options,
+
+  Beams,
+  Visors,
+  Camera,
+  Misc,
+  ControlStick,
+  Modes
 };
 
 class GCPad : public ControllerEmu::EmulatedController

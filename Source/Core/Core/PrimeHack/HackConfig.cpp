@@ -20,10 +20,11 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "Core/HW/GCPad.h"
 #include "Core/ConfigManager.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "VideoCommon/VideoConfig.h"
-#include <Core\HW\GCPad.h>
+
 
 namespace prime {
 namespace {
