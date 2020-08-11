@@ -348,7 +348,7 @@ static void FinishRead(u64 id, s64 cycles_late)
     PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
                 request.dvd_offset, request.dvd_offset + request.length);
 
-    DVDInterface::SetHighError(DVDInterface::ERROR_BLOCK_OOB);
+    DVDInterface::SetDriveError(DVDInterface::DriveError::BlockOOB);
     interrupt = DVDInterface::DIInterruptType::DEINT;
   }
   else
