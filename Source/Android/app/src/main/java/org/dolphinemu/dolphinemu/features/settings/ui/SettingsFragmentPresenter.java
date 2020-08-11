@@ -398,10 +398,10 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WII_SD_CARD_ALLOW_WRITES, Settings.SECTION_INI_CORE,
             R.string.wii_sd_card_allow_writes, 0, true, wiiSDWrites));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, Settings.SECTION_INI_CORE,
-            R.string.wiimote_scanning, R.string.wiimote_scanning_description, true,
+            R.string.wiimote_scanning, R.string.wiimote_scanning_description, false,
             continuousScan));
     sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, Settings.SECTION_INI_CORE,
-            R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
+            R.string.wiimote_speaker, R.string.wiimote_speaker_description, false, wiimoteSpeaker));
   }
 
   private void addAdvancedSettings(ArrayList<SettingsItem> sl)
