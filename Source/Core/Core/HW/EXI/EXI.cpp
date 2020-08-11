@@ -152,13 +152,15 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
 }
 
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num,
-                  CoreTiming::FromThread from_thread)
+                  CoreTiming::FromThread from_thread, s64 cycles_delay_change,
+                  s64 cycles_no_device_visible)
 {
-  // Let the hardware see no device for 1 second
-  CoreTiming::ScheduleEvent(0, changeDevice,
+  // Let the hardware see no device for cycles_no_device_visible cycles after waiting for
+  // cycles_delay_change cycles
+  CoreTiming::ScheduleEvent(cycles_delay_change, changeDevice,
                             ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num,
                             from_thread);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+  CoreTiming::ScheduleEvent(cycles_delay_change + cycles_no_device_visible, changeDevice,
                             ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
                             from_thread);
 }

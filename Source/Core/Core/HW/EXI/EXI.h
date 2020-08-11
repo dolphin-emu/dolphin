@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/SystemTimers.h"
 
 class PointerWrap;
 
@@ -40,8 +41,13 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 void UpdateInterrupts();
 void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
 
+// Change a device over a period of time.
+// This schedules a device change: First the device is 'ejected' cycles_delay_change cycles from
+// now, then the new device is 'inserted' another cycles_no_device_visible cycles later.
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num,
-                  CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
+                  CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU,
+                  s64 cycles_delay_change = 0,
+                  s64 cycles_no_device_visible = SystemTimers::GetTicksPerSecond());
 
 CEXIChannel* GetChannel(u32 index);
 
