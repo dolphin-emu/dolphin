@@ -295,6 +295,11 @@ static void WritePacket(AVPacket& pkt)
   av_interleaved_write_frame(s_format_context, &pkt);
 }
 
+static u64 TicksToTimeBaseUnits(u64 ticks, AVRational time_base, u32 ticks_per_second)
+{
+  return ticks * time_base.den / time_base.num / ticks_per_second;
+}
+
 void FrameDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   // Assume that the timing is valid, if the savestate id of the new frame
@@ -346,10 +351,11 @@ void FrameDump::AddFrame(const u8* data, int width, int height, int stride, cons
   else
   {
     delta = state.ticks - s_last_frame;
-    last_pts = (s_last_pts * s_codec_context->time_base.den) / state.ticks_per_second;
+    last_pts = TicksToTimeBaseUnits(s_last_pts, s_codec_context->time_base, state.ticks_per_second);
   }
   u64 pts_in_ticks = s_last_pts + delta;
-  s_scaled_frame->pts = (pts_in_ticks * s_codec_context->time_base.den) / state.ticks_per_second;
+  s_scaled_frame->pts =
+      TicksToTimeBaseUnits(pts_in_ticks, s_codec_context->time_base, state.ticks_per_second);
   if (s_scaled_frame->pts != last_pts)
   {
     s_last_frame = state.ticks;
