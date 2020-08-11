@@ -51,6 +51,8 @@ public:
   static std::pair<std::string /* path */, bool /* migrate */>
   GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
 
+  s32 ReadFromMemcard(u32 memcard_offset, s32 length, u8* dest_address) const;
+
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 size_mb);

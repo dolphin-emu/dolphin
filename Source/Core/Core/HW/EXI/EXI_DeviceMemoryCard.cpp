@@ -175,6 +175,14 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
   return {std::move(path), !use_movie_folder};
 }
 
+s32 CEXIMemoryCard::ReadFromMemcard(u32 memcard_offset, s32 length, u8* dest_address) const
+{
+  if (!m_memory_card)
+    return 0;
+
+  return m_memory_card->Read(memcard_offset, length, dest_address);
+}
+
 void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 {
   const std::string& game_id = SConfig::GetInstance().GetGameID();
