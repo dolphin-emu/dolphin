@@ -152,6 +152,8 @@ static WindowSystemType GetWindowSystemType()
     return WindowSystemType::X11;
   else if (platform_name == QStringLiteral("wayland"))
     return WindowSystemType::Wayland;
+  else if (platform_name == QStringLiteral("eglfs"))
+    return WindowSystemType::DRM;
 
   ModalMessageBox::critical(
       nullptr, QStringLiteral("Error"),
