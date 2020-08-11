@@ -11,10 +11,10 @@ class QRadioButton;
 class QLabel;
 class PrimeHackModes;
 
-class PrimeHackEmuGeneral final : public MappingWidget
+class PrimeHackEmuWii final : public MappingWidget
 {
 public:
-  explicit PrimeHackEmuGeneral(MappingWindow* window);
+  explicit PrimeHackEmuWii(MappingWindow* window);
 
   InputConfig* GetConfig() override;
 

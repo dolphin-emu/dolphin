@@ -101,6 +101,63 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
                         // i18n: Treat a controller as always being connected regardless of what
                         // devices the user actually has plugged in
                         _trans("Always Connected"), false);
+
+  // Adding PrimeHack Buttons
+  //groups.emplace_back(m_primehack_beams = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+  //for (const char* prime_button : prime_beams)
+  //{
+  //  const std::string& ui_name = prime_button;
+  //  m_primehack_beams->controls.emplace_back(
+  //    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
+  //}
+  //m_primehack_beams->controls.emplace_back(
+  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Beam"), "Next Beam"));
+  //m_primehack_beams->controls.emplace_back(
+  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Beam"), "Previous Beam"));
+
+  //groups.emplace_back(m_primehack_visors = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+  //for (const char* prime_button : prime_visors)
+  //{
+  //  const std::string& ui_name = prime_button;
+  //  m_primehack_visors->controls.emplace_back(
+  //    new ControllerEmu::Input(ControllerEmu::DoNotTranslate, prime_button, ui_name));
+  //}
+
+  //m_primehack_visors->controls.emplace_back(
+  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Next Visor"), "Next Visor"));
+  //m_primehack_visors->controls.emplace_back(
+  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, _trans("Previous Visor"), "Previous Visor"));
+
+  groups.emplace_back(m_primehack_camera = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_invert_x, {"Invert X Axis", nullptr, nullptr, _trans("Invert X Axis")}, false);
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_invert_y, {"Invert Y Axis", nullptr, nullptr, _trans("Invert Y Axis")}, false);
+
+  m_primehack_camera->AddSetting(
+    &m_primehack_camera_sensitivity,
+    {"Camera Sensitivity", nullptr, nullptr, _trans("Camera Sensitivity")}, 15, 1, 100);
+
+  m_primehack_camera->AddSetting(&m_primehack_fieldofview,
+    {"Field of View", nullptr, nullptr, _trans("Field of View")}, 60,
+    1, 170);
+
+  constexpr auto gate_radius = ControlState(STICK_GATE_RADIUS) / STICK_RADIUS;
+  groups.emplace_back(m_primehack_stick =
+    new ControllerEmu::OctagonAnalogStick(_trans("Camera Control"), gate_radius));
+
+  m_primehack_stick->AddSetting(&m_primehack_horizontal_sensitivity, {"Horizontal Sensitivity", nullptr, nullptr, _trans("Horizontal Sensitivity")}, 45, 1, 100);
+  m_primehack_stick->AddSetting(&m_primehack_vertical_sensitivity, {"Vertical Sensitivity", nullptr, nullptr, _trans("Vertical Sensitivity")}, 35, 1, 100);
+
+  groups.emplace_back(m_primehack_modes = new ControllerEmu::PrimeHackModes(_trans("PrimeHack")));
+
+  groups.emplace_back(m_primehack_misc = new ControllerEmu::ControlGroup(_trans("PrimeHack")));
+
+  //m_primehack_misc->controls.emplace_back(
+  //  new ControllerEmu::Input(ControllerEmu::DoNotTranslate, "Spring Ball", "Spring Ball"));
+
 }
 
 std::string GCPad::GetName() const
@@ -128,6 +185,14 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
     return m_mic;
   case PadGroup::Options:
     return m_options;
+  case PadGroup::Misc:
+    return m_primehack_misc;
+  case PadGroup::Camera:
+    return m_primehack_camera;
+  case PadGroup::ControlStick:
+    return m_primehack_stick;
+  case PadGroup::Modes:
+    return m_primehack_modes;
   default:
     return nullptr;
   }
@@ -260,9 +325,10 @@ bool GCPad::GetMicButton() const
   return m_mic->controls.back()->GetState<bool>();
 }
 
+// May introduce Springball into MP1-GC at some point.
 bool GCPad::CheckSpringBallCtrl()
 {
-  return m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
+  return false; //m_primehack_misc->controls[0].get()->control_ref->State() > 0.5;
 }
 
 std::tuple<double, double> GCPad::GetPrimeStickXY()
@@ -285,8 +351,8 @@ void GCPad::SetPrimeMode(bool controller)
 std::tuple<double, double, double, bool, bool> GCPad::GetPrimeSettings()
 {
   std::tuple t = std::make_tuple(
-    m_primehack_camera_sensitivity.GetValue() * 100, 0.f,
-    m_primehack_fieldofview.GetValue() * 100, m_primehack_invert_x.GetValue(),
+    m_primehack_camera_sensitivity.GetValue(), 0.f,
+    m_primehack_fieldofview.GetValue(), m_primehack_invert_x.GetValue(),
     m_primehack_invert_y.GetValue());
 
   return t;

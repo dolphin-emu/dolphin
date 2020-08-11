@@ -84,13 +84,17 @@ private:
   ControllerEmu::AnalogStick* m_primehack_stick;
   ControllerEmu::PrimeHackModes* m_primehack_modes;
 
-  ControllerEmu::SettingValue<bool> m_primehack_camera_sensitivity;
-  ControllerEmu::SettingValue<bool> m_primehack_horizontal_sensitivity;
-  ControllerEmu::SettingValue<bool> m_primehack_vertical_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_camera_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_horizontal_sensitivity;
+  ControllerEmu::SettingValue<double> m_primehack_vertical_sensitivity;
 
-  ControllerEmu::SettingValue<int> m_primehack_fieldofview;
+  ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
+
+  static constexpr u8 STICK_GATE_RADIUS = 0x60;
+  static constexpr u8 STICK_CENTER = 0x80;
+  static constexpr u8 STICK_RADIUS = 0x7F;
 
   const unsigned int m_index;
 };

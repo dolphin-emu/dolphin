@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinQt/Config/Mapping/PrimeHackEmuGeneral.h"
+#include "DolphinQt/Config/Mapping/PrimeHackEmuGC.h"
 
 #include <QComboBox>
 #include <QFormLayout>
@@ -11,17 +11,16 @@
 #include <QRadioButton>
 #include <QLabel>
 
-#include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
 #include "InputCommon/InputConfig.h"
 
 #include "Core/PrimeHack/HackConfig.h"
+#include <Core\HW\GCPad.h>
+#include <Core\HW\GCPadEmu.h>
 
 class PrimeHackModes;
 
-PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window)
+PrimeHackEmuGC::PrimeHackEmuGC(MappingWindow* window)
     : MappingWidget(window)
 {
   CreateMainLayout();
@@ -29,14 +28,14 @@ PrimeHackEmuGeneral::PrimeHackEmuGeneral(MappingWindow* window)
   LoadSettings();
 }
 
-void PrimeHackEmuGeneral::CreateMainLayout()
+void PrimeHackEmuGC::CreateMainLayout()
 {
   auto* layout = new QGridLayout;
 
   auto* groupbox1 = new QVBoxLayout();
   auto* groupbox2 = new QVBoxLayout();
 
-  auto* modes_group = Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes);
+  auto* modes_group = Pad::GetGroup(GetPort(), PadGroup::Modes);
   auto* modes = CreateGroupBox(tr("Mode"), modes_group);
 
   auto* ce_modes = static_cast<ControllerEmu::PrimeHackModes*>(modes_group);
@@ -54,39 +53,26 @@ void PrimeHackEmuGeneral::CreateMainLayout()
   modes->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
   static_cast<QFormLayout*>(modes->layout())->insertRow(0, combo_hbox);
 
-  groupbox1->addWidget(modes, 0);
-
-  auto* misc_box = CreateGroupBox(tr("Miscellaneous"),
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Misc));
-
-  misc_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-  groupbox1->addWidget(misc_box, 0);
-
-  auto* beam_box = CreateGroupBox(tr("Beams"),
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Beams));
-
-  beam_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-  groupbox1->addWidget(beam_box, 1, Qt::AlignTop);
-
-  auto* visor_box = 
-    CreateGroupBox(tr("Visors"), Wiimote::GetWiimoteGroup(
-      GetPort(), WiimoteEmu::WiimoteGroup::Visors));
-
-  visor_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-
-  groupbox1->addWidget(visor_box, 2, Qt::AlignTop);
-
-  layout->addLayout(groupbox1, 0, 0);
+  groupbox1->addWidget(modes);
 
   auto* camera = 
     CreateGroupBox(tr("Camera"),
-      Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Camera));
+      Pad::GetGroup(GetPort(), PadGroup::Camera));
 
-  groupbox2->addWidget(camera, 0, Qt::AlignTop);
+  camera->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  groupbox1->addWidget(camera, 0, Qt::AlignTop);
 
-  controller_box = CreateGroupBox(tr("Camera Control"), Wiimote::GetWiimoteGroup(
-    GetPort(), WiimoteEmu::WiimoteGroup::ControlStick));
+  // May be used later.
+  //auto* misc_box = CreateGroupBox(tr("Miscellaneous"),
+  //  Pad::GetGroup(GetPort(), PadGroup::Misc));
+
+  //misc_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+  ////groupbox1->addWidget(misc_box, 0, Qt::AlignTop);
+
+  layout->addLayout(groupbox1, 0, 0);
+
+  controller_box = CreateGroupBox(tr("Camera Control"), Pad::GetGroup(
+    GetPort(), PadGroup::ControlStick));
 
   controller_box->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
   controller_box->setEnabled(ce_modes->GetSelectedDevice() == 1);
@@ -98,20 +84,20 @@ void PrimeHackEmuGeneral::CreateMainLayout()
   setLayout(layout);
 }
 
-void PrimeHackEmuGeneral::Connect(MappingWindow* window)
+void PrimeHackEmuGC::Connect(MappingWindow* window)
 {
-  connect(window, &MappingWindow::ConfigChanged, this, &PrimeHackEmuGeneral::ConfigChanged);
-  connect(window, &MappingWindow::Update, this, &PrimeHackEmuGeneral::Update);
+  connect(window, &MappingWindow::ConfigChanged, this, &PrimeHackEmuGC::ConfigChanged);
+  connect(window, &MappingWindow::Update, this, &PrimeHackEmuGC::Update);
   connect(m_radio_button, &QRadioButton::toggled, this,
-    &PrimeHackEmuGeneral::OnDeviceSelected);
+    &PrimeHackEmuGC::OnDeviceSelected);
   connect(m_radio_controller, &QRadioButton::toggled, this,
-    &PrimeHackEmuGeneral::OnDeviceSelected);
+    &PrimeHackEmuGC::OnDeviceSelected);
 }
 
-void PrimeHackEmuGeneral::OnDeviceSelected()
+void PrimeHackEmuGC::OnDeviceSelected()
 {
   auto* ce_modes = static_cast<ControllerEmu::PrimeHackModes*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
+    Pad::GetGroup(GetPort(), PadGroup::Modes));
 
   ce_modes->SetSelectedDevice(m_radio_button->isChecked() ? 0 : 1);
   controller_box->setEnabled(!m_radio_button->isChecked());
@@ -121,16 +107,16 @@ void PrimeHackEmuGeneral::OnDeviceSelected()
 }
 
 
-void PrimeHackEmuGeneral::ConfigChanged()
+void PrimeHackEmuGC::ConfigChanged()
 {
   Update();
 
   prime::UpdateHackSettings();
 }
 
-void PrimeHackEmuGeneral::Update()
+void PrimeHackEmuGC::Update()
 {
-  bool checked = Wiimote::PrimeUseController();
+  bool checked = Pad::PrimeUseController();
 
   controller_box->setEnabled(checked);
 
@@ -140,12 +126,12 @@ void PrimeHackEmuGeneral::Update()
   }
 }
 
-void PrimeHackEmuGeneral::LoadSettings()
+void PrimeHackEmuGC::LoadSettings()
 {
-  Wiimote::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
+  Pad::LoadConfig(); // No need to update hack settings since it's already in LoadConfig.
 
   auto* modes = static_cast<ControllerEmu::PrimeHackModes*>(
-    Wiimote::GetWiimoteGroup(GetPort(), WiimoteEmu::WiimoteGroup::Modes));
+    Pad::GetGroup(GetPort(), PadGroup::Modes));
 
   bool checked = modes->GetSelectedDevice() == 0;
   m_radio_button->setChecked(checked);
@@ -153,14 +139,14 @@ void PrimeHackEmuGeneral::LoadSettings()
   controller_box->setEnabled(!checked);
 }
 
-void PrimeHackEmuGeneral::SaveSettings()
+void PrimeHackEmuGC::SaveSettings()
 {
-  Wiimote::GetConfig()->SaveConfig();
+  Pad::GetConfig()->SaveConfig();
 
   prime::UpdateHackSettings();
 }
 
-InputConfig* PrimeHackEmuGeneral::GetConfig()
+InputConfig* PrimeHackEmuGC::GetConfig()
 {
-  return Wiimote::GetConfig();
+  return Pad::GetConfig();
 }
