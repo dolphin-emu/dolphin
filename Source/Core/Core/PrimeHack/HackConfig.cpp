@@ -140,7 +140,7 @@ bool GetEnableSecondaryGunFX() {
 }
 
 bool GetAutoArmAdjust() {
-  return Config::Get(Config::ARMPOSITION_MODE) == 1;
+  return Config::Get(Config::ARMPOSITION_MODE) == 0;
 }
 
 bool GetToggleArmAdjust() {
