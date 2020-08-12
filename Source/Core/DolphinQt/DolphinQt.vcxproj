@@ -364,6 +364,7 @@
     <ClCompile Include="Config\Mapping\HotkeyDebugging.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGeneral.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyGraphics.cpp" />
+    <ClCompile Include="Config\Mapping\HotkeyPrimeHack.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStates.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyStatesOther.cpp" />
     <ClCompile Include="Config\Mapping\HotkeyTAS.cpp" />
@@ -465,6 +466,7 @@
   </ItemGroup>
   <!--Put standard C/C++ headers here. Headers that are listed in the QtMoc ItemGroup must NOT be listed here.-->
   <ItemGroup>
+    <ClInclude Include="Config\Mapping\HotkeyPrimeHack.h" />
     <ClInclude Include="Config\Mapping\MappingCommon.h" />
     <ClInclude Include="Config\Mapping\PrimeHackEmuGC.h" />
     <ClInclude Include="Config\Mapping\PrimeHackEmuWii.h" />

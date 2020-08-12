@@ -33,6 +33,7 @@
 #include "DolphinQt/Config/Mapping/HotkeyStatesOther.h"
 #include "DolphinQt/Config/Mapping/HotkeyTAS.h"
 #include "DolphinQt/Config/Mapping/HotkeyWii.h"
+#include "DolphinQt/Config/Mapping/HotkeyPrimeHack.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtension.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.h"
 #include "DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.h"
@@ -414,6 +415,7 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     AddWidget(tr("3D"), new Hotkey3D(this));
     AddWidget(tr("Save and Load State"), new HotkeyStates(this));
     AddWidget(tr("Other State Management"), new HotkeyStatesOther(this));
+    AddWidget(tr("PrimeHack"), new HotkeyPrimeHack(this));
     setWindowTitle(tr("Hotkey Settings"));
     break;
   }

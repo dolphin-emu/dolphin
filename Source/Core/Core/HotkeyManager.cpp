@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 138> s_hotkey_labels{{
+constexpr std::array<const char*, 141> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -191,6 +191,10 @@ constexpr std::array<const char*, 138> s_hotkey_labels{{
     _trans("Undo Save State"),
     _trans("Save State"),
     _trans("Load State"),
+
+    _trans("Toggle Noclip"),
+    _trans("Toggle Invulnerability"),
+    _trans("Toggle Skippable Cutscenes")
 }};
 // clang-format on
 static_assert(NUM_HOTKEYS == s_hotkey_labels.size(), "Wrong count of hotkey_labels");
@@ -347,7 +351,8 @@ constexpr std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> s_groups_info = {
      {_trans("Save State"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
      {_trans("Select State"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {_trans("Load Last State"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
+     {_trans("Other State Hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE},
+     {_trans("PrimeHack"), HK_NOCLIP_TOGGLE, HK_SKIP_CUTSCENE}}};
 
 HotkeyManager::HotkeyManager()
 {

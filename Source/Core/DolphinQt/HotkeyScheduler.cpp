@@ -578,6 +578,40 @@ void HotkeyScheduler::Run()
     if (IsHotkey(HK_FREELOOK_RESET, true))
       g_freelook_camera.Reset();
 
+
+    // PrimeHack
+    if (SConfig::GetInstance().bEnableCheats) {
+      if (IsHotkey(HK_NOCLIP_TOGGLE))
+      {
+        const bool new_value = !SConfig::GetInstance().bPrimeNoclip;
+        SConfig::GetInstance().bPrimeNoclip = new_value;
+
+        OSD::AddMessage(StringFromFormat("Noclip: %s", new_value ? "Enabled" : "Disabled"));
+      }
+
+      if (IsHotkey(HK_INVULNERABILITY_TOGGLE))
+      {
+        const bool new_value = !SConfig::GetInstance().bPrimeInvulnerability;
+        SConfig::GetInstance().bPrimeInvulnerability = new_value;
+
+        OSD::AddMessage(StringFromFormat("Invulnerability: %s", new_value ? "Enabled" : "Disabled"));
+      }
+
+      if (IsHotkey(HK_SKIP_CUTSCENE))
+      {
+        const bool new_value = !SConfig::GetInstance().bPrimeSkipCutscene;
+        SConfig::GetInstance().bPrimeSkipCutscene = new_value;
+
+        OSD::AddMessage(StringFromFormat("Skippable Cutscenes: %s", new_value ? "Enabled" : "Disabled"));
+      }
+    }
+    else {
+      SConfig::GetInstance().bPrimeSkipCutscene = false;
+      SConfig::GetInstance().bPrimeInvulnerability = false;
+      SConfig::GetInstance().bPrimeNoclip = false;
+    }
+    
+
     // Savestates
     for (u32 i = 0; i < State::NUM_STATES; i++)
     {
