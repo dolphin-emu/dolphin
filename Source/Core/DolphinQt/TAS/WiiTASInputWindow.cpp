@@ -40,6 +40,9 @@ using namespace WiimoteCommon;
 
 WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(parent), m_num(num)
 {
+  m_range_x = 900;
+  m_range_y = m_range_x * 3 / 4;
+
   const QKeySequence ir_x_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_F);
   const QKeySequence ir_y_shortcut_key_sequence = QKeySequence(Qt::ALT + Qt::Key_G);
 
@@ -49,24 +52,27 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
                                     ir_y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   auto* x_layout = new QHBoxLayout;
-  m_ir_x_value = CreateSliderValuePair(x_layout, ir_max_x, ir_x_shortcut_key_sequence,
-                                       Qt::Horizontal, m_ir_box, true);
+  m_ir_x_value = CreateSliderValuePair(x_layout, -m_range_x, m_range_x, ir_x_shortcut_key_sequence,
+                                       Qt::Horizontal, m_ir_box);
 
   auto* y_layout = new QVBoxLayout;
-  m_ir_y_value = CreateSliderValuePair(y_layout, ir_max_y, ir_y_shortcut_key_sequence, Qt::Vertical,
-                                       m_ir_box, true);
+  m_ir_y_value = CreateSliderValuePair(y_layout, -m_range_y, m_range_y, ir_y_shortcut_key_sequence,
+                                       Qt::Vertical, m_ir_box);
   m_ir_y_value->setMaximumWidth(60);
 
-  auto* visual = new IRWidget(this);
+  auto* visual = new IRWidget(this, -m_range_x, m_range_x, -m_range_y, m_range_y);
   connect(m_ir_x_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetX);
   connect(m_ir_y_value, qOverload<int>(&QSpinBox::valueChanged), visual, &IRWidget::SetY);
   connect(visual, &IRWidget::ChangedX, m_ir_x_value, &QSpinBox::setValue);
   connect(visual, &IRWidget::ChangedY, m_ir_y_value, &QSpinBox::setValue);
 
-  m_ir_x_value->setValue(static_cast<int>(std::round(ir_max_x / 2.)));
-  m_ir_y_value->setValue(static_cast<int>(std::round(ir_max_y / 2.)));
+  m_ir_x_value->setValue(0);
+  m_ir_y_value->setValue(0);
 
-  auto* visual_ar = new AspectRatioWidget(visual, ir_max_x, ir_max_y);
+  static u16 visual_width = 1024;
+  static u16 visual_height = visual_width * m_range_y / m_range_x;
+
+  auto* visual_ar = new AspectRatioWidget(visual, visual_width, visual_height);
 
   auto* visual_layout = new QHBoxLayout;
   visual_layout->addWidget(visual_ar);
@@ -103,15 +109,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* remote_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("X"), m_remote_orientation_x_value, 1023, Qt::Key_Q,
+      CreateSliderValuePairLayout(tr("X"), m_remote_orientation_x_value, 0, 1023, Qt::Key_Q,
                                   m_remote_orientation_box);
   auto* remote_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Y"), m_remote_orientation_y_value, 1023, Qt::Key_W,
+      CreateSliderValuePairLayout(tr("Y"), m_remote_orientation_y_value, 0, 1023, Qt::Key_W,
                                   m_remote_orientation_box);
   auto* remote_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Z"), m_remote_orientation_z_value, 1023, Qt::Key_E,
+      CreateSliderValuePairLayout(tr("Z"), m_remote_orientation_z_value, 0, 1023, Qt::Key_E,
                                   m_remote_orientation_box);
 
   m_remote_orientation_x_value->setValue(512);
@@ -128,15 +134,15 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
 
   auto* nunchuk_orientation_x_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("X"), m_nunchuk_orientation_x_value, 1023, Qt::Key_I,
+      CreateSliderValuePairLayout(tr("X"), m_nunchuk_orientation_x_value, 0, 1023, Qt::Key_I,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_y_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Y"), m_nunchuk_orientation_y_value, 1023, Qt::Key_O,
+      CreateSliderValuePairLayout(tr("Y"), m_nunchuk_orientation_y_value, 0, 1023, Qt::Key_O,
                                   m_nunchuk_orientation_box);
   auto* nunchuk_orientation_z_layout =
       // i18n: Refers to a 3D axis (used when mapping motion controls)
-      CreateSliderValuePairLayout(tr("Z"), m_nunchuk_orientation_z_value, 1023, Qt::Key_P,
+      CreateSliderValuePairLayout(tr("Z"), m_nunchuk_orientation_z_value, 0, 1023, Qt::Key_P,
                                   m_nunchuk_orientation_box);
 
   m_nunchuk_orientation_x_value->setValue(512);
@@ -150,9 +156,9 @@ WiiTASInputWindow::WiiTASInputWindow(QWidget* parent, int num) : TASInputWindow(
   m_nunchuk_orientation_box->setLayout(nunchuk_orientation_layout);
 
   m_triggers_box = new QGroupBox(tr("Triggers"));
-  auto* l_trigger_layout =
-      CreateSliderValuePairLayout(tr("Left"), m_left_trigger_value, 31, Qt::Key_N, m_triggers_box);
-  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_right_trigger_value, 31,
+  auto* l_trigger_layout = CreateSliderValuePairLayout(tr("Left"), m_left_trigger_value, 0, 31,
+                                                       Qt::Key_N, m_triggers_box);
+  auto* r_trigger_layout = CreateSliderValuePairLayout(tr("Right"), m_right_trigger_value, 0, 31,
                                                        Qt::Key_M, m_triggers_box);
 
   auto* triggers_layout = new QVBoxLayout;
@@ -368,18 +374,6 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
   {
     u8* const ir_data = rpt.GetIRDataPtr();
 
-    // The sensor bar is above the screen by default,
-    // and adding some fixed offset accommodates for that.
-    u16 y = m_ir_y_value->value() + 100;
-    std::array<u16, 4> x;
-    // Make up some x-coordinates of the sensor bar's 4 IR lights,
-    // so that their center will be at the desired x-coordinate.
-    u16 x_center = m_ir_x_value->value();
-    x[0] = x_center - 50;
-    x[1] = x_center + 50;
-    x[2] = x[0] - 10;
-    x[3] = x[1] + 10;
-
     // FYI: This check is not entirely foolproof.
     // TODO: IR "full" mode not implemented.
     u8 mode = WiimoteEmu::CameraLogic::IR_MODE_BASIC;
@@ -389,50 +383,23 @@ void WiiTASInputWindow::GetValues(DataReportBuilder& rpt, int ext,
     else if (rpt.GetIRDataSize() == sizeof(WiimoteEmu::IRFull) * 2)
       mode = WiimoteEmu::CameraLogic::IR_MODE_FULL;
 
-    if (mode == WiimoteEmu::CameraLogic::IR_MODE_BASIC)
-    {
-      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRBasic) * 2);
-      auto* const ir_basic = reinterpret_cast<WiimoteEmu::IRBasic*>(ir_data);
-      for (int i = 0; i < 2; ++i)
-      {
-        if (x[i * 2] < 1024 && y < 768)
-        {
-          ir_basic[i].x1 = static_cast<u8>(x[i * 2]);
-          ir_basic[i].x1hi = x[i * 2] >> 8;
+    using Common::Matrix44;
+    using Common::Matrix33;
 
-          ir_basic[i].y1 = static_cast<u8>(y);
-          ir_basic[i].y1hi = y >> 8;
-        }
-        if (x[i * 2 + 1] < 1024 && y < 768)
-        {
-          ir_basic[i].x2 = static_cast<u8>(x[i * 2 + 1]);
-          ir_basic[i].x2hi = x[i * 2 + 1] >> 8;
+    const float ARC_MINUTES_IN_DEGREE = 60;
+    float x_deg = m_ir_x_value->value() / ARC_MINUTES_IN_DEGREE;
+    float y_deg = m_ir_y_value->value() / ARC_MINUTES_IN_DEGREE;
+    float rotate_along_x_rad = double(x_deg) * MathUtil::TAU / 360;
+    float rotate_along_y_rad = double(y_deg) * MathUtil::TAU / 360;
+    auto rotate_face_forward = Matrix33::RotateX(float(MathUtil::TAU / 4));
+    auto rotate_leftright = Matrix33::RotateY(rotate_along_x_rad);
+    auto rotate_updown = Matrix33::RotateX(rotate_along_y_rad);
 
-          ir_basic[i].y2 = static_cast<u8>(y);
-          ir_basic[i].y2hi = y >> 8;
-        }
-      }
-    }
-    else
-    {
-      // TODO: this code doesnt work, resulting in no IR TAS inputs in e.g. wii sports menu when no
-      // remote extension is used
-      memset(ir_data, 0xFF, sizeof(WiimoteEmu::IRExtended) * 4);
-      auto* const ir_extended = reinterpret_cast<WiimoteEmu::IRExtended*>(ir_data);
-      for (size_t i = 0; i < x.size(); ++i)
-      {
-        if (x[i] < 1024 && y < 768)
-        {
-          ir_extended[i].x = static_cast<u8>(x[i]);
-          ir_extended[i].xhi = x[i] >> 8;
-
-          ir_extended[i].y = static_cast<u8>(y);
-          ir_extended[i].yhi = y >> 8;
-
-          ir_extended[i].size = 10;
-        }
-      }
-    }
+    const float DISTANCE_FROM_SCREEN = 2;
+    auto transform =
+        Matrix44::FromMatrix33(rotate_face_forward * rotate_leftright * rotate_updown) *
+        Matrix44::Translate(Common::Vec3(0, 0, DISTANCE_FROM_SCREEN));
+    WiimoteEmu::CameraLogic::WriteIRDataForTransform(ir_data, mode, transform);
   }
 
   if (rpt.HasExt() && m_nunchuk_stick_box->isVisible())

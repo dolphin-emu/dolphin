@@ -14,7 +14,8 @@
 
 constexpr int PADDING = 1;
 
-IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
+IRWidget::IRWidget(QWidget* parent, s16 min_x, s16 max_x, s16 min_y, s16 max_y)
+    : QWidget(parent), m_min_x(min_x), m_max_x(max_x), m_min_y(min_y), m_max_y(max_y)
 {
   setMouseTracking(false);
   setToolTip(tr("Left click to set the IR value.\n"
@@ -24,16 +25,18 @@ IRWidget::IRWidget(QWidget* parent) : QWidget(parent)
   setMinimumSize(QSize(64, 48));
 }
 
-void IRWidget::SetX(u16 x)
+void IRWidget::SetX(s16 x)
 {
-  m_x = std::min(ir_max_x, x);
+  m_x = std::min(m_max_x, x);
+  m_x = std::max(m_min_x, x);
 
   update();
 }
 
-void IRWidget::SetY(u16 y)
+void IRWidget::SetY(s16 y)
 {
-  m_y = std::min(ir_max_y, y);
+  m_y = std::min(m_max_y, y);
+  m_y = std::max(m_min_y, y);
 
   update();
 }
@@ -54,9 +57,11 @@ void IRWidget::paintEvent(QPaintEvent* event)
   painter.drawLine(PADDING, PADDING + h / 2, PADDING + w, PADDING + h / 2);
   painter.drawLine(PADDING + w / 2, PADDING, PADDING + w / 2, PADDING + h);
 
+  s16 span_x = m_max_x - m_min_x;
+  s16 span_y = m_max_y - m_min_y;
   // convert from value space to widget space
-  u16 x = PADDING + (w - (m_x * w) / ir_max_x);
-  u16 y = PADDING + ((m_y * h) / ir_max_y);
+  u16 x = PADDING + (((m_x - m_min_x) * w) / span_x);
+  u16 y = PADDING + (h - ((m_y - m_min_y) * h) / span_y);
 
   painter.drawLine(PADDING + w / 2, PADDING + h / 2, x, y);
 
@@ -80,19 +85,21 @@ void IRWidget::mouseMoveEvent(QMouseEvent* event)
 
 void IRWidget::handleMouseEvent(QMouseEvent* event)
 {
+  s16 span_x = m_max_x - m_min_x;
+  s16 span_y = m_max_y - m_min_y;
   if (event->button() == Qt::RightButton)
   {
-    m_x = std::round(ir_max_x / 2.);
-    m_y = std::round(ir_max_y / 2.);
+    m_x = std::round(span_x / 2.) + m_min_x;
+    m_y = std::round(span_y / 2.) + m_min_y;
   }
   else
   {
-    // convert from widget space to value space
-    int new_x = ir_max_x - (event->x() * ir_max_x) / width();
-    int new_y = (event->y() * ir_max_y) / height();
+    // convert from widget space to value space.
+    s16 new_x = (event->x() * span_x) / width() + m_min_x;
+    s16 new_y = span_y - (event->y() * span_y) / height() + m_min_y;
 
-    m_x = std::max(0, std::min(static_cast<int>(ir_max_x), new_x));
-    m_y = std::max(0, std::min(static_cast<int>(ir_max_y), new_y));
+    m_x = std::max(m_min_x, std::min(m_max_x, new_x));
+    m_y = std::max(m_min_y, std::min(m_max_y, new_y));
   }
 
   emit ChangedX(m_x);

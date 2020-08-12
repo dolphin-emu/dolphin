@@ -113,6 +113,7 @@ public:
 
   static constexpr u8 I2C_ADDR = 0x58;
   static constexpr int CAMERA_DATA_BYTES = 36;
+  static void WriteIRDataForTransform(u8* data, u8 mode, const Common::Matrix44& transform);
 
 private:
   // TODO: some of this memory is write-only and should return error 7.

@@ -12,15 +12,15 @@ class IRWidget : public QWidget
 {
   Q_OBJECT
 public:
-  explicit IRWidget(QWidget* parent);
+  explicit IRWidget(QWidget* parent, s16 min_x, s16 max_x, s16 min_y, s16 max_y);
 
 signals:
-  void ChangedX(u16 x);
-  void ChangedY(u16 y);
+  void ChangedX(s16 x);
+  void ChangedY(s16 y);
 
 public slots:
-  void SetX(u16 x);
-  void SetY(u16 y);
+  void SetX(s16 x);
+  void SetY(s16 y);
 
 protected:
   void paintEvent(QPaintEvent* event) override;
@@ -29,11 +29,11 @@ protected:
   void handleMouseEvent(QMouseEvent* event);
 
 private:
-  u16 m_x = 0;
-  u16 m_y = 0;
+  s16 m_x = 0;
+  s16 m_y = 0;
+  s16 m_min_x;
+  s16 m_max_x;
+  s16 m_min_y;
+  s16 m_max_y;
   bool m_ignore_movement = false;
 };
-
-// Should be part of class but fails to compile on mac os
-static const u16 ir_max_x = 1023;
-static const u16 ir_max_y = 767;

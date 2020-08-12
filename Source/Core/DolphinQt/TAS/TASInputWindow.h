@@ -30,10 +30,11 @@ protected:
   TASCheckBox* CreateButton(const QString& name);
   QGroupBox* CreateStickInputs(QString name, QSpinBox*& x_value, QSpinBox*& y_value, u16 max_x,
                                u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);
-  QBoxLayout* CreateSliderValuePairLayout(QString name, QSpinBox*& value, u16 max,
+  QBoxLayout* CreateSliderValuePairLayout(QString name, QSpinBox*& value, s16 min, s16 max,
                                           Qt::Key shortcut_key, QWidget* shortcut_widget,
                                           bool invert = false);
-  QSpinBox* CreateSliderValuePair(QBoxLayout* layout, u16 max, QKeySequence shortcut_key_sequence,
+  QSpinBox* CreateSliderValuePair(QBoxLayout* layout, s16 min, s16 max,
+                                  QKeySequence shortcut_key_sequence,
                                   Qt::Orientation orientation, QWidget* shortcut_widget,
                                   bool invert = false);
   template <typename UX>

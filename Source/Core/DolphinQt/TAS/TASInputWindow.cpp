@@ -80,10 +80,10 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
                              y_shortcut_key_sequence.toString(QKeySequence::NativeText)));
 
   auto* x_layout = new QHBoxLayout;
-  x_value = CreateSliderValuePair(x_layout, max_x, x_shortcut_key_sequence, Qt::Horizontal, box);
+  x_value = CreateSliderValuePair(x_layout, 0, max_x, x_shortcut_key_sequence, Qt::Horizontal, box);
 
   auto* y_layout = new QVBoxLayout;
-  y_value = CreateSliderValuePair(y_layout, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
+  y_value = CreateSliderValuePair(y_layout, 0, max_y, y_shortcut_key_sequence, Qt::Vertical, box);
   y_value->setMaximumWidth(60);
 
   auto* visual = new StickWidget(this, max_x, max_y);
@@ -109,9 +109,9 @@ QGroupBox* TASInputWindow::CreateStickInputs(QString name, QSpinBox*& x_value, Q
   return box;
 }
 
-QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*& value, u16 max,
-                                                        Qt::Key shortcut_key,
-                                                        QWidget* shortcut_widget, bool invert)
+QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*& value, s16 min,
+                                                       s16 max, Qt::Key shortcut_key,
+                                                       QWidget* shortcut_widget, bool invert)
 {
   const QKeySequence shortcut_key_sequence = QKeySequence(Qt::ALT + shortcut_key);
 
@@ -121,27 +121,29 @@ QBoxLayout* TASInputWindow::CreateSliderValuePairLayout(QString name, QSpinBox*&
   QBoxLayout* layout = new QHBoxLayout;
   layout->addWidget(label);
 
-  value = CreateSliderValuePair(layout, max, shortcut_key_sequence, Qt::Horizontal, shortcut_widget,
-                                invert);
+  value = CreateSliderValuePair(layout, min, max, shortcut_key_sequence, Qt::Horizontal,
+                                shortcut_widget, invert);
 
   return layout;
 }
 
 // The shortcut_widget argument needs to specify the container widget that will be hidden/shown.
 // This is done to avoid ambigous shortcuts
-QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, u16 max,
+QSpinBox* TASInputWindow::CreateSliderValuePair(QBoxLayout* layout, s16 min, s16 max,
                                                 QKeySequence shortcut_key_sequence,
                                                 Qt::Orientation orientation,
                                                 QWidget* shortcut_widget, bool invert)
 {
   auto* value = new QSpinBox();
-  value->setRange(0, 99999);
-  connect(value, qOverload<int>(&QSpinBox::valueChanged), [value, max](int i) {
+  value->setRange(-99999, 99999);
+  connect(value, qOverload<int>(&QSpinBox::valueChanged), [value, min, max](s32 i) {
+    if (i < min)
+      value->setValue(min);
     if (i > max)
       value->setValue(max);
   });
   auto* slider = new QSlider(orientation);
-  slider->setRange(0, max);
+  slider->setRange(min, max);
   slider->setFocusPolicy(Qt::ClickFocus);
   slider->setInvertedAppearance(invert);
 

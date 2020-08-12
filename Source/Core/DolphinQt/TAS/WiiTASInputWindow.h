@@ -31,6 +31,8 @@ public:
 private:
   void UpdateExt(u8 ext);
   int m_num;
+  u16 m_range_x;
+  u16 m_range_y;
   TASCheckBox* m_a_button;
   TASCheckBox* m_b_button;
   TASCheckBox* m_1_button;
