@@ -26,7 +26,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text.append(QStringLiteral("<p style='font-size:38pt; font-weight:400; margin-bottom:0;'>") +
               tr("PrimeHack") + QStringLiteral("</p>"));
   text.append(QStringLiteral("<p style='font-size:18pt; margin-top:0;'>%1</p>")
-                  .arg(prime_ver+QString::fromUtf8(" (5.0-11991)")));
+                  .arg(prime_ver+QString::fromUtf8(" (5.0-12247)")));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(
