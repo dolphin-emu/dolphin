@@ -15,6 +15,7 @@ bool CheckVisorCtl(int visor_num);
 bool CheckBeamScrollCtl(bool direction);
 bool CheckVisorScrollCtl(bool direction);
 bool CheckSpringBallCtl();
+bool ImprovedMotionControls();
 bool CheckForward();
 bool CheckBack();
 bool CheckLeft();

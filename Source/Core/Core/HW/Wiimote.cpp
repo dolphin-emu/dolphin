@@ -299,6 +299,13 @@ bool CheckSpringBall()
   return wiimote->CheckSpringBallCtrl();
 }
 
+bool CheckImprovedMotions()
+{
+  WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));
+
+  return wiimote->CheckImprovedMotions();
+}
+
 bool CheckVisorScroll(bool direction)
 {
   WiimoteEmu::Wiimote* wiimote = static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(0));

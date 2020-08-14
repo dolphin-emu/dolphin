@@ -145,6 +145,7 @@ public:
   bool CheckBeamScrollCtrl(bool direction);
   bool CheckVisorScrollCtrl(bool direction);
   bool CheckSpringBallCtrl();
+  bool CheckImprovedMotions();
   bool PrimeControllerMode();
 
   std::tuple<double, double> GetPrimeStickXY();
@@ -303,6 +304,8 @@ private:
   ControllerEmu::SettingValue<double> m_primehack_fieldofview;
   ControllerEmu::SettingValue<bool> m_primehack_invert_y;
   ControllerEmu::SettingValue<bool> m_primehack_invert_x;
+
+  ControllerEmu::SettingValue<bool> m_primehack_improved_motions;
 
   static constexpr u8 STICK_GATE_RADIUS = 0x60;
   static constexpr u8 STICK_CENTER = 0x80;

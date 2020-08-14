@@ -86,6 +86,10 @@ bool CheckBeamScrollCtl(bool direction) {
 bool CheckSpringBallCtl() {
   return Wiimote::CheckSpringBall();
 }
+
+bool ImprovedMotionControls() {
+  return Wiimote::CheckImprovedMotions();
+}
   
 bool CheckForward() {
   return Wiimote::CheckForward();

@@ -218,35 +218,84 @@ void FpsControls::run_mod_mp3() {
     return;
   }
 
-  //u32 obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
-  //const u32 base = obj_list_iterator;
-  //while (true) {
-  //  u32 obj = read32(obj_list_iterator);
-  //  u32 flags = read32(obj + 0x38);
-
-  //  bool should_process = false;
-  //  if (flags & 0x20000000) {
-  //    should_process = ((flags >> 8) & 0x2000) == 0;
-  //  }
-  //  should_process |= ((flags >> 8) & 0x1000) != 0;
-
-  //  if (should_process) {
-  //    u32 vt = read32(obj);
-  //    u32 vtf = read32(vt + 0xc);
-  //    if (vtf == 0x802e0dac) { // ensure Accept is this function
-  //      writef32(1, obj + 0x154);
-  //    }
-  //  }
-  //  u16 next_id = read16(obj_list_iterator + 6);
-  //  if (next_id == 0xffff) {
-  //    break;
-  //  }
-  //  obj_list_iterator = (base + next_id * 8);
-  //}
 
   // HACK ooo
   powerups_ptr_address = cplayer_address + 0x35a8;
   handle_beam_visor_switch({}, prime_three_visors);
+
+  // Handle Interactable Entities
+  bool lock_camera = false;
+
+  u32 obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
+  const u32 base = obj_list_iterator;
+  while (true) {
+    u32 obj = read32(obj_list_iterator);
+    u32 flags = read32(obj + 0x38);
+
+    bool should_process = false;
+    if (flags & 0x20000000) {
+      should_process = ((flags >> 8) & 0x2000) == 0;
+    }
+    should_process |= ((flags >> 8) & 0x1000) != 0;
+
+    if (should_process) {
+      u32 vt = read32(obj);
+      u32 vtf = read32(vt + 0xc);
+
+      if (vtf == 0x802e0dac) { // ensure Accept is this function
+        u32 const st = read32(obj + 0x14c);
+
+        if (ImprovedMotionControls()) {
+          if (st == 3) {
+            u32 const val = read32(obj + 0x154);
+            float step = *reinterpret_cast<float const *>(&val);
+
+            if (CheckForward())
+              step += 0.05f;
+            if (CheckBack())
+              step -= 0.05f;
+
+            writef32(std::clamp(step, 0.f, 1.f), obj + 0x154);
+          }
+        }
+
+        DevInfo("OBJ", "(state: %x) (addr: %x) (flags: %x)", st, obj, read32(obj + 0x38));
+
+        // if object is active
+        if (st > 0) {
+          // Using flags as identifiers is crude. Better system to come.
+          switch (flags) {
+            case 0x200001d4:
+            case 0x200001c0:
+            case 0x200001c4:
+            case 0x200001ce:
+              break;
+
+            default:
+              lock_camera = true;
+          }
+        }
+      }
+      //if (vtf == 0x802e0de4) {
+      //  if (read32(obj + 0x204) == 1) { // Rotary puzzle
+      //    writef32(1.f, obj + 0x1fc);
+      //    write32(2, obj + 0x204);
+
+      //    //DevInfo("Rotatory Puzzle", "%x", obj);
+      //  }
+      //}
+    }
+
+    u16 next_id = read16(obj_list_iterator + 6);
+    if (next_id == 0xffff) {
+      break;
+    }
+
+    obj_list_iterator = (base + next_id * 8);
+  }
+
+  if (lock_camera)
+    return;
 
   // This is VERY LIKELY not to be "boss address" as that would be dynamic (LOL)
   // this is just something that always seems to match every ridley fight, but
