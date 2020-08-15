@@ -154,8 +154,12 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuExtensionMotionSimulation.h
   Config/Mapping/WiimoteEmuGeneral.cpp
   Config/Mapping/WiimoteEmuGeneral.h
-  Config/Mapping/PrimeHackEmuGeneral.cpp
-  Config/Mapping/PrimeHackEmuGeneral.h
+  Config/Mapping/PrimeHackEmuWii.cpp
+  Config/Mapping/PrimeHackEmuWii.h
+  Config/Mapping/PrimeHackEmuGC.cpp
+  Config/Mapping/PrimeHackEmuGC.h
+  Config/Mapping/HotkeyPrimeHack.cpp
+  Config/Mapping/HotkeyPrimeHack.h
   Config/Mapping/WiimoteEmuMotionControl.cpp
   Config/Mapping/WiimoteEmuMotionControl.h
   Config/Mapping/WiimoteEmuMotionControlIMU.cpp
