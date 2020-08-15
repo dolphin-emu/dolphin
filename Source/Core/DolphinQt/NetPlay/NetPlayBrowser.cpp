@@ -35,6 +35,7 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
   CreateWidgets();
+  RestoreSettings();
   ConnectWidgets();
 
   resize(750, 500);
@@ -44,8 +45,6 @@ NetPlayBrowser::NetPlayBrowser(QWidget* parent) : QDialog(parent)
 
   m_refresh_run.Set(true);
   m_refresh_thread = std::thread([this] { RefreshLoop(); });
-
-  RestoreSettings();
 
   UpdateList();
   Refresh();
