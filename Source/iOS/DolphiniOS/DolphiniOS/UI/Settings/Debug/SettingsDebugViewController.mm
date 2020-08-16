@@ -4,13 +4,16 @@
 
 #import "SettingsDebugViewController.h"
 
+#import "Common/FileUtil.h"
+
 #import "Core/ConfigManager.h"
 
 #import "DebuggerUtils.h"
 
 #define MISC_ROW_SYNC_ON_SKIP_IDLE 0
 #define MISC_ROW_FASTMEM 1
-#define MISC_ROW_SET_DEBUGGED 2
+#define MISC_ROW_CONSOLE_LOG 2
+#define MISC_ROW_SET_DEBUGGED 3
 
 @interface SettingsDebugViewController ()
 
@@ -125,12 +128,26 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
-  else if (indexPath.section == 1 && indexPath.row == MISC_ROW_SET_DEBUGGED)
+  else if (indexPath.section == 1)
   {
-    if (!IsProcessDebugged())
+    if (indexPath.row == MISC_ROW_CONSOLE_LOG)
     {
-      SetProcessDebugged();
-      [self DisableSetDebuggedCell];
+      NSString* source_path = [[NSBundle mainBundle] pathForResource:@"DebugLogger" ofType:@"ini"];
+      std::string dest_path = File::GetUserPath(F_LOGGERCONFIG_IDX);
+      
+      File::Delete(dest_path);
+      File::Copy(FoundationToCppString(source_path), dest_path);
+      
+      // Reload
+      SConfig::GetInstance().LoadSettings();
+    }
+    else if (indexPath.row == MISC_ROW_SET_DEBUGGED)
+    {
+      if (!IsProcessDebugged())
+      {
+        SetProcessDebugged();
+        [self DisableSetDebuggedCell];
+      }
     }
   }
   
@@ -149,6 +166,10 @@
     else if (indexPath.row == MISC_ROW_FASTMEM)
     {
       message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM. Non-jailbroken devices cannot enable this option due to iOS limitations.\n\nWARNING: Disabling this option will decrease performance (FPS).", nil);
+    }
+    else if (indexPath.row == MISC_ROW_CONSOLE_LOG)
+    {
+      message = NSLocalizedString(@"This button will enable debug logging to the console. To undo, delete User/Config/Logger.ini.\n\nWARNING: Enabling this will cause a slight performance decrease.", nil);
     }
     else if (indexPath.row == MISC_ROW_SET_DEBUGGED)
     {

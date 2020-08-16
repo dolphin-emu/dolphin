@@ -17,6 +17,7 @@
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B92243E124E9C7FA0085632F /* NKitWarningNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B92243E024E9C7FA0085632F /* NKitWarningNotice.xib */; };
 		B92243E424E9CB650085632F /* NKitWarningNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92243E324E9CB650085632F /* NKitWarningNoticeViewController.mm */; };
+		B92243E924E9F5D50085632F /* DebugLogger.ini in Resources */ = {isa = PBXBuildFile; fileRef = B92243E824E9F5D50085632F /* DebugLogger.ini */; };
 		B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B92431C52400DFC600D5FF0A /* GraphicsSettings.storyboard */; };
 		B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924321D2401F61300D5FF0A /* InGameSettings.storyboard */; };
 		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
@@ -212,6 +213,7 @@
 		B92243E224E9CB650085632F /* NKitWarningNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NKitWarningNoticeViewController.h; path = DolphiniOS/UI/Notices/NKitWarning/NKitWarningNoticeViewController.h; sourceTree = SOURCE_ROOT; };
 		B92243E324E9CB650085632F /* NKitWarningNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = NKitWarningNoticeViewController.mm; path = DolphiniOS/UI/Notices/NKitWarning/NKitWarningNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
 		B92243E524E9D4DA0085632F /* NKitWarningNoticeDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NKitWarningNoticeDelegate.h; sourceTree = "<group>"; };
+		B92243E824E9F5D50085632F /* DebugLogger.ini */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = DebugLogger.ini; path = BundleResources/DebugLogger.ini; sourceTree = "<group>"; };
 		B92431C42400DFC600D5FF0A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/GraphicsSettings.storyboard; sourceTree = "<group>"; };
 		B92431C72400DFD100D5FF0A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
 		B92431C92400DFDC00D5FF0A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
@@ -1100,6 +1102,7 @@
 				B988D7FF23B60B510092CB6C /* MFiWiimoteProfile.ini */,
 				B988D80223B801F40092CB6C /* TouchGCPadProfile.ini */,
 				B988D80323B801F40092CB6C /* TouchWiimoteProfile.ini */,
+				B92243E824E9F5D50085632F /* DebugLogger.ini */,
 				B9766AF423A5EACD00FF7F17 /* license.txt */,
 				B99B05BC23A2E8BD0076C7D8 /* SpecialThanks.txt */,
 			);
@@ -1546,6 +1549,7 @@
 				B971E1C5245E040500D2A698 /* Entitlements_NJB.plist in Resources */,
 				B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */,
 				B99577AD24673EC0008C5115 /* NetPlaySetup.storyboard in Resources */,
+				B92243E924E9F5D50085632F /* DebugLogger.ini in Resources */,
 				B946AF14245BFBCD0043767A /* WiiSystemUpdate.storyboard in Resources */,
 				B928112623C0A24700B53145 /* TCClassicWiiPad.xib in Resources */,
 				B971E1C8245E210400D2A698 /* NonJailbrokenNotice.xib in Resources */,

@@ -117,3 +117,6 @@
 
 /* Class = "UILabel"; text = "Fastmem"; ObjectID = "M3l-U9-UrT"; */
 "M3l-U9-UrT.text" = "Fastmem";
+
+/* Class = "UILabel"; text = "Enable Debug Logs"; ObjectID = "yCy-ds-hEn"; */
+"yCy-ds-hEn.text" = "Enable Debug Logs";

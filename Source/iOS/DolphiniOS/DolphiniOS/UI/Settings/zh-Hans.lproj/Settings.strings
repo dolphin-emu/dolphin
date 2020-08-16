@@ -117,3 +117,6 @@
 
 /* Class = "UILabel"; text = "Controllers"; ObjectID = "xpQ-qK-CHk"; */
 "xpQ-qK-CHk.text" = "控制器";
+
+/* Class = "UILabel"; text = "Enable Debug Logs"; ObjectID = "yCy-ds-hEn"; */
+"yCy-ds-hEn.text" = "Enable Debug Logs";
