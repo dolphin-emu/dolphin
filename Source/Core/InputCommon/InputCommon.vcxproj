@@ -75,7 +75,12 @@
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
-    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
+    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp">
+      <!--
+      Workaround a msvc bug which causes false "buffer overflow" static analysis warning.
+      -->
+      <DisableSpecificWarnings>4789;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="GCAdapter.cpp">

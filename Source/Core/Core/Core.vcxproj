@@ -202,7 +202,12 @@
     <ClCompile Include="HW\WiimoteEmu\Speaker.cpp" />
     <ClCompile Include="HW\WiimoteEmu\WiimoteEmu.cpp" />
     <ClCompile Include="HW\WiimoteReal\IOWin.cpp" />
-    <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
+    <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp">
+      <!--
+      Workaround a msvc bug which causes false "buffer overflow" static analysis warning.
+      -->
+      <DisableSpecificWarnings>4789;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="HW\WII_IPC.cpp" />
     <ClCompile Include="HW\WiiSave.cpp" />
     <ClCompile Include="IOS\Device.cpp" />
