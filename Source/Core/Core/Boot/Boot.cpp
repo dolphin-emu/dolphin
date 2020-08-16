@@ -4,10 +4,9 @@
 
 #include "Core/Boot/Boot.h"
 
-#ifdef _MSC_VER
+#ifdef HAS_STD_FILESYSTEM
 #include <filesystem>
 namespace fs = std::filesystem;
-#define HAS_STD_FILESYSTEM
 #endif
 
 #include <algorithm>

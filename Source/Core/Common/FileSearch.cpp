@@ -4,16 +4,16 @@
 
 #include <algorithm>
 #include <functional>
+#include <regex>
 
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
-#ifdef _MSC_VER
-#include <Windows.h>
+#ifdef HAS_STD_FILESYSTEM
 #include <filesystem>
 namespace fs = std::filesystem;
-#define HAS_STD_FILESYSTEM
 #else
 #include <cstring>
 #include "Common/CommonFuncs.h"
@@ -52,7 +52,7 @@ FileSearchWithTest(const std::vector<std::string>& directories, bool recursive,
 std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
                                       const std::vector<std::string>& exts, bool recursive)
 {
-  bool accept_all = exts.empty();
+  const bool accept_all = exts.empty();
   return FileSearchWithTest(directories, recursive, [&](const File::FSTEntry& entry) {
     if (accept_all)
       return true;
@@ -71,48 +71,62 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
 std::vector<std::string> DoFileSearch(const std::vector<std::string>& directories,
                                       const std::vector<std::string>& exts, bool recursive)
 {
-  bool accept_all = exts.empty();
+  // If no extensions are specified all files and directories are returned.
+  const bool accept_all = exts.empty();
 
-  std::vector<fs::path> native_exts;
+  fs::path::string_type ext_pattern_str;
+
+  // Combine extensions into regex alternations matching end of string, and escape '.' chars.
   for (const auto& ext : exts)
-    native_exts.push_back(StringToPath(ext));
+    ext_pattern_str += StringToPath(ReplaceAll(ext, ".", "\\.") + "$|").native();
 
-  // N.B. This avoids doing any copies
-  auto ext_matches = [&native_exts](const fs::path& path) {
-    const auto& native_path = path.native();
-    return std::any_of(native_exts.cbegin(), native_exts.cend(), [&native_path](const auto& ext) {
-      // TODO provide cross-platform compat for the comparison function, once more platforms
-      // support std::filesystem
-      int compare_len = static_cast<int>(ext.native().length());
-      return native_path.length() >= compare_len &&
-             CompareStringOrdinal(&native_path.c_str()[native_path.length() - compare_len],
-                                  compare_len, ext.c_str(), compare_len, TRUE) == CSTR_EQUAL;
-    });
+  // Remove final '|' character.
+  if (!ext_pattern_str.empty())
+    ext_pattern_str.pop_back();
+
+  const std::basic_regex<fs::path::value_type> ext_pattern(
+      ext_pattern_str, std::regex_constants::icase | std::regex_constants::optimize);
+
+  auto ext_matches = [&ext_pattern](const fs::path& path) {
+    return std::regex_search(path.filename().native(), ext_pattern);
   };
 
   std::vector<std::string> result;
   auto add_filtered = [&](const fs::directory_entry& entry) {
     auto& path = entry.path();
-    if (accept_all || (ext_matches(path) && !fs::is_directory(path)))
-      result.emplace_back(PathToString(path));
+    std::error_code dir_error;
+    if (accept_all || (ext_matches(path) && !fs::is_directory(path, dir_error)))
+    {
+      // Lexically normalize for std::unique usage below.
+      result.emplace_back(PathToString(path.lexically_normal()));
+    }
+    else if (dir_error)
+    {
+      ERROR_LOG(COMMON, "fs::is_directory: %s", dir_error.message().c_str());
+    }
   };
+
   for (const auto& directory : directories)
   {
-    const fs::path directory_path = StringToPath(directory);
-    if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
+    fs::path directory_path = StringToPath(directory);
+    std::error_code iter_error;
+    if (recursive)
     {
-      if (recursive)
+      for (auto& entry : fs::recursive_directory_iterator(
+               std::move(directory_path), fs::directory_options::follow_directory_symlink,
+               iter_error))
       {
-        // TODO use fs::directory_options::follow_directory_symlink ?
-        for (auto& entry : fs::recursive_directory_iterator(std::move(directory_path)))
-          add_filtered(entry);
-      }
-      else
-      {
-        for (auto& entry : fs::directory_iterator(std::move(directory_path)))
-          add_filtered(entry);
+        add_filtered(entry);
       }
     }
+    else
+    {
+      for (auto& entry : fs::directory_iterator(std::move(directory_path), iter_error))
+        add_filtered(entry);
+    }
+
+    if (iter_error)
+      ERROR_LOG(COMMON, "fs::directory_iterator: %s", iter_error.message().c_str());
   }
 
   // Remove duplicates (occurring because caller gave e.g. duplicate or overlapping directories -
@@ -125,9 +139,11 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   // std::filesystem uses the OS separator.
   constexpr fs::path::value_type os_separator = fs::path::preferred_separator;
   static_assert(os_separator == DIR_SEP_CHR || os_separator == '\\', "Unsupported path separator");
-  if (os_separator != DIR_SEP_CHR)
+  if constexpr (os_separator != DIR_SEP_CHR)
+  {
     for (auto& path : result)
       std::replace(path.begin(), path.end(), '\\', DIR_SEP_CHR);
+  }
 
   return result;
 }
