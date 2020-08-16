@@ -23,7 +23,7 @@
 {
   [super viewWillAppear:animated];
   
-  bool enabled = Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ENABLED);
+  bool enabled = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED);
   [self.m_enabled_switch setOn:enabled];
   
   NSString* ip = [NSString stringWithUTF8String:Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS).c_str()];
@@ -49,7 +49,7 @@
 - (IBAction)SwitchedEnabled:(id)sender
 {
   bool enabled = self.m_enabled_switch.isOn;
-  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_ENABLED, enabled);
+  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, enabled);
   
   [self.m_ip_field setEnabled:enabled];
   [self.m_port_field setEnabled:enabled];
