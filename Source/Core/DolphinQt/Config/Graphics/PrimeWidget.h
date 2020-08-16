@@ -27,6 +27,7 @@ private:
 
   // Misc
   QCheckBox* m_disable_bloom;
+  QCheckBox* m_motions_lock;
   QCheckBox* m_autoefb;
   QCheckBox* m_toggle_culling;
   QCheckBox* m_toggle_secondaryFX;

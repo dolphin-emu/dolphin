@@ -47,15 +47,17 @@ void PrimeWidget::CreateWidgets()
 
   m_autoefb = new GraphicsBool(tr("Auto Toggle EFB copies to Texture"), Config::AUTO_EFB);
   m_disable_bloom = new GraphicsBool(tr("Disable Bloom"), Config::DISABLE_BLOOM);
+  m_motions_lock = new GraphicsBool(tr("Lock Camera in Motion Puzzles [Warning]"), Config::LOCKCAMERA_IN_PUZZLES);
   m_toggle_arm_position = new GraphicsBool(tr("Toggle Viewmodel Adjustment"), Config::TOGGLE_ARM_REPOSITION);
   m_toggle_culling = new GraphicsBool(tr("Disable Culling"), Config::TOGGLE_CULLING);
   m_toggle_secondaryFX = new GraphicsBool(tr("Enable GCN Gun Effects"), Config::ENABLE_SECONDARY_GUNFX);
 
   graphics_layout->addWidget(m_autoefb, 0, 0);
-  graphics_layout->addWidget(m_toggle_secondaryFX, 1, 0);
-  graphics_layout->addWidget(m_disable_bloom, 2, 0);
-  graphics_layout->addWidget(m_toggle_arm_position, 3, 0);
-  graphics_layout->addWidget(m_toggle_culling, 4, 0);
+  graphics_layout->addWidget(m_motions_lock, 1, 0);
+  graphics_layout->addWidget(m_toggle_secondaryFX, 2, 0);
+  graphics_layout->addWidget(m_disable_bloom, 3, 0);
+  graphics_layout->addWidget(m_toggle_arm_position, 4, 0);
+  graphics_layout->addWidget(m_toggle_culling, 5, 0);
 
   // Viewmodel Position
   auto* viewmodel_box = new QGroupBox(tr("Viewmodel Position"));
@@ -192,8 +194,12 @@ void PrimeWidget::AddDescriptions()
     QT_TR_NOOP("Modifies the arm position on the Y axis. This is up and down.");
   static const char TR_Z_AXIS[] =
     QT_TR_NOOP("Modifies the arm position on the Z axis. This is back and forward.");
+  static const char TR_MOTION_LOCK[] =
+    QT_TR_NOOP("Automatically locks the camera in ALL motion puzzles and buttons."
+  "\n\nBe warned, this will make it impossible to pass certain puzzles such as welding puzzles and keypads. There is a hotkey to toggle this setting.");
 
   AddDescription(m_autoefb, TR_AUTO_EFB);
+  AddDescription(m_motions_lock, TR_MOTION_LOCK);
   AddDescription(m_toggle_secondaryFX, TR_GUNEFFECTS);
   AddDescription(m_disable_bloom, TR_BLOOM);
   AddDescription(m_toggle_culling, TR_TOGGLE_CULL);

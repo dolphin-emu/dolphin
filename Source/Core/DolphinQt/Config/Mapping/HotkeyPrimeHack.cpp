@@ -19,7 +19,10 @@ void HotkeyPrimeHack::CreateMainLayout()
   m_main_layout = new QGridLayout;
 
   m_main_layout->addWidget(
-      CreateGroupBox(tr("Cheats"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_PRIMEHACK)), 0, 0, -1, 1);
+      CreateGroupBox(tr("Cheats"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_PRIMEHACK_CHEATS)), 0, 0);
+
+  m_main_layout->addWidget(
+    CreateGroupBox(tr("Graphics"), HotkeyManagerEmu::GetHotkeyGroup(HKGP_PRIMEHACK_GFX)), 1, 0);
 
   setLayout(m_main_layout);
 }

@@ -259,22 +259,14 @@ void FpsControls::run_mod_mp3() {
           }
         }
 
-        DevInfo("OBJ", "(state: %x) (addr: %x) (flags: %x)", st, obj, read32(obj + 0x38));
+        //DevInfo("OBJ", "(state: %x) (addr: %x) (flags: %x) (editorid: %x)", state, obj, flags, read32(obj + 0xC));
 
-        // if object is active
-      //  if (st > 0) {
-      //    // Using flags as identifiers is crude. Better system to come.
-      //    switch (flags) {
-      //      case 0x200001d4:
-      //      case 0x200001c0:
-      //      case 0x200001c4:
-      //      case 0x200001ce:
-      //        break;
-
-      //      default:
-      //        lock_camera = true;
-      //    }
-      //  }
+        if (LockCameraInPuzzles()) {
+          // if object is active
+          if (st > 0) {
+            lock_camera = true;
+          }
+        } 
       }
       //if (vtf == 0x802e0de4) {
       //  if (read32(obj + 0x204) == 1) { // Rotary puzzle
