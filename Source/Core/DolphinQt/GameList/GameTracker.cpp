@@ -16,7 +16,6 @@
 #include "DiscIO/DirectoryBlob.h"
 
 #include "DolphinQt/QtUtils/QueueOnObject.h"
-#include "DolphinQt/QtUtils/RunOnObject.h"
 
 #include "DolphinQt/Settings.h"
 
@@ -162,7 +161,7 @@ void GameTracker::StartInternal()
 bool GameTracker::AddPath(const QString& dir)
 {
   if (Settings::Instance().IsAutoRefreshEnabled())
-    RunOnObject(this, [this, dir] { return addPath(dir); });
+    QueueOnObject(this, [this, dir] { return addPath(dir); });
 
   m_tracked_paths.push_back(dir);
 
@@ -172,7 +171,7 @@ bool GameTracker::AddPath(const QString& dir)
 bool GameTracker::RemovePath(const QString& dir)
 {
   if (Settings::Instance().IsAutoRefreshEnabled())
-    RunOnObject(this, [this, dir] { return removePath(dir); });
+    QueueOnObject(this, [this, dir] { return removePath(dir); });
 
   const auto index = m_tracked_paths.indexOf(dir);
 
