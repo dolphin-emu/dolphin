@@ -4,6 +4,7 @@
 
 #include "DolphinQt/GameList/GameTracker.h"
 
+#include <QApplication>
 #include <QDir>
 #include <QDirIterator>
 #include <QFile>
@@ -35,6 +36,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   qRegisterMetaType<std::shared_ptr<const UICommon::GameFile>>();
   qRegisterMetaType<std::string>();
 
+  connect(qApp, &QApplication::aboutToQuit, this, [this] { m_load_thread.Cancel(); });
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
   connect(&Settings::Instance(), &Settings::AutoRefreshToggled, this, [] {
@@ -255,7 +257,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
 void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
   auto it = GetIterator(dir);
-  while (it->hasNext())
+  while (it->hasNext() && !m_load_thread.IsCancelled())
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
 
