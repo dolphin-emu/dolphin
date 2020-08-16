@@ -166,7 +166,7 @@
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
 {
 //#ifndef NONJAILBROKEN
-  if (indexPath.section == 1 && indexPath.row == 2)
+  if (indexPath.section == 1 && indexPath.row == MISC_ROW_SET_DEBUGGED)
   {
     return CGFLOAT_MIN;
   }
