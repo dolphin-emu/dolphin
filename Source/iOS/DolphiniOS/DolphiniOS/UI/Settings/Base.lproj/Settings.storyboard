@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="16097.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17147" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="16087"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17120"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
+        <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <scenes>
@@ -26,13 +27,13 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" text="Version" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fTF-PL-Io8">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="57" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="57" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.0.0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="TO3-cy-H2Y">
-                                                    <rect key="frame" x="72" y="11.333333333333336" width="256" height="21"/>
+                                                    <rect key="frame" x="73" y="11.333333333333336" width="254" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -57,13 +58,13 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="252" verticalHuggingPriority="251" text="Emulation Core" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hMd-RA-rNX">
-                                                    <rect key="frame" x="14.999999999999993" y="11.000000000000002" width="116.33333333333331" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="116" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="1.0.0" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="9Bx-0J-21P">
-                                                    <rect key="frame" x="131.33333333333337" y="11.333333333333336" width="196.66666666666663" height="21"/>
+                                                    <rect key="frame" x="132" y="11.333333333333336" width="195" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -84,11 +85,11 @@
                                         <rect key="frame" x="16" y="105" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="CaZ-Mp-nvd" id="QGj-I9-o8d">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="About Dolphin" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AZC-s5-S3W">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -109,11 +110,11 @@
                                         <rect key="frame" x="16" y="148.5" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="kkg-ea-pcS" id="GJA-nB-GHQ">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Help" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dfe-JF-PdQ">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -131,11 +132,11 @@
                                         <rect key="frame" x="16" y="192" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="QMx-jh-ZcW" id="tQG-gd-20U">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Donate" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="cRV-Hq-IOP">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -157,11 +158,11 @@
                                         <rect key="frame" x="16" y="271.5" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Jt1-vy-78i" id="gby-hl-yis">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Config" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="n0Q-3C-VDC">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -182,11 +183,11 @@
                                         <rect key="frame" x="16" y="315" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="VR7-7r-GB2" id="66F-Pa-HfN">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Graphics" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6BT-cH-KPV">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -207,11 +208,11 @@
                                         <rect key="frame" x="16" y="358.5" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="m5z-a3-Ash" id="SJm-bS-iPh">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Controllers" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="xpQ-qK-CHk">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -232,11 +233,11 @@
                                         <rect key="frame" x="16" y="402" width="343" height="43.5"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="KQV-In-NsS" id="a0c-VV-pUQ">
-                                            <rect key="frame" x="0.0" y="0.0" width="317" height="43.5"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="315.66666666666669" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Debug" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="6JD-gF-g10">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="302" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="299.66666666666669" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -265,9 +266,9 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quit" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1co-pK-Y2u">
-                                                    <rect key="frame" x="15" y="11.000000000000002" width="308" height="21.666666666666671"/>
+                                                    <rect key="frame" x="16" y="11.000000000000002" width="307" height="21.666666666666671"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" systemColor="systemRedColor" red="1" green="0.23137254900000001" blue="0.18823529410000001" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="textColor" systemColor="systemRedColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -341,7 +342,7 @@
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4ti-Da-q5L">
                                                 <rect key="frame" x="0.0" y="0.0" width="335" height="0.0"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" id="w5T-td-XXt"/>
                                                 </constraints>
@@ -355,7 +356,7 @@
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="DolphiniOS" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YrK-0b-KPM">
                                                 <rect key="frame" x="0.0" y="168" width="335" height="33.666666666666657"/>
                                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="28"/>
-                                                <color key="textColor" systemColor="systemBlueColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                <color key="textColor" systemColor="systemBlueColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Iw7-Nn-kBa" userLabel="Copyright One">
@@ -403,7 +404,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                                     </label>
                                                 </subviews>
                                             </stackView>
-                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Sud-8v-xe3">
+                                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Sud-8v-xe3">
                                                 <rect key="frame" x="0.0" y="606.33333333333337" width="335" height="30"/>
                                                 <state key="normal" title="Source Code"/>
                                                 <connections>
@@ -412,7 +413,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             </button>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zt5-m9-tq2">
                                                 <rect key="frame" x="0.0" y="656.33333333333337" width="335" height="0.0"/>
-                                                <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" id="Iug-ms-yiu"/>
                                                 </constraints>
@@ -431,14 +432,14 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                 <viewLayoutGuide key="frameLayoutGuide" id="eUX-uw-ZKg"/>
                             </scrollView>
                         </subviews>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor" cocoaTouchSystemColor="whiteColor"/>
+                        <viewLayoutGuide key="safeArea" id="1NY-0C-HTn"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                         <constraints>
                             <constraint firstItem="OBc-Qf-YQt" firstAttribute="top" secondItem="1NY-0C-HTn" secondAttribute="top" id="ThH-b8-QEM"/>
                             <constraint firstItem="OBc-Qf-YQt" firstAttribute="leading" secondItem="1NY-0C-HTn" secondAttribute="leading" id="baN-k1-bjS"/>
                             <constraint firstItem="1NY-0C-HTn" firstAttribute="trailing" secondItem="OBc-Qf-YQt" secondAttribute="trailing" id="pNj-x1-TSn"/>
                             <constraint firstItem="OBc-Qf-YQt" firstAttribute="bottom" secondItem="1NY-0C-HTn" secondAttribute="bottom" id="w0N-vy-us1"/>
                         </constraints>
-                        <viewLayoutGuide key="safeArea" id="1NY-0C-HTn"/>
                     </view>
                     <navigationItem key="navigationItem" title="About Dolphin" id="RI4-PG-OKc">
                         <barButtonItem key="rightBarButtonItem" systemItem="done" id="u3Z-Ka-WRz">
@@ -487,9 +488,9 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Help" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="gtb-Ne-ddc">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="313" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="311" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="textColor" systemColor="linkColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -508,13 +509,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Load Store Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="s98-qA-2g6">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="c7R-Od-MOw">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="LoadStoreChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="F6H-xz-lgN"/>
                                                     </connections>
@@ -536,14 +537,14 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <rect key="frame" x="0.0" y="0.0" width="343" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Load Store Floating Point Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="li5-FM-I1H">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="Load Store Floating Point Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="li5-FM-I1H">
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EHO-HA-zJE">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" horizontalCompressionResistancePriority="751" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="EHO-HA-zJE">
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="LoadStoreFpChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="aGz-TM-yhr"/>
                                                     </connections>
@@ -566,13 +567,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Load Store Paired Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="pYP-Ko-kX7">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="f6m-Hj-mwh">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="LoadStorePChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="0wB-yN-gBV"/>
                                                     </connections>
@@ -595,13 +596,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Floating Point Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="L2G-aP-P6r">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="hSW-ts-PuQ">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="FpChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="086-39-A3D"/>
                                                     </connections>
@@ -624,13 +625,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Integer Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="bxk-99-Snh">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="9Q7-Fm-UJm">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="IntegerChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="gew-s1-tjV"/>
                                                     </connections>
@@ -653,13 +654,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Paired Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="G79-OZ-WTs">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="QaQ-1z-SsJ">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="PChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="BUP-CH-jjU"/>
                                                     </connections>
@@ -682,13 +683,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="System Registers Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="H8K-qf-aQf">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="xc1-ii-cl1">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="SystemRegistersChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="0iS-9j-oT3"/>
                                                     </connections>
@@ -711,13 +712,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Branch Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="NdS-eA-YTG">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="kpl-jJ-akF">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="BranchChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="HJ4-Z0-68p"/>
                                                     </connections>
@@ -740,13 +741,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Register Cache Disabled" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="9xh-DU-gOm">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="264" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="262" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="IaX-ve-brL">
-                                                    <rect key="frame" x="279" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="278" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="RegisterCacheChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="yaL-9a-YC3"/>
                                                     </connections>
@@ -769,17 +770,17 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                         <rect key="frame" x="16" y="551.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="IEZ-J2-XoC" id="g5I-yu-6zv">
-                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Sync on Skip Idle" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="NGt-fz-75k">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="232" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="230" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="jqt-aK-CNs">
-                                                    <rect key="frame" x="247" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="246" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="SkipIdleChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="dtT-EQ-uzG"/>
                                                     </connections>
@@ -798,17 +799,17 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                         <rect key="frame" x="16" y="595.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="cxM-QR-lkh" id="Ls9-oQ-O6H">
-                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Fastmem" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="M3l-U9-UrT">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="232" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="230" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="ts1-id-DRO">
-                                                    <rect key="frame" x="247" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <rect key="frame" x="246" y="6.6666666666666679" width="51" height="31.000000000000004"/>
                                                     <connections>
                                                         <action selector="FastmemChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="UkI-gK-GAO"/>
                                                     </connections>
@@ -827,13 +828,13 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                         <rect key="frame" x="16" y="639.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tif-Kx-tey" id="NBc-oc-mVX">
-                                            <rect key="frame" x="0.0" y="0.0" width="304" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Set Process As Debugged" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="3ho-Oh-qCP">
-                                                    <rect key="frame" x="15" y="11.666666666666664" width="289" height="21"/>
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="287" height="21"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" systemColor="linkColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                                    <color key="textColor" systemColor="linkColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
@@ -886,5 +887,17 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
     </scenes>
     <resources>
         <image name="DolphinLogo" width="256" height="256"/>
+        <systemColor name="linkColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemBackgroundColor">
+            <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBlueColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
+        <systemColor name="systemRedColor">
+            <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+        </systemColor>
     </resources>
 </document>
