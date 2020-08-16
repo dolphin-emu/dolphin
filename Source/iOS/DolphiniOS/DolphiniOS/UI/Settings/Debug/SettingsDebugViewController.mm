@@ -8,6 +8,10 @@
 
 #import "DebuggerUtils.h"
 
+#define MISC_ROW_SYNC_ON_SKIP_IDLE 0
+#define MISC_ROW_FASTMEM 1
+#define MISC_ROW_SET_DEBUGGED 2
+
 @interface SettingsDebugViewController ()
 
 @end
@@ -121,7 +125,7 @@
     
     [self presentViewController:controller animated:true completion:nil];
   }
-  else if (indexPath.section == 1 && indexPath.row == 2)
+  else if (indexPath.section == 1 && indexPath.row == MISC_ROW_SET_DEBUGGED)
   {
     if (!IsProcessDebugged())
     {
@@ -135,30 +139,22 @@
 
 - (void)tableView:(UITableView*)tableView accessoryButtonTappedForRowWithIndexPath:(NSIndexPath*)indexPath
 {
-  if (indexPath.section == 1 && indexPath.row == 0)
+  if (indexPath.section == 1)
   {
-    NSString* message = NSLocalizedString(@"This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked.", nil);
+    NSString* message = DOLocalizedString(@"Error");
+    if (indexPath.row == MISC_ROW_SYNC_ON_SKIP_IDLE)
+    {
+      message = NSLocalizedString(@"This setting changes whether the GPU is synchronized with the CPU when the CPU is idle.\n\nWARNING: Disabling this option may result in better performance (FPS), but you may also experience FIFO errors, \"Invalid Opcode\" messages, game glitches, and Dolphin crashes.\n\nIf unsure, leave this setting checked.", nil);
+    }
+    else if (indexPath.row == MISC_ROW_FASTMEM)
+    {
+      message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM. Non-jailbroken devices cannot enable this option due to iOS limitations.\n\nWARNING: Disabling this option will decrease performance (FPS).", nil);
+    }
+    else if (indexPath.row == MISC_ROW_SET_DEBUGGED)
+    {
+      message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
+    }
     
-    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
-    
-    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
-    
-    [self presentViewController:controller animated:true completion:nil];
-  }
-  else if (indexPath.section == 1 && indexPath.row == 1)
-  {
-    NSString* message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM. Non-jailbroken devices cannot enable this option due to iOS limitations.\n\nWARNING: Disabling this option will decrease performance (FPS).", nil);
-      
-    UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
-    
-    [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
-    
-    [self presentViewController:controller animated:true completion:nil];
-  }
-  else if (indexPath.section == 1 && indexPath.row == 2)
-  {
-    NSString* message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
-      
     UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
     
     [controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
