@@ -33,6 +33,7 @@ wants to join your party." = "%1
 "%1 (Copy)" = "%1 (Копировать)";
 "%1 (Disc %2, Revision %3)" = "%1 (Диск %2, ревизия %3)";
 "%1 (Revision %3)" = "%1 (Ревизия %3)";
+"%1 (recommended)" = "%1 (рекомендуется)";
 "%1 (slow)" = "%1 (медленно)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -384,7 +385,7 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Auxiliary" = "Вспомогательное";
 "B" = "Б";
 "BAT incorrect. Dolphin will now exit" = "Некорректная BAT. Dolphin завершит работу";
-"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "MAC-адрес BBA %s недействителен для XLink Kai. Необходимо использовать действительный MAC-адрес Nintendo GameCube. Сгенерируйте новый MAC-адрес, начиная с 00:09:bf или 00:17:ab.";
 "BP register " = "Регистр в ТО ";
 "Back Chain" = "Цепочка возврата";
 "Backend Multithreading" = "Многопоточный бэкенд";
@@ -409,7 +410,7 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Bitrate (kbps)" = "Битрейт (кбит/с)";
 "Block Size" = "Размер блока";
 "Block Size" = "Размер блока";
-"Blocking" = "Blocking";
+"Blocking" = "Блокирующий";
 "Blocks" = "Блоков";
 "Blue" = "Синяя";
 "Blue Left" = "Синяя слева";
@@ -426,9 +427,9 @@ If unsure, leave this unchecked." = "Автоматически подстраи
 "Breakpoint" = "Точка останова";
 "Breakpoint encountered! Step out aborted." = "Попадание в точку останова! Шаг с выходом отменён.";
 "Breakpoints" = "Точки останова";
-"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
-"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
-"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
+"Broadband Adapter (TAP)" = "Широкополосный адаптер (TAP)";
+"Broadband Adapter (XLink Kai)" = "Широкополосный адаптер (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Адрес назначения широкополосного адаптера (XLink Kai)";
 "Broadband Adapter MAC address" = "MAC-адрес широкополосного адаптера";
 "Browse NetPlay Sessions...." = "Просмотр сессий сетевой игры...";
 "Buffer Size" = "Размер буфера";
@@ -489,11 +490,11 @@ Have you chosen the right type?" = "Невозможно интерпретир�
 
 Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
 First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
-Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Changes the in-game camera type during freelook.
+Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point." = "Изменение типа игровой камеры во время свободного обзора.
 
-Six Axis: Offers full camera control on all axes, akin to moving a spacecraft in zero gravity. This is the most powerful freelook option but is the most challenging to use.
-First Person: Controls the free camera similarly to a first person video game. The camera can rotate and travel, but roll is impossible. Easy to use, but limiting.
-Orbital: Rotates the free camera around the original camera. Has no lateral movement, only rotation and you may zoom up to the camera's origin point.";
+По шести осям: обеспечивает полный контроль камеры по всем осям, что сродни перемещению космического корабля в условиях нулевой гравитации. Это самая мощная опция просмотра, но наиболее сложная в использовании.
+От первого лица: управляет свободной камерой так же, как в играх от первого лица. Камера может поворачиваться и перемещаться, но перекат невозможен. Простая в использовании, но имеет ограничения.
+По орбите: вращает свободную камеру вокруг оригинальной камеры. Нельзя двигать вбок, только вращать, а при помощи масштабирования можно вернуться к исходной точке камеры.";
 "Changing cheats will only take effect when the game is restarted." = "Изменения в читах вступят в силу после перезапуска игры.";
 "Chat" = "Чат";
 "Cheat Code Editor" = "Редактор чит-кодов";
@@ -555,7 +556,7 @@ Orbital: Rotates the free camera around the original camera. Has no lateral move
 "Continuous Scanning" = "Непрерывное сканирование";
 "Control NetPlay Golf Mode" = "Управление режимом гольфа сетевой игры";
 "Control Stick" = "Control Stick";
-"Control Type" = "Control Type";
+"Control Type" = "Тип управления";
 "Controller Profile" = "Профиль контроллера";
 "Controller Profile 1" = "Профиль контроллера 1";
 "Controller Profile 2" = "Профиль контроллера 2";
@@ -589,6 +590,7 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Convert" = "Конвертация";
 "Convert File..." = "Конвертировать файл...";
 "Convert Selected Files..." = "Конвертировать выбранные файлы...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Преобразование образов дисков Wii в GCZ без удаления ненужных данных не сохраняет заметного объёма пространства по сравнению с преобразованием в ISO. Вы всё равно хотите продолжить?";
 "Converting..." = "Идёт конвертация...";
 "Copy" = "Копировать";
@@ -723,7 +725,7 @@ If unsure, leave this unchecked." = "Откладывает инвалидаци
 "Depth" = "Глубина";
 "Description" = "Описание";
 "Description" = "Описание";
-"Detached" = "Detached";
+"Detached" = "Отсоединён";
 "Detect" = "Считать";
 "Deterministic dual core" = "Детерминированная двухядерность";
 "Dev (multiple times a day)" = "Разрабатываемая (несколько раз в день)";
@@ -744,7 +746,7 @@ Do you really want to switch to Direct3D 11? If unsure, select 'No'." = "Для 
 "Disable Copy Filter" = "Отключить фильтр копирования";
 "Disable EFB VRAM Copies" = "Отключить копии EFB в VRAM";
 "Disable Emulation Speed Limit" = "Отключить огр. скорости эмуляции";
-"Disable Fastmem" = "Disable Fastmem";
+"Disable Fastmem" = "Отключить быструю память";
 "Disable Fog" = "Отключить туман";
 "Disable JIT Cache" = "Отключить кэш JIT";
 "Disables bounding box emulation.
@@ -806,6 +808,7 @@ Double-click here to set a games directory..." = "Dolphin не может най
 "Dolphin's cheat system is currently disabled." = "На данный момент поддержка читов в Dolphin отключена.";
 "Domain" = "Домен";
 "Don't Update" = "Не обновлять";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "Сжатие образа диска завершено.";
 "Double" = "Double";
 "Down" = "Вниз";
@@ -824,8 +827,10 @@ Double-click here to set a games directory..." = "Dolphin не может най
 "Dump FakeVMEM" = "Дампить FakeVMEM";
 "Dump MRAM" = "Дампить MRAM";
 "Dump Audio" = "Дампить звук";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "Дампить конечный EFB";
 "Dump Frames" = "Дампить кадры";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "Дампить объекты";
 "Dump Path" = "Путь к дампам";
 "Dump SSL read" = "Дампить чтение SSL";
@@ -856,16 +861,18 @@ If unsure, leave this unchecked." = "Дампить объекты в User/Dump/
 Если не уверены – оставьте выключенным.";
 "Dump peer certificates" = "Дампить сертификаты";
 "Dump root CA" = "Дампить корневой серт.";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "Дампит декодированные текстуры в User/Dump/Textures/<game_id>/.
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-Если не уверены – оставьте выключенным.";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "Дампит содержимое копий EFB в User/Dump/Textures/.
 
 Если не уверены – оставьте выключенным.";
+"Duration of Turbo Button Press (frames)" = "Длительность нажатия турбо-кнопки (в кадрах)";
+"Duration of Turbo Button Release (frames)" = "Длительность отпускания турбо-кнопки (в кадрах)";
 "Dutch" = "Голландский";
 "Exit" = "Закрыть";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "ОШИБКА: Этой версии Dolphin необходим драйвер TAP-Win32 не ниже версии %d.%d – Если вы недавно обновили Dolphin, то, скорее всего, необходимо перезагрузить компьютер, чтобы Windows обнаружил новый драйвер.";
@@ -965,8 +972,8 @@ If unsure, leave this unchecked." = "Кодирует дампы кадров с
 "English" = "Английский";
 "Enhancements" = "Улучшения";
 "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Введите IP-адрес для устройства с клиентом XLink Kai.
+Чтобы узнать больше, посетите https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Введите ID USB-устройства";
 "Enter new Broadband Adapter MAC address" = "Введите новый MAC-адрес широкополосного адаптера";
 "Enter password" = "Введите пароль";
@@ -1105,14 +1112,14 @@ Check that you have enough space available on the target drive." = "Не уда�
 "Fast" = "Быстрое";
 "Fast Depth Calculation" = "Быстрое вычисление глубины";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Критическая рассинхронизация. Остановка воспроизведения. (Ошибка в PlayWiimote: %u != %u, байт %u.)%s";
-"File Details" = "File Details";
-"File Format" = "File Format";
-"File Format" = "File Format";
+"File Details" = "Информация о файле";
+"File Format" = "Формат файла";
+"File Format" = "Формат файла";
 "File Info" = "Информация о файле";
 "File Name" = "Имя файла";
 "File Path" = "Путь к файлу";
 "File Size" = "Размер файла";
-"File Size" = "File Size";
+"File Size" = "Размер файла";
 "File contained no codes." = "Файл не содержит кодов.";
 "File write failed" = "Запись файла не удалась";
 "Files opened, ready to compress." = "Файлы открыты и готовы к сжатию.";
@@ -1185,11 +1192,11 @@ If unsure, leave this checked." = "Цветовые каналы будут пр
 "France" = "Франция";
 "Free Look" = "Свободный обзор";
 "Freelook" = "Свободный обзор";
-"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
-"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
+"Freelook Decrease Field of View X" = "Свободный обзор: уменьшить угол обзора по X";
+"Freelook Decrease Field of View Y" = "Свободный обзор: уменьшить угол обзора по Y";
 "Freelook Decrease Speed" = "Свободный обзор: умен. скорость";
-"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
-"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
+"Freelook Increase Field of View X" = "Свободный обзор: увеличить угол обзора по X";
+"Freelook Increase Field of View Y" = "Свободный обзор: увеличить угол обзора по Y";
 "Freelook Increase Speed" = "Свободный обзор: увел. скорость";
 "Freelook Move Down" = "Свободный обзор: движение вниз";
 "Freelook Move Left" = "Свободный обзор: движение влево";
@@ -1236,7 +1243,7 @@ Dolphin, скорее всего, зависнет или упадёт. Насл
 "Game" = "Игра";
 "Game Boy Advance Carts (*.gba)" = "Картриджи от Game Boy Advance (*.gba)";
 "Game Config" = "Настройки игры";
-"Game Details" = "Game Details";
+"Game Details" = "Информация об игре";
 "Game Folders" = "Папки с играми";
 "Game ID" = "ID игры";
 "Game ID" = "ID игры";
@@ -1288,7 +1295,7 @@ If unsure, leave this checked." = "Значительно повышает ка�
 "Gyroscope" = "Гироскоп";
 "HDMI 3D" = "HDMI 3D";
 "Hacks" = "Хаки";
-"Head" = "Head";
+"Head" = "Голова";
 "Hex" = "Hex";
 "Hexadecimal" = "Шестнадцатеричный";
 "Hide" = "Спрятать";
@@ -1311,6 +1318,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Hotkeys" = "Горячие клавиши";
 "Hotkeys Require Window Focus" = "Для горячих клавиш требуется окно в фокусе";
 "Hz" = "Гц";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Файл, необходимый для работы SSL (%s), некорректен. Пожалуйста, обратитесь к инструкции по настройки сети Wii: https://dolphin-emu.org/docs/guides/wii-network-guide/";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Не удалось прочитать файл, необходимый для работы SSL (%s). Пожалуйста, обратитесь к инструкции по настройки сети Wii: https://dolphin-emu.org/docs/guides/wii-network-guide/";
@@ -1336,7 +1344,7 @@ RVZ: Продвинутый сжатый формат, совместимый с
 Suitable for turn-based games with timing-sensitive controls, such as golf." = "Похоже на \"Хост управляет вводом\" за исключением того, что хоста (у кого нулевая задержка) можно менять во время игры.
 Подходит для пошаговых игр с элементами управления, чувствительными ко времени, такими как гольф.";
 "Identity Generation" = "Генерация ID";
-"If \"Allow Writes to SD Card\" is disabled this does not override it." = "If \"Allow Writes to SD Card\" is disabled this does not override it.";
+"If \"Allow Writes to SD Card\" is disabled this does not override it." = "Если выключено \"Разрешить запись на SD карту\", то данная настройка не включит.";
 "If authorized, Dolphin can collect data on its performance, feature usage, and configuration, as well as data on your system's hardware and operating system.
 
 No private data is ever collected. This data helps us understand how people and emulated games use Dolphin and prioritize our efforts. It also helps us identify rare configurations that are causing bugs, performance and stability issues.
@@ -1466,7 +1474,7 @@ Try loading the state again" = "Внутренняя ошибка LZO - ошиб
 "Korean" = "Корейский";
 "L" = "L";
 "L-Analog" = "L-аналог";
-"LR Save" = "LR Save";
+"LR Save" = "Сохр. LR";
 "Label" = "Название";
 "Latency" = "Задержка";
 "Latency: ~10ms" = "Задержка: ~10 мс";
@@ -1625,6 +1633,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 Иногда требуется сброс эмуляции.
 
 Если не уверены – оставьте выключенным.";
+"Mono" = "Моно";
 "Monoscopic Shadows" = "Моноскопические тени";
 "Monospaced Font" = "Моноширный шрифт";
 "More or equal to" = "Больше или равно";
@@ -1635,6 +1644,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Move the mouse pointer over an option to display a detailed description." = "Наведите курсор мыши на опцию, чтобы увидеть подробную информацию.";
 "Movie" = "Ролик";
 "NAND Check" = "Проверка NAND";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "ПРИМЕЧАНИЕ: размер потока не совпадает с размером настоящих данных
 ";
@@ -1666,6 +1676,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Next Match" = "Следующее совпадение";
 "Next Profile" = "Следующий профиль";
 "Next Search" = "Новый поиск";
+"Nickname is too long." = "Ник очень длинный.";
 "Nickname" = "Ник";
 "No" = "Нет";
 "No Adapter Detected" = "Адаптеров не обнаружено";
@@ -1733,7 +1744,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Operators" = "Операторы";
 "Options" = "Опции";
 "Orange" = "Оранжевая";
-"Orbital" = "Orbital";
+"Orbital" = "По орбите";
 "Other" = "Прочие";
 "Other State Hotkeys" = "Другие горячие клавиши";
 "Other State Management" = "Другое управление сохранениями";
@@ -1757,7 +1768,7 @@ If unsure, leave this unchecked." = "Модифицирует текстуры �
 "Patch Editor" = "Редактор патчей";
 "Patch name" = "Название патча";
 "Patches" = "Патчи";
-"Path" = "Path";
+"Path" = "Путь";
 "Paths" = "Пути";
 "Pause" = "Пауза";
 "Pause at End of Movie" = "Пауза в конце ролика";
@@ -2177,7 +2188,7 @@ If unsure, leave this unchecked." = "Показывает различную с�
 "Signed Integer" = "Знаковое целое";
 "Simplified Chinese" = "Упрощ. китайский";
 "Simulate DK Bongos" = "Симуляция бонго DK";
-"Six Axis" = "Six Axis";
+"Six Axis" = "По шести осям";
 "Size" = "Размер";
 "Size of stretch buffer in milliseconds. Values too low may cause audio crackling." = "Размер буфера растяжения в миллисекундах. При низких значениях звук может потрескивать.";
 "Skip" = "Пропустить";
@@ -2206,12 +2217,13 @@ If unsure, leave this checked." = "Пропускает отображение �
 Please check the highlighted values." = "Некоторые введённые значения некорректны.
 Пожалуйста, проверьте подсвеченные значения.";
 "Sort Alphabetically" = "Сортировать по алфавиту";
+"Sound" = "Звук";
 "South America" = "Южная Америка";
 "Spain" = "Испания";
 "Spanish" = "Испанский";
 "Speaker Pan" = "Баланс звука";
 "Speaker Volume" = "Громкость динамика";
-"Specific" = "Specific";
+"Specific" = "Особенность";
 "Speed" = "Скорость";
 "Speed up Disc Transfer Rate" = "Ускорить чтение с диска";
 "Stable (once a year)" = "Стабильная (раз в год)";
@@ -2234,6 +2246,7 @@ Please check the highlighted values." = "Некоторые введённые �
 "Step over in progress..." = "Выполняется шаг с обходом...";
 "Step successful!" = "Шаг выполнен успешно!";
 "Stepping" = "Шаги";
+"Stereo" = "Стерео";
 "Stereoscopic 3D Mode" = "Стереоскопический 3D-режим";
 "Stereoscopy" = "Стереоизображение";
 "Stick" = "Стик";
@@ -2288,7 +2301,8 @@ If unsure, leave this checked." = "Хранит копии XFB только на
 "Successfully removed this title from the NAND." = "Данный продукт успешно удалён из NAND.";
 "Support" = "Поддержка";
 "Supports SD and SDHC. Default size is 128 MB." = "Поддерживаются SD и SDHC. Размер по умолчанию: 128 Мбайт.";
-"Suspended" = "Suspended";
+"Surround" = "Объёмный";
+"Suspended" = "Приостановлен";
 "Swap Eyes" = "Поменять ракурсы местами";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
 
@@ -2319,11 +2333,12 @@ If unsure, leave this unchecked." = "Меняет местами ракурсы 
 "TAS Tools" = "Управление TAS";
 "Tags" = "Метки";
 "Taiko Drum" = "Барабан Тайко";
-"Tail" = "Tail";
+"Tail" = "Хвост";
 "Taiwan" = "Тайвань";
 "Take Screenshot" = "Сделать скриншот";
 "Test" = "Проверить";
 "Texture Cache" = "Кэширование текстур";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "Наложение форматов текстур";
 "The %s partition does not have a valid file system." = "У раздела %s отсутствует корректная файловая система.";
 "The %s partition does not seem to contain valid data." = "В разделе %s, вероятно, не содержится корректных данных.";
@@ -2378,6 +2393,11 @@ Do you wish to replace it?" = "Файл %1 уже существует.
 "The game disc does not contain any usable update information." = "На данном диске не содержится полезной информации про обновление.";
 "The game is currently running." = "Игра уже запущена.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "Регионы игры и консоли не совпадают. Обновление эмулируемой консоли при помощи данного диска невозможно, т.к. это приведёт к ошибкам системного меню.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "Графический драйвер принудительно включает сглаживание для Dolphin. Для работы Dolphin необходимо отключить это в настройках графического драйвера.
+
+(Во фреймбуффере по умолчанию найден MSAA с %d сэмплами)";
 "The hashes do not match!" = "Хэши не совпадают!";
 "The hashes match!" = "Хэши совпадают!";
 "The host code is too long.
@@ -2697,6 +2717,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Website" = "Веб-сайт";
 "Western (Windows-1252)" = "Западная (Windows-1252)";
 "Whammy" = "Флойд";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "Белый список пробрасываемых USB-устройств";
 "Widescreen Hack" = "Широкоформатный хак";
 "Wii" = "Wii";
@@ -2733,6 +2763,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "Рыскание вправо";
 "Yellow" = "Жёлтая";
 "Yes" = "Да";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "Вы пытаетесь использовать бэкенд Vulkan (Metal) на неподдерживаемой операционной системе. Чтобы включить весь функционал, вы должны использовать macOS версии 10.14 (Mojave) и новее. Пожалуйста, сообщайте только о тех проблемах, которые также возникают в версиях 10.14+.";
 "You are running the latest version available on this update track." = "Вы используете последнюю версию, доступную
 на выбранном канале обновлений.";

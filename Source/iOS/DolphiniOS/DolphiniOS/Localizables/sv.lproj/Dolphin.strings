@@ -33,6 +33,7 @@ vill vara med i din grupp.";
 "%1 (Copy)" = "%1 (kopia)";
 "%1 (Disc %2, Revision %3)" = "%1 (skiva %2, revision %3)";
 "%1 (Revision %3)" = "%1 (revision %3)";
+"%1 (recommended)" = "%1 (rekommenderas)";
 "%1 (slow)" = "%1 (långsamt)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -384,7 +385,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Auxiliary" = "ARAM";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT är inkorrekt. Dolphin kommer nu avslutas";
-"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA-MAC-adressen %s är ogiltig för XLink Kai. En giltig Nintendo GameCube-MAC-adress måste användas. Generera en ny MAC-adress som börjar med 00:09:bf eller 00:17:ab.";
 "BP register " = "BP-register";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Flertrådning i backend";
@@ -426,9 +427,9 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Breakpoint" = "Brytpunkt";
 "Breakpoint encountered! Step out aborted." = "Brytpunkt påträffades! Urstegning avbruten.";
 "Breakpoints" = "Brytpunkter";
-"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
-"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
-"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
+"Broadband Adapter (TAP)" = "Bredbandsadapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Bredbandsadapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Destinationsadress för bredbandsadapter (XLink Kai)";
 "Broadband Adapter MAC address" = "MAC-adress för bredbandsadapter";
 "Browse NetPlay Sessions...." = "Bläddra bland nätspelssessioner...";
 "Buffer Size" = "Buffertstorlek";
@@ -589,6 +590,7 @@ Ett högre värde skapar en starkare djupkänsla medan ett lägre värde är bek
 "Convert" = "Konvertera";
 "Convert File..." = "Konvertera fil...";
 "Convert Selected Files..." = "Konvertera valda filer...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Att konvertera Wii-skivavbildningar till GCZ utan att ta bort skräpdata sparar knappt någon plats jämfört med att konvertera till ISO. Vill du fortsätta ändå?";
 "Converting..." = "Konverterar...";
 "Copy" = "Kopiera";
@@ -805,6 +807,7 @@ Dubbelklicka här för att ställa in en spelmapp…";
 "Dolphin's cheat system is currently disabled." = "Dolphins fusksystem är avstängt just nu.";
 "Domain" = "Domän";
 "Don't Update" = "Uppdatera inte";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "Skivavbildningen har komprimerats.";
 "Double" = "Double";
 "Down" = "Ner";
@@ -823,8 +826,10 @@ Dubbelklicka här för att ställa in en spelmapp…";
 "Dump FakeVMEM" = "Dumpa FakeVMEM";
 "Dump MRAM" = "Dumpa MRAM";
 "Dump Audio" = "Dumpa ljud";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "Dumpa EFB-mål";
 "Dump Frames" = "Dumpa bildrutor";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "Dumpa objekt";
 "Dump Path" = "Dump-sökväg";
 "Dump SSL read" = "Dump SSL read";
@@ -855,16 +860,18 @@ If unsure, leave this unchecked." = "Dumpa objekt till User/Dump/Objects/.
 Om du är osäker kan du lämna detta omarkerat.";
 "Dump peer certificates" = "Dump peer certificates";
 "Dump root CA" = "Dump root CA";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "Dumpar avkodade speltexturer till User/Dump/Textures/<game_id>/.
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-Om du är osäker kan du lämna detta omarkerat.";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "Dumpar innehållet i EFB-kopior till User/Dump/Textures/.
 
 Om du är osäker kan du lämna detta omarkerat.";
+"Duration of Turbo Button Press (frames)" = "Varaktighet för turboknapptryckning (bildrutor)";
+"Duration of Turbo Button Release (frames)" = "Varaktighet för turboknappsläppning (bildrutor)";
 "Dutch" = "Nederländska";
 "Exit" = "Avsluta";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "FEL: Denna version av Dolphin kräver drivrutinen TAP-Win32 som åtminstone är version %d.%d -- Om du nyligen har uppdaterat din utgåva av Dolphin krävs förmodligen en omstart för tillfället för att få Windows att hitta den nya drivrutinen.";
@@ -964,8 +971,8 @@ Om du är osäker kan du lämna detta omarkerat.";
 "English" = "Engelska";
 "Enhancements" = "Förbättringar";
 "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Ange IP-adressen för enheten som kör XLink Kai-klienten.
+För mer information, se https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Ange ID för en USB-enhet";
 "Enter new Broadband Adapter MAC address" = "Ange ny MAC-adress för bredbandsadaptern";
 "Enter password" = "Ange lösenord";
@@ -1104,14 +1111,14 @@ Kontrollera att det finns tillräckligt med utrymme på målenheten.";
 "Fast" = "Snabb";
 "Fast Depth Calculation" = "Snabb djupberäkning";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Allvarlig desynkronisering. Avbryter uppspelning. (Fel i PlayWiimote: %u != %u, byte %u.)%s";
-"File Details" = "File Details";
-"File Format" = "File Format";
-"File Format" = "File Format";
+"File Details" = "Fildetaljer";
+"File Format" = "Filformat";
+"File Format" = "Filformat";
 "File Info" = "Filinformation";
 "File Name" = "Filnamn";
 "File Path" = "Sökväg";
 "File Size" = "Filstorlek";
-"File Size" = "File Size";
+"File Size" = "Filstorlek";
 "File contained no codes." = "Filen innehöll inga koder.";
 "File write failed" = "Misslyckades att skriva till fil";
 "Files opened, ready to compress." = "Filerna har öppnats. Redo att komprimera.";
@@ -1234,7 +1241,7 @@ Fel utöver detta kommer skickas till Video Backend-loggen. Dolphin kommer nu an
 "Game" = "Spel";
 "Game Boy Advance Carts (*.gba)" = "Game Boy Advance-kassetter (*.gba)";
 "Game Config" = "Spelkonfiguration";
-"Game Details" = "Game Details";
+"Game Details" = "Speldetaljer";
 "Game Folders" = "Spelmappar";
 "Game ID" = "Spel-ID";
 "Game ID" = "Spel-ID";
@@ -1309,6 +1316,7 @@ Lämplig för casual spel med 3+ spelare, eventuellt på instabila eller höga l
 "Hotkeys" = "Kortkommandon";
 "Hotkeys Require Window Focus" = "Snabbtangenter kräver fönsterfokus";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: En fil som krävs för SSL-tjänster (%s) är ogiltig. Se https://dolphin-emu.org/docs/guides/wii-network-guide/ för instruktioner gällande konfiguration av Wii-nätverk.";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Kunde inte läsa en fil som krävs för SSL-tjänster (%s). Se https://dolphin-emu.org/docs/guides/wii-network-guide/ för instruktioner gällande konfiguration av Wii-nätverk.";
@@ -1623,6 +1631,7 @@ If unsure, leave this unchecked." = "Modifierar texturer för att visa formatet 
 Det kan krävas att emuleringen startas om för att det ska börja gälla.
 
 Om du är osäker kan du lämna detta omarkerat.";
+"Mono" = "Mono";
 "Monoscopic Shadows" = "Monoskopiska skuggor";
 "Monospaced Font" = "Teckensnitt med fast teckenbredd";
 "More or equal to" = "Mer än eller lika med";
@@ -1633,6 +1642,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Move the mouse pointer over an option to display a detailed description." = "Håll muspekaren över ett alternativ för att visa en detaljerad beskrivning.";
 "Movie" = "Inspelning";
 "NAND Check" = "NAND-minneskontroll";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "OBS: Strömningsstorleken stämmer inte överens med den faktiska datalängden
 ";
@@ -1664,6 +1674,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Next Match" = "Nästa matchning";
 "Next Profile" = "Nästa profil";
 "Next Search" = "Nästa sökning";
+"Nickname is too long." = "Smeknamnet är för långt.";
 "Nickname" = "Smeknamn";
 "No" = "Nej";
 "No Adapter Detected" = "Ingen adapter upptäcktes";
@@ -1755,7 +1766,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Patch Editor" = "Patchredigerare";
 "Patch name" = "Patchnamn";
 "Patches" = "Patcher";
-"Path" = "Path";
+"Path" = "Sökväg";
 "Paths" = "Sökvägar";
 "Pause" = "Pausa";
 "Pause at End of Movie" = "Pausa vid slutet av inspelningar";
@@ -2203,6 +2214,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 Please check the highlighted values." = "Vissa av de angivna värdena är ogiltiga.
 Kontrollera de markerade värdena.";
 "Sort Alphabetically" = "Sortera alfabetiskt";
+"Sound" = "Ljud";
 "South America" = "Sydamerika";
 "Spain" = "Spanien";
 "Spanish" = "Spanska";
@@ -2231,6 +2243,7 @@ Kontrollera de markerade värdena.";
 "Step over in progress..." = "Överstegning pågår...";
 "Step successful!" = "Stegning lyckades!";
 "Stepping" = "Stega";
+"Stereo" = "Stereo";
 "Stereoscopic 3D Mode" = "Läge för stereoskopisk 3D";
 "Stereoscopy" = "Stereoskopi";
 "Stick" = "Spak";
@@ -2285,6 +2298,7 @@ Om du är osäker kan du lämna detta markerat.";
 "Successfully removed this title from the NAND." = "Titeln har tagits bort från NAND-minnet.";
 "Support" = "Support";
 "Supports SD and SDHC. Default size is 128 MB." = "Stöder SD och SDHC. Standardstorleken är 128 MB.";
+"Surround" = "Surround";
 "Suspended" = "Suspended";
 "Swap Eyes" = "Byt plats på ögon";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2321,6 +2335,7 @@ Om du är osäker kan du lämna detta omarkerat.";
 "Take Screenshot" = "Ta en skärmdump";
 "Test" = "Test";
 "Texture Cache" = "Texturcache";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "Överlägg för texturformat";
 "The %s partition does not have a valid file system." = "%s-partitionen har inget giltigt filsystem.";
 "The %s partition does not seem to contain valid data." = "%s-partitionen verkar inte innehålla giltig data.";
@@ -2375,6 +2390,11 @@ Vill du byta ut den?";
 "The game disc does not contain any usable update information." = "Spelskivan innehåller inte någon uppdateringsinformation som går att använda.";
 "The game is currently running." = "Spelet körs för tillfället.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "Spelets region matchar inte konsolens region. För att undvika problem med systemmenyn kommer du inte kunna uppdatera den emulerade konsolen med den här skivan.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "Grafikdrivrutinen tvingar Dolphin att använda anti-aliasing. Du måste stänga av detta i grafikdrivrutinens inställningar för att Dolphin ska fungera.
+
+(MSAA med %d samples hittades på default framebuffer)";
 "The hashes do not match!" = "Kontrollsummorna stämmer inte!";
 "The hashes match!" = "Kontrollsummorna stämmer!";
 "The host code is too long.
@@ -2692,6 +2712,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Website" = "Webbplats";
 "Western (Windows-1252)" = "Västerländsk (Windows-1252)";
 "Whammy" = "Svajarm";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "Enheter som används med USB-genomsläppning";
 "Widescreen Hack" = "Bredbildshack";
 "Wii" = "Wii";
@@ -2728,6 +2758,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "Gira höger";
 "Yellow" = "Gul";
 "Yes" = "Ja";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "Du försöker använda Vulkan (Metal)-backenden på ett operativsystem där det inte stöds. För att all funktionalitet ska vara tillgänglig måste du använda macOS 10.14 (Mojave) eller nyare. Rapportera inte några problem som förekommer om de inte också förekommer på 10.14+.";
 "You are running the latest version available on this update track." = "Du använder den senaste versionen som är tillgänglig på det här uppdateringsspåret.";
 "You cannot use the Wii Shop Channel without using your own device credentials.

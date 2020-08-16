@@ -33,6 +33,7 @@ wants to join your party." = "%1
 "%1 (Copy)" = "%1 (复制)";
 "%1 (Disc %2, Revision %3)" = "%1 (光盘 %2, 修订版 %3)";
 "%1 (Revision %3)" = "%1 (修订版 %3)";
+"%1 (recommended)" = "%1 (推荐)";
 "%1 (slow)" = "%1 (慢)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -386,7 +387,7 @@ If unsure, leave this unchecked." = "自动将窗口大小调整为内部分辨�
 "Auxiliary" = "副内存";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT 错误，模拟器即将退出";
-"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC 地址 %s 对于 XLink Kai 无效。必须使用有效的任天堂 GameCube MAC 地址。 生成一个以 00:09:bf 或 00:17:ab 开头的新 MAC 地址。";
 "BP register " = "BP 寄存器";
 "Back Chain" = "后链";
 "Backend Multithreading" = "后端多线程";
@@ -397,9 +398,9 @@ If unsure, leave this unchecked." = "自动将窗口大小调整为内部分辨�
 "Bad address provided." = "地址格式不正确。";
 "Bad dump" = "错误的转储";
 "Bad value provided." = "值格式不正确。";
-"Banner" = "标志";
-"Banner Details" = "标志详细信息";
-"Banner" = "标志";
+"Banner" = "标图";
+"Banner Details" = "标图详细信息";
+"Banner" = "标图";
 "Bar" = "摇把";
 "Base priority" = "基本优先级";
 "Basic" = "基本";
@@ -411,7 +412,7 @@ If unsure, leave this unchecked." = "自动将窗口大小调整为内部分辨�
 "Bitrate (kbps)" = "比特率 (kbps)";
 "Block Size" = "区块大小";
 "Block Size" = "区块大小";
-"Blocking" = "Blocking";
+"Blocking" = "屏蔽";
 "Blocks" = "区块";
 "Blue" = "蓝";
 "Blue Left" = "蓝 左";
@@ -428,9 +429,9 @@ If unsure, leave this unchecked." = "自动将窗口大小调整为内部分辨�
 "Breakpoint" = "断点";
 "Breakpoint encountered! Step out aborted." = "遇到断点！跳出已中止。";
 "Breakpoints" = "断点";
-"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
-"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
-"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
+"Broadband Adapter (TAP)" = "宽带适配器 (TAP)";
+"Broadband Adapter (XLink Kai)" = "宽带适配器 (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "宽带适配器 (XLink Kai) 目标地址";
 "Broadband Adapter MAC address" = "宽带适配器 MAC 地址";
 "Browse NetPlay Sessions...." = "浏览联机会话...";
 "Buffer Size" = "缓冲区大小";
@@ -591,6 +592,7 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Convert" = "转换";
 "Convert File..." = "转换文件...";
 "Convert Selected Files..." = "转换所选文件...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "与转换为 ISO 格式相比，在不移除垃圾数据的情况下将 Wii 光盘镜像转换为 GCZ 格式不会节省任何更明显的空间。是否仍要继续？";
 "Converting..." = "正在转换...";
 "Copy" = "复制";
@@ -809,6 +811,7 @@ Double-click here to set a games directory..." = "Dolphin 无法找到任何 Gam
 "Dolphin's cheat system is currently disabled." = "Dolphin 的金手指系统当前已禁用。";
 "Domain" = "域名";
 "Don't Update" = "不要更新";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "光盘镜像已压缩完成。";
 "Double" = "双精度";
 "Down" = "下";
@@ -827,8 +830,10 @@ Double-click here to set a games directory..." = "Dolphin 无法找到任何 Gam
 "Dump FakeVMEM" = "转储伪显存";
 "Dump MRAM" = "转储主内存";
 "Dump Audio" = "转储音频";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "转储 EFB 目标";
 "Dump Frames" = "转储帧";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "转储对象";
 "Dump Path" = "转储路径";
 "Dump SSL read" = "转储 SSL 读取";
@@ -859,16 +864,18 @@ If unsure, leave this unchecked." = "将对象转储到 User/Dump/Objects/ 目�
 如果不确定，请不要勾选此项。";
 "Dump peer certificates" = "转储对等证书";
 "Dump root CA" = "转储根证书机构";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "将解码的游戏纹理转储到 User/Dump/Textures/<game_id>/ 目录中。
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-如果不确定，请不要勾选此项。";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "将 EFB 副本的内容转储到 User/Dump/Textures/ 目录中。
 
 如果不确定，请不要勾选此项。";
+"Duration of Turbo Button Press (frames)" = "连发按键的按下持续时间（帧）";
+"Duration of Turbo Button Release (frames)" = "连发按键的松开持续时间（帧）";
 "Dutch" = "荷兰语";
 "Exit" = "退出模拟";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "错误：此版本的Dolphin需要 %d.%d 或更高版本的 TAP-Win32 驱动——如果您刚刚升级您的 Dolphin，或许您现在需要重新启动您的计算机以使 Windows 加载新驱动。";
@@ -968,8 +975,8 @@ If unsure, leave this unchecked." = "使用 FFV1 编解码器编码转储的帧�
 "English" = "英语";
 "Enhancements" = "增强";
 "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "输入运行 XLink Kai 客户端的设备 IP 地址。
+获取更多信息，请参见 https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "输入 USB 设备 ID";
 "Enter new Broadband Adapter MAC address" = "输入新宽带适配器 MAC 地址";
 "Enter password" = "输入密码";
@@ -1108,14 +1115,14 @@ Check that you have enough space available on the target drive." = "无法写入
 "Fast" = "快速";
 "Fast Depth Calculation" = "快速深度计算";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "致命的不同步。回放中止。(在 PlayWiimote 中发生错误: %u != %u, byte %u.)%s";
-"File Details" = "File Details";
-"File Format" = "File Format";
-"File Format" = "File Format";
+"File Details" = "文件详细信息";
+"File Format" = "文件格式";
+"File Format" = "文件格式";
 "File Info" = "文件信息";
 "File Name" = "文件名";
 "File Path" = "文件路径";
 "File Size" = "文件大小";
-"File Size" = "File Size";
+"File Size" = "文件大小";
 "File contained no codes." = "文件未包含代码。";
 "File write failed" = "文件写入失败";
 "Files opened, ready to compress." = "文件已打开，准备压缩。";
@@ -1188,11 +1195,11 @@ If unsure, leave this checked." = "强制游戏渲染 24 位的 RGB 颜色通道
 "France" = "法国";
 "Free Look" = "自由视点";
 "Freelook" = "自由视点";
-"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
-"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
+"Freelook Decrease Field of View X" = "自由视点减小 X 轴视野 ";
+"Freelook Decrease Field of View Y" = "自由视点减小 Y 轴视野 ";
 "Freelook Decrease Speed" = "自由视点减小速度";
-"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
-"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
+"Freelook Increase Field of View X" = "自由视点增加 X 轴视野 ";
+"Freelook Increase Field of View Y" = "自由视点增加 Y 轴视野 ";
 "Freelook Increase Speed" = "自由视点增加速度";
 "Freelook Move Down" = "自由视点下移";
 "Freelook Move Left" = "自由视点左移";
@@ -1239,7 +1246,7 @@ Dolphin 现在可能崩溃或挂起。请关闭。";
 "Game" = "游戏";
 "Game Boy Advance Carts (*.gba)" = "GBA 游戏卡带 (*.gba)";
 "Game Config" = "游戏配置";
-"Game Details" = "Game Details";
+"Game Details" = "游戏详细信息";
 "Game Folders" = "游戏文件夹";
 "Game ID" = "游戏 ID";
 "Game ID" = "游戏 ID";
@@ -1314,6 +1321,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Hotkeys" = "热键";
 "Hotkeys Require Window Focus" = "热键需要窗口是活动状态";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: SSL 服务所必需的一个文件 (%s) 无效。请参阅 https://dolphin-emu.org/docs/guides/wii-network-guide/ 了解如何设置 Wii 联网。";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: 无法读取 SSL 服务所必需的一个文件 (%s)。请参阅 https://dolphin-emu.org/docs/guides/wii-network-guide/ 了解如何设置 Wii 联网。";
@@ -1628,6 +1636,7 @@ If unsure, leave this unchecked." = "修改纹理以显示以其编码格式。
 可能需要重置模拟才能生效。
 
 如果不确定，请不要勾选此项。";
+"Mono" = "单声道";
 "Monoscopic Shadows" = "单视场阴影";
 "Monospaced Font" = "等宽字体";
 "More or equal to" = "大于或等于";
@@ -1638,6 +1647,7 @@ If unsure, leave this unchecked." = "修改纹理以显示以其编码格式。
 "Move the mouse pointer over an option to display a detailed description." = "将鼠标指针移至某一选项上以显示详细说明。";
 "Movie" = "影片";
 "NAND Check" = "NAND 校验";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "注意: 流大小与真实数据长度不匹配
 ";
@@ -1669,6 +1679,7 @@ If unsure, leave this unchecked." = "修改纹理以显示以其编码格式。
 "Next Match" = "匹配下一个";
 "Next Profile" = "下一个预设";
 "Next Search" = "搜索下一个";
+"Nickname is too long." = "昵称太长。";
 "Nickname" = "昵称";
 "No" = "否";
 "No Adapter Detected" = "未检测到适配器";
@@ -1760,7 +1771,7 @@ If unsure, leave this unchecked." = "修改纹理以显示以其编码格式。
 "Patch Editor" = "补丁编辑器";
 "Patch name" = "补丁名称";
 "Patches" = "补丁";
-"Path" = "Path";
+"Path" = "路径";
 "Paths" = "路径";
 "Pause" = "暂停";
 "Pause at End of Movie" = "在影片末尾暂停";
@@ -2212,6 +2223,7 @@ If unsure, leave this checked." = "在 25fps/30fps 游戏中跳过重复帧（XF
 Please check the highlighted values." = "您提供的某些值无效。
 请检查高亮显示的值。";
 "Sort Alphabetically" = "按字母排序";
+"Sound" = "声音";
 "South America" = "南美";
 "Spain" = "西班牙";
 "Spanish" = "西班牙语";
@@ -2240,6 +2252,7 @@ Please check the highlighted values." = "您提供的某些值无效。
 "Step over in progress..." = "跳过正在处理...";
 "Step successful!" = "单步成功！";
 "Stepping" = "步进";
+"Stereo" = "立体声";
 "Stereoscopic 3D Mode" = "立体 3D 模式";
 "Stereoscopy" = "立体 3D";
 "Stick" = "摇杆";
@@ -2294,6 +2307,7 @@ If unsure, leave this checked." = "绕过系统内存而仅在 GPU 中存储 XFB
 "Successfully removed this title from the NAND." = "成功将此软件从 NAND 中移除。";
 "Support" = "支持";
 "Supports SD and SDHC. Default size is 128 MB." = "支持 SD 和 SDHC 格式。默认大小为 128 MB。";
+"Surround" = "环绕";
 "Suspended" = "已暂停";
 "Swap Eyes" = "交换双眼";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2330,6 +2344,7 @@ If unsure, leave this unchecked." = "交换左右眼图像。通常用于左右�
 "Take Screenshot" = "屏幕截图";
 "Test" = "测试";
 "Texture Cache" = "纹理缓存";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "显示纹理格式";
 "The %s partition does not have a valid file system." = "分区 %s 无有效的文件系统。";
 "The %s partition does not seem to contain valid data." = "分区 %s 似乎未包含有效数据。";
@@ -2384,6 +2399,11 @@ Do you wish to replace it?" = "文件 %1 已经存在。
 "The game disc does not contain any usable update information." = "此游戏光盘未包含任何可用的更新信息。";
 "The game is currently running." = "游戏当前正在运行。";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "该游戏区域与你的主机不匹配。为避免系统菜单出现问题，现无法使用此光盘更新模拟主机。";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "图形驱动程序强制启用 Dolphin 的抗锯齿功能。你需要在图形驱动程序的设置中将其关闭，以使 Dolphin 正常工作。
+
+（在默认帧缓冲区上发现 MSAA 的 %d 样本）";
 "The hashes do not match!" = "哈希值不匹配！";
 "The hashes match!" = "哈希值匹配！";
 "The host code is too long.
@@ -2704,6 +2724,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Website" = "网站";
 "Western (Windows-1252)" = "西方 (Windows-1252)";
 "Whammy" = "颤音";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "USB 直通设备白名单";
 "Widescreen Hack" = "宽屏修正";
 "Wii" = "Wii";
@@ -2740,6 +2770,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "右转";
 "Yellow" = "黄";
 "Yes" = "是";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "您试图在不受支持的操作系统上使用 Vulkan (Metal) 后端。要启用所有特性，您必须使用 macOS 10.14 (Mojave) 或更高版本。请不要报告遇到的任何问题，除非在 10.14+ 上也出现了。";
 "You are running the latest version available on this update track." = "您正在运行此更新通道上提供的最新版本。";
 "You cannot use the Wii Shop Channel without using your own device credentials.

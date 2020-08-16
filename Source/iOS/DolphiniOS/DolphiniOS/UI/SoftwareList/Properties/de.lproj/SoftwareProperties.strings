@@ -8,7 +8,7 @@
 "1d0-SB-c59.text" = "Hersteller";
 
 /* Class = "UILabel"; text = "Verifying"; ObjectID = "1oc-4p-Abs"; */
-"1oc-4p-Abs.text" = "Verifying";
+"1oc-4p-Abs.text" = "Prüfe";
 
 /* Class = "UILabel"; text = "Name"; ObjectID = "2gU-fl-7L1"; */
 "2gU-fl-7L1.text" = "Name";
@@ -89,7 +89,7 @@
 "S6g-zg-fRc.text" = "Gecko";
 
 /* Class = "UILabel"; text = "Verifying"; ObjectID = "T5X-a1-c3f"; */
-"T5X-a1-c3f.text" = "Verifying";
+"T5X-a1-c3f.text" = "Prüfe";
 
 /* Class = "UITextView"; text = "Code..."; ObjectID = "UeC-Xt-sYj"; */
 "UeC-Xt-sYj.text" = "Code...";

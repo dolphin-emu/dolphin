@@ -33,6 +33,7 @@ wants to join your party." = "%1 가
 "%1 (Copy)" = "%1 (복사)";
 "%1 (Disc %2, Revision %3)" = "%1 (디스크 %2, 개정 %3)";
 "%1 (Revision %3)" = "%1 (개정 %3)";
+"%1 (recommended)" = "%1 (recommended)";
 "%1 (slow)" = "%1 (slow)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -589,6 +590,7 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Convert" = "변환";
 "Convert File..." = "파일 변환...";
 "Convert Selected Files..." = "선택된 파일 변환...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "정크 데이터 제거 없이 Wii 디스크 이미지를 GCZ 로 변환하기는 ISO 로 변환하기와 비교해서 뚜렷하게 공간을 절약하지는 않습니다. 아무튼 계속 하시겠습니까?";
 "Converting..." = "변환중...";
 "Copy" = "복사";
@@ -807,6 +809,7 @@ Double-click here to set a games directory..." = "돌핀이 어떠한 게임큐�
 "Dolphin's cheat system is currently disabled." = "돌핀의 치트 시스템이 현재 꺼졌습니다.";
 "Domain" = "도메인";
 "Don't Update" = "업데이트 안함";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "디스크 이미지 압축이 완료되었습니다.";
 "Double" = "더블";
 "Down" = "아래쪽";
@@ -825,8 +828,10 @@ Double-click here to set a games directory..." = "돌핀이 어떠한 게임큐�
 "Dump FakeVMEM" = "가짜가상메모리 덤프";
 "Dump MRAM" = "MRAM 덤프";
 "Dump Audio" = "오디오 덤프";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "EFB 타겟 덤프";
 "Dump Frames" = "프레임들 덤프";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "오브젝트 덤프";
 "Dump Path" = "덤프 경로";
 "Dump SSL read" = "SSL 덤프 읽기";
@@ -857,16 +862,18 @@ If unsure, leave this unchecked." = "오브젝트들을 User/Dump/Objects/ 에 �
 잘 모르겠으면, 체크 해제해 두세요.";
 "Dump peer certificates" = "피어 증명서 덤프";
 "Dump root CA" = "루트 CA 덤프";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "디코드된 게임 텍스처를 User/Dump/Textures/<game_id>/ 에 덤프합니다
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-잘 모르겠으면, 체크 해제해 두세요.";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "User/Dump/Textures/로 EFB 복사의 내용을 덤프합니다.
 
 잘 모르겠으면, 체크 해제해 두세요.";
+"Duration of Turbo Button Press (frames)" = "Duration of Turbo Button Press (frames)";
+"Duration of Turbo Button Release (frames)" = "Duration of Turbo Button Release (frames)";
 "Dutch" = "네덜란드어";
 "Exit" = "종료";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "오류:  이 버전의 돌핀은 적어도 %d.%d 버전 TAP-Win32 드라이버가 필요합니다. -- 최근에 돌핀 배포를 업그레이드했다면, 윈도우가 새로운 드라이버를 인식하기 위해 재부팅이 필요합니다.";
@@ -1312,6 +1319,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Hotkeys" = "단축키";
 "Hotkeys Require Window Focus" = "핫키들은 윈도우 포커스가 필요함";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "아이디";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: SSL 서비스 (%s) 를 위해 필요한 파일이 부적합합니다. Wii 네트워킹 설정상의 설명은 https://dolphin-emu.org/docs/guides/wii-network-guide/ 를 참고하세요.";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: SSL 서비스 (%s) 를 위해 필요한 파일을 읽을 수 없었습니다. Wii 네트워킹 설정상의 설명은 https://dolphin-emu.org/docs/guides/wii-network-guide/ 를 참고하세요.";
@@ -1627,6 +1635,7 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 에뮬레이션 리셋이 필요할 수도 있습니다.
 
 잘 모르겠으면, 체크 해제해 두세요.";
+"Mono" = "Mono";
 "Monoscopic Shadows" = "모노스코픽 그림자";
 "Monospaced Font" = "단일띄어쓰기 폰트";
 "More or equal to" = "크거나 같은";
@@ -1637,6 +1646,7 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 "Move the mouse pointer over an option to display a detailed description." = "자세한 설명을 보려면 마우스 포인터를 옵션위로 이동하세요.";
 "Movie" = "무비";
 "NAND Check" = "NAND 체크";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "알림: 스트림 사이즈가 실제 데이터 길이와 일치하지 않습니다
 ";
@@ -1668,6 +1678,7 @@ If unsure, leave this unchecked." = "인코딩되어 있는 포맷을 보여주�
 "Next Match" = "다음 일치";
 "Next Profile" = "다음 프로파일";
 "Next Search" = "다음 찾기";
+"Nickname is too long." = "Nickname is too long.";
 "Nickname" = "별명";
 "No" = "아니요";
 "No Adapter Detected" = "감지된 어댑터가 없습니다";
@@ -2208,6 +2219,7 @@ If unsure, leave this checked." = "25fps/30fps 게임들에서 반복 프레임�
 Please check the highlighted values." = "제공된 일부 값들이 부적합합니다.
 밝게표시된 값들을 확인하세요.";
 "Sort Alphabetically" = "알파벳순으로 정렬";
+"Sound" = "Sound";
 "South America" = "남 아메리카";
 "Spain" = "스페인";
 "Spanish" = "스페인어";
@@ -2236,6 +2248,7 @@ Please check the highlighted values." = "제공된 일부 값들이 부적합합
 "Step over in progress..." = "스텝 넘어가기 진행 중...";
 "Step successful!" = "스텝 성공!";
 "Stepping" = "스텝핑";
+"Stereo" = "Stereo";
 "Stereoscopic 3D Mode" = "입체 3D 모드";
 "Stereoscopy" = "입체 영상";
 "Stick" = "스틱";
@@ -2290,6 +2303,7 @@ If unsure, leave this checked." = "시스템 메모리를 우회해서 GPU 상�
 "Successfully removed this title from the NAND." = "NAND 에서 이 타이틀을 성공적으로 제거했습니다.";
 "Support" = "지원";
 "Supports SD and SDHC. Default size is 128 MB." = "SD 와 SDHC 를 지원합니다. 기본 크기는 128 MB 입니다.";
+"Surround" = "Surround";
 "Suspended" = "연기된";
 "Swap Eyes" = "눈 교차";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2326,6 +2340,7 @@ If unsure, leave this unchecked." = "왼쪽과 오른쪽 눈을 바꿉니다. �
 "Take Screenshot" = "스크린샷 찍기";
 "Test" = "테스트";
 "Texture Cache" = "텍스처 캐시";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "텍스처 포맷 오버레이";
 "The %s partition does not have a valid file system." = "%s 파티션은 적합한 파일 시스템이 없습니다.";
 "The %s partition does not seem to contain valid data." = "%s 파티션은 적합한 데이터를 가지고 있지 않은 것 같습니다.";
@@ -2380,6 +2395,11 @@ Do you wish to replace it?" = "파일 %1 이 이미 존재합니다.
 "The game disc does not contain any usable update information." = "게임 디스크가 사용가능한 업데이트 정보를 가지고 있지 않습니다.";
 "The game is currently running." = "게임이 현재 구동중입니다.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "게임의 지역이 당신의 콘솔 지역과 맞지 않습니다. 시스템 메뉴로 이슈들을 피하려고, 이 디스크를 사용한 에뮬된 콘솔을 업데이트하는 것은 불가능합니다.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)";
 "The hashes do not match!" = "해쉬가 일치하지 않습니다!";
 "The hashes match!" = "해쉬가 일치합니다!";
 "The host code is too long.
@@ -2699,6 +2719,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Website" = "웹사이트";
 "Western (Windows-1252)" = "웨스턴 (윈도우즈-1252)";
 "Whammy" = "훼미";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "와이트리스트된 USB 패스쓰루 장치들";
 "Widescreen Hack" = "와이드스크린 핵";
 "Wii" = "Wii";
@@ -2735,6 +2765,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "오른쪽으로 요";
 "Yellow" = "노랑";
 "Yes" = "예";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "당신은 지원대지 않는 운영 체제상에서 Vulkan (Metal) 백엔드를 시도하고 있습니다. 모든 기능이 활성화 되려면, macOS 10.14 (Mojave) 이상을 사용해야만 합니다. 10.14+ 에서도 발생하는 것이 아니라면 어느 이슈도 리포트하지 말아주세요.";
 "You are running the latest version available on this update track." = "당신은 이 업데이트 트랙에서 사용할 수 있는 최신 버전을 구동하고 있습니다.";
 "You cannot use the Wii Shop Channel without using your own device credentials.

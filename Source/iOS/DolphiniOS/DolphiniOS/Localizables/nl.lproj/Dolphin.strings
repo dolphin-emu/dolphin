@@ -33,6 +33,7 @@ wil lid worden van uw partij.";
 "%1 (Copy)" = "%1 (Kopie)";
 "%1 (Disc %2, Revision %3)" = "%1 (Schijf %2, Revisie %3)";
 "%1 (Revision %3)" = "%1 (Revisie %3)";
+"%1 (recommended)" = "%1 (aanbevolen)";
 "%1 (slow)" = "%1 (langzaam)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -384,7 +385,7 @@ In geval van twijfel leeg laten.";
 "Auxiliary" = "Auxiliary";
 "B" = "B";
 "BAT incorrect. Dolphin will now exit" = "BAT is fout. Dolphin sluit zich nu af";
-"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC adres %s ongeldig voor XLink Kai. Een geldige Nintendo GameCube MAC adres moet worden gebruikt. Genereer een MAC adres dat start met 00:09:bf of 00:17:ab.";
 "BP register " = "BP register ";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Backend Multi-threading";
@@ -409,7 +410,7 @@ In geval van twijfel leeg laten.";
 "Bitrate (kbps)" = "Bitrate (kbps)";
 "Block Size" = "Blokgrootte";
 "Block Size" = "Blokgrootte";
-"Blocking" = "Blocking";
+"Blocking" = "Blokkeren";
 "Blocks" = "Blokken";
 "Blue" = "Blauw";
 "Blue Left" = "Blauw Links";
@@ -426,9 +427,9 @@ In geval van twijfel leeg laten.";
 "Breakpoint" = "Breakpoint";
 "Breakpoint encountered! Step out aborted." = "Breekpunt tegengekomen! Uitstappen afgebroken.";
 "Breakpoints" = "Breekpunten";
-"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
-"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
-"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
+"Broadband Adapter (TAP)" = "Breedband Adapter (TAP)";
+"Broadband Adapter (XLink Kai)" = "Breedband Adapter (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Breedband Adapter (XLink Kai) Bestemmingsadres";
 "Broadband Adapter MAC address" = "Breedbandadapter MAC-adres";
 "Browse NetPlay Sessions...." = "Blader NetPlay Sessies....";
 "Buffer Size" = "Buffergrootte";
@@ -589,6 +590,7 @@ Een hogere waarde creëert een sterker gevoel van diepte terwijl een lagere waar
 "Convert" = "Converteer";
 "Convert File..." = "Converteer Bestand...";
 "Convert Selected Files..." = "Converteer Geselecteerde Bestanden...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Het converteren van Wii-schijfimages naar GCZ zonder het verwijderen van junk data bespaart geen merkbare hoeveelheid ruimte in vergelijking met het converteren naar ISO. Wilt u toch doorgaan?";
 "Converting..." = "Converteren...";
 "Copy" = "Kopieer";
@@ -799,6 +801,7 @@ Dubbelklik hier om een spellenmap in te stellen ...";
 "Dolphin's cheat system is currently disabled." = "Dolphin's cheatsysteem is momenteel uitgeschakeld.";
 "Domain" = "Domein";
 "Don't Update" = "Niet Updaten";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "Comprimeren van schijfafbeelding voltooid.";
 "Double" = "Double";
 "Down" = "Omlaag";
@@ -817,8 +820,10 @@ Dubbelklik hier om een spellenmap in te stellen ...";
 "Dump FakeVMEM" = "Dump FakeVMEM";
 "Dump MRAM" = "Dump MRAM";
 "Dump Audio" = "Dump Audio";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "Dump EFB Doel";
 "Dump Frames" = "Dump Frames";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "Dump Objecten";
 "Dump Path" = "Dump Pad";
 "Dump SSL read" = "Dump SSL read";
@@ -849,16 +854,18 @@ If unsure, leave this unchecked." = "Dump Ojecten naar User/Dump/Objects/
 In geval van twijfel leeg laten.";
 "Dump peer certificates" = "Dump peer certificaten";
 "Dump root CA" = "Dump root CA";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "Dumpt de gedecodeerde textures naar User/Dump/Textures/<game_id>/.
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-In geval van twijfel leeg laten.";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "Dumpt de inhoud van EFB-kopieën naar User/Dump/Textures/.
 
 In geval van twijfel leeg laten.";
+"Duration of Turbo Button Press (frames)" = "Duur van Turbo-knop in Drukken (frames)";
+"Duration of Turbo Button Release (frames)" = "Duur van Tubo-knop los Laten (frames)";
 "Dutch" = "Nederlands";
 "Exit" = "Sluiten";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "FOUT: Deze versie van Dolphin vereist een TAP-Win32 driver van op zijn minst versie %d.%d -- Als u je Dolphin recentelijk hebt geüpdatet is het mogelijk dat Windows eerst moet herstarten voordat de driver herkend wordt.";
@@ -960,8 +967,8 @@ In geval van twijfel leeg laten.";
 "English" = "Engels";
 "Enhancements" = "Verbeteringen";
 "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Voer het IP adres in van het apparaat dat de XLink Kai Client draait.
+Voor meer information bekijken: https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Voer USB apparaat ID in";
 "Enter new Broadband Adapter MAC address" = "Voer een nieuw MAC-adres voor de breedbandadapter in";
 "Enter password" = "Voer wachtwoord in";
@@ -1100,14 +1107,14 @@ Controleer of u genoeg ruimte hebt op het doel.";
 "Fast" = "Snel";
 "Fast Depth Calculation" = "Snelle Diepteberekening";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Fatale desync. Terugspelen wordt geannuleerd. (Fout in PlayWiimote: %u != %u, byte %u.)%s";
-"File Details" = "File Details";
-"File Format" = "File Format";
-"File Format" = "File Format";
+"File Details" = "Bestand Details";
+"File Format" = "Bestand Formaat";
+"File Format" = "Bestand Formaat";
 "File Info" = "Bestandsinfo";
 "File Name" = "Bestandsnaam";
 "File Path" = "Bestandspad";
 "File Size" = "Bestandsgrootte";
-"File Size" = "File Size";
+"File Size" = "Bestandgrootte";
 "File contained no codes." = "Bestand bevat geen codes.";
 "File write failed" = "Bestand schrijven mislukt";
 "Files opened, ready to compress." = "Bestanden geopend, gereed voor compressie.";
@@ -1180,11 +1187,11 @@ In geval van twijfel geselecteerd laten.";
 "France" = "Frankrijk";
 "Free Look" = "Vrije Kijk";
 "Freelook" = "Vrije Kijk";
-"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
-"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
+"Freelook Decrease Field of View X" = "Vrij Kijken Verminderen Gezichtsveld X";
+"Freelook Decrease Field of View Y" = "Vrij Kijken Verminderen Gezichtsveld Y";
 "Freelook Decrease Speed" = "Vrij kijken Verlaag Snelheid";
-"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
-"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
+"Freelook Increase Field of View X" = "Vrij Kijken Verhoog Gezichtsveld X";
+"Freelook Increase Field of View Y" = "Vrij Kijken Verhoog Gezichtsveld Y";
 "Freelook Increase Speed" = "Vrij kijken Verhoog Snelheid";
 "Freelook Move Down" = "Vrij kijken Beweeg Omlaag";
 "Freelook Move Left" = "Vrij kijken Beweeg Links";
@@ -1230,7 +1237,7 @@ Opkomende foutmeldingen zullen worden gelogd. Dolphin zal nu waarschijnlijk vast
 "Game" = "Spel";
 "Game Boy Advance Carts (*.gba)" = "Game Boy Advance Carts (*.gba)";
 "Game Config" = "Spelconfiguratie";
-"Game Details" = "Game Details";
+"Game Details" = "Spel Details";
 "Game Folders" = "Spelmappen";
 "Game ID" = "Spel ID";
 "Game ID" = "Spel ID";
@@ -1304,6 +1311,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Hotkeys" = "Sneltoetsen";
 "Hotkeys Require Window Focus" = "Sneltoetsen Vereisen Venster Focus";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Een vereist bestand voor SSL-services (%s) is ongeldig. Raadpleeg https://dolphin-emu.org/docs/guides/wii-network-guide/ voor instructies over het instellen van Wii-netwerken.";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Kon een vereist bestand voor SSL-services (%s) niet lezen. Raadpleeg https://dolphin-emu.org/docs/guides/wii-network-guide/ voor instructies over het instellen van Wii-netwerken.";
@@ -1617,6 +1625,7 @@ If unsure, leave this unchecked." = "Past texturen aan om het formaat weer te ge
 Vereist in de meeste gevallen een reset.
 
 In geval van twijfel leeg laten.";
+"Mono" = "Mono";
 "Monoscopic Shadows" = "Monoscopische Schaduwen";
 "Monospaced Font" = "Niet-proportionele (monospace) Lettertype";
 "More or equal to" = "Meer dan of gelijk aan";
@@ -1627,6 +1636,7 @@ In geval van twijfel leeg laten.";
 "Move the mouse pointer over an option to display a detailed description." = "Beweeg uw muisaanwijzer over een optie om een uitgebreide beschrijving weer te geven.";
 "Movie" = "Film";
 "NAND Check" = "NAND Check";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "Waarschuwing: Streamgrootte komt niet overeen met werkelijke lengte
 ";
@@ -1658,6 +1668,7 @@ In geval van twijfel leeg laten.";
 "Next Match" = "Volgende Overeenkomst";
 "Next Profile" = "Volgend Profiel";
 "Next Search" = "Volgende Zoekopdracht";
+"Nickname is too long." = "Nickname is te lang";
 "Nickname" = "Bijnaam";
 "No" = "Nee";
 "No Adapter Detected" = "Geen Adapter Gedetecteerd";
@@ -1749,7 +1760,7 @@ In geval van twijfel leeg laten.";
 "Patch Editor" = "Patch Bewerker";
 "Patch name" = "Patchnaam";
 "Patches" = "Patches";
-"Path" = "Path";
+"Path" = "Pad";
 "Paths" = "Pad";
 "Pause" = "Pauze";
 "Pause at End of Movie" = "Pauzeer aan het Einde van de Film";
@@ -2199,6 +2210,7 @@ In geval van twijfel geselecteerd laten.";
 Please check the highlighted values." = "Sommige waarden die u heeft opgegeven zijn ongeldig.
 Controleer de gemarkeerde waarden.";
 "Sort Alphabetically" = "Sorteer Alfabetisch";
+"Sound" = "Geluid";
 "South America" = "Zuid-Amerika";
 "Spain" = "Spanje";
 "Spanish" = "Spaans";
@@ -2227,6 +2239,7 @@ Controleer de gemarkeerde waarden.";
 "Step over in progress..." = "Overstappen in voortgang...";
 "Step successful!" = "Stap succesvol!";
 "Stepping" = "Stappen";
+"Stereo" = "Stereo";
 "Stereoscopic 3D Mode" = "Stereoscopische 3D Modus";
 "Stereoscopy" = "Stereoscopie";
 "Stick" = "Knuppel";
@@ -2281,6 +2294,7 @@ In geval van twijfel geselecteerd laten.";
 "Successfully removed this title from the NAND." = "Titel succesvol verwijderd van de NAND.";
 "Support" = "Ondersteuning";
 "Supports SD and SDHC. Default size is 128 MB." = "Ondersteunt SD en SDHC. De standaardgrootte is 128 MB.";
+"Surround" = "Surround";
 "Suspended" = "Onderbroken";
 "Swap Eyes" = "Wissel Ogen";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2317,6 +2331,7 @@ In geval van twijfel leeg laten.";
 "Take Screenshot" = "Maak Screenshot";
 "Test" = "Test";
 "Texture Cache" = "Texture Cache";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "Texture Formaat Overlay";
 "The %s partition does not have a valid file system." = "De %s partitie heeft geen valide bestandssysteem. ";
 "The %s partition does not seem to contain valid data." = "De %s partitie bevat geen valide data.";
@@ -2371,6 +2386,11 @@ Wilt u het vervangen?";
 "The game disc does not contain any usable update information." = "De spelschijf bevat geen bruikbare update informatie.";
 "The game is currently running." = "Het spel wordt momenteel uitgevoerd.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "De regio van de game komt niet overeen met die van uw console. Om problemen met het systeemmenu te voorkomen, is het niet mogelijk om de geëmuleerde console met deze schijf bij te werken.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "Het grafische stuurprogramma forceert anti-aliasing voor Dolphin. U moet dit uitschakelen in de grafische stuurprogramma instellingen om Dolphin te laten werken.
+
+(MSAA met %d samples gevonden op de standaard framebuffer)";
 "The hashes do not match!" = "De hashes komen niet overeen!";
 "The hashes match!" = "De hashes komen overeen!";
 "The host code is too long.
@@ -2690,6 +2710,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOmhoog=%d, DOmlaag=%d, DLinks=%d, DRech
 "Website" = "Website";
 "Western (Windows-1252)" = "Westers (Windows-1252)";
 "Whammy" = "Whammy";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "Witte lijst van USB Passthrough Apparaten";
 "Widescreen Hack" = "Breedbeeld Hack";
 "Wii" = "Wii";
@@ -2726,6 +2756,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DOmhoog=%d, DOmlaag=%d, DLinks=%d, DRech
 "Yaw Right" = "Gier Rechts";
 "Yellow" = "Geel";
 "Yes" = "Ja";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "U probeert de Vulkan (metal) backend op een niet ondersteund besturingssysteem te gebruiken. Als u alle functionaliteit wilt gebruruiken, moet u macOS 10.14 (Mojave) of nieuwer gebruiken. Meld de problemen die u tegenkomt niet, tenzij ze ook op 10.14+ voorkomen.";
 "You are running the latest version available on this update track." = "U gebruikt de nieuwste versie die beschikbaar is op deze update-track.";
 "You cannot use the Wii Shop Channel without using your own device credentials.

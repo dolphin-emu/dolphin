@@ -33,6 +33,7 @@ wants to join your party.";
 "%1 (Copy)" = "%1 (Copy)";
 "%1 (Disc %2, Revision %3)" = "%1 (Disc %2, Revision %3)";
 "%1 (Revision %3)" = "%1 (Revision %3)";
+"%1 (recommended)" = "%1 (recommended)";
 "%1 (slow)" = "%1 (slow)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -589,6 +590,7 @@ A higher value creates a stronger feeling of depth while a lower value is more c
 "Convert" = "Convert";
 "Convert File..." = "Convert File...";
 "Convert Selected Files..." = "Convert Selected Files...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?";
 "Converting..." = "Converting...";
 "Copy" = "Copy";
@@ -807,6 +809,7 @@ Double-click here to set a games directory...";
 "Dolphin's cheat system is currently disabled." = "Dolphin's cheat system is currently disabled.";
 "Domain" = "Domain";
 "Don't Update" = "Don't Update";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "Done compressing disc image.";
 "Double" = "Double";
 "Down" = "Down";
@@ -825,8 +828,10 @@ Double-click here to set a games directory...";
 "Dump FakeVMEM" = "Dump FakeVMEM";
 "Dump MRAM" = "Dump MRAM";
 "Dump Audio" = "Dump Audio";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "Dump EFB Target";
 "Dump Frames" = "Dump Frames";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "Dump Objects";
 "Dump Path" = "Dump Path";
 "Dump SSL read" = "Dump SSL read";
@@ -857,9 +862,9 @@ If unsure, leave this unchecked." = "Dump objects to User/Dump/Objects/.
 If unsure, leave this unchecked.";
 "Dump peer certificates" = "Dump peer certificates";
 "Dump root CA" = "Dump root CA";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
 If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
@@ -867,6 +872,8 @@ If unsure, leave this unchecked.";
 If unsure, leave this unchecked." = "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked.";
+"Duration of Turbo Button Press (frames)" = "Duration of Turbo Button Press (frames)";
+"Duration of Turbo Button Release (frames)" = "Duration of Turbo Button Release (frames)";
 "Dutch" = "Dutch";
 "Exit" = "Exit";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver.";
@@ -1312,6 +1319,7 @@ Suitable for casual games with 3+ players, possibly on unstable or high latency 
 "Hotkeys" = "Hotkeys";
 "Hotkeys Require Window Focus" = "Hotkeys Require Window Focus";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking.";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking.";
@@ -1626,6 +1634,7 @@ If unsure, leave this unchecked." = "Modifies textures to show the format they'r
 May require an emulation reset to apply.
 
 If unsure, leave this unchecked.";
+"Mono" = "Mono";
 "Monoscopic Shadows" = "Monoscopic Shadows";
 "Monospaced Font" = "Monospaced Font";
 "More or equal to" = "More or equal to";
@@ -1636,6 +1645,7 @@ If unsure, leave this unchecked.";
 "Move the mouse pointer over an option to display a detailed description." = "Move the mouse pointer over an option to display a detailed description.";
 "Movie" = "Movie";
 "NAND Check" = "NAND Check";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "NOTE: Stream size doesn't match actual data length
 ";
@@ -1667,6 +1677,7 @@ If unsure, leave this unchecked.";
 "Next Match" = "Next Match";
 "Next Profile" = "Next Profile";
 "Next Search" = "Next Search";
+"Nickname is too long." = "Nickname is too long.";
 "Nickname" = "Nickname";
 "No" = "No";
 "No Adapter Detected" = "No Adapter Detected";
@@ -2207,6 +2218,7 @@ If unsure, leave this checked.";
 Please check the highlighted values." = "Some values you provided are invalid.
 Please check the highlighted values.";
 "Sort Alphabetically" = "Sort Alphabetically";
+"Sound" = "Sound";
 "South America" = "South America";
 "Spain" = "Spain";
 "Spanish" = "Spanish";
@@ -2235,6 +2247,7 @@ Please check the highlighted values.";
 "Step over in progress..." = "Step over in progress...";
 "Step successful!" = "Step successful!";
 "Stepping" = "Stepping";
+"Stereo" = "Stereo";
 "Stereoscopic 3D Mode" = "Stereoscopic 3D Mode";
 "Stereoscopy" = "Stereoscopy";
 "Stick" = "Stick";
@@ -2289,6 +2302,7 @@ If unsure, leave this checked.";
 "Successfully removed this title from the NAND." = "Successfully removed this title from the NAND.";
 "Support" = "Support";
 "Supports SD and SDHC. Default size is 128 MB." = "Supports SD and SDHC. Default size is 128 MB.";
+"Surround" = "Surround";
 "Suspended" = "Suspended";
 "Swap Eyes" = "Swap Eyes";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2325,6 +2339,7 @@ If unsure, leave this unchecked.";
 "Take Screenshot" = "Take Screenshot";
 "Test" = "Test";
 "Texture Cache" = "Texture Cache";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "Texture Format Overlay";
 "The %s partition does not have a valid file system." = "The %s partition does not have a valid file system.";
 "The %s partition does not seem to contain valid data." = "The %s partition does not seem to contain valid data.";
@@ -2379,6 +2394,11 @@ Do you wish to replace it?";
 "The game disc does not contain any usable update information." = "The game disc does not contain any usable update information.";
 "The game is currently running." = "The game is currently running.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)";
 "The hashes do not match!" = "The hashes do not match!";
 "The hashes match!" = "The hashes match!";
 "The host code is too long.
@@ -2698,6 +2718,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Website" = "Website";
 "Western (Windows-1252)" = "Western (Windows-1252)";
 "Whammy" = "Whammy";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "Whitelisted USB Passthrough Devices";
 "Widescreen Hack" = "Widescreen Hack";
 "Wii" = "Wii";
@@ -2734,6 +2764,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight=%d, L
 "Yaw Right" = "Yaw Right";
 "Yellow" = "Yellow";
 "Yes" = "Yes";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+.";
 "You are running the latest version available on this update track." = "You are running the latest version available on this update track.";
 "You cannot use the Wii Shop Channel without using your own device credentials.

@@ -33,6 +33,7 @@ souhaite rejoindre la partie.";
 "%1 (Copy)" = "Copie de %1";
 "%1 (Disc %2, Revision %3)" = "%1 (Disque %2, Révision %3)";
 "%1 (Revision %3)" = "%1 (Révision %3)";
+"%1 (recommended)" = "%1 (recommandé)";
 "%1 (slow)" = "%1 (lent)";
 "%1 FIFO bytes
 %2 memory bytes
@@ -384,7 +385,7 @@ Dans le doute, décochez cette case.";
 "Auxiliary" = "Auxiliaire";
 "B" = "o";
 "BAT incorrect. Dolphin will now exit" = "BAT incorrect, Dolphin va quitter";
-"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab.";
+"BBA MAC address %s invalid for XLink Kai. A valid Nintendo GameCube MAC address must be used. Generate a new MAC address starting with 00:09:bf or 00:17:ab." = "L'adresse MAC BBA %s n'est pas valide pour XLink Kai. Une adresse MAC de GameCube valide doit être utilisée. Générez une nouvelle adresse MAC commençant par 00:09:bf ou 00:17:ab.";
 "BP register " = "Registres BP";
 "Back Chain" = "Back Chain";
 "Backend Multithreading" = "Multithreading du moteur";
@@ -407,7 +408,7 @@ Dans le doute, décochez cette case.";
 "Battery" = "Batterie";
 "Beta (once a month)" = "Beta (mensuelle)";
 "Bitrate (kbps)" = "Bitrate (kbps) ";
-"Block Size" = "Taille en blocs ";
+"Block Size" = "Taille en blocs";
 "Block Size" = "Taille en blocs ";
 "Blocking" = "Blocking";
 "Blocks" = "Blocs";
@@ -426,9 +427,9 @@ Dans le doute, décochez cette case.";
 "Breakpoint" = "Point d'arrêt";
 "Breakpoint encountered! Step out aborted." = "Point d'arrêt rencontré ! Sortie abandonnée.";
 "Breakpoints" = "Points d'arrêt";
-"Broadband Adapter (TAP)" = "Broadband Adapter (TAP)";
-"Broadband Adapter (XLink Kai)" = "Broadband Adapter (XLink Kai)";
-"Broadband Adapter (XLink Kai) Destination Address" = "Broadband Adapter (XLink Kai) Destination Address";
+"Broadband Adapter (TAP)" = "Adaptateur réseau (TAP)";
+"Broadband Adapter (XLink Kai)" = "Adaptateur réseau (XLink Kai)";
+"Broadband Adapter (XLink Kai) Destination Address" = "Adresse de destination pour l'adaptateur réseau (XLink Kai)";
 "Broadband Adapter MAC address" = "Adresse MAC de l'adaptateur réseau";
 "Browse NetPlay Sessions...." = "Parcourir les sessions NetPlay...";
 "Buffer Size" = "Taille du tampon ";
@@ -589,6 +590,7 @@ Une valeur haute crée une forte impression de profondeur alors qu'une valeur fa
 "Convert" = "Convertir";
 "Convert File..." = "Convertir le fichier...";
 "Convert Selected Files..." = "Convertir les fichiers sélectionnés...";
+"Convert..." = "Convert...";
 "Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?" = "Convertir des images de disques de Wii en GCZ sans supprimer les données inutiles ne vous fera pas économiser beaucoup d'espace comparé à une conversion vers un ISO. Voulez-vous tout de même continuer ?";
 "Converting..." = "Conversion...";
 "Copy" = "Copier";
@@ -807,6 +809,7 @@ Double-cliquez ici pour définir un répertoire contenant les jeux...";
 "Dolphin's cheat system is currently disabled." = "Le système de Dolphin pour les cheats est actuellement désactivé.";
 "Domain" = "Domaine";
 "Don't Update" = "Ne pas mettre à jour";
+"Don't show this again" = "Don't show this again";
 "Done compressing disc image." = "Compression de l'image disque terminée.";
 "Double" = "Double";
 "Down" = "Bas";
@@ -825,8 +828,10 @@ Double-cliquez ici pour définir un répertoire contenant les jeux...";
 "Dump FakeVMEM" = "Dumper FakeVMEM";
 "Dump MRAM" = "Dumper la MRAM";
 "Dump Audio" = "Enregistrer le son";
+"Dump Base Textures" = "Dump Base Textures";
 "Dump EFB Target" = "Copier l'EFB cible";
 "Dump Frames" = "Enregistrer les images";
+"Dump Mip Maps" = "Dump Mip Maps";
 "Dump Objects" = "Copier les objets";
 "Dump Path" = "Dossier de dump ";
 "Dump SSL read" = "Enregistrer les lectures SSL";
@@ -857,16 +862,18 @@ If unsure, leave this unchecked." = "Copie les objets vers User/Dump/Objects/.
 Dans le doute, décochez cette case.";
 "Dump peer certificates" = "Enregistrer les certificats des pairs";
 "Dump root CA" = "Enregistrer le CA racine";
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-If unsure, leave this unchecked." = "Copie les textures décodées du jeu vers User/Dump/Textures/<identifiant_du_jeu>/
+If unsure, leave this unchecked." = "Dumps decoded game textures based on the other flags to User/Dump/Textures/<game_id>/.
 
-Dans le doute, décochez cette case.";
+If unsure, leave this unchecked.";
 "Dumps the contents of EFB copies to User/Dump/Textures/.
 
 If unsure, leave this unchecked." = "Copie le contenu des copies de l'EFB vers User/Dump/Textures/.
 
 Dans le doute, décochez cette case.";
+"Duration of Turbo Button Press (frames)" = "Durée d'appui sur le bouton Turbo (en images) ";
+"Duration of Turbo Button Release (frames)" = "Durée de relâchement du bouton Turbo (en images) ";
 "Dutch" = "Néerlandais";
 "Exit" = "Quitter";
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least version %d.%d -- If you recently upgraded your Dolphin distribution, a reboot is probably required at this point to get Windows to see the new driver." = "ERREUR : cette version de Dolphin requiert un pilote TAP-Win32 qui ait au moins la version %d.%d -- Si vous avez récemment mis à niveau votre distribution de Dolphin, un redémarrage est probablement nécessaire pour que Windows charge le nouveau pilote.";
@@ -967,8 +974,8 @@ Dans le doute, décochez cette case.";
 "English" = "Anglais";
 "Enhancements" = "Améliorations";
 "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Enter IP address of device running the XLink Kai Client.
-For more information see https://www.teamxlink.co.uk/wiki/Dolphin";
+For more information see https://www.teamxlink.co.uk/wiki/Dolphin" = "Entrez l'adresse IP de l'appareil exécutant le client XLink Kai.
+Pour plus d'informations, visitez https://www.teamxlink.co.uk/wiki/Dolphin";
 "Enter USB device ID" = "Entrez l'identifiant du périphérique USB";
 "Enter new Broadband Adapter MAC address" = "Entrez la nouvelle adresse MAC de l'adaptateur réseau ";
 "Enter password" = "Entrez le mot de passe";
@@ -1107,14 +1114,14 @@ Vérifiez que vous avez d'espace libre sur le lecteur de destination.";
 "Fast" = "Rapide";
 "Fast Depth Calculation" = "Calcul rapide de la profondeur";
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s" = "Désynchro fatale. Abandon de la lecure. (Erreur dans Play Wiimote : %u != %u, byte %u.)%s";
-"File Details" = "File Details";
-"File Format" = "File Format";
-"File Format" = "File Format";
+"File Details" = "Détails du fichier";
+"File Format" = "Format du fichier";
+"File Format" = "Format du fichier ";
 "File Info" = "Infos du fichier";
 "File Name" = "Nom du fichier";
 "File Path" = "Chemin du fichier";
 "File Size" = "Taille du fichier";
-"File Size" = "File Size";
+"File Size" = "Taille du fichier ";
 "File contained no codes." = "Le fichier ne contient pas de code.";
 "File write failed" = "L'écriture du fichier a échoué";
 "Files opened, ready to compress." = "Fichiers ouverts, prêt à compresser.";
@@ -1188,11 +1195,11 @@ Dans le doute, cochez cette case.";
 "France" = "France";
 "Free Look" = "Vue libre";
 "Freelook" = "Vue libre";
-"Freelook Decrease Field of View X" = "Freelook Decrease Field of View X";
-"Freelook Decrease Field of View Y" = "Freelook Decrease Field of View Y";
+"Freelook Decrease Field of View X" = "Vue libre : diminuer le champ de vision X";
+"Freelook Decrease Field of View Y" = "Vue libre : diminuer le champ de vision Y";
 "Freelook Decrease Speed" = "Réduire la vitesse de la vue libre";
-"Freelook Increase Field of View X" = "Freelook Increase Field of View X";
-"Freelook Increase Field of View Y" = "Freelook Increase Field of View Y";
+"Freelook Increase Field of View X" = "Vue libre : augmenter le champ de vision X";
+"Freelook Increase Field of View Y" = "Vue libre : augmenter le champ de vision Y";
 "Freelook Increase Speed" = "Augmenter la vitesse de la vue libre";
 "Freelook Move Down" = "Vue libre : mouvement vers le bas";
 "Freelook Move Left" = "Vue libre : mouvement à gauche";
@@ -1239,7 +1246,7 @@ Dolphin va maintenant probablement planter ou bloquer.";
 "Game" = "Jeu";
 "Game Boy Advance Carts (*.gba)" = "Cartes Game Boy Advance (*.gba)";
 "Game Config" = "Configuration du jeu";
-"Game Details" = "Game Details";
+"Game Details" = "Détails du jeu";
 "Game Folders" = "Dossier de jeux";
 "Game ID" = "ID du jeu";
 "Game ID" = "Identifiant du jeu ";
@@ -1314,6 +1321,7 @@ Convient pour des jeux casual de 3 joueurs et plus, peut-être sur des connexion
 "Hotkeys" = "Raccourcis clavier";
 "Hotkeys Require Window Focus" = "Les touches de raccourci requièrent que la fenêtre soit sélectionnée";
 "Hz" = "Hz";
+"I am aware of the risks and want to continue" = "I am aware of the risks and want to continue";
 "ID" = "ID";
 "IOS: A file required for SSL services (%s) is invalid. Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS : Un fichier requis pour les services SSL (%s) n'est pas valide. Consultez https://dolphin-emu.org/docs/guides/wii-network-guide/  pour obtenir des instructions pour régler le réseau pour la Wii.";
 "IOS: Could not read a file required for SSL services (%s). Please refer to https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on setting up Wii networking." = "IOS : Impossible de lire une fichier requis pour les services SSL (%s). Consultez https://dolphin-emu.org/docs/guides/wii-network-guide/  pour obtenir des instructions pour les réglages réseau pour la Wii.";
@@ -1629,6 +1637,7 @@ If unsure, leave this unchecked." = "Modifie les textures pour afficher le forma
 Il faudra redémarrer l'émulation dans la plupart des cas pour que cela prenne effet.
 
 Dans le doute, décochez cette case.";
+"Mono" = "Mono";
 "Monoscopic Shadows" = "Ombres monoscopiques";
 "Monospaced Font" = "Police mono-espacée.";
 "More or equal to" = "Supérieur ou égal à";
@@ -1639,6 +1648,7 @@ Dans le doute, décochez cette case.";
 "Move the mouse pointer over an option to display a detailed description." = "Déplacez le curseur de la souris sur une option pour afficher sa description.";
 "Movie" = "Film";
 "NAND Check" = "Vérification de la NAND";
+"NKit Warning" = "NKit Warning";
 "NOTE: Stream size doesn't match actual data length
 " = "Note : La taille du flux est différente de la longueur actuelle des données
 ";
@@ -1670,6 +1680,7 @@ Dans le doute, décochez cette case.";
 "Next Match" = "Rechercher le suivant";
 "Next Profile" = "Profil suivant";
 "Next Search" = "Recherche suivante";
+"Nickname is too long." = "Le pseudo est trop long.";
 "Nickname" = "Pseudo ";
 "No" = "Non";
 "No Adapter Detected" = "Aucun adaptateur détecté";
@@ -1761,7 +1772,7 @@ Dans le doute, décochez cette case.";
 "Patch Editor" = "Editeur de patch";
 "Patch name" = "Nom du patch";
 "Patches" = "Patchs";
-"Path" = "Path";
+"Path" = "Chemin ";
 "Paths" = "Dossiers";
 "Pause" = "Pause";
 "Pause at End of Movie" = "Pause à la fin du Film";
@@ -2210,6 +2221,7 @@ Dans le doute, cochez cette case.";
 Please check the highlighted values." = "Certaines valeurs que vous avez entrées ne sont pas valides.
 Veuillez vérifier les valeurs en surbrillance.";
 "Sort Alphabetically" = "Trier par ordre alphabétique";
+"Sound" = "Son ";
 "South America" = "Amérique du Sud";
 "Spain" = "Espagne";
 "Spanish" = "Espagnol";
@@ -2238,6 +2250,7 @@ Veuillez vérifier les valeurs en surbrillance.";
 "Step over in progress..." = "Saut en cours...";
 "Step successful!" = "Pas à pas réussi !";
 "Stepping" = "Pas à pas";
+"Stereo" = "Stéréo";
 "Stereoscopic 3D Mode" = "Mode de stéréoscopie 3D ";
 "Stereoscopy" = "Stéréoscopie";
 "Stick" = "Stick";
@@ -2292,6 +2305,7 @@ Dans le doute, cochez cette case.";
 "Successfully removed this title from the NAND." = "Ce titre a été supprimé avec succès de la NAND.";
 "Support" = "Aide";
 "Supports SD and SDHC. Default size is 128 MB." = "Prend en charge les cartes SD et SDHC. La taille par défaut est de 128 Mo.";
+"Surround" = "Surround";
 "Suspended" = "Suspendu";
 "Swap Eyes" = "Inverser les yeux";
 "Swaps the left and right eye. Most useful in side-by-side stereoscopy mode.
@@ -2328,6 +2342,7 @@ Dans le doute, décochez cette case.";
 "Take Screenshot" = "Capture d'écran";
 "Test" = "Test";
 "Texture Cache" = "Cache de texture";
+"Texture Dumping" = "Texture Dumping";
 "Texture Format Overlay" = "Infos de format de texture";
 "The %s partition does not have a valid file system." = "La partition %s n'a pas de système de fichiers valide.";
 "The %s partition does not seem to contain valid data." = "La partition %s ne semble pas contenir de données valides.";
@@ -2380,6 +2395,11 @@ Voulez-vous le remplacer ?";
 "The game disc does not contain any usable update information." = "Le disque ne contient aucune information de mise à jour utilisable.";
 "The game is currently running." = "Le jeu est déjà en cours d'émulation.";
 "The game's region does not match your console's. To avoid issues with the system menu, it is not possible to update the emulated console using this disc." = "La région du jeu ne correspond pas à celle de la console. Pour éviter les soucis avec le Menu Système, il n'est pas possible de mettre à jour la console émulée avec ce disque.";
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need to turn this off in the graphics driver's settings in order for Dolphin to work.
+
+(MSAA with %d samples found on default framebuffer)" = "Le pilote graphique force l'activation de l'anti-aliasing pour Dolphin. Vous devez le désactiver dans les réglages du pilote graphique pour que Dolphin puisse fonctionner.
+
+(MSAA avec %d échantillons trouvés dans le framebuffer par défaut)";
 "The hashes do not match!" = "Les hashs ne correspondent pas !";
 "The hashes match!" = "Les hashs correspondent !";
 "The host code is too long.
@@ -2699,6 +2719,16 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d,DHaut=%d, DBas=%d, DGauche=%d, DDroite=%d
 "Website" = "Site web";
 "Western (Windows-1252)" = "Occidental (Windows-1252)";
 "Whammy" = "Whammy";
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked." = "Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' is enabled in Enhancements.
+
+If unsure, leave this checked.";
 "Whitelisted USB Passthrough Devices" = "Périphériques USB autorisés pour une connexion directe à la Wii émulée";
 "Widescreen Hack" = "Hack écran large (16/9è)";
 "Wii" = "Wii";
@@ -2735,6 +2765,27 @@ Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d,DHaut=%d, DBas=%d, DGauche=%d, DDroite=%d
 "Yaw Right" = "Ligne vers la droite";
 "Yellow" = "Jaune";
 "Yes" = "Oui";
+"You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+" = "You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+
+• The emulated loading times are longer
+• You can't use NetPlay with people who have normal disc images
+• Input recordings are not compatible between NKit disc images and normal disc images
+• Savestates are not compatible between NKit disc images and normal disc images
+• Some games crash, such as Super Paper Mario
+• Wii games don't work at all in older versions of Dolphin and in many other programs
+
+Are you sure you want to continue anyway?
+";
 "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please do not report any issues encountered unless they also occur on 10.14+." = "Vous essayez d'utiliser le moteur Vulkan (Metal) sur un système d'exploitation qui ne le prend pas en charge. Pour que toutes les options soient disponibles, vous devez utiliser macOS 10.14 (Mojave) ou plus récent. Veuillez ne pas nous envoyer de rapport d'erreur sauf si elles se produisent également sur 10.14 et plus.";
 "You are running the latest version available on this update track." = "Vous utilisez la dernière version disponible pour cette branche.";
 "You cannot use the Wii Shop Channel without using your own device credentials.
