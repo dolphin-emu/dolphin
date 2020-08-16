@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -62,6 +63,14 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return fragment;
   }
 
+  // This is primarily intended to account for any navigation bar at the bottom of the screen
+  private int getBottomPaddingRequired()
+  {
+    Rect visibleFrame = new Rect();
+    requireActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(visibleFrame);
+    return visibleFrame.bottom - visibleFrame.top - getResources().getDisplayMetrics().heightPixels;
+  }
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
   {
@@ -106,12 +115,29 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       options.findViewById(R.id.menu_screen_orientation).setVisibility(View.GONE);
     }
 
+    int bottomPaddingRequired = getBottomPaddingRequired();
+
+    // Provide a safe zone between the navigation bar and Exit Emulation to avoid accidental touches
+    float density = getResources().getDisplayMetrics().density;
+    if (bottomPaddingRequired >= 32 * density)
+    {
+      bottomPaddingRequired += 32 * density;
+    }
+
+    if (bottomPaddingRequired > rootView.getPaddingBottom())
+    {
+      rootView.setPadding(rootView.getPaddingLeft(), rootView.getPaddingTop(),
+              rootView.getPaddingRight(), bottomPaddingRequired);
+    }
+
     for (int childIndex = 0; childIndex < options.getChildCount(); childIndex++)
     {
       Button button = (Button) options.getChildAt(childIndex);
 
       button.setOnClickListener(this);
     }
+
+    rootView.findViewById(R.id.menu_exit).setOnClickListener(this);
 
     mTitleText = rootView.findViewById(R.id.text_game_title);
     String title = getArguments().getString(KEY_TITLE);

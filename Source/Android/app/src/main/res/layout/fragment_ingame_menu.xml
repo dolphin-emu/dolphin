@@ -4,6 +4,7 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
+              android:paddingBottom="16dp"
               android:background="@color/dolphin_blue_dark"
               tools:layout_width="250dp">
 
@@ -89,13 +90,21 @@
                 android:text="@string/emulation_change_disc"
                 style="@style/InGameMenuOption"/>
 
-            <Button
-                android:id="@+id/menu_exit"
-                android:text="@string/emulation_exit"
-                style="@style/InGameMenuOption"/>
-
         </LinearLayout>
 
     </ScrollView>
+
+    <View
+        android:id="@+id/divider"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#FFFFFF"
+        android:layout_marginTop="24dp"
+        android:layout_marginBottom="16dp"/>
+
+    <Button
+        android:id="@+id/menu_exit"
+        android:text="@string/emulation_exit"
+        style="@style/InGameMenuOption"/>
 
 </LinearLayout>
