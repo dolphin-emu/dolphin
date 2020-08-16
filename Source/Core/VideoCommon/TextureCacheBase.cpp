@@ -1777,12 +1777,15 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
     return nullptr;
   }
 
+  u32 scaled_tex_w = g_renderer->EFBToScaledX(width);
+  u32 scaled_tex_h = g_renderer->EFBToScaledY(height);
+
   // Compute total texture size. XFB textures aren't tiled, so this is simple.
   const u32 total_size = height * stride;
   const u64 hash = Common::GetHash64(src_data, total_size, 0);
 
   TCacheEntry* entry = nullptr;
-  const TextureConfig config(width, height, 1, g_framebuffer_manager->GetEFBLayers(),
+  const TextureConfig config(scaled_tex_w, scaled_tex_h, 1, g_framebuffer_manager->GetEFBLayers(),
     1, AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget);
   entry = AllocateCacheEntry(config);
 
