@@ -1,0 +1,11 @@
+// Copyright 2020 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#pragma once
+
+@protocol NKitWarningNoticeDelegate <NSObject>
+ 
+- (void)WarningDismissedWithResult:(bool)result sender:(id)sender;
+ 
+@end

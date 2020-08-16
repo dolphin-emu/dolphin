@@ -38,6 +38,8 @@
 
 #import "MainiOS.h"
 
+#import "NKitWarningNoticeViewController.h"
+
 #import "UICommon/GameFile.h"
 #import "UICommon/GameFileCache.h"
 
@@ -136,13 +138,73 @@
   [self setNeedsStatusBarAppearanceUpdate];
 }
 
+
+- (void)viewWillAppear:(BOOL)animated
+{
+  [super viewWillAppear:animated];
+  
+  if (!self.m_first_appear_done)
+  {
+    self.m_first_appear_done = true;
+    
+    if (std::holds_alternative<BootParameters::Disc>(self->m_boot_parameters->parameters))
+    {
+      if (std::get<BootParameters::Disc>(self->m_boot_parameters->parameters).volume->IsNKit())
+      {
+        if (!Config::GetBase(Config::MAIN_SKIP_NKIT_WARNING))
+        {
+          NKitWarningNoticeViewController* controller = [[NKitWarningNoticeViewController alloc] initWithNibName:@"NKitWarningNotice" bundle:nil];
+          controller.delegate = self;
+          
+          [self presentViewController:controller animated:true completion:nil];
+          
+          return;
+        }
+      }
+    }
+    
+    [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
+  }
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
   return UIStatusBarStyleLightContent;
 }
 
+#pragma mark - NKit Warning Delegate
+
+- (void)WarningDismissedWithResult:(bool)result sender:(id)sender
+{
+  [sender dismissViewControllerAnimated:true completion:nil];
+  
+  if (result)
+  {
+    [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
+  }
+  else
+  {
+    [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
+  }
+}
+
+#pragma mark - Emulation
+
 - (void)StartEmulation
 {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
+    
+    if (![user_defaults boolForKey:@"seen_top_bar_swipe_down_notice"])
+    {
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Tutorial" message:@"To reveal the top bar, swipe down from the top of the screen.\n\nYou can change settings and stop the emulation from the top bar." preferredStyle:UIAlertControllerStyleAlert];
+      [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+      [self presentViewController:alert animated:true completion:nil];
+      
+      [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
+    }
+  });
+  
   // Hack for GC IPL - the running title isn't updated on boot
   if (std::holds_alternative<BootParameters::IPL>(self->m_boot_parameters->parameters))
   {
@@ -595,24 +657,6 @@
     self.m_ts_active_port = -1;
     self.m_ts_active_view = nil;
   }
-}
-
-#pragma mark - Top bar tutorial
-
-- (void)viewWillAppear:(BOOL)animated
-{
-  NSUserDefaults* user_defaults = [NSUserDefaults standardUserDefaults];
-  
-  if (![user_defaults boolForKey:@"seen_top_bar_swipe_down_notice"])
-  {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Tutorial" message:@"To reveal the top bar, swipe down from the top of the screen.\n\nYou can change settings and stop the emulation from the top bar." preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
-    [self presentViewController:alert animated:true completion:nil];
-    
-    [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
-  }
-  
-    [NSThread detachNewThreadSelector:@selector(StartEmulation) toTarget:self withObject:nil];
 }
 
 #pragma mark - Memory warning

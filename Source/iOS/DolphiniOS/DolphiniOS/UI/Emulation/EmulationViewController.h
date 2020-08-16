@@ -6,6 +6,8 @@
 
 #import <MetalKit/MetalKit.h>
 
+#import "NKitWarningNoticeViewController.h"
+
 #import <UIKit/UIKit.h>
 
 #import "Core/Boot/Boot.h"
@@ -27,7 +29,7 @@ typedef NS_ENUM(NSUInteger, DOLTopBarPullDownMode) {
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface EmulationViewController : UIViewController
+@interface EmulationViewController : UIViewController <NKitWarningNoticeDelegate>
 {
   @public std::unique_ptr<BootParameters> m_boot_parameters;
   @public std::vector<std::pair<int, TCView*>> m_controllers;
@@ -51,6 +53,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UINavigationItem* m_navigation_item;
 @property (weak, nonatomic) IBOutlet UIButton* m_pull_down_button;
 
+@property(nonatomic) bool m_first_appear_done;
 @property(nonatomic) UIView* m_renderer_view;
 @property(nonatomic) bool m_is_wii;
 @property(nonatomic) bool m_is_homebrew;

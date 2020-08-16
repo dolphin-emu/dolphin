@@ -15,6 +15,8 @@
 		B91BF374236B400200199BA7 /* SettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B91BF373236B400200199BA7 /* SettingsTableViewController.mm */; };
 		B91BF37C236BEEF700199BA7 /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B91BF37B236BEEF700199BA7 /* Metal.framework */; };
 		B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		B92243E124E9C7FA0085632F /* NKitWarningNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B92243E024E9C7FA0085632F /* NKitWarningNotice.xib */; };
+		B92243E424E9CB650085632F /* NKitWarningNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B92243E324E9CB650085632F /* NKitWarningNoticeViewController.mm */; };
 		B92431C32400DFC600D5FF0A /* GraphicsSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B92431C52400DFC600D5FF0A /* GraphicsSettings.storyboard */; };
 		B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924321D2401F61300D5FF0A /* InGameSettings.storyboard */; };
 		B924DCA223DA873000831A1A /* Settings.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B924DCA423DA873000831A1A /* Settings.storyboard */; };
@@ -206,6 +208,10 @@
 		B91BF373236B400200199BA7 /* SettingsTableViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SettingsTableViewController.mm; sourceTree = "<group>"; };
 		B91BF37B236BEEF700199BA7 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
 		B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; path = libMoltenVK.dylib; sourceTree = "<group>"; };
+		B92243E024E9C7FA0085632F /* NKitWarningNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = NKitWarningNotice.xib; path = DolphiniOS/UI/Notices/NKitWarning/NKitWarningNotice.xib; sourceTree = SOURCE_ROOT; };
+		B92243E224E9CB650085632F /* NKitWarningNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = NKitWarningNoticeViewController.h; path = DolphiniOS/UI/Notices/NKitWarning/NKitWarningNoticeViewController.h; sourceTree = SOURCE_ROOT; };
+		B92243E324E9CB650085632F /* NKitWarningNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = NKitWarningNoticeViewController.mm; path = DolphiniOS/UI/Notices/NKitWarning/NKitWarningNoticeViewController.mm; sourceTree = SOURCE_ROOT; };
+		B92243E524E9D4DA0085632F /* NKitWarningNoticeDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NKitWarningNoticeDelegate.h; sourceTree = "<group>"; };
 		B92431C42400DFC600D5FF0A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/GraphicsSettings.storyboard; sourceTree = "<group>"; };
 		B92431C72400DFD100D5FF0A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
 		B92431C92400DFDC00D5FF0A /* ja */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ja; path = ja.lproj/GraphicsSettings.strings; sourceTree = "<group>"; };
@@ -707,6 +713,17 @@
 			path = Emulation;
 			sourceTree = "<group>";
 		};
+		B92243DF24E9C7AC0085632F /* NKitWarning */ = {
+			isa = PBXGroup;
+			children = (
+				B92243E524E9D4DA0085632F /* NKitWarningNoticeDelegate.h */,
+				B92243E224E9CB650085632F /* NKitWarningNoticeViewController.h */,
+				B92243E324E9CB650085632F /* NKitWarningNoticeViewController.mm */,
+				B92243E024E9C7FA0085632F /* NKitWarningNotice.xib */,
+			);
+			path = NKitWarning;
+			sourceTree = "<group>";
+		};
 		B924DCA923DAD40700831A1A /* Notices */ = {
 			isa = PBXGroup;
 			children = (
@@ -715,6 +732,7 @@
 				B9C956222460FFA70095EC98 /* ImproperlySigned */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
 				B94D332D2466366300E75790 /* KilledBuild */,
+				B92243DF24E9C7AC0085632F /* NKitWarning */,
 				B971E1C6245E209500D2A698 /* NonJailbroken */,
 				B971E1CC245E7EF100D2A698 /* OSTooNew */,
 				B9B536E823DE974300F03106 /* ReloadFailed */,
@@ -1535,6 +1553,7 @@
 				B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */,
 				B996C85223D50FC600700D6F /* Dolphin.strings in Resources */,
 				B9DCAC8523AAC46E002B95C8 /* TCSidewaysWiiPad.xib in Resources */,
+				B92243E124E9C7FA0085632F /* NKitWarningNotice.xib in Resources */,
 				B9B536DE23DE707F00F03106 /* UnofficialBuildNotice.xib in Resources */,
 				B988D80523B801F40092CB6C /* TouchWiimoteProfile.ini in Resources */,
 				B924321B2401F61300D5FF0A /* InGameSettings.storyboard in Resources */,
@@ -1764,6 +1783,7 @@
 				B971155723E02FAA001C6BD6 /* StateCell.m in Sources */,
 				B98584C723CEDFB800BE94B0 /* ConfigInterfaceViewController.mm in Sources */,
 				B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */,
+				B92243E424E9CB650085632F /* NKitWarningNoticeViewController.mm in Sources */,
 				B9B47C8B23FB86B40077375A /* InternalResolutionViewController.mm in Sources */,
 				B98911A4244521E400A24522 /* AnalyticsNoticeViewController.mm in Sources */,
 				B9EFBFAC23AF892B00593A20 /* ControllerTypePickerViewController.mm in Sources */,
