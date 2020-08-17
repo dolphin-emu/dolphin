@@ -2,6 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#ifdef _WIN32
+
+#if _MSC_VER < 1927
+#error Please update your build environment to the latest Visual Studio 2019!
+#endif
+
+#include <sdkddkver.h>
+#ifndef NTDDI_WIN10_VB
+#error Windows 10.0.19041 SDK or later is required
+#endif
+
+#endif
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
@@ -66,13 +79,7 @@
 #include <vector>
 
 #ifdef _WIN32
-
-#if _MSC_FULL_VER < 192729111
-#error Please update your build environment to the latest Visual Studio 2019!
-#endif
-
 #include <Windows.h>
-
 #endif
 
 #include "Common/Common.h"
