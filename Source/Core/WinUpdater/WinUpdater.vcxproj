@@ -53,10 +53,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Common\Common.vcxproj">
+    <ProjectReference Include="$(CoreDir)Common\Common.vcxproj">
       <Project>{2e6c348c-c75c-4d94-8d1e-9c1fcbf3efe4}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\UpdaterCommon\UpdaterCommon.vcxproj">
+    <ProjectReference Include="$(CoreDir)UpdaterCommon\UpdaterCommon.vcxproj">
       <Project>{B001D13E-7EAB-4689-842D-801E5ACFFAC5}</Project>
     </ProjectReference>
   </ItemGroup>

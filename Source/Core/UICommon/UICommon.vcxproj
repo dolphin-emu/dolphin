@@ -50,11 +50,11 @@
     <ProjectReference Include="$(CoreDir)Core\Core.vcxproj">
       <Project>{E54CF649-140E-4255-81A5-30A673C1FB36}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)picojson\picojson.vcxproj">
-      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)discord-rpc\src\discord-rpc.vcxproj">
       <Project>{4482FD2A-EC43-3FFB-AC20-2E5C54B05EAD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)picojson\picojson.vcxproj">
+      <Project>{2c0d058e-de35-4471-ad99-e68a2caf9e18}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>

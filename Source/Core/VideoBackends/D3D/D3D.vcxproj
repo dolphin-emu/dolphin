@@ -71,11 +71,11 @@
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3DCommon\D3DCommon.vcxproj">
+      <Project>{dea96cf2-f237-4a1a-b32f-c916769efb50}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\D3DCommon\D3DCommon.vcxproj">
-      <Project>{dea96cf2-f237-4a1a-b32f-c916769efb50}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

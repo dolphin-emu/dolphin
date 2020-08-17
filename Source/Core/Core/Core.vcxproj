@@ -719,27 +719,6 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
-      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
-      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)libusb\libusb_static_2013.vcxproj">
-      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
-      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)miniupnpc\miniupnpc.vcxproj">
-      <Project>{31643fdb-1bb8-4965-9de7-000fc88d35ae}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
-      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
-      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(CoreDir)AudioCommon\AudioCommon.vcxproj">
       <Project>{54aa7840-5beb-4a0c-9452-74ba4cc7fd44}</Project>
     </ProjectReference>
@@ -758,14 +737,35 @@
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)Bochs_disasm\Bochs_disasm.vcxproj">
+      <Project>{8ada04d7-6db1-4da4-ab55-64fb12a0997b}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)cubeb\msvc\cubeb.vcxproj">
       <Project>{8ea11166-6512-44fc-b7a5-a4d1ecc81170}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
+      <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)libusb\libusb_static_2013.vcxproj">
+      <Project>{349ee8f9-7d25-4909-aaf5-ff3fade72187}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)LZO\LZO.vcxproj">
+      <Project>{ab993f38-c31d-4897-b139-a620c42bc565}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)miniupnpc\miniupnpc.vcxproj">
+      <Project>{31643fdb-1bb8-4965-9de7-000fc88d35ae}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
+      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)pugixml\pugixml.vcxproj">
       <Project>{38fee76f-f347-484b-949c-b4649381cffb}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)minizip\minizip.vcxproj">
-      <Project>{23114507-079a-4418-9707-cfa81a03ca99}</Project>
+    <ProjectReference Include="$(ExternalsDir)SFML\build\vc2010\SFML_Network.vcxproj">
+      <Project>{93d73454-2512-424e-9cda-4bb357fe13dd}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
