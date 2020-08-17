@@ -491,10 +491,10 @@ public final class EmulationActivity extends AppCompatActivity
       Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
       getSupportFragmentManager().beginTransaction()
               .setCustomAnimations(
-                      R.animator.menu_slide_in_from_left,
-                      R.animator.menu_slide_out_to_left,
-                      R.animator.menu_slide_in_from_left,
-                      R.animator.menu_slide_out_to_left)
+                      R.animator.menu_slide_in_from_start,
+                      R.animator.menu_slide_out_to_start,
+                      R.animator.menu_slide_in_from_start,
+                      R.animator.menu_slide_out_to_start)
               .add(R.id.frame_menu, fragment)
               .addToBackStack(BACKSTACK_NAME_MENU)
               .commit();
@@ -1235,10 +1235,10 @@ public final class EmulationActivity extends AppCompatActivity
     Fragment fragment = SaveLoadStateFragment.newInstance(saveOrLoad);
     getSupportFragmentManager().beginTransaction()
             .setCustomAnimations(
-                    R.animator.menu_slide_in_from_right,
-                    R.animator.menu_slide_out_to_right,
-                    R.animator.menu_slide_in_from_right,
-                    R.animator.menu_slide_out_to_right)
+                    R.animator.menu_slide_in_from_end,
+                    R.animator.menu_slide_out_to_end,
+                    R.animator.menu_slide_in_from_end,
+                    R.animator.menu_slide_out_to_end)
             .replace(R.id.frame_submenu, fragment)
             .addToBackStack(BACKSTACK_NAME_SUBMENU)
             .commit();
