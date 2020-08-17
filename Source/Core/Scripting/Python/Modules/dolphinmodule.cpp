@@ -4,12 +4,17 @@
 
 #include "dolphinmodule.h"
 
+#include "Common/Logging/Log.h"
 #include "Scripting/Python/Utils/module.h"
 
 namespace PyScripting
 {
 
-PyMODINIT_FUNC PyInit_dolphin()
+struct DolphinModuleState
+{
+};
+
+void SetupDolphinModule(PyObject* module, DolphinModuleState* state)
 {
   static const char pycode[] = R"(
 """
@@ -32,17 +37,28 @@ import dolphin_controller as controller
 # using a star-import: from dolphin import *
 __all__ = [event, memory, gui, savestate, controller]
 )";
+  Py::Object result = Py::LoadPyCodeIntoModule(module, pycode);
+  if (result.IsNull())
+  {
+    ERROR_LOG(SCRIPTING, "Failed to load embedded python code into dolphin module");
+  }
+}
+
+void CleanupDolphinModule(PyObject* module, DolphinModuleState* state)
+{
+}
+
+PyMODINIT_FUNC PyInit_dolphin()
+{
   static PyMethodDef methods[] = {
       // no functions defined in C++ code
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
-  static PyModuleDef def = Py::MakeModuleDef("dolphin", methods);
-  PyObject* m = PyModule_Create(&def);
-  if (m == nullptr)
-    return nullptr;
-  if (Py::LoadPyCodeIntoModule(m, pycode).IsNull())
-    return nullptr;
-  return m;
+  static PyModuleDef module_def =
+      Py::MakeStatefulModuleDef<DolphinModuleState, SetupDolphinModule, CleanupDolphinModule>(
+          "dolphin", methods);
+  PyObject* def_obj = PyModuleDef_Init(&module_def);
+  return def_obj;
 }
 
 }  // namespace PyScripting
