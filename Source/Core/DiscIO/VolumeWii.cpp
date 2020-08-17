@@ -571,17 +571,17 @@ bool VolumeWii::EncryptGroup(
     encryption_futures[i] = std::async(
         std::launch::async,
         [&unencrypted_data, &unencrypted_hashes, &aes_context, &out](size_t start, size_t end) {
-          for (size_t i = start; i < end; ++i)
+          for (size_t j = start; j < end; ++j)
           {
-            u8* out_ptr = out->data() + i * BLOCK_TOTAL_SIZE;
+            u8* out_ptr = out->data() + j * BLOCK_TOTAL_SIZE;
 
             u8 iv[16] = {};
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
-                                  reinterpret_cast<u8*>(&unencrypted_hashes[i]), out_ptr);
+                                  reinterpret_cast<u8*>(&unencrypted_hashes[j]), out_ptr);
 
             std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,
-                                  unencrypted_data[i].data(), out_ptr + BLOCK_HEADER_SIZE);
+                                  unencrypted_data[j].data(), out_ptr + BLOCK_HEADER_SIZE);
           }
         },
         i * BLOCKS_PER_GROUP / threads, (i + 1) * BLOCKS_PER_GROUP / threads);

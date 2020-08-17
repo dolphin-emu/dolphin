@@ -58,15 +58,20 @@ public:
   std::optional<u64> ReadSwappedAndShifted(u64 offset, const Partition& partition) const
   {
     const std::optional<u32> temp = ReadSwapped<u32>(offset, partition);
-    return temp ? static_cast<u64>(*temp) << GetOffsetShift() : std::optional<u64>();
+    if (!temp)
+      return std::nullopt;
+    return static_cast<u64>(*temp) << GetOffsetShift();
   }
 
   virtual bool IsEncryptedAndHashed() const { return false; }
   virtual std::vector<Partition> GetPartitions() const { return {}; }
   virtual Partition GetGamePartition() const { return PARTITION_NONE; }
-  virtual std::optional<u32> GetPartitionType(const Partition& partition) const { return {}; }
+  virtual std::optional<u32> GetPartitionType(const Partition& partition) const
+  {
+    return std::nullopt;
+  }
   std::optional<u64> GetTitleID() const { return GetTitleID(GetGamePartition()); }
-  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return {}; }
+  virtual std::optional<u64> GetTitleID(const Partition& partition) const { return std::nullopt; }
   virtual const IOS::ES::TicketReader& GetTicket(const Partition& partition) const
   {
     return INVALID_TICKET;

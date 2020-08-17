@@ -379,7 +379,7 @@ bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
                 offset - partition_data_offset, bytes_to_read, out_ptr, partition_data_offset,
                 partition_total_sectors * VolumeWii::BLOCK_DATA_SIZE, partition.partition_key,
                 [this, &hash_exception_error](
-                    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 offset) {
+                    VolumeWii::HashBlock hash_blocks[VolumeWii::BLOCKS_PER_GROUP], u64 offset_) {
                   // EncryptGroups calls ReadWiiDecrypted, which calls ReadFromGroups,
                   // which populates m_exception_list when m_write_to_exception_list == true
                   if (!ApplyHashExceptions(m_exception_list, hash_blocks))

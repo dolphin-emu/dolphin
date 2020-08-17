@@ -252,14 +252,14 @@ void ThreadWidget::Update()
   if (!isVisible())
     return;
 
-  const auto state = Core::GetState();
-  if (state == Core::State::Stopping)
+  const auto emu_state = Core::GetState();
+  if (emu_state == Core::State::Stopping)
   {
     m_thread_table->setRowCount(0);
     UpdateThreadContext({});
     UpdateThreadCallstack({});
   }
-  if (state != Core::State::Paused)
+  if (emu_state != Core::State::Paused)
     return;
 
   const auto format_hex = [](u32 value) {
@@ -269,9 +269,9 @@ void ThreadWidget::Update()
     addr = PowerPC::HostIsRAMAddress(addr) ? PowerPC::HostRead_U32(addr) : 0;
     return format_hex(addr);
   };
-  const auto get_state = [](u16 state) {
+  const auto get_state = [](u16 thread_state) {
     QString state_name;
-    switch (state)
+    switch (thread_state)
     {
     case 1:
       state_name = tr("READY");
@@ -288,7 +288,7 @@ void ThreadWidget::Update()
     default:
       state_name = tr("UNKNOWN");
     }
-    return QStringLiteral("%1 (%2)").arg(QString::number(state), state_name);
+    return QStringLiteral("%1 (%2)").arg(QString::number(thread_state), state_name);
   };
   const auto get_priority = [](u16 base, u16 effective) {
     return QStringLiteral("%1 (%2)").arg(QString::number(base), QString::number(effective));
