@@ -219,7 +219,8 @@ int main(int argc, char* argv[])
   {
     DolphinAnalytics::Instance().ReportDolphinStart("qt");
 
-    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie"))};
+    MainWindow win{std::move(boot), static_cast<const char*>(options.get("movie")),
+                   script_filepath};
     if (options.is_set("debugger"))
       Settings::Instance().SetDebugModeEnabled(true);
     win.Show();
@@ -258,14 +259,6 @@ int main(int argc, char* argv[])
     {
       auto* updater = new Updater(&win);
       updater->start();
-    }
-
-    // Initialize the scripting engine after the ui,
-    // because then early script outputs are already visible in the logging ui.
-    std::optional<Scripting::ScriptingBackend> scripting_backend;
-    if (script_filepath.has_value())
-    {
-      scripting_backend.emplace(Scripting::ScriptingBackend(script_filepath.value()));
     }
 
     retval = app.exec();

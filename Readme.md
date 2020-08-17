@@ -6,17 +6,21 @@ Check out the original repository for general information and build instructions
 
 ## Getting Started
 
-You can run a python script by providing the `--script` command line option. Say you have a file `myscript.py`:
+You can run a python script by clicking "Add New Script" in the Scripting panel (View -> Scripting).
+Say you have a file `myscript.py`:
 ```python
 from dolphin import event
 while True:
     await event.frameadvance()
     print("Hello Dolphin!")
 ```
-Then you should launch Dolphin from a command line with e.g. `./Dolphin.exe --script myscript.py`. Then start a game.
+Then you should select that file in the file selection dialog.
+Alternatively, launch Dolphin from a command line with e.g. `./Dolphin.exe --script myscript.py`
+to automatically add a script at startup.
 
-To be able to see the script's output, enable the `Scripting` log type in the logging configuration.
-Everything printed to `stdout` or `stderr` will then be visible in the log.
+Start a game for the above script to output text.
+To be able to see the script's output, enable the `Scripting` log type in the logging configuration (View -> Show Log Configuration).
+Everything printed to `stdout` or `stderr` will then be visible in the log (View -> Show Log).
 
 
 ## API documentation
@@ -102,11 +106,6 @@ for a good guide on how to get started.
 
 The Scripting API is very minimal right now, but nothing speaks against it growing.
 Please open an issue describing your needs and I will try to add it!
-
-> **Why is there no scripting UI?**
-> I don't want to start Dolphin from a command line, or restart it for every change in my script, or have to open the _log_ to see the output!
-
-This is not deliberate. I just have never written any UI stuff with Qt, and I didn't bother looking into it yet.
 
 > **Why does the emulator crash or hang?**
 

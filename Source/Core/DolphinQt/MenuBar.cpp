@@ -175,6 +175,7 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   m_show_memory->setVisible(enabled);
   m_show_network->setVisible(enabled);
   m_show_jit->setVisible(enabled);
+  m_show_scripting->setVisible(enabled);
 
   if (enabled)
   {
@@ -495,6 +496,12 @@ void MenuBar::AddViewMenu()
   m_show_jit->setChecked(Settings::Instance().IsJITVisible());
   connect(m_show_jit, &QAction::toggled, &Settings::Instance(), &Settings::SetJITVisible);
   connect(&Settings::Instance(), &Settings::JITVisibilityChanged, m_show_jit, &QAction::setChecked);
+
+  m_show_scripting = view_menu->addAction(tr("&Scripting"));
+  m_show_scripting->setCheckable(true);
+  m_show_scripting->setChecked(Settings::Instance().IsScriptingVisible());
+  connect(m_show_scripting, &QAction::toggled, &Settings::Instance(), &Settings::SetScriptingVisible);
+  connect(&Settings::Instance(), &Settings::ScriptingVisibilityChanged, m_show_scripting, &QAction::setChecked);
 
   view_menu->addSeparator();
 
