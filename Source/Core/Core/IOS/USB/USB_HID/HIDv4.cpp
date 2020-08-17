@@ -26,11 +26,6 @@ USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios,
 {
 }
 
-USB_HIDv4::~USB_HIDv4()
-{
-  StopThreads();
-}
-
 IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), Common::Log::IOS_USB);

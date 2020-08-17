@@ -26,11 +26,6 @@ OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name
 {
 }
 
-OH0::~OH0()
-{
-  StopThreads();
-}
-
 IPCCommandResult OH0::Open(const OpenRequest& request)
 {
   if (HasFeature(m_ios.GetVersion(), Feature::NewUSB))

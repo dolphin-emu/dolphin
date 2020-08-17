@@ -37,7 +37,6 @@ class OH0 final : public USBHost
 {
 public:
   OH0(Kernel& ios, const std::string& device_name);
-  ~OH0() override;
 
   IPCCommandResult Open(const OpenRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
