@@ -22,6 +22,9 @@ USB_HIDv5::~USB_HIDv5() = default;
 
 IPCCommandResult USB_HIDv5::IOCtl(const IOCtlRequest& request)
 {
+  static_assert(offsetof(USB_HIDv5, m_scan_thread) == sizeof(USB_HIDv5) - sizeof(ScanThread),
+                "ScanThread must be the last data member");
+
   request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {
