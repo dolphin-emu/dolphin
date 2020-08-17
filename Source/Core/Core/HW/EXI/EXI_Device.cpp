@@ -15,6 +15,7 @@
 #include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/EXI/EXI_DeviceModem.h"
+#include "Core/HW/EXI/EXI_DeviceSD.h"
 #include "Core/HW/Memmap.h"
 #include "Core/System.h"
 
@@ -160,6 +161,10 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
 
   case EXIDeviceType::AGP:
     result = std::make_unique<CEXIAgp>(system, slot);
+    break;
+
+  case EXIDeviceType::SD:
+    result = std::make_unique<CEXISD>(system);
     break;
 
   case EXIDeviceType::AMBaseboard:
