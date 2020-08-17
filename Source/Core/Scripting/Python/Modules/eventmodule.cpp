@@ -143,7 +143,7 @@ public:
         [&](auto&&... pyevent) {
           return std::make_tuple(state->event_hub->ListenEvent(pyevent.GetListener(module))...);
         },
-        pyevents);
+        s_pyevents);
     state->cleanup_listeners.emplace([=]() {
       std::apply([&](const auto&... listener_id) { (state->event_hub->UnlistenEvent(listener_id), ...); },
                  listener_ids);
@@ -153,10 +153,10 @@ public:
   {
     state->cleanup_listeners.value()();
     state->cleanup_listeners.reset();
-    std::apply([&](const auto&... pyevent) { (pyevent.Clear(state), ...); }, pyevents);
+    std::apply([&](const auto&... pyevent) { (pyevent.Clear(state), ...); }, s_pyevents);
   }
 private:
-  static const std::tuple<Ts...> pyevents;
+  static const std::tuple<Ts...> s_pyevents;
 };
 
 /*********************************
@@ -184,6 +184,7 @@ using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 // For all python events listed here, listens to the respective API::Events event
 // deduced from the PyEvent signature's input argument.
 using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
+const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents;
 
 std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 {
