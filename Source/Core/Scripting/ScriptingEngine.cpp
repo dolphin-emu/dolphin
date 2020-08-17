@@ -26,7 +26,7 @@ ScriptingBackend::~ScriptingBackend() {
   if (m_state != nullptr)
   {
     INFO_LOG(SCRIPTING, "Shutting down scripting engine...");
-    delete m_state;
+    delete (PyScripting::PyScriptingBackend*)m_state;
     m_state = nullptr;
   }
 }
@@ -39,8 +39,7 @@ ScriptingBackend::ScriptingBackend(ScriptingBackend&& other)
 
 ScriptingBackend& ScriptingBackend::operator=(ScriptingBackend&& other)
 {
-  m_state = other.m_state;
-  other.m_state = nullptr;
+  std::swap(m_state, other.m_state);
   return *this;
 }
 
