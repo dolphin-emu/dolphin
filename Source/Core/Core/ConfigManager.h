@@ -25,25 +25,10 @@ struct Partition;
 class Volume;
 }  // namespace DiscIO
 
-namespace ExpansionInterface
-{
-enum TEXIDevices : int;
-}  // namespace ExpansionInterface
-
 namespace IOS::ES
 {
 class TMDReader;
 }  // namespace IOS::ES
-
-namespace PowerPC
-{
-enum class CPUCore;
-}  // namespace PowerPC
-
-namespace SerialInterface
-{
-enum SIDevices : int;
-}  // namespace SerialInterface
 
 struct BootParameters;
 

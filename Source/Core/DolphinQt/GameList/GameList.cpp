@@ -664,11 +664,11 @@ void GameList::OpenGCSaveFolder()
   for (int i = 0; i < 2; i++)
   {
     QUrl url;
-    const ExpansionInterface::TEXIDevices current_exi_device =
+    const ExpansionInterface::EXIDeviceType current_exi_device =
         Config::Get(Config::GetInfoForEXIDevice(i));
     switch (current_exi_device)
     {
-    case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
+    case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
       std::string path = StringFromFormat("%s/%s/%s", File::GetUserPath(D_GCUSER_IDX).c_str(),
                                           SConfig::GetDirectoryForRegion(game->GetRegion()),
@@ -691,7 +691,7 @@ void GameList::OpenGCSaveFolder()
       }
       break;
     }
-    case ExpansionInterface::EXIDEVICE_MEMORYCARD:
+    case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
       std::string memcard_path = i == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
                                           Config::Get(Config::MAIN_MEMCARD_B_PATH);

@@ -21,7 +21,7 @@ namespace ExpansionInterface
 {
 class CEXIChannel;
 class IEXIDevice;
-enum TEXIDevices : int;
+enum class EXIDeviceType : int;
 
 enum
 {
@@ -39,11 +39,11 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 void UpdateInterrupts();
 void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late);
 
-void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num,
+void ChangeDevice(const u8 channel, const EXIDeviceType device_type, const u8 device_num,
                   CoreTiming::FromThread from_thread = CoreTiming::FromThread::NON_CPU);
 
 CEXIChannel* GetChannel(u32 index);
 
-IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
+IEXIDevice* FindDevice(EXIDeviceType device_type, int customIndex = -1);
 
 }  // namespace ExpansionInterface

@@ -1309,7 +1309,7 @@ bool NetPlayServer::SetupNetSettings()
   settings.m_EXIDevice[0] = Config::Get(Config::MAIN_SLOT_A);
   settings.m_EXIDevice[1] = Config::Get(Config::MAIN_SLOT_B);
   // There's no way the BBA is going to sync, disable it
-  settings.m_EXIDevice[2] = ExpansionInterface::EXIDEVICE_NONE;
+  settings.m_EXIDevice[2] = ExpansionInterface::EXIDeviceType::None;
 
   for (size_t i = 0; i < Config::SYSCONF_SETTINGS.size(); ++i)
   {
@@ -1495,7 +1495,7 @@ bool NetPlayServer::StartGame()
   spac << m_settings.m_OCFactor;
 
   for (auto& device : m_settings.m_EXIDevice)
-    spac << device;
+    spac << static_cast<int>(device);
 
   for (u32 value : m_settings.m_SYSCONFSettings)
     spac << value;
@@ -1595,9 +1595,9 @@ bool NetPlayServer::SyncSaveData()
   constexpr int exi_device_count = 2;
   for (int i = 0; i < exi_device_count; ++i)
   {
-    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDeviceType::MemoryCard ||
         Config::Get(Config::GetInfoForEXIDevice(i)) ==
-            ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+            ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       save_count++;
     }
@@ -1656,7 +1656,7 @@ bool NetPlayServer::SyncSaveData()
   {
     const bool is_slot_a = i == 0;
 
-    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDEVICE_MEMORYCARD)
+    if (m_settings.m_EXIDevice[i] == ExpansionInterface::EXIDeviceType::MemoryCard)
     {
       std::string path = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
                                      Config::Get(Config::MAIN_MEMCARD_B_PATH);
@@ -1694,7 +1694,7 @@ bool NetPlayServer::SyncSaveData()
                            fmt::format("Memory Card {} Synchronization", is_slot_a ? 'A' : 'B'));
     }
     else if (Config::Get(Config::GetInfoForEXIDevice(i)) ==
-             ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+             ExpansionInterface::EXIDeviceType::MemoryCardFolder)
     {
       const std::string path = File::GetUserPath(D_GCUSER_IDX) + region + DIR_SEP +
                                fmt::format("Card {}", is_slot_a ? 'A' : 'B');

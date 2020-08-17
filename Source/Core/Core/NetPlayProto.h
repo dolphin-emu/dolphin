@@ -44,7 +44,7 @@ struct NetSettings
   bool m_CopyWiiSave = false;
   bool m_OCEnable = false;
   float m_OCFactor = 0;
-  std::array<ExpansionInterface::TEXIDevices, 3> m_EXIDevice{};
+  std::array<ExpansionInterface::EXIDeviceType, 3> m_EXIDevice{};
 
   std::array<u32, Config::SYSCONF_SETTINGS.size()> m_SYSCONFSettings{};
 

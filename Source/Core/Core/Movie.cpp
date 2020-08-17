@@ -1438,12 +1438,13 @@ void SetGraphicsConfig()
 // NOTE: EmuThread / Host Thread
 void GetSettings()
 {
-  const ExpansionInterface::TEXIDevices slot_a_type = Config::Get(Config::MAIN_SLOT_A);
-  const ExpansionInterface::TEXIDevices slot_b_type = Config::Get(Config::MAIN_SLOT_B);
-  const bool slot_a_has_raw_memcard = slot_a_type == ExpansionInterface::EXIDEVICE_MEMORYCARD;
-  const bool slot_a_has_gci_folder = slot_a_type == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
-  const bool slot_b_has_raw_memcard = slot_b_type == ExpansionInterface::EXIDEVICE_MEMORYCARD;
-  const bool slot_b_has_gci_folder = slot_b_type == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
+  using ExpansionInterface::EXIDeviceType;
+  const EXIDeviceType slot_a_type = Config::Get(Config::MAIN_SLOT_A);
+  const EXIDeviceType slot_b_type = Config::Get(Config::MAIN_SLOT_B);
+  const bool slot_a_has_raw_memcard = slot_a_type == EXIDeviceType::MemoryCard;
+  const bool slot_a_has_gci_folder = slot_a_type == EXIDeviceType::MemoryCardFolder;
+  const bool slot_b_has_raw_memcard = slot_b_type == EXIDeviceType::MemoryCard;
+  const bool slot_b_has_gci_folder = slot_b_type == EXIDeviceType::MemoryCardFolder;
 
   s_bSaveConfig = true;
   s_bNetPlay = NetPlay::IsNetPlayRunning();

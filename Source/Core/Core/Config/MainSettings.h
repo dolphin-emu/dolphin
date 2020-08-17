@@ -33,7 +33,7 @@ enum class DPL2Quality;
 
 namespace ExpansionInterface
 {
-enum TEXIDevices : int;
+enum class EXIDeviceType : int;
 }
 
 namespace SerialInterface
@@ -69,10 +69,10 @@ extern const Info<std::string> MAIN_AGP_CART_A_PATH;
 extern const Info<std::string> MAIN_AGP_CART_B_PATH;
 extern const Info<std::string> MAIN_GCI_FOLDER_A_PATH_OVERRIDE;
 extern const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_A;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SLOT_B;
-extern const Info<ExpansionInterface::TEXIDevices> MAIN_SERIAL_PORT_1;
-const Info<ExpansionInterface::TEXIDevices>& GetInfoForEXIDevice(int channel);
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A;
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B;
+extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1;
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(int channel);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;

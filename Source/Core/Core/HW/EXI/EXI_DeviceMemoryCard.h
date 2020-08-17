@@ -37,7 +37,7 @@ public:
   bool UseDelayedTransferCompletion() const override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
-  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index) override;
+  IEXIDevice* FindDevice(EXIDeviceType device_type, int custom_index) override;
   void DMARead(u32 addr, u32 size) override;
   void DMAWrite(u32 addr, u32 size) override;
 

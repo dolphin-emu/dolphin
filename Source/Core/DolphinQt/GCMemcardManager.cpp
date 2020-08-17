@@ -209,7 +209,7 @@ void GCMemcardManager::LoadDefaultMemcards()
   for (int i = 0; i < SLOT_COUNT; i++)
   {
     if (Config::Get(i == 0 ? Config::MAIN_SLOT_A : Config::MAIN_SLOT_B) !=
-        ExpansionInterface::EXIDEVICE_MEMORYCARD)
+        ExpansionInterface::EXIDeviceType::MemoryCard)
     {
       continue;
     }

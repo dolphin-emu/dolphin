@@ -15,26 +15,26 @@ struct HeaderData;
 
 namespace ExpansionInterface
 {
-enum TEXIDevices : int
+enum class EXIDeviceType : int
 {
-  EXIDEVICE_DUMMY,
-  EXIDEVICE_MEMORYCARD,
-  EXIDEVICE_MASKROM,
-  EXIDEVICE_AD16,
-  EXIDEVICE_MIC,
-  EXIDEVICE_ETH,
+  Dummy,
+  MemoryCard,
+  MaskROM,
+  AD16,
+  Microphone,
+  Ethernet,
   // Was used for Triforce in the past, but the implementation is no longer in Dolphin.
   // It's kept here so that values below will stay constant.
-  EXIDEVICE_AM_BASEBOARD,
-  EXIDEVICE_GECKO,
+  AMBaseboard,
+  Gecko,
   // Only used when creating a device by EXIDevice_Create.
-  // Converted to EXIDEVICE_MEMORYCARD internally.
-  EXIDEVICE_MEMORYCARDFOLDER,
-  EXIDEVICE_AGP,
-  EXIDEVICE_ETHXLINK,
+  // Converted to MemoryCard internally.
+  MemoryCardFolder,
+  AGP,
+  EthernetXLink,
   // Only used on Apple devices.
-  EXIDEVICE_ETHTAPSERVER,
-  EXIDEVICE_NONE = 0xFF
+  EthernetTapServer,
+  None = 0xFF
 };
 
 class IEXIDevice
@@ -51,7 +51,7 @@ public:
   virtual void DMAWrite(u32 address, u32 size);
   virtual void DMARead(u32 address, u32 size);
 
-  virtual IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index = -1);
+  virtual IEXIDevice* FindDevice(EXIDeviceType device_type, int custom_index = -1);
 
   virtual bool UseDelayedTransferCompletion() const;
   virtual bool IsPresent() const;
@@ -65,13 +65,13 @@ public:
   // For savestates. storing it here seemed cleaner than requiring each implementation to report its
   // type. I know this class is set up like an interface, but no code requires it to be strictly
   // such.
-  TEXIDevices m_device_type = TEXIDevices::EXIDEVICE_NONE;
+  EXIDeviceType m_device_type = EXIDeviceType::None;
 
 private:
   // Byte transfer function for this device
   virtual void TransferByte(u8& byte);
 };
 
-std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num,
+std::unique_ptr<IEXIDevice> EXIDevice_Create(EXIDeviceType device_type, int channel_num,
                                              const Memcard::HeaderData& memcard_header_data);
 }  // namespace ExpansionInterface
