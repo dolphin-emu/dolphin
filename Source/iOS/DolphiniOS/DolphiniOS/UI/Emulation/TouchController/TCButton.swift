@@ -21,6 +21,8 @@ class TCButton: UIButton
   @IBInspectable var isAxis: Bool = false
   
   var m_port: Int = 0
+  var m_use_3d_touch: Bool = true
+  var m_last_force: CGFloat = CGFloat.zero
   
   override init(frame: CGRect)
   {
@@ -45,6 +47,7 @@ class TCButton: UIButton
     self.setTitle("", for: .normal)
     self.addTarget(self, action: #selector(buttonPressed), for: .touchDown)
     self.addTarget(self, action: #selector(buttonReleased), for: .touchUpInside)
+    self.m_use_3d_touch = false//self.traitCollection.forceTouchCapability == .available
   }
   
   func updateImage()
@@ -78,6 +81,11 @@ class TCButton: UIButton
   
   @objc func buttonPressed()
   {
+    if (isAxis && m_use_3d_touch)
+    {
+      return
+    }
+    
     // Check UserDefaults for haptic setting
     if (UserDefaults.standard.bool(forKey: "haptic_feedback_enabled"))
     {
@@ -104,6 +112,28 @@ class TCButton: UIButton
     {
       MainiOS.gamepadEvent(onPad: Int32(self.m_port), button: Int32(controllerButton), action: 0)
     }
+  }
+  
+  @objc override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?)
+  {
+    if (!isAxis || !m_use_3d_touch)
+    {
+      return
+    }
+    
+    let touch = touches.first!
+    let force = touch.force
+    let maxForce = touch.maximumPossibleForce
+    let percentage: CGFloat = force / maxForce;
+    
+    MainiOS.gamepadMoveEvent(onPad: Int32(self.m_port), axis: Int32(controllerButton), value: percentage)
+    
+    if (self.m_last_force != force && force == maxForce)
+    {
+      hapticGenerator.impactOccurred()
+    }
+    
+    self.m_last_force = force;
   }
   
 }
