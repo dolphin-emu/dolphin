@@ -23,6 +23,8 @@ public:
   void DMAWrite(u32 address, u32 size) override;
   void DMARead(u32 address, u32 size) override;
 
+  void SetCS(int cs) override;
+
   bool IsPresent() const override;
 
 private:
