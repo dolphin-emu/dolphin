@@ -1235,7 +1235,7 @@ static void RVZPack(const u8* in, OutputParametersEntry* out, u64 bytes_per_chun
       }
 
       const u64 junk_bytes = next_junk_end - current_offset;
-      if (junk_bytes > 0)
+      if (junk_bytes > 0 && seed)
       {
         PushBack(&entry.main_data, Common::swap32(static_cast<u32>(junk_bytes) | 0x80000000));
         PushBack(&entry.main_data, *seed);
