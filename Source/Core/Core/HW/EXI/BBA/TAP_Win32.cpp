@@ -198,7 +198,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   }
 
   /* get driver version info */
-  ULONG info[3];
+  ULONG info[3]{};
   if (DeviceIoControl(mHAdapter, TAP_IOCTL_GET_VERSION, &info, sizeof(info), &info, sizeof(info),
                       &len, nullptr))
   {
