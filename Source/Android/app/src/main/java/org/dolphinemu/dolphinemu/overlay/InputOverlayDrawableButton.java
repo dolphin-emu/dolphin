@@ -136,7 +136,8 @@ public final class InputOverlayDrawableButton
 
   private BitmapDrawable getCurrentStateBitmapDrawable()
   {
-    if(mSecondaryPressedState){
+    if(mSecondaryPressedState)
+    {
       return mSecondaryPressedStateBitmap;
     }
 

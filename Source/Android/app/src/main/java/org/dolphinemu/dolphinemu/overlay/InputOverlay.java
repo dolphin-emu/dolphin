@@ -542,7 +542,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r,
               R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation,
-              R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG ));
+              R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG));
     }
     if (mPreferences.getBoolean("buttonToggleGc8", true))
     {
@@ -862,7 +862,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int buttonId, String orientation,
-          int secondaryPressedResId, int secondaryButtonId )
+          int secondaryPressedResId, int secondaryButtonId)
   {
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
