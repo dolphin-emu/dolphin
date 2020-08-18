@@ -98,7 +98,7 @@ std::vector<std::string> DoFileSearch(const std::vector<std::string>& directorie
   };
   for (const auto& directory : directories)
   {
-    const fs::path directory_path = StringToPath(directory);
+    fs::path directory_path = StringToPath(directory);
     if (fs::is_directory(directory_path))  // Can't create iterators for non-existant directories
     {
       if (recursive)
