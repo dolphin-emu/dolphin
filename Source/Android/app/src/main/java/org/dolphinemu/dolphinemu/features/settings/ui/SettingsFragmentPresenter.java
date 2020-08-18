@@ -864,10 +864,9 @@ public final class SettingsFragmentPresenter
       Setting bindTriggerR =
               bindingsSection.getSetting(SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber);
       Setting bindTriggerLAnalog =
-        bindingsSection.getSetting(SettingsFile.KEY_GCBIND_TRIGGER_L_ANALOG + gcPadNumber);
+              bindingsSection.getSetting(SettingsFile.KEY_GCBIND_TRIGGER_L_ANALOG + gcPadNumber);
       Setting bindTriggerRAnalog =
-        bindingsSection.getSetting(SettingsFile.KEY_GCBIND_TRIGGER_R_ANALOG + gcPadNumber);
-
+              bindingsSection.getSetting(SettingsFile.KEY_GCBIND_TRIGGER_R_ANALOG + gcPadNumber);
       Setting bindDPadUp =
               bindingsSection.getSetting(SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber);
       Setting bindDPadDown =
@@ -920,10 +919,12 @@ public final class SettingsFragmentPresenter
               Settings.SECTION_BINDINGS, R.string.trigger_right, bindTriggerR, mGameID));
 
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_TRIGGER_L_ANALOG + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.trigger_left_analog, bindTriggerLAnalog, mGameID));
+              Settings.SECTION_BINDINGS, R.string.trigger_left_analog, bindTriggerLAnalog,
+              mGameID));
 
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_TRIGGER_R_ANALOG + gcPadNumber,
-        Settings.SECTION_BINDINGS, R.string.trigger_right_analog, bindTriggerRAnalog, mGameID));
+              Settings.SECTION_BINDINGS, R.string.trigger_right_analog, bindTriggerRAnalog,
+              mGameID));
 
       sl.add(new HeaderSetting(null, null, R.string.controller_dpad, 0));
       sl.add(new InputBindingSetting(SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber,

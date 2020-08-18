@@ -32,7 +32,7 @@ public final class InputOverlayDrawableButton
 
   //secondary Input such as analog triggers
   private int mSecondaryButtonType;
-  private Rect secondaryBounds  = new Rect();
+  private Rect secondaryBounds = new Rect();
   private BitmapDrawable mSecondaryPressedStateBitmap;
   private boolean mSecondaryPressedState = false;
 
@@ -62,7 +62,7 @@ public final class InputOverlayDrawableButton
 
 
   public void setSecondaryButton(Resources res,
-                                    Bitmap pressedStateBitmap, int buttonType)
+          Bitmap pressedStateBitmap, int buttonType)
   {
     mSecondaryPressedStateBitmap = new BitmapDrawable(res, pressedStateBitmap);
     mSecondaryButtonType = buttonType;
@@ -137,7 +137,7 @@ public final class InputOverlayDrawableButton
   private BitmapDrawable getCurrentStateBitmapDrawable()
   {
     if(mSecondaryPressedState){
-      return  mSecondaryPressedStateBitmap;
+      return mSecondaryPressedStateBitmap;
     }
 
     return mPressedState ? mPressedStateBitmap : mDefaultStateBitmap;
@@ -181,6 +181,7 @@ public final class InputOverlayDrawableButton
   {
     mPressedState = isPressed;
   }
+
   public void setSecondaryPressedState(boolean isPressed)
   {
     mSecondaryPressedState = isPressed;

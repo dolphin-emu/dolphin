@@ -535,12 +535,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (mPreferences.getBoolean("buttonToggleGc6", true))
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l,
-              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation, R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG));
+              R.drawable.gcpad_l_pressed, ButtonType.TRIGGER_L, orientation,
+              R.drawable.gcpad_l_pressed_analog, ButtonType.TRIGGER_L_ANALOG));
     }
     if (mPreferences.getBoolean("buttonToggleGc7", true))
     {
       overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r,
-              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation, R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG ));
+              R.drawable.gcpad_r_pressed, ButtonType.TRIGGER_R, orientation,
+              R.drawable.gcpad_r_pressed_analog, ButtonType.TRIGGER_R_ANALOG ));
     }
     if (mPreferences.getBoolean("buttonToggleGc8", true))
     {
@@ -854,12 +856,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
           int defaultResId, int pressedResId, int buttonId, String orientation)
   {
-    return initializeOverlayButton(context,defaultResId,pressedResId,buttonId, orientation,
-            -1,-1);
+    return initializeOverlayButton(context, defaultResId, pressedResId, buttonId, orientation,
+            -1, -1);
   }
 
   private static InputOverlayDrawableButton initializeOverlayButton(Context context,
-          int defaultResId, int pressedResId, int buttonId, String orientation, int secondaryPressedResId, int secondaryButtonId )
+          int defaultResId, int pressedResId, int buttonId, String orientation,
+          int secondaryPressedResId, int secondaryButtonId )
   {
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
@@ -959,7 +962,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     int height = overlayDrawable.getHeight();
 
     // Now set the bounds for the InputOverlayDrawableButton.
-    // This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
+    // This will dictate where on the screen (and what size) the InputOverlayDrawableButton will be.
     overlayDrawable.setBounds(drawableX, drawableY, drawableX + width, drawableY + height);
 
     // Need to set the image's position
@@ -969,12 +972,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (SECONDARY_FUNCTION_BUTTONS.contains(buttonId) && buttonId >= 0)
     {
       final Bitmap secondaryPressedStateBitmap =
-              resizeBitmap(context, BitmapFactory.decodeResource(res, secondaryPressedResId), scale);
+              resizeBitmap(context, BitmapFactory.decodeResource(res, secondaryPressedResId),
+                      scale);
       overlayDrawable.setSecondaryButton(res, secondaryPressedStateBitmap, secondaryButtonId);
 
       Rect secondaryBounds = new Rect(overlayDrawable.getBounds());
-      //this will set the analog function to the top half of the button
-      secondaryBounds.bottom = secondaryBounds.bottom - secondaryBounds.height()/2;
+      //This will set the analog function to the top half of the button
+      secondaryBounds.bottom = secondaryBounds.bottom - secondaryBounds.height() / 2;
       overlayDrawable.setSecondaryBounds(secondaryBounds);
     }
 
