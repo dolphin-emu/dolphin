@@ -23,7 +23,7 @@ void CEXISD::ImmWrite(u32 data, u32 size)
 u32 CEXISD::ImmRead(u32 size)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD ImmRead");
-  return 0;
+  return -1;
 }
 
 void CEXISD::DMAWrite(u32 address, u32 size)
