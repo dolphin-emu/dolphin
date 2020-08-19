@@ -9,6 +9,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "WiimoteCommon/WiimoteReport.h"
 
 class InputConfig;
 class PointerWrap;
@@ -96,6 +97,9 @@ void InterruptChannel(int number, u16 channel_id, const void* data, u32 size);
 bool ButtonPressed(int number);
 void Update(int number, bool connected);
 bool NetPlay_GetButtonPress(int wiimote, bool pressed);
+
+WiimoteCommon::ButtonData GetButtonData(int wiimote_num);
+
 }  // namespace Wiimote
 
 namespace WiimoteReal

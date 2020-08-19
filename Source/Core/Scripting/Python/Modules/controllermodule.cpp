@@ -14,6 +14,7 @@ namespace PyScripting
 struct ControllerModuleState
 {
   API::GCManip* gc_manip;
+  API::WiiManip* wii_manip;
 };
 
 PyObject* GCPadStatusToPyDict(GCPadStatus status) {
@@ -89,7 +90,40 @@ GCPadStatus GCPadStatusFromPyDict(PyObject* dict) {
   return status;
 }
 
-PyObject* get_gc(PyObject* module, PyObject* args)
+PyObject* WiiButtonDataToPyDict(WiimoteCommon::ButtonData status) {
+  return Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
+      "Left", status.left ? Py_True : Py_False,
+      "Right", status.right ? Py_True : Py_False,
+      "Down", status.down ? Py_True : Py_False,
+      "Up", status.up ? Py_True : Py_False,
+      "Plus", status.plus ? Py_True : Py_False,
+      "Two", status.two ? Py_True : Py_False,
+      "One", status.one ? Py_True : Py_False,
+      "B", status.b ? Py_True : Py_False,
+      "A", status.a ? Py_True : Py_False,
+      "Minus", status.minus ? Py_True : Py_False,
+      "Home", status.home ? Py_True : Py_False
+  );
+}
+
+WiimoteCommon::ButtonData WiiButtonDataFromPyDict(PyObject* dict) {
+  WiimoteCommon::ButtonData status;
+  status.hex = 0;
+  status.left = PyObject_IsTrue(PyDict_GetItemString(dict, "Left"));
+  status.right = PyObject_IsTrue(PyDict_GetItemString(dict, "Right"));
+  status.down = PyObject_IsTrue(PyDict_GetItemString(dict, "Down"));
+  status.up = PyObject_IsTrue(PyDict_GetItemString(dict, "Up"));
+  status.plus = PyObject_IsTrue(PyDict_GetItemString(dict, "Plus"));
+  status.two = PyObject_IsTrue(PyDict_GetItemString(dict, "Two"));
+  status.one = PyObject_IsTrue(PyDict_GetItemString(dict, "One"));
+  status.b = PyObject_IsTrue(PyDict_GetItemString(dict, "B"));
+  status.a = PyObject_IsTrue(PyDict_GetItemString(dict, "A"));
+  status.minus = PyObject_IsTrue(PyDict_GetItemString(dict, "Minus"));
+  status.home = PyObject_IsTrue(PyDict_GetItemString(dict, "Home"));
+  return status;
+}
+
+PyObject* get_gc_buttons(PyObject* module, PyObject* args)
 {
   auto controller_id_opt = Py::ParseTuple<int>(args);
   if (!controller_id_opt.has_value())
@@ -100,7 +134,7 @@ PyObject* get_gc(PyObject* module, PyObject* args)
   return GCPadStatusToPyDict(pad_status);
 }
 
-PyObject* set_gc(PyObject* module, PyObject* args)
+PyObject* set_gc_buttons(PyObject* module, PyObject* args)
 {
   int controller_id;
   PyObject* dict;
@@ -112,21 +146,48 @@ PyObject* set_gc(PyObject* module, PyObject* args)
   Py_RETURN_NONE;
 }
 
+PyObject* get_wii_buttons(PyObject* module, PyObject* args)
+{
+  auto controller_id_opt = Py::ParseTuple<int>(args);
+  if (!controller_id_opt.has_value())
+    return nullptr;
+  int controller_id = std::get<0>(controller_id_opt.value());
+  ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
+  WiimoteCommon::ButtonData status = state->wii_manip->Get(controller_id);
+  return WiiButtonDataToPyDict(status);
+}
+
+PyObject* set_wii_buttons(PyObject* module, PyObject* args)
+{
+  int controller_id;
+  PyObject* dict;
+  if (!PyArg_ParseTuple(args, "iO!", &controller_id, &PyDict_Type, &dict))
+    return nullptr;
+  WiimoteCommon::ButtonData status = WiiButtonDataFromPyDict(dict);
+  ControllerModuleState* state = Py::GetState<ControllerModuleState>(module);
+  state->wii_manip->Set(status, controller_id, API::ClearOn::NextFrame);
+  Py_RETURN_NONE;
+}
+
 void setup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip = PyScriptingBackend::GetCurrent()->GetGCManip();
+  state->wii_manip = PyScriptingBackend::GetCurrent()->GetWiiManip();
 }
 
 void cleanup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip->Clear();
+  state->wii_manip->Clear();
 }
 
 PyMODINIT_FUNC PyInit_controller()
 {
   static PyMethodDef method_defs[] = {
-      {"get_gc", get_gc, METH_VARARGS, ""},
-      {"set_gc", set_gc, METH_VARARGS, ""},
+      {"get_gc_buttons", get_gc_buttons, METH_VARARGS, ""},
+      {"set_gc_buttons", set_gc_buttons, METH_VARARGS, ""},
+      {"get_wii_buttons", get_wii_buttons, METH_VARARGS, ""},
+      {"set_wii_buttons", set_wii_buttons, METH_VARARGS, ""},
       {nullptr, nullptr, 0, nullptr}  // Sentinel
   };
   static PyModuleDef module_def =

@@ -19,7 +19,7 @@ ScriptingBackend::ScriptingBackend(std::filesystem::path script_filepath)
   // If there was support for multiple backend, a fitting one could be
   // detected based on the script file's extension for example.
   m_state = new PyScripting::PyScriptingBackend(script_filepath, API::GetEventHub(), API::GetGui(),
-                                                API::GetGCManip());
+                                                API::GetGCManip(), API::GetWiiManip());
 }
 
 ScriptingBackend::~ScriptingBackend() {

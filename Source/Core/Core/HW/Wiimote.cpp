@@ -288,4 +288,11 @@ void DoState(PointerWrap& p)
     }
   }
 }
+
+WiimoteCommon::ButtonData GetButtonData(int wiimote_num)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(GetConfig()->GetController(wiimote_num))
+      ->GetButtonData();
+}
+
 }  // namespace Wiimote

@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/API/Events.h"
+#include "Core/HW/WiimoteCommon/DataReport.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -46,12 +47,10 @@ private:
   API::ListenerID<API::Events::FrameAdvance> m_frame_advanced_listener;
 };
 
-/*
 struct WiiInputOverride
 {
-  // WiimoteCommon::DataReportBuilder rpt; ???
-  // int ext; ???
-  // WiimoteEmu::EncryptionKey& key; ???
+  WiimoteCommon::ButtonData button_data;
+  // TODO IR and accel data
   ClearOn clear_on;
   bool used;
 };
@@ -60,12 +59,11 @@ class WiiManip : public BaseManip<WiiInputOverride>
 {
 public:
   using BaseManip::BaseManip;
-  //GCPadStatus Get(int controller_id); ???
-  //void Set(GCPadStatus pad_status, int controller_id, ClearOn clear_on); ???
+  WiimoteCommon::ButtonData Get(int controller_id);
+  void Set(WiimoteCommon::ButtonData button_data, int controller_id, ClearOn clear_on);
   void PerformInputManip(WiimoteCommon::DataReportBuilder& rpt, int controller_id, int ext,
                          const WiimoteEmu::EncryptionKey& key);
 };
-*/
 
 struct GCInputOverride
 {
@@ -85,6 +83,6 @@ public:
 
 // global instances
 GCManip& GetGCManip();
-//WiiManip& GetWiiManip();
+WiiManip& GetWiiManip();
 
 }  // namespace API

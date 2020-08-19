@@ -132,6 +132,8 @@ public:
   bool CheckForButtonPress();
   void Reset();
 
+  WiimoteCommon::ButtonData GetButtonData() const;
+
   void DoState(PointerWrap& p);
 
   // Active extension number is exposed for TAS.
