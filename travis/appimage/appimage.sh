@@ -1,6 +1,6 @@
 #!/bin/bash -ex
 
-BUILDBIN=/dolphin/build/bin
+BUILDBIN=/dolphin/build/Binaries
 BINFILE=dolphin-emu-x86_64.AppImage
 LOG_FILE=$HOME/curl.log
 
