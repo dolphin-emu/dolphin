@@ -47,8 +47,8 @@ unset QTDIR
 # /tmp/squashfs-root/AppRun $HOME/squashfs-root/usr/bin/dolphin-emu -appimage -unsupported-allow-new-glibc -no-copy-copyright-files -no-translations -bundle-non-qt-libs
 /tmp/squashfs-root/AppRun $HOME/squashfs-root/usr/bin/dolphin-emu -unsupported-allow-new-glibc -no-copy-copyright-files -no-translations -bundle-non-qt-libs
 export PATH=$(readlink -f /tmp/squashfs-root/usr/bin/):$PATH
-mv /tmp/update/AppImageUpdate $HOME/squashfs-root/usr/bin/
-mv /tmp/update/* $HOME/squashfs-root/usr/lib/
+#mv /tmp/update/AppImageUpdate $HOME/squashfs-root/usr/bin/
+#mv /tmp/update/* $HOME/squashfs-root/usr/lib/
 /tmp/squashfs-root/usr/bin/appimagetool $HOME/squashfs-root -u "gh-releases-zsync|qurious-pixel|dolphin|continuous|dolphin-emu-x86_64.AppImage.zsync"
 
 mkdir $HOME/artifacts/
