@@ -24,6 +24,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/DynamicLibrary.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Thread.h"
@@ -168,6 +169,7 @@ bool load_bthprops()
 void init_lib()
 {
   static bool initialized = false;
+  static Common::DynamicLibrary bt_api_lib;
 
   if (!initialized)
   {
@@ -181,6 +183,10 @@ void init_lib()
       NOTICE_LOG(WIIMOTE, "Failed to load Bluetooth support libraries, Wiimotes will not function");
       return;
     }
+
+    // Try to incref on this dll to prevent it being reloaded continuously (caused by
+    // BluetoothFindFirstRadio)
+    bt_api_lib.Open("BluetoothApis.dll");
 
     s_loaded_ok = true;
   }
