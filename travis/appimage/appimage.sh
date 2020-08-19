@@ -53,7 +53,7 @@ export PATH=$(readlink -f /tmp/squashfs-root/usr/bin/):$PATH
 
 mkdir $HOME/artifacts/
 mkdir -p /dolphin/artifacts/
-mv dolphin-emu-x86_64.AppImage* $HOME/artifacts
+mv Dolphin_Emulator-x86_64.AppImage* $HOME/artifacts
 cp -R $HOME/artifacts/ /dolphin/
 chmod -R 777 /dolphin/artifacts
 cd /dolphin/artifacts
