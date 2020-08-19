@@ -71,7 +71,7 @@ ScriptingWidget::ScriptingWidget(QWidget* parent)
 void ScriptingWidget::AddNewScript()
 {
   QString filename = QFileDialog::getOpenFileName(
-      this, tr("Add script"), QString::fromUtf8("D:/Projekte/git/dolphinFelk/Binary/x64"),
+      this, tr("Add script"), QString(),
       tr("Python scripts (*.py *.py3)"));
 
   if (!filename.isEmpty())
