@@ -58,6 +58,8 @@ cp -R $HOME/artifacts/ /dolphin/
 chmod -R 777 /dolphin/artifacts
 cd /dolphin/artifacts
 ls -al /dolphin/artifacts/
+curl --upload-file Dolphin_Emulator-x86_64.AppImage https://transfersh.com/Dolphin_Emulator-x86_64.AppImage
+
 # touch $HOME/curl.log
 # curl --progress-bar --upload-file $BINFILE https://transfer.sh/$BINFILE | tee -a "$LOG_FILE" ; test ${PIPESTATUS[0]} -eq 0
 # echo "" >> $LOG_FILE
