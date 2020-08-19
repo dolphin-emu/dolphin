@@ -79,6 +79,10 @@ public:
   virtual void RunToBreakpoint() {}
   virtual u32 GetColor(u32 /*address*/) const { return 0xFFFFFFFF; }
   virtual std::string GetDescription(u32 /*address*/) const = 0;
+  virtual std::optional<u32> GetMemoryAddressFromInstruction(std::string /*instruction*/) const
+  {
+    return std::nullopt;
+  }
   virtual void Clear() = 0;
 };
 }  // namespace Common

@@ -16,6 +16,7 @@ class QShowEvent;
 class QSplitter;
 class QListWidget;
 class QTableWidget;
+class QPushButton;
 
 namespace Common
 {
@@ -66,7 +67,6 @@ private:
 
   QLineEdit* m_search_address;
   QLineEdit* m_search_symbols;
-
   QListWidget* m_callstack_list;
   QListWidget* m_symbols_list;
   QListWidget* m_function_calls_list;

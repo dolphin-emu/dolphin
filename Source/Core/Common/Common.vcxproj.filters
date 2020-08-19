@@ -287,6 +287,9 @@
     <ClInclude Include="Arm64Emitter.h" />
     <ClInclude Include="ArmCommon.h" />
     <ClInclude Include="Inline.h" />
+    <ClInclude Include="Debug\CodeTrace.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -375,6 +378,9 @@
     <ClCompile Include="ArmCPUDetect.cpp" />
     <ClCompile Include="Arm64Emitter.cpp" />
     <ClCompile Include="GenericFPURoundMode.cpp" />
+    <ClCompile Include="Debug\CodeTrace.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -39,6 +39,7 @@ class RegisterWidget;
 class RenderWidget;
 class SearchBar;
 class SettingsWindow;
+class TraceWidget;
 class ThreadWidget;
 class ToolBar;
 class WatchWidget;
@@ -230,6 +231,7 @@ private:
   NetworkWidget* m_network_widget;
   RegisterWidget* m_register_widget;
   ThreadWidget* m_thread_widget;
+  TraceWidget* m_trace_widget;
   WatchWidget* m_watch_widget;
   CheatsManager* m_cheats_manager;
   QByteArray m_render_widget_geometry;

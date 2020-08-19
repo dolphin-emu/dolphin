@@ -378,6 +378,20 @@ void Settings::SetThreadsVisible(bool enabled)
   emit ThreadsVisibilityChanged(enabled);
 }
 
+bool Settings::IsTraceVisible() const
+{
+  return GetQSettings().value(QStringLiteral("debugger/showtrace")).toBool();
+}
+
+void Settings::SetTraceVisible(bool enabled)
+{
+  if (IsTraceVisible() == enabled)
+    return;
+
+  GetQSettings().setValue(QStringLiteral("debugger/showtrace"), enabled);
+  emit TraceVisibilityChanged(enabled);
+}
+
 bool Settings::IsRegistersVisible() const
 {
   return GetQSettings().value(QStringLiteral("debugger/showregisters")).toBool();

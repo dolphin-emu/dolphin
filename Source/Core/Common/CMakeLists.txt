@@ -32,6 +32,8 @@ add_library(common
   Crypto/bn.h
   Crypto/ec.cpp
   Crypto/ec.h
+	Debug/CodeTrace.cpp
+	Debug/CodeTrace.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
   Debug/OSThread.cpp

@@ -190,12 +190,19 @@ static std::string ldst_offs(u32 val)
   return fmt::format("0x{:04X}", val);
 }
 
-static int SEX12(u32 x)
+static std::string psq_offs(u32 val)
 {
-  if ((x & 0x800) != 0)
-    return static_cast<int>(x | 0xFFFFF000);
+  if (val == 0)
+  {
+    return "0";
+  }
+  else
+  {
+    if ((val & 0x800) != 0)
+      return fmt::format("-0x{:04X}", ((~val) & 0xfff) + 1);
 
-  return static_cast<int>(x);
+    return fmt::format("0x{:04X}", val);
+  }
 }
 
 static std::string spr_name(int i)
@@ -460,14 +467,11 @@ std::string GekkoDisassembler::fd_ra_rb(u32 in, int mask)
   if (mask)
   {
     if (mask & 4)
-      result += fmt::format("f{},", PPCGETD(in));
+      result += fmt::format("f{}", PPCGETD(in));
     if (mask & 2)
-      result += fmt::format("{},", regnames[PPCGETA(in)]);
+      result += fmt::format(", {}", regnames[PPCGETA(in)]);
     if (mask & 1)
-      result += fmt::format("{},", regnames[PPCGETB(in)]);
-
-    // Drop the trailing comma
-    result.pop_back();
+      result += fmt::format(", {}", regnames[PPCGETB(in)]);
   }
 
   return result;
@@ -973,25 +977,22 @@ void GekkoDisassembler::fdabc(u32 in, std::string_view name, int mask, unsigned 
 
   m_flags |= dmode;
   m_opcode = fmt::format("f{}{}", name, rcsel[in & 1]);
-  m_operands += fmt::format("f{},", PPCGETD(in));
+  m_operands += fmt::format("f{}", PPCGETD(in));
 
   if (mask & 4)
-    m_operands += fmt::format("f{},", PPCGETA(in));
+    m_operands += fmt::format(", f{}", PPCGETA(in));
   else if ((mask & 8) == 0)
     err |= (int)PPCGETA(in);
 
   if (mask & 2)
-    m_operands += fmt::format("f{},", PPCGETC(in));
+    m_operands += fmt::format(", f{}", PPCGETC(in));
   else if (PPCGETC(in) && (mask & 8) == 0)
     err |= (int)PPCGETC(in);
 
   if (mask & 1)
-    m_operands += fmt::format("f{},", PPCGETB(in));
+    m_operands += fmt::format(", f{}", PPCGETB(in));
   else if (!(mask & 8))
     err |= (int)PPCGETB(in);
-
-  // Drop the trailing comma
-  m_operands.pop_back();
 
   if (err)
     ill(in);
@@ -1019,7 +1020,7 @@ void GekkoDisassembler::fcmp(u32 in, char c)
   else
   {
     m_opcode = fmt::format("fcmp{}", c);
-    m_operands = fmt::format("cr{},f{},f{}", PPCGETCRD(in), PPCGETA(in), PPCGETB(in));
+    m_operands = fmt::format("cr{}, f{}, f{}", PPCGETCRD(in), PPCGETA(in), PPCGETB(in));
   }
 }
 
@@ -1093,7 +1094,7 @@ void GekkoDisassembler::ps(u32 inst)
   {
   case 6:
     m_opcode = inst & 0x40 ? "psq_lux" : "psq_lx";
-    m_operands = fmt::format("p{}, (r{} + r{}), {}, qr{}", FD, RA, RB, WX, IX);
+    m_operands = fmt::format("p{}, r{}, r{}, {}, qr{}", FD, RA, RB, WX, IX);
     return;
 
   case 7:
@@ -1225,22 +1226,22 @@ void GekkoDisassembler::ps(u32 inst)
   }
   case 528:
     m_opcode = "ps_merge00";
-    m_operands = fmt::format("p{}, p{}[0],p{}[0]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[0], p{}[0]", FD, FA, FB);
     return;
 
   case 560:
     m_opcode = "ps_merge01";
-    m_operands = fmt::format("p{}, p{}[0],p{}[1]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[0], p{}[1]", FD, FA, FB);
     return;
 
   case 592:
     m_opcode = "ps_merge10";
-    m_operands = fmt::format("p{}, p{}[1],p{}[0]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[1], p{}[0]", FD, FA, FB);
     return;
 
   case 624:
     m_opcode = "ps_merge11";
-    m_operands = fmt::format("p{}, p{}[1],p{}[1]", FD, FA, FB);
+    m_operands = fmt::format("p{}, p{}[1], p{}[1]", FD, FA, FB);
     return;
 
   case 1014:
@@ -1262,23 +1263,23 @@ void GekkoDisassembler::ps_mem(u32 inst)
   {
   case 56:
     m_opcode = "psq_l";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {} (r{}), {}, qr{}", RS, psq_offs(inst & 0xfff), RA, W, I);
     break;
 
   case 57:
     m_opcode = "psq_lu";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {} (r{}), {}, qr{}", RS, psq_offs(inst & 0xfff), RA, W, I);
     ;
     break;
 
   case 60:
     m_opcode = "psq_st";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {} (r{}), {}, qr{}", RS, psq_offs(inst & 0xfff), RA, W, I);
     break;
 
   case 61:
     m_opcode = "psq_stu";
-    m_operands = fmt::format("p{}, {}(r{}), {}, qr{}", RS, SEX12(inst & 0xFFF), RA, W, I);
+    m_operands = fmt::format("p{}, {} (r{}), {}, qr{}", RS, psq_offs(inst & 0xfff), RA, W, I);
     break;
   }
 }
