@@ -26,6 +26,7 @@ cp -P "$BUILDBIN"/dolphin-emu $HOME/squashfs-root/usr/bin/
 
 curl -sL https://raw.githubusercontent.com/qurious-pixel/dolphin/master/Data/dolphin-emu.svg -o ./squashfs-root/dolphin-emu.svg
 curl -sL https://raw.githubusercontent.com/qurious-pixel/dolphin/master/Data/dolphin-emu.desktop -o ./squashfs-root/dolphin-emu.desktop
+curl -sL https://github.com/RPCS3/AppImageKit-checkrt/releases/download/continuous2/AppRun-patched-x86_64 -o ./squashfs-root/AppRun
 curl -sL https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-x86_64 -o ./squashfs-root/runtime
 mkdir -p squashfs-root/usr/share/applications && cp ./squashfs-root/dolphin-emu.desktop ./squashfs-root/usr/share/applications
 mkdir -p squashfs-root/usr/share/icons && cp ./squashfs-root/dolphin-emu.svg ./squashfs-root/usr/share/icons
