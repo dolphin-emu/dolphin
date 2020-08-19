@@ -1,7 +1,8 @@
 """
 Module for programmatic inputs.
 
-Currently only for GameCube.
+Currently only for GameCube and Wiimote buttons,
+no Wii IR (pointing), acceleration or extensions data yet.
 """
 from typing import TypedDict
 
