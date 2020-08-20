@@ -211,15 +211,9 @@
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
     <ClCompile Include="IOS\USB\Common.cpp" />
-    <ClCompile Include="IOS\USB\LibusbDevice.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="LibusbUtils.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
-    <ClCompile Include="IOS\USB\Host.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="IOS\USB\LibusbDevice.cpp" />
+    <ClCompile Include="LibusbUtils.cpp" />
+    <ClCompile Include="IOS\USB\Host.cpp" />
     <ClCompile Include="IOS\USB\OH0\OH0.cpp" />
     <ClCompile Include="IOS\USB\OH0\OH0Device.cpp" />
     <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp" />
@@ -232,9 +226,7 @@
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTEmu.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp" />
-    <ClCompile Include="IOS\USB\Bluetooth\BTReal.cpp">
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="IOS\USB\Bluetooth\BTReal.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteDevice.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp" />
     <ClCompile Include="IOS\WFS\WFSI.cpp" />

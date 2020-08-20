@@ -50,13 +50,7 @@
     <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
-    <ClCompile Include="GCAdapter.cpp">
-      <!--
-      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h.
-      -->
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="GCAdapter.cpp" />
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>
