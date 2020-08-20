@@ -1,6 +1,7 @@
 #include "Core/PrimeHack/Mods/FpsControls.h"
 
 #include "Core/PrimeHack/PrimeUtils.h"
+#include "Common/BitUtils.h"
 
 namespace prime {
 namespace {  
@@ -247,8 +248,7 @@ void FpsControls::run_mod_mp3() {
 
         if (ImprovedMotionControls()) {
           if (st == 3) {
-            u32 const val = read32(obj + 0x154);
-            float step = *reinterpret_cast<float const *>(&val);
+            float step = Common::BitCast<float>(read32(obj + 0x154));
 
             if (CheckForward())
               step += 0.05f;

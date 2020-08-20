@@ -15,8 +15,8 @@
 #include "InputCommon/InputConfig.h"
 
 #include "Core/PrimeHack/HackConfig.h"
-#include <Core\HW\GCPad.h>
-#include <Core\HW\GCPadEmu.h>
+#include "Core/HW/GCPad.h"
+#include "Core/HW/GCPadEmu.h"
 
 class PrimeHackModes;
 
