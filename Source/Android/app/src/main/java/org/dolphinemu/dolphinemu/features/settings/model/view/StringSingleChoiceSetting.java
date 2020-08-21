@@ -71,14 +71,14 @@ public class StringSingleChoiceSetting extends SettingsItem
 
   public String getSelectedValue()
   {
-    if (getSetting() != null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
-      StringSetting setting = (StringSetting) getSetting();
-      return setting.getValue();
+      return mDefaultValue;
     }
     else
     {
-      return mDefaultValue;
+      StringSetting setting = (StringSetting) getSetting();
+      return setting.getValue();
     }
   }
 
@@ -110,7 +110,7 @@ public class StringSingleChoiceSetting extends SettingsItem
    */
   public StringSetting setSelectedValue(String selection)
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
       StringSetting setting = new StringSetting(getKey(), getSection(), selection);
       setSetting(setting);

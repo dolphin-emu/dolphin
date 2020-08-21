@@ -75,7 +75,7 @@ public final class SliderSetting extends SettingsItem
    */
   public IntSetting setSelectedValue(int selection)
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof IntSetting))
     {
       IntSetting setting = new IntSetting(getKey(), getSection(), selection);
       setSetting(setting);
@@ -98,7 +98,7 @@ public final class SliderSetting extends SettingsItem
    */
   public FloatSetting setSelectedValue(float selection)
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof FloatSetting))
     {
       FloatSetting setting = new FloatSetting(getKey(), getSection(), selection);
       setSetting(setting);

@@ -22,7 +22,7 @@ public class RumbleBindingSetting extends InputBindingSetting
   @Override
   public String getValue()
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
       return "";
     }

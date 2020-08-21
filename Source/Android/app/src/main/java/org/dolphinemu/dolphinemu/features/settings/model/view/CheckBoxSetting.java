@@ -16,7 +16,7 @@ public final class CheckBoxSetting extends SettingsItem
 
   public boolean isChecked()
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof BooleanSetting))
     {
       return mDefaultValue;
     }
@@ -34,7 +34,7 @@ public final class CheckBoxSetting extends SettingsItem
    */
   public BooleanSetting setChecked(boolean checked)
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof BooleanSetting))
     {
       BooleanSetting setting = new BooleanSetting(getKey(), getSection(), checked);
       setSetting(setting);
