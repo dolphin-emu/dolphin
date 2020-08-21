@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(SolutionDir)\VSProps\Base.Macros.props" />
+  <Import Project="..\..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{FA3FA62B-6F58-4B86-9453-4D149940A066}</ProjectGuid>
