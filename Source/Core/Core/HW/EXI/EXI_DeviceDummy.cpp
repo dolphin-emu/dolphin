@@ -26,6 +26,11 @@ u32 CEXIDummy::ImmRead(u32 size)
   return 0;
 }
 
+void CEXIDummy::ImmReadWrite(u32& data, u32 size)
+{
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI Dummy {} ImmReadWrite {}", m_name, data);
+}
+
 void CEXIDummy::DMAWrite(u32 address, u32 size)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI DUMMY {} DMAWrite: {:08x} bytes, from {:08x} to device",

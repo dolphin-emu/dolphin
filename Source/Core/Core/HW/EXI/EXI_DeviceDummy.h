@@ -20,6 +20,7 @@ public:
 
   void ImmWrite(u32 data, u32 size) override;
   u32 ImmRead(u32 size) override;
+  void ImmReadWrite(u32& data, u32 size) override;
 
   void DMAWrite(u32 address, u32 size) override;
   void DMARead(u32 address, u32 size) override;
