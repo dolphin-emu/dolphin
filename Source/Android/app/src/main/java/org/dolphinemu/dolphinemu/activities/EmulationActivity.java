@@ -67,7 +67,6 @@ public final class EmulationActivity extends AppCompatActivity
 
   private SharedPreferences mPreferences;
   private MotionListener mMotionListener;
-  private ControllerMappingHelper mControllerMappingHelper;
 
   private Settings mSettings;
 
@@ -317,7 +316,6 @@ public final class EmulationActivity extends AppCompatActivity
     sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
-    mControllerMappingHelper = new ControllerMappingHelper();
 
     int themeId;
     if (mDeviceHasTouchScreen)
@@ -445,19 +443,17 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
+    if (requestCode == REQUEST_CHANGE_DISC)
     {
-      case REQUEST_CHANGE_DISC:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
+      // If the user picked a file, as opposed to just backing out.
+      if (resultCode == MainActivity.RESULT_OK)
+      {
+        String newDiscPath = FileBrowserHelper.getSelectedPath(result);
+        if (!TextUtils.isEmpty(newDiscPath))
         {
-          String newDiscPath = FileBrowserHelper.getSelectedPath(result);
-          if (!TextUtils.isEmpty(newDiscPath))
-          {
-            NativeLibrary.ChangeDisc(newDiscPath);
-          }
+          NativeLibrary.ChangeDisc(newDiscPath);
         }
-        break;
+      }
     }
   }
 
@@ -1041,7 +1037,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRSensitivity()
   {
-    int ir_pitch = Integer.valueOf(
+    int ir_pitch = Integer.parseInt(
             mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
 
     LayoutInflater inflater = LayoutInflater.from(this);
@@ -1074,7 +1070,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int ir_yaw = Integer.valueOf(
+    int ir_yaw = Integer.parseInt(
             mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
 
     TextView text_slider_value_yaw = (TextView) view.findViewById(R.id.text_ir_yaw);
@@ -1105,7 +1101,7 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
 
-    int ir_vertical_offset = Integer.valueOf(
+    int ir_vertical_offset = Integer.parseInt(
             mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
                     "10"));
 
@@ -1176,9 +1172,7 @@ public final class EmulationActivity extends AppCompatActivity
     new AlertDialog.Builder(this, R.style.DolphinDialogBase)
             .setTitle(getString(R.string.emulation_touch_overlay_reset))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
-            {
-              mEmulationFragment.resetInputOverlay();
-            })
+                    mEmulationFragment.resetInputOverlay())
             .setNegativeButton(R.string.cancel, (dialogInterface, i) ->
             {
             })
@@ -1210,7 +1204,7 @@ public final class EmulationActivity extends AppCompatActivity
     {
       int axis = range.getAxis();
       float origValue = event.getAxisValue(axis);
-      float value = mControllerMappingHelper.scaleAxis(input, axis, origValue);
+      float value = ControllerMappingHelper.scaleAxis(input, axis, origValue);
       // If the input is still in the "flat" area, that means it's really zero.
       // This is used to compensate for imprecision in joysticks.
       if (Math.abs(value) > range.getFlat())

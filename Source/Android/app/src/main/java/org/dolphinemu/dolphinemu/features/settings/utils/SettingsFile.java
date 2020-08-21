@@ -432,10 +432,8 @@ public final class SettingsFile
   {
     File ini = getSettingsFile(fileName);
 
-    PrintWriter writer = null;
-    try
+    try (PrintWriter writer = new PrintWriter(ini, "UTF-8"))
     {
-      writer = new PrintWriter(ini, "UTF-8");
 
       Set<String> keySet = sections.keySet();
       Set<String> sortedKeySet = new TreeSet<>(keySet);
@@ -458,13 +456,6 @@ public final class SettingsFile
               e.getMessage());
       if (view != null)
         view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
-    }
-    finally
-    {
-      if (writer != null)
-      {
-        writer.close();
-      }
     }
   }
 
@@ -534,14 +525,14 @@ public final class SettingsFile
       DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
 
       NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, "Device",
-              "Android/" + (Integer.valueOf(padId) + 4) + "/Touchscreen");
+              "Android/" + (Integer.parseInt(padId) + 4) + "/Touchscreen");
     }
 
     NativeLibrary.SetProfileSetting(profile, Settings.SECTION_PROFILE, key, value);
 
     // Enable the profile
     NativeLibrary.SetUserSetting(gameId, Settings.SECTION_CONTROLS,
-            KEY_WIIMOTE_PROFILE + (Integer.valueOf(padId) + 1), profile);
+            KEY_WIIMOTE_PROFILE + (Integer.parseInt(padId) + 1), profile);
   }
 
   private static String mapSectionNameFromIni(String generalSectionName)

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2+
  * Refer to the license.txt file included.
@@ -165,7 +165,7 @@ public final class InputOverlayDrawableJoystick
     return pressed;
   }
 
-  public boolean onConfigureTouch(MotionEvent event)
+  public void onConfigureTouch(MotionEvent event)
   {
     int pointerIndex = event.getActionIndex();
     int fingerPositionX = (int) event.getX(pointerIndex);
@@ -195,7 +195,6 @@ public final class InputOverlayDrawableJoystick
         mPreviousTouchY = fingerPositionY;
         break;
     }
-    return true;
   }
 
 

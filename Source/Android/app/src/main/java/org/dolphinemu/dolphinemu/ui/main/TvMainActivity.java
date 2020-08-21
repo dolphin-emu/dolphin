@@ -43,8 +43,6 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 
   private BrowseSupportFragment mBrowseFragment;
 
-  private ArrayObjectAdapter mRowsAdapter;
-
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -95,6 +93,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onStop()
   {
     super.onStop();
+    if (isChangingConfigurations())
+    {
+      skipRescanningLibrary();
+    }
     StartupHandler.setSessionTime(this);
   }
 
@@ -187,31 +189,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
+
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
     {
-      case MainPresenter.REQUEST_DIRECTORY:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+      switch (requestCode)
+      {
+        case MainPresenter.REQUEST_DIRECTORY:
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_GAME_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_GAME_FILE:
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_WAD_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_WAD_FILE:
           mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
+      }
+    }
+    else
+    {
+      skipRescanningLibrary();
     }
   }
 
@@ -219,29 +218,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
-    switch (requestCode)
+    if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
-      case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-        {
-          DirectoryInitialization.start(this);
-          GameFileCacheService.startLoad(this);
-        }
-        else
-        {
-          Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                  .show();
-        }
-        break;
-      default:
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        break;
+      if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+      {
+        DirectoryInitialization.start(this);
+        GameFileCacheService.startLoad(this);
+      }
+      else
+      {
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                .show();
+      }
+    }
+    else
+    {
+      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
   private void buildRowsAdapter()
   {
-    mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
     if (PermissionsHandler.hasWriteAccess(this))
     {
@@ -255,13 +253,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       // Add row to the adapter only if it is not empty.
       if (row != null)
       {
-        mRowsAdapter.add(row);
+        rowsAdapter.add(row);
       }
     }
 
-    mRowsAdapter.add(buildSettingsRow());
+    rowsAdapter.add(buildSettingsRow());
 
-    mBrowseFragment.setAdapter(mRowsAdapter);
+    mBrowseFragment.setAdapter(rowsAdapter);
   }
 
   private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)

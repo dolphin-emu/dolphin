@@ -44,20 +44,17 @@ public final class MotionAlertDialog extends AlertDialog
   public boolean onKeyEvent(int keyCode, KeyEvent event)
   {
     Log.debug("[MotionAlertDialog] Received key event: " + event.getAction());
-    switch (event.getAction())
+    if (event.getAction() == KeyEvent.ACTION_UP)
     {
-      case KeyEvent.ACTION_UP:
-        if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
-        {
-          setting.onKeyInput(event);
-          dismiss();
-        }
-        // Even if we ignore the key, we still consume it. Thus return true regardless.
-        return true;
-
-      default:
-        return false;
+      if (!ControllerMappingHelper.shouldKeyBeIgnored(event.getDevice(), keyCode))
+      {
+        setting.onKeyInput(event);
+        dismiss();
+      }
+      // Even if we ignore the key, we still consume it. Thus return true regardless.
+      return true;
     }
+    return false;
   }
 
   @Override

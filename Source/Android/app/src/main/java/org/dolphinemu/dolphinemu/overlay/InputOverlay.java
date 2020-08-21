@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2013 Dolphin Emulator Project
  * Licensed under GPLv2+
  * Refer to the license.txt file included.
@@ -1075,14 +1075,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Decide inner scale based on joystick ID
     float innerScale;
 
-    switch (joystick)
+    if (joystick == ButtonType.STICK_C)
     {
-      case ButtonType.STICK_C:
-        innerScale = 1.833f;
-        break;
-      default:
-        innerScale = 1.375f;
-        break;
+      innerScale = 1.833f;
+    }
+    else
+    {
+      innerScale = 1.375f;
     }
 
     // Now set the bounds for the InputOverlayDrawableJoystick.
