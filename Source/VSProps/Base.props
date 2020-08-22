@@ -53,7 +53,13 @@
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zstd\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>FMT_HEADER_ONLY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
+        It would be a good idea to disable _CRT_SECURE_NO_WARNINGS and get rid of e.g. C string parsing funcs
+        Unfortunately this also complains about FILE* APIs, which can be inconvenient to replace.
+      -->
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--IOS net code uses some ipv4-only functions which are marked as deprecated by winsock2-->
+      <PreprocessorDefinitions>_WINSOCK_DEPRECATED_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--Currently needed for some code in StringUtil used only on Android-->
       <PreprocessorDefinitions>_SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_UPNP;USE_USBDK;__LIBUSB__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
@@ -92,13 +98,6 @@
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <DebugInformationFormat>OldStyle</DebugInformationFormat>
       <DiagnosticsFormat>Caret</DiagnosticsFormat>
-      <!--
-      4996  is for GetVersionEx being marked as deprecated - which is idiotic and there's not much
-                else we can do since many externals use it. The bad part is that there doesn't
-                seem to be a way to only ignore the specific instance we don't care about...
-      4351  new behavior: elements of array 'array' will be default initialized
-      -->
-      <DisableSpecificWarnings>4996;4351;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Warnings one may want to ignore when using Level4.
       4201  nonstandard extension used : nameless struct/union
       4127  conditional expression is constant
