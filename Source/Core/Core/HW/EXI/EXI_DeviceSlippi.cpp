@@ -1180,12 +1180,12 @@ void CEXISlippi::prepareFrameData(u8* payload)
   {
     if (frameIndex < watchSettings.startFrame)
     {
-      g_playbackStatus->isHardFFW = true;
+      g_playbackStatus->setHardFFW(true);
     }
     else if (frameIndex == watchSettings.startFrame)
     {
       // TODO: This might disable fast forward on first frame when we dont want to?
-      g_playbackStatus->isHardFFW = false;
+      g_playbackStatus->setHardFFW(false);
     }
   }
 
@@ -1193,7 +1193,8 @@ void CEXISlippi::prepareFrameData(u8* payload)
   if (commSettings.rollbackDisplayMethod == "normal")
   {
     auto nextFrame = m_current_game->GetFrameAt(frameSeqIdx);
-    g_playbackStatus->isHardFFW = nextFrame && nextFrame->frame <= g_playbackStatus->currentPlaybackFrame;
+    bool shouldHardFFW = nextFrame && nextFrame->frame <= g_playbackStatus->currentPlaybackFrame;
+    g_playbackStatus->setHardFFW(shouldHardFFW);
 
     if (nextFrame)
     {
@@ -1224,7 +1225,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
     // last frame instead of the frame previous to fast forwarding.
     // Not sure if this fully works with partial frames
     g_playbackStatus->isSoftFFW = false;
-    g_playbackStatus->isHardFFW = false;
+    g_playbackStatus->setHardFFW(false);
   }
 
   bool shouldFFW = g_playbackStatus->shouldFFWFrame(frameIndex);
@@ -1240,7 +1241,7 @@ void CEXISlippi::prepareFrameData(u8* payload)
     // Disable fast forward here too... this shouldn't be necessary but better
     // safe than sorry I guess
     g_playbackStatus->isSoftFFW = false;
-    g_playbackStatus->isHardFFW = false;
+    g_playbackStatus->setHardFFW(false);
 
     if (requestResultCode == FRAME_RESP_TERMINATE)
     {

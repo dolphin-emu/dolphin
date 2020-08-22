@@ -175,7 +175,7 @@ void SlippiPlaybackStatus::SavestateThread()
   INFO_LOG(SLIPPI, "Exiting savestate thread");
 }
 
-void SlippiPlaybackStatus::SeekToFrame()
+void SlippiPlaybackStatus::seekToFrame()
 {
   if (seekMtx.try_lock()) {
     if (targetFrameNum < Slippi::PLAYBACK_FIRST_SAVE)
@@ -235,15 +235,11 @@ void SlippiPlaybackStatus::SeekToFrame()
     // Fastforward until we get to the frame we want
     if (targetFrameNum != closestStateFrame && targetFrameNum != lastFrame)
     {
-      isHardFFW = true;
-      SConfig::GetInstance().m_OCEnable = true;
-      SConfig::GetInstance().m_OCFactor = 4.0f;
+      setHardFFW(true);
       Core::SetState(Core::State::Running);
       cv_waitingForTargetFrame.wait(ffwLock);
       Core::SetState(Core::State::Paused);
-      SConfig::GetInstance().m_OCFactor = 1.0f;
-      SConfig::GetInstance().m_OCEnable = false;
-      isHardFFW = false;
+      setHardFFW(false);
     }
 
     targetFrameNum = INT_MAX;
@@ -253,6 +249,23 @@ void SlippiPlaybackStatus::SeekToFrame()
     INFO_LOG(SLIPPI, "Already seeking. Ignoring this call");
   }
 }
+
+// Set isHardFFW and update OC settings to speed up the FFW
+void SlippiPlaybackStatus::setHardFFW(bool enable) {
+  if (enable)
+  {
+    SConfig::GetInstance().m_OCEnable = true;
+    SConfig::GetInstance().m_OCFactor = 4.0f;
+  }
+  else
+  {
+    SConfig::GetInstance().m_OCFactor = origOCFactor;
+    SConfig::GetInstance().m_OCEnable = origOCEnable;
+  }
+
+  isHardFFW = enable;
+}
+
 
 void SlippiPlaybackStatus::loadState(s32 closestStateFrame)
 {
@@ -301,6 +314,9 @@ void SlippiPlaybackStatus::updateWatchSettingsStartEnd()
 
 SlippiPlaybackStatus::~SlippiPlaybackStatus()
 {
+  SConfig::GetInstance().m_OCFactor = origOCFactor;
+  SConfig::GetInstance().m_OCEnable = origOCEnable;
+
   // Kill threads to prevent cleanup crash
   resetPlayback();
 }
