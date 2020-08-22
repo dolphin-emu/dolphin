@@ -11,7 +11,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_64\\lib\\cmake\\Qt5"
         }
       ]
     },
@@ -26,7 +26,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_64\\lib\\cmake\\Qt5"
         }
       ]
     },
@@ -41,7 +41,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_arm64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_arm64\\lib\\cmake\\Qt5"
         },
         {
           "name": "CMAKE_SYSTEM_NAME",
@@ -64,7 +64,7 @@
       "variables": [
         {
           "name": "Qt5_DIR",
-          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.14.1\\msvc2019_arm64\\lib\\cmake\\Qt5"
+          "value": "${workspaceRoot}\\Externals\\Qt\\Qt5.15.0\\msvc2019_arm64\\lib\\cmake\\Qt5"
         },
         {
           "name": "CMAKE_SYSTEM_NAME",

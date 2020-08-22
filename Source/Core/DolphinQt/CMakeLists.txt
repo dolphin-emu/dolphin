@@ -1,8 +1,8 @@
 if (NOT Qt5_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_arm64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
   endif()
 endif()
 
