@@ -101,7 +101,7 @@
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
-      <AdditionalOptions>/Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:externConstexpr,inline,lambda,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
