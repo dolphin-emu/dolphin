@@ -25,7 +25,8 @@ void CEXISD::ImmWrite(u32 data, u32 size)
   else if (size == 2 && data == 0)
   {
     // Get ID command
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD: EXI_GetID detected (size = {:x}, data = {:x})", size, data);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD: EXI_GetID detected (size = {:x}, data = {:x})", size,
+                 data);
     get_id = true;
   }
 }
@@ -61,11 +62,40 @@ void CEXISD::DoState(PointerWrap& p)
 {
   p.Do(inited);
   p.Do(get_id);
-  p.Do(command);
   p.Do(m_uPosition);
+  p.DoArray(cmd);
 }
 
 void CEXISD::TransferByte(u8& byte)
 {
+  // TODO: Write-protect inversion(?)
+  if (m_uPosition == 0)
+  {
+    if ((byte & 0b11000000) == 0b01000000)
+    {
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command started: {:02x}", byte);
+      cmd[m_uPosition++] = byte;
+    }
+  }
+  else if (m_uPosition < 6)
+  {
+    cmd[m_uPosition++] = byte;
+
+    if (m_uPosition == 6)
+    {
+      // Buffer now full
+      m_uPosition = 0;
+
+      if ((byte & 1) != 1)
+      {
+        INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command invalid, last bit not set: {:02x}", byte);
+        return;
+      }
+
+      // TODO: Check CRC
+
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command received: {:02x}", fmt::join(cmd.begin(), cmd.end(), " "));
+    }
+  }
 }
 }  // namespace ExpansionInterface

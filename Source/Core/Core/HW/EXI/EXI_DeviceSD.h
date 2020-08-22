@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -32,7 +33,7 @@ private:
   // STATE_TO_SAVE
   bool inited = false;
   bool get_id = false;
-  int command = 0;
   u32 m_uPosition = 0;
+  std::array<u8, 6> cmd;
 };
 }  // namespace ExpansionInterface
