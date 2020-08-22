@@ -77,6 +77,11 @@
       <PreprocessorDefinitions Condition="'$(Platform)'=='ARM64'">_ARCH_64=1;_M_ARM_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
+        This is a relatively nasty hack, reaching into msvc STL headers to re-enable a deprecated form of std::result_of,
+        which Qt5.14.1 uses. We need it here (as opposed to Qt-specific files) since the definition will reside in the PCH.
+      -->
+      <PreprocessorDefinitions>_HAS_DEPRECATED_RESULT_OF;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!--
       Make sure we include a clean version of windows.h.
       -->
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
