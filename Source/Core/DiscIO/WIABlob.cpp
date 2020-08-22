@@ -1752,7 +1752,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 
     // RVZ's added data in GroupEntry usually compresses well
     if (RVZ && compression_type > WIARVZCompressionType::Purge)
-      upper_bound += group_entries_size / 2;
+      upper_bound += static_cast<u64>(group_entries_size) * 9 / 16;
     else
       upper_bound += group_entries_size;
 
