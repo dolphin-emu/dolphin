@@ -20,7 +20,12 @@ void CEXISD::ImmWrite(u32 data, u32 size)
 {
   if (inited)
   {
-    IEXIDevice::ImmWrite(data, size);
+    while (size--)
+    {
+      u8 byte = data >> 24;
+      WriteByte(byte);
+      data <<= 8;
+    }
   }
   else if (size == 2 && data == 0)
   {
@@ -44,7 +49,13 @@ u32 CEXISD::ImmRead(u32 size)
   }
   else
   {
-    u32 res = IEXIDevice::ImmRead(size);
+    u32 res = 0;
+    u32 position = 0;
+    while (size--)
+    {
+      u8 byte = ReadByte();
+      res |= byte << (24 - (position++ * 8));
+    }
     INFO_LOG_FMT(EXPANSIONINTERFACE, "Responding with {:08x}", res);
     return res;
   }
@@ -72,10 +83,10 @@ void CEXISD::DoState(PointerWrap& p)
   p.Do(get_id);
   p.Do(m_uPosition);
   p.DoArray(cmd);
-  p.Do(result);
+  p.Do(response);
 }
 
-void CEXISD::TransferByte(u8& byte)
+void CEXISD::WriteByte(u8 byte)
 {
   // TODO: Write-protect inversion(?)
   if (m_uPosition == 0)
@@ -105,10 +116,42 @@ void CEXISD::TransferByte(u8& byte)
 
       INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command received: {:02x}", fmt::join(cmd.begin(), cmd.end(), " "));
 
-      result = R1::InIdleState;
+      if (cmd[0] == 0x40)
+      {
+        response.push_back(static_cast<u8>(R1::InIdleState));
+      }
+      else if (cmd[0] == 0x48)
+      {
+        // Format R7
+        u8 supply_voltage = cmd[4] & 0xF;
+        u8 check_pattern = cmd[5];
+        response.push_back(static_cast<u8>(R1::InIdleState));  // R1
+        response.push_back(0); // Command version nybble (0), reserved
+        response.push_back(0); // Reserved
+        response.push_back(supply_voltage);  // Reserved + voltage
+        response.push_back(check_pattern);
+      }
+      else
+      {
+        // Don't know it
+        response.push_back(static_cast<u8>(R1::IllegalCommand));
+      }
     }
   }
+}
 
-  byte = static_cast<u8>(result);
+u8 CEXISD::ReadByte()
+{
+  if (response.empty())
+  {
+    WARN_LOG_FMT(EXPANSIONINTERFACE, "Attempted to read from empty SD queue");
+    return 0xFF;
+  }
+  else
+  {
+    u8 result = response.front();
+    response.pop_front();
+    return result;
+  }
 }
 }  // namespace ExpansionInterface
