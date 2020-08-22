@@ -4,7 +4,7 @@
     <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
     <TargetSuffix></TargetSuffix>
     <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
-    <DolphinRootDir>$(MSBuildThisFileDirectory)..\..\</DolphinRootDir>
+    <DolphinRootDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))\</DolphinRootDir>
     <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
     <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
     <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
