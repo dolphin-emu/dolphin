@@ -54,7 +54,7 @@ struct TypedHIDInputData
 
   T data;
 
-  static_assert(std::is_pod<T>());
+  static_assert(std::is_standard_layout_v<T> && std::is_trivially_copyable_v<T>);
 
   u8* GetData() { return reinterpret_cast<u8*>(this); }
   const u8* GetData() const { return reinterpret_cast<const u8*>(this); }
