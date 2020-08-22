@@ -80,8 +80,12 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
-      <!--Enforce some behaviors as standards-conformant when they don't default as such-->
-      <AdditionalOptions>/Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <!--Enforce some behaviors as standards-conformant when they don't default as such.
+        TODO: Enable /Zc:preprocessor. Note as of VS 16.7 and despite claims on msdn, the
+        new preprocessor has some notable bugs/regressions, and isn't warning-free when
+        used on WinSDK (<= 10.0.19041) headers.
+      -->
+      <AdditionalOptions>/Zc:externConstexpr,lambda,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
