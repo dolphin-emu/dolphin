@@ -25,14 +25,13 @@ public final class FilePicker extends SettingsItem
 
   public String getSelectedValue()
   {
-    StringSetting setting = (StringSetting) getSetting();
-
-    if (setting == null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
       return mDefaultValue;
     }
     else
     {
+      StringSetting setting = (StringSetting) getSetting();
       return setting.getValue();
     }
   }

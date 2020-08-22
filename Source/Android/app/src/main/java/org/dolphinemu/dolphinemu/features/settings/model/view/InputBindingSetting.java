@@ -22,7 +22,7 @@ public class InputBindingSetting extends SettingsItem
 
   public String getValue()
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
       return "";
     }
@@ -78,7 +78,7 @@ public class InputBindingSetting extends SettingsItem
     editor.putString(getKey() + gameId, ui);
     editor.apply();
 
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof StringSetting))
     {
       StringSetting setting = new StringSetting(getKey(), getSection(), bind);
       setSetting(setting);

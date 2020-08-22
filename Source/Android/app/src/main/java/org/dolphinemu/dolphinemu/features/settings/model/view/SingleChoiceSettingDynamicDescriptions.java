@@ -59,14 +59,14 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
 
   public int getSelectedValue()
   {
-    if (getSetting() != null)
+    if (getSetting() == null || !(getSetting() instanceof IntSetting))
     {
-      IntSetting setting = (IntSetting) getSetting();
-      return setting.getValue();
+      return mDefaultValue;
     }
     else
     {
-      return mDefaultValue;
+      IntSetting setting = (IntSetting) getSetting();
+      return setting.getValue();
     }
   }
 
@@ -84,7 +84,7 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
    */
   public IntSetting setSelectedValue(int selection)
   {
-    if (getSetting() == null)
+    if (getSetting() == null || !(getSetting() instanceof IntSetting))
     {
       IntSetting setting = new IntSetting(getKey(), getSection(), selection);
       setSetting(setting);
