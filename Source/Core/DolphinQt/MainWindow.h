@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QStringList>
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>

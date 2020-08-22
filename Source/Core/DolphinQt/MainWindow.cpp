@@ -26,7 +26,7 @@
 #include "QtUtils/SignalDaemon.h"
 #endif
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
