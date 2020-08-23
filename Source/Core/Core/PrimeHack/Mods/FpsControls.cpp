@@ -128,7 +128,12 @@ void FpsControls::run_mod_mp1() {
   // Setting this to 0 allows yaw velocity (Z component of an angular momentum
   // vector) to affect the transform matrix freely
   write32(0, mp1_static.angvel_limiter_address);
-  writef32(calculate_yaw_vel(), mp1_static.yaw_vel_address);
+
+  u32 ball_state = read32(mp1_static.cplayer_address + 0x2f4);
+  if (ball_state != 1 && ball_state != 2) {
+    // Actual angular velocity Z address amazing
+    writef32(calculate_yaw_vel(), mp1_static.yaw_vel_address);
+  }
 }
 
 void FpsControls::run_mod_mp1_gc() {
@@ -328,7 +333,7 @@ void FpsControls::run_mod_mp3() {
   write32(0, rtoc_gun_damp);
   writef32(pitch, cplayer_address + 0x784);
 
-  u32 ball_state = read32(mp2_static.cplayer_ptr_address + 0x358);
+  u32 ball_state = read32(mp3_static.cplayer_ptr_address + 0x358);
 
   if (ball_state != 1 && ball_state != 2)
     writef32(calculate_yaw_vel(), cplayer_address + 0x174);
