@@ -2412,7 +2412,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
   // like is done in the EFB path.
 
 #if defined(_M_X86) || defined(_M_X86_64)
-  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0xFE01);
+  __m128i sixteenBytes = _mm_set1_epi16((s16)(u16)0x8080);
 #endif
 
   for (u32 i = 0; i < num_blocks_y; i++)
