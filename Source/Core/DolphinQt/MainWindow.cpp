@@ -632,6 +632,7 @@ void MainWindow::ConnectRenderWidget()
 void MainWindow::ConnectHost()
 {
   connect(Host::GetInstance(), &Host::RequestStop, this, &MainWindow::RequestStop);
+  connect(Host::GetInstance(), &Host::RequestFullscreen, this, &MainWindow::FullScreen);
 }
 
 void MainWindow::ConnectStack()

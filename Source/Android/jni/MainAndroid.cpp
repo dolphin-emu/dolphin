@@ -157,6 +157,10 @@ void Host_PlaybackSeek()
 {
 }
 
+void Host_Fullscreen()
+{
+}
+
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
 {
   JNIEnv* env = IDCache::GetEnvForThread();

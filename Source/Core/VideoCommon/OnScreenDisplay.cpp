@@ -11,19 +11,16 @@
 #include <imgui.h>
 
 #include "Common/CommonTypes.h"
-
 #include "Common/Timer.h"
-
 #include "Core/ConfigManager.h"
-
 #include "Core/Slippi/SlippiPlayback.h"
-
 #include "VideoCommon/OnScreenDisplay.h"
 
 #ifdef IS_PLAYBACK
 #ifndef IMGUI_DEFINE_MATH_OPERATORS
 #define IMGUI_DEFINE_MATH_OPERATORS
 #endif
+
 
 #include <imgui_internal.h>
 #include "Core/Core.h"
@@ -158,6 +155,7 @@ static std::string GetTimeForFrame(s32 currFrame) {
   return std::string(currTime);
 }
 
+bool showHelp = false;
 u32 idle_tick = Common::Timer::GetTimeMs();
 ImVec2 prev_mouse(0, 0);
 
@@ -462,10 +460,45 @@ void DrawSlippiPlaybackControls()
     if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
       INFO_LOG(SLIPPI, "fast_foward");
       if (g_playbackStatus->targetFrameNum == INT_MAX) {
-        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
+        g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
         Host_PlaybackSeek();
       }
     }
+    ImGui::SameLine(ImGui::GetWindowWidth() - 64.0f);
+    if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(32.0f, 32.0f))) {
+      showHelp = !showHelp;
+    }
+    ImGui::SameLine(ImGui::GetWindowWidth() - 32.0f);
+    if (ButtonCustom(ICON_FA_EXPAND, ImVec2(32.0f, 32.0f))) {
+      INFO_LOG(SLIPPI, "fullscreen");
+      Host_Fullscreen();
+    }
+
+    if (g_playbackStatus->isHardFFW) {
+      INFO_LOG(SLIPPI, "Ffw");
+    }
+
+    if (showHelp) {
+      ImGui::GetWindowDrawList()->AddRectFilled(
+        ImVec2(ImGui::GetWindowWidth() - 300.0f, ImGui::GetWindowHeight() - 200.0f),
+        ImVec2(ImGui::GetWindowWidth() - 50.0f, ImGui::GetWindowHeight() - 40.0f),
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * alpha)));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 190.0f));
+        ImGui::Text("Play/Pause: Spacebar");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 170.0f));
+        ImGui::Text("Step Back (5s): Left Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 150.0f));
+        ImGui::Text("Step Forward (5s): Right Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 130.0f));
+        ImGui::Text("Jump Back (20s): Shift + Left Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 110.0f));
+        ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 90.0f));
+        ImGui::Text("Frame Advance: Period");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 70.0f));
+        ImGui::Text("Big jumps/seeks may take several seconds.");
+    }
+
     ImGui::PopStyleVar();
     ImGuiWindow* window = ImGui::GetCurrentWindow();
     ImGui::SetCursorPos(ImVec2(135.0f, window->DC.CursorPosPrevLine.y + 6.0f));

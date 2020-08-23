@@ -7,7 +7,6 @@
 
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
-#include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceSlippi.h"
 #include "Core/NetPlayClient.h"
 #include "Core/State.h"
@@ -74,7 +73,7 @@ void SlippiPlaybackStatus::startThreads()
 void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
 {
   // block if there's too many diffs being processed
-  while (shouldRunThreads && numDiffsProcessing > 3)
+  while (shouldRunThreads && numDiffsProcessing > 2)
   {
     INFO_LOG(SLIPPI, "Processing too many diffs, blocking main process");
     cv_processingDiff.wait(processingLock);
@@ -205,7 +204,7 @@ void SlippiPlaybackStatus::seekToFrame()
       }
       else
       {
-        // If this diff has been processed, load it
+        // If this diff exists, load it
         if (futureDiffs.count(closestStateFrame) > 0)
         {
           loadState(closestStateFrame);
@@ -241,7 +240,13 @@ void SlippiPlaybackStatus::seekToFrame()
       Core::SetState(Core::State::Paused);
       setHardFFW(false);
     }
+    else {
+      // In the case where we don't need to fastforward, we're already at the frame we want!
+      // Update currentPlaybackFrame accordingly
+      g_playbackStatus->currentPlaybackFrame = targetFrameNum;
+    }
 
+    // We've reached the frame we want. Reset targetFrameNum and release mutex so another seek can be performed
     targetFrameNum = INT_MAX;
     Core::SetState(prevState);
     seekMtx.unlock();
