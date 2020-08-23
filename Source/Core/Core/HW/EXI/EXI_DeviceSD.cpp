@@ -57,7 +57,6 @@ u32 CEXISD::ImmRead(u32 size)
       u8 byte = ReadByte();
       res |= byte << (24 - (position++ * 8));
     }
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "Responding with {:08x}", res);
     return res;
   }
 }
@@ -123,8 +122,10 @@ void CEXISD::WriteByte(u8 byte)
       }
       else if (cmd[0] == 0x41)  // SEND_OP_COND
       {
-        // R1
-        response.push_back(0);
+        // Used by libogc for non-SDHC cards
+        bool hcs = cmd[1] & 0x40;  // Host Capacity Support (for SDHC/SDXC cards)
+        (void)hcs;
+        response.push_back(0);  // R1 - not idle
       }
       else if (cmd[0] == 0x48)  // SEND_IF_COND
       {
@@ -265,6 +266,11 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0);
         response.push_back(0);
       }
+      else if (cmd[0] == 0x4c)  // STOP_TRANSMISSION
+      {
+        response.push_back(0);  // R1
+        // There can be further padding bytes, but it's not needed
+      }
       else if (cmd[0] == 0x50)  // SET_BLOCKLEN
       {
         response.push_back(0);  // R1
@@ -287,6 +293,13 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0);
         response.push_back(0);
       }
+      else if (cmd[0] == 0x69)  // APP_CMD SD_SEND_OP_COND
+      {
+        // Used by Pokémon Channel for all cards, and libogc for SDHC cards
+        bool hcs = cmd[1] & 0x40;  // Host Capacity Support (for SDHC/SDXC cards)
+        (void)hcs;
+        response.push_back(0);  // R1 - not idle
+      }
       else
       {
         // Don't know it
@@ -300,7 +313,7 @@ u8 CEXISD::ReadByte()
 {
   if (response.empty())
   {
-    WARN_LOG_FMT(EXPANSIONINTERFACE, "Attempted to read from empty SD queue");
+    // WARN_LOG_FMT(EXPANSIONINTERFACE, "Attempted to read from empty SD queue");
     return 0xFF;
   }
   else
