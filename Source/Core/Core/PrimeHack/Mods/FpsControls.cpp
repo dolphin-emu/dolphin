@@ -256,7 +256,7 @@ void FpsControls::run_mod_mp3() {
       u32 vt = read32(obj);
       u32 vtf = read32(vt + 0xc);
 
-      if (vtf == 0x802e0dac) { // ensure Accept is this function
+      if (vtf == mp3_static.motion_vtf_address) { // ensure Accept is this function
         u32 const st = read32(obj + 0x14c);
 
         if (ImprovedMotionControls()) {
@@ -1081,6 +1081,7 @@ void FpsControls::init_mod_mp3(Region region) {
     mp3_static.boss_id = 0x000201cd442f0000;
     mp3_static.lockon_address = 0x805c6db7;
     mp3_static.gun_lag_toc_offset = 0x5ff0;
+    mp3_static.motion_vtf_address = 0x802e0dac;
   }
   else if (region == Region::PAL) {
     code_changes.emplace_back(0x80080ab8, 0xec010072);
@@ -1106,6 +1107,7 @@ void FpsControls::init_mod_mp3(Region region) {
     mp3_static.boss_id = 0x00020230442f0000;
     mp3_static.lockon_address = 0x805ca237;
     mp3_static.gun_lag_toc_offset = 0x6000;
+    mp3_static.motion_vtf_address = 0x802e0a88;
   }
   else {}
 

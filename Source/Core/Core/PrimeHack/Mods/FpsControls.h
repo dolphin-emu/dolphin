@@ -100,6 +100,7 @@ private:
       u64 boss_id;
       u32 lockon_address;
       u32 gun_lag_toc_offset;
+      u32 motion_vtf_address;
     } mp3_static;
   };
 
