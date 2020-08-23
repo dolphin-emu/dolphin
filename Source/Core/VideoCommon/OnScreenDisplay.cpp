@@ -409,11 +409,11 @@ void DrawSlippiPlaybackControls()
 
   s32 diff = currTime - idle_tick;
   diff = diff < 1000 ? 0 : diff - 1000;
-  auto alpha = std::max(0.0001f, 1.0f - (diff / 1000.0f));
+
 
   ImGuiStyle& style = ImGui::GetStyle();
   style.WindowBorderSize = 0.0f;
-  style.Alpha = alpha;
+ 
   style.WindowPadding = ImVec2(0.0f, 0.0f);
 
   if (ImGui::Begin(window_name.c_str(), nullptr,
@@ -427,6 +427,9 @@ void DrawSlippiPlaybackControls()
       INFO_LOG(SLIPPI, "seeking to %d", g_playbackStatus->targetFrameNum);
       Host_PlaybackSeek();
     }
+
+    style.Alpha = (showHelp || ImGui::GetHoveredID()) ? 1 : std::max(0.0001f, 1.0f - (diff / 1000.0f));
+
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));
     ImGui::PushStyleVar(ImGuiStyleVar_ButtonTextAlign, ImVec2(0.5f, 0.45f));
     //if (ButtonCustom(paused ? ICON_FA_PLAY : ICON_FA_PAUSE, ImVec2(40.0f, 32.0f))) {
@@ -482,7 +485,7 @@ void DrawSlippiPlaybackControls()
       ImGui::GetWindowDrawList()->AddRectFilled(
         ImVec2(ImGui::GetWindowWidth() - 300.0f, ImGui::GetWindowHeight() - 200.0f),
         ImVec2(ImGui::GetWindowWidth() - 50.0f, ImGui::GetWindowHeight() - 40.0f),
-        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * alpha)));
+        ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
         ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 190.0f));
         ImGui::Text("Play/Pause: Spacebar");
         ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 170.0f));
