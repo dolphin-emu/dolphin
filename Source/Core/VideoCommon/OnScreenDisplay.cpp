@@ -282,9 +282,9 @@ bool SliderCustomBehavior(const ImRect& bb, ImGuiID id, int* v, int v_min, int v
     isHeld = isHeld && isDown;
     // If no longer held, slider was let go. Trigger mark edited
     if (!isHeld) {
-      INFO_LOG(SLIPPI, "Seeking to frame %d!", *v);
       value_changed = true;
       g_playbackStatus->targetFrameNum = *v;
+      INFO_LOG(SLIPPI, "Seeking to frame %d!", g_playbackStatus->targetFrameNum);
     }
   }
   else
@@ -424,7 +424,7 @@ void DrawSlippiPlaybackControls()
     ImGui::PushItemWidth(ImGui::GetWindowWidth());
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
     if (SliderCustom("", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
-      INFO_LOG(SLIPPI, "seek");
+      INFO_LOG(SLIPPI, "seeking to %d", g_playbackStatus->targetFrameNum);
       Host_PlaybackSeek();
     }
     ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 30));

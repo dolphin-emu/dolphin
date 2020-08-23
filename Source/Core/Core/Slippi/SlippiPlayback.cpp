@@ -86,19 +86,8 @@ void SlippiPlaybackStatus::prepareSlippiPlayback(s32& frameIndex)
   // TODO: figure out why sometimes playback frame increments past targetFrameNum
   if (inSlippiPlayback && frameIndex >= targetFrameNum)
   {
-    if (targetFrameNum < currentPlaybackFrame)
-    {
-      // Since playback logic only goes up in currentPlaybackFrame now due to handling rollback
-      // playback, we need to rewind the currentPlaybackFrame here instead such that the playback
-      // cursor will show up in the correct place
-      currentPlaybackFrame = targetFrameNum;
-    }
-
-    if (currentPlaybackFrame > targetFrameNum)
-    {
-      INFO_LOG(SLIPPI, "Reached frame %d. Target was %d. Unblocking", currentPlaybackFrame,
-        targetFrameNum);
-    }
+    INFO_LOG(SLIPPI, "Reached frame %d. Target was %d. Unblocking", frameIndex,
+      targetFrameNum);
     cv_waitingForTargetFrame.notify_one();
   }
 }
@@ -195,12 +184,12 @@ void SlippiPlaybackStatus::seekToFrame()
 
     s32 closestStateFrame = targetFrameNum - emod(targetFrameNum - Slippi::PLAYBACK_FIRST_SAVE, FRAME_INTERVAL);
     bool isLoadingStateOptimal = targetFrameNum < currentPlaybackFrame || closestStateFrame > currentPlaybackFrame;
+
     if (isLoadingStateOptimal)
     {
       if (closestStateFrame <= Slippi::PLAYBACK_FIRST_SAVE)
       {
         State::LoadFromBuffer(iState);
-        INFO_LOG(SLIPPI, "loaded a state");
       }
       else
       {
@@ -240,13 +229,9 @@ void SlippiPlaybackStatus::seekToFrame()
       Core::SetState(Core::State::Paused);
       setHardFFW(false);
     }
-    else {
-      // In the case where we don't need to fastforward, we're already at the frame we want!
-      // Update currentPlaybackFrame accordingly
-      g_playbackStatus->currentPlaybackFrame = targetFrameNum;
-    }
 
     // We've reached the frame we want. Reset targetFrameNum and release mutex so another seek can be performed
+    g_playbackStatus->currentPlaybackFrame = targetFrameNum;
     targetFrameNum = INT_MAX;
     Core::SetState(prevState);
     seekMtx.unlock();
@@ -319,9 +304,6 @@ void SlippiPlaybackStatus::updateWatchSettingsStartEnd()
 
 SlippiPlaybackStatus::~SlippiPlaybackStatus()
 {
-  SConfig::GetInstance().m_OCFactor = origOCFactor;
-  SConfig::GetInstance().m_OCEnable = origOCEnable;
-
   // Kill threads to prevent cleanup crash
   resetPlayback();
 }

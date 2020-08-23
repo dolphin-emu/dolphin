@@ -604,6 +604,10 @@ void CEXISlippi::prepareGameInfo(u8* payload)
 
   Slippi::GameSettings* settings = m_current_game->GetSettings();
 
+  // Unlikely but reset the overclocking in case we quit during a hard ffw in a previous play
+  SConfig::GetInstance().m_OCEnable = g_playbackStatus->origOCEnable;
+  SConfig::GetInstance().m_OCFactor = g_playbackStatus->origOCFactor;
+
   // Start in Fast Forward if this is mirrored
   auto replayCommSettings = g_replayComm->getSettings();
   if (!g_playbackStatus->isHardFFW)
