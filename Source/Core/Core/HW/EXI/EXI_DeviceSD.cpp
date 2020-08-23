@@ -235,9 +235,9 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0xc0);
         response.push_back(0x40);
         response.push_back(0x01 | (crc << 1));
-        // Surprisingly, this thing's CRC16 is 0.  Probably shouldn't be hardcoded still.
-        response.push_back(0);
-        response.push_back(0);
+        // Hardcoded CRC16 (0x6a74)
+        response.push_back(0x6a);
+        response.push_back(0x74);
       }
       else if (cmd[0] == 0x4A)  // SEND_CID
       {
@@ -262,9 +262,9 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0x08);
         response.push_back(0x00);
         response.push_back(0x00);
-        // Very dubiously, this thing's CRC16 is ALSO 0.  At least per libogc...
-        response.push_back(0);
-        response.push_back(0);
+        // Hardcoded CRC16 (0x9e3e)
+        response.push_back(0x9e);
+        response.push_back(0x3e);
       }
       else if (cmd[0] == 0x4c)  // STOP_TRANSMISSION
       {
@@ -289,7 +289,7 @@ void CEXISD::WriteByte(u8 byte)
         {
           response.push_back(0);
         }
-        // CRC - I think libogc must be broken
+        // This CRC16 is 0, probably since the data is all 0
         response.push_back(0);
         response.push_back(0);
       }
