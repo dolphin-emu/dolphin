@@ -139,7 +139,7 @@ void CEXISD::WriteByte(u8 byte)
       }
       else if (cmd[0] == 0x49)  // SEND_CSD
       {
-        u64 size = 0x8000000; // TODO
+        u64 size = 0x8000000;  // TODO
 
         // 2048 bytes/sector
         // We could make this dynamic to support a wider range of file sizes
@@ -238,7 +238,7 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0);
         response.push_back(0);
       }
-      else if (cmd[0] == 0x4A) // SEND_CID
+      else if (cmd[0] == 0x4A)  // SEND_CID
       {
         // R1
         response.push_back(0);
@@ -262,6 +262,28 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(0x00);
         response.push_back(0x00);
         // Very dubiously, this thing's CRC16 is ALSO 0.  At least per libogc...
+        response.push_back(0);
+        response.push_back(0);
+      }
+      else if (cmd[0] == 0x50)  // SET_BLOCKLEN
+      {
+        response.push_back(0);  // R1
+      }
+      else if (cmd[0] == 0x77)  // APP_CMD
+      {
+        // The next command is an appcmd, which requires special treatment (not done here)
+        response.push_back(0);  // R1
+      }
+      else if (cmd[0] == 0x4d)  // APP_CMD SD_STATUS
+      {
+        response.push_back(0);     // R1
+        response.push_back(0);     // R2
+        response.push_back(0xfe);  // Data ready token
+        for (size_t i = 0; i < 64; i++)
+        {
+          response.push_back(0);
+        }
+        // CRC - I think libogc must be broken
         response.push_back(0);
         response.push_back(0);
       }
