@@ -6,6 +6,10 @@
 #include <thread>
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
+#include "Common/Thread.h"
+
+#include "Core/Core.h"
 
 namespace VideoCommon
 {
@@ -63,17 +67,24 @@ bool AsyncShaderCompiler::HasCompletedWork()
   return !m_completed_work.empty();
 }
 
-void AsyncShaderCompiler::WaitUntilCompletion()
+bool AsyncShaderCompiler::WaitUntilCompletion(bool interruptable)
 {
   while (HasPendingWork())
+  {
+    if (interruptable && Core::GetState() == Core::State::Stopping)
+      return false;
+
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  return true;
 }
 
-void AsyncShaderCompiler::WaitUntilCompletion(
-    const std::function<void(size_t, size_t)>& progress_callback)
+bool AsyncShaderCompiler::WaitUntilCompletion(
+    bool interruptable, const std::function<void(size_t, size_t)>& progress_callback,
+    const std::function<void()>& completion_callback)
 {
   if (!HasPendingWork())
-    return;
+    return true;
 
   // Wait a second before opening a progress dialog.
   // This way, if the operation completes quickly, we don't annoy the user.
@@ -83,11 +94,11 @@ void AsyncShaderCompiler::WaitUntilCompletion(
   {
     std::this_thread::sleep_for(std::chrono::milliseconds(CHECK_INTERVAL));
     if (!HasPendingWork())
-      return;
+      return true;
   }
 
   // Grab the number of pending items. We use this to work out how many are left.
-  size_t total_items = 0;
+  size_t total_items;
   {
     // Safe to hold both locks here, since nowhere else does.
     std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
@@ -95,9 +106,15 @@ void AsyncShaderCompiler::WaitUntilCompletion(
     total_items = m_completed_work.size() + m_pending_work.size() + m_busy_workers.load() + 1;
   }
 
+  // At this point, completion callback should fire to eg. clear the screen
+  Common::ScopeGuard completion([&] { completion_callback(); });
+
   // Update progress while the compiles complete.
   for (;;)
   {
+    if (interruptable && Core::GetState() == Core::State::Stopping)
+      return false;
+
     size_t remaining_items;
     {
       std::lock_guard<std::mutex> pending_guard(m_pending_work_lock);
@@ -109,6 +126,7 @@ void AsyncShaderCompiler::WaitUntilCompletion(
     progress_callback(total_items - remaining_items, total_items);
     std::this_thread::sleep_for(CHECK_INTERVAL);
   }
+  return true;
 }
 
 bool AsyncShaderCompiler::StartWorkerThreads(u32 num_worker_threads)
@@ -192,6 +210,8 @@ void AsyncShaderCompiler::WorkerThreadExit(void* param)
 
 void AsyncShaderCompiler::WorkerThreadEntryPoint(void* param)
 {
+  Common::SetCurrentThreadName("AsyncShaderCompilerWorker");
+
   // Initialize worker thread with backend-specific method.
   if (!WorkerThreadInitWorkerThread(param))
   {

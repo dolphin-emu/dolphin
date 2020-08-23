@@ -51,10 +51,14 @@ public:
   bool HasCompletedWork();
 
   // Simpler version without progress updates.
-  void WaitUntilCompletion();
+  // Returns false if interrupted.
+  bool WaitUntilCompletion(bool interruptable);
 
   // Calls progress_callback periodically, with completed_items, and total_items.
-  void WaitUntilCompletion(const std::function<void(size_t, size_t)>& progress_callback);
+  // Returns false if interrupted.
+  bool WaitUntilCompletion(bool interruptable,
+                           const std::function<void(size_t, size_t)>& progress_callback,
+                           const std::function<void()>& completion_callback);
 
   // Needed because of calling virtual methods in shutdown procedure.
   bool StartWorkerThreads(u32 num_worker_threads);
