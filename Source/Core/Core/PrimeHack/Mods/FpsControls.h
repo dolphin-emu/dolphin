@@ -73,6 +73,7 @@ private:
       u32 orbit_state_address;
       u32 lockon_address;
       u32 tweak_player_address;
+      u32 cplayer_address;
     } mp1_static;
 
     struct {
@@ -81,6 +82,7 @@ private:
       u32 angvel_max_address;
       u32 orbit_state_address;
       u32 tweak_player_address;
+      u32 cplayer_address;
     } mp1_gc_static;
 
     struct {

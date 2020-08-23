@@ -142,8 +142,12 @@ void FpsControls::run_mod_mp1_gc() {
   writef32(pitch, mp1_gc_static.pitch_address);
   writef32(1.52f, mp1_gc_static.tweak_player_address + 0x134);
 
-  // Actual angular velocity Z address amazing
-  writef32(calculate_yaw_vel() / 200.f, mp1_gc_static.yaw_vel_address);
+  u32 ball_state = read32(mp1_gc_static.cplayer_address + 0x2f4);
+  if (ball_state != 1 && ball_state != 2) {
+    // Actual angular velocity Z address amazing
+    writef32(calculate_yaw_vel() / 200.f, mp1_gc_static.yaw_vel_address);
+  }
+
   for (int i = 0; i < 8; i++) {
     writef32(100000000.f, mp1_gc_static.angvel_max_address + i * 4);
     writef32(1.f, mp1_gc_static.angvel_max_address + i * 4 - 32);
@@ -193,7 +197,11 @@ void FpsControls::run_mod_mp2(Region region) {
     // This one's stored as degrees instead of radians
     writef32(87.0896f, tweak_player_address + 0x180);
   }
-  writef32(calculate_yaw_vel(), cplayer_address + 0x178);
+
+  u32 ball_state = read32(mp2_static.cplayer_ptr_address + 0x374);
+
+  if (ball_state != 1 && ball_state != 2)
+    writef32(calculate_yaw_vel(), cplayer_address + 0x178);
 }
 
 void FpsControls::mp3_handle_cursor(bool lock) {
@@ -320,8 +328,12 @@ void FpsControls::run_mod_mp3() {
   write32(0, rtoc_gun_damp);
   writef32(pitch, cplayer_address + 0x784);
 
+  u32 ball_state = read32(mp2_static.cplayer_ptr_address + 0x358);
+
+  if (ball_state != 1 && ball_state != 2)
+    writef32(calculate_yaw_vel(), cplayer_address + 0x174);
+
   // Nothing new here
-  writef32(calculate_yaw_vel(), cplayer_address + 0x174);
   write32(0, cplayer_address + 0x174 + 0x18);
 }
 
@@ -909,6 +921,7 @@ void FpsControls::init_mod_mp1(Region region) {
     mp1_static.orbit_state_address = 0x804d3f20;
     mp1_static.lockon_address = 0x804c00b3;
     mp1_static.tweak_player_address = 0x804ddff8;
+    mp1_static.cplayer_address = 0x804d3c20;
     powerups_ptr_address = 0x804bfcd4;
   }
   else if (region == Region::PAL) {
@@ -931,6 +944,7 @@ void FpsControls::init_mod_mp1(Region region) {
     mp1_static.orbit_state_address = 0x804d7e60;
     mp1_static.lockon_address = 0x804c3ff3;
     mp1_static.tweak_player_address = 0x804e1f38;
+    mp1_static.cplayer_address = 0x804d7b60;
     powerups_ptr_address = 0x804c3c14;
   }
   // If I add NTSC JP
@@ -962,6 +976,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     mp1_gc_static.angvel_max_address = 0x8045c208 + 0x84;
     mp1_gc_static.orbit_state_address = 0x8046b97c + 0x304;
     mp1_gc_static.tweak_player_address = 0x8045c208;
+    mp1_gc_static.cplayer_address = 0x8046B97C;
   }
   else if (region == Region::PAL) {
     code_changes.emplace_back(0x8000FB4C, 0x48000048);  
@@ -979,6 +994,7 @@ void FpsControls::init_mod_mp1_gc(Region region) {
     mp1_gc_static.angvel_max_address = 0x803E4134 + 0x84;
     mp1_gc_static.orbit_state_address = 0x803F38A4 + 0x304;
     mp1_gc_static.tweak_player_address = 0x803E4134;
+    mp1_gc_static.cplayer_address = 0x803F38A4;
   }
   else {}
 }
