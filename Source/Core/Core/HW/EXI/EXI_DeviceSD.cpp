@@ -137,17 +137,131 @@ void CEXISD::WriteByte(u8 byte)
         response.push_back(supply_voltage);  // Reserved + voltage
         response.push_back(check_pattern);
       }
-      else if (cmd[0] == 0x49 || cmd[0] == 0x4A)  // SEND_CSD or SEND_CID
+      else if (cmd[0] == 0x49)  // SEND_CSD
+      {
+        u64 size = 0x8000000; // TODO
+
+        // 2048 bytes/sector
+        // We could make this dynamic to support a wider range of file sizes
+        constexpr u32 read_bl_len = 11;
+
+        // size = (c_size + 1) * (1 << (2 + c_size_mult + read_bl_len))
+        u32 c_size_mult = 0;
+        bool invalid_size = false;
+        while (size > 4096)
+        {
+          invalid_size |= size & 1;
+          size >>= 1;
+          if (++c_size_mult >= 8 + 2 + read_bl_len)
+          {
+            ERROR_LOG_FMT(IOS_SD, "SD Card is too big!");
+            // Set max values
+            size = 4096;
+            c_size_mult = 7 + 2 + read_bl_len;
+          }
+        }
+        c_size_mult -= 2 + read_bl_len;
+        --size;
+        const u32 c_size(size);
+
+        if (invalid_size)
+          WARN_LOG_FMT(IOS_SD, "SD Card size is invalid");
+        else
+          INFO_LOG_FMT(IOS_SD, "SD C_SIZE = {}, C_SIZE_MULT = {}", c_size, c_size_mult);
+
+        // R1
+        response.push_back(0);
+        // Data ready token
+        response.push_back(0xfe);
+        // CSD
+        // 0b00           CSD_STRUCTURE (SDv1)
+        // 0b000000       reserved
+        // 0b01111111     TAAC (8.0 * 10ms)
+        // 0b00000000     NSAC
+        // 0b00110010     TRAN_SPEED (2.5 * 10 Mbit/s, max operating frequency)
+
+        // 0b010110110101 CCC
+        // 0b1111         READ_BL_LEN (2048 bytes)
+        // 0b1            READ_BL_PARTIAL
+        // 0b0            WRITE_BL_MISALIGN
+        // 0b0            READ_BLK_MISALIGN
+        // 0b0            DSR_IMP (no driver stage register implemented)
+        // 0b00           reserved
+        // 0b??????????   C_SIZE (most significant 10 bits)
+
+        // 0b??           C_SIZE (least significant 2 bits)
+        // 0b111          VDD_R_CURR_MIN (100 mA)
+        // 0b111          VDD_R_CURR_MAX (100 mA)
+        // 0b111          VDD_W_CURR_MIN (100 mA)
+        // 0b111          VDD_W_CURR_MAX (100 mA)
+        // 0b???          C_SIZE_MULT
+        // 0b1            ERASE_BLK_EN (erase unit = 512 bytes)
+        // 0b1111111      SECTOR_SIZE (128 write blocks)
+        // 0b0000000      WP_GRP_SIZE
+
+        // 0b0            WP_GRP_ENABLE (no write protection)
+        // 0b00           reserved
+        // 0b001          R2W_FACTOR (write half as fast as read)
+        // 0b1111         WRITE_BL_LEN (= READ_BL_LEN)
+        // 0b0            WRITE_BL_PARTIAL (no partial block writes)
+        // 0b00000        reserved
+        // 0b0            FILE_FORMAT_GRP (default)
+        // 0b1            COPY (contents are copied)
+        // 0b0            PERM_WRITE_PROTECT (not permanently write protected)
+        // 0b0            TMP_READ_PROTECT (not temporarily write protected)
+        // 0b00           FILE_FORMAT (contains partition table)
+        // 0b00           reserved
+        // 0b???????      CRC
+        // 0b1            reserved
+
+        // TODO: CRC7 (but so far it looks like nobody is actually verifying this)
+        constexpr u32 crc = 0;
+
+        // Form the csd using the description above
+        response.push_back(0x00);
+        response.push_back(0x07);
+        response.push_back(0xf0);
+        response.push_back(0x03);
+        response.push_back(0x5b);
+        response.push_back(0x5f);
+        response.push_back(0x80 | (c_size >> 10));
+        response.push_back(c_size >> 2);
+        response.push_back(0x3f | c_size << 6);
+        response.push_back(0xfc | (c_size_mult >> 1));
+        response.push_back(0x7f | (c_size << 7));
+        response.push_back(0x80);
+        response.push_back(0x07);
+        response.push_back(0xc0);
+        response.push_back(0x40);
+        response.push_back(0x01 | (crc << 1));
+        // Surprisingly, this thing's CRC16 is 0.  Probably shouldn't be hardcoded still.
+        response.push_back(0);
+        response.push_back(0);
+      }
+      else if (cmd[0] == 0x4A) // SEND_CID
       {
         // R1
         response.push_back(0);
         // Data ready token
         response.push_back(0xfe);
-        // CSD or CID - 16 bytes, including a CRC7 in the last byte and a reserved LSB
-        // However, nothing seems to check the CRC7 currently
-        for (size_t i = 0; i < 16; i++)
-          response.push_back(0);
-        // CRC16 of all 0 is 0, but we'll want to implement it properly later
+        // The CID -- no idea what the format is, copied from SDIOSlot0
+        response.push_back(0x80);
+        response.push_back(0x11);
+        response.push_back(0x4d);
+        response.push_back(0x1c);
+        response.push_back(0x80);
+        response.push_back(0x08);
+        response.push_back(0x00);
+        response.push_back(0x00);
+        response.push_back(0x80);
+        response.push_back(0x07);
+        response.push_back(0xb5);
+        response.push_back(0x20);
+        response.push_back(0x80);
+        response.push_back(0x08);
+        response.push_back(0x00);
+        response.push_back(0x00);
+        // Very dubiously, this thing's CRC16 is ALSO 0.  At least per libogc...
         response.push_back(0);
         response.push_back(0);
       }
