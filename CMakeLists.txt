@@ -45,8 +45,8 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 #    of our software in the wild.
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" OFF)
 
-# Enable Playback build for Slippi. TODO: turn off for normal builds
-option(SLIPPI_PLAYBACK "Enable Playback changes" ON)
+# Enable Playback build for Slippi for watching replays
+option(SLIPPI_PLAYBACK "Enable Playback changes" OFF)
 
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
