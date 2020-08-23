@@ -593,8 +593,6 @@ void HotkeyScheduler::Run()
       {
         const bool new_value = !SConfig::GetInstance().bPrimeInvulnerability;
         SConfig::GetInstance().bPrimeInvulnerability = new_value;
-
-        OSD::AddMessage(StringFromFormat("Invulnerability: %s", new_value ? "Enabled" : "Disabled"));
       }
 
       if (IsHotkey(HK_SKIP_CUTSCENE))

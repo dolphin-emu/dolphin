@@ -1776,7 +1776,6 @@
       <Filter>PowerPC\JitArmCommon</Filter>
     </ClInclude>
     <ClInclude Include="HW\EXI\BBA\TAP_Win32.h" />
-    <ClInclude Include="PrimeHack\Mods\SkipCutscene.h" />
     <ClInclude Include="PrimeHack\Mods\FpsControls.h">
       <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
@@ -1814,6 +1813,9 @@
       <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
     <ClInclude Include="PrimeHack\Mods\DisableBloom.h">
+      <Filter>PrimeHack\Mods</Filter>
+    </ClInclude>
+    <ClInclude Include="PrimeHack\Mods\SkipCutscene.h">
       <Filter>PrimeHack\Mods</Filter>
     </ClInclude>
   </ItemGroup>
