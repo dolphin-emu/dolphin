@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="UserMacros">
+    <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
+    <TargetSuffix></TargetSuffix>
+    <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
+    <DolphinRootDir>$([System.IO.Path]::GetFullPath('$(MSBuildThisFileDirectory)..\..'))\</DolphinRootDir>
+    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
+    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
+    <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
+    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
+    <SourceDir>$(DolphinRootDir)Source\</SourceDir>
+    <CoreDir>$(SourceDir)Core\</CoreDir>
+    <VSPropsDir>$(SourceDir)VSProps\</VSPropsDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <BaseMacrosImported>true</BaseMacrosImported>
+  </PropertyGroup>
+</Project>

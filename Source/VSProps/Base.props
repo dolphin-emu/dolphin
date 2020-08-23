@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="PropertySheets" />
-  <PropertyGroup Label="UserMacros">
-    <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
-    <TargetSuffix>
-    </TargetSuffix>
-    <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
-    <DolphinRootDir>$(SolutionDir)..\</DolphinRootDir>
-    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
-    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
-    <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
-    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
-    <CoreDir>$(SolutionDir)Core\</CoreDir>
-  </PropertyGroup>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Base.Macros.props" Condition="'$(BaseMacrosImported)'==''" />
   <PropertyGroup>
     <!--
     Opt-in to x64 compiler and tools.
@@ -80,16 +68,6 @@
       Make sure we include a clean version of windows.h.
       -->
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!--
-      This numeral indicates the "minimum system required" to run the resulting
-      program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
-      _WIN32_WINNT just removes up-level API declarations from headers. This is a
-      problem for XInput, where Dolphin expects to compile against the Win8+
-      versions of the headers. So while we really need Vista+ level of support,
-      we declare Win8+ here globally. If this becomes a problem, the higher
-      declaration can be contained to just the XInput related code.
-      -->
-      <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
