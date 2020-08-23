@@ -96,6 +96,7 @@ private:
       u32 cursor_dlg_enabled_address;
       u32 cursor_ptr_address;
       u32 cursor_offset;
+      u32 boss_info_address;
       u32 boss_id_address;
       u64 boss_id;
       u32 lockon_address;
