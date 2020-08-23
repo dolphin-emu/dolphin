@@ -13,6 +13,7 @@
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
 #include "Common/ScopeGuard.h"
+#include "Common/Thread.h"
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #include "InputCommon/ControllerInterface/XInput/XInput.h"
 
@@ -43,6 +44,8 @@ void ciface::Win32::Init(void* hwnd)
   std::promise<HWND> message_window_promise;
 
   s_thread = std::thread([&message_window_promise] {
+    Common::SetCurrentThreadName("ciface::Win32 Message Loop");
+
     HWND message_window = nullptr;
     Common::ScopeGuard promise_guard([&] { message_window_promise.set_value(message_window); });
 
