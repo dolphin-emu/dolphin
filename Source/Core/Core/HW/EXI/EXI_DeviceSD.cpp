@@ -8,6 +8,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 
 namespace ExpansionInterface
@@ -116,20 +117,39 @@ void CEXISD::WriteByte(u8 byte)
 
       INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command received: {:02x}", fmt::join(cmd.begin(), cmd.end(), " "));
 
-      if (cmd[0] == 0x40)
+      if (cmd[0] == 0x40)  // GO_IDLE_STATE
       {
         response.push_back(static_cast<u8>(R1::InIdleState));
       }
-      else if (cmd[0] == 0x48)
+      else if (cmd[0] == 0x41)  // SEND_OP_COND
+      {
+        // R1
+        response.push_back(0);
+      }
+      else if (cmd[0] == 0x48)  // SEND_IF_COND
       {
         // Format R7
         u8 supply_voltage = cmd[4] & 0xF;
         u8 check_pattern = cmd[5];
         response.push_back(static_cast<u8>(R1::InIdleState));  // R1
-        response.push_back(0); // Command version nybble (0), reserved
-        response.push_back(0); // Reserved
+        response.push_back(0);               // Command version nybble (0), reserved
+        response.push_back(0);               // Reserved
         response.push_back(supply_voltage);  // Reserved + voltage
         response.push_back(check_pattern);
+      }
+      else if (cmd[0] == 0x49 || cmd[0] == 0x4A)  // SEND_CSD or SEND_CID
+      {
+        // R1
+        response.push_back(0);
+        // Data ready token
+        response.push_back(0xfe);
+        // CSD or CID - 16 bytes, including a CRC7 in the last byte and a reserved LSB
+        // However, nothing seems to check the CRC7 currently
+        for (size_t i = 0; i < 16; i++)
+          response.push_back(0);
+        // CRC16 of all 0 is 0, but we'll want to implement it properly later
+        response.push_back(0);
+        response.push_back(0);
       }
       else
       {
