@@ -203,7 +203,7 @@ void FpsControls::run_mod_mp2(Region region) {
     writef32(87.0896f, tweak_player_address + 0x180);
   }
 
-  u32 ball_state = read32(mp2_static.cplayer_ptr_address + 0x374);
+  u32 ball_state = read32(cplayer_address + 0x374);
 
   if (ball_state != 1 && ball_state != 2)
     writef32(calculate_yaw_vel(), cplayer_address + 0x178);
@@ -333,7 +333,7 @@ void FpsControls::run_mod_mp3() {
   write32(0, rtoc_gun_damp);
   writef32(pitch, cplayer_address + 0x784);
 
-  u32 ball_state = read32(mp3_static.cplayer_ptr_address + 0x358);
+  u32 ball_state = read32(cplayer_address + 0x358);
 
   if (ball_state != 1 && ball_state != 2)
     writef32(calculate_yaw_vel(), cplayer_address + 0x174);

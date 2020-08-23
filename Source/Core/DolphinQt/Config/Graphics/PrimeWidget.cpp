@@ -137,24 +137,13 @@ void PrimeWidget::ConnectWidgets()
       m_manual_arm_position->setEnabled(checked); 
       PrimeWidget::ArmPositionModeChanged(m_manual_arm_position->isChecked());
     });
-  connect(m_toggle_secondaryFX, &QCheckBox::clicked, this,
-    [=](bool checked)
-    {
-      if (Core::GetState() != Core::State::Uninitialized) {
-        if (m_toggle_secondaryFX->isChecked())
-          m_toggle_secondaryFX->setEnabled(false);
-      }
-    });
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
     [=](Core::State state)
     {
       if (state != Core::State::Uninitialized) {
-        if (prime::GetEnableSecondaryGunFX())
-          m_toggle_secondaryFX->setEnabled(false);
           m_toggle_culling->setEnabled(true);
       }
       else {
-        m_toggle_secondaryFX->setEnabled(true);
         if (prime::GetFov() > 96) {
           m_toggle_culling->setEnabled(false);
           m_toggle_culling->setChecked(true);
