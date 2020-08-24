@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <string_view>
 
@@ -21,4 +22,19 @@ u32 StartCRC32();
 u32 UpdateCRC32(u32 crc, const u8* data, size_t len);
 u32 ComputeCRC32(const u8* data, size_t len);
 u32 ComputeCRC32(std::string_view data);
+
+// For SD card emulation
+u8 HashCrc7(const u8* ptr, size_t length);
+u16 HashCrc16(const u8* ptr, size_t length);
+
+template <size_t N>
+u8 HashCrc7(const std::array<u8, N>& data)
+{
+  return HashCrc7(data.data(), N);
+}
+template <size_t N>
+u16 HashCrc16(const std::array<u8, N>& data)
+{
+  return HashCrc16(data.data(), N);
+}
 }  // namespace Common
