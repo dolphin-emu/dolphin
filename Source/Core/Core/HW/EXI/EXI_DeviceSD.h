@@ -60,7 +60,7 @@ private:
     // 22 Reserved
     SetBlockCount = 23,
 
-    WriteBlock = 24,
+    WriteSingleBlock = 24,
     WriteMultipleBlock = 25,
     // 26 Reserved for manufacturer
     ProgramCSD = 27,
