@@ -9,6 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Hash.h"
 #include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 
@@ -132,13 +133,16 @@ void CEXISD::WriteByte(u8 byte)
       // Buffer now full
       command_position = 0;
 
-      if ((byte & 1) != 1)
+      u8 hash = (Common::HashCrc7(command_buffer.data(), 5) << 1) | 1;
+      if (byte != hash)
       {
-        INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command invalid, last bit not set: {:02x}", byte);
+        WARN_LOG_FMT(EXPANSIONINTERFACE,
+                     "EXI SD command invalid, incorrect CRC7 or missing end bit: got {:02x}, "
+                     "should be {:02x}",
+                     byte, hash);
+        response.push_back(static_cast<u8>(R1::CommunicationCRCError));
         return;
       }
-
-      // TODO: Check CRC
 
       u8 command = command_buffer[0] & 0x3f;
       u32 argument = command_buffer[1] << 24 | command_buffer[2] << 16 | command_buffer[3] << 8 |
@@ -267,25 +271,30 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     constexpr u32 crc = 0;
 
     // Form the csd using the description above
-    response.push_back(0x00);
-    response.push_back(0x07);
-    response.push_back(0xf0);
-    response.push_back(0x03);
-    response.push_back(0x5b);
-    response.push_back(0x5f);
-    response.push_back(0x80 | (c_size >> 10));
-    response.push_back(c_size >> 2);
-    response.push_back(0x3f | c_size << 6);
-    response.push_back(0xfc | (c_size_mult >> 1));
-    response.push_back(0x7f | (c_size << 7));
-    response.push_back(0x80);
-    response.push_back(0x07);
-    response.push_back(0xc0);
-    response.push_back(0x40);
-    response.push_back(0x01 | (crc << 1));
-    // Hardcoded CRC16 (0x6a74)
-    response.push_back(0x6a);
-    response.push_back(0x74);
+    std::array<u8, 16> csd = {
+        0x00,
+        0x07,
+        0xf0,
+        0x03,
+        0x5b,
+        0x5f,
+        static_cast<u8>(0x80 | (c_size >> 10)),
+        static_cast<u8>(c_size >> 2),
+        static_cast<u8>(0x3f | (c_size << 6)),
+        static_cast<u8>(0xfc | (c_size_mult >> 1)),
+        static_cast<u8>(0x7f | (c_size << 7)),
+        0x80,
+        0x07,
+        0xc0,
+        0x40,
+        static_cast<u8>(0x01 | (crc << 1)),
+    };
+    for (auto byte : csd)
+      response.push_back(byte);
+
+    u16 crc16 = Common::HashCrc16(csd);
+    response.push_back(crc16 >> 8);
+    response.push_back(crc16);
     break;
   }
   case Command::SendCID:
@@ -295,25 +304,16 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     // Data ready token
     response.push_back(0xfe);
     // The CID -- no idea what the format is, copied from SDIOSlot0
-    response.push_back(0x80);
-    response.push_back(0x11);
-    response.push_back(0x4d);
-    response.push_back(0x1c);
-    response.push_back(0x80);
-    response.push_back(0x08);
-    response.push_back(0x00);
-    response.push_back(0x00);
-    response.push_back(0x80);
-    response.push_back(0x07);
-    response.push_back(0xb5);
-    response.push_back(0x20);
-    response.push_back(0x80);
-    response.push_back(0x08);
-    response.push_back(0x00);
-    response.push_back(0x00);
-    // Hardcoded CRC16 (0x9e3e)
-    response.push_back(0x9e);
-    response.push_back(0x3e);
+    std::array<u8, 16> cid = {
+        0x80, 0x11, 0x4d, 0x1c, 0x80, 0x08, 0x00, 0x00,
+        0x80, 0x07, 0xb5, 0x20, 0x80, 0x08, 0x00, 0x00,
+    };
+    for (auto byte : cid)
+      response.push_back(byte);
+
+    u16 crc16 = Common::HashCrc16(cid);
+    response.push_back(crc16 >> 8);
+    response.push_back(crc16);
     break;
   }
   case Command::StopTransmission:
@@ -342,17 +342,22 @@ void CEXISD::HandleAppCommand(AppCommand app_command, u32 argument)
   switch (app_command)
   {
   case AppCommand::SDStatus:
+  {
     response.push_back(0);     // R1
     response.push_back(0);     // R2
     response.push_back(0xfe);  // Data ready token
-    for (size_t i = 0; i < 64; i++)
+    // All-zero for now
+    std::array<u8, 64> status = {};
+    for (auto byte : status)
     {
-      response.push_back(0);
+      response.push_back(byte);
     }
-    // This CRC16 is 0, probably since the data is all 0
-    response.push_back(0);
-    response.push_back(0);
+
+    u16 crc16 = Common::HashCrc16(status);
+    response.push_back(crc16 >> 8);
+    response.push_back(crc16);
     break;
+  }
   case AppCommand::SDSendOpCond:
   {
     // Used by Pokémon Channel for all cards, and libogc for SDHC cards
