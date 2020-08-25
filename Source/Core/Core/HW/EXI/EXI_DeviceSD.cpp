@@ -43,7 +43,14 @@ CEXISD::CEXISD(Core::System& system) : IEXIDevice(system)
 
 void CEXISD::ImmWrite(u32 data, u32 size)
 {
-  if (inited)
+  if (state == State::Uninitialized || state == State::GetId)
+  {
+    // Get ID command
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD: EXI_GetID detected (size = {:x}, data = {:x})", size,
+                 data);
+    state = State::GetId;
+  }
+  else
   {
     while (size--)
     {
@@ -52,23 +59,19 @@ void CEXISD::ImmWrite(u32 data, u32 size)
       data <<= 8;
     }
   }
-  else if (size == 2 && data == 0)
-  {
-    // Get ID command
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD: EXI_GetID detected (size = {:x}, data = {:x})", size,
-                 data);
-    get_id = true;
-  }
 }
 
 u32 CEXISD::ImmRead(u32 size)
 {
-  if (get_id)
+  if (state == State::Uninitialized)
   {
-    // This is not a good way of handling state
-    inited = true;
-    get_id = false;
+    // ?
+    return 0;
+  }
+  else if (state == State::GetId)
+  {
     INFO_LOG_FMT(EXPANSIONINTERFACE, "SD: EXI_GetID finished (size = {:x})", size);
+    state = State::ReadyForCommand;
     // Same signed/unsigned mismatch in libogc; it wants -1
     return -1;
   }
@@ -103,61 +106,73 @@ bool CEXISD::IsPresent() const
 
 void CEXISD::DoState(PointerWrap& p)
 {
-  p.Do(inited);
-  p.Do(get_id);
-  p.Do(next_is_appcmd);
+  p.Do(state);
   p.Do(command_position);
-  p.Do(block_position);
   p.DoArray(command_buffer);
   p.Do(response);
+  p.Do(block_position);
   p.DoArray(block_buffer);
+  p.Do(address);
+  p.Do(block_crc);
 }
 
 void CEXISD::WriteByte(u8 byte)
 {
-  // TODO: Write-protect inversion(?)
-  if (command_position == 0)
+  if (state == State::SingleBlockRead || state == State::MultipleBlockRead)
   {
-    if ((byte & 0b11000000) == 0b01000000)
-    {
-      INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command started: {:02x}", byte);
-      command_buffer[command_position++] = byte;
-    }
+    WriteForBlockRead(byte);
   }
-  else if (command_position < 6)
+  else if (state == State::SingleBlockWrite || state == State::MultipleBlockWrite)
   {
-    command_buffer[command_position++] = byte;
-
-    if (command_position == 6)
+    WriteForBlockWrite(byte);
+  }
+  else
+  {
+    // TODO: Write-protect inversion(?)
+    if (command_position == 0)
     {
-      // Buffer now full
-      command_position = 0;
-
-      u8 hash = (Common::HashCrc7(command_buffer.data(), 5) << 1) | 1;
-      if (byte != hash)
+      if ((byte & 0b11000000) == 0b01000000)
       {
-        WARN_LOG_FMT(EXPANSIONINTERFACE,
-                     "EXI SD command invalid, incorrect CRC7 or missing end bit: got {:02x}, "
-                     "should be {:02x}",
-                     byte, hash);
-        response.push_back(static_cast<u8>(R1::CommunicationCRCError));
-        return;
+        INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command started: {:02x}", byte);
+        command_buffer[command_position++] = byte;
       }
+    }
+    else if (command_position < 6)
+    {
+      command_buffer[command_position++] = byte;
 
-      u8 command = command_buffer[0] & 0x3f;
-      u32 argument = command_buffer[1] << 24 | command_buffer[2] << 16 | command_buffer[3] << 8 |
-                     command_buffer[4];
-
-      INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command received: {:02x} {:08x}", command, argument);
-
-      if (next_is_appcmd)
+      if (command_position == 6)
       {
-        next_is_appcmd = false;
-        HandleAppCommand(static_cast<AppCommand>(command), argument);
-      }
-      else
-      {
-        HandleCommand(static_cast<Command>(command), argument);
+        // Buffer now full
+        command_position = 0;
+
+        u8 hash = (Common::HashCrc7(command_buffer.data(), 5) << 1) | 1;
+        if (byte != hash)
+        {
+          WARN_LOG_FMT(EXPANSIONINTERFACE,
+                       "EXI SD command invalid, incorrect CRC7 or missing end bit: got {:02x}, "
+                       "should be {:02x}",
+                       byte, hash);
+          response.push_back(static_cast<u8>(R1::CommunicationCRCError));
+          return;
+        }
+
+        u8 command = command_buffer[0] & 0x3f;
+        u32 argument = command_buffer[1] << 24 | command_buffer[2] << 16 | command_buffer[3] << 8 |
+                       command_buffer[4];
+
+        INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command received: {:02x} {:08x}", command,
+                     argument);
+
+        if (state == State::ReadyForAppCommand)
+        {
+          state = State::ReadyForCommand;
+          HandleAppCommand(static_cast<AppCommand>(command), argument);
+        }
+        else
+        {
+          HandleCommand(static_cast<Command>(command), argument);
+        }
       }
     }
   }
@@ -174,7 +189,7 @@ void CEXISD::HandleCommand(Command command, u32 argument)
   {
     // Used by libogc for non-SDHC cards
     bool hcs = argument & (1 << 30);  // Host Capacity Support (for SDHC/SDXC cards)
-    (void)hcs;
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD Host Capacity Support: {}", hcs);
     response.push_back(0);  // R1 - not idle
     break;
   }
@@ -225,7 +240,7 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     // R1
     response.push_back(0);
     // Data ready token
-    response.push_back(0xfe);
+    response.push_back(START_BLOCK);
     // CSD
     // 0b00           CSD_STRUCTURE (SDv1)
     // 0b000000       reserved
@@ -302,7 +317,7 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     // R1
     response.push_back(0);
     // Data ready token
-    response.push_back(0xfe);
+    response.push_back(START_BLOCK);
     // The CID -- no idea what the format is, copied from SDIOSlot0
     std::array<u8, 16> cid = {
         0x80, 0x11, 0x4d, 0x1c, 0x80, 0x08, 0x00, 0x00,
@@ -326,8 +341,28 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     response.push_back(0);  // R1
     break;
   case Command::AppCmd:
-    next_is_appcmd = true;
+    state = State::ReadyForAppCommand;
     response.push_back(0);  // R1
+    break;
+  case Command::ReadSingleBlock:
+    state = State::SingleBlockRead;
+    block_state = BlockState::Response;
+    address = argument;
+    break;
+  case Command::ReadMultipleBlock:
+    state = State::MultipleBlockRead;
+    block_state = BlockState::Response;
+    address = argument;
+    break;
+  case Command::WriteSingleBlock:
+    state = State::SingleBlockWrite;
+    block_state = BlockState::Response;
+    address = argument;
+    break;
+  case Command::WriteMultipleBlock:
+    state = State::MultipleBlockWrite;
+    block_state = BlockState::Response;
+    address = argument;
     break;
   default:
     // Don't know it
@@ -343,9 +378,10 @@ void CEXISD::HandleAppCommand(AppCommand app_command, u32 argument)
   {
   case AppCommand::SDStatus:
   {
-    response.push_back(0);     // R1
-    response.push_back(0);     // R2
-    response.push_back(0xfe);  // Data ready token
+    response.push_back(0);  // R1
+    response.push_back(0);  // R2
+    // Data ready token
+    response.push_back(START_BLOCK);
     // All-zero for now
     std::array<u8, 64> status = {};
     for (auto byte : status)
@@ -362,10 +398,18 @@ void CEXISD::HandleAppCommand(AppCommand app_command, u32 argument)
   {
     // Used by Pokémon Channel for all cards, and libogc for SDHC cards
     bool hcs = argument & (1 << 30);  // Host Capacity Support (for SDHC/SDXC cards)
-    (void)hcs;
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "SD Host Capacity Support: {}", hcs);
     response.push_back(0);  // R1 - not idle
     break;
   }
+  case AppCommand::AppCmd:
+    // According to the spec, any unknown app command should be treated as a regular command, but
+    // also things should not use this functionality.  It also specifically mentions that sending
+    // CMD55 multiple times is the same as sending it only once: the next command that isn't 55 is
+    // treated as an app command.
+    state = State::ReadyForAppCommand;
+    response.push_back(0);  // R1 - not idle
+    break;
   default:
     // Don't know it
     WARN_LOG_FMT(EXPANSIONINTERFACE, "Unimplemented SD app command {:02x} {:08x}",
@@ -376,16 +420,223 @@ void CEXISD::HandleAppCommand(AppCommand app_command, u32 argument)
 
 u8 CEXISD::ReadByte()
 {
-  if (response.empty())
+  if (state == State::SingleBlockRead || state == State::MultipleBlockRead)
   {
-    // WARN_LOG_FMT(EXPANSIONINTERFACE, "Attempted to read from empty SD queue");
-    return 0xFF;
+    return ReadForBlockRead();
+  }
+  else if (state == State::SingleBlockWrite || state == State::MultipleBlockWrite)
+  {
+    return ReadForBlockWrite();
   }
   else
   {
-    u8 result = response.front();
-    response.pop_front();
+    if (response.empty())
+    {
+      // WARN_LOG_FMT(EXPANSIONINTERFACE, "Attempted to read from empty SD queue");
+      return 0xff;
+    }
+    else
+    {
+      u8 result = response.front();
+      response.pop_front();
+      return result;
+    }
+  }
+}
+
+u8 CEXISD::ReadForBlockRead()
+{
+  switch (block_state)
+  {
+  case BlockState::Response:
+  {
+    if (!m_card.Seek(address, File::SeekOrigin::Begin))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
+      block_state = BlockState::Token;
+    }
+    else if (!m_card.ReadBytes(block_buffer.data(), block_buffer.size()))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed - error: {}, eof: {}",
+                    ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
+      block_state = BlockState::Token;
+    }
+    else
+    {
+      block_position = 0;
+      block_state = BlockState::Block;
+      block_crc = Common::HashCrc16(block_buffer);
+    }
+
+    // Would return address error or parameter error here
+    return 0;
+  }
+  case BlockState::Token:
+    // A bit awkward of a setup; a data error token is only read on an actual error.
+    // For now only use the generic error, not e.g. out of bounds
+    // (which can be handled in the main response... why are there 2 ways?)
+    state = State::ReadyForCommand;
+    block_state = BlockState::Nothing;
+    return DATA_ERROR_ERROR;
+  case BlockState::Block:
+  {
+    u8 result = block_buffer[block_position++];
+    if (block_position > BLOCK_SIZE)
+    {
+      block_state = BlockState::Checksum1;
+    }
     return result;
+  }
+  case BlockState::Checksum1:
+    block_state = BlockState::Checksum2;
+    return static_cast<u8>(block_crc >> 8);
+  case BlockState::Checksum2:
+  {
+    u8 result = static_cast<u8>(block_crc);
+    if (state == State::MultipleBlockRead)
+    {
+      if (!m_card.ReadBytes(block_buffer.data(), block_buffer.size()))
+      {
+        ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed - error: {}, eof: {}",
+                      ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
+        block_state = BlockState::Token;
+      }
+      else
+      {
+        INFO_LOG_FMT(EXPANSIONINTERFACE, "SD read succeeded");
+        block_position = 0;
+        block_state = BlockState::Block;
+        block_crc = Common::HashCrc16(block_buffer);
+      }
+    }
+    else
+    {
+      block_state = BlockState::Nothing;
+      state = State::ReadyForCommand;
+    }
+    return result;
+  }
+  default:
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unexpected block_state {} for reading", u32(block_state));
+    return 0xff;
+  }
+}
+
+void CEXISD::WriteForBlockRead(u8 byte)
+{
+  if (byte != 0xff)
+  {
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Data written during block read: {:02x}", byte);
+  }
+  // TODO: Read the whole command
+  if (((byte & 0b11000000) == 0b01000000) &&
+      static_cast<Command>(byte & 0x3f) == Command::StopTransmission)
+  {
+    // Finish transmitting the current block and then stop
+    state = State::SingleBlockRead;
+  }
+}
+
+u8 CEXISD::ReadForBlockWrite()
+{
+  switch (block_state)
+  {
+  case BlockState::Response:
+    block_state = BlockState::Token;
+    // Would return address error or parameter error here
+    return 0;
+  case BlockState::Token:
+  case BlockState::Block:
+  case BlockState::Checksum1:
+  case BlockState::Checksum2:
+    return 0xff;
+  case BlockState::ChecksumWritten:
+  {
+    u16 actual_crc = Common::HashCrc16(block_buffer);
+    u8 result;
+    if (actual_crc != block_crc)
+    {
+      result = DATA_RESPONSE_BAD_CRC;
+    }
+    else if (!m_card.Seek(address, File::SeekOrigin::Begin))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
+      result = DATA_RESPONSE_WRITE_ERROR;
+    }
+    else if (!m_card.WriteBytes(block_buffer.data(), block_buffer.size()))
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD write failed - error: {}, eof: {}",
+                    ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
+      result = DATA_RESPONSE_WRITE_ERROR;
+    }
+    else
+    {
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "SD write succeeded");
+      result = DATA_RESPONSE_ACCEPTED;
+    }
+
+    if (state == State::SingleBlockWrite)
+    {
+      state = State::ReadyForCommand;
+      block_state = BlockState::Nothing;
+    }
+    else
+    {
+      block_state = BlockState::Token;
+    }
+
+    return result;
+  }
+  default:
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unexpected block_state {} for writing", u32(block_state));
+    return 0xff;
+  }
+}
+
+void CEXISD::WriteForBlockWrite(u8 byte)
+{
+  switch (block_state)
+  {
+  case BlockState::Response:
+    // Do nothing
+    break;
+  case BlockState::Token:
+    if (byte == START_MULTI_BLOCK)
+    {
+      block_position = 0;
+      block_crc = 0;
+      block_state = BlockState::Block;
+    }
+    else if (byte == END_BLOCK)
+    {
+      state = State::ReadyForCommand;
+      block_state = BlockState::Nothing;
+    }
+    else
+    {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unexpected token for block write {:02x}", byte);
+    }
+    break;
+  case BlockState::Block:
+    block_buffer[block_position++] = byte;
+    if (block_position > BLOCK_SIZE)
+    {
+      block_state = BlockState::Checksum1;
+    }
+    break;
+  case BlockState::Checksum1:
+    block_crc |= byte << 8;
+    block_state = BlockState::Checksum2;
+    break;
+  case BlockState::Checksum2:
+    block_crc |= byte << 8;
+    block_state = BlockState::ChecksumWritten;
+    break;
+  case BlockState::ChecksumWritten:
+    // Do nothing
+    break;
+  default:
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unexpected block_state {} for writing", u32(block_state));
   }
 }
 }  // namespace ExpansionInterface

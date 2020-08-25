@@ -121,10 +121,53 @@ private:
     // 56-59 Reserved for security spec
   };
 
+  static constexpr u8 START_BLOCK = 0xfe, START_MULTI_BLOCK = 0xfc, END_BLOCK = 0xfd;
+  // The spec has the first 3 bits of the data responses marked with an x, and doesn't explain why
+  static constexpr u8 DATA_RESPONSE_ACCEPTED = 0b0'010'0;
+  static constexpr u8 DATA_RESPONSE_BAD_CRC = 0b0'101'0;
+  static constexpr u8 DATA_RESPONSE_WRITE_ERROR = 0b0'110'0;
+  // "Same error bits" as in R2, but I guess that only refers to meaning, not the actual bit values
+  static constexpr u8 DATA_ERROR_ERROR = 0x01;
+  static constexpr u8 DATA_ERROR_CONTROLLER = 0x02;
+  static constexpr u8 DATA_ERROR_ECC = 0x04;
+  static constexpr u8 DATA_ERROR_OUT_OF_RANGE = 0x08;
+
+  static constexpr size_t BLOCK_SIZE = 512;
+
+  enum class State
+  {
+    // Hacky setup
+    Uninitialized,
+    GetId,
+    // Actual states for transmiting and receiving
+    ReadyForCommand,
+    ReadyForAppCommand,
+    SingleBlockRead,
+    MultipleBlockRead,
+    SingleBlockWrite,
+    MultipleBlockWrite,
+  };
+
+  enum class BlockState
+  {
+    Nothing,
+    Response,
+    Token,
+    Block,
+    Checksum1,
+    Checksum2,
+    ChecksumWritten,
+  };
+
   void WriteByte(u8 byte);
   void HandleCommand(Command command, u32 argument);
   void HandleAppCommand(AppCommand app_command, u32 argument);
   u8 ReadByte();
+
+  u8 ReadForBlockRead();
+  void WriteForBlockRead(u8 byte);
+  u8 ReadForBlockWrite();
+  void WriteForBlockWrite(u8 byte);
 
   enum class R1
   {
@@ -152,13 +195,14 @@ private:
   File::IOFile m_card;
 
   // STATE_TO_SAVE
-  bool inited = false;
-  bool get_id = false;
-  bool next_is_appcmd = false;
+  State state = State::Uninitialized;
+  BlockState block_state = BlockState::Nothing;
   u32 command_position = 0;
   u32 block_position = 0;
   std::array<u8, 6> command_buffer = {};
-  std::deque<u8> response;
-  std::array<u8, 512> block_buffer = {};
+  std::deque<u8> response = {};
+  std::array<u8, BLOCK_SIZE> block_buffer = {};
+  u64 address = 0;
+  u16 block_crc = 0;
 };
 }  // namespace ExpansionInterface
