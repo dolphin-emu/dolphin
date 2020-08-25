@@ -1,16 +1,19 @@
 #pragma once
 
 #include <cassert>
+#include <libretro.h>
 #include <string>
 #include <vector>
 
 #include "Common/Logging/Log.h"
-#include "VideoCommon/VideoConfig.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/Enums.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace Libretro
 {
+extern retro_environment_t environ_cb;
+
 namespace Options
 {
 void SetVariables();
@@ -27,7 +30,35 @@ public:
   Option(const char* id, const char* name, T first, int count, int step = 1);
   Option(const char* id, const char* name, bool initial);
 
-  bool Updated();
+  bool Updated()
+  {
+    if (m_dirty)
+    {
+      m_dirty = false;
+
+      retro_variable var{m_id};
+      T value = m_list.front().second;
+
+      if (environ_cb && environ_cb(RETRO_ENVIRONMENT_GET_VARIABLE, &var) && var.value)
+      {
+        for (auto option : m_list)
+        {
+          if (option.first == var.value)
+          {
+            value = option.second;
+            break;
+          }
+        }
+      }
+
+      if (m_value != value)
+      {
+        m_value = value;
+        return true;
+      }
+    }
+    return false;
+  }
 
   operator T()
   {
