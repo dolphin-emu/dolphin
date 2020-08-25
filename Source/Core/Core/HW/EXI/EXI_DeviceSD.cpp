@@ -459,7 +459,7 @@ u8 CEXISD::ReadForBlockRead()
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
       block_state = BlockState::Token;
     }
-    else if (!m_card.ReadBytes(block_buffer.data(), block_buffer.size()))
+    else if (!m_card.ReadBytes(block_buffer.data(), BLOCK_SIZE))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed - error: {}, eof: {}",
                     ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
@@ -485,7 +485,7 @@ u8 CEXISD::ReadForBlockRead()
   case BlockState::Block:
   {
     u8 result = block_buffer[block_position++];
-    if (block_position > BLOCK_SIZE)
+    if (block_position >= BLOCK_SIZE)
     {
       block_state = BlockState::Checksum1;
     }
@@ -499,7 +499,13 @@ u8 CEXISD::ReadForBlockRead()
     u8 result = static_cast<u8>(block_crc);
     if (state == State::MultipleBlockRead)
     {
-      if (!m_card.ReadBytes(block_buffer.data(), block_buffer.size()))
+      address += BLOCK_SIZE;
+      if (!m_card.Seek(address, File::SeekOrigin::Begin))
+      {
+        ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
+        block_state = BlockState::Token;
+      }
+      else if (!m_card.ReadBytes(block_buffer.data(), BLOCK_SIZE))
       {
         ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed - error: {}, eof: {}",
                       ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
@@ -515,6 +521,8 @@ u8 CEXISD::ReadForBlockRead()
     }
     else
     {
+      address = 0;
+      block_position = 0;
       block_state = BlockState::Nothing;
       state = State::ReadyForCommand;
     }
@@ -569,7 +577,7 @@ u8 CEXISD::ReadForBlockWrite()
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
       result = DATA_RESPONSE_WRITE_ERROR;
     }
-    else if (!m_card.WriteBytes(block_buffer.data(), block_buffer.size()))
+    else if (!m_card.WriteBytes(block_buffer.data(), BLOCK_SIZE))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD write failed - error: {}, eof: {}",
                     ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
@@ -585,10 +593,14 @@ u8 CEXISD::ReadForBlockWrite()
     {
       state = State::ReadyForCommand;
       block_state = BlockState::Nothing;
+      address = 0;
+      block_position = 0;
     }
     else
     {
       block_state = BlockState::Token;
+      address += BLOCK_SIZE;
+      block_position = 0;
     }
 
     return result;
