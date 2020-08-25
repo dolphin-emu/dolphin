@@ -556,6 +556,8 @@ u8 CEXISD::ReadForBlockWrite()
     u8 result;
     if (actual_crc != block_crc)
     {
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Bad CRC: was {:04x}, should be {:04x}", actual_crc,
+                    block_crc);
       result = DATA_RESPONSE_BAD_CRC;
     }
     else if (!m_card.Seek(address, File::SeekOrigin::Begin))
@@ -612,14 +614,14 @@ void CEXISD::WriteForBlockWrite(u8 byte)
       state = State::ReadyForCommand;
       block_state = BlockState::Nothing;
     }
-    else
+    else if (byte != 0xff)
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "Unexpected token for block write {:02x}", byte);
     }
     break;
   case BlockState::Block:
     block_buffer[block_position++] = byte;
-    if (block_position > BLOCK_SIZE)
+    if (block_position >= BLOCK_SIZE)
     {
       block_state = BlockState::Checksum1;
     }
@@ -629,7 +631,7 @@ void CEXISD::WriteForBlockWrite(u8 byte)
     block_state = BlockState::Checksum2;
     break;
   case BlockState::Checksum2:
-    block_crc |= byte << 8;
+    block_crc |= byte;
     block_state = BlockState::ChecksumWritten;
     break;
   case BlockState::ChecksumWritten:
