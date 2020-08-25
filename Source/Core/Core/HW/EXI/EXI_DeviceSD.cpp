@@ -335,6 +335,10 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     response.push_back(0);  // R1
     // There can be further padding bytes, but it's not needed
     break;
+  case Command::SendStatus:
+    response.push_back(0);  // R1
+    response.push_back(0);  // R2
+    break;
   case Command::SetBlockLen:
     INFO_LOG_FMT(EXPANSIONINTERFACE, "Set blocklen to {}", argument);
     // TODO: error if blocklen not 512
