@@ -293,8 +293,8 @@ void FpsControls::run_mod_mp3() {
         }
 
         if (LockCameraInPuzzles()) {
-          // if object is active
-          if (st > 0) {
+          // if object is active and isn't the ship radio at the start of the game.
+          if (st > 0 && read32(obj + 0xC) != 0x0c180263) {
             lock_camera = true;
           }
         } 
@@ -317,8 +317,11 @@ void FpsControls::run_mod_mp3() {
     obj_list_iterator = (base + next_id * 8);
   }
 
-  if (lock_camera)
+  if (lock_camera) {
+    mp3_handle_cursor(false);
+
     return;
+  }
 
   u32 boss_name_str = read32(read32(read32(read32(mp3_static.boss_info_address) + 0x6e0) + 0x24) + 0x150);
   bool is_boss_metaridley = is_string_ridley(boss_name_str);
