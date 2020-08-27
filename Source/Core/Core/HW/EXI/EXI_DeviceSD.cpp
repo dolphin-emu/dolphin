@@ -550,22 +550,7 @@ void CEXISD::WriteForBlockRead(u8 byte)
     // Finish transmitting the current block and then stop
     if (state == State::MultipleBlockRead)
     {
-      if (block_state == BlockState::ChecksumWritten ||
-          (block_state == BlockState::Block && block_position == 0))
-      {
-        // Done with the current block, finish everything up now.
-        INFO_LOG_FMT(EXPANSIONINTERFACE, "Assuming stop transmission; done with block read");
-        state = State::ReadyForCommand;
-        block_state = BlockState::Nothing;
-        address = 0;
-        block_position = 0;
-      }
-      else
-      {
-        INFO_LOG_FMT(EXPANSIONINTERFACE,
-                     "Assuming stop transmission; changing to single block read to finish");
-        state = State::SingleBlockRead;
-      }
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Assuming stop transmission; doing nothing currently");
       // JANK, but I think this will work right
       response.push_back(0);  // R1 - for later
     }
