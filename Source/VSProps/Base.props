@@ -120,6 +120,7 @@
       4946  Reinterpret cast between related types
       -->
       <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
@@ -144,6 +145,7 @@
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
+      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <!--Link Release-->
     <Link Condition="'$(Configuration)'=='Release'">
@@ -156,11 +158,12 @@
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
       <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt /Brepro %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>
       <LinkTimeCodeGeneration Condition="'$(DolphinRelease)'=='true'">true</LinkTimeCodeGeneration>
+      <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
     </Lib>
     <!--
     Prefer VTune 2015 over 2013 but support both since there is no non-commercial license for 2015 :(
