@@ -70,10 +70,6 @@ constexpr std::array<SPatch, 23> OSPatches{{
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HookType::Replace, HookFlag::Fixed},
     {"AppLoaderReport",              HLE_OS::HLE_GeneralDebugPrint,         HookType::Replace, HookFlag::Fixed} // apploader needs OSReport-like function
 }};
-
-constexpr std::array<SPatch, 1> OSBreakPoints{{
-    {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction, HookType::Start, HookFlag::Generic},
-}};
 // clang-format on
 
 void Patch(u32 addr, std::string_view func_name)
@@ -139,20 +135,6 @@ void PatchFunctions()
       INFO_LOG(OSHLE, "Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
     }
   }
-
-  if (SConfig::GetInstance().bEnableDebugging)
-  {
-    for (size_t i = 1; i < OSBreakPoints.size(); ++i)
-    {
-      for (const auto& symbol : g_symbolDB.GetSymbolsFromName(OSBreakPoints[i].m_szPatchName))
-      {
-        PowerPC::breakpoints.Add(symbol->address, false);
-        INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
-      }
-    }
-  }
-
-  // CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
 
 void Clear()
