@@ -1354,4 +1354,9 @@ void Renderer::RestoreFramebufferBinding()
       m_current_framebuffer ? static_cast<OGLFramebuffer*>(m_current_framebuffer)->GetFBO() : 0);
 }
 
+void Renderer::SetSystemFrameBuffer(GLuint fbo)
+{
+  m_system_framebuffer->SetFBO(fbo);
+}
+
 }  // namespace OGL

@@ -85,7 +85,7 @@ void ControllerInterface::ChangeWindow(void* hwnd)
     return;
 
   if (m_wsi.render_window == hwnd)
-     return;
+    return;
 
   // This shouldn't use render_surface so no need to update it.
   m_wsi.render_window = hwnd;

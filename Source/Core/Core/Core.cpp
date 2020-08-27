@@ -476,12 +476,12 @@ void EmuThread(WindowSystemInfo wsi)
     HLE::Clear();
   }};
 
-  VideoBackendBase::PopulateBackendInfo();
-
   bool init_video = !g_renderer;
-  if (init_video && !g_video_backend->Initialize(wsi))
+  if (init_video)
   {
-    PanicAlert("Failed to initialize video backend!");
+    VideoBackendBase::PopulateBackendInfo();
+    if (!g_video_backend->Initialize(wsi))
+      PanicAlert("Failed to initialize video backend!");
     return;
   }
   Common::ScopeGuard video_guard{[init_video] {
@@ -818,7 +818,7 @@ static bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
 
 void RunAsCPUThread(std::function<void()> function)
 {
-  const bool is_cpu_thread = IsCPUThread();
+  const bool is_cpu_thread = IsCPUThread() || !IsRunningAndStarted();
   bool was_unpaused = false;
   if (!is_cpu_thread)
     was_unpaused = PauseAndLock(true, true);
@@ -902,6 +902,7 @@ void Callback_NewField()
 {
   if (s_frame_step)
   {
+#ifndef __LIBRETRO__
     // To ensure that s_stop_frame_step is up to date, wait for the GPU thread queue to empty,
     // since it is may contain a swap event (which will call Callback_FramePresented). This hurts
     // the performance a little, but luckily, performance matters less when using frame stepping.
@@ -910,6 +911,7 @@ void Callback_NewField()
     // Only stop the frame stepping if a new frame was displayed
     // (as opposed to the previous frame being displayed for another frame).
     if (s_stop_frame_step.load())
+#endif
     {
       s_frame_step = false;
       CPU::Break();

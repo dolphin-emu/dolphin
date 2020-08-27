@@ -70,9 +70,11 @@ bool retro_load_game(const struct retro_game_info* game)
   Core::SetIsThrottlerTempDisabled(true);
   SConfig::GetInstance().m_EmulationSpeed = 0.0f;
 
-  // Fastmem installs custom exception handlers
-  // it needs to be disabled when running in a debugger.
+#if defined(_DEBUG)
+  SConfig::GetInstance().bFastmem = false;
+#else
   SConfig::GetInstance().bFastmem = Libretro::Options::fastmem;
+#endif
   SConfig::GetInstance().bDSPHLE = Libretro::Options::DSPHLE;
   SConfig::GetInstance().m_DSPEnableJIT = Libretro::Options::DSPEnableJIT;
   SConfig::GetInstance().cpu_core = Libretro::Options::cpu_core;
@@ -109,9 +111,10 @@ bool retro_load_game(const struct retro_game_info* game)
 #endif
 
   Libretro::Video::Init();
+  VideoBackendBase::PopulateBackendInfo();
   NOTICE_LOG(VIDEO, "Using GFX backend: %s", Config::Get(Config::MAIN_GFX_BACKEND).c_str());
 
-  WindowSystemInfo wsi(WindowSystemType::Headless, nullptr, nullptr, nullptr);
+  WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
   if (!BootManager::BootCore(BootParameters::GenerateFromFile(game->path), wsi))
   {
     ERROR_LOG(BOOT, "Could not boot %s\n", game->path);

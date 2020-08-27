@@ -20,7 +20,8 @@ namespace Vulkan
 {
 std::unique_ptr<VulkanContext> g_vulkan_context;
 
-VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device, VkSurfaceKHR surface)
+VulkanContext::VulkanContext(VkInstance instance, VkPhysicalDevice physical_device,
+                             VkSurfaceKHR surface)
     : m_instance(instance), m_physical_device(physical_device), m_surface(surface)
 {
   // Read device physical memory properties, we need it for allocating buffers

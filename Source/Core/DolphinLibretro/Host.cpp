@@ -70,7 +70,6 @@ bool Host_UIBlocksControllerState()
   return false;
 }
 
-
 #ifdef __ANDROID__
 
 namespace GCAdapter

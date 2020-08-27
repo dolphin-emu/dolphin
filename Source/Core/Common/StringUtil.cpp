@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#define _GNU_SOURCE
-
 #include "Common/StringUtil.h"
 
 #include <algorithm>

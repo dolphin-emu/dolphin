@@ -10,8 +10,8 @@
 #include <string>
 #include <vector>
 
-#include "Common/CommonTypes.h"
 #include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 
 namespace State
 {

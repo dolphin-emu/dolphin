@@ -218,7 +218,8 @@ bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
   std::unique_ptr<SwapChain> swap_chain;
   if (g_vulkan_context->GetSurface() != VK_NULL_HANDLE)
   {
-    swap_chain = SwapChain::Create(wsi, g_vulkan_context->GetSurface(), g_ActiveConfig.bVSyncActive);
+    swap_chain =
+        SwapChain::Create(wsi, g_vulkan_context->GetSurface(), g_ActiveConfig.bVSyncActive);
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");

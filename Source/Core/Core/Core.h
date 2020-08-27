@@ -107,7 +107,7 @@ bool IsGPUThread();
 
 bool WantsDeterminism();
 
-void EmuThread();
+void EmuThread(WindowSystemInfo wsi);
 
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);

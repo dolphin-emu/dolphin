@@ -312,7 +312,7 @@ void VideoBackendBase::InitializeShared()
 
 void VideoBackendBase::ShutdownShared()
 {
-  if(Core::IsRunning())
+  if (Core::IsRunning())
   {
     VertexLoaderManager::Clear();
     return;

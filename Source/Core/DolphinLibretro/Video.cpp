@@ -285,8 +285,8 @@ static bool SetHWRender(retro_hw_context_type type)
   case RETRO_HW_CONTEXT_OPENGL:
   case RETRO_HW_CONTEXT_OPENGLES2:
   case RETRO_HW_CONTEXT_OPENGLES3:
-     hw_render.version_major = 3;
-     hw_render.version_minor = 1;
+    hw_render.version_major = 3;
+    hw_render.version_minor = 1;
     if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
     {
       environ_cb(RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT, nullptr);
@@ -326,7 +326,7 @@ static bool SetHWRender(retro_hw_context_type type)
     break;
 #endif
   default:
-     break;
+    break;
   }
   return false;
 }
