@@ -27,7 +27,7 @@ void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
     ERROR_LOG(DYNA_REC, "R%d: 0x%016llx\tR%d: 0x%016llx", i, ctx->CTX_REG(i), i + 1,
               ctx->CTX_REG(i + 1));
 
-  ERROR_LOG(DYNA_REC, "R30: 0x%016llx\tSP: 0x%016llx", ctx->CTX_REG(30), ctx->CTX_SP);
+  ERROR_LOG(DYNA_REC, "R30: 0x%016llx\tSP: 0x%016llx", ctx->CTX_LR, ctx->CTX_SP);
 
   ERROR_LOG(DYNA_REC, "Access Address: 0x%016lx", access_address);
   ERROR_LOG(DYNA_REC, "PC: 0x%016llx", ctx->CTX_PC);
