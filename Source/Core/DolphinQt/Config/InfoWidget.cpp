@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QLineEdit>
-#include <QProgressDialog>
 #include <QPushButton>
 #include <QTextEdit>
 
@@ -28,7 +27,8 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
 {
   QVBoxLayout* layout = new QVBoxLayout();
 
-  layout->addWidget(CreateISODetails());
+  layout->addWidget(CreateFileDetails());
+  layout->addWidget(CreateGameDetails());
 
   if (!game.GetLanguages().empty())
     layout->addWidget(CreateBannerDetails());
@@ -36,19 +36,54 @@ InfoWidget::InfoWidget(const UICommon::GameFile& game) : m_game(game)
   setLayout(layout);
 }
 
-QGroupBox* InfoWidget::CreateISODetails()
+QGroupBox* InfoWidget::CreateFileDetails()
 {
-  const QString UNKNOWN_NAME = tr("Unknown");
-
-  QGroupBox* group = new QGroupBox(tr("ISO Details"));
+  QGroupBox* group = new QGroupBox(tr("File Details"));
   QFormLayout* layout = new QFormLayout;
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  QLineEdit* file_path = CreateValueDisplay(
-      QStringLiteral("%1 (%2)")
-          .arg(QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath())))
-          .arg(QString::fromStdString(UICommon::FormatSize(m_game.GetFileSize()))));
+  QString path = QDir::toNativeSeparators(QString::fromStdString(m_game.GetFilePath()));
+  layout->addRow(tr("Path:"), CreateValueDisplay(path));
+
+  const std::string file_size = UICommon::FormatSize(m_game.GetFileSize());
+
+  if (!m_game.ShouldShowFileFormatDetails())
+  {
+    layout->addRow(tr("File Size:"), CreateValueDisplay(file_size));
+  }
+  else
+  {
+    const QString file_format =
+        QStringLiteral("%1 (%2)")
+            .arg(QString::fromStdString(DiscIO::GetName(m_game.GetBlobType(), true)))
+            .arg(QString::fromStdString(file_size));
+    layout->addRow(tr("File Format:"), CreateValueDisplay(file_format));
+
+    QString compression = QString::fromStdString(m_game.GetCompressionMethod());
+    if (compression.isEmpty())
+      compression = tr("No Compression");
+    layout->addRow(tr("Compression:"), CreateValueDisplay(compression));
+
+    if (m_game.GetBlockSize() > 0)
+    {
+      const std::string block_size = UICommon::FormatSize(m_game.GetBlockSize(), 0);
+      layout->addRow(tr("Block Size:"), CreateValueDisplay(block_size));
+    }
+  }
+
+  group->setLayout(layout);
+  return group;
+}
+
+QGroupBox* InfoWidget::CreateGameDetails()
+{
+  const QString UNKNOWN_NAME = tr("Unknown");
+
+  QGroupBox* group = new QGroupBox(tr("Game Details"));
+  QFormLayout* layout = new QFormLayout;
+
+  layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
   const QString game_name = QString::fromStdString(m_game.GetInternalName());
 
@@ -73,23 +108,19 @@ QGroupBox* InfoWidget::CreateISODetails()
 
   QLineEdit* country = CreateValueDisplay(DiscIO::GetName(m_game.GetCountry(), true));
 
-  const std::string game_maker = m_game.GetMaker();
+  const std::string game_maker = m_game.GetMaker(UICommon::GameFile::Variant::LongAndNotCustom);
 
   QLineEdit* maker =
       CreateValueDisplay((game_maker.empty() ? UNKNOWN_NAME.toStdString() : game_maker) + " (" +
                          m_game.GetMakerID() + ")");
-  QWidget* checksum = CreateChecksumComputer();
 
   layout->addRow(tr("Name:"), internal_name);
-  layout->addRow(tr("File:"), file_path);
   layout->addRow(tr("Game ID:"), game_id);
   layout->addRow(tr("Country:"), country);
   layout->addRow(tr("Maker:"), maker);
 
   if (!m_game.GetApploaderDate().empty())
     layout->addRow(tr("Apploader Date:"), CreateValueDisplay(m_game.GetApploaderDate()));
-
-  layout->addRow(tr("MD5 Checksum:"), checksum);
 
   group->setLayout(layout);
   return group;
@@ -102,23 +133,22 @@ QGroupBox* InfoWidget::CreateBannerDetails()
 
   layout->setFieldGrowthPolicy(QFormLayout::AllNonFixedFieldsGrow);
 
-  m_name = CreateValueDisplay();
-  m_maker = CreateValueDisplay();
-  m_description = new QTextEdit();
-  m_description->setReadOnly(true);
   CreateLanguageSelector();
-
   layout->addRow(tr("Show Language:"), m_language_selector);
+
   if (m_game.GetPlatform() == DiscIO::Platform::GameCubeDisc)
   {
-    layout->addRow(tr("Name:"), m_name);
-    layout->addRow(tr("Maker:"), m_maker);
-    layout->addRow(tr("Description:"), m_description);
+    layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
+    layout->addRow(tr("Maker:"), m_maker = CreateValueDisplay());
+    layout->addRow(tr("Description:"), m_description = new QTextEdit());
+    m_description->setReadOnly(true);
   }
   else if (DiscIO::IsWii(m_game.GetPlatform()))
   {
-    layout->addRow(tr("Name:"), m_name);
+    layout->addRow(tr("Name:"), m_name = CreateValueDisplay());
   }
+
+  ChangeLanguage();
 
   QPixmap banner = ToQPixmap(m_game.GetBannerImage());
   if (!banner.isNull())
@@ -153,7 +183,7 @@ void InfoWidget::SaveBanner()
 
 QLineEdit* InfoWidget::CreateValueDisplay(const QString& value)
 {
-  QLineEdit* value_display = new QLineEdit(value);
+  QLineEdit* value_display = new QLineEdit(value, this);
   value_display->setReadOnly(true);
   value_display->setCursorPosition(0);
   return value_display;
@@ -180,66 +210,21 @@ void InfoWidget::CreateLanguageSelector()
   if (m_language_selector->count() == 1)
     m_language_selector->setDisabled(true);
 
-  connect(m_language_selector,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_language_selector, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InfoWidget::ChangeLanguage);
-  ChangeLanguage();
 }
 
 void InfoWidget::ChangeLanguage()
 {
   DiscIO::Language language =
       static_cast<DiscIO::Language>(m_language_selector->currentData().toInt());
-  m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
-  m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
-  m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
-}
 
-QWidget* InfoWidget::CreateChecksumComputer()
-{
-  QWidget* widget = new QWidget();
-  QHBoxLayout* layout = new QHBoxLayout();
-  layout->setContentsMargins(0, 0, 0, 0);
+  if (m_name)
+    m_name->setText(QString::fromStdString(m_game.GetLongName(language)));
 
-  m_checksum_result = new QLineEdit();
-  QPushButton* calculate = new QPushButton(tr("Compute"));
-  connect(calculate, &QPushButton::clicked, this, &InfoWidget::ComputeChecksum);
-  layout->addWidget(m_checksum_result);
-  layout->addWidget(calculate);
+  if (m_maker)
+    m_maker->setText(QString::fromStdString(m_game.GetLongMaker(language)));
 
-  widget->setLayout(layout);
-  return widget;
-}
-
-void InfoWidget::ComputeChecksum()
-{
-  QCryptographicHash hash(QCryptographicHash::Md5);
-  hash.reset();
-  std::unique_ptr<DiscIO::BlobReader> file(DiscIO::CreateBlobReader(m_game.GetFilePath()));
-  std::vector<u8> file_data(8 * 1080 * 1080);  // read 1MB at a time
-  u64 game_size = file->GetDataSize();
-  u64 read_offset = 0;
-
-  // a maximum of 1000 is used instead of game_size because otherwise 8GB games overflow the int
-  // typed maximum parameter
-  QProgressDialog* progress =
-      new QProgressDialog(tr("Computing MD5 Checksum"), tr("Cancel"), 0, 1000, this);
-  progress->setWindowTitle(tr("Computing MD5 Checksum"));
-  progress->setWindowFlags(progress->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  progress->setMinimumDuration(500);
-  progress->setWindowModality(Qt::WindowModal);
-  while (read_offset < game_size)
-  {
-    progress->setValue(static_cast<double>(read_offset) / static_cast<double>(game_size) * 1000);
-    if (progress->wasCanceled())
-      return;
-
-    u64 read_size = std::min<u64>(file_data.size(), game_size - read_offset);
-    file->Read(read_offset, read_size, file_data.data());
-    hash.addData(reinterpret_cast<char*>(file_data.data()), read_size);
-    read_offset += read_size;
-  }
-  m_checksum_result->setText(QString::fromUtf8(hash.result().toHex()));
-  Q_ASSERT(read_offset == game_size);
-  progress->setValue(1000);
+  if (m_description)
+    m_description->setText(QString::fromStdString(m_game.GetDescription(language)));
 }

@@ -27,6 +27,7 @@ enum class RegisterType
   srr,         // Machine status save/restore register (SRR0 - SRR1)
   sr,          // Segment register (SR0 - SR15)
   gqr,         // Graphics quantization registers (GQR0 - GQR7)
+  hid,         // Hardware Implementation-Dependent registers (HID0-2, HID4)
   exceptions,  // Keeps track of currently triggered exceptions
   int_mask,    // ???
   int_cause,   // ???
@@ -67,6 +68,6 @@ private:
   std::function<u64()> m_get_register;
   std::function<void(u64)> m_set_register;
 
-  u64 m_value;
+  u64 m_value = 0;
   RegisterDisplay m_display = RegisterDisplay::Hex;
 };

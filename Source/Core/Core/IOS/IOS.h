@@ -19,9 +19,7 @@
 
 class PointerWrap;
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace FS
 {
@@ -32,7 +30,7 @@ namespace Device
 {
 class Device;
 class ES;
-}
+}  // namespace Device
 
 struct Request;
 struct OpenRequest;
@@ -56,6 +54,14 @@ enum IPCCommandType : u32
   // This is used for replies to commands.
   IPC_REPLY = 8,
 };
+
+enum class MemorySetupType
+{
+  IOSReload,
+  Full,
+};
+
+void RAMOverrideForIOSMemoryValues(MemorySetupType setup_type);
 
 void WriteReturnValue(s32 value, u32 address);
 
@@ -146,5 +152,4 @@ void Init();
 void Shutdown();
 EmulationKernel* GetIOS();
 
-}  // namespace HLE
-}  // namespace IOS
+}  // namespace IOS::HLE

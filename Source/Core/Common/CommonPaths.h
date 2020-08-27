@@ -22,6 +22,7 @@
 #elif defined ANDROID
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "/sdcard/dolphin-emu"
+#define NOMEDIA_FILE ".nomedia"
 #else
 #define USERDATA_DIR "user"
 #define DOLPHIN_DATA_DIR "dolphin-emu"
@@ -39,6 +40,8 @@
 #define GAMESETTINGS_DIR "GameSettings"
 #define MAPS_DIR "Maps"
 #define CACHE_DIR "Cache"
+#define COVERCACHE_DIR "GameCovers"
+#define REDUMPCACHE_DIR "Redump"
 #define SHADERCACHE_DIR "Shaders"
 #define STATESAVES_DIR "StateSaves"
 #define SCREENSHOTS_DIR "ScreenShots"
@@ -60,10 +63,12 @@
 #define THEMES_DIR "Themes"
 #define STYLES_DIR "Styles"
 #define ANAGLYPH_DIR "Anaglyph"
+#define PASSIVE_DIR "Passive"
 #define PIPES_DIR "Pipes"
 #define MEMORYWATCHER_DIR "MemoryWatcher"
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
+#define RESOURCEPACK_DIR "ResourcePacks"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -80,6 +85,7 @@
 #define GFX_CONFIG "GFX.ini"
 #define DEBUGGER_CONFIG "Debugger.ini"
 #define LOGGER_CONFIG "Logger.ini"
+#define DUALSHOCKUDPCLIENT_CONFIG "DSUClient.ini"
 
 // Files in the directory returned by GetUserPath(D_LOGS_IDX)
 #define MAIN_LOG "dolphin.log"
@@ -88,7 +94,8 @@
 #define WII_SYSCONF "SYSCONF"
 
 // Files in the directory returned by GetUserPath(D_DUMP_IDX)
-#define RAM_DUMP "ram.raw"
+#define MEM1_DUMP "mem1.raw"
+#define MEM2_DUMP "mem2.raw"
 #define ARAM_DUMP "aram.raw"
 #define FAKEVMEM_DUMP "fakevmem.raw"
 
@@ -109,6 +116,7 @@
 #define GC_SRAM "SRAM.raw"
 #define GC_MEMCARDA "MemoryCardA"
 #define GC_MEMCARDB "MemoryCardB"
+#define GC_MEMCARD_NETPLAY "NetPlayTemp"
 
 #define WII_STATE "state.dat"
 

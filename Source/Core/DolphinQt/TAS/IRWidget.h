@@ -31,6 +31,7 @@ protected:
 private:
   u16 m_x = 0;
   u16 m_y = 0;
+  bool m_ignore_movement = false;
 };
 
 // Should be part of class but fails to compile on mac os

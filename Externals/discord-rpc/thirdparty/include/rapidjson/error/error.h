@@ -104,6 +104,8 @@ enum ParseErrorCode {
     \see GenericReader::Parse, GenericDocument::Parse
 */
 struct ParseResult {
+    //!! Unspecified boolean type
+    typedef bool (ParseResult::*BooleanType)() const;
 public:
     //! Default constructor, no error.
     ParseResult() : code_(kParseErrorNone), offset_(0) {}
@@ -115,14 +117,18 @@ public:
     //! Get the error offset, if \ref IsError(), 0 otherwise.
     size_t Offset() const { return offset_; }
 
-    //! Conversion to \c bool, returns \c true, iff !\ref IsError().
-    operator bool() const { return !IsError(); }
+    //! Explicit conversion to \c bool, returns \c true, iff !\ref IsError().
+    operator BooleanType() const { return !IsError() ? &ParseResult::IsError : NULL; }
     //! Whether the result is an error.
     bool IsError() const { return code_ != kParseErrorNone; }
 
     bool operator==(const ParseResult& that) const { return code_ == that.code_; }
     bool operator==(ParseErrorCode code) const { return code_ == code; }
     friend bool operator==(ParseErrorCode code, const ParseResult & err) { return code == err.code_; }
+
+    bool operator!=(const ParseResult& that) const { return !(*this == that); }
+    bool operator!=(ParseErrorCode code) const { return !(*this == code); }
+    friend bool operator!=(ParseErrorCode code, const ParseResult & err) { return err != code; }
 
     //! Reset error code.
     void Clear() { Set(kParseErrorNone); }

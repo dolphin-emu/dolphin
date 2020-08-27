@@ -6,11 +6,10 @@
 
 #include <QuartzCore/QuartzCore.h>
 
+#include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
-{
-namespace Quartz
+namespace ciface::Quartz
 {
 std::string KeycodeToName(const CGKeyCode keycode);
 
@@ -37,7 +36,7 @@ private:
     {
     }
     std::string GetName() const override;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
 
   private:
@@ -66,12 +65,8 @@ public:
   std::string GetSource() const override;
 
 private:
-  struct
-  {
-    float x, y;
-  } m_cursor;
+  Common::Vec2 m_cursor;
 
   uint32_t m_windowid;
 };
-}  // namespace Quartz
-}  // namespace ciface
+}  // namespace ciface::Quartz

@@ -1,44 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\Source\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{BDB6578B-0691-4E80-A46C-DF21639FD3B8}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\Source\VSProps\Base.props" />
-    <Import Project="..\..\Source\VSProps\ClDisableAllWarnings.props" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)ClDisableAllWarnings.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="library\aes.c" />
-    <ClCompile Include="library\aesni.c" />
+    <ClCompile Include="library\aesni.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="library\arc4.c" />
+    <ClCompile Include="library\aria.c" />
     <ClCompile Include="library\asn1parse.c" />
     <ClCompile Include="library\asn1write.c" />
     <ClCompile Include="library\base64.c" />
@@ -47,6 +30,8 @@
     <ClCompile Include="library\camellia.c" />
     <ClCompile Include="library\ccm.c" />
     <ClCompile Include="library\certs.c" />
+    <ClCompile Include="library\chacha20.c" />
+    <ClCompile Include="library\chachapoly.c" />
     <ClCompile Include="library\cipher.c" />
     <ClCompile Include="library\cipher_wrap.c" />
     <ClCompile Include="library\cmac.c" />
@@ -64,6 +49,7 @@
     <ClCompile Include="library\error.c" />
     <ClCompile Include="library\gcm.c" />
     <ClCompile Include="library\havege.c" />
+    <ClCompile Include="library\hkdf.c" />
     <ClCompile Include="library\hmac_drbg.c" />
     <ClCompile Include="library\md.c" />
     <ClCompile Include="library\md2.c" />
@@ -72,8 +58,11 @@
     <ClCompile Include="library\md_wrap.c" />
     <ClCompile Include="library\memory_buffer_alloc.c" />
     <ClCompile Include="library\net_sockets.c" />
+    <ClCompile Include="library\nist_kw.c" />
     <ClCompile Include="library\oid.c" />
-    <ClCompile Include="library\padlock.c" />
+    <ClCompile Include="library\padlock.c">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="library\pem.c" />
     <ClCompile Include="library\pk.c" />
     <ClCompile Include="library\pk_wrap.c" />
@@ -83,8 +72,11 @@
     <ClCompile Include="library\pkparse.c" />
     <ClCompile Include="library\pkwrite.c" />
     <ClCompile Include="library\platform.c" />
+    <ClCompile Include="library\platform_util.c" />
+    <ClCompile Include="library\poly1305.c" />
     <ClCompile Include="library\ripemd160.c" />
     <ClCompile Include="library\rsa.c" />
+    <ClCompile Include="library\rsa_internal.c" />
     <ClCompile Include="library\sha1.c" />
     <ClCompile Include="library\sha256.c" />
     <ClCompile Include="library\sha512.c" />

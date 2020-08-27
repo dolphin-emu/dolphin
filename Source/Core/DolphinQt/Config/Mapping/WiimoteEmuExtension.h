@@ -6,6 +6,8 @@
 
 #include "DolphinQt/Config/Mapping/MappingWidget.h"
 
+#include "Core/HW/WiimoteEmu/ExtensionPort.h"
+
 class QGroupBox;
 class QHBoxLayout;
 
@@ -13,21 +15,11 @@ class WiimoteEmuExtension final : public MappingWidget
 {
   Q_OBJECT
 public:
-  enum class Type
-  {
-    NONE,
-    CLASSIC_CONTROLLER,
-    DRUMS,
-    GUITAR,
-    NUNCHUK,
-    TURNTABLE
-  };
-
   explicit WiimoteEmuExtension(MappingWindow* window);
 
   InputConfig* GetConfig() override;
 
-  void ChangeExtensionType(Type type);
+  void ChangeExtensionType(u32 type);
 
 private:
   void LoadSettings() override;
@@ -39,6 +31,9 @@ private:
   void CreateNoneLayout();
   void CreateNunchukLayout();
   void CreateTurntableLayout();
+  void CreateUDrawTabletLayout();
+  void CreateDrawsomeTabletLayout();
+  void CreateTaTaConLayout();
   void CreateMainLayout();
 
   // Main
@@ -49,4 +44,7 @@ private:
   QGroupBox* m_none_box;
   QGroupBox* m_nunchuk_box;
   QGroupBox* m_turntable_box;
+  QGroupBox* m_udraw_tablet_box;
+  QGroupBox* m_drawsome_tablet_box;
+  QGroupBox* m_tatacon_box;
 };

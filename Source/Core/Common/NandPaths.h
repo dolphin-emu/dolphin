@@ -31,6 +31,7 @@ std::string GetTitlePath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleDataPath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTitleContentPath(u64 title_id, std::optional<FromWhichRoot> from = {});
 std::string GetTMDFileName(u64 title_id, std::optional<FromWhichRoot> from = {});
+std::string GetMiiDatabasePath(std::optional<FromWhichRoot> from = {});
 
 // Returns whether a path is within an installed title's directory.
 bool IsTitlePath(const std::string& path, std::optional<FromWhichRoot> from = {},
@@ -42,4 +43,4 @@ std::string EscapeFileName(const std::string& filename);
 std::string EscapePath(const std::string& path);
 // Reverses escaping done by EscapeFileName
 std::string UnescapeFileName(const std::string& filename);
-}
+}  // namespace Common

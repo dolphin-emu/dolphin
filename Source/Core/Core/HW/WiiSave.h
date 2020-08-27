@@ -11,16 +11,13 @@
 
 #include "Common/CommonTypes.h"
 
-namespace IOS
-{
-namespace HLE
+namespace IOS::HLE
 {
 namespace FS
 {
 class FileSystem;
 }
 class IOSC;
-}
 }  // namespace IOS::HLE
 
 namespace WiiSave
@@ -40,7 +37,7 @@ bool Copy(Storage* source, Storage* destination);
 /// Import a save into the NAND from a .bin file.
 bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrite);
 /// Export a save to a .bin file.
-bool Export(u64 tid, const std::string& export_path);
+bool Export(u64 tid, std::string_view export_path);
 /// Export all saves that are in the NAND. Returns the number of exported saves.
-size_t ExportAll(const std::string& export_path);
+size_t ExportAll(std::string_view export_path);
 }  // namespace WiiSave

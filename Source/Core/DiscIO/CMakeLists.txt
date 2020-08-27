@@ -1,28 +1,69 @@
 add_library(discio
   Blob.cpp
+  Blob.h
   CISOBlob.cpp
-  WbfsBlob.cpp
+  CISOBlob.h
   CompressedBlob.cpp
+  CompressedBlob.h
   DirectoryBlob.cpp
+  DirectoryBlob.h
   DiscExtractor.cpp
+  DiscExtractor.h
   DiscScrubber.cpp
+  DiscScrubber.h
   DriveBlob.cpp
+  DriveBlob.h
   Enums.cpp
+  Enums.h
   FileBlob.cpp
+  FileBlob.h
   FileSystemGCWii.cpp
+  FileSystemGCWii.h
   Filesystem.cpp
+  Filesystem.h
+  LaggedFibonacciGenerator.cpp
+  LaggedFibonacciGenerator.h
+  MultithreadedCompressor.h
   NANDImporter.cpp
+  NANDImporter.h
+  ScrubbedBlob.cpp
+  ScrubbedBlob.h
   TGCBlob.cpp
+  TGCBlob.h
   Volume.cpp
+  Volume.h
+  VolumeDisc.cpp
+  VolumeDisc.h
   VolumeFileBlobReader.cpp
+  VolumeFileBlobReader.h
   VolumeGC.cpp
+  VolumeGC.h
+  VolumeVerifier.cpp
+  VolumeVerifier.h
   VolumeWad.cpp
+  VolumeWad.h
   VolumeWii.cpp
+  VolumeWii.h
+  WbfsBlob.cpp
+  WbfsBlob.h
+  WIABlob.cpp
+  WIABlob.h
+  WIACompression.cpp
+  WIACompression.h
+  WiiEncryptionCache.cpp
+  WiiEncryptionCache.h
   WiiSaveBanner.cpp
-  WiiWad.cpp
+  WiiSaveBanner.h
 )
 
 target_link_libraries(discio
+PUBLIC
+  BZip2::BZip2
+  LibLZMA::LibLZMA
+  zstd
+
 PRIVATE
+  minizip
+  pugixml
   ZLIB::ZLIB
 )

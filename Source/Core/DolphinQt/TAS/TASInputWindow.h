@@ -15,6 +15,7 @@ class QDialog;
 class QGroupBox;
 class QSpinBox;
 class QString;
+class TASCheckBox;
 
 class TASInputWindow : public QDialog
 {
@@ -22,7 +23,11 @@ class TASInputWindow : public QDialog
 public:
   explicit TASInputWindow(QWidget* parent);
 
+  int GetTurboPressFrames() const;
+  int GetTurboReleaseFrames() const;
+
 protected:
+  TASCheckBox* CreateButton(const QString& name);
   QGroupBox* CreateStickInputs(QString name, QSpinBox*& x_value, QSpinBox*& y_value, u16 max_x,
                                u16 max_y, Qt::Key x_shortcut_key, Qt::Key y_shortcut_key);
   QBoxLayout* CreateSliderValuePairLayout(QString name, QSpinBox*& value, u16 max,
@@ -32,13 +37,17 @@ protected:
                                   Qt::Orientation orientation, QWidget* shortcut_widget,
                                   bool invert = false);
   template <typename UX>
-  void GetButton(QCheckBox* button, UX& pad, UX mask);
+  void GetButton(TASCheckBox* button, UX& pad, UX mask);
   void GetSpinBoxU8(QSpinBox* spin, u8& controller_value);
   void GetSpinBoxU16(QSpinBox* spin, u16& controller_value);
+
+  QGroupBox* m_settings_box;
   QCheckBox* m_use_controller;
+  QSpinBox* m_turbo_press_frames;
+  QSpinBox* m_turbo_release_frames;
 
 private:
-  std::map<QCheckBox*, bool> m_checkbox_set_by_controller;
+  std::map<TASCheckBox*, bool> m_checkbox_set_by_controller;
   std::map<QSpinBox*, u8> m_spinbox_most_recent_values_u8;
   std::map<QSpinBox*, u8> m_spinbox_most_recent_values_u16;
 };

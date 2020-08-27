@@ -20,8 +20,16 @@ public:
   virtual ~AbstractStagingTexture();
 
   const TextureConfig& GetConfig() const { return m_config; }
+  u32 GetWidth() const { return m_config.width; }
+  u32 GetHeight() const { return m_config.height; }
+  u32 GetLevels() const { return m_config.levels; }
+  u32 GetLayers() const { return m_config.layers; }
+  u32 GetSamples() const { return m_config.samples; }
+  AbstractTextureFormat GetFormat() const { return m_config.format; }
+  MathUtil::Rectangle<int> GetRect() const { return m_config.GetRect(); }
   StagingTextureType GetType() const { return m_type; }
   size_t GetTexelSize() const { return m_texel_size; }
+
   bool IsMapped() const { return m_map_pointer != nullptr; }
   char* GetMappedPointer() const { return m_map_pointer; }
   size_t GetMappedStride() const { return m_map_stride; }

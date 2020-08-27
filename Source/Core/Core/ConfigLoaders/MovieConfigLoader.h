@@ -32,4 +32,4 @@ private:
 
 void SaveToDTM(Movie::DTMHeader* header);
 std::unique_ptr<Config::ConfigLayerLoader> GenerateMovieConfigLoader(Movie::DTMHeader* header);
-}
+}  // namespace ConfigLoaders

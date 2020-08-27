@@ -7,7 +7,7 @@
 #include <cstring>
 #include <utility>
 
-#include <QMessageBox>
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 RegisterColumn::RegisterColumn(RegisterType type, std::function<u64()> get,
                                std::function<void(u64)> set)
@@ -84,7 +84,7 @@ void RegisterColumn::SetValue()
   }
 
   if (!valid)
-    QMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid input provided"));
+    ModalMessageBox::critical(nullptr, QObject::tr("Error"), QObject::tr("Invalid input provided"));
   else
     m_set_register(value);
 

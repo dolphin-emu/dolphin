@@ -252,7 +252,7 @@ static void gdb_read_command()
   else if (c == 0x03)
   {
     CPU::Break();
-    gdb_signal(SIGTRAP);
+    gdb_signal(GDB_SIGTRAP);
     return;
   }
   else if (c != GDB_STUB_START)
@@ -440,7 +440,7 @@ static void gdb_read_register()
     wbe32hex(reply, GPR(id));
     break;
   case 32 ... 63:
-    wbe64hex(reply, riPS0(id - 32));
+    wbe64hex(reply, rPS(id - 32).PS0AsU64());
     break;
   case 64:
     wbe32hex(reply, PC);
@@ -449,7 +449,7 @@ static void gdb_read_register()
     wbe32hex(reply, MSR.Hex);
     break;
   case 66:
-    wbe32hex(reply, PowerPC::GetCR());
+    wbe32hex(reply, PowerPC::ppcState.cr.Get());
     break;
   case 67:
     wbe32hex(reply, LR);
@@ -525,7 +525,7 @@ static void gdb_write_register()
     GPR(id) = re32hex(bufptr);
     break;
   case 32 ... 63:
-    riPS0(id - 32) = re64hex(bufptr);
+    rPS(id - 32).SetPS0(re64hex(bufptr));
     break;
   case 64:
     PC = re32hex(bufptr);
@@ -534,7 +534,7 @@ static void gdb_write_register()
     MSR.Hex = re32hex(bufptr);
     break;
   case 66:
-    PowerPC::SetCR(re32hex(bufptr));
+    PowerPC::ppcState.cr.Set(re32hex(bufptr));
     break;
   case 67:
     LR = re32hex(bufptr);

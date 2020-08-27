@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -25,38 +26,31 @@ namespace SerialInterface
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
 {
+  // Here we set origin to perfectly centered values.
+  // This purposely differs from real hardware which sets origin to current input state.
+  // That behavior is less than ideal as the user may have inadvertently moved from neutral.
+  // The X+Y+Start button combo can override this if desired.
+  m_origin.origin_stick_x = GCPadStatus::MAIN_STICK_CENTER_X;
+  m_origin.origin_stick_y = GCPadStatus::MAIN_STICK_CENTER_Y;
+  m_origin.substick_x = GCPadStatus::C_STICK_CENTER_X;
+  m_origin.substick_y = GCPadStatus::C_STICK_CENTER_Y;
 }
 
-void CSIDevice_GCController::Calibrate()
-{
-  GCPadStatus pad_origin = GetPadStatus();
-  memset(&m_origin, 0, sizeof(SOrigin));
-  m_origin.button = pad_origin.button;
-  m_origin.origin_stick_x = pad_origin.stickX;
-  m_origin.origin_stick_y = pad_origin.stickY;
-  m_origin.substick_x = pad_origin.substickX;
-  m_origin.substick_y = pad_origin.substickY;
-  m_origin.trigger_left = pad_origin.triggerLeft;
-  m_origin.trigger_right = pad_origin.triggerRight;
-
-  m_calibrated = true;
-}
-
-int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
+int CSIDevice_GCController::RunBuffer(u8* buffer, int request_length)
 {
   // For debug logging only
-  ISIDevice::RunBuffer(buffer, length);
+  ISIDevice::RunBuffer(buffer, request_length);
 
   GCPadStatus pad_status = GetPadStatus();
   if (!pad_status.isConnected)
   {
-    constexpr u32 reply = SI_ERROR_NO_RESPONSE;
+    u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
     std::memcpy(buffer, &reply, sizeof(reply));
-    return 4;
+    return sizeof(reply);
   }
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
@@ -64,54 +58,48 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   case CMD_RESET:
   case CMD_ID:
   {
-    constexpr u32 id = SI_GC_CONTROLLER;
+    u32 id = Common::swap32(SI_GC_CONTROLLER);
     std::memcpy(buffer, &id, sizeof(id));
-    break;
+    return sizeof(id);
   }
 
   case CMD_DIRECT:
   {
-    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Length: %d)", length);
+    INFO_LOG(SERIALINTERFACE, "PAD - Direct (Request length: %d)", request_length);
     u32 high, low;
     GetData(high, low);
-    for (int i = 0; i < (length - 1) / 2; i++)
+    for (int i = 0; i < 4; i++)
     {
-      buffer[i + 0] = (high >> (i * 8)) & 0xff;
-      buffer[i + 4] = (low >> (i * 8)) & 0xff;
+      buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
+      buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
     }
+    return sizeof(high) + sizeof(low);
   }
-  break;
 
   case CMD_ORIGIN:
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Get Origin");
 
-    if (!m_calibrated)
-      Calibrate();
-
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
-      buffer[i ^ 3] = *calibration++;
+      buffer[i] = *calibration++;
     }
+    return sizeof(SOrigin);
   }
-  break;
 
   // Recalibrate (FiRES: i am not 100 percent sure about this)
   case CMD_RECALIBRATE:
   {
     INFO_LOG(SERIALINTERFACE, "PAD - Recalibrate");
 
-    if (!m_calibrated)
-      Calibrate();
-
     u8* calibration = reinterpret_cast<u8*>(&m_origin);
     for (int i = 0; i < (int)sizeof(SOrigin); i++)
     {
-      buffer[i ^ 3] = *calibration++;
+      buffer[i] = *calibration++;
     }
+    return sizeof(SOrigin);
   }
-  break;
 
   // DEFAULT
   default:
@@ -122,7 +110,7 @@ int CSIDevice_GCController::RunBuffer(u8* buffer, int length)
   break;
   }
 
-  return length;
+  return 0;
 }
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* pad_status)
@@ -161,6 +149,12 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   }
 
   HandleMoviePadStatus(&pad_status);
+
+  // Our GCAdapter code sets PAD_GET_ORIGIN when a new device has been connected.
+  // Watch for this to calibrate real controllers on connection.
+  if (pad_status.button & PAD_GET_ORIGIN)
+    SetOrigin(pad_status);
+
   return pad_status;
 }
 
@@ -188,53 +182,47 @@ bool CSIDevice_GCController::GetData(u32& hi, u32& low)
   // Low bits are packed differently per mode
   if (m_mode == 0 || m_mode == 5 || m_mode == 6 || m_mode == 7)
   {
-    low = (u8)(pad_status.analogB >> 4);                    // Top 4 bits
-    low |= (u32)((u8)(pad_status.analogA >> 4) << 4);       // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerRight >> 4) << 8);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.substickY) << 16);         // All 8 bits
-    low |= (u32)((u8)(pad_status.substickX) << 24);         // All 8 bits
+    low = (pad_status.analogB >> 4);               // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);       // Top 4 bits
+    low |= ((pad_status.triggerRight >> 4) << 8);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 12);  // Top 4 bits
+    low |= ((pad_status.substickY) << 16);         // All 8 bits
+    low |= ((pad_status.substickX) << 24);         // All 8 bits
   }
   else if (m_mode == 1)
   {
-    low = (u8)(pad_status.analogB >> 4);               // Top 4 bits
-    low |= (u32)((u8)(pad_status.analogA >> 4) << 4);  // Top 4 bits
-    low |= (u32)((u8)pad_status.triggerRight << 8);    // All 8 bits
-    low |= (u32)((u8)pad_status.triggerLeft << 16);    // All 8 bits
-    low |= (u32)((u8)pad_status.substickY << 24);      // Top 4 bits
-    low |= (u32)((u8)pad_status.substickX << 28);      // Top 4 bits
+    low = (pad_status.analogB >> 4);             // Top 4 bits
+    low |= ((pad_status.analogA >> 4) << 4);     // Top 4 bits
+    low |= (pad_status.triggerRight << 8);       // All 8 bits
+    low |= (pad_status.triggerLeft << 16);       // All 8 bits
+    low |= ((pad_status.substickY >> 4) << 24);  // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);  // Top 4 bits
   }
   else if (m_mode == 2)
   {
-    low = (u8)(pad_status.analogB);                          // All 8 bits
-    low |= (u32)((u8)(pad_status.analogA) << 8);             // All 8 bits
-    low |= (u32)((u8)(pad_status.triggerRight >> 4) << 16);  // Top 4 bits
-    low |= (u32)((u8)(pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
-    low |= (u32)((u8)pad_status.substickY << 24);            // Top 4 bits
-    low |= (u32)((u8)pad_status.substickX << 28);            // Top 4 bits
+    low = pad_status.analogB;                       // All 8 bits
+    low |= pad_status.analogA << 8;                 // All 8 bits
+    low |= ((pad_status.triggerRight >> 4) << 16);  // Top 4 bits
+    low |= ((pad_status.triggerLeft >> 4) << 20);   // Top 4 bits
+    low |= ((pad_status.substickY >> 4) << 24);     // Top 4 bits
+    low |= ((pad_status.substickX >> 4) << 28);     // Top 4 bits
   }
   else if (m_mode == 3)
   {
     // Analog A/B are always 0
-    low = (u8)pad_status.triggerRight;              // All 8 bits
-    low |= (u32)((u8)pad_status.triggerLeft << 8);  // All 8 bits
-    low |= (u32)((u8)pad_status.substickY << 16);   // All 8 bits
-    low |= (u32)((u8)pad_status.substickX << 24);   // All 8 bits
+    low = pad_status.triggerRight;         // All 8 bits
+    low |= (pad_status.triggerLeft << 8);  // All 8 bits
+    low |= (pad_status.substickY << 16);   // All 8 bits
+    low |= (pad_status.substickX << 24);   // All 8 bits
   }
   else if (m_mode == 4)
   {
-    low = (u8)(pad_status.analogB);               // All 8 bits
-    low |= (u32)((u8)(pad_status.analogA) << 8);  // All 8 bits
+    low = pad_status.analogB;        // All 8 bits
+    low |= pad_status.analogA << 8;  // All 8 bits
     // triggerLeft/Right are always 0
-    low |= (u32)((u8)pad_status.substickY << 16);  // All 8 bits
-    low |= (u32)((u8)pad_status.substickX << 24);  // All 8 bits
+    low |= pad_status.substickY << 16;  // All 8 bits
+    low |= pad_status.substickX << 24;  // All 8 bits
   }
-
-  // Unset all bits except those that represent
-  // A, B, X, Y, Start and the error bits, as they
-  // are not used.
-  if (m_simulate_konga)
-    hi &= ~0x20FFFFFF;
 
   return true;
 }
@@ -243,9 +231,9 @@ u32 CSIDevice_GCController::MapPadStatus(const GCPadStatus& pad_status)
 {
   // Thankfully changing mode does not change the high bits ;)
   u32 hi = 0;
-  hi = (u32)((u8)pad_status.stickY);
-  hi |= (u32)((u8)pad_status.stickX << 8);
-  hi |= (u32)((u16)(pad_status.button | PAD_USE_ORIGIN) << 16);
+  hi = pad_status.stickY;
+  hi |= pad_status.stickX << 8;
+  hi |= (pad_status.button | PAD_USE_ORIGIN) << 16;
   return hi;
 }
 
@@ -270,21 +258,18 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
 
   if (m_last_button_combo != COMBO_NONE)
   {
-    m_timer_button_combo = CoreTiming::GetTicks();
-    if ((m_timer_button_combo - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
+    const u64 current_time = CoreTiming::GetTicks();
+    if (u32(current_time - m_timer_button_combo_start) > SystemTimers::GetTicksPerSecond() * 3)
     {
       if (m_last_button_combo == COMBO_RESET)
       {
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_RESET");
         ProcessorInterface::ResetButton_Tap();
       }
       else if (m_last_button_combo == COMBO_ORIGIN)
       {
-        m_origin.origin_stick_x = pad_status.stickX;
-        m_origin.origin_stick_y = pad_status.stickY;
-        m_origin.substick_x = pad_status.substickX;
-        m_origin.substick_y = pad_status.substickY;
-        m_origin.trigger_left = pad_status.triggerLeft;
-        m_origin.trigger_right = pad_status.triggerRight;
+        INFO_LOG(SERIALINTERFACE, "PAD - COMBO_ORIGIN");
+        SetOrigin(pad_status);
       }
 
       m_last_button_combo = COMBO_NONE;
@@ -293,6 +278,16 @@ CSIDevice_GCController::HandleButtonCombos(const GCPadStatus& pad_status)
   }
 
   return COMBO_NONE;
+}
+
+void CSIDevice_GCController::SetOrigin(const GCPadStatus& pad_status)
+{
+  m_origin.origin_stick_x = pad_status.stickX;
+  m_origin.origin_stick_y = pad_status.stickY;
+  m_origin.substick_x = pad_status.substickX;
+  m_origin.substick_y = pad_status.substickY;
+  m_origin.trigger_left = pad_status.triggerLeft;
+  m_origin.trigger_right = pad_status.triggerRight;
 }
 
 // SendCommand
@@ -341,11 +336,26 @@ void CSIDevice_GCController::SendCommand(u32 command, u8 poll)
 // Savestate support
 void CSIDevice_GCController::DoState(PointerWrap& p)
 {
-  p.Do(m_calibrated);
   p.Do(m_origin);
   p.Do(m_mode);
   p.Do(m_timer_button_combo_start);
-  p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
+
+CSIDevice_TaruKonga::CSIDevice_TaruKonga(SIDevices device, int device_number)
+    : CSIDevice_GCController(device, device_number)
+{
+}
+
+bool CSIDevice_TaruKonga::GetData(u32& hi, u32& low)
+{
+  CSIDevice_GCController::GetData(hi, low);
+
+  // Unsets the first 16 bits (StickX/Y), PAD_USE_ORIGIN,
+  // and all buttons except: A, B, X, Y, Start, R
+  hi &= HI_BUTTON_MASK;
+
+  return true;
+}
+
 }  // namespace SerialInterface

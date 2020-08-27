@@ -24,7 +24,7 @@ QList<QPixmap> Resources::m_misc;
 
 QIcon Resources::GetIcon(const QString& name, const QString& dir)
 {
-  QString base_path = dir + QStringLiteral("/") + name;
+  QString base_path = dir + QLatin1Char{'/'} + name;
 
   const auto dpr = QGuiApplication::primaryScreen()->devicePixelRatio();
 

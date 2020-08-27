@@ -12,9 +12,7 @@
 
 // Arithmetic and accumulator control.
 
-namespace DSP
-{
-namespace Interpreter
+namespace DSP::Interpreter
 {
 // CLR $acR
 // 1000 r001 xxxx xxxx
@@ -772,7 +770,6 @@ void movr(const UDSPInstruction opc)
     break;
   }
   ax <<= 16;
-  ax &= ~0xffff;
 
   ZeroWriteBackLog();
 
@@ -1159,6 +1156,4 @@ void asrnr(const UDSPInstruction opc)
   dsp_set_long_acc(dreg, acc);
   Update_SR_Register64(dsp_get_long_acc(dreg));
 }
-
-}  // namespace Interpreter
-}  // namespace DSP
+}  // namespace DSP::Interpreter

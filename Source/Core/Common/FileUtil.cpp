@@ -42,6 +42,7 @@
 #include <CoreFoundation/CFBundle.h>
 #include <CoreFoundation/CFString.h>
 #include <CoreFoundation/CFURL.h>
+#include <mach-o/dyld.h>
 #include <sys/param.h>
 #endif
 
@@ -111,7 +112,7 @@ bool Exists(const std::string& path)
 bool IsDirectory(const std::string& path)
 {
 #ifdef _WIN32
-  return PathIsDirectory(UTF8ToUTF16(path).c_str());
+  return PathIsDirectory(UTF8ToWString(path).c_str());
 #else
   return FileInfo(path).IsDirectory();
 #endif
@@ -636,19 +637,21 @@ std::string CreateTempDir()
 #endif
 }
 
-std::string GetTempFilenameForAtomicWrite(const std::string& path)
+std::string GetTempFilenameForAtomicWrite(std::string path)
 {
-  std::string abs = path;
 #ifdef _WIN32
-  TCHAR absbuf[MAX_PATH];
-  if (_tfullpath(absbuf, UTF8ToTStr(path).c_str(), MAX_PATH) != nullptr)
-    abs = TStrToUTF8(absbuf);
+  std::unique_ptr<TCHAR[], decltype(&std::free)> absbuf{
+      _tfullpath(nullptr, UTF8ToTStr(path).c_str(), 0), std::free};
+  if (absbuf != nullptr)
+  {
+    path = TStrToUTF8(absbuf.get());
+  }
 #else
   char absbuf[PATH_MAX];
   if (realpath(path.c_str(), absbuf) != nullptr)
-    abs = absbuf;
+    path = absbuf;
 #endif
-  return abs + ".xxx";
+  return std::move(path) + ".xxx";
 }
 
 #if defined(__APPLE__)
@@ -669,18 +672,26 @@ std::string GetBundleDirectory()
 
 std::string GetExePath()
 {
-  static std::string dolphin_path;
-  if (dolphin_path.empty())
-  {
+  static const std::string dolphin_path = [] {
+    std::string result;
 #ifdef _WIN32
-    TCHAR dolphin_exe_path[2048];
-    TCHAR dolphin_exe_expanded_path[MAX_PATH];
-    GetModuleFileName(nullptr, dolphin_exe_path, ARRAYSIZE(dolphin_exe_path));
-    if (_tfullpath(dolphin_exe_expanded_path, dolphin_exe_path,
-                   ARRAYSIZE(dolphin_exe_expanded_path)) != nullptr)
-      dolphin_path = TStrToUTF8(dolphin_exe_expanded_path);
-    else
-      dolphin_path = TStrToUTF8(dolphin_exe_path);
+    auto dolphin_exe_path = GetModuleName(nullptr);
+    if (dolphin_exe_path)
+    {
+      std::unique_ptr<TCHAR[], decltype(&std::free)> dolphin_exe_expanded_path{
+          _tfullpath(nullptr, dolphin_exe_path->c_str(), 0), std::free};
+      if (dolphin_exe_expanded_path)
+      {
+        result = TStrToUTF8(dolphin_exe_expanded_path.get());
+      }
+      else
+      {
+        result = TStrToUTF8(*dolphin_exe_path);
+      }
+    }
+#elif defined(__APPLE__)
+    result = GetBundleDirectory();
+    result = result.substr(0, result.find_last_of("Dolphin.app/Contents/MacOS") + 1);
 #else
     char dolphin_exe_path[PATH_MAX];
     ssize_t len = ::readlink("/proc/self/exe", dolphin_exe_path, sizeof(dolphin_exe_path));
@@ -689,9 +700,10 @@ std::string GetExePath()
       len = 0;
     }
     dolphin_exe_path[len] = '\0';
-    dolphin_path = dolphin_exe_path;
+    result = dolphin_exe_path;
 #endif
-  }
+    return result;
+  }();
   return dolphin_path;
 }
 
@@ -745,6 +757,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_GAMESETTINGS_IDX] = s_user_paths[D_USER_IDX] + GAMESETTINGS_DIR DIR_SEP;
     s_user_paths[D_MAPS_IDX] = s_user_paths[D_USER_IDX] + MAPS_DIR DIR_SEP;
     s_user_paths[D_CACHE_IDX] = s_user_paths[D_USER_IDX] + CACHE_DIR DIR_SEP;
+    s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
+    s_user_paths[D_REDUMPCACHE_IDX] = s_user_paths[D_CACHE_IDX] + REDUMPCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERS_IDX] = s_user_paths[D_USER_IDX] + SHADERS_DIR DIR_SEP;
     s_user_paths[D_STATESAVES_IDX] = s_user_paths[D_USER_IDX] + STATESAVES_DIR DIR_SEP;
@@ -765,6 +779,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
     s_user_paths[D_WFSROOT_IDX] = s_user_paths[D_USER_IDX] + WFSROOT_DIR DIR_SEP;
     s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
+    s_user_paths[D_RESOURCEPACK_IDX] = s_user_paths[D_USER_IDX] + RESOURCEPACK_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
     s_user_paths[F_GCPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GCPAD_CONFIG;
     s_user_paths[F_WIIPADCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + WIIPAD_CONFIG;
@@ -772,8 +787,11 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_GFXCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + GFX_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
+    s_user_paths[F_DUALSHOCKUDPCLIENTCONFIG_IDX] =
+        s_user_paths[D_CONFIG_IDX] + DUALSHOCKUDPCLIENT_CONFIG;
     s_user_paths[F_MAINLOG_IDX] = s_user_paths[D_LOGS_IDX] + MAIN_LOG;
-    s_user_paths[F_RAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
+    s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
+    s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
@@ -800,6 +818,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     break;
 
   case D_CACHE_IDX:
+    s_user_paths[D_COVERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + COVERCACHE_DIR DIR_SEP;
+    s_user_paths[D_REDUMPCACHE_IDX] = s_user_paths[D_CACHE_IDX] + REDUMPCACHE_DIR DIR_SEP;
     s_user_paths[D_SHADERCACHE_IDX] = s_user_paths[D_CACHE_IDX] + SHADERCACHE_DIR DIR_SEP;
     break;
 
@@ -814,7 +834,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_DUMPTEXTURES_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_TEXTURES_DIR DIR_SEP;
     s_user_paths[D_DUMPDSP_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_DSP_DIR DIR_SEP;
     s_user_paths[D_DUMPSSL_IDX] = s_user_paths[D_DUMP_IDX] + DUMP_SSL_DIR DIR_SEP;
-    s_user_paths[F_RAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + RAM_DUMP;
+    s_user_paths[F_MEM1DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM1_DUMP;
+    s_user_paths[F_MEM2DUMP_IDX] = s_user_paths[D_DUMP_IDX] + MEM2_DUMP;
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     break;
@@ -863,7 +884,7 @@ std::string GetThemeDir(const std::string& theme_name)
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
-bool WriteStringToFile(const std::string& str, const std::string& filename)
+bool WriteStringToFile(const std::string& filename, std::string_view str)
 {
   return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
 }
@@ -876,7 +897,7 @@ bool ReadFileToString(const std::string& filename, std::string& str)
     return false;
 
   str.resize(file.GetSize());
-  return file.ReadArray(&str[0], str.size());
+  return file.ReadArray(str.data(), str.size());
 }
 
 }  // namespace File

@@ -18,9 +18,10 @@ class Host final : public QObject
   Q_OBJECT
 
 public:
+  ~Host();
+
   static Host* GetInstance();
 
-  void* GetRenderHandle();
   bool GetRenderFocus();
   bool GetRenderFullscreen();
 
@@ -34,7 +35,6 @@ signals:
   void RequestTitle(const QString& title);
   void RequestStop();
   void RequestRenderSize(int w, int h);
-  void UpdateProgressDialog(QString label, int position, int maximum);
   void UpdateDisasmDialog();
   void NotifyMapLoaded();
 

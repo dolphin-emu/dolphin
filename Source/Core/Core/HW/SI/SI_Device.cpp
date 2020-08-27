@@ -4,12 +4,16 @@
 
 #include "Core/HW/SI/SI_Device.h"
 
+#include <istream>
 #include <memory>
+#include <ostream>
 #include <string>
+#include <type_traits>
+
+#include <fmt/format.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/HW/SI/SI_DeviceDanceMat.h"
 #include "Core/HW/SI/SI_DeviceGBA.h"
 #include "Core/HW/SI/SI_DeviceGCAdapter.h"
@@ -20,6 +24,28 @@
 
 namespace SerialInterface
 {
+std::ostream& operator<<(std::ostream& stream, SIDevices device)
+{
+  stream << static_cast<std::underlying_type_t<SIDevices>>(device);
+  return stream;
+}
+
+std::istream& operator>>(std::istream& stream, SIDevices& device)
+{
+  std::underlying_type_t<SIDevices> value;
+
+  if (stream >> value)
+  {
+    device = static_cast<SIDevices>(value);
+  }
+  else
+  {
+    device = SIDevices::SIDEVICE_NONE;
+  }
+
+  return stream;
+}
+
 ISIDevice::ISIDevice(SIDevices device_type, int device_number)
     : m_device_number(device_number), m_device_type(device_type)
 {
@@ -37,17 +63,18 @@ SIDevices ISIDevice::GetDeviceType() const
   return m_device_type;
 }
 
-int ISIDevice::RunBuffer(u8* buffer, int length)
+int ISIDevice::RunBuffer(u8* buffer, int request_length)
 {
 #ifdef _DEBUG
-  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number, length);
+  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number,
+            request_length);
 
   std::string temp;
   int num = 0;
 
-  while (num < length)
+  while (num < request_length)
   {
-    temp += StringFromFormat("0x%02x ", buffer[num ^ 3]);
+    temp += fmt::format("0x{:02x} ", buffer[num]);
     num++;
 
     if ((num % 8) == 0)

@@ -9,6 +9,8 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/BPStructs.h"
 
+enum class AbstractTextureFormat : u32;
+
 enum class PrimitiveType : u32
 {
   Points,
@@ -32,6 +34,20 @@ union RasterizationState
   u32 hex;
 };
 
+union FramebufferState
+{
+  BitField<0, 8, AbstractTextureFormat> color_texture_format;
+  BitField<8, 8, AbstractTextureFormat> depth_texture_format;
+  BitField<16, 8, u32> samples;
+  BitField<24, 1, u32> per_sample_shading;
+
+  bool operator==(const FramebufferState& rhs) const { return hex == rhs.hex; }
+  bool operator!=(const FramebufferState& rhs) const { return hex != rhs.hex; }
+  FramebufferState& operator=(const FramebufferState& rhs);
+
+  u32 hex;
+};
+
 union DepthState
 {
   void Generate(const BPMemory& bp);
@@ -51,6 +67,10 @@ union DepthState
 union BlendingState
 {
   void Generate(const BPMemory& bp);
+
+  // HACK: Replaces logical operations with blend operations.
+  // Will not be bit-correct, and in some cases not even remotely in the same ballpark.
+  void ApproximateLogicOpWithBlending();
 
   BlendingState& operator=(const BlendingState& rhs);
 
@@ -113,9 +133,18 @@ union SamplerState
 
 namespace RenderState
 {
-RasterizationState GetNoCullRasterizationState();
-DepthState GetNoDepthTestingDepthStencilState();
+RasterizationState GetInvalidRasterizationState();
+RasterizationState GetNoCullRasterizationState(PrimitiveType primitive);
+RasterizationState GetCullBackFaceRasterizationState(PrimitiveType primitive);
+DepthState GetInvalidDepthState();
+DepthState GetNoDepthTestingDepthState();
+DepthState GetAlwaysWriteDepthState();
+BlendingState GetInvalidBlendingState();
 BlendingState GetNoBlendingBlendState();
+BlendingState GetNoColorWriteBlendState();
+SamplerState GetInvalidSamplerState();
 SamplerState GetPointSamplerState();
 SamplerState GetLinearSamplerState();
-}
+FramebufferState GetColorFramebufferState(AbstractTextureFormat format);
+FramebufferState GetRGBA8FramebufferState();
+}  // namespace RenderState

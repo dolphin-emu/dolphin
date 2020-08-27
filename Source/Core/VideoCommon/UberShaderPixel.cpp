@@ -3,10 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/UberShaderPixel.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/UberShaderCommon.h"
+#include "VideoCommon/VideoCommon.h"
+#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
 namespace UberShader
@@ -14,8 +19,8 @@ namespace UberShader
 PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
-  pixel_ubershader_uid_data* uid_data = out.GetUidData<pixel_ubershader_uid_data>();
-  memset(uid_data, 0, sizeof(*uid_data));
+
+  pixel_ubershader_uid_data* const uid_data = out.GetUidData();
   uid_data->num_texgens = xfmem.numTexGen.numTexGens;
   uid_data->early_depth =
       bpmem.UseEarlyDepthTest() &&
@@ -26,13 +31,14 @@ PixelShaderUid GetPixelShaderUid()
       (!g_ActiveConfig.bFastDepthCalc && bpmem.zmode.testenable && !uid_data->early_depth) ||
       (bpmem.zmode.testenable && bpmem.genMode.zfreeze);
   uid_data->uint_output = bpmem.blendmode.UseLogicOp();
+
   return out;
 }
 
 void ClearUnusedPixelShaderUidBits(APIType ApiType, const ShaderHostConfig& host_config,
                                    PixelShaderUid* uid)
 {
-  pixel_ubershader_uid_data* uid_data = uid->GetUidData<pixel_ubershader_uid_data>();
+  pixel_ubershader_uid_data* const uid_data = uid->GetUidData();
 
   // OpenGL and Vulkan convert implicitly normalized color outputs to their uint representation.
   // Therefore, it is not necessary to use a uint output on these backends. We also disable the
@@ -52,14 +58,13 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
   const bool use_shader_blend = !use_dual_source && host_config.backend_shader_framebuffer_fetch;
   const bool early_depth = uid_data->early_depth != 0;
   const bool per_pixel_depth = uid_data->per_pixel_depth != 0;
-  const bool bounding_box =
-      host_config.bounding_box && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
+  const bool bounding_box = host_config.bounding_box;
   const u32 numTexgen = uid_data->num_texgens;
   ShaderCode out;
 
   out.Write("// Pixel UberShader for %u texgens%s%s\n", numTexgen,
             early_depth ? ", early-depth" : "", per_pixel_depth ? ", per-pixel depth" : "");
-  WritePixelShaderCommonHeader(out, ApiType, numTexgen, per_pixel_lighting, bounding_box);
+  WritePixelShaderCommonHeader(out, ApiType, numTexgen, host_config, bounding_box);
   WriteUberShaderCommonHeader(out, ApiType, host_config);
   if (per_pixel_lighting)
     WriteLightingFunction(out);
@@ -103,10 +108,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     if (per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    if (host_config.backend_geometry_shaders || ApiType == APIType::Vulkan)
+    if (host_config.backend_geometry_shaders)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
-      GenerateVSOutputMembers(out, ApiType, numTexgen, per_pixel_lighting,
+      GenerateVSOutputMembers(out, ApiType, numTexgen, host_config,
                               GetInterpolationQualifier(msaa, ssaa, true, true));
 
       if (stereo)
@@ -116,17 +121,26 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     }
     else
     {
-      out.Write("%s in float4 colors_0;\n", GetInterpolationQualifier(msaa, ssaa));
-      out.Write("%s in float4 colors_1;\n", GetInterpolationQualifier(msaa, ssaa));
-      // compute window position if needed because binding semantic WPOS is not widely supported
       // Let's set up attributes
-      for (u32 i = 0; i < numTexgen; ++i)
-        out.Write("%s in float3 tex%d;\n", GetInterpolationQualifier(msaa, ssaa), i);
-      out.Write("%s in float4 clipPos;\n", GetInterpolationQualifier(msaa, ssaa));
+      u32 counter = 0;
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_0;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      out.Write("VARYING_LOCATION(%u) %s in float4 colors_1;\n", counter++,
+                GetInterpolationQualifier(msaa, ssaa));
+      for (unsigned int i = 0; i < numTexgen; ++i)
+      {
+        out.Write("VARYING_LOCATION(%u) %s in float3 tex%d;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa), i);
+      }
+      if (!host_config.fast_depth_calc)
+        out.Write("VARYING_LOCATION(%u) %s in float4 clipPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       if (per_pixel_lighting)
       {
-        out.Write("%s in float3 Normal;\n", GetInterpolationQualifier(msaa, ssaa));
-        out.Write("%s in float3 WorldPos;\n", GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 Normal;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
+        out.Write("VARYING_LOCATION(%u) %s in float3 WorldPos;\n", counter++,
+                  GetInterpolationQualifier(msaa, ssaa));
       }
     }
   }
@@ -709,8 +723,11 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     for (u32 i = 0; i < numTexgen; ++i)
       out.Write(",\n  in %s float3 tex%u : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa), i,
                 i);
-    out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
-              numTexgen);
+    if (!host_config.fast_depth_calc)
+    {
+      out.Write("\n,\n  in %s float4 clipPos : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
+                numTexgen);
+    }
     if (per_pixel_lighting)
     {
       out.Write(",\n  in %s float3 Normal : TEXCOORD%u", GetInterpolationQualifier(msaa, ssaa),
@@ -1046,7 +1063,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (host_config.fast_depth_calc)
   {
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  int zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("  int zCoord = int(rawpos.z * 16777216.0);\n");
@@ -1101,7 +1118,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
     out.Write("  // If early depth is enabled, write to zbuffer before depth textures\n");
     out.Write("  // If early depth isn't enabled, we write to the zbuffer here\n");
     out.Write("  int zbuffer_zCoord = bpmem_late_ztest ? zCoord : early_zCoord;\n");
-    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+    if (!host_config.backend_reversed_depth_range)
       out.Write("  depth = 1.0 - float(zbuffer_zCoord) / 16777216.0;\n");
     else
       out.Write("  depth = float(zbuffer_zCoord) / 16777216.0;\n");
@@ -1171,7 +1188,7 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
             "      // ze *= x_adjust\n"
             "      float offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
             "      float floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
-            "      uint indexlower = uint(floor(floatindex));\n"
+            "      uint indexlower = uint(floatindex);\n"
             "      uint indexupper = indexlower + 1u;\n"
             "      float klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
             "      float kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
@@ -1239,18 +1256,9 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 
   if (bounding_box)
   {
-    const char* atomic_op =
-        (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) ? "atomic" : "Interlocked";
-    out.Write("  if (bpmem_bounding_box) {\n");
-    out.Write("    if(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n",
-              atomic_op);
-    out.Write("    if(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
-              atomic_op);
-    out.Write("  }\n");
+    out.Write("  if (bpmem_bounding_box) {\n"
+              "    UpdateBoundingBox(rawpos.xy);\n"
+              "  }\n");
   }
 
   if (use_shader_blend)
@@ -1388,11 +1396,10 @@ ShaderCode GenPixelShader(APIType ApiType, const ShaderHostConfig& host_config,
 void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& callback)
 {
   PixelShaderUid uid;
-  std::memset(&uid, 0, sizeof(uid));
 
   for (u32 texgens = 0; texgens <= 8; texgens++)
   {
-    auto* puid = uid.GetUidData<UberShader::pixel_ubershader_uid_data>();
+    pixel_ubershader_uid_data* const puid = uid.GetUidData();
     puid->num_texgens = texgens;
 
     for (u32 early_depth = 0; early_depth < 2; early_depth++)
@@ -1414,4 +1421,4 @@ void EnumeratePixelShaderUids(const std::function<void(const PixelShaderUid&)>& 
     }
   }
 }
-}
+}  // namespace UberShader

@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -40,19 +40,29 @@ namespace sf
 ////////////////////////////////////////////////////////////
 class SFML_SYSTEM_API NonCopyable
 {
-protected :
+protected:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
     ///
     /// Because this class has a copy constructor, the compiler
     /// will not automatically generate the default constructor.
-    /// That's why we must define it explicitely.
+    /// That's why we must define it explicitly.
     ///
     ////////////////////////////////////////////////////////////
     NonCopyable() {}
+    
+    ////////////////////////////////////////////////////////////
+    /// \brief Default destructor
+    ///
+    /// By declaring a protected destructor it's impossible to
+    /// call delete on a pointer of sf::NonCopyable, thus
+    /// preventing possible resource leaks.
+    ///
+    ////////////////////////////////////////////////////////////
+    ~NonCopyable() {}
 
-private :
+private:
 
     ////////////////////////////////////////////////////////////
     /// \brief Disabled copy constructor
@@ -89,7 +99,7 @@ private :
 /// \class sf::NonCopyable
 /// \ingroup system
 ///
-/// This class makes its instances non-copyable, by explicitely
+/// This class makes its instances non-copyable, by explicitly
 /// disabling its copy constructor and its assignment operator.
 ///
 /// To create a non-copyable class, simply inherit from

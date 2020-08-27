@@ -120,10 +120,8 @@ struct OpArg
   }
   constexpr bool operator==(const OpArg& b) const
   {
-    // TODO: Use std::tie here once Dolphin requires C++17. (We can't do it immediately,
-    // (because we still support some older versions of GCC where std::tie is not constexpr.)
-    return operandReg == b.operandReg && scale == b.scale && offsetOrBaseReg == b.offsetOrBaseReg &&
-           indexReg == b.indexReg && offset == b.offset;
+    return std::tie(scale, offsetOrBaseReg, indexReg, offset, operandReg) ==
+           std::tie(b.scale, b.offsetOrBaseReg, b.indexReg, b.offset, b.operandReg);
   }
   constexpr bool operator!=(const OpArg& b) const { return !operator==(b); }
   u64 Imm64() const
@@ -314,11 +312,6 @@ inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
 
   return (u32)distance;
 }
-
-// usage: int a[]; ARRAY_OFFSET(a,10)
-#define ARRAY_OFFSET(array, index) ((u32)((u64) & (array)[index] - (u64) & (array)[0]))
-// usage: struct {int e;} s; STRUCT_OFFSET(s,e)
-#define STRUCT_OFFSET(str, elem) ((u32)((u64) & (str).elem - (u64) & (str)))
 
 struct FixupBranch
 {
@@ -847,6 +840,14 @@ public:
   void BLENDPD(X64Reg dest, const OpArg& arg, u8 blend);
 
   // AVX
+  void VADDSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VSUBSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VMULSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VDIVSS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VADDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VSUBPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VMULPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VDIVPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VADDSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VSUBSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VMULSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
@@ -857,10 +858,14 @@ public:
   void VDIVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VSQRTSD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VCMPPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 compare);
+  void VSHUFPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 shuffle);
   void VSHUFPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 shuffle);
+  void VUNPCKLPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VUNPCKLPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VUNPCKHPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VBLENDVPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, X64Reg mask);
+  void VBLENDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 blend);
+  void VBLENDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg, u8 blend);
 
   void VANDPS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VANDPD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
@@ -1165,4 +1170,4 @@ private:
   }
 };
 
-}  // namespace
+}  // namespace Gen

@@ -8,6 +8,7 @@
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 struct GCPadStatus;
 
@@ -16,7 +17,7 @@ namespace ControllerEmu
 class AnalogStick;
 class Buttons;
 class MixedTriggers;
-}
+}  // namespace ControllerEmu
 
 enum class PadGroup
 {
@@ -45,6 +46,10 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
+  // Values averaged from multiple genuine GameCube controllers.
+  static constexpr ControlState MAIN_STICK_GATE_RADIUS = 0.7937125;
+  static constexpr ControlState C_STICK_GATE_RADIUS = 0.7221375;
+
 private:
   ControllerEmu::Buttons* m_buttons;
   ControllerEmu::AnalogStick* m_main_stick;
@@ -54,10 +59,8 @@ private:
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Buttons* m_mic;
   ControllerEmu::ControlGroup* m_options;
-  ControllerEmu::BooleanSetting* m_always_connected;
+
+  ControllerEmu::SettingValue<bool> m_always_connected_setting;
 
   const unsigned int m_index;
-
-  // Default analog stick radius for GameCube controllers.
-  static constexpr ControlState DEFAULT_PAD_STICK_RADIUS = 1.0;
 };

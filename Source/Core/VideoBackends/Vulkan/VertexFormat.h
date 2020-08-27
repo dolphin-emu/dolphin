@@ -14,7 +14,7 @@ namespace Vulkan
 class VertexFormat : public ::NativeVertexFormat
 {
 public:
-  VertexFormat(const PortableVertexDeclaration& in_vtx_decl);
+  VertexFormat(const PortableVertexDeclaration& vtx_decl);
 
   // Passed to pipeline state creation
   const VkPipelineVertexInputStateCreateInfo& GetVertexInputStateInfo() const;
@@ -35,4 +35,4 @@ private:
 
   uint32_t m_num_attributes = 0;
 };
-}
+}  // namespace Vulkan

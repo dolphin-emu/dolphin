@@ -8,7 +8,6 @@
 #include <future>
 
 #include <QCloseEvent>
-#include <QMessageBox>
 #include <QObject>
 #include <QProgressDialog>
 #include <QPushButton>
@@ -21,6 +20,7 @@
 
 #include "DiscIO/NANDImporter.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 namespace WiiUpdate
@@ -30,47 +30,48 @@ static void ShowResult(QWidget* parent, WiiUtils::UpdateResult result)
   switch (result)
   {
   case WiiUtils::UpdateResult::Succeeded:
-    QMessageBox::information(parent, QObject::tr("Update completed"),
-                             QObject::tr("The emulated Wii console has been updated."));
+    ModalMessageBox::information(parent, QObject::tr("Update completed"),
+                                 QObject::tr("The emulated Wii console has been updated."));
     DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
     break;
   case WiiUtils::UpdateResult::AlreadyUpToDate:
-    QMessageBox::information(parent, QObject::tr("Update completed"),
-                             QObject::tr("The emulated Wii console is already up-to-date."));
+    ModalMessageBox::information(parent, QObject::tr("Update completed"),
+                                 QObject::tr("The emulated Wii console is already up-to-date."));
     DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
     break;
   case WiiUtils::UpdateResult::ServerFailed:
-    QMessageBox::critical(parent, QObject::tr("Update failed"),
-                          QObject::tr("Could not download update information from Nintendo. "
-                                      "Please check your Internet connection and try again."));
+    ModalMessageBox::critical(parent, QObject::tr("Update failed"),
+                              QObject::tr("Could not download update information from Nintendo. "
+                                          "Please check your Internet connection and try again."));
     break;
   case WiiUtils::UpdateResult::DownloadFailed:
-    QMessageBox::critical(parent, QObject::tr("Update failed"),
-                          QObject::tr("Could not download update files from Nintendo. "
-                                      "Please check your Internet connection and try again."));
+    ModalMessageBox::critical(parent, QObject::tr("Update failed"),
+                              QObject::tr("Could not download update files from Nintendo. "
+                                          "Please check your Internet connection and try again."));
     break;
   case WiiUtils::UpdateResult::ImportFailed:
-    QMessageBox::critical(parent, QObject::tr("Update failed"),
-                          QObject::tr("Could not install an update to the Wii system memory. "
-                                      "Please refer to logs for more information."));
+    ModalMessageBox::critical(parent, QObject::tr("Update failed"),
+                              QObject::tr("Could not install an update to the Wii system memory. "
+                                          "Please refer to logs for more information."));
     break;
   case WiiUtils::UpdateResult::Cancelled:
-    QMessageBox::warning(
+    ModalMessageBox::warning(
         parent, QObject::tr("Update cancelled"),
         QObject::tr("The update has been cancelled. It is strongly recommended to "
                     "finish it in order to avoid inconsistent system software versions."));
     break;
   case WiiUtils::UpdateResult::RegionMismatch:
-    QMessageBox::critical(parent, QObject::tr("Update failed"),
-                          QObject::tr("The game's region does not match your console's. "
-                                      "To avoid issues with the system menu, it is not possible "
-                                      "to update the emulated console using this disc."));
+    ModalMessageBox::critical(
+        parent, QObject::tr("Update failed"),
+        QObject::tr("The game's region does not match your console's. "
+                    "To avoid issues with the system menu, it is not possible "
+                    "to update the emulated console using this disc."));
     break;
   case WiiUtils::UpdateResult::MissingUpdatePartition:
   case WiiUtils::UpdateResult::DiscReadFailed:
-    QMessageBox::critical(parent, QObject::tr("Update failed"),
-                          QObject::tr("The game disc does not contain any usable "
-                                      "update information."));
+    ModalMessageBox::critical(parent, QObject::tr("Update failed"),
+                              QObject::tr("The game disc does not contain any usable "
+                                          "update information."));
     break;
   }
 }
@@ -133,7 +134,7 @@ static WiiUtils::UpdateResult ShowProgress(QWidget* parent, Callable function, A
 
 void PerformOnlineUpdate(const std::string& region, QWidget* parent)
 {
-  const int confirm = QMessageBox::question(
+  const int confirm = ModalMessageBox::question(
       parent, QObject::tr("Confirm"),
       QObject::tr("Connect to the Internet and perform an online system update?"));
   if (confirm != QMessageBox::Yes)

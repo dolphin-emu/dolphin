@@ -6,8 +6,9 @@
 
 #include <chrono>
 #include <memory>
-#include <mutex>
+#include <shared_mutex>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
@@ -46,7 +47,7 @@ namespace Common
 class AnalyticsReportingBackend
 {
 public:
-  virtual ~AnalyticsReportingBackend() {}
+  virtual ~AnalyticsReportingBackend() = default;
   // Called from the AnalyticsReporter backend thread.
   virtual void Send(std::string report) = 0;
 };
@@ -58,20 +59,16 @@ public:
   AnalyticsReportBuilder();
   ~AnalyticsReportBuilder() = default;
 
-  AnalyticsReportBuilder(const AnalyticsReportBuilder& other) { *this = other; }
-  AnalyticsReportBuilder(AnalyticsReportBuilder&& other)
-  {
-    std::lock_guard<std::mutex> lk(other.m_lock);
-    m_report = std::move(other.m_report);
-  }
+  AnalyticsReportBuilder(const AnalyticsReportBuilder& other) : m_report{other.Get()} {}
+  AnalyticsReportBuilder(AnalyticsReportBuilder&& other) : m_report{other.Consume()} {}
 
   const AnalyticsReportBuilder& operator=(const AnalyticsReportBuilder& other)
   {
     if (this != &other)
     {
-      std::lock_guard<std::mutex> lk(m_lock);
-      std::lock_guard<std::mutex> lk2(other.m_lock);
-      m_report = other.m_report;
+      std::string other_report = other.Get();
+      std::lock_guard lk{m_lock};
+      m_report = std::move(other_report);
     }
     return *this;
   }
@@ -81,35 +78,44 @@ public:
   {
     // Get before locking the object to avoid deadlocks with this += this.
     std::string other_report = other.Get();
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     m_report += other_report;
     return *this;
   }
 
   template <typename T>
-  AnalyticsReportBuilder& AddData(const std::string& key, const T& value)
+  AnalyticsReportBuilder& AddData(std::string_view key, const T& value)
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     AppendSerializedValue(&m_report, key);
     AppendSerializedValue(&m_report, value);
     return *this;
   }
 
+  template <typename T>
+  AnalyticsReportBuilder& AddData(std::string_view key, const std::vector<T>& value)
+  {
+    std::lock_guard lk{m_lock};
+    AppendSerializedValue(&m_report, key);
+    AppendSerializedValueVector(&m_report, value);
+    return *this;
+  }
+
   std::string Get() const
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::shared_lock lk{m_lock};
     return m_report;
   }
 
   // More efficient version of Get().
   std::string Consume()
   {
-    std::lock_guard<std::mutex> lk(m_lock);
+    std::lock_guard lk{m_lock};
     return std::move(m_report);
   }
 
 protected:
-  static void AppendSerializedValue(std::string* report, const std::string& v);
+  static void AppendSerializedValue(std::string* report, std::string_view v);
   static void AppendSerializedValue(std::string* report, const char* v);
   static void AppendSerializedValue(std::string* report, bool v);
   static void AppendSerializedValue(std::string* report, u64 v);
@@ -118,8 +124,9 @@ protected:
   static void AppendSerializedValue(std::string* report, s32 v);
   static void AppendSerializedValue(std::string* report, float v);
 
-  // Should really be a std::shared_mutex, unfortunately that's C++17 only.
-  mutable std::mutex m_lock;
+  static void AppendSerializedValueVector(std::string* report, const std::vector<u32>& v);
+
+  mutable std::shared_mutex m_lock;
   std::string m_report;
 };
 
@@ -174,7 +181,7 @@ public:
 class HttpAnalyticsBackend : public AnalyticsReportingBackend
 {
 public:
-  HttpAnalyticsBackend(const std::string& endpoint);
+  explicit HttpAnalyticsBackend(std::string endpoint);
   ~HttpAnalyticsBackend() override;
 
   void Send(std::string report) override;
@@ -183,5 +190,4 @@ protected:
   std::string m_endpoint;
   HttpRequest m_http{std::chrono::seconds{5}};
 };
-
 }  // namespace Common

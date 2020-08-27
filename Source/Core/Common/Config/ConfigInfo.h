@@ -18,36 +18,36 @@ template <typename T>
 using UnderlyingType = typename std::enable_if_t<std::is_enum<T>{}, std::underlying_type<T>>::type;
 }  // namespace detail
 
-struct ConfigLocation
+struct Location
 {
   System system;
   std::string section;
   std::string key;
 
-  bool operator==(const ConfigLocation& other) const;
-  bool operator!=(const ConfigLocation& other) const;
-  bool operator<(const ConfigLocation& other) const;
+  bool operator==(const Location& other) const;
+  bool operator!=(const Location& other) const;
+  bool operator<(const Location& other) const;
 };
 
 template <typename T>
-struct ConfigInfo
+struct Info
 {
-  ConfigInfo(const ConfigLocation& location_, const T& default_value_)
+  Info(const Location& location_, const T& default_value_)
       : location{location_}, default_value{default_value_}
   {
   }
 
-  // Make it easy to convert ConfigInfo<Enum> into ConfigInfo<UnderlyingType<Enum>>
+  // Make it easy to convert Info<Enum> into Info<UnderlyingType<Enum>>
   // so that enum settings can still easily work with code that doesn't care about the enum values.
   template <typename Enum,
             std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
-  ConfigInfo(const ConfigInfo<Enum>& other)
+  Info(const Info<Enum>& other)
       : location{other.location}, default_value{static_cast<detail::UnderlyingType<Enum>>(
                                       other.default_value)}
   {
   }
 
-  ConfigLocation location;
+  Location location;
   T default_value;
 };
-}
+}  // namespace Config

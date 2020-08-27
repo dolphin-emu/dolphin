@@ -11,6 +11,8 @@
 #include <QTabWidget>
 #include <QVBoxLayout>
 
+#include "Common/Config/Config.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 
 #include "DolphinQt/Config/Graphics/AdvancedWidget.h"
@@ -27,26 +29,12 @@
 GraphicsWindow::GraphicsWindow(X11Utils::XRRConfiguration* xrr_config, MainWindow* parent)
     : QDialog(parent), m_xrr_config(xrr_config)
 {
-  // GraphicsWindow initialization is heavy due to dependencies on the graphics subsystem.
-  // To prevent blocking startup, we create the layout and children at first show time.
-}
-
-void GraphicsWindow::Initialize()
-{
-  if (m_lazy_initialized)
-    return;
-
-  m_lazy_initialized = true;
-
-  g_Config.Refresh();
-  g_video_backend->InitBackendInfo();
-
   CreateMainLayout();
 
   setWindowTitle(tr("Graphics"));
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
-  OnBackendChanged(QString::fromStdString(SConfig::GetInstance().m_strVideoBackend));
+  OnBackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
 }
 
 void GraphicsWindow::CreateMainLayout()
@@ -91,7 +79,7 @@ void GraphicsWindow::CreateMainLayout()
   m_wrapped_advanced = GetWrappedWidget(m_advanced_widget, this, 50, 305);
   m_wrapped_software = GetWrappedWidget(m_software_renderer, this, 50, 305);
 
-  if (SConfig::GetInstance().m_strVideoBackend != "Software Renderer")
+  if (Config::Get(Config::MAIN_GFX_BACKEND) != "Software Renderer")
   {
     m_tab_widget->addTab(m_wrapped_general, tr("General"));
     m_tab_widget->addTab(m_wrapped_enhancements, tr("Enhancements"));
@@ -108,19 +96,8 @@ void GraphicsWindow::CreateMainLayout()
 
 void GraphicsWindow::OnBackendChanged(const QString& backend_name)
 {
-  SConfig::GetInstance().m_strVideoBackend = backend_name.toStdString();
-
-  for (const auto& backend : g_available_video_backends)
-  {
-    if (backend->GetName() == backend_name.toStdString())
-    {
-      g_Config.Refresh();
-
-      g_video_backend = backend.get();
-      g_video_backend->InitBackendInfo();
-      break;
-    }
-  }
+  Config::SetBase(Config::MAIN_GFX_BACKEND, backend_name.toStdString());
+  VideoBackendBase::PopulateBackendInfoFromUI();
 
   setWindowTitle(
       tr("%1 Graphics Configuration").arg(tr(g_video_backend->GetDisplayName().c_str())));

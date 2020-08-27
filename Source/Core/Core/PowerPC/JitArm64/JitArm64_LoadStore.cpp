@@ -121,7 +121,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (is_immediate)
     mmio_address = PowerPC::IsOptimizableMMIOAccess(imm_addr, access_size);
 
-  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     EmitBackpatchRoutine(flags, true, false, dest_reg, XA, BitSet32(0), BitSet32(0));
   }
@@ -256,7 +256,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(gather_pipe_ptr));
     js.fifoBytesSinceCheck += accessSize >> 3;
   }
-  else if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  else if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     MOVI2R(XA, imm_addr);
     EmitBackpatchRoutine(flags, true, false, RS, XA, BitSet32(0), BitSet32(0));
@@ -346,37 +346,6 @@ void JitArm64::lXX(UGeckoInstruction inst)
   }
 
   SafeLoadToReg(d, update ? a : (a ? a : -1), offsetReg, flags, offset, update);
-
-  // LWZ idle skipping
-  if (inst.OPCD == 32 && CanMergeNextInstructions(2) &&
-      (inst.hex & 0xFFFF0000) == 0x800D0000 &&  // lwz r0, XXXX(r13)
-      (js.op[1].inst.hex == 0x28000000 ||
-       (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0
-      js.op[2].inst.hex == 0x4182fff8)                                       // beq -8
-  {
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
-
-    // if it's still 0, we can wait until the next event
-    FixupBranch noIdle = CBNZ(gpr.R(d));
-
-    FixupBranch far = B();
-    SwitchToFarCode();
-    SetJumpTarget(far);
-
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
-
-    MOVP2R(XA, &CoreTiming::Idle);
-    BLR(XA);
-    gpr.Unlock(WA);
-
-    WriteExceptionExit(js.compilerPC);
-
-    SwitchToNearCode();
-
-    SetJumpTarget(noIdle);
-  }
 }
 
 void JitArm64::stX(UGeckoInstruction inst)
@@ -397,18 +366,21 @@ void JitArm64::stX(UGeckoInstruction inst)
     {
     case 183:  // stwux
       update = true;
+      [[fallthrough]];
     case 151:  // stwx
       flags |= BackPatchInfo::FLAG_SIZE_32;
       regOffset = b;
       break;
     case 247:  // stbux
       update = true;
+      [[fallthrough]];
     case 215:  // stbx
       flags |= BackPatchInfo::FLAG_SIZE_8;
       regOffset = b;
       break;
     case 439:  // sthux
       update = true;
+      [[fallthrough]];
     case 407:  // sthx
       flags |= BackPatchInfo::FLAG_SIZE_16;
       regOffset = b;
@@ -422,11 +394,13 @@ void JitArm64::stX(UGeckoInstruction inst)
     break;
   case 39:  // stbu
     update = true;
+    [[fallthrough]];
   case 38:  // stb
     flags |= BackPatchInfo::FLAG_SIZE_8;
     break;
   case 45:  // sthu
     update = true;
+    [[fallthrough]];
   case 44:  // sth
     flags |= BackPatchInfo::FLAG_SIZE_16;
     break;
@@ -439,7 +413,7 @@ void JitArm64::stX(UGeckoInstruction inst)
     gpr.BindToRegister(a, false);
 
     ARM64Reg WA = gpr.GetReg();
-    ARM64Reg RB;
+    ARM64Reg RB = {};
     ARM64Reg RA = gpr.R(a);
     if (regOffset != -1)
       RB = gpr.R(regOffset);
@@ -580,9 +554,9 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   LSR(value, value, addr);  // move current bit to bit 0
 
   FixupBranch bit_not_set = TBZ(value, 0);
-  FixupBranch far = B();
+  FixupBranch far_addr = B();
   SwitchToFarCode();
-  SetJumpTarget(far);
+  SetJumpTarget(far_addr);
 
   BitSet32 gprs_to_push = gpr.GetCallerSavedUsed();
   BitSet32 fprs_to_push = fpr.GetCallerSavedUsed();
@@ -599,10 +573,10 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
   ABI_PopRegisters(gprs_to_push);
 
-  FixupBranch near = B();
+  FixupBranch near_addr = B();
   SwitchToNearCode();
   SetJumpTarget(bit_not_set);
-  SetJumpTarget(near);
+  SetJumpTarget(near_addr);
 
   gpr.Unlock(addr, value, W30);
 }
@@ -630,9 +604,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
-  if (SConfig::GetInstance().bDCBZOFF)
-    return;
-  FALLBACK_IF(jo.memcheck);
+  FALLBACK_IF(jo.memcheck || !jo.fastmem_arena);
   FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA, b = inst.RB;

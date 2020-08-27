@@ -30,9 +30,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 static Common::Event s_dsp_event;
 static Common::Event s_ppc_event;
@@ -63,13 +61,13 @@ void DSPLLE::DoState(PointerWrap& p)
   p.Do(g_dsp.err_pc);
 #endif
   p.Do(g_dsp.cr);
-  p.Do(g_dsp.reg_stack_ptr);
+  p.Do(g_dsp.reg_stack_ptrs);
   p.Do(g_dsp.exceptions);
   p.Do(g_dsp.external_interrupt_waiting);
 
-  for (int i = 0; i < 4; i++)
+  for (auto& stack : g_dsp.reg_stacks)
   {
-    p.Do(g_dsp.reg_stack[i]);
+    p.Do(stack);
   }
 
   p.Do(g_dsp.step_counter);
@@ -80,8 +78,10 @@ void DSPLLE::DoState(PointerWrap& p)
   Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  // TODO: This uses the wrong endianness (producing bad disassembly)
+  // and a bogus byte count (producing bad hashes)
   if (p.GetMode() == PointerWrap::MODE_READ)
-    Host::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+    Host::CodeLoaded(reinterpret_cast<const u8*>(g_dsp.iram), DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
   p.Do(g_init_hax);
   p.Do(m_cycle_count);
@@ -100,22 +100,24 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
     const int cycles = static_cast<int>(dsp_lle->m_cycle_count.load());
     if (cycles > 0)
     {
-      std::lock_guard<std::mutex> dsp_thread_lock(dsp_lle->m_dsp_thread_mutex);
-      if (g_dsp_jit)
+      std::unique_lock dsp_thread_lock(dsp_lle->m_dsp_thread_mutex, std::try_to_lock);
+      if (dsp_thread_lock)
       {
-        DSPCore_RunCycles(cycles);
+        if (g_dsp_jit)
+        {
+          DSPCore_RunCycles(cycles);
+        }
+        else
+        {
+          DSP::Interpreter::RunCyclesThread(cycles);
+        }
+        dsp_lle->m_cycle_count.store(0);
+        continue;
       }
-      else
-      {
-        DSP::Interpreter::RunCyclesThread(cycles);
-      }
-      dsp_lle->m_cycle_count.store(0);
     }
-    else
-    {
-      s_ppc_event.Set();
-      s_dsp_event.Wait();
-    }
+
+    s_ppc_event.Set();
+    s_dsp_event.Wait();
   }
 }
 
@@ -186,10 +188,6 @@ bool DSPLLE::Initialize(bool wii, bool dsp_thread)
   m_wii = wii;
   m_is_dsp_on_thread = dsp_thread;
 
-  // DSPLLE directly accesses the fastmem arena.
-  // TODO: The fastmem arena is only supposed to be used by the JIT:
-  // among other issues, its size is only 1GB on 32-bit targets.
-  g_dsp.cpu_ram = Memory::physical_base;
   DSPCore_Reset();
 
   InitInstructionTable();
@@ -265,7 +263,8 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   {
     if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
     {
-      ERROR_LOG(DSPLLE, "Mailbox isn't empty ... strange");
+      // the DSP didn't read the previous value
+      WARN_LOG(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
 #if PROFILE
@@ -336,9 +335,19 @@ u32 DSPLLE::DSP_UpdateRate()
 void DSPLLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
   if (do_lock)
+  {
     m_dsp_thread_mutex.lock();
+  }
   else
+  {
     m_dsp_thread_mutex.unlock();
+
+    if (m_is_dsp_on_thread)
+    {
+      // Signal the DSP thread so it can perform any outstanding work now (if any)
+      s_ppc_event.Wait();
+      s_dsp_event.Set();
+    }
+  }
 }
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

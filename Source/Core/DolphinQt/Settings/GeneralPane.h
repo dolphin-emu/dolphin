@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include <vector>
-
 #include <QWidget>
 
 class QCheckBox;
@@ -32,7 +30,6 @@ private:
   void ConnectLayout();
   void CreateBasic();
   void CreateAutoUpdate();
-  void CreateAdvanced();
 
   void LoadConfig();
   void OnSaveConfig();
@@ -44,12 +41,12 @@ private:
   QComboBox* m_combobox_update_track;
   QCheckBox* m_checkbox_dualcore;
   QCheckBox* m_checkbox_cheats;
+  QCheckBox* m_checkbox_override_region_settings;
+  QCheckBox* m_checkbox_auto_disc_change;
 #ifdef USE_DISCORD_PRESENCE
   QCheckBox* m_checkbox_discord_presence;
 #endif
   QLabel* m_label_speedlimit;
-
-  std::vector<QRadioButton*> m_cpu_cores;
 
 // Analytics related
 #if defined(USE_ANALYTICS) && USE_ANALYTICS

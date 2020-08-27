@@ -88,7 +88,7 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_WD_RECV_FRAME:
   case IOCTLV_WD_RECV_NOTIFICATION:
   default:
-    request.Dump(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
+    request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LINFO);
   }
 
   return GetDefaultReply(return_value);

@@ -5,7 +5,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
 #include "Core/PowerPC/Interpreter/ExceptionUtils.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
@@ -23,11 +22,6 @@ void Interpreter::bx(UGeckoInstruction inst)
     NPC = PC + SignExt26(inst.LI << 2);
 
   m_end_block = true;
-
-  if (NPC == PC)
-  {
-    CoreTiming::Idle();
-  }
 }
 
 // bcx - ugly, straight from PPC manual equations :)
@@ -41,7 +35,8 @@ void Interpreter::bcx(UGeckoInstruction inst)
   const bool only_condition_check = ((inst.BO >> 2) & 1);
   const u32 ctr_check = ((CTR != 0) ^ (inst.BO >> 1)) & 1;
   const bool counter = only_condition_check || ctr_check;
-  const bool condition = only_counter_check || (PowerPC::GetCRBit(inst.BI) == u32(true_false));
+  const bool condition =
+      only_counter_check || (PowerPC::ppcState.cr.GetBit(inst.BI) == u32(true_false));
 
   if (counter && condition)
   {
@@ -55,24 +50,6 @@ void Interpreter::bcx(UGeckoInstruction inst)
   }
 
   m_end_block = true;
-
-  // this code trys to detect the most common idle loop:
-  // lwz r0, XXXX(r13)
-  // cmpXwi r0,0
-  // beq -8
-  if (NPC == PC - 8 && inst.hex == 0x4182fff8 /* beq */)
-  {
-    if (PowerPC::HostRead_U32(PC - 8) >> 16 == 0x800D /* lwz */)
-    {
-      u32 last_inst = PowerPC::HostRead_U32(PC - 4);
-
-      if (last_inst == 0x28000000 /* cmplwi */ ||
-          (last_inst == 0x2C000000 /* cmpwi */ && SConfig::GetInstance().bWii))
-      {
-        CoreTiming::Idle();
-      }
-    }
-  }
 }
 
 void Interpreter::bcctrx(UGeckoInstruction inst)
@@ -81,7 +58,7 @@ void Interpreter::bcctrx(UGeckoInstruction inst)
                    "bcctrx with decrement and test CTR option is invalid!");
 
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (condition)
   {
@@ -100,7 +77,7 @@ void Interpreter::bclrx(UGeckoInstruction inst)
 
   const u32 counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
   const u32 condition =
-      ((inst.BO_2 >> 4) | (PowerPC::GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      ((inst.BO_2 >> 4) | (PowerPC::ppcState.cr.GetBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
 
   if (counter & condition)
   {

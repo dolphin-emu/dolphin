@@ -15,7 +15,7 @@
   {                                                                                                \
     if (!(_a_))                                                                                    \
     {                                                                                              \
-      if (!PanicYesNo(_fmt_ "\n\nIgnore and continue?", __VA_ARGS__))                              \
+      if (!PanicYesNo(_fmt_, __VA_ARGS__))                                                         \
         Crash();                                                                                   \
     }                                                                                              \
   } while (0)
@@ -23,7 +23,7 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_))                                    \
+    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG && !(_a_))                                 \
     {                                                                                              \
       ERROR_LOG(_t_, _msg_, __VA_ARGS__);                                                          \
       if (!PanicYesNo(_msg_, __VA_ARGS__))                                                         \
@@ -44,7 +44,7 @@
 #define DEBUG_ASSERT_MSG(_t_, _a_, _msg_, ...)                                                     \
   do                                                                                               \
   {                                                                                                \
-    if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG && !(_a_))                                    \
+    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG && !(_a_))                                 \
     {                                                                                              \
       ERROR_LOG(_t_, _msg_, ##__VA_ARGS__);                                                        \
       if (!PanicYesNo(_msg_, ##__VA_ARGS__))                                                       \
@@ -64,6 +64,6 @@
 #define DEBUG_ASSERT(_a_)                                                                          \
   do                                                                                               \
   {                                                                                                \
-    if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)                                              \
+    if (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)                                           \
       ASSERT(_a_);                                                                                 \
   } while (0)

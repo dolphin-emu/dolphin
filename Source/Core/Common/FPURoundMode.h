@@ -43,4 +43,4 @@ void SetSIMDMode(int rounding_mode, bool non_ieee_mode);
 void SaveSIMDState();
 void LoadSIMDState();
 void LoadDefaultSIMDState();
-}
+}  // namespace FPURoundMode

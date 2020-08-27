@@ -211,14 +211,14 @@ static T ReadFromHardware(u32 em_address)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
     T value;
-    std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::RAM_MASK], sizeof(T));
+    std::memcpy(&value, &Memory::m_pRAM[em_address & Memory::GetRamMask()], sizeof(T));
     return bswap(value);
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
   {
     T value;
     std::memcpy(&value, &Memory::m_pEXRAM[em_address & 0x0FFFFFFF], sizeof(T));
@@ -226,7 +226,7 @@ static T ReadFromHardware(u32 em_address)
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
+  if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     T value;
     std::memcpy(&value, &Memory::m_pL1Cache[em_address & 0x0FFFFFFF], sizeof(T));
@@ -238,7 +238,7 @@ static T ReadFromHardware(u32 em_address)
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     T value;
-    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], sizeof(T));
+    std::memcpy(&value, &Memory::m_pFakeVMEM[em_address & Memory::GetRamMask()], sizeof(T));
     return bswap(value);
   }
 
@@ -300,14 +300,14 @@ static void WriteToHardware(u32 em_address, const T data)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
     // mirrors of memory).
-    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+    // TODO: Only the first GetRamSizeReal() is supposed to be backed by actual memory.
     const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pRAM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pRAM[em_address & Memory::GetRamMask()], &swapped_data, sizeof(T));
     return;
   }
 
   if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+      (em_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
   {
     const T swapped_data = bswap(data);
     std::memcpy(&Memory::m_pEXRAM[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
@@ -315,7 +315,7 @@ static void WriteToHardware(u32 em_address, const T data)
   }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
+  if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::GetL1CacheSize())))
   {
     const T swapped_data = bswap(data);
     std::memcpy(&Memory::m_pL1Cache[em_address & 0x0FFFFFFF], &swapped_data, sizeof(T));
@@ -328,7 +328,7 @@ static void WriteToHardware(u32 em_address, const T data)
   if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     const T swapped_data = bswap(data);
-    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK], &swapped_data, sizeof(T));
+    std::memcpy(&Memory::m_pFakeVMEM[em_address & Memory::GetRamMask()], &swapped_data, sizeof(T));
     return;
   }
 
@@ -412,7 +412,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
   if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
   {
-    hex = Common::swap32(&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
+    hex = Common::swap32(&Memory::m_pFakeVMEM[address & Memory::GetFakeVMemMask()]);
   }
   else
   {
@@ -423,8 +423,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 
 u32 HostRead_Instruction(const u32 address)
 {
-  UGeckoInstruction inst = HostRead_U32(address);
-  return inst.hex;
+  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
 }
 
 static void Memcheck(u32 address, u32 var, bool write, size_t size)
@@ -667,13 +666,14 @@ static bool IsRAMAddress(u32 address, bool translate)
   }
 
   u32 segment = address >> 28;
-  if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
+  if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::GetRamSizeReal())
     return true;
-  else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+  else if (Memory::m_pEXRAM && segment == 0x1 &&
+           (address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
     return true;
   else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
     return true;
-  else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
+  else if (segment == 0xE && (address < (0xE0000000 + Memory::GetL1CacheSize())))
     return true;
   return false;
 }
@@ -845,35 +845,35 @@ TranslateResult JitCache_TranslateAddress(u32 address)
   return TranslateResult{true, from_bat, tlb_addr.address};
 }
 
-  // *********************************************************************************
-  // Warning: Test Area
-  //
-  // This code is for TESTING and it works in interpreter mode ONLY. Some games (like
-  // COD iirc) work thanks to this basic TLB emulation.
-  // It is just a small hack and we have never spend enough time to finalize it.
-  // Cheers PearPC!
-  //
-  // *********************************************************************************
+// *********************************************************************************
+// Warning: Test Area
+//
+// This code is for TESTING and it works in interpreter mode ONLY. Some games (like
+// COD iirc) work thanks to this basic TLB emulation.
+// It is just a small hack and we have never spend enough time to finalize it.
+// Cheers PearPC!
+//
+// *********************************************************************************
 
-  /*
-   * PearPC
-   * ppc_mmu.cc
-   *
-   * Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
-   *
-   * This program is free software; you can redistribute it and/or modify
-   * it under the terms of the GNU General Public License version 2 as
-   * published by the Free Software Foundation.
-   *
-   * This program is distributed in the hope that it will be useful,
-   * but WITHOUT ANY WARRANTY; without even the implied warranty of
-   * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-   * GNU General Public License for more details.
-   *
-   * You should have received a copy of the GNU General Public License
-   * along with this program; if not, write to the Free Software
-   * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-   */
+/*
+ * PearPC
+ * ppc_mmu.cc
+ *
+ * Copyright (C) 2003, 2004 Sebastian Biallas (sb@biallas.net)
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License version 2 as
+ * published by the Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+ */
 
 #define PPC_EXC_DSISR_PAGE (1 << 30)
 #define PPC_EXC_DSISR_PROT (1 << 27)
@@ -1117,13 +1117,12 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
     for (int i = 0; i < 8; i++, pteg_addr += 8)
     {
-      u32 pteg;
-      std::memcpy(&pteg, &Memory::physical_base[pteg_addr], sizeof(u32));
+      u32 pteg = Common::swap32(Memory::Read_U32(pteg_addr));
 
       if (pte1 == pteg)
       {
         UPTE2 PTE2;
-        PTE2.Hex = Common::swap32(&Memory::physical_base[pteg_addr + 4]);
+        PTE2.Hex = Memory::Read_U32(pteg_addr + 4);
 
         // set the access bits
         switch (flag)
@@ -1145,8 +1144,7 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
 
         if (!IsNoExceptionFlag(flag))
         {
-          const u32 swapped_pte2 = Common::swap32(PTE2.Hex);
-          std::memcpy(&Memory::physical_base[pteg_addr + 4], &swapped_pte2, sizeof(u32));
+          Memory::Write_U32(PTE2.Hex, pteg_addr + 4);
         }
 
         // We already updated the TLB entry if this was caused by a C bit.
@@ -1214,13 +1212,13 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         u32 valid_bit = BAT_MAPPED_BIT;
         if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
           valid_bit |= BAT_PHYSICAL_BIT;
-        else if (physical_address < Memory::REALRAM_SIZE)
+        else if (physical_address < Memory::GetRamSizeReal())
           valid_bit |= BAT_PHYSICAL_BIT;
         else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
-                 (physical_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+                 (physical_address & 0x0FFFFFFF) < Memory::GetExRamSizeReal())
           valid_bit |= BAT_PHYSICAL_BIT;
         else if (physical_address >> 28 == 0xE &&
-                 physical_address < 0xE0000000 + Memory::L1_CACHE_SIZE)
+                 physical_address < 0xE0000000 + Memory::GetL1CacheSize())
           valid_bit |= BAT_PHYSICAL_BIT;
 
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
@@ -1241,7 +1239,7 @@ static void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
     u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
-    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & Memory::FAKEVMEM_MASK);
+    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & Memory::GetFakeVMemMask());
     u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
 
     if (PowerPC::memchecks.OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
@@ -1302,4 +1300,14 @@ static TranslateAddressResult TranslateAddress(u32 address)
   return TranslatePageAddress(address, flag);
 }
 
-}  // namespace
+std::optional<u32> GetTranslatedAddress(u32 address)
+{
+  auto result = TranslateAddress<XCheckTLBFlag::NoException>(address);
+  if (!result.Success())
+  {
+    return std::nullopt;
+  }
+  return std::optional<u32>(result.address);
+}
+
+}  // namespace PowerPC

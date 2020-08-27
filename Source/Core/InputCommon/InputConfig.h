@@ -9,6 +9,8 @@
 #include <utility>
 #include <vector>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 namespace ControllerEmu
 {
 class EmulatedController;
@@ -40,7 +42,12 @@ public:
   std::string GetProfileName() const { return m_profile_name; }
   std::size_t GetControllerCount() const;
 
+  // These should be used after creating all controllers and before clearing them, respectively.
+  void RegisterHotplugCallback();
+  void UnregisterHotplugCallback();
+
 private:
+  ControllerInterface::HotplugCallbackHandle m_hotplug_callback_handle;
   std::vector<std::unique_ptr<ControllerEmu::EmulatedController>> m_controllers;
   const std::string m_ini_name;
   const std::string m_gui_name;

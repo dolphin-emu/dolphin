@@ -6,9 +6,10 @@ Thumbs.db
 Source/Core/Common/scmrev.h
 # Ignore files output by build
 /[Bb]uild*/
-/[Bb]inary/
+/[Bb]inary*/
 /obj/
-# Android cmake builds to here then copies to Source/Android.
+# Ignore files output by Android cmake build
+/Source/Android/app/.cxx/
 /libs/
 # Ignore various files created by visual studio/msbuild
 *.ipch
@@ -20,7 +21,8 @@ Source/Core/Common/scmrev.h
 *.tlog
 *.VC.opendb
 *.VC.db
-.vs/
+.vs*/
+/Source/enc_temp_folder/
 # Ignore build info file created by QtCreator
 CMakeLists.txt.user
 # Ignore files created by posix people
@@ -34,3 +36,5 @@ CMakeLists.txt.user
 *.kdev4
 # Ignore IDEA/Clion files/dirs
 /.idea/
+# Ignore Visual Studio Code's working dir
+/.vscode/

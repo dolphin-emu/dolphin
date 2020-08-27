@@ -216,6 +216,16 @@ IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition)
   return s_disc->GetTicket(partition);
 }
 
+bool IsInsertedDiscRunning()
+{
+  if (!s_disc)
+    return false;
+
+  WaitUntilIdle();
+
+  return SConfig::GetInstance().GetGameID() == s_disc->GetGameID();
+}
+
 bool UpdateRunningGameMetadata(const DiscIO::Partition& partition, std::optional<u64> title_id)
 {
   if (!s_disc)
@@ -332,20 +342,25 @@ static void FinishRead(u64 id, s64 cycles_late)
             (CoreTiming::GetTicks() - request.time_started_ticks) /
                 (SystemTimers::GetTicksPerSecond() / 1000000));
 
+  DVDInterface::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
     PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
                 request.dvd_offset, request.dvd_offset + request.length);
+
+    DVDInterface::SetDriveError(DVDInterface::DriveError::BlockOOB);
+    interrupt = DVDInterface::DIInterruptType::DEINT;
   }
   else
   {
     if (request.copy_to_ram)
       Memory::CopyToEmu(request.output_address, buffer.data(), request.length);
+
+    interrupt = DVDInterface::DIInterruptType::TCINT;
   }
 
   // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(request.reply_type, DVDInterface::INT_TCINT, cycles_late,
-                                       buffer);
+  DVDInterface::FinishExecutingCommand(request.reply_type, interrupt, cycles_late, buffer);
 }
 
 static void DVDThread()
@@ -378,4 +393,4 @@ static void DVDThread()
     }
   }
 }
-}
+}  // namespace DVDThread

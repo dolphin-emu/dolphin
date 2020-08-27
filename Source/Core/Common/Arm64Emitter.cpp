@@ -15,6 +15,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace Arm64Gen
 {
 namespace
@@ -328,7 +332,7 @@ void ARM64XEmitter::ReserveCodeSpace(u32 bytes)
     BRK(0);
 }
 
-const u8* ARM64XEmitter::AlignCode16()
+u8* ARM64XEmitter::AlignCode16()
 {
   int c = int((u64)m_code & 15);
   if (c)
@@ -336,7 +340,7 @@ const u8* ARM64XEmitter::AlignCode16()
   return m_code;
 }
 
-const u8* ARM64XEmitter::AlignCodePage()
+u8* ARM64XEmitter::AlignCodePage()
 {
   int c = int((u64)m_code & 4095);
   if (c)
@@ -364,6 +368,8 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 #if defined(IOS)
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
+#elif defined(WIN32)
+  FlushInstructionCache(GetCurrentProcess(), start, end - start);
 #else
   // Don't rely on GCC's __clear_cache implementation, as it caches
   // icache/dcache cache line sizes, that can vary between cores on
@@ -958,7 +964,7 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
            (MaskImm14(distance) << 5) | reg;
   }
   break;
-  case 5:  // B (uncoditional)
+  case 5:  // B (unconditional)
     ASSERT_MSG(DYNA_REC, IsInRangeImm26(distance), "%s(%d): Received too large distance: %" PRIx64,
                __func__, branch.type, distance);
     inst = (0x5 << 26) | MaskImm26(distance);
@@ -969,7 +975,8 @@ void ARM64XEmitter::SetJumpTarget(FixupBranch const& branch)
     inst = (0x25 << 26) | MaskImm26(distance);
     break;
   }
-  *(u32*)branch.ptr = inst;
+
+  std::memcpy(branch.ptr, &inst, sizeof(inst));
 }
 
 FixupBranch ARM64XEmitter::CBZ(ARM64Reg Rt)
@@ -2136,13 +2143,23 @@ void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 
   // The first push must adjust the SP, else a context switch may invalidate everything below SP.
   if (num_regs & 1)
+  {
     STR(INDEX_PRE, (ARM64Reg)(X0 + *it++), SP, -stack_size);
+  }
   else
-    STP(INDEX_PRE, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, -stack_size);
+  {
+    ARM64Reg first_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg second_reg = (ARM64Reg)(X0 + *it++);
+    STP(INDEX_PRE, first_reg, second_reg, SP, -stack_size);
+  }
 
   // Fast store for all other registers, this is always an even number.
   for (int i = 0; i < (num_regs - 1) / 2; i++)
-    STP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+  {
+    ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
+    STP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+  }
 
   ASSERT_MSG(DYNA_REC, it == registers.end(), "%s registers don't match.", __func__);
 }
@@ -2161,13 +2178,19 @@ void ARM64XEmitter::ABI_PopRegisters(BitSet32 registers, BitSet32 ignore_mask)
   ARM64Reg second;
   if (!(num_regs & 1))
     second = (ARM64Reg)(X0 + *it++);
+  else
+    second = {};
 
   // 8 byte per register, but 16 byte alignment, so we may have to padd one register.
   // Only update the SP on the last load to avoid the dependency between those loads.
 
   // Fast load for all but the first (two) registers, this is always an even number.
   for (int i = 0; i < (num_regs - 1) / 2; i++)
-    LDP(INDEX_SIGNED, (ARM64Reg)(X0 + *it++), (ARM64Reg)(X0 + *it++), SP, 16 * (i + 1));
+  {
+    ARM64Reg odd_reg = (ARM64Reg)(X0 + *it++);
+    ARM64Reg even_reg = (ARM64Reg)(X0 + *it++);
+    LDP(INDEX_SIGNED, odd_reg, even_reg, SP, 16 * (i + 1));
+  }
 
   // Post loading the first (two) registers.
   if (num_regs & 1)
@@ -4149,20 +4172,19 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative,
                                  bool flags)
 {
-  switch ((negative << 1) | flags)
+  if (!negative)
   {
-  case 0:
-    ADD(Rd, Rn, imm, shift);
-    break;
-  case 1:
-    ADDS(Rd, Rn, imm, shift);
-    break;
-  case 2:
-    SUB(Rd, Rn, imm, shift);
-    break;
-  case 3:
-    SUBS(Rd, Rn, imm, shift);
-    break;
+    if (!flags)
+      ADD(Rd, Rn, imm, shift);
+    else
+      ADDS(Rd, Rn, imm, shift);
+  }
+  else
+  {
+    if (!flags)
+      SUB(Rd, Rn, imm, shift);
+    else
+      SUBS(Rd, Rn, imm, shift);
   }
 }
 
@@ -4170,7 +4192,7 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
                                     ARM64Reg scratch)
 {
   bool has_scratch = scratch != INVALID_REG;
-  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
+  u64 imm_neg = Is64Bit(Rd) ? u64(-s64(imm)) : u64(-s64(imm)) & 0xFFFFFFFFuLL;
   bool neg_neg = negative ? false : true;
 
   // Fast paths, aarch64 immediate instructions
@@ -4217,20 +4239,19 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
              (u32)imm);
 
   negative ^= MOVI2R2(scratch, imm, imm_neg);
-  switch ((negative << 1) | flags)
+  if (!negative)
   {
-  case 0:
-    ADD(Rd, Rn, scratch);
-    break;
-  case 1:
-    ADDS(Rd, Rn, scratch);
-    break;
-  case 2:
-    SUB(Rd, Rn, scratch);
-    break;
-  case 3:
-    SUBS(Rd, Rn, scratch);
-    break;
+    if (!flags)
+      ADD(Rd, Rn, scratch);
+    else
+      ADDS(Rd, Rn, scratch);
+  }
+  else
+  {
+    if (!flags)
+      SUB(Rd, Rn, scratch);
+    else
+      SUBS(Rd, Rn, scratch);
   }
 }
 
@@ -4365,4 +4386,4 @@ void ARM64FloatEmitter::MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch)
   DUP(32, Rd, Rd, 0);
 }
 
-}  // namespace
+}  // namespace Arm64Gen

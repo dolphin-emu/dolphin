@@ -25,43 +25,22 @@ enum class FPCC
   FU = 1,  // ?
 };
 
-inline void SetFPException(u32 mask)
+inline void SetFPException(UReg_FPSCR* fpscr, u32 mask)
 {
-  if ((FPSCR.Hex & mask) != mask)
+  if ((fpscr->Hex & mask) != mask)
   {
-    FPSCR.FX = 1;
+    fpscr->FX = 1;
   }
 
-  FPSCR.Hex |= mask;
-  FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
+  fpscr->Hex |= mask;
+  fpscr->VX = (fpscr->Hex & FPSCR_VX_ANY) != 0;
 }
 
-inline void SetFI(int FI)
-{
-  if (FI)
-  {
-    SetFPException(FPSCR_XX);
-  }
-  FPSCR.FI = FI;
-}
-
-inline void UpdateFPSCR()
-{
-  FPSCR.VX = (FPSCR.Hex & FPSCR_VX_ANY) != 0;
-  FPSCR.FEX = (FPSCR.VX & FPSCR.VE) | (FPSCR.OX & FPSCR.OE) | (FPSCR.UX & FPSCR.UE) |
-              (FPSCR.ZX & FPSCR.ZE) | (FPSCR.XX & FPSCR.XE);
-}
-
-inline void Helper_UpdateCR1()
-{
-  PowerPC::SetCRField(1, (FPSCR.FX << 3) | (FPSCR.FEX << 2) | (FPSCR.VX << 1) | FPSCR.OX);
-}
-
-inline double ForceSingle(double value)
+inline double ForceSingle(const UReg_FPSCR& fpscr, double value)
 {
   // convert to float...
   float x = (float)value;
-  if (!cpu_info.bFlushToZero && FPSCR.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI)
   {
     x = Common::FlushToZero(x);
   }
@@ -69,9 +48,9 @@ inline double ForceSingle(double value)
   return x;
 }
 
-inline double ForceDouble(double d)
+inline double ForceDouble(const UReg_FPSCR& fpscr, double d)
 {
-  if (!cpu_info.bFlushToZero && FPSCR.NI)
+  if (!cpu_info.bFlushToZero && fpscr.NI)
   {
     d = Common::FlushToZero(d);
   }
@@ -101,17 +80,17 @@ struct FPResult
 {
   bool HasNoInvalidExceptions() const { return (exception & FPSCR_VX_ANY) == 0; }
 
-  void SetException(FPSCRExceptionFlag flag)
+  void SetException(UReg_FPSCR* fpscr, FPSCRExceptionFlag flag)
   {
     exception = flag;
-    SetFPException(flag);
+    SetFPException(fpscr, flag);
   }
 
   double value = 0.0;
   FPSCRExceptionFlag exception{};
 };
 
-inline FPResult NI_mul(double a, double b)
+inline FPResult NI_mul(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a * b};
 
@@ -119,10 +98,10 @@ inline FPResult NI_mul(double a, double b)
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
     {
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
     }
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -136,23 +115,23 @@ inline FPResult NI_mul(double a, double b)
     }
 
     result.value = PPC_NAN;
-    result.SetException(FPSCR_VXIMZ);
+    result.SetException(fpscr, FPSCR_VXIMZ);
     return result;
   }
 
   return result;
 }
 
-inline FPResult NI_div(double a, double b)
+inline FPResult NI_div(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a / b};
 
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -169,16 +148,16 @@ inline FPResult NI_div(double a, double b)
     {
       if (a == 0.0)
       {
-        result.SetException(FPSCR_VXZDZ);
+        result.SetException(fpscr, FPSCR_VXZDZ);
       }
       else
       {
-        result.SetException(FPSCR_ZX);
+        result.SetException(fpscr, FPSCR_ZX);
       }
     }
     else if (std::isinf(a) && std::isinf(b))
     {
-      result.SetException(FPSCR_VXIDI);
+      result.SetException(fpscr, FPSCR_VXIDI);
     }
 
     result.value = PPC_NAN;
@@ -188,16 +167,16 @@ inline FPResult NI_div(double a, double b)
   return result;
 }
 
-inline FPResult NI_add(double a, double b)
+inline FPResult NI_add(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a + b};
 
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -210,27 +189,27 @@ inline FPResult NI_add(double a, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXISI);
+    result.SetException(fpscr, FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
 
   if (std::isinf(a) || std::isinf(b))
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
   return result;
 }
 
-inline FPResult NI_sub(double a, double b)
+inline FPResult NI_sub(UReg_FPSCR* fpscr, double a, double b)
 {
   FPResult result{a - b};
 
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -243,13 +222,13 @@ inline FPResult NI_sub(double a, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXISI);
+    result.SetException(fpscr, FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
 
   if (std::isinf(a) || std::isinf(b))
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
   return result;
 }
@@ -257,16 +236,16 @@ inline FPResult NI_sub(double a, double b)
 // FMA instructions on PowerPC are weird:
 // They calculate (a * c) + b, but the order in which
 // inputs are checked for NaN is still a, b, c.
-inline FPResult NI_madd(double a, double c, double b)
+inline FPResult NI_madd(UReg_FPSCR* fpscr, double a, double c, double b)
 {
   FPResult result{a * c};
 
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -284,7 +263,7 @@ inline FPResult NI_madd(double a, double c, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXIMZ);
+    result.SetException(fpscr, FPSCR_VXIMZ);
     result.value = PPC_NAN;
     return result;
   }
@@ -294,9 +273,9 @@ inline FPResult NI_madd(double a, double c, double b)
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(b))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(b))
     {
@@ -304,27 +283,27 @@ inline FPResult NI_madd(double a, double c, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXISI);
+    result.SetException(fpscr, FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
 
   if (std::isinf(a) || std::isinf(b) || std::isinf(c))
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
   return result;
 }
 
-inline FPResult NI_msub(double a, double c, double b)
+inline FPResult NI_msub(UReg_FPSCR* fpscr, double a, double c, double b)
 {
   FPResult result{a * c};
 
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(a) || Common::IsSNAN(b) || Common::IsSNAN(c))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(a))
     {
@@ -342,7 +321,7 @@ inline FPResult NI_msub(double a, double c, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXIMZ);
+    result.SetException(fpscr, FPSCR_VXIMZ);
     result.value = PPC_NAN;
     return result;
   }
@@ -352,9 +331,9 @@ inline FPResult NI_msub(double a, double c, double b)
   if (std::isnan(result.value))
   {
     if (Common::IsSNAN(b))
-      result.SetException(FPSCR_VXSNAN);
+      result.SetException(fpscr, FPSCR_VXSNAN);
 
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
     if (std::isnan(b))
     {
@@ -362,13 +341,13 @@ inline FPResult NI_msub(double a, double c, double b)
       return result;
     }
 
-    result.SetException(FPSCR_VXISI);
+    result.SetException(fpscr, FPSCR_VXISI);
     result.value = PPC_NAN;
     return result;
   }
 
   if (std::isinf(a) || std::isinf(b) || std::isinf(c))
-    FPSCR.ClearFIFR();
+    fpscr->ClearFIFR();
 
   return result;
 }

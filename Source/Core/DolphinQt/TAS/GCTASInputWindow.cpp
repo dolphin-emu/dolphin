@@ -5,12 +5,16 @@
 #include "DolphinQt/TAS/GCTASInputWindow.h"
 
 #include <QCheckBox>
+#include <QGridLayout>
 #include <QGroupBox>
 #include <QHBoxLayout>
+#include <QSpacerItem>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
 #include "Common/CommonTypes.h"
+
+#include "DolphinQt/TAS/TASCheckBox.h"
 
 #include "InputCommon/GCPadStatus.h"
 
@@ -39,39 +43,35 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   triggers_layout->addLayout(r_trigger_layout);
   m_triggers_box->setLayout(triggers_layout);
 
-  m_a_button = new QCheckBox(QStringLiteral("&A"));
-  m_b_button = new QCheckBox(QStringLiteral("&B"));
-  m_x_button = new QCheckBox(QStringLiteral("&X"));
-  m_y_button = new QCheckBox(QStringLiteral("&Y"));
-  m_z_button = new QCheckBox(QStringLiteral("&Z"));
-  m_l_button = new QCheckBox(QStringLiteral("&L"));
-  m_r_button = new QCheckBox(QStringLiteral("&R"));
-  m_start_button = new QCheckBox(QStringLiteral("&START"));
-  m_left_button = new QCheckBox(QStringLiteral("L&eft"));
-  m_up_button = new QCheckBox(QStringLiteral("&Up"));
-  m_down_button = new QCheckBox(QStringLiteral("&Down"));
-  m_right_button = new QCheckBox(QStringLiteral("R&ight"));
+  m_a_button = CreateButton(QStringLiteral("&A"));
+  m_b_button = CreateButton(QStringLiteral("&B"));
+  m_x_button = CreateButton(QStringLiteral("&X"));
+  m_y_button = CreateButton(QStringLiteral("&Y"));
+  m_z_button = CreateButton(QStringLiteral("&Z"));
+  m_l_button = CreateButton(QStringLiteral("&L"));
+  m_r_button = CreateButton(QStringLiteral("&R"));
+  m_start_button = CreateButton(QStringLiteral("&START"));
+  m_left_button = CreateButton(QStringLiteral("L&eft"));
+  m_up_button = CreateButton(QStringLiteral("&Up"));
+  m_down_button = CreateButton(QStringLiteral("&Down"));
+  m_right_button = CreateButton(QStringLiteral("R&ight"));
 
-  auto* buttons_layout1 = new QHBoxLayout;
-  buttons_layout1->addWidget(m_a_button);
-  buttons_layout1->addWidget(m_b_button);
-  buttons_layout1->addWidget(m_x_button);
-  buttons_layout1->addWidget(m_y_button);
-  buttons_layout1->addWidget(m_z_button);
-  buttons_layout1->addWidget(m_l_button);
-  buttons_layout1->addWidget(m_r_button);
+  auto* buttons_layout = new QGridLayout;
+  buttons_layout->addWidget(m_a_button, 0, 0);
+  buttons_layout->addWidget(m_b_button, 0, 1);
+  buttons_layout->addWidget(m_x_button, 0, 2);
+  buttons_layout->addWidget(m_y_button, 0, 3);
+  buttons_layout->addWidget(m_z_button, 0, 4);
+  buttons_layout->addWidget(m_l_button, 0, 5);
+  buttons_layout->addWidget(m_r_button, 0, 6);
 
-  auto* buttons_layout2 = new QHBoxLayout;
-  buttons_layout2->addWidget(m_start_button);
-  buttons_layout2->addWidget(m_left_button);
-  buttons_layout2->addWidget(m_up_button);
-  buttons_layout2->addWidget(m_down_button);
-  buttons_layout2->addWidget(m_right_button);
+  buttons_layout->addWidget(m_start_button, 1, 0);
+  buttons_layout->addWidget(m_left_button, 1, 1);
+  buttons_layout->addWidget(m_up_button, 1, 2);
+  buttons_layout->addWidget(m_down_button, 1, 3);
+  buttons_layout->addWidget(m_right_button, 1, 4);
 
-  auto* buttons_layout = new QVBoxLayout;
-  buttons_layout->setSizeConstraint(QLayout::SetFixedSize);
-  buttons_layout->addLayout(buttons_layout1);
-  buttons_layout->addLayout(buttons_layout2);
+  buttons_layout->addItem(new QSpacerItem(1, 1, QSizePolicy::Expanding), 0, 7);
 
   m_buttons_box = new QGroupBox(tr("Buttons"));
   m_buttons_box->setLayout(buttons_layout);
@@ -80,7 +80,7 @@ GCTASInputWindow::GCTASInputWindow(QWidget* parent, int num) : TASInputWindow(pa
   layout->addLayout(top_layout);
   layout->addWidget(m_triggers_box);
   layout->addWidget(m_buttons_box);
-  layout->addWidget(m_use_controller);
+  layout->addWidget(m_settings_box);
 
   setLayout(layout);
 }

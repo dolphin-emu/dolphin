@@ -15,6 +15,10 @@ AbstractTexture::AbstractTexture(const TextureConfig& c) : m_config(c)
 {
 }
 
+void AbstractTexture::FinishedRendering()
+{
+}
+
 bool AbstractTexture::Save(const std::string& filename, unsigned int level)
 {
   // We can't dump compressed textures currently (it would mean drawing them to a RGBA8
@@ -30,7 +34,7 @@ bool AbstractTexture::Save(const std::string& filename, unsigned int level)
   // Use a temporary staging texture for the download. Certainly not optimal,
   // but this is not a frequently-executed code path..
   TextureConfig readback_texture_config(level_width, level_height, 1, 1, 1,
-                                        AbstractTextureFormat::RGBA8, false);
+                                        AbstractTextureFormat::RGBA8, 0);
   auto readback_texture =
       g_renderer->CreateStagingTexture(StagingTextureType::Readback, readback_texture_config);
   if (!readback_texture)
@@ -84,7 +88,23 @@ bool AbstractTexture::IsStencilFormat(AbstractTextureFormat format)
   return format == AbstractTextureFormat::D24_S8 || format == AbstractTextureFormat::D32F_S8;
 }
 
-size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
+bool AbstractTexture::IsCompatibleDepthAndColorFormats(AbstractTextureFormat depth_format,
+                                                       AbstractTextureFormat color_format)
+{
+  switch (depth_format)
+  {
+  case AbstractTextureFormat::D16:
+    return color_format == AbstractTextureFormat::R16;
+
+  case AbstractTextureFormat::D32F:
+    return color_format == AbstractTextureFormat::R32F;
+
+  default:
+    return false;
+  }
+}
+
+u32 AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u32 row_length)
 {
   switch (format)
   {
@@ -111,7 +131,7 @@ size_t AbstractTexture::CalculateStrideForFormat(AbstractTextureFormat format, u
   }
 }
 
-size_t AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
+u32 AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
 {
   switch (format)
   {
@@ -135,6 +155,21 @@ size_t AbstractTexture::GetTexelSizeForFormat(AbstractTextureFormat format)
   default:
     PanicAlert("Unhandled texture format.");
     return 0;
+  }
+}
+
+u32 AbstractTexture::GetBlockSizeForFormat(AbstractTextureFormat format)
+{
+  switch (format)
+  {
+  case AbstractTextureFormat::DXT1:
+  case AbstractTextureFormat::DXT3:
+  case AbstractTextureFormat::DXT5:
+  case AbstractTextureFormat::BPTC:
+    return 4;
+
+  default:
+    return 1;
   }
 }
 

@@ -4,12 +4,21 @@
 
 #pragma once
 
+#include <vector>
+
 #include <QWidget>
 
 class QCheckBox;
+class QComboBox;
 class QLabel;
+class QRadioButton;
 class QSlider;
 class QDateTimeEdit;
+
+namespace Core
+{
+enum class State;
+}
 
 class AdvancedPane final : public QWidget
 {
@@ -22,6 +31,8 @@ private:
   void ConnectLayout();
   void Update();
 
+  QComboBox* m_cpu_emulation_engine_combobox;
+  QCheckBox* m_enable_mmu_checkbox;
   QCheckBox* m_cpu_clock_override_checkbox;
   QSlider* m_cpu_clock_override_slider;
   QLabel* m_cpu_clock_override_slider_label;
@@ -29,4 +40,11 @@ private:
 
   QCheckBox* m_custom_rtc_checkbox;
   QDateTimeEdit* m_custom_rtc_datetime;
+
+  QCheckBox* m_ram_override_checkbox;
+  QSlider* m_mem1_override_slider;
+  QLabel* m_mem1_override_slider_label;
+  QSlider* m_mem2_override_slider;
+  QLabel* m_mem2_override_slider_label;
+  QLabel* m_ram_override_description;
 };

@@ -6,7 +6,7 @@
 
 #include <array>
 
-#include <soundtouch/SoundTouch.h>
+#include <SoundTouch.h>
 
 namespace AudioCommon
 {
@@ -25,4 +25,4 @@ private:
   double m_stretch_ratio = 1.0;
 };
 
-}  // AudioCommon
+}  // namespace AudioCommon

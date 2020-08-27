@@ -32,7 +32,7 @@ enum class HostMessageID
   WMUserJobDispatch,
 };
 
-bool Host_UINeedsControllerState();
+bool Host_UIBlocksControllerState();
 bool Host_RendererHasFocus();
 bool Host_RendererIsFullscreen();
 void Host_Message(HostMessageID id);
@@ -42,9 +42,5 @@ void Host_RequestRenderWindowSize(int width, int height);
 void Host_UpdateDisasmDialog();
 void Host_UpdateMainFrame();
 void Host_UpdateTitle(const std::string& title);
-void Host_ShowVideoConfig(void* parent, const std::string& backend_name);
 void Host_YieldToUI();
-void Host_UpdateProgressDialog(const char* caption, int position, int total);
-
-// TODO (neobrain): Remove this from host!
-void* Host_GetRenderHandle();
+void Host_TitleChanged();

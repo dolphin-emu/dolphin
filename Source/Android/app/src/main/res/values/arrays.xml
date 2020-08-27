@@ -5,32 +5,52 @@
 
     <!-- New UI CPU Core selection - Default -->
     <string-array name="emuCoresEntriesX86_64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesX86_64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>1</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesARM64" translatable="false">
-        <item>Interpreter</item>
-        <item>Cached Interpreter</item>
         <item>JIT ARM64 Recompiler</item>
+        <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesARM64" translatable="false">
-        <item>0</item>
-        <item>5</item>
         <item>4</item>
+        <item>5</item>
+        <item>0</item>
     </integer-array>
     <string-array name="emuCoresEntriesGeneric" translatable="false">
-        <item>Interpreter</item>
         <item>Cached Interpreter</item>
+        <item>Interpreter</item>
     </string-array>
     <integer-array name="emuCoresValuesGeneric" translatable="false">
-        <item>0</item>
         <item>5</item>
+        <item>0</item>
+    </integer-array>
+
+    <!-- DSP Emulation Engine -->
+    <string-array name="dspEngineEntriesX86_64" translatable="false">
+        <item>DSP HLE (fast)</item>
+        <item>DSP LLE Recompiler</item>
+        <item>DSP LLE Interpreter (slow)</item>
+    </string-array>
+    <integer-array name="dspEngineValuesX86_64" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+    <string-array name="dspEngineEntriesGeneric" translatable="false">
+        <item>DSP HLE (fast)</item>
+        <item>DSP LLE Interpreter (slow)</item>
+    </string-array>
+    <integer-array name="dspEngineValuesGeneric" translatable="false">
+        <item>0</item>
+        <item>2</item>
     </integer-array>
 
     <!-- GameCube System Languages -->
@@ -51,7 +71,7 @@
         <item>5</item>
     </integer-array>
 
-    <!-- Slot A Device Selection -->
+    <!-- Slot A & B Device selection -->
     <string-array name="slotDeviceEntries" translatable="false">
         <item>Nothing</item>
         <item>Dummy</item>
@@ -65,22 +85,50 @@
         <item>8</item>
     </integer-array>
 
+    <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
+    <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelInfo" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+    <string-array name="logVerbosityEntriesMaxLevelDebug" translatable="false">
+        <item>Notice</item>
+        <item>Error</item>
+        <item>Warning</item>
+        <item>Info</item>
+        <item>Debug</item>
+    </string-array>
+    <integer-array name="logVerbosityValuesMaxLevelDebug" translatable="false">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
+
     <!-- Video backend selection -->
-    <string-array name="videoBackendEntries" translatable="false">
+    <string-array name="videoBackendEntries">
         <item>OpenGL</item>
         <item>Vulkan</item>
         <item>Software</item>
         <item>Null</item>
     </string-array>
-    <integer-array name="videoBackendValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-    </integer-array>
+    <string-array name="videoBackendValues" translatable="false">
+        <item>OGL</item>
+        <item>Vulkan</item>
+        <item>Software Renderer</item>
+        <item>Null</item>
+    </string-array>
 
     <!-- Wii Remote extensions -->
-    <string-array name="wiimoteExtensionsEntries" translatable="false">
+    <string-array name="wiimoteExtensionsEntries">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
@@ -88,14 +136,14 @@
         <item>Drums</item>
         <item>Turntable</item>
     </string-array>
-    <integer-array name="wiimoteExtensionsValues" translatable="false">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
-    </integer-array>
+    <string-array name="wiimoteExtensionsValues" translatable="false">
+        <item>None</item>
+        <item>Nunchuk</item>
+        <item>Classic</item>
+        <item>Guitar</item>
+        <item>Drums</item>
+        <item>Turntable</item>
+    </string-array>
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
@@ -123,6 +171,20 @@
         <item>3</item>
     </integer-array>
 
+    <!-- Ubershader Mode Dynamic Descriptions -->
+    <string-array name="shaderCompilationDescriptionEntries" translatable="false">
+        <item>Synchronous: Ubershaders are never used. Stuttering will occur during shader compilation, but GPU demands are low. Recommended for low-end hardware.\nIf unsure, select this mode.</item>
+        <item>Synchronous (Ubershaders): Ubershaders will always be used. Provides a near stutter-free experience at the cost of high GPU performance requirements. Only recommended for high-end systems.</item>
+        <item>Asynchronous (Ubershaders): Ubershaders will be used to prevent stuttering during shader compilation, but specialized shaders will be used when they will not cause stuttering. In the best case it eliminates shader compilation stuttering while having minimal performance impact, but results depend on video driver behavior.</item>
+        <item>Asynchronous (Skip Drawing): Prevents shader compilation stuttering by not rendering waiting objects. Can work in scenarios where Ubershaders doesn\'t, at the cost of introducing visual glitches and broken effects. Not recommended, only use if the other options give poor results on your system.</item>
+    </string-array>
+    <integer-array name="shaderCompilationDescriptionValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+    </integer-array>
+
     <!-- Internal Resolution Preference -->
     <string-array name="internalResolutionEntries" translatable="false">
         <item>1x Native (640x528)</item>
@@ -143,14 +205,16 @@
 
     <!-- FSAA Preference -->
     <string-array name="FSAAEntries" translatable="false">
-        <item>1x</item>
+        <item>Off</item>
         <item>2x</item>
         <item>4x</item>
+        <item>8x</item>
     </string-array>
     <integer-array name="FSAAValues" translatable="false">
-        <item>0</item>
         <item>1</item>
         <item>2</item>
+        <item>4</item>
+        <item>8</item>
     </integer-array>
 
     <!-- Anisotropic Filtering Preference -->
@@ -241,6 +305,7 @@
         <item>Horizontal Wii Remote</item>
         <item>Wii Remote + Nunchuk</item>
         <item>Classic Controller</item>
+        <item>None</item>
     </string-array>
     <string-array name="controllersValues">
         <item>None</item>
@@ -248,6 +313,7 @@
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
+        <item>None</item>
     </string-array>
 
     <string-array name="gcpadButtons">
@@ -306,9 +372,51 @@
         <item>Right Stick</item>
     </string-array>
 
-    <string-array name="gameSettingsMenus">
+    <string-array name="doubleTap">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+    </string-array>
+
+    <string-array name="doubleTapWithClassic">
+        <item>Button A</item>
+        <item>Button B</item>
+        <item>Button 2</item>
+        <item>Classic A</item>
+    </string-array>
+
+    <string-array name="gameSettingsMenusGC">
+        <item>Details</item>
+        <item>Set as Default ISO</item>
         <item>Core Settings</item>
         <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
         <item>Clear Game Settings</item>
+    </string-array>
+    <string-array name="gameSettingsMenusWii">
+        <item>Details</item>
+        <item>Set as Default ISO</item>
+        <item>Core Settings</item>
+        <item>GFX Settings</item>
+        <item>GameCube Controller Settings</item>
+        <item>Wii Controller Settings</item>
+        <item>Clear Game Settings</item>
+    </string-array>
+
+    <string-array name="orientationEntries">
+        <item>Landscape</item>
+        <item>Portrait</item>
+        <item>Auto</item>
+    </string-array>
+    <integer-array name="orientationValues">
+        <item>0</item>
+        <item>1</item>
+        <item>-1</item>
+    </integer-array>
+
+    <string-array name="motionControlsEntries">
+        <item>Use Device Sensors (With Pointer Emulation)</item>
+        <item>Use Device Sensors (Without Pointer Emulation)</item>
+        <item>Don\'t Use Device Sensors</item>
     </string-array>
 </resources>

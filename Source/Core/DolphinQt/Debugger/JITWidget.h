@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 
 class QCloseEvent;
+class QShowEvent;
 class QSplitter;
 class QTextBrowser;
 class QTableWidget;
@@ -31,6 +32,7 @@ private:
   void ConnectWidgets();
 
   void closeEvent(QCloseEvent*) override;
+  void showEvent(QShowEvent* event) override;
 
   QTableWidget* m_table_widget;
   QTextBrowser* m_ppc_asm_widget;

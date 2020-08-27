@@ -22,8 +22,6 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 {
   std::lock_guard<std::recursive_mutex> lk(m_mutex);
 
-  FifoAnalyzer::Init();
-
   m_File = std::make_unique<FifoDataFile>();
 
   // TODO: This, ideally, would be deallocated when done recording.
@@ -38,8 +36,8 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
   //   - Global variables suck
   //   - Multithreading with the above two sucks
   //
-  m_Ram.resize(Memory::RAM_SIZE);
-  m_ExRam.resize(Memory::EXRAM_SIZE);
+  m_Ram.resize(Memory::GetRamSize());
+  m_ExRam.resize(Memory::GetExRamSize());
 
   std::fill(m_Ram.begin(), m_Ram.end(), 0);
   std::fill(m_ExRam.begin(), m_ExRam.end(), 0);
@@ -79,12 +77,14 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
   {
     // Assumes data contains all information for the command
     // Calls FifoRecorder::UseMemory
-    u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DECODE_RECORD);
+    const u32 analyzed_size = FifoAnalyzer::AnalyzeCommand(data, FifoAnalyzer::DecodeMode::Record);
 
     // Make sure FifoPlayer's command analyzer agrees about the size of the command.
     if (analyzed_size != size)
+    {
       PanicAlert("FifoRecorder: Expected command to be %i bytes long, we were given %i bytes",
                  analyzed_size, size);
+    }
 
     // Copy data to buffer
     size_t currentSize = m_FifoData.size();
@@ -92,7 +92,7 @@ void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
     memcpy(&m_FifoData[currentSize], data, size);
   }
 
-  if (m_FrameEnded && m_FifoData.size() > 0)
+  if (m_FrameEnded && !m_FifoData.empty())
   {
     m_CurrentFrame.fifoData = m_FifoData;
 
@@ -121,13 +121,13 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
   u8* newData;
   if (address & 0x10000000)
   {
-    curData = &m_ExRam[address & Memory::EXRAM_MASK];
-    newData = &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
+    curData = &m_ExRam[address & Memory::GetExRamMask()];
+    newData = &Memory::m_pEXRAM[address & Memory::GetExRamMask()];
   }
   else
   {
-    curData = &m_Ram[address & Memory::RAM_MASK];
-    newData = &Memory::m_pRAM[address & Memory::RAM_MASK];
+    curData = &m_Ram[address & Memory::GetRamMask()];
+    newData = &Memory::m_pRAM[address & Memory::GetRamMask()];
   }
 
   if (!dynamicUpdate && memcmp(curData, newData, size) != 0)

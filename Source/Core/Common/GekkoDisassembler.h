@@ -34,11 +34,10 @@
 
 #pragma once
 
-#include <cstdint>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -62,30 +61,31 @@ private:
 
   static void trapi(u32 in, unsigned char dmode);
   static void cmpi(u32 in, int uimm);
-  static void addi(u32 in, const std::string& ext);
-  static size_t branch(u32 in, const char* bname, int aform, int bdisp);
+  static void addi(u32 in, std::string_view ext);
+  static size_t branch(u32 in, std::string_view bname, int aform, int bdisp);
   static void bc(u32 in);
   static void bli(u32 in);
-  static void mcrf(u32 in, char c);
-  static void crop(u32 in, const char* n1, const char* n2);
-  static void nooper(u32 in, const char* name, unsigned char dmode);
-  static void rlw(u32 in, const char* name, int i);
-  static void ori(u32 in, const char* name);
-  static void rld(u32 in, const char* name, int i);
+  static void mcrf(u32 in, std::string_view suffix);
+  static void crop(u32 in, std::string_view n1, std::string_view n2);
+  static void nooper(u32 in, std::string_view name, unsigned char dmode);
+  static void rlw(u32 in, std::string_view name, int i);
+  static void ori(u32 in, std::string_view name);
+  static void rld(u32 in, std::string_view name, int i);
   static void cmp(u32 in);
   static void trap(u32 in, unsigned char dmode);
-  static void dab(u32 in, const char* name, int mask, int smode, int chkoe, int chkrc,
+  static void dab(u32 in, std::string_view name, int mask, int smode, int chkoe, int chkrc,
                   unsigned char dmode);
-  static void rrn(u32 in, const char* name, int smode, int chkoe, int chkrc, unsigned char dmode);
+  static void rrn(u32 in, std::string_view name, int smode, int chkoe, int chkrc,
+                  unsigned char dmode);
   static void mtcr(u32 in);
   static void msr(u32 in, int smode);
   static void mspr(u32 in, int smode);
   static void mtb(u32 in);
   static void sradi(u32 in);
-  static void ldst(u32 in, const char* name, char reg, unsigned char dmode);
-  static void fdabc(u32 in, const char* name, int mask, unsigned char dmode);
+  static void ldst(u32 in, std::string_view name, char reg, unsigned char dmode);
+  static void fdabc(u32 in, std::string_view name, int mask, unsigned char dmode);
   static void fmr(u32 in);
-  static void fdab(u32 in, const char* name, int mask);
+  static void fdab(u32 in, std::string_view name, int mask);
   static void fcmp(u32 in, char c);
   static void mtfsb(u32 in, int n);
   static void ps(u32 inst);
@@ -93,42 +93,6 @@ private:
 
   static u32* DoDisassembly(bool big_endian);
 
-  static u32 HelperRotateMask(int r, int mb, int me)
-  {
-    // first make 001111111111111 part
-    unsigned int begin = 0xFFFFFFFF >> mb;
-    // then make 000000000001111 part, which is used to flip the bits of the first one
-    unsigned int end = me < 31 ? (0xFFFFFFFF >> (me + 1)) : 0;
-    // do the bitflip
-    unsigned int mask = begin ^ end;
-    // and invert if backwards
-    if (me < mb)
-      mask = ~mask;
-    // rotate the mask so it can be applied to source reg
-    // return _rotl(mask, 32 - r);
-    return (mask << (32 - r)) | (mask >> r);
-  }
-
-  static std::string ldst_offs(u32 val)
-  {
-    if (val == 0)
-    {
-      return "0";
-    }
-    else
-    {
-      if (val & 0x8000)
-      {
-        return StringFromFormat("-0x%.4X", ((~val) & 0xffff) + 1);
-      }
-      else
-      {
-        return StringFromFormat("0x%.4X", val);
-      }
-    }
-  }
-
-  static int SEX12(u32 x) { return x & 0x800 ? (x | 0xFFFFF000) : x; }
   enum InstructionType
   {
     PPCINSTR_OTHER = 0,   // No additional info for other instr.

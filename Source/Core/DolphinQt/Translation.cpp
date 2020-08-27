@@ -6,7 +6,6 @@
 
 #include <QApplication>
 #include <QLocale>
-#include <QMessageBox>
 #include <QTranslator>
 #include <algorithm>
 #include <cstring>
@@ -19,6 +18,8 @@
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
+
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 #include "UICommon/UICommon.h"
 
@@ -148,7 +149,7 @@ public:
 
     if (!file)
     {
-      ERROR_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
+      WARN_LOG(COMMON, "Error reading MO file '%s'", filename.c_str());
       m_data = {};
       return;
     }
@@ -264,6 +265,9 @@ static bool TryInstallTranslator(const QString& exact_language_code)
 #elif defined __APPLE__
         File::GetBundleDirectory() +
         StringFromFormat("/Contents/Resources/%s.lproj/dolphin-emu.mo", lang.c_str())
+#elif defined LINUX_LOCAL_DEV
+        File::GetExeDirectory() +
+        StringFromFormat("/../Source/Core/DolphinQt/%s/dolphin-emu.mo", lang.c_str())
 #else
         StringFromFormat(DATA_DIR "/../locale/%s/LC_MESSAGES/dolphin-emu.mo", lang.c_str())
 #endif
@@ -281,13 +285,15 @@ static bool TryInstallTranslator(const QString& exact_language_code)
     }
     translator->deleteLater();
   }
+  ERROR_LOG(COMMON, "No suitable translation file found");
   return false;
 }
 
 void Translation::Initialize()
 {
   // Hook up Dolphin internal translation
-  RegisterStringTranslator([](const char* text) { return QObject::tr(text).toStdString(); });
+  Common::RegisterStringTranslator(
+      [](const char* text) { return QObject::tr(text).toStdString(); });
 
   // Hook up Qt translations
   auto& configured_language = SConfig::GetInstance().m_InterfaceLanguage;
@@ -296,7 +302,7 @@ void Translation::Initialize()
     if (TryInstallTranslator(QString::fromStdString(configured_language)))
       return;
 
-    QMessageBox::warning(
+    ModalMessageBox::warning(
         nullptr, QObject::tr("Error"),
         QObject::tr("Error loading selected language. Falling back to system default."));
     configured_language.clear();

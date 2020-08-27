@@ -8,8 +8,10 @@
 #include <memory>
 #include <string>
 
-#include <QMenu>
 #include <QMenuBar>
+#include <QPointer>
+
+class QMenu;
 
 namespace Core
 {
@@ -31,14 +33,15 @@ class MenuBar final : public QMenuBar
   Q_OBJECT
 
 public:
+  static MenuBar* GetMenuBar() { return s_menu_bar; }
+
   explicit MenuBar(QWidget* parent = nullptr);
 
-  void UpdateStateSlotMenu();
   void UpdateToolsMenu(bool emulation_started);
 
-#ifdef _WIN32
+  QMenu* GetListColumnsMenu() const { return m_cols_menu; }
+
   void InstallUpdateManually();
-#endif
 
 signals:
   // File
@@ -57,6 +60,7 @@ signals:
   void FrameAdvance();
   void Screenshot();
   void StartNetPlay();
+  void BrowseNetPlay();
   void StateLoad();
   void StateSave();
   void StateLoadSlot();
@@ -78,6 +82,7 @@ signals:
   void ShowFIFOPlayer();
   void ShowAboutDialog();
   void ShowCheatsManager();
+  void ShowResourcePackManager();
   void ConnectWiiRemote(int id);
 
   // Options
@@ -90,7 +95,8 @@ signals:
   // View
   void ShowList();
   void ShowGrid();
-  void ToggleSearch();
+  void PurgeGameListCache();
+  void ShowSearch();
   void ColumnVisibilityToggled(const QString& row, bool visible);
   void GameListPlatformVisibilityToggled(const QString& row, bool visible);
   void GameListRegionVisibilityToggled(const QString& row, bool visible);
@@ -133,6 +139,8 @@ private:
   void AddJITMenu();
   void AddSymbolsMenu();
 
+  void UpdateStateSlotMenu();
+
   void InstallWAD();
   void ImportWiiSave();
   void ExportWiiSaves();
@@ -145,14 +153,19 @@ private:
   void GenerateSymbolsFromAddress();
   void GenerateSymbolsFromSignatureDB();
   void GenerateSymbolsFromRSO();
+  void GenerateSymbolsFromRSOAuto();
   void LoadSymbolMap();
   void LoadOtherSymbolMap();
+  void LoadBadSymbolMap();
   void SaveSymbolMap();
   void SaveSymbolMapAs();
   void SaveCode();
-  bool TryLoadMapFile(const QString& path);
+  bool TryLoadMapFile(const QString& path, const bool bad = false);
   void TrySaveSymbolMap(const QString& path);
   void CreateSignatureFile();
+  void AppendSignatureFile();
+  void ApplySignatureFile();
+  void CombineSignatureFiles();
   void PatchHLEFunctions();
   void ClearCache();
   void LogInstructions();
@@ -162,6 +175,10 @@ private:
   void OnRecordingStatusChanged(bool recording);
   void OnReadOnlyModeChanged(bool read_only);
   void OnDebugModeToggled(bool enabled);
+
+  QString GetSignatureSelector() const;
+
+  static QPointer<MenuBar> s_menu_bar;
 
   // File
   QAction* m_open_action;
@@ -178,6 +195,7 @@ private:
   QAction* m_ntscj_ipl;
   QAction* m_ntscu_ipl;
   QAction* m_pal_ipl;
+  QMenu* m_manage_nand_menu;
   QAction* m_import_backup;
   QAction* m_check_nand;
   QAction* m_extract_certificates;
@@ -210,14 +228,18 @@ private:
   QAction* m_boot_to_pause;
   QAction* m_automatic_start;
   QAction* m_change_font;
+  QAction* m_controllers_action;
 
   // View
   QAction* m_show_code;
   QAction* m_show_registers;
+  QAction* m_show_threads;
   QAction* m_show_watch;
   QAction* m_show_breakpoints;
   QAction* m_show_memory;
+  QAction* m_show_network;
   QAction* m_show_jit;
+  QMenu* m_cols_menu;
 
   // JIT
   QMenu* m_jit;
@@ -227,6 +249,7 @@ private:
   QAction* m_jit_interpreter_core;
   QAction* m_jit_block_linking;
   QAction* m_jit_disable_cache;
+  QAction* m_jit_disable_fastmem;
   QAction* m_jit_clear_cache;
   QAction* m_jit_log_coverage;
   QAction* m_jit_search_instruction;
@@ -242,4 +265,7 @@ private:
   QAction* m_jit_paired_off;
   QAction* m_jit_systemregisters_off;
   QAction* m_jit_branch_off;
+  QAction* m_jit_register_cache_off;
+
+  bool m_game_selected = false;
 };

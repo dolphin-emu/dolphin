@@ -10,4 +10,4 @@ namespace ENetUtil
 {
 void WakeupThread(ENetHost* host);
 int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event);
-}
+}  // namespace ENetUtil

@@ -27,11 +27,6 @@ void Host_Message(HostMessageID id)
   DEBUG_LOG(COMMON, "message id: %i\n", (int)id);
 }
 
-void* Host_GetRenderHandle()
-{
-  return (void*)-1;
-}
-
 void Host_UpdateTitle(const std::string& title)
 {
 #if 0
@@ -62,21 +57,19 @@ bool Host_RendererIsFullscreen()
   return false;
 }
 
-void Host_ShowVideoConfig(void*, const std::string&)
-{
-}
-
 void Host_YieldToUI()
 {
 }
 
-bool Host_UINeedsControllerState()
+void Host_TitleChanged()
+{
+}
+
+bool Host_UIBlocksControllerState()
 {
   return false;
 }
-void Host_UpdateProgressDialog(const char* caption, int position, int total)
-{
-}
+
 
 #ifdef __ANDROID__
 
@@ -190,5 +183,5 @@ float GetAxisValue(int padID, ButtonType axis)
 {
   return 0;
 }
-}
+}  // namespace ButtonManager
 #endif

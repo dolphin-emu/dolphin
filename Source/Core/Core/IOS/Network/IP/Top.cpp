@@ -18,6 +18,8 @@
 #include <poll.h>
 #endif
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -48,13 +50,6 @@
 #include <unistd.h>
 #endif
 
-// WSAPoll doesn't support POLLPRI and POLLWRBAND flags
-#ifdef _WIN32
-#define UNSUPPORTED_WSAPOLL POLLPRI | POLLWRBAND
-#else
-#define UNSUPPORTED_WSAPOLL 0
-#endif
-
 #undef interface
 
 namespace IOS::HLE::Device
@@ -78,6 +73,12 @@ NetIPTop::~NetIPTop()
 #ifdef _WIN32
   WSACleanup();
 #endif
+}
+
+void NetIPTop::DoState(PointerWrap& p)
+{
+  DoStateShared(p);
+  WiiSockMan::GetInstance().DoState(p);
 }
 
 static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
@@ -274,8 +275,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 
   switch (request.request)
   {
-  case IOCTL_SO_STARTUP:
-    return HandleStartUpRequest(request);
+  case IOCTL_SO_INITINTERFACE:
+    return HandleInitInterfaceRequest(request);
   case IOCTL_SO_SOCKET:
     return HandleSocketRequest(request);
   case IOCTL_SO_ICMPSOCKET:
@@ -315,7 +316,7 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
   case IOCTL_SO_ICMPCANCEL:
     return HandleICMPCancelRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_NET);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_NET);
     break;
   }
 
@@ -337,7 +338,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
   case IOCTLV_SO_ICMPPING:
     return HandleICMPPingRequest(request);
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_NET);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_NET);
     break;
   }
 
@@ -349,9 +350,9 @@ void NetIPTop::Update()
   WiiSockMan::GetInstance().Update();
 }
 
-IPCCommandResult NetIPTop::HandleStartUpRequest(const IOCtlRequest& request)
+IPCCommandResult NetIPTop::HandleInitInterfaceRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -404,7 +405,7 @@ IPCCommandResult NetIPTop::HandleDoSockRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandleShutdownRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
 
   u32 fd = Memory::Read_U32(request.buffer_in);
   u32 how = Memory::Read_U32(request.buffer_in + 4);
@@ -419,7 +420,7 @@ IPCCommandResult NetIPTop::HandleListenRequest(const IOCtlRequest& request)
   u32 BACKLOG = Memory::Read_U32(request.buffer_in + 0x04);
   u32 ret = listen(WiiSockMan::GetInstance().GetHostSocket(fd), BACKLOG);
 
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   return GetDefaultReply(WiiSockMan::GetNetErrorCode(ret, "SO_LISTEN", false));
 }
 
@@ -429,7 +430,7 @@ IPCCommandResult NetIPTop::HandleGetSockOptRequest(const IOCtlRequest& request)
   u32 level = Memory::Read_U32(request.buffer_out + 4);
   u32 optname = Memory::Read_U32(request.buffer_out + 8);
 
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
 
   // Do the level/optname translation
   int nat_level = MapWiiSockOptLevelToNative(level);
@@ -495,7 +496,7 @@ IPCCommandResult NetIPTop::HandleGetSockNameRequest(const IOCtlRequest& request)
 {
   u32 fd = Memory::Read_U32(request.buffer_in);
 
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
 
   sockaddr sa;
   socklen_t sa_len = sizeof(sa);
@@ -544,7 +545,7 @@ IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::IOS_WC24);
+  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
   return GetDefaultReply(Common::swap32(interface.inet));
 }
@@ -599,77 +600,45 @@ IPCCommandResult NetIPTop::HandleInetNToPRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandlePollRequest(const IOCtlRequest& request)
 {
-  // Map Wii/native poll events types
-  struct
+  WiiSockMan& sm = WiiSockMan::GetInstance();
+
+  if (!request.buffer_in || !request.buffer_out)
+    return GetDefaultReply(-SO_EINVAL);
+
+  // Negative timeout indicates wait forever
+  const s64 timeout = static_cast<s64>(Memory::Read_U64(request.buffer_in));
+
+  const u32 nfds = request.buffer_out_size / 0xc;
+  if (nfds == 0 || nfds > WII_SOCKET_FD_MAX)
   {
-    int native;
-    int wii;
-  } mapping[] = {
-      {POLLRDNORM, 0x0001}, {POLLRDBAND, 0x0002}, {POLLPRI, 0x0004}, {POLLWRNORM, 0x0008},
-      {POLLWRBAND, 0x0010}, {POLLERR, 0x0020},    {POLLHUP, 0x0040}, {POLLNVAL, 0x0080},
-  };
-
-  u32 unknown = Memory::Read_U32(request.buffer_in);
-  u32 timeout = Memory::Read_U32(request.buffer_in + 4);
-
-  int nfds = request.buffer_out_size / 0xc;
-  if (nfds == 0)
-    ERROR_LOG(IOS_NET, "Hidden POLL");
+    ERROR_LOG(IOS_NET, "IOCTL_SO_POLL failed: Invalid array size %d, ret=%d", nfds, -SO_EINVAL);
+    return GetDefaultReply(-SO_EINVAL);
+  }
 
   std::vector<pollfd_t> ufds(nfds);
 
-  for (int i = 0; i < nfds; ++i)
+  for (u32 i = 0; i < nfds; ++i)
   {
-    s32 wii_fd = Memory::Read_U32(request.buffer_out + 0xc * i);
-    ufds[i].fd = WiiSockMan::GetInstance().GetHostSocket(wii_fd);          // fd
-    int events = Memory::Read_U32(request.buffer_out + 0xc * i + 4);       // events
-    ufds[i].revents = Memory::Read_U32(request.buffer_out + 0xc * i + 8);  // revents
+    const s32 wii_fd = Memory::Read_U32(request.buffer_out + 0xc * i);
+    ufds[i].fd = sm.GetHostSocket(wii_fd);                                  // fd
+    const int events = Memory::Read_U32(request.buffer_out + 0xc * i + 4);  // events
+    ufds[i].revents = 0;
 
     // Translate Wii to native events
-    int unhandled_events = events;
-    ufds[i].events = 0;
-    for (auto& map : mapping)
-    {
-      if (events & map.wii)
-        ufds[i].events |= map.native;
-      unhandled_events &= ~map.wii;
-    }
+    ufds[i].events = WiiSockMan::ConvertEvents(events, WiiSockMan::ConvertDirection::WiiToNative);
     DEBUG_LOG(IOS_NET,
               "IOCTL_SO_POLL(%d) "
-              "Sock: %08x, Unknown: %08x, Events: %08x, "
+              "Sock: %08x, Events: %08x, "
               "NativeEvents: %08x",
-              i, wii_fd, unknown, events, ufds[i].events);
+              i, wii_fd, events, ufds[i].events);
 
     // Do not pass return-only events to the native poll
     ufds[i].events &= ~(POLLERR | POLLHUP | POLLNVAL | UNSUPPORTED_WSAPOLL);
-
-    if (unhandled_events)
-      ERROR_LOG(IOS_NET, "SO_POLL: unhandled Wii event types: %04x", unhandled_events);
   }
 
-  int ret = poll(ufds.data(), nfds, timeout);
-  ret = WiiSockMan::GetNetErrorCode(ret, "SO_POLL", false);
-
-  for (int i = 0; i < nfds; ++i)
-  {
-    // Translate native to Wii events
-    int revents = 0;
-    for (auto& map : mapping)
-    {
-      if (ufds[i].revents & map.native)
-        revents |= map.wii;
-    }
-
-    // No need to change fd or events as they are input only.
-    // Memory::Write_U32(ufds[i].fd, request.buffer_out + 0xc*i); //fd
-    // Memory::Write_U32(events, request.buffer_out + 0xc*i + 4); //events
-    Memory::Write_U32(revents, request.buffer_out + 0xc * i + 8);  // revents
-
-    DEBUG_LOG(IOS_NET, "IOCTL_SO_POLL socket %d wevents %08X events %08X revents %08X", i, revents,
-              ufds[i].events, ufds[i].revents);
-  }
-
-  return GetDefaultReply(ret);
+  // Prevents blocking emulation on a blocking poll
+  sm.AddPollCommand({request.address, request.buffer_out, std::move(ufds), timeout});
+  return GetNoReply();
 }
 
 IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& request)
@@ -699,9 +668,9 @@ IPCCommandResult NetIPTop::HandleGetHostByNameRequest(const IOCtlRequest& reques
 
   for (int i = 0; remoteHost->h_addr_list[i]; ++i)
   {
-    u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
-    std::string ip_s =
-        StringFromFormat("%i.%i.%i.%i", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
+    const u32 ip = Common::swap32(*(u32*)(remoteHost->h_addr_list[i]));
+    const std::string ip_s =
+        fmt::format("{}.{}.{}.{}", ip >> 24, (ip >> 16) & 0xff, (ip >> 8) & 0xff, ip & 0xff);
     DEBUG_LOG(IOS_NET, "addr%i:%s", i, ip_s.c_str());
   }
 
@@ -860,10 +829,13 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
       }
     }
 #elif defined(__linux__) && !defined(__ANDROID__)
-    if (res_init() == 0)
-      address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
-    else
-      WARN_LOG(IOS_NET, "Call to res_init failed");
+    if (!Core::WantsDeterminism())
+    {
+      if (res_init() == 0)
+        address = ntohl(_res.nsaddr_list[0].sin_addr.s_addr);
+      else
+        WARN_LOG(IOS_NET, "Call to res_init failed");
+    }
 #endif
     if (address == 0)
       address = default_main_dns_resolver;
@@ -974,7 +946,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   // So we have to do a bit of juggling here.
   std::string nodeNameStr;
   const char* pNodeName = nullptr;
-  if (request.in_vectors.size() > 0 && request.in_vectors[0].size > 0)
+  if (!request.in_vectors.empty() && request.in_vectors[0].size > 0)
   {
     nodeNameStr = Memory::GetString(request.in_vectors[0].address, request.in_vectors[0].size);
     pNodeName = nodeNameStr.c_str();
@@ -1040,7 +1012,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
     ret = SO_ERROR_HOST_NOT_FOUND;
   }
 
-  request.Dump(GetDeviceName(), LogTypes::IOS_NET, LogTypes::LINFO);
+  request.Dump(GetDeviceName(), Common::Log::IOS_NET, Common::Log::LINFO);
   return GetDefaultReply(ret);
 }
 

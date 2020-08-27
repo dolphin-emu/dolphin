@@ -39,10 +39,6 @@
 #define JITDISABLE(setting)                                                                        \
   FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
 
-class JitBase;
-
-extern JitBase* g_jit;
-
 class JitBase : public CPUCoreBase
 {
 protected:
@@ -52,7 +48,9 @@ protected:
     bool optimizeGatherPipe;
     bool accurateSinglePrecision;
     bool fastmem;
+    bool fastmem_arena;
     bool memcheck;
+    bool profile_blocks;
   };
   struct JitState
   {
@@ -69,11 +67,6 @@ protected:
     // so just fixup that branch instead of testing for a DSI again.
     bool fixupExceptionHandler;
     Gen::FixupBranch exceptionHandler;
-    // If these are set, we've stored the old value of a register which will be loaded in
-    // revertLoad,
-    // which lets us revert it on the exception path.
-    int revertGprLoad;
-    int revertFprLoad;
 
     bool assumeNoPairedQuantize;
     std::map<u8, u32> constantGqr;
@@ -131,6 +124,3 @@ public:
 };
 
 void JitTrampoline(JitBase& jit, u32 em_address);
-
-// Merged routines that should be moved somewhere better
-u32 Helper_Mask(u8 mb, u8 me);

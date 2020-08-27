@@ -33,4 +33,5 @@ private:
   u16 m_max_y;
   u16 m_x = 0;
   u16 m_y = 0;
+  bool m_ignore_movement = false;
 };

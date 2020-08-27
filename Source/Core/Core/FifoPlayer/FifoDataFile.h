@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace File
 {
@@ -50,9 +51,10 @@ public:
     BP_MEM_SIZE = 256,
     CP_MEM_SIZE = 256,
     XF_MEM_SIZE = 4096,
-    XF_REGS_SIZE = 96,
+    XF_REGS_SIZE = 88,
     TEX_MEM_SIZE = 1024 * 1024,
   };
+  static_assert((XF_MEM_SIZE + XF_REGS_SIZE) * sizeof(u32) == sizeof(XFMemory));
 
   FifoDataFile();
   ~FifoDataFile();
@@ -67,6 +69,9 @@ public:
   u32* GetXFMem() { return m_XFMem; }
   u32* GetXFRegs() { return m_XFRegs; }
   u8* GetTexMem() { return m_TexMem; }
+  u32 GetRamSizeReal() { return m_ram_size_real; }
+  u32 GetExRamSizeReal() { return m_exram_size_real; }
+
   void AddFrame(const FifoFrameInfo& frameInfo);
   const FifoFrameInfo& GetFrame(u32 frame) const { return m_Frames[frame]; }
   u32 GetFrameCount() const { return static_cast<u32>(m_Frames.size()); }
@@ -94,6 +99,8 @@ private:
   u32 m_XFMem[XF_MEM_SIZE];
   u32 m_XFRegs[XF_REGS_SIZE];
   u8 m_TexMem[TEX_MEM_SIZE];
+  u32 m_ram_size_real;
+  u32 m_exram_size_real;
 
   u32 m_Flags = 0;
   u32 m_Version = 0;

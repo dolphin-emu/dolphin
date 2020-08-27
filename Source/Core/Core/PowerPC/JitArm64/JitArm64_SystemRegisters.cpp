@@ -32,6 +32,7 @@ FixupBranch JitArm64::JumpIfCRFieldBit(int field, int bit, bool jump_if_set)
     return jump_if_set ? TBNZ(XA, 62) : TBZ(XA, 62);
   default:
     ASSERT_MSG(DYNA_REC, false, "Invalid CR bit");
+    return {};
   }
 }
 
@@ -94,7 +95,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
-  MOVP2R(XB, PowerPC::m_crTable.data());
+  MOVP2R(XB, PowerPC::ConditionRegister::s_crTable.data());
   LDR(XB, XB, XA);
 
   // Clear XER[0-3]
@@ -196,9 +197,9 @@ void JitArm64::twx(UGeckoInstruction inst)
     SetJumpTarget(fixup);
   }
 
-  FixupBranch far = B();
+  FixupBranch far_addr = B();
   SwitchToFarCode();
-  SetJumpTarget(far);
+  SetJumpTarget(far_addr);
 
   gpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
   fpr.Flush(FlushMode::FLUSH_MAINTAIN_STATE);
@@ -664,7 +665,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     ARM64Reg RS = gpr.R(inst.RS);
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
-    MOVP2R(XB, PowerPC::m_crTable.data());
+    MOVP2R(XB, PowerPC::ConditionRegister::s_crTable.data());
     for (int i = 0; i < 8; ++i)
     {
       if ((crm & (0x80 >> i)) != 0)

@@ -25,4 +25,4 @@ constexpr bool AreBpTexMode0MipmapsEnabled(const T& tm0)
 {
   return (tm0.min_filter & 3) != 0;
 }
-}
+}  // namespace SamplerCommon

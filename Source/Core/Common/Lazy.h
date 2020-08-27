@@ -46,4 +46,4 @@ private:
 
   mutable std::variant<T, std::function<T()>> m_value;
 };
-}
+}  // namespace Common

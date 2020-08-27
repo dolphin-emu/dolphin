@@ -346,5 +346,8 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, Text
       }
       break;
     }
+  case TextureFormat::XFB:
+    TexDecoder_DecodeXFB(reinterpret_cast<u8*>(dst), src, width, height, width * 2);
+    break;
   }
 }

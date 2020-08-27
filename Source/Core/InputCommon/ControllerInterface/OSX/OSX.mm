@@ -17,9 +17,7 @@
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 #include "InputCommon/ControllerInterface/OSX/RunLoopStopper.h"
 
-namespace ciface
-{
-namespace OSX
+namespace ciface::OSX
 {
 constexpr CFTimeInterval FOREVER = 1e20;
 static std::thread s_hotplug_thread;
@@ -143,7 +141,7 @@ static std::string GetDeviceRefName(IOHIDDeviceRef inIOHIDDeviceRef)
 {
   const NSString* name = reinterpret_cast<const NSString*>(
       IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey)));
-  return (name != nullptr) ? StripSpaces([name UTF8String]) : "Unknown device";
+  return (name != nullptr) ? std::string(StripSpaces([name UTF8String])) : "Unknown device";
 }
 
 static void DeviceRemovalCallback(void* inContext, IOReturn inResult, void* inSender,
@@ -227,5 +225,4 @@ void DeInit()
   IOHIDManagerClose(HIDManager, kIOHIDOptionsTypeNone);
   CFRelease(HIDManager);
 }
-}
-}
+}  // namespace ciface::OSX

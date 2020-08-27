@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -26,10 +26,12 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <SFML/Network/Http.hpp>
+#include <SFML/System/Err.hpp>
 #include <cctype>
 #include <algorithm>
 #include <iterator>
 #include <sstream>
+#include <limits>
 
 
 namespace
@@ -105,10 +107,11 @@ std::string Http::Request::prepare() const
     std::string method;
     switch (m_method)
     {
-        default :
-        case Get :  method = "GET";  break;
-        case Post : method = "POST"; break;
-        case Head : method = "HEAD"; break;
+        case Get:    method = "GET";    break;
+        case Post:   method = "POST";   break;
+        case Head:   method = "HEAD";   break;
+        case Put:    method = "PUT";    break;
+        case Delete: method = "DELETE"; break;
     }
 
     // Write the first line containing the request type
@@ -230,9 +233,49 @@ void Http::Response::parse(const std::string& data)
     }
 
     // Ignore the end of the first line
-    in.ignore(10000, '\n');
+    in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     // Parse the other lines, which contain fields, one by one
+    parseFields(in);
+
+    m_body.clear();
+
+    // Determine whether the transfer is chunked
+    if (toLower(getField("transfer-encoding")) != "chunked")
+    {
+        // Not chunked - just read everything at once
+        std::copy(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>(), std::back_inserter(m_body));
+    }
+    else
+    {
+        // Chunked - have to read chunk by chunk
+        std::size_t length;
+
+        // Read all chunks, identified by a chunk-size not being 0
+        while (in >> std::hex >> length)
+        {
+            // Drop the rest of the line (chunk-extension)
+            in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+            // Copy the actual content data
+            std::istreambuf_iterator<char> it(in);
+            std::istreambuf_iterator<char> itEnd;
+            for (std::size_t i = 0; ((i < length) && (it != itEnd)); i++)
+                m_body.push_back(*it++);
+        }
+
+        // Drop the rest of the line (chunk-extension)
+        in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+
+        // Read all trailers (if present)
+        parseFields(in);
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+void Http::Response::parseFields(std::istream &in)
+{
     std::string line;
     while (std::getline(in, line) && (line.size() > 2))
     {
@@ -251,10 +294,6 @@ void Http::Response::parse(const std::string& data)
             m_fields[toLower(field)] = value;
         }
     }
-
-    // Finally extract the body
-    m_body.clear();
-    std::copy(std::istreambuf_iterator<char>(in), std::istreambuf_iterator<char>(), std::back_inserter(m_body));
 }
 
 
@@ -277,19 +316,19 @@ Http::Http(const std::string& host, unsigned short port)
 ////////////////////////////////////////////////////////////
 void Http::setHost(const std::string& host, unsigned short port)
 {
-    // Detect the protocol used
-    std::string protocol = toLower(host.substr(0, 8));
-    if (protocol.substr(0, 7) == "http://")
+    // Check the protocol
+    if (toLower(host.substr(0, 7)) == "http://")
     {
         // HTTP protocol
         m_hostName = host.substr(7);
         m_port     = (port != 0 ? port : 80);
     }
-    else if (protocol == "https://")
+    else if (toLower(host.substr(0, 8)) == "https://")
     {
-        // HTTPS protocol
-        m_hostName = host.substr(8);
-        m_port     = (port != 0 ? port : 443);
+        // HTTPS protocol -- unsupported (requires encryption and certificates and stuff...)
+        err() << "HTTPS protocol is not supported by sf::Http" << std::endl;
+        m_hostName = "";
+        m_port     = 0;
     }
     else
     {

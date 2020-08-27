@@ -9,20 +9,23 @@
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/Constants.h"
-#include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PerfQuery.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
-#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/VertexManager.h"
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/FramebufferManager.h"
+#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+#include <objc/message.h>
+#endif
 
 namespace Vulkan
 {
@@ -32,7 +35,8 @@ void VideoBackend::InitBackendInfo()
 
   if (LoadVulkanLibrary())
   {
-    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(false, false, false);
+    VkInstance temp_instance =
+        VulkanContext::CreateVulkanInstance(WindowSystemType::Headless, false, false);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
@@ -75,7 +79,8 @@ void VideoBackend::InitBackendInfo()
 // Helper method to check whether the Host GPU logging category is enabled.
 static bool IsHostGPULoggingEnabled()
 {
-  return LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR);
+  return Common::Log::LogManager::GetInstance()->IsEnabled(Common::Log::HOST_GPU,
+                                                           Common::Log::LERROR);
 }
 
 // Helper method to determine whether to enable the debug report extension.
@@ -89,7 +94,7 @@ static bool ShouldEnableDebugReports(bool enable_validation_layers)
   return enable_validation_layers || IsHostGPULoggingEnabled();
 }
 
-bool VideoBackend::Initialize(void* window_handle)
+bool VideoBackend::Initialize(const WindowSystemInfo& wsi)
 {
   if (!g_vulkan_context)
   {
@@ -109,9 +114,9 @@ bool VideoBackend::Initialize(void* window_handle)
 
     // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
     // We use this instance to fill in backend info, then re-use it for the actual device.
-    bool enable_surface = window_handle != nullptr;
+    bool enable_surface = wsi.type != WindowSystemType::Headless;
     bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
-    VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
+    VkInstance instance = VulkanContext::CreateVulkanInstance(wsi.type, enable_debug_reports,
                                                               enable_validation_layer);
     if (instance == VK_NULL_HANDLE)
     {
@@ -148,7 +153,7 @@ bool VideoBackend::Initialize(void* window_handle)
     VkSurfaceKHR surface = VK_NULL_HANDLE;
     if (enable_surface)
     {
-      surface = SwapChain::CreateVulkanSurface(instance, window_handle);
+      surface = SwapChain::CreateVulkanSurface(instance, wsi);
       if (surface == VK_NULL_HANDLE)
       {
         PanicAlert("Failed to create Vulkan surface.");
@@ -178,7 +183,6 @@ bool VideoBackend::Initialize(void* window_handle)
       return false;
     }
   }
-
   // Since VulkanContext maintains a copy of the device features and properties, we can use this
   // to initialize the backend information, so that we don't need to enumerate everything again.
   VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
@@ -186,6 +190,8 @@ bool VideoBackend::Initialize(void* window_handle)
                                              g_vulkan_context->GetDeviceFeatures());
   VulkanContext::PopulateBackendInfoMultisampleModes(
       &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+  g_Config.backend_info.bSupportsExclusiveFullscreen =
+      g_vulkan_context->SupportsExclusiveFullscreen(wsi, g_vulkan_context->GetSurface());
 
   // With the backend information populated, we can now initialize videocommon.
   InitializeShared();
@@ -199,10 +205,9 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
-  // Remaining classes are also dependent on object/shader cache.
+  // Remaining classes are also dependent on object cache.
   g_object_cache = std::make_unique<ObjectCache>();
-  g_shader_cache = std::make_unique<ShaderCache>();
-  if (!g_object_cache->Initialize() || !g_shader_cache->Initialize())
+  if (!g_object_cache->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan object cache.");
     Shutdown();
@@ -213,8 +218,7 @@ bool VideoBackend::Initialize(void* window_handle)
   std::unique_ptr<SwapChain> swap_chain;
   if (g_vulkan_context->GetSurface() != VK_NULL_HANDLE)
   {
-    swap_chain =
-        SwapChain::Create(window_handle, g_vulkan_context->GetSurface(), g_Config.IsVSync());
+    swap_chain = SwapChain::Create(wsi, g_vulkan_context->GetSurface(), g_ActiveConfig.bVSyncActive);
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
@@ -223,57 +227,138 @@ bool VideoBackend::Initialize(void* window_handle)
     }
   }
 
-  // Create main wrapper instances.
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
-  g_vertex_manager = std::make_unique<VertexManager>();
-  g_texture_cache = std::make_unique<TextureCache>();
-  ::g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  g_perf_query = std::make_unique<PerfQuery>();
-
-  // Invoke init methods on main wrapper classes.
-  // These have to be done before the others because the destructors
-  // for the remaining classes may call methods on these.
-  if (!StateTracker::CreateInstance() || !FramebufferManager::GetInstance()->Initialize() ||
-      !Renderer::GetInstance()->Initialize() || !VertexManager::GetInstance()->Initialize() ||
-      !TextureCache::GetInstance()->Initialize() || !PerfQuery::GetInstance()->Initialize() ||
-      !::g_shader_cache->Initialize())
+  if (!StateTracker::CreateInstance())
   {
-    PanicAlert("Failed to initialize Vulkan classes.");
+    PanicAlert("Failed to create state tracker");
     Shutdown();
     return false;
   }
 
-  // Display the name so the user knows which device was actually created.
-  INFO_LOG(VIDEO, "Vulkan Device: %s", g_vulkan_context->GetDeviceProperties().deviceName);
+  // Create main wrapper instances.
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain), wsi.render_surface_scale);
+  g_vertex_manager = std::make_unique<VertexManager>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_texture_cache = std::make_unique<TextureCacheBase>();
+  g_perf_query = std::make_unique<PerfQuery>();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize() || !PerfQuery::GetInstance()->Initialize())
+  {
+    PanicAlert("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
+  }
+
+  g_shader_cache->InitializeShaderCache();
   return true;
 }
 
 void VideoBackend::Shutdown()
 {
-  if (g_command_buffer_mgr)
-    g_command_buffer_mgr->WaitForGPUIdle();
+  if (g_vulkan_context)
+    vkDeviceWaitIdle(g_vulkan_context->GetDevice());
 
-  if (::g_shader_cache)
-    ::g_shader_cache->Shutdown();
+  if (g_shader_cache)
+    g_shader_cache->Shutdown();
+
+  if (g_object_cache)
+    g_object_cache->Shutdown();
 
   if (g_renderer)
     g_renderer->Shutdown();
 
   g_perf_query.reset();
-  ::g_shader_cache.reset();
   g_texture_cache.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
-  g_framebuffer_manager.reset();
-  StateTracker::DestroyInstance();
-  if (g_shader_cache)
-    g_shader_cache->Shutdown();
-  g_shader_cache.reset();
   g_object_cache.reset();
+  StateTracker::DestroyInstance();
   g_command_buffer_mgr.reset();
   g_vulkan_context.reset();
   ShutdownShared();
   UnloadVulkanLibrary();
+}
+
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+static bool IsRunningOnMojaveOrHigher()
+{
+  // id processInfo = [NSProcessInfo processInfo]
+  id processInfo = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(
+      objc_getClass("NSProcessInfo"), sel_getUid("processInfo"));
+  if (!processInfo)
+    return false;
+
+  struct OSVersion  // NSOperatingSystemVersion
+  {
+    size_t major_version;  // NSInteger majorVersion
+    size_t minor_version;  // NSInteger minorVersion
+    size_t patch_version;  // NSInteger patchVersion
+  };
+
+  // const bool meets_requirement = [processInfo isOperatingSystemAtLeastVersion:required_version];
+  constexpr OSVersion required_version = {10, 14, 0};
+  const bool meets_requirement = reinterpret_cast<bool (*)(id, SEL, OSVersion)>(objc_msgSend)(
+      processInfo, sel_getUid("isOperatingSystemAtLeastVersion:"), required_version);
+  return meets_requirement;
+}
+#endif
+
+void VideoBackend::PrepareWindow(WindowSystemInfo& wsi)
+{
+#if defined(VK_USE_PLATFORM_METAL_EXT)
+  // This is kinda messy, but it avoids having to write Objective C++ just to create a metal layer.
+  id view = reinterpret_cast<id>(wsi.render_surface);
+  Class clsCAMetalLayer = objc_getClass("CAMetalLayer");
+  if (!clsCAMetalLayer)
+  {
+    ERROR_LOG(VIDEO, "Failed to get CAMetalLayer class.");
+    return;
+  }
+
+  // [CAMetalLayer layer]
+  id layer = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("CAMetalLayer"),
+                                                                sel_getUid("layer"));
+  if (!layer)
+  {
+    ERROR_LOG(VIDEO, "Failed to create Metal layer.");
+    return;
+  }
+
+  // [view setWantsLayer:YES]
+  reinterpret_cast<void (*)(id, SEL, BOOL)>(objc_msgSend)(view, sel_getUid("setWantsLayer:"), YES);
+
+  // [view setLayer:layer]
+  reinterpret_cast<void (*)(id, SEL, id)>(objc_msgSend)(view, sel_getUid("setLayer:"), layer);
+
+  // NSScreen* screen = [NSScreen mainScreen]
+  id screen = reinterpret_cast<id (*)(Class, SEL)>(objc_msgSend)(objc_getClass("NSScreen"),
+                                                                 sel_getUid("mainScreen"));
+
+  // CGFloat factor = [screen backingScaleFactor]
+  double factor =
+      reinterpret_cast<double (*)(id, SEL)>(objc_msgSend)(screen, sel_getUid("backingScaleFactor"));
+
+  // layer.contentsScale = factor
+  reinterpret_cast<void (*)(id, SEL, double)>(objc_msgSend)(layer, sel_getUid("setContentsScale:"),
+                                                            factor);
+
+  // Store the layer pointer, that way MoltenVK doesn't call [NSView layer] outside the main thread.
+  wsi.render_surface = layer;
+
+  // The Metal version included with MacOS 10.13 and below does not support several features we
+  // require. Furthermore, the drivers seem to choke on our shaders (mainly Intel). So, we warn
+  // the user that this is an unsupported configuration, but permit them to continue.
+  if (!IsRunningOnMojaveOrHigher())
+  {
+    PanicAlertT(
+        "You are attempting to use the Vulkan (Metal) backend on an unsupported operating system. "
+        "For all functionality to be enabled, you must use macOS 10.14 (Mojave) or newer. Please "
+        "do not report any issues encountered unless they also occur on 10.14+.");
+  }
+#endif
 }
 }  // namespace Vulkan

@@ -21,7 +21,7 @@ if(CMAKE_GENERATOR)
 	return()
 endif()
 
-get_filename_component(DOLPHIN_BUNDLE_PATH "${DOLPHIN_BUNDLE_PATH}" REALPATH)
+get_filename_component(DOLPHIN_BUNDLE_PATH "${DOLPHIN_BUNDLE_PATH}" ABSOLUTE)
 message(STATUS "Fixing up application bundle: ${DOLPHIN_BUNDLE_PATH}")
 
 # Make sure to fix up any additional shared libraries (like plugins) that are

@@ -10,9 +10,7 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
@@ -39,5 +37,4 @@ void INITUCode::Update()
 void INITUCode::HandleMail(u32 mail)
 {
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

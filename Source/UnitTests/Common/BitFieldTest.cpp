@@ -32,7 +32,10 @@ static u64 table[] = {
     0x8000000000000048ull,  // regular_field = 0b1001
 
     // "random" numbers
-    0x0F7B8B1ABD9B8D3Full, 0xA8B86F73FDAADD2Dull, 0x1B17A557BFEB351Dull, 0xE3354268B0C2395Bull,
+    0x0F7B8B1ABD9B8D3Full,
+    0xA8B86F73FDAADD2Dull,
+    0x1B17A557BFEB351Dull,
+    0xE3354268B0C2395Bull,
 };
 
 // Verify that bitfields in a union have the same underlying data

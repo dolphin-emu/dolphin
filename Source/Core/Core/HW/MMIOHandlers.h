@@ -237,4 +237,4 @@ private:
 #define MaybeExtern extern
 MMIO_PUBLIC_SPECIALIZATIONS()
 #undef MaybeExtern
-}
+}  // namespace MMIO

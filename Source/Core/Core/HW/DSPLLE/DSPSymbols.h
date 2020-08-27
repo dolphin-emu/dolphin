@@ -9,9 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
 
-namespace DSP
-{
-namespace Symbols
+namespace DSP::Symbols
 {
 class DSPSymbolDB : public Common::SymbolDB
 {
@@ -31,6 +29,4 @@ int Addr2Line(u16 address);
 int Line2Addr(int line);  // -1 for not found
 
 const char* GetLineText(int line);
-
-}  // namespace Symbols
-}  // namespace DSP
+}  // namespace DSP::Symbols

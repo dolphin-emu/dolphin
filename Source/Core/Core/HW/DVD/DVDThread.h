@@ -15,23 +15,23 @@ namespace DiscIO
 {
 struct Partition;
 }
+
 namespace DVDInterface
 {
 enum class ReplyType : u32;
 }
+
 namespace DiscIO
 {
 enum class Platform;
 class Volume;
-}
-namespace IOS
-{
-namespace ES
+}  // namespace DiscIO
+
+namespace IOS::ES
 {
 class TMDReader;
 class TicketReader;
-}
-}
+}  // namespace IOS::ES
 
 namespace DVDThread
 {
@@ -47,6 +47,7 @@ DiscIO::Platform GetDiscType();
 u64 PartitionOffsetToRawOffset(u64 offset, const DiscIO::Partition& partition);
 IOS::ES::TMDReader GetTMD(const DiscIO::Partition& partition);
 IOS::ES::TicketReader GetTicket(const DiscIO::Partition& partition);
+bool IsInsertedDiscRunning();
 // This function returns true and calls SConfig::SetRunningGameMetadata(Volume&, Partition&)
 // if both of the following conditions are true:
 // - A disc is inserted
@@ -59,4 +60,4 @@ void StartRead(u64 dvd_offset, u32 length, const DiscIO::Partition& partition,
 void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length,
                             const DiscIO::Partition& partition, DVDInterface::ReplyType reply_type,
                             s64 ticks_until_completion);
-}
+}  // namespace DVDThread

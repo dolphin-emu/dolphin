@@ -4,6 +4,8 @@
 
 #include "Core/HW/GCPadEmu.h"
 
+#include <array>
+
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 
@@ -13,7 +15,8 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
+
 #include "InputCommon/GCPadStatus.h"
 
 static const u16 button_bitmasks[] = {
@@ -56,48 +59,44 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
     const ControllerEmu::Translatability translate =
         is_start ? ControllerEmu::Translate : ControllerEmu::DoNotTranslate;
     // i18n: The START/PAUSE button on GameCube controllers
-    const std::string& ui_name = is_start ? _trans("START") : named_button;
-    m_buttons->controls.emplace_back(new ControllerEmu::Input(translate, named_button, ui_name));
+    std::string ui_name = is_start ? _trans("START") : named_button;
+    m_buttons->AddInput(translate, named_button, std::move(ui_name));
   }
 
   // sticks
-  groups.emplace_back(m_main_stick = new ControllerEmu::AnalogStick(
-                          "Main Stick", _trans("Control Stick"), DEFAULT_PAD_STICK_RADIUS));
-  groups.emplace_back(m_c_stick = new ControllerEmu::AnalogStick("C-Stick", _trans("C Stick"),
-                                                                 DEFAULT_PAD_STICK_RADIUS));
+  groups.emplace_back(m_main_stick = new ControllerEmu::OctagonAnalogStick(
+                          "Main Stick", _trans("Control Stick"), MAIN_STICK_GATE_RADIUS));
+  groups.emplace_back(m_c_stick = new ControllerEmu::OctagonAnalogStick(
+                          "C-Stick", _trans("C Stick"), C_STICK_GATE_RADIUS));
 
   // triggers
   groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers(_trans("Triggers")));
   for (const char* named_trigger : named_triggers)
   {
-    m_triggers->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, named_trigger));
+    m_triggers->AddInput(ControllerEmu::Translate, named_trigger);
   }
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(
-      new ControllerEmu::Output(ControllerEmu::Translate, _trans("Motor")));
+  m_rumble->AddOutput(ControllerEmu::Translate, _trans("Motor"));
 
   // Microphone
   groups.emplace_back(m_mic = new ControllerEmu::Buttons(_trans("Microphone")));
-  m_mic->controls.emplace_back(
-      new ControllerEmu::Input(ControllerEmu::Translate, _trans("Button")));
+  m_mic->AddInput(ControllerEmu::Translate, _trans("Button"));
 
   // dpad
   groups.emplace_back(m_dpad = new ControllerEmu::Buttons(_trans("D-Pad")));
   for (const char* named_direction : named_directions)
   {
-    m_dpad->controls.emplace_back(
-        new ControllerEmu::Input(ControllerEmu::Translate, named_direction));
+    m_dpad->AddInput(ControllerEmu::Translate, named_direction);
   }
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      // i18n: Treat a controller as always being connected regardless of what
-      // devices the user actually has plugged in
-      m_always_connected = new ControllerEmu::BooleanSetting(_trans("Always Connected"), false));
+  m_options->AddSetting(&m_always_connected_setting,
+                        // i18n: Treat a controller as always being connected regardless of what
+                        // devices the user actually has plugged in
+                        _trans("Always Connected"), false);
 }
 
 std::string GCPad::GetName() const
@@ -133,11 +132,9 @@ ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
 GCPadStatus GCPad::GetInput() const
 {
   const auto lock = GetStateLock();
-
-  ControlState x, y, triggers[2];
   GCPadStatus pad = {};
 
-  if (!(m_always_connected->GetValue() || IsDefaultDeviceConnected()))
+  if (!(m_always_connected_setting.GetValue() || IsDefaultDeviceConnected()))
   {
     pad.isConnected = false;
     return pad;
@@ -156,22 +153,19 @@ GCPadStatus GCPad::GetInput() const
   m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
-  m_main_stick->GetState(&x, &y);
-  pad.stickX =
-      static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad.stickY =
-      static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
+  const auto main_stick_state = m_main_stick->GetState();
+  pad.stickX = MapFloat<u8>(main_stick_state.x, GCPadStatus::MAIN_STICK_CENTER_X);
+  pad.stickY = MapFloat<u8>(main_stick_state.y, GCPadStatus::MAIN_STICK_CENTER_Y);
 
-  m_c_stick->GetState(&x, &y);
-  pad.substickX =
-      static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-  pad.substickY =
-      static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
+  const auto c_stick_state = m_c_stick->GetState();
+  pad.substickX = MapFloat<u8>(c_stick_state.x, GCPadStatus::C_STICK_CENTER_X);
+  pad.substickY = MapFloat<u8>(c_stick_state.y, GCPadStatus::C_STICK_CENTER_Y);
 
   // triggers
-  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers);
-  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+  std::array<ControlState, 2> triggers;
+  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers.data());
+  pad.triggerLeft = MapFloat<u8>(triggers[0], 0);
+  pad.triggerRight = MapFloat<u8>(triggers[1], 0);
 
   return pad;
 }
@@ -225,7 +219,8 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(4, "LSHIFT");  // Modifier
 
 #elif __APPLE__
-  m_c_stick->SetControlExpression(4, "Left Control");  // Modifier
+  // Modifier
+  m_c_stick->SetControlExpression(4, "Left Control");
 
   // Control Stick
   m_main_stick->SetControlExpression(0, "Up Arrow");     // Up
@@ -246,6 +241,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_main_stick->SetControlExpression(4, "Shift_L");  // Modifier
 #endif
 
+  // Because our defaults use keyboard input, set calibration shapes to squares.
+  m_c_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+  m_main_stick->SetCalibrationFromGate(ControllerEmu::SquareStickGate(1.0));
+
   // Triggers
   m_triggers->SetControlExpression(0, "Q");  // L
   m_triggers->SetControlExpression(1, "W");  // R
@@ -254,5 +253,5 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 bool GCPad::GetMicButton() const
 {
   const auto lock = GetStateLock();
-  return (0.0f != m_mic->controls.back()->control_ref->State());
+  return m_mic->controls.back()->GetState<bool>();
 }

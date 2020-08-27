@@ -102,7 +102,7 @@ class PrettyWriter;
 // document.h
 
 template <typename Encoding, typename Allocator> 
-struct GenericMember;
+class GenericMember;
 
 template <bool Const, typename Encoding, typename Allocator>
 class GenericMemberIterator;

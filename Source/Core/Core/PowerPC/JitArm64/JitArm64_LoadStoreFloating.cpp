@@ -167,7 +167,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
   fprs_in_use[0] = 0;  // Q0
   fprs_in_use[VD - Q0] = 0;
 
-  if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
+  if (jo.fastmem_arena && is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
     EmitBackpatchRoutine(flags, true, false, VD, XA, BitSet32(0), BitSet32(0));
   }
@@ -384,7 +384,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
         MOVI2R(gpr.R(a), imm_addr);
       }
     }
-    else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
+    else if (jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(imm_addr))
     {
       EmitBackpatchRoutine(flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
     }

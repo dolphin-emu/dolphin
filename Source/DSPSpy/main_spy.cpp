@@ -9,6 +9,7 @@
 // Use Dolphin's dsptool to generate a new dsp_code.h.
 // Originally written by duddie and modified by FIRES. Then further modified by ector.
 
+#include <array>
 #include <debug.h>
 #include <fat.h>
 #include <fcntl.h>
@@ -137,14 +138,11 @@ int curUcode = 0, runningUcode = 1;
 
 int dsp_steps = 0;
 
-// When comparing regs, ignore the loop stack registers.
-bool regs_equal(int reg, u16 value1, u16 value2)
-{
-  if (reg >= DSP_REG_ST0 && reg <= DSP_REG_ST3)
-    return true;
-  else
-    return value1 == value2;
-}
+constexpr std::array reg_names = {
+    "ar0", "ar1", "ar2", "ar3", "ix0", "ix1", "ix2", "ix3", "wr0", "wr1", "wr2",
+    "wr3", "st0", "st1", "st2", "st3", "c0h", "c1h", "cr ", "sr ", "pl ", "pm1",
+    "ph ", "pm2", "x0l", "x1l", "x0h", "x1h", "c0l", "c1l", "c0m", "c1m",
+};
 
 void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_regs)
 {
@@ -155,18 +153,17 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
       // Do not even display the loop stack registers.
       const int reg = j * 8 + i;
       CON_SetColor(sel == reg ? CON_BRIGHT_YELLOW : CON_GREEN);
-      CON_Printf(x + j * 8, i + y, "%02x ", reg);
+      CON_Printf(x + j * 9, i + y, "%s ", reg_names[reg]);
       if (j != 1 || i < 4)
       {
-        u8 color1 =
-            regs_equal(reg, regs[reg], compare_regs[reg]) ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
+        u8 color1 = regs[reg] == compare_regs[reg] ? CON_BRIGHT_WHITE : CON_BRIGHT_RED;
         for (int k = 0; k < 4; k++)
         {
           if (sel == reg && k == small_cursor_x && ui_mode == UIM_EDIT_REG)
             CON_SetColor(CON_BRIGHT_CYAN);
           else
             CON_SetColor(color1);
-          CON_Printf(x + 3 + j * 8 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
+          CON_Printf(x + 4 + j * 9 + k, i + y, "%01x", (regs[reg] >> ((3 - k) * 4)) & 0xf);
         }
       }
     }
@@ -177,8 +174,18 @@ void print_reg_block(int x, int y, int sel, const u16* regs, const u16* compare_
              regs[DSP_REG_ACL0]);
   CON_Printf(x + 2, y + 10, "ACC1: %02x %04x %04x", regs[DSP_REG_ACH1] & 0xff, regs[DSP_REG_ACM1],
              regs[DSP_REG_ACL1]);
-  CON_Printf(x + 2, y + 11, "AX0: %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
-  CON_Printf(x + 2, y + 12, "AX1: %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
+  CON_Printf(x + 2, y + 11, "AX0:     %04x %04x", regs[DSP_REG_AXH0], regs[DSP_REG_AXL0]);
+  CON_Printf(x + 2, y + 12, "AX1:     %04x %04x", regs[DSP_REG_AXH1], regs[DSP_REG_AXL1]);
+
+  u64 prod = (u64(regs[DSP_REG_PRODH]) << 32) + (u64(regs[DSP_REG_PRODM]) << 16) +
+             (u64(regs[DSP_REG_PRODM2]) << 16) + u64(regs[DSP_REG_PRODL]);
+  CON_Printf(x + 2, y + 13, "PROD: %02x %04x %04x", (prod >> 32) & 0xff, (prod >> 16) & 0xffff,
+             prod & 0xffff);
+
+  CON_Printf(x + 2, y + 14, "SR:");
+  for (int i = 0; i < 16; ++i)
+    CON_Printf(x + 6 + i + i / 4, y + 14, "%c", regs[DSP_REG_SR] & (1 << (15 - i)) ? '1' : '0');
+  CON_Printf(x + 21, y + 15, "SZOC");
 }
 
 void print_regs(int _step, int _dsp_steps)
@@ -187,7 +194,7 @@ void print_regs(int _step, int _dsp_steps)
   const u16* regs2 = dspreg_out[_step];
 
   print_reg_block(0, 2, _step == 0 ? cursor_reg : -1, regs, regs2);
-  print_reg_block(33, 2, -1, regs2, regs);
+  print_reg_block(38, 2, -1, regs2, regs);
 
   CON_SetColor(CON_WHITE);
   CON_Printf(33, 17, "%i / %i      ", _step + 1, _dsp_steps);
@@ -265,7 +272,7 @@ void ui_pad_sel(void)
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
-#else
+#endif
   if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
     cursor_reg += 8;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
@@ -280,7 +287,6 @@ void ui_pad_sel(void)
     ui_mode = UIM_EDIT_REG;
     reg_value = &dspreg_in[cursor_reg];
   }
-#endif
 }
 
 void ui_pad_edit_reg(void)
@@ -302,7 +308,7 @@ void ui_pad_edit_reg(void)
     *reg_value = 0;
   if (WPAD_ButtonsDown(0) & WPAD_BUTTON_2)
     *reg_value = 0xffff;
-#else
+#endif
   if (PAD_ButtonsDown(0) & PAD_BUTTON_RIGHT)
     small_cursor_x++;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_LEFT)
@@ -319,7 +325,6 @@ void ui_pad_edit_reg(void)
     *reg_value = 0;
   if (PAD_ButtonsDown(0) & PAD_BUTTON_Y)
     *reg_value = 0xffff;
-#endif
 }
 
 void handle_dsp_mail(void)

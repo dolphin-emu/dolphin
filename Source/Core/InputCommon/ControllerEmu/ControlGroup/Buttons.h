@@ -23,12 +23,7 @@ public:
   void GetState(C* const buttons, const C* bitmasks)
   {
     for (auto& control : controls)
-    {
-      if (control->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
-        *buttons |= *bitmasks;
-
-      bitmasks++;
-    }
+      *buttons |= *(bitmasks++) * control->GetState<bool>();
   }
 };
 }  // namespace ControllerEmu

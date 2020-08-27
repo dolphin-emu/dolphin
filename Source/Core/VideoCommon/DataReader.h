@@ -7,7 +7,7 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Common/Compiler.h"
+#include "Common/Inline.h"
 #include "Common/Swap.h"
 
 class DataReader

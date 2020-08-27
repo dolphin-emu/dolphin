@@ -35,6 +35,9 @@ struct ARCode
 void RunAllActive();
 
 void ApplyCodes(const std::vector<ARCode>& codes);
+void SetSyncedCodesAsActive();
+void UpdateSyncedCodes(const std::vector<ARCode>& codes);
+std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes);
 void AddCode(ARCode new_code);
 void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
 
@@ -45,4 +48,4 @@ void EnableSelfLogging(bool enable);
 std::vector<std::string> GetSelfLog();
 void ClearSelfLog();
 bool IsSelfLogging();
-}  // namespace
+}  // namespace ActionReplay

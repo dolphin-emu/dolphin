@@ -9,13 +9,14 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
-#include <QMessageBox>
 #include <QStringList>
 #include <QTextEdit>
 
 #include "Core/ARDecrypt.h"
 #include "Core/ActionReplay.h"
 #include "Core/GeckoCodeConfig.h"
+
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
 CheatCodeEditor::CheatCodeEditor(QWidget* parent) : QDialog(parent)
 {
@@ -123,7 +124,7 @@ bool CheatCodeEditor::AcceptAR()
   std::vector<ActionReplay::AREntry> entries;
   std::vector<std::string> encrypted_lines;
 
-  QStringList lines = m_code_edit->toPlainText().split(QStringLiteral("\n"));
+  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
   for (int i = 0; i < lines.size(); i++)
   {
@@ -132,7 +133,7 @@ bool CheatCodeEditor::AcceptAR()
     if (line.isEmpty())
       continue;
 
-    QStringList values = line.split(QStringLiteral(" "));
+    QStringList values = line.split(QLatin1Char{' '});
 
     bool good = true;
 
@@ -151,7 +152,7 @@ bool CheatCodeEditor::AcceptAR()
     }
     else
     {
-      QStringList blocks = line.split(QStringLiteral("-"));
+      QStringList blocks = line.split(QLatin1Char{'-'});
 
       if (blocks.size() == 3 && blocks[0].size() == 4 && blocks[1].size() == 4 &&
           blocks[2].size() == 5)
@@ -167,7 +168,7 @@ bool CheatCodeEditor::AcceptAR()
 
     if (!good)
     {
-      auto result = QMessageBox::warning(
+      auto result = ModalMessageBox::warning(
           this, tr("Parsing Error"),
           tr("Unable to parse line %1 of the entered AR code as a valid "
              "encrypted or decrypted code. Make sure you typed it correctly.\n\n"
@@ -184,7 +185,7 @@ bool CheatCodeEditor::AcceptAR()
   {
     if (!entries.empty())
     {
-      auto result = QMessageBox::warning(
+      auto result = ModalMessageBox::warning(
           this, tr("Invalid Mixed Code"),
           tr("This Action Replay code contains both encrypted and unencrypted lines; "
              "you should check that you have entered it correctly.\n\n"
@@ -213,8 +214,8 @@ bool CheatCodeEditor::AcceptAR()
 
   if (entries.empty())
   {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("The resulting decrypted AR code doesn't contain any lines."));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The resulting decrypted AR code doesn't contain any lines."));
     return false;
   }
 
@@ -229,7 +230,7 @@ bool CheatCodeEditor::AcceptGecko()
 {
   std::vector<Gecko::GeckoCode::Code> entries;
 
-  QStringList lines = m_code_edit->toPlainText().split(QStringLiteral("\n"));
+  QStringList lines = m_code_edit->toPlainText().split(QLatin1Char{'\n'});
 
   for (int i = 0; i < lines.size(); i++)
   {
@@ -238,7 +239,7 @@ bool CheatCodeEditor::AcceptGecko()
     if (line.isEmpty())
       continue;
 
-    QStringList values = line.split(QStringLiteral(" "));
+    QStringList values = line.split(QLatin1Char{' '});
 
     bool good = values.size() == 2;
 
@@ -253,13 +254,13 @@ bool CheatCodeEditor::AcceptGecko()
 
     if (!good)
     {
-      auto result =
-          QMessageBox::warning(this, tr("Parsing Error"),
-                               tr("Unable to parse line %1 of the entered Gecko code as a valid "
-                                  "code. Make sure you typed it correctly.\n\n"
-                                  "Would you like to ignore this line and continue parsing?")
-                                   .arg(i + 1),
-                               QMessageBox::Ok | QMessageBox::Abort);
+      auto result = ModalMessageBox::warning(
+          this, tr("Parsing Error"),
+          tr("Unable to parse line %1 of the entered Gecko code as a valid "
+             "code. Make sure you typed it correctly.\n\n"
+             "Would you like to ignore this line and continue parsing?")
+              .arg(i + 1),
+          QMessageBox::Ok | QMessageBox::Abort);
 
       if (result == QMessageBox::Abort)
         return false;
@@ -277,8 +278,8 @@ bool CheatCodeEditor::AcceptGecko()
 
   if (entries.empty())
   {
-    QMessageBox::critical(this, tr("Error"),
-                          tr("The resulting decrypted AR code doesn't contain any lines."));
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The resulting decrypted AR code doesn't contain any lines."));
     return false;
   }
 
@@ -288,7 +289,7 @@ bool CheatCodeEditor::AcceptGecko()
   m_gecko_code->user_defined = true;
 
   std::vector<std::string> note_lines;
-  for (QString line : m_notes_edit->toPlainText().split(QStringLiteral("\n")))
+  for (const QString& line : m_notes_edit->toPlainText().split(QLatin1Char{'\n'}))
     note_lines.push_back(line.toStdString());
 
   m_gecko_code->notes = std::move(note_lines);

@@ -23,4 +23,4 @@ void DrawObjectBuffer(s16 x, s16 y, const u8* color, int bufferBase, int subBuff
 
 void DrawTempBuffer(const u8* color, int buffer);
 void CopyTempBuffer(s16 x, s16 y, int bufferBase, int subBuffer, const char* name);
-}
+}  // namespace DebugUtil

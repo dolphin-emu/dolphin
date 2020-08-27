@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2012 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -24,12 +24,12 @@
 
 
 ////////////////////////////////////////////////////////////
-// References :
+// References:
 //
-// http://www.unicode.org/
-// http://www.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c
-// http://www.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.h
-// http://people.w3.org/rishida/scripts/uniview/conversion
+// https://www.unicode.org/
+// https://www.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.c
+// https://www.unicode.org/Public/PROGRAMS/CVTUTF/ConvertUTF.h
+// https://people.w3.org/rishida/scripts/uniview/conversion
 //
 ////////////////////////////////////////////////////////////
 
@@ -62,12 +62,12 @@ In Utf<8>::decode(In begin, In end, Uint32& output, Uint32 replacement)
         output = 0;
         switch (trailingBytes)
         {
-            case 5 : output += static_cast<Uint8>(*begin++); output <<= 6;
-            case 4 : output += static_cast<Uint8>(*begin++); output <<= 6;
-            case 3 : output += static_cast<Uint8>(*begin++); output <<= 6;
-            case 2 : output += static_cast<Uint8>(*begin++); output <<= 6;
-            case 1 : output += static_cast<Uint8>(*begin++); output <<= 6;
-            case 0 : output += static_cast<Uint8>(*begin++);
+            case 5: output += static_cast<Uint8>(*begin++); output <<= 6;
+            case 4: output += static_cast<Uint8>(*begin++); output <<= 6;
+            case 3: output += static_cast<Uint8>(*begin++); output <<= 6;
+            case 2: output += static_cast<Uint8>(*begin++); output <<= 6;
+            case 1: output += static_cast<Uint8>(*begin++); output <<= 6;
+            case 0: output += static_cast<Uint8>(*begin++);
         }
         output -= offsets[trailingBytes];
     }
@@ -114,10 +114,10 @@ Out Utf<8>::encode(Uint32 input, Out output, Uint8 replacement)
         Uint8 bytes[4];
         switch (bytestoWrite)
         {
-            case 4 : bytes[3] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
-            case 3 : bytes[2] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
-            case 2 : bytes[1] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
-            case 1 : bytes[0] = static_cast<Uint8> (input | firstBytes[bytestoWrite]);
+            case 4: bytes[3] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
+            case 3: bytes[2] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
+            case 2: bytes[1] = static_cast<Uint8>((input | 0x80) & 0xBF); input >>= 6;
+            case 1: bytes[0] = static_cast<Uint8> (input | firstBytes[bytestoWrite]);
         }
 
         // Add them to the output
@@ -322,7 +322,7 @@ In Utf<16>::decode(In begin, In end, Uint32& output, Uint32 replacement)
 template <typename Out>
 Out Utf<16>::encode(Uint32 input, Out output, Uint16 replacement)
 {
-    if (input < 0xFFFF)
+    if (input <= 0xFFFF)
     {
         // The character can be copied directly, we just need to check if it's in the valid range
         if ((input >= 0xD800) && (input <= 0xDFFF))
@@ -339,7 +339,7 @@ Out Utf<16>::encode(Uint32 input, Out output, Uint16 replacement)
     }
     else if (input > 0x0010FFFF)
     {
-        // Invalid character (greater than the maximum unicode value)
+        // Invalid character (greater than the maximum Unicode value)
         if (replacement)
             *output++ = replacement;
     }
@@ -638,7 +638,7 @@ Out Utf<32>::toUtf32(In begin, In end, Out output)
 template <typename In>
 Uint32 Utf<32>::decodeAnsi(In input, const std::locale& locale)
 {
-    // On Windows, gcc's standard library (glibc++) has almost
+    // On Windows, GCC's standard library (glibc++) has almost
     // no support for Unicode stuff. As a consequence, in this
     // context we can only use the default locale and ignore
     // the one passed as parameter.

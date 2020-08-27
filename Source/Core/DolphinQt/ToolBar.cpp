@@ -5,9 +5,11 @@
 #include <algorithm>
 #include <vector>
 
+#include <QAction>
 #include <QIcon>
 
 #include "Core/Core.h"
+#include "Core/NetPlayProto.h"
 #include "DolphinQt/Host.h"
 #include "DolphinQt/Resources.h"
 #include "DolphinQt/Settings.h"
@@ -30,10 +32,10 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &ToolBar::UpdateIcons);
   UpdateIcons();
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
           [this](Core::State state) { OnEmulationStateChanged(state); });
 
-  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this,
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog,
           [this] { OnEmulationStateChanged(Core::GetState()); });
 
   connect(&Settings::Instance(), &Settings::DebugModeToggled, this, &ToolBar::OnDebugModeToggled);
@@ -41,8 +43,11 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
   connect(&Settings::Instance(), &Settings::ToolBarVisibilityChanged, this, &ToolBar::setVisible);
   connect(this, &ToolBar::visibilityChanged, &Settings::Instance(), &Settings::SetToolBarVisible);
 
-  connect(&Settings::Instance(), &Settings::WidgetLockChanged, this,
+  connect(&Settings::Instance(), &Settings::WidgetLockChanged,
           [this](bool locked) { setMovable(!locked); });
+
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted,
+          [this] { m_refresh_action->setEnabled(true); });
 
   OnEmulationStateChanged(Core::GetState());
   OnDebugModeToggled(Settings::Instance().IsDebugModeEnabled());
@@ -54,6 +59,7 @@ void ToolBar::OnEmulationStateChanged(Core::State state)
   m_stop_action->setEnabled(running);
   m_fullscreen_action->setEnabled(running);
   m_screenshot_action->setEnabled(running);
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   bool playing = running && state != Core::State::Paused;
   UpdatePausePlayButtonState(playing);
@@ -90,15 +96,26 @@ void ToolBar::OnDebugModeToggled(bool enabled)
 
 void ToolBar::MakeActions()
 {
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_action = addAction(tr("Step"), this, &ToolBar::StepPressed);
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_over_action = addAction(tr("Step Over"), this, &ToolBar::StepOverPressed);
+  // i18n: Here, "Step" is a verb. This feature is used for
+  // going through code step by step.
   m_step_out_action = addAction(tr("Step Out"), this, &ToolBar::StepOutPressed);
   m_skip_action = addAction(tr("Skip"), this, &ToolBar::SkipPressed);
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   m_show_pc_action = addAction(tr("Show PC"), this, &ToolBar::ShowPCPressed);
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   m_set_pc_action = addAction(tr("Set PC"), this, &ToolBar::SetPCPressed);
 
   m_open_action = addAction(tr("Open"), this, &ToolBar::OpenPressed);
-  m_refresh_action = addAction(tr("Refresh"), this, &ToolBar::RefreshPressed);
+  m_refresh_action = addAction(tr("Refresh"), [this] {
+    m_refresh_action->setEnabled(false);
+    emit RefreshPressed();
+  });
 
   addSeparator();
 
@@ -159,8 +176,8 @@ void ToolBar::UpdateIcons()
   m_step_over_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_over"));
   m_step_out_action->setIcon(Resources::GetScaledThemeIcon("debugger_step_out"));
   m_skip_action->setIcon(Resources::GetScaledThemeIcon("debugger_skip"));
-  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
-  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+  m_show_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_show_pc"));
+  m_set_pc_action->setIcon(Resources::GetScaledThemeIcon("debugger_set_pc"));
 
   m_open_action->setIcon(Resources::GetScaledThemeIcon("open"));
   m_refresh_action->setIcon(Resources::GetScaledThemeIcon("refresh"));

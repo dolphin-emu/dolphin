@@ -4,67 +4,204 @@
 
 #pragma once
 
+#include <QToolButton>
 #include <QWidget>
+
+#include <deque>
+
+#include "Core/HW/WiimoteEmu/Dynamics.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 
 namespace ControllerEmu
 {
 class Control;
 class ControlGroup;
-class NumericSetting;
-}
+class Cursor;
+class Force;
+class MixedTriggers;
+}  // namespace ControllerEmu
 
+class QPainter;
 class QPaintEvent;
 class QTimer;
 
-class ControlReference;
+class CalibrationWidget;
 
 class MappingIndicator : public QWidget
 {
 public:
-  explicit MappingIndicator(ControllerEmu::ControlGroup* group);
+  QPen GetBBoxPen() const;
+  QBrush GetBBoxBrush() const;
+  QColor GetRawInputColor() const;
+  QPen GetInputShapePen() const;
+  QColor GetCenterColor() const;
+  QColor GetAdjustedInputColor() const;
+  QColor GetDeadZoneColor() const;
+  QPen GetDeadZonePen() const;
+  QBrush GetDeadZoneBrush(QPainter&) const;
+  QColor GetTextColor() const;
+  QColor GetAltTextColor() const;
+  void AdjustGateColor(QColor*);
+
+protected:
+  virtual void Draw() {}
 
 private:
-  void BindCursorControls(bool tilt);
-  void BindStickControls();
-  void BindMixedTriggersControls();
-
-  void DrawCursor(bool tilt);
-  void DrawStick();
-  void DrawMixedTriggers();
-
   void paintEvent(QPaintEvent*) override;
-  ControllerEmu::ControlGroup* m_group;
+};
 
-  // Stick settings
-  ControlReference* m_stick_up;
-  ControlReference* m_stick_down;
-  ControlReference* m_stick_left;
-  ControlReference* m_stick_right;
-  ControlReference* m_stick_modifier;
+class SquareIndicator : public MappingIndicator
+{
+protected:
+  SquareIndicator();
 
-  ControllerEmu::NumericSetting* m_stick_radius;
-  ControllerEmu::NumericSetting* m_stick_deadzone;
+  qreal GetContentsScale() const;
+  void DrawBoundingBox(QPainter&);
+  void TransformPainter(QPainter&);
+};
 
-  // Cursor settings
-  ControlReference* m_cursor_up;
-  ControlReference* m_cursor_down;
-  ControlReference* m_cursor_left;
-  ControlReference* m_cursor_right;
-  ControlReference* m_cursor_forward;
-  ControlReference* m_cursor_backward;
+class ReshapableInputIndicator : public SquareIndicator
+{
+public:
+  void SetCalibrationWidget(CalibrationWidget* widget);
 
-  ControllerEmu::NumericSetting* m_cursor_center;
-  ControllerEmu::NumericSetting* m_cursor_width;
-  ControllerEmu::NumericSetting* m_cursor_height;
-  ControllerEmu::NumericSetting* m_cursor_deadzone;
+protected:
+  void DrawReshapableInput(ControllerEmu::ReshapableInput& group, QColor gate_color,
+                           std::optional<ControllerEmu::ReshapableInput::ReshapeData> adj_coord);
 
-  // Triggers settings
-  ControlReference* m_mixed_triggers_r_analog;
-  ControlReference* m_mixed_triggers_r_button;
-  ControlReference* m_mixed_triggers_l_analog;
-  ControlReference* m_mixed_triggers_l_button;
+  virtual void DrawUnderGate(QPainter&) {}
 
-  ControllerEmu::NumericSetting* m_mixed_triggers_threshold;
+  bool IsCalibrating() const;
 
-  QTimer* m_timer;
+  void DrawCalibration(QPainter& p, Common::DVec2 point);
+  void UpdateCalibrationWidget(Common::DVec2 point);
+
+private:
+  CalibrationWidget* m_calibration_widget{};
+};
+
+class AnalogStickIndicator : public ReshapableInputIndicator
+{
+public:
+  explicit AnalogStickIndicator(ControllerEmu::ReshapableInput& stick) : m_group(stick) {}
+
+private:
+  void Draw() override;
+
+  ControllerEmu::ReshapableInput& m_group;
+};
+
+class TiltIndicator : public ReshapableInputIndicator
+{
+public:
+  explicit TiltIndicator(ControllerEmu::Tilt& tilt) : m_group(tilt) {}
+
+private:
+  void Draw() override;
+
+  ControllerEmu::Tilt& m_group;
+  WiimoteEmu::MotionState m_motion_state{};
+};
+
+class CursorIndicator : public ReshapableInputIndicator
+{
+public:
+  explicit CursorIndicator(ControllerEmu::Cursor& cursor) : m_cursor_group(cursor) {}
+
+private:
+  void Draw() override;
+
+  ControllerEmu::Cursor& m_cursor_group;
+};
+
+class MixedTriggersIndicator : public MappingIndicator
+{
+public:
+  explicit MixedTriggersIndicator(ControllerEmu::MixedTriggers& triggers);
+
+private:
+  void Draw() override;
+
+  ControllerEmu::MixedTriggers& m_group;
+};
+
+class SwingIndicator : public ReshapableInputIndicator
+{
+public:
+  explicit SwingIndicator(ControllerEmu::Force& swing) : m_swing_group(swing) {}
+
+private:
+  void Draw() override;
+
+  void DrawUnderGate(QPainter& p) override;
+
+  ControllerEmu::Force& m_swing_group;
+  WiimoteEmu::MotionState m_motion_state{};
+};
+
+class ShakeMappingIndicator : public SquareIndicator
+{
+public:
+  explicit ShakeMappingIndicator(ControllerEmu::Shake& shake) : m_shake_group(shake) {}
+
+private:
+  void Draw() override;
+
+  ControllerEmu::Shake& m_shake_group;
+  WiimoteEmu::MotionState m_motion_state{};
+  std::deque<ControllerEmu::Shake::StateData> m_position_samples;
+  int m_grid_line_position = 0;
+};
+
+class AccelerometerMappingIndicator : public SquareIndicator
+{
+public:
+  explicit AccelerometerMappingIndicator(ControllerEmu::IMUAccelerometer& accel)
+      : m_accel_group(accel)
+  {
+  }
+
+private:
+  void Draw() override;
+
+  ControllerEmu::IMUAccelerometer& m_accel_group;
+};
+
+class GyroMappingIndicator : public SquareIndicator
+{
+public:
+  explicit GyroMappingIndicator(ControllerEmu::IMUGyroscope& gyro) : m_gyro_group(gyro) {}
+
+private:
+  void Draw() override;
+
+  ControllerEmu::IMUGyroscope& m_gyro_group;
+  Common::Matrix33 m_state = Common::Matrix33::Identity();
+  Common::Vec3 m_previous_velocity = {};
+  u32 m_stable_steps = 0;
+};
+
+class CalibrationWidget : public QToolButton
+{
+public:
+  CalibrationWidget(ControllerEmu::ReshapableInput& input, ReshapableInputIndicator& indicator);
+
+  void Update(Common::DVec2 point);
+
+  double GetCalibrationRadiusAtAngle(double angle) const;
+
+  Common::DVec2 GetCenter() const;
+
+  bool IsCalibrating() const;
+
+private:
+  void StartCalibration();
+  void SetupActions();
+
+  ControllerEmu::ReshapableInput& m_input;
+  ReshapableInputIndicator& m_indicator;
+  QAction* m_completion_action;
+  ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
+  QTimer* m_informative_timer;
+  std::optional<Common::DVec2> m_new_center;
 };

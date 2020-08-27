@@ -6,16 +6,17 @@
 
 #include <atomic>
 #include <functional>
+#include <list>
 #include <memory>
 #include <mutex>
-#include <vector>
 
+#include "Common/Matrix.h"
+#include "Common/WindowSystemInfo.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 // enable disable sources
 #ifdef _WIN32
-#define CIFACE_USE_XINPUT
-#define CIFACE_USE_DINPUT
+#define CIFACE_USE_WIN32
 #endif
 #if defined(HAVE_X11) && HAVE_X11
 #define CIFACE_USE_XLIB
@@ -29,6 +30,7 @@
 #if defined(USE_PIPES)
 #define CIFACE_USE_PIPES
 #endif
+#define CIFACE_USE_DUALSHOCKUDPCLIENT
 
 //
 // ControllerInterface
@@ -39,8 +41,11 @@
 class ControllerInterface : public ciface::Core::DeviceContainer
 {
 public:
-  ControllerInterface() : m_is_init(false), m_hwnd(nullptr) {}
-  void Initialize(void* const hwnd);
+  using HotplugCallbackHandle = std::list<std::function<void()>>::iterator;
+
+  ControllerInterface() : m_is_init(false) {}
+  void Initialize(const WindowSystemInfo& wsi);
+  void ChangeWindow(void* hwnd);
   void RefreshDevices();
   void Shutdown();
   void AddDevice(std::shared_ptr<ciface::Core::Device> device);
@@ -48,15 +53,25 @@ public:
   bool IsInit() const { return m_is_init; }
   void UpdateInput();
 
-  void RegisterDevicesChangedCallback(std::function<void(void)> callback);
+  // Set adjustment from the full render window aspect-ratio to the drawn aspect-ratio.
+  // Used to fit mouse cursor inputs to the relevant region of the render window.
+  void SetAspectRatioAdjustment(float);
+
+  // Calculated from the aspect-ratio adjustment.
+  // Inputs based on window coordinates should be multiplied by this.
+  Common::Vec2 GetWindowInputScale() const;
+
+  HotplugCallbackHandle RegisterDevicesChangedCallback(std::function<void(void)> callback);
+  void UnregisterDevicesChangedCallback(const HotplugCallbackHandle& handle);
   void InvokeDevicesChangedCallbacks() const;
 
 private:
-  std::vector<std::function<void()>> m_devices_changed_callbacks;
+  std::list<std::function<void()>> m_devices_changed_callbacks;
   mutable std::mutex m_callbacks_mutex;
-  bool m_is_init;
+  std::atomic<bool> m_is_init;
   std::atomic<bool> m_is_populating_devices{false};
-  void* m_hwnd;
+  WindowSystemInfo m_wsi;
+  std::atomic<float> m_aspect_ratio_adjustment = 1;
 };
 
 extern ControllerInterface g_controller_interface;

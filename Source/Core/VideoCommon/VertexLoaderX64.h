@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "VideoCommon/VertexLoaderBase.h"

@@ -12,7 +12,6 @@
 #include <QFontDialog>
 #include <QInputDialog>
 #include <QMap>
-#include <QMessageBox>
 #include <QUrl>
 
 #include "Common/CommonPaths.h"
@@ -26,12 +25,15 @@
 #include "Core/Core.h"
 #include "Core/Debugger/RSO.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/AddressSpace.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayProto.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -42,18 +44,32 @@
 #include "Core/TitleDatabase.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDImporter.h"
 #include "DiscIO/WiiSaveBanner.h"
 
 #include "DolphinQt/AboutDialog.h"
 #include "DolphinQt/Host.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
 #include "DolphinQt/Updater.h"
 
+#include "UICommon/AutoUpdate.h"
 #include "UICommon/GameFile.h"
+
+QPointer<MenuBar> MenuBar::s_menu_bar;
+
+QString MenuBar::GetSignatureSelector() const
+{
+  return QStringLiteral("%1 (*.dsy);; %2 (*.csv);; %3 (*.mega)")
+      .arg(tr("Dolphin Signature File"), tr("Dolphin Signature CSV File"),
+           tr("WiiTools Signature MEGA File"));
+}
 
 MenuBar::MenuBar(QWidget* parent) : QMenuBar(parent)
 {
+  s_menu_bar = this;
+
   AddFileMenu();
   AddEmulationMenu();
   AddMovieMenu();
@@ -103,8 +119,15 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   // Movie
   m_recording_read_only->setEnabled(running);
   if (!running)
+  {
     m_recording_stop->setEnabled(false);
-  m_recording_play->setEnabled(!running);
+    m_recording_export->setEnabled(false);
+  }
+  m_recording_play->setEnabled(m_game_selected && !running);
+  m_recording_start->setEnabled((m_game_selected || running) && !Movie::IsPlayingInput());
+
+  // Options
+  m_controllers_action->setEnabled(NetPlay::IsNetPlayRunning() ? !running : true);
 
   // Tools
   m_show_cheat_manager->setEnabled(Settings::Instance().GetCheatsEnabled() && running);
@@ -113,6 +136,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
   m_jit_interpreter_core->setEnabled(running);
   m_jit_block_linking->setEnabled(!running);
   m_jit_disable_cache->setEnabled(!running);
+  m_jit_disable_fastmem->setEnabled(!running);
   m_jit_clear_cache->setEnabled(running);
   m_jit_log_coverage->setEnabled(!running);
   m_jit_search_instruction->setEnabled(running);
@@ -121,7 +145,7 @@ void MenuBar::OnEmulationStateChanged(Core::State state)
        {m_jit_off, m_jit_loadstore_off, m_jit_loadstore_lbzx_off, m_jit_loadstore_lxz_off,
         m_jit_loadstore_lwz_off, m_jit_loadstore_floating_off, m_jit_loadstore_paired_off,
         m_jit_floatingpoint_off, m_jit_integer_off, m_jit_paired_off, m_jit_systemregisters_off,
-        m_jit_branch_off})
+        m_jit_branch_off, m_jit_register_cache_off})
   {
     action->setEnabled(running && !playing);
   }
@@ -145,9 +169,11 @@ void MenuBar::OnDebugModeToggled(bool enabled)
   // View
   m_show_code->setVisible(enabled);
   m_show_registers->setVisible(enabled);
+  m_show_threads->setVisible(enabled);
   m_show_watch->setVisible(enabled);
   m_show_breakpoints->setVisible(enabled);
   m_show_memory->setVisible(enabled);
+  m_show_network->setVisible(enabled);
   m_show_jit->setVisible(enabled);
 
   if (enabled)
@@ -178,8 +204,7 @@ void MenuBar::AddDVDBackupMenu(QMenu* file_menu)
 void MenuBar::AddFileMenu()
 {
   QMenu* file_menu = addMenu(tr("&File"));
-  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open,
-                                       QKeySequence(QStringLiteral("Ctrl+O")));
+  m_open_action = file_menu->addAction(tr("&Open..."), this, &MenuBar::Open, QKeySequence::Open);
 
   file_menu->addSeparator();
 
@@ -190,16 +215,16 @@ void MenuBar::AddFileMenu()
 
   file_menu->addSeparator();
 
-  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit,
-                                       QKeySequence(QStringLiteral("Alt+F4")));
+  m_exit_action = file_menu->addAction(tr("E&xit"), this, &MenuBar::Exit);
+  m_exit_action->setShortcuts({QKeySequence::Quit, QKeySequence(Qt::ALT + Qt::Key_F4)});
 }
 
 void MenuBar::AddToolsMenu()
 {
   QMenu* tools_menu = addMenu(tr("&Tools"));
 
-  tools_menu->addAction(tr("&Memory Card Manager (GC)"), this,
-                        [this] { emit ShowMemcardManager(); });
+  tools_menu->addAction(tr("&Resource Pack Manager"), this,
+                        [this] { emit ShowResourcePackManager(); });
 
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
@@ -208,16 +233,15 @@ void MenuBar::AddToolsMenu()
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
-  tools_menu->addSeparator();
-
-  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
-  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+  tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
 
   tools_menu->addSeparator();
 
-  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
+  tools_menu->addAction(tr("Browse &NetPlay Sessions...."), this, &MenuBar::BrowseNetPlay);
 
   tools_menu->addSeparator();
+
   QMenu* gc_ipl = tools_menu->addMenu(tr("Load GameCube Main Menu"));
 
   m_ntscj_ipl = gc_ipl->addAction(tr("NTSC-J"), this,
@@ -227,19 +251,19 @@ void MenuBar::AddToolsMenu()
   m_pal_ipl =
       gc_ipl->addAction(tr("PAL"), this, [this] { emit BootGameCubeIPL(DiscIO::Region::PAL); });
 
-  tools_menu->addAction(tr("Start &NetPlay..."), this, &MenuBar::StartNetPlay);
-  tools_menu->addAction(tr("FIFO Player"), this, &MenuBar::ShowFIFOPlayer);
+  tools_menu->addAction(tr("Memory Card Manager"), this, [this] { emit ShowMemcardManager(); });
 
   tools_menu->addSeparator();
 
   // Label will be set by a NANDRefresh later
-  m_boot_sysmenu =
-      tools_menu->addAction(QStringLiteral(""), this, [this] { emit BootWiiSystemMenu(); });
-  m_import_backup = tools_menu->addAction(tr("Import BootMii NAND Backup..."), this,
-                                          [this] { emit ImportNANDBackup(); });
-  m_check_nand = tools_menu->addAction(tr("Check NAND..."), this, &MenuBar::CheckNAND);
-  m_extract_certificates = tools_menu->addAction(tr("Extract Certificates from NAND"), this,
-                                                 &MenuBar::NANDExtractCertificates);
+  m_boot_sysmenu = tools_menu->addAction(QString{}, this, [this] { emit BootWiiSystemMenu(); });
+  m_wad_install_action = tools_menu->addAction(tr("Install WAD..."), this, &MenuBar::InstallWAD);
+  m_manage_nand_menu = tools_menu->addMenu(tr("Manage NAND"));
+  m_import_backup = m_manage_nand_menu->addAction(tr("Import BootMii NAND Backup..."), this,
+                                                  [this] { emit ImportNANDBackup(); });
+  m_check_nand = m_manage_nand_menu->addAction(tr("Check NAND..."), this, &MenuBar::CheckNAND);
+  m_extract_certificates = m_manage_nand_menu->addAction(tr("Extract Certificates from NAND"), this,
+                                                         &MenuBar::NANDExtractCertificates);
 
   m_boot_sysmenu->setEnabled(false);
 
@@ -258,7 +282,12 @@ void MenuBar::AddToolsMenu()
   m_perform_online_update_menu->addAction(tr("United States"), this,
                                           [this] { emit PerformOnlineUpdate("USA"); });
 
-  QMenu* menu = new QMenu(tr("Connect Wii Remotes"));
+  tools_menu->addSeparator();
+
+  tools_menu->addAction(tr("Import Wii Save..."), this, &MenuBar::ImportWiiSave);
+  tools_menu->addAction(tr("Export All Wii Saves"), this, &MenuBar::ExportWiiSaves);
+
+  QMenu* menu = new QMenu(tr("Connect Wii Remotes"), tools_menu);
 
   tools_menu->addSeparator();
   tools_menu->addMenu(menu);
@@ -295,6 +324,9 @@ void MenuBar::AddEmulationMenu()
   AddStateSaveMenu(emu_menu);
   AddStateSlotMenu(emu_menu);
   UpdateStateSlotMenu();
+
+  for (QMenu* menu : {m_state_load_menu, m_state_save_menu, m_state_slot_menu})
+    connect(menu, &QMenu::aboutToShow, this, &MenuBar::UpdateStateSlotMenu);
 }
 
 void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
@@ -307,7 +339,7 @@ void MenuBar::AddStateLoadMenu(QMenu* emu_menu)
 
   for (int i = 1; i <= 10; i++)
   {
-    QAction* action = m_state_load_slots_menu->addAction(QStringLiteral(""));
+    QAction* action = m_state_load_slots_menu->addAction(QString{});
 
     connect(action, &QAction::triggered, this, [=]() { emit StateLoadSlotAt(i); });
   }
@@ -324,7 +356,7 @@ void MenuBar::AddStateSaveMenu(QMenu* emu_menu)
 
   for (int i = 1; i <= 10; i++)
   {
-    QAction* action = m_state_save_slots_menu->addAction(QStringLiteral(""));
+    QAction* action = m_state_save_slots_menu->addAction(QString{});
 
     connect(action, &QAction::triggered, this, [=]() { emit StateSaveSlotAt(i); });
   }
@@ -337,7 +369,7 @@ void MenuBar::AddStateSlotMenu(QMenu* emu_menu)
 
   for (int i = 1; i <= 10; i++)
   {
-    QAction* action = m_state_slot_menu->addAction(QStringLiteral(""));
+    QAction* action = m_state_slot_menu->addAction(QString{});
     action->setCheckable(true);
     action->setActionGroup(m_state_slots);
     if (Settings::Instance().GetStateSlot() == i)
@@ -415,6 +447,16 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, m_show_registers,
           &QAction::setChecked);
 
+  m_show_threads = view_menu->addAction(tr("&Threads"));
+  m_show_threads->setCheckable(true);
+  m_show_threads->setChecked(Settings::Instance().IsThreadsVisible());
+
+  connect(m_show_threads, &QAction::toggled, &Settings::Instance(), &Settings::SetThreadsVisible);
+  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, m_show_threads,
+          &QAction::setChecked);
+
+  // i18n: This kind of "watch" is used for watching emulated memory.
+  // It's not related to timekeeping devices.
   m_show_watch = view_menu->addAction(tr("&Watch"));
   m_show_watch->setCheckable(true);
   m_show_watch->setChecked(Settings::Instance().IsWatchVisible());
@@ -440,6 +482,14 @@ void MenuBar::AddViewMenu()
   connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, m_show_memory,
           &QAction::setChecked);
 
+  m_show_network = view_menu->addAction(tr("&Network"));
+  m_show_network->setCheckable(true);
+  m_show_network->setChecked(Settings::Instance().IsNetworkVisible());
+
+  connect(m_show_network, &QAction::toggled, &Settings::Instance(), &Settings::SetNetworkVisible);
+  connect(&Settings::Instance(), &Settings::NetworkVisibilityChanged, m_show_network,
+          &QAction::setChecked);
+
   m_show_jit = view_menu->addAction(tr("&JIT"));
   m_show_jit->setCheckable(true);
   m_show_jit->setChecked(Settings::Instance().IsJITVisible());
@@ -456,18 +506,21 @@ void MenuBar::AddViewMenu()
   AddShowRegionsMenu(view_menu);
 
   view_menu->addSeparator();
-  view_menu->addAction(tr("Search"), this, &MenuBar::ToggleSearch,
-                       QKeySequence(QStringLiteral("Ctrl+F")));
+  view_menu->addAction(tr("Purge Game List Cache"), this, &MenuBar::PurgeGameListCache);
+  view_menu->addSeparator();
+  view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);
 }
 
 void MenuBar::AddOptionsMenu()
 {
   QMenu* options_menu = addMenu(tr("&Options"));
-  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure);
+  options_menu->addAction(tr("Co&nfiguration"), this, &MenuBar::Configure,
+                          QKeySequence::Preferences);
   options_menu->addSeparator();
   options_menu->addAction(tr("&Graphics Settings"), this, &MenuBar::ConfigureGraphics);
   options_menu->addAction(tr("&Audio Settings"), this, &MenuBar::ConfigureAudio);
-  options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
+  m_controllers_action =
+      options_menu->addAction(tr("&Controller Settings"), this, &MenuBar::ConfigureControllers);
   options_menu->addAction(tr("&Hotkey Settings"), this, &MenuBar::ConfigureHotkeys);
 
   options_menu->addSeparator();
@@ -490,7 +543,6 @@ void MenuBar::AddOptionsMenu()
   m_change_font = options_menu->addAction(tr("&Font..."), this, &MenuBar::ChangeDebugFont);
 }
 
-#ifdef _WIN32
 void MenuBar::InstallUpdateManually()
 {
   auto& track = SConfig::GetInstance().m_auto_update_track;
@@ -502,14 +554,13 @@ void MenuBar::InstallUpdateManually()
 
   if (!updater->CheckForUpdate())
   {
-    QMessageBox::information(
+    ModalMessageBox::information(
         this, tr("Update"),
-        tr("You are running the latest version available on this update track"));
+        tr("You are running the latest version available on this update track."));
   }
 
   track = previous_value;
 }
-#endif
 
 void MenuBar::AddHelpMenu()
 {
@@ -526,14 +577,23 @@ void MenuBar::AddHelpMenu()
   connect(github, &QAction::triggered, this, []() {
     QDesktopServices::openUrl(QUrl(QStringLiteral("https://github.com/dolphin-emu/dolphin")));
   });
+  QAction* bugtracker = help_menu->addAction(tr("&Bug Tracker"));
+  connect(bugtracker, &QAction::triggered, this, []() {
+    QDesktopServices::openUrl(
+        QUrl(QStringLiteral("https://bugs.dolphin-emu.org/projects/emulator")));
+  });
 
-#ifdef _WIN32
+  if (AutoUpdateChecker::SystemSupportsAutoUpdates())
+  {
+    help_menu->addSeparator();
+
+    help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
+  }
+
+#ifndef __APPLE__
   help_menu->addSeparator();
-
-  help_menu->addAction(tr("&Check for Updates..."), this, &MenuBar::InstallUpdateManually);
 #endif
 
-  help_menu->addSeparator();
   help_menu->addAction(tr("&About"), this, &MenuBar::ShowAboutDialog);
 }
 
@@ -566,18 +626,23 @@ void MenuBar::AddListColumnsMenu(QMenu* view_menu)
       {tr("Description"), &SConfig::GetInstance().m_showDescriptionColumn},
       {tr("Maker"), &SConfig::GetInstance().m_showMakerColumn},
       {tr("File Name"), &SConfig::GetInstance().m_showFileNameColumn},
+      {tr("File Path"), &SConfig::GetInstance().m_showFilePathColumn},
       {tr("Game ID"), &SConfig::GetInstance().m_showIDColumn},
       {tr("Region"), &SConfig::GetInstance().m_showRegionColumn},
-      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn}};
+      {tr("File Size"), &SConfig::GetInstance().m_showSizeColumn},
+      {tr("File Format"), &SConfig::GetInstance().m_showFileFormatColumn},
+      {tr("Block Size"), &SConfig::GetInstance().m_showBlockSizeColumn},
+      {tr("Compression"), &SConfig::GetInstance().m_showCompressionColumn},
+      {tr("Tags"), &SConfig::GetInstance().m_showTagsColumn}};
 
   QActionGroup* column_group = new QActionGroup(this);
-  QMenu* cols_menu = view_menu->addMenu(tr("List Columns"));
+  m_cols_menu = view_menu->addMenu(tr("List Columns"));
   column_group->setExclusive(false);
 
   for (const auto& key : columns.keys())
   {
     bool* config = columns[key];
-    QAction* action = column_group->addAction(cols_menu->addAction(key));
+    QAction* action = column_group->addAction(m_cols_menu->addAction(key));
     action->setCheckable(true);
     action->setChecked(*config);
     connect(action, &QAction::toggled, [this, config, key](bool value) {
@@ -749,6 +814,14 @@ void MenuBar::AddJITMenu()
     ClearCache();
   });
 
+  m_jit_disable_fastmem = m_jit->addAction(tr("Disable Fastmem"));
+  m_jit_disable_fastmem->setCheckable(true);
+  m_jit_disable_fastmem->setChecked(!SConfig::GetInstance().bFastmem);
+  connect(m_jit_disable_fastmem, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bFastmem = !enabled;
+    ClearCache();
+  });
+
   m_jit_clear_cache = m_jit->addAction(tr("Clear Cache"), this, &MenuBar::ClearCache);
 
   m_jit->addSeparator();
@@ -855,6 +928,14 @@ void MenuBar::AddJITMenu()
     SConfig::GetInstance().bJITBranchOff = enabled;
     ClearCache();
   });
+
+  m_jit_register_cache_off = m_jit->addAction(tr("JIT Register Cache Off"));
+  m_jit_register_cache_off->setCheckable(true);
+  m_jit_register_cache_off->setChecked(SConfig::GetInstance().bJITRegisterCacheOff);
+  connect(m_jit_register_cache_off, &QAction::toggled, [this](bool enabled) {
+    SConfig::GetInstance().bJITRegisterCacheOff = enabled;
+    ClearCache();
+  });
 }
 
 void MenuBar::AddSymbolsMenu()
@@ -874,13 +955,19 @@ void MenuBar::AddSymbolsMenu()
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("Load &Other Map File..."), this, &MenuBar::LoadOtherSymbolMap);
+  m_symbols->addAction(tr("Load &Bad Map File..."), this, &MenuBar::LoadBadSymbolMap);
   m_symbols->addAction(tr("Save Symbol Map &As..."), this, &MenuBar::SaveSymbolMapAs);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("Save Code"), this, &MenuBar::SaveCode);
+  m_symbols->addAction(tr("Sa&ve Code"), this, &MenuBar::SaveCode);
   m_symbols->addSeparator();
 
-  m_symbols->addAction(tr("&Create Signature File..."), this, &MenuBar::CreateSignatureFile);
+  m_symbols->addAction(tr("C&reate Signature File..."), this, &MenuBar::CreateSignatureFile);
+  m_symbols->addAction(tr("Append to &Existing Signature File..."), this,
+                       &MenuBar::AppendSignatureFile);
+  m_symbols->addAction(tr("Combine &Two Signature Files..."), this,
+                       &MenuBar::CombineSignatureFiles);
+  m_symbols->addAction(tr("Appl&y Signature File..."), this, &MenuBar::ApplySignatureFile);
   m_symbols->addSeparator();
 
   m_symbols->addAction(tr("&Patch HLE Functions"), this, &MenuBar::PatchHLEFunctions);
@@ -907,7 +994,7 @@ void MenuBar::UpdateToolsMenu(bool emulation_started)
     const QString sysmenu_version =
         tmd.IsValid() ?
             QString::fromStdString(DiscIO::GetSysMenuVersionString(tmd.GetTitleVersion())) :
-            QStringLiteral("");
+            QString{};
     m_boot_sysmenu->setText(tr("Load Wii System Menu %1").arg(sysmenu_version));
 
     m_boot_sysmenu->setEnabled(tmd.IsValid());
@@ -942,23 +1029,16 @@ void MenuBar::InstallWAD()
   if (wad_file.isEmpty())
     return;
 
-  QMessageBox result_dialog(this);
-
   if (WiiUtils::InstallWAD(wad_file.toStdString()))
   {
     Settings::Instance().NANDRefresh();
-    result_dialog.setIcon(QMessageBox::Information);
-    result_dialog.setWindowTitle(tr("Success"));
-    result_dialog.setText(tr("Successfully installed this title to the NAND."));
+    ModalMessageBox::information(this, tr("Success"),
+                                 tr("Successfully installed this title to the NAND."));
   }
   else
   {
-    result_dialog.setIcon(QMessageBox::Critical);
-    result_dialog.setWindowTitle(tr("Failure"));
-    result_dialog.setText(tr("Failed to install this title to the NAND."));
+    ModalMessageBox::critical(this, tr("Failure"), tr("Failed to install this title to the NAND."));
   }
-
-  result_dialog.exec();
 }
 
 void MenuBar::ImportWiiSave()
@@ -972,7 +1052,7 @@ void MenuBar::ImportWiiSave()
 
   bool cancelled = false;
   auto can_overwrite = [&] {
-    bool yes = QMessageBox::question(
+    bool yes = ModalMessageBox::question(
                    this, tr("Save Import"),
                    tr("Save data for this title already exists in the NAND. Consider backing up "
                       "the current data before overwriting.\nOverwrite now?")) == QMessageBox::Yes;
@@ -980,9 +1060,9 @@ void MenuBar::ImportWiiSave()
     return yes;
   };
   if (WiiSave::Import(file.toStdString(), can_overwrite))
-    QMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
+    ModalMessageBox::information(this, tr("Save Import"), tr("Successfully imported save files."));
   else if (!cancelled)
-    QMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
+    ModalMessageBox::critical(this, tr("Save Import"), tr("Failed to import save files."));
 }
 
 void MenuBar::ExportWiiSaves()
@@ -994,8 +1074,8 @@ void MenuBar::ExportWiiSaves()
     return;
 
   const size_t count = WiiSave::ExportAll(export_dir.toStdString());
-  QMessageBox::information(this, tr("Save Export"),
-                           tr("Exported %n save(s)", "", static_cast<int>(count)));
+  ModalMessageBox::information(this, tr("Save Export"),
+                               tr("Exported %n save(s)", "", static_cast<int>(count)));
 }
 
 void MenuBar::CheckNAND()
@@ -1004,7 +1084,7 @@ void MenuBar::CheckNAND()
   WiiUtils::NANDCheckResult result = WiiUtils::CheckNAND(ios);
   if (!result.bad)
   {
-    QMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
+    ModalMessageBox::information(this, tr("NAND Check"), tr("No issues have been detected."));
     return;
   }
 
@@ -1015,11 +1095,12 @@ void MenuBar::CheckNAND()
   {
     std::string title_listings;
     Core::TitleDatabase title_db;
+    const DiscIO::Language language = SConfig::GetInstance().GetCurrentLanguage(true);
     for (const u64 title_id : result.titles_to_remove)
     {
       title_listings += StringFromFormat("%016" PRIx64, title_id);
 
-      const std::string database_name = title_db.GetChannelName(title_id);
+      const std::string database_name = title_db.GetChannelName(title_id, language);
       if (!database_name.empty())
       {
         title_listings += " - " + database_name;
@@ -1047,45 +1128,46 @@ void MenuBar::CheckNAND()
                    .arg(QString::fromStdString(title_listings));
   }
 
-  if (QMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
+  if (ModalMessageBox::question(this, tr("NAND Check"), message) != QMessageBox::Yes)
     return;
 
   if (WiiUtils::RepairNAND(ios))
   {
-    QMessageBox::information(this, tr("NAND Check"), tr("The NAND has been repaired."));
+    ModalMessageBox::information(this, tr("NAND Check"), tr("The NAND has been repaired."));
     return;
   }
 
-  QMessageBox::critical(this, tr("NAND Check"),
-                        tr("The NAND could not be repaired. It is recommended to back up "
-                           "your current data and start over with a fresh NAND."));
+  ModalMessageBox::critical(this, tr("NAND Check"),
+                            tr("The NAND could not be repaired. It is recommended to back up "
+                               "your current data and start over with a fresh NAND."));
 }
 
 void MenuBar::NANDExtractCertificates()
 {
   if (DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX)))
   {
-    QMessageBox::information(this, tr("Success"),
-                             tr("Successfully extracted certificates from NAND"));
+    ModalMessageBox::information(this, tr("Success"),
+                                 tr("Successfully extracted certificates from NAND"));
   }
   else
   {
-    QMessageBox::critical(this, tr("Error"), tr("Failed to extract certificates from NAND"));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract certificates from NAND"));
   }
 }
 
 void MenuBar::OnSelectionChanged(std::shared_ptr<const UICommon::GameFile> game_file)
 {
-  const bool game_selected = !!game_file;
+  m_game_selected = !!game_file;
 
-  m_recording_play->setEnabled(game_selected && !Core::IsRunning());
-  m_recording_start->setEnabled(game_selected && !Movie::IsPlayingInput());
+  m_recording_play->setEnabled(m_game_selected && !Core::IsRunning());
+  m_recording_start->setEnabled((m_game_selected || Core::IsRunning()) && !Movie::IsPlayingInput());
 }
 
 void MenuBar::OnRecordingStatusChanged(bool recording)
 {
-  m_recording_start->setEnabled(!recording);
+  m_recording_start->setEnabled(!recording && (m_game_selected || Core::IsRunning()));
   m_recording_stop->setEnabled(recording);
+  m_recording_export->setEnabled(recording);
 }
 
 void MenuBar::OnReadOnlyModeChanged(bool read_only)
@@ -1105,9 +1187,9 @@ void MenuBar::ChangeDebugFont()
 
 void MenuBar::ClearSymbols()
 {
-  auto result = QMessageBox::warning(this, tr("Confirmation"),
-                                     tr("Do you want to clear the list of symbol names?"),
-                                     QMessageBox::Yes | QMessageBox::Cancel);
+  auto result = ModalMessageBox::warning(this, tr("Confirmation"),
+                                         tr("Do you want to clear the list of symbol names?"),
+                                         QMessageBox::Yes | QMessageBox::Cancel);
 
   if (result == QMessageBox::Cancel)
     return;
@@ -1118,25 +1200,27 @@ void MenuBar::ClearSymbols()
 
 void MenuBar::GenerateSymbolsFromAddress()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   emit NotifySymbolsUpdated();
 }
 
 void MenuBar::GenerateSymbolsFromSignatureDB()
 {
-  PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+  PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR,
+                            Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
   SignatureDB db(SignatureDB::HandlerType::DSY);
   if (db.Load(File::GetSysDirectory() + TOTALDB))
   {
     db.Apply(&g_symbolDB);
-    QMessageBox::information(
+    ModalMessageBox::information(
         this, tr("Information"),
         tr("Generated symbol names from '%1'").arg(QString::fromStdString(TOTALDB)));
     db.List();
   }
   else
   {
-    QMessageBox::critical(
+    ModalMessageBox::critical(
         this, tr("Error"),
         tr("'%1' not found, no symbol names generated").arg(QString::fromStdString(TOTALDB)));
   }
@@ -1146,13 +1230,19 @@ void MenuBar::GenerateSymbolsFromSignatureDB()
 
 void MenuBar::GenerateSymbolsFromRSO()
 {
+  // i18n: RSO refers to a proprietary format for shared objects (like DLL files).
+  const int ret =
+      ModalMessageBox::question(this, tr("RSO auto-detection"), tr("Auto-detect RSO modules?"));
+  if (ret == QMessageBox::Yes)
+    return GenerateSymbolsFromRSOAuto();
+
   QString text = QInputDialog::getText(this, tr("Input"), tr("Enter the RSO module address:"));
   bool good;
   uint address = text.toUInt(&good, 16);
 
   if (!good)
   {
-    QMessageBox::warning(this, tr("Error"), tr("Invalid RSO module address: %1").arg(text));
+    ModalMessageBox::warning(this, tr("Error"), tr("Invalid RSO module address: %1").arg(text));
     return;
   }
 
@@ -1164,7 +1254,80 @@ void MenuBar::GenerateSymbolsFromRSO()
   }
   else
   {
-    QMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(text));
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(text));
+  }
+}
+
+void MenuBar::GenerateSymbolsFromRSOAuto()
+{
+  constexpr std::array<std::string_view, 2> search_for = {".elf", ".plf"};
+  const AddressSpace::Accessors* accessors =
+      AddressSpace::GetAccessors(AddressSpace::Type::Effective);
+  std::vector<std::pair<u32, std::string>> matches;
+
+  // Find filepath to elf/plf commonly used by RSO modules
+  for (const auto& str : search_for)
+  {
+    u32 next = 0;
+    while (true)
+    {
+      auto found_addr =
+          accessors->Search(next, reinterpret_cast<const u8*>(str.data()), str.size() + 1, true);
+
+      if (!found_addr.has_value())
+        break;
+      next = *found_addr + 1;
+
+      // Get the beginning of the string
+      found_addr = accessors->Search(*found_addr, reinterpret_cast<const u8*>(""), 1, false);
+      if (!found_addr.has_value())
+        continue;
+
+      // Get the string reference
+      const u32 ref_addr = *found_addr + 1;
+      const std::array<u8, 4> ref = {static_cast<u8>(ref_addr >> 24),
+                                     static_cast<u8>(ref_addr >> 16),
+                                     static_cast<u8>(ref_addr >> 8), static_cast<u8>(ref_addr)};
+      found_addr = accessors->Search(ref_addr, ref.data(), ref.size(), false);
+      if (!found_addr.has_value() || *found_addr < 16)
+        continue;
+
+      // Go to the beginning of the RSO header
+      matches.emplace_back(*found_addr - 16, PowerPC::HostGetString(ref_addr, 128));
+    }
+  }
+
+  QStringList items;
+  for (const auto& match : matches)
+  {
+    const QString item = QLatin1String("%1 %2");
+
+    items << item.arg(QString::number(match.first, 16), QString::fromStdString(match.second));
+  }
+
+  if (items.empty())
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Unable to auto-detect RSO module"));
+    return;
+  }
+
+  bool ok;
+  const QString item = QInputDialog::getItem(
+      this, tr("Input"), tr("Select the RSO module address:"), items, 0, false, &ok);
+
+  if (!ok)
+    return;
+
+  RSOChainView rso_chain;
+  const u32 address = item.mid(0, item.indexOf(QLatin1Char(' '))).toUInt(nullptr, 16);
+  if (rso_chain.Load(address))
+  {
+    rso_chain.Apply(&g_symbolDB);
+    emit NotifySymbolsUpdated();
+  }
+  else
+  {
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load RSO module at %1").arg(address));
   }
 }
 
@@ -1176,14 +1339,15 @@ void MenuBar::LoadSymbolMap()
   if (!map_exists)
   {
     g_symbolDB.Clear();
-    PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
+    PPCAnalyst::FindFunctions(Memory::MEM1_BASE_ADDR + 0x1300000,
+                              Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal(), &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
     if (db.Load(File::GetSysDirectory() + TOTALDB))
       db.Apply(&g_symbolDB);
 
-    QMessageBox::warning(this, tr("Warning"),
-                         tr("'%1' not found, scanning for common functions instead")
-                             .arg(QString::fromStdString(writable_map_file)));
+    ModalMessageBox::warning(this, tr("Warning"),
+                             tr("'%1' not found, scanning for common functions instead")
+                                 .arg(QString::fromStdString(writable_map_file)));
   }
   else
   {
@@ -1192,8 +1356,8 @@ void MenuBar::LoadSymbolMap()
     if (!TryLoadMapFile(existing_map_file_path))
       return;
 
-    QMessageBox::information(this, tr("Information"),
-                             tr("Loaded symbols from '%1'").arg(existing_map_file_path));
+    ModalMessageBox::information(this, tr("Information"),
+                                 tr("Loaded symbols from '%1'").arg(existing_map_file_path));
   }
 
   HLE::PatchFunctions();
@@ -1224,6 +1388,22 @@ void MenuBar::LoadOtherSymbolMap()
   emit NotifySymbolsUpdated();
 }
 
+void MenuBar::LoadBadSymbolMap()
+{
+  const QString file = QFileDialog::getOpenFileName(
+      this, tr("Load map file"), QString::fromStdString(File::GetUserPath(D_MAPS_IDX)),
+      tr("Dolphin Map File (*.map)"));
+
+  if (file.isEmpty())
+    return;
+
+  if (!TryLoadMapFile(file, true))
+    return;
+
+  HLE::PatchFunctions();
+  emit NotifySymbolsUpdated();
+}
+
 void MenuBar::SaveSymbolMapAs()
 {
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
@@ -1248,17 +1428,17 @@ void MenuBar::SaveCode()
 
   if (!g_symbolDB.SaveCodeMap(path))
   {
-    QMessageBox::warning(
+    ModalMessageBox::warning(
         this, tr("Error"),
         tr("Failed to save code map to path '%1'").arg(QString::fromStdString(path)));
   }
 }
 
-bool MenuBar::TryLoadMapFile(const QString& path)
+bool MenuBar::TryLoadMapFile(const QString& path, const bool bad)
 {
-  if (!g_symbolDB.LoadMap(path.toStdString()))
+  if (!g_symbolDB.LoadMap(path.toStdString(), bad))
   {
-    QMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to load map file '%1'").arg(path));
     return false;
   }
 
@@ -1270,17 +1450,17 @@ void MenuBar::TrySaveSymbolMap(const QString& path)
   if (g_symbolDB.SaveSymbolMap(path.toStdString()))
     return;
 
-  QMessageBox::warning(this, tr("Error"), tr("Failed to save symbol map to path '%1'").arg(path));
+  ModalMessageBox::warning(this, tr("Error"),
+                           tr("Failed to save symbol map to path '%1'").arg(path));
 }
 
 void MenuBar::CreateSignatureFile()
 {
   const QString text = QInputDialog::getText(
       this, tr("Input"), tr("Only export symbols with prefix:\n(Blank for all symbols)"));
-  if (text.isEmpty())
-    return;
 
-  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"));
+  const QString file = QFileDialog::getSaveFileName(this, tr("Save signature file"),
+                                                    QDir::homePath(), GetSignatureSelector());
   if (file.isEmpty())
     return;
 
@@ -1291,7 +1471,83 @@ void MenuBar::CreateSignatureFile()
 
   if (!db.Save(save_path))
   {
-    QMessageBox::warning(this, tr("Error"), tr("Failed to save signature file '%1'").arg(file));
+    ModalMessageBox::warning(this, tr("Error"), tr("Failed to save signature file '%1'").arg(file));
+    return;
+  }
+
+  db.List();
+}
+
+void MenuBar::AppendSignatureFile()
+{
+  const QString text = QInputDialog::getText(
+      this, tr("Input"), tr("Only append symbols with prefix:\n(Blank for all symbols)"));
+
+  const QString file = QFileDialog::getSaveFileName(this, tr("Append signature to"),
+                                                    QDir::homePath(), GetSignatureSelector());
+  if (file.isEmpty())
+    return;
+
+  const std::string prefix = text.toStdString();
+  const std::string signature_path = file.toStdString();
+  SignatureDB db(signature_path);
+  db.Populate(&g_symbolDB, prefix);
+  db.List();
+  db.Load(signature_path);
+  if (!db.Save(signature_path))
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to append to signature file '%1'").arg(file));
+    return;
+  }
+
+  db.List();
+}
+
+void MenuBar::ApplySignatureFile()
+{
+  const QString file = QFileDialog::getOpenFileName(this, tr("Apply signature file"),
+                                                    QDir::homePath(), GetSignatureSelector());
+
+  if (file.isEmpty())
+    return;
+
+  const std::string load_path = file.toStdString();
+  SignatureDB db(load_path);
+  db.Load(load_path);
+  db.Apply(&g_symbolDB);
+  db.List();
+  HLE::PatchFunctions();
+  emit NotifySymbolsUpdated();
+}
+
+void MenuBar::CombineSignatureFiles()
+{
+  const QString priorityFile = QFileDialog::getOpenFileName(
+      this, tr("Choose priority input file"), QDir::homePath(), GetSignatureSelector());
+  if (priorityFile.isEmpty())
+    return;
+
+  const QString secondaryFile = QFileDialog::getOpenFileName(
+      this, tr("Choose secondary input file"), QDir::homePath(), GetSignatureSelector());
+  if (secondaryFile.isEmpty())
+    return;
+
+  const QString saveFile = QFileDialog::getSaveFileName(this, tr("Save combined output file as"),
+                                                        QDir::homePath(), GetSignatureSelector());
+  if (saveFile.isEmpty())
+    return;
+
+  const std::string load_pathPriorityFile = priorityFile.toStdString();
+  const std::string load_pathSecondaryFile = secondaryFile.toStdString();
+  const std::string save_path = saveFile.toStdString();
+  SignatureDB db(load_pathPriorityFile);
+  db.Load(load_pathPriorityFile);
+  db.Load(load_pathSecondaryFile);
+  if (!db.Save(save_path))
+  {
+    ModalMessageBox::warning(this, tr("Error"),
+                             tr("Failed to save to signature file '%1'").arg(saveFile));
     return;
   }
 
@@ -1316,14 +1572,15 @@ void MenuBar::LogInstructions()
 void MenuBar::SearchInstruction()
 {
   bool good;
-  QString op = QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"),
-                                     QLineEdit::Normal, QStringLiteral(""), &good);
+  const QString op = QInputDialog::getText(this, tr("Search instruction"), tr("Instruction:"),
+                                           QLineEdit::Normal, QString{}, &good);
 
   if (!good)
     return;
 
   bool found = false;
-  for (u32 addr = 0x80000000; addr < 0x81800000; addr += 4)
+  for (u32 addr = Memory::MEM1_BASE_ADDR; addr < Memory::MEM1_BASE_ADDR + Memory::GetRamSizeReal();
+       addr += 4)
   {
     auto ins_name =
         QString::fromStdString(PPCTables::GetInstructionName(PowerPC::HostRead_U32(addr)));

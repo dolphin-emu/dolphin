@@ -81,9 +81,10 @@ struct usbfs_iso_packet_desc {
 	unsigned int status;
 };
 
-#define MAX_ISO_BUFFER_LENGTH		49152 * 128
 #define MAX_BULK_BUFFER_LENGTH		16384
 #define MAX_CTRL_BUFFER_LENGTH		4096
+
+#define MAX_ISO_PACKETS_PER_URB		128
 
 struct usbfs_urb {
 	unsigned char type;
@@ -186,7 +187,7 @@ void linux_device_disconnected(uint8_t busnum, uint8_t devaddr);
 
 int linux_get_device_address (struct libusb_context *ctx, int detached,
 	uint8_t *busnum, uint8_t *devaddr, const char *dev_node,
-	const char *sys_name);
+	const char *sys_name, int fd);
 int linux_enumerate_device(struct libusb_context *ctx,
 	uint8_t busnum, uint8_t devaddr, const char *sysfs_dir);
 

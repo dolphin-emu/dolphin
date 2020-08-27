@@ -5,7 +5,10 @@
 #pragma once
 
 #include <string>
+#include <vector>
+
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
@@ -13,8 +16,19 @@ namespace ControllerEmu
 class Triggers : public ControlGroup
 {
 public:
+  struct StateData
+  {
+    StateData() = default;
+    explicit StateData(std::size_t trigger_count) : data(trigger_count) {}
+
+    std::vector<ControlState> data;
+  };
+
   explicit Triggers(const std::string& name);
 
-  void GetState(ControlState* analog);
+  StateData GetState();
+
+private:
+  SettingValue<double> m_deadzone_setting;
 };
 }  // namespace ControllerEmu

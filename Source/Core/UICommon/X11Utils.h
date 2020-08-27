@@ -51,4 +51,4 @@ private:
   bool bIsFullscreen;
 };
 #endif
-}
+}  // namespace X11Utils

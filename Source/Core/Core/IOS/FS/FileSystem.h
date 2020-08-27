@@ -7,7 +7,13 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
+
+#ifdef _WIN32
+// TODO: Horrible hack, remove ASAP!
+#include <Windows.h>
+#endif
 
 #include "Common/CommonTypes.h"
 #include "Common/Result.h"
@@ -71,6 +77,16 @@ struct Modes
 {
   Mode owner, group, other;
 };
+inline bool operator==(const Modes& lhs, const Modes& rhs)
+{
+  const auto fields = [](const Modes& obj) { return std::tie(obj.owner, obj.group, obj.other); };
+  return fields(lhs) == fields(rhs);
+}
+
+inline bool operator!=(const Modes& lhs, const Modes& rhs)
+{
+  return !(lhs == rhs);
+}
 
 struct Metadata
 {
@@ -105,6 +121,38 @@ struct FileStatus
   u32 offset;
   u32 size;
 };
+
+/// The maximum number of components a path can have.
+constexpr size_t MaxPathDepth = 8;
+/// The maximum number of characters a path can have.
+constexpr size_t MaxPathLength = 64;
+
+/// Returns whether a Wii path is valid.
+bool IsValidPath(std::string_view path);
+bool IsValidNonRootPath(std::string_view path);
+
+struct SplitPathResult
+{
+  std::string parent;
+  std::string file_name;
+};
+inline bool operator==(const SplitPathResult& lhs, const SplitPathResult& rhs)
+{
+  const auto fields = [](const SplitPathResult& obj) {
+    return std::tie(obj.parent, obj.file_name);
+  };
+  return fields(lhs) == fields(rhs);
+}
+
+inline bool operator!=(const SplitPathResult& lhs, const SplitPathResult& rhs)
+{
+  return !(lhs == rhs);
+}
+
+/// Split a path into a parent path and the file name. Takes a *valid non-root* path.
+///
+/// Example: /shared2/sys/SYSCONF => {/shared2/sys, SYSCONF}
+SplitPathResult SplitPathAndBasename(std::string_view path);
 
 class FileSystem;
 class FileHandle final
@@ -191,9 +239,6 @@ public:
   virtual Result<NandStats> GetNandStats() = 0;
   /// Get usage information about a directory (used cluster and inode counts).
   virtual Result<DirectoryStats> GetDirectoryStats(const std::string& path) = 0;
-
-protected:
-  void Init();
 };
 
 template <typename T>

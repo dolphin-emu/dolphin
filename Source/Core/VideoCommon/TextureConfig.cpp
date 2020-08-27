@@ -9,8 +9,8 @@
 
 bool TextureConfig::operator==(const TextureConfig& o) const
 {
-  return std::tie(width, height, levels, layers, samples, format, rendertarget) ==
-         std::tie(o.width, o.height, o.levels, o.layers, o.samples, o.format, o.rendertarget);
+  return std::tie(width, height, levels, layers, samples, format, flags) ==
+         std::tie(o.width, o.height, o.levels, o.layers, o.samples, o.format, o.flags);
 }
 
 bool TextureConfig::operator!=(const TextureConfig& o) const
@@ -37,9 +37,4 @@ size_t TextureConfig::GetStride() const
 size_t TextureConfig::GetMipStride(u32 level) const
 {
   return AbstractTexture::CalculateStrideForFormat(format, std::max(width >> level, 1u));
-}
-
-bool TextureConfig::IsMultisampled() const
-{
-  return samples > 1;
 }

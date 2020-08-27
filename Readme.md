@@ -13,9 +13,9 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 ### Desktop
 
 * OS
-    * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
+    * Windows (7 SP1 or higher).
     * Linux.
-    * macOS (10.10 Yosemite or higher).
+    * macOS (10.12 Sierra or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -39,9 +39,14 @@ Dolphin can only be installed on devices that satisfy the above requirements. At
 ## Building for Windows
 
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
-Visual Studio 2017 is a hard requirement. Other compilers might be
+Visual Studio 2019 16.3 or later is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
-recommended to be used. Git and Windows 10 SDK 10.0.15063.0 must be installed when building.
+recommended to be used. Git and Windows 10 SDK must be installed when building.
+
+Make sure to pull submodules before building:
+```sh
+git submodule update --init
+```
 
 The "Release" solution configuration includes performance optimizations for the best user experience but complicates debugging Dolphin.
 The "Debug" solution configuration is significantly slower, more verbose and less permissive but makes debugging Dolphin easier.
@@ -53,7 +58,7 @@ since the Binary directory contains a working Dolphin distribution.
 
 ## Building for Linux and macOS
 
-Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
+Dolphin requires [CMake](https://cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
@@ -136,17 +141,18 @@ see where it's stored) if you don't plan to reinstall Dolphin.
 * -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
-LLE (Low Level Emulation). HLE is fast but often less accurate while LLE is
-slow but close to perfect. Note that LLE has two submodes (Interpreter and
-Recompiler), which cannot be selected from the command line.
+LLE (Low Level Emulation). HLE is faster but less accurate whereas
+LLE is slower but close to perfect. Note that LLE has two submodes (Interpreter and Recompiler) 
+but they cannot be selected from the command line.
 
-Available video backends are "D3D" (only available on Windows) and
-"OGL". There's also "Software Renderer", which uses the CPU for rendering and
+Available video backends are "D3D" and "D3D12" (they are only available on Windows), "OGL", and "Vulkan".
+There's also "Null", which will not render anything, and
+"Software Renderer", which uses the CPU for rendering and
 is intended for debugging purposes only.
 
 ## Sys Files
 
-* `wiitdb.txt`: Wii title database from [GameTDB](http://www.gametdb.com)
+* `wiitdb.txt`: Wii title database from [GameTDB](https://www.gametdb.com/)
 * `totaldb.dsy`: Database of symbols (for devs only)
 * `GC/font_western.bin`: font dumps
 * `GC/font_japanese.bin`: font dumps

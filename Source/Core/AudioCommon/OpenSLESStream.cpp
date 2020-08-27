@@ -3,15 +3,18 @@
 // Refer to the license.txt file included.
 
 #ifdef ANDROID
-#include <assert.h>
+#include "AudioCommon/OpenSLESStream.h"
+
+#include <cassert>
+#include <cmath>
 
 #include <SLES/OpenSLES.h>
 #include <SLES/OpenSLES_Android.h>
 
-#include "AudioCommon/OpenSLESStream.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 
 // engine interfaces
 static SLObjectItf engineObject;
@@ -22,7 +25,6 @@ static SLObjectItf outputMixObject;
 static SLObjectItf bqPlayerObject = nullptr;
 static SLPlayItf bqPlayerPlay;
 static SLAndroidSimpleBufferQueueItf bqPlayerBufferQueue;
-static SLMuteSoloItf bqPlayerMuteSolo;
 static SLVolumeItf bqPlayerVolume;
 static Mixer* g_mixer;
 #define BUFFER_SIZE 512
@@ -94,6 +96,8 @@ bool OpenSLESStream::Init()
   result =
       (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_BUFFERQUEUE, &bqPlayerBufferQueue);
   assert(SL_RESULT_SUCCESS == result);
+  result = (*bqPlayerObject)->GetInterface(bqPlayerObject, SL_IID_VOLUME, &bqPlayerVolume);
+  assert(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerBufferQueue)->RegisterCallback(bqPlayerBufferQueue, bqPlayerCallback, nullptr);
   assert(SL_RESULT_SUCCESS == result);
   result = (*bqPlayerPlay)->SetPlayState(bqPlayerPlay, SL_PLAYSTATE_PLAYING);
@@ -118,7 +122,6 @@ OpenSLESStream::~OpenSLESStream()
     bqPlayerObject = nullptr;
     bqPlayerPlay = nullptr;
     bqPlayerBufferQueue = nullptr;
-    bqPlayerMuteSolo = nullptr;
     bqPlayerVolume = nullptr;
   }
 
@@ -134,5 +137,12 @@ OpenSLESStream::~OpenSLESStream()
     engineObject = nullptr;
     engineEngine = nullptr;
   }
+}
+
+void OpenSLESStream::SetVolume(int volume)
+{
+  const SLmillibel attenuation =
+      volume <= 0 ? SL_MILLIBEL_MIN : static_cast<SLmillibel>(2000 * std::log10(volume / 100.0f));
+  (*bqPlayerVolume)->SetVolumeLevel(bqPlayerVolume, attenuation);
 }
 #endif

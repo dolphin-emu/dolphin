@@ -30,6 +30,8 @@ public:
   std::shared_ptr<const UICommon::GameFile> GetSelectedGame() const;
   QList<std::shared_ptr<const UICommon::GameFile>> GetSelectedGames() const;
   bool HasMultipleSelected() const;
+  std::shared_ptr<const UICommon::GameFile> FindGame(const std::string& path) const;
+  std::shared_ptr<const UICommon::GameFile> FindSecondDisc(const UICommon::GameFile& game) const;
 
   void SetListView() { SetPreferredView(true); }
   void SetGridView() { SetPreferredView(false); }
@@ -41,6 +43,8 @@ public:
 
   void resizeEvent(QResizeEvent* event) override;
 
+  void PurgeCache();
+
 signals:
   void GameSelected();
   void NetPlayHost(const QString& game_id);
@@ -48,19 +52,26 @@ signals:
   void OpenGeneralSettings();
 
 private:
+  void ShowHeaderContextMenu(const QPoint& pos);
   void ShowContextMenu(const QPoint&);
   void OpenContainingFolder();
   void OpenProperties();
-  void OpenSaveFolder();
+  void OpenWiiSaveFolder();
+  void OpenGCSaveFolder();
   void OpenWiki();
   void SetDefaultISO();
   void DeleteFile();
   void InstallWAD();
   void UninstallWAD();
   void ExportWiiSave();
-  void CompressISO(bool decompress);
+  void ConvertFile();
   void ChangeDisc();
+  void NewTag();
+  void DeleteTag();
   void UpdateColumnVisibility();
+
+  void ZoomIn();
+  void ZoomOut();
 
   void OnHeaderViewChanged();
   void OnSectionResized(int index, int, int);
@@ -71,6 +82,7 @@ private:
   // We only have two views, just use a bool to distinguish.
   void SetPreferredView(bool list);
   void ConsiderViewChange();
+  void UpdateFont();
 
   GameListModel* m_model;
   QSortFilterProxyModel* m_list_proxy;
@@ -82,5 +94,5 @@ private:
   bool m_prefer_list;
 
 protected:
-  void keyReleaseEvent(QKeyEvent* event) override;
+  void keyPressEvent(QKeyEvent* event) override;
 };

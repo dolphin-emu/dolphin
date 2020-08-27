@@ -6,16 +6,12 @@
 
 #include <QCheckBox>
 #include <QComboBox>
-#include <QDesktopServices>
-#include <QFile>
-#include <QGridLayout>
 #include <QGroupBox>
-#include <QHBoxLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QPushButton>
+#include <QSlider>
 #include <QSpinBox>
-#include <QUrl>
+#include <QTabWidget>
 #include <QVBoxLayout>
 
 #include "Common/CommonPaths.h"
@@ -24,6 +20,7 @@
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/Config/GameConfigEdit.h"
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 
 #include "UICommon/GameFile.h"
@@ -38,22 +35,50 @@ constexpr const char* DETERMINISM_AUTO_STRING = "auto";
 constexpr const char* DETERMINISM_NONE_STRING = "none";
 constexpr const char* DETERMINISM_FAKE_COMPLETION_STRING = "fake-completion";
 
+static void PopulateTab(QTabWidget* tab, const std::string& path, std::string& game_id,
+                        u16 revision, bool read_only)
+{
+  for (const std::string& filename : ConfigLoaders::GetGameIniFilenames(game_id, revision))
+  {
+    const std::string ini_path = path + filename;
+    if (File::Exists(ini_path))
+    {
+      auto* edit = new GameConfigEdit(nullptr, QString::fromStdString(ini_path), read_only);
+      tab->addTab(edit, QString::fromStdString(filename));
+    }
+  }
+}
+
 GameConfigWidget::GameConfigWidget(const UICommon::GameFile& game) : m_game(game)
 {
   m_game_id = m_game.GetGameID();
+
   m_gameini_local_path =
       QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 
   CreateWidgets();
   LoadSettings();
   ConnectWidgets();
+
+  PopulateTab(m_default_tab, File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP, m_game_id,
+              m_game.GetRevision(), true);
+  PopulateTab(m_local_tab, File::GetUserPath(D_GAMESETTINGS_IDX), m_game_id, m_game.GetRevision(),
+              false);
+
+  // Always give the user the opportunity to create a new INI
+  if (m_local_tab->count() == 0)
+  {
+    auto* edit = new GameConfigEdit(
+        nullptr, QString::fromStdString(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini"),
+        false);
+    m_local_tab->addTab(edit, QString::fromStdString(m_game_id + ".ini"));
+  }
 }
 
 void GameConfigWidget::CreateWidgets()
 {
+  // General
   m_refresh_config = new QPushButton(tr("Refresh"));
-  m_edit_user_config = new QPushButton(tr("Edit User Config"));
-  m_view_default_config = new QPushButton(tr("View Default Config"));
 
   // Core
   auto* core_box = new QGroupBox(tr("Core"));
@@ -65,7 +90,7 @@ void GameConfigWidget::CreateWidgets()
   m_enable_fprf = new QCheckBox(tr("Enable FPRF"));
   m_sync_gpu = new QCheckBox(tr("Synchronize GPU thread"));
   m_enable_fast_disc = new QCheckBox(tr("Speed up Disc Transfer Rate"));
-  m_use_dsp_hle = new QCheckBox(tr("DSP HLE Emulation (fast)"));
+  m_use_dsp_hle = new QCheckBox(tr("DSP HLE (fast)"));
   m_deterministic_dual_core = new QComboBox;
 
   for (const auto& item : {tr("Not Set"), tr("auto"), tr("none"), tr("fake-completion")})
@@ -128,22 +153,50 @@ void GameConfigWidget::CreateWidgets()
   settings_layout->addWidget(core_box);
   settings_layout->addWidget(stereoscopy_box);
 
-  auto* layout = new QGridLayout;
+  auto* general_layout = new QGridLayout;
 
-  layout->addWidget(settings_box, 0, 0, 1, -1);
+  general_layout->addWidget(settings_box, 0, 0, 1, -1);
 
-  auto* button_layout = new QHBoxLayout;
-  button_layout->setMargin(0);
-
-  layout->addLayout(button_layout, 1, 0, 1, -1);
-
-  button_layout->addWidget(m_refresh_config);
-  button_layout->addWidget(m_edit_user_config);
-  button_layout->addWidget(m_view_default_config);
+  general_layout->addWidget(m_refresh_config, 1, 0, 1, -1);
 
   for (QCheckBox* item : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                           m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
     item->setTristate(true);
+
+  auto* general_widget = new QWidget;
+  general_widget->setLayout(general_layout);
+
+  // Advanced
+  auto* advanced_layout = new QVBoxLayout;
+
+  auto* default_group = new QGroupBox(tr("Default Config (Read Only)"));
+  auto* default_layout = new QVBoxLayout;
+  m_default_tab = new QTabWidget;
+
+  default_group->setLayout(default_layout);
+  default_layout->addWidget(m_default_tab);
+
+  auto* local_group = new QGroupBox(tr("User Config"));
+  auto* local_layout = new QVBoxLayout;
+  m_local_tab = new QTabWidget;
+
+  local_group->setLayout(local_layout);
+  local_layout->addWidget(m_local_tab);
+
+  advanced_layout->addWidget(default_group);
+  advanced_layout->addWidget(local_group);
+
+  auto* advanced_widget = new QWidget;
+
+  advanced_widget->setLayout(advanced_layout);
+
+  auto* layout = new QVBoxLayout;
+  auto* tab_widget = new QTabWidget;
+
+  tab_widget->addTab(general_widget, tr("General"));
+  tab_widget->addTab(advanced_widget, tr("Editor"));
+
+  layout->addWidget(tab_widget);
 
   setLayout(layout);
 }
@@ -151,20 +204,17 @@ void GameConfigWidget::CreateWidgets()
 void GameConfigWidget::ConnectWidgets()
 {
   // Buttons
-  connect(m_refresh_config, &QPushButton::pressed, this, &GameConfigWidget::LoadSettings);
-  connect(m_edit_user_config, &QPushButton::pressed, this, &GameConfigWidget::EditUserConfig);
-  connect(m_view_default_config, &QPushButton::pressed, this, &GameConfigWidget::ViewDefaultConfig);
+  connect(m_refresh_config, &QPushButton::clicked, this, &GameConfigWidget::LoadSettings);
 
   for (QCheckBox* box : {m_enable_dual_core, m_enable_mmu, m_enable_fprf, m_sync_gpu,
                          m_enable_fast_disc, m_use_dsp_hle, m_use_monoscopic_shadows})
     connect(box, &QCheckBox::stateChanged, this, &GameConfigWidget::SaveSettings);
 
-  connect(m_deterministic_dual_core,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_deterministic_dual_core, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &GameConfigWidget::SaveSettings);
-  connect(m_depth_slider, static_cast<void (QSlider::*)(int)>(&QSlider::valueChanged), this,
+  connect(m_depth_slider, qOverload<int>(&QSlider::valueChanged), this,
           &GameConfigWidget::SaveSettings);
-  connect(m_convergence_spin, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_convergence_spin, qOverload<int>(&QSpinBox::valueChanged), this,
           &GameConfigWidget::SaveSettings);
 }
 
@@ -346,30 +396,4 @@ void GameConfigWidget::SaveSettings()
   // If the resulting file is empty, delete it. Kind of a hack, but meh.
   if (success && File::GetSize(m_gameini_local_path.toStdString()) == 0)
     File::Delete(m_gameini_local_path.toStdString());
-}
-
-void GameConfigWidget::EditUserConfig()
-{
-  QFile file(m_gameini_local_path);
-
-  if (!file.exists())
-  {
-    file.open(QIODevice::WriteOnly);
-    file.close();
-  }
-
-  QDesktopServices::openUrl(QUrl::fromLocalFile(m_gameini_local_path));
-}
-
-void GameConfigWidget::ViewDefaultConfig()
-{
-  for (const std::string& filename :
-       ConfigLoaders::GetGameIniFilenames(m_game_id, m_game.GetRevision()))
-  {
-    QString path =
-        QString::fromStdString(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + filename);
-
-    if (QFile(path).exists())
-      QDesktopServices::openUrl(QUrl::fromLocalFile(path));
-  }
 }

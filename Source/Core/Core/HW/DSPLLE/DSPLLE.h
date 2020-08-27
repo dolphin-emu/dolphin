@@ -14,9 +14,7 @@
 
 class PointerWrap;
 
-namespace DSP
-{
-namespace LLE
+namespace DSP::LLE
 {
 class DSPLLE : public DSPEmulator
 {
@@ -49,5 +47,4 @@ private:
   Common::Flag m_is_running;
   std::atomic<u32> m_cycle_count{};
 };
-}  // namespace LLE
-}  // namespace DSP
+}  // namespace DSP::LLE

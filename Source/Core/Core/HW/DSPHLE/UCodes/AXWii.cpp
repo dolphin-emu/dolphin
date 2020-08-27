@@ -6,10 +6,12 @@
 
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
 
+#include <algorithm>
+#include <array>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/Swap.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -17,9 +19,7 @@
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_main_volume(0x8000)
 {
@@ -385,13 +385,13 @@ void AXWiiUCode::GenerateVolumeRamp(u16* output, u16 vol1, u16 vol2, size_t nval
 bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* updates,
                                       u32* updates_addr)
 {
-  u16* pb_mem = (u16*)&pb;
+  auto pb_mem = Common::BitCastToArray<u16>(pb);
 
   if (!m_old_axwii)
     return false;
 
   // Copy the num_updates field.
-  memcpy(num_updates, pb_mem + 41, 6);
+  memcpy(num_updates, &pb_mem[41], 6);
 
   // Get the address of the updates data
   u16 addr_hi = pb_mem[44];
@@ -417,17 +417,19 @@ bool AXWiiUCode::ExtractUpdatesFields(AXPBWii& pb, u16* num_updates, u16* update
   }
 
   // Remove the updates data from the PB
-  memmove(pb_mem + 41, pb_mem + 46, sizeof(pb) - 2 * 46);
+  memmove(&pb_mem[41], &pb_mem[46], sizeof(pb) - 2 * 46);
+
+  Common::BitCastFromArray<u16>(pb_mem, pb);
 
   return true;
 }
 
 void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 updates_addr)
 {
-  u16* pb_mem = (u16*)&pb;
+  auto pb_mem = Common::BitCastToArray<u16>(pb);
 
   // Make some space
-  memmove(pb_mem + 46, pb_mem + 41, sizeof(pb) - 2 * 46);
+  memmove(&pb_mem[46], &pb_mem[41], sizeof(pb) - 2 * 46);
 
   // Reinsert previous values
   pb_mem[41] = num_updates[0];
@@ -435,10 +437,16 @@ void AXWiiUCode::ReinjectUpdatesFields(AXPBWii& pb, u16* num_updates, u32 update
   pb_mem[43] = num_updates[2];
   pb_mem[44] = updates_addr >> 16;
   pb_mem[45] = updates_addr & 0xFFFF;
+
+  Common::BitCastFromArray<u16>(pb_mem, pb);
 }
 
 void AXWiiUCode::ProcessPBList(u32 pb_addr)
 {
+  // Samples per millisecond. In theory DSP sampling rate can be changed from
+  // 32KHz to 48KHz, but AX always process at 32KHz.
+  constexpr u32 spms = 32;
+
   AXPBWii pb;
 
   while (pb_addr)
@@ -460,13 +468,13 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
     {
       for (int curr_ms = 0; curr_ms < 3; ++curr_ms)
       {
-        ApplyUpdatesForMs(curr_ms, (u16*)&pb, num_updates, updates);
-        ProcessVoice(pb, buffers, 32, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
+        ApplyUpdatesForMs(curr_ms, pb, num_updates, updates);
+        ProcessVoice(pb, buffers, spms, ConvertMixerControl(HILO_TO_32(pb.mixer_control)),
                      m_coeffs_available ? m_coeffs : nullptr);
 
         // Forward the buffers
-        for (size_t i = 0; i < ArraySize(buffers.ptrs); ++i)
-          buffers.ptrs[i] += 32;
+        for (auto& ptr : buffers.ptrs)
+          ptr += spms;
       }
       ReinjectUpdatesFields(pb, num_updates, updates_addr);
     }
@@ -483,31 +491,41 @@ void AXWiiUCode::ProcessPBList(u32 pb_addr)
 
 void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 volume)
 {
-  u16 volume_ramp[96];
-  GenerateVolumeRamp(volume_ramp, m_last_aux_volumes[aux_id], volume, ArraySize(volume_ramp));
+  std::array<u16, 96> volume_ramp;
+  GenerateVolumeRamp(volume_ramp.data(), m_last_aux_volumes[aux_id], volume, volume_ramp.size());
   m_last_aux_volumes[aux_id] = volume;
 
-  int* buffers[3] = {nullptr};
-  int* main_buffers[3] = {m_samples_left, m_samples_right, m_samples_surround};
+  std::array<int*, 3> main_buffers{
+      m_samples_left,
+      m_samples_right,
+      m_samples_surround,
+  };
 
+  std::array<const int*, 3> buffers{};
   switch (aux_id)
   {
   case 0:
-    buffers[0] = m_samples_auxA_left;
-    buffers[1] = m_samples_auxA_right;
-    buffers[2] = m_samples_auxA_surround;
+    buffers = {
+        m_samples_auxA_left,
+        m_samples_auxA_right,
+        m_samples_auxA_surround,
+    };
     break;
 
   case 1:
-    buffers[0] = m_samples_auxB_left;
-    buffers[1] = m_samples_auxB_right;
-    buffers[2] = m_samples_auxB_surround;
+    buffers = {
+        m_samples_auxB_left,
+        m_samples_auxB_right,
+        m_samples_auxB_surround,
+    };
     break;
 
   case 2:
-    buffers[0] = m_samples_auxC_left;
-    buffers[1] = m_samples_auxC_right;
-    buffers[2] = m_samples_auxC_surround;
+    buffers = {
+        m_samples_auxC_left,
+        m_samples_auxC_right,
+        m_samples_auxC_surround,
+    };
     break;
   }
 
@@ -515,20 +533,24 @@ void AXWiiUCode::MixAUXSamples(int aux_id, u32 write_addr, u32 read_addr, u16 vo
   if (write_addr)
   {
     int* ptr = (int*)HLEMemory_Get_Pointer(write_addr);
-    for (auto& buffer : buffers)
+    for (const auto& buffer : buffers)
+    {
       for (u32 j = 0; j < 3 * 32; ++j)
         *ptr++ = Common::swap32(buffer[j]);
+    }
   }
 
   // Then read the buffers from the CPU and add to our main buffers.
-  int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
+  const int* ptr = (int*)HLEMemory_Get_Pointer(read_addr);
   for (auto& main_buffer : main_buffers)
+  {
     for (u32 j = 0; j < 3 * 32; ++j)
     {
       s64 sample = (s64)(s32)Common::swap32(*ptr++);
       sample *= volume_ramp[j];
       main_buffer[j] += (s32)(sample >> 15);
     }
+  }
 }
 
 void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
@@ -572,28 +594,26 @@ void AXWiiUCode::UploadAUXMixLRSC(int aux_id, u32* addresses, u16 volume)
 
 void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool upload_auxc)
 {
-  u16 volume_ramp[96];
-  GenerateVolumeRamp(volume_ramp, m_last_main_volume, volume, ArraySize(volume_ramp));
+  std::array<u16, 96> volume_ramp;
+  GenerateVolumeRamp(volume_ramp.data(), m_last_main_volume, volume, volume_ramp.size());
   m_last_main_volume = volume;
 
-  int upload_buffer[3 * 32] = {0};
+  std::array<int, 3 * 32> upload_buffer{};
 
-  for (u32 i = 0; i < 3 * 32; ++i)
+  for (size_t i = 0; i < upload_buffer.size(); ++i)
     upload_buffer[i] = Common::swap32(m_samples_surround[i]);
-  memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer, sizeof(upload_buffer));
+  memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer.data(), sizeof(upload_buffer));
 
   if (upload_auxc)
   {
     surround_addr += sizeof(upload_buffer);
-    for (u32 i = 0; i < 3 * 32; ++i)
+    for (size_t i = 0; i < upload_buffer.size(); ++i)
       upload_buffer[i] = Common::swap32(m_samples_auxC_left[i]);
-    memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer, sizeof(upload_buffer));
+    memcpy(HLEMemory_Get_Pointer(surround_addr), upload_buffer.data(), sizeof(upload_buffer));
   }
 
-  short buffer[3 * 32 * 2];
-
   // Clamp internal buffers to 16 bits.
-  for (u32 i = 0; i < 3 * 32; ++i)
+  for (size_t i = 0; i < volume_ramp.size(); ++i)
   {
     int left = m_samples_left[i];
     int right = m_samples_right[i];
@@ -602,17 +622,18 @@ void AXWiiUCode::OutputSamples(u32 lr_addr, u32 surround_addr, u16 volume, bool 
     left = ((s64)left * volume_ramp[i]) >> 15;
     right = ((s64)right * volume_ramp[i]) >> 15;
 
-    m_samples_left[i] = MathUtil::Clamp(left, -32767, 32767);
-    m_samples_right[i] = MathUtil::Clamp(right, -32767, 32767);
+    m_samples_left[i] = std::clamp(left, -32767, 32767);
+    m_samples_right[i] = std::clamp(right, -32767, 32767);
   }
 
-  for (u32 i = 0; i < 3 * 32; ++i)
+  std::array<s16, 3 * 32 * 2> buffer;
+  for (size_t i = 0; i < 3 * 32; ++i)
   {
     buffer[2 * i] = Common::swap16(m_samples_right[i]);
     buffer[2 * i + 1] = Common::swap16(m_samples_left[i]);
   }
 
-  memcpy(HLEMemory_Get_Pointer(lr_addr), buffer, sizeof(buffer));
+  memcpy(HLEMemory_Get_Pointer(lr_addr), buffer.data(), sizeof(buffer));
   m_mail_handler.PushMail(DSP_SYNC, true);
 }
 
@@ -626,7 +647,7 @@ void AXWiiUCode::OutputWMSamples(u32* addresses)
     u16* out = (u16*)HLEMemory_Get_Pointer(addresses[i]);
     for (u32 j = 0; j < 3 * 6; ++j)
     {
-      int sample = MathUtil::Clamp(in[j], -32767, 32767);
+      int sample = std::clamp(in[j], -32767, 32767);
       out[j] = Common::swap16((u16)sample);
     }
   }
@@ -654,5 +675,4 @@ void AXWiiUCode::DoState(PointerWrap& p)
   p.Do(m_last_main_volume);
   p.Do(m_last_aux_volumes);
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

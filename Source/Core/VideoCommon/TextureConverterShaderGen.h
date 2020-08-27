@@ -28,7 +28,8 @@ struct UidData
 
 using TCShaderUid = ShaderUid<UidData>;
 
-ShaderCode GenerateShader(APIType api_type, const UidData* uid_data);
+ShaderCode GenerateVertexShader(APIType api_type);
+ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data);
 
 TCShaderUid GetShaderUid(EFBCopyFormat dst_format, bool is_depth_copy, bool is_intensity,
                          bool scale_by_half, bool copy_filter);

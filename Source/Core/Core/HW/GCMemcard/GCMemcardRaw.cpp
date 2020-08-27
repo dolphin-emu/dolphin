@@ -11,16 +11,24 @@
 #include <string>
 #include <thread>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
+#include "Common/Timer.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/Sram.h"
 
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
@@ -47,9 +55,18 @@ MemoryCard::MemoryCard(const std::string& filename, int card_index, u16 size_mbi
     m_memory_card_size = size_mbits * SIZE_TO_Mb;
 
     m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
-    // Fills in MC_HDR_SIZE bytes
-    GCMemcard::Format(&m_memcard_data[0], m_filename.find(".JAP.raw") != std::string::npos,
-                      size_mbits);
+
+    // Fills in the first 5 blocks (MC_HDR_SIZE bytes)
+    const CardFlashId& flash_id = g_SRAM.settings_ex.flash_id[Memcard::SLOT_A];
+    const bool shift_jis = m_filename.find(".JAP.raw") != std::string::npos;
+    const u32 rtc_bias = g_SRAM.settings.rtc_bias;
+    const u32 sram_language = static_cast<u32>(g_SRAM.settings.language);
+    const u64 format_time =
+        Common::Timer::GetLocalTimeSinceJan1970() - ExpansionInterface::CEXIIPL::GC_EPOCH;
+    Memcard::GCMemcard::Format(&m_memcard_data[0], flash_id, size_mbits, shift_jis, rtc_bias,
+                               sram_language, format_time);
+
+    // Fills in the remaining blocks
     memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, m_memory_card_size - MC_HDR_SIZE);
 
     INFO_LOG(EXPANSIONINTERFACE, "No memory card found. A new one was created instead.");
@@ -71,6 +88,53 @@ MemoryCard::~MemoryCard()
   }
 }
 
+void MemoryCard::CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA)
+{
+  std::string ext("." + gameRegion + ".raw");
+  if (memcardPath.empty())
+  {
+    // Use default memcard path if there is no user defined name
+    std::string defaultFilename = isSlotA ? GC_MEMCARDA : GC_MEMCARDB;
+    memcardPath = File::GetUserPath(D_GCUSER_IDX) + defaultFilename + ext;
+  }
+  else
+  {
+    std::string filename = memcardPath;
+    std::string region = filename.substr(filename.size() - 7, 3);
+    bool hasregion = false;
+    hasregion |= region.compare(USA_DIR) == 0;
+    hasregion |= region.compare(JAP_DIR) == 0;
+    hasregion |= region.compare(EUR_DIR) == 0;
+    if (!hasregion)
+    {
+      // filename doesn't have region in the extension
+      if (File::Exists(filename))
+      {
+        // If the old file exists we are polite and ask if we should copy it
+        std::string oldFilename = filename;
+        filename.replace(filename.size() - 4, 4, ext);
+        if (PanicYesNoT("Memory Card filename in Slot %c is incorrect\n"
+                        "Region not specified\n\n"
+                        "Slot %c path was changed to\n"
+                        "%s\n"
+                        "Would you like to copy the old file to this new location?\n",
+                        isSlotA ? 'A' : 'B', isSlotA ? 'A' : 'B', filename.c_str()))
+        {
+          if (!File::Copy(oldFilename, filename))
+            PanicAlertT("Copy failed");
+        }
+      }
+      memcardPath = filename;  // Always correct the path!
+    }
+    else if (region.compare(gameRegion) != 0)
+    {
+      // filename has region, but it's not == gameRegion
+      // Just set the correct filename, the EXI Device will create it if it doesn't exist
+      memcardPath = filename.replace(filename.size() - ext.size(), ext.size(), ext);
+    }
+  }
+}
+
 void MemoryCard::FlushThread()
 {
   if (!SConfig::GetInstance().bEnableMemcardSdWriting)
@@ -78,8 +142,7 @@ void MemoryCard::FlushThread()
     return;
   }
 
-  Common::SetCurrentThreadName(
-      StringFromFormat("Memcard %d flushing thread", m_card_index).c_str());
+  Common::SetCurrentThreadName(fmt::format("Memcard {} flushing thread", m_card_index).c_str());
 
   const auto flush_interval = std::chrono::seconds(15);
 
@@ -133,17 +196,12 @@ void MemoryCard::FlushThread()
     }
     file.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
 
-    if (!do_exit)
-    {
-      Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
-                                            m_card_index ? 'B' : 'A', m_filename.c_str())
-                               .c_str(),
-                           4000);
-    }
-    else
-    {
+    if (do_exit)
       return;
-    }
+
+    Core::DisplayMessage(
+        fmt::format("Wrote memory card {} contents to {}", m_card_index ? 'B' : 'A', m_filename),
+        4000);
   }
 }
 
@@ -182,7 +240,7 @@ s32 MemoryCard::Write(u32 dest_address, s32 length, const u8* src_address)
 
 void MemoryCard::ClearBlock(u32 address)
 {
-  if (address & (BLOCK_SIZE - 1) || !IsAddressInBounds(address))
+  if (address & (Memcard::BLOCK_SIZE - 1) || !IsAddressInBounds(address))
   {
     PanicAlertT("MemoryCard: ClearBlock called on invalid address (0x%x)", address);
     return;
@@ -190,7 +248,7 @@ void MemoryCard::ClearBlock(u32 address)
   else
   {
     std::unique_lock<std::mutex> l(m_flush_mutex);
-    memset(&m_memcard_data[address], 0xFF, BLOCK_SIZE);
+    memset(&m_memcard_data[address], 0xFF, Memcard::BLOCK_SIZE);
   }
   MakeDirty();
 }

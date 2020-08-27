@@ -4,11 +4,8 @@
 
 #pragma once
 
-namespace ciface
-{
-namespace Quartz
+namespace ciface::Quartz
 {
 void PopulateDevices(void* window);
 void DeInit();
-}
-}
+}  // namespace ciface::Quartz

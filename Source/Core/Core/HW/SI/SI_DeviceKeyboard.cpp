@@ -9,6 +9,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/HW/GCKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"
 
@@ -20,13 +21,13 @@ CSIDevice_Keyboard::CSIDevice_Keyboard(SIDevices device, int device_number)
 {
 }
 
-int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
+int CSIDevice_Keyboard::RunBuffer(u8* buffer, int request_length)
 {
   // For debug logging only
-  ISIDevice::RunBuffer(buffer, length);
+  ISIDevice::RunBuffer(buffer, request_length);
 
   // Read the command
-  EBufferCommands command = static_cast<EBufferCommands>(buffer[3]);
+  EBufferCommands command = static_cast<EBufferCommands>(buffer[0]);
 
   // Handle it
   switch (command)
@@ -34,23 +35,23 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
   case CMD_RESET:
   case CMD_ID:
   {
-    constexpr u32 id = SI_GC_KEYBOARD;
+    u32 id = Common::swap32(SI_GC_KEYBOARD);
     std::memcpy(buffer, &id, sizeof(id));
-    break;
+    return sizeof(id);
   }
 
   case CMD_DIRECT:
   {
-    INFO_LOG(SERIALINTERFACE, "Keyboard - Direct (Length: %d)", length);
+    INFO_LOG(SERIALINTERFACE, "Keyboard - Direct (Request Length: %d)", request_length);
     u32 high, low;
     GetData(high, low);
-    for (int i = 0; i < (length - 1) / 2; i++)
+    for (int i = 0; i < 4; i++)
     {
-      buffer[i + 0] = (high >> (i * 8)) & 0xff;
-      buffer[i + 4] = (low >> (i * 8)) & 0xff;
+      buffer[i + 0] = (high >> (24 - (i * 8))) & 0xff;
+      buffer[i + 4] = (low >> (24 - (i * 8))) & 0xff;
     }
+    return sizeof(high) + sizeof(low);
   }
-  break;
 
   default:
   {
@@ -59,7 +60,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
   break;
   }
 
-  return length;
+  return 0;
 }
 
 KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const

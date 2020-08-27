@@ -12,9 +12,8 @@ class BlockUserInputFilter : public QObject
 {
   Q_OBJECT
 public:
-  static BlockUserInputFilter* Instance();
+  using QObject::QObject;
 
 private:
-  BlockUserInputFilter() = default;
   bool eventFilter(QObject* object, QEvent* event) override;
 };

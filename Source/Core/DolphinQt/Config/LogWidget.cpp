@@ -8,14 +8,10 @@
 #include <QComboBox>
 #include <QFont>
 #include <QFontDatabase>
-#include <QGroupBox>
+#include <QGridLayout>
+#include <QPlainTextEdit>
 #include <QPushButton>
-#include <QScrollBar>
-#include <QTextEdit>
 #include <QTimer>
-#include <QVBoxLayout>
-
-#include "Common/FileUtil.h"
 
 #include "Core/ConfigManager.h"
 
@@ -24,9 +20,15 @@
 // Delay in ms between calls of UpdateLog()
 constexpr int UPDATE_LOG_DELAY = 100;
 // Maximum lines to process at a time
-constexpr int MAX_LOG_LINES = 200;
+constexpr size_t MAX_LOG_LINES_TO_UPDATE = 200;
 // Timestamp length
-constexpr int TIMESTAMP_LENGTH = 10;
+constexpr size_t TIMESTAMP_LENGTH = 10;
+
+// A helper function to construct QString from std::string_view in one line
+static QString QStringFromStringView(std::string_view str)
+{
+  return QString::fromUtf8(str.data(), static_cast<int>(str.size()));
+}
 
 LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(this))
 {
@@ -42,52 +44,69 @@ LogWidget::LogWidget(QWidget* parent) : QDockWidget(parent), m_timer(new QTimer(
   ConnectWidgets();
 
   connect(m_timer, &QTimer::timeout, this, &LogWidget::UpdateLog);
-  m_timer->start(UPDATE_LOG_DELAY);
+  connect(this, &QDockWidget::visibilityChanged, [this](bool visible) {
+    if (visible)
+      m_timer->start(UPDATE_LOG_DELAY);
+    else
+      m_timer->stop();
+  });
 
   connect(&Settings::Instance(), &Settings::DebugFontChanged, this, &LogWidget::UpdateFont);
 
-  LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
+  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, this);
 }
 
 LogWidget::~LogWidget()
 {
   SaveSettings();
 
-  LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER, nullptr);
+  Common::Log::LogManager::GetInstance()->RegisterListener(LogListener::LOG_WINDOW_LISTENER,
+                                                           nullptr);
 }
 
 void LogWidget::UpdateLog()
 {
-  std::lock_guard<std::mutex> lock(m_log_mutex);
-
-  if (m_log_queue.empty())
-    return;
-
-  auto* vscroll = m_log_text->verticalScrollBar();
-  auto* hscroll = m_log_text->horizontalScrollBar();
-
-  // If the vertical scrollbar is within 50 units of the maximum value, count it as being at the
-  // bottom
-  bool vscroll_bottom = vscroll->maximum() - vscroll->value() < 50;
-
-  int old_horizontal = hscroll->value();
-  int old_vertical = vscroll->value();
-
-  for (int i = 0; !m_log_queue.empty() && i < MAX_LOG_LINES; i++)
+  std::vector<LogEntry> elements_to_push;
   {
-    m_log_text->append(m_log_queue.front());
-    m_log_queue.pop();
+    std::lock_guard lock(m_log_mutex);
+    if (m_log_ring_buffer.empty())
+      return;
+
+    elements_to_push.reserve(std::min(MAX_LOG_LINES_TO_UPDATE, m_log_ring_buffer.size()));
+
+    for (size_t i = 0; !m_log_ring_buffer.empty() && i < MAX_LOG_LINES_TO_UPDATE; i++)
+      elements_to_push.push_back(m_log_ring_buffer.pop_front());
   }
 
-  if (hscroll->value() != old_horizontal)
-    hscroll->setValue(old_horizontal);
-
-  if (vscroll->value() != old_vertical)
+  for (auto& line : elements_to_push)
   {
-    if (vscroll_bottom)
-      vscroll->setValue(vscroll->maximum());
-    else
-      vscroll->setValue(old_vertical);
+    const char* color = "white";
+    switch (std::get<Common::Log::LOG_LEVELS>(line))
+    {
+    case Common::Log::LOG_LEVELS::LERROR:
+      color = "red";
+      break;
+    case Common::Log::LOG_LEVELS::LWARNING:
+      color = "yellow";
+      break;
+    case Common::Log::LOG_LEVELS::LNOTICE:
+      color = "lime";
+      break;
+    case Common::Log::LOG_LEVELS::LINFO:
+      color = "cyan";
+      break;
+    case Common::Log::LOG_LEVELS::LDEBUG:
+      color = "lightgrey";
+      break;
+    }
+
+    const std::string_view str_view(std::get<std::string>(line));
+
+    m_log_text->appendHtml(
+        QStringLiteral("%1 <span style=\"color: %2; white-space: pre\">%3</span>")
+            .arg(QStringFromStringView(str_view.substr(0, TIMESTAMP_LENGTH)),
+                 QString::fromUtf8(color),
+                 QStringFromStringView(str_view.substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
   }
 }
 
@@ -113,8 +132,7 @@ void LogWidget::UpdateFont()
 void LogWidget::CreateWidgets()
 {
   // Log
-  m_tab_log = new QWidget;
-  m_log_text = new QTextEdit;
+  m_log_text = new QPlainTextEdit;
   m_log_wrap = new QCheckBox(tr("Word Wrap"));
   m_log_font = new QComboBox;
   m_log_clear = new QPushButton(tr("Clear"));
@@ -122,7 +140,6 @@ void LogWidget::CreateWidgets()
   m_log_font->addItems({tr("Default Font"), tr("Monospaced Font"), tr("Selected Font")});
 
   auto* log_layout = new QGridLayout;
-  m_tab_log->setLayout(log_layout);
   log_layout->addWidget(m_log_wrap, 0, 0);
   log_layout->addWidget(m_log_font, 0, 1);
   log_layout->addWidget(m_log_clear, 0, 2);
@@ -134,6 +151,8 @@ void LogWidget::CreateWidgets()
   setWidget(widget);
 
   m_log_text->setReadOnly(true);
+  m_log_text->setUndoRedoEnabled(false);
+  m_log_text->setMaximumBlockCount(MAX_LOG_LINES);
 
   QPalette palette = m_log_text->palette();
   palette.setColor(QPalette::Base, Qt::black);
@@ -143,13 +162,15 @@ void LogWidget::CreateWidgets()
 
 void LogWidget::ConnectWidgets()
 {
-  connect(m_log_clear, &QPushButton::clicked, m_log_text, &QTextEdit::clear);
+  connect(m_log_clear, &QPushButton::clicked, [this] {
+    m_log_text->clear();
+    m_log_ring_buffer.clear();
+  });
   connect(m_log_wrap, &QCheckBox::toggled, this, &LogWidget::SaveSettings);
-  connect(m_log_font, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_log_font, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &LogWidget::SaveSettings);
   connect(this, &QDockWidget::topLevelChanged, this, &LogWidget::SaveSettings);
-  connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this,
-          [this](bool visible) { setHidden(!visible); });
+  connect(&Settings::Instance(), &Settings::LogVisibilityChanged, this, &LogWidget::setVisible);
 }
 
 void LogWidget::LoadSettings()
@@ -161,7 +182,10 @@ void LogWidget::LoadSettings()
 
   // Log - Wrap Lines
   m_log_wrap->setChecked(settings.value(QStringLiteral("logging/wraplines")).toBool());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QTextEdit::WidgetWidth : QTextEdit::NoWrap);
+  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
+                                                        QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
+                                                                     Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   // Currently "Debugger Font" is not supported as there is no Qt Debugger, defaulting to Monospace
@@ -178,43 +202,25 @@ void LogWidget::SaveSettings()
 
   // Log - Wrap Lines
   settings.setValue(QStringLiteral("logging/wraplines"), m_log_wrap->isChecked());
-  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QTextEdit::WidgetWidth : QTextEdit::NoWrap);
+  m_log_text->setLineWrapMode(m_log_wrap->isChecked() ? QPlainTextEdit::WidgetWidth :
+                                                        QPlainTextEdit::NoWrap);
+  m_log_text->setHorizontalScrollBarPolicy(m_log_wrap->isChecked() ? Qt::ScrollBarAsNeeded :
+                                                                     Qt::ScrollBarAlwaysOn);
 
   // Log - Font Selection
   settings.setValue(QStringLiteral("logging/font"), m_log_font->currentIndex());
   UpdateFont();
 }
 
-void LogWidget::Log(LogTypes::LOG_LEVELS level, const char* text)
+void LogWidget::Log(Common::Log::LOG_LEVELS level, const char* text)
 {
-  std::lock_guard<std::mutex> lock(m_log_mutex);
+  size_t text_length = strlen(text);
+  while (text_length > 0 && text[text_length - 1] == '\n')
+    text_length--;
 
-  const char* color = "white";
-
-  switch (level)
-  {
-  case LogTypes::LOG_LEVELS::LERROR:
-    color = "red";
-    break;
-  case LogTypes::LOG_LEVELS::LWARNING:
-    color = "yellow";
-    break;
-  case LogTypes::LOG_LEVELS::LNOTICE:
-    color = "lime";
-    break;
-  case LogTypes::LOG_LEVELS::LINFO:
-    color = "cyan";
-    break;
-  case LogTypes::LOG_LEVELS::LDEBUG:
-    color = "lightgrey";
-    break;
-  }
-
-  m_log_queue.push(
-      QStringLiteral("%1 <font color='%2'>%3</font>")
-          .arg(QString::fromStdString(std::string(text).substr(0, TIMESTAMP_LENGTH)),
-               QString::fromStdString(color),
-               QString::fromStdString(std::string(text).substr(TIMESTAMP_LENGTH)).toHtmlEscaped()));
+  std::lock_guard lock(m_log_mutex);
+  m_log_ring_buffer.emplace(std::piecewise_construct, std::forward_as_tuple(text, text_length),
+                            std::forward_as_tuple(level));
 }
 
 void LogWidget::closeEvent(QCloseEvent*)

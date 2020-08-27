@@ -13,7 +13,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QTimer>
 #include <QVBoxLayout>
@@ -23,6 +22,7 @@
 
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings/WiiPane.h"
 
 #include "UICommon/USBUtils.h"
@@ -48,9 +48,12 @@ void USBDeviceAddToWhitelistDialog::InitControls()
 
   m_whitelist_buttonbox = new QDialogButtonBox();
   auto* add_button = new QPushButton(tr("Add"));
+  auto* cancel_button = new QPushButton(tr("Cancel"));
   m_whitelist_buttonbox->addButton(add_button, QDialogButtonBox::AcceptRole);
+  m_whitelist_buttonbox->addButton(cancel_button, QDialogButtonBox::RejectRole);
   connect(add_button, &QPushButton::clicked, this,
           &USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist);
+  connect(cancel_button, &QPushButton::clicked, this, &USBDeviceAddToWhitelistDialog::reject);
   add_button->setDefault(true);
 
   main_layout = new QVBoxLayout();
@@ -85,6 +88,8 @@ void USBDeviceAddToWhitelistDialog::InitControls()
   m_refresh_devices_timer = new QTimer(this);
   connect(usb_inserted_devices_list, &QListWidget::currentItemChanged, this,
           &USBDeviceAddToWhitelistDialog::OnDeviceSelection);
+  connect(usb_inserted_devices_list, &QListWidget::itemDoubleClicked, add_button,
+          &QPushButton::clicked);
   connect(m_refresh_devices_timer, &QTimer::timeout, this,
           &USBDeviceAddToWhitelistDialog::RefreshDeviceList);
   m_refresh_devices_timer->start(1000);
@@ -119,14 +124,15 @@ void USBDeviceAddToWhitelistDialog::RefreshDeviceList()
 
 void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 {
-  const std::string vid_string = StripSpaces(device_vid_textbox->text().toStdString());
-  const std::string pid_string = StripSpaces(device_pid_textbox->text().toStdString());
+  const std::string vid_string(StripSpaces(device_vid_textbox->text().toStdString()));
+  const std::string pid_string(StripSpaces(device_pid_textbox->text().toStdString()));
   if (!IsValidUSBIDString(vid_string))
   {
     // i18n: Here, VID means Vendor ID (for a USB device).
-    QMessageBox vid_warning_box;
+    ModalMessageBox vid_warning_box(this);
     vid_warning_box.setIcon(QMessageBox::Warning);
     vid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
+    // i18n: Here, VID means Vendor ID (for a USB device).
     vid_warning_box.setText(tr("The entered VID is invalid."));
     vid_warning_box.setStandardButtons(QMessageBox::Ok);
     vid_warning_box.exec();
@@ -135,9 +141,10 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
   if (!IsValidUSBIDString(pid_string))
   {
     // i18n: Here, PID means Product ID (for a USB device).
-    QMessageBox pid_warning_box;
+    ModalMessageBox pid_warning_box(this);
     pid_warning_box.setIcon(QMessageBox::Warning);
     pid_warning_box.setWindowTitle(tr("USB Whitelist Error"));
+    // i18n: Here, PID means Product ID (for a USB device).
     pid_warning_box.setText(tr("The entered PID is invalid."));
     pid_warning_box.setStandardButtons(QMessageBox::Ok);
     pid_warning_box.exec();
@@ -149,8 +156,7 @@ void USBDeviceAddToWhitelistDialog::AddUSBDeviceToWhitelist()
 
   if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
   {
-    QErrorMessage* error = new QErrorMessage();
-    error->showMessage(tr("This USB device is already whitelisted."));
+    ModalMessageBox::critical(this, tr("Error"), tr("This USB device is already whitelisted."));
     return;
   }
   SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);

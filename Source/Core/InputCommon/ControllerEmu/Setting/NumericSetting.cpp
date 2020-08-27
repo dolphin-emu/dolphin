@@ -4,22 +4,69 @@
 
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
+#include <sstream>
+
 namespace ControllerEmu
 {
-NumericSetting::NumericSetting(const std::string& setting_name, const ControlState default_value,
-                               const u32 low, const u32 high, const SettingType setting_type)
-    : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
-      m_high(high), m_value(default_value)
+NumericSettingBase::NumericSettingBase(const NumericSettingDetails& details) : m_details(details)
 {
 }
 
-ControlState NumericSetting::GetValue() const
+const char* NumericSettingBase::GetUIName() const
 {
-  return m_value;
+  return m_details.ui_name;
 }
-void NumericSetting::SetValue(ControlState value)
+
+const char* NumericSettingBase::GetUISuffix() const
 {
-  m_value = value;
+  return m_details.ui_suffix;
+}
+
+const char* NumericSettingBase::GetUIDescription() const
+{
+  return m_details.ui_description;
+}
+
+template <>
+void NumericSetting<int>::SetExpressionFromValue()
+{
+  m_value.m_input.SetExpression(ValueToString(GetValue()));
+}
+
+template <>
+void NumericSetting<double>::SetExpressionFromValue()
+{
+  // We must use a dot decimal separator for expression parser.
+  std::ostringstream ss;
+  ss.imbue(std::locale::classic());
+  ss << GetValue();
+
+  m_value.m_input.SetExpression(ss.str());
+}
+
+template <>
+void NumericSetting<bool>::SetExpressionFromValue()
+{
+  // Cast bool to prevent "true"/"false" strings.
+  m_value.m_input.SetExpression(ValueToString(int(GetValue())));
+}
+
+template <>
+SettingType NumericSetting<int>::GetType() const
+{
+  return SettingType::Int;
+}
+
+template <>
+SettingType NumericSetting<double>::GetType() const
+{
+  return SettingType::Double;
+}
+
+template <>
+SettingType NumericSetting<bool>::GetType() const
+{
+  return SettingType::Bool;
 }
 
 }  // namespace ControllerEmu

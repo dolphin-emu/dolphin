@@ -12,7 +12,6 @@
 enum class APIType;
 
 #pragma pack(1)
-
 struct geometry_shader_uid_data
 {
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
@@ -21,10 +20,9 @@ struct geometry_shader_uid_data
   u32 numTexGens : 4;
   u32 primitive_type : 2;
 };
-
 #pragma pack()
 
-typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
+using GeometryShaderUid = ShaderUid<geometry_shader_uid_data>;
 
 ShaderCode GenerateGeometryShaderCode(APIType ApiType, const ShaderHostConfig& host_config,
                                       const geometry_shader_uid_data* uid_data);

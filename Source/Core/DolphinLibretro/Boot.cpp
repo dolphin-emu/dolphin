@@ -7,6 +7,7 @@
 #include "Core/Boot/Boot.h"
 #include "Core/BootManager.h"
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -60,7 +61,7 @@ bool retro_load_game(const struct retro_game_info* game)
   UICommon::Init();
   Libretro::Log::Init();
   Discord::SetDiscordPresenceEnabled(false);
-  SetEnableAlert(false);
+  Common::SetEnableAlert(false);
 
   INFO_LOG(COMMON, "User Directory set to '%s'", user_dir.c_str());
   INFO_LOG(COMMON, "System Directory set to '%s'", sys_dir.c_str());
@@ -79,7 +80,6 @@ bool retro_load_game(const struct retro_game_info* game)
   SConfig::GetInstance().bCPUThread = true;
   SConfig::GetInstance().bEMUThread = false;
   SConfig::GetInstance().bBootToPause = true;
-  SConfig::GetInstance().m_enable_signature_checks = false;
   SConfig::GetInstance().m_OCFactor = Libretro::Options::cpuClockRate;
   SConfig::GetInstance().m_OCEnable = Libretro::Options::cpuClockRate != 1.0;
   SConfig::GetInstance().sBackend = BACKEND_NULLSOUND;
@@ -109,9 +109,10 @@ bool retro_load_game(const struct retro_game_info* game)
 #endif
 
   Libretro::Video::Init();
-  NOTICE_LOG(VIDEO, "Using GFX backend: %s", SConfig::GetInstance().m_strVideoBackend.c_str());
+  NOTICE_LOG(VIDEO, "Using GFX backend: %s", Config::Get(Config::MAIN_GFX_BACKEND).c_str());
 
-  if (!BootManager::BootCore(BootParameters::GenerateFromFile(game->path)))
+  WindowSystemInfo wsi(WindowSystemType::Headless, nullptr, nullptr, nullptr);
+  if (!BootManager::BootCore(BootParameters::GenerateFromFile(game->path), wsi))
   {
     ERROR_LOG(BOOT, "Could not boot %s\n", game->path);
     return false;

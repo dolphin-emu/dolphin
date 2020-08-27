@@ -94,7 +94,7 @@ struct hash<PortableVertexDeclaration>
     return Common::HashFletcher(reinterpret_cast<const u8*>(&decl), sizeof(decl));
   }
 };
-}
+}  // namespace std
 
 // The implementation of this class is specific for GL/DX, so NativeVertexFormat.cpp
 // is in the respective backend, not here in VideoCommon.
@@ -104,17 +104,17 @@ struct hash<PortableVertexDeclaration>
 class NativeVertexFormat
 {
 public:
+  NativeVertexFormat(const PortableVertexDeclaration& vtx_decl) : m_decl(vtx_decl) {}
   virtual ~NativeVertexFormat() {}
+
   NativeVertexFormat(const NativeVertexFormat&) = delete;
   NativeVertexFormat& operator=(const NativeVertexFormat&) = delete;
   NativeVertexFormat(NativeVertexFormat&&) = default;
   NativeVertexFormat& operator=(NativeVertexFormat&&) = default;
 
-  u32 GetVertexStride() const { return vtx_decl.stride; }
-  const PortableVertexDeclaration& GetVertexDeclaration() const { return vtx_decl; }
+  u32 GetVertexStride() const { return m_decl.stride; }
+  const PortableVertexDeclaration& GetVertexDeclaration() const { return m_decl; }
 
 protected:
-  // Let subclasses construct.
-  NativeVertexFormat() {}
-  PortableVertexDeclaration vtx_decl;
+  PortableVertexDeclaration m_decl;
 };

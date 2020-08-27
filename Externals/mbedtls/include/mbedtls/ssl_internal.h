@@ -1,8 +1,9 @@
 /**
- * \file ssl_ticket.h
+ * \file ssl_internal.h
  *
  * \brief Internal functions shared by the SSL modules
- *
+ */
+/*
  *  Copyright (C) 2006-2015, ARM Limited, All Rights Reserved
  *  SPDX-License-Identifier: Apache-2.0
  *
@@ -23,7 +24,14 @@
 #ifndef MBEDTLS_SSL_INTERNAL_H
 #define MBEDTLS_SSL_INTERNAL_H
 
+#if !defined(MBEDTLS_CONFIG_FILE)
+#include "config.h"
+#else
+#include MBEDTLS_CONFIG_FILE
+#endif
+
 #include "ssl.h"
+#include "cipher.h"
 
 #if defined(MBEDTLS_MD5_C)
 #include "md5.h"
@@ -69,6 +77,9 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
 #endif /* MBEDTLS_SSL_PROTO_SSL3   */
 
+#define MBEDTLS_SSL_MIN_VALID_MINOR_VERSION MBEDTLS_SSL_MINOR_VERSION_1
+#define MBEDTLS_SSL_MIN_VALID_MAJOR_VERSION MBEDTLS_SSL_MAJOR_VERSION_3
+
 /* Determine maximum supported version */
 #define MBEDTLS_SSL_MAX_MAJOR_VERSION           MBEDTLS_SSL_MAJOR_VERSION_3
 
@@ -87,6 +98,14 @@
 #endif /* MBEDTLS_SSL_PROTO_TLS1   */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_1 */
 #endif /* MBEDTLS_SSL_PROTO_TLS1_2 */
+
+/* Shorthand for restartable ECC */
+#if defined(MBEDTLS_ECP_RESTARTABLE) && \
+    defined(MBEDTLS_SSL_CLI_C) && \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE_ECDHE_ECDSA_ENABLED)
+#define MBEDTLS_SSL__ECP_RESTARTABLE
+#endif
 
 #define MBEDTLS_SSL_INITIAL_HANDSHAKE           0
 #define MBEDTLS_SSL_RENEGOTIATION_IN_PROGRESS   1   /* In progress */
@@ -138,12 +157,76 @@
 #define MBEDTLS_SSL_PADDING_ADD              0
 #endif
 
-#define MBEDTLS_SSL_BUFFER_LEN  ( MBEDTLS_SSL_MAX_CONTENT_LEN               \
-                        + MBEDTLS_SSL_COMPRESSION_ADD               \
-                        + 29 /* counter + header + IV */    \
-                        + MBEDTLS_SSL_MAC_ADD                       \
-                        + MBEDTLS_SSL_PADDING_ADD                   \
-                        )
+#define MBEDTLS_SSL_PAYLOAD_OVERHEAD ( MBEDTLS_SSL_COMPRESSION_ADD +    \
+                                       MBEDTLS_MAX_IV_LENGTH +          \
+                                       MBEDTLS_SSL_MAC_ADD +            \
+                                       MBEDTLS_SSL_PADDING_ADD          \
+                                       )
+
+#define MBEDTLS_SSL_IN_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
+                                     ( MBEDTLS_SSL_IN_CONTENT_LEN ) )
+
+#define MBEDTLS_SSL_OUT_PAYLOAD_LEN ( MBEDTLS_SSL_PAYLOAD_OVERHEAD + \
+                                      ( MBEDTLS_SSL_OUT_CONTENT_LEN ) )
+
+/* The maximum number of buffered handshake messages. */
+#define MBEDTLS_SSL_MAX_BUFFERED_HS 4
+
+/* Maximum length we can advertise as our max content length for
+   RFC 6066 max_fragment_length extension negotiation purposes
+   (the lesser of both sizes, if they are unequal.)
+ */
+#define MBEDTLS_TLS_EXT_ADV_CONTENT_LEN (                            \
+        (MBEDTLS_SSL_IN_CONTENT_LEN > MBEDTLS_SSL_OUT_CONTENT_LEN)   \
+        ? ( MBEDTLS_SSL_OUT_CONTENT_LEN )                            \
+        : ( MBEDTLS_SSL_IN_CONTENT_LEN )                             \
+        )
+
+/*
+ * Check that we obey the standard's message size bounds
+ */
+
+#if MBEDTLS_SSL_MAX_CONTENT_LEN > 16384
+#error "Bad configuration - record content too large."
+#endif
+
+#if MBEDTLS_SSL_IN_CONTENT_LEN > MBEDTLS_SSL_MAX_CONTENT_LEN
+#error "Bad configuration - incoming record content should not be larger than MBEDTLS_SSL_MAX_CONTENT_LEN."
+#endif
+
+#if MBEDTLS_SSL_OUT_CONTENT_LEN > MBEDTLS_SSL_MAX_CONTENT_LEN
+#error "Bad configuration - outgoing record content should not be larger than MBEDTLS_SSL_MAX_CONTENT_LEN."
+#endif
+
+#if MBEDTLS_SSL_IN_PAYLOAD_LEN > MBEDTLS_SSL_MAX_CONTENT_LEN + 2048
+#error "Bad configuration - incoming protected record payload too large."
+#endif
+
+#if MBEDTLS_SSL_OUT_PAYLOAD_LEN > MBEDTLS_SSL_MAX_CONTENT_LEN + 2048
+#error "Bad configuration - outgoing protected record payload too large."
+#endif
+
+/* Calculate buffer sizes */
+
+/* Note: Even though the TLS record header is only 5 bytes
+   long, we're internally using 8 bytes to store the
+   implicit sequence number. */
+#define MBEDTLS_SSL_HEADER_LEN 13
+
+#define MBEDTLS_SSL_IN_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_IN_PAYLOAD_LEN ) )
+
+#define MBEDTLS_SSL_OUT_BUFFER_LEN  \
+    ( ( MBEDTLS_SSL_HEADER_LEN ) + ( MBEDTLS_SSL_OUT_PAYLOAD_LEN ) )
+
+#ifdef MBEDTLS_ZLIB_SUPPORT
+/* Compression buffer holds both IN and OUT buffers, so should be size of the larger */
+#define MBEDTLS_SSL_COMPRESS_BUFFER_LEN (                               \
+        ( MBEDTLS_SSL_IN_BUFFER_LEN > MBEDTLS_SSL_OUT_BUFFER_LEN )      \
+        ? MBEDTLS_SSL_IN_BUFFER_LEN                                     \
+        : MBEDTLS_SSL_OUT_BUFFER_LEN                                    \
+        )
+#endif
 
 /*
  * TLS extension flags (for extensions with outgoing ServerHello content
@@ -157,6 +240,24 @@
 extern "C" {
 #endif
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+/*
+ * Abstraction for a grid of allowed signature-hash-algorithm pairs.
+ */
+struct mbedtls_ssl_sig_hash_set_t
+{
+    /* At the moment, we only need to remember a single suitable
+     * hash algorithm per signature algorithm. As long as that's
+     * the case - and we don't need a general lookup function -
+     * we can implement the sig-hash-set as a map from signatures
+     * to hash algorithms. */
+    mbedtls_md_type_t rsa;
+    mbedtls_md_type_t ecdsa;
+};
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2 &&
+          MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
+
 /*
  * This structure contains the parameters only needed during handshake.
  */
@@ -165,8 +266,11 @@ struct mbedtls_ssl_handshake_params
     /*
      * Handshake specific crypto variables
      */
-    int sig_alg;                        /*!<  Hash algorithm for signature   */
-    int verify_sig_alg;                 /*!<  Signature algorithm for verify */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+    mbedtls_ssl_sig_hash_set_t hash_algs;             /*!<  Set of suitable sig-hash pairs */
+#endif
 #if defined(MBEDTLS_DHM_C)
     mbedtls_dhm_context dhm_ctx;                /*!<  DHM key exchange        */
 #endif
@@ -179,7 +283,7 @@ struct mbedtls_ssl_handshake_params
     unsigned char *ecjpake_cache;               /*!< Cache for ClientHello ext */
     size_t ecjpake_cache_len;                   /*!< Length of cached data */
 #endif
-#endif
+#endif /* MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED */
 #if defined(MBEDTLS_ECDH_C) || defined(MBEDTLS_ECDSA_C) || \
     defined(MBEDTLS_KEY_EXCHANGE_ECJPAKE_ENABLED)
     const mbedtls_ecp_curve_info **curves;      /*!<  Supported elliptic curves */
@@ -195,8 +299,20 @@ struct mbedtls_ssl_handshake_params
     mbedtls_ssl_key_cert *sni_key_cert; /*!< key/cert list from SNI         */
     mbedtls_x509_crt *sni_ca_chain;     /*!< trusted CAs from SNI callback  */
     mbedtls_x509_crl *sni_ca_crl;       /*!< trusted CAs CRLs from SNI      */
-#endif
+#endif /* MBEDTLS_SSL_SERVER_NAME_INDICATION */
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+#if defined(MBEDTLS_SSL__ECP_RESTARTABLE)
+    int ecrs_enabled;                   /*!< Handshake supports EC restart? */
+    mbedtls_x509_crt_restart_ctx ecrs_ctx;  /*!< restart context            */
+    enum { /* this complements ssl->state with info on intra-state operations */
+        ssl_ecrs_none = 0,              /*!< nothing going on (yet)         */
+        ssl_ecrs_crt_verify,            /*!< Certificate: crt_verify()      */
+        ssl_ecrs_ske_start_processing,  /*!< ServerKeyExchange: pk_verify() */
+        ssl_ecrs_cke_ecdh_calc_secret,  /*!< ClientKeyExchange: ECDH step 2 */
+        ssl_ecrs_crt_vrfy_sign,         /*!< CertificateVerify: pk_sign()   */
+    } ecrs_state;                       /*!< current (or last) operation    */
+    size_t ecrs_n;                      /*!< place for saving a length      */
+#endif
 #if defined(MBEDTLS_SSL_PROTO_DTLS)
     unsigned int out_msg_seq;           /*!<  Outgoing handshake sequence number */
     unsigned int in_msg_seq;            /*!<  Incoming handshake sequence number */
@@ -206,19 +322,46 @@ struct mbedtls_ssl_handshake_params
     unsigned char verify_cookie_len;    /*!<  Cli: cookie length
                                               Srv: flag for sending a cookie */
 
-    unsigned char *hs_msg;              /*!<  Reassembled handshake message  */
-
     uint32_t retransmit_timeout;        /*!<  Current value of timeout       */
     unsigned char retransmit_state;     /*!<  Retransmission state           */
-    mbedtls_ssl_flight_item *flight;            /*!<  Current outgoing flight        */
-    mbedtls_ssl_flight_item *cur_msg;           /*!<  Current message in flight      */
+    mbedtls_ssl_flight_item *flight;    /*!<  Current outgoing flight        */
+    mbedtls_ssl_flight_item *cur_msg;   /*!<  Current message in flight      */
+    unsigned char *cur_msg_p;           /*!<  Position in current message    */
     unsigned int in_flight_start_seq;   /*!<  Minimum message sequence in the
                                               flight being received          */
     mbedtls_ssl_transform *alt_transform_out;   /*!<  Alternative transform for
                                               resending messages             */
     unsigned char alt_out_ctr[8];       /*!<  Alternative record epoch/counter
                                               for resending messages         */
-#endif
+
+    struct
+    {
+        size_t total_bytes_buffered; /*!< Cumulative size of heap allocated
+                                      *   buffers used for message buffering. */
+
+        uint8_t seen_ccs;               /*!< Indicates if a CCS message has
+                                         *   been seen in the current flight. */
+
+        struct mbedtls_ssl_hs_buffer
+        {
+            unsigned is_valid      : 1;
+            unsigned is_fragmented : 1;
+            unsigned is_complete   : 1;
+            unsigned char *data;
+            size_t data_len;
+        } hs[MBEDTLS_SSL_MAX_BUFFERED_HS];
+
+        struct
+        {
+            unsigned char *data;
+            size_t len;
+            unsigned epoch;
+        } future_record;
+
+    } buffering;
+
+    uint16_t mtu;                       /*!<  Handshake mtu, used to fragment outgoing messages */
+#endif /* MBEDTLS_SSL_PROTO_DTLS */
 
     /*
      * Checksum contexts
@@ -261,7 +404,22 @@ struct mbedtls_ssl_handshake_params
 #if defined(MBEDTLS_SSL_EXTENDED_MASTER_SECRET)
     int extended_ms;                    /*!< use Extended Master Secret? */
 #endif
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    unsigned int async_in_progress : 1; /*!< an asynchronous operation is in progress */
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
+
+#if defined(MBEDTLS_SSL_ASYNC_PRIVATE)
+    /** Asynchronous operation context. This field is meant for use by the
+     * asynchronous operation callbacks (mbedtls_ssl_config::f_async_sign_start,
+     * mbedtls_ssl_config::f_async_decrypt_start,
+     * mbedtls_ssl_config::f_async_resume, mbedtls_ssl_config::f_async_cancel).
+     * The library does not use it internally. */
+    void *user_async_ctx;
+#endif /* MBEDTLS_SSL_ASYNC_PRIVATE */
 };
+
+typedef struct mbedtls_ssl_hs_buffer mbedtls_ssl_hs_buffer;
 
 /*
  * This structure contains a full set of runtime transform parameters
@@ -329,6 +487,28 @@ struct mbedtls_ssl_flight_item
 };
 #endif /* MBEDTLS_SSL_PROTO_DTLS */
 
+#if defined(MBEDTLS_SSL_PROTO_TLS1_2) && \
+    defined(MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED)
+
+/* Find an entry in a signature-hash set matching a given hash algorithm. */
+mbedtls_md_type_t mbedtls_ssl_sig_hash_set_find( mbedtls_ssl_sig_hash_set_t *set,
+                                                 mbedtls_pk_type_t sig_alg );
+/* Add a signature-hash-pair to a signature-hash set */
+void mbedtls_ssl_sig_hash_set_add( mbedtls_ssl_sig_hash_set_t *set,
+                                   mbedtls_pk_type_t sig_alg,
+                                   mbedtls_md_type_t md_alg );
+/* Allow exactly one hash algorithm for each signature. */
+void mbedtls_ssl_sig_hash_set_const_hash( mbedtls_ssl_sig_hash_set_t *set,
+                                          mbedtls_md_type_t md_alg );
+
+/* Setup an empty signature-hash set */
+static inline void mbedtls_ssl_sig_hash_set_init( mbedtls_ssl_sig_hash_set_t *set )
+{
+    mbedtls_ssl_sig_hash_set_const_hash( set, MBEDTLS_MD_NONE );
+}
+
+#endif /* MBEDTLS_SSL_PROTO_TLS1_2) &&
+          MBEDTLS_KEY_EXCHANGE__WITH_CERT__ENABLED */
 
 /**
  * \brief           Free referenced items in an SSL transform context and clear
@@ -342,9 +522,9 @@ void mbedtls_ssl_transform_free( mbedtls_ssl_transform *transform );
  * \brief           Free referenced items in an SSL handshake context and clear
  *                  memory
  *
- * \param handshake SSL handshake context
+ * \param ssl       SSL context
  */
-void mbedtls_ssl_handshake_free( mbedtls_ssl_handshake_params *handshake );
+void mbedtls_ssl_handshake_free( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_handshake_client_step( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handshake_server_step( mbedtls_ssl_context *ssl );
@@ -355,15 +535,92 @@ int mbedtls_ssl_send_fatal_handshake_failure( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_reset_checksum( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_derive_keys( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_read_record_layer( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_handle_message_type( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_prepare_handshake_record( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_update_handshake_status( mbedtls_ssl_context *ssl );
 
-int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl );
+/**
+ * \brief       Update record layer
+ *
+ *              This function roughly separates the implementation
+ *              of the logic of (D)TLS from the implementation
+ *              of the secure transport.
+ *
+ * \param  ssl              The SSL context to use.
+ * \param  update_hs_digest This indicates if the handshake digest
+ *                          should be automatically updated in case
+ *                          a handshake message is found.
+ *
+ * \return      0 or non-zero error code.
+ *
+ * \note        A clarification on what is called 'record layer' here
+ *              is in order, as many sensible definitions are possible:
+ *
+ *              The record layer takes as input an untrusted underlying
+ *              transport (stream or datagram) and transforms it into
+ *              a serially multiplexed, secure transport, which
+ *              conceptually provides the following:
+ *
+ *              (1) Three datagram based, content-agnostic transports
+ *                  for handshake, alert and CCS messages.
+ *              (2) One stream- or datagram-based transport
+ *                  for application data.
+ *              (3) Functionality for changing the underlying transform
+ *                  securing the contents.
+ *
+ *              The interface to this functionality is given as follows:
+ *
+ *              a Updating
+ *                [Currently implemented by mbedtls_ssl_read_record]
+ *
+ *                Check if and on which of the four 'ports' data is pending:
+ *                Nothing, a controlling datagram of type (1), or application
+ *                data (2). In any case data is present, internal buffers
+ *                provide access to the data for the user to process it.
+ *                Consumption of type (1) datagrams is done automatically
+ *                on the next update, invalidating that the internal buffers
+ *                for previous datagrams, while consumption of application
+ *                data (2) is user-controlled.
+ *
+ *              b Reading of application data
+ *                [Currently manual adaption of ssl->in_offt pointer]
+ *
+ *                As mentioned in the last paragraph, consumption of data
+ *                is different from the automatic consumption of control
+ *                datagrams (1) because application data is treated as a stream.
+ *
+ *              c Tracking availability of application data
+ *                [Currently manually through decreasing ssl->in_msglen]
+ *
+ *                For efficiency and to retain datagram semantics for
+ *                application data in case of DTLS, the record layer
+ *                provides functionality for checking how much application
+ *                data is still available in the internal buffer.
+ *
+ *              d Changing the transformation securing the communication.
+ *
+ *              Given an opaque implementation of the record layer in the
+ *              above sense, it should be possible to implement the logic
+ *              of (D)TLS on top of it without the need to know anything
+ *              about the record layer's internals. This is done e.g.
+ *              in all the handshake handling functions, and in the
+ *              application data reading function mbedtls_ssl_read.
+ *
+ * \note        The above tries to give a conceptual picture of the
+ *              record layer, but the current implementation deviates
+ *              from it in some places. For example, our implementation of
+ *              the update functionality through mbedtls_ssl_read_record
+ *              discards datagrams depending on the current state, which
+ *              wouldn't fall under the record layer's responsibility
+ *              following the above definition.
+ *
+ */
+int mbedtls_ssl_read_record( mbedtls_ssl_context *ssl,
+                             unsigned update_hs_digest );
 int mbedtls_ssl_fetch_input( mbedtls_ssl_context *ssl, size_t nb_want );
 
-int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_handshake_msg( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_write_record( mbedtls_ssl_context *ssl, uint8_t force_flush );
 int mbedtls_ssl_flush_output( mbedtls_ssl_context *ssl );
 
 int mbedtls_ssl_parse_certificate( mbedtls_ssl_context *ssl );
@@ -384,6 +641,7 @@ int mbedtls_ssl_psk_derive_premaster( mbedtls_ssl_context *ssl, mbedtls_key_exch
 
 #if defined(MBEDTLS_PK_C)
 unsigned char mbedtls_ssl_sig_from_pk( mbedtls_pk_context *pk );
+unsigned char mbedtls_ssl_sig_from_pk_alg( mbedtls_pk_type_t type );
 mbedtls_pk_type_t mbedtls_ssl_pk_alg_from_sig( unsigned char sig );
 #endif
 
@@ -471,6 +729,7 @@ static inline size_t mbedtls_ssl_hs_hdr_len( const mbedtls_ssl_context *ssl )
 void mbedtls_ssl_send_flight_completed( mbedtls_ssl_context *ssl );
 void mbedtls_ssl_recv_flight_completed( mbedtls_ssl_context *ssl );
 int mbedtls_ssl_resend( mbedtls_ssl_context *ssl );
+int mbedtls_ssl_flight_transmit( mbedtls_ssl_context *ssl );
 #endif
 
 /* Visible for testing purposes only */
@@ -483,15 +742,38 @@ void mbedtls_ssl_dtls_replay_update( mbedtls_ssl_context *ssl );
 static inline int mbedtls_ssl_safer_memcmp( const void *a, const void *b, size_t n )
 {
     size_t i;
-    const unsigned char *A = (const unsigned char *) a;
-    const unsigned char *B = (const unsigned char *) b;
-    unsigned char diff = 0;
+    volatile const unsigned char *A = (volatile const unsigned char *) a;
+    volatile const unsigned char *B = (volatile const unsigned char *) b;
+    volatile unsigned char diff = 0;
 
     for( i = 0; i < n; i++ )
-        diff |= A[i] ^ B[i];
+    {
+        /* Read volatile data in order before computing diff.
+         * This avoids IAR compiler warning:
+         * 'the order of volatile accesses is undefined ..' */
+        unsigned char x = A[i], y = B[i];
+        diff |= x ^ y;
+    }
 
     return( diff );
 }
+
+#if defined(MBEDTLS_SSL_PROTO_SSL3) || defined(MBEDTLS_SSL_PROTO_TLS1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_1)
+int mbedtls_ssl_get_key_exchange_md_ssl_tls( mbedtls_ssl_context *ssl,
+                                        unsigned char *output,
+                                        unsigned char *data, size_t data_len );
+#endif /* MBEDTLS_SSL_PROTO_SSL3 || MBEDTLS_SSL_PROTO_TLS1 || \
+          MBEDTLS_SSL_PROTO_TLS1_1 */
+
+#if defined(MBEDTLS_SSL_PROTO_TLS1) || defined(MBEDTLS_SSL_PROTO_TLS1_1) || \
+    defined(MBEDTLS_SSL_PROTO_TLS1_2)
+int mbedtls_ssl_get_key_exchange_md_tls1_2( mbedtls_ssl_context *ssl,
+                                            unsigned char *hash, size_t *hashlen,
+                                            unsigned char *data, size_t data_len,
+                                            mbedtls_md_type_t md_alg );
+#endif /* MBEDTLS_SSL_PROTO_TLS1 || MBEDTLS_SSL_PROTO_TLS1_1 || \
+          MBEDTLS_SSL_PROTO_TLS1_2 */
 
 #ifdef __cplusplus
 }

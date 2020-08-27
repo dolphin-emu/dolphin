@@ -11,6 +11,7 @@
 #include <QGroupBox>
 #include <QLabel>
 #include <QProgressBar>
+#include <QPushButton>
 #include <QVBoxLayout>
 
 #include "Core/NetPlayClient.h"
@@ -21,7 +22,11 @@
 static QString GetPlayerNameFromPID(int pid)
 {
   QString player_name = QObject::tr("Invalid Player ID");
-  for (const auto* player : Settings::Instance().GetNetPlayClient()->GetPlayers())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (!client)
+    return player_name;
+
+  for (const auto* player : client->GetPlayers())
   {
     if (player->pid == pid)
     {
@@ -37,7 +42,8 @@ MD5Dialog::MD5Dialog(QWidget* parent) : QDialog(parent)
   CreateWidgets();
   ConnectWidgets();
   setWindowTitle(tr("MD5 Checksum"));
-  setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
+  setWindowFlags(Qt::Sheet | Qt::Dialog);
+  setWindowModality(Qt::WindowModal);
 }
 
 void MD5Dialog::CreateWidgets()
@@ -45,7 +51,7 @@ void MD5Dialog::CreateWidgets()
   m_main_layout = new QVBoxLayout;
   m_progress_box = new QGroupBox;
   m_progress_layout = new QVBoxLayout;
-  m_button_box = new QDialogButtonBox(QDialogButtonBox::Close);
+  m_button_box = new QDialogButtonBox(QDialogButtonBox::NoButton);
   m_check_label = new QLabel;
 
   m_progress_box->setLayout(m_progress_layout);
@@ -82,7 +88,26 @@ void MD5Dialog::show(const QString& title)
   m_results.clear();
   m_check_label->setText(QString::fromStdString(""));
 
-  for (const auto* player : Settings::Instance().GetNetPlayClient()->GetPlayers())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (!client)
+    return;
+
+  if (Settings::Instance().GetNetPlayServer())
+  {
+    m_button_box->setStandardButtons(QDialogButtonBox::Cancel);
+    QPushButton* cancel_button = m_button_box->button(QDialogButtonBox::Cancel);
+    cancel_button->setAutoDefault(false);
+    cancel_button->setDefault(false);
+  }
+  else
+  {
+    m_button_box->setStandardButtons(QDialogButtonBox::Close);
+    QPushButton* close_button = m_button_box->button(QDialogButtonBox::Close);
+    close_button->setAutoDefault(false);
+    close_button->setDefault(false);
+  }
+
+  for (const auto* player : client->GetPlayers())
   {
     m_progress_bars[player->pid] = new QProgressBar;
     m_status_labels[player->pid] = new QLabel;
@@ -118,7 +143,8 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
 
   m_results.push_back(result);
 
-  if (m_results.size() >= Settings::Instance().GetNetPlayClient()->GetPlayers().size())
+  auto client = Settings::Instance().GetNetPlayClient();
+  if (client && m_results.size() >= client->GetPlayers().size())
   {
     if (std::adjacent_find(m_results.begin(), m_results.end(), std::not_equal_to<>()) ==
         m_results.end())
@@ -129,12 +155,17 @@ void MD5Dialog::SetResult(int pid, const std::string& result)
     {
       m_check_label->setText(tr("The hashes do not match!"));
     }
+
+    m_button_box->setStandardButtons(QDialogButtonBox::Close);
+    QPushButton* close_button = m_button_box->button(QDialogButtonBox::Close);
+    close_button->setAutoDefault(false);
+    close_button->setDefault(false);
   }
 }
 
 void MD5Dialog::reject()
 {
-  auto* server = Settings::Instance().GetNetPlayServer();
+  auto server = Settings::Instance().GetNetPlayServer();
 
   if (server)
     server->AbortMD5();

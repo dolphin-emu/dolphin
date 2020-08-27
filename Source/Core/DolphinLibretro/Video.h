@@ -3,8 +3,10 @@
 
 #include <libretro.h>
 #include "VideoBackends/Null/Render.h"
+#include "VideoBackends/Software/SWOGLWindow.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/SWTexture.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #ifndef __APPLE__
 #include "VideoBackends/Vulkan/VulkanLoader.h"
@@ -43,21 +45,38 @@ void WaitForPresentation();
 }  // namespace Vk
 #endif
 
-class SWRenderer : public ::SWRenderer
+class SWRenderer : public SW::SWRenderer
 {
 public:
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override
+  SWRenderer()
+      : SW::SWRenderer(SWOGLWindow::Create(
+            WindowSystemInfo(WindowSystemType::Libretro, nullptr, nullptr, nullptr)))
   {
-    SW::SWTexture* sw_image = static_cast<SW::SWTexture*>(texture);
-    video_cb(sw_image->GetData(), rc.GetWidth(), rc.GetHeight(), sw_image->GetWidth() * 4);
+  }
+  void RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                         const AbstractTexture* source_texture,
+                         const MathUtil::Rectangle<int>& source_rc) override
+  {
+    m_texture = static_cast<const SW::SWTexture*>(source_texture);
+    m_rc = source_rc;
+    SW::SWRenderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
+  }
+
+  void PresentBackbuffer() override
+  {
+    video_cb(m_texture->GetData(), m_rc.GetWidth(), m_rc.GetHeight(), m_texture->GetWidth() * 4);
     UpdateActiveConfig();
   }
+
+private:
+  const SW::SWTexture* m_texture;
+  MathUtil::Rectangle<int> m_rc;
 };
 
 class NullRenderer : public Null::Renderer
 {
 public:
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override
+  void PresentBackbuffer() override
   {
     video_cb(NULL, 512, 512, 512 * 4);
     UpdateActiveConfig();
@@ -67,8 +86,8 @@ public:
 class DX11Renderer : public DX11::Renderer
 {
 public:
-  DX11Renderer() : DX11::Renderer(1,1) {}
-  void SwapImpl(AbstractTexture* texture, const EFBRectangle& rc, u64 ticks) override
+  DX11Renderer() : DX11::Renderer(1, 1) {}
+  void PresentBackbuffer() override
   {
     DX11::D3DTexture2D* xfb_texture = static_cast<DX11::DXTexture*>(texture)->GetRawTexIdentifier();
 

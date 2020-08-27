@@ -7,9 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class DSPHLE;
 
@@ -27,5 +25,4 @@ struct GBAUCode : public UCodeInterface
   void HandleMail(u32 mail) override;
   void Update() override;
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

@@ -35,7 +35,7 @@ void JitArm64::fp_arith(UGeckoInstruction inst)
   bool inputs_are_singles = fpr.IsSingle(a, !packed) && (!use_b || fpr.IsSingle(b, !packed)) &&
                             (!use_c || fpr.IsSingle(c, !packed));
 
-  ARM64Reg VA, VB, VC, VD;
+  ARM64Reg VA{}, VB{}, VC{}, VD{};
 
   if (packed)
   {
@@ -293,7 +293,7 @@ void JitArm64::fcmpX(UGeckoInstruction inst)
 
   SetJumpTarget(pNaN);
 
-  MOVI2R(XA, PowerPC::PPCCRToInternal(PowerPC::CR_SO));
+  MOVI2R(XA, PowerPC::ConditionRegister::PPCToInternal(PowerPC::CR_SO));
 
   if (a != b)
   {
@@ -339,8 +339,12 @@ void JitArm64::fctiwzx(UGeckoInstruction inst)
   }
   else
   {
-    m_float_emit.FCVT(32, 64, EncodeRegToDouble(VD), EncodeRegToDouble(VB));
-    m_float_emit.FCVTS(EncodeRegToSingle(VD), EncodeRegToSingle(VD), ROUND_Z);
+    ARM64Reg V1 = gpr.GetReg();
+
+    m_float_emit.FCVTS(V1, EncodeRegToDouble(VB), ROUND_Z);
+    m_float_emit.FMOV(EncodeRegToSingle(VD), V1);
+
+    gpr.Unlock(V1);
   }
   m_float_emit.ORR(EncodeRegToDouble(VD), EncodeRegToDouble(VD), EncodeRegToDouble(V0));
   fpr.Unlock(V0);

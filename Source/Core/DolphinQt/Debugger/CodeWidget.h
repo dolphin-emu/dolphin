@@ -12,6 +12,7 @@
 
 class QCloseEvent;
 class QLineEdit;
+class QShowEvent;
 class QSplitter;
 class QListWidget;
 class QTableWidget;
@@ -44,6 +45,7 @@ public:
 signals:
   void BreakpointsChanged();
   void RequestPPCComparison(u32 addr);
+  void ShowMemory(u32 address);
 
 private:
   void CreateWidgets();
@@ -60,6 +62,7 @@ private:
   void OnSelectFunctionCalls();
 
   void closeEvent(QCloseEvent*) override;
+  void showEvent(QShowEvent* event) override;
 
   QLineEdit* m_search_address;
   QLineEdit* m_search_symbols;

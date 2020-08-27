@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64/RegCache/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -40,21 +40,22 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   bool gqrIsConstant = it != js.constantGqr.end();
   u32 gqrValue = gqrIsConstant ? it->second & 0xffff : 0;
 
-  gpr.Lock(a, b);
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  if (update)
-    gpr.BindToRegister(a, true, true);
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
+  RCOpArg Ra = update ? gpr.Bind(a, RCMode::ReadWrite) : gpr.Use(a, RCMode::Read);
+  RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
+  RCOpArg Rs = fpr.Use(s, RCMode::Read);
+  RegCache::Realize(scratch_guard, Ra, Rb, Rs);
 
-  MOV_sum(32, RSCRATCH_EXTRA, gpr.R(a), indexed ? gpr.R(b) : Imm32((u32)offset));
+  MOV_sum(32, RSCRATCH_EXTRA, Ra, Rb);
 
   // In memcheck mode, don't update the address until the exception check
   if (update && !jo.memcheck)
-    MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
+    MOV(32, Ra, R(RSCRATCH_EXTRA));
 
   if (w)
-    CVTSD2SS(XMM0, fpr.R(s));  // one
+    CVTSD2SS(XMM0, Rs);  // one
   else
-    CVTPD2PS(XMM0, fpr.R(s));  // pair
+    CVTPD2PS(XMM0, Rs);  // pair
 
   if (gqrIsConstant)
   {
@@ -72,7 +73,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     else
     {
       // Stash PC in case asm_routine causes exception
-      MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+      MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
       // We know what GQR is here, so we can load RSCRATCH2 and call into the store method directly
       // with just the scale bits.
       MOV(32, R(RSCRATCH2), Imm32(gqrValue & 0x3F00));
@@ -86,7 +87,7 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
   else
   {
     // Stash PC incase asm_routine causes exception
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Some games (e.g. Dirt 2) incorrectly set the unused bits which breaks the lookup table code.
     // Hence, we need to mask out the unused bits. The layout of the GQR register is
     // UU[SCALE]UUUUU[TYPE] where SCALE is 6 bits and TYPE is 3 bits, so we have to AND with
@@ -104,13 +105,8 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
 
   if (update && jo.memcheck)
   {
-    if (indexed)
-      ADD(32, gpr.R(a), gpr.R(b));
-    else
-      ADD(32, gpr.R(a), Imm32((u32)offset));
+    ADD(32, Ra, Rb);
   }
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
 }
 
 void Jit64::psq_lXX(UGeckoInstruction inst)
@@ -135,17 +131,17 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   bool gqrIsConstant = it != js.constantGqr.end();
   u32 gqrValue = gqrIsConstant ? it->second >> 16 : 0;
 
-  gpr.Lock(a, b);
+  RCX64Reg scratch_guard = gpr.Scratch(RSCRATCH_EXTRA);
+  RCX64Reg Ra = gpr.Bind(a, update ? RCMode::ReadWrite : RCMode::Read);
+  RCOpArg Rb = indexed ? gpr.Use(b, RCMode::Read) : RCOpArg::Imm32((u32)offset);
+  RCX64Reg Rs = fpr.Bind(s, RCMode::Write);
+  RegCache::Realize(scratch_guard, Ra, Rb, Rs);
 
-  gpr.FlushLockX(RSCRATCH_EXTRA);
-  gpr.BindToRegister(a, true, update);
-  fpr.BindToRegister(s, false, true);
-
-  MOV_sum(32, RSCRATCH_EXTRA, gpr.R(a), indexed ? gpr.R(b) : Imm32((u32)offset));
+  MOV_sum(32, RSCRATCH_EXTRA, Ra, Rb);
 
   // In memcheck mode, don't update the address until the exception check
   if (update && !jo.memcheck)
-    MOV(32, gpr.R(a), R(RSCRATCH_EXTRA));
+    MOV(32, Ra, R(RSCRATCH_EXTRA));
 
   if (gqrIsConstant)
   {
@@ -154,7 +150,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
   else
   {
     // Stash PC in case asm_routine causes exception
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
     // Get the high part of the GQR register
     OpArg gqr = PPCSTATE(spr[SPR_GQR0 + i]);
     gqr.AddMemOffset(2);
@@ -169,15 +165,9 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
     CALLptr(MatR(RSCRATCH));
   }
 
-  CVTPS2PD(fpr.RX(s), R(XMM0));
+  CVTPS2PD(Rs, R(XMM0));
   if (update && jo.memcheck)
   {
-    if (indexed)
-      ADD(32, gpr.R(a), gpr.R(b));
-    else
-      ADD(32, gpr.R(a), Imm32((u32)offset));
+    ADD(32, Ra, Rb);
   }
-
-  gpr.UnlockAll();
-  gpr.UnlockAllX();
 }

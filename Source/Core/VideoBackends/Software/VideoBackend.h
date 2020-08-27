@@ -11,12 +11,13 @@ namespace SW
 {
 class VideoSoftware : public VideoBackendBase
 {
-  bool Initialize(void* window_handle) override;
+  bool Initialize(const WindowSystemInfo& wsi) override;
   void Shutdown() override;
 
   std::string GetName() const override;
   std::string GetDisplayName() const override;
+  std::optional<std::string> GetWarningMessage() const override;
 
   void InitBackendInfo() override;
 };
-}
+}  // namespace SW

@@ -11,8 +11,8 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Extension/Classic.h"
+#include "Core/HW/WiimoteEmu/Extension/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
@@ -20,8 +20,7 @@
 #include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/Control/Control.h"
-#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
-#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
@@ -358,7 +357,8 @@ void Init()
 {
   environ_cb(RETRO_ENVIRONMENT_GET_RUMBLE_INTERFACE, &rumble);
 
-  g_controller_interface.Initialize(nullptr);
+  WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
+  g_controller_interface.Initialize(wsi);
 
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 0));
   g_controller_interface.AddDevice(std::make_shared<Device>(RETRO_DEVICE_JOYPAD, 1));
@@ -552,7 +552,7 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
     {
       ControllerEmu::ControlGroup* wmButtons = wm->GetWiimoteGroup(WiimoteGroup::Buttons);
       ControllerEmu::ControlGroup* wmDPad = wm->GetWiimoteGroup(WiimoteGroup::DPad);
-      ControllerEmu::ControlGroup* wmIR = wm->GetWiimoteGroup(WiimoteGroup::IR);
+      ControllerEmu::ControlGroup* wmIR = wm->GetWiimoteGroup(WiimoteGroup::Point);
       ControllerEmu::ControlGroup* wmShake = wm->GetWiimoteGroup(WiimoteGroup::Shake);
 #if 0
       ControllerEmu::ControlGroup* wmTilt = wm->GetWiimoteGroup(WiimoteGroup::Tilt);
@@ -621,50 +621,51 @@ void retro_set_controller_port_device(unsigned port, unsigned device)
 
     ControllerEmu::ControlGroup* wmRumble = wm->GetWiimoteGroup(WiimoteGroup::Rumble);
     ControllerEmu::ControlGroup* wmOptions = wm->GetWiimoteGroup(WiimoteGroup::Options);
-    ControllerEmu::Extension* wmExtension =
-        (ControllerEmu::Extension*)wm->GetWiimoteGroup(WiimoteGroup::Extension);
+    ControllerEmu::Attachments* wmExtension =
+        (ControllerEmu::Attachments*)wm->GetWiimoteGroup(WiimoteGroup::Attachments);
 
-    wmOptions->boolean_settings[0]->SetValue(true);        // Forward Wiimote
-    wmOptions->boolean_settings[1]->SetValue(false);       // Upright Wiimote
-    wmOptions->boolean_settings[2]->SetValue(false);       // Sideways Wiimote
-    wmOptions->numeric_settings[0]->SetValue(0);           // Speaker Pan [-127, 127]
-    wmOptions->numeric_settings[1]->SetValue(95.0 / 100);  // Battery
+    static_cast<ControllerEmu::NumericSetting<double>*>(wmOptions->numeric_settings[0].get())
+        ->SetValue(0);  // Speaker Pan [-100, 100]
+    static_cast<ControllerEmu::NumericSetting<double>*>(wmOptions->numeric_settings[1].get())
+        ->SetValue(95);  // Battery [0, 100]
+    static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[2].get())
+        ->SetValue(false);  // Upright Wiimote
+    static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[3].get())
+        ->SetValue(false);  // Sideways Wiimote
     wmRumble->SetControlExpression(0, "Rumble");
-
     switch (device)
     {
     case RETRO_DEVICE_WIIMOTE:
       desc = Libretro::Input::descWiimote;
-      wmExtension->switch_extension = EXT_NONE;
-      WiimoteReal::ChangeWiimoteSource(port, WIIMOTE_SRC_EMU);
+      wmExtension->SetSelectedAttachment(ExtensionNumber::NONE);
+      WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_WIIMOTE_SW:
       desc = Libretro::Input::descWiimoteSideways;
-      wmExtension->switch_extension = EXT_NONE;
-      wmOptions->boolean_settings[2]->SetValue(true);  // Sideways Wiimote
-      WiimoteReal::ChangeWiimoteSource(port, WIIMOTE_SRC_EMU);
+      wmExtension->SetSelectedAttachment(ExtensionNumber::NONE);
+      static_cast<ControllerEmu::NumericSetting<bool>*>(wmOptions->numeric_settings[2].get())
+          ->SetValue(true);  // Sideways Wiimote
+      WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_WIIMOTE_NC:
       desc = Libretro::Input::descWiimoteNunchuk;
-      wmExtension->switch_extension = EXT_NUNCHUK;
-      WiimoteReal::ChangeWiimoteSource(port, WIIMOTE_SRC_EMU);
+      wmExtension->SetSelectedAttachment(ExtensionNumber::NUNCHUK);
+      WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
 
     case RETRO_DEVICE_WIIMOTE_CC:
     case RETRO_DEVICE_WIIMOTE_CC_PRO:
       desc = Libretro::Input::descWiimoteCC;
-      wmExtension->switch_extension = EXT_CLASSIC;
-      WiimoteReal::ChangeWiimoteSource(port, WIIMOTE_SRC_EMU);
+      wmExtension->SetSelectedAttachment(ExtensionNumber::CLASSIC);
+      WiimoteCommon::SetSource(port, WiimoteSource::Emulated);
       break;
-
     default:
       desc = Libretro::Input::descGC;
-      WiimoteReal::ChangeWiimoteSource(port, WIIMOTE_SRC_NONE);
+      WiimoteCommon::SetSource(port, WiimoteSource::None);
       break;
     }
-
     wm->UpdateReferences(g_controller_interface);
     ::Wiimote::GetConfig()->SaveConfig();
   }

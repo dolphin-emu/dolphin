@@ -46,6 +46,7 @@ private:
 
   void SetCurrentTitleIdAndGroupId(u64 tid, u16 gid);
   void SetImportTitleIdAndGroupId(u64 tid, u16 gid);
+  void FinalizePatchInstall();
 
   s32 CancelTitleImport(bool continue_install);
   s32 CancelPatchImport(bool continue_install);
@@ -95,6 +96,7 @@ private:
     IOCTL_WFSI_FINALIZE_TITLE_INSTALL = 0x06,
 
     IOCTL_WFSI_DELETE_TITLE = 0x17,
+    IOCTL_WFSI_CHANGE_TITLE = 0x18,
 
     IOCTL_WFSI_GET_VERSION = 0x1b,
 

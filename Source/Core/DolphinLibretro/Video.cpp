@@ -16,25 +16,71 @@
 #include <libretro_vulkan.h>
 #endif
 
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/Version.h"
+#include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Host.h"
 #include "DolphinLibretro/Options.h"
 #include "VideoBackends/Null/Render.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 #ifndef __APPLE__
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #endif
+
+/* retroGL interface*/
+
+class RGLContext : public GLContext
+{
+public:
+  RGLContext()
+  {
+    WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
+    Initialize(wsi, g_Config.stereo_mode == StereoMode::QuadBuffer, true);
+  }
+  bool IsHeadless() const override { return false; }
+  void Swap() override
+  {
+    Libretro::Video::video_cb(RETRO_HW_FRAME_BUFFER_VALID, m_backbuffer_width, m_backbuffer_height,
+                              0);
+  }
+  void* GetFuncAddress(const std::string& name) override
+  {
+    return (void*)Libretro::Video::hw_render.get_proc_address(name.c_str());
+  }
+  virtual bool Initialize(const WindowSystemInfo& wsi, bool stereo, bool core) override
+  {
+    m_backbuffer_width = EFB_WIDTH * Libretro::Options::efbScale;
+    m_backbuffer_height = EFB_HEIGHT * Libretro::Options::efbScale;
+    switch (Libretro::Video::hw_render.context_type)
+    {
+    case RETRO_HW_CONTEXT_OPENGLES2:
+    case RETRO_HW_CONTEXT_OPENGLES3:
+      m_opengl_mode = Mode::OpenGLES;
+      break;
+    default:
+    case RETRO_HW_CONTEXT_OPENGL_CORE:
+    case RETRO_HW_CONTEXT_OPENGL:
+      m_opengl_mode = Mode::OpenGL;
+      break;
+    }
+
+    return true;
+  }
+};
 
 namespace Libretro
 {
@@ -86,7 +132,7 @@ static void ContextReset(void)
     }
     DX11::D3D::device = d3d->device;
     DX11::D3D::context = d3d->context;
-    DX11::D3D::featlevel = d3d->featureLevel;
+    DX11::D3D::feature_level = d3d->featureLevel;
     DX11::D3D::stateman = new DX11::D3D::StateManager;
     DX11::PD3DCompile = d3d->D3DCompile;
     if (FAILED(d3d->device->QueryInterface<ID3D11Device1>(&DX11::D3D::device1)))
@@ -104,14 +150,30 @@ static void ContextReset(void)
     g_Config.backend_info.bSupportsBPTCTextures = bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D;
   }
 #endif
+  if (Config::Get(Config::MAIN_GFX_BACKEND) == "OGL")
+  {
+    std::unique_ptr<GLContext> main_gl_context = std::make_unique<RGLContext>();
 
-  g_video_backend->Initialize(nullptr);
-  g_video_backend->CheckInvalidState();
+    OGL::VideoBackend* ogl = static_cast<OGL::VideoBackend*>(g_video_backend);
+    ogl->InitializeGLExtensions(main_gl_context.get());
+    ogl->FillBackendInfo();
+    ogl->InitializeShared();
+    g_renderer =
+        std::make_unique<OGL::Renderer>(std::move(main_gl_context), Libretro::Options::efbScale);
+  }
+
+  WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
+  g_video_backend->Initialize(wsi);
 }
 
 static void ContextDestroy(void)
 {
   DEBUG_LOG(VIDEO, "Context destroy!\n");
+
+  if (Config::Get(Config::MAIN_GFX_BACKEND) == "OGL")
+  {
+    static_cast<OGL::Renderer*>(g_renderer.get())->SetSystemFrameBuffer(0);
+  }
 
   g_video_backend->Shutdown();
   switch (hw_render.context_type)
@@ -211,44 +273,42 @@ static bool CreateDevice(retro_vulkan_context* context, VkInstance instance, VkP
 }  // namespace Vk
 #endif
 
-void Init()
+static bool SetHWRender(retro_hw_context_type type)
 {
-  if (Options::renderer == "Hardware")
+  hw_render.context_type = type;
+  hw_render.context_reset = ContextReset;
+  hw_render.context_destroy = ContextDestroy;
+  hw_render.bottom_left_origin = true;
+  switch (type)
   {
-    std::vector<retro_hw_context_type> openglTypes = {
-        RETRO_HW_CONTEXT_OPENGL_CORE, RETRO_HW_CONTEXT_OPENGL, RETRO_HW_CONTEXT_OPENGLES3,
-        RETRO_HW_CONTEXT_OPENGLES2};
-    hw_render.version_major = 3;
-    hw_render.version_minor = 1;
-    hw_render.context_reset = ContextReset;
-    hw_render.context_destroy = ContextDestroy;
-    hw_render.bottom_left_origin = true;
-    for (retro_hw_context_type type : openglTypes)
-    {
-      hw_render.context_type = type;
-      if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
-      {
-        environ_cb(RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT, nullptr);
-        SConfig::GetInstance().m_strVideoBackend = "OGL";
-        return;
-      }
-    }
-#ifdef _WIN32
-    hw_render.context_type = RETRO_HW_CONTEXT_DIRECT3D;
-    hw_render.version_major = 11;
-    hw_render.version_minor = 0;
-
+  case RETRO_HW_CONTEXT_OPENGL_CORE:
+  case RETRO_HW_CONTEXT_OPENGL:
+  case RETRO_HW_CONTEXT_OPENGLES2:
+  case RETRO_HW_CONTEXT_OPENGLES3:
+     hw_render.version_major = 3;
+     hw_render.version_minor = 1;
     if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
     {
-      SConfig::GetInstance().m_strVideoBackend = "D3D";
-      return;
+      environ_cb(RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT, nullptr);
+      Config::SetBase(Config::MAIN_GFX_BACKEND, "OGL");
+      return true;
     }
+    break;
+#ifdef _WIN32
+  case RETRO_HW_CONTEXT_DIRECT3D:
+    hw_render.version_major = 11;
+    hw_render.version_minor = 0;
+    if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
+    {
+      Config::SetBase(Config::MAIN_GFX_BACKEND, "D3D");
+      return true;
+    }
+    break;
 #endif
 #ifndef __APPLE__
-    hw_render.context_type = RETRO_HW_CONTEXT_VULKAN;
+  case RETRO_HW_CONTEXT_VULKAN:
     hw_render.version_major = VK_API_VERSION_1_0;
     hw_render.version_minor = 0;
-
     if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
     {
       static const struct retro_hw_render_context_negotiation_interface_vulkan iface = {
@@ -260,63 +320,49 @@ void Init()
       };
       environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER_CONTEXT_NEGOTIATION_INTERFACE, (void*)&iface);
 
-      SConfig::GetInstance().m_strVideoBackend = "Vulkan";
-      return;
+      Config::SetBase(Config::MAIN_GFX_BACKEND, "Vulkan");
+      return true;
     }
+    break;
+#endif
+  default:
+     break;
+  }
+  return false;
+}
+void Init()
+{
+  if (Options::renderer == "Hardware")
+  {
+    retro_hw_context_type preferred = RETRO_HW_CONTEXT_NONE;
+    if (environ_cb(RETRO_ENVIRONMENT_GET_PREFERRED_HW_RENDER, &preferred) && SetHWRender(preferred))
+      return;
+    if (SetHWRender(RETRO_HW_CONTEXT_OPENGL_CORE))
+      return;
+    if (SetHWRender(RETRO_HW_CONTEXT_OPENGL))
+      return;
+    if (SetHWRender(RETRO_HW_CONTEXT_OPENGLES3))
+      return;
+    if (SetHWRender(RETRO_HW_CONTEXT_OPENGLES2))
+      return;
+#ifdef _WIN32
+    if (SetHWRender(RETRO_HW_CONTEXT_DIRECT3D))
+      return;
+#endif
+#ifndef __APPLE__
+    if (SetHWRender(RETRO_HW_CONTEXT_VULKAN))
+      return;
 #endif
   }
   hw_render.context_type = RETRO_HW_CONTEXT_NONE;
   if (Options::renderer == "Software")
-    SConfig::GetInstance().m_strVideoBackend = "Software Renderer";
+    Config::SetBase(Config::MAIN_GFX_BACKEND, "Software Renderer");
   else
-    SConfig::GetInstance().m_strVideoBackend = "Null";
+    Config::SetBase(Config::MAIN_GFX_BACKEND, "Null");
 }
 
 }  // namespace Video
 }  // namespace Libretro
-
-/* retroGL interface*/
-
-class cInterfaceRGL : public cInterfaceBase
-{
-public:
-  void Swap() override
-  {
-    Libretro::Video::video_cb(RETRO_HW_FRAME_BUFFER_VALID, s_backbuffer_width, s_backbuffer_height,
-                              0);
-  }
-  void SetMode(GLInterfaceMode mode) override { s_opengl_mode = mode; }
-  void* GetFuncAddress(const std::string& name) override
-  {
-    return (void*)Libretro::Video::hw_render.get_proc_address(name.c_str());
-  }
-  virtual bool Create(void* window_handle, bool stereo, bool core) override
-  {
-    s_backbuffer_width = EFB_WIDTH * Libretro::Options::efbScale;
-    s_backbuffer_height = EFB_HEIGHT * Libretro::Options::efbScale;
-    switch (Libretro::Video::hw_render.context_type)
-    {
-    case RETRO_HW_CONTEXT_OPENGLES2:
-      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES2;
-      break;
-    case RETRO_HW_CONTEXT_OPENGLES3:
-      s_opengl_mode = GLInterfaceMode::MODE_OPENGLES3;
-      break;
-    default:
-    case RETRO_HW_CONTEXT_OPENGL_CORE:
-    case RETRO_HW_CONTEXT_OPENGL:
-      s_opengl_mode = GLInterfaceMode::MODE_OPENGL;
-      break;
-    }
-
-    return true;
-  }
-};
-
-std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
-{
-  return std::make_unique<cInterfaceRGL>();
-}
 
 void retro_set_video_refresh(retro_video_refresh_t cb)
 {

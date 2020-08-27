@@ -2,18 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "UICommon/USBUtils.h"
+
+#include <string_view>
+
+#include <fmt/format.h>
 #ifdef __LIBUSB__
 #include <libusb.h>
 #endif
 
 #include "Common/CommonTypes.h"
-#include "Common/StringUtil.h"
-#include "UICommon/USBUtils.h"
+#include "Core/LibusbUtils.h"
 
 // Because opening and getting the device name from devices is slow, especially on Windows
 // with usbdk, we cannot do that for every single device. We should however still show
 // device names for known Wii peripherals.
-static const std::map<std::pair<u16, u16>, std::string> s_wii_peripherals = {{
+static const std::map<std::pair<u16, u16>, std::string_view> s_wii_peripherals{{
     {{0x046d, 0x0a03}, "Logitech Microphone"},
     {{0x057e, 0x0308}, "Wii Speak"},
     {{0x057e, 0x0309}, "Nintendo USB Microphone"},
@@ -34,21 +38,17 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
   std::map<std::pair<u16, u16>, std::string> devices;
 
 #ifdef __LIBUSB__
-  libusb_context* context = nullptr;
-  if (libusb_init(&context) < 0)
+  LibusbUtils::Context context;
+  if (!context.IsValid())
     return devices;
 
-  libusb_device** list;
-  const ssize_t cnt = libusb_get_device_list(context, &list);
-  for (ssize_t i = 0; i < cnt; ++i)
-  {
+  context.GetDeviceList([&](libusb_device* device) {
     libusb_device_descriptor descr;
-    libusb_get_device_descriptor(list[i], &descr);
+    libusb_get_device_descriptor(device, &descr);
     const std::pair<u16, u16> vid_pid{descr.idVendor, descr.idProduct};
     devices[vid_pid] = GetDeviceName(vid_pid);
-  }
-  libusb_free_device_list(list, 1);
-  libusb_exit(context);
+    return true;
+  });
 #endif
 
   return devices;
@@ -57,7 +57,7 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
 std::string GetDeviceName(const std::pair<u16, u16> vid_pid)
 {
   const auto iter = s_wii_peripherals.find(vid_pid);
-  const std::string device_name = iter == s_wii_peripherals.cend() ? "Unknown" : iter->second;
-  return StringFromFormat("%04x:%04x - %s", vid_pid.first, vid_pid.second, device_name.c_str());
+  const std::string_view device_name = iter == s_wii_peripherals.cend() ? "Unknown" : iter->second;
+  return fmt::format("{:04x}:{:04x} - {}", vid_pid.first, vid_pid.second, device_name);
 }
 }  // namespace USBUtils

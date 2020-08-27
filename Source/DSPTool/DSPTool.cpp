@@ -22,7 +22,13 @@ u8 DSP::Host::ReadHostMemory(u32 addr)
 void DSP::Host::WriteHostMemory(u8 value, u32 addr)
 {
 }
-void DSP::Host::OSD_AddMessage(const std::string& str, u32 ms)
+void DSP::Host::DMAToDSP(u16* dst, u32 addr, u32 size)
+{
+}
+void DSP::Host::DMAFromDSP(const u16* src, u32 addr, u32 size)
+{
+}
+void DSP::Host::OSD_AddMessage(std::string str, u32 ms)
 {
 }
 bool DSP::Host::OnThread()
@@ -33,7 +39,10 @@ bool DSP::Host::IsWiiHost()
 {
   return false;
 }
-void DSP::Host::CodeLoaded(const u8* ptr, int size)
+void DSP::Host::CodeLoaded(u32 addr, size_t size)
+{
+}
+void DSP::Host::CodeLoaded(const u8* ptr, size_t size)
 {
 }
 void DSP::Host::InterruptRequest()
@@ -217,7 +226,7 @@ static void PrintResults(const std::string& input_name, const std::string& outpu
   if (output_name.empty())
     printf("%s", results.c_str());
   else
-    File::WriteStringToFile(results, output_name.c_str());
+    File::WriteStringToFile(output_name, results);
 }
 
 static bool PerformDisassembly(const std::string& input_name, const std::string& output_name)
@@ -237,7 +246,7 @@ static bool PerformDisassembly(const std::string& input_name, const std::string&
   if (output_name.empty())
     printf("%s", text.c_str());
   else
-    File::WriteStringToFile(text, output_name);
+    File::WriteStringToFile(output_name, text);
 
   printf("Disassembly completed successfully!\n");
   return true;
@@ -314,7 +323,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       }
 
       const std::string header = CodesToHeader(codes, files);
-      File::WriteStringToFile(header, output_header_name + ".h");
+      File::WriteStringToFile(output_header_name + ".h", header);
     }
     else
     {
@@ -334,12 +343,12 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
       if (!output_name.empty())
       {
         const std::string binary_code = DSP::CodeToBinaryStringBE(code);
-        File::WriteStringToFile(binary_code, output_name);
+        File::WriteStringToFile(output_name, binary_code);
       }
       if (!output_header_name.empty())
       {
         const std::string header = CodeToHeader(code, input_name);
-        File::WriteStringToFile(header, output_header_name + ".h");
+        File::WriteStringToFile(output_header_name + ".h", header);
       }
     }
   }
@@ -350,6 +359,11 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
     printf("Assembly completed successfully!\n");
 
   return true;
+}
+
+static bool IsHelpFlag(const std::string& argument)
+{
+  return argument == "--help" || argument == "-?";
 }
 
 // Usage:
@@ -365,7 +379,7 @@ static bool PerformAssembly(const std::string& input_name, const std::string& ou
 //   dsptool -p dsp_dump0.bin
 int main(int argc, const char* argv[])
 {
-  if (argc == 1 || (argc == 2 && (!strcmp(argv[1], "--help") || (!strcmp(argv[1], "-?")))))
+  if (argc == 1 || (argc == 2 && IsHelpFlag(argv[1])))
   {
     printf("USAGE: DSPTool [-?] [--help] [-f] [-d] [-m] [-p <FILE>] [-o <FILE>] [-h <FILE>] <DSP "
            "ASSEMBLER FILE>\n");
@@ -393,33 +407,52 @@ int main(int argc, const char* argv[])
        print_results = false, print_results_prodhack = false, print_results_srhack = false;
   for (int i = 1; i < argc; i++)
   {
-    if (!strcmp(argv[i], "-d"))
+    const std::string argument = argv[i];
+    if (argument == "-d")
+    {
       disassemble = true;
-    else if (!strcmp(argv[i], "-o"))
-      output_name = argv[++i];
-    else if (!strcmp(argv[i], "-h"))
-      output_header_name = argv[++i];
-    else if (!strcmp(argv[i], "-c"))
+    }
+    else if (argument == "-o")
+    {
+      if (++i < argc)
+        output_name = argv[i];
+    }
+    else if (argument == "-h")
+    {
+      if (++i < argc)
+        output_header_name = argv[i];
+    }
+    else if (argument == "-c")
+    {
       compare = true;
-    else if (!strcmp(argv[i], "-s"))
+    }
+    else if (argument == "-s")
+    {
       outputSize = true;
-    else if (!strcmp(argv[i], "-m"))
+    }
+    else if (argument == "-m")
+    {
       multiple = true;
-    else if (!strcmp(argv[i], "-f"))
+    }
+    else if (argument == "-f")
+    {
       force = true;
-    else if (!strcmp(argv[i], "-p"))
+    }
+    else if (argument == "-p")
+    {
       print_results = true;
-    else if (!strcmp(argv[i], "-ps"))
+    }
+    else if (argument == "-ps")
     {
       print_results = true;
       print_results_srhack = true;
     }
-    else if (!strcmp(argv[i], "-pm"))
+    else if (argument == "-pm")
     {
       print_results = true;
       print_results_prodhack = true;
     }
-    else if (!strcmp(argv[i], "-psm"))
+    else if (argument == "-psm")
     {
       print_results = true;
       print_results_srhack = true;

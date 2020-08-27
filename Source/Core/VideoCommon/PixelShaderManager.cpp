@@ -2,12 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cmath>
-#include <cstring>
+#include "VideoCommon/PixelShaderManager.h"
+
+#include <iterator>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -114,7 +114,7 @@ void PixelShaderManager::SetConstants()
       constants.fogf[3] =
           static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
 
-      for (size_t i = 0, vec_index = 0; i < ArraySize(bpmem.fogRange.K); i++)
+      for (size_t i = 0, vec_index = 0; i < std::size(bpmem.fogRange.K); i++)
       {
         constexpr float scale = 4.0f;
         constants.fogrange[vec_index / 4][vec_index % 4] = bpmem.fogRange.K[i].GetValue(0) * scale;
@@ -158,9 +158,8 @@ void PixelShaderManager::SetConstants()
               bpmem.tevindref.getTexCoord(stage) | bpmem.tevindref.getTexMap(stage) << 8 | 1 << 16;
         // Note: a tevind of zero just happens to be a passthrough, so no need
         // to set an extra bit.
-        constants.pack1[i][2] =
-            bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw will
-                                  // always wrap.
+        constants.pack1[i][2] = bpmem.tevind[i].hex;  // TODO: This match shadergen, but videosw
+                                                      // will always wrap.
 
         // The ubershader uses tevind != 0 as a condition whether to calculate texcoords,
         // even when texture is disabled, instead of the stage < bpmem.genMode.numindstages.
@@ -522,9 +521,7 @@ void PixelShaderManager::SetBlendModeChanged()
 
 void PixelShaderManager::SetBoundingBoxActive(bool active)
 {
-  const bool enable =
-      active && g_ActiveConfig.bBBoxEnable && g_ActiveConfig.BBoxUseFragmentShaderImplementation();
-
+  const bool enable = active && g_ActiveConfig.bBBoxEnable;
   if (enable == (constants.bounding_box != 0))
     return;
 

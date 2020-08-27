@@ -20,6 +20,8 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/HW/Wiimote.h"
+#include "Core/Host.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -30,10 +32,14 @@ static void ReinitHardware()
   SConfig::GetInstance().bWii = false;
 
   // IOS clears mem2 and overwrites it with pseudo-random data (for security).
-  std::memset(Memory::m_pEXRAM, 0, Memory::EXRAM_SIZE);
+  std::memset(Memory::m_pEXRAM, 0, Memory::GetExRamSizeReal());
   // MIOS appears to only reset the DI and the PPC.
-  DVDInterface::Reset();
+  // HACK However, resetting DI will reset the DTK config, which is set by the system menu
+  // (and not by MIOS), causing games that use DTK to break.  Perhaps MIOS doesn't actually
+  // reset DI fully, in such a way that the DTK config isn't cleared?
+  // DVDInterface::ResetDrive(true);
   PowerPC::Reset();
+  Wiimote::ResetAllWiimotes();
   // Note: this is specific to Dolphin and is required because we initialised it in Wii mode.
   DSP::Reinit(SConfig::GetInstance().bDSPHLE);
   DSP::GetDSPEmulator()->Initialize(SConfig::GetInstance().bWii, SConfig::GetInstance().bDSPThread);
@@ -52,11 +58,16 @@ bool Load()
   NOTICE_LOG(IOS, "Reinitialised hardware.");
 
   // Load symbols for the IPL if they exist.
-  g_symbolDB.Clear();
+  if (!g_symbolDB.IsEmpty())
+  {
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
+  }
   if (g_symbolDB.LoadMap(File::GetUserPath(D_MAPS_IDX) + "mios-ipl.map"))
   {
     ::HLE::Clear();
     ::HLE::PatchFunctions();
+    Host_NotifyMapLoaded();
   }
 
   const PowerPC::CoreMode core_mode = PowerPC::GetMode();

@@ -11,6 +11,8 @@
 #include <cstdio>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -30,28 +32,6 @@ std::array<GekkoOPInfo*, 1024> m_infoTable63;
 
 std::array<GekkoOPInfo*, 512> m_allInstructions;
 size_t m_numInstructions;
-
-namespace PowerPC
-{
-const std::array<u64, 16> m_crTable = {{
-    PPCCRToInternal(0x0),
-    PPCCRToInternal(0x1),
-    PPCCRToInternal(0x2),
-    PPCCRToInternal(0x3),
-    PPCCRToInternal(0x4),
-    PPCCRToInternal(0x5),
-    PPCCRToInternal(0x6),
-    PPCCRToInternal(0x7),
-    PPCCRToInternal(0x8),
-    PPCCRToInternal(0x9),
-    PPCCRToInternal(0xA),
-    PPCCRToInternal(0xB),
-    PPCCRToInternal(0xC),
-    PPCCRToInternal(0xD),
-    PPCCRToInternal(0xE),
-    PPCCRToInternal(0xF),
-}};
-}  // namespace PowerPC
 
 namespace PPCTables
 {
@@ -185,8 +165,7 @@ void LogCompiledInstructions()
 {
   static unsigned int time = 0;
 
-  File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-                 "w");
+  File::IOFile f(fmt::format("{}inst_log{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
@@ -197,7 +176,7 @@ void LogCompiledInstructions()
     }
   }
 
-  f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
+  f.Open(fmt::format("{}inst_not{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
@@ -209,8 +188,7 @@ void LogCompiledInstructions()
   }
 
 #ifdef OPLOG
-  f.Open(StringFromFormat("%s" OP_TO_LOG "_at%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
-         "w");
+  f.Open(fmt::format("{}" OP_TO_LOG "_at{}.txt", File::GetUserPath(D_LOGS_IDX), time), "w");
   for (auto& rsplocation : rsplocations)
   {
     fprintf(f.GetHandle(), OP_TO_LOG ": %08x\n", rsplocation);
@@ -220,4 +198,4 @@ void LogCompiledInstructions()
   ++time;
 }
 
-}  // namespace
+}  // namespace PPCTables

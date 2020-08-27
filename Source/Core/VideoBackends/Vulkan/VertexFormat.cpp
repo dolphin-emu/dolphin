@@ -46,9 +46,8 @@ static VkFormat VarToVkFormat(VarType t, uint32_t components, bool integer)
   return integer ? integer_type_lookup[t][components - 1] : float_type_lookup[t][components - 1];
 }
 
-VertexFormat::VertexFormat(const PortableVertexDeclaration& in_vtx_decl)
+VertexFormat::VertexFormat(const PortableVertexDeclaration& vtx_decl) : NativeVertexFormat(vtx_decl)
 {
-  vtx_decl = in_vtx_decl;
   MapAttributes();
   SetupInputState();
 }
@@ -62,50 +61,49 @@ void VertexFormat::MapAttributes()
 {
   m_num_attributes = 0;
 
-  if (vtx_decl.position.enable)
-    AddAttribute(SHADER_POSITION_ATTRIB, 0,
-                 VarToVkFormat(vtx_decl.position.type, vtx_decl.position.components,
-                               vtx_decl.position.integer),
-                 vtx_decl.position.offset);
+  if (m_decl.position.enable)
+    AddAttribute(
+        SHADER_POSITION_ATTRIB, 0,
+        VarToVkFormat(m_decl.position.type, m_decl.position.components, m_decl.position.integer),
+        m_decl.position.offset);
 
   for (uint32_t i = 0; i < 3; i++)
   {
-    if (vtx_decl.normals[i].enable)
+    if (m_decl.normals[i].enable)
       AddAttribute(SHADER_NORM0_ATTRIB + i, 0,
-                   VarToVkFormat(vtx_decl.normals[i].type, vtx_decl.normals[i].components,
-                                 vtx_decl.normals[i].integer),
-                   vtx_decl.normals[i].offset);
+                   VarToVkFormat(m_decl.normals[i].type, m_decl.normals[i].components,
+                                 m_decl.normals[i].integer),
+                   m_decl.normals[i].offset);
   }
 
   for (uint32_t i = 0; i < 2; i++)
   {
-    if (vtx_decl.colors[i].enable)
+    if (m_decl.colors[i].enable)
       AddAttribute(SHADER_COLOR0_ATTRIB + i, 0,
-                   VarToVkFormat(vtx_decl.colors[i].type, vtx_decl.colors[i].components,
-                                 vtx_decl.colors[i].integer),
-                   vtx_decl.colors[i].offset);
+                   VarToVkFormat(m_decl.colors[i].type, m_decl.colors[i].components,
+                                 m_decl.colors[i].integer),
+                   m_decl.colors[i].offset);
   }
 
   for (uint32_t i = 0; i < 8; i++)
   {
-    if (vtx_decl.texcoords[i].enable)
+    if (m_decl.texcoords[i].enable)
       AddAttribute(SHADER_TEXTURE0_ATTRIB + i, 0,
-                   VarToVkFormat(vtx_decl.texcoords[i].type, vtx_decl.texcoords[i].components,
-                                 vtx_decl.texcoords[i].integer),
-                   vtx_decl.texcoords[i].offset);
+                   VarToVkFormat(m_decl.texcoords[i].type, m_decl.texcoords[i].components,
+                                 m_decl.texcoords[i].integer),
+                   m_decl.texcoords[i].offset);
   }
 
-  if (vtx_decl.posmtx.enable)
-    AddAttribute(
-        SHADER_POSMTX_ATTRIB, 0,
-        VarToVkFormat(vtx_decl.posmtx.type, vtx_decl.posmtx.components, vtx_decl.posmtx.integer),
-        vtx_decl.posmtx.offset);
+  if (m_decl.posmtx.enable)
+    AddAttribute(SHADER_POSMTX_ATTRIB, 0,
+                 VarToVkFormat(m_decl.posmtx.type, m_decl.posmtx.components, m_decl.posmtx.integer),
+                 m_decl.posmtx.offset);
 }
 
 void VertexFormat::SetupInputState()
 {
   m_binding_description.binding = 0;
-  m_binding_description.stride = vtx_decl.stride;
+  m_binding_description.stride = m_decl.stride;
   m_binding_description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
   m_input_state_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

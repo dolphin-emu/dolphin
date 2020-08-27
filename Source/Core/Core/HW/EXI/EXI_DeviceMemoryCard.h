@@ -6,18 +6,31 @@
 
 #include <functional>
 #include <memory>
+#include <string>
+#include <utility>
 
 #include "Core/HW/EXI/EXI_Device.h"
 
 class MemoryCardBase;
 class PointerWrap;
 
+namespace Memcard
+{
+struct HeaderData;
+}
+
 namespace ExpansionInterface
 {
+enum class AllowMovieFolder
+{
+  Yes,
+  No,
+};
+
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(const int index, bool gciFolder);
+  CEXIMemoryCard(const int index, bool gciFolder, const Memcard::HeaderData& header_data);
   virtual ~CEXIMemoryCard();
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
@@ -34,8 +47,11 @@ public:
   static void Init();
   static void Shutdown();
 
+  static std::pair<std::string /* path */, bool /* migrate */>
+  GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_folder);
+
 private:
-  void SetupGciFolder(u16 sizeMb);
+  void SetupGciFolder(const Memcard::HeaderData& header_data);
   void SetupRawMemcard(u16 sizeMb);
   static void EventCompleteFindInstance(u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);

@@ -363,7 +363,10 @@ void UpdateInterrupts();
 // Change values pertaining to video mode
 void UpdateParameters();
 
-u32 GetTargetRefreshRate();
+double GetTargetRefreshRate();
+u32 GetTargetRefreshRateNumerator();
+u32 GetTargetRefreshRateDenominator();
+
 u32 GetTicksPerSample();
 u32 GetTicksPerHalfLine();
 u32 GetTicksPerField();
@@ -374,6 +377,6 @@ u32 GetTicksPerField();
 float GetAspectRatio();
 
 // Create a fake VI mode for a fifolog
-void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_height);
+void FakeVIUpdate(u32 xfb_address, u32 fb_width, u32 fb_stride, u32 fb_height);
 
 }  // namespace VideoInterface

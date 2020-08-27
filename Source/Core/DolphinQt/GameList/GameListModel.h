@@ -8,7 +8,10 @@
 #include <string>
 
 #include <QAbstractTableModel>
+#include <QMap>
 #include <QString>
+#include <QStringList>
+#include <QVariant>
 
 #include "Core/TitleDatabase.h"
 
@@ -41,6 +44,9 @@ public:
   bool ShouldDisplayGameListItem(int index) const;
   void SetSearchTerm(const QString& term);
 
+  // Using a custom sort role as it sometimes differs slightly from the default Qt::DisplayRole.
+  static constexpr int SORT_ROLE = Qt::UserRole;
+
   enum
   {
     COL_PLATFORM = 0,
@@ -52,6 +58,11 @@ public:
     COL_COUNTRY,
     COL_SIZE,
     COL_FILE_NAME,
+    COL_FILE_PATH,
+    COL_FILE_FORMAT,
+    COL_BLOCK_SIZE,
+    COL_COMPRESSION,
+    COL_TAGS,
     NUM_COLS
   };
 
@@ -59,12 +70,33 @@ public:
   void UpdateGame(const std::shared_ptr<const UICommon::GameFile>& game);
   void RemoveGame(const std::string& path);
 
+  std::shared_ptr<const UICommon::GameFile> FindGame(const std::string& path) const;
+  std::shared_ptr<const UICommon::GameFile> FindSecondDisc(const UICommon::GameFile& game) const;
+
+  void SetScale(float scale);
+  float GetScale() const;
+
+  const QStringList& GetAllTags() const;
+  const QStringList GetGameTags(const std::string& path) const;
+
+  void AddGameTag(const std::string& path, const QString& name);
+  void RemoveGameTag(const std::string& path, const QString& name);
+
+  void NewTag(const QString& name);
+  void DeleteTag(const QString& name);
+
+  void PurgeCache();
+
 private:
   // Index in m_games, or -1 if it isn't found
-  int FindGame(const std::string& path) const;
+  int FindGameIndex(const std::string& path) const;
+
+  QStringList m_tag_list;
+  QMap<QString, QVariant> m_game_tags;
 
   GameTracker m_tracker;
   QList<std::shared_ptr<const UICommon::GameFile>> m_games;
   Core::TitleDatabase m_title_database;
   QString m_term;
+  float m_scale = 1.0;
 };

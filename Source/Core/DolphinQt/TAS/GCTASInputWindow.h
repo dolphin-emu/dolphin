@@ -6,9 +6,9 @@
 
 #include "DolphinQt/TAS/TASInputWindow.h"
 
-class QCheckBox;
 class QGroupBox;
 class QSpinBox;
+class TASCheckBox;
 struct GCPadStatus;
 
 class GCTASInputWindow : public TASInputWindow
@@ -19,18 +19,18 @@ public:
   void GetValues(GCPadStatus* pad);
 
 private:
-  QCheckBox* m_a_button;
-  QCheckBox* m_b_button;
-  QCheckBox* m_x_button;
-  QCheckBox* m_y_button;
-  QCheckBox* m_z_button;
-  QCheckBox* m_l_button;
-  QCheckBox* m_r_button;
-  QCheckBox* m_start_button;
-  QCheckBox* m_left_button;
-  QCheckBox* m_up_button;
-  QCheckBox* m_down_button;
-  QCheckBox* m_right_button;
+  TASCheckBox* m_a_button;
+  TASCheckBox* m_b_button;
+  TASCheckBox* m_x_button;
+  TASCheckBox* m_y_button;
+  TASCheckBox* m_z_button;
+  TASCheckBox* m_l_button;
+  TASCheckBox* m_r_button;
+  TASCheckBox* m_start_button;
+  TASCheckBox* m_left_button;
+  TASCheckBox* m_up_button;
+  TASCheckBox* m_down_button;
+  TASCheckBox* m_right_button;
   QSpinBox* m_l_trigger_value;
   QSpinBox* m_r_trigger_value;
   QSpinBox* m_x_main_stick_value;

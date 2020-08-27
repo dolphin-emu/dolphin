@@ -10,6 +10,7 @@
 #include <map>
 #include <set>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -71,13 +72,14 @@ public:
   virtual Symbol* AddFunction(u32 start_addr) { return nullptr; }
   void AddCompleteSymbol(const Symbol& symbol);
 
-  Symbol* GetSymbolFromName(const std::string& name);
-  std::vector<Symbol*> GetSymbolsFromName(const std::string& name);
+  Symbol* GetSymbolFromName(std::string_view name);
+  std::vector<Symbol*> GetSymbolsFromName(std::string_view name);
   Symbol* GetSymbolFromHash(u32 hash);
   std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return m_functions; }
   XFuncMap& AccessSymbols() { return m_functions; }
+  bool IsEmpty() const;
   void Clear(const char* prefix = "");
   void List();
   void Index();

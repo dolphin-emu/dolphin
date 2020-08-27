@@ -7,9 +7,7 @@
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ForceFeedback/ForceFeedbackDevice.h"
 
-namespace ciface
-{
-namespace DInput
+namespace ciface::DInput
 {
 void InitJoystick(IDirectInput8* const idi8, HWND hwnd);
 
@@ -68,6 +66,8 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
 
+  bool IsValid() const final override;
+
 private:
   const LPDIRECTINPUTDEVICE8 m_device;
 
@@ -75,5 +75,4 @@ private:
 
   bool m_buffered;
 };
-}
-}
+}  // namespace ciface::DInput

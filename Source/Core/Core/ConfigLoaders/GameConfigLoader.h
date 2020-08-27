@@ -25,4 +25,4 @@ std::unique_ptr<Config::ConfigLayerLoader> GenerateGlobalGameConfigLoader(const 
                                                                           u16 revision);
 std::unique_ptr<Config::ConfigLayerLoader> GenerateLocalGameConfigLoader(const std::string& id,
                                                                          u16 revision);
-}
+}  // namespace ConfigLoaders

@@ -253,4 +253,4 @@ private:
   Flag m_may_sleep;  // If this is set, we fall back from the busy loop to an event based
                      // synchronization.
 };
-}
+}  // namespace Common

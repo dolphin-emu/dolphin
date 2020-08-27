@@ -21,6 +21,8 @@ constexpr double DVD_INNER_RADIUS = 0.024;
 constexpr double WII_DVD_OUTER_RADIUS = 0.058;
 // 38 mm
 constexpr double GC_DVD_OUTER_RADIUS = 0.038;
+// 0.74 um
+constexpr double DVD_TRACK_PITCH = 0.00000074;
 
 // Approximate read speeds at the inner and outer locations of Wii and GC
 // discs. These speeds are approximations of speeds measured on real Wiis.
@@ -29,12 +31,18 @@ constexpr double GC_DISC_OUTER_READ_SPEED = 1024 * 1024 * 3.325;  // bytes/s
 constexpr double WII_DISC_INNER_READ_SPEED = 1024 * 1024 * 3.48;  // bytes/s
 constexpr double WII_DISC_OUTER_READ_SPEED = 1024 * 1024 * 8.41;  // bytes/s
 
+// The speed at which discs rotate. These have not been directly measured on hardware -
+// rather, the read speeds above have been matched to the closest standard DVD speed
+// (3x for GC and 6x for Wii) and the rotational speeds of those have been used.
+constexpr double GC_ROTATIONS_PER_SECOND = 28.5;
+constexpr double WII_ROTATIONS_PER_SECOND = 57;
+
 // Experimentally measured seek constants. The time to seek appears to be
 // linear, but short seeks appear to be lower velocity.
 constexpr double SHORT_SEEK_MAX_DISTANCE = 0.001;   // 1 mm
-constexpr double SHORT_SEEK_CONSTANT = 0.045;       // seconds
+constexpr double SHORT_SEEK_CONSTANT = 0.035;       // seconds
 constexpr double SHORT_SEEK_VELOCITY_INVERSE = 50;  // inverse: s/m
-constexpr double LONG_SEEK_CONSTANT = 0.085;        // seconds
+constexpr double LONG_SEEK_CONSTANT = 0.075;        // seconds
 constexpr double LONG_SEEK_VELOCITY_INVERSE = 4.5;  // inverse: s/m
 
 // We can approximate the relationship between a byte offset on disc and its
@@ -89,8 +97,6 @@ double CalculatePhysicalDiscPosition(u64 offset)
   if (offset > WII_DISC_LAYER_SIZE)
     offset = WII_DISC_LAYER_SIZE * 2 - offset;
 
-  // The track pitch here is 0.74 um, but it cancels out and we don't need it
-
   // Note that because Wii and GC discs have identical data densities
   // we can simply use the Wii numbers in both cases
   return std::sqrt(
@@ -116,6 +122,38 @@ double CalculateSeekTime(u64 offset_from, u64 offset_to)
     return distance * SHORT_SEEK_VELOCITY_INVERSE + SHORT_SEEK_CONSTANT;
   else
     return distance * LONG_SEEK_VELOCITY_INVERSE + LONG_SEEK_CONSTANT;
+}
+
+// Returns the time in seconds it takes for the disc to spin to the angle where the
+// read head is over the given offset, starting from the given time in seconds.
+double CalculateRotationalLatency(u64 offset, double time, bool wii_disc)
+{
+  // The data track on the disc is modelled as an Archimedean spiral.
+
+  // We assume that the inserted disc is spinning constantly, which
+  // is not always true (especially not when no disc is inserted),
+  // but doesn't lead to any problems in practice. It's as if every
+  // newly inserted disc is inserted at such an angle that it ends
+  // up rotating identically to a disc inserted at boot.
+
+  // To make the calculations simpler, the angles go up to 1, not tau.
+  // But tau (or anything else) would also work.
+  constexpr double MAX_ANGLE = 1;
+
+  const double rotations_per_second = wii_disc ? WII_ROTATIONS_PER_SECOND : GC_ROTATIONS_PER_SECOND;
+
+  const double target_angle =
+      fmod(CalculatePhysicalDiscPosition(offset) / DVD_TRACK_PITCH * MAX_ANGLE, MAX_ANGLE);
+  const double start_angle = fmod(time * rotations_per_second * MAX_ANGLE, MAX_ANGLE);
+
+  // MAX_ANGLE is added so that fmod can't get a negative argument
+  const double angle_diff = fmod(target_angle + MAX_ANGLE - start_angle, MAX_ANGLE);
+
+  const double result = angle_diff / MAX_ANGLE / rotations_per_second;
+
+  DEBUG_LOG(DVDINTERFACE, "Rotational latency: %lf ms", result * 1000);
+
+  return result;
 }
 
 // Returns the time in seconds it takes to read an amount of data from a disc,

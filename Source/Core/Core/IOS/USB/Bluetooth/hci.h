@@ -2530,11 +2530,11 @@ static __inline int hci_filter_test(uint8_t bit, const struct hci_filter* filter
   return (filter->mask[off] & (1 << ((bit - 1) & 0x1f)));
 }
 
-  /*
-   * HCI socket ioctl's
-   *
-   * Apart from GBTINFOA, these are all indexed on the unit name
-   */
+/*
+ * HCI socket ioctl's
+ *
+ * Apart from GBTINFOA, these are all indexed on the unit name
+ */
 
 #define SIOCGBTINFO _IOWR('b', 5, struct btreq)  /* get unit info */
 #define SIOCGBTINFOA _IOWR('b', 6, struct btreq) /* get info by address */

@@ -1,27 +1,53 @@
 add_library(uicommon
   AutoUpdate.cpp
+  AutoUpdate.h
   CommandLineParse.cpp
+  CommandLineParse.h
   Disassembler.cpp
+  Disassembler.h
   DiscordPresence.cpp
+  DiscordPresence.h
   GameFile.cpp
+  GameFile.h
   GameFileCache.cpp
+  GameFileCache.h
+  NetPlayIndex.cpp
+  NetPlayIndex.h
+  ResourcePack/Manager.cpp
+  ResourcePack/Manager.h
+  ResourcePack/Manifest.cpp
+  ResourcePack/Manifest.h
+  ResourcePack/ResourcePack.cpp
+  ResourcePack/ResourcePack.h
   UICommon.cpp
+  UICommon.h
   USBUtils.cpp
+  USBUtils.h
   VideoUtils.cpp
+  VideoUtils.h
 )
 
 target_link_libraries(uicommon
 PUBLIC
   common
   cpp-optparse
+  minizip
+  pugixml
 
 PRIVATE
-  bdisasm
+  fmt::fmt
   $<$<BOOL:APPLE>:${IOK_LIBRARY}>
 )
 
-if(USE_X11)
+if ((DEFINED CMAKE_ANDROID_ARCH_ABI AND CMAKE_ANDROID_ARCH_ABI MATCHES "x86|x86_64") OR
+    (NOT DEFINED CMAKE_ANDROID_ARCH_ABI AND _M_X86))
+  target_link_libraries(uicommon PRIVATE bdisasm)
+endif()
+
+if(ENABLE_X11 AND X11_FOUND)
+  target_include_directories(uicommon PRIVATE ${X11_INCLUDE_DIR})
   target_sources(uicommon PRIVATE X11Utils.cpp)
+  target_link_libraries(uicommon PUBLIC ${XRANDR_LIBRARIES})
 endif()
 
 if(LIBUSB_FOUND)

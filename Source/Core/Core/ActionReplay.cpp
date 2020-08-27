@@ -23,7 +23,6 @@
 
 #include <algorithm>
 #include <atomic>
-#include <cstdarg>
 #include <iterator>
 #include <mutex>
 #include <string>
@@ -31,12 +30,13 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 
 #include "Core/ARDecrypt.h"
 #include "Core/ConfigManager.h"
@@ -83,6 +83,7 @@ enum
 // General lock. Protects codes list and internal log.
 static std::mutex s_lock;
 static std::vector<ARCode> s_active_codes;
+static std::vector<ARCode> s_synced_codes;
 static std::vector<std::string> s_internal_log;
 static std::atomic<bool> s_use_internal_log{false};
 // pointer to the code currently being run, (used by log messages that include the code name)
@@ -123,6 +124,37 @@ void ApplyCodes(const std::vector<ARCode>& codes)
   s_active_codes.shrink_to_fit();
 }
 
+void SetSyncedCodesAsActive()
+{
+  s_active_codes.clear();
+  s_active_codes.reserve(s_synced_codes.size());
+  s_active_codes = s_synced_codes;
+}
+
+void UpdateSyncedCodes(const std::vector<ARCode>& codes)
+{
+  s_synced_codes.clear();
+  s_synced_codes.reserve(codes.size());
+  std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_synced_codes),
+               [](const ARCode& code) { return code.active; });
+  s_synced_codes.shrink_to_fit();
+}
+
+std::vector<ARCode> ApplyAndReturnCodes(const std::vector<ARCode>& codes)
+{
+  if (SConfig::GetInstance().bEnableCheats)
+  {
+    std::lock_guard<std::mutex> guard(s_lock);
+    s_disable_logging = false;
+    s_active_codes.clear();
+    std::copy_if(codes.begin(), codes.end(), std::back_inserter(s_active_codes),
+                 [](const ARCode& code) { return code.active; });
+  }
+  s_active_codes.shrink_to_fit();
+
+  return s_active_codes;
+}
+
 void AddCode(ARCode code)
 {
   if (!SConfig::GetInstance().bEnableCheats)
@@ -152,7 +184,7 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     local_ini.GetLines("ActionReplay_Enabled", &enabled_lines);
     for (const std::string& line : enabled_lines)
     {
-      if (line.size() != 0 && line[0] == '$')
+      if (!line.empty() && line[0] == '$')
       {
         std::string name = line.substr(1, line.size() - 1);
         enabled_names.insert(name);
@@ -179,12 +211,12 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
       // Check if the line is a name of the code
       if (line[0] == '$')
       {
-        if (current_code.ops.size())
+        if (!current_code.ops.empty())
         {
           codes.push_back(current_code);
           current_code.ops.clear();
         }
-        if (encrypted_lines.size())
+        if (!encrypted_lines.empty())
         {
           DecryptARCode(encrypted_lines, &current_code.ops);
           codes.push_back(current_code);
@@ -204,8 +236,8 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
         if (pieces.size() == 2 && pieces[0].size() == 8 && pieces[1].size() == 8)
         {
           AREntry op;
-          bool success_addr = TryParse(std::string("0x") + pieces[0], &op.cmd_addr);
-          bool success_val = TryParse(std::string("0x") + pieces[1], &op.value);
+          bool success_addr = TryParse(pieces[0], &op.cmd_addr, 16);
+          bool success_val = TryParse(pieces[1], &op.value, 16);
 
           if (success_addr && success_val)
           {
@@ -238,11 +270,11 @@ std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_in
     }
 
     // Handle the last code correctly.
-    if (current_code.ops.size())
+    if (!current_code.ops.empty())
     {
       codes.push_back(current_code);
     }
-    if (encrypted_lines.size())
+    if (!encrypted_lines.empty())
     {
       DecryptARCode(encrypted_lines, &current_code.ops);
       codes.push_back(current_code);
@@ -266,7 +298,7 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
       lines.emplace_back("$" + code.name);
       for (const ActionReplay::AREntry& op : code.ops)
       {
-        lines.emplace_back(StringFromFormat("%08X %08X", op.cmd_addr, op.value));
+        lines.emplace_back(fmt::format("{:08X} {:08X}", op.cmd_addr, op.value));
       }
     }
   }
@@ -274,18 +306,16 @@ void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes)
   local_ini->SetLines("ActionReplay", lines);
 }
 
-static void LogInfo(const char* format, ...)
+static void VLogInfo(std::string_view format, fmt::format_args args)
 {
   if (s_disable_logging)
     return;
-  bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
-  if (MAX_LOGLEVEL < LogTypes::LINFO && !use_internal_log)
+
+  const bool use_internal_log = s_use_internal_log.load(std::memory_order_relaxed);
+  if (MAX_LOGLEVEL < Common::Log::LINFO && !use_internal_log)
     return;
 
-  va_list args;
-  va_start(args, format);
-  std::string text = StringFromFormatV(format, args);
-  va_end(args);
+  std::string text = fmt::vformat(format, args);
   INFO_LOG(ACTIONREPLAY, "%s", text.c_str());
 
   if (use_internal_log)
@@ -293,6 +323,12 @@ static void LogInfo(const char* format, ...)
     text += '\n';
     s_internal_log.emplace_back(std::move(text));
   }
+}
+
+template <typename... Args>
+static void LogInfo(std::string_view format, const Args&... args)
+{
+  VLogInfo(format, fmt::make_format_args(args...));
 }
 
 void EnableSelfLogging(bool enable)
@@ -323,8 +359,8 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
 {
   const u32 new_addr = addr.GCAddress();
 
-  LogInfo("Hardware Address: %08x", new_addr);
-  LogInfo("Size: %08x", addr.size);
+  LogInfo("Hardware Address: {:08x}", new_addr);
+  LogInfo("Size: {:08x}", addr.size);
 
   switch (addr.size)
   {
@@ -332,11 +368,11 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
   {
     LogInfo("8-bit Write");
     LogInfo("--------");
-    u32 repeat = data >> 8;
+    const u32 repeat = data >> 8;
     for (u32 i = 0; i <= repeat; ++i)
     {
       PowerPC::HostWrite_U8(data & 0xFF, new_addr + i);
-      LogInfo("Wrote %08x to address %08x", data & 0xFF, new_addr + i);
+      LogInfo("Wrote {:08x} to address {:08x}", data & 0xFF, new_addr + i);
     }
     LogInfo("--------");
     break;
@@ -346,11 +382,11 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
   {
     LogInfo("16-bit Write");
     LogInfo("--------");
-    u32 repeat = data >> 16;
+    const u32 repeat = data >> 16;
     for (u32 i = 0; i <= repeat; ++i)
     {
       PowerPC::HostWrite_U16(data & 0xFFFF, new_addr + i * 2);
-      LogInfo("Wrote %08x to address %08x", data & 0xFFFF, new_addr + i * 2);
+      LogInfo("Wrote {:08x} to address {:08x}", data & 0xFFFF, new_addr + i * 2);
     }
     LogInfo("--------");
     break;
@@ -361,7 +397,7 @@ static bool Subtype_RamWriteAndFill(const ARAddr& addr, const u32 data)
     LogInfo("32-bit Write");
     LogInfo("--------");
     PowerPC::HostWrite_U32(data, new_addr);
-    LogInfo("Wrote %08x to address %08x", data, new_addr);
+    LogInfo("Wrote {:08x} to address {:08x}", data, new_addr);
     LogInfo("--------");
     break;
 
@@ -381,8 +417,8 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
   const u32 new_addr = addr.GCAddress();
   const u32 ptr = PowerPC::HostRead_U32(new_addr);
 
-  LogInfo("Hardware Address: %08x", new_addr);
-  LogInfo("Size: %08x", addr.size);
+  LogInfo("Hardware Address: {:08x}", new_addr);
+  LogInfo("Size: {:08x}", addr.size);
 
   switch (addr.size)
   {
@@ -392,11 +428,11 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("--------");
     const u8 thebyte = data & 0xFF;
     const u32 offset = data >> 8;
-    LogInfo("Pointer: %08x", ptr);
-    LogInfo("Byte: %08x", thebyte);
-    LogInfo("Offset: %08x", offset);
+    LogInfo("Pointer: {:08x}", ptr);
+    LogInfo("Byte: {:08x}", thebyte);
+    LogInfo("Offset: {:08x}", offset);
     PowerPC::HostWrite_U8(thebyte, ptr + offset);
-    LogInfo("Wrote %08x to address %08x", thebyte, ptr + offset);
+    LogInfo("Wrote {:08x} to address {:08x}", thebyte, ptr + offset);
     LogInfo("--------");
     break;
   }
@@ -407,11 +443,11 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("--------");
     const u16 theshort = data & 0xFFFF;
     const u32 offset = (data >> 16) << 1;
-    LogInfo("Pointer: %08x", ptr);
-    LogInfo("Byte: %08x", theshort);
-    LogInfo("Offset: %08x", offset);
+    LogInfo("Pointer: {:08x}", ptr);
+    LogInfo("Byte: {:08x}", theshort);
+    LogInfo("Offset: {:08x}", offset);
     PowerPC::HostWrite_U16(theshort, ptr + offset);
-    LogInfo("Wrote %08x to address %08x", theshort, ptr + offset);
+    LogInfo("Wrote {:08x} to address {:08x}", theshort, ptr + offset);
     LogInfo("--------");
     break;
   }
@@ -421,7 +457,7 @@ static bool Subtype_WriteToPointer(const ARAddr& addr, const u32 data)
     LogInfo("Write 32-bit to pointer");
     LogInfo("--------");
     PowerPC::HostWrite_U32(data, ptr);
-    LogInfo("Wrote %08x to address %08x", data, ptr);
+    LogInfo("Wrote {:08x} to address {:08x}", data, ptr);
     LogInfo("--------");
     break;
 
@@ -440,8 +476,8 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
   // Used to increment/decrement a value in memory
   const u32 new_addr = addr.GCAddress();
 
-  LogInfo("Hardware Address: %08x", new_addr);
-  LogInfo("Size: %08x", addr.size);
+  LogInfo("Hardware Address: {:08x}", new_addr);
+  LogInfo("Size: {:08x}", addr.size);
 
   switch (addr.size)
   {
@@ -449,7 +485,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("8-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U8(PowerPC::HostRead_U8(new_addr) + data, new_addr);
-    LogInfo("Wrote %02x to address %08x", PowerPC::HostRead_U8(new_addr), new_addr);
+    LogInfo("Wrote {:02x} to address {:08x}", PowerPC::HostRead_U8(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -457,7 +493,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("16-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U16(PowerPC::HostRead_U16(new_addr) + data, new_addr);
-    LogInfo("Wrote %04x to address %08x", PowerPC::HostRead_U16(new_addr), new_addr);
+    LogInfo("Wrote {:04x} to address {:08x}", PowerPC::HostRead_U16(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -465,7 +501,7 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     LogInfo("32-bit Add");
     LogInfo("--------");
     PowerPC::HostWrite_U32(PowerPC::HostRead_U32(new_addr) + data, new_addr);
-    LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U32(new_addr), new_addr);
+    LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U32(new_addr), new_addr);
     LogInfo("--------");
     break;
 
@@ -480,9 +516,9 @@ static bool Subtype_AddCode(const ARAddr& addr, const u32 data)
     const float fread = read_float + static_cast<float>(data);
     const u32 newval = Common::BitCast<u32>(fread);
     PowerPC::HostWrite_U32(newval, new_addr);
-    LogInfo("Old Value %08x", read);
-    LogInfo("Increment %08x", data);
-    LogInfo("New value %08x", newval);
+    LogInfo("Old Value {:08x}", read);
+    LogInfo("Increment {:08x}", data);
+    LogInfo("New value {:08x}", newval);
     LogInfo("--------");
     break;
   }
@@ -523,11 +559,11 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
   u32 val = addr;
   u32 curr_addr = new_addr;
 
-  LogInfo("Current Hardware Address: %08x", new_addr);
-  LogInfo("Size: %08x", addr.size);
-  LogInfo("Write Num: %08x", write_num);
-  LogInfo("Address Increment: %i", addr_incr);
-  LogInfo("Value Increment: %i", val_incr);
+  LogInfo("Current Hardware Address: {:08x}", new_addr);
+  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Write Num: {:08x}", write_num);
+  LogInfo("Address Increment: {}", addr_incr);
+  LogInfo("Value Increment: {}", s32{val_incr});
 
   switch (size)
   {
@@ -539,10 +575,10 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
       PowerPC::HostWrite_U8(val & 0xFF, curr_addr);
       curr_addr += addr_incr;
       val += val_incr;
-      LogInfo("Write %08x to address %08x", val & 0xFF, curr_addr);
+      LogInfo("Write {:08x} to address {:08x}", val & 0xFF, curr_addr);
 
-      LogInfo("Value Update: %08x", val);
-      LogInfo("Current Hardware Address Update: %08x", curr_addr);
+      LogInfo("Value Update: {:08x}", val);
+      LogInfo("Current Hardware Address Update: {:08x}", curr_addr);
     }
     LogInfo("--------");
     break;
@@ -553,11 +589,11 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
     for (int i = 0; i < write_num; ++i)
     {
       PowerPC::HostWrite_U16(val & 0xFFFF, curr_addr);
-      LogInfo("Write %08x to address %08x", val & 0xFFFF, curr_addr);
+      LogInfo("Write {:08x} to address {:08x}", val & 0xFFFF, curr_addr);
       curr_addr += addr_incr * 2;
       val += val_incr;
-      LogInfo("Value Update: %08x", val);
-      LogInfo("Current Hardware Address Update: %08x", curr_addr);
+      LogInfo("Value Update: {:08x}", val);
+      LogInfo("Current Hardware Address Update: {:08x}", curr_addr);
     }
     LogInfo("--------");
     break;
@@ -568,11 +604,11 @@ static bool ZeroCode_FillAndSlide(const u32 val_last, const ARAddr& addr, const 
     for (int i = 0; i < write_num; ++i)
     {
       PowerPC::HostWrite_U32(val, curr_addr);
-      LogInfo("Write %08x to address %08x", val, curr_addr);
+      LogInfo("Write {:08x} to address {:08x}", val, curr_addr);
       curr_addr += addr_incr * 4;
       val += val_incr;
-      LogInfo("Value Update: %08x", val);
-      LogInfo("Current Hardware Address Update: %08x", curr_addr);
+      LogInfo("Value Update: {:08x}", val);
+      LogInfo("Current Hardware Address Update: {:08x}", curr_addr);
     }
     LogInfo("--------");
     break;
@@ -596,9 +632,9 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
 
   const u8 num_bytes = data & 0x7FFF;
 
-  LogInfo("Dest Address: %08x", addr_dest);
-  LogInfo("Src Address: %08x", addr_src);
-  LogInfo("Size: %08x", num_bytes);
+  LogInfo("Dest Address: {:08x}", addr_dest);
+  LogInfo("Src Address: {:08x}", addr_src);
+  LogInfo("Size: {:08x}", num_bytes);
 
   if ((data & 0xFF0000) == 0)
   {
@@ -607,13 +643,13 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
       LogInfo("Memory Copy With Pointers Support");
       LogInfo("--------");
       const u32 ptr_dest = PowerPC::HostRead_U32(addr_dest);
-      LogInfo("Resolved Dest Address to: %08x", ptr_dest);
+      LogInfo("Resolved Dest Address to: {:08x}", ptr_dest);
       const u32 ptr_src = PowerPC::HostRead_U32(addr_src);
-      LogInfo("Resolved Src Address to: %08x", ptr_src);
+      LogInfo("Resolved Src Address to: {:08x}", ptr_src);
       for (int i = 0; i < num_bytes; ++i)
       {
         PowerPC::HostWrite_U8(PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
-        LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U8(ptr_src + i), ptr_dest + i);
       }
       LogInfo("--------");
     }
@@ -624,7 +660,8 @@ static bool ZeroCode_MemoryCopy(const u32 val_last, const ARAddr& addr, const u3
       for (int i = 0; i < num_bytes; ++i)
       {
         PowerPC::HostWrite_U8(PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
-        LogInfo("Wrote %08x to address %08x", PowerPC::HostRead_U8(addr_src + i), addr_dest + i);
+        LogInfo("Wrote {:08x} to address {:08x}", PowerPC::HostRead_U8(addr_src + i),
+                addr_dest + i);
       }
       LogInfo("--------");
       return true;
@@ -722,8 +759,8 @@ static bool ConditionalCode(const ARAddr& addr, const u32 data, int* const pSkip
 {
   const u32 new_addr = addr.GCAddress();
 
-  LogInfo("Size: %08x", addr.size);
-  LogInfo("Hardware Address: %08x", new_addr);
+  LogInfo("Size: {:08x}", addr.size);
+  LogInfo("Hardware Address: {:08x}", new_addr);
 
   bool result = true;
 
@@ -792,8 +829,8 @@ static bool RunCodeLocked(const ARCode& arcode)
 
   s_current_code = &arcode;
 
-  LogInfo("Code Name: %s", arcode.name.c_str());
-  LogInfo("Number of codes: %zu", arcode.ops.size());
+  LogInfo("Code Name: {}", arcode.name);
+  LogInfo("Number of codes: {}", arcode.ops.size());
 
   for (const AREntry& entry : arcode.ops)
   {
@@ -825,8 +862,7 @@ static bool RunCodeLocked(const ARCode& arcode)
       continue;
     }
 
-    LogInfo("--- Running Code: %08x %08x ---", addr.address, data);
-    // LogInfo("Command: %08x", cmd);
+    LogInfo("--- Running Code: {:08x} {:08x} ---", addr.address, data);
 
     // Do Fill & Slide
     if (do_fill_and_slide)
@@ -868,7 +904,7 @@ static bool RunCodeLocked(const ARCode& arcode)
     {
       const u8 zcode = data >> 29;
 
-      LogInfo("Doing Zero Code %08x", zcode);
+      LogInfo("Doing Zero Code {:08x}", zcode);
 
       switch (zcode)
       {
@@ -916,8 +952,8 @@ static bool RunCodeLocked(const ARCode& arcode)
     }
 
     // Normal codes
-    LogInfo("Doing Normal Code %08x", addr.type);
-    LogInfo("Subtype: %08x", addr.subtype);
+    LogInfo("Doing Normal Code {:08x}", addr.type);
+    LogInfo("Subtype: {:08x}", addr.subtype);
 
     switch (addr.type)
     {

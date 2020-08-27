@@ -13,9 +13,7 @@
 
 class PointerWrap;
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class UCodeInterface;
 
@@ -73,5 +71,4 @@ private:
   bool m_halt;
   bool m_assert_interrupt;
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

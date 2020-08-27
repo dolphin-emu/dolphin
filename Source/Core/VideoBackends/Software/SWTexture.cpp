@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Software/SWTexture.h"
+#include "VideoBackends/Software/SWRenderer.h"
 
 #include <cstring>
 #include "Common/Assert.h"
@@ -45,6 +46,25 @@ void CopyTextureData(const TextureConfig& src_config, const u8* src_ptr, u32 src
     dst_ptr += dst_stride;
   }
 }
+}  // namespace
+
+void SWRenderer::ScaleTexture(AbstractFramebuffer* dst_framebuffer,
+                              const MathUtil::Rectangle<int>& dst_rect,
+                              const AbstractTexture* src_texture,
+                              const MathUtil::Rectangle<int>& src_rect)
+{
+  const SWTexture* software_source_texture = static_cast<const SWTexture*>(src_texture);
+  SWTexture* software_dest_texture = static_cast<SWTexture*>(dst_framebuffer->GetColorAttachment());
+
+  std::vector<Pixel> source_pixels;
+  source_pixels.resize(src_rect.GetHeight() * src_rect.GetWidth() * 4);
+  memcpy(source_pixels.data(), software_source_texture->GetData(), source_pixels.size());
+
+  std::vector<Pixel> destination_pixels;
+  destination_pixels.resize(dst_rect.GetHeight() * dst_rect.GetWidth() * 4);
+
+  CopyRegion(source_pixels.data(), src_rect, destination_pixels.data(), dst_rect);
+  memcpy(software_dest_texture->GetData(), destination_pixels.data(), destination_pixels.size());
 }
 
 SWTexture::SWTexture(const TextureConfig& tex_config) : AbstractTexture(tex_config)
@@ -61,30 +81,6 @@ void SWTexture::CopyRectangleFromTexture(const AbstractTexture* src,
   CopyTextureData(src->GetConfig(), static_cast<const SWTexture*>(src)->m_data.data(),
                   src_rect.left, src_rect.top, src_rect.GetWidth(), src_rect.GetHeight(), m_config,
                   m_data.data(), dst_rect.left, dst_rect.top);
-}
-void SWTexture::ScaleRectangleFromTexture(const AbstractTexture* source,
-                                          const MathUtil::Rectangle<int>& srcrect,
-                                          const MathUtil::Rectangle<int>& dstrect)
-{
-  const SWTexture* software_source_texture = static_cast<const SWTexture*>(source);
-
-  if (srcrect.GetWidth() == dstrect.GetWidth() && srcrect.GetHeight() == dstrect.GetHeight())
-  {
-    m_data.assign(software_source_texture->GetData(),
-                  software_source_texture->GetData() + m_data.size());
-  }
-  else
-  {
-    std::vector<Pixel> source_pixels;
-    source_pixels.resize(srcrect.GetHeight() * srcrect.GetWidth() * 4);
-    memcpy(source_pixels.data(), software_source_texture->GetData(), source_pixels.size());
-
-    std::vector<Pixel> destination_pixels;
-    destination_pixels.resize(dstrect.GetHeight() * dstrect.GetWidth() * 4);
-
-    CopyRegion(source_pixels.data(), srcrect, destination_pixels.data(), dstrect);
-    memcpy(GetData(), destination_pixels.data(), destination_pixels.size());
-  }
 }
 void SWTexture::ResolveFromTexture(const AbstractTexture* src, const MathUtil::Rectangle<int>& rect,
                                    u32 layer, u32 level)
@@ -153,14 +149,16 @@ void SWStagingTexture::Flush()
   m_needs_flush = false;
 }
 
-SWFramebuffer::SWFramebuffer(AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
+SWFramebuffer::SWFramebuffer(AbstractTexture* color_attachment, AbstractTexture* depth_attachment,
+                             AbstractTextureFormat color_format, AbstractTextureFormat depth_format,
                              u32 width, u32 height, u32 layers, u32 samples)
-    : AbstractFramebuffer(color_format, depth_format, width, height, layers, samples)
+    : AbstractFramebuffer(color_attachment, depth_attachment, color_format, depth_format, width,
+                          height, layers, samples)
 {
 }
 
-std::unique_ptr<SWFramebuffer> SWFramebuffer::Create(const SWTexture* color_attachment,
-                                                     const SWTexture* depth_attachment)
+std::unique_ptr<SWFramebuffer> SWFramebuffer::Create(SWTexture* color_attachment,
+                                                     SWTexture* depth_attachment)
 {
   if (!ValidateConfig(color_attachment, depth_attachment))
     return nullptr;
@@ -175,8 +173,8 @@ std::unique_ptr<SWFramebuffer> SWFramebuffer::Create(const SWTexture* color_atta
   const u32 layers = either_attachment->GetLayers();
   const u32 samples = either_attachment->GetSamples();
 
-  return std::make_unique<SWFramebuffer>(color_format, depth_format, width, height, layers,
-                                         samples);
+  return std::make_unique<SWFramebuffer>(color_attachment, depth_attachment, color_format,
+                                         depth_format, width, height, layers, samples);
 }
 
 }  // namespace SW

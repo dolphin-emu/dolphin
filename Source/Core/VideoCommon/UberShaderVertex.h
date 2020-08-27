@@ -18,11 +18,11 @@ struct vertex_ubershader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<vertex_ubershader_uid_data> VertexShaderUid;
+using VertexShaderUid = ShaderUid<vertex_ubershader_uid_data>;
 
 VertexShaderUid GetVertexShaderUid();
 
 ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config,
                            const vertex_ubershader_uid_data* uid_data);
 void EnumerateVertexShaderUids(const std::function<void(const VertexShaderUid&)>& callback);
-}
+}  // namespace UberShader

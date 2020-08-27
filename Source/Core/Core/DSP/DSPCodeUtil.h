@@ -24,5 +24,5 @@ std::vector<u16> BinaryStringBEToCode(const std::string& str);
 std::optional<std::vector<u16>> LoadBinary(const std::string& filename);
 bool SaveBinary(const std::vector<u16>& code, const std::string& filename);
 
-bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc);
+bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc);
 }  // namespace DSP

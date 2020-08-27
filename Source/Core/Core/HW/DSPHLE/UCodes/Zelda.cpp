@@ -4,6 +4,7 @@
 
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
+#include <algorithm>
 #include <array>
 #include <map>
 
@@ -17,9 +18,7 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 // Uncomment this to have a strict version of the HLE implementation, which
 // PanicAlerts on recoverable unknown behaviors instead of silently ignoring
@@ -1086,7 +1085,7 @@ void ZeldaAudioRenderer::ApplyReverb(bool post_rendering)
           for (u16 j = 0; j < 8; ++j)
             sample += (s32)buffer[i + j] * rpb.filter_coeffs[j];
           sample >>= 15;
-          buffer[i] = MathUtil::Clamp(sample, -0x8000, 0x7FFF);
+          buffer[i] = std::clamp(sample, -0x8000, 0x7FFF);
         }
       };
 
@@ -1213,8 +1212,8 @@ void ZeldaAudioRenderer::AddVoice(u16 voice_id)
       volume_deltas[i] = ((u16)quadrant_volumes[i] * delta) >> shift_factor;
 
     // Apply master volume to each quadrant.
-    for (size_t i = 0; i < 4; ++i)
-      quadrant_volumes[i] = (quadrant_volumes[i] * vpb.dolby_volume_current) >> shift_factor;
+    for (s16& quadrant_volume : quadrant_volumes)
+      quadrant_volume = (quadrant_volume * vpb.dolby_volume_current) >> shift_factor;
 
     // Compute reverb volume and ramp deltas.
     s16 reverb_volumes[4], reverb_volume_deltas[4];
@@ -1401,9 +1400,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
     u32 mask = (1 << shift) - 1;
 
     u32 pos = vpb->current_pos_frac << shift;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
+      sample = ((pos >> 16) & mask) ? 0xC000 : 0x4000;
       pos += vpb->resampling_ratio;
     }
     vpb->current_pos_frac = (pos >> shift) & 0xFFFF;
@@ -1413,9 +1412,9 @@ void ZeldaAudioRenderer::LoadInputSamples(MixingBuffer* buffer, VPB* vpb)
   case VPB::SRC_SAW_WAVE:
   {
     u32 pos = vpb->current_pos_frac;
-    for (size_t i = 0; i < buffer->size(); ++i)
+    for (s16& sample : *buffer)
     {
-      (*buffer)[i] = pos & 0xFFFF;
+      sample = pos & 0xFFFF;
       pos += (vpb->resampling_ratio) >> 1;
     }
     vpb->current_pos_frac = pos & 0xFFFF;
@@ -1526,7 +1525,7 @@ void ZeldaAudioRenderer::Resample(VPB* vpb, const s16* src, MixingBuffer* dst)
         dst_sample_unclamped += (s64)2 * coeffs[i] * input[i];
       dst_sample_unclamped >>= 16;
 
-      dst_sample = (s16)MathUtil::Clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF);
+      dst_sample = (s16)std::clamp<s64>(dst_sample_unclamped, -0x8000, 0x7FFF);
 
       pos += ratio;
     }
@@ -1759,12 +1758,11 @@ void ZeldaAudioRenderer::DecodeAFC(VPB* vpb, s16* dst, size_t block_count)
     }
 
     s32 yn1 = *vpb->AFCYN1(), yn2 = *vpb->AFCYN2();
-    for (size_t i = 0; i < 16; ++i)
+    for (s16 nibble : nibbles)
     {
-      s32 sample =
-          delta * nibbles[i] + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
+      s32 sample = delta * nibble + yn1 * m_afc_coeffs[idx * 2] + yn2 * m_afc_coeffs[idx * 2 + 1];
       sample >>= 11;
-      sample = MathUtil::Clamp(sample, -0x8000, 0x7fff);
+      sample = std::clamp(sample, -0x8000, 0x7fff);
       *dst++ = (s16)sample;
       yn2 = yn1;
       yn1 = sample;
@@ -1853,5 +1851,4 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
   p.Do(m_buf_front_left_reverb_last8);
   p.Do(m_buf_front_right_reverb_last8);
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

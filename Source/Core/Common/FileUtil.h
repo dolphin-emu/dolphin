@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <fstream>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include <sys/stat.h>
@@ -29,6 +30,8 @@ enum
                           // settings (per game)
   D_MAPS_IDX,
   D_CACHE_IDX,
+  D_COVERCACHE_IDX,
+  D_REDUMPCACHE_IDX,
   D_SHADERCACHE_IDX,
   D_SHADERS_IDX,
   D_STATESAVES_IDX,
@@ -50,6 +53,7 @@ enum
   D_MEMORYWATCHER_IDX,
   D_WFSROOT_IDX,
   D_BACKUP_IDX,
+  D_RESOURCEPACK_IDX,
   F_DOLPHINCONFIG_IDX,
   F_GCPADCONFIG_IDX,
   F_WIIPADCONFIG_IDX,
@@ -58,13 +62,15 @@ enum
   F_DEBUGGERCONFIG_IDX,
   F_LOGGERCONFIG_IDX,
   F_MAINLOG_IDX,
-  F_RAMDUMP_IDX,
+  F_MEM1DUMP_IDX,
+  F_MEM2DUMP_IDX,
   F_ARAMDUMP_IDX,
   F_FAKEVMEMDUMP_IDX,
   F_GCSRAM_IDX,
   F_MEMORYWATCHERLOCATIONS_IDX,
   F_MEMORYWATCHERSOCKET_IDX,
   F_WIISDCARD_IDX,
+  F_DUALSHOCKUDPCLIENTCONFIG_IDX,
   NUM_PATH_INDICES
 };
 
@@ -168,7 +174,7 @@ bool SetCurrentDir(const std::string& directory);
 std::string CreateTempDir();
 
 // Get a filename that can hopefully be atomically renamed to the given path.
-std::string GetTempFilenameForAtomicWrite(const std::string& path);
+std::string GetTempFilenameForAtomicWrite(std::string path);
 
 // Gets a set user directory path
 // Don't call prior to setting the base user directory
@@ -193,7 +199,7 @@ std::string GetBundleDirectory();
 std::string GetExePath();
 std::string GetExeDirectory();
 
-bool WriteStringToFile(const std::string& str, const std::string& filename);
+bool WriteStringToFile(const std::string& filename, std::string_view str);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
 // To deal with Windows being dumb at unicode:

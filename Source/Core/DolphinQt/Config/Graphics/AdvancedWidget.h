@@ -8,6 +8,8 @@
 
 class GraphicsWindow;
 class QCheckBox;
+class QComboBox;
+class QSpinBox;
 
 class AdvancedWidget final : public GraphicsWidget
 {
@@ -32,17 +34,29 @@ private:
   QCheckBox* m_enable_api_validation;
 
   // Utility
-  QCheckBox* m_dump_textures;
   QCheckBox* m_prefetch_custom_textures;
   QCheckBox* m_dump_efb_target;
   QCheckBox* m_disable_vram_copies;
-  QCheckBox* m_dump_use_ffv1;
   QCheckBox* m_load_custom_textures;
-  QCheckBox* m_use_fullres_framedumps;
   QCheckBox* m_enable_freelook;
+  QComboBox* m_freelook_control_type;
+
+  // Texture dumping
+  QCheckBox* m_dump_textures;
+  QCheckBox* m_dump_mip_textures;
+  QCheckBox* m_dump_base_textures;
+
+  // Frame dumping
+  QCheckBox* m_dump_use_ffv1;
+  QCheckBox* m_use_fullres_framedumps;
+  QSpinBox* m_dump_bitrate;
 
   // Misc
   QCheckBox* m_enable_cropping;
   QCheckBox* m_enable_prog_scan;
+  QCheckBox* m_backend_multithreading;
   QCheckBox* m_borderless_fullscreen;
+
+  // Experimental
+  QCheckBox* m_defer_efb_access_invalidation;
 };

@@ -90,7 +90,7 @@ private:
 };
 
 extern Option<int> efbScale;
-extern Option<LogTypes::LOG_LEVELS> logLevel;
+extern Option<Common::Log::LOG_LEVELS> logLevel;
 extern Option<float> cpuClockRate;
 extern Option<std::string> renderer;
 extern Option<bool> fastmem;

@@ -6,12 +6,6 @@
 
 #include <QEvent>
 
-BlockUserInputFilter* BlockUserInputFilter::Instance()
-{
-  static BlockUserInputFilter s_block_user_input_filter;
-  return &s_block_user_input_filter;
-}
-
 bool BlockUserInputFilter::eventFilter(QObject* object, QEvent* event)
 {
   const QEvent::Type event_type = event->type();

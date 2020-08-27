@@ -10,36 +10,33 @@
 #include <QFileInfo>
 #include <QGridLayout>
 #include <QGroupBox>
+#include <QInputDialog>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QVBoxLayout>
 
+#include <utility>
+
 #include "Common/CommonPaths.h"
+#include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
 
 #include "DolphinQt/Config/Mapping/MappingWindow.h"
+#include "DolphinQt/GCMemcardManager.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 
-constexpr int SLOT_A_INDEX = 0;
-constexpr int SLOT_B_INDEX = 1;
-constexpr int SLOT_SP1_INDEX = 2;
-constexpr int SLOT_COUNT = 3;
-
-enum ExpansionSelection
+enum
 {
-  EXP_NOTHING = 0,
-  EXP_DUMMY = 1,
-  EXP_MEMORYCARD = 2,
-  EXP_BROADBAND = 2,
-  EXP_GCI_FOLDER = 3,
-  EXP_GECKO = 4,
-  EXP_AGP = 5,
-  EXP_MICROPHONE = 6
+  SLOT_A_INDEX,
+  SLOT_B_INDEX,
+  SLOT_SP1_INDEX,
+  SLOT_COUNT
 };
 
 GameCubePane::GameCubePane()
@@ -51,59 +48,66 @@ GameCubePane::GameCubePane()
 
 void GameCubePane::CreateWidgets()
 {
-  QVBoxLayout* layout = new QVBoxLayout;
+  QVBoxLayout* layout = new QVBoxLayout(this);
 
   // IPL Settings
-  QGroupBox* ipl_box = new QGroupBox(tr("IPL Settings"));
-  QGridLayout* ipl_layout = new QGridLayout;
+  QGroupBox* ipl_box = new QGroupBox(tr("IPL Settings"), this);
+  QGridLayout* ipl_layout = new QGridLayout(ipl_box);
   ipl_box->setLayout(ipl_layout);
 
-  m_skip_main_menu = new QCheckBox(tr("Skip Main Menu"));
-  m_override_language_ntsc = new QCheckBox(tr("Override Language on NTSC Games"));
-  m_language_combo = new QComboBox;
+  m_skip_main_menu = new QCheckBox(tr("Skip Main Menu"), ipl_box);
+  m_language_combo = new QComboBox(ipl_box);
+  m_language_combo->setCurrentIndex(-1);
 
   // Add languages
-  for (const auto& language :
-       {tr("English"), tr("German"), tr("French"), tr("Spanish"), tr("Italian"), tr("Dutch")})
-    m_language_combo->addItem(language);
+  for (const auto& entry : {std::make_pair(tr("English"), 0), std::make_pair(tr("German"), 1),
+                            std::make_pair(tr("French"), 2), std::make_pair(tr("Spanish"), 3),
+                            std::make_pair(tr("Italian"), 4), std::make_pair(tr("Dutch"), 5)})
+  {
+    m_language_combo->addItem(entry.first, entry.second);
+  }
 
   ipl_layout->addWidget(m_skip_main_menu, 0, 0);
   ipl_layout->addWidget(new QLabel(tr("System Language:")), 1, 0);
   ipl_layout->addWidget(m_language_combo, 1, 1);
-  ipl_layout->addWidget(m_override_language_ntsc, 2, 0);
 
   // Device Settings
-  QGroupBox* device_box = new QGroupBox(tr("Device Settings"));
-  QGridLayout* device_layout = new QGridLayout;
+  QGroupBox* device_box = new QGroupBox(tr("Device Settings"), this);
+  QGridLayout* device_layout = new QGridLayout(device_box);
   device_box->setLayout(device_layout);
 
-  m_slot_combos[0] = new QComboBox;
-  m_slot_combos[1] = new QComboBox;
-  m_slot_combos[2] = new QComboBox;
-
-  m_slot_buttons[0] = new QPushButton(tr("..."));
-  m_slot_buttons[1] = new QPushButton(tr("..."));
-
-  m_slot_buttons[0]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-  m_slot_buttons[1]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-
-  const QString i10n_nothing = tr("<Nothing>");
-  const QString i10n_dummy = tr("Dummy");
+  for (int i = 0; i < SLOT_COUNT; i++)
+  {
+    m_slot_combos[i] = new QComboBox(device_box);
+    m_slot_buttons[i] = new QPushButton(tr("..."), device_box);
+    m_slot_buttons[i]->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+  }
 
   // Add slot devices
 
-  for (const auto& device : {i10n_nothing, i10n_dummy, tr("Memory Card"), tr("GCI Folder"),
-                             tr("USB Gecko"), tr("Advance Game Port"), tr("Microphone")})
+  for (const auto& entry :
+       {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
+        std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
+        std::make_pair(tr("Memory Card"), ExpansionInterface::EXIDEVICE_MEMORYCARD),
+        std::make_pair(tr("GCI Folder"), ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER),
+        std::make_pair(tr("USB Gecko"), ExpansionInterface::EXIDEVICE_GECKO),
+        std::make_pair(tr("Advance Game Port"), ExpansionInterface::EXIDEVICE_AGP),
+        std::make_pair(tr("Microphone"), ExpansionInterface::EXIDEVICE_MIC)})
   {
-    m_slot_combos[0]->addItem(device);
-    m_slot_combos[1]->addItem(device);
+    m_slot_combos[0]->addItem(entry.first, entry.second);
+    m_slot_combos[1]->addItem(entry.first, entry.second);
   }
 
   // Add SP1 devices
 
-  for (const auto& device : {i10n_nothing, i10n_dummy, tr("Broadband Adapter")})
+  for (const auto& entry :
+       {std::make_pair(tr("<Nothing>"), ExpansionInterface::EXIDEVICE_NONE),
+        std::make_pair(tr("Dummy"), ExpansionInterface::EXIDEVICE_DUMMY),
+        std::make_pair(tr("Broadband Adapter (TAP)"), ExpansionInterface::EXIDEVICE_ETH),
+        std::make_pair(tr("Broadband Adapter (XLink Kai)"),
+                       ExpansionInterface::EXIDEVICE_ETHXLINK)})
   {
-    m_slot_combos[2]->addItem(device);
+    m_slot_combos[2]->addItem(entry.first, entry.second);
   }
 
   device_layout->addWidget(new QLabel(tr("Slot A:")), 0, 0);
@@ -114,6 +118,7 @@ void GameCubePane::CreateWidgets()
   device_layout->addWidget(m_slot_buttons[1], 1, 2);
   device_layout->addWidget(new QLabel(tr("SP1:")), 2, 0);
   device_layout->addWidget(m_slot_combos[2], 2, 1);
+  device_layout->addWidget(m_slot_buttons[2], 2, 2);
 
   layout->addWidget(ipl_box);
   layout->addWidget(device_box);
@@ -127,21 +132,40 @@ void GameCubePane::ConnectWidgets()
 {
   // IPL Settings
   connect(m_skip_main_menu, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
-  connect(m_language_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
-          this, &GameCubePane::SaveSettings);
-  connect(m_override_language_ntsc, &QCheckBox::stateChanged, this, &GameCubePane::SaveSettings);
+  connect(m_language_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &GameCubePane::SaveSettings);
 
   // Device Settings
   for (int i = 0; i < SLOT_COUNT; i++)
   {
-    connect(m_slot_combos[i],
-            static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+    connect(m_slot_combos[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
+            [this, i] { UpdateButton(i); });
+    connect(m_slot_combos[i], qOverload<int>(&QComboBox::currentIndexChanged), this,
             &GameCubePane::SaveSettings);
-    if (i <= SLOT_B_INDEX)
-    {
-      connect(m_slot_buttons[i], &QPushButton::pressed, this, [this, i] { OnConfigPressed(i); });
-    }
+    connect(m_slot_buttons[i], &QPushButton::clicked, [this, i] { OnConfigPressed(i); });
   }
+}
+
+void GameCubePane::UpdateButton(int slot)
+{
+  const auto value = m_slot_combos[slot]->currentData().toInt();
+  bool has_config = false;
+
+  switch (slot)
+  {
+  case SLOT_A_INDEX:
+  case SLOT_B_INDEX:
+    has_config =
+        (value == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+         value == ExpansionInterface::EXIDEVICE_AGP || value == ExpansionInterface::EXIDEVICE_MIC);
+    break;
+  case SLOT_SP1_INDEX:
+    has_config = (value == ExpansionInterface::EXIDEVICE_ETH ||
+                  value == ExpansionInterface::EXIDEVICE_ETHXLINK);
+    break;
+  }
+
+  m_slot_buttons[slot]->setEnabled(has_config);
 }
 
 void GameCubePane::OnConfigPressed(int slot)
@@ -149,22 +173,44 @@ void GameCubePane::OnConfigPressed(int slot)
   QString filter;
   bool memcard = false;
 
-  switch (m_slot_combos[slot]->currentIndex())
+  switch (m_slot_combos[slot]->currentData().toInt())
   {
-  // Memory card
-  case 2:
+  case ExpansionInterface::EXIDEVICE_MEMORYCARD:
     filter = tr("GameCube Memory Cards (*.raw *.gcp)");
     memcard = true;
     break;
-  // Advance Game Port
-  case 5:
+  case ExpansionInterface::EXIDEVICE_AGP:
     filter = tr("Game Boy Advance Carts (*.gba)");
-    memcard = false;
     break;
-  // Microphone
-  case 6:
+  case ExpansionInterface::EXIDEVICE_MIC:
     MappingWindow(this, MappingWindow::Type::MAPPING_GC_MICROPHONE, slot).exec();
     return;
+  case ExpansionInterface::EXIDEVICE_ETH:
+  {
+    bool ok;
+    const auto new_mac = QInputDialog::getText(
+        // i18n: MAC stands for Media Access Control. A MAC address uniquely identifies a network
+        // interface (physical) like a serial number. "MAC" should be kept in translations.
+        this, tr("Broadband Adapter MAC address"), tr("Enter new Broadband Adapter MAC address:"),
+        QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_mac), &ok);
+    if (ok)
+      SConfig::GetInstance().m_bba_mac = new_mac.toStdString();
+    return;
+  }
+  case ExpansionInterface::EXIDEVICE_ETHXLINK:
+  {
+    bool ok;
+    const auto new_dest = QInputDialog::getText(
+        this, tr("Broadband Adapter (XLink Kai) Destination Address"),
+        tr("Enter IP address of device running the XLink Kai Client.\nFor more information see"
+           " https://www.teamxlink.co.uk/wiki/Dolphin"),
+        QLineEdit::Normal, QString::fromStdString(SConfig::GetInstance().m_bba_xlink_ip), &ok);
+    if (ok)
+      SConfig::GetInstance().m_bba_xlink_ip = new_dest.toStdString();
+    return;
+  }
+  default:
+    qFatal("unknown settings pressed");
   }
 
   QString filename = QFileDialog::getSaveFileName(
@@ -181,32 +227,33 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (File::Exists(filename.toStdString()))
     {
-      GCMemcard mc(filename.toStdString());
+      auto [error_code, mc] = Memcard::GCMemcard::Open(filename.toStdString());
 
-      if (!mc.IsValid())
+      if (error_code.HasCriticalErrors() || !mc || !mc->IsValid())
       {
-        QMessageBox::critical(this, tr("Error"),
-                              tr("Cannot use that file as a memory card.\n%1\n"
-                                 "is not a valid GameCube memory card file")
-                                  .arg(filename));
-
+        ModalMessageBox::critical(
+            this, tr("Error"),
+            tr("The file\n%1\nis either corrupted or not a GameCube memory card file.\n%2")
+                .arg(filename)
+                .arg(GCMemcardManager::GetErrorMessagesForErrorCode(error_code)));
         return;
       }
     }
 
     bool other_slot_memcard =
-        m_slot_combos[slot == 0 ? SLOT_B_INDEX : SLOT_A_INDEX]->currentIndex() == EXP_MEMORYCARD;
-
+        m_slot_combos[slot == SLOT_A_INDEX ? SLOT_B_INDEX : SLOT_A_INDEX]->currentData().toInt() ==
+        ExpansionInterface::EXIDEVICE_MEMORYCARD;
     if (other_slot_memcard)
     {
       QString path_b =
-          QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardB :
-                                                       SConfig::GetInstance().m_strMemoryCardA))
+          QFileInfo(QString::fromStdString(slot == 0 ? Config::Get(Config::MAIN_MEMCARD_B_PATH) :
+                                                       Config::Get(Config::MAIN_MEMCARD_A_PATH)))
               .absoluteFilePath();
 
       if (path_abs == path_b)
       {
-        QMessageBox::critical(this, tr("Error"), tr("The same file can't be used in both slots."));
+        ModalMessageBox::critical(this, tr("Error"),
+                                  tr("The same file can't be used in both slots."));
         return;
       }
     }
@@ -216,8 +263,8 @@ void GameCubePane::OnConfigPressed(int slot)
   if (memcard)
   {
     path_old =
-        QFileInfo(QString::fromStdString(slot == 0 ? SConfig::GetInstance().m_strMemoryCardA :
-                                                     SConfig::GetInstance().m_strMemoryCardB))
+        QFileInfo(QString::fromStdString(slot == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                                     Config::Get(Config::MAIN_MEMCARD_B_PATH)))
             .absoluteFilePath();
   }
   else
@@ -231,11 +278,11 @@ void GameCubePane::OnConfigPressed(int slot)
   {
     if (slot == SLOT_A_INDEX)
     {
-      SConfig::GetInstance().m_strMemoryCardA = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_MEMCARD_A_PATH, path_abs.toStdString());
     }
     else
     {
-      SConfig::GetInstance().m_strMemoryCardB = path_abs.toStdString();
+      Config::SetBase(Config::MAIN_MEMCARD_B_PATH, path_abs.toStdString());
     }
   }
   else
@@ -268,8 +315,7 @@ void GameCubePane::LoadSettings()
 
   // IPL Settings
   m_skip_main_menu->setChecked(params.bHLE_BS2);
-  m_language_combo->setCurrentIndex(params.SelectedLanguage);
-  m_override_language_ntsc->setChecked(params.bOverrideGCLanguage);
+  m_language_combo->setCurrentIndex(m_language_combo->findData(params.SelectedLanguage));
 
   bool have_menu = false;
 
@@ -285,96 +331,35 @@ void GameCubePane::LoadSettings()
   }
 
   m_skip_main_menu->setEnabled(have_menu);
-  m_skip_main_menu->setToolTip(have_menu ? QStringLiteral("") :
+  m_skip_main_menu->setToolTip(have_menu ? QString{} :
                                            tr("Put Main Menu roms in User/GC/{region}."));
 
   // Device Settings
 
   for (int i = 0; i < SLOT_COUNT; i++)
   {
-    int index = EXP_NOTHING;
-    switch (SConfig::GetInstance().m_EXIDevice[i])
-    {
-    case ExpansionInterface::EXIDEVICE_NONE:
-      index = EXP_NOTHING;
-      break;
-    case ExpansionInterface::EXIDEVICE_DUMMY:
-      index = EXP_DUMMY;
-      break;
-    case ExpansionInterface::EXIDEVICE_MEMORYCARD:
-      index = EXP_MEMORYCARD;
-      break;
-    case ExpansionInterface::EXIDEVICE_ETH:
-      index = EXP_BROADBAND;
-      break;
-    case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
-      index = EXP_GCI_FOLDER;
-      break;
-    case ExpansionInterface::EXIDEVICE_GECKO:
-      index = EXP_GECKO;
-      break;
-    case ExpansionInterface::EXIDEVICE_AGP:
-      index = EXP_AGP;
-      break;
-    case ExpansionInterface::EXIDEVICE_MIC:
-      index = EXP_MICROPHONE;
-      break;
-    default:
-      break;
-    }
-
-    if (i <= SLOT_B_INDEX)
-    {
-      bool has_config = (index == EXP_MEMORYCARD || index > EXP_GECKO);
-      m_slot_buttons[i]->setEnabled(has_config);
-    }
-
-    m_slot_combos[i]->setCurrentIndex(index);
+    QSignalBlocker blocker(m_slot_combos[i]);
+    m_slot_combos[i]->setCurrentIndex(
+        m_slot_combos[i]->findData(SConfig::GetInstance().m_EXIDevice[i]));
+    UpdateButton(i);
   }
 }
 
 void GameCubePane::SaveSettings()
 {
+  Config::ConfigChangeCallbackGuard config_guard;
+
   SConfig& params = SConfig::GetInstance();
 
   // IPL Settings
   params.bHLE_BS2 = m_skip_main_menu->isChecked();
-  params.SelectedLanguage = m_language_combo->currentIndex();
-  params.bOverrideGCLanguage = m_override_language_ntsc->isChecked();
+  Config::SetBaseOrCurrent(Config::MAIN_SKIP_IPL, m_skip_main_menu->isChecked());
+  params.SelectedLanguage = m_language_combo->currentData().toInt();
+  Config::SetBaseOrCurrent(Config::MAIN_GC_LANGUAGE, m_language_combo->currentData().toInt());
 
   for (int i = 0; i < SLOT_COUNT; i++)
   {
-    auto dev = SConfig::GetInstance().m_EXIDevice[i];
-
-    int index = m_slot_combos[i]->currentIndex();
-
-    switch (index)
-    {
-    case EXP_NOTHING:
-      dev = ExpansionInterface::EXIDEVICE_NONE;
-      break;
-    case EXP_DUMMY:
-      dev = ExpansionInterface::EXIDEVICE_DUMMY;
-      break;
-    case EXP_MEMORYCARD:
-      if (i == SLOT_SP1_INDEX)
-        dev = ExpansionInterface::EXIDEVICE_ETH;
-      else
-        dev = ExpansionInterface::EXIDEVICE_MEMORYCARD;
-      break;
-    case EXP_GCI_FOLDER:
-      dev = ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
-      break;
-    case EXP_GECKO:
-      dev = ExpansionInterface::EXIDEVICE_GECKO;
-      break;
-    case EXP_AGP:
-      dev = ExpansionInterface::EXIDEVICE_AGP;
-      break;
-    case EXP_MICROPHONE:
-      dev = ExpansionInterface::EXIDEVICE_MIC;
-      break;
-    }
+    const auto dev = ExpansionInterface::TEXIDevices(m_slot_combos[i]->currentData().toInt());
 
     if (Core::IsRunning() && SConfig::GetInstance().m_EXIDevice[i] != dev)
     {
@@ -388,6 +373,18 @@ void GameCubePane::SaveSettings()
     }
 
     SConfig::GetInstance().m_EXIDevice[i] = dev;
+    switch (i)
+    {
+    case SLOT_A_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SLOT_A, dev);
+      break;
+    case SLOT_B_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SLOT_B, dev);
+      break;
+    case SLOT_SP1_INDEX:
+      Config::SetBaseOrCurrent(Config::MAIN_SERIAL_PORT_1, dev);
+      break;
+    }
   }
   LoadSettings();
 }

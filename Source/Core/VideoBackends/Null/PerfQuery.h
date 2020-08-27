@@ -8,11 +8,9 @@
 
 namespace Null
 {
-class PerfQuery : public PerfQueryBase
+class PerfQuery final : public PerfQueryBase
 {
 public:
-  PerfQuery() {}
-  ~PerfQuery() override {}
   void EnableQuery(PerfQueryGroup type) override {}
   void DisableQuery(PerfQueryGroup type) override {}
   void ResetQuery() override {}
@@ -21,4 +19,4 @@ public:
   bool IsFlushed() const override { return true; }
 };
 
-}  // namespace
+}  // namespace Null

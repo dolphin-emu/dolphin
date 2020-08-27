@@ -63,9 +63,9 @@ void FifoPlaybackAnalyzer::AnalyzeFrames(FifoDataFile* file,
         ++nextMemUpdate;
       }
 
-      bool wasDrawing = s_DrawingObject;
-
-      u32 cmdSize = FifoAnalyzer::AnalyzeCommand(&frame.fifoData[cmdStart], DECODE_PLAYBACK);
+      const bool wasDrawing = s_DrawingObject;
+      const u32 cmdSize =
+          FifoAnalyzer::AnalyzeCommand(&frame.fifoData[cmdStart], DecodeMode::Playback);
 
 #if LOG_FIFO_CMDS
       CmdData cmdData;

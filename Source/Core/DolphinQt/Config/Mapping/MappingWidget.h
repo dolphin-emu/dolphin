@@ -10,14 +10,14 @@
 #include <QString>
 #include <QWidget>
 
+constexpr int WIDGET_MAX_WIDTH = 112;
+
 class ControlGroupBox;
 class InputConfig;
-class IOWindow;
-class MappingBool;
 class MappingButton;
 class MappingNumeric;
 class MappingWindow;
-class MappingRadio;
+class QPushButton;
 class QGroupBox;
 
 namespace ControllerEmu
@@ -25,15 +25,10 @@ namespace ControllerEmu
 class Control;
 class ControlGroup;
 class EmulatedController;
+class NumericSettingBase;
 }  // namespace ControllerEmu
 
-namespace ciface
-{
-namespace Core
-{
-class Device;
-}
-}  // namespace ciface
+constexpr int INDICATOR_UPDATE_FREQ = 30;
 
 class MappingWidget : public QWidget
 {
@@ -42,30 +37,24 @@ public:
   explicit MappingWidget(MappingWindow* window);
 
   ControllerEmu::EmulatedController* GetController() const;
-  std::shared_ptr<ciface::Core::Device> GetDevice() const;
 
   MappingWindow* GetParent() const;
-
-  bool IsIterativeInput() const;
-  void NextButton(MappingButton* button);
 
   virtual void LoadSettings() = 0;
   virtual void SaveSettings() = 0;
   virtual InputConfig* GetConfig() = 0;
 
+signals:
   void Update();
+  void ConfigChanged();
 
 protected:
   int GetPort() const;
+
+  QGroupBox* CreateGroupBox(ControllerEmu::ControlGroup* group);
   QGroupBox* CreateGroupBox(const QString& name, ControllerEmu::ControlGroup* group);
+  QPushButton* CreateSettingAdvancedMappingButton(ControllerEmu::NumericSettingBase& setting);
 
 private:
-  void OnClearFields();
-
   MappingWindow* m_parent;
-  bool m_first = true;
-  std::vector<MappingBool*> m_bools;
-  std::vector<MappingRadio*> m_radio;
-  std::vector<MappingButton*> m_buttons;
-  std::vector<MappingNumeric*> m_numerics;
 };

@@ -13,6 +13,10 @@
 class QKeyEvent;
 class QMouseEvent;
 class QResizeEvent;
+class QShowEvent;
+
+struct CodeViewBranch;
+class BranchDisplayDelegate;
 
 class CodeViewWidget : public QTableWidget
 {
@@ -25,17 +29,24 @@ public:
   };
 
   explicit CodeViewWidget();
+  ~CodeViewWidget() override;
 
   u32 GetAddress() const;
   u32 GetContextAddress() const;
   void SetAddress(u32 address, SetAddressUpdate update);
 
+  // Set tighter row height. Set BP column sizing. This needs to run when font type changes.
+  void FontBasedSizing();
   void Update();
 
   void ToggleBreakpoint();
   void AddBreakpoint();
+
+  u32 AddressForRow(int row) const;
+
 signals:
   void RequestPPCComparison(u32 addr);
+  void ShowMemory(u32 address);
   void SymbolsChanged();
   void BreakpointsChanged();
 
@@ -52,11 +63,13 @@ private:
   void keyPressEvent(QKeyEvent* event) override;
   void mousePressEvent(QMouseEvent* event) override;
   void wheelEvent(QWheelEvent* event) override;
+  void showEvent(QShowEvent* event) override;
 
   void OnContextMenu();
 
   void OnFollowBranch();
   void OnCopyAddress();
+  void OnShowInMemory();
   void OnCopyFunction();
   void OnCopyCode();
   void OnCopyHex();
@@ -72,8 +85,14 @@ private:
   void OnReplaceInstruction();
   void OnRestoreInstruction();
 
+  void CalculateBranchIndentation();
+
   bool m_updating = false;
 
   u32 m_address = 0;
   u32 m_context_address = 0;
+
+  std::vector<CodeViewBranch> m_branches;
+
+  friend class BranchDisplayDelegate;
 };

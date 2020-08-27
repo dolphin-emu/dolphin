@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 #include <string>
+#include <type_traits>
 
 #include "Common/Analytics.h"
 #include "Common/CommonTypes.h"
@@ -17,7 +18,7 @@ namespace
 {
 // Format version number, used as the first byte of every report sent.
 // Increment for any change to the wire format.
-constexpr u8 WIRE_FORMAT_VERSION = 0;
+constexpr u8 WIRE_FORMAT_VERSION = 1;
 
 // Identifiers for the value types supported by the analytics reporting wire
 // format.
@@ -28,7 +29,16 @@ enum class TypeId : u8
   UINT = 2,
   SINT = 3,
   FLOAT = 4,
+
+  // Flags which can be combined with other types.
+  ARRAY = 0x80,
 };
+
+TypeId operator|(TypeId l, TypeId r)
+{
+  using ut = std::underlying_type_t<TypeId>;
+  return static_cast<TypeId>(static_cast<ut>(l) | static_cast<ut>(r));
+}
 
 void AppendBool(std::string* out, bool v)
 {
@@ -66,15 +76,19 @@ AnalyticsReportBuilder::AnalyticsReportBuilder()
   m_report.push_back(WIRE_FORMAT_VERSION);
 }
 
-void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const std::string& v)
+void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, std::string_view v)
 {
   AppendType(report, TypeId::STRING);
   AppendBytes(report, reinterpret_cast<const u8*>(v.data()), static_cast<u32>(v.size()));
 }
 
+// We can't remove this overload despite the string_view overload due to the fact that
+// pointers can implicitly convert to bool, so if we removed the overload, then all
+// const char strings passed in would begin forwarding to the bool overload,
+// which is definitely not what we want to occur.
 void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, const char* v)
 {
-  AppendSerializedValue(report, std::string(v));
+  AppendSerializedValue(report, std::string_view(v));
 }
 
 void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, bool v)
@@ -110,6 +124,15 @@ void AnalyticsReportBuilder::AppendSerializedValue(std::string* report, float v)
 {
   AppendType(report, TypeId::FLOAT);
   AppendBytes(report, reinterpret_cast<u8*>(&v), sizeof(v), false);
+}
+
+void AnalyticsReportBuilder::AppendSerializedValueVector(std::string* report,
+                                                         const std::vector<u32>& v)
+{
+  AppendType(report, TypeId::UINT | TypeId::ARRAY);
+  AppendVarInt(report, v.size());
+  for (u32 x : v)
+    AppendVarInt(report, x);
 }
 
 AnalyticsReporter::AnalyticsReporter()
@@ -179,7 +202,7 @@ void StdoutAnalyticsBackend::Send(std::string report)
          HexDump(reinterpret_cast<const u8*>(report.data()), report.size()).c_str());
 }
 
-HttpAnalyticsBackend::HttpAnalyticsBackend(const std::string& endpoint) : m_endpoint(endpoint)
+HttpAnalyticsBackend::HttpAnalyticsBackend(std::string endpoint) : m_endpoint(std::move(endpoint))
 {
 }
 
@@ -190,5 +213,4 @@ void HttpAnalyticsBackend::Send(std::string report)
   if (m_http.IsValid())
     m_http.Post(m_endpoint, report);
 }
-
 }  // namespace Common

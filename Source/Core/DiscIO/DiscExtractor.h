@@ -6,6 +6,8 @@
 
 #include <functional>
 #include <optional>
+#include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -15,17 +17,22 @@ class FileInfo;
 struct Partition;
 class Volume;
 
-std::string DirectoryNameForPartitionType(u32 partition_type);
+constexpr u32 PARTITION_DATA = 0;
+constexpr u32 PARTITION_UPDATE = 1;
+constexpr u32 PARTITION_CHANNEL = 2;  // Mario Kart Wii, Wii Fit, Wii Fit Plus, Rabbids Go Home
+constexpr u32 PARTITION_INSTALL = 3;  // Dragon Quest X only
+
+std::string NameForPartitionType(u32 partition_type, bool include_prefix);
 
 u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
              u8* buffer, u64 max_buffer_size, u64 offset_in_file = 0);
-u64 ReadFile(const Volume& volume, const Partition& partition, const std::string& path, u8* buffer,
+u64 ReadFile(const Volume& volume, const Partition& partition, std::string_view path, u8* buffer,
              u64 max_buffer_size, u64 offset_in_file = 0);
 bool ExportData(const Volume& volume, const Partition& partition, u64 offset, u64 size,
                 const std::string& export_filename);
 bool ExportFile(const Volume& volume, const Partition& partition, const FileInfo* file_info,
                 const std::string& export_filename);
-bool ExportFile(const Volume& volume, const Partition& partition, const std::string& path,
+bool ExportFile(const Volume& volume, const Partition& partition, std::string_view path,
                 const std::string& export_filename);
 
 // update_progress is called once for each child (file or directory).

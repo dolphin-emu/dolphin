@@ -147,7 +147,7 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
   {
     Stop();
     file_index++;
-    std::stringstream filename;
+    std::ostringstream filename;
     filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
     Start(filename.str(), sample_rate);
     current_sample_rate = sample_rate;

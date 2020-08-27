@@ -9,29 +9,12 @@
 #include <d3dcompiler.h>
 #include <dxgi1_5.h>
 #include <vector>
+#include <wrl/client.h>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 
-namespace DX11
-{
-#define SAFE_RELEASE(x)                                                                            \
-  {                                                                                                \
-    if (x)                                                                                         \
-      (x)->Release();                                                                              \
-    (x) = nullptr;                                                                                 \
-  }
-#define SAFE_DELETE(x)                                                                             \
-  {                                                                                                \
-    delete (x);                                                                                    \
-    (x) = nullptr;                                                                                 \
-  }
-#define SAFE_DELETE_ARRAY(x)                                                                       \
-  {                                                                                                \
-    delete[](x);                                                                                   \
-    (x) = nullptr;                                                                                 \
-  }
 #ifdef _MSC_VER
 #define CHECK(cond, Message, ...)                                                                  \
   if (!(cond))                                                                                     \
@@ -46,60 +29,32 @@ namespace DX11
                ##__VA_ARGS__);                                                                     \
   }
 #endif
-class D3DTexture2D;
+
+namespace DX11
+{
+using Microsoft::WRL::ComPtr;
+class SwapChain;
 
 namespace D3D
 {
-HRESULT LoadDXGI();
-HRESULT LoadD3D();
-HRESULT LoadD3DCompiler();
-void UnloadDXGI();
-void UnloadD3D();
-void UnloadD3DCompiler();
+extern ComPtr<IDXGIFactory> dxgi_factory;
+extern ComPtr<ID3D11Device> device;
+extern ComPtr<ID3D11Device1> device1;
+extern ComPtr<ID3D11DeviceContext> context;
+extern D3D_FEATURE_LEVEL feature_level;
 
-D3D_FEATURE_LEVEL GetFeatureLevel(IDXGIAdapter* adapter);
-std::vector<DXGI_SAMPLE_DESC> EnumAAModes(IDXGIAdapter* adapter);
+bool Create(u32 adapter_index, bool enable_debug_layer);
+void Destroy();
 
-HRESULT Create(HWND wnd);
-void Close();
+// Returns a list of supported AA modes for the current device.
+std::vector<u32> GetAAModes(u32 adapter_index);
 
-extern ID3D11Device* device;
-extern ID3D11Device1* device1;
-extern ID3D11DeviceContext* context;
-extern IDXGISwapChain1* swapchain;
-extern D3D_FEATURE_LEVEL featlevel;
+// Checks for support of the given texture format.
+bool SupportsTextureFormat(DXGI_FORMAT format);
 
-void Reset(HWND new_wnd);
-void ResizeSwapChain();
-void Present();
-
-D3DTexture2D* GetBackBuffer();
-const char* PixelShaderVersionString();
-const char* GeometryShaderVersionString();
-const char* VertexShaderVersionString();
-const char* ComputeShaderVersionString();
-bool BGRATexturesSupported();
-bool AllowTearingSupported();
-
-u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level);
-
-HRESULT SetFullscreenState(bool enable_fullscreen);
-bool GetFullscreenState();
-
-// This function will assign a name to the given resource.
-// The DirectX debug layer will make it easier to identify resources that way,
-// e.g. when listing up all resources who have unreleased references.
-void SetDebugObjectName(ID3D11DeviceChild* resource, const char* name);
-std::string GetDebugObjectName(ID3D11DeviceChild* resource);
+// Checks for logic op support.
+bool SupportsLogicOp(u32 adapter_index);
 
 }  // namespace D3D
-
-typedef HRESULT(WINAPI* CREATEDXGIFACTORY)(REFIID, void**);
-extern CREATEDXGIFACTORY PCreateDXGIFactory;
-typedef HRESULT(WINAPI* D3D11CREATEDEVICE)(IDXGIAdapter*, D3D_DRIVER_TYPE, HMODULE, UINT,
-                                           CONST D3D_FEATURE_LEVEL*, UINT, UINT, ID3D11Device**,
-                                           D3D_FEATURE_LEVEL*, ID3D11DeviceContext**);
-
-extern pD3DCompile PD3DCompile;
 
 }  // namespace DX11

@@ -37,7 +37,6 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
-    <ClInclude Include="Compiler.h" />
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
@@ -56,8 +55,10 @@
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MinizipUtil.h" />
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SFMLHelper.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="SPSCQueue.h" />
     <ClInclude Include="StringUtil.h" />
@@ -242,9 +244,6 @@
     <ClInclude Include="GL\GLInterface\WGL.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>
-    <ClInclude Include="GL\GLInterfaceBase.h">
-      <Filter>GL\GLInterface</Filter>
-    </ClInclude>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
@@ -274,6 +273,20 @@
     <ClInclude Include="Debug\MemoryPatches.h">
       <Filter>Debug</Filter>
     </ClInclude>
+    <ClInclude Include="Debug\OSThread.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\Threads.h">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="GL\GLContext.h">
+      <Filter>GL\GLInterface</Filter>
+    </ClInclude>
+    <ClInclude Include="VariantUtil.h" />
+    <ClInclude Include="DynamicLibrary.h" />
+    <ClInclude Include="Arm64Emitter.h" />
+    <ClInclude Include="ArmCommon.h" />
+    <ClInclude Include="Inline.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -290,6 +303,7 @@
     <ClCompile Include="Image.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
     <ClCompile Include="MsgHandler.cpp" />
@@ -299,6 +313,7 @@
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SFMLHelper.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
@@ -337,9 +352,6 @@
     <ClCompile Include="GL\GLInterface\WGL.cpp">
       <Filter>GL\GLInterface</Filter>
     </ClCompile>
-    <ClCompile Include="GL\GLInterface\GLInterface.cpp">
-      <Filter>GL\GLInterface</Filter>
-    </ClCompile>
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="File.cpp" />
@@ -353,6 +365,16 @@
     <ClCompile Include="Debug\MemoryPatches.cpp">
       <Filter>Debug</Filter>
     </ClCompile>
+    <ClCompile Include="Debug\OSThread.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="GL\GLContext.cpp">
+      <Filter>GL\GLInterface</Filter>
+    </ClCompile>
+    <ClCompile Include="DynamicLibrary.cpp" />
+    <ClCompile Include="ArmCPUDetect.cpp" />
+    <ClCompile Include="Arm64Emitter.cpp" />
+    <ClCompile Include="GenericFPURoundMode.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

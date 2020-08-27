@@ -368,7 +368,11 @@ void JitArm64::cntlzwx(UGeckoInstruction inst)
 
   if (gpr.IsImm(s))
   {
+#ifdef _MSC_VER
+    gpr.SetImmediate(a, _CountLeadingZeros(gpr.GetImm(s)));
+#else
     gpr.SetImmediate(a, __builtin_clz(gpr.GetImm(s)));
+#endif
     if (inst.Rc)
       ComputeRC0(gpr.GetImm(a));
   }
@@ -532,7 +536,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   u32 a = inst.RA, s = inst.RS;
 
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
     gpr.SetImmediate(a, Common::RotateLeft(gpr.GetImm(s), inst.SH) & mask);
@@ -579,8 +583,8 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  u32 a = inst.RA, b = inst.RB, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 a = inst.RA, b = inst.RB, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -631,6 +635,9 @@ void JitArm64::srawix(UGeckoInstruction inst)
       ComputeCarry(true);
     else
       ComputeCarry(false);
+
+    if (inst.Rc)
+      ComputeRC0(gpr.GetImm(a));
   }
   else if (amount == 0)
   {
@@ -639,6 +646,9 @@ void JitArm64::srawix(UGeckoInstruction inst)
     ARM64Reg RS = gpr.R(s);
     MOV(RA, RS);
     ComputeCarry(false);
+
+    if (inst.Rc)
+      ComputeRC0(RA);
   }
   else
   {
@@ -925,7 +935,7 @@ void JitArm64::subfex(UGeckoInstruction inst)
 
     // d = ~a + b + carry;
     if (gpr.IsImm(a))
-      MOVI2R(WA, ~gpr.GetImm(a));
+      MOVI2R(WA, u32(~gpr.GetImm(a)));
     else
       MVN(WA, gpr.R(a));
     ADCS(gpr.R(d), WA, gpr.R(b));
@@ -1181,7 +1191,7 @@ void JitArm64::divwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC0(imm_d);
   }
-  else if (gpr.IsImm(b) && gpr.GetImm(b) != 0 && gpr.GetImm(b) != -1u)
+  else if (gpr.IsImm(b) && gpr.GetImm(b) != 0 && gpr.GetImm(b) != UINT32_C(0xFFFFFFFF))
   {
     ARM64Reg WA = gpr.GetReg();
     MOVI2R(WA, gpr.GetImm(b));
@@ -1431,8 +1441,8 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
 
-  int a = inst.RA, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const int a = inst.RA, s = inst.RS;
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {

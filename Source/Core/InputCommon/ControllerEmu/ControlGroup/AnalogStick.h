@@ -5,23 +5,34 @@
 #pragma once
 
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/StickGate.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {
-class AnalogStick : public ControlGroup
+class AnalogStick : public ReshapableInput
 {
 public:
-  enum
-  {
-    SETTING_RADIUS,
-    SETTING_DEADZONE,
-  };
+  using StateData = ReshapeData;
 
-  // The GameCube controller and Wiimote attachments have a different default radius
-  AnalogStick(const char* name, ControlState default_radius);
-  AnalogStick(const char* name, const char* ui_name, ControlState default_radius);
+  AnalogStick(const char* name, std::unique_ptr<StickGate>&& stick_gate);
+  AnalogStick(const char* name, const char* ui_name, std::unique_ptr<StickGate>&& stick_gate);
 
-  void GetState(ControlState* x, ControlState* y);
+  ReshapeData GetReshapableState(bool adjusted) final override;
+  ControlState GetGateRadiusAtAngle(double ang) const override;
+
+  StateData GetState();
+
+private:
+  std::unique_ptr<StickGate> m_stick_gate;
 };
+
+// An AnalogStick with an OctagonStickGate
+class OctagonAnalogStick : public AnalogStick
+{
+public:
+  OctagonAnalogStick(const char* name, ControlState gate_radius);
+  OctagonAnalogStick(const char* name, const char* ui_name, ControlState gate_radius);
+};
+
 }  // namespace ControllerEmu

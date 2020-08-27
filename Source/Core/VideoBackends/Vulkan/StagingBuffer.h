@@ -63,6 +63,13 @@ public:
   static bool AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage,
                              VkBuffer* out_buffer, VkDeviceMemory* out_memory, bool* out_coherent);
 
+  // Wrapper for creating an barrier on a buffer
+  static void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
+                                  VkAccessFlags src_access_mask, VkAccessFlags dst_access_mask,
+                                  VkDeviceSize offset, VkDeviceSize size,
+                                  VkPipelineStageFlags src_stage_mask,
+                                  VkPipelineStageFlags dst_stage_mask);
+
 protected:
   STAGING_BUFFER_TYPE m_type;
   VkBuffer m_buffer;
@@ -74,4 +81,4 @@ protected:
   VkDeviceSize m_map_offset = 0;
   VkDeviceSize m_map_size = 0;
 };
-}
+}  // namespace Vulkan

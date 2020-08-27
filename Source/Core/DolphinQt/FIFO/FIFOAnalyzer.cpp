@@ -10,7 +10,6 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QListWidget>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSplitter>
 #include <QTextBrowser>
@@ -110,9 +109,9 @@ void FIFOAnalyzer::ConnectWidgets()
   connect(m_detail_list, &QListWidget::itemSelectionChanged, this,
           &FIFOAnalyzer::UpdateDescription);
 
-  connect(m_search_new, &QPushButton::pressed, this, &FIFOAnalyzer::BeginSearch);
-  connect(m_search_next, &QPushButton::pressed, this, &FIFOAnalyzer::FindNext);
-  connect(m_search_previous, &QPushButton::pressed, this, &FIFOAnalyzer::FindPrevious);
+  connect(m_search_new, &QPushButton::clicked, this, &FIFOAnalyzer::BeginSearch);
+  connect(m_search_next, &QPushButton::clicked, this, &FIFOAnalyzer::FindNext);
+  connect(m_search_previous, &QPushButton::clicked, this, &FIFOAnalyzer::FindPrevious);
 }
 
 void FIFOAnalyzer::Update()
@@ -242,10 +241,10 @@ void FIFOAnalyzer::UpdateDetails()
         const u8* stream_start = objectdata;
         const u8* stream_end = stream_start + streamSize * 4;
 
-        new_label = QStringLiteral("XF  %1  ").arg(cmd2, 16, 8, QLatin1Char('0'));
+        new_label = QStringLiteral("XF  %1  ").arg(cmd2, 8, 16, QLatin1Char('0'));
         while (objectdata < stream_end)
         {
-          new_label += QStringLiteral("%1").arg(*objectdata++, 16, 2, QLatin1Char('0'));
+          new_label += QStringLiteral("%1").arg(*objectdata++, 2, 16, QLatin1Char('0'));
 
           if (((objectdata - stream_start) % 4) == 0)
             new_label += QLatin1Char(' ');
@@ -281,7 +280,7 @@ void FIFOAnalyzer::UpdateDetails()
       {
         u32 cmd2 = Common::swap32(objectdata);
         objectdata += 4;
-        new_label = QStringLiteral("BP  %02X %06X")
+        new_label = QStringLiteral("BP  %1 %2")
                         .arg(cmd2 >> 24, 2, 16, QLatin1Char('0'))
                         .arg(cmd2 & 0xFFFFFF, 6, 16, QLatin1Char('0'));
       }
@@ -423,7 +422,7 @@ void FIFOAnalyzer::FindPrevious()
 
 void FIFOAnalyzer::ShowSearchResult(size_t index)
 {
-  if (!m_search_results.size())
+  if (m_search_results.empty())
     return;
 
   if (index > m_search_results.size())
@@ -474,9 +473,9 @@ void FIFOAnalyzer::UpdateDescription()
 
     text = tr("BP register ");
     text += name.empty() ?
-                QStringLiteral("UNKNOWN_%02X").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
+                QStringLiteral("UNKNOWN_%1").arg(*(cmddata + 1), 2, 16, QLatin1Char('0')) :
                 QString::fromStdString(name);
-    text += QStringLiteral("\n");
+    text += QLatin1Char{'\n'};
 
     if (desc.empty())
       text += tr("No description available");

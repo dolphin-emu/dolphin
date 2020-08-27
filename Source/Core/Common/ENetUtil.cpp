@@ -36,4 +36,4 @@ int ENET_CALLBACK InterceptCallback(ENetHost* host, ENetEvent* event)
   }
   return 0;
 }
-}
+}  // namespace ENetUtil

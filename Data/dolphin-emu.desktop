@@ -1,7 +1,7 @@
 [Desktop Entry]
 Version=1.0
 Icon=dolphin-emu
-Exec=dolphin-emu
+Exec=env QT_QPA_PLATFORM=xcb dolphin-emu
 Terminal=false
 Type=Application
 Categories=Game;Emulator;

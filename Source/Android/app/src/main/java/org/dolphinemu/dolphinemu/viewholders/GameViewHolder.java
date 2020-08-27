@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.viewholders;
 
-import android.support.v7.widget.RecyclerView;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -14,20 +15,20 @@ import org.dolphinemu.dolphinemu.model.GameFile;
  */
 public class GameViewHolder extends RecyclerView.ViewHolder
 {
-	public ImageView imageScreenshot;
-	public TextView textGameTitle;
-	public TextView textCompany;
+  public ImageView imageScreenshot;
+  public TextView textGameTitle;
+  public TextView textGameCaption;
 
-	public GameFile gameFile;
+  public GameFile gameFile;
 
-	public GameViewHolder(View itemView)
-	{
-		super(itemView);
+  public GameViewHolder(View itemView)
+  {
+    super(itemView);
 
-		itemView.setTag(this);
+    itemView.setTag(this);
 
-		imageScreenshot = itemView.findViewById(R.id.image_game_screen);
-		textGameTitle = itemView.findViewById(R.id.text_game_title);
-		textCompany = itemView.findViewById(R.id.text_company);
-	}
+    imageScreenshot = itemView.findViewById(R.id.image_game_screen);
+    textGameTitle = itemView.findViewById(R.id.text_game_title);
+    textGameCaption = itemView.findViewById(R.id.text_game_caption);
+  }
 }

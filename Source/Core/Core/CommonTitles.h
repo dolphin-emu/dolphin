@@ -14,6 +14,8 @@ constexpr u64 SYSTEM_MENU = 0x0000000100000002;
 
 constexpr u64 SHOP = 0x0001000248414241;
 
+constexpr u64 KOREAN_SHOP = 0x000100024841424b;
+
 constexpr u64 IOS(u32 major_version)
 {
   return 0x0000000100000000 | major_version;

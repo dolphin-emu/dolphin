@@ -14,12 +14,13 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Common/Swap.h"
 
 namespace IOS::HLE::FS
 {
 class FileHandle;
 class FileSystem;
-}
+}  // namespace IOS::HLE::FS
 
 class SysConf final
 {
@@ -46,8 +47,7 @@ public:
     };
 
     Entry(Type type_, const std::string& name_);
-    Entry(Type type_, const std::string& name_, const std::vector<u8>& bytes_);
-    Entry(Type type_, const std::string& name_, std::vector<u8>&& bytes_);
+    Entry(Type type_, const std::string& name_, std::vector<u8> bytes_);
 
     // Intended for use with the non array types.
     template <typename T>
@@ -55,14 +55,17 @@ public:
     {
       if (bytes.size() != sizeof(T))
         return default_value;
+
       T value;
       std::memcpy(&value, bytes.data(), bytes.size());
-      return value;
+      return Common::FromBigEndian(value);
     }
     template <typename T>
     void SetData(T value)
     {
       ASSERT(sizeof(value) == bytes.size());
+
+      value = Common::FromBigEndian(value);
       std::memcpy(bytes.data(), &value, bytes.size());
     }
 

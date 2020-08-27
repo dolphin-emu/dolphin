@@ -30,4 +30,4 @@ void CopyRegion(const T* const source, const MathUtil::Rectangle<int>& srcrect, 
     }
   }
 }
-}
+}  // namespace SW

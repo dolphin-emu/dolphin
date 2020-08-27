@@ -221,7 +221,7 @@ static void ClipTriangle(int* indices, int* numIndices)
       POLY_CLIP(CLIP_POS_Z_BIT, 0, 0, 0, 1);
       POLY_CLIP(CLIP_NEG_Z_BIT, 0, 0, 1, 1);
 
-      INCSTAT(stats.thisFrame.numTrianglesClipped);
+      INCSTAT(g_stats.this_frame.num_triangles_clipped);
 
       // transform the poly in inlist into triangles
       indices[0] = inlist[0];
@@ -288,7 +288,7 @@ static void ClipLine(int* indices)
 
 void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2)
 {
-  INCSTAT(stats.thisFrame.numTrianglesIn)
+  INCSTAT(g_stats.this_frame.num_triangles_in)
 
   bool backface;
 
@@ -410,7 +410,7 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
 
   if (mask)
   {
-    INCSTAT(stats.thisFrame.numTrianglesRejected)
+    INCSTAT(g_stats.this_frame.num_triangles_rejected)
     return false;
   }
 
@@ -430,13 +430,13 @@ bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const Outp
 
   if ((bpmem.genMode.cullmode & 1) && !backface)  // cull frontfacing
   {
-    INCSTAT(stats.thisFrame.numTrianglesCulled)
+    INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;
   }
 
   if ((bpmem.genMode.cullmode & 2) && backface)  // cull backfacing
   {
-    INCSTAT(stats.thisFrame.numTrianglesCulled)
+    INCSTAT(g_stats.this_frame.num_triangles_culled)
     return false;
   }
 
@@ -453,4 +453,4 @@ void PerspectiveDivide(OutputVertexData* vertex)
   screen.y = projected.y * wInverse * xfmem.viewport.ht + xfmem.viewport.yOrig - 342;
   screen.z = projected.z * wInverse * xfmem.viewport.zRange + xfmem.viewport.farZ;
 }
-}
+}  // namespace Clipper

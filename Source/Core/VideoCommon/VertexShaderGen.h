@@ -65,7 +65,7 @@ struct vertex_shader_uid_data
 };
 #pragma pack()
 
-typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
+using VertexShaderUid = ShaderUid<vertex_shader_uid_data>;
 
 VertexShaderUid GetVertexShaderUid();
 ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& host_config,

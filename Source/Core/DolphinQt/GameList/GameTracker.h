@@ -41,6 +41,7 @@ public:
   void AddDirectory(const QString& dir);
   void RemoveDirectory(const QString& dir);
   void RefreshAll();
+  void PurgeCache();
 
 signals:
   void GameLoaded(const std::shared_ptr<const UICommon::GameFile>& game);
@@ -70,6 +71,10 @@ private:
     RemoveDirectory,
     UpdateDirectory,
     UpdateFile,
+    UpdateMetadata,
+    PurgeCache,
+    BeginRefresh,
+    EndRefresh,
   };
 
   struct Command
@@ -87,6 +92,8 @@ private:
   Common::Event m_initial_games_emitted_event;
   bool m_initial_games_emitted = false;
   bool m_started = false;
+  // Count of currently running refresh jobs
+  u32 m_busy_count = 0;
 };
 
 Q_DECLARE_METATYPE(std::shared_ptr<const UICommon::GameFile>)

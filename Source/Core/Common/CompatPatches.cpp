@@ -4,10 +4,14 @@
 
 #include <Windows.h>
 #include <functional>
+#include <optional>
 #include <string>
 #include <vector>
 #include <winternl.h>
 
+#include <fmt/format.h>
+
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/LdrWatcher.h"
 #include "Common/StringUtil.h"
@@ -160,37 +164,26 @@ struct Version
   }
 };
 
-static bool GetModulePath(const wchar_t* name, std::wstring* path)
+static std::optional<std::wstring> GetModulePath(const wchar_t* name)
 {
   auto module = GetModuleHandleW(name);
   if (module == nullptr)
-    return false;
-  DWORD path_len = MAX_PATH;
-retry:
-  path->resize(path_len);
-  path_len = GetModuleFileNameW(module, const_cast<wchar_t*>(path->data()),
-                                static_cast<DWORD>(path->size()));
-  if (!path_len)
-    return false;
-  auto error = GetLastError();
-  if (error == ERROR_SUCCESS)
-    return true;
-  if (error == ERROR_INSUFFICIENT_BUFFER)
-    goto retry;
-  return false;
+    return std::nullopt;
+
+  return GetModuleName(module);
 }
 
 static bool GetModuleVersion(const wchar_t* name, Version* version)
 {
-  std::wstring path;
-  if (!GetModulePath(name, &path))
+  auto path = GetModulePath(name);
+  if (!path)
     return false;
   DWORD handle;
-  DWORD data_len = GetFileVersionInfoSizeW(path.c_str(), &handle);
+  DWORD data_len = GetFileVersionInfoSizeW(path->c_str(), &handle);
   if (!data_len)
     return false;
   std::vector<u8> block(data_len);
-  if (!GetFileVersionInfoW(path.c_str(), handle, data_len, block.data()))
+  if (!GetFileVersionInfoW(path->c_str(), handle, data_len, block.data()))
     return false;
   void* buf;
   UINT buf_len;
@@ -213,41 +206,40 @@ void CompatPatchesInstall(LdrWatcher* watcher)
                       auto patcher = ImportPatcher(event.base_address);
                       patcher.PatchIAT("kernel32.dll", "HeapCreate", HeapCreateLow4GB);
                     }});
-  watcher->Install({{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
-                      // ucrtbase implements caching between fseek/fread, old versions have a bug
-                      // such that some reads return incorrect data. This causes noticable bugs
-                      // in dolphin since we use these APIs for reading game images.
-                      Version version;
-                      if (!GetModuleVersion(event.name.c_str(), &version))
-                        return;
-                      const u16 fixed_build = 10548;
-                      if (version.build >= fixed_build)
-                        return;
-                      const UcrtPatchInfo patches[] = {
-                          // 10.0.10240.16384 (th1.150709-1700)
-                          {0xF61ED, 0x6AE7B, 5},
-                          // 10.0.10240.16390 (th1_st1.150714-1601)
-                          {0xF5ED9, 0x6AE7B, 5},
-                          // 10.0.10137.0 (th1.150602-2238)
-                          {0xF8B5E, 0x63ED6, 2},
-                      };
-                      for (const auto& patch : patches)
-                      {
-                        if (ApplyUcrtPatch(event.name.c_str(), patch))
-                          return;
-                      }
-                      // If we reach here, the version is buggy (afaik) and patching failed
-                      auto msg = StringFromFormat(
-                          "You are running %S version %d.%d.%d.%d.\n"
-                          "An important fix affecting Dolphin was introduced in build %d.\n"
-                          "You can use Dolphin, but there will be known bugs.\n"
-                          "Please update this file by installing the latest Universal C Runtime.\n",
-                          event.name.c_str(), version.major, version.minor, version.build,
-                          version.qfe, fixed_build);
-                      // Use MessageBox for maximal user annoyance
-                      MessageBoxA(nullptr, msg.c_str(), "WARNING: BUGGY UCRT VERSION",
-                                  MB_ICONEXCLAMATION);
-                    }});
+  watcher->Install(
+      {{L"ucrtbase.dll"}, [](const LdrDllLoadEvent& event) {
+         // ucrtbase implements caching between fseek/fread, old versions have a bug
+         // such that some reads return incorrect data. This causes noticable bugs
+         // in dolphin since we use these APIs for reading game images.
+         Version version;
+         if (!GetModuleVersion(event.name.c_str(), &version))
+           return;
+         const u16 fixed_build = 10548;
+         if (version.build >= fixed_build)
+           return;
+         const UcrtPatchInfo patches[] = {
+             // 10.0.10240.16384 (th1.150709-1700)
+             {0xF61ED, 0x6AE7B, 5},
+             // 10.0.10240.16390 (th1_st1.150714-1601)
+             {0xF5ED9, 0x6AE7B, 5},
+             // 10.0.10137.0 (th1.150602-2238)
+             {0xF8B5E, 0x63ED6, 2},
+         };
+         for (const auto& patch : patches)
+         {
+           if (ApplyUcrtPatch(event.name.c_str(), patch))
+             return;
+         }
+         // If we reach here, the version is buggy (afaik) and patching failed
+         const auto msg = fmt::format(
+             L"You are running {} version {}.{}.{}.{}.\n"
+             L"An important fix affecting Dolphin was introduced in build {}.\n"
+             L"You can use Dolphin, but there will be known bugs.\n"
+             L"Please update this file by installing the latest Universal C Runtime.\n",
+             event.name, version.major, version.minor, version.build, version.qfe, fixed_build);
+         // Use MessageBox for maximal user annoyance
+         MessageBoxW(nullptr, msg.c_str(), L"WARNING: BUGGY UCRT VERSION", MB_ICONEXCLAMATION);
+       }});
 }
 
 int __cdecl EnableCompatPatches()

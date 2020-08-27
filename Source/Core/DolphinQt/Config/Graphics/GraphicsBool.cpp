@@ -4,14 +4,15 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
 
 #include <QFont>
 
-GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>& setting,
-                           bool reverse)
+GraphicsBool::GraphicsBool(const QString& label, const Config::Info<bool>& setting, bool reverse)
     : QCheckBox(label), m_setting(setting), m_reverse(reverse)
 {
   connect(this, &QCheckBox::toggled, this, &GraphicsBool::Update);
@@ -22,9 +23,8 @@ GraphicsBool::GraphicsBool(const QString& label, const Config::ConfigInfo<bool>&
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setChecked(Config::Get(m_setting) ^ m_reverse);
-    blockSignals(old);
   });
 }
 
@@ -33,7 +33,7 @@ void GraphicsBool::Update()
   Config::SetBaseOrCurrent(m_setting, static_cast<bool>(isChecked() ^ m_reverse));
 }
 
-GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::ConfigInfo<bool>& setting,
+GraphicsBoolEx::GraphicsBoolEx(const QString& label, const Config::Info<bool>& setting,
                                bool reverse)
     : QRadioButton(label), m_setting(setting), m_reverse(reverse)
 {

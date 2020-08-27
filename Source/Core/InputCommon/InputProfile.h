@@ -50,4 +50,4 @@ private:
 
   int m_wiimote_profile_index = 0;
 };
-}
+}  // namespace InputProfile

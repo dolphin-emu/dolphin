@@ -40,4 +40,4 @@ void FastWrite8(u8 value);
 void FastWrite16(u16 value);
 void FastWrite32(u32 value);
 void FastWrite64(u64 value);
-}
+}  // namespace GPFifo

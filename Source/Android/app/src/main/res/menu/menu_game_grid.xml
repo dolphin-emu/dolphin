@@ -32,4 +32,15 @@
         android:icon="@drawable/ic_refresh"
         app:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/menu_open_file"
+        android:icon="@android:drawable/ic_media_play"
+        android:title="@string/grid_menu_open_file"
+        app:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_install_wad"
+        android:title="@string/grid_menu_install_wad"
+        app:showAsAction="never"/>
+
 </menu>

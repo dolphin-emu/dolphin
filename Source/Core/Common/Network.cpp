@@ -6,11 +6,10 @@
 
 #include <algorithm>
 #include <cctype>
-#include <cstring>
-#include <ctime>
+
+#include <fmt/format.h>
 
 #include "Common/Random.h"
-#include "Common/StringUtil.h"
 
 namespace Common
 {
@@ -38,14 +37,14 @@ MACAddress GenerateMacAddress(const MACConsumer type)
 
 std::string MacAddressToString(const MACAddress& mac)
 {
-  return StringFromFormat("%02x:%02x:%02x:%02x:%02x:%02x", mac[0], mac[1], mac[2], mac[3], mac[4],
-                          mac[5]);
+  return fmt::format("{:02x}:{:02x}:{:02x}:{:02x}:{:02x}:{:02x}", mac[0], mac[1], mac[2], mac[3],
+                     mac[4], mac[5]);
 }
 
-std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
+std::optional<MACAddress> StringToMacAddress(std::string_view mac_string)
 {
   if (mac_string.empty())
-    return {};
+    return std::nullopt;
 
   int x = 0;
   MACAddress mac{};
@@ -69,7 +68,7 @@ std::optional<MACAddress> StringToMacAddress(const std::string& mac_string)
   // nibble is a character in the MAC address, making 12 characters
   // in total.
   if (x / 2 != MAC_ADDRESS_SIZE)
-    return {};
+    return std::nullopt;
 
   return std::make_optional(mac);
 }

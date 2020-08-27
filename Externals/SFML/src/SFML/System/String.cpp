@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -175,6 +175,41 @@ std::wstring String::toWideString() const
 
 
 ////////////////////////////////////////////////////////////
+std::basic_string<Uint8> String::toUtf8() const
+{
+    // Prepare the output string
+    std::basic_string<Uint8> output;
+    output.reserve(m_string.length());
+
+    // Convert
+    Utf32::toUtf8(m_string.begin(), m_string.end(), std::back_inserter(output));
+
+    return output;
+}
+
+
+////////////////////////////////////////////////////////////
+std::basic_string<Uint16> String::toUtf16() const
+{
+    // Prepare the output string
+    std::basic_string<Uint16> output;
+    output.reserve(m_string.length());
+
+    // Convert
+    Utf32::toUtf16(m_string.begin(), m_string.end(), std::back_inserter(output));
+
+    return output;
+}
+
+
+////////////////////////////////////////////////////////////
+std::basic_string<Uint32> String::toUtf32() const
+{
+    return m_string;
+}
+
+
+////////////////////////////////////////////////////////////
 String& String::operator =(const String& right)
 {
     m_string = right.m_string;
@@ -243,6 +278,36 @@ void String::insert(std::size_t position, const String& str)
 std::size_t String::find(const String& str, std::size_t start) const
 {
     return m_string.find(str.m_string, start);
+}
+
+
+////////////////////////////////////////////////////////////
+void String::replace(std::size_t position, std::size_t length, const String& replaceWith)
+{
+    m_string.replace(position, length, replaceWith.m_string);
+}
+
+
+////////////////////////////////////////////////////////////
+void String::replace(const String& searchFor, const String& replaceWith)
+{
+    std::size_t step = replaceWith.getSize();
+    std::size_t len = searchFor.getSize();
+    std::size_t pos = find(searchFor);
+
+    // Replace each occurrence of search
+    while (pos != InvalidPos)
+    {
+        replace(pos, len, replaceWith);
+        pos = find(searchFor, pos + step);
+    }
+}
+
+
+////////////////////////////////////////////////////////////
+String String::substring(std::size_t position, std::size_t length) const
+{
+    return m_string.substr(position, length);
 }
 
 

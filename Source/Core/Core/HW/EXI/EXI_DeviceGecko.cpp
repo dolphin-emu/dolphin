@@ -4,16 +4,18 @@
 
 #include "Core/HW/EXI/EXI_DeviceGecko.h"
 
+#include <array>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
 
@@ -65,7 +67,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   if (!server_running.IsSet())
     return;
 
-  Core::DisplayMessage(StringFromFormat("USBGecko: Listening on TCP port %u", server_port), 5000);
+  Core::DisplayMessage(fmt::format("USBGecko: Listening on TCP port {}", server_port), 5000);
 
   server.setBlocking(false);
 
@@ -126,17 +128,17 @@ void GeckoSockServer::ClientThread()
       std::lock_guard<std::mutex> lk(transfer_lock);
 
       // what's an ideal buffer size?
-      char data[128];
+      std::array<char, 128> buffer;
       std::size_t got = 0;
 
-      if (client->receive(&data[0], ArraySize(data), got) == sf::Socket::Disconnected)
+      if (client->receive(buffer.data(), buffer.size(), got) == sf::Socket::Disconnected)
         client_running.Clear();
 
       if (got != 0)
       {
         did_nothing = false;
 
-        recv_fifo.insert(recv_fifo.end(), &data[0], &data[got]);
+        recv_fifo.insert(recv_fifo.end(), buffer.data(), &buffer[got]);
       }
 
       if (!send_fifo.empty())

@@ -27,21 +27,20 @@ public:
   explicit ControllersWindow(QWidget* parent);
 
 private:
-  void OnEmulationStateChanged(bool running);
-  void OnWiimoteModeChanged(bool passthrough);
-  void OnWiimoteTypeChanged(int state);
+  void OnWiimoteModeChanged();
+  void UpdateDisabledWiimoteControls();
   void OnGCTypeChanged(int state);
   void SaveSettings();
-  void UnimplementedButton();
   void OnBluetoothPassthroughSyncPressed();
   void OnBluetoothPassthroughResetPressed();
   void OnWiimoteRefreshPressed();
   void OnGCPadConfigure();
   void OnWiimoteConfigure();
+  void OnControllerInterfaceConfigure();
 
   void CreateGamecubeLayout();
   void CreateWiimoteLayout();
-  void CreateAdvancedLayout();
+  void CreateCommonLayout();
   void CreateMainLayout();
   void ConnectWidgets();
   void LoadSettings();
@@ -72,10 +71,12 @@ private:
   QCheckBox* m_wiimote_continuous_scanning;
   QCheckBox* m_wiimote_real_balance_board;
   QCheckBox* m_wiimote_speaker_data;
+  QCheckBox* m_wiimote_ciface;
   QPushButton* m_wiimote_refresh;
 
-  // Advanced
-  QGroupBox* m_advanced_box;
-  QHBoxLayout* m_advanced_layout;
-  QCheckBox* m_advanced_bg_input;
+  // Common
+  QGroupBox* m_common_box;
+  QVBoxLayout* m_common_layout;
+  QCheckBox* m_common_bg_input;
+  QPushButton* m_common_configure_controller_interface;
 };

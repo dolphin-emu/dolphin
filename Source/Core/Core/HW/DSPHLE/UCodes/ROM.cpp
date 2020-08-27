@@ -20,9 +20,7 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
@@ -130,5 +128,4 @@ void ROMUCode::DoState(PointerWrap& p)
 
   DoStateShared(p);
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

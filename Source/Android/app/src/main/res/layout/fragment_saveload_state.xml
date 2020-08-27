@@ -1,11 +1,11 @@
 <GridLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/grid_state_slots"
-    android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
-    android:columnCount="3"
-    android:rowCount="2"
-    android:layout_gravity="center"
-    android:background="#af000000">
+            android:id="@+id/grid_state_slots"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="2"
+            android:layout_gravity="center"
+            android:background="#af000000">
 
     <Button
         android:id="@+id/loadsave_state_button_1"

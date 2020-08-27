@@ -15,6 +15,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
@@ -23,8 +25,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Common/Config/Config.h"
-#include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 
@@ -54,16 +54,16 @@ std::vector<std::string> GetGameIniFilenames(const std::string& id, std::optiona
 
   // INIs with specific revisions
   if (revision)
-    filenames.push_back(id + StringFromFormat("r%d", *revision) + ".ini");
+    filenames.push_back(id + fmt::format("r{}", *revision) + ".ini");
 
   return filenames;
 }
 
-using ConfigLocation = Config::ConfigLocation;
-using INIToLocationMap = std::map<std::pair<std::string, std::string>, ConfigLocation>;
+using Location = Config::Location;
+using INIToLocationMap = std::map<std::pair<std::string, std::string>, Location>;
 using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::string>>;
 
-// This is a mapping from the legacy section-key pairs to ConfigLocations.
+// This is a mapping from the legacy section-key pairs to Locations.
 // New settings do not need to be added to this mapping.
 // See also: MapINIToRealLocation and GetINILocationFromConfig.
 static const INIToLocationMap& GetINIToLocationMap()
@@ -83,6 +83,8 @@ static const INIToLocationMap& GetINIToLocationMap()
 static const INIToSectionMap& GetINIToSectionMap()
 {
   static const INIToSectionMap ini_to_section = {
+      {"Core", {Config::System::Main, "Core"}},
+      {"Display", {Config::System::Main, "Display"}},
       {"Video_Hardware", {Config::System::GFX, "Hardware"}},
       {"Video_Settings", {Config::System::GFX, "Settings"}},
       {"Video_Enhancements", {Config::System::GFX, "Enhancements"}},
@@ -93,11 +95,11 @@ static const INIToSectionMap& GetINIToSectionMap()
   return ini_to_section;
 }
 
-// Converts from a legacy GameINI section-key tuple to a ConfigLocation.
+// Converts from a legacy GameINI section-key tuple to a Location.
 // Also supports the following format:
 // [System.Section]
 // Key = Value
-static ConfigLocation MapINIToRealLocation(const std::string& section, const std::string& key)
+static Location MapINIToRealLocation(const std::string& section, const std::string& key)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
   const auto it = ini_to_location.find({section, key});
@@ -128,7 +130,7 @@ static ConfigLocation MapINIToRealLocation(const std::string& section, const std
   return {Config::System::Main, "", ""};
 }
 
-static std::pair<std::string, std::string> GetINILocationFromConfig(const ConfigLocation& location)
+static std::pair<std::string, std::string> GetINILocationFromConfig(const Location& location)
 {
   static const INIToLocationMap& ini_to_location = GetINIToLocationMap();
   const auto it = std::find_if(ini_to_location.begin(), ini_to_location.end(),
@@ -203,7 +205,7 @@ private:
       std::string path = "Profiles/" + std::get<1>(use_data) + "/";
 
       const auto control_section = [&](std::string key) {
-        return Config::ConfigLocation{std::get<2>(use_data), "Controls", key};
+        return Config::Location{std::get<2>(use_data), "Controls", key};
       };
 
       for (const char num : nums)
@@ -225,8 +227,8 @@ private:
           const IniFile::Section::SectionMap& section_map = ini_section->GetValues();
           for (const auto& value : section_map)
           {
-            Config::ConfigLocation location{std::get<2>(use_data), std::get<1>(use_data) + num,
-                                            value.first};
+            Config::Location location{std::get<2>(use_data), std::get<1>(use_data) + num,
+                                      value.first};
             layer->Set(location, value.second);
           }
         }
@@ -267,7 +269,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   for (const auto& config : layer->GetLayerMap())
   {
-    const Config::ConfigLocation& location = config.first;
+    const Config::Location& location = config.first;
     const std::optional<std::string>& value = config.second;
 
     if (!IsSettingSaveable(location))
@@ -290,7 +292,7 @@ void INIGameConfigLayerLoader::Save(Config::Layer* layer)
 
   // Try to save to the revision specific INI first, if it exists.
   const std::string gameini_with_rev =
-      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + StringFromFormat("r%d", m_revision) + ".ini";
+      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + fmt::format("r{}", m_revision) + ".ini";
   if (File::Exists(gameini_with_rev))
   {
     ini.Save(gameini_with_rev);
@@ -315,4 +317,4 @@ std::unique_ptr<Config::ConfigLayerLoader> GenerateLocalGameConfigLoader(const s
 {
   return std::make_unique<INIGameConfigLayerLoader>(id, revision, false);
 }
-}
+}  // namespace ConfigLoaders

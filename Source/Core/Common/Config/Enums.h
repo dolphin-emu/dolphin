@@ -30,6 +30,7 @@ enum class System
   GFX,
   Logger,
   Debugger,
+  DualShockUDPClient,
 };
 
 constexpr std::array<LayerType, 7> SEARCH_ORDER{{
@@ -41,4 +42,4 @@ constexpr std::array<LayerType, 7> SEARCH_ORDER{{
     LayerType::GlobalGame,
     LayerType::Base,
 }};
-}
+}  // namespace Config

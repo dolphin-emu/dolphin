@@ -2,29 +2,28 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/PerfQuery.h"
+
 #include <memory>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
-#include "Common/GL/GLUtil.h"
+#include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/PerfQuery.h"
-#include "VideoCommon/RenderBase.h"
+#include "VideoBackends/OGL/Render.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
 {
 std::unique_ptr<PerfQueryBase> GetPerfQuery()
 {
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3 &&
-      GLExtensions::Supports("GL_NV_occlusion_query_samples"))
+  const bool is_gles = static_cast<Renderer*>(g_renderer.get())->IsGLES();
+  if (is_gles && GLExtensions::Supports("GL_NV_occlusion_query_samples"))
     return std::make_unique<PerfQueryGLESNV>();
-
-  if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
+  else if (is_gles)
     return std::make_unique<PerfQueryGL>(GL_ANY_SAMPLES_PASSED);
-
-  return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
+  else
+    return std::make_unique<PerfQueryGL>(GL_SAMPLES_PASSED);
 }
 
 PerfQuery::PerfQuery() : m_query_read_pos()
@@ -56,7 +55,7 @@ void PerfQuery::FlushResults()
 void PerfQuery::ResetQuery()
 {
   m_query_count = 0;
-  std::fill_n(m_results, ArraySize(m_results), 0);
+  std::fill(std::begin(m_results), std::end(m_results), 0);
 }
 
 u32 PerfQuery::GetQueryResult(PerfQueryType type)
@@ -266,4 +265,4 @@ void PerfQueryGLESNV::FlushResults()
     FlushOne();
 }
 
-}  // namespace
+}  // namespace OGL

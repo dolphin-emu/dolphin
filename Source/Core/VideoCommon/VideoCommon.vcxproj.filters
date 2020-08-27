@@ -29,12 +29,6 @@
     <ClCompile Include="PixelEngine.cpp" />
     <ClCompile Include="VideoBackendBase.cpp" />
     <ClCompile Include="VideoConfig.cpp" />
-    <ClCompile Include="Debugger.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
-    <ClCompile Include="FramebufferManagerBase.cpp">
-      <Filter>Base</Filter>
-    </ClCompile>
     <ClCompile Include="PerfQueryBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -92,7 +86,7 @@
     <ClCompile Include="VertexShaderManager.cpp">
       <Filter>Shader Managers</Filter>
     </ClCompile>
-    <ClCompile Include="AVIDump.cpp">
+    <ClCompile Include="FrameDump.cpp">
       <Filter>Util</Filter>
     </ClCompile>
     <ClCompile Include="FPSCounter.cpp">
@@ -197,6 +191,24 @@
     <ClCompile Include="ShaderCache.cpp">
       <Filter>Shader Generators</Filter>
     </ClCompile>
+    <ClCompile Include="FramebufferShaderGen.cpp">
+      <Filter>Shader Generators</Filter>
+    </ClCompile>
+    <ClCompile Include="FramebufferManager.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlayChatUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="NetPlayGolfUI.cpp">
+      <Filter>Util</Filter>
+    </ClCompile>
+    <ClCompile Include="TextureDecoder_Generic.cpp">
+      <Filter>Decoding</Filter>
+    </ClCompile>
+    <ClCompile Include="VertexLoaderARM64.cpp">
+      <Filter>Vertex Loading</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CommandProcessor.h" />
@@ -206,12 +218,6 @@
     <ClInclude Include="VideoBackendBase.h" />
     <ClInclude Include="VideoCommon.h" />
     <ClInclude Include="VideoConfig.h" />
-    <ClInclude Include="Debugger.h">
-      <Filter>Base</Filter>
-    </ClInclude>
-    <ClInclude Include="FramebufferManagerBase.h">
-      <Filter>Base</Filter>
-    </ClInclude>
     <ClInclude Include="PerfQueryBase.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -275,7 +281,7 @@
     <ClInclude Include="VertexShaderManager.h">
       <Filter>Shader Managers</Filter>
     </ClInclude>
-    <ClInclude Include="AVIDump.h">
+    <ClInclude Include="FrameDump.h">
       <Filter>Util</Filter>
     </ClInclude>
     <ClInclude Include="FPSCounter.h">
@@ -374,7 +380,6 @@
     <ClInclude Include="AbstractPipeline.h">
       <Filter>Base</Filter>
     </ClInclude>
-    <ClInclude Include="TextureConverterShaderGen.h" />
     <ClInclude Include="AbstractFramebuffer.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -383,6 +388,24 @@
     </ClInclude>
     <ClInclude Include="ShaderCache.h">
       <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="FramebufferShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="FramebufferManager.h">
+      <Filter>Base</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureConverterShaderGen.h">
+      <Filter>Shader Generators</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayChatUI.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlayGolfUI.h">
+      <Filter>Util</Filter>
+    </ClInclude>
+    <ClInclude Include="VertexLoaderARM64.h">
+      <Filter>Vertex Loading</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

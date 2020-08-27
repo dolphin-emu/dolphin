@@ -180,6 +180,9 @@ bool WiimoteDevice::LinkChannel()
   DEBUG_LOG(IOS_WIIMOTE, "ConnectionState CONN_LINKING -> CONN_COMPLETE");
   m_connection_state = ConnectionState::Complete;
 
+  // Update wiimote connection status in the UI
+  Host_UpdateDisasmDialog();
+
   return false;
 }
 
@@ -208,18 +211,23 @@ void WiimoteDevice::Activate(bool ready)
 
 void WiimoteDevice::EventConnectionAccepted()
 {
-  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", m_connection_state);
+  DEBUG_LOG(IOS_WIIMOTE, "ConnectionState %x -> CONN_LINKING", int(m_connection_state));
   m_connection_state = ConnectionState::Linking;
 }
 
 void WiimoteDevice::EventDisconnect()
 {
   // Send disconnect message to plugin
-  Wiimote::ControlChannel(m_connection_handle & 0xFF, 99, nullptr, 0);
+  Wiimote::ControlChannel(m_connection_handle & 0xFF, Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL,
+                          nullptr, 0);
 
   m_connection_state = ConnectionState::Inactive;
+
   // Clear channel flags
   ResetChannels();
+
+  // Update wiimote connection status in the UI
+  Host_UpdateDisasmDialog();
 }
 
 bool WiimoteDevice::EventPagingChanged(u8 page_mode) const
@@ -635,16 +643,16 @@ void WiimoteDevice::SendConfigurationRequest(u16 scid, u16 mtu, u16 flush_time_o
   SendCommandToACL(L2CAP_CONFIG_REQ, L2CAP_CONFIG_REQ, offset, buffer);
 }
 
-  //
-  //
-  //
-  //
-  // ---  SDP
-  //
-  //
-  //
-  //
-  //
+//
+//
+//
+//
+// ---  SDP
+//
+//
+//
+//
+//
 
 #define SDP_UINT8 0x08
 #define SDP_UINT16 0x09
@@ -726,7 +734,7 @@ static int ParseAttribList(u8* attrib_id_list, u16& start_id, u16& end_id)
   const u8 type_id = attrib_list.Read8(attrib_offset);
   attrib_offset++;
 
-  if (MAX_LOGLEVEL >= LogTypes::LOG_LEVELS::LDEBUG)
+  if constexpr (MAX_LOGLEVEL >= Common::Log::LOG_LEVELS::LDEBUG)
   {
     DEBUG_ASSERT(sequence == SDP_SEQ8);
     (void)seq_size;
@@ -786,15 +794,10 @@ void WiimoteDevice::SDPSendServiceAttributeResponse(u16 cid, u16 transaction_id,
 
   header->length = (u16)(offset - sizeof(l2cap_hdr_t));
   m_host->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
-
-  // Debugger::PrintDataBuffer(LogTypes::WIIMOTE, data_frame, header->length + sizeof(l2cap_hdr_t),
-  // "test response: ");
 }
 
 void WiimoteDevice::HandleSDP(u16 cid, u8* data, u32 size)
 {
-  // Debugger::PrintDataBuffer(LogTypes::WIIMOTE, data, size, "HandleSDP: ");
-
   CBigEndianBuffer buffer(data);
 
   switch (buffer.Read8(0))
@@ -881,9 +884,6 @@ void WiimoteDevice::SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* c
 
   // send ....
   m_host->SendACLPacket(GetConnectionHandle(), data_frame, header->length + sizeof(l2cap_hdr_t));
-
-  // Debugger::PrintDataBuffer(LogTypes::WIIMOTE, data_frame, header->length + sizeof(l2cap_hdr_t),
-  // "m_pHost->SendACLPacket: ");
 }
 
 void WiimoteDevice::ReceiveL2capData(u16 scid, const void* data, u32 size)
@@ -928,4 +928,4 @@ void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const u8* data
   if (bt)
     bt->AccessWiimoteByIndex(number)->ReceiveL2capData(channel_id, data, size);
 }
-}
+}  // namespace Core

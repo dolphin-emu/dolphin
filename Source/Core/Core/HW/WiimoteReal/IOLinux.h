@@ -51,7 +51,7 @@ private:
   int m_device_id;
   int m_device_sock;
 };
-}
+}  // namespace WiimoteReal
 
 #else
 #include "Core/HW/WiimoteReal/IODummy.h"

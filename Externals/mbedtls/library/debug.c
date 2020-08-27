@@ -71,7 +71,7 @@ static inline void debug_send_line( const mbedtls_ssl_context *ssl, int level,
      */
 #if defined(MBEDTLS_THREADING_C)
     char idstr[20 + DEBUG_BUF_SIZE]; /* 0x + 16 nibbles + ': ' */
-    mbedtls_snprintf( idstr, sizeof( idstr ), "%p: %s", ssl, str );
+    mbedtls_snprintf( idstr, sizeof( idstr ), "%p: %s", (void*)ssl, str );
     ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, idstr );
 #else
     ssl->conf->f_dbg( ssl->conf->p_dbg, level, file, line, str );
@@ -91,7 +91,7 @@ void mbedtls_debug_print_msg( const mbedtls_ssl_context *ssl, int level,
 
     va_start( argp, format );
 #if defined(_WIN32)
-#if defined(_TRUNCATE)
+#if defined(_TRUNCATE) && !defined(__MINGW32__)
     ret = _vsnprintf_s( str, DEBUG_BUF_SIZE, _TRUNCATE, format, argp );
 #else
     ret = _vsnprintf( str, DEBUG_BUF_SIZE, format, argp );
@@ -364,5 +364,55 @@ void mbedtls_debug_print_crt( const mbedtls_ssl_context *ssl, int level,
     }
 }
 #endif /* MBEDTLS_X509_CRT_PARSE_C */
+
+#if defined(MBEDTLS_ECDH_C)
+static void mbedtls_debug_printf_ecdh_internal( const mbedtls_ssl_context *ssl,
+                                                int level, const char *file,
+                                                int line,
+                                                const mbedtls_ecdh_context *ecdh,
+                                                mbedtls_debug_ecdh_attr attr )
+{
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    const mbedtls_ecdh_context* ctx = ecdh;
+#else
+    const mbedtls_ecdh_context_mbed* ctx = &ecdh->ctx.mbed_ecdh;
+#endif
+
+    switch( attr )
+    {
+        case MBEDTLS_DEBUG_ECDH_Q:
+            mbedtls_debug_print_ecp( ssl, level, file, line, "ECDH: Q",
+                                     &ctx->Q );
+            break;
+        case MBEDTLS_DEBUG_ECDH_QP:
+            mbedtls_debug_print_ecp( ssl, level, file, line, "ECDH: Qp",
+                                     &ctx->Qp );
+            break;
+        case MBEDTLS_DEBUG_ECDH_Z:
+            mbedtls_debug_print_mpi( ssl, level, file, line, "ECDH: z",
+                                     &ctx->z );
+            break;
+        default:
+            break;
+    }
+}
+
+void mbedtls_debug_printf_ecdh( const mbedtls_ssl_context *ssl, int level,
+                                const char *file, int line,
+                                const mbedtls_ecdh_context *ecdh,
+                                mbedtls_debug_ecdh_attr attr )
+{
+#if defined(MBEDTLS_ECDH_LEGACY_CONTEXT)
+    mbedtls_debug_printf_ecdh_internal( ssl, level, file, line, ecdh, attr );
+#else
+    switch( ecdh->var )
+    {
+        default:
+            mbedtls_debug_printf_ecdh_internal( ssl, level, file, line, ecdh,
+                                                attr );
+    }
+#endif
+}
+#endif /* MBEDTLS_ECDH_C */
 
 #endif /* MBEDTLS_DEBUG_C */

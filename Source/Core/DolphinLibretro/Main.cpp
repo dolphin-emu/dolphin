@@ -7,12 +7,14 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/ChunkFile.h"
 #include "Common/Event.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/Thread.h"
 #include "Common/Version.h"
 #include "Core/BootManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/SYSCONFSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -21,10 +23,11 @@
 #include "DolphinLibretro/Input.h"
 #include "DolphinLibretro/Options.h"
 #include "DolphinLibretro/Video.h"
-#include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/OGLTexture.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 #ifdef PERF_TEST
@@ -163,35 +166,40 @@ void retro_reset(void)
 void retro_run(void)
 {
   Libretro::Options::CheckVariables();
-  LogManager::GetInstance()->SetLogLevel(Libretro::Options::logLevel);
+#if defined(_DEBUG)
+  Common::Log::LogManager::GetInstance()->SetLogLevel(Common::Log::LDEBUG);
+#else
+  Common::Log::LogManager::GetInstance()->SetLogLevel(Libretro::Options::logLevel);
+#endif
   SConfig::GetInstance().m_OCFactor = Libretro::Options::cpuClockRate;
   SConfig::GetInstance().m_OCEnable = Libretro::Options::cpuClockRate != 1.0;
   g_Config.bWidescreenHack = Libretro::Options::WidescreenHack;
 
   Libretro::Input::Update();
 
-  if (Core::GetState() == Core::State::Uninitialized)
+  if (Core::GetState() == Core::State::Starting)
   {
-    Core::EmuThread();
+    WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
+    Core::EmuThread(wsi);
     AudioCommon::SetSoundStreamRunning(false);
     g_sound_stream.reset();
     g_sound_stream = std::make_unique<Libretro::Audio::Stream>();
     AudioCommon::SetSoundStreamRunning(true);
 
-    if (SConfig::GetInstance().m_strVideoBackend == "Software Renderer")
+    if (Config::Get(Config::MAIN_GFX_BACKEND) == "Software Renderer")
     {
       g_renderer->Shutdown();
       g_renderer.reset();
       g_renderer = std::make_unique<Libretro::Video::SWRenderer>();
     }
-    else if (SConfig::GetInstance().m_strVideoBackend == "Null")
+    else if (Config::Get(Config::MAIN_GFX_BACKEND) == "Null")
     {
       g_renderer->Shutdown();
       g_renderer.reset();
       g_renderer = std::make_unique<Libretro::Video::NullRenderer>();
     }
 #ifdef _WIN32
-    else if (SConfig::GetInstance().m_strVideoBackend == "D3D")
+    else if (Config::Get(Config::MAIN_GFX_BACKEND) == "D3D")
     {
       g_renderer->Shutdown();
       g_renderer.reset();
@@ -202,10 +210,10 @@ void retro_run(void)
       Common::SleepCurrentThread(100);
   }
 
-  if (SConfig::GetInstance().m_strVideoBackend == "OGL")
+  if (Config::Get(Config::MAIN_GFX_BACKEND) == "OGL")
   {
-    OGL::g_ogl_config.defaultFramebuffer =
-        (GLuint)Libretro::Video::hw_render.get_current_framebuffer();
+    static_cast<OGL::Renderer*>(g_renderer.get())
+        ->SetSystemFrameBuffer((GLuint)Libretro::Video::hw_render.get_current_framebuffer());
   }
 
   if (Libretro::Options::efbScale.Updated())

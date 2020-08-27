@@ -8,6 +8,7 @@
 #include <QDialogButtonBox>
 #include <QGridLayout>
 #include <QLabel>
+#include <QSignalBlocker>
 
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
@@ -34,12 +35,12 @@ void PadMappingDialog::CreateWidgets()
     m_wii_boxes[i] = new QComboBox;
 
     m_main_layout->addWidget(new QLabel(tr("GC Port %1").arg(i + 1)), 0, i);
-    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 0, 4 + i);
     m_main_layout->addWidget(m_gc_boxes[i], 1, i);
-    m_main_layout->addWidget(m_wii_boxes[i], 1, 4 + i);
+    m_main_layout->addWidget(new QLabel(tr("Wii Remote %1").arg(i + 1)), 2, i);
+    m_main_layout->addWidget(m_wii_boxes[i], 3, i);
   }
 
-  m_main_layout->addWidget(m_button_box, 2, 0, 1, -1);
+  m_main_layout->addWidget(m_button_box, 4, 0, 1, -1);
 
   setLayout(m_main_layout);
 }
@@ -47,11 +48,11 @@ void PadMappingDialog::CreateWidgets()
 void PadMappingDialog::ConnectWidgets()
 {
   connect(m_button_box, &QDialogButtonBox::accepted, this, &QDialog::accept);
-  for (auto& combo_group : {m_gc_boxes, m_wii_boxes})
+  for (const auto& combo_group : {m_gc_boxes, m_wii_boxes})
   {
-    for (auto& combo : combo_group)
+    for (const auto& combo : combo_group)
     {
-      connect(combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+      connect(combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
               &PadMappingDialog::OnMappingChanged);
     }
   }
@@ -59,8 +60,8 @@ void PadMappingDialog::ConnectWidgets()
 
 int PadMappingDialog::exec()
 {
-  auto* client = Settings::Instance().GetNetPlayClient();
-  auto* server = Settings::Instance().GetNetPlayServer();
+  auto client = Settings::Instance().GetNetPlayClient();
+  auto server = Settings::Instance().GetNetPlayServer();
   // Load Settings
   m_players = client->GetPlayers();
   m_pad_mapping = server->GetPadMapping();
@@ -82,15 +83,14 @@ int PadMappingDialog::exec()
     for (size_t i = 0; i < combo_group.size(); i++)
     {
       auto& combo = combo_group[i];
-      const bool old = combo->blockSignals(true);
+      const QSignalBlocker blocker(combo);
 
       combo->clear();
       combo->addItems(players);
 
       const auto index = gc ? m_pad_mapping[i] : m_wii_mapping[i];
 
-      combo->setCurrentIndex(index == -1 ? 0 : index);
-      combo->blockSignals(old);
+      combo->setCurrentIndex(index);
     }
   }
 
@@ -114,7 +114,7 @@ void PadMappingDialog::OnMappingChanged()
     int gc_id = m_gc_boxes[i]->currentIndex();
     int wii_id = m_wii_boxes[i]->currentIndex();
 
-    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : -1;
-    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : -1;
+    m_pad_mapping[i] = gc_id > 0 ? m_players[gc_id - 1]->pid : 0;
+    m_wii_mapping[i] = wii_id > 0 ? m_players[wii_id - 1]->pid : 0;
   }
 }

@@ -5,8 +5,10 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 
 #include <algorithm>
+#include <cstring>
 #include <map>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
 
@@ -297,7 +299,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     // Detect two columns with three columns fallback
     if (column_count == 0)
     {
-      const std::string stripped_line = StripSpaces(line);
+      const std::string_view stripped_line = StripSpaces(line);
       if (std::count(stripped_line.begin(), stripped_line.end(), ' ') == 1)
         column_count = 2;
       else

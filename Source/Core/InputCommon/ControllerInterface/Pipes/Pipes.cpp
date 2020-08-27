@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <cstdlib>
 #include <fcntl.h>
@@ -15,14 +16,11 @@
 #include <vector>
 
 #include "Common/FileUtil.h"
-#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Pipes/Pipes.h"
 
-namespace ciface
-{
-namespace Pipes
+namespace ciface::Pipes
 {
 static const std::array<std::string, 12> s_button_tokens{
     {"A", "B", "X", "Y", "Z", "START", "L", "R", "D_UP", "D_DOWN", "D_LEFT", "D_RIGHT"}};
@@ -123,7 +121,7 @@ void PipeDevice::AddAxis(const std::string& name, double value)
 
 void PipeDevice::SetAxis(const std::string& entry, double value)
 {
-  value = MathUtil::Clamp(value, 0.0, 1.0);
+  value = std::clamp(value, 0.0, 1.0);
   double hi = std::max(0.0, value - 0.5) * 2.0;
   double lo = (0.5 - std::min(0.5, value)) * 2.0;
   auto search_hi = m_axes.find(entry + " +");
@@ -161,5 +159,4 @@ void PipeDevice::ParseCommand(const std::string& command)
     }
   }
 }
-}
-}
+}  // namespace ciface::Pipes

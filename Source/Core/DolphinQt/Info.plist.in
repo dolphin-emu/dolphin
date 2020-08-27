@@ -13,8 +13,11 @@
                 <string>gcm</string>
                 <string>gcz</string>
                 <string>iso</string>
+                <string>m3u</string>
+                <string>rvz</string>
                 <string>tgc</string>
                 <string>wad</string>
+                <string>wia</string>
                 <string>wbfs</string>
             </array>
             <key>CFBundleTypeIconFile</key>

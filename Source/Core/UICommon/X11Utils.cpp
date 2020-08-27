@@ -7,14 +7,17 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
 #include <spawn.h>
 #include <string>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <fmt/format.h>
+
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
 extern char** environ;
@@ -103,7 +106,8 @@ XRRConfiguration::~XRRConfiguration()
 
 void XRRConfiguration::Update()
 {
-  if (SConfig::GetInstance().strFullscreenResolution == "Auto")
+  const std::string fullscreen_display_res = Config::Get(Config::MAIN_FULLSCREEN_DISPLAY_RES);
+  if (fullscreen_display_res == "Auto")
     return;
 
   if (!bValid)
@@ -125,15 +129,15 @@ void XRRConfiguration::Update()
   unsigned int fullWidth, fullHeight;
   char* output_name = nullptr;
   char auxFlag = '\0';
-  if (SConfig::GetInstance().strFullscreenResolution.find(':') == std::string::npos)
+  if (fullscreen_display_res.find(':') == std::string::npos)
   {
     fullWidth = fb_width;
     fullHeight = fb_height;
   }
   else
   {
-    sscanf(SConfig::GetInstance().strFullscreenResolution.c_str(), "%m[^:]: %ux%u%c", &output_name,
-           &fullWidth, &fullHeight, &auxFlag);
+    sscanf(fullscreen_display_res.c_str(), "%m[^:]: %ux%u%c", &output_name, &fullWidth, &fullHeight,
+           &auxFlag);
   }
   bool want_interlaced = ('i' == auxFlag);
 
@@ -152,8 +156,9 @@ void XRRConfiguration::Update()
           if (!output_name)
           {
             output_name = strdup(output_info->name);
-            SConfig::GetInstance().strFullscreenResolution =
-                StringFromFormat("%s: %ux%u", output_info->name, fullWidth, fullHeight);
+            Config::SetBaseOrCurrent(
+                Config::MAIN_FULLSCREEN_DISPLAY_RES,
+                fmt::format("{}: {}x{}", output_info->name, fullWidth, fullHeight));
           }
           outputInfo = output_info;
           crtcInfo = crtc_info;
@@ -272,4 +277,4 @@ void XRRConfiguration::AddResolutions(std::vector<std::string>& resos)
 }
 
 #endif
-}
+}  // namespace X11Utils

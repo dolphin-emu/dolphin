@@ -13,15 +13,13 @@
 
 namespace Vulkan
 {
-class StagingBuffer;
-
 class PerfQuery : public PerfQueryBase
 {
 public:
   PerfQuery();
   ~PerfQuery();
 
-  static PerfQuery* GetInstance();
+  static PerfQuery* GetInstance() { return static_cast<PerfQuery*>(g_perf_query.get()); }
 
   bool Initialize();
 
@@ -33,38 +31,30 @@ public:
   bool IsFlushed() const override;
 
 private:
-  struct ActiveQuery
-  {
-    PerfQueryType query_type;
-    VkFence pending_fence;
-    bool available;
-    bool active;
-  };
-
-  bool CreateQueryPool();
-  bool CreateReadbackBuffer();
-  void QueueCopyQueryResults(VkCommandBuffer command_buffer, VkFence fence, u32 start_index,
-                             u32 query_count);
-  void ProcessResults(u32 start_index, u32 query_count);
-
-  void OnCommandBufferQueued(VkCommandBuffer command_buffer, VkFence fence);
-  void OnCommandBufferExecuted(VkFence fence);
-
-  void NonBlockingPartialFlush();
-  void BlockingPartialFlush();
+  // u32 is used for the sample counts.
+  using PerfQueryDataType = u32;
 
   // when testing in SMS: 64 was too small, 128 was ok
   // TODO: This should be size_t, but the base class uses u32s
-  using PerfQueryDataType = u32;
   static const u32 PERF_QUERY_BUFFER_SIZE = 512;
-  std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer = {};
-  u32 m_query_read_pos = 0;
 
-  // TODO: Investigate using pipeline statistics to implement other query types
+  struct ActiveQuery
+  {
+    u64 fence_counter;
+    PerfQueryType query_type;
+    bool has_value;
+  };
+
+  bool CreateQueryPool();
+  void ReadbackQueries();
+  void ReadbackQueries(u32 query_count);
+  void PartialFlush(bool blocking);
+
   VkQueryPool m_query_pool = VK_NULL_HANDLE;
-
-  // Buffer containing query results. Each query is a u32.
-  std::unique_ptr<StagingBuffer> m_readback_buffer;
+  u32 m_query_readback_pos = 0;
+  u32 m_query_next_pos = 0;
+  std::array<ActiveQuery, PERF_QUERY_BUFFER_SIZE> m_query_buffer = {};
+  std::array<PerfQueryDataType, PERF_QUERY_BUFFER_SIZE> m_query_result_buffer = {};
 };
 
 }  // namespace Vulkan

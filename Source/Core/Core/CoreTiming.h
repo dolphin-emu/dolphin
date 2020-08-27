@@ -108,4 +108,4 @@ void SetFakeTBStartTicks(u64 val);
 
 void ForceExceptionCheck(s64 cycles);
 
-}  // end of namespace
+}  // namespace CoreTiming

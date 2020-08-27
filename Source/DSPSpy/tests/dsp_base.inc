@@ -169,10 +169,9 @@ irq:
 
 ; DMA:s the current state of the registers back to the PowerPC. To do this,
 ; it must write the contents of all regs to DRAM.
-; Unfortunately, this loop uses ar0 so it's best to use AR1 and friends for testing
-; when messing with indexing.
 send_back:
-	; make state safe.
+	; first, store $sr so we can modify it
+	sr	@(REGS_BASE + 19), $sr
 	set16
 	; store registers to reg table
 	sr		@REGS_BASE,  $ar0
@@ -195,7 +194,8 @@ send_back:
 	srri	@$ar0, $ac0.h
 	srri	@$ar0, $ac1.h
 	srri	@$ar0, $cr
-	srri	@$ar0, $sr
+	; skip $sr since we already stored and modified it
+	iar	$ar0
 	srri	@$ar0, $prod.l
 	srri	@$ar0, $prod.m1
 	srri	@$ar0, $prod.h
@@ -257,7 +257,8 @@ dma_copy:
 	lrri	$ac0.h, @$ar0
 	lrri	$ac1.h, @$ar0
 	lrri	$cr, @$ar0
-	lrri	$sr, @$ar0
+	; leave $sr for later
+	iar	$ar0
 	lrri	$prod.l, @$ar0
 	lrri	$prod.m1, @$ar0
 	lrri	$prod.h, @$ar0
@@ -270,17 +271,10 @@ dma_copy:
 	lrri	$ac1.l, @$ar0
 	lrri	$ac0.m, @$ar0
 	lrri	$ac1.m, @$ar0
-	lr		$ar0, @REGS_BASE
+	lr	$ar0, @REGS_BASE
+	lr	$sr, @(REGS_BASE+19)
 
 	ret		; from send_back
-
-; If you are in set40 mode, use this instead of send_back if you want to stay
-; in set40 mode.
-send_back_40:
-	set16
-	call	send_back
-	set40
-	ret
 
 ; Obviously this must be included directly before your test code
 start_of_test:

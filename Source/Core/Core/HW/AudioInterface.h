@@ -28,4 +28,4 @@ unsigned int GetAIDSampleRate();
 
 void GenerateAISInterrupt();
 
-}  // namespace
+}  // namespace AudioInterface

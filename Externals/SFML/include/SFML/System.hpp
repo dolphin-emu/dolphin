@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -36,10 +36,12 @@
 //#include <SFML/System/Lock.hpp>
 //#include <SFML/System/Mutex.hpp>
 //#include <SFML/System/Sleep.hpp>
+#include <SFML/System/NonCopyable.hpp>
 #include <SFML/System/String.hpp>
 //#include <SFML/System/Thread.hpp>
 //#include <SFML/System/ThreadLocal.hpp>
 //#include <SFML/System/ThreadLocalPtr.hpp>
+#include <SFML/System/Time.hpp>
 #include <SFML/System/Utf.hpp>
 //#include <SFML/System/Vector2.hpp>
 //#include <SFML/System/Vector3.hpp>
@@ -50,7 +52,7 @@
 /// \defgroup system System module
 ///
 /// Base module of SFML, defining various utilities. It provides
-/// vector classes, unicode strings and conversion functions,
+/// vector classes, Unicode strings and conversion functions,
 /// threads and mutexes, timing classes.
 ///
 ////////////////////////////////////////////////////////////

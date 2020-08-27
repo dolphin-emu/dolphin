@@ -5,10 +5,13 @@
 #include "VideoCommon/AbstractFramebuffer.h"
 #include "VideoCommon/AbstractTexture.h"
 
-AbstractFramebuffer::AbstractFramebuffer(AbstractTextureFormat color_format,
+AbstractFramebuffer::AbstractFramebuffer(AbstractTexture* color_attachment,
+                                         AbstractTexture* depth_attachment,
+                                         AbstractTextureFormat color_format,
                                          AbstractTextureFormat depth_format, u32 width, u32 height,
                                          u32 layers, u32 samples)
-    : m_color_format(color_format), m_depth_format(depth_format), m_width(width), m_height(height),
+    : m_color_attachment(color_attachment), m_depth_attachment(depth_attachment),
+      m_color_format(color_format), m_depth_format(depth_format), m_width(width), m_height(height),
       m_layers(layers), m_samples(samples)
 {
 }
@@ -26,7 +29,7 @@ bool AbstractFramebuffer::ValidateConfig(const AbstractTexture* color_attachment
   // MSAA textures are not supported with mip levels on most backends, and it simplifies our
   // handling of framebuffers.
   auto CheckAttachment = [](const AbstractTexture* tex) {
-    return tex->GetConfig().rendertarget && tex->GetConfig().levels == 1;
+    return tex->GetConfig().IsRenderTarget() && tex->GetConfig().levels == 1;
   };
   if ((color_attachment && !CheckAttachment(color_attachment)) ||
       (depth_attachment && !CheckAttachment(depth_attachment)))

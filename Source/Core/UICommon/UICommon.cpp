@@ -17,6 +17,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
 #include "Common/FileUtil.h"
+#include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -30,6 +31,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/STM/STM.h"
+#include "Core/WiiRoot.h"
 
 #include "InputCommon/GCAdapter.h"
 
@@ -61,10 +63,25 @@ static void CreateDumpPath(const std::string& path)
   File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
 }
 
+static void CreateLoadPath(const std::string& path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_LOAD_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_HIRESTEXTURES_IDX));
+}
+
+static void CreateResourcePackPath(const std::string& path)
+{
+  if (!path.empty())
+    File::SetUserPath(D_RESOURCEPACK_IDX, path + '/');
+}
+
 static void InitCustomPaths()
 {
   File::SetUserPath(D_WIIROOT_IDX, Config::Get(Config::MAIN_FS_PATH));
+  CreateLoadPath(Config::Get(Config::MAIN_LOAD_PATH));
   CreateDumpPath(Config::Get(Config::MAIN_DUMP_PATH));
+  CreateResourcePackPath(Config::Get(Config::MAIN_RESOURCEPACK_PATH));
   const std::string sd_path = Config::Get(Config::MAIN_SD_PATH);
   if (!sd_path.empty())
     File::SetUserPath(F_WIISDCARD_IDX, sd_path);
@@ -72,18 +89,20 @@ static void InitCustomPaths()
 
 void Init()
 {
+  Core::RestoreWiiSettings(Core::RestoreReason::CrashRecovery);
+
   Config::Init();
   Config::AddConfigChangedCallback(InitCustomPaths);
   Config::AddLayer(ConfigLoaders::GenerateBaseConfigLoader());
   SConfig::Init();
   Discord::Init();
-  LogManager::Init();
+  Common::Log::LogManager::Init();
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
-  VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
+  VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
-  SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
+  Common::SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
 }
 
 void Shutdown()
@@ -91,7 +110,7 @@ void Shutdown()
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
-  LogManager::Shutdown();
+  Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
   SConfig::Shutdown();
   Config::Shutdown();
@@ -156,8 +175,10 @@ void SetLocale(std::string locale_name)
 
 void CreateDirectories()
 {
+  File::CreateFullPath(File::GetUserPath(D_RESOURCEPACK_IDX));
   File::CreateFullPath(File::GetUserPath(D_USER_IDX));
   File::CreateFullPath(File::GetUserPath(D_CACHE_IDX));
+  File::CreateFullPath(File::GetUserPath(D_COVERCACHE_IDX));
   File::CreateFullPath(File::GetUserPath(D_CONFIG_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
   File::CreateFullPath(File::GetUserPath(D_DUMPSSL_IDX));
@@ -177,6 +198,9 @@ void CreateDirectories()
 #ifndef ANDROID
   File::CreateFullPath(File::GetUserPath(D_THEMES_IDX));
   File::CreateFullPath(File::GetUserPath(D_STYLES_IDX));
+#else
+  // Disable media scanning in directories with a .nomedia file
+  File::CreateEmptyFile(File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP NOMEDIA_FILE);
 #endif
 }
 
@@ -189,7 +213,7 @@ void SetUserDirectory(const std::string& custom_path)
     return;
   }
 
-  std::string user_path = "";
+  std::string user_path;
 #ifdef _WIN32
   // Detect where the User directory is. There are five different cases
   // (on top of the command line flag, which overrides all this):
@@ -205,50 +229,61 @@ void SetUserDirectory(const std::string& custom_path)
   //    -> Use GetExeDirectory()\User
 
   // Check our registry keys
+  // TODO: Maybe use WIL when it's available?
   HKEY hkey;
   DWORD local = 0;
-  TCHAR configPath[MAX_PATH] = {0};
+  std::unique_ptr<TCHAR[]> configPath;
   if (RegOpenKeyEx(HKEY_CURRENT_USER, TEXT("Software\\Dolphin Emulator"), 0, KEY_QUERY_VALUE,
                    &hkey) == ERROR_SUCCESS)
   {
     DWORD size = 4;
     if (RegQueryValueEx(hkey, TEXT("LocalUserConfig"), nullptr, nullptr,
                         reinterpret_cast<LPBYTE>(&local), &size) != ERROR_SUCCESS)
+    {
       local = 0;
+    }
 
-    size = MAX_PATH;
-    if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, (LPBYTE)configPath,
-                        &size) != ERROR_SUCCESS)
-      configPath[0] = 0;
+    size = 0;
+    RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr, nullptr, &size);
+    configPath = std::make_unique<TCHAR[]>(size / sizeof(TCHAR));
+    if (RegQueryValueEx(hkey, TEXT("UserConfigPath"), nullptr, nullptr,
+                        reinterpret_cast<LPBYTE>(configPath.get()), &size) != ERROR_SUCCESS)
+    {
+      configPath.reset();
+    }
+
     RegCloseKey(hkey);
   }
 
-  local = local || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
+  local = local != 0 || File::Exists(File::GetExeDirectory() + DIR_SEP "portable.txt");
 
-  // Get Program Files path in case we need it.
-  TCHAR my_documents[MAX_PATH];
-  bool my_documents_found = SUCCEEDED(
-      SHGetFolderPath(nullptr, CSIDL_MYDOCUMENTS, nullptr, SHGFP_TYPE_CURRENT, my_documents));
+  // Get Documents path in case we need it.
+  // TODO: Maybe use WIL when it's available?
+  PWSTR my_documents = nullptr;
+  bool my_documents_found =
+      SUCCEEDED(SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &my_documents));
 
   if (local)  // Case 1-2
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
-  else if (configPath[0])  // Case 3
-    user_path = TStrToUTF8(configPath);
+  else if (configPath)  // Case 3
+    user_path = TStrToUTF8(configPath.get());
   else if (my_documents_found)  // Case 4
     user_path = TStrToUTF8(my_documents) + DIR_SEP "Dolphin Emulator" DIR_SEP;
   else  // Case 5
     user_path = File::GetExeDirectory() + DIR_SEP USERDATA_DIR DIR_SEP;
 
+  CoTaskMemFree(my_documents);
+
   // Prettify the path: it will be displayed in some places, we don't want a mix
   // of \ and /.
-  user_path = ReplaceAll(user_path, "\\", DIR_SEP);
+  user_path = ReplaceAll(std::move(user_path), "\\", DIR_SEP);
 
   // Make sure it ends in DIR_SEP.
-  if (*user_path.rbegin() != DIR_SEP_CHR)
+  if (user_path.back() != DIR_SEP_CHR)
     user_path += DIR_SEP;
 
 #else
-  if (File::Exists(ROOT_DIR DIR_SEP USERDATA_DIR))
+  if (File::IsDirectory(ROOT_DIR DIR_SEP USERDATA_DIR))
   {
     user_path = ROOT_DIR DIR_SEP USERDATA_DIR DIR_SEP;
   }
@@ -319,7 +354,7 @@ void SetUserDirectory(const std::string& custom_path)
 #endif
   }
 #endif
-  File::SetUserPath(D_USER_IDX, user_path);
+  File::SetUserPath(D_USER_IDX, std::move(user_path));
 }
 
 void SaveWiimoteSources()
@@ -335,12 +370,12 @@ void SaveWiimoteSources()
     secname += (char)('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 
-    sec.Set("Source", (int)g_wiimote_sources[i]);
+    sec.Set("Source", int(WiimoteCommon::GetSource(i)));
   }
 
   std::string secname("BalanceBoard");
   IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+  sec.Set("Source", int(WiimoteCommon::GetSource(WIIMOTE_BALANCE_BOARD)));
 
   inifile.Save(ini_filename);
 }
@@ -361,17 +396,17 @@ bool TriggerSTMPowerEvent()
   return true;
 }
 
-#if defined(HAVE_XRANDR) && HAVE_X11
+#if defined(HAVE_XRANDR) && HAVE_XRANDR
 void EnableScreenSaver(Window win, bool enable)
 #else
 void EnableScreenSaver(bool enable)
 #endif
 {
-// Inhibit the screensaver. Depending on the operating system this may also
-// disable low-power states and/or screen dimming.
+  // Inhibit the screensaver. Depending on the operating system this may also
+  // disable low-power states and/or screen dimming.
 
 #if defined(HAVE_X11) && HAVE_X11
-  if (SConfig::GetInstance().bDisableScreenSaver)
+  if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
   {
     X11Utils::InhibitScreensaver(win, !enable);
   }
@@ -386,7 +421,7 @@ void EnableScreenSaver(bool enable)
   else
   {
     EXECUTION_STATE should_screen_save =
-        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+        Config::Get(Config::MAIN_DISABLE_SCREENSAVER) ? ES_DISPLAY_REQUIRED : 0;
     SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
   }
 #endif
@@ -394,7 +429,7 @@ void EnableScreenSaver(bool enable)
 #ifdef __APPLE__
   static IOPMAssertionID s_power_assertion = kIOPMNullAssertionID;
 
-  if (SConfig::GetInstance().bDisableScreenSaver)
+  if (Config::Get(Config::MAIN_DISABLE_SCREENSAVER))
   {
     if (enable)
     {
@@ -418,7 +453,7 @@ void EnableScreenSaver(bool enable)
 #endif
 }
 
-std::string FormatSize(u64 bytes)
+std::string FormatSize(u64 bytes, int decimals)
 {
   // i18n: The symbol for the unit "bytes"
   const char* const unit_symbols[] = {_trans("B"),   _trans("KiB"), _trans("MiB"), _trans("GiB"),
@@ -432,9 +467,9 @@ std::string FormatSize(u64 bytes)
 
   // Don't need exact values, only 5 most significant digits
   const double unit_size = std::pow(2, unit * 10);
-  std::stringstream ss;
-  ss << std::fixed << std::setprecision(2);
-  ss << bytes / unit_size << ' ' << GetStringT(unit_symbols[unit]);
+  std::ostringstream ss;
+  ss << std::fixed << std::setprecision(decimals);
+  ss << bytes / unit_size << ' ' << Common::GetStringT(unit_symbols[unit]);
   return ss.str();
 }
 

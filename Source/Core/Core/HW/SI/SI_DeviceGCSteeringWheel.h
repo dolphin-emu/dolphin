@@ -13,7 +13,7 @@ class CSIDevice_GCSteeringWheel : public CSIDevice_GCController
 public:
   CSIDevice_GCSteeringWheel(SIDevices device, int device_number);
 
-  int RunBuffer(u8* buffer, int length) override;
+  int RunBuffer(u8* buffer, int request_length) override;
   bool GetData(u32& hi, u32& low) override;
   void SendCommand(u32 command, u8 poll) override;
 
@@ -31,6 +31,12 @@ private:
   {
     CMD_FORCE = 0x30,
     CMD_WRITE = 0x40
+  };
+
+  enum class ForceCommandType : u8
+  {
+    MotorOn = 0x03,
+    MotorOff = 0x02,
   };
 };
 }  // namespace SerialInterface

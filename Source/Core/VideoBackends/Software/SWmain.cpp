@@ -9,7 +9,8 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Common/GL/GLInterfaceBase.h"
+#include "Common/GL/GLContext.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -22,13 +23,10 @@
 #include "VideoBackends/Software/TextureCache.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-
-#define VSYNC_ENABLED 0
 
 namespace SW
 {
@@ -55,10 +53,18 @@ std::string VideoSoftware::GetDisplayName() const
   return _trans("Software Renderer");
 }
 
+std::optional<std::string> VideoSoftware::GetWarningMessage() const
+{
+  return _trans("The software renderer is significantly slower than other "
+                "backends and is only recommended for debugging purposes.\n\nDo you "
+                "really want to enable software rendering? If unsure, select 'No'.");
+}
+
 void VideoSoftware::InitBackendInfo()
 {
   g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.MaxTextureSize = 16384;
+  g_Config.backend_info.bUsesLowerLeftOrigin = false;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsEarlyZ = true;
@@ -70,34 +76,49 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsST3CTextures = false;
   g_Config.backend_info.bSupportsBPTCTextures = false;
   g_Config.backend_info.bSupportsCopyToVram = false;
+  g_Config.backend_info.bSupportsLargePoints = false;
+  g_Config.backend_info.bSupportsDepthReadback = false;
+  g_Config.backend_info.bSupportsPartialDepthCopies = false;
   g_Config.backend_info.bSupportsFramebufferFetch = false;
   g_Config.backend_info.bSupportsBackgroundCompiling = false;
   g_Config.backend_info.bSupportsLogicOp = true;
+  g_Config.backend_info.bSupportsShaderBinaries = false;
+  g_Config.backend_info.bSupportsPipelineCacheData = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
 }
 
-bool VideoSoftware::Initialize(void* window_handle)
+bool VideoSoftware::Initialize(const WindowSystemInfo& wsi)
 {
-  InitBackendInfo();
   InitializeShared();
 
-  SWOGLWindow::Init(window_handle);
+  std::unique_ptr<SWOGLWindow> window = SWOGLWindow::Create(wsi);
+  if (!window)
+    return false;
 
   Clipper::Init();
   Rasterizer::Init();
   DebugUtil::Init();
 
-  GLInterface->MakeCurrent();
-  SWOGLWindow::s_instance->Prepare();
-
-  g_renderer = std::make_unique<SWRenderer>();
+  g_renderer = std::make_unique<SWRenderer>(std::move(window));
   g_vertex_manager = std::make_unique<SWVertexLoader>();
+  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
+  g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
-  g_shader_cache = std::make_unique<VideoCommon::ShaderCache>();
-  return g_shader_cache->Initialize();
+
+  if (!g_vertex_manager->Initialize() || !g_shader_cache->Initialize() ||
+      !g_renderer->Initialize() || !g_framebuffer_manager->Initialize() ||
+      !g_texture_cache->Initialize())
+  {
+    PanicAlert("Failed to initialize renderer classes");
+    Shutdown();
+    return false;
+  }
+
+  g_shader_cache->InitializeShaderCache();
+  return true;
 }
 
 void VideoSoftware::Shutdown()
@@ -109,12 +130,12 @@ void VideoSoftware::Shutdown()
     g_renderer->Shutdown();
 
   DebugUtil::Shutdown();
-  SWOGLWindow::Shutdown();
-  g_framebuffer_manager.reset();
   g_texture_cache.reset();
   g_perf_query.reset();
+  g_framebuffer_manager.reset();
+  g_shader_cache.reset();
   g_vertex_manager.reset();
   g_renderer.reset();
   ShutdownShared();
 }
-}
+}  // namespace SW

@@ -99,6 +99,47 @@ static inline bool IsValidTLUTFormat(TLUTFormat tlutfmt)
          tlutfmt == TLUTFormat::RGB5A3;
 }
 
+static inline bool IsCompatibleTextureFormat(TextureFormat from_format, TextureFormat to_format)
+{
+  if (from_format == to_format)
+    return true;
+
+  // Indexed and paletted formats are "compatible", that is do not require conversion.
+  switch (from_format)
+  {
+  case TextureFormat::I4:
+  case TextureFormat::C4:
+    return to_format == TextureFormat::I4 || to_format == TextureFormat::C4;
+
+  case TextureFormat::I8:
+  case TextureFormat::C8:
+    return to_format == TextureFormat::I8 || to_format == TextureFormat::C8;
+
+  default:
+    return false;
+  }
+}
+
+static inline bool CanReinterpretTextureOnGPU(TextureFormat from_format, TextureFormat to_format)
+{
+  // Currently, we can only reinterpret textures of the same width.
+  switch (from_format)
+  {
+  case TextureFormat::I8:
+  case TextureFormat::IA4:
+    return to_format == TextureFormat::I8 || to_format == TextureFormat::IA4;
+
+  case TextureFormat::IA8:
+  case TextureFormat::RGB565:
+  case TextureFormat::RGB5A3:
+    return to_format == TextureFormat::IA8 || to_format == TextureFormat::RGB565 ||
+           to_format == TextureFormat::RGB5A3;
+
+  default:
+    return false;
+  }
+}
+
 int TexDecoder_GetTexelSizeInNibbles(TextureFormat format);
 int TexDecoder_GetTextureSizeInBytes(int width, int height, TextureFormat format);
 int TexDecoder_GetBlockWidthInTexels(TextureFormat format);
@@ -116,6 +157,7 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
                             TextureFormat texformat, const u8* tlut, TLUTFormat tlutfmt);
 void TexDecoder_DecodeTexelRGBA8FromTmem(u8* dst, const u8* src_ar, const u8* src_gb, int s, int t,
                                          int imageWidth);
+void TexDecoder_DecodeXFB(u8* dst, const u8* src, u32 width, u32 height, u32 stride);
 
 void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 

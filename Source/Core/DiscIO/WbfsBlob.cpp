@@ -58,7 +58,7 @@ void WbfsFileReader::OpenAdditionalFiles(const std::string& path)
   if (path.length() < 4)
     return;
 
-  ASSERT(m_files.size() > 0);  // The code below gives .wbf0 for index 0, but it should be .wbfs
+  ASSERT(!m_files.empty());  // The code below gives .wbf0 for index 0, but it should be .wbfs
 
   while (true)
   {
@@ -115,6 +115,9 @@ bool WbfsFileReader::ReadHeader()
 
 bool WbfsFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
 {
+  if (offset + nbytes > GetDataSize())
+    return false;
+
   while (nbytes)
   {
     u64 read_size;
@@ -180,4 +183,4 @@ std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(File::IOFile file, const 
   return reader;
 }
 
-}  // namespace
+}  // namespace DiscIO

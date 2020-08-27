@@ -12,7 +12,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Swap.h"
 
@@ -59,7 +58,7 @@ static void MultiplyVec3Mat34(const Vec3& vec, const float* mat, Vec3& result)
   result.z = mat[8] * vec.x + mat[9] * vec.y + mat[10] * vec.z + mat[11];
 }
 
-static void MultipleVec3Perspective(const Vec3& vec, const float* proj, Vec4& result)
+static void MultipleVec3Perspective(const Vec3& vec, const Projection::Raw& proj, Vec4& result)
 {
   result.x = proj[0] * vec.x + proj[1] * vec.z;
   result.y = proj[2] * vec.y + proj[3] * vec.z;
@@ -68,7 +67,7 @@ static void MultipleVec3Perspective(const Vec3& vec, const float* proj, Vec4& re
   result.w = -vec.z;
 }
 
-static void MultipleVec3Ortho(const Vec3& vec, const float* proj, Vec4& result)
+static void MultipleVec3Ortho(const Vec3& vec, const Projection::Raw& proj, Vec4& result)
 {
   result.x = proj[0] * vec.x + proj[1];
   result.y = proj[2] * vec.y + proj[3];
@@ -192,8 +191,8 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
   // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
   if (dst->z == 0.0f)
   {
-    dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
-    dst->y = MathUtil::Clamp(dst->y / 2.0f, -1.0f, 1.0f);
+    dst->x = std::clamp(dst->x / 2.0f, -1.0f, 1.0f);
+    dst->y = std::clamp(dst->y / 2.0f, -1.0f, 1.0f);
   }
 }
 
@@ -359,9 +358,9 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
           LightColor(dst->mvPosition, dst->normal[0], i, colorchan, lightCol);
       }
 
-      int light_x = MathUtil::Clamp(static_cast<int>(lightCol.x), 0, 255);
-      int light_y = MathUtil::Clamp(static_cast<int>(lightCol.y), 0, 255);
-      int light_z = MathUtil::Clamp(static_cast<int>(lightCol.z), 0, 255);
+      int light_x = std::clamp(static_cast<int>(lightCol.x), 0, 255);
+      int light_y = std::clamp(static_cast<int>(lightCol.y), 0, 255);
+      int light_z = std::clamp(static_cast<int>(lightCol.z), 0, 255);
       chancolor[1] = (matcolor[1] * (light_x + (light_x >> 7))) >> 8;
       chancolor[2] = (matcolor[2] * (light_y + (light_y >> 7))) >> 8;
       chancolor[3] = (matcolor[3] * (light_z + (light_z >> 7))) >> 8;
@@ -393,7 +392,7 @@ void TransformColor(const InputVertexData* src, OutputVertexData* dst)
           LightAlpha(dst->mvPosition, dst->normal[0], i, alphachan, lightCol);
       }
 
-      int light_a = MathUtil::Clamp(static_cast<int>(lightCol), 0, 255);
+      int light_a = std::clamp(static_cast<int>(lightCol), 0, 255);
       chancolor[0] = (matcolor[0] * (light_a + (light_a >> 7))) >> 8;
     }
     else
@@ -456,4 +455,4 @@ void TransformTexCoord(const InputVertexData* src, OutputVertexData* dst, bool s
     dst->texCoords[coordNum][1] *= (bpmem.texcoords[coordNum].t.scale_minus_1 + 1);
   }
 }
-}
+}  // namespace TransformUnit

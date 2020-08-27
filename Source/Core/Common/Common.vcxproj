@@ -1,43 +1,29 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|x64">
-      <Configuration>Debug</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|x64">
-      <Configuration>Release</Configuration>
-      <Platform>x64</Platform>
-    </ProjectConfiguration>
-  </ItemGroup>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
-    <UseDebugLibraries>true</UseDebugLibraries>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
-    <UseDebugLibraries>false</UseDebugLibraries>
-  </PropertyGroup>
+  <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
-  <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionSettings" />
   <ImportGroup Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="..\..\VSProps\Base.props" />
-    <Import Project="..\..\VSProps\PCHUse.props" />
+    <Import Project="$(VSPropsDir)Base.props" />
+    <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClInclude Include="Align.h" />
     <ClInclude Include="Analytics.h" />
+    <ClInclude Include="Arm64Emitter.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="ArmCommon.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="Atomic_GCC.h" />
@@ -54,7 +40,7 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
-    <ClInclude Include="Compiler.h" />
+    <ClInclude Include="Inline.h" />
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Config\Enums.h" />
@@ -62,7 +48,10 @@
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="Debug\MemoryPatches.h" />
+    <ClInclude Include="Debug\OSThread.h" />
+    <ClInclude Include="Debug\Threads.h" />
     <ClInclude Include="Debug\Watches.h" />
+    <ClInclude Include="DynamicLibrary.h" />
     <ClInclude Include="ENetUtil.h" />
     <ClInclude Include="Event.h" />
     <ClInclude Include="File.h" />
@@ -121,9 +110,15 @@
     <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h" />
     <ClInclude Include="GL\GLExtensions\NV_occlusion_query_samples.h" />
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h" />
-    <ClInclude Include="GL\GLInterfaceBase.h" />
-    <ClInclude Include="GL\GLInterface\WGL.h" />
-    <ClInclude Include="GL\GLUtil.h" />
+    <ClInclude Include="GL\GLContext.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="GL\GLInterface\WGL.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="GL\GLUtil.h">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="FloatUtils.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />
@@ -134,9 +129,11 @@
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
+    <ClInclude Include="Matrix.h" />
     <ClInclude Include="MD5.h" />
     <ClInclude Include="MemArena.h" />
     <ClInclude Include="MemoryUtil.h" />
+    <ClInclude Include="MinizipUtil.h" />
     <ClInclude Include="MsgHandler.h" />
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
@@ -147,6 +144,7 @@
     <ClInclude Include="Result.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
+    <ClInclude Include="SFMLHelper.h" />
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="SPSCQueue.h" />
@@ -158,11 +156,18 @@
     <ClInclude Include="TraversalClient.h" />
     <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="UPnP.h" />
+    <ClInclude Include="VariantUtil.h" />
     <ClInclude Include="Version.h" />
     <ClInclude Include="WorkQueueThread.h" />
-    <ClInclude Include="x64ABI.h" />
-    <ClInclude Include="x64Emitter.h" />
-    <ClInclude Include="x64Reg.h" />
+    <ClInclude Include="x64ABI.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="x64Emitter.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
+    <ClInclude Include="x64Reg.h">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="Crypto\AES.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
@@ -172,6 +177,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="Arm64Emitter.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="ArmCPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="CommonFuncs.cpp" />
@@ -180,17 +191,28 @@
     <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp" />
+    <ClCompile Include="Debug\OSThread.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />
+    <ClCompile Include="DynamicLibrary.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="File.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="FloatUtils.cpp" />
     <ClCompile Include="GekkoDisassembler.cpp" />
+    <ClCompile Include="GenericFPURoundMode.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="GL\GLExtensions\GLExtensions.cpp" />
-    <ClCompile Include="GL\GLInterface\GLInterface.cpp" />
-    <ClCompile Include="GL\GLInterface\WGL.cpp" />
-    <ClCompile Include="GL\GLUtil.cpp" />
+    <ClCompile Include="GL\GLContext.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GL\GLInterface\WGL.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="GL\GLUtil.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'=='ARM64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="HttpRequest.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -199,6 +221,7 @@
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
+    <ClCompile Include="Matrix.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />
@@ -210,6 +233,7 @@
     <ClCompile Include="QoSSession.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
+    <ClCompile Include="SFMLHelper.cpp" />
     <ClCompile Include="SettingsHandler.cpp" />
     <ClCompile Include="StringUtil.cpp" />
     <ClCompile Include="SymbolDB.cpp" />
@@ -218,10 +242,18 @@
     <ClCompile Include="TraversalClient.cpp" />
     <ClCompile Include="UPnP.cpp" />
     <ClCompile Include="Version.cpp" />
-    <ClCompile Include="x64ABI.cpp" />
-    <ClCompile Include="x64CPUDetect.cpp" />
-    <ClCompile Include="x64Emitter.cpp" />
-    <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="x64ABI.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64CPUDetect.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64Emitter.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="x64FPURoundMode.cpp">
+      <ExcludedFromBuild Condition="'$(Platform)'!='x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="Crypto\AES.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
@@ -231,17 +263,17 @@
     <Text Include="CMakeLists.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="$(ExternalsDir)curl\curl.vcxproj">
+      <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)enet\enet.vcxproj">
       <Project>{cbc76802-c128-4b17-bf6c-23b08c313e5e}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
-      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(ExternalsDir)libpng\png\png.vcxproj">
       <Project>{4c9f135b-a85e-430c-bad4-4c67ef5fc12c}</Project>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\Externals\curl\curl.vcxproj">
-      <Project>{bb00605c-125f-4a21-b33b-7bf418322dcb}</Project>
+    <ProjectReference Include="$(ExternalsDir)mbedtls\mbedTLS.vcxproj">
+      <Project>{bdb6578b-0691-4e80-a46c-df21639fd3b8}</Project>
     </ProjectReference>
     <ProjectReference Include="SCMRevGen.vcxproj">
       <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>

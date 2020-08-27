@@ -19,10 +19,14 @@ AlsaSound::~AlsaSound()
 {
   m_thread_status.store(ALSAThreadStatus::STOPPING);
 
+  // Immediately lock and unlock mutex to prevent cv race.
+  std::unique_lock<std::mutex>{cv_m};
+
   // Give the opportunity to the audio thread
   // to realize we are stopping the emulation
   cv.notify_one();
-  thread.join();
+  if (thread.joinable())
+    thread.join();
 }
 
 bool AlsaSound::Init()
@@ -81,7 +85,12 @@ void AlsaSound::SoundLoop()
 bool AlsaSound::SetRunning(bool running)
 {
   m_thread_status.store(running ? ALSAThreadStatus::RUNNING : ALSAThreadStatus::PAUSED);
-  cv.notify_one();  // Notify thread that status has changed
+
+  // Immediately lock and unlock mutex to prevent cv race.
+  std::unique_lock<std::mutex>{cv_m};
+
+  // Notify thread that status has changed
+  cv.notify_one();
   return true;
 }
 

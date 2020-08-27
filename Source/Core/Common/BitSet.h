@@ -193,10 +193,14 @@ public:
   constexpr BitSet operator&(BitSet other) const { return BitSet(m_val & other.m_val); }
   constexpr BitSet operator^(BitSet other) const { return BitSet(m_val ^ other.m_val); }
   constexpr BitSet operator~() const { return BitSet(~m_val); }
+  constexpr BitSet operator<<(IntTy shift) const { return BitSet(m_val << shift); }
+  constexpr BitSet operator>>(IntTy shift) const { return BitSet(m_val >> shift); }
   constexpr explicit operator bool() const { return m_val != 0; }
   BitSet& operator|=(BitSet other) { return *this = *this | other; }
   BitSet& operator&=(BitSet other) { return *this = *this & other; }
   BitSet& operator^=(BitSet other) { return *this = *this ^ other; }
+  BitSet& operator<<=(IntTy shift) { return *this = *this << shift; }
+  BitSet& operator>>=(IntTy shift) { return *this = *this >> shift; }
   // Warning: Even though on modern CPUs this is a single fast instruction,
   // Dolphin's official builds do not currently assume POPCNT support on x86,
   // so slower explicit bit twiddling is generated.  Still should generally

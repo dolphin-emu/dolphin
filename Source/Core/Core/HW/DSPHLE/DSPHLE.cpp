@@ -11,9 +11,7 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/SystemTimers.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 DSPHLE::DSPHLE() = default;
 
@@ -216,5 +214,4 @@ u16 DSPHLE::DSP_ReadControlRegister()
 void DSPHLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
 }
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

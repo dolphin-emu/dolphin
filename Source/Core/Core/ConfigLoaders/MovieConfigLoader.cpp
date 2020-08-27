@@ -33,7 +33,6 @@ static void LoadFromDTM(Config::Layer* config_layer, Movie::DTMHeader* dtm)
   config_layer->Set(Config::MAIN_CPU_CORE, static_cast<PowerPC::CPUCore>(dtm->CPUCore));
   config_layer->Set(Config::MAIN_SYNC_GPU, dtm->bSyncGPU);
   config_layer->Set(Config::MAIN_GFX_BACKEND, dtm->videoBackend.data());
-  config_layer->Set(Config::MAIN_REDUCE_POLLING_RATE, dtm->bReducePollingRate);
 
   config_layer->Set(Config::SYSCONF_PROGRESSIVE_SCAN, dtm->bProgressive);
   config_layer->Set(Config::SYSCONF_PAL60, dtm->bPAL60);
@@ -57,7 +56,6 @@ void SaveToDTM(Movie::DTMHeader* dtm)
   dtm->CPUCore = static_cast<u8>(Config::Get(Config::MAIN_CPU_CORE));
   dtm->bSyncGPU = Config::Get(Config::MAIN_SYNC_GPU);
   const std::string video_backend = Config::Get(Config::MAIN_GFX_BACKEND);
-  dtm->bReducePollingRate = Config::Get(Config::MAIN_REDUCE_POLLING_RATE);
 
   dtm->bProgressive = Config::Get(Config::SYSCONF_PROGRESSIVE_SCAN);
   dtm->bPAL60 = Config::Get(Config::SYSCONF_PAL60);

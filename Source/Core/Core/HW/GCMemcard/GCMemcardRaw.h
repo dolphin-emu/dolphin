@@ -11,14 +11,17 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Core/HW/GCMemcard/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcardBase.h"
 
 class PointerWrap;
 
 class MemoryCard : public MemoryCardBase
 {
 public:
-  MemoryCard(const std::string& filename, int card_index, u16 size_mbits = MemCard2043Mb);
+  MemoryCard(const std::string& filename, int card_index,
+             u16 size_mbits = Memcard::MBIT_SIZE_MEMORY_CARD_2043);
   ~MemoryCard();
+  static void CheckPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   void FlushThread();
   void MakeDirty();
 

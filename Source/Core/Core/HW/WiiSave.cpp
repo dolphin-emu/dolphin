@@ -15,11 +15,14 @@
 #include <cstdio>
 #include <cstring>
 #include <mbedtls/md5.h>
+#include <mbedtls/sha1.h>
 #include <memory>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
@@ -32,6 +35,7 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/CommonTitles.h"
+#include "Core/HW/WiiSaveStructs.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileSystem.h"
 #include "Core/IOS/IOS.h"
@@ -47,96 +51,6 @@ constexpr std::array<u8, 0x10> s_sd_initial_iv{{0x21, 0x67, 0x12, 0xE6, 0xAA, 0x
 constexpr Md5 s_md5_blanker{{0x0E, 0x65, 0x37, 0x81, 0x99, 0xBE, 0x45, 0x17, 0xAB, 0x06, 0xEC, 0x22,
                              0x45, 0x1A, 0x57, 0x93}};
 constexpr u32 s_ng_id = 0x0403AC68;
-
-enum
-{
-  BLOCK_SZ = 0x40,
-  ICON_SZ = 0x1200,
-  BNR_SZ = 0x60a0,
-  FULL_BNR_MIN = 0x72a0,  // BNR_SZ + 1*ICON_SZ
-  FULL_BNR_MAX = 0xF0A0,  // BNR_SZ + 8*ICON_SZ
-  BK_LISTED_SZ = 0x70,    // Size before rounding to nearest block
-  SIG_SZ = 0x40,
-  FULL_CERT_SZ = 0x3C0,  // SIG_SZ + NG_CERT_SZ + AP_CERT_SZ + 0x80?
-
-  BK_HDR_MAGIC = 0x426B0001,
-  FILE_HDR_MAGIC = 0x03adf17e
-};
-
-#pragma pack(push, 1)
-struct Header
-{
-  Common::BigEndianValue<u64> tid;
-  Common::BigEndianValue<u32> banner_size;  // (0x72A0 or 0xF0A0, also seen 0xBAA0)
-  u8 permissions;
-  u8 unk1;                   // maybe permissions is a be16
-  std::array<u8, 0x10> md5;  // md5 of plaintext header with md5 blanker applied
-  Common::BigEndianValue<u16> unk2;
-  u8 banner[FULL_BNR_MAX];
-};
-static_assert(sizeof(Header) == 0xf0c0, "Header has an incorrect size");
-
-struct BkHeader
-{
-  Common::BigEndianValue<u32> size;  // 0x00000070
-  // u16 magic;  // 'Bk'
-  // u16 magic2; // or version (0x0001)
-  Common::BigEndianValue<u32> magic;  // 0x426B0001
-  Common::BigEndianValue<u32> ngid;
-  Common::BigEndianValue<u32> number_of_files;
-  Common::BigEndianValue<u32> size_of_files;
-  Common::BigEndianValue<u32> unk1;
-  Common::BigEndianValue<u32> unk2;
-  Common::BigEndianValue<u32> total_size;
-  std::array<u8, 64> unk3;
-  Common::BigEndianValue<u64> tid;
-  std::array<u8, 6> mac_address;
-  std::array<u8, 0x12> padding;
-};
-static_assert(sizeof(BkHeader) == 0x80, "BkHeader has an incorrect size");
-
-struct FileHDR
-{
-  Common::BigEndianValue<u32> magic;  // 0x03adf17e
-  Common::BigEndianValue<u32> size;
-  u8 permissions;
-  u8 attrib;
-  u8 type;  // (1=file, 2=directory)
-  std::array<char, 0x40> name;
-  std::array<u8, 5> padding;
-  std::array<u8, 0x10> iv;
-  std::array<u8, 0x20> unk;
-};
-static_assert(sizeof(FileHDR) == 0x80, "FileHDR has an incorrect size");
-#pragma pack(pop)
-
-class Storage
-{
-public:
-  struct SaveFile
-  {
-    enum class Type : u8
-    {
-      File = 1,
-      Directory = 2,
-    };
-    u8 mode, attributes;
-    Type type;
-    /// File name relative to the title data directory.
-    std::string path;
-    // Only valid for regular (i.e. non-directory) files.
-    Common::Lazy<std::optional<std::vector<u8>>> data;
-  };
-
-  virtual ~Storage() = default;
-  virtual bool SaveExists() { return true; }
-  virtual std::optional<Header> ReadHeader() = 0;
-  virtual std::optional<BkHeader> ReadBkHeader() = 0;
-  virtual std::optional<std::vector<SaveFile>> ReadFiles() = 0;
-  virtual bool WriteHeader(const Header& header) = 0;
-  virtual bool WriteBkHeader(const BkHeader& bk_header) = 0;
-  virtual bool WriteFiles(const std::vector<SaveFile>& files) = 0;
-};
 
 void StorageDeleter::operator()(Storage* p) const
 {
@@ -180,7 +94,7 @@ public:
     header.banner[7] &= ~1;
 
     Md5 md5_calc;
-    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     header.md5 = std::move(md5_calc);
     return header;
   }
@@ -232,7 +146,7 @@ public:
       else if (file.type == SaveFile::Type::Directory)
       {
         const FS::Result<FS::Metadata> meta = m_fs->GetMetadata(*m_uid, *m_gid, path);
-        if (!meta || meta->is_file)
+        if (meta && meta->is_file)
           return false;
 
         const FS::ResultCode result = m_fs->CreateDirectory(*m_uid, *m_gid, path, 0, modes);
@@ -352,7 +266,7 @@ public:
     Md5 md5_file = header.md5;
     header.md5 = s_md5_blanker;
     Md5 md5_calc;
-    mbedtls_md5(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
+    mbedtls_md5_ret(reinterpret_cast<const u8*>(&header), sizeof(Header), md5_calc.data());
     if (md5_file != md5_calc)
     {
       ERROR_LOG(CONSOLE, "MD5 mismatch\n %016" PRIx64 "%016" PRIx64 " != %016" PRIx64 "%016" PRIx64,
@@ -400,17 +314,20 @@ public:
           std::string{file_hdr.name.data(), strnlen(file_hdr.name.data(), file_hdr.name.size())};
       if (type == SaveFile::Type::File)
       {
-        const u32 rounded_size = Common::AlignUp<u32>(file_hdr.size, BLOCK_SZ);
+        const u32 size = file_hdr.size;
+        const u32 rounded_size = Common::AlignUp<u32>(size, BLOCK_SZ);
         const u64 pos = m_file.Tell();
         std::array<u8, 0x10> iv = file_hdr.iv;
 
-        save_file.data = [this, rounded_size, iv, pos]() mutable -> std::optional<std::vector<u8>> {
+        save_file.data = [this, size, rounded_size, iv,
+                          pos]() mutable -> std::optional<std::vector<u8>> {
           std::vector<u8> file_data(rounded_size);
           if (!m_file.Seek(pos, SEEK_SET) || !m_file.ReadBytes(file_data.data(), rounded_size))
             return {};
 
           m_iosc.Decrypt(IOS::HLE::IOSC::HANDLE_SD_KEY, iv.data(), file_data.data(), rounded_size,
                          file_data.data(), IOS::PID_ES);
+          file_data.resize(size);
           return file_data;
         };
         m_file.Seek(pos + rounded_size, SEEK_SET);
@@ -489,17 +406,21 @@ private:
       return false;
 
     // Read data to sign.
-    const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
-    auto data = std::make_unique<u8[]>(data_size);
-    m_file.Seek(sizeof(Header), SEEK_SET);
-    if (!m_file.ReadBytes(data.get(), data_size))
-      return false;
+    std::array<u8, 20> data_sha1;
+    {
+      const u32 data_size = bk_header->size_of_files + sizeof(BkHeader);
+      auto data = std::make_unique<u8[]>(data_size);
+      m_file.Seek(sizeof(Header), SEEK_SET);
+      if (!m_file.ReadBytes(data.get(), data_size))
+        return false;
+      mbedtls_sha1_ret(data.get(), data_size, data_sha1.data());
+    }
 
     // Sign the data.
     IOS::CertECC ap_cert;
     Common::ec::Signature ap_sig;
-    m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU, data.get(),
-                data_size);
+    m_iosc.Sign(ap_sig.data(), reinterpret_cast<u8*>(&ap_cert), Titles::SYSTEM_MENU,
+                data_sha1.data(), static_cast<u32>(data_sha1.size()));
 
     // Write signatures.
     if (!m_file.Seek(0, SEEK_END))
@@ -559,22 +480,22 @@ bool Import(const std::string& data_bin_path, std::function<bool()> can_overwrit
   return Copy(data_bin.get(), nand.get());
 }
 
-static bool Export(u64 tid, const std::string& export_path, IOS::HLE::Kernel* ios)
+static bool Export(u64 tid, std::string_view export_path, IOS::HLE::Kernel* ios)
 {
-  std::string path = StringFromFormat("%s/private/wii/title/%c%c%c%c/data.bin", export_path.c_str(),
-                                      static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
-                                      static_cast<char>(tid >> 8), static_cast<char>(tid));
+  const std::string path = fmt::format("{}/private/wii/title/{}{}{}{}/data.bin", export_path,
+                                       static_cast<char>(tid >> 24), static_cast<char>(tid >> 16),
+                                       static_cast<char>(tid >> 8), static_cast<char>(tid));
   return Copy(MakeNandStorage(ios->GetFS().get(), tid).get(),
               MakeDataBinStorage(&ios->GetIOSC(), path, "w+b").get());
 }
 
-bool Export(u64 tid, const std::string& export_path)
+bool Export(u64 tid, std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   return Export(tid, export_path, &ios);
 }
 
-size_t ExportAll(const std::string& export_path)
+size_t ExportAll(std::string_view export_path)
 {
   IOS::HLE::Kernel ios;
   size_t exported_save_count = 0;

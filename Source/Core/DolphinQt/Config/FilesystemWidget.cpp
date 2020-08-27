@@ -10,8 +10,6 @@
 #include <QFileInfo>
 #include <QHeaderView>
 #include <QMenu>
-#include <QMessageBox>
-#include <QProgressDialog>
 #include <QStandardItemModel>
 #include <QStyleFactory>
 #include <QTreeView>
@@ -23,6 +21,8 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/ParallelProgressDialog.h"
 #include "DolphinQt/Resources.h"
 
 #include "UICommon/UICommon.h"
@@ -40,8 +40,8 @@ enum class EntryType
 };
 Q_DECLARE_METATYPE(EntryType);
 
-FilesystemWidget::FilesystemWidget(const UICommon::GameFile& game)
-    : m_game(game), m_volume(DiscIO::CreateVolumeFromFilename(game.GetFilePath()))
+FilesystemWidget::FilesystemWidget(std::shared_ptr<DiscIO::Volume> volume)
+    : m_volume(std::move(volume))
 {
   CreateWidgets();
   ConnectWidgets();
@@ -86,6 +86,10 @@ void FilesystemWidget::ConnectWidgets()
 
 void FilesystemWidget::PopulateView()
 {
+  // Cache these two icons, the tree will use them a lot.
+  m_folder_icon = Resources::GetScaledIcon("isoproperties_folder");
+  m_file_icon = Resources::GetScaledIcon("isoproperties_file");
+
   auto* disc = new QStandardItem(tr("Disc"));
   disc->setEditable(false);
   disc->setIcon(Resources::GetScaledIcon("isoproperties_disc"));
@@ -131,8 +135,7 @@ void FilesystemWidget::PopulateDirectory(int partition_id, QStandardItem* root,
   {
     auto* item = new QStandardItem(QString::fromStdString(info.GetName()));
     item->setEditable(false);
-    item->setIcon(Resources::GetScaledIcon(info.IsDirectory() ? "isoproperties_folder" :
-                                                                "isoproperties_file"));
+    item->setIcon(info.IsDirectory() ? m_folder_icon : m_file_icon);
 
     if (info.IsDirectory())
       PopulateDirectory(partition_id, item, info);
@@ -196,9 +199,10 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         return;
 
       if (ExtractSystemData(partition, folder))
-        QMessageBox::information(this, tr("Success"), tr("Successfully extracted system data."));
+        ModalMessageBox::information(this, tr("Success"),
+                                     tr("Successfully extracted system data."));
       else
-        QMessageBox::critical(this, tr("Error"), tr("Failed to extract system data."));
+        ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract system data."));
     });
   }
 
@@ -221,8 +225,7 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
         {
           if (const std::optional<u32> partition_type = m_volume->GetPartitionType(p))
           {
-            const std::string partition_name =
-                DiscIO::DirectoryNameForPartitionType(*partition_type);
+            const std::string partition_name = DiscIO::NameForPartitionType(*partition_type, true);
             ExtractPartition(p, folder + QChar(u'/') + QString::fromStdString(partition_name));
           }
         }
@@ -235,12 +238,6 @@ void FilesystemWidget::ShowContextMenu(const QPoint&)
       if (!folder.isEmpty())
         ExtractPartition(partition, folder);
     });
-    if (m_volume->IsEncryptedAndHashed())
-    {
-      menu->addSeparator();
-      menu->addAction(tr("Check Partition Integrity"), this,
-                      [this, partition] { CheckIntegrity(partition); });
-    }
     break;
   case EntryType::File:
     menu->addAction(tr("Extract File..."), this, [this, partition, path] {
@@ -266,7 +263,7 @@ DiscIO::Partition FilesystemWidget::GetPartitionFromID(int id)
 
 void FilesystemWidget::ExtractPartition(const DiscIO::Partition& partition, const QString& out)
 {
-  ExtractDirectory(partition, QStringLiteral(""), out + QStringLiteral("/files"));
+  ExtractDirectory(partition, QString{}, out + QStringLiteral("/files"));
   ExtractSystemData(partition, out);
 }
 
@@ -285,28 +282,34 @@ void FilesystemWidget::ExtractDirectory(const DiscIO::Partition& partition, cons
   std::unique_ptr<DiscIO::FileInfo> info = filesystem->FindFileInfo(path.toStdString());
   u32 size = info->GetTotalChildren();
 
-  QProgressDialog* dialog = new QProgressDialog(this);
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  dialog->setMinimum(0);
-  dialog->setMaximum(size);
-  dialog->show();
-  dialog->setWindowTitle(tr("Progress"));
+  ParallelProgressDialog dialog(this);
+  dialog.GetRaw()->setMinimum(0);
+  dialog.GetRaw()->setMaximum(size);
+  dialog.GetRaw()->setWindowTitle(tr("Progress"));
 
-  bool all = path.isEmpty();
+  const bool all = path.isEmpty();
 
-  DiscIO::ExportDirectory(
-      *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
-      [all, dialog](const std::string& current) {
-        dialog->setLabelText(
-            (all ? QObject::tr("Extracting All Files...") : QObject::tr("Extracting Directory..."))
-                .append(QStringLiteral(" %1").arg(QString::fromStdString(current))));
-        dialog->setValue(dialog->value() + 1);
+  std::future<void> future = std::async(std::launch::async, [&] {
+    int progress = 0;
 
-        QCoreApplication::processEvents();
-        return dialog->wasCanceled();
-      });
+    DiscIO::ExportDirectory(
+        *m_volume, partition, *info, true, path.toStdString(), out.toStdString(),
+        [all, &dialog, &progress](const std::string& current) {
+          dialog.SetLabelText(
+              (all ? QObject::tr("Extracting All Files...") :
+                     QObject::tr("Extracting Directory..."))
+                  .append(QStringLiteral(" %1").arg(QString::fromStdString(current))));
+          dialog.SetValue(++progress);
 
-  dialog->close();
+          QCoreApplication::processEvents();
+          return dialog.WasCanceled();
+        });
+
+    dialog.Reset();
+  });
+
+  dialog.GetRaw()->exec();
+  future.get();
 }
 
 void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QString& path,
@@ -320,35 +323,7 @@ void FilesystemWidget::ExtractFile(const DiscIO::Partition& partition, const QSt
       *m_volume, partition, filesystem->FindFileInfo(path.toStdString()).get(), out.toStdString());
 
   if (success)
-    QMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
+    ModalMessageBox::information(this, tr("Success"), tr("Successfully extracted file."));
   else
-    QMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
-}
-
-void FilesystemWidget::CheckIntegrity(const DiscIO::Partition& partition)
-{
-  QProgressDialog* dialog = new QProgressDialog(this);
-  std::future<bool> is_valid = std::async(
-      std::launch::async, [this, partition] { return m_volume->CheckIntegrity(partition); });
-
-  dialog->setLabelText(tr("Verifying integrity of partition..."));
-  dialog->setWindowFlags(dialog->windowFlags() & ~Qt::WindowContextHelpButtonHint);
-  dialog->setWindowTitle(tr("Verifying partition"));
-
-  dialog->setMinimum(0);
-  dialog->setMaximum(0);
-  dialog->show();
-
-  while (is_valid.wait_for(std::chrono::milliseconds(50)) != std::future_status::ready)
-    QCoreApplication::processEvents();
-
-  dialog->close();
-
-  if (is_valid.get())
-    QMessageBox::information(this, tr("Success"),
-                             tr("Integrity check completed. No errors have been found."));
-  else
-    QMessageBox::critical(this, tr("Error"),
-                          tr("Integrity check for partition failed. The disc image is most "
-                             "likely corrupted or has been patched incorrectly."));
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to extract file."));
 }

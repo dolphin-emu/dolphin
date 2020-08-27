@@ -32,7 +32,7 @@ DolReader::~DolReader() = default;
 
 bool DolReader::Initialize(const std::vector<u8>& buffer)
 {
-  if (buffer.size() < sizeof(SDolHeader))
+  if (buffer.size() < sizeof(SDolHeader) || buffer.size() > UINT32_MAX)
     return false;
 
   memcpy(&m_dolheader, buffer.data(), sizeof(SDolHeader));
@@ -77,11 +77,16 @@ bool DolReader::Initialize(const std::vector<u8>& buffer)
   {
     if (m_dolheader.dataSize[i] != 0)
     {
-      if (buffer.size() < m_dolheader.dataOffset[i] + m_dolheader.dataSize[i])
+      u32 section_size = m_dolheader.dataSize[i];
+      u32 section_offset = m_dolheader.dataOffset[i];
+      if (buffer.size() < section_offset)
         return false;
 
-      const u8* data_start = &buffer[m_dolheader.dataOffset[i]];
-      m_data_sections.emplace_back(data_start, &data_start[m_dolheader.dataSize[i]]);
+      std::vector<u8> data(section_size);
+      const u8* data_start = &buffer[section_offset];
+      std::memcpy(&data[0], data_start,
+                  std::min((size_t)section_size, buffer.size() - section_offset));
+      m_data_sections.emplace_back(data);
     }
     else
     {
@@ -102,7 +107,7 @@ bool DolReader::LoadIntoMemory(bool only_in_mem1) const
   for (size_t i = 0; i < m_text_sections.size(); ++i)
     if (!m_text_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.textAddress[i] + m_text_sections[i].size() >= Memory::REALRAM_SIZE))
+          m_dolheader.textAddress[i] + m_text_sections[i].size() >= Memory::GetRamSizeReal()))
     {
       Memory::CopyToEmu(m_dolheader.textAddress[i], m_text_sections[i].data(),
                         m_text_sections[i].size());
@@ -112,7 +117,7 @@ bool DolReader::LoadIntoMemory(bool only_in_mem1) const
   for (size_t i = 0; i < m_data_sections.size(); ++i)
     if (!m_data_sections[i].empty() &&
         !(only_in_mem1 &&
-          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= Memory::REALRAM_SIZE))
+          m_dolheader.dataAddress[i] + m_data_sections[i].size() >= Memory::GetRamSizeReal()))
     {
       Memory::CopyToEmu(m_dolheader.dataAddress[i], m_data_sections[i].data(),
                         m_data_sections[i].size());

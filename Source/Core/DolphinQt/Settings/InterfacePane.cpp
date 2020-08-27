@@ -6,10 +6,10 @@
 
 #include <QCheckBox>
 #include <QComboBox>
+#include <QFileInfo>
 #include <QFormLayout>
 #include <QGroupBox>
 #include <QLabel>
-#include <QMessageBox>
 #include <QVBoxLayout>
 #include <QWidget>
 
@@ -19,9 +19,14 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 
+#include "DolphinQt/GameList/GameListModel.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/Settings.h"
+
+#include "UICommon/GameFile.h"
 
 static QComboBox* MakeLanguageComboBox()
 {
@@ -61,7 +66,7 @@ static QComboBox* MakeLanguageComboBox()
   };
 
   auto* combobox = new QComboBox();
-  combobox->addItem(QObject::tr("<System Language>"), QStringLiteral(""));
+  combobox->addItem(QObject::tr("<System Language>"), QString{});
   for (const auto& lang : languages)
     combobox->addItem(lang.name, QString::fromLatin1(lang.id));
 
@@ -114,12 +119,9 @@ void InterfacePane::CreateUI()
   // List avalable themes
   auto theme_search_results =
       Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& filename : theme_search_results)
+  for (const std::string& path : theme_search_results)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-    name += ext;
-    QString qt_name = QString::fromStdString(name);
+    const QString qt_name = QString::fromStdString(PathToFileName(path));
     m_combobox_theme->addItem(qt_name);
   }
 
@@ -130,35 +132,37 @@ void InterfacePane::CreateUI()
 
   auto userstyle_search_results = Common::DoFileSearch({File::GetUserPath(D_STYLES_IDX)});
 
-  m_combobox_userstyle->addItem(tr("(None)"), QStringLiteral(""));
+  m_combobox_userstyle->addItem(tr("(None)"), QString{});
 
-  for (const std::string& filename : userstyle_search_results)
+  for (const std::string& path : userstyle_search_results)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-    QString qt_name = QString::fromStdString(name);
-    m_combobox_userstyle->addItem(qt_name, QString::fromStdString(filename));
+    const QFileInfo file_info(QString::fromStdString(path));
+    m_combobox_userstyle->addItem(file_info.completeBaseName(), file_info.fileName());
   }
 
   // Checkboxes
-  m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_use_builtin_title_database = new QCheckBox(tr("Use Built-In Database of Game Names"));
   m_checkbox_use_userstyle = new QCheckBox(tr("Use Custom User Style"));
+  m_checkbox_use_covers =
+      new QCheckBox(tr("Download Game Covers from GameTDB.com for Use in Grid Mode"));
   m_checkbox_show_debugging_ui = new QCheckBox(tr("Show Debugging UI"));
+  m_checkbox_focused_hotkeys = new QCheckBox(tr("Hotkeys Require Window Focus"));
 
-  groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_use_builtin_title_database);
   groupbox_layout->addWidget(m_checkbox_use_userstyle);
+  groupbox_layout->addWidget(m_checkbox_use_covers);
   groupbox_layout->addWidget(m_checkbox_show_debugging_ui);
+  groupbox_layout->addWidget(m_checkbox_focused_hotkeys);
 }
 
 void InterfacePane::CreateInGame()
 {
-  auto* groupbox = new QGroupBox(tr("In Game"));
+  auto* groupbox = new QGroupBox(tr("Render Window"));
   auto* groupbox_layout = new QVBoxLayout;
   groupbox->setLayout(groupbox_layout);
   m_main_layout->addWidget(groupbox);
 
+  m_checkbox_top_window = new QCheckBox(tr("Keep Window on Top"));
   m_checkbox_confirm_on_stop = new QCheckBox(tr("Confirm on Stop"));
   m_checkbox_use_panic_handlers = new QCheckBox(tr("Use Panic Handlers"));
   m_checkbox_enable_osd = new QCheckBox(tr("Show On-Screen Display Messages"));
@@ -166,6 +170,7 @@ void InterfacePane::CreateInGame()
   m_checkbox_pause_on_focus_lost = new QCheckBox(tr("Pause on Focus Loss"));
   m_checkbox_hide_mouse = new QCheckBox(tr("Always Hide Mouse Cursor"));
 
+  groupbox_layout->addWidget(m_checkbox_top_window);
   groupbox_layout->addWidget(m_checkbox_confirm_on_stop);
   groupbox_layout->addWidget(m_checkbox_use_panic_handlers);
   groupbox_layout->addWidget(m_checkbox_enable_osd);
@@ -176,21 +181,21 @@ void InterfacePane::CreateInGame()
 
 void InterfacePane::ConnectLayout()
 {
-  connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_builtin_title_database, &QCheckBox::toggled, this,
           &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged),
+  connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_combobox_theme, qOverload<const QString&>(&QComboBox::currentIndexChanged),
           &Settings::Instance(), &Settings::SetThemeName);
-  connect(m_combobox_userstyle,
-          static_cast<void (QComboBox::*)(const QString&)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_userstyle, qOverload<const QString&>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
-  connect(m_combobox_language,
-          static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_top_window, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_confirm_on_stop, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_use_panic_handlers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
+  connect(m_checkbox_show_active_title, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_enable_osd, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_pause_on_focus_lost, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_hide_mouse, &QCheckBox::toggled, &Settings::Instance(),
@@ -201,7 +206,6 @@ void InterfacePane::ConnectLayout()
 void InterfacePane::LoadConfig()
 {
   const SConfig& startup_params = SConfig::GetInstance();
-  m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_checkbox_use_builtin_title_database->setChecked(startup_params.m_use_builtin_title_database);
   m_checkbox_show_debugging_ui->setChecked(Settings::Instance().IsDebugModeEnabled());
   m_combobox_language->setCurrentIndex(m_combobox_language->findData(
@@ -210,11 +214,10 @@ void InterfacePane::LoadConfig()
       m_combobox_theme->findText(QString::fromStdString(SConfig::GetInstance().theme_name)));
 
   const QString userstyle = Settings::Instance().GetCurrentUserStyle();
+  const int index = m_combobox_userstyle->findData(QFileInfo(userstyle).fileName());
 
-  if (userstyle.isEmpty())
-    m_combobox_userstyle->setCurrentIndex(0);
-  else
-    m_combobox_userstyle->setCurrentText(userstyle);
+  if (index > 0)
+    m_combobox_userstyle->setCurrentIndex(index);
 
   m_checkbox_use_userstyle->setChecked(Settings::Instance().AreUserStylesEnabled());
 
@@ -223,46 +226,59 @@ void InterfacePane::LoadConfig()
   m_combobox_userstyle->setVisible(visible);
   m_label_userstyle->setVisible(visible);
 
-  // In Game Options
+  // Render Window Options
+  m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
   m_checkbox_use_panic_handlers->setChecked(startup_params.bUsePanicHandlers);
   m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
+  m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
+  m_checkbox_focused_hotkeys->setChecked(Config::Get(Config::MAIN_FOCUSED_HOTKEYS));
   m_checkbox_hide_mouse->setChecked(Settings::Instance().GetHideCursor());
 }
 
 void InterfacePane::OnSaveConfig()
 {
   SConfig& settings = SConfig::GetInstance();
-  Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.m_use_builtin_title_database = m_checkbox_use_builtin_title_database->isChecked();
   Settings::Instance().SetDebugModeEnabled(m_checkbox_show_debugging_ui->isChecked());
-  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
   Settings::Instance().SetUserStylesEnabled(m_checkbox_use_userstyle->isChecked());
+  Settings::Instance().SetCurrentUserStyle(m_combobox_userstyle->currentData().toString());
 
   const bool visible = m_checkbox_use_userstyle->isChecked();
 
   m_combobox_userstyle->setVisible(visible);
   m_label_userstyle->setVisible(visible);
 
-  // In Game Options
+  // Render Window Options
+  Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
   settings.bUsePanicHandlers = m_checkbox_use_panic_handlers->isChecked();
   settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
 
-  SetEnableAlert(settings.bUsePanicHandlers);
+  Common::SetEnableAlert(settings.bUsePanicHandlers);
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)
   {
     SConfig::GetInstance().m_InterfaceLanguage = new_language;
-    QMessageBox::information(
+    ModalMessageBox::information(
         this, tr("Restart Required"),
         tr("You must restart Dolphin in order for the change to take effect."));
   }
+
+  const bool use_covers = m_checkbox_use_covers->isChecked();
+
+  if (use_covers != Config::Get(Config::MAIN_USE_GAME_COVERS))
+  {
+    Config::SetBase(Config::MAIN_USE_GAME_COVERS, use_covers);
+    Settings::Instance().RefreshMetadata();
+  }
+
+  Config::SetBase(Config::MAIN_FOCUSED_HOTKEYS, m_checkbox_focused_hotkeys->isChecked());
 
   settings.SaveSettings();
 }

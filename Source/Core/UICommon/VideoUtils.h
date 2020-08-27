@@ -19,4 +19,4 @@ std::vector<std::string> GetAvailableResolutions(X11Utils::XRRConfiguration* xrr
 #endif
 
 std::vector<std::string> GetAvailableAntialiasingModes(int& m_msaa_modes);
-}
+}  // namespace VideoUtils

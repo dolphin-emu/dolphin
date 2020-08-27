@@ -59,24 +59,12 @@
 #define mbedtls_snprintf  snprintf
 #endif
 
-
 #if defined(MBEDTLS_HAVE_TIME)
 #include "mbedtls/platform_time.h"
 #endif
-
-#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
-#include <windows.h>
-#else
+#if defined(MBEDTLS_HAVE_TIME_DATE)
+#include "mbedtls/platform_util.h"
 #include <time.h>
-#endif
-
-#if defined(MBEDTLS_FS_IO)
-#include <stdio.h>
-#if !defined(_WIN32)
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#endif
 #endif
 
 #define CHECK(code) if( ( ret = code ) != 0 ){ return( ret ); }
@@ -480,41 +468,117 @@ int mbedtls_x509_get_name( unsigned char **p, const unsigned char *end,
     }
 }
 
-static int x509_parse_int(unsigned char **p, unsigned n, int *res){
+static int x509_parse_int( unsigned char **p, size_t n, int *res )
+{
     *res = 0;
-    for( ; n > 0; --n ){
-        if( ( **p < '0') || ( **p > '9' ) ) return MBEDTLS_ERR_X509_INVALID_DATE;
+
+    for( ; n > 0; --n )
+    {
+        if( ( **p < '0') || ( **p > '9' ) )
+            return ( MBEDTLS_ERR_X509_INVALID_DATE );
+
         *res *= 10;
-        *res += (*(*p)++ - '0');
+        *res += ( *(*p)++ - '0' );
     }
-    return 0;
+
+    return( 0 );
 }
 
-static int x509_date_is_valid(const mbedtls_x509_time *time)
+static int x509_date_is_valid(const mbedtls_x509_time *t )
 {
     int ret = MBEDTLS_ERR_X509_INVALID_DATE;
+    int month_len;
 
-    CHECK_RANGE( 0, 9999, time->year );
-    CHECK_RANGE( 0, 23,   time->hour );
-    CHECK_RANGE( 0, 59,   time->min  );
-    CHECK_RANGE( 0, 59,   time->sec  );
+    CHECK_RANGE( 0, 9999, t->year );
+    CHECK_RANGE( 0, 23,   t->hour );
+    CHECK_RANGE( 0, 59,   t->min  );
+    CHECK_RANGE( 0, 59,   t->sec  );
 
-    switch( time->mon )
+    switch( t->mon )
     {
         case 1: case 3: case 5: case 7: case 8: case 10: case 12:
-            CHECK_RANGE( 1, 31, time->day );
+            month_len = 31;
             break;
         case 4: case 6: case 9: case 11:
-            CHECK_RANGE( 1, 30, time->day );
+            month_len = 30;
             break;
         case 2:
-            CHECK_RANGE( 1, 28 + (time->year % 4 == 0), time->day );
+            if( ( !( t->year % 4 ) && t->year % 100 ) ||
+                !( t->year % 400 ) )
+                month_len = 29;
+            else
+                month_len = 28;
             break;
         default:
             return( ret );
     }
+    CHECK_RANGE( 1, month_len, t->day );
 
     return( 0 );
+}
+
+/*
+ * Parse an ASN1_UTC_TIME (yearlen=2) or ASN1_GENERALIZED_TIME (yearlen=4)
+ * field.
+ */
+static int x509_parse_time( unsigned char **p, size_t len, size_t yearlen,
+                            mbedtls_x509_time *tm )
+{
+    int ret;
+
+    /*
+     * Minimum length is 10 or 12 depending on yearlen
+     */
+    if ( len < yearlen + 8 )
+        return ( MBEDTLS_ERR_X509_INVALID_DATE );
+    len -= yearlen + 8;
+
+    /*
+     * Parse year, month, day, hour, minute
+     */
+    CHECK( x509_parse_int( p, yearlen, &tm->year ) );
+    if ( 2 == yearlen )
+    {
+        if ( tm->year < 50 )
+            tm->year += 100;
+
+        tm->year += 1900;
+    }
+
+    CHECK( x509_parse_int( p, 2, &tm->mon ) );
+    CHECK( x509_parse_int( p, 2, &tm->day ) );
+    CHECK( x509_parse_int( p, 2, &tm->hour ) );
+    CHECK( x509_parse_int( p, 2, &tm->min ) );
+
+    /*
+     * Parse seconds if present
+     */
+    if ( len >= 2 )
+    {
+        CHECK( x509_parse_int( p, 2, &tm->sec ) );
+        len -= 2;
+    }
+    else
+        return ( MBEDTLS_ERR_X509_INVALID_DATE );
+
+    /*
+     * Parse trailing 'Z' if present
+     */
+    if ( 1 == len && 'Z' == **p )
+    {
+        (*p)++;
+        len--;
+    }
+
+    /*
+     * We should have parsed all characters at this point
+     */
+    if ( 0 != len )
+        return ( MBEDTLS_ERR_X509_INVALID_DATE );
+
+    CHECK( x509_date_is_valid( tm ) );
+
+    return ( 0 );
 }
 
 /*
@@ -523,10 +587,10 @@ static int x509_date_is_valid(const mbedtls_x509_time *time)
  *       generalTime    GeneralizedTime }
  */
 int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
-                   mbedtls_x509_time *time )
+                           mbedtls_x509_time *tm )
 {
     int ret;
-    size_t len;
+    size_t len, year_len;
     unsigned char tag;
 
     if( ( end - *p ) < 1 )
@@ -536,55 +600,20 @@ int mbedtls_x509_get_time( unsigned char **p, const unsigned char *end,
     tag = **p;
 
     if( tag == MBEDTLS_ASN1_UTC_TIME )
-    {
-        (*p)++;
-        ret = mbedtls_asn1_get_len( p, end, &len );
-
-        if( ret != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
-
-        CHECK( x509_parse_int( p, 2, &time->year ) );
-        CHECK( x509_parse_int( p, 2, &time->mon ) );
-        CHECK( x509_parse_int( p, 2, &time->day ) );
-        CHECK( x509_parse_int( p, 2, &time->hour ) );
-        CHECK( x509_parse_int( p, 2, &time->min ) );
-        if( len > 10 )
-            CHECK( x509_parse_int( p, 2, &time->sec ) );
-        if( len > 12 && *(*p)++ != 'Z' )
-            return( MBEDTLS_ERR_X509_INVALID_DATE );
-
-        time->year +=  100 * ( time->year < 50 );
-        time->year += 1900;
-
-        CHECK( x509_date_is_valid( time ) );
-
-        return( 0 );
-    }
+        year_len = 2;
     else if( tag == MBEDTLS_ASN1_GENERALIZED_TIME )
-    {
-        (*p)++;
-        ret = mbedtls_asn1_get_len( p, end, &len );
-
-        if( ret != 0 )
-            return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
-
-        CHECK( x509_parse_int( p, 4, &time->year ) );
-        CHECK( x509_parse_int( p, 2, &time->mon ) );
-        CHECK( x509_parse_int( p, 2, &time->day ) );
-        CHECK( x509_parse_int( p, 2, &time->hour ) );
-        CHECK( x509_parse_int( p, 2, &time->min ) );
-        if( len > 12 )
-            CHECK( x509_parse_int( p, 2, &time->sec ) );
-        if( len > 14 && *(*p)++ != 'Z' )
-            return( MBEDTLS_ERR_X509_INVALID_DATE );
-
-        CHECK( x509_date_is_valid( time ) );
-
-        return( 0 );
-    }
+        year_len = 4;
     else
         return( MBEDTLS_ERR_X509_INVALID_DATE +
                 MBEDTLS_ERR_ASN1_UNEXPECTED_TAG );
+
+    (*p)++;
+    ret = mbedtls_asn1_get_len( p, end, &len );
+
+    if( ret != 0 )
+        return( MBEDTLS_ERR_X509_INVALID_DATE + ret );
+
+    return x509_parse_time( p, len, year_len, tm );
 }
 
 int mbedtls_x509_get_sig( unsigned char **p, const unsigned char *end, mbedtls_x509_buf *sig )
@@ -661,7 +690,7 @@ int mbedtls_x509_get_sig_alg( const mbedtls_x509_buf *sig_oid, const mbedtls_x50
 
 /*
  * X.509 Extensions (No parsing of extensions, pointer should
- * be either manually updated or extensions should be parsed!
+ * be either manually updated or extensions should be parsed!)
  */
 int mbedtls_x509_get_ext( unsigned char **p, const unsigned char *end,
                   mbedtls_x509_buf *ext, int tag )
@@ -862,36 +891,14 @@ int mbedtls_x509_key_size_helper( char *buf, size_t buf_size, const char *name )
  * Set the time structure to the current time.
  * Return 0 on success, non-zero on failure.
  */
-#if defined(_WIN32) && !defined(EFIX64) && !defined(EFI32)
 static int x509_get_current_time( mbedtls_x509_time *now )
 {
-    SYSTEMTIME st;
-
-    GetSystemTime( &st );
-
-    now->year = st.wYear;
-    now->mon  = st.wMonth;
-    now->day  = st.wDay;
-    now->hour = st.wHour;
-    now->min  = st.wMinute;
-    now->sec  = st.wSecond;
-
-    return( 0 );
-}
-#else
-static int x509_get_current_time( mbedtls_x509_time *now )
-{
-    struct tm *lt;
+    struct tm *lt, tm_buf;
     mbedtls_time_t tt;
     int ret = 0;
 
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_lock( &mbedtls_threading_gmtime_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-
     tt = mbedtls_time( NULL );
-    lt = gmtime( &tt );
+    lt = mbedtls_platform_gmtime_r( &tt, &tm_buf );
 
     if( lt == NULL )
         ret = -1;
@@ -905,14 +912,8 @@ static int x509_get_current_time( mbedtls_x509_time *now )
         now->sec  = lt->tm_sec;
     }
 
-#if defined(MBEDTLS_THREADING_C)
-    if( mbedtls_mutex_unlock( &mbedtls_threading_gmtime_mutex ) != 0 )
-        return( MBEDTLS_ERR_THREADING_MUTEX_ERROR );
-#endif
-
     return( ret );
 }
-#endif /* _WIN32 && !EFIX64 && !EFI32 */
 
 /*
  * Return 0 if before <= after, 1 otherwise
@@ -1000,7 +1001,7 @@ int mbedtls_x509_time_is_future( const mbedtls_x509_time *from )
  */
 int mbedtls_x509_self_test( int verbose )
 {
-#if defined(MBEDTLS_CERTS_C) && defined(MBEDTLS_SHA1_C)
+#if defined(MBEDTLS_CERTS_C) && defined(MBEDTLS_SHA256_C)
     int ret;
     uint32_t flags;
     mbedtls_x509_crt cacert;

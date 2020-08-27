@@ -18,13 +18,19 @@
 
 class PointerWrap;
 
+namespace DiscIO
+{
+enum class Platform;
+}
+
 namespace IOS::HLE::Device
 {
 struct TitleContext
 {
   void Clear();
   void DoState(PointerWrap& p);
-  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+              DiscIO::Platform platform);
 
   IOS::ES::TicketReader ticket;
   IOS::ES::TMDReader tmd;
@@ -104,11 +110,18 @@ public:
     // Ticket is unpersonalised, so ignore any console specific decryption data.
     Unpersonalised,
   };
+  enum class VerifySignature
+  {
+    No,
+    Yes,
+  };
   ReturnCode ImportTicket(const std::vector<u8>& ticket_bytes, const std::vector<u8>& cert_chain,
-                          TicketImportType type = TicketImportType::PossiblyPersonalised);
+                          TicketImportType type = TicketImportType::PossiblyPersonalised,
+                          VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportTmd(Context& context, const std::vector<u8>& tmd_bytes);
   ReturnCode ImportTitleInit(Context& context, const std::vector<u8>& tmd_bytes,
-                             const std::vector<u8>& cert_chain);
+                             const std::vector<u8>& cert_chain,
+                             VerifySignature verify_signature = VerifySignature::Yes);
   ReturnCode ImportContentBegin(Context& context, u64 title_id, u32 content_id);
   ReturnCode ImportContentData(Context& context, u32 content_fd, const u8* data, u32 data_size);
   ReturnCode ImportContentEnd(Context& context, u32 content_fd);
@@ -139,6 +152,27 @@ public:
                             u32* handle);
 
   bool CreateTitleDirectories(u64 title_id, u16 group_id) const;
+
+  enum class VerifyContainerType
+  {
+    TMD,
+    Ticket,
+    Device,
+  };
+  enum class VerifyMode
+  {
+    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
+    DoNotUpdateCertStore,
+    UpdateCertStore,
+  };
+  // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
+  // The caller is responsible for using IOSC_DeleteObject.
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::SignedBlobReader& signed_blob,
+                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
+  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
+                             const IOS::ES::CertReader& certificate,
+                             const std::vector<u8>& cert_chain, u32 certificate_iosc_handle);
 
 private:
   enum
@@ -308,29 +342,9 @@ private:
   ReturnCode CheckStreamKeyPermissions(u32 uid, const u8* ticket_view,
                                        const IOS::ES::TMDReader& tmd) const;
 
-  enum class VerifyContainerType
-  {
-    TMD,
-    Ticket,
-    Device,
-  };
-  enum class VerifyMode
-  {
-    // Whether or not new certificates should be added to the certificate store (/sys/cert.sys).
-    DoNotUpdateCertStore,
-    UpdateCertStore,
-  };
   bool IsIssuerCorrect(VerifyContainerType type, const IOS::ES::CertReader& issuer_cert) const;
   ReturnCode ReadCertStore(std::vector<u8>* buffer) const;
   ReturnCode WriteNewCertToStore(const IOS::ES::CertReader& cert);
-  // On success, if issuer_handle is non-null, the IOSC object for the issuer will be written to it.
-  // The caller is responsible for using IOSC_DeleteObject.
-  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const IOS::ES::SignedBlobReader& signed_blob,
-                             const std::vector<u8>& cert_chain, u32* issuer_handle = nullptr);
-  ReturnCode VerifyContainer(VerifyContainerType type, VerifyMode mode,
-                             const IOS::ES::CertReader& certificate,
-                             const std::vector<u8>& cert_chain, u32 certificate_iosc_handle);
 
   // Start a title import.
   bool InitImport(const IOS::ES::TMDReader& tmd);

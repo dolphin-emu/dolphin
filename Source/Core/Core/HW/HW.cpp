@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/AddressSpace.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -41,7 +42,8 @@ void Init()
   SerialInterface::Init();
   ProcessorInterface::Init();
   ExpansionInterface::Init();  // Needs to be initialized before Memory
-  Memory::Init();
+  Memory::Init();              // Needs to be initialized before AddressSpace
+  AddressSpace::Init();
   DSP::Init(SConfig::GetInstance().bDSPHLE);
   DVDInterface::Init();
   GPFifo::Init();
@@ -108,4 +110,4 @@ void DoState(PointerWrap& p)
 
   p.DoMarker("WIIHW");
 }
-}
+}  // namespace HW

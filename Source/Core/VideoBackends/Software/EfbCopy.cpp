@@ -33,4 +33,4 @@ void ClearEfb()
     }
   }
 }
-}
+}  // namespace EfbCopy

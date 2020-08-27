@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/BitField.h"
 #include "Common/CommonTypes.h"
 #include "VideoCommon/CPMemory.h"
@@ -130,7 +132,7 @@ enum
   // XFMEM_SETPROJECTIONORTHO2 = 0x1027,
   XFMEM_SETNUMTEXGENS = 0x103f,
   XFMEM_SETTEXMTXINFO = 0x1040,
-  XFMEM_SETPOSMTXINFO = 0x1050,
+  XFMEM_SETPOSTMTXINFO = 0x1050,
 };
 
 union LitChannel
@@ -245,7 +247,9 @@ struct Viewport
 
 struct Projection
 {
-  float rawProjection[6];
+  using Raw = std::array<float, 6>;
+
+  Raw rawProjection;
   u32 type;  // only GX_PERSPECTIVE or GX_ORTHOGRAPHIC are allowed
 };
 
@@ -288,6 +292,7 @@ struct XFMemory
   u32 unk9[8];                              // 0x1048 - 0x104f
   PostMtxInfo postMtxInfo[8];               // 0x1050 - 0x1057
 };
+static_assert(sizeof(XFMemory) == sizeof(u32) * 0x1058);
 
 extern XFMemory xfmem;
 

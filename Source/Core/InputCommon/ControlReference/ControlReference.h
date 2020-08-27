@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cmath>
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -22,18 +23,20 @@
 class ControlReference
 {
 public:
-  static bool InputGateOn();
+  // Note: this is per thread.
+  static void SetInputGate(bool enable);
+  static bool GetInputGate();
 
   virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
-  virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                                ciface::Core::Device* const device) = 0;
   virtual bool IsInput() const = 0;
+
+  template <typename T>
+  T GetState();
 
   int BoundCount() const;
   ciface::ExpressionParser::ParseStatus GetParseStatus() const;
-  void UpdateReference(const ciface::Core::DeviceContainer& devices,
-                       const ciface::Core::DeviceQualifier& default_device);
+  void UpdateReference(ciface::ExpressionParser::ControlEnvironment& env);
   std::string GetExpression() const;
   void SetExpression(std::string expr);
 
@@ -46,6 +49,25 @@ protected:
   ciface::ExpressionParser::ParseStatus m_parse_status;
 };
 
+template <>
+inline bool ControlReference::GetState<bool>()
+{
+  // Round to nearest of 0 or 1.
+  return std::lround(State()) > 0;
+}
+
+template <>
+inline int ControlReference::GetState<int>()
+{
+  return std::lround(State());
+}
+
+template <>
+inline ControlState ControlReference::GetState<ControlState>()
+{
+  return State();
+}
+
 //
 // InputReference
 //
@@ -57,8 +79,6 @@ public:
   InputReference();
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
-  ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                        ciface::Core::Device* const device) override;
 };
 
 //
@@ -72,6 +92,4 @@ public:
   OutputReference();
   bool IsInput() const override;
   ControlState State(const ControlState state) override;
-  ciface::Core::Device::Control* Detect(const unsigned int ms,
-                                        ciface::Core::Device* const device) override;
 };

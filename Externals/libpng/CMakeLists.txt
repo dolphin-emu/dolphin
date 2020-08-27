@@ -23,6 +23,8 @@ PUBLIC
   ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
+target_link_libraries(png PUBLIC z)
+
 if(NOT MSVC)
   target_compile_options(png
   PRIVATE

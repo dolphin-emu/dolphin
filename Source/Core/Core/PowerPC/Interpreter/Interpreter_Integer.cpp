@@ -15,27 +15,12 @@ void Interpreter::Helper_UpdateCR0(u32 value)
   u64 cr_val = (u64)sign_extended;
   cr_val = (cr_val & ~(1ull << 61)) | ((u64)PowerPC::GetXER_SO() << 61);
 
-  PowerPC::ppcState.cr_val[0] = cr_val;
+  PowerPC::ppcState.cr.fields[0] = cr_val;
 }
 
 u32 Interpreter::Helper_Carry(u32 value1, u32 value2)
 {
   return value2 > (~value1);
-}
-
-u32 Interpreter::Helper_Mask(int mb, int me)
-{
-  // first make 001111111111111 part
-  u32 begin = 0xFFFFFFFF >> mb;
-  // then make 000000000001111 part, which is used to flip the bits of the first one
-  u32 end = 0x7FFFFFFF >> me;
-  // do the bitflip
-  u32 mask = begin ^ end;
-  // and invert if backwards
-  if (me < mb)
-    return ~mask;
-  else
-    return mask;
 }
 
 void Interpreter::addi(UGeckoInstruction inst)
@@ -97,7 +82,7 @@ void Interpreter::cmpi(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, f);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
 }
 
 void Interpreter::cmpli(UGeckoInstruction inst)
@@ -116,7 +101,7 @@ void Interpreter::cmpli(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     f |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, f);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, f);
 }
 
 void Interpreter::mulli(UGeckoInstruction inst)
@@ -170,7 +155,7 @@ void Interpreter::xoris(UGeckoInstruction inst)
 
 void Interpreter::rlwimix(UGeckoInstruction inst)
 {
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   rGPR[inst.RA] = (rGPR[inst.RA] & ~mask) | (Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask);
 
   if (inst.Rc)
@@ -179,7 +164,7 @@ void Interpreter::rlwimix(UGeckoInstruction inst)
 
 void Interpreter::rlwinmx(UGeckoInstruction inst)
 {
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], inst.SH) & mask;
 
   if (inst.Rc)
@@ -188,7 +173,7 @@ void Interpreter::rlwinmx(UGeckoInstruction inst)
 
 void Interpreter::rlwnmx(UGeckoInstruction inst)
 {
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  const u32 mask = MakeRotationMask(inst.MB, inst.ME);
   rGPR[inst.RA] = Common::RotateLeft(rGPR[inst.RS], rGPR[inst.RB] & 0x1F) & mask;
 
   if (inst.Rc)
@@ -227,7 +212,7 @@ void Interpreter::cmp(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, temp);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
 }
 
 void Interpreter::cmpl(UGeckoInstruction inst)
@@ -246,7 +231,7 @@ void Interpreter::cmpl(UGeckoInstruction inst)
   if (PowerPC::GetXER_SO())
     temp |= 0x1;
 
-  PowerPC::SetCRField(inst.CRFD, temp);
+  PowerPC::ppcState.cr.SetField(inst.CRFD, temp);
 }
 
 void Interpreter::cntlzwx(UGeckoInstruction inst)

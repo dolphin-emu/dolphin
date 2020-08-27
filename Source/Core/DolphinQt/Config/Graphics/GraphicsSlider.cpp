@@ -4,12 +4,13 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsSlider.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
 
-GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInfo<int>& setting,
-                               int tick)
+GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>& setting, int tick)
     : QSlider(Qt::Horizontal), m_setting(setting)
 {
   setMinimum(minimum);
@@ -25,9 +26,8 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::ConfigInf
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setValue(Config::Get(m_setting));
-    blockSignals(old);
   });
 }
 

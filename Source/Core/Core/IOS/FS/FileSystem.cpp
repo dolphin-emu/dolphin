@@ -11,6 +11,24 @@
 
 namespace IOS::HLE::FS
 {
+bool IsValidPath(std::string_view path)
+{
+  return path == "/" || IsValidNonRootPath(path);
+}
+
+bool IsValidNonRootPath(std::string_view path)
+{
+  return path.length() > 1 && path.length() <= MaxPathLength && path[0] == '/' &&
+         path.back() != '/';
+}
+
+SplitPathResult SplitPathAndBasename(std::string_view path)
+{
+  const auto last_separator = path.rfind('/');
+  return {std::string(path.substr(0, std::max<size_t>(1, last_separator))),
+          std::string(path.substr(last_separator + 1))};
+}
+
 std::unique_ptr<FileSystem> MakeFileSystem(Location location)
 {
   const std::string nand_root =
@@ -66,12 +84,6 @@ Result<FileStatus> FileHandle::GetStatus() const
   return m_fs->GetFileStatus(*m_fd);
 }
 
-void FileSystem::Init()
-{
-  if (Delete(0, 0, "/tmp") == ResultCode::Success)
-    CreateDirectory(0, 0, "/tmp", 0, {Mode::ReadWrite, Mode::ReadWrite, Mode::ReadWrite});
-}
-
 Result<FileHandle> FileSystem::CreateAndOpenFile(Uid uid, Gid gid, const std::string& path,
                                                  Modes modes)
 {
@@ -103,9 +115,12 @@ ResultCode FileSystem::CreateFullPath(Uid uid, Gid gid, const std::string& path,
     if (metadata && metadata->is_file)
       return ResultCode::Invalid;
 
-    const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, modes);
-    if (result != ResultCode::Success && result != ResultCode::AlreadyExists)
-      return result;
+    if (!metadata)
+    {
+      const ResultCode result = CreateDirectory(uid, gid, subpath, attribute, modes);
+      if (result != ResultCode::Success)
+        return result;
+    }
 
     ++position;
   }

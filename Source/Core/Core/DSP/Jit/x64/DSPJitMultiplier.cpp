@@ -30,7 +30,7 @@ void DSPEmitter::multiply()
   TEST(16, sr_reg, Imm16(SR_MUL_MODIFY));
   FixupBranch noMult2 = J_CC(CC_NZ);
   //		prod <<= 1;
-  LEA(64, RAX, MRegSum(RAX, RAX));
+  ADD(64, R(RAX), R(RAX));
   SetJumpTarget(noMult2);
   m_gpr.PutReg(DSP_REG_SR, false);
   //	return prod;
@@ -130,7 +130,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
   TEST(16, sr_reg, Imm16(SR_MUL_MODIFY));
   FixupBranch noMult2 = J_CC(CC_NZ);
   //		prod <<= 1;
-  LEA(64, RAX, MRegSum(RAX, RAX));
+  ADD(64, R(RAX), R(RAX));
   SetJumpTarget(noMult2);
   m_gpr.PutReg(DSP_REG_SR, false);
   //	return prod;
@@ -252,8 +252,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
   get_long_acx(sreg, tmp1);
   MOV(64, R(RDX), R(tmp1));
   //	s64 res = prod + (ax & ~0xffff);
-  MOV(64, R(RAX), Imm64(~0xffff));
-  AND(64, R(RDX), R(RAX));
+  AND(64, R(RDX), Imm32(~0xffff));
   //	s64 prod = dsp_get_long_prod_round_prodl();
   get_long_prod_round_prodl();
   ADD(64, R(RAX), R(RDX));

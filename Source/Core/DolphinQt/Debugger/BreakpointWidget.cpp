@@ -26,24 +26,23 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   setWindowTitle(tr("Breakpoints"));
   setObjectName(QStringLiteral("breakpoints"));
 
+  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
+            !Settings::Instance().IsDebugModeEnabled());
+
   setAllowedAreas(Qt::AllDockWidgetAreas);
+
+  CreateWidgets();
 
   auto& settings = Settings::GetQSettings();
 
   restoreGeometry(settings.value(QStringLiteral("breakpointwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
-  CreateWidgets();
-
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
-    if (!Settings::Instance().IsDebugModeEnabled())
-      return;
-
-    bool is_initialised = state != Core::State::Uninitialized;
-    m_new->setEnabled(is_initialised);
-    m_load->setEnabled(is_initialised);
-    m_save->setEnabled(is_initialised);
-    if (!is_initialised)
+    UpdateButtonsEnabled();
+    if (state == Core::State::Uninitialized)
     {
       PowerPC::breakpoints.Clear();
       PowerPC::memchecks.Clear();
@@ -60,11 +59,6 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(&Settings::Instance(), &Settings::ThemeChanged, this, &BreakpointWidget::UpdateIcons);
   UpdateIcons();
-
-  setHidden(!Settings::Instance().IsBreakpointsVisible() ||
-            !Settings::Instance().IsDebugModeEnabled());
-
-  Update();
 }
 
 BreakpointWidget::~BreakpointWidget()
@@ -78,9 +72,12 @@ BreakpointWidget::~BreakpointWidget()
 void BreakpointWidget::CreateWidgets()
 {
   m_toolbar = new QToolBar;
+  m_toolbar->setContentsMargins(0, 0, 0, 0);
   m_toolbar->setToolButtonStyle(Qt::ToolButtonTextBesideIcon);
 
   m_table = new QTableWidget;
+  m_table->setTabKeyNavigation(false);
+  m_table->setContentsMargins(0, 0, 0, 0);
   m_table->setColumnCount(5);
   m_table->setSelectionMode(QAbstractItemView::SingleSelection);
   m_table->setSelectionBehavior(QAbstractItemView::SelectRows);
@@ -100,6 +97,8 @@ void BreakpointWidget::CreateWidgets()
 
   layout->addWidget(m_toolbar);
   layout->addWidget(m_table);
+  layout->setContentsMargins(2, 2, 2, 2);
+  layout->setSpacing(0);
 
   m_new = m_toolbar->addAction(tr("New"), this, &BreakpointWidget::OnNewBreakpoint);
   m_delete = m_toolbar->addAction(tr("Delete"), this, &BreakpointWidget::OnDelete);
@@ -132,8 +131,28 @@ void BreakpointWidget::closeEvent(QCloseEvent*)
   Settings::Instance().SetBreakpointsVisible(false);
 }
 
+void BreakpointWidget::showEvent(QShowEvent* event)
+{
+  UpdateButtonsEnabled();
+  Update();
+}
+
+void BreakpointWidget::UpdateButtonsEnabled()
+{
+  if (!isVisible())
+    return;
+
+  const bool is_initialised = Core::GetState() != Core::State::Uninitialized;
+  m_new->setEnabled(is_initialised);
+  m_load->setEnabled(is_initialised);
+  m_save->setEnabled(is_initialised);
+}
+
 void BreakpointWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   m_table->clear();
 
   m_table->setHorizontalHeaderLabels(
@@ -142,7 +161,7 @@ void BreakpointWidget::Update()
   int i = 0;
   m_table->setRowCount(i);
 
-  auto create_item = [](const QString string = QStringLiteral("")) {
+  const auto create_item = [](const QString string = {}) {
     QTableWidgetItem* item = new QTableWidgetItem(string);
     item->setFlags(Qt::ItemIsEnabled | Qt::ItemIsSelectable);
     return item;
@@ -169,7 +188,15 @@ void BreakpointWidget::Update()
     m_table->setItem(i, 3,
                      create_item(QStringLiteral("%1").arg(bp.address, 8, 16, QLatin1Char('0'))));
 
-    m_table->setItem(i, 4, create_item());
+    QString flags;
+
+    if (bp.break_on_hit)
+      flags.append(QLatin1Char{'b'});
+
+    if (bp.log_on_hit)
+      flags.append(QLatin1Char{'l'});
+
+    m_table->setItem(i, 4, create_item(flags));
 
     i++;
   }
@@ -206,10 +233,10 @@ void BreakpointWidget::Update()
     QString flags;
 
     if (mbp.is_break_on_read)
-      flags.append(QStringLiteral("r"));
+      flags.append(QLatin1Char{'r'});
 
     if (mbp.is_break_on_write)
-      flags.append(QStringLiteral("w"));
+      flags.append(QLatin1Char{'w'});
 
     m_table->setItem(i, 4, create_item(flags));
 
@@ -219,7 +246,7 @@ void BreakpointWidget::Update()
 
 void BreakpointWidget::OnDelete()
 {
-  if (m_table->selectedItems().size() == 0)
+  if (m_table->selectedItems().empty())
     return;
 
   auto address = m_table->selectedItems()[0]->data(Qt::UserRole).toUInt();
@@ -289,7 +316,12 @@ void BreakpointWidget::OnSave()
 
 void BreakpointWidget::AddBP(u32 addr)
 {
-  PowerPC::breakpoints.Add(addr);
+  AddBP(addr, false, true, true);
+}
+
+void BreakpointWidget::AddBP(u32 addr, bool temp, bool break_on_hit, bool log_on_hit)
+{
+  PowerPC::breakpoints.Add(addr, temp, break_on_hit, log_on_hit);
 
   Update();
 }

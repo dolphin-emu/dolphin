@@ -243,7 +243,7 @@ USBDeviceHandle::~USBDeviceHandle()
 	if (fRawFD > 0)
 		close(fRawFD);
 	for(int i = 0; i < 32; i++) {
-		if (fClaimedInterfaces & (1 << i))
+		if (fClaimedInterfaces & (1U << i))
 			ReleaseInterface(i);
 	}
 	delete_sem(fTransfersSem);
@@ -256,7 +256,7 @@ USBDeviceHandle::ClaimInterface(int inumber)
 {
 	int status = fUSBDevice->ClaimInterface(inumber);
 	if (status == LIBUSB_SUCCESS)
-		fClaimedInterfaces |= (1 << inumber);
+		fClaimedInterfaces |= (1U << inumber);
 	return status;
 }
 
@@ -264,7 +264,7 @@ int
 USBDeviceHandle::ReleaseInterface(int inumber)
 {
 	fUSBDevice->ReleaseInterface(inumber);
-	fClaimedInterfaces &= ~(1 << inumber);
+	fClaimedInterfaces &= ~(1U << inumber);
 	return LIBUSB_SUCCESS;
 }
 
@@ -388,15 +388,15 @@ int USBDevice::ClaimInterface(int interface)
 {
 	if (interface > ActiveConfiguration()->number_interfaces)
 		return LIBUSB_ERROR_NOT_FOUND;
-	if (fClaimedInterfaces & (1 << interface))
+	if (fClaimedInterfaces & (1U << interface))
 		return LIBUSB_ERROR_BUSY;
-	fClaimedInterfaces |= (1 << interface);
+	fClaimedInterfaces |= (1U << interface);
 	return LIBUSB_SUCCESS;
 }
 
 int USBDevice::ReleaseInterface(int interface)
 {
-	fClaimedInterfaces &= ~(1 << interface);
+	fClaimedInterfaces &= ~(1U << interface);
 	return LIBUSB_SUCCESS;
 }
 

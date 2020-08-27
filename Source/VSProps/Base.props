@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <ImportGroup Label="PropertySheets" />
-  <PropertyGroup Label="UserMacros">
-    <DolphinRelease Condition="'$(DolphinRelease)'!='true' or '$(Configuration)'!='Release'">false</DolphinRelease>
-    <TargetSuffix>
-    </TargetSuffix>
-    <TargetSuffix Condition="'$(Configuration)'=='Debug'">D</TargetSuffix>
-    <DolphinRootDir>$(SolutionDir)..\</DolphinRootDir>
-    <BuildRootDir>$(DolphinRootDir)Build\</BuildRootDir>
-    <BinaryRootDir>$(DolphinRootDir)Binary\</BinaryRootDir>
-    <BinaryOutputDir>$(BinaryRootDir)$(Platform)\</BinaryOutputDir>
-    <ExternalsDir>$(DolphinRootDir)Externals\</ExternalsDir>
-    <CoreDir>$(SolutionDir)Core\</CoreDir>
-  </PropertyGroup>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="Base.Macros.props" Condition="'$(BaseMacrosImported)'==''" />
   <PropertyGroup>
     <!--
     Opt-in to x64 compiler and tools.
@@ -33,48 +21,53 @@
         Note: Directory containing source file being compiled is always searched first.
       -->
       <AdditionalIncludeDirectories>$(CoreDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Bochs_disasm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)bzip2;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)cpp-optparse;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)FreeSurround\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)cubeb\include;$(ExternalsDir)cubeb\msvc;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)curl\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)discord-rpc\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)ed25519;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)enet\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)ffmpeg\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)fmt\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)GL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <AdditionalIncludeDirectories>$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)glslang;$(ExternalsDir)glslang\StandAlone;$(ExternalsDir)glslang\glslang\Public;$(ExternalsDir)glslang\SPIRV;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)imgui;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)liblzma\api;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)libpng;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)libusb\libusb;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)LZO;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)miniupnpc\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)minizip;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)mbedtls\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)OpenAL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)picojson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)pugixml;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)SFML\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)soundtouch;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)Vulkan\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ExternalsDir)WIL\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)xxhash;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <AdditionalIncludeDirectories>$(ExternalsDir)zlib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(ExternalsDir)zstd\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>FMT_HEADER_ONLY=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_SECURE_NO_DEPRECATE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_UPNP;USE_USBDK;__LIBUSB__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions>_M_X86=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>SFML_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_ANALYTICS=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>USE_DISCORD_PRESENCE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <PreprocessorDefinitions>CURL_STATICLIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIL_SUPPRESS_EXCEPTIONS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>LZMA_API_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">_ARCH_64=1;_M_X86=1;_M_X86_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='ARM64'">_ARCH_64=1;_M_ARM_64=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions Condition="'$(Platform)'=='x64'">HAVE_FFMPEG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <!--
       Make sure we include a clean version of windows.h.
       -->
       <PreprocessorDefinitions>WIN32_LEAN_AND_MEAN;NOMINMAX;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <!--
-      This numeral indicates the "minimum system required" to run the resulting
-      program. Dolphin targets Vista+, so it should be 0x0600. However in practice,
-      _WIN32_WINNT just removes up-level API declarations from headers. This is a
-      problem for XAudio2 and XInput, where Dolphin expects to compile against the
-      Win8+ versions of their headers. So while we really need Vista+ level of
-      support, we declare Win8+ here globally. If this becomes a problem, the
-      higher declaration can be contained to just the XAudio2/XInput related code.
-      -->
-      <PreprocessorDefinitions>_WIN32_WINNT=0x0602;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <WarningLevel>Level4</WarningLevel>
       <TreatWarningAsError>true</TreatWarningAsError>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -84,9 +77,9 @@
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <!--Enable Standard Conformance-->
-      <AdditionalOptions>/permissive- %(AdditionalOptions)</AdditionalOptions>
+      <ConformanceMode>true</ConformanceMode>
       <!--Enforce some behaviors as standards-conformant when they don't default as such-->
-      <AdditionalOptions>/Zc:inline /Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/Zc:throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
@@ -99,7 +92,7 @@
                 seem to be a way to only ignore the specific instance we don't care about...
       4351  new behavior: elements of array 'array' will be default initialized
       -->
-      <DisableSpecificWarnings>4996;4351</DisableSpecificWarnings>
+      <DisableSpecificWarnings>4996;4351;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Warnings one may want to ignore when using Level4.
       4201  nonstandard extension used : nameless struct/union
       4127  conditional expression is constant
@@ -158,7 +151,7 @@
       <!--See Common/CompatPatches.cpp-->
       <ForceSymbolReferences>enableCompatPatches</ForceSymbolReferences>
       <!--TODO fix up ffmpeg garbage-->
-      <AdditionalOptions>/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/NODEFAULTLIB:libcmt /Brepro %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Lib>
       <TreatLibWarningAsErrors>true</TreatLibWarningAsErrors>

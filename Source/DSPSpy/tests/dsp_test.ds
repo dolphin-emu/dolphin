@@ -6,9 +6,6 @@ include "dsp_base.inc"
         
 ;  We can call send_back at any time to send data back to the PowerPC.
 
-;  Calling set40 here seemed to crash the dsp tester in strange ways
-;  until I added set16 in send_back. Seems clear that it affects something important.
-
        lri $AC0.M, #0x1000	
 	call send_back
 

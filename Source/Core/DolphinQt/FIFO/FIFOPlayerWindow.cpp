@@ -10,7 +10,6 @@
 #include <QGroupBox>
 #include <QHBoxLayout>
 #include <QLabel>
-#include <QMessageBox>
 #include <QPushButton>
 #include <QSpinBox>
 #include <QTabWidget>
@@ -25,6 +24,7 @@
 #include "Core/FifoPlayer/FifoRecorder.h"
 
 #include "DolphinQt/FIFO/FIFOAnalyzer.h"
+#include "DolphinQt/QtUtils/ModalMessageBox.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 #include "DolphinQt/Settings.h"
 
@@ -162,21 +162,21 @@ void FIFOPlayerWindow::CreateWidgets()
 
 void FIFOPlayerWindow::ConnectWidgets()
 {
-  connect(m_load, &QPushButton::pressed, this, &FIFOPlayerWindow::LoadRecording);
-  connect(m_save, &QPushButton::pressed, this, &FIFOPlayerWindow::SaveRecording);
-  connect(m_record, &QPushButton::pressed, this, &FIFOPlayerWindow::StartRecording);
-  connect(m_stop, &QPushButton::pressed, this, &FIFOPlayerWindow::StopRecording);
+  connect(m_load, &QPushButton::clicked, this, &FIFOPlayerWindow::LoadRecording);
+  connect(m_save, &QPushButton::clicked, this, &FIFOPlayerWindow::SaveRecording);
+  connect(m_record, &QPushButton::clicked, this, &FIFOPlayerWindow::StartRecording);
+  connect(m_stop, &QPushButton::clicked, this, &FIFOPlayerWindow::StopRecording);
   connect(m_button_box, &QDialogButtonBox::rejected, this, &FIFOPlayerWindow::reject);
   connect(m_early_memory_updates, &QCheckBox::toggled, this,
           &FIFOPlayerWindow::OnEarlyMemoryUpdatesChanged);
-  connect(m_frame_range_from, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_frame_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
-  connect(m_frame_range_to, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_frame_range_to, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
 
-  connect(m_object_range_from, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_object_range_from, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
-  connect(m_object_range_to, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
+  connect(m_object_range_to, qOverload<int>(&QSpinBox::valueChanged), this,
           &FIFOPlayerWindow::OnLimitsChanged);
 }
 
@@ -204,7 +204,9 @@ void FIFOPlayerWindow::SaveRecording()
   bool result = file->Save(path.toStdString());
 
   if (!result)
-    QMessageBox::critical(this, tr("Error"), tr("Failed to save FIFO log."));
+  {
+    ModalMessageBox::critical(this, tr("Error"), tr("Failed to save FIFO log."));
+  }
 }
 
 void FIFOPlayerWindow::StartRecording()

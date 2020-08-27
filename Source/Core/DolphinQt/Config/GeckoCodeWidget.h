@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/GeckoCode.h"
 
 class CheatWarningWidget;
 class QLabel;
@@ -18,6 +17,11 @@ class QListWidget;
 class QListWidgetItem;
 class QTextEdit;
 class QPushButton;
+
+namespace Gecko
+{
+class GeckoCode;
+}
 
 namespace UICommon
 {
@@ -29,6 +33,7 @@ class GeckoCodeWidget : public QWidget
   Q_OBJECT
 public:
   explicit GeckoCodeWidget(const UICommon::GameFile& game, bool restart_required = true);
+  ~GeckoCodeWidget() override;
 
 signals:
   void OpenGeneralSettings();
@@ -36,6 +41,8 @@ signals:
 private:
   void OnSelectionChanged();
   void OnItemChanged(QListWidgetItem* item);
+  void OnListReordered();
+  void OnContextMenuRequested();
 
   void CreateWidgets();
   void ConnectWidgets();
@@ -45,9 +52,11 @@ private:
   void RemoveCode();
   void DownloadCodes();
   void SaveCodes();
+  void SortAlphabetically();
 
   const UICommon::GameFile& m_game;
   std::string m_game_id;
+  std::string m_gametdb_id;
   u16 m_game_revision;
 
   CheatWarningWidget* m_warning;

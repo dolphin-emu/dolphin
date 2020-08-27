@@ -6,14 +6,13 @@
 
 #include <windows.h>
 
+#include "Common/Matrix.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface
+namespace ciface::DInput
 {
-namespace DInput
-{
-void InitKeyboardMouse(IDirectInput8* const idi8, HWND _hwnd);
+void InitKeyboardMouse(IDirectInput8* const idi8, HWND hwnd);
 
 class KeyboardMouse : public Core::Device
 {
@@ -22,10 +21,7 @@ private:
   {
     BYTE keyboard[256];
     DIMOUSESTATE2 mouse;
-    struct
-    {
-      ControlState x, y;
-    } cursor;
+    Common::TVec2<ControlState> cursor;
   };
 
   class Key : public Input
@@ -73,7 +69,7 @@ private:
     {
     }
     std::string GetName() const override;
-    bool IsDetectable() override { return false; }
+    bool IsDetectable() const override { return false; }
     ControlState GetState() const override;
 
   private:
@@ -85,18 +81,22 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device);
+  KeyboardMouse(const LPDIRECTINPUTDEVICE8 kb_device, const LPDIRECTINPUTDEVICE8 mo_device,
+                HWND hwnd);
   ~KeyboardMouse();
 
   std::string GetName() const override;
   std::string GetSource() const override;
 
 private:
+  void UpdateCursorInput();
+
   const LPDIRECTINPUTDEVICE8 m_kb_device;
   const LPDIRECTINPUTDEVICE8 m_mo_device;
+
+  const HWND m_hwnd;
 
   DWORD m_last_update;
   State m_state_in;
 };
-}
-}
+}  // namespace ciface::DInput

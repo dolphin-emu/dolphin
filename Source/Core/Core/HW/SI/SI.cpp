@@ -6,11 +6,15 @@
 
 #include <algorithm>
 #include <array>
+#include <atomic>
 #include <cstring>
+#include <iomanip>
 #include <memory>
+#include <sstream>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
@@ -50,6 +54,7 @@ enum
   SI_COM_CSR = 0x34,
   SI_STATUS_REG = 0x38,
   SI_EXI_CLOCK_COUNT = 0x3C,
+  SI_IO_BUFFER = 0x80,
 };
 
 // SI Channel Output
@@ -100,6 +105,8 @@ struct SSIChannel
   USIChannelIn_Hi in_hi;
   USIChannelIn_Lo in_lo;
   std::unique_ptr<ISIDevice> device;
+
+  bool has_recent_device_change;
 };
 
 // SI Poll: Controls how often a device is polled
@@ -203,6 +210,9 @@ union USIEXIClockCount
 static CoreTiming::EventType* s_change_device_event;
 static CoreTiming::EventType* s_tranfer_pending_event;
 
+// User-configured device type. possibly overridden by TAS/Netplay
+static std::array<std::atomic<SIDevices>, MAX_SI_CHANNELS> s_desired_device_types;
+
 // STATE_TO_SAVE
 static std::array<SSIChannel, MAX_SI_CHANNELS> s_channel;
 static USIPoll s_poll;
@@ -234,20 +244,8 @@ static void SetNoResponse(u32 channel)
 
 static void ChangeDeviceCallback(u64 user_data, s64 cycles_late)
 {
-  u8 channel = (u8)(user_data >> 32);
-  SIDevices device = (SIDevices)(u32)user_data;
-
-  // Skip redundant (spammed) device changes
-  if (GetDeviceType(channel) != device)
-  {
-    s_channel[channel].out.hex = 0;
-    s_channel[channel].in_hi.hex = 0;
-    s_channel[channel].in_lo.hex = 0;
-
-    SetNoResponse(channel);
-
-    AddDevice(device, channel);
-  }
+  // The purpose of this callback is to simply re-enable device changes.
+  s_channel[user_data].has_recent_device_change = false;
 }
 
 static void UpdateInterrupts()
@@ -284,31 +282,51 @@ static void GenerateSIInterrupt(SIInterruptType type)
   UpdateInterrupts();
 }
 
+constexpr u32 SI_XFER_LENGTH_MASK = 0x7f;
+
+// Translate [0,1,2,...,126,127] to [128,1,2,...,126,127]
+constexpr u32 ConvertSILengthField(u32 field)
+{
+  return ((field - 1) & SI_XFER_LENGTH_MASK) + 1;
+}
+
 static void RunSIBuffer(u64 user_data, s64 cycles_late)
 {
   if (s_com_csr.TSTART)
   {
-    // Math in_length
-    int in_length = s_com_csr.INLNGTH;
-    if (in_length == 0)
-      in_length = 128;
-    else
-      in_length++;
-
-    // Math out_length
-    int out_length = s_com_csr.OUTLNGTH;
-    if (out_length == 0)
-      out_length = 128;
-    else
-      out_length++;
+    u32 request_length = ConvertSILengthField(s_com_csr.OUTLNGTH);
+    u32 expected_response_length = ConvertSILengthField(s_com_csr.INLNGTH);
+    std::vector<u8> request_copy(s_si_buffer.data(), s_si_buffer.data() + request_length);
 
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
+    u32 actual_response_length = device->RunBuffer(s_si_buffer.data(), request_length);
 
-    DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
-              s_com_csr.CHANNEL, in_length, out_length, numOutput);
+    DEBUG_LOG(SERIALINTERFACE,
+              "RunSIBuffer  chan: %d  request_length: %u  expected_response_length: %u  "
+              "actual_response_length: %u",
+              s_com_csr.CHANNEL, request_length, expected_response_length, actual_response_length);
+    if (expected_response_length != actual_response_length)
+    {
+      std::ostringstream ss;
+      for (u8 b : request_copy)
+      {
+        ss << std::hex << std::setw(2) << std::setfill('0') << (int)b << ' ';
+      }
+      DEBUG_LOG(
+          SERIALINTERFACE,
+          "RunSIBuffer: expected_response_length(%u) != actual_response_length(%u): request: %s",
+          expected_response_length, actual_response_length, ss.str().c_str());
+    }
 
-    if (numOutput != 0)
+    // TODO:
+    // 1) Wait a reasonable amount of time for the result to be available:
+    //    request is N bytes, ends with a stop bit
+    //    response in M bytes, ends with a stop bit
+    //    processing controller-side takes K us (investigate?)
+    //    each bit takes 4us ([3us low/1us high] for a 0, [1us low/3us high] for a 1)
+    //    time until response is available is at least: K + ((N*8 + 1) + (M*8 + 1)) * 4 us
+    // 2) Investigate the timeout period for NOREP0
+    if (actual_response_length != 0)
     {
       s_com_csr.TSTART = 0;
       GenerateSIInterrupt(INT_TCINT);
@@ -327,26 +345,18 @@ void DoState(PointerWrap& p)
     p.Do(s_channel[i].in_hi.hex);
     p.Do(s_channel[i].in_lo.hex);
     p.Do(s_channel[i].out.hex);
+    p.Do(s_channel[i].has_recent_device_change);
 
     std::unique_ptr<ISIDevice>& device = s_channel[i].device;
     SIDevices type = device->GetDeviceType();
     p.Do(type);
 
-    if (type == device->GetDeviceType())
+    if (type != device->GetDeviceType())
     {
-      device->DoState(p);
+      AddDevice(SIDevice_Create(type, i));
     }
-    else
-    {
-      // If no movie is active, we'll assume the user wants to keep their current devices
-      // instead of the ones they had when the savestate was created.
-      // But we need to restore the current devices first just in case.
-      SIDevices original_device = device->GetDeviceType();
-      std::unique_ptr<ISIDevice> save_device = SIDevice_Create(type, i);
-      save_device->DoState(p);
-      AddDevice(std::move(save_device));
-      ChangeDeviceDeterministic(original_device, i);
-    }
+
+    device->DoState(p);
   }
 
   p.Do(s_poll);
@@ -363,27 +373,30 @@ void Init()
     s_channel[i].out.hex = 0;
     s_channel[i].in_hi.hex = 0;
     s_channel[i].in_lo.hex = 0;
+    s_channel[i].has_recent_device_change = false;
 
     if (Movie::IsMovieActive())
     {
+      s_desired_device_types[i] = SIDEVICE_NONE;
+
       if (Movie::IsUsingPad(i))
       {
         SIDevices current = SConfig::GetInstance().m_SIDevice[i];
         // GC pad-compatible devices can be used for both playing and recording
-        if (SIDevice_IsGCController(current))
-          AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : current, i);
+        if (Movie::IsUsingBongo(i))
+          s_desired_device_types[i] = SIDEVICE_GC_TARUKONGA;
+        else if (SIDevice_IsGCController(current))
+          s_desired_device_types[i] = current;
         else
-          AddDevice(Movie::IsUsingBongo(i) ? SIDEVICE_GC_TARUKONGA : SIDEVICE_GC_CONTROLLER, i);
-      }
-      else
-      {
-        AddDevice(SIDEVICE_NONE, i);
+          s_desired_device_types[i] = SIDEVICE_GC_CONTROLLER;
       }
     }
     else if (!NetPlay::IsNetPlayRunning())
     {
-      AddDevice(SConfig::GetInstance().m_SIDevice[i], i);
+      s_desired_device_types[i] = SConfig::GetInstance().m_SIDevice[i];
     }
+
+    AddDevice(s_desired_device_types[i], i);
   }
 
   s_poll.hex = 0;
@@ -414,12 +427,34 @@ void Shutdown()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   // Register SI buffer direct accesses.
+  const u32 io_buffer_base = base | SI_IO_BUFFER;
   for (size_t i = 0; i < s_si_buffer.size(); i += sizeof(u32))
   {
-    const u32 address = base | static_cast<u32>(s_si_buffer.size() + i);
+    const u32 address = base | static_cast<u32>(io_buffer_base + i);
 
-    mmio->Register(address, MMIO::DirectRead<u32>((u32*)&s_si_buffer[i]),
-                   MMIO::DirectWrite<u32>((u32*)&s_si_buffer[i]));
+    mmio->Register(address, MMIO::ComplexRead<u32>([i](u32) {
+                     u32 val;
+                     std::memcpy(&val, &s_si_buffer[i], sizeof(val));
+                     return Common::swap32(val);
+                   }),
+                   MMIO::ComplexWrite<u32>([i](u32, u32 val) {
+                     val = Common::swap32(val);
+                     std::memcpy(&s_si_buffer[i], &val, sizeof(val));
+                   }));
+  }
+  for (size_t i = 0; i < s_si_buffer.size(); i += sizeof(u16))
+  {
+    const u32 address = base | static_cast<u32>(io_buffer_base + i);
+
+    mmio->Register(address, MMIO::ComplexRead<u16>([i](u32) {
+                     u16 val;
+                     std::memcpy(&val, &s_si_buffer[i], sizeof(val));
+                     return Common::swap16(val);
+                   }),
+                   MMIO::ComplexWrite<u16>([i](u32, u16 val) {
+                     val = Common::swap16(val);
+                     std::memcpy(&s_si_buffer[i], &val, sizeof(val));
+                   }));
   }
 
   // In and out for the 4 SI channels.
@@ -570,31 +605,52 @@ void AddDevice(const SIDevices device, int device_number)
 
 void ChangeDevice(SIDevices device, int channel)
 {
-  // Called from GUI, so we need to use FromThread::NON_CPU.
-  // Let the hardware see no device for 1 second
-  // TODO: Calling GetDeviceType here isn't threadsafe.
-  if (GetDeviceType(channel) != device)
-  {
-    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE,
-                              CoreTiming::FromThread::NON_CPU);
-    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
-                              ((u64)channel << 32) | device, CoreTiming::FromThread::NON_CPU);
-  }
+  // Actual device change will happen in UpdateDevices.
+  s_desired_device_types[channel] = device;
 }
 
-void ChangeDeviceDeterministic(SIDevices device, int channel)
+static void ChangeDeviceDeterministic(SIDevices device, int channel)
 {
-  // Called from savestates, so we don't use FromThread::NON_CPU.
-  if (GetDeviceType(channel) != device)
+  if (s_channel[channel].has_recent_device_change)
+    return;
+
+  if (GetDeviceType(channel) != SIDEVICE_NONE)
   {
-    CoreTiming::ScheduleEvent(0, s_change_device_event, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event,
-                              ((u64)channel << 32) | device);
+    // Detach the current device before switching to the new one.
+    device = SIDEVICE_NONE;
   }
+
+  s_channel[channel].out.hex = 0;
+  s_channel[channel].in_hi.hex = 0;
+  s_channel[channel].in_lo.hex = 0;
+
+  SetNoResponse(channel);
+
+  AddDevice(device, channel);
+
+  // Prevent additional device changes on this channel for one second.
+  s_channel[channel].has_recent_device_change = true;
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_change_device_event, channel);
 }
 
 void UpdateDevices()
 {
+  // Check for device change requests:
+  for (int i = 0; i != MAX_SI_CHANNELS; ++i)
+  {
+    const SIDevices current_type = GetDeviceType(i);
+    const SIDevices desired_type = s_desired_device_types[i];
+
+    if (current_type != desired_type)
+    {
+      ChangeDeviceDeterministic(desired_type, i);
+    }
+  }
+
+  // Hinting NetPlay that all controllers will be polled in
+  // succession, in order to optimize networking
+  NetPlay::SetSIPollBatching(true);
+
   // Update inputs at the rate of SI
   // Typically 120hz but is variable
   g_controller_interface.UpdateInput();
@@ -610,6 +666,9 @@ void UpdateDevices()
       !!s_channel[3].device->GetData(s_channel[3].in_hi.hex, s_channel[3].in_lo.hex);
 
   UpdateInterrupts();
+
+  // Polling finished
+  NetPlay::SetSIPollBatching(false);
 }
 
 SIDevices GetDeviceType(int channel)

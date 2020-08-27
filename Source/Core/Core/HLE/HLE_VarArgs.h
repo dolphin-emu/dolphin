@@ -12,9 +12,7 @@
 
 #include <type_traits>
 
-namespace HLE
-{
-namespace SystemVABI
+namespace HLE::SystemVABI
 {
 // SFINAE
 template <typename T>
@@ -172,5 +170,4 @@ private:
   double GetFPR(u32 fpr) const override;
 };
 
-}  // namespace SystemVABI
-}  // namespace HLE
+}  // namespace HLE::SystemVABI

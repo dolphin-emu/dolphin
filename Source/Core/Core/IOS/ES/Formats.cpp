@@ -9,13 +9,13 @@
 #include <cinttypes>
 #include <cstddef>
 #include <cstring>
-#include <locale>
 #include <map>
 #include <optional>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
 #include <mbedtls/sha1.h>
 
 #include "Common/Assert.h"
@@ -79,11 +79,7 @@ bool operator!=(const Content& lhs, const Content& rhs)
   return !operator==(lhs, rhs);
 }
 
-SignedBlobReader::SignedBlobReader(const std::vector<u8>& bytes) : m_bytes(bytes)
-{
-}
-
-SignedBlobReader::SignedBlobReader(std::vector<u8>&& bytes) : m_bytes(std::move(bytes))
+SignedBlobReader::SignedBlobReader(std::vector<u8> bytes) : m_bytes(std::move(bytes))
 {
 }
 
@@ -92,12 +88,7 @@ const std::vector<u8>& SignedBlobReader::GetBytes() const
   return m_bytes;
 }
 
-void SignedBlobReader::SetBytes(const std::vector<u8>& bytes)
-{
-  m_bytes = bytes;
-}
-
-void SignedBlobReader::SetBytes(std::vector<u8>&& bytes)
+void SignedBlobReader::SetBytes(std::vector<u8> bytes)
 {
   m_bytes = std::move(bytes);
 }
@@ -121,7 +112,7 @@ std::array<u8, 20> SignedBlobReader::GetSha1() const
 {
   std::array<u8, 20> sha1;
   const size_t skip = GetIssuerOffset(GetSignatureType());
-  mbedtls_sha1(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
+  mbedtls_sha1_ret(m_bytes.data() + skip, m_bytes.size() - skip, sha1.data());
   return sha1;
 }
 
@@ -213,11 +204,7 @@ bool IsValidTMDSize(size_t size)
   return size <= 0x49e4;
 }
 
-TMDReader::TMDReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TMDReader::TMDReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TMDReader::TMDReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 
@@ -295,10 +282,16 @@ u16 TMDReader::GetGroupId() const
 
 DiscIO::Region TMDReader::GetRegion() const
 {
+  if (!IsChannel(GetTitleId()))
+    return DiscIO::Region::Unknown;
+
   if (GetTitleId() == Titles::SYSTEM_MENU)
     return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
-  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
+  const DiscIO::Region region =
+      static_cast<DiscIO::Region>(Common::swap16(m_bytes.data() + offsetof(TMDHeader, region)));
+
+  return region <= DiscIO::Region::NTSC_K ? region : DiscIO::Region::Unknown;
 }
 
 std::string TMDReader::GetGameID() const
@@ -307,14 +300,21 @@ std::string TMDReader::GetGameID() const
   std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
   std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
 
-  const bool all_printable = std::all_of(std::begin(game_id), std::end(game_id), [](char c) {
-    return std::isprint(c, std::locale::classic());
-  });
-
-  if (all_printable)
+  if (std::all_of(std::begin(game_id), std::end(game_id), IsPrintableCharacter))
     return std::string(game_id, sizeof(game_id));
 
-  return StringFromFormat("%016" PRIx64, GetTitleId());
+  return fmt::format("{:016x}", GetTitleId());
+}
+
+std::string TMDReader::GetGameTDBID() const
+{
+  const u8* begin = m_bytes.data() + offsetof(TMDHeader, title_id) + 4;
+  const u8* end = begin + 4;
+
+  if (std::all_of(begin, end, IsPrintableCharacter))
+    return std::string(begin, end);
+
+  return fmt::format("{:016x}", GetTitleId());
 }
 
 u16 TMDReader::GetNumContents() const
@@ -363,11 +363,7 @@ bool TMDReader::FindContentById(u32 id, Content* content) const
   return false;
 }
 
-TicketReader::TicketReader(const std::vector<u8>& bytes) : SignedBlobReader(bytes)
-{
-}
-
-TicketReader::TicketReader(std::vector<u8>&& bytes) : SignedBlobReader(std::move(bytes))
+TicketReader::TicketReader(std::vector<u8> bytes) : SignedBlobReader(std::move(bytes))
 {
 }
 
@@ -421,19 +417,24 @@ u64 TicketReader::GetTitleId() const
   return Common::swap64(m_bytes.data() + offsetof(Ticket, title_id));
 }
 
+u8 TicketReader::GetCommonKeyIndex() const
+{
+  return m_bytes[offsetof(Ticket, common_key_index)];
+}
+
 std::array<u8, 16> TicketReader::GetTitleKey(const HLE::IOSC& iosc) const
 {
   u8 iv[16] = {};
   std::copy_n(&m_bytes[offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
 
-  const u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
-  auto common_key_handle =
-      index != 1 ? HLE::IOSC::HANDLE_COMMON_KEY : HLE::IOSC::HANDLE_NEW_COMMON_KEY;
-  if (index != 0 && index != 1)
+  u8 index = m_bytes.at(offsetof(Ticket, common_key_index));
+  if (index >= HLE::IOSC::COMMON_KEY_HANDLES.size())
   {
-    WARN_LOG(IOS_ES, "Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
-             GetTitleId(), index);
+    PanicAlert("Bad common key index for title %016" PRIx64 ": %u -- using common key 0",
+               GetTitleId(), index);
+    index = 0;
   }
+  auto common_key_handle = HLE::IOSC::COMMON_KEY_HANDLES[index];
 
   std::array<u8, 16> key;
   iosc.Decrypt(common_key_handle, iv, &m_bytes[offsetof(Ticket, title_key)], 16, key.data(),
@@ -507,11 +508,9 @@ HLE::ReturnCode TicketReader::Unpersonalise(HLE::IOSC& iosc)
   return ret;
 }
 
-void TicketReader::FixCommonKeyIndex()
+void TicketReader::OverwriteCommonKeyIndex(u8 index)
 {
-  u8& index = m_bytes[offsetof(Ticket, common_key_index)];
-  // Assume the ticket is using the normal common key if it's an invalid value.
-  index = index <= 1 ? index : 0;
+  m_bytes[offsetof(Ticket, common_key_index)] = index;
 }
 
 struct SharedContentMap::Entry
@@ -522,7 +521,7 @@ struct SharedContentMap::Entry
   std::array<u8, 20> sha1;
 };
 
-static const std::string CONTENT_MAP_PATH = "/shared1/content.map";
+constexpr char CONTENT_MAP_PATH[] = "/shared1/content.map";
 SharedContentMap::SharedContentMap(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
   static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
@@ -547,7 +546,7 @@ SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
     return {};
 
   const std::string id_string(it->id.begin(), it->id.end());
-  return StringFromFormat("/shared1/%s.app", id_string.c_str());
+  return fmt::format("/shared1/{}.app", id_string);
 }
 
 std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
@@ -566,14 +565,14 @@ std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
   if (filename)
     return *filename;
 
-  const std::string id = StringFromFormat("%08x", m_last_id);
+  const std::string id = fmt::format("{:08x}", m_last_id);
   Entry entry;
   std::copy(id.cbegin(), id.cend(), entry.id.begin());
   entry.sha1 = sha1;
   m_entries.push_back(entry);
 
   WriteEntries();
-  filename = StringFromFormat("/shared1/%s.app", id.c_str());
+  filename = fmt::format("/shared1/{}.app", id);
   m_last_id++;
   return *filename;
 }
@@ -615,7 +614,7 @@ static std::pair<u32, u64> ReadUidSysEntry(const HLE::FS::FileHandle& file)
   return {Common::swap32(uid), Common::swap64(title_id)};
 }
 
-static const std::string UID_MAP_PATH = "/sys/uid.sys";
+constexpr char UID_MAP_PATH[] = "/sys/uid.sys";
 UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
 {
   if (const auto file = fs->OpenFile(PID_KERNEL, PID_KERNEL, UID_MAP_PATH, HLE::FS::Mode::Read))

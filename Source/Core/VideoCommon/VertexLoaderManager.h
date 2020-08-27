@@ -53,4 +53,4 @@ extern u32 position_matrix_index[4];
 
 // VB_HAS_X. Bitmask telling what vertex components are present.
 extern u32 g_current_components;
-}
+}  // namespace VertexLoaderManager

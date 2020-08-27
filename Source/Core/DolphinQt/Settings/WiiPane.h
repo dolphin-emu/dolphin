@@ -19,7 +19,6 @@ class WiiPane : public QWidget
   Q_OBJECT
 public:
   explicit WiiPane(QWidget* parent = nullptr);
-  void OnEmulationStateChanged(bool running);
 
 private:
   void PopulateUSBPassthroughListWidget();
@@ -31,6 +30,7 @@ private:
 
   void LoadConfig();
   void OnSaveConfig();
+  void OnEmulationStateChanged(bool running);
 
   void ValidateSelectionState();
 
@@ -44,11 +44,14 @@ private:
   QCheckBox* m_screensaver_checkbox;
   QCheckBox* m_pal60_mode_checkbox;
   QCheckBox* m_sd_card_checkbox;
+  QCheckBox* m_allow_sd_writes_checkbox;
   QCheckBox* m_connect_keyboard_checkbox;
   QComboBox* m_system_language_choice;
   QLabel* m_system_language_choice_label;
   QComboBox* m_aspect_ratio_choice;
   QLabel* m_aspect_ratio_choice_label;
+  QComboBox* m_sound_mode_choice;
+  QLabel* m_sound_mode_choice_label;
 
   // Whitelisted USB Passthrough Devices
   QListWidget* m_whitelist_usb_list;

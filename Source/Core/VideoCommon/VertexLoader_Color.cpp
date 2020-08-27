@@ -12,9 +12,11 @@
 #include "VideoCommon/VertexLoaderUtils.h"
 #include "VideoCommon/VertexLoader_Color.h"
 
-#define AMASK 0xFF000000
+namespace
+{
+constexpr u32 alpha_mask = 0xFF000000;
 
-static void SetCol(VertexLoader* loader, u32 val)
+void SetCol(VertexLoader* loader, u32 val)
 {
   DataWrite(val);
   loader->m_colIndex++;
@@ -22,7 +24,7 @@ static void SetCol(VertexLoader* loader, u32 val)
 
 // Color comes in format BARG in 16 bits
 // BARG -> AABBGGRR
-static void SetCol4444(VertexLoader* loader, u16 val_)
+void SetCol4444(VertexLoader* loader, u16 val_)
 {
   u32 col, val = val_;
   col = val & 0x00F0;           // col  = 000000R0;
@@ -35,7 +37,7 @@ static void SetCol4444(VertexLoader* loader, u16 val_)
 
 // Color comes in format RGBA
 // RRRRRRGG GGGGBBBB BBAAAAAA
-static void SetCol6666(VertexLoader* loader, u32 val)
+void SetCol6666(VertexLoader* loader, u32 val)
 {
   u32 col = (val >> 16) & 0x000000FC;
   col |= (val >> 2) & 0x0000FC00;
@@ -47,7 +49,7 @@ static void SetCol6666(VertexLoader* loader, u32 val)
 
 // Color comes in RGB
 // RRRRRGGG GGGBBBBB
-static void SetCol565(VertexLoader* loader, u16 val_)
+void SetCol565(VertexLoader* loader, u16 val_)
 {
   u32 col, val = val_;
   col = (val >> 8) & 0x0000F8;
@@ -55,20 +57,86 @@ static void SetCol565(VertexLoader* loader, u16 val_)
   col |= (val << 19) & 0xF80000;
   col |= (col >> 5) & 0x070007;
   col |= (col >> 6) & 0x000300;
-  SetCol(loader, col | AMASK);
+  SetCol(loader, col | alpha_mask);
 }
 
-static u32 Read32(const u8* addr)
+u32 Read32(const u8* addr)
 {
   u32 value;
   std::memcpy(&value, addr, sizeof(u32));
   return value;
 }
 
-static u32 Read24(const u8* addr)
+u32 Read24(const u8* addr)
 {
-  return Read32(addr) | AMASK;
+  return Read32(addr) | alpha_mask;
 }
+
+template <typename I>
+void Color_ReadIndex_16b_565(VertexLoader* loader)
+{
+  const auto index = DataRead<I>();
+  const u8* const address =
+      VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+      (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
+
+  u16 value;
+  std::memcpy(&value, address, sizeof(u16));
+
+  SetCol565(loader, Common::swap16(value));
+}
+
+template <typename I>
+void Color_ReadIndex_24b_888(VertexLoader* loader)
+{
+  const auto index = DataRead<I>();
+  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
+  SetCol(loader, Read24(address));
+}
+
+template <typename I>
+void Color_ReadIndex_32b_888x(VertexLoader* loader)
+{
+  const auto index = DataRead<I>();
+  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
+  SetCol(loader, Read24(address));
+}
+
+template <typename I>
+void Color_ReadIndex_16b_4444(VertexLoader* loader)
+{
+  auto const index = DataRead<I>();
+  const u8* const address =
+      VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+      (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
+
+  u16 value;
+  std::memcpy(&value, address, sizeof(u16));
+
+  SetCol4444(loader, value);
+}
+
+template <typename I>
+void Color_ReadIndex_24b_6666(VertexLoader* loader)
+{
+  const auto index = DataRead<I>();
+  const u8* data = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+                   (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]) - 1;
+  const u32 val = Common::swap32(data);
+  SetCol6666(loader, val);
+}
+
+template <typename I>
+void Color_ReadIndex_32b_8888(VertexLoader* loader)
+{
+  const auto index = DataRead<I>();
+  const u8* address = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
+                      (index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
+  SetCol(loader, Read32(address));
+}
+}  // Anonymous namespace
 
 void Color_ReadDirect_24b_888(VertexLoader* loader)
 {
@@ -101,71 +169,6 @@ void Color_ReadDirect_24b_6666(VertexLoader* loader)
 void Color_ReadDirect_32b_8888(VertexLoader* loader)
 {
   SetCol(loader, DataReadU32Unswapped());
-}
-
-template <typename I>
-void Color_ReadIndex_16b_565(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* const address =
-      VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-      (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
-
-  u16 value;
-  std::memcpy(&value, address, sizeof(u16));
-
-  SetCol565(loader, Common::swap16(value));
-}
-
-template <typename I>
-void Color_ReadIndex_24b_888(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* iAddress = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-                       (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
-  SetCol(loader, Read24(iAddress));
-}
-
-template <typename I>
-void Color_ReadIndex_32b_888x(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* iAddress = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-                       (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
-  SetCol(loader, Read24(iAddress));
-}
-
-template <typename I>
-void Color_ReadIndex_16b_4444(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* const address =
-      VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-      (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
-
-  u16 value;
-  std::memcpy(&value, address, sizeof(u16));
-
-  SetCol4444(loader, value);
-}
-
-template <typename I>
-void Color_ReadIndex_24b_6666(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* pData = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-                    (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]) - 1;
-  u32 val = Common::swap32(pData);
-  SetCol6666(loader, val);
-}
-
-template <typename I>
-void Color_ReadIndex_32b_8888(VertexLoader* loader)
-{
-  auto const Index = DataRead<I>();
-  const u8* iAddress = VertexLoaderManager::cached_arraybases[ARRAY_COLOR + loader->m_colIndex] +
-                       (Index * g_main_cp_state.array_strides[ARRAY_COLOR + loader->m_colIndex]);
-  SetCol(loader, Read32(iAddress));
 }
 
 void Color_ReadIndex8_16b_565(VertexLoader* loader)

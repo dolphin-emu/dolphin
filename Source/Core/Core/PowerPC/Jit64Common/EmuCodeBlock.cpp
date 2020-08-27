@@ -15,7 +15,8 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64Common/Jit64Constants.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -54,12 +55,13 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // load/store, the trampoline generator will have stashed the exception
   // handler (that we previously generated after the fastmem instruction) in
   // trampolineExceptionHandler.
-  if (g_jit->js.generatingTrampoline)
+  auto& js = m_jit.js;
+  if (js.generatingTrampoline)
   {
-    if (g_jit->js.trampolineExceptionHandler)
+    if (js.trampolineExceptionHandler)
     {
       TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-      J_CC(CC_NZ, g_jit->js.trampolineExceptionHandler);
+      J_CC(CC_NZ, js.trampolineExceptionHandler);
     }
     return;
   }
@@ -67,11 +69,11 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // If memcheck (ie: MMU) mode is enabled and we haven't generated an
   // exception handler for this instruction yet, we will generate an
   // exception check.
-  if (g_jit->jo.memcheck && !g_jit->js.fastmemLoadStore && !g_jit->js.fixupExceptionHandler)
+  if (m_jit.jo.memcheck && !js.fastmemLoadStore && !js.fixupExceptionHandler)
   {
     TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    g_jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
-    g_jit->js.fixupExceptionHandler = true;
+    js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+    js.fixupExceptionHandler = true;
   }
 }
 
@@ -181,7 +183,7 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
     {
       // This method can potentially clobber the address if it shares a register
       // with the load target. In this case we can just subtract offset from the
-      // register (see Jit64Base for this implementation).
+      // register (see Jit64 for this implementation).
       offsetAddedToAddress = (reg_value == opAddress.GetSimpleReg());
 
       LEA(32, reg_value, MDisp(opAddress.GetSimpleReg(), offset));
@@ -318,8 +320,9 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 {
   bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
+  auto& js = m_jit.js;
   registersInUse[reg_value] = false;
-  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+  if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
@@ -327,7 +330,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = g_jit->js.compilerPC;
+    info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = true;
@@ -346,7 +349,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     }
     info.len = static_cast<u32>(GetCodePtr() - info.start);
 
-    g_jit->js.fastmemLoadStore = mov.address;
+    js.fastmemLoadStore = mov.address;
     return;
   }
 
@@ -368,7 +371,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
-  const bool fast_check_address = !slowmem && dr_set;
+  const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
@@ -384,7 +387,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   // Invalid for calls from Jit64AsmCommon routines
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -432,7 +435,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
                                           BitSet32 registersInUse, bool signExtend)
 {
   // If the address is known to be RAM, just load it directly.
-  if (PowerPC::IsOptimizableRAMAddress(address))
+  if (m_jit.jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(address))
   {
     UnsafeLoadToReg(reg_value, Imm32(address), accessSize, 0, signExtend);
     return;
@@ -448,7 +451,7 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   }
 
   // Helps external systems know which instruction triggered the read.
-  MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+  MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
 
   // Fall back to general-case code.
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
@@ -490,14 +493,15 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
 
-  if (g_jit->jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
+  auto& js = m_jit.js;
+  if (m_jit.jo.fastmem && !(flags & (SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_UPDATE_PC)) &&
       !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
     TrampolineInfo& info = m_back_patch_info[mov.address];
-    info.pc = g_jit->js.compilerPC;
+    info.pc = js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
     info.read = false;
@@ -515,7 +519,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     }
     info.len = static_cast<u32>(GetCodePtr() - info.start);
 
-    g_jit->js.fastmemLoadStore = mov.address;
+    js.fastmemLoadStore = mov.address;
 
     return;
   }
@@ -535,7 +539,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
   FixupBranch exit;
   const bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || MSR.DR;
-  const bool fast_check_address = !slowmem && dr_set;
+  const bool fast_check_address = !slowmem && dr_set && m_jit.jo.fastmem_arena;
   if (fast_check_address)
   {
     FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
@@ -551,7 +555,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   // Invalid for calls from Jit64AsmCommon routines
   if (!(flags & SAFE_LOADSTORE_NO_UPDATE_PC))
   {
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   }
 
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
@@ -617,7 +621,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
 
   // If we already know the address through constant folding, we can do some
   // fun tricks...
-  if (g_jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
+  if (m_jit.jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(address))
   {
     X64Reg arg_reg = RSCRATCH;
 
@@ -634,10 +638,10 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     ADD(64, R(RSCRATCH2), Imm8(accessSize >> 3));
     MOV(64, PPCSTATE(gather_pipe_ptr), R(RSCRATCH2));
 
-    g_jit->js.fifoBytesSinceCheck += accessSize >> 3;
+    m_jit.js.fifoBytesSinceCheck += accessSize >> 3;
     return false;
   }
-  else if (PowerPC::IsOptimizableRAMAddress(address))
+  else if (m_jit.jo.fastmem_arena && PowerPC::IsOptimizableRAMAddress(address))
   {
     WriteToConstRamAddress(accessSize, arg, address);
     return false;
@@ -645,7 +649,7 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   else
   {
     // Helps external systems know which instruction triggered the write
-    MOV(32, PPCSTATE(pc), Imm32(g_jit->js.compilerPC));
+    MOV(32, PPCSTATE(pc), Imm32(m_jit.js.compilerPC));
 
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
     switch (accessSize)
@@ -724,7 +728,7 @@ void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool 
                                         bool duplicate)
 {
   // Most games don't need these. Zelda requires it though - some platforms get stuck without them.
-  if (g_jit->jo.accurateSinglePrecision)
+  if (m_jit.jo.accurateSinglePrecision)
   {
     if (packed)
     {
@@ -840,7 +844,7 @@ alignas(16) static const u64 psRoundBit[2] = {0x8000000, 0x8000000};
 // It needs a temp, so let the caller pass that in.
 void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg tmp)
 {
-  if (g_jit->jo.accurateSinglePrecision)
+  if (m_jit.jo.accurateSinglePrecision)
   {
     // mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
     if (input.IsSimpleReg() && cpu_info.bAVX)
@@ -864,88 +868,8 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
   }
 }
 
-// Since the following float conversion functions are used in non-arithmetic PPC float
-// instructions, they must convert floats bitexact and never flush denormals to zero or turn SNaNs
-// into QNaNs. This means we can't use CVTSS2SD/CVTSD2SS. The x87 FPU doesn't even support
-// flush-to-zero so we can use FLD+FSTP even on denormals.
-// If the number is a NaN, make sure to set the QNaN bit back to its original value.
-
-// Another problem is that officially, converting doubles to single format results in undefined
-// behavior.  Relying on undefined behavior is a bug so no software should ever do this.
-// Super Mario 64 (on Wii VC) accidentally relies on this behavior.  See issue #11173
-
-alignas(16) static const __m128i double_exponent = _mm_set_epi64x(0, 0x7ff0000000000000);
-alignas(16) static const __m128i double_fraction = _mm_set_epi64x(0, 0x000fffffffffffff);
-alignas(16) static const __m128i double_sign_bit = _mm_set_epi64x(0, 0x8000000000000000);
-alignas(16) static const __m128i double_explicit_top_bit = _mm_set_epi64x(0, 0x0010000000000000);
-alignas(16) static const __m128i double_top_two_bits = _mm_set_epi64x(0, 0xc000000000000000);
-alignas(16) static const __m128i double_bottom_bits = _mm_set_epi64x(0, 0x07ffffffe0000000);
 alignas(16) static const __m128i double_qnan_bit = _mm_set_epi64x(0xffffffffffffffff,
                                                                   0xfff7ffffffffffff);
-
-// This is the same algorithm used in the interpreter (and actual hardware)
-// The documentation states that the conversion of a double with an outside the
-// valid range for a single (or a single denormal) is undefined.
-// But testing on actual hardware shows it always picks bits 0..1 and 5..34
-// unless the exponent is in the range of 874 to 896.
-void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
-{
-  MOVSD(XMM1, R(src));
-
-  // Grab Exponent
-  PAND(XMM1, MConst(double_exponent));
-  PSRLQ(XMM1, 52);
-  MOVD_xmm(R(RSCRATCH), XMM1);
-
-  // Check if the double is in the range of valid single subnormal
-  SUB(16, R(RSCRATCH), Imm16(874));
-  CMP(16, R(RSCRATCH), Imm16(896 - 874));
-  FixupBranch NoDenormalize = J_CC(CC_A);
-
-  // Denormalise
-
-  // shift = (905 - Exponent) plus the 21 bit double to single shift
-  MOV(16, R(RSCRATCH), Imm16(905 + 21));
-  MOVD_xmm(XMM0, R(RSCRATCH));
-  PSUBQ(XMM0, R(XMM1));
-
-  // xmm1 = fraction | 0x0010000000000000
-  MOVSD(XMM1, R(src));
-  PAND(XMM1, MConst(double_fraction));
-  POR(XMM1, MConst(double_explicit_top_bit));
-
-  // fraction >> shift
-  PSRLQ(XMM1, R(XMM0));
-
-  // OR the sign bit in.
-  MOVSD(XMM0, R(src));
-  PAND(XMM0, MConst(double_sign_bit));
-  PSRLQ(XMM0, 32);
-  POR(XMM1, R(XMM0));
-
-  FixupBranch end = J(false);  // Goto end
-
-  SetJumpTarget(NoDenormalize);
-
-  // Don't Denormalize
-
-  // We want bits 0, 1
-  MOVSD(XMM1, R(src));
-  PAND(XMM1, MConst(double_top_two_bits));
-  PSRLQ(XMM1, 32);
-
-  // And 5 through to 34
-  MOVSD(XMM0, R(src));
-  PAND(XMM0, MConst(double_bottom_bits));
-  PSRLQ(XMM0, 29);
-
-  // OR them togther
-  POR(XMM1, R(XMM0));
-
-  // End
-  SetJumpTarget(end);
-  MOVDDUP(dst, R(XMM1));
-}
 
 // Converting single->double is a bit easier because all single denormals are double normals.
 void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr)
@@ -1027,7 +951,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     continue3 = J();
 
     SetJumpTarget(zeroExponent);
-    PTEST(xmm, R(xmm));
+    PTEST(xmm, MConst(psDoubleNoSign));
     FixupBranch zero = J_CC(CC_Z);
 
     // No exponent + mantissa: sign ? PPC_FPCLASS_ND : PPC_FPCLASS_PD;
@@ -1056,8 +980,6 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
         MScaled(RSCRATCH, Common::PPC_FPCLASS_NN - Common::PPC_FPCLASS_PN, Common::PPC_FPCLASS_PN));
     continue1 = J();
     SetJumpTarget(nan);
-    MOVQ_xmm(R(RSCRATCH), xmm);
-    SHR(64, R(RSCRATCH), Imm8(63));
     MOV(32, R(RSCRATCH), Imm32(Common::PPC_FPCLASS_QNAN));
     continue2 = J();
     SetJumpTarget(infinity);

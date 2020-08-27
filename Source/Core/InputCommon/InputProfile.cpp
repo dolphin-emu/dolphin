@@ -2,6 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/InputProfile.h"
+
+#include <algorithm>
+#include <iterator>
+
+#include <fmt/format.h>
+
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -13,10 +20,6 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
-#include "InputCommon/InputProfile.h"
-
-#include <algorithm>
-#include <iterator>
 
 namespace InputProfile
 {
@@ -32,7 +35,7 @@ std::vector<std::string> GetProfilesFromSetting(const std::string& setting, cons
   std::vector<std::string> result;
   for (const std::string& setting_choice : setting_choices)
   {
-    const std::string path = root + StripSpaces(setting_choice);
+    const std::string path = root + std::string(StripSpaces(setting_choice));
     if (File::IsDirectory(path))
     {
       const auto files_under_directory = Common::DoFileSearch({path}, {".ini"}, true);
@@ -180,7 +183,7 @@ std::string ProfileCycler::GetWiimoteInputProfilesForGame(int controller_index)
   const IniFile::Section* const control_section = game_ini.GetOrCreateSection("Controls");
 
   std::string result;
-  control_section->Get(StringFromFormat("WiimoteProfile%d", controller_index + 1), &result);
+  control_section->Get(fmt::format("WiimoteProfile{}", controller_index + 1), &result);
   return result;
 }
 
@@ -207,4 +210,4 @@ void ProfileCycler::PreviousWiimoteProfileForGame(int controller_index)
   CycleProfileForGame(CycleDirection::Backward, Wiimote::GetConfig(), m_wiimote_profile_index,
                       GetWiimoteInputProfilesForGame(controller_index), controller_index);
 }
-}
+}  // namespace InputProfile

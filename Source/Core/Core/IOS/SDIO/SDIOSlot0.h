@@ -135,10 +135,9 @@ private:
 
   IPCCommandResult SendCommand(const IOCtlVRequest& request);
 
-  s32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
-                     u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
+  s32 ExecuteCommand(const Request& request, u32 buffer_in, u32 buffer_in_size, u32 rw_buffer,
+                     u32 rw_buffer_size, u32 buffer_out, u32 buffer_out_size);
   void OpenInternal();
-  void InitStatus();
 
   u32 GetOCRegister() const;
 

@@ -37,23 +37,24 @@ extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
 extern u8* m_pFakeVMEM;
 
-enum
-{
-  // RAM_SIZE is the amount allocated by the emulator, whereas REALRAM_SIZE is
-  // what will be reported in lowmem, and thus used by emulated software.
-  // Note: Writing to lowmem is done by IPL. If using retail IPL, it will
-  // always be set to 24MB.
-  REALRAM_SIZE = 0x01800000,
-  RAM_SIZE = MathUtil::NextPowerOf2(REALRAM_SIZE),
-  RAM_MASK = RAM_SIZE - 1,
-  FAKEVMEM_SIZE = 0x02000000,
-  FAKEVMEM_MASK = FAKEVMEM_SIZE - 1,
-  L1_CACHE_SIZE = 0x00040000,
-  L1_CACHE_MASK = L1_CACHE_SIZE - 1,
-  IO_SIZE = 0x00010000,
-  EXRAM_SIZE = 0x04000000,
-  EXRAM_MASK = EXRAM_SIZE - 1,
-};
+u32 GetRamSizeReal();
+u32 GetRamSize();
+u32 GetRamMask();
+u32 GetFakeVMemSize();
+u32 GetFakeVMemMask();
+u32 GetL1CacheSize();
+u32 GetL1CacheMask();
+u32 GetIOSize();
+u32 GetExRamSizeReal();
+u32 GetExRamSize();
+u32 GetExRamMask();
+
+constexpr u32 MEM1_BASE_ADDR = 0x80000000U;
+constexpr u32 MEM2_BASE_ADDR = 0x90000000U;
+constexpr u32 MEM1_SIZE_RETAIL = 0x01800000U;
+constexpr u32 MEM1_SIZE_GDEV = 0x04000000U;
+constexpr u32 MEM2_SIZE_RETAIL = 0x04000000U;
+constexpr u32 MEM2_SIZE_NDEV = 0x08000000U;
 
 // MMIO mapping object.
 extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
@@ -62,6 +63,8 @@ extern std::unique_ptr<MMIO::Mapping> mmio_mapping;
 bool IsInitialized();
 void Init();
 void Shutdown();
+bool InitFastmemArena();
+void ShutdownFastmemArena();
 void DoState(PointerWrap& p);
 
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
@@ -110,4 +113,4 @@ void CopyToEmuSwapped(u32 address, const T* data, size_t size)
   for (size_t i = 0; i < size / sizeof(T); i++)
     dest[i] = Common::FromBigEndian(data[i]);
 }
-}
+}  // namespace Memory

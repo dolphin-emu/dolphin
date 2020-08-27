@@ -33,7 +33,7 @@ m0
 clr15       
 
 ;step 1: context setup
-call		send_back_40
+call		send_back
 
 call        0x807e			; loop until DSP->CPU mailbox is empty
 si          @DMBH, #0xdcd1
@@ -342,44 +342,44 @@ call		send_back
 
 call		send_back
 set40       
-call		send_back_40
+call		send_back
 lri         $AR2, #0x0015
-call		send_back_40
+call		send_back
 lr          $AC0.M, @0x0006
-call		send_back_40
+call		send_back
 lr          $AX0.H, @0x165b
-call		send_back_40
+call		send_back
 call        0x88e5
-call		send_back_40
+call		send_back
 asr         $ACC0, #-3
-call		send_back_40
+call		send_back
 lsl         $ACC0, #3
-call		send_back_40
+call		send_back
 srri        @$AR2, $AC0.M
-call		send_back_40
+call		send_back
 srri        @$AR2, $AC0.L
-call		send_back_40
+call		send_back
 lri         $AR2, #0x0016
-call		send_back_40
+call		send_back
 lr          $AC0.M, @0x1723
-call		send_back_40
+call		send_back
 asr         $ACC0, #-12
-call		send_back_40
+call		send_back
 lr          $AX0.H, @0x166b
-call		send_back_40
+call		send_back
 call        0x88e5
-call		send_back_40
+call		send_back
 tst         $ACC0
-call		send_back_40
+call		send_back
 jge         Unk_012e
-call		send_back_40
+call		send_back
 
 clr         $ACC0
-call		send_back_40
+call		send_back
 
 Unk_012e:
 asr         $ACC0, #-3
-call		send_back_40
+call		send_back
 set16       
 ;step 4
 call		send_back

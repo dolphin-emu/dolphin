@@ -36,22 +36,22 @@ public:
   bool Close();
 
   template <typename T>
-  bool ReadArray(T* data, size_t length, size_t* pReadBytes = nullptr)
+  bool ReadArray(T* elements, size_t count, size_t* num_read = nullptr)
   {
-    size_t read_bytes = 0;
-    if (!IsOpen() || length != (read_bytes = std::fread(data, sizeof(T), length, m_file)))
+    size_t read_count = 0;
+    if (!IsOpen() || count != (read_count = std::fread(elements, sizeof(T), count, m_file)))
       m_good = false;
 
-    if (pReadBytes)
-      *pReadBytes = read_bytes;
+    if (num_read)
+      *num_read = read_count;
 
     return m_good;
   }
 
   template <typename T>
-  bool WriteArray(const T* data, size_t length)
+  bool WriteArray(const T* elements, size_t count)
   {
-    if (!IsOpen() || length != std::fwrite(data, sizeof(T), length, m_file))
+    if (!IsOpen() || count != std::fwrite(elements, sizeof(T), count, m_file))
       m_good = false;
 
     return m_good;

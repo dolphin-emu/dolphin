@@ -7,9 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
-namespace DSP
-{
-namespace HLE
+namespace DSP::HLE
 {
 class DSPHLE;
 
@@ -41,5 +39,4 @@ private:
 
   void BootUCode();
 };
-}  // namespace HLE
-}  // namespace DSP
+}  // namespace DSP::HLE

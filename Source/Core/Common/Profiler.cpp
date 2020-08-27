@@ -25,7 +25,7 @@ u32 Profiler::s_max_length = 0;
 u64 Profiler::s_frame_time;
 u64 Profiler::s_usecs_frame;
 
-std::string Profiler::s_lazy_result = "";
+std::string Profiler::s_lazy_result;
 int Profiler::s_lazy_delay = 0;
 
 Profiler::Profiler(const std::string& name)
@@ -161,4 +161,4 @@ std::string Profiler::Read()
 
   return buffer.str();
 }
-}
+}  // namespace Common

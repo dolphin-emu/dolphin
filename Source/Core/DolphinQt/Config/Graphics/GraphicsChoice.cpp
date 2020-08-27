@@ -4,16 +4,17 @@
 
 #include "DolphinQt/Config/Graphics/GraphicsChoice.h"
 
+#include <QSignalBlocker>
+
 #include "Common/Config/Config.h"
 
 #include "DolphinQt/Settings.h"
 
-GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigInfo<int>& setting)
+GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::Info<int>& setting)
     : m_setting(setting)
 {
   addItems(options);
-  connect(this, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged), this,
-          &GraphicsChoice::Update);
+  connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &GraphicsChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
   connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
@@ -21,9 +22,8 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::ConfigI
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);
 
-    bool old = blockSignals(true);
+    const QSignalBlocker blocker(this);
     setCurrentIndex(Config::Get(m_setting));
-    blockSignals(old);
   });
 }
 

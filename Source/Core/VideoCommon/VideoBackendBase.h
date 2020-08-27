@@ -5,10 +5,12 @@
 #pragma once
 
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/WindowSystemInfo.h"
 #include "VideoCommon/PerfQueryBase.h"
 
 namespace MMIO
@@ -35,13 +37,19 @@ class VideoBackendBase
 {
 public:
   virtual ~VideoBackendBase() {}
-  virtual bool Initialize(void* window_handle) = 0;
+  virtual bool Initialize(const WindowSystemInfo& wsi) = 0;
   virtual void Shutdown() = 0;
 
   virtual std::string GetName() const = 0;
   virtual std::string GetDisplayName() const { return GetName(); }
-  void ShowConfig(void* parent_handle);
   virtual void InitBackendInfo() = 0;
+  virtual std::optional<std::string> GetWarningMessage() const { return {}; }
+
+  // Prepares a native window for rendering. This is called on the main thread, or the
+  // thread which owns the window.
+  virtual void PrepareWindow(WindowSystemInfo& wsi) {}
+
+  static std::string BadShaderFilename(const char* shader_stage, int counter);
 
   void Video_ExitLoop();
 
@@ -55,18 +63,19 @@ public:
   static void ClearList();
   static void ActivateBackend(const std::string& name);
 
-  // the implementation needs not do synchronization logic, because calls to it are surrounded by
-  // PauseAndLock now
-  void DoState(PointerWrap& p);
+  // Fills the backend_info fields with the capabilities of the selected backend/device.
+  static void PopulateBackendInfo();
+  // Called by the UI thread when the graphics config is opened.
+  static void PopulateBackendInfoFromUI();
 
-  void CheckInvalidState();
+  // Wrapper function which pushes the event to the GPU thread.
+  void DoState(PointerWrap& p);
 
   void InitializeShared();
   void ShutdownShared();
 
 protected:
   bool m_initialized = false;
-  bool m_invalid = false;
 };
 
 extern std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;

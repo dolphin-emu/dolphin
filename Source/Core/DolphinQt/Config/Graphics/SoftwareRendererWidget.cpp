@@ -12,7 +12,9 @@
 #include <QVBoxLayout>
 
 #include "Core/Config/GraphicsSettings.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 
 #include "DolphinQt/Config/Graphics/GraphicsBool.h"
 #include "DolphinQt/Config/Graphics/GraphicsWindow.h"
@@ -26,12 +28,15 @@
 SoftwareRendererWidget::SoftwareRendererWidget(GraphicsWindow* parent) : GraphicsWidget(parent)
 {
   CreateWidgets();
-
-  connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
-
   LoadSettings();
   ConnectWidgets();
   AddDescriptions();
+  emit BackendChanged(QString::fromStdString(Config::Get(Config::MAIN_GFX_BACKEND)));
+
+  connect(parent, &GraphicsWindow::BackendChanged, [this] { LoadSettings(); });
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
+  OnEmulationStateChanged(Core::GetState() != Core::State::Uninitialized);
 }
 
 void SoftwareRendererWidget::CreateWidgets()
@@ -107,11 +112,11 @@ void SoftwareRendererWidget::CreateWidgets()
 
 void SoftwareRendererWidget::ConnectWidgets()
 {
-  connect(m_backend_combo, static_cast<void (QComboBox::*)(int)>(&QComboBox::currentIndexChanged),
+  connect(m_backend_combo, qOverload<int>(&QComboBox::currentIndexChanged),
           [this](int) { SaveSettings(); });
-  connect(m_object_range_min, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+  connect(m_object_range_min, qOverload<int>(&QSpinBox::valueChanged),
           [this](int) { SaveSettings(); });
-  connect(m_object_range_max, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged),
+  connect(m_object_range_max, qOverload<int>(&QSpinBox::valueChanged),
           [this](int) { SaveSettings(); });
 }
 
@@ -119,9 +124,11 @@ void SoftwareRendererWidget::LoadSettings()
 {
   for (const auto& backend : g_available_video_backends)
   {
-    if (backend->GetName() == SConfig::GetInstance().m_strVideoBackend)
+    if (backend->GetName() == Config::Get(Config::MAIN_GFX_BACKEND))
+    {
       m_backend_combo->setCurrentIndex(
           m_backend_combo->findText(tr(backend->GetDisplayName().c_str())));
+    }
   }
 
   m_object_range_min->setValue(Config::Get(Config::GFX_SW_DRAW_START));
@@ -135,7 +142,7 @@ void SoftwareRendererWidget::SaveSettings()
     if (tr(backend->GetDisplayName().c_str()) == m_backend_combo->currentText())
     {
       const auto backend_name = backend->GetName();
-      if (backend_name != SConfig::GetInstance().m_strVideoBackend)
+      if (backend_name != Config::Get(Config::MAIN_GFX_BACKEND))
         emit BackendChanged(QString::fromStdString(backend_name));
       break;
     }
@@ -179,4 +186,9 @@ void SoftwareRendererWidget::AddDescriptions()
   AddDescription(m_dump_objects, TR_DUMP_OBJECTS_DESCRIPTION);
   AddDescription(m_dump_tev_stages, TR_DUMP_TEV_STAGES_DESCRIPTION);
   AddDescription(m_dump_tev_fetches, TR_DUMP_TEV_FETCHES_DESCRIPTION);
+}
+
+void SoftwareRendererWidget::OnEmulationStateChanged(bool running)
+{
+  m_backend_combo->setEnabled(!running);
 }

@@ -1,32 +1,23 @@
-#include <disasm.h>  // Bochs
+// Copyright 2008 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include "UICommon/Disassembler.h"
+
+#include <sstream>
 
 #if defined(HAVE_LLVM)
 // PowerPC.h defines PC.
 // This conflicts with a function that has an argument named PC
 #undef PC
+#include <fmt/format.h>
 #include <llvm-c/Disassembler.h>
 #include <llvm-c/Target.h>
+#elif defined(_M_X86)
+#include <disasm.h>  // Bochs
 #endif
 
-#include "Common/StringUtil.h"
-
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitInterface.h"
-
-#include "UICommon/Disassembler.h"
-
-class HostDisassemblerX86 : public HostDisassembler
-{
-public:
-  HostDisassemblerX86();
-
-private:
-  disassembler m_disasm;
-
-  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
-                                   u32* host_instructions_count, u64 starting_pc) override;
-};
 
 #if defined(HAVE_LLVM)
 class HostDisassemblerLLVM : public HostDisassembler
@@ -95,9 +86,9 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
       {
         // If we are on an architecture that has a fixed instruction size
         // We can continue onward past this bad instruction.
-        std::string inst_str = "";
+        std::string inst_str;
         for (int i = 0; i < m_instruction_size; ++i)
-          inst_str += StringFromFormat("%02x", disasmPtr[i]);
+          inst_str += fmt::format("{:02x}", disasmPtr[i]);
 
         x86_disasm << inst_str << std::endl;
         disasmPtr += m_instruction_size;
@@ -106,9 +97,9 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
       {
         // We can't continue if we are on an architecture that has flexible instruction sizes
         // Dump the rest of the block instead
-        std::string code_block = "";
+        std::string code_block;
         for (int i = 0; (disasmPtr + i) < end; ++i)
-          code_block += StringFromFormat("%02x", disasmPtr[i]);
+          code_block += fmt::format("{:02x}", disasmPtr[i]);
 
         x86_disasm << code_block << std::endl;
         break;
@@ -126,7 +117,18 @@ std::string HostDisassemblerLLVM::DisassembleHostBlock(const u8* code_start, con
 
   return x86_disasm.str();
 }
-#endif
+#elif defined(_M_X86)
+class HostDisassemblerX86 : public HostDisassembler
+{
+public:
+  HostDisassemblerX86();
+
+private:
+  disassembler m_disasm;
+
+  std::string DisassembleHostBlock(const u8* code_start, const u32 code_size,
+                                   u32* host_instructions_count, u64 starting_pc) override;
+};
 
 HostDisassemblerX86::HostDisassemblerX86()
 {
@@ -150,6 +152,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
 
   return x86_disasm.str();
 }
+#endif
 
 std::unique_ptr<HostDisassembler> GetNewDisassembler(const std::string& arch)
 {
@@ -180,7 +183,7 @@ std::string DisassembleBlock(HostDisassembler* disasm, u32* address, u32* host_i
   }
   else if (res == 2)
   {
-    host_instructions_count = 0;
+    *host_instructions_count = 0;
     return "(No translation)";
   }
   return disasm->DisassembleHostBlock(code, *code_size, host_instructions_count, (u64)code);

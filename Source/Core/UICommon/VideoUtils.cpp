@@ -7,6 +7,10 @@
 #include "Common/Assert.h"
 #include "VideoCommon/VideoConfig.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "UICommon/X11Utils.h"
 #endif
@@ -74,4 +78,4 @@ std::vector<std::string> GetAvailableAntialiasingModes(int& msaa_modes)
 
   return modes;
 }
-}
+}  // namespace VideoUtils

@@ -6,9 +6,7 @@
 
 #include "Core/DSP/DSPCommon.h"
 
-namespace DSP
-{
-namespace Interpreter
+namespace DSP::Interpreter
 {
 void Step();
 
@@ -146,5 +144,4 @@ void xorc(UDSPInstruction opc);
 void xori(UDSPInstruction opc);
 void xorr(UDSPInstruction opc);
 
-}  // namespace Interpreter
-}  // namespace DSP
+}  // namespace DSP::Interpreter

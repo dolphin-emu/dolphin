@@ -12,6 +12,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
@@ -19,7 +21,6 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Common/Version.h"
@@ -29,13 +30,14 @@
 #include "Core/CoreTiming.h"
 #include "Core/GeckoCode.h"
 #include "Core/HW/HW.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "VideoCommon/AVIDump.h"
+#include "VideoCommon/FrameDump.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -58,14 +60,12 @@ static unsigned char __LZO_MMODEL out[OUT_LEN];
 
 static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
-static std::string g_last_filename;
-
 static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
-static int g_loadDepth = 0;
+static bool s_load_or_save_in_progress;
 
 static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
@@ -74,7 +74,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 98;  // Last changed in PR 6895
+constexpr u32 STATE_VERSION = 122;  // Last changed in PR 8571
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -165,21 +165,40 @@ void DoState(PointerWrap& p)
   p.Do(is_wii);
   if (is_wii != is_wii_currently)
   {
-    OSD::AddMessage(StringFromFormat("Cannot load a savestate created under %s mode in %s mode",
-                                     is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
+    OSD::AddMessage(fmt::format("Cannot load a savestate created under {} mode in {} mode",
+                                is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
                     OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMode(PointerWrap::MODE_MEASURE);
     return;
   }
 
+  // Check to make sure the emulated memory sizes are the same as the savestate
+  u32 state_mem1_size = Memory::GetRamSizeReal();
+  u32 state_mem2_size = Memory::GetExRamSizeReal();
+  p.Do(state_mem1_size);
+  p.Do(state_mem2_size);
+  if (state_mem1_size != Memory::GetRamSizeReal() || state_mem2_size != Memory::GetExRamSizeReal())
+  {
+    OSD::AddMessage(fmt::format("Memory size mismatch!\n"
+                                "Current | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)\n"
+                                "State   | MEM1 {:08X} ({:3}MB)    MEM2 {:08X} ({:3}MB)",
+                                Memory::GetRamSizeReal(), Memory::GetRamSizeReal() / 0x100000U,
+                                Memory::GetExRamSizeReal(), Memory::GetExRamSizeReal() / 0x100000U,
+                                state_mem1_size, state_mem1_size / 0x100000U, state_mem2_size,
+                                state_mem2_size / 0x100000U));
+    p.SetMode(PointerWrap::MODE_MEASURE);
+    return;
+  }
+
+  // Movie must be done before the video backend, because the window is redrawn in the video backend
+  // state load, and the frame number must be up-to-date.
+  Movie::DoState(p);
+  p.DoMarker("Movie");
+
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
   g_video_backend->DoState(p);
   p.DoMarker("video_backend");
-
-  if (SConfig::GetInstance().bWii)
-    Wiimote::DoState(p);
-  p.DoMarker("Wiimote");
 
   PowerPC::DoState(p);
   p.DoMarker("PowerPC");
@@ -189,13 +208,14 @@ void DoState(PointerWrap& p)
   p.DoMarker("CoreTiming");
   HW::DoState(p);
   p.DoMarker("HW");
-  Movie::DoState(p);
-  p.DoMarker("Movie");
+  if (SConfig::GetInstance().bWii)
+    Wiimote::DoState(p);
+  p.DoMarker("Wiimote");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
 
 #if defined(HAVE_FFMPEG)
-  AVIDump::DoState();
+  FrameDump::DoState();
 #endif
 }
 
@@ -207,27 +227,31 @@ void LoadFromBuffer(std::vector<u8>& buffer)
     return;
   }
 
-  Core::RunAsCPUThread([&] {
-    u8* ptr = &buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_READ);
-    DoState(p);
-  });
+  Core::RunOnCPUThread(
+      [&] {
+        u8* ptr = &buffer[0];
+        PointerWrap p(&ptr, PointerWrap::MODE_READ);
+        DoState(p);
+      },
+      true);
 }
 
 void SaveToBuffer(std::vector<u8>& buffer)
 {
-  Core::RunAsCPUThread([&] {
-    u8* ptr = nullptr;
-    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+  Core::RunOnCPUThread(
+      [&] {
+        u8* ptr = nullptr;
+        PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
 
-    DoState(p);
-    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
-    buffer.resize(buffer_size);
+        DoState(p);
+        const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+        buffer.resize(buffer_size);
 
-    ptr = &buffer[0];
-    p.SetMode(PointerWrap::MODE_WRITE);
-    DoState(p);
-  });
+        ptr = &buffer[0];
+        p.SetMode(PointerWrap::MODE_WRITE);
+        DoState(p);
+      },
+      true);
 }
 
 // return state number not in map
@@ -319,7 +343,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
     if (!File::Rename(filename, File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav"))
       Core::DisplayMessage("Failed to move previous state to state undo backup", 1000);
-    else
+    else if (File::Exists(filename + ".dtm"))
       File::Rename(filename + ".dtm", File::GetUserPath(D_STATESAVES_IDX) + "lastState.sav.dtm");
   }
 
@@ -336,8 +360,8 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
   }
 
   // Setting up the header
-  StateHeader header;
-  strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
+  StateHeader header{};
+  SConfig::GetInstance().GetGameID().copy(header.gameID, std::size(header.gameID));
   header.size = g_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
@@ -378,50 +402,57 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
     f.WriteBytes(buffer_data, buffer_size);
   }
 
-  Core::DisplayMessage(StringFromFormat("Saved State to %s", filename.c_str()), 2000);
+  Core::DisplayMessage(fmt::format("Saved State to {}", filename), 2000);
   Host_UpdateMainFrame();
 }
 
 void SaveAs(const std::string& filename, bool wait)
 {
-  Core::RunAsCPUThread([&] {
-    // Measure the size of the buffer.
-    u8* ptr = nullptr;
-    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
-    DoState(p);
-    const size_t buffer_size = reinterpret_cast<size_t>(ptr);
+  if (s_load_or_save_in_progress)
+    return;
 
-    // Then actually do the write.
-    {
-      std::lock_guard<std::mutex> lk(g_cs_current_buffer);
-      g_current_buffer.resize(buffer_size);
-      ptr = &g_current_buffer[0];
-      p.SetMode(PointerWrap::MODE_WRITE);
-      DoState(p);
-    }
+  s_load_or_save_in_progress = true;
 
-    if (p.GetMode() == PointerWrap::MODE_WRITE)
-    {
-      Core::DisplayMessage("Saving State...", 1000);
+  Core::RunOnCPUThread(
+      [&] {
+        // Measure the size of the buffer.
+        u8* ptr = nullptr;
+        PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+        DoState(p);
+        const size_t buffer_size = reinterpret_cast<size_t>(ptr);
 
-      CompressAndDumpState_args save_args;
-      save_args.buffer_vector = &g_current_buffer;
-      save_args.buffer_mutex = &g_cs_current_buffer;
-      save_args.filename = filename;
-      save_args.wait = wait;
+        // Then actually do the write.
+        {
+          std::lock_guard<std::mutex> lk(g_cs_current_buffer);
+          g_current_buffer.resize(buffer_size);
+          ptr = &g_current_buffer[0];
+          p.SetMode(PointerWrap::MODE_WRITE);
+          DoState(p);
+        }
 
-      Flush();
-      g_save_thread = std::thread(CompressAndDumpState, save_args);
-      g_compressAndDumpStateSyncEvent.Wait();
+        if (p.GetMode() == PointerWrap::MODE_WRITE)
+        {
+          Core::DisplayMessage("Saving State...", 1000);
 
-      g_last_filename = filename;
-    }
-    else
-    {
-      // someone aborted the save by changing the mode?
-      Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
-    }
-  });
+          CompressAndDumpState_args save_args;
+          save_args.buffer_vector = &g_current_buffer;
+          save_args.buffer_mutex = &g_cs_current_buffer;
+          save_args.filename = filename;
+          save_args.wait = wait;
+
+          Flush();
+          g_save_thread = std::thread(CompressAndDumpState, save_args);
+          g_compressAndDumpStateSyncEvent.Wait();
+        }
+        else
+        {
+          // someone aborted the save by changing the mode?
+          Core::DisplayMessage("Unable to save: Internal DoState Error", 4000);
+        }
+      },
+      true);
+
+  s_load_or_save_in_progress = false;
 }
 
 bool ReadHeader(const std::string& filename, StateHeader& header)
@@ -442,11 +473,11 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
-    return translate ? GetStringT("Empty") : "Empty";
+    return translate ? Common::GetStringT("Empty") : "Empty";
 
   State::StateHeader header;
   if (!ReadHeader(filename, header))
-    return translate ? GetStringT("Unknown") : "Unknown";
+    return translate ? Common::GetStringT("Unknown") : "Unknown";
 
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
@@ -466,8 +497,9 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
   if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
-    Core::DisplayMessage(
-        StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 2000);
+    Core::DisplayMessage(fmt::format("State belongs to a different game (ID {})",
+                                     std::string_view{header.gameID, std::size(header.gameID)}),
+                         2000);
     return;
   }
 
@@ -520,7 +552,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
 
 void LoadAs(const std::string& filename)
 {
-  if (!Core::IsRunning())
+  if (!Core::IsRunning() || s_load_or_save_in_progress)
   {
     return;
   }
@@ -530,64 +562,65 @@ void LoadAs(const std::string& filename)
     return;
   }
 
-  Core::RunAsCPUThread([&] {
-    g_loadDepth++;
+  s_load_or_save_in_progress = true;
 
-    // Save temp buffer for undo load state
-    if (!Movie::IsJustStartingRecordingInputFromSaveState())
-    {
-      std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
-      SaveToBuffer(g_undo_load_buffer);
-      if (Movie::IsMovieActive())
-        Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-      else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
-        File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
-    }
+  Core::RunOnCPUThread(
+      [&] {
+        // Save temp buffer for undo load state
+        if (!Movie::IsJustStartingRecordingInputFromSaveState())
+        {
+          std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
+          SaveToBuffer(g_undo_load_buffer);
+          if (Movie::IsMovieActive())
+            Movie::SaveRecording(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+          else if (File::Exists(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm"))
+            File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "undo.dtm");
+        }
 
-    bool loaded = false;
-    bool loadedSuccessfully = false;
+        bool loaded = false;
+        bool loadedSuccessfully = false;
 
-    // brackets here are so buffer gets freed ASAP
-    {
-      std::vector<u8> buffer;
-      LoadFileStateData(filename, buffer);
+        // brackets here are so buffer gets freed ASAP
+        {
+          std::vector<u8> buffer;
+          LoadFileStateData(filename, buffer);
 
-      if (!buffer.empty())
-      {
-        u8* ptr = &buffer[0];
-        PointerWrap p(&ptr, PointerWrap::MODE_READ);
-        DoState(p);
-        loaded = true;
-        loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
-      }
-    }
+          if (!buffer.empty())
+          {
+            u8* ptr = &buffer[0];
+            PointerWrap p(&ptr, PointerWrap::MODE_READ);
+            DoState(p);
+            loaded = true;
+            loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+          }
+        }
 
-    if (loaded)
-    {
-      if (loadedSuccessfully)
-      {
-        Core::DisplayMessage(StringFromFormat("Loaded state from %s", filename.c_str()), 2000);
-        if (File::Exists(filename + ".dtm"))
-          Movie::LoadInput(filename + ".dtm");
-        else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
-                 !Movie::IsJustStartingPlayingInputFromSaveState())
-          Movie::EndPlayInput(false);
-      }
-      else
-      {
-        Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
+        if (loaded)
+        {
+          if (loadedSuccessfully)
+          {
+            Core::DisplayMessage(fmt::format("Loaded state from {}", filename), 2000);
+            if (File::Exists(filename + ".dtm"))
+              Movie::LoadInput(filename + ".dtm");
+            else if (!Movie::IsJustStartingRecordingInputFromSaveState() &&
+                     !Movie::IsJustStartingPlayingInputFromSaveState())
+              Movie::EndPlayInput(false);
+          }
+          else
+          {
+            Core::DisplayMessage("The savestate could not be loaded", OSD::Duration::NORMAL);
 
-        // since we could be in an inconsistent state now (and might crash or whatever), undo.
-        if (g_loadDepth < 2)
-          UndoLoadState();
-      }
-    }
+            // since we could be in an inconsistent state now (and might crash or whatever), undo.
+            UndoLoadState();
+          }
+        }
 
-    if (s_on_after_load_callback)
-      s_on_after_load_callback();
+        if (s_on_after_load_callback)
+          s_on_after_load_callback();
+      },
+      true);
 
-    g_loadDepth--;
-  });
+  s_load_or_save_in_progress = false;
 }
 
 void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
@@ -621,8 +654,8 @@ void Shutdown()
 
 static std::string MakeStateFilename(int number)
 {
-  return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-                          SConfig::GetInstance().GetGameID().c_str(), number);
+  return fmt::format("{}{}.s{:02d}", File::GetUserPath(D_STATESAVES_IDX),
+                     SConfig::GetInstance().GetGameID(), number);
 }
 
 void Save(int slot, bool wait)

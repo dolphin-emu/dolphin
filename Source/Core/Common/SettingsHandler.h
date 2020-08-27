@@ -8,6 +8,7 @@
 
 #include <array>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -31,13 +32,14 @@ public:
 
   const Buffer& GetBytes() const;
   void SetBytes(Buffer&& buffer);
-  std::string GetValue(const std::string& key) const;
+  std::string GetValue(std::string_view key) const;
 
   void Decrypt();
   void Reset();
   static std::string GenerateSerialNumber();
 
 private:
+  void WriteLine(const std::string& str);
   void WriteByte(u8 b);
 
   std::array<u8, SETTINGS_SIZE> m_buffer;

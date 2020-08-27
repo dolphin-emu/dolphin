@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -44,7 +44,7 @@ class SocketSelector;
 ////////////////////////////////////////////////////////////
 class SFML_NETWORK_API Socket : NonCopyable
 {
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Status codes that may be returned by socket functions
@@ -54,6 +54,7 @@ public :
     {
         Done,         ///< The socket has sent / received the data
         NotReady,     ///< The socket is not ready to send / receive data yet
+        Partial,      ///< The socket sent a part of the data
         Disconnected, ///< The TCP socket has been disconnected
         Error         ///< An unexpected error happened
     };
@@ -67,7 +68,7 @@ public :
         AnyPort = 0 ///< Special value that tells the system to pick any available port
     };
 
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Destructor
@@ -104,7 +105,7 @@ public :
     ////////////////////////////////////////////////////////////
     bool isBlocking() const;
 
-protected :
+protected:
 
     ////////////////////////////////////////////////////////////
     /// \brief Types of protocols that the socket can use
@@ -165,7 +166,7 @@ protected :
     ////////////////////////////////////////////////////////////
     void close();
 
-private :
+private:
 
     friend class SocketSelector;
 

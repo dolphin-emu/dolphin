@@ -115,14 +115,14 @@ Option<bool>::Option(const char* id, const char* name, bool initial) : m_id(id),
 Option<int> efbScale("dolphin_efb_scale", "EFB Scale", 1,
                      {"x1 (640 x 528)", "x2 (1280 x 1056)", "x3 (1920 x 1584)", "x4 (2560 * 2112)",
                       "x5 (3200 x 2640)", "x6 (3840 x 3168)"});
-Option<LogTypes::LOG_LEVELS> logLevel("dolphin_log_level", "Log Level", {
-  {"Info", LogTypes::LINFO},
+Option<Common::Log::LOG_LEVELS> logLevel("dolphin_log_level", "Log Level", {
+  {"Info", Common::Log::LINFO},
 #if defined(_DEBUG) || defined(DEBUGFAST)
-      {"Debug", LogTypes::LDEBUG},
+      {"Debug", Common::Log::LDEBUG},
 #endif
-      {"Notice", LogTypes::LNOTICE}, {"Error", LogTypes::LERROR},
+      {"Notice", Common::Log::LNOTICE}, {"Error", Common::Log::LERROR},
   {
-    "Warning", LogTypes::LWARNING
+    "Warning", Common::Log::LWARNING
   }
 });
 Option<float> cpuClockRate("dolphin_cpu_clock_rate", "CPU Clock Rate",

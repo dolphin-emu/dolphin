@@ -25,6 +25,7 @@
 #include "Core/IOS/IOSC.h"
 #include "Core/IOS/Uids.h"
 #include "Core/IOS/VersionInfo.h"
+#include "DiscIO/Enums.h"
 
 namespace IOS::HLE::Device
 {
@@ -93,7 +94,8 @@ void TitleContext::DoState(PointerWrap& p)
   p.Do(active);
 }
 
-void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_,
+                          DiscIO::Platform platform)
 {
   if (!tmd_.IsValid() || !ticket_.IsValid())
   {
@@ -108,7 +110,7 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
   if (first_change)
   {
-    SConfig::GetInstance().SetRunningGameMetadata(tmd);
+    SConfig::GetInstance().SetRunningGameMetadata(tmd, platform);
     first_change = false;
   }
 }
@@ -166,13 +168,26 @@ static bool UpdateUIDAndGID(Kernel& kernel, const IOS::ES::TMDReader& tmd)
   return true;
 }
 
-static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid)
+static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
+                                         const IOS::ES::TMDReader& active_tmd)
 {
   IOS::ES::UIDSys uid_map{kernel.GetFS()};
   const u32 system_menu_uid = uid_map.GetOrInsertUIDForTitle(Titles::SYSTEM_MENU);
   if (!system_menu_uid)
     return ES_SHORT_READ;
-  return caller_uid == system_menu_uid ? IPC_SUCCESS : ES_EINVAL;
+
+  if (caller_uid == system_menu_uid)
+    return IPC_SUCCESS;
+
+  if (kernel.GetVersion() == 62)
+  {
+    const bool is_wiiu_transfer_tool =
+        active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484353ff;
+    if (is_wiiu_transfer_tool)
+      return IPC_SUCCESS;
+  }
+
+  return ES_EINVAL;
 }
 
 IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
@@ -182,7 +197,7 @@ IPCCommandResult ES::SetUID(u32 uid, const IOCtlVRequest& request)
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
-  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid);
+  const s32 ret = CheckIsAllowedToSetUID(m_ios, uid, m_title_context.tmd);
   if (ret < 0)
   {
     ERROR_LOG(IOS_ES, "SetUID: Permission check failed with error %d", ret);
@@ -209,7 +224,8 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
-  if (title_id == Titles::SHOP && m_ios.GetIOSC().IsUsingDefaultId())
+  if ((title_id == Titles::SHOP || title_id == Titles::KOREAN_SHOP) &&
+      m_ios.GetIOSC().IsUsingDefaultId())
   {
     ERROR_LOG(IOS_ES, "Refusing to launch the shop channel with default device credentials");
     CriticalAlertT("You cannot use the Wii Shop Channel without using your own device credentials."
@@ -297,7 +313,7 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return LaunchTitle(required_ios);
   }
 
-  m_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiWAD);
   INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // Note: the UID/GID is also updated for IOS titles, but since we have no guarantee IOS titles
@@ -538,7 +554,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_UNKNOWN_42:
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
                request.request, request.in_vectors.size(), request.io_vectors.size());
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
+    request.DumpUnknown(GetDeviceName(), Common::Log::IOS_ES, Common::Log::LERROR);
     return GetDefaultReply(IPC_EINVAL);
 
   case IOCTL_ES_INVALID_3F:
@@ -647,7 +663,7 @@ ReturnCode ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketRead
   if (tmd.GetTitleId() != ticket.GetTitleId())
     return ES_EINVAL;
 
-  m_title_context.Update(tmd, ticket);
+  m_title_context.Update(tmd, ticket, DiscIO::Platform::WiiDisc);
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
 
   // XXX: We are supposed to verify the TMD and ticket here, but cannot because
@@ -766,11 +782,10 @@ ReturnCode ES::SetUpStreamKey(const u32 uid, const u8* ticket_view, const IOS::E
     return ret;
 
   const u8 index = ticket_bytes[offsetof(IOS::ES::Ticket, common_key_index)];
-  if (index > 1)
+  if (index >= IOSC::COMMON_KEY_HANDLES.size())
     return ES_INVALID_TICKET;
 
-  auto common_key_handle = index == 0 ? IOSC::HANDLE_COMMON_KEY : IOSC::HANDLE_NEW_COMMON_KEY;
-  return m_ios.GetIOSC().ImportSecretKey(*handle, common_key_handle, iv.data(),
+  return m_ios.GetIOSC().ImportSecretKey(*handle, IOSC::COMMON_KEY_HANDLES[index], iv.data(),
                                          &ticket_bytes[offsetof(IOS::ES::Ticket, title_key)],
                                          PID_ES);
 }
@@ -840,9 +855,6 @@ static const std::string CERT_STORE_PATH = "/sys/cert.sys";
 
 ReturnCode ES::ReadCertStore(std::vector<u8>* buffer) const
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
-    return IPC_SUCCESS;
-
   const auto store_file =
       m_ios.GetFS()->OpenFile(PID_KERNEL, PID_KERNEL, CERT_STORE_PATH, FS::Mode::Read);
   if (!store_file)
@@ -883,9 +895,6 @@ ReturnCode ES::VerifyContainer(VerifyContainerType type, VerifyMode mode,
                                const IOS::ES::SignedBlobReader& signed_blob,
                                const std::vector<u8>& cert_chain, u32* issuer_handle_out)
 {
-  if (!SConfig::GetInstance().m_enable_signature_checks)
-    return IPC_SUCCESS;
-
   if (!signed_blob.IsSignatureValid())
     return ES_EINVAL;
 

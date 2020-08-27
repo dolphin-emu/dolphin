@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -42,7 +42,7 @@ class Socket;
 ////////////////////////////////////////////////////////////
 class SFML_NETWORK_API SocketSelector
 {
-public :
+public:
 
     ////////////////////////////////////////////////////////////
     /// \brief Default constructor
@@ -151,7 +151,7 @@ public :
     ////////////////////////////////////////////////////////////
     SocketSelector& operator =(const SocketSelector& right);
 
-private :
+private:
 
     struct SocketSelectorImpl;
 
@@ -188,7 +188,7 @@ private :
 /// (socket classes are not copyable anyway), it simply keeps
 /// a reference to the original sockets that you pass to the
 /// "add" function. Therefore, you can't use the selector as a
-/// socket container, you must store them oustide and make sure
+/// socket container, you must store them outside and make sure
 /// that they are alive as long as they are used in the selector.
 ///
 /// Using a selector is simple:

@@ -15,12 +15,15 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "UICommon/Disassembler.h"
 
+#include "DolphinQt/Host.h"
 #include "DolphinQt/Settings.h"
 
 JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 {
   setWindowTitle(tr("JIT Blocks"));
   setObjectName(QStringLiteral("jitwidget"));
+
+  setHidden(!Settings::Instance().IsJITVisible() || !Settings::Instance().IsDebugModeEnabled());
 
   setAllowedAreas(Qt::AllDockWidgetAreas);
 
@@ -29,6 +32,8 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
   CreateWidgets();
 
   restoreGeometry(settings.value(QStringLiteral("jitwidget/geometry")).toByteArray());
+  // macOS: setHidden() needs to be evaluated before setFloating() for proper window presentation
+  // according to Settings
   setFloating(settings.value(QStringLiteral("jitwidget/floating")).toBool());
 
   m_table_splitter->restoreState(
@@ -43,8 +48,7 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsJITVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &JITWidget::Update);
-
-  setHidden(!Settings::Instance().IsJITVisible() || !Settings::Instance().IsDebugModeEnabled());
+  connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &JITWidget::Update);
 
   ConnectWidgets();
 
@@ -55,8 +59,6 @@ JITWidget::JITWidget(QWidget* parent) : QDockWidget(parent)
 #else
   m_disassembler = GetNewDisassembler("UNK");
 #endif
-
-  Update();
 }
 
 JITWidget::~JITWidget()
@@ -73,6 +75,7 @@ void JITWidget::CreateWidgets()
 {
   m_table_widget = new QTableWidget;
 
+  m_table_widget->setTabKeyNavigation(false);
   m_table_widget->setColumnCount(7);
   m_table_widget->setHorizontalHeaderLabels(
       {tr("Address"), tr("PPC Size"), tr("Host Size"),
@@ -102,6 +105,7 @@ void JITWidget::CreateWidgets()
 
   QWidget* widget = new QWidget;
   auto* layout = new QVBoxLayout;
+  layout->setContentsMargins(2, 2, 2, 2);
   widget->setLayout(layout);
 
   layout->addWidget(m_table_splitter);
@@ -112,7 +116,7 @@ void JITWidget::CreateWidgets()
 
 void JITWidget::ConnectWidgets()
 {
-  connect(m_refresh_button, &QPushButton::pressed, this, &JITWidget::Update);
+  connect(m_refresh_button, &QPushButton::clicked, this, &JITWidget::Update);
 }
 
 void JITWidget::Compare(u32 address)
@@ -123,6 +127,9 @@ void JITWidget::Compare(u32 address)
 
 void JITWidget::Update()
 {
+  if (!isVisible())
+    return;
+
   if (!m_address)
   {
     m_ppc_asm_widget->setHtml(QStringLiteral("<i>%1</i>").arg(tr("(ppc)")));
@@ -204,4 +211,9 @@ void JITWidget::Update()
 void JITWidget::closeEvent(QCloseEvent*)
 {
   Settings::Instance().SetJITVisible(false);
+}
+
+void JITWidget::showEvent(QShowEvent* event)
+{
+  Update();
 }

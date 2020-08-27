@@ -171,7 +171,7 @@ Summary:
 - [Classes and Structs](#cpp-code-classes-and-structs)
 
 ## <a name="cpp-code-general"></a>General
-- The codebase currently uses C++14.
+- The codebase currently uses C++17.
 - Use the [nullptr](http://en.cppreference.com/w/cpp/language/nullptr) type over the macro `NULL`.
 - If a [range-based for loop](http://en.cppreference.com/w/cpp/language/range-for) can be used instead of container iterators, use it.
 - Obviously, try not to use `goto` unless you have a *really* good reason for it.

@@ -1,30 +1,47 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
       xmlns:tools="http://schemas.android.com/tools"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
       tools:context="org.dolphinemu.dolphinemu.activities.EmulationActivity">
 
     <item
+        android:id="@+id/menu_emulation_pause"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/lb_ic_pause"
+        android:title="@string/pause_emulation"/>
+
+    <item
+        android:id="@+id/menu_emulation_unpause"
+        app:showAsAction="ifRoom"
+        android:icon="@drawable/lb_ic_play"
+        android:title="@string/unpause_emulation"
+        android:visible="false"/>
+
+    <item
         android:id="@+id/menu_emulation_screenshot"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_screenshot"
         android:title="@string/emulation_screenshot"/>
 
     <item
         android:id="@+id/menu_quicksave"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quicksave"
-        android:title="@string/emulation_quicksave"/>
+        android:title="@string/emulation_quicksave"
+        android:visible="false"/>
 
     <item
         android:id="@+id/menu_quickload"
-        android:showAsAction="ifRoom"
+        app:showAsAction="ifRoom"
         android:icon="@drawable/ic_quickload"
-        android:title="@string/emulation_quickload"/>
+        android:title="@string/emulation_quickload"
+        android:visible="false"/>
 
     <!-- Save State Slots -->
     <item
         android:id="@+id/menu_emulation_save_root"
-        android:showAsAction="never"
-        android:title="@string/emulation_savestate">
+        app:showAsAction="never"
+        android:title="@string/emulation_savestate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_save_1"
@@ -51,8 +68,9 @@
     <!-- Load State Slots -->
     <item
         android:id="@+id/menu_emulation_load_root"
-        android:showAsAction="never"
-        android:title="@string/emulation_loadstate">
+        app:showAsAction="never"
+        android:title="@string/emulation_loadstate"
+        android:visible="false">
         <menu>
             <item
                 android:id="@+id/menu_emulation_load_1"
@@ -77,9 +95,9 @@
     </item>
 
     <item
-        android:id="@+id/menu_emulation_configure_controls"
-        android:showAsAction="never"
-        android:title="@string/emulation_configure_controls">
+        android:id="@+id/menu_emulation_overlay_controls"
+        app:showAsAction="never"
+        android:title="@string/emulation_overlay_controls">
         <menu>
             <item
                 android:id="@+id/menu_emulation_edit_layout"
@@ -98,12 +116,48 @@
                     android:id="@+id/menu_emulation_joystick_rel_center"
                     android:checkable="true"
                     android:title="@string/emulation_control_joystick_rel_center"/>
+                <item
+                    android:id="@+id/menu_emulation_rumble"
+                    android:checkable="true"
+                    android:title="@string/emulation_control_rumble"/>
             </group>
 
             <item
                 android:id="@+id/menu_emulation_choose_controller"
                 android:title="@string/emulation_choose_controller"/>
+            <item
+                android:id="@+id/menu_emulation_motion_controls"
+                android:title="@string/emulation_motion_controls"/>
+
+            <item
+                android:id="@+id/menu_emulation_ir_group"
+                android:title="@string/emulation_ir_group"
+                app:showAsAction="never">
+                <menu>
+                    <item
+                        android:id="@+id/menu_emulation_set_ir_sensitivity"
+                        android:title="@string/emulation_ir_sensitivity"
+                        app:showAsAction="ifRoom"/>
+                    <item
+                        android:id="@+id/menu_emulation_choose_doubletap"
+                        android:title="@string/emulation_choose_doubletap"
+                        app:showAsAction="ifRoom"/>
+                </menu>
+            </item>
+            <item
+                android:id="@+id/menu_emulation_reset_overlay"
+                android:title="@string/emulation_touch_overlay_reset"/>
         </menu>
     </item>
+
+    <item
+        android:id="@+id/menu_screen_orientation"
+        app:showAsAction="never"
+        android:title="@string/emulation_screen_orientation"/>
+
+    <item
+        android:id="@+id/menu_change_disc"
+        app:showAsAction="never"
+        android:title="@string/emulation_change_disc"/>
 
 </menu>

@@ -17,6 +17,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
@@ -91,7 +93,7 @@ void DSPAssembler::ShowError(AssemblerError err_code, const char* extra_info)
   if (!m_settings.force)
     m_failed = true;
 
-  std::string error = StringFromFormat("%u : %s ", m_code_line, m_cur_line.c_str());
+  std::string error = fmt::format("{} : {} ", m_code_line, m_cur_line);
   if (!extra_info)
     extra_info = "-";
 
@@ -99,12 +101,12 @@ void DSPAssembler::ShowError(AssemblerError err_code, const char* extra_info)
 
   if (m_current_param == 0)
   {
-    error += StringFromFormat("ERROR: %s Line: %u : %s\n", error_string, m_code_line, extra_info);
+    error += fmt::format("ERROR: {} Line: {} : {}\n", error_string, m_code_line, extra_info);
   }
   else
   {
-    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", error_string, m_code_line,
-                              m_current_param, extra_info);
+    error += fmt::format("ERROR: {} Line: {} Param: {} : {}\n", error_string, m_code_line,
+                         m_current_param, extra_info);
   }
 
   m_last_error_str = std::move(error);
@@ -200,9 +202,9 @@ s32 DSPAssembler::ParseValue(const char* str)
     else  // Everything else is a label.
     {
       // Lookup label
-      u16 value;
-      if (m_labels.GetLabelValue(ptr, &value))
-        return value;
+      if (const std::optional<u16> value = m_labels.GetLabelValue(ptr))
+        return *value;
+
       if (m_cur_pass == 2)
         ShowError(AssemblerError::UnknownLabel, str);
     }
@@ -958,8 +960,8 @@ bool DSPAssembler::AssemblePass(const std::string& text, int pass)
       {
         if (m_cur_addr > params[0].val)
         {
-          std::string msg = StringFromFormat("WARNPC at 0x%04x, expected 0x%04x or less",
-                                             m_cur_addr, params[0].val);
+          const std::string msg = fmt::format("WARNPC at 0x{:04x}, expected 0x{:04x} or less",
+                                              m_cur_addr, params[0].val);
           ShowError(AssemblerError::PCOutOfRange, msg.c_str());
         }
       }

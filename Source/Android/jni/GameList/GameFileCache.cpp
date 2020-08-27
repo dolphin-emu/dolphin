@@ -37,7 +37,7 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_add
                                                                                       jobject obj,
                                                                                       jstring path);
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_update(
-    JNIEnv* env, jobject obj, jobjectArray folder_paths);
+    JNIEnv* env, jobject obj, jobjectArray folder_paths, jboolean recursive_scan);
 JNIEXPORT jboolean JNICALL
 Java_org_dolphinemu_dolphinemu_model_GameFileCache_updateAdditionalMetadata(JNIEnv* env,
                                                                             jobject obj);
@@ -80,7 +80,7 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_add
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_update(
-    JNIEnv* env, jobject obj, jobjectArray folder_paths)
+    JNIEnv* env, jobject obj, jobjectArray folder_paths, jboolean recursive_scan)
 {
   jsize size = env->GetArrayLength(folder_paths);
 
@@ -89,12 +89,13 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_up
 
   for (jsize i = 0; i < size; ++i)
   {
-    const jstring path = reinterpret_cast<jstring>(env->GetObjectArrayElement(folder_paths, i));
+    const auto path = reinterpret_cast<jstring>(env->GetObjectArrayElement(folder_paths, i));
     folder_paths_vector.push_back(GetJString(env, path));
     env->DeleteLocalRef(path);
   }
 
-  return GetPointer(env, obj)->Update(UICommon::FindAllGamePaths(folder_paths_vector, false));
+  return GetPointer(env, obj)->Update(
+      UICommon::FindAllGamePaths(folder_paths_vector, recursive_scan));
 }
 
 JNIEXPORT jboolean JNICALL

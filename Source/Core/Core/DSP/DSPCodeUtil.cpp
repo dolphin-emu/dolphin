@@ -9,6 +9,8 @@
 #include <string>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
@@ -66,11 +68,11 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   if (code1.size() != code2.size())
     printf("Size difference! 1=%zu 2=%zu\n", code1.size(), code2.size());
   u32 count_equal = 0;
-  const int min_size = std::min<int>((int)code1.size(), (int)code2.size());
+  const u16 min_size = static_cast<u16>(std::min(code1.size(), code2.size()));
 
   AssemblerSettings settings;
   DSPDisassembler disassembler(settings);
-  for (int i = 0; i < min_size; i++)
+  for (u16 i = 0; i < min_size; i++)
   {
     if (code1[i] == code2[i])
     {
@@ -91,7 +93,7 @@ bool Compare(const std::vector<u16>& code1, const std::vector<u16>& code2)
   {
     printf("Extra code words:\n");
     const std::vector<u16>& longest = code1.size() > code2.size() ? code1 : code2;
-    for (int i = min_size; i < (int)longest.size(); i++)
+    for (u16 i = min_size; i < longest.size(); i++)
     {
       u16 pc = i;
       std::string line;
@@ -141,13 +143,13 @@ bool SaveBinary(const std::vector<u16>& code, const std::string& filename)
 {
   const std::string buffer = CodeToBinaryStringBE(code);
 
-  return File::WriteStringToFile(buffer, filename);
+  return File::WriteStringToFile(filename, buffer);
 }
 
-bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
+bool DumpDSPCode(const u8* code_be, size_t size_in_bytes, u32 crc)
 {
   const std::string root_name =
-      File::GetUserPath(D_DUMPDSP_IDX) + StringFromFormat("DSP_UC_%08X", crc);
+      File::GetUserPath(D_DUMPDSP_IDX) + fmt::format("DSP_UC_{:08X}", crc);
   const std::string binary_file = root_name + ".bin";
   const std::string text_file = root_name + ".txt";
 
@@ -166,7 +168,7 @@ bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
   if (!Disassemble(code, true, text))
     return false;
 
-  return File::WriteStringToFile(text, text_file);
+  return File::WriteStringToFile(text_file, text);
 }
 
 }  // namespace DSP

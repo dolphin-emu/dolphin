@@ -1,7 +1,7 @@
 ////////////////////////////////////////////////////////////
 //
 // SFML - Simple and Fast Multimedia Library
-// Copyright (C) 2007-2013 Laurent Gomila (laurent.gom@gmail.com)
+// Copyright (C) 2007-2018 Laurent Gomila (laurent@sfml-dev.org)
 //
 // This software is provided 'as-is', without any express or implied warranty.
 // In no event will the authors be held liable for any damages arising from the use of this software.
@@ -30,13 +30,15 @@
 // Define the SFML version
 ////////////////////////////////////////////////////////////
 #define SFML_VERSION_MAJOR 2
-#define SFML_VERSION_MINOR 1
+#define SFML_VERSION_MINOR 5
+#define SFML_VERSION_PATCH 0
 
 
 ////////////////////////////////////////////////////////////
 // Identify the operating system
+// see http://nadeausoftware.com/articles/2012/01/c_c_tip_how_use_compiler_predefined_macros_detect_operating_system
 ////////////////////////////////////////////////////////////
-#if defined(_WIN32) || defined(__WIN32__)
+#if defined(_WIN32)
 
     // Windows
     #define SFML_SYSTEM_WINDOWS
@@ -44,20 +46,57 @@
         #define NOMINMAX
     #endif
 
-#elif defined(linux) || defined(__linux)
+#elif defined(__APPLE__) && defined(__MACH__)
 
-    // Linux
-    #define SFML_SYSTEM_LINUX
+    // Apple platform, see which one it is
+    #include "TargetConditionals.h"
 
-#elif defined(__APPLE__) || defined(MACOSX) || defined(macintosh) || defined(Macintosh)
+    #if TARGET_OS_IPHONE || TARGET_IPHONE_SIMULATOR
 
-    // MacOS
-    #define SFML_SYSTEM_MACOS
+        // iOS
+        #define SFML_SYSTEM_IOS
 
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+    #elif TARGET_OS_MAC
 
-    // FreeBSD
-    #define SFML_SYSTEM_FREEBSD
+        // MacOS
+        #define SFML_SYSTEM_MACOS
+
+    #else
+
+        // Unsupported Apple system
+        #error This Apple operating system is not supported by SFML library
+
+    #endif
+
+#elif defined(__unix__)
+
+    // UNIX system, see which one it is
+    #if defined(__ANDROID__)
+
+        // Android
+        #define SFML_SYSTEM_ANDROID
+
+    #elif defined(__linux__)
+
+         // Linux
+        #define SFML_SYSTEM_LINUX
+
+    #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__)
+
+        // FreeBSD
+        #define SFML_SYSTEM_FREEBSD
+
+    #elif defined(__OpenBSD__)
+
+        // OpenBSD
+        #define SFML_SYSTEM_OPENBSD
+
+    #else
+
+        // Unsupported UNIX system
+        #error This UNIX operating system is not supported by SFML library
+
+    #endif
 
 #else
 
@@ -91,7 +130,7 @@
         // For Visual C++ compilers, we also need to turn off this annoying C4251 warning
         #ifdef _MSC_VER
 
-            #pragma warning(disable : 4251)
+            #pragma warning(disable: 4251)
 
         #endif
 
@@ -119,6 +158,44 @@
     // Static build doesn't need import/export macros
     #define SFML_API_EXPORT
     #define SFML_API_IMPORT
+
+#endif
+
+
+////////////////////////////////////////////////////////////
+// Cross-platform warning for deprecated functions and classes
+//
+// Usage:
+// class SFML_DEPRECATED MyClass
+// {
+//     SFML_DEPRECATED void memberFunc();
+// };
+//
+// SFML_DEPRECATED void globalFunc();
+////////////////////////////////////////////////////////////
+#if defined(SFML_NO_DEPRECATED_WARNINGS)
+
+    // User explicitly requests to disable deprecation warnings
+    #define SFML_DEPRECATED
+
+#elif defined(_MSC_VER)
+
+    // Microsoft C++ compiler
+    // Note: On newer MSVC versions, using deprecated functions causes a compiler error. In order to
+    // trigger a warning instead of an error, the compiler flag /sdl- (instead of /sdl) must be specified.
+    #define SFML_DEPRECATED __declspec(deprecated)
+
+#elif defined(__GNUC__)
+
+    // g++ and Clang
+    #define SFML_DEPRECATED __attribute__ ((deprecated))
+
+#else
+
+    // Other compilers are not supported, leave class or function as-is.
+    // With a bit of luck, the #pragma directive works, otherwise users get a warning (no error!) for unrecognized #pragma.
+    #pragma message("SFML_DEPRECATED is not supported for your compiler, please contact the SFML team")
+    #define SFML_DEPRECATED
 
 #endif
 

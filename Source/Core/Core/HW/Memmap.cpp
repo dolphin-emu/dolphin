@@ -10,6 +10,7 @@
 #include "Core/HW/Memmap.h"
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <memory>
 
@@ -18,6 +19,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
 #include "Common/Swap.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
@@ -42,6 +44,7 @@ namespace Memory
 // Store the MemArena here
 u8* physical_base = nullptr;
 u8* logical_base = nullptr;
+static bool is_fastmem_arena_initialized = false;
 
 // The MemArena class
 static Common::MemArena g_arena;
@@ -55,6 +58,70 @@ u8* m_pRAM;
 u8* m_pL1Cache;
 u8* m_pEXRAM;
 u8* m_pFakeVMEM;
+
+// s_ram_size is the amount allocated by the emulator, whereas s_ram_size_real
+// is what will be reported in lowmem, and thus used by emulated software.
+// Note: Writing to lowmem is done by IPL. If using retail IPL, it will
+// always be set to 24MB.
+static u32 s_ram_size_real;
+static u32 s_ram_size;
+static u32 s_ram_mask;
+static u32 s_fakevmem_size;
+static u32 s_fakevmem_mask;
+static u32 s_L1_cache_size;
+static u32 s_L1_cache_mask;
+static u32 s_io_size;
+// s_exram_size is the amount allocated by the emulator, whereas s_exram_size_real
+// is what gets used by emulated software.  If using retail IOS, it will
+// always be set to 64MB.
+static u32 s_exram_size_real;
+static u32 s_exram_size;
+static u32 s_exram_mask;
+
+u32 GetRamSizeReal()
+{
+  return s_ram_size_real;
+}
+u32 GetRamSize()
+{
+  return s_ram_size;
+}
+u32 GetRamMask()
+{
+  return s_ram_mask;
+}
+u32 GetFakeVMemSize()
+{
+  return s_fakevmem_size;
+}
+u32 GetFakeVMemMask()
+{
+  return s_fakevmem_mask;
+}
+u32 GetL1CacheSize()
+{
+  return s_L1_cache_size;
+}
+u32 GetL1CacheMask()
+{
+  return s_L1_cache_mask;
+}
+u32 GetIOSize()
+{
+  return s_io_size;
+}
+u32 GetExRamSizeReal()
+{
+  return s_exram_size_real;
+}
+u32 GetExRamSize()
+{
+  return s_exram_size;
+}
+u32 GetExRamMask()
+{
+  return s_exram_mask;
+}
 
 // MMIO mapping object.
 std::unique_ptr<MMIO::Mapping> mmio_mapping;
@@ -131,7 +198,7 @@ struct LogicalMemoryView
 // other devices, like the GPU, use other rules, approximated by
 // Memory::GetPointer.) This memory is laid out as follows:
 // [0x00000000, 0x02000000) - 32MB RAM
-// [0x02000000, 0x08000000) - Mirrors of 32MB RAM
+// [0x02000000, 0x08000000) - Mirrors of 32MB RAM (not handled here)
 // [0x08000000, 0x0C000000) - EFB "mapping" (not handled here)
 // [0x0C000000, 0x0E000000) - MMIO etc. (not handled here)
 // [0x10000000, 0x14000000) - 64MB RAM (Wii-only; slightly slower)
@@ -153,18 +220,13 @@ struct LogicalMemoryView
 //
 // Dolphin doesn't emulate the difference between cached and uncached access.
 //
-// TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
-// be backed by actual memory.
-static PhysicalMemoryRegion physical_regions[] = {
-    {&m_pRAM, 0x00000000, RAM_SIZE, PhysicalMemoryRegion::ALWAYS},
-    {&m_pL1Cache, 0xE0000000, L1_CACHE_SIZE, PhysicalMemoryRegion::ALWAYS},
-    {&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, PhysicalMemoryRegion::FAKE_VMEM},
-    {&m_pEXRAM, 0x10000000, EXRAM_SIZE, PhysicalMemoryRegion::WII_ONLY},
-};
+// TODO: The actual size of RAM is 24MB; the other 8MB shouldn't be backed by actual memory.
+// TODO: Do we want to handle the mirrors of the GC RAM?
+static std::array<PhysicalMemoryRegion, 4> physical_regions;
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
 
-void Init()
+static u32 GetFlags()
 {
   bool wii = SConfig::GetInstance().bWii;
   bool bMMU = SConfig::GetInstance().bMMU;
@@ -181,6 +243,42 @@ void Init()
     flags |= PhysicalMemoryRegion::WII_ONLY;
   if (bFakeVMEM)
     flags |= PhysicalMemoryRegion::FAKE_VMEM;
+
+  return flags;
+}
+
+void Init()
+{
+  const auto get_mem1_size = [] {
+    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Config::Get(Config::MAIN_MEM1_SIZE);
+    return Memory::MEM1_SIZE_RETAIL;
+  };
+  const auto get_mem2_size = [] {
+    if (Config::Get(Config::MAIN_RAM_OVERRIDE_ENABLE))
+      return Config::Get(Config::MAIN_MEM2_SIZE);
+    return Memory::MEM2_SIZE_RETAIL;
+  };
+  s_ram_size_real = get_mem1_size();
+  s_ram_size = MathUtil::NextPowerOf2(GetRamSizeReal());
+  s_ram_mask = GetRamSize() - 1;
+  s_fakevmem_size = 0x02000000;
+  s_fakevmem_mask = GetFakeVMemSize() - 1;
+  s_L1_cache_size = 0x00040000;
+  s_L1_cache_mask = GetL1CacheSize() - 1;
+  s_io_size = 0x00010000;
+  s_exram_size_real = get_mem2_size();
+  s_exram_size = MathUtil::NextPowerOf2(GetExRamSizeReal());
+  s_exram_mask = GetExRamSize() - 1;
+
+  physical_regions[0] = {&m_pRAM, 0x00000000, GetRamSize(), PhysicalMemoryRegion::ALWAYS};
+  physical_regions[1] = {&m_pL1Cache, 0xE0000000, GetL1CacheSize(), PhysicalMemoryRegion::ALWAYS};
+  physical_regions[2] = {&m_pFakeVMEM, 0x7E000000, GetFakeVMemSize(),
+                         PhysicalMemoryRegion::FAKE_VMEM};
+  physical_regions[3] = {&m_pEXRAM, 0x10000000, GetExRamSize(), PhysicalMemoryRegion::WII_ONLY};
+
+  bool wii = SConfig::GetInstance().bWii;
+  u32 flags = GetFlags();
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : physical_regions)
   {
@@ -190,15 +288,14 @@ void Init()
     mem_size += region.size;
   }
   g_arena.GrabSHMSegment(mem_size);
-  physical_base = Common::MemArena::FindMemoryBase();
 
+  // Create an anonymous view of the physical memory
   for (PhysicalMemoryRegion& region : physical_regions)
   {
     if ((flags & region.flags) != region.flags)
       continue;
 
-    u8* base = physical_base + region.physical_address;
-    *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
+    *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size);
 
     if (!*region.out_pointer)
     {
@@ -206,10 +303,6 @@ void Init()
       exit(0);
     }
   }
-
-#ifndef _ARCH_32
-  logical_base = physical_base + 0x200000000;
-#endif
 
   if (wii)
     mmio_mapping = InitMMIOWii();
@@ -222,8 +315,41 @@ void Init()
   m_IsInitialized = true;
 }
 
+bool InitFastmemArena()
+{
+  u32 flags = GetFlags();
+  physical_base = Common::MemArena::FindMemoryBase();
+
+  if (!physical_base)
+    return false;
+
+  for (PhysicalMemoryRegion& region : physical_regions)
+  {
+    if ((flags & region.flags) != region.flags)
+      continue;
+
+    u8* base = physical_base + region.physical_address;
+    u8* view = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
+
+    if (base != view)
+    {
+      return false;
+    }
+  }
+
+#ifndef _ARCH_32
+  logical_base = physical_base + 0x200000000;
+#endif
+
+  is_fastmem_arena_initialized = true;
+  return true;
+}
+
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
+  if (!is_fastmem_arena_initialized)
+    return;
+
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
@@ -266,25 +392,23 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 void DoState(PointerWrap& p)
 {
   bool wii = SConfig::GetInstance().bWii;
-  p.DoArray(m_pRAM, RAM_SIZE);
-  p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
+  p.DoArray(m_pRAM, GetRamSize());
+  p.DoArray(m_pL1Cache, GetL1CacheSize());
   p.DoMarker("Memory RAM");
   if (m_pFakeVMEM)
-    p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
+    p.DoArray(m_pFakeVMEM, GetFakeVMemSize());
   p.DoMarker("Memory FakeVMEM");
   if (wii)
-    p.DoArray(m_pEXRAM, EXRAM_SIZE);
+    p.DoArray(m_pEXRAM, GetExRamSize());
   p.DoMarker("Memory EXRAM");
 }
 
 void Shutdown()
 {
+  ShutdownFastmemArena();
+
   m_IsInitialized = false;
-  u32 flags = 0;
-  if (SConfig::GetInstance().bWii)
-    flags |= PhysicalMemoryRegion::WII_ONLY;
-  if (m_pFakeVMEM)
-    flags |= PhysicalMemoryRegion::FAKE_VMEM;
+  u32 flags = GetFlags();
   for (PhysicalMemoryRegion& region : physical_regions)
   {
     if ((flags & region.flags) != region.flags)
@@ -292,34 +416,54 @@ void Shutdown()
     g_arena.ReleaseView(*region.out_pointer, region.size);
     *region.out_pointer = nullptr;
   }
+  g_arena.ReleaseSHMSegment();
+  mmio_mapping.reset();
+  INFO_LOG(MEMMAP, "Memory system shut down.");
+}
+
+void ShutdownFastmemArena()
+{
+  if (!is_fastmem_arena_initialized)
+    return;
+
+  u32 flags = GetFlags();
+  for (PhysicalMemoryRegion& region : physical_regions)
+  {
+    if ((flags & region.flags) != region.flags)
+      continue;
+
+    u8* base = physical_base + region.physical_address;
+    g_arena.ReleaseView(base, region.size);
+  }
+
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  g_arena.ReleaseSHMSegment();
+
   physical_base = nullptr;
   logical_base = nullptr;
-  mmio_mapping.reset();
-  INFO_LOG(MEMMAP, "Memory system shut down.");
+
+  is_fastmem_arena_initialized = false;
 }
 
 void Clear()
 {
   if (m_pRAM)
-    memset(m_pRAM, 0, RAM_SIZE);
+    memset(m_pRAM, 0, GetRamSize());
   if (m_pL1Cache)
-    memset(m_pL1Cache, 0, L1_CACHE_SIZE);
+    memset(m_pL1Cache, 0, GetL1CacheSize());
   if (m_pFakeVMEM)
-    memset(m_pFakeVMEM, 0, FAKEVMEM_SIZE);
+    memset(m_pFakeVMEM, 0, GetFakeVMemSize());
   if (m_pEXRAM)
-    memset(m_pEXRAM, 0, EXRAM_SIZE);
+    memset(m_pEXRAM, 0, GetExRamSize());
 }
 
 static inline u8* GetPointerForRange(u32 address, size_t size)
 {
   // Make sure we don't have a range spanning 2 separate banks
-  if (size >= EXRAM_SIZE)
+  if (size >= GetExRamSizeReal())
     return nullptr;
 
   // Check that the beginning and end of the range are valid
@@ -394,13 +538,13 @@ u8* GetPointer(u32 address)
   // TODO: Should we be masking off more bits here?  Can all devices access
   // EXRAM?
   address &= 0x3FFFFFFF;
-  if (address < REALRAM_SIZE)
+  if (address < GetRamSizeReal())
     return m_pRAM + address;
 
   if (m_pEXRAM)
   {
-    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
-      return m_pEXRAM + (address & EXRAM_MASK);
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < GetExRamSizeReal())
+      return m_pEXRAM + (address & GetExRamMask());
   }
 
   PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
@@ -461,4 +605,4 @@ void Write_U64_Swap(u64 value, u32 address)
   std::memcpy(GetPointer(address), &value, sizeof(u64));
 }
 
-}  // namespace
+}  // namespace Memory

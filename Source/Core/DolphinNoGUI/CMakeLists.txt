@@ -1,10 +1,21 @@
-if(NOT(USE_X11 OR ENABLE_HEADLESS))
-  return()
-endif()
-
 add_executable(dolphin-nogui
+  Platform.cpp
+  Platform.h
+  PlatformHeadless.cpp
   MainNoGUI.cpp
 )
+
+if(ENABLE_X11 AND X11_FOUND)
+  target_sources(dolphin-nogui PRIVATE PlatformX11.cpp)
+endif()
+
+if(WIN32)
+  target_sources(dolphin-nogui PRIVATE PlatformWin32.cpp)
+endif()
+
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+  target_sources(dolphin-nogui PRIVATE PlatformFBDev.cpp)
+endif()
 
 set_target_properties(dolphin-nogui PROPERTIES OUTPUT_NAME dolphin-emu-nogui)
 
