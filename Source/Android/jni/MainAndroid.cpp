@@ -50,6 +50,7 @@
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
 #include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
+#include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
 
@@ -628,6 +629,19 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ReloadConfig
                                                                                  jobject obj)
 {
   SConfig::GetInstance().LoadSettings();
+}
+
+JNIEXPORT void JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv* env, jobject obj)
+{
+  if (GCAdapter::UseAdapter())
+  {
+    GCAdapter::StartScanThread();
+  }
+  else
+  {
+    GCAdapter::StopScanThread();
+  }
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv* env,
