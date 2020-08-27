@@ -81,6 +81,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
       <MinimalRebuild>false</MinimalRebuild>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <!--Enable latest C++ standard-->
       <LanguageStandard>stdcpplatest</LanguageStandard>
@@ -124,22 +125,21 @@
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
-      <FunctionLevelLinking>true</FunctionLevelLinking>
       <PreprocessorDefinitions>_DEBUG;_SECURE_SCL=1;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <Optimization>Disabled</Optimization>
     </ClCompile>
     <!--ClCompile Release-->
     <ClCompile Condition="'$(Configuration)'=='Release'">
-      <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <OmitFramePointers>true</OmitFramePointers>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>false</BufferSecurityCheck>
-      <FunctionLevelLinking>false</FunctionLevelLinking>
       <PreprocessorDefinitions>_SECURE_SCL=0;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalOptions>/Gw %(AdditionalOptions)</AdditionalOptions>
+      <WholeProgramOptimization Condition="'$(DolphinRelease)'=='true'">true</WholeProgramOptimization>
     </ClCompile>
     <!--Link Base-->
     <Link>
