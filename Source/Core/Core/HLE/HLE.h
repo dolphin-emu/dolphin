@@ -33,10 +33,10 @@ void Patch(u32 pc, std::string_view func_name);
 u32 UnPatch(std::string_view patch_name);
 void Execute(u32 _CurrentPC, u32 _Instruction);
 
-// Returns the HLE function index if the address is located in the function
-u32 GetFunctionIndex(u32 address);
+// Returns the HLE function index of the address
+u32 GetHookByAddress(u32 address);
 // Returns the HLE function index if the address matches the function start
-u32 GetFirstFunctionIndex(u32 address);
+u32 GetHookByFunctionAddress(u32 address);
 HookType GetFunctionTypeByIndex(u32 index);
 HookFlag GetFunctionFlagsByIndex(u32 index);
 
@@ -56,7 +56,7 @@ bool IsEnabled(HookFlag flag);
 template <typename FunctionObject>
 bool ReplaceFunctionIfPossible(u32 address, FunctionObject fn)
 {
-  const u32 function = GetFirstFunctionIndex(address);
+  const u32 function = GetHookByFunctionAddress(address);
   if (function == 0)
     return false;
 

@@ -161,15 +161,15 @@ void Execute(u32 current_pc, u32 instruction)
   }
 }
 
-u32 GetFunctionIndex(u32 address)
+u32 GetHookByAddress(u32 address)
 {
   auto iter = s_hooked_addresses.find(address);
   return (iter != s_hooked_addresses.end()) ? iter->second : 0;
 }
 
-u32 GetFirstFunctionIndex(u32 address)
+u32 GetHookByFunctionAddress(u32 address)
 {
-  const u32 index = GetFunctionIndex(address);
+  const u32 index = GetHookByAddress(address);
   // Fixed hooks use a fixed address and don't patch the whole function
   if (index == 0 || os_patches[index].flags == HookFlag::Fixed)
     return index;
