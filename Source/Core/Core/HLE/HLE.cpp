@@ -255,19 +255,4 @@ u32 UnPatch(std::string_view patch_name)
 
   return 0;
 }
-
-bool UnPatch(u32 addr, std::string_view name)
-{
-  auto itr = s_original_instructions.find(addr);
-  if (itr == s_original_instructions.end())
-    return false;
-
-  if (!name.empty() && name != OSPatches[itr->second].m_szPatchName)
-    return false;
-
-  s_original_instructions.erase(itr);
-  PowerPC::ppcState.iCache.Invalidate(addr);
-  return true;
-}
-
 }  // end of namespace HLE

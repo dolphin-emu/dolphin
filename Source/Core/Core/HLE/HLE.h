@@ -31,7 +31,6 @@ void Reload();
 
 void Patch(u32 pc, std::string_view func_name);
 u32 UnPatch(std::string_view patch_name);
-bool UnPatch(u32 addr, std::string_view name = {});
 void Execute(u32 _CurrentPC, u32 _Instruction);
 
 // Returns the HLE function index if the address is located in the function
