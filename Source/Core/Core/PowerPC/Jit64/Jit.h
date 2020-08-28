@@ -129,7 +129,7 @@ public:
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
   void FallBackToInterpreter(UGeckoInstruction _inst);
   void DoNothing(UGeckoInstruction _inst);
-  void HLEFunction(UGeckoInstruction _inst);
+  void HLEFunction(u32 hook_index);
 
   void DynaRunTable4(UGeckoInstruction inst);
   void DynaRunTable19(UGeckoInstruction inst);

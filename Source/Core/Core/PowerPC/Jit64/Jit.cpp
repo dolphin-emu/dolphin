@@ -433,12 +433,12 @@ void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 }
 
-void Jit64::HLEFunction(UGeckoInstruction _inst)
+void Jit64::HLEFunction(u32 hook_index)
 {
   gpr.Flush();
   fpr.Flush();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
+  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, hook_index);
   ABI_PopRegistersAndAdjustStack({}, 0);
 }
 
@@ -1165,8 +1165,8 @@ void Jit64::IntializeSpeculativeConstants()
 
 bool Jit64::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 function, HLE::HookType type) {
-    HLEFunction(function);
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
+    HLEFunction(hook_index);
 
     if (type != HLE::HookType::Replace)
       return false;

@@ -21,18 +21,8 @@
 
 namespace HLE
 {
-using HookFunction = void (*)();
-
-// Map addresses to the HLE hook function id
+// Map addresses to the HLE hook index
 static std::map<u32, u32> s_hooked_addresses;
-
-struct Hook
-{
-  char name[128];
-  HookFunction function;
-  HookType type;
-  HookFlag flags;
-};
 
 // clang-format off
 constexpr std::array<Hook, 23> os_patches{{
@@ -148,16 +138,16 @@ void Reload()
   PatchFunctions();
 }
 
-void Execute(u32 current_pc, u32 instruction)
+void Execute(u32 current_pc, u32 hook_index)
 {
-  const unsigned int function_index = instruction & 0xFFFFF;
-  if (function_index > 0 && function_index < os_patches.size())
+  hook_index &= 0xFFFFF;
+  if (hook_index > 0 && hook_index < os_patches.size())
   {
-    os_patches[function_index].function();
+    os_patches[hook_index].function();
   }
   else
   {
-    PanicAlert("HLE system tried to call an undefined HLE function %i.", function_index);
+    PanicAlert("HLE system tried to call an undefined HLE function %i.", hook_index);
   }
 }
 
@@ -178,12 +168,12 @@ u32 GetHookByFunctionAddress(u32 address)
   return (symbol && symbol->address == address) ? index : 0;
 }
 
-HookType GetFunctionTypeByIndex(u32 index)
+HookType GetHookTypeByIndex(u32 index)
 {
   return os_patches[index].type;
 }
 
-HookFlag GetFunctionFlagsByIndex(u32 index)
+HookFlag GetHookFlagsByIndex(u32 index)
 {
   return os_patches[index].flags;
 }
