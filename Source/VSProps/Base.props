@@ -81,12 +81,8 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <!--Enable Standard Conformance-->
       <ConformanceMode>true</ConformanceMode>
-      <!--Enforce some behaviors as standards-conformant when they don't default as such.
-        TODO: Enable /Zc:preprocessor. Note as of VS 16.7 and despite claims on msdn, the
-        new preprocessor has some notable bugs/regressions, and isn't warning-free when
-        used on WinSDK (<= 10.0.19041) headers.
-      -->
-      <AdditionalOptions>/Zc:externConstexpr,lambda,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
+      <!--Enforce some behaviors as standards-conformant when they don't default as such.-->
+      <AdditionalOptions>/Zc:externConstexpr,lambda,preprocessor,throwingNew /volatile:iso %(AdditionalOptions)</AdditionalOptions>
       <!--Enable detailed debug info-->
       <AdditionalOptions>/Zo %(AdditionalOptions)</AdditionalOptions>
       <!--Treat sources as utf-8-->
@@ -109,6 +105,10 @@
                 Currently jits use some annoying code patterns which makes this common
       -->
       <DisableSpecificWarnings>4245;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+      <!-- Temporarily disable warnings to enable /Zc:preprocessor compatibility with WinSDK headers.
+      5105  macro expansion producing 'defined' has undefined behavior
+      -->
+      <DisableSpecificWarnings>5105;%(DisableSpecificWarnings)</DisableSpecificWarnings>
       <!-- Enable some off-by-default warnings
       4263  Non-virtual member function hides base class virtual function
       4265  Class has virtual functions, but destructor is not virtual

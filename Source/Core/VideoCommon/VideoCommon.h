@@ -20,11 +20,7 @@ constexpr u32 MAX_XFB_WIDTH = 720;
 // that are next to each other in memory (TODO: handle that situation).
 constexpr u32 MAX_XFB_HEIGHT = 576;
 
-#if defined(_WIN32) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL == 1)
-#define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
-#else
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, ##__VA_ARGS__)
-#endif
 
 // warning: mapping buffer should be disabled to use this
 // #define LOG_VTX() DEBUG_LOG(VIDEO, "vtx: %f %f %f, ", ((float*)g_vertex_manager_write_ptr)[-3],
