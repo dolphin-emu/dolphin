@@ -8,6 +8,7 @@
 #include <deque>
 #include <string>
 
+#include "Common/BitUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -86,7 +87,9 @@ private:
 
     AppCmd = 55,
     GenCmd = 56,
-    // 57-58 Reserved
+    // 57 Reserved for command system set by SwitchFunc
+    ReadOCR = 58,
+    CRCOnOff = 59,
     // 60-63 Reserved for manufacturer
   };
 
@@ -120,6 +123,35 @@ private:
     AppCmd = 55,
     // 56-59 Reserved for security spec
   };
+
+  enum class OCR : u32  // Operating Conditions Register
+  {
+    // 0-6 reserved
+    // 7 reserved for Low Voltage Range
+    // 8-14 reserved
+    // All of these (including the above reserved bits) are the VDD Voltage Window.
+    // e.g. Vdd27To28 indicates 2.7 to 2.8 volts
+    Vdd27To28 = 1 << 15,
+    Vdd28To29 = 1 << 16,
+    Vdd29To30 = 1 << 17,
+    Vdd30To31 = 1 << 18,
+    Vdd31To32 = 1 << 19,
+    Vdd32To33 = 1 << 20,
+    Vdd33To34 = 1 << 21,
+    Vdd34To35 = 1 << 22,
+    Vdd35To36 = 1 << 23,
+    // "S18A" (not part of VDD Voltage Window)
+    SwitchTo18VAccepted = 1 << 24,
+    // 25-29 reserved
+    // "CCS", only valid after startup done.  This bit being set indicates SDHC.
+    CardCapacityStatus = 1 << 30,
+    // 0 if card is still starting up
+    CardPowerUpStatus = 1u << 31,
+  };
+
+  static constexpr Common::Flags<OCR> OCR_DEFAULT{
+      OCR::Vdd27To28, OCR::Vdd28To29, OCR::Vdd29To30, OCR::Vdd30To31, OCR::Vdd31To32,
+      OCR::Vdd32To33, OCR::Vdd33To34, OCR::Vdd34To35, OCR::Vdd35To36, OCR::CardPowerUpStatus};
 
   static constexpr u8 START_BLOCK = 0xfe, START_MULTI_BLOCK = 0xfc, END_BLOCK = 0xfd;
   // The spec has the first 3 bits of the data responses marked with an x, and doesn't explain why

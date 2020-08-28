@@ -369,6 +369,16 @@ void CEXISD::HandleCommand(Command command, u32 argument)
     block_state = BlockState::Response;
     address = argument;
     break;
+  case Command::ReadOCR:
+  {
+    response.push_back(0);  // R1
+    u32 ocr = OCR_DEFAULT.m_hex;
+    response.push_back(ocr >> 24);
+    response.push_back(ocr >> 16);
+    response.push_back(ocr >> 8);
+    response.push_back(ocr);
+    break;
+  }
   default:
     // Don't know it
     WARN_LOG_FMT(EXPANSIONINTERFACE, "Unimplemented SD command {:02x} {:08x}",
