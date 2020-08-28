@@ -465,37 +465,37 @@ u8 CEXISD::ReadForBlockRead()
   {
   case BlockState::Response:
   {
+    // Would return address error or parameter error here
+    block_state = BlockState::Token;
+    return 0;
+  }
+  case BlockState::Token:
+    // Perform the actual read at this point, as every block needs a start block token or an error
+    // token Oddly, the error token is slightly redundant, since there's an out of bounds response
+    // in R1, which can happen above, but there's also one here.
     if (!m_card.Seek(address, File::SeekOrigin::Begin))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
-      block_state = BlockState::Token;
+      state = State::ReadyForCommand;
+      block_state = BlockState::Nothing;
+      return DATA_ERROR_OUT_OF_RANGE;
     }
     else if (!m_card.ReadBytes(block_buffer.data(), BLOCK_SIZE))
     {
       ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed at {:#x} - error: {}, eof: {}", address,
                     ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
-      block_state = BlockState::Token;
+      state = State::ReadyForCommand;
+      block_state = BlockState::Nothing;
+      return DATA_ERROR_ERROR;
     }
     else
     {
       INFO_LOG_FMT(EXPANSIONINTERFACE, "SD read succeeded at {:#x}", address);
       block_position = 0;
-      block_state = BlockState::Token;
+      block_state = BlockState::Block;
       block_crc = Common::HashCrc16(block_buffer);
+      return START_BLOCK;
     }
-
-    // Would return address error or parameter error here
-    return 0;
-  }
-  case BlockState::Token:
-    // A bit awkward of a setup; a data error token is only read on an actual error.
-    // For now only use the generic error, not e.g. out of bounds
-    // (which can be handled in the main response... why are there 2 ways?)
-    // state = State::ReadyForCommand;
-    // block_state = BlockState::Nothing;
-    // return DATA_ERROR_ERROR;
-    block_state = BlockState::Block;
-    return START_BLOCK;
   case BlockState::Block:
   {
     u8 result = block_buffer[block_position++];
@@ -514,24 +514,7 @@ u8 CEXISD::ReadForBlockRead()
     if (state == State::MultipleBlockRead)
     {
       address += BLOCK_SIZE;
-      if (!m_card.Seek(address, File::SeekOrigin::Begin))
-      {
-        ERROR_LOG_FMT(EXPANSIONINTERFACE, "fseeko failed WTF");
-        block_state = BlockState::Token;
-      }
-      else if (!m_card.ReadBytes(block_buffer.data(), BLOCK_SIZE))
-      {
-        ERROR_LOG_FMT(EXPANSIONINTERFACE, "SD read failed at {:#x} - error: {}, eof: {}", address,
-                      ferror(m_card.GetHandle()), feof(m_card.GetHandle()));
-        block_state = BlockState::Token;
-      }
-      else
-      {
-        INFO_LOG_FMT(EXPANSIONINTERFACE, "SD read succeeded at {:#x}", address);
-        block_position = 0;
-        block_state = BlockState::Token;
-        block_crc = Common::HashCrc16(block_buffer);
-      }
+      block_state = BlockState::Token;
     }
     else
     {
@@ -556,18 +539,37 @@ void CEXISD::WriteForBlockRead(u8 byte)
                  u32(block_state), block_position);
   }
   // TODO: Read the whole command
-  if (((byte & 0b11000000) == 0b01000000) &&
-      static_cast<Command>(byte & 0x3f) == Command::StopTransmission)
+  // if (((byte & 0b11000000) == 0b01000000) &&
+  //     static_cast<Command>(byte & 0x3f) == Command::StopTransmission)
+  if (byte == 0x61)  // CRC for StopTransmission: 4c 00 00 00 00 61
   {
-    // Finish transmitting the current block and then stop
-    if (state == State::MultipleBlockRead)
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "Assuming stop transmission");
+    // Can just be done; no block is currently being transmitted
+    if (block_state == BlockState::Token)
     {
-      INFO_LOG_FMT(EXPANSIONINTERFACE,
-                   "Assuming stop transmission; changing to single block read to finish");
-      state = State::SingleBlockRead;
-      // JANK, but I think this will work right
-      response.push_back(0);  // R1 - for later
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "In token state, marking as finished");
+      address = 0;
+      block_position = 0;
+      block_state = BlockState::Nothing;
+      state = State::ReadyForCommand;
     }
+    // Finish transmitting the current block and then stop
+    else if (state == State::MultipleBlockRead)
+    {
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Changing from multi to single read to finish");
+      state = State::SingleBlockRead;
+    }
+    else
+    {
+      INFO_LOG_FMT(EXPANSIONINTERFACE, "Already single read; doing nothing");
+    }
+    // JANK (when the block read isn't fully over), but I think this will work right
+    response.push_back(0);  // R1 - for later
+    // Libogc expects a busy signal, even though the spec seems to imply that it's optional
+    // It also uses this one (the first one where it's not got the top bit set) as the response, I
+    // think.  But I'm not sure why it ignores the first byte.
+    response.push_back(0);
+    // Libogc then wants a 0xff byte, but we automatically give those.
   }
 }
 
