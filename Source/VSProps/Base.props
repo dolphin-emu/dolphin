@@ -5,6 +5,8 @@
     <IntDir>$(BuildRootDir)$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
     <OutDir>$(IntDir)bin\</OutDir>
     <TargetName Condition="'$(ConfigurationType)'=='Application'">$(ProjectName)$(TargetSuffix)</TargetName>
+    <!--Set link /INCREMENTAL:NO to remove some entropy from builds (assists with /Brepro)-->
+    <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <!--ClCompile Base-->
