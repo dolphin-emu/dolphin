@@ -118,6 +118,12 @@
       -->
       <AdditionalOptions>/w44263 /w44265 /w44946 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions>/Brepro %(AdditionalOptions)</AdditionalOptions>
+      <!--
+        A (currently) hidden switch, like /Brepro, furthermore enabling warnings about non-deterministic code.
+        This may be advantageous over /Brepro, which inits __DATE__, __TIME__, etc. equal to 1 (and allows
+        them to be redefined), which could have unexpected results.
+      -->
+      <AdditionalOptions>/experimental:deterministic %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <!--ClCompile Debug-->
     <ClCompile Condition="'$(Configuration)'=='Debug'">
