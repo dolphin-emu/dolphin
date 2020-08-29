@@ -373,12 +373,15 @@ public:
   static Matrix44 Translate(const Vec3& vec);
   static Matrix44 Shear(const float a, const float b = 0);
   static Matrix44 Perspective(float fov_y, float aspect_ratio, float z_near, float z_far);
+  static Matrix44 Frustum(float left, float right, float bottom, float top, float near, float far);
 
   static void Multiply(const Matrix44& a, const Matrix44& b, Matrix44* result);
   static void Multiply(const Matrix44& a, const Vec4& vec, Vec4* result);
 
   // For when a vec4 isn't needed a multiplication function that takes a Vec3 and w:
   Vec3 Transform(const Vec3& point, float w) const;
+
+  Matrix44 Inverted() const;
 
   Matrix44& operator*=(const Matrix44& rhs)
   {

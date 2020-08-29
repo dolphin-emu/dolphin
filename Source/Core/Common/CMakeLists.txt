@@ -287,3 +287,12 @@ if(UNIX)
 elseif(WIN32)
   target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
 endif()
+
+if(USE_OPENXR)
+  target_sources(common PRIVATE
+    OpenXR.cpp
+    OpenXR.h
+  )
+  target_link_libraries(common PUBLIC OpenXR::Loader)
+  target_compile_definitions(common PUBLIC "USE_OPENXR=1")
+endif()

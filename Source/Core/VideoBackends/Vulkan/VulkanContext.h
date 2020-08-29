@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/OpenXR.h"
 #include "Common/WindowSystemInfo.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
@@ -118,6 +119,10 @@ public:
   // Returns the platform-specific exclusive fullscreen structure.
   VkSurfaceFullScreenExclusiveWin32InfoEXT
   GetPlatformExclusiveFullscreenInfo(const WindowSystemInfo& wsi);
+#endif
+
+#if USE_OPENXR
+  std::unique_ptr<OpenXR::Session> CreateOpenXRSession();
 #endif
 
 private:

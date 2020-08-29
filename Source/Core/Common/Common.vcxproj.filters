@@ -287,6 +287,7 @@
     <ClInclude Include="Arm64Emitter.h" />
     <ClInclude Include="ArmCommon.h" />
     <ClInclude Include="Inline.h" />
+    <ClInclude Include="OpenXR.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CDUtils.cpp" />
@@ -375,6 +376,7 @@
     <ClCompile Include="ArmCPUDetect.cpp" />
     <ClCompile Include="Arm64Emitter.cpp" />
     <ClCompile Include="GenericFPURoundMode.cpp" />
+    <ClCompile Include="OpenXR.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

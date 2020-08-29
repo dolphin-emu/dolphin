@@ -2,17 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/VulkanContext.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
+
+#if USE_OPENXR
+#define XR_USE_GRAPHICS_API_VULKAN
+#include <openxr/openxr_platform.h>
+#endif
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/OpenXR.h"
 #include "Common/StringUtil.h"
 
-#include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -828,6 +835,21 @@ bool VulkanContext::SupportsDeviceExtension(const char* name) const
   return std::any_of(m_device_extensions.begin(), m_device_extensions.end(),
                      [name](const std::string& extension) { return extension == name; });
 }
+
+#if USE_OPENXR
+std::unique_ptr<OpenXR::Session> VulkanContext::CreateOpenXRSession()
+{
+  XrGraphicsBindingVulkanKHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_VULKAN_KHR};
+  graphics_binding.instance = m_instance;
+  graphics_binding.physicalDevice = m_physical_device;
+  graphics_binding.device = m_device;
+  graphics_binding.queueFamilyIndex = m_graphics_queue_family_index;
+  graphics_binding.queueIndex = 0;
+
+  return OpenXR::CreateSession({"XR_KHR_vulkan_enable", "Vulkan not implemented"},
+                               &graphics_binding, {});
+}
+#endif
 
 void VulkanContext::InitDriverDetails()
 {

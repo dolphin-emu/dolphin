@@ -14,10 +14,14 @@
 #include <strsafe.h>
 #include <tuple>
 
+#define XR_USE_GRAPHICS_API_D3D11
+#include <openxr/openxr_platform.h>
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/OpenXR.h"
 
 #include "Core/Core.h"
 
@@ -285,6 +289,31 @@ void Renderer::WaitForGPUIdle()
   D3D::context->Flush();
 }
 
+void Renderer::RenderXFBToScreen(const MathUtil::Rectangle<int>& target_rc,
+                                 const AbstractTexture* source_texture,
+                                 const MathUtil::Rectangle<int>& source_rc)
+{
+  if (auto* const openxr_session = GetOpenXRSession())
+  {
+    const auto image_index = openxr_session->AcquireAndWaitForSwapchainImage();
+
+    if (!image_index.has_value())
+      return;
+
+    const auto images = openxr_session->GetSwapchainImages(
+        XrSwapchainImageD3D11KHR{XR_TYPE_SWAPCHAIN_IMAGE_D3D11_KHR});
+
+    ComPtr<ID3D11Texture2D> texture(images[*image_index].texture);
+
+    auto dx_texture = DXTexture::CreateAdopted(std::move(texture));
+    auto fb = CreateFramebuffer(dx_texture.get(), nullptr);
+
+    SetAndClearFramebuffer(fb.get());
+  }
+
+  return ::Renderer::RenderXFBToScreen(target_rc, source_texture, source_rc);
+}
+
 void Renderer::SetFullscreen(bool enable_fullscreen)
 {
   if (m_swap_chain)
@@ -294,6 +323,39 @@ void Renderer::SetFullscreen(bool enable_fullscreen)
 bool Renderer::IsFullscreen() const
 {
   return m_swap_chain && m_swap_chain->GetFullscreen();
+}
+
+std::unique_ptr<OpenXR::Session> Renderer::CreateOpenXRSession()
+{
+  if (OpenXR::Init())
+  {
+    XrGraphicsBindingD3D11KHR graphics_binding{XR_TYPE_GRAPHICS_BINDING_D3D11_KHR};
+    graphics_binding.device = D3D::device.Get();
+
+    XrGraphicsRequirementsD3D11KHR requirements{XR_TYPE_GRAPHICS_REQUIREMENTS_D3D11_KHR};
+    const XrResult result = xrGetD3D11GraphicsRequirementsKHR(OpenXR::GetInstance(),
+                                                              OpenXR::GetSystemId(), &requirements);
+    if (XR_FAILED(result))
+      ERROR_LOG(VIDEO, "OpenXR: xrGetD3D11GraphicsRequirementsKHR: %d", result);
+
+    DXGI_ADAPTER_DESC desc;
+    D3D::adapter->GetDesc(&desc);
+    if (std::memcmp(&desc.AdapterLuid, &requirements.adapterLuid, sizeof(desc.AdapterLuid)) != 0)
+      ERROR_LOG(VIDEO, "OpenXR: Current D3D11 adapter does not match OpenXR requirements.");
+
+    if (D3D::feature_level < requirements.minFeatureLevel)
+    {
+      ERROR_LOG(VIDEO,
+                "OpenXR: Current D3D11 feature level, %d, is less than required, %d. Enable OpenXR "
+                "before starting game.",
+                D3D::feature_level, requirements.minFeatureLevel);
+    }
+
+    return OpenXR::CreateSession({"XR_KHR_D3D11_enable"}, &graphics_binding,
+                                 {DXGI_FORMAT_R8G8B8A8_UNORM});
+  }
+
+  return nullptr;
 }
 
 }  // namespace DX11

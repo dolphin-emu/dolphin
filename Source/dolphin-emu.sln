@@ -10,6 +10,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "AudioCommon", "Core\AudioCommon\AudioCommon.vcxproj", "{54AA7840-5BEB-4A0C-9452-74BA4CC7FD44}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Common", "Core\Common\Common.vcxproj", "{2E6C348C-C75C-4D94-8D1E-9C1FCBF3EFE4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698} = {DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DiscIO", "Core\DiscIO\DiscIO.vcxproj", "{160BDC25-5626-4B0D-BDD8-2953D9777FB5}"
 EndProject
@@ -104,6 +107,7 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liblzma", "..\Externals\liblzma\liblzma.vcxproj", "{055A775F-B4F5-4970-9240-F6CF7661F37B}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zstd", "..\Externals\zstd\zstd.vcxproj", "{1BEA10F3-80CE-4BC4-9331-5769372CDF99}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenXR", "..\Externals\OpenXR\OpenXR.vcxproj", "{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -489,6 +493,13 @@ Global
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|ARM64.Build.0 = Release|ARM64
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|x64.ActiveCfg = Release|x64
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99}.Release|x64.Build.0 = Release|x64
+		{DEA96CF2-F237-4A1A-B32F-C916769EFB50}.Release|x86.ActiveCfg = Release|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Debug|x64.ActiveCfg = Debug|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Debug|x64.Build.0 = Debug|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Debug|x86.ActiveCfg = Debug|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Release|x64.ActiveCfg = Release|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Release|x64.Build.0 = Release|x64
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698}.Release|x86.ActiveCfg = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -535,6 +546,7 @@ Global
 		{1D8C51D2-FFA4-418E-B183-9F42B6A6717E} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{055A775F-B4F5-4970-9240-F6CF7661F37B} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{1BEA10F3-80CE-4BC4-9331-5769372CDF99} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{DF3A8E77-C1FA-4FFB-A2FD-CBF927573698} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {64B0A343-3B94-4522-9C24-6937FE5EFB22}
