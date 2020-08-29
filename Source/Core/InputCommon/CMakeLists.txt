@@ -135,9 +135,9 @@ elseif(ANDROID)
   )
 endif()
 
-if(ANDROID)
+if(ANDROID AND NOT LIBRETRO)
   target_sources(inputcommon PRIVATE GCAdapter_Android.cpp)
-else()
+elseif(NOT ANDROID)
   target_sources(inputcommon PRIVATE
     GCAdapter.cpp
     GCAdapter.h

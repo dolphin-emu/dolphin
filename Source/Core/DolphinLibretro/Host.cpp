@@ -7,6 +7,7 @@
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
+#include "InputCommon/ControllerInterface/Touch/ButtonManager.h"
 #endif
 
 #include "Common/Logging/Log.h"
@@ -116,7 +117,7 @@ void Output(int chan, u8 rumble_command)
 {
 }
 
-bool IsDetected()
+bool IsDetected(const char** error_message)
 {
   return false;
 }
@@ -124,6 +125,10 @@ bool IsDetected()
 bool IsDriverDetected()
 {
   return false;
+}
+
+void ResetDeviceType(int chan)
+{
 }
 }  // namespace GCAdapter
 
