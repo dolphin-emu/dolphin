@@ -294,8 +294,11 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                                  s64 cycles_late)
 {
+  // TODO: Should we use the configured AIS sample rate instead of a fixed 48 KHz?
+  const u32 sample_rate = AudioInterface::Get48KHzSampleRate();
+
   // Determine which audio data to read next.
-  static const int MAXIMUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
+  const u32 maximum_samples = sample_rate / 2000 * 7;  // 3.5 ms of samples
   u64 read_offset = 0;
   u32 read_length = 0;
 
@@ -309,22 +312,22 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     if (s_stream && AudioInterface::IsPlaying())
     {
       read_offset = s_audio_position;
-      read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
+      read_length = AdvanceDTK(maximum_samples, &s_pending_samples);
     }
     else
     {
       read_length = 0;
-      s_pending_samples = MAXIMUM_SAMPLES;
+      s_pending_samples = maximum_samples;
     }
   }
   else
   {
     read_length = 0;
-    s_pending_samples = MAXIMUM_SAMPLES;
+    s_pending_samples = maximum_samples;
   }
 
   // Read the next chunk of audio data asynchronously.
-  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / 48000;
+  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / sample_rate;
   ticks_to_dtk -= cycles_late;
   if (read_length > 0)
   {
