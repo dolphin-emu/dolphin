@@ -294,7 +294,8 @@ static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
 static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vector<u8>& audio_data,
                                  s64 cycles_late)
 {
-  // TODO: Should we use the configured AIS sample rate instead of a fixed 48 KHz?
+  // TODO: Should we use GetAISSampleRate instead of a fixed 48 KHz? The audio mixer is using
+  // GetAISSampleRate. (This doesn't affect any actual games, since they all set it to 48 KHz.)
   const u32 sample_rate = AudioInterface::Get48KHzSampleRate();
 
   // Determine which audio data to read next.

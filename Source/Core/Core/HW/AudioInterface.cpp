@@ -293,9 +293,14 @@ bool IsPlaying()
   return (s_control.PSTAT == 1);
 }
 
-unsigned int GetAIDSampleRate()
+u32 GetAIDSampleRate()
 {
   return s_aid_sample_rate;
+}
+
+u32 GetAISSampleRate()
+{
+  return s_ais_sample_rate;
 }
 
 u32 Get32KHzSampleRate()
