@@ -15,6 +15,16 @@
   [super viewDidLoad];
 }
 
+- (void)viewDidAppear:(BOOL)animated
+{
+  [super viewDidAppear:animated];
+  
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [self.m_ok_button setEnabled:true];
+    [self.m_ok_button setAlpha:1.0f];
+  });
+}
+
 - (IBAction)OKPressed:(id)sender
 {
   [self.navigationController popViewControllerAnimated:true];
