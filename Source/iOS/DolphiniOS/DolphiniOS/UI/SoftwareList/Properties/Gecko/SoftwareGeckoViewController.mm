@@ -40,6 +40,13 @@
 - (void)viewWillAppear:(BOOL)animated
 {
   [super viewWillAppear:animated];
+  
+  UIAlertController* alert_controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Error") message:NSLocalizedString(@"Gecko codes are currently broken on all phone and tablet versions of Dolphin (including Android).\n\nPlease wait until this issue is fixed in the official Dolphin builds.", nil) preferredStyle:UIAlertControllerStyleAlert];
+  [alert_controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:^(UIAlertAction*) {
+    [self performSegueWithIdentifier:@"to_properties" sender:nil];
+  }]];
+  
+  [self presentViewController:alert_controller animated:true completion:nil];
 }
 
 - (void)viewWillDisappear:(BOOL)animated

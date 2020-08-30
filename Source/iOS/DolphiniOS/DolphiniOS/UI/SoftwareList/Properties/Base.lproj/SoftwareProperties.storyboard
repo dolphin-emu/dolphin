@@ -822,10 +822,10 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" indentationWidth="10" reuseIdentifier="hash_cell" id="Xjg-Zr-m9P" customClass="SoftwareVerifyResultsHashCell">
-                                <rect key="frame" x="20" y="131.5" width="374" height="74"/>
+                                <rect key="frame" x="20" y="131.5" width="374" height="73.5"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Xjg-Zr-m9P" id="sQC-Kf-L5T">
-                                    <rect key="frame" x="0.0" y="0.0" width="374" height="74"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="374" height="73.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="252" text="Hash Function" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5Fn-aF-FbG">
@@ -835,7 +835,7 @@
                                             <nil key="highlightedColor"/>
                                         </label>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hash" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="B9k-Vg-Y1F" userLabel="Problem Description">
-                                            <rect key="frame" x="20" y="41.5" width="334" height="21.5"/>
+                                            <rect key="frame" x="20" y="41.5" width="334" height="21"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <nil key="textColor"/>
                                             <nil key="highlightedColor"/>
@@ -857,7 +857,7 @@
                                 </connections>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" indentationWidth="10" reuseIdentifier="done_cell" rowHeight="44" id="g7m-Is-noN">
-                                <rect key="frame" x="20" y="205.5" width="374" height="44"/>
+                                <rect key="frame" x="20" y="205" width="374" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="g7m-Is-noN" id="LzC-wV-JdC">
                                     <rect key="frame" x="0.0" y="0.0" width="374" height="44"/>
@@ -985,9 +985,11 @@
                     <navigationItem key="navigationItem" title="Gecko" id="9Jo-SU-1eg"/>
                     <connections>
                         <segue destination="US3-nv-w0T" kind="show" identifier="to_code_edit" id="fMX-s0-Q3R"/>
+                        <segue destination="z9g-ex-J1p" kind="unwind" identifier="to_properties" unwindAction="unwindToSoftwareProperties:" id="csU-Cs-bss"/>
                     </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="ew2-sh-uQQ" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+                <exit id="z9g-ex-J1p" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
             <point key="canvasLocation" x="1409" y="759"/>
         </scene>
