@@ -16,7 +16,7 @@
   
   // Unhide the don't show button if necessary
   NSInteger launch_times = [[NSUserDefaults standardUserDefaults] integerForKey:@"launch_times"];
-  if (launch_times > 11)
+  if (launch_times > 15)
   {
     [self.m_dont_show_button setHidden:false];
   }
