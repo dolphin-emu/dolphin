@@ -481,8 +481,10 @@ void EmuThread(WindowSystemInfo wsi)
   {
     VideoBackendBase::PopulateBackendInfo();
     if (!g_video_backend->Initialize(wsi))
+    {
       PanicAlert("Failed to initialize video backend!");
-    return;
+      return;
+    }
   }
   Common::ScopeGuard video_guard{[init_video] {
     if (init_video)
