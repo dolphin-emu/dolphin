@@ -135,5 +135,6 @@ extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
 
 extern const Info<bool> MAIN_DEBUG_LOAD_STORE_FLOATING_OFF;
 extern const Info<bool> MAIN_DEBUG_LOAD_STORE_PAIRED_OFF;
+extern const Info<bool> MAIN_DEBUG_BRANCH_OFF;
 
 }  // namespace Config
