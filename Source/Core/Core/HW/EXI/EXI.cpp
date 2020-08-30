@@ -46,7 +46,8 @@ void AddMemoryCards(int i)
   {
     if (Movie::IsUsingMemcard(i))
     {
-      if (Config::Get(Config::GetInfoForEXIDevice(i)) == EXIDeviceType::MemoryCardFolder)
+      if (Config::Get(Config::GetInfoForEXIDevice(static_cast<Slot>(i))) ==
+          EXIDeviceType::MemoryCardFolder)
         memorycard_device = EXIDeviceType::MemoryCardFolder;
       else
         memorycard_device = EXIDeviceType::MemoryCard;
@@ -58,12 +59,44 @@ void AddMemoryCards(int i)
   }
   else
   {
-    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(i));
+    memorycard_device = Config::Get(Config::GetInfoForEXIDevice(static_cast<Slot>(i)));
   }
 
   g_Channels[i]->AddDevice(memorycard_device, 0);
 }
 }  // namespace
+
+u8 SlotToEXIChannel(Slot slot)
+{
+  switch (slot)
+  {
+  case Slot::A:
+    return 0;
+  case Slot::B:
+    return 1;
+  case Slot::SP1:
+    return 0;
+  default:
+    PanicAlertFmt("Unhandled slot {}", slot);
+    return 0;
+  }
+}
+
+u8 SlotToEXIDevice(Slot slot)
+{
+  switch (slot)
+  {
+  case Slot::A:
+    return 0;
+  case Slot::B:
+    return 0;
+  case Slot::SP1:
+    return 2;
+  default:
+    PanicAlertFmt("Unhandled slot {}", slot);
+    return 0;
+  }
+}
 
 void Init()
 {
@@ -98,11 +131,12 @@ void Init()
     }
   }
 
-  for (int i = 0; i < MAX_MEMORYCARD_SLOTS; i++)
-    AddMemoryCards(i);
+  for (Slot slot : MEMCARD_SLOTS)
+    AddMemoryCards(static_cast<int>(slot));
 
   g_Channels[0]->AddDevice(EXIDeviceType::MaskROM, 1);
-  g_Channels[0]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1), 2);
+  g_Channels[SlotToEXIChannel(Slot::SP1)]->AddDevice(Config::Get(Config::MAIN_SERIAL_PORT_1),
+                                                     SlotToEXIDevice(Slot::SP1));
   g_Channels[2]->AddDevice(EXIDeviceType::AD16, 0);
 
   changeDevice = CoreTiming::RegisterEvent("ChangeEXIDevice", ChangeDeviceCallback);

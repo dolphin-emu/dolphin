@@ -10,11 +10,13 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/EnumMap.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Version.h"
 #include "Core/Config/DefaultLocale.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"
@@ -62,14 +64,16 @@ const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core",
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
 
-const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(int channel)
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
 {
-  static constexpr std::array<const Info<ExpansionInterface::EXIDeviceType>*, 3> infos{
-      &MAIN_SLOT_A,
-      &MAIN_SLOT_B,
-      &MAIN_SERIAL_PORT_1,
-  };
-  return *infos[channel];
+  static constexpr Common::EnumMap<const Info<ExpansionInterface::EXIDeviceType>*,
+                                   ExpansionInterface::MAX_SLOT>
+      infos{
+          &MAIN_SLOT_A,
+          &MAIN_SLOT_B,
+          &MAIN_SERIAL_PORT_1,
+      };
+  return *infos[slot];
 }
 
 const Info<std::string> MAIN_BBA_MAC{{System::Main, "Core", "BBA_MAC"}, ""};

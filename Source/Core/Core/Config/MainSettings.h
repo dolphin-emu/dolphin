@@ -34,7 +34,8 @@ enum class DPL2Quality;
 namespace ExpansionInterface
 {
 enum class EXIDeviceType : int;
-}
+enum class Slot : int;
+}  // namespace ExpansionInterface
 
 namespace SerialInterface
 {
@@ -72,7 +73,7 @@ extern const Info<std::string> MAIN_GCI_FOLDER_B_PATH_OVERRIDE;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_A;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B;
 extern const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1;
-const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(int channel);
+const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot);
 extern const Info<std::string> MAIN_BBA_MAC;
 extern const Info<std::string> MAIN_BBA_XLINK_IP;
 extern const Info<bool> MAIN_BBA_XLINK_CHAT_OSD;

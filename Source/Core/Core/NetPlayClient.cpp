@@ -39,6 +39,7 @@
 #include "Core/Config/SessionSettings.h"
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #ifdef HAS_LIBMGBA
 #include "Core/HW/GBACore.h"
@@ -818,8 +819,8 @@ void NetPlayClient::OnStartGame(sf::Packet& packet)
     packet >> m_net_settings.m_OCEnable;
     packet >> m_net_settings.m_OCFactor;
 
-    for (auto& device : m_net_settings.m_EXIDevice)
-      packet >> device;
+    for (auto slot : ExpansionInterface::SLOTS)
+      packet >> m_net_settings.m_EXIDevice[slot];
 
     for (u32& value : m_net_settings.m_SYSCONFSettings)
       packet >> value;

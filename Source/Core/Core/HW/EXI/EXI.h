@@ -3,7 +3,10 @@
 
 #pragma once
 
+#include <initializer_list>
+
 #include "Common/CommonTypes.h"
+#include "Common/EnumFormatter.h"
 #include "Core/CoreTiming.h"
 
 class PointerWrap;
@@ -25,9 +28,21 @@ enum class EXIDeviceType : int;
 
 enum
 {
-  MAX_MEMORYCARD_SLOTS = 2,
   MAX_EXI_CHANNELS = 3
 };
+
+enum class Slot : int
+{
+  A,
+  B,
+  SP1,
+};
+static constexpr auto SLOTS = {Slot::A, Slot::B, Slot::SP1};
+static constexpr auto MAX_SLOT = Slot::SP1;
+static constexpr auto MEMCARD_SLOTS = {Slot::A, Slot::B};
+
+u8 SlotToEXIChannel(Slot slot);
+u8 SlotToEXIDevice(Slot slot);
 
 void Init();
 void Shutdown();
@@ -47,3 +62,9 @@ CEXIChannel* GetChannel(u32 index);
 IEXIDevice* FindDevice(EXIDeviceType device_type, int customIndex = -1);
 
 }  // namespace ExpansionInterface
+
+template <>
+struct fmt::formatter<ExpansionInterface::Slot> : EnumFormatter<ExpansionInterface::MAX_SLOT>
+{
+  constexpr formatter() : EnumFormatter({"Slot A", "Slot B", "Serial Port 1"}) {}
+};

@@ -47,6 +47,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/WiiSave.h"
 #include "Core/WiiUtils.h"
@@ -661,21 +662,24 @@ void GameList::OpenGCSaveFolder()
 
   bool found = false;
 
-  for (int i = 0; i < 2; i++)
+  using ExpansionInterface::Slot;
+
+  for (Slot slot : ExpansionInterface::MEMCARD_SLOTS)
   {
     QUrl url;
     const ExpansionInterface::EXIDeviceType current_exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(i));
+        Config::Get(Config::GetInfoForEXIDevice(slot));
     switch (current_exi_device)
     {
     case ExpansionInterface::EXIDeviceType::MemoryCardFolder:
     {
       std::string path = StringFromFormat("%s/%s/%s", File::GetUserPath(D_GCUSER_IDX).c_str(),
                                           SConfig::GetDirectoryForRegion(game->GetRegion()),
-                                          i == 0 ? "Card A" : "Card B");
+                                          slot == Slot::A ? "Card A" : "Card B");
 
-      std::string override_path = i == 0 ? Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
-                                           Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
+      std::string override_path = slot == Slot::A ?
+                                      Config::Get(Config::MAIN_GCI_FOLDER_A_PATH_OVERRIDE) :
+                                      Config::Get(Config::MAIN_GCI_FOLDER_B_PATH_OVERRIDE);
 
       if (!override_path.empty())
         path = override_path;
@@ -693,8 +697,8 @@ void GameList::OpenGCSaveFolder()
     }
     case ExpansionInterface::EXIDeviceType::MemoryCard:
     {
-      std::string memcard_path = i == 0 ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
-                                          Config::Get(Config::MAIN_MEMCARD_B_PATH);
+      std::string memcard_path = slot == Slot::A ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
+                                                   Config::Get(Config::MAIN_MEMCARD_B_PATH);
 
       std::string memcard_dir;
 

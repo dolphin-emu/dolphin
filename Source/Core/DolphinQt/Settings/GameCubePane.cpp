@@ -464,7 +464,7 @@ void GameCubePane::LoadSettings()
   {
     QSignalBlocker blocker(m_slot_combos[i]);
     const ExpansionInterface::EXIDeviceType exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(i));
+        Config::Get(Config::GetInfoForEXIDevice(static_cast<ExpansionInterface::Slot>(i)));
     m_slot_combos[i]->setCurrentIndex(m_slot_combos[i]->findData(static_cast<int>(exi_device)));
     UpdateButton(i);
   }
@@ -494,7 +494,7 @@ void GameCubePane::SaveSettings()
     const auto dev =
         static_cast<ExpansionInterface::EXIDeviceType>(m_slot_combos[i]->currentData().toInt());
     const ExpansionInterface::EXIDeviceType current_exi_device =
-        Config::Get(Config::GetInfoForEXIDevice(i));
+        Config::Get(Config::GetInfoForEXIDevice(static_cast<ExpansionInterface::Slot>(i)));
 
     if (Core::IsRunning() && current_exi_device != dev)
     {
@@ -507,7 +507,8 @@ void GameCubePane::SaveSettings()
           (i == 2) ? 2 : 0);
     }
 
-    Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(i), dev);
+    Config::SetBaseOrCurrent(Config::GetInfoForEXIDevice(static_cast<ExpansionInterface::Slot>(i)),
+                             dev);
   }
 
 #ifdef HAS_LIBMGBA
