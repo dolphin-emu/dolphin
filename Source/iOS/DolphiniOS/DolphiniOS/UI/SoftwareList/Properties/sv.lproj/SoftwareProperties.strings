@@ -153,3 +153,15 @@
 
 /* Class = "UILabel"; text = "Label"; ObjectID = "x8r-IF-RjN"; */
 "x8r-IF-RjN.text" = "Etikett";
+
+/* Class = "UILabel"; text = "Patches"; ObjectID = "2Lh-ZQ-VQs"; */
+"2Lh-ZQ-VQs.text" = "Patcher";
+
+/* Class = "UILabel"; text = "Add"; ObjectID = "85R-YZ-Gjc"; */
+"85R-YZ-Gjc.text" = "Lägg till";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "EuL-SG-bE1"; */
+"EuL-SG-bE1.text" = "Etikett";
+
+/* Class = "UINavigationItem"; title = "Patches"; ObjectID = "pLF-Ph-Dl0"; */
+"pLF-Ph-Dl0.title" = "Patcher";

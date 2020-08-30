@@ -153,3 +153,15 @@
 
 /* Class = "UILabel"; text = "Label"; ObjectID = "x8r-IF-RjN"; */
 "x8r-IF-RjN.text" = "Название";
+
+/* Class = "UILabel"; text = "Patches"; ObjectID = "2Lh-ZQ-VQs"; */
+"2Lh-ZQ-VQs.text" = "Патчи";
+
+/* Class = "UILabel"; text = "Add"; ObjectID = "85R-YZ-Gjc"; */
+"85R-YZ-Gjc.text" = "Добавить";
+
+/* Class = "UILabel"; text = "Label"; ObjectID = "EuL-SG-bE1"; */
+"EuL-SG-bE1.text" = "Название";
+
+/* Class = "UINavigationItem"; title = "Patches"; ObjectID = "pLF-Ph-Dl0"; */
+"pLF-Ph-Dl0.title" = "Патчи";
