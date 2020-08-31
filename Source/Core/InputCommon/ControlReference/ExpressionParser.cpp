@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
@@ -492,30 +491,29 @@ public:
 
     if (modifiers_pressed)
     {
-      if (final_input_state < CONDITION_THRESHOLD)
-      {
-        if (!m_suppressor)
-          EnableSuppression();
-
-        m_is_ready = true;
-      }
-
       // Ignore suppression of our own modifiers. This also allows superset modifiers to function.
       const bool is_suppressed = s_hotkey_suppressions.IsSuppressedIgnoringModifiers(
           m_final_input->GetInput(), m_modifiers);
 
+      if (final_input_state < CONDITION_THRESHOLD)
+        m_is_blocked = false;
+
       // If some other hotkey suppressed us, require a release of final input to be ready again.
       if (is_suppressed)
-        m_is_ready = false;
+        m_is_blocked = true;
+
+      if (m_is_blocked)
+        return 0;
+
+      EnableSuppression();
 
       // Our modifiers are active. Pass through the final input.
-      if (m_is_ready)
-        return final_input_state;
+      return final_input_state;
     }
     else
     {
       m_suppressor = {};
-      m_is_ready = false;
+      m_is_blocked = final_input_state > CONDITION_THRESHOLD;
     }
 
     return 0;
@@ -546,13 +544,14 @@ public:
 private:
   void EnableSuppression() const
   {
-    m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
+    if (!m_suppressor)
+      m_suppressor = s_hotkey_suppressions.MakeSuppressor(&m_modifiers, &m_final_input);
   }
 
   HotkeySuppressions::Modifiers m_modifiers;
   std::unique_ptr<ControlExpression> m_final_input;
   mutable HotkeySuppressions::Suppressor m_suppressor;
-  mutable bool m_is_ready = false;
+  mutable bool m_is_blocked = false;
 };
 
 // This class proxies all methods to its either left-hand child if it has bound controls, or its
