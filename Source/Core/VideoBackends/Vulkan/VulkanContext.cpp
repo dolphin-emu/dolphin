@@ -866,7 +866,7 @@ void VulkanContext::InitDriverDetails()
 // Apart from the driver version, Intel does not appear to provide a way to
 // differentiate between anv and the binary driver (Skylake+). Assume to be
 // using anv if we not running on Windows.
-#ifdef _WIN32
+#ifdef WIN32
     vendor = DriverDetails::VENDOR_INTEL;
     driver = DriverDetails::DRIVER_INTEL;
 #else

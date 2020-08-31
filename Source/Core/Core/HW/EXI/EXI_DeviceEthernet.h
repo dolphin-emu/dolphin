@@ -382,7 +382,7 @@ private:
     bool m_chat_osd_enabled;
     bool m_bba_link_up = false;
     bool m_bba_failure_notified = false;
-#if defined(_WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||         \
+#if defined(WIN32) || defined(__linux__) || defined(__APPLE__) || defined(__FreeBSD__) ||          \
     defined(__OpenBSD__)
     sf::UdpSocket m_sf_socket;
     sf::IpAddress m_sf_recipient_ip;

@@ -12,6 +12,10 @@
 
 #pragma once
 
+#ifdef _WIN32
+#include <concrt.h>
+#endif
+
 #include <chrono>
 #include <condition_variable>
 #include <mutex>
