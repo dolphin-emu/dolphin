@@ -59,8 +59,8 @@ public final class SettingsFragmentPresenter
   public void onCreate(MenuTag menuTag, String gameId, Bundle extras)
   {
     mGameID = gameId;
-
     this.mMenuTag = menuTag;
+
     if (menuTag.isGCPadMenu() || menuTag.isWiimoteExtensionMenu())
     {
       mControllerNumber = menuTag.getSubType();
@@ -69,10 +69,6 @@ public final class SettingsFragmentPresenter
     else if (menuTag.isWiimoteMenu())
     {
       mControllerNumber = menuTag.getSubType();
-    }
-    else
-    {
-      mMenuTag = menuTag;
     }
   }
 

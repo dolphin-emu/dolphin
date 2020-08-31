@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu.model;
 
 import android.content.Context;
-import android.os.Environment;
 
 public class GameFile
 {

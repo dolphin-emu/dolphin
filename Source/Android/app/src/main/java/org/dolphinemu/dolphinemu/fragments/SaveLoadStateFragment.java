@@ -80,13 +80,12 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     mSaveOrLoad = (SaveOrLoad) getArguments().getSerializable(KEY_SAVEORLOAD);
   }
 
-  @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
   {
     View rootView = inflater.inflate(R.layout.fragment_saveload_state, container, false);
 
-    GridLayout grid = (GridLayout) rootView.findViewById(R.id.grid_state_slots);
+    GridLayout grid = rootView.findViewById(R.id.grid_state_slots);
     for (int childIndex = 0; childIndex < grid.getChildCount(); childIndex++)
     {
       Button button = (Button) grid.getChildAt(childIndex);

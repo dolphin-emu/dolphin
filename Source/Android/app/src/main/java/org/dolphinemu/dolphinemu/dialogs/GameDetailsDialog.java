@@ -73,7 +73,7 @@ public final class GameDetailsDialog extends DialogFragment
     textCountry.setText(country);
     textCompany.setText(gameFile.getCompany());
     textGameId.setText(gameFile.getGameId());
-    textRevision.setText(Integer.toString(gameFile.getRevision()));
+    textRevision.setText(String.valueOf(gameFile.getRevision()));
 
     if (!gameFile.shouldShowFileFormatDetails())
     {

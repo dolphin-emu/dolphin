@@ -22,7 +22,7 @@ public final class SubmenuViewHolder extends SettingViewHolder
   @Override
   protected void findViews(View root)
   {
-    mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
+    mTextSettingName = root.findViewById(R.id.text_setting_name);
   }
 
   @Override
