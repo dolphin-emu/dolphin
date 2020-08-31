@@ -2,7 +2,7 @@
 <set xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- This animation is used ONLY when a submenu is replaced. -->
-    <objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    <objectAnimator
         android:propertyName="translationX"
         android:valueType="floatType"
         android:valueFrom="0"
@@ -10,7 +10,7 @@
         android:interpolator="@android:interpolator/decelerate_quad"
         android:duration="200"/>
 
-    <objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
+    <objectAnimator
         android:propertyName="alpha"
         android:valueType="floatType"
         android:valueFrom="1"
