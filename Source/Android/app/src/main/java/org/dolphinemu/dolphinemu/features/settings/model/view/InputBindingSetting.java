@@ -1,7 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
+import androidx.preference.PreferenceManager;
 import android.view.InputDevice;
 import android.view.KeyEvent;
 
