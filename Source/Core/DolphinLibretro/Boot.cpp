@@ -190,7 +190,7 @@ static bool retro_set_image_index(unsigned index)
 
 static unsigned retro_get_num_images()
 {
-  return disk_paths.size();
+  return (unsigned)disk_paths.size();
 }
 
 static bool retro_add_image_index()

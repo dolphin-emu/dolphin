@@ -29,6 +29,7 @@
 #include "VideoBackends/OGL/Render.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/Fifo.h"
+#include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -200,14 +201,7 @@ void retro_run(void)
       g_renderer.reset();
       g_renderer = std::make_unique<Libretro::Video::NullRenderer>();
     }
-#ifdef _WIN32
-    else if (Config::Get(Config::MAIN_GFX_BACKEND) == "D3D")
-    {
-      g_renderer->Shutdown();
-      g_renderer.reset();
-      g_renderer = std::make_unique<Libretro::Video::DX11Renderer>();
-    }
-#endif
+
     while (!Core::IsRunningAndStarted())
       Common::SleepCurrentThread(100);
   }
@@ -240,7 +234,8 @@ void retro_run(void)
 
   if (Libretro::Options::WiimoteContinuousScanning.Updated())
   {
-    SConfig::GetInstance().m_WiimoteContinuousScanning = Libretro::Options::WiimoteContinuousScanning;
+    SConfig::GetInstance().m_WiimoteContinuousScanning =
+        Libretro::Options::WiimoteContinuousScanning;
     WiimoteReal::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
   }
 

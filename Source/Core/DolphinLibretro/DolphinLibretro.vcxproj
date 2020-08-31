@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -10,15 +10,16 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <Import Project="..\..\VSProps\Base.Macros.props" />
+  <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
     <ProjectGuid>{8DCFA10F-2CAC-45A6-88A1-6B0D24C27EE9}</ProjectGuid>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
     <ProjectName>Libretro</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VSPropsDir)Configuration.Base.props" />
   <PropertyGroup Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
-    <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup>
@@ -106,6 +107,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\D3D\D3D.vcxproj">
       <Project>{96020103-4ba5-4fd2-b4aa-5b6d24492d4e}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj">
+      <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\OGL\OGL.vcxproj">
       <Project>{ec1a314c-5588-4506-9c1e-2e58e5817f75}</Project>
     </ProjectReference>
@@ -131,4 +135,12 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <!--Copy the .dll to binary output folder-->
+  <ItemGroup>
+    <SourceFiles Include="$(TargetPath)" />
+  </ItemGroup>
+  <Target Name="AfterBuild" Inputs="@(SourceFiles)" Outputs="@(SourceFiles -> '$(BinaryOutputDir)%(Filename)%(Extension)')">
+    <Message Text="Copy: @(SourceFiles) -&gt; $(BinaryOutputDir)" Importance="High" />
+    <Copy SourceFiles="@(SourceFiles)" DestinationFolder="$(BinaryOutputDir)" />
+  </Target>
 </Project>

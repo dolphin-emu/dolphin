@@ -25,7 +25,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
+#include "Core/NetPlayClient.h"
 #include "Core/SysConf.h"
 
 namespace Core

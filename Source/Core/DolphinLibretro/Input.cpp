@@ -23,6 +23,7 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -42,6 +43,7 @@ static retro_input_poll_t poll_cb;
 static retro_input_state_t input_cb;
 struct retro_rumble_interface rumble;
 static const std::string source = "Libretro";
+static bool init_wiimotes = false;
 
 static struct retro_input_descriptor descEmpty[] = {{0}};
 
@@ -227,7 +229,7 @@ private:
     std::string GetName() const override { return "Rumble"; }
     void SetState(ControlState state) override
     {
-      uint16_t str = std::min(std::max(0.0, state), 1.0) * 0xFFFF;
+      u16 str = std::min(std::max(0.0, state), 1.0) * 0xFFFF;
 
       rumble.set_rumble_state(m_port, RETRO_RUMBLE_WEAK, str);
       rumble.set_rumble_state(m_port, RETRO_RUMBLE_STRONG, str);
@@ -383,6 +385,7 @@ void Init()
 
   if (SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
+    init_wiimotes = true;
     Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
 
     static const struct retro_controller_description wiimote_desc[] = {
@@ -415,7 +418,19 @@ void Init()
 
 void Shutdown()
 {
-  Wiimote::Shutdown();
+  if (init_wiimotes)
+  {
+    Wiimote::ResetAllWiimotes();
+    Wiimote::Shutdown();
+    init_wiimotes = false;
+  }
+
+#if defined(__LIBUSB__)
+  GCAdapter::ResetRumble();
+#endif
+  for (int i = 0; i < 4; ++i)
+    Pad::ResetRumble(i);
+
   Keyboard::Shutdown();
   Pad::Shutdown();
   g_controller_interface.Shutdown();

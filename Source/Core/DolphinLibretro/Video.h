@@ -14,13 +14,10 @@
 #ifdef _WIN32
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoBackends/D3D/D3DUtil.h"
 #include "VideoBackends/D3D/DXShader.h"
 #include "VideoBackends/D3D/DXTexture.h"
-#include "VideoBackends/D3D/FramebufferManager.h"
-#include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
-#include "VideoBackends/D3D/TextureCache.h"
+#include "VideoBackends/D3D/SwapChain.h"
 #endif
 
 namespace Libretro
@@ -83,46 +80,42 @@ public:
   }
 };
 #ifdef _WIN32
-class DX11Renderer : public DX11::Renderer
+class DX11SwapChain : public DX11::SwapChain
 {
 public:
-  DX11Renderer() : DX11::Renderer(1, 1) {}
-  void PresentBackbuffer() override
+  DX11SwapChain(const WindowSystemInfo& wsi, int width, int height)
+      : DX11::SwapChain(wsi, nullptr, nullptr)
   {
-    DX11::D3DTexture2D* xfb_texture = static_cast<DX11::DXTexture*>(texture)->GetRawTexIdentifier();
+    m_width = width;
+    m_height = height;
+    m_stereo = WantsStereo();
+    CreateSwapChainBuffers();
+  }
+
+  bool Present() override
+  {
+    ID3D11ShaderResourceView* srv = m_texture->GetD3DSRV();
 
     ID3D11RenderTargetView* nullView = nullptr;
     DX11::D3D::context->OMSetRenderTargets(1, &nullView, nullptr);
-    DX11::D3D::context->PSSetShaderResources(0, 1, &xfb_texture->GetSRV());
-    Libretro::Video::video_cb(RETRO_HW_FRAME_BUFFER_VALID, rc.GetWidth(), rc.GetHeight(), 0);
-
-    ResetAPIState();
-    g_texture_cache->Cleanup(frameCount);
-
-    // Enable configuration changes
-    UpdateActiveConfig();
-    g_texture_cache->OnConfigChanged(g_ActiveConfig);
-
-    // Resize the back buffers NOW to avoid flickering
-    if (CalculateTargetSize())
-    {
-      UpdateDrawRectangle();
-      g_framebuffer_manager.reset();
-      g_framebuffer_manager =
-          std::make_unique<DX11::FramebufferManager>(m_target_width, m_target_height);
-      static constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
-      DX11::D3D::context->ClearRenderTargetView(
-          DX11::FramebufferManager::GetEFBColorTexture()->GetRTV(), clear_color.data());
-      DX11::D3D::context->ClearDepthStencilView(
-          DX11::FramebufferManager::GetEFBDepthTexture()->GetDSV(), D3D11_CLEAR_DEPTH, 0.f, 0);
-    }
-
-    CheckForHostConfigChanges();
-    // begin next frame
-    RestoreAPIState();
+    DX11::D3D::context->PSSetShaderResources(0, 1, &srv);
+    Libretro::Video::video_cb(RETRO_HW_FRAME_BUFFER_VALID, m_width, m_height, m_width);
     DX11::D3D::stateman->Restore();
+    return true;
+  }
+
+protected:
+  bool CreateSwapChainBuffers() override
+  {
+    TextureConfig config(m_width, m_height, 1, 1, 1, AbstractTextureFormat::RGBA8,
+                         AbstractTextureFlag_RenderTarget);
+
+    m_texture = DX11::DXTexture::Create(config);
+    m_framebuffer = DX11::DXFramebuffer::Create(m_texture.get(), nullptr);
+    return true;
   }
 };
+
 #endif
 }  // namespace Video
 }  // namespace Libretro

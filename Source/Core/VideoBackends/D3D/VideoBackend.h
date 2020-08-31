@@ -21,7 +21,6 @@ public:
 
   void InitBackendInfo() override;
 
-private:
   void FillBackendInfo();
 };
 }  // namespace DX11

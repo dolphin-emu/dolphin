@@ -5,6 +5,7 @@
 #include "VideoBackends/D3D12/PerfQuery.h"
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"

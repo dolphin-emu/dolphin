@@ -681,7 +681,7 @@ void GyroMappingIndicator::Draw()
 
     p.setPen(GetDeadZonePen());
     p.setBrush(GetDeadZoneBrush(p));
-    p.drawRect(QRectF{-1, DEADZONE_DRAW_BOTTOM, 2, -DEADZONE_DRAW_SIZE});
+    p.drawRect(QRectF{-1, (qreal)DEADZONE_DRAW_BOTTOM, 2, (qreal)-DEADZONE_DRAW_SIZE});
 
     if (gyro_state.has_value())
     {

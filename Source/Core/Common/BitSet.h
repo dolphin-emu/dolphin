@@ -7,7 +7,7 @@
 #include <type_traits>
 #include "Common/CommonTypes.h"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 
 #include <intrin.h>
 

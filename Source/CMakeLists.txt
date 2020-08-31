@@ -53,9 +53,6 @@ if (MSVC)
     /w44265 # Class has virtual functions, but destructor is not virtual
   )
 
-  # Treat all warnings as errors
-  add_compile_options(/WX)
-
   # All files are encoded as UTF-8
   add_compile_options(/utf-8)
 

@@ -471,7 +471,7 @@ void Interpreter::mtspr(UGeckoInstruction inst)
     // TODO: Support thermal interrupts when enabled.
     constexpr u32 SIMULATED_TEMP = 42;  // °C
 
-    auto UpdateThermalReg = [](UReg_THRM12* reg) {
+    auto UpdateThermalReg = [SIMULATED_TEMP](UReg_THRM12* reg) {
       if (!THRM3.E || !reg->V)
       {
         reg->TIV = 0;

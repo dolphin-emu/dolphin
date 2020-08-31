@@ -6,6 +6,7 @@
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/DXContext.h"
 #include "VideoBackends/D3D12/Renderer.h"
+#include <cstring>
 
 namespace DX12
 {

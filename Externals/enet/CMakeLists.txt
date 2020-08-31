@@ -75,6 +75,6 @@ add_library(enet STATIC
 if(HAIKU)
   target_link_libraries(enet network)
 endif(HAIKU)
-if(WIN32)
+if(MINGW)
   target_link_libraries(enet winmm)
 endif()

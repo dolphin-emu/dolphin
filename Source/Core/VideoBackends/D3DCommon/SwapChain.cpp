@@ -28,7 +28,7 @@ static bool IsTearingSupported(IDXGIFactory2* dxgi_factory)
 static bool GetFullscreenState(IDXGISwapChain* swap_chain)
 {
   BOOL fs = FALSE;
-  return swapchain && SUCCEEDED(swap_chain->GetFullscreenState(&fs, nullptr)) && fs;
+  return swap_chain && SUCCEEDED(swap_chain->GetFullscreenState(&fs, nullptr)) && fs;
 }
 
 namespace D3DCommon

@@ -600,11 +600,6 @@ if(WIN32)
     HW/WiimoteReal/IOWin.cpp
     HW/WiimoteReal/IOWin.h
   )
-  if(MSVC)
-    target_sources(core PRIVATE
-      HW/WiimoteReal/IOWin.cpp
-    )
-  endif()
   target_link_libraries(core PUBLIC
     videod3d
     videod3d12

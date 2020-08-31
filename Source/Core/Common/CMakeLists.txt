@@ -173,9 +173,13 @@ if(ANDROID)
     Logging/ConsoleListenerDroid.cpp
   )
 elseif(WIN32)
+  if(MSVC)
   target_sources(common PRIVATE
     LdrWatcher.cpp
     LdrWatcher.h
+  )
+  endif()
+  target_sources(common PRIVATE
     Logging/ConsoleListenerWin.cpp
   )
 else()
@@ -248,7 +252,6 @@ if(WIN32)
   )
   if(MSVC)
     target_sources(common PRIVATE
-      LdrWatcher.cpp
       CompatPatches.cpp
     )
   endif()
@@ -294,5 +297,7 @@ elseif(WIN32)
     target_link_libraries(common PRIVATE "-INCLUDE:enableCompatPatches")
     target_link_libraries(common PRIVATE "-NODEFAULTLIB:libcmt")
   endif()
-  target_link_libraries(common PRIVATE comctl32 comdlg32 winmm shlwapi)
+  if(MINGW)
+    target_link_libraries(common PRIVATE comctl32 comdlg32 winmm shlwapi)
+  endif()
 endif()

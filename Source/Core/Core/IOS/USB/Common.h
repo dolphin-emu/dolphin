@@ -13,7 +13,9 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 
+#ifdef __MINGW32__
 #undef interface
+#endif
 
 namespace IOS::HLE::USB
 {

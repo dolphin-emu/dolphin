@@ -11,6 +11,8 @@
 #include "VideoBackends/D3D12/Renderer.h"
 #include "VideoBackends/D3D12/StreamBuffer.h"
 
+#include <cstring>
+
 namespace DX12
 {
 static D3D12_BOX RectangleToBox(const MathUtil::Rectangle<int>& rc)

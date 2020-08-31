@@ -50,7 +50,9 @@
 #include <unistd.h>
 #endif
 
+#ifdef __MINGW32__
 #undef interface
+#endif
 
 namespace IOS::HLE::Device
 {
@@ -168,6 +170,9 @@ struct DefaultInterface
 static std::optional<DefaultInterface> GetSystemDefaultInterface()
 {
 #ifdef _WIN32
+#ifndef NET_IFINDEX_UNSPECIFIED
+	#define NET_IFINDEX_UNSPECIFIED (NET_IFINDEX)(0)
+#endif
   std::unique_ptr<MIB_IPFORWARDTABLE> forward_table;
   DWORD forward_table_size = 0;
   if (GetIpForwardTable(nullptr, &forward_table_size, FALSE) == ERROR_INSUFFICIENT_BUFFER)

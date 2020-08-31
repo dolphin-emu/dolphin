@@ -10,7 +10,10 @@
 #ifdef _WIN32
 #define HAVE_D3D11
 #include <libretro_d3d.h>
+#include "Common/DynamicLibrary.h"
+#include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/VideoBackend.h"
 #endif
 #ifndef __APPLE__
 #include <libretro_vulkan.h>
@@ -89,6 +92,9 @@ namespace Video
 {
 retro_video_refresh_t video_cb;
 struct retro_hw_render_callback hw_render;
+#ifdef _WIN32
+static Common::DynamicLibrary d3d11_library;
+#endif
 
 static void ContextReset(void)
 {
@@ -133,21 +139,31 @@ static void ContextReset(void)
     DX11::D3D::device = d3d->device;
     DX11::D3D::context = d3d->context;
     DX11::D3D::feature_level = d3d->featureLevel;
-    DX11::D3D::stateman = new DX11::D3D::StateManager;
-    DX11::PD3DCompile = d3d->D3DCompile;
-    if (FAILED(d3d->device->QueryInterface<ID3D11Device1>(&DX11::D3D::device1)))
+    D3DCommon::d3d_compile = d3d->D3DCompile;
+
+    if (!d3d11_library.Open("d3d11.dll") || !D3DCommon::LoadLibraries())
+    {
+      d3d11_library.Close();
+      ERROR_LOG(VIDEO, "Failed to load D3D11 Libraries");
+      return;
+    }
+
+    if (FAILED(DX11::D3D::device.As(&DX11::D3D::device1)))
     {
       WARN_LOG(VIDEO, "Missing Direct3D 11.1 support. Logical operations will not be supported.");
       g_Config.backend_info.bSupportsLogicOp = false;
     }
-    UINT bc1_support, bc2_support, bc3_support, bc7_support;
-    d3d->device->CheckFormatSupport(DXGI_FORMAT_BC1_UNORM, &bc1_support);
-    d3d->device->CheckFormatSupport(DXGI_FORMAT_BC2_UNORM, &bc2_support);
-    d3d->device->CheckFormatSupport(DXGI_FORMAT_BC7_UNORM, &bc7_support);
-    d3d->device->CheckFormatSupport(DXGI_FORMAT_BC3_UNORM, &bc3_support);
-    g_Config.backend_info.bSupportsST3CTextures =
-        (bc1_support & bc2_support & bc3_support) & D3D11_FORMAT_SUPPORT_TEXTURE2D;
-    g_Config.backend_info.bSupportsBPTCTextures = bc7_support & D3D11_FORMAT_SUPPORT_TEXTURE2D;
+    DX11::D3D::stateman = std::make_unique<DX11::D3D::StateManager>();
+
+    DX11::VideoBackend* d3d11 = static_cast<DX11::VideoBackend*>(g_video_backend);
+    d3d11->FillBackendInfo();
+    d3d11->InitializeShared();
+
+    WindowSystemInfo wsi(WindowSystemType::Libretro, nullptr, nullptr, nullptr);
+    std::unique_ptr<DX11SwapChain> swap_chain = std::make_unique<DX11SwapChain>(
+        wsi, EFB_WIDTH * Libretro::Options::efbScale, EFB_HEIGHT * Libretro::Options::efbScale);
+    g_renderer =
+        std::make_unique<DX11::Renderer>(std::move(swap_chain), Libretro::Options::efbScale);
   }
 #endif
   if (Config::Get(Config::MAIN_GFX_BACKEND) == "OGL")
@@ -180,11 +196,19 @@ static void ContextDestroy(void)
   {
   case RETRO_HW_CONTEXT_DIRECT3D:
 #ifdef _WIN32
+    DX11::D3D::context->ClearState();
+    DX11::D3D::context->Flush();
+
+    DX11::D3D::context.Reset();
+    DX11::D3D::device1.Reset();
+
     DX11::D3D::device = nullptr;
     DX11::D3D::device1 = nullptr;
     DX11::D3D::context = nullptr;
-    DX11::PD3DCompile = nullptr;
-    delete DX11::D3D::stateman;
+    D3DCommon::d3d_compile = nullptr;
+    DX11::D3D::stateman.reset();
+    D3DCommon::UnloadLibraries();
+    d3d11_library.Close();
 #endif
     break;
   case RETRO_HW_CONTEXT_VULKAN:

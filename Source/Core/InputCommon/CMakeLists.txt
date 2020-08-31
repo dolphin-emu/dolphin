@@ -87,10 +87,12 @@ if(WIN32)
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.h
   )
-  target_link_libraries(inputcommon
-    PRIVATE
-    dinput8
-  )
+  if(MINGW)
+    target_link_libraries(inputcommon
+      PRIVATE
+      dinput8
+    )
+  endif()
 elseif(APPLE)
   target_sources(inputcommon PRIVATE
     ControllerInterface/OSX/OSX.h

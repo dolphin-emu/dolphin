@@ -5,7 +5,6 @@
 #include "Common/StringUtil.h"
 
 #include <algorithm>
-#include <codecvt>
 #include <cstdarg>
 #include <cstddef>
 #include <cstdio>
@@ -34,6 +33,7 @@
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
+#include <codecvt>
 #include <errno.h>
 #include <iconv.h>
 #include <locale.h>
@@ -165,7 +165,7 @@ std::string StringFromFormat(const char* format, ...)
 std::string StringFromFormatV(const char* format, va_list args)
 {
   char* buf = nullptr;
-#ifdef _MSC_VER
+#ifdef _WIN32
   int required = _vscprintf(format, args);
   buf = new char[required + 1];
   CharArrayFromFormatV(buf, required + 1, format, args);
@@ -173,7 +173,7 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
@@ -182,7 +182,7 @@ std::string StringFromFormatV(const char* format, va_list args)
     buf = nullptr;
   }
 
-#if !defined(_WIN32) && !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
+#if !defined(ANDROID) && !defined(__HAIKU__) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -421,7 +421,7 @@ size_t StringUTF8CodePointCount(const std::string& str)
 
 #ifdef _WIN32
 
-static std::wstring CPToUTF16(u32 code_page, std::string_view input)
+std::wstring CPToUTF16(u32 code_page, std::string_view input)
 {
   auto const size =
       MultiByteToWideChar(code_page, 0, input.data(), static_cast<int>(input.size()), nullptr, 0);
@@ -439,7 +439,7 @@ static std::wstring CPToUTF16(u32 code_page, std::string_view input)
   return output;
 }
 
-static std::string UTF16ToCP(u32 code_page, std::wstring_view input)
+std::string UTF16ToCP(u32 code_page, std::wstring_view input)
 {
   std::string output;
 
@@ -596,6 +596,7 @@ std::string UTF16BEToUTF8(const char16_t* str, size_t max_size)
 
 #endif
 
+#ifdef ANDROID
 std::string UTF16ToUTF8(std::u16string_view input)
 {
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
@@ -607,6 +608,7 @@ std::u16string UTF8ToUTF16(std::string_view input)
   std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> converter;
   return converter.from_bytes(input.data(), input.data() + input.size());
 }
+#endif
 
 #ifdef HAS_STD_FILESYSTEM
 // This is a replacement for path::u8path, which is deprecated starting with C++20.

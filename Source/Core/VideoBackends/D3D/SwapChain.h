@@ -35,7 +35,6 @@ protected:
   bool CreateSwapChainBuffers() override;
   void DestroySwapChainBuffers() override;
 
-private:
   // The runtime takes care of renaming the buffers.
   std::unique_ptr<DXTexture> m_texture;
   std::unique_ptr<DXFramebuffer> m_framebuffer;

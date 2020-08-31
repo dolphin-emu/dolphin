@@ -141,7 +141,7 @@ void VerifyWidget::Verify()
 
   auto future =
       std::async(std::launch::async,
-                 [&verifier, &progress]() -> std::optional<DiscIO::VolumeVerifier::Result> {
+                 [&verifier, &progress, DIVISOR]() -> std::optional<DiscIO::VolumeVerifier::Result> {
                    progress.SetValue(0);
                    verifier.Start();
                    while (verifier.GetBytesProcessed() != verifier.GetTotalBytes())
