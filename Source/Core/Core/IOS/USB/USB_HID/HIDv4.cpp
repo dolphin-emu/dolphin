@@ -208,7 +208,7 @@ static void CopyDescriptorToBuffer(std::vector<u8>* buffer, T descriptor)
   descriptor.Swap();
   buffer->insert(buffer->end(), reinterpret_cast<const u8*>(&descriptor),
                  reinterpret_cast<const u8*>(&descriptor) + size);
-  const size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
+  constexpr size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
   buffer->insert(buffer->end(), number_of_padding_bytes, 0);
 }
 

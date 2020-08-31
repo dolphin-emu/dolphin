@@ -28,7 +28,7 @@ void DualShockUDPClientWidget::CreateWidgets()
 
   m_servers_enabled = new QCheckBox(tr("Enable"));
   m_servers_enabled->setChecked(Config::Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED));
-  main_layout->addWidget(m_servers_enabled, 0, 0);
+  main_layout->addWidget(m_servers_enabled, 0, {});
 
   m_server_list = new QListWidget();
   main_layout->addWidget(m_server_list);

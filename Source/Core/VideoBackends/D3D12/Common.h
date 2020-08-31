@@ -9,13 +9,6 @@
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3DCommon/Common.h"
 
-#define CHECK(cond, Message, ...)                                                                  \
-  if (!(cond))                                                                                     \
-  {                                                                                                \
-    PanicAlert(__FUNCTION__ " failed in %s at line %d: " Message, __FILE__, __LINE__,              \
-               __VA_ARGS__);                                                                       \
-  }
-
 namespace DX12
 {
 using Microsoft::WRL::ComPtr;

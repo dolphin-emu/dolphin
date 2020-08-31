@@ -600,7 +600,7 @@ std::string GetCurrentDir()
   if (!dir)
   {
     ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", LastStrerrorString().c_str());
-    return nullptr;
+    return "";
   }
   std::string strDir = dir;
   free(dir);
@@ -621,10 +621,15 @@ std::string CreateTempDir()
     return "";
 
   GUID guid;
-  CoCreateGuid(&guid);
-  TCHAR tguid[40];
-  StringFromGUID2(guid, tguid, 39);
-  tguid[39] = 0;
+  if (FAILED(CoCreateGuid(&guid)))
+  {
+    return "";
+  }
+  OLECHAR tguid[40]{};
+  if (!StringFromGUID2(guid, tguid, _countof(tguid)))
+  {
+    return "";
+  }
   std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
   if (!CreateDir(dir))
     return "";

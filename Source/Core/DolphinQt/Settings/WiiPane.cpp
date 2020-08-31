@@ -279,10 +279,9 @@ void WiiPane::OnUSBWhitelistAddButton()
 void WiiPane::OnUSBWhitelistRemoveButton()
 {
   QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QString vid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
-  QString pid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
+  QStringList split = device.split(QString::fromStdString(":"));
+  QString vid = QString(split[0]);
+  QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});

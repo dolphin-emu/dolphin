@@ -824,7 +824,8 @@ void Init()
     if (!s_ios)
       return;
 
-    auto device = static_cast<Device::SDIOSlot0*>(s_ios->GetDeviceByName("/dev/sdio/slot0").get());
+    auto sdio_slot0 = s_ios->GetDeviceByName("/dev/sdio/slot0");
+    auto device = static_cast<Device::SDIOSlot0*>(sdio_slot0.get());
     if (device)
       device->EventNotify();
   });
