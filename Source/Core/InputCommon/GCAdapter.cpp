@@ -73,7 +73,7 @@ static bool s_libusb_hotplug_enabled = false;
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
 
-static LibusbUtils::Context s_libusb_context;
+static std::unique_ptr<LibusbUtils::Context> s_libusb_context;
 
 static u8 s_endpoint_in = 0;
 static u8 s_endpoint_out = 0;
@@ -158,7 +158,7 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context,
+            *s_libusb_context,
             (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                    LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
@@ -195,6 +195,8 @@ void Init()
   if (s_handle != nullptr)
     return;
 
+  s_libusb_context = std::make_unique<LibusbUtils::Context>();
+
   if (Core::GetState() != Core::State::Uninitialized && Core::GetState() != Core::State::Starting)
   {
     if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
@@ -213,7 +215,7 @@ void StartScanThread()
 {
   if (s_adapter_detect_thread_running.IsSet())
     return;
-  if (!s_libusb_context.IsValid())
+  if (!s_libusb_context->IsValid())
     return;
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
@@ -239,7 +241,7 @@ static void Setup()
   s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
   s_controller_rumble.fill(0);
 
-  s_libusb_context.GetDeviceList([](libusb_device* device) {
+  s_libusb_context->GetDeviceList([](libusb_device* device) {
     if (CheckDeviceAccess(device))
     {
       // Only connect to a single adapter in case the user has multiple connected
@@ -369,10 +371,11 @@ void Shutdown()
 {
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-  if (s_libusb_context.IsValid() && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
+  if (s_libusb_context->IsValid() && s_libusb_hotplug_enabled)
+    libusb_hotplug_deregister_callback(*s_libusb_context, s_hotplug_handle);
 #endif
   Reset();
+  s_libusb_context.reset();
 
   s_status = NO_ADAPTER_DETECTED;
 }
