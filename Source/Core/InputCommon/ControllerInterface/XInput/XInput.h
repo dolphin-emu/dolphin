@@ -14,6 +14,9 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#if defined(__MINGW32__) && defined(XINPUT_DEVSUBTYPE_FLIGHT_SICK)
+#define XINPUT_DEVSUBTYPE_FLIGHT_STICK XINPUT_DEVSUBTYPE_FLIGHT_SICK
+#endif
 #ifndef XINPUT_DEVSUBTYPE_FLIGHT_STICK
 #error You are building this module against the wrong version of DirectX. You probably need to remove DXSDK_DIR from your include path and/or _WIN32_WINNT is wrong.
 #endif

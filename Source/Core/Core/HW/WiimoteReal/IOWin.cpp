@@ -57,6 +57,15 @@ DYN_FUNC_DECLARE(BluetoothEnumerateInstalledServices);
 
 #undef DYN_FUNC_DECLARE
 
+#ifdef __MINGW32__
+#define BLUETOOTH_DEVICE_INFO_STRUCT BLUETOOTH_DEVICE_INFO
+#ifdef UNICODE
+#define SetupDiGetDeviceProperty SetupDiGetDevicePropertyW
+#endif
+DEFINE_DEVPROPKEY(DEVPKEY_Device_DriverProvider,           0xa8b865dd, 0x2e3d, 0x4094, 0xad, 0x97, 0xe5, 0x93, 0xa7, 0xc, 0x75, 0xd6, 9);
+#define BLUETOOTH_SERVICE_ENABLE    0x01
+#endif
+
 namespace
 {
 HINSTANCE s_hid_lib = nullptr;

@@ -144,6 +144,22 @@ void Init()
 {
   if (!hXInput)
   {
+#ifdef __MINGW32__
+#if(_WIN32_WINNT >= _WIN32_WINNT_WIN8)
+#define XINPUT_DLL_A  "xinput1_4.dll"
+#define XINPUT_DLL_W L"xinput1_4.dll"
+#else
+#define XINPUT_DLL_A  "xinput9_1_0.dll"
+#define XINPUT_DLL_W L"xinput9_1_0.dll"
+#endif
+
+#ifdef UNICODE
+    #define XINPUT_DLL XINPUT_DLL_W
+#else
+    #define XINPUT_DLL XINPUT_DLL_A
+#endif
+#endif
+
     // Try for the most recent version we were compiled against (will only work if running on Win8+)
     hXInput = ::LoadLibrary(XINPUT_DLL);
     if (!hXInput)

@@ -58,8 +58,12 @@ QoSSession::QoSSession(ENetPeer* peer, int tos_val)
   constexpr int priority = 7;
   setsockopt(peer->host->socket, SOL_SOCKET, SO_PRIORITY, &priority, sizeof(priority));
 #endif
-
+#ifdef __MINGW32__
+  m_success =
+      setsockopt(peer->host->socket, IPPROTO_IP, 3, (const char*)&tos_val, sizeof(tos_val)) == 0;
+#else
   m_success = setsockopt(peer->host->socket, IPPROTO_IP, IP_TOS, &tos_val, sizeof(tos_val)) == 0;
+#endif
 }
 
 QoSSession::~QoSSession() = default;
