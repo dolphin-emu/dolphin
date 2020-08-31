@@ -158,6 +158,14 @@ void GameCubePane::CreateWidgets()
                                                           static_cast<int>(device));
   }
 
+  // Add SP2 devices
+  for (const auto device :
+       {EXIDeviceType::None, EXIDeviceType::Dummy, EXIDeviceType::AD16, EXIDeviceType::SD})
+  {
+    m_slot_combos[ExpansionInterface::Slot::SP2]->addItem(tr(fmt::format("{:n}", device).c_str()),
+                                                          static_cast<int>(device));
+  }
+
   {
     int row = 0;
     device_layout->addWidget(new QLabel(tr("Slot A:")), row, 0);
@@ -191,6 +199,11 @@ void GameCubePane::CreateWidgets()
     device_layout->addWidget(new QLabel(tr("SP1:")), row, 0);
     device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP1], row, 1);
     device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP1], row, 2);
+
+    ++row;
+    device_layout->addWidget(new QLabel(tr("SP2:")), row, 0);
+    device_layout->addWidget(m_slot_combos[ExpansionInterface::Slot::SP2], row, 1);
+    device_layout->addWidget(m_slot_buttons[ExpansionInterface::Slot::SP2], row, 2);
   }
 
 #ifdef HAS_LIBMGBA
@@ -357,6 +370,9 @@ void GameCubePane::UpdateButton(ExpansionInterface::Slot slot)
                   device == ExpansionInterface::EXIDeviceType::EthernetTapServer ||
                   device == ExpansionInterface::EXIDeviceType::EthernetBuiltIn ||
                   device == ExpansionInterface::EXIDeviceType::ModemTapServer);
+    break;
+  case ExpansionInterface::Slot::SP2:
+    has_config = false;  // TODO
     break;
   }
 

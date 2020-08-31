@@ -117,6 +117,8 @@ const Info<ExpansionInterface::EXIDeviceType> MAIN_SLOT_B{{System::Main, "Core",
                                                           ExpansionInterface::EXIDeviceType::None};
 const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_1{
     {System::Main, "Core", "SerialPort1"}, ExpansionInterface::EXIDeviceType::None};
+const Info<ExpansionInterface::EXIDeviceType> MAIN_SERIAL_PORT_2{
+    {System::Main, "Core", "SerialPort2"}, ExpansionInterface::EXIDeviceType::None};
 
 const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInterface::Slot slot)
 {
@@ -126,6 +128,7 @@ const Info<ExpansionInterface::EXIDeviceType>& GetInfoForEXIDevice(ExpansionInte
           &MAIN_SLOT_A,
           &MAIN_SLOT_B,
           &MAIN_SERIAL_PORT_1,
+          &MAIN_SERIAL_PORT_2,
       };
   return *infos[slot];
 }
