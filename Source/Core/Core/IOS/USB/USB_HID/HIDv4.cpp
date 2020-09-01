@@ -24,6 +24,8 @@ namespace IOS::HLE::Device
 {
 USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
+  static_assert(offsetof(USB_HIDv4, m_scan_thread) == sizeof(USB_HIDv4) - sizeof(ScanThread),
+                "ScanThread must be the last data member");
 }
 
 IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
