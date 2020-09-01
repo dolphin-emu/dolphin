@@ -9,8 +9,6 @@
     <color name="dolphin_accent_wiiware">#2979ff</color>
     <color name="dolphin_accent_gamecube">#651fff</color>
 
-    <color name="circle_grey">#bdbdbd</color>
-
     <color name="tv_card_unselected">#444444</color>
 
 </resources>

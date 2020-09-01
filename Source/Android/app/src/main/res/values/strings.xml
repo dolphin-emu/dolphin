@@ -302,6 +302,7 @@
     <string name="other">Other</string>
 
     <!-- Game Grid Screen-->
+    <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_config">Config</string>
     <string name="grid_menu_graphics_settings">Graphics Settings</string>
     <string name="grid_menu_gcpad_settings">GameCube Input</string>
@@ -311,11 +312,6 @@
     <string name="grid_menu_install_wad">Install WAD</string>
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
-
-    <!-- Add Directory Screen-->
-    <string name="add_directory_title">Add Folder to Library</string>
-    <string name="add_directory_up_one_level">Up one level</string>
-    <string name="add_directory_empty_folder">That folder is empty.</string>
 
     <!-- Preferences Screen -->
     <string name="preferences_save_exit">Save and Exit</string>
