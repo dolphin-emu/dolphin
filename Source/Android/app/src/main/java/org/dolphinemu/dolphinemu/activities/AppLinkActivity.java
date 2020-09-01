@@ -30,7 +30,6 @@ public class AppLinkActivity extends FragmentActivity
 
   private AppLinkHelper.PlayAction playAction;
   private DirectoryStateReceiver directoryStateReceiver;
-  private BroadcastReceiver gameFileCacheReceiver;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -96,18 +95,17 @@ public class AppLinkActivity extends FragmentActivity
               }
             });
 
-    gameFileCacheReceiver =
-            new BroadcastReceiver()
-            {
-              @Override
-              public void onReceive(Context context, Intent intent)
-              {
-                if (DirectoryInitialization.areDolphinDirectoriesReady())
-                {
-                  tryPlay(playAction);
-                }
-              }
-            };
+    BroadcastReceiver gameFileCacheReceiver = new BroadcastReceiver()
+    {
+      @Override
+      public void onReceive(Context context, Intent intent)
+      {
+        if (DirectoryInitialization.areDolphinDirectoriesReady())
+        {
+          tryPlay(playAction);
+        }
+      }
+    };
 
     LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
     broadcastManager.registerReceiver(directoryStateReceiver, directoryStateIntentFilter);

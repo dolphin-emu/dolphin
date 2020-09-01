@@ -6,8 +6,8 @@ import java.util.Map;
 public class BiMap<K, V>
 {
 
-  private Map<K, V> forward = new HashMap<K, V>();
-  private Map<V, K> backward = new HashMap<V, K>();
+  private Map<K, V> forward = new HashMap<>();
+  private Map<V, K> backward = new HashMap<>();
 
   public synchronized void add(K key, V value)
   {

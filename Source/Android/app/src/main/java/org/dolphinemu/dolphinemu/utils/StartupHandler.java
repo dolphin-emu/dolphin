@@ -77,7 +77,7 @@ public final class StartupHandler
     if (currentTime > (lastOpen + SESSION_TIMEOUT))
     {
       new AfterDirectoryInitializationRunner().run(context,
-              () -> NativeLibrary.ReportStartToAnalytics());
+              NativeLibrary::ReportStartToAnalytics);
     }
   }
 }

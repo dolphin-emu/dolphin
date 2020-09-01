@@ -53,7 +53,7 @@ public class CustomTitleView extends LinearLayout implements TitleViewAdapter.Pr
   {
     super(context, attrs, defStyle);
     View root = LayoutInflater.from(context).inflate(R.layout.tv_title, this);
-    mTitleView = (TextView) root.findViewById(R.id.title);
+    mTitleView = root.findViewById(R.id.title);
     mBadgeView = root.findViewById(R.id.badge);
   }
 

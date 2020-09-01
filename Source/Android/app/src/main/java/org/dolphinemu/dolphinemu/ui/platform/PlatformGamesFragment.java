@@ -2,7 +2,7 @@ package org.dolphinemu.dolphinemu.ui.platform;
 
 import android.os.Bundle;
 
-import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -50,7 +50,7 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
   }
 
   @Override
-  public void onViewCreated(View view, Bundle savedInstanceState)
+  public void onViewCreated(@NonNull View view, Bundle savedInstanceState)
   {
     int columns = getResources().getInteger(R.integer.game_grid_columns);
     RecyclerView.LayoutManager layoutManager = new GridLayoutManager(getActivity(), columns);
@@ -88,6 +88,6 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
 
   private void findViews(View root)
   {
-    mRecyclerView = (RecyclerView) root.findViewById(R.id.grid_games);
+    mRecyclerView = root.findViewById(R.id.grid_games);
   }
 }

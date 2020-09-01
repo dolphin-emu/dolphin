@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2014 Dolphin Emulator Project
  * Licensed under GPLv2+
  * Refer to the license.txt file included.
@@ -267,12 +267,23 @@ public final class DirectoryInitialization
 
     try
     {
+      String[] assetList = context.getAssets().list(assetFolder);
+
+      if (assetList == null)
+      {
+        return;
+      }
+
       boolean createdFolder = false;
-      for (String file : context.getAssets().list(assetFolder))
+      for (String file : assetList)
       {
         if (!createdFolder)
         {
-          outputFolder.mkdir();
+          if (!outputFolder.mkdir())
+          {
+            Log.error("[DirectoryInitialization] Failed to create folder " +
+                    outputFolder.getAbsolutePath());
+          }
           createdFolder = true;
         }
         copyAssetFolder(assetFolder + File.separator + file, new File(outputFolder, file),
@@ -317,7 +328,10 @@ public final class DirectoryInitialization
     File wiiPath = new File(directory);
     if (!wiiPath.isDirectory())
     {
-      wiiPath.mkdirs();
+      if (!wiiPath.mkdirs())
+      {
+        Log.error("[DirectoryInitialization] Failed to create folder " + wiiPath.getAbsolutePath());
+      }
     }
   }
 

@@ -49,8 +49,8 @@ public class InputOverlayPointer
     Integer x = outMetrics.widthPixels;
 
     // Adjusting for device's black bars.
-    Float deviceAR = (float) x / y;
-    Float gameAR = NativeLibrary.GetGameAspectRatio();
+    float deviceAR = (float) x / y;
+    float gameAR = NativeLibrary.GetGameAspectRatio();
     aspectAdjusted = gameAR / deviceAR;
 
     if (gameAR <= deviceAR) // Black bars on left/right
@@ -73,7 +73,7 @@ public class InputOverlayPointer
     }
   }
 
-  public boolean onTouch(MotionEvent event)
+  public void onTouch(MotionEvent event)
   {
     int pointerIndex = event.getActionIndex();
 
@@ -92,7 +92,7 @@ public class InputOverlayPointer
     }
 
     if (trackId == -1)
-      return false;
+      return;
 
     int x = (int) event.getX(event.findPointerIndex(trackId));
     int y = (int) event.getY(event.findPointerIndex(trackId));
@@ -106,7 +106,6 @@ public class InputOverlayPointer
       axes[0] = ((y * aspectAdjusted) - maxHeight) / maxHeight;
       axes[1] = (x - maxWidth) / maxWidth;
     }
-    return false;
   }
 
   private void touchPress()

@@ -109,6 +109,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
   protected void onStop()
   {
     super.onStop();
+    if (isChangingConfigurations())
+    {
+      skipRescanningLibrary();
+    }
     StartupHandler.setSessionTime(this);
   }
 
@@ -174,36 +178,34 @@ public final class MainActivity extends AppCompatActivity implements MainView
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
+
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
     {
-      case MainPresenter.REQUEST_DIRECTORY:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+      switch (requestCode)
+      {
+        case MainPresenter.REQUEST_DIRECTORY:
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_GAME_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_GAME_FILE:
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_WAD_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_WAD_FILE:
           mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
+      }
+    }
+    else
+    {
+      skipRescanningLibrary();
     }
   }
 
   @Override
-  public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults)
+  public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
+          @NonNull int[] grantResults)
   {
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {

@@ -2,8 +2,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
@@ -45,7 +43,6 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHold
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -97,7 +94,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       case SettingsItem.TYPE_SLIDER:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new SliderViewHolder(view, this);
+        return new SliderViewHolder(view, this, mContext);
 
       case SettingsItem.TYPE_SUBMENU:
         view = inflater.inflate(R.layout.list_item_setting_submenu, parent, false);
@@ -120,8 +117,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         return new ConfirmRunnableViewHolder(view, this, mContext, mView);
 
       default:
-        Log.error("[SettingsAdapter] Invalid view type: " + viewType);
-        return null;
+        throw new IllegalArgumentException("Invalid view type: " + viewType);
     }
   }
 
@@ -243,13 +239,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     builder.setPositiveButton(R.string.ok, this);
     mDialog = builder.show();
 
-    mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
+    mTextSliderValue = view.findViewById(R.id.text_value);
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
 
-    TextView units = (TextView) view.findViewById(R.id.text_units);
+    TextView units = view.findViewById(R.id.text_units);
     units.setText(item.getUnits());
 
-    SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
+    SeekBar seekbar = view.findViewById(R.id.seekbar);
 
     seekbar.setMax(item.getMax());
     seekbar.setProgress(mSeekbarProgress);
@@ -273,21 +269,13 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
             mContext.getString(item.getNameId())));
     dialog.setButton(AlertDialog.BUTTON_NEGATIVE, mContext.getString(R.string.cancel), this);
     dialog.setButton(AlertDialog.BUTTON_NEUTRAL, mContext.getString(R.string.clear),
-            (dialogInterface, i) ->
-            {
-              SharedPreferences preferences =
-                      PreferenceManager.getDefaultSharedPreferences(mContext);
-              item.clearValue();
-            });
+            (dialogInterface, i) -> item.clearValue());
     dialog.setOnDismissListener(dialog1 ->
     {
       StringSetting setting = new StringSetting(item.getKey(), item.getSection(), item.getValue());
       notifyItemChanged(position);
 
-      if (setting != null)
-      {
-        mView.putSetting(setting);
-      }
+      mView.putSetting(setting);
 
       mView.onSettingChanged(item.getKey());
     });
