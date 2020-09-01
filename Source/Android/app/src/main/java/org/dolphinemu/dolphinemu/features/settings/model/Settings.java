@@ -232,6 +232,7 @@ public class Settings
       NativeLibrary.ReloadConfig();
       NativeLibrary.ReloadWiimoteConfig();
       NativeLibrary.ReloadLoggerConfig();
+      NativeLibrary.UpdateGCAdapterScanThread();
 
       if (modifiedSettings.contains(SettingsFile.KEY_RECURSIVE_ISO_PATHS))
       {

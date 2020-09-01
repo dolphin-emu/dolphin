@@ -376,6 +376,8 @@ public final class NativeLibrary
 
   public static native void ReloadConfig();
 
+  public static native void UpdateGCAdapterScanThread();
+
   /**
    * Initializes the native parts of the app.
    *
