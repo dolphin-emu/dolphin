@@ -413,28 +413,55 @@ bool WIARVZFileReader<RVZ>::Read(u64 offset, u64 size, u8* out_ptr)
 }
 
 template <bool RVZ>
-bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted() const
+const typename WIARVZFileReader<RVZ>::PartitionEntry*
+WIARVZFileReader<RVZ>::GetPartition(u64 partition_data_offset, u32* partition_first_sector) const
 {
-  return !m_partition_entries.empty();
+  const auto it = m_data_entries.upper_bound(partition_data_offset);
+  if (it == m_data_entries.end() || !it->second.is_partition)
+    return nullptr;
+
+  const PartitionEntry* partition = &m_partition_entries[it->second.index];
+  *partition_first_sector = Common::swap32(partition->data_entries[0].first_sector);
+  if (partition_data_offset != *partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE)
+    return nullptr;
+
+  return partition;
+}
+
+template <bool RVZ>
+bool WIARVZFileReader<RVZ>::SupportsReadWiiDecrypted(u64 offset, u64 size,
+                                                     u64 partition_data_offset) const
+{
+  u32 partition_first_sector;
+  const PartitionEntry* partition = GetPartition(partition_data_offset, &partition_first_sector);
+  if (!partition)
+    return false;
+
+  for (const PartitionDataEntry& data : partition->data_entries)
+  {
+    const u32 start_sector = Common::swap32(data.first_sector) - partition_first_sector;
+    const u32 end_sector = start_sector + Common::swap32(data.number_of_sectors);
+
+    if (offset + size <= end_sector * VolumeWii::BLOCK_DATA_SIZE)
+      return true;
+  }
+
+  return false;
 }
 
 template <bool RVZ>
 bool WIARVZFileReader<RVZ>::ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr,
                                              u64 partition_data_offset)
 {
+  u32 partition_first_sector;
+  const PartitionEntry* partition = GetPartition(partition_data_offset, &partition_first_sector);
+  if (!partition)
+    return false;
+
   const u64 chunk_size = Common::swap32(m_header_2.chunk_size) * VolumeWii::BLOCK_DATA_SIZE /
                          VolumeWii::BLOCK_TOTAL_SIZE;
 
-  const auto it = m_data_entries.upper_bound(partition_data_offset);
-  if (it == m_data_entries.end() || !it->second.is_partition)
-    return false;
-
-  const PartitionEntry& partition = m_partition_entries[it->second.index];
-  const u32 partition_first_sector = Common::swap32(partition.data_entries[0].first_sector);
-  if (partition_data_offset != partition_first_sector * VolumeWii::BLOCK_TOTAL_SIZE)
-    return false;
-
-  for (const PartitionDataEntry& data : partition.data_entries)
+  for (const PartitionDataEntry& data : partition->data_entries)
   {
     if (size == 0)
       return true;

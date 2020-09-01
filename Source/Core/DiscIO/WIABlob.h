@@ -59,7 +59,7 @@ public:
   std::string GetCompressionMethod() const override;
 
   bool Read(u64 offset, u64 size, u8* out_ptr) override;
-  bool SupportsReadWiiDecrypted() const override;
+  bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const override;
   bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset) override;
 
   static ConversionResultCode Convert(BlobReader* infile, const VolumeDisc* infile_volume,
@@ -223,6 +223,8 @@ private:
   explicit WIARVZFileReader(File::IOFile file, const std::string& path);
   bool Initialize(const std::string& path);
   bool HasDataOverlap() const;
+
+  const PartitionEntry* GetPartition(u64 partition_data_offset, u32* partition_first_sector) const;
 
   bool ReadFromGroups(u64* offset, u64* size, u8** out_ptr, u64 chunk_size, u32 sector_size,
                       u64 data_offset, u64 data_size, u32 group_index, u32 number_of_groups,

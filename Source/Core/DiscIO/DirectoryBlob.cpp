@@ -406,25 +406,33 @@ bool DirectoryBlobReader::Read(u64 offset, u64 length, u8* buffer)
       .Read(offset, length, buffer);
 }
 
-bool DirectoryBlobReader::SupportsReadWiiDecrypted() const
+const DirectoryBlobPartition* DirectoryBlobReader::GetPartition(u64 offset, u64 size,
+                                                                u64 partition_data_offset) const
 {
-  return m_is_wii;
+  const auto it = m_partitions.find(partition_data_offset);
+  if (it == m_partitions.end())
+    return nullptr;
+
+  if (offset + size > it->second.GetDataSize())
+    return nullptr;
+
+  return &it->second;
+}
+
+bool DirectoryBlobReader::SupportsReadWiiDecrypted(u64 offset, u64 size,
+                                                   u64 partition_data_offset) const
+{
+  return static_cast<bool>(GetPartition(offset, size, partition_data_offset));
 }
 
 bool DirectoryBlobReader::ReadWiiDecrypted(u64 offset, u64 size, u8* buffer,
                                            u64 partition_data_offset)
 {
-  if (!m_is_wii)
+  const DirectoryBlobPartition* partition = GetPartition(offset, size, partition_data_offset);
+  if (!partition)
     return false;
 
-  auto it = m_partitions.find(partition_data_offset);
-  if (it == m_partitions.end())
-    return false;
-
-  if (offset + size > it->second.GetDataSize())
-    return false;
-
-  return it->second.GetContents().Read(offset, size, buffer);
+  return partition->GetContents().Read(offset, size, buffer);
 }
 
 bool DirectoryBlobReader::EncryptPartitionData(u64 offset, u64 size, u8* buffer,

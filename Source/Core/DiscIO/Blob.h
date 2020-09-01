@@ -70,7 +70,11 @@ public:
     return Common::FromBigEndian(temp);
   }
 
-  virtual bool SupportsReadWiiDecrypted() const { return false; }
+  virtual bool SupportsReadWiiDecrypted(u64 offset, u64 size, u64 partition_data_offset) const
+  {
+    return false;
+  }
+
   virtual bool ReadWiiDecrypted(u64 offset, u64 size, u8* out_ptr, u64 partition_data_offset)
   {
     return false;
