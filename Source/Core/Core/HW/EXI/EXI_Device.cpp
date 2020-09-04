@@ -164,7 +164,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(Core::System& system, const EXIDevi
     break;
 
   case EXIDeviceType::SD:
-    result = std::make_unique<CEXISD>(system);
+    result = std::make_unique<CEXISD>(system, channel_num);
     break;
 
   case EXIDeviceType::AMBaseboard:

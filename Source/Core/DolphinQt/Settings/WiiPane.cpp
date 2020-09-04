@@ -513,8 +513,21 @@ void WiiPane::BrowseSDRaw()
 
 void WiiPane::SetSDRaw(const QString& path)
 {
-  Config::SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, path.toStdString());
-  SignalBlocking(m_sd_raw_edit)->setText(path);
+  const auto str = path.toStdString();
+  if (str == Config::Get(Config::MAIN_SLOT_A_SD_CARD_PATH) ||
+      str == Config::Get(Config::MAIN_SLOT_B_SD_CARD_PATH) ||
+      str == Config::Get(Config::MAIN_SP2_SD_CARD_PATH))
+  {
+    ModalMessageBox::critical(this, tr("Error"),
+                              tr("The same file can't be used in multiple slots."));
+    SignalBlocking(m_sd_raw_edit)
+        ->setText(QString::fromStdString(Config::Get(Config::MAIN_WII_SD_CARD_IMAGE_PATH)));
+  }
+  else
+  {
+    Config::SetBase(Config::MAIN_WII_SD_CARD_IMAGE_PATH, str);
+    SignalBlocking(m_sd_raw_edit)->setText(path);
+  }
 }
 
 void WiiPane::BrowseSDSyncFolder()
