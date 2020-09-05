@@ -18,6 +18,10 @@ class PointerWrap;
 namespace ExpansionInterface
 {
 // EXI-SD adapter (DOL-019)
+// The SD adapter uses SPI mode to communicate with the SD card (SPI and EXI are basically the
+// same). Refer to the simplified specification, version 3.01, at
+// https://web.archive.org/web/20131205014133/https://www.sdcard.org/downloads/pls/simplified_specs/archive/part1_301.pdf
+// for details (SPI information starts on section 7, page 113 (125 in the PDF).
 class CEXISD final : public IEXIDevice
 {
 public:
@@ -33,7 +37,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  enum class Command
+  enum class Command  // § 7.3.1.1, Table 7-3
   {
     GoIdleState = 0,
     SendOpCond = 1,
@@ -93,7 +97,7 @@ private:
     // 60-63 Reserved for manufacturer
   };
 
-  enum class AppCommand
+  enum class AppCommand  // § 7.3.1.1, Table 7-4
   {
     // 1-5 Reserved
     // SetBusWidth = 6,  // Not SPI
@@ -124,7 +128,7 @@ private:
     // 56-59 Reserved for security spec
   };
 
-  enum class OCR : u32  // Operating Conditions Register
+  enum class OCR : u32  // Operating Conditions Register, § 5.1
   {
     // 0-6 reserved
     // 7 reserved for Low Voltage Range
@@ -153,6 +157,7 @@ private:
       OCR::Vdd27To28, OCR::Vdd28To29, OCR::Vdd29To30, OCR::Vdd30To31, OCR::Vdd31To32,
       OCR::Vdd32To33, OCR::Vdd33To34, OCR::Vdd34To35, OCR::Vdd35To36, OCR::CardPowerUpStatus};
 
+  // § 7.3.3
   static constexpr u8 START_BLOCK = 0xfe, START_MULTI_BLOCK = 0xfc, END_BLOCK = 0xfd;
   // The spec has the first 3 bits of the data responses marked with an x, and doesn't explain why
   static constexpr u8 DATA_RESPONSE_ACCEPTED = 0b0'010'0;
@@ -201,7 +206,7 @@ private:
   u8 ReadForBlockWrite();
   void WriteForBlockWrite(u8 byte);
 
-  enum class R1
+  enum class R1  // § 7.3.2.1
   {
     InIdleState = 1 << 0,
     EraseRequest = 1 << 1,
@@ -212,7 +217,7 @@ private:
     ParameterError = 1 << 6,
     // Top bit 0
   };
-  enum class R2
+  enum class R2  // § 7.3.2.3
   {
     CardIsLocked = 1 << 0,
     WriteProtectEraseSkip = 1 << 1,  // or lock/unlock command failed
