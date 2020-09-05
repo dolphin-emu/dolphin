@@ -128,7 +128,9 @@ void FpsControls::run_mod_menu(Region region) {
 }
 
 void FpsControls::run_mod_mp1() {
-  handle_beam_visor_switch(prime_one_beams, prime_one_visors);
+  // Don't allow visor change while scanning or it creates an audio loop bug.
+  if (read32(mp1_static.cplayer_address + 0x398) == 0)
+    handle_beam_visor_switch(prime_one_beams, prime_one_visors);
 
   // Allows freelook in grapple, otherwise we are orbiting (locked on) to something
   if (read32(mp1_static.orbit_state_address) != ORBIT_STATE_GRAPPLE &&
@@ -193,7 +195,9 @@ void FpsControls::run_mod_mp2(Region region) {
   
   // HACK ooo
   powerups_ptr_address = cplayer_address + 0x12ec;
-  handle_beam_visor_switch(prime_two_beams, prime_two_visors);
+
+  if (read32(cplayer_address + 0x5a4) == 0)
+    handle_beam_visor_switch(prime_two_beams, prime_two_visors);
 
   if (read32(cplayer_address + 0x390) != ORBIT_STATE_GRAPPLE &&
       read32(mp2_static.lockon_address)) {
@@ -255,7 +259,9 @@ void FpsControls::run_mod_mp3() {
 
   // HACK ooo
   powerups_ptr_address = cplayer_address + 0x35a8;
-  handle_beam_visor_switch({}, prime_three_visors);
+
+  if (read32(cplayer_address + 0x6FC) == 0)
+    handle_beam_visor_switch({}, prime_three_visors);
 
   // Handle Interactable Entities
   bool lock_camera = false;
