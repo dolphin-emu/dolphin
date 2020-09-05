@@ -161,15 +161,40 @@ void CEXISD::WriteByte(u8 byte)
         // Buffer now full
         command_position = 0;
 
+        if ((byte & 1) == 0)
+        {
+          WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI SD command invalid, missing end bit: got {:02x}",
+                       byte);
+          // Guessed behavior; I'm not sure if this is actually what should be done
+          response.push_back(static_cast<u8>(R1::CommunicationCRCError));
+          return;
+        }
+
+        // Per § 7.2.2 Bus Transfer Protection, the CRC is actually optional in SPI mode and
+        // defaults to disabled (except for the inital GoIdleState command, which is technically in
+        // SD mode, and SendInterfaceCond, which presumably was deemed important enough due to
+        // containing voltage information).
+
+        // Datel, being datel, doesn't include a CRC, instead sending 0xff when a CRC is not
+        // required. Libogc and Nintendo titles also don't enable CRCs, but still send correct ones.
         u8 hash = (Common::HashCrc7(command_buffer.data(), 5) << 1) | 1;
         if (byte != hash)
         {
-          WARN_LOG_FMT(EXPANSIONINTERFACE,
-                       "EXI SD command invalid, incorrect CRC7 or missing end bit: got {:02x}, "
-                       "should be {:02x}",
-                       byte, hash);
-          response.push_back(static_cast<u8>(R1::CommunicationCRCError));
-          return;
+          if (byte != 0xff)
+          {
+            WARN_LOG_FMT(EXPANSIONINTERFACE,
+                         "EXI SD command invalid, incorrect CRC7: got {:02x}, should be {:02x}",
+                         byte, hash);
+            response.push_back(static_cast<u8>(R1::CommunicationCRCError));
+            return;
+          }
+          else
+          {
+            WARN_LOG_FMT(EXPANSIONINTERFACE,
+                         "EXI SD command invalid, incorrect CRC7: got {:02x}, should be {:02x}"
+                         "; ignoring because Datel doesn't include a CRC",
+                         byte, hash);
+          }
         }
 
         u8 command = command_buffer[0] & 0x3f;
