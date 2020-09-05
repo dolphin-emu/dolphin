@@ -1,14 +1,12 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -17,15 +15,12 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -40,7 +35,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   private EmulationState mEmulationState;
 
-  private DirectoryStateReceiver directoryStateReceiver;
+  private AfterDirectoryInitializationRunner mAfterDirectoryInitializationRunner;
 
   private EmulationActivity activity;
 
@@ -115,23 +110,19 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
-    if (DirectoryInitialization.areDolphinDirectoriesReady())
-    {
-      mEmulationState.run(activity.isActivityRecreated());
-    }
-    else
-    {
-      setupDolphinDirectoriesThenStartEmulation();
-    }
+
+    mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
+    mAfterDirectoryInitializationRunner.run(requireContext(), true,
+            () -> mEmulationState.run(activity.isActivityRecreated()));
   }
 
   @Override
   public void onPause()
   {
-    if (directoryStateReceiver != null)
+    if (mAfterDirectoryInitializationRunner != null)
     {
-      LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(directoryStateReceiver);
-      directoryStateReceiver = null;
+      mAfterDirectoryInitializationRunner.cancel();
+      mAfterDirectoryInitializationRunner = null;
     }
 
     if (mEmulationState.isRunning())
@@ -144,41 +135,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     NativeLibrary.clearEmulationActivity();
     super.onDetach();
-  }
-
-  private void setupDolphinDirectoriesThenStartEmulation()
-  {
-    IntentFilter statusIntentFilter = new IntentFilter(
-            DirectoryInitialization.BROADCAST_ACTION);
-
-    directoryStateReceiver =
-            new DirectoryStateReceiver(directoryInitializationState ->
-            {
-              if (directoryInitializationState ==
-                      DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-              {
-                mEmulationState.run(activity.isActivityRecreated());
-              }
-              else if (directoryInitializationState ==
-                      DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-              {
-                Toast.makeText(getContext(), R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                        .show();
-              }
-              else if (directoryInitializationState ==
-                      DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-              {
-                Toast.makeText(getContext(), R.string.external_storage_not_mounted,
-                        Toast.LENGTH_SHORT)
-                        .show();
-              }
-            });
-
-    // Registers the DirectoryStateReceiver and its intent filters
-    LocalBroadcastManager.getInstance(getActivity()).registerReceiver(
-            directoryStateReceiver,
-            statusIntentFilter);
-    DirectoryInitialization.start(getActivity());
   }
 
   public void toggleInputOverlayVisibility()

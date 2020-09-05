@@ -37,13 +37,15 @@ public final class DirectoryInitialization
 
   public static final String EXTRA_STATE = "directoryState";
   private static final int WiimoteNewVersion = 5;  // Last changed in PR 8907
-  private static volatile DirectoryInitializationState directoryState = null;
+  private static volatile DirectoryInitializationState directoryState =
+          DirectoryInitializationState.NOT_YET_INITIALIZED;
   private static String userPath;
   private static String internalPath;
   private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
 
   public enum DirectoryInitializationState
   {
+    NOT_YET_INITIALIZED,
     DOLPHIN_DIRECTORIES_INITIALIZED,
     EXTERNAL_STORAGE_PERMISSION_NEEDED,
     CANT_FIND_EXTERNAL_STORAGE
@@ -199,9 +201,22 @@ public final class DirectoryInitialization
     return directoryState == DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
   }
 
+  public static DirectoryInitializationState getDolphinDirectoriesState(Context context)
+  {
+    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED &&
+            !PermissionsHandler.hasWriteAccess(context))
+    {
+      return DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED;
+    }
+    else
+    {
+      return directoryState;
+    }
+  }
+
   public static String getUserDirectory()
   {
-    if (directoryState == null)
+    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED)
     {
       throw new IllegalStateException("DirectoryInitialization has to run at least once!");
     }
@@ -216,7 +231,7 @@ public final class DirectoryInitialization
 
   public static String getDolphinInternalDirectory()
   {
-    if (directoryState == null)
+    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED)
     {
       throw new IllegalStateException("DirectoryInitialization has to run at least once!");
     }

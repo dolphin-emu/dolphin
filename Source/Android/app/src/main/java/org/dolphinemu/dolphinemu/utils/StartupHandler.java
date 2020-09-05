@@ -76,7 +76,7 @@ public final class StartupHandler
     long lastOpen = preferences.getLong(LAST_CLOSED, 0);
     if (currentTime > (lastOpen + SESSION_TIMEOUT))
     {
-      new AfterDirectoryInitializationRunner().run(context,
+      new AfterDirectoryInitializationRunner().run(context, false,
               NativeLibrary::ReportStartToAnalytics);
     }
   }
