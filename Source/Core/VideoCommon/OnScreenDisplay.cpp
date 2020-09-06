@@ -287,7 +287,6 @@ namespace OSD
       if (!isHeld) {
         value_changed = true;
         g_playbackStatus->targetFrameNum = *v;
-        INFO_LOG(SLIPPI, "Seeking to frame %d!", g_playbackStatus->targetFrameNum);
       }
     }
     else
@@ -468,10 +467,8 @@ namespace OSD
   bool SeekBar(const char* label, ImVec4 color, int* v, int v_min, int v_max, float power, const char* format)
   {
     ImGuiWindow* window = ImGui::GetCurrentWindow();
-    if (window->SkipItems) {
-      INFO_LOG(SLIPPI, "skip");
+    if (window->SkipItems)
       return false;
-    }
 
     const ImGuiID id = window->GetID(label);
     const float w = ImGui::GetWindowWidth() - 10;
@@ -545,7 +542,6 @@ namespace OSD
     {
       ImGui::SetCursorPos(ImVec2(0.0f, ImGui::GetWindowHeight() - 44));
       if (SeekBar("SlippiSeek", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), &frame, Slippi::PLAYBACK_FIRST_SAVE, g_playbackStatus->lastFrame, 1.0, "%d")) {
-        INFO_LOG(SLIPPI, "seeking to %d", g_playbackStatus->targetFrameNum);
         Host_PlaybackSeek();
       }
 
@@ -558,7 +554,6 @@ namespace OSD
       //}
       //ImGui::SameLine(0.0f, 5.0f);
       if (ButtonCustom(ICON_FA_FAST_BACKWARD, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "fast back");
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 1200;
           Host_PlaybackSeek();
@@ -576,7 +571,6 @@ namespace OSD
       // Step back
       ImGui::SetCursorPos(ImVec2(32.0f, ImGui::GetWindowHeight() - 30));
       if (ButtonCustom(ICON_FA_STEP_BACKWARD, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "step back");
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame - 300;
           Host_PlaybackSeek();
@@ -594,7 +588,6 @@ namespace OSD
       // Step forward
       ImGui::SetCursorPos(ImVec2(64.0f, ImGui::GetWindowHeight() - 30));
       if (ButtonCustom(ICON_FA_STEP_FORWARD, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "step forward");
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 300;
           Host_PlaybackSeek();
@@ -612,7 +605,6 @@ namespace OSD
       // Jump forward
       ImGui::SetCursorPos(ImVec2(96.0f, ImGui::GetWindowHeight() - 30));
       if (ButtonCustom(ICON_FA_FAST_FORWARD, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "fast_foward");
         if (g_playbackStatus->targetFrameNum == INT_MAX) {
           g_playbackStatus->targetFrameNum = g_playbackStatus->currentPlaybackFrame + 1200;
           Host_PlaybackSeek();
@@ -634,7 +626,6 @@ namespace OSD
       static int prev;
       ImGui::SetCursorPos(ImVec2(128.0f, ImGui::GetWindowHeight() - 30));
       if (ButtonCustom(*volume == 0 ? ICON_FA_VOLUME_OFF : ICON_FA_VOLUME_UP, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "muting");
         if (*volume == 0) {
           *volume = prev == 0 ? 30 : prev; // todo: find good default value
         }
@@ -684,44 +675,9 @@ namespace OSD
         ImGui::Text("View Help");
       }
 
-      // Help
-      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 64.0f, ImGui::GetWindowHeight() - 30));
-      if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(32.0f, 32.0f))) {
-        showHelp = !showHelp;
-      }
-      if (showHelp) {
-        ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(ImGui::GetWindowWidth() - 300.0f, ImGui::GetWindowHeight() - 200.0f),
-          ImVec2(ImGui::GetWindowWidth() - 50.0f, ImGui::GetWindowHeight() - 40.0f),
-          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 190.0f));
-        ImGui::Text("Play/Pause: Spacebar");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 170.0f));
-        ImGui::Text("Step Back (5s): Left Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 150.0f));
-        ImGui::Text("Step Forward (5s): Right Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 130.0f));
-        ImGui::Text("Jump Back (20s): Shift + Left Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 110.0f));
-        ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 90.0f));
-        ImGui::Text("Frame Advance: Period");
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 70.0f));
-        ImGui::Text("Big jumps/seeks may take several seconds.");
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::GetWindowDrawList()->AddRectFilled(
-          ImVec2(ImGui::GetWindowWidth() - 75.0f, ImGui::GetWindowHeight() - 62.0f),
-          ImVec2(ImGui::GetWindowWidth() - 16.0f, ImGui::GetWindowHeight() - 42.0f),
-          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
-        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 73.0f, ImGui::GetWindowHeight() - 60.0f));
-        ImGui::Text("View Help");
-      }
-
       // Fullscreen
       ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 32.0f, ImGui::GetWindowHeight() - 30));
       if (ButtonCustom(ICON_FA_EXPAND, ImVec2(32.0f, 32.0f))) {
-        INFO_LOG(SLIPPI, "fullscreen");
         Host_Fullscreen();
       }
       if (ImGui::IsItemHovered()) {
