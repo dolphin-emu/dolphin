@@ -29,7 +29,7 @@ namespace DX11
 {
 std::string VideoBackend::GetName() const
 {
-  return "D3D";
+  return NAME;
 }
 
 std::string VideoBackend::GetDisplayName() const
