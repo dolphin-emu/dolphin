@@ -2428,16 +2428,7 @@ void TextureCacheBase::UninitializeXFBMemory(u8* dst, u32 stride, u32 bytes_per_
     }
 #endif
     for (u32 offset = 0; offset < size; offset++)
-    {
-      if (offset & 1)
-      {
-        rowdst[offset] = 254;
-      }
-      else
-      {
-        rowdst[offset] = 1;
-      }
-    }
+      rowdst[offset] = 0x80;
     dst += stride;
   }
 }
