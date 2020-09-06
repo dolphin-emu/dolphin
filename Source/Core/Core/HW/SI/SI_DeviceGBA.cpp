@@ -272,7 +272,7 @@ int GBASockServer::Receive(u8* si_buffer)
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
-    return 0;
+    return -1;
   }
 
   if (recv_stat == sf::Socket::NotReady || num_received == 0)
@@ -330,13 +330,15 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
   case NextAction::ReceiveResponse:
   {
     int num_data_received = m_sock_server.Receive(buffer);
-    m_next_action = NextAction::SendCommand;
-    if (num_data_received == 0)
+    if (num_data_received < 0)
     {
+      m_next_action = NextAction::SendCommand;
       u32 reply = Common::swap32(SI_ERROR_NO_RESPONSE);
       std::memcpy(buffer, &reply, sizeof(reply));
       return sizeof(reply);
     }
+    if (num_data_received == 0)
+      return 0;
 #ifdef _DEBUG
     const Common::Log::LOG_LEVELS log_level =
         (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ? Common::Log::LERROR :
@@ -345,6 +347,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int request_length)
                 "%01d                              [< %02x%02x%02x%02x%02x] (%i)", m_device_number,
                 buffer[0], buffer[1], buffer[2], buffer[3], buffer[4], num_data_received);
 #endif
+    m_next_action = NextAction::SendCommand;
     return num_data_received;
   }
   }
