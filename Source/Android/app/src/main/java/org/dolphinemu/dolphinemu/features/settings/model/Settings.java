@@ -175,15 +175,44 @@ public class Settings
         // Refresh game library
         GameFileCacheService.startRescan(context);
       }
-
-      modifiedSettings.clear();
     }
     else
     {
       // custom game settings
       view.showToastMessage("Saved settings for " + gameId);
       SettingsFile.saveCustomGameSettings(gameId, getGameSpecificFile());
+
+      if (modifiedSettings.contains(SettingsFile.KEY_DSP_ENGINE))
+      {
+        File gameSettingsFile = SettingsFile.getCustomGameSettingsFile(gameId);
+        IniFile gameSettingsIni = new IniFile(gameSettingsFile);
+
+        switch (gameSettingsIni.getInt(Settings.SECTION_INI_ANDROID, SettingsFile.KEY_DSP_ENGINE,
+                DSP_HLE))
+        {
+          case DSP_HLE:
+            gameSettingsIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, true);
+            gameSettingsIni
+                    .setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
+            break;
+
+          case DSP_LLE_RECOMPILER:
+            gameSettingsIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
+            gameSettingsIni
+                    .setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, true);
+            break;
+
+          case DSP_LLE_INTERPRETER:
+            gameSettingsIni.setBoolean(Settings.SECTION_INI_CORE, SettingsFile.KEY_DSP_HLE, false);
+            gameSettingsIni
+                    .setBoolean(Settings.SECTION_INI_DSP, SettingsFile.KEY_DSP_ENABLE_JIT, false);
+            break;
+        }
+
+        gameSettingsIni.save(gameSettingsFile);
+      }
     }
+    modifiedSettings.clear();
   }
 
   public void clearSettings()
