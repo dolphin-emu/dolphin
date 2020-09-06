@@ -236,9 +236,6 @@ namespace OSD
     bool isActive = g.ActiveId == id;
     static bool isHeld = false;
     const bool hovered = ImGui::ItemHoverable(bb, id);
-    if (hovered) {
-      INFO_LOG(SLIPPI, "is Hovered: %d", id);
-    }
 
     if (!isHeld && isActive) {
       ImGui::ClearActiveID();
@@ -651,6 +648,40 @@ namespace OSD
       ImGui::SetCursorPos(ImVec2(160.0f, ImGui::GetWindowHeight() - 15));
       if (VolumeBar("SlippiVolume", ImVec4(1.0f, 0.0f, 0.0f, 1.0f), volume, 0, 100, 1.0)) {
         AudioCommon::UpdateSoundStream();
+      }
+
+      // Help
+      ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 64.0f, ImGui::GetWindowHeight() - 30));
+      if (ButtonCustom(ICON_FA_QUESTION_CIRCLE, ImVec2(32.0f, 32.0f))) {
+        showHelp = !showHelp;
+      }
+      if (showHelp) {
+        ImGui::GetWindowDrawList()->AddRectFilled(
+          ImVec2(ImGui::GetWindowWidth() - 300.0f, ImGui::GetWindowHeight() - 200.0f),
+          ImVec2(ImGui::GetWindowWidth() - 50.0f, ImGui::GetWindowHeight() - 40.0f),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.8f * style.Alpha)));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 190.0f));
+        ImGui::Text("Play/Pause: Spacebar");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 170.0f));
+        ImGui::Text("Step Back (5s): Left Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 150.0f));
+        ImGui::Text("Step Forward (5s): Right Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 130.0f));
+        ImGui::Text("Jump Back (20s): Shift + Left Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 110.0f));
+        ImGui::Text("Jump Forward (20s): Shift + Right Arrow");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 90.0f));
+        ImGui::Text("Frame Advance: Period");
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 290.0f, ImGui::GetWindowHeight() - 70.0f));
+        ImGui::Text("Big jumps/seeks may take several seconds.");
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::GetWindowDrawList()->AddRectFilled(
+          ImVec2(ImGui::GetWindowWidth() - 75.0f, ImGui::GetWindowHeight() - 62.0f),
+          ImVec2(ImGui::GetWindowWidth() - 16.0f, ImGui::GetWindowHeight() - 42.0f),
+          ImGui::ColorConvertFloat4ToU32(ImVec4(0.0f, 0.0f, 0.0f, 0.9f)));
+        ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - 73.0f, ImGui::GetWindowHeight() - 60.0f));
+        ImGui::Text("View Help");
       }
 
       // Help
