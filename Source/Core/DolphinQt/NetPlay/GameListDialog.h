@@ -11,6 +11,11 @@ class QVBoxLayout;
 class QListWidget;
 class QDialogButtonBox;
 
+namespace UICommon
+{
+class GameFile;
+}
+
 class GameListDialog : public QDialog
 {
   Q_OBJECT
@@ -18,7 +23,7 @@ public:
   explicit GameListDialog(QWidget* parent);
 
   int exec() override;
-  const QString& GetSelectedUniqueID() const;
+  const UICommon::GameFile& GetSelectedGame() const;
 
 private:
   void CreateWidgets();
@@ -28,5 +33,4 @@ private:
   QVBoxLayout* m_main_layout;
   QListWidget* m_game_list;
   QDialogButtonBox* m_button_box;
-  QString m_game_id;
 };

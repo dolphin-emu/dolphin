@@ -37,6 +37,7 @@ add_library(core
   PatchEngine.h
   State.cpp
   State.h
+  SyncIdentifier.h
   SysConf.cpp
   SysConf.h
   TitleDatabase.cpp

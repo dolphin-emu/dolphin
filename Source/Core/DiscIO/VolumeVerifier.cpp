@@ -479,8 +479,8 @@ std::vector<Partition> VolumeVerifier::CheckPartitions()
       AddProblem(Severity::Low,
                  Common::GetStringT(
                      "The data partition is not at its normal position. This will affect the "
-                     "emulated loading times. When using NetPlay or sending input recordings to "
-                     "other people, you will experience desyncs if anyone is using a good dump."));
+                     "emulated loading times. You will be unable to share input recordings and use "
+                     "NetPlay with anyone who is using a good dump."));
     }
   }
 
@@ -783,10 +783,10 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
         {
           AddProblem(
               Severity::Low,
-              Common::GetStringT("This disc image has an unusual size. This will likely make the "
-                                 "emulated loading times longer. When using NetPlay or sending "
-                                 "input recordings to other people, you will likely experience "
-                                 "desyncs if anyone is using a good dump."));
+              Common::GetStringT(
+                  "This disc image has an unusual size. This will likely make the emulated "
+                  "loading times longer. You will likely be unable to share input recordings "
+                  "and use NetPlay with anyone who is using a good dump."));
         }
         else
         {

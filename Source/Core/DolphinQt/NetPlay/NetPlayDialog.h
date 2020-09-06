@@ -45,7 +45,8 @@ public:
   void Update() override;
   void AppendChat(const std::string& msg) override;
 
-  void OnMsgChangeGame(const std::string& filename) override;
+  void OnMsgChangeGame(const NetPlay::SyncIdentifier& sync_identifier,
+                       const std::string& netplay_name) override;
   void OnMsgStartGame() override;
   void OnMsgStopGame() override;
   void OnMsgPowerButton() override;
@@ -65,13 +66,14 @@ public:
   void OnIndexRefreshFailed(const std::string error) override;
 
   bool IsRecording() override;
-  std::string FindGame(const std::string& game) override;
-  std::shared_ptr<const UICommon::GameFile> FindGameFile(const std::string& game) override;
+  std::shared_ptr<const UICommon::GameFile>
+  FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
+               NetPlay::SyncIdentifierComparison* found = nullptr) override;
 
   void LoadSettings();
   void SaveSettings();
 
-  void ShowMD5Dialog(const std::string& file_identifier) override;
+  void ShowMD5Dialog(const std::string& title) override;
   void SetMD5Progress(int pid, int progress) override;
   void SetMD5Result(int pid, const std::string& result) override;
   void AbortMD5() override;
@@ -145,7 +147,8 @@ private:
   MD5Dialog* m_md5_dialog;
   ChunkedProgressDialog* m_chunked_progress_dialog;
   PadMappingDialog* m_pad_mapping;
-  std::string m_current_game;
+  NetPlay::SyncIdentifier m_current_game_identifier;
+  std::string m_current_game_name;
   Common::Lazy<std::string> m_external_ip_address;
   std::string m_nickname;
   GameListModel* m_game_list_model = nullptr;

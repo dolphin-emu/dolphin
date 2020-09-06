@@ -398,9 +398,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
-    connect(netplay_host, &QAction::triggered, [this, game] {
-      emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
-    });
+    connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(*game); });
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
@@ -738,6 +736,11 @@ std::shared_ptr<const UICommon::GameFile>
 GameList::FindSecondDisc(const UICommon::GameFile& game) const
 {
   return m_model->FindSecondDisc(game);
+}
+
+std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
+{
+  return m_model->GetNetPlayName(game);
 }
 
 void GameList::SetViewColumn(int col, bool view)
