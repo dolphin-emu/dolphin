@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
@@ -14,12 +13,11 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
   private int mDescriptionValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSettingDynamicDescriptions(String key, String section, int titleId,
-          int descriptionId,
-          int choicesId, int valuesId, int descriptionChoicesId, int descriptionValuesId,
-          int defaultValue, Setting setting, MenuTag menuTag)
+  public SingleChoiceSettingDynamicDescriptions(String file, String section, String key,
+          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId, int defaultValue, MenuTag menuTag)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(file, section, key, titleId, descriptionId);
     mValuesId = valuesId;
     mChoicesId = choicesId;
     mDescriptionChoicesId = descriptionChoicesId;
@@ -28,13 +26,12 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSettingDynamicDescriptions(String key, String section, int titleId,
-          int descriptionId,
-          int choicesId, int valuesId, int descriptionChoicesId, int descriptionValuesId,
-          int defaultValue, Setting setting)
+  public SingleChoiceSettingDynamicDescriptions(String file, String section, String key,
+          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId, int defaultValue)
   {
-    this(key, section, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
-            descriptionValuesId, defaultValue, setting, null);
+    this(file, section, key, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
+            descriptionValuesId, defaultValue, null);
   }
 
   public int getChoicesId()
@@ -57,17 +54,9 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     return mDescriptionValuesId;
   }
 
-  public int getSelectedValue()
+  public int getSelectedValue(Settings settings)
   {
-    if (getSetting() == null || !(getSetting() instanceof IntSetting))
-    {
-      return mDefaultValue;
-    }
-    else
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      return setting.getValue();
-    }
+    return settings.getSection(getFile(), getSection()).getInt(getKey(), mDefaultValue);
   }
 
   public MenuTag getMenuTag()
@@ -75,27 +64,9 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
     return menuTag;
   }
 
-  /**
-   * Write a value to the backing int. If that int was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param selection New value of the int.
-   * @return null if overwritten successfully otherwise; a newly created IntSetting.
-   */
-  public IntSetting setSelectedValue(int selection)
+  public void setSelectedValue(Settings settings, int selection)
   {
-    if (getSetting() == null || !(getSetting() instanceof IntSetting))
-    {
-      IntSetting setting = new IntSetting(getKey(), getSection(), selection);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      IntSetting setting = (IntSetting) getSetting();
-      setting.setValue(selection);
-      return null;
-    }
+    settings.getSection(getFile(), getSection()).setInt(getKey(), selection);
   }
 
   @Override

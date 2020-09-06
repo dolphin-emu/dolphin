@@ -1,51 +1,26 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
-public final class CheckBoxSetting extends SettingsItem
+public class CheckBoxSetting extends SettingsItem
 {
-  private boolean mDefaultValue;
+  protected boolean mDefaultValue;
 
-  public CheckBoxSetting(String key, String section, int titleId, int descriptionId,
-          boolean defaultValue, Setting setting)
+  public CheckBoxSetting(String file, String section, String key, int titleId, int descriptionId,
+          boolean defaultValue)
   {
-    super(key, section, setting, titleId, descriptionId);
+    super(file, section, key, titleId, descriptionId);
     mDefaultValue = defaultValue;
   }
 
-  public boolean isChecked()
+  public boolean isChecked(Settings settings)
   {
-    if (getSetting() == null || !(getSetting() instanceof BooleanSetting))
-    {
-      return mDefaultValue;
-    }
-
-    BooleanSetting setting = (BooleanSetting) getSetting();
-    return setting.getValue();
+    return settings.getSection(getFile(), getSection()).getBoolean(getKey(), mDefaultValue);
   }
 
-  /**
-   * Write a value to the backing boolean. If that boolean was previously null,
-   * initializes a new one and returns it, so it can be added to the Hashmap.
-   *
-   * @param checked Pretty self explanatory.
-   * @return null if overwritten successfully; otherwise, a newly created BooleanSetting.
-   */
-  public BooleanSetting setChecked(boolean checked)
+  public void setChecked(Settings settings, boolean checked)
   {
-    if (getSetting() == null || !(getSetting() instanceof BooleanSetting))
-    {
-      BooleanSetting setting = new BooleanSetting(getKey(), getSection(), checked);
-      setSetting(setting);
-      return setting;
-    }
-    else
-    {
-      BooleanSetting setting = (BooleanSetting) getSetting();
-      setting.setValue(checked);
-      return null;
-    }
+    settings.getSection(getFile(), getSection()).setBoolean(getKey(), checked);
   }
 
   @Override

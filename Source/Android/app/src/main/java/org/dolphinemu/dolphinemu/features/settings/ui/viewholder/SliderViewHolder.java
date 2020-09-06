@@ -46,8 +46,8 @@ public final class SliderViewHolder extends SettingViewHolder
     else
     {
       mTextSettingDescription.setText(mContext
-              .getString(R.string.slider_setting_value, mItem.getSelectedValue(),
-                      mItem.getUnits()));
+              .getString(R.string.slider_setting_value,
+                      mItem.getSelectedValue(getAdapter().getSettings()), mItem.getUnits()));
     }
   }
 

@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import androidx.fragment.app.FragmentActivity;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 
@@ -23,9 +22,9 @@ public interface SettingsFragmentView
   void onSettingsFileLoaded(Settings settings);
 
   /**
-   * Pass an ArrayList to the View so that it can be displayed on screen.
+   * Pass an ArrayList of settings to the View so that it can be displayed on screen.
    *
-   * @param settingsList The result of converting the HashMap to an ArrayList
+   * @param settingsList The settings to display
    */
   void showSettingsList(ArrayList<SettingsItem> settingsList);
 
@@ -61,11 +60,9 @@ public interface SettingsFragmentView
   void showToastMessage(String message);
 
   /**
-   * Have the fragment add a setting to the HashMap.
-   *
-   * @param setting The (possibly previously missing) new setting.
+   * @return The backing settings store.
    */
-  void putSetting(Setting setting);
+  Settings getSettings();
 
   /**
    * Have the fragment tell the containing Activity that a setting was modified.

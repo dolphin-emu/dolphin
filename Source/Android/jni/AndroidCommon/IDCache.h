@@ -32,4 +32,10 @@ jclass GetLinkedHashMapClass();
 jmethodID GetLinkedHashMapInit();
 jmethodID GetLinkedHashMapPut();
 
+jclass GetIniFileClass();
+jfieldID GetIniFilePointer();
+jclass GetIniFileSectionClass();
+jfieldID GetIniFileSectionPointer();
+jmethodID GetIniFileSectionConstructor();
+
 }  // namespace IDCache

@@ -3,12 +3,13 @@ package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 import android.view.View;
 import android.widget.TextView;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
@@ -44,9 +45,10 @@ public final class FilePickerViewHolder extends SettingViewHolder
     }
     else
     {
-      mTextSettingDescription.setText(NativeLibrary
-              .GetConfig(mFilePicker.getFile(), item.getSection(), item.getKey(),
-                      mFilePicker.getSelectedValue()));
+      // TODO: Reopening INI files all the time is slow
+      IniFile ini = new IniFile(SettingsFile.getSettingsFile(mFilePicker.getFile()));
+      mTextSettingDescription.setText(ini.getString(item.getSection(), item.getKey(),
+              mFilePicker.getSelectedValue(getAdapter().getSettings())));
     }
   }
 

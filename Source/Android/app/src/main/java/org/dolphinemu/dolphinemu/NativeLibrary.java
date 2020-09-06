@@ -274,43 +274,6 @@ public final class NativeLibrary
   // Angle is in radians and should be non-negative
   public static native double GetInputRadiusAtAngle(int emu_pad_id, int stick, double angle);
 
-  public static native void NewGameIniFile();
-
-  public static native void LoadGameIniFile(String gameId);
-
-  public static native void SaveGameIniFile(String gameId);
-
-  public static native String GetUserSetting(String gameID, String Section, String Key);
-
-  public static native void SetUserSetting(String gameID, String Section, String Key, String Value);
-
-  public static native void SetProfileSetting(String profile, String Section, String Key,
-          String Value);
-
-  public static native void InitGameIni(String gameID);
-
-  /**
-   * Gets a value from a key in the given ini-based config file.
-   *
-   * @param configFile The ini-based config file to get the value from.
-   * @param Section    The section key that the actual key is in.
-   * @param Key        The key to get the value from.
-   * @param Default    The value to return in the event the given key doesn't exist.
-   * @return the value stored at the key, or a default value if it doesn't exist.
-   */
-  public static native String GetConfig(String configFile, String Section, String Key,
-          String Default);
-
-  /**
-   * Sets a value to a key in the given ini config file.
-   *
-   * @param configFile The ini-based config file to add the value to.
-   * @param Section    The section key for the ini key
-   * @param Key        The actual ini key to set.
-   * @param Value      The string to set the ini key to.
-   */
-  public static native void SetConfig(String configFile, String Section, String Key, String Value);
-
   /**
    * Gets the Dolphin version string.
    *
