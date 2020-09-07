@@ -180,7 +180,10 @@ void CEXISD::WriteByte(u8 byte)
         u8 hash = (Common::HashCrc7(command_buffer.data(), 5) << 1) | 1;
         if (byte != hash)
         {
-          if (byte != 0xff)
+          Command command = static_cast<Command>(command_buffer[0] & 0x3f);
+
+          if (byte != 0xff || command == Command::GoIdleState ||
+              command == Command::SendInterfaceCond)
           {
             WARN_LOG_FMT(EXPANSIONINTERFACE,
                          "EXI SD command invalid, incorrect CRC7: got {:02x}, should be {:02x}",
