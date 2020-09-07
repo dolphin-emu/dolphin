@@ -42,6 +42,7 @@ This file mainly deals with the [Drive I/F], however [AIDFR] controls
 #include <algorithm>
 
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/CoreTiming.h"
@@ -127,7 +128,7 @@ void DoState(PointerWrap& p)
   p.Do(s_aid_sample_rate);
   p.Do(s_cpu_cycles_per_sample);
 
-  g_sound_stream->GetMixer()->DoState(p);
+  AudioCommon::GetMixer()->DoState(p);
 }
 
 static void GenerateAudioInterrupt();
@@ -188,7 +189,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
             s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48000 : 32000;
           else
             s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48043 : 32029;
-          g_sound_stream->GetMixer()->SetStreamInputSampleRate(s_ais_sample_rate);
+          AudioCommon::GetMixer()->SetStreamInputSampleRate(s_ais_sample_rate);
           s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
         }
         // Set frequency of DMA
@@ -200,7 +201,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
             s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32000 : 48000;
           else
             s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32029 : 48043;
-          g_sound_stream->GetMixer()->SetDMAInputSampleRate(s_aid_sample_rate);
+          AudioCommon::GetMixer()->SetDMAInputSampleRate(s_aid_sample_rate);
         }
 
         // Streaming counter
@@ -236,7 +237,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base | AI_VOLUME_REGISTER, MMIO::DirectRead<u32>(&s_volume.hex),
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    s_volume.hex = val;
-                   g_sound_stream->GetMixer()->SetStreamingVolume(s_volume.left, s_volume.right);
+                   AudioCommon::GetMixer()->SetStreamingVolume(s_volume.left, s_volume.right);
                  }));
 
   mmio->Register(base | AI_SAMPLE_COUNTER, MMIO::ComplexRead<u32>([](u32) {

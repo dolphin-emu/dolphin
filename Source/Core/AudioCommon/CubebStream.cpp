@@ -4,8 +4,10 @@
 
 #include <cubeb/cubeb.h>
 
+#include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/CubebUtils.h"
+#include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
@@ -20,9 +22,9 @@ long CubebStream::DataCallback(cubeb_stream* stream, void* user_data, const void
   auto* self = static_cast<CubebStream*>(user_data);
 
   if (self->m_stereo)
-    self->m_mixer->Mix(static_cast<short*>(output_buffer), num_frames);
+    AudioCommon::GetMixer()->Mix(static_cast<short*>(output_buffer), num_frames);
   else
-    self->m_mixer->MixSurround(static_cast<float*>(output_buffer), num_frames);
+    AudioCommon::GetMixer()->MixSurround(static_cast<float*>(output_buffer), num_frames);
 
   return num_frames;
 }
@@ -40,7 +42,7 @@ bool CubebStream::Init()
   m_stereo = !SConfig::GetInstance().ShouldUseDPL2Decoder();
 
   cubeb_stream_params params;
-  params.rate = m_mixer->GetSampleRate();
+  params.rate = AudioCommon::GetMixer()->GetSampleRate();
   if (m_stereo)
   {
     params.channels = 2;

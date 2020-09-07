@@ -10,23 +10,22 @@
 #include <vector>
 
 #include "AudioCommon/Enums.h"
-#include "AudioCommon/SoundStream.h"
 
 class Mixer;
 
-extern std::unique_ptr<SoundStream> g_sound_stream;
-
 namespace AudioCommon
 {
-void InitSoundStream();
-void ShutdownSoundStream();
+Mixer* GetMixer();
+void Init();
+void Shutdown();
 std::string GetDefaultSoundBackend();
 std::vector<std::string> GetSoundBackends();
 DPL2Quality GetDefaultDPL2Quality();
 bool SupportsDPL2Decoder(std::string_view backend);
 bool SupportsLatencyControl(std::string_view backend);
 bool SupportsVolumeChanges(std::string_view backend);
-void UpdateSoundStream();
+void RebuildSoundStream();
+void UpdateVolume();
 void SetSoundStreamRunning(bool running);
 void SendAIBuffer(const short* samples, unsigned int num_samples);
 void StartAudioDump();

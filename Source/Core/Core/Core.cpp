@@ -20,6 +20,7 @@
 #endif
 
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
@@ -542,8 +543,8 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     g_controller_interface.Shutdown();
   }};
 
-  AudioCommon::InitSoundStream();
-  Common::ScopeGuard audio_guard{&AudioCommon::ShutdownSoundStream};
+  AudioCommon::Init();
+  Common::ScopeGuard audio_guard{&AudioCommon::Shutdown};
 
   // The hardware is initialized.
   s_hardware_initialized = true;
@@ -953,11 +954,9 @@ void UpdateTitle()
   }
 
   // Update the audio timestretcher with the current speed
-  if (g_sound_stream)
-  {
-    Mixer* pMixer = g_sound_stream->GetMixer();
-    pMixer->UpdateSpeed((float)Speed / 100);
-  }
+  Mixer* mixer = AudioCommon::GetMixer();
+  if (mixer)
+    mixer->UpdateSpeed(static_cast<float>(Speed) / 100);
 
   Host_UpdateTitle(message);
 }

@@ -32,6 +32,7 @@ private:
 
   void LoadSettings();
   void SaveSettings();
+  void SaveVolume();
 
   void OnEmulationStateChanged(bool running);
   void OnBackendChanged();

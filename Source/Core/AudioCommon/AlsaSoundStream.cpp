@@ -5,6 +5,8 @@
 #include <mutex>
 
 #include "AudioCommon/AlsaSoundStream.h"
+#include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
@@ -55,7 +57,7 @@ void AlsaSound::SoundLoop()
   {
     while (m_thread_status.load() == ALSAThreadStatus::RUNNING)
     {
-      m_mixer->Mix(mix_buffer, frames_to_deliver);
+      AudioCommon::GetMixer()->Mix(mix_buffer, frames_to_deliver);
       int rc = snd_pcm_writei(handle, mix_buffer, frames_to_deliver);
       if (rc == -EPIPE)
       {
@@ -96,7 +98,7 @@ bool AlsaSound::SetRunning(bool running)
 
 bool AlsaSound::AlsaInit()
 {
-  unsigned int sample_rate = m_mixer->GetSampleRate();
+  unsigned int sample_rate = AudioCommon::GetMixer()->GetSampleRate();
   int err;
   int dir;
   snd_pcm_sw_params_t* swparams;

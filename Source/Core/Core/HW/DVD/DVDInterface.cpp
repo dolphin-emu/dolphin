@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "AudioCommon/AudioCommon.h"
+#include "AudioCommon/Mixer.h"
 
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"
@@ -304,7 +305,7 @@ static void DTKStreamingCallback(DIInterruptType interrupt_type, const std::vect
     // Send audio to the mixer.
     std::vector<s16> temp_pcm(s_pending_samples * 2, 0);
     ProcessDTKSamples(&temp_pcm, audio_data);
-    g_sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
+    AudioCommon::GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
 
     if (s_stream && AudioInterface::IsPlaying())
     {
