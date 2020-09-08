@@ -1,8 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-
 import androidx.lifecycle.ViewModel;
+
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public class SettingsViewModel extends ViewModel
 {

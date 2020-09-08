@@ -1,8 +1,8 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;

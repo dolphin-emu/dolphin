@@ -18,13 +18,12 @@ import android.media.tv.TvContract;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.util.Log;
 
 import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
 import androidx.tvprovider.media.tv.Channel;
 import androidx.tvprovider.media.tv.TvContractCompat;
-
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.HomeScreenChannel;

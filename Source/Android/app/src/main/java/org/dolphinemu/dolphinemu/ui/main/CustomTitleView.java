@@ -2,14 +2,13 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
-
-import androidx.leanback.widget.TitleViewAdapter;
-
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.leanback.widget.TitleViewAdapter;
 
 import org.dolphinemu.dolphinemu.R;
 
