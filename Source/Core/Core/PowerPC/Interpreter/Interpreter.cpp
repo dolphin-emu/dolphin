@@ -141,8 +141,8 @@ static void Trace(UGeckoInstruction& inst)
 
 bool Interpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [](u32 function, HLE::HookType type) {
-    HLEFunction(function);
+  return HLE::ReplaceFunctionIfPossible(address, [](u32 hook_index, HLE::HookType type) {
+    HLEFunction(hook_index);
     return type != HLE::HookType::Start;
   });
 }

@@ -192,9 +192,9 @@ static bool CheckIdle(u32 idle_pc)
 
 bool CachedInterpreter::HandleFunctionHooking(u32 address)
 {
-  return HLE::ReplaceFunctionIfPossible(address, [&](u32 function, HLE::HookType type) {
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
     m_code.emplace_back(WritePC, address);
-    m_code.emplace_back(Interpreter::HLEFunction, function);
+    m_code.emplace_back(Interpreter::HLEFunction, hook_index);
 
     if (type != HLE::HookType::Replace)
       return false;
