@@ -1,7 +1,6 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class InvertedCheckBoxSetting extends CheckBoxSetting
 {
