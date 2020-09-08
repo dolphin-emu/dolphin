@@ -7,9 +7,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 
 public final class FilePickerViewHolder extends SettingViewHolder
 {
@@ -45,10 +43,7 @@ public final class FilePickerViewHolder extends SettingViewHolder
     }
     else
     {
-      // TODO: Reopening INI files all the time is slow
-      IniFile ini = new IniFile(SettingsFile.getSettingsFile(mFilePicker.getFile()));
-      mTextSettingDescription.setText(ini.getString(item.getSection(), item.getKey(),
-              mFilePicker.getSelectedValue(getAdapter().getSettings())));
+      mTextSettingDescription.setText(mFilePicker.getSelectedValue(getAdapter().getSettings()));
     }
   }
 
