@@ -149,8 +149,8 @@ void Init()
   s_last_cpu_time = 0;
   s_cpu_cycles_per_sample = 0xFFFFFFFFFFFULL;
 
-  s_ais_sample_rate = 48000;
-  s_aid_sample_rate = 32000;
+  s_ais_sample_rate = Get48KHzSampleRate();
+  s_aid_sample_rate = Get32KHzSampleRate();
 
   event_type_ai = CoreTiming::RegisterEvent("AICallback", Update);
 }
@@ -184,10 +184,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
           // AISFR rates below are intentionally inverted wrt yagcd
           DEBUG_LOG(AUDIO_INTERFACE, "Change AISFR to %s", tmp_ai_ctrl.AISFR ? "48khz" : "32khz");
           s_control.AISFR = tmp_ai_ctrl.AISFR;
-          if (SConfig::GetInstance().bWii)
-            s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48000 : 32000;
-          else
-            s_ais_sample_rate = tmp_ai_ctrl.AISFR ? 48043 : 32029;
+          s_ais_sample_rate = tmp_ai_ctrl.AISFR ? Get48KHzSampleRate() : Get32KHzSampleRate();
           g_sound_stream->GetMixer()->SetStreamInputSampleRate(s_ais_sample_rate);
           s_cpu_cycles_per_sample = SystemTimers::GetTicksPerSecond() / s_ais_sample_rate;
         }
@@ -196,10 +193,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
         {
           DEBUG_LOG(AUDIO_INTERFACE, "Change AIDFR to %s", tmp_ai_ctrl.AIDFR ? "32khz" : "48khz");
           s_control.AIDFR = tmp_ai_ctrl.AIDFR;
-          if (SConfig::GetInstance().bWii)
-            s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32000 : 48000;
-          else
-            s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? 32029 : 48043;
+          s_aid_sample_rate = tmp_ai_ctrl.AIDFR ? Get32KHzSampleRate() : Get48KHzSampleRate();
           g_sound_stream->GetMixer()->SetDMAInputSampleRate(s_aid_sample_rate);
         }
 
@@ -299,9 +293,24 @@ bool IsPlaying()
   return (s_control.PSTAT == 1);
 }
 
-unsigned int GetAIDSampleRate()
+u32 GetAIDSampleRate()
 {
   return s_aid_sample_rate;
+}
+
+u32 GetAISSampleRate()
+{
+  return s_ais_sample_rate;
+}
+
+u32 Get32KHzSampleRate()
+{
+  return SConfig::GetInstance().bWii ? 32000 : 32029;
+}
+
+u32 Get48KHzSampleRate()
+{
+  return SConfig::GetInstance().bWii ? 48000 : 48043;
 }
 
 static void Update(u64 userdata, s64 cycles_late)

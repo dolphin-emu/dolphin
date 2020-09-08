@@ -15,6 +15,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/AudioInterface.h"
 
 // This shouldn't be a global, at least not here.
 std::unique_ptr<SoundStream> g_sound_stream;
@@ -66,6 +67,12 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
     g_sound_stream->Init();
   }
+
+  // Ideally these two calls would be done in AudioInterface::Init so that we don't
+  // need to have a dependency on AudioInterface here, but this has to be done
+  // after creating g_sound_stream (above) and before starting audio dumping (below)
+  g_sound_stream->GetMixer()->SetDMAInputSampleRate(AudioInterface::GetAIDSampleRate());
+  g_sound_stream->GetMixer()->SetStreamInputSampleRate(AudioInterface::GetAISSampleRate());
 
   UpdateSoundStream();
   SetSoundStreamRunning(true);
