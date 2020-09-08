@@ -857,17 +857,16 @@ public final class EmulationActivity extends AppCompatActivity
                         .putBoolean("buttonToggleWii" + indexSelected, isChecked));
       }
     }
-    builder.setNeutralButton(getString(R.string.emulation_toggle_all),
+    builder.setNeutralButton(R.string.emulation_toggle_all,
             (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.apply();
 
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   public void chooseDoubleTapButton()
@@ -893,14 +892,13 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setSingleChoiceItems(buttonList, currentValue, (DialogInterface dialog, int which) ->
             editor.putInt("doubleTapButton", InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.commit();
       mEmulationFragment.initInputPointer();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void adjustScale()
@@ -938,7 +936,7 @@ public final class EmulationActivity extends AppCompatActivity
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_control_scale);
     builder.setView(view);
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       SharedPreferences.Editor editor = mPreferences.edit();
       editor.putInt("controlScale", seekbar.getProgress());
@@ -947,8 +945,7 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseController()
@@ -971,14 +968,13 @@ public final class EmulationActivity extends AppCompatActivity
 
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.apply();
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void showMotionControlsOptions()
@@ -1004,10 +1000,9 @@ public final class EmulationActivity extends AppCompatActivity
 
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) -> editor.apply());
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> editor.apply());
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseOrientation()
@@ -1031,14 +1026,13 @@ public final class EmulationActivity extends AppCompatActivity
               int orientation = orientationValues[indexSelected];
               editor.putInt("emulationActivityOrientation", orientation);
             });
-    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
       editor.apply();
       updateOrientation();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void setIRSensitivity()
@@ -1180,7 +1174,6 @@ public final class EmulationActivity extends AppCompatActivity
             .setNegativeButton(R.string.cancel, (dialogInterface, i) ->
             {
             })
-            .create()
             .show();
   }
 

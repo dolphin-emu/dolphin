@@ -59,7 +59,6 @@ public class Analytics
               sPrefsEditor.apply();
               SettingsFile.firstAnalyticsAdd(false);
             })
-            .create()
             .show();
   }
 
