@@ -32,7 +32,7 @@ public class Analytics
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     if (!preferences.getBoolean(analyticsAsked, false))
     {
-      new AfterDirectoryInitializationRunner().run(context,
+      new AfterDirectoryInitializationRunner().run(context, false,
               () -> showMessage(context, preferences));
     }
   }

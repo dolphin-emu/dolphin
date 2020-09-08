@@ -11,15 +11,13 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.util.Log;
-import android.widget.Toast;
 
-import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.GameFile;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.utils.AppLinkHelper;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 
 /**
  * Linker between leanback homescreen and app
@@ -29,7 +27,7 @@ public class AppLinkActivity extends FragmentActivity
   private static final String TAG = "AppLinkActivity";
 
   private AppLinkHelper.PlayAction playAction;
-  private DirectoryStateReceiver directoryStateReceiver;
+  private AfterDirectoryInitializationRunner mAfterDirectoryInitializationRunner;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -67,33 +65,11 @@ public class AppLinkActivity extends FragmentActivity
    */
   private void initResources()
   {
-    IntentFilter directoryStateIntentFilter = new IntentFilter(
-            DirectoryInitialization.BROADCAST_ACTION);
+    mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
+    mAfterDirectoryInitializationRunner.run(this, true, () -> tryPlay(playAction));
 
     IntentFilter gameFileCacheIntentFilter = new IntentFilter(
             GameFileCacheService.BROADCAST_ACTION);
-
-    directoryStateReceiver =
-            new DirectoryStateReceiver(directoryInitializationState ->
-            {
-              if (directoryInitializationState ==
-                      DirectoryInitialization.DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-              {
-                tryPlay(playAction);
-              }
-              else if (directoryInitializationState ==
-                      DirectoryInitialization.DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-              {
-                Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                        .show();
-              }
-              else if (directoryInitializationState ==
-                      DirectoryInitialization.DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-              {
-                Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
-                        .show();
-              }
-            });
 
     BroadcastReceiver gameFileCacheReceiver = new BroadcastReceiver()
     {
@@ -108,7 +84,6 @@ public class AppLinkActivity extends FragmentActivity
     };
 
     LocalBroadcastManager broadcastManager = LocalBroadcastManager.getInstance(this);
-    broadcastManager.registerReceiver(directoryStateReceiver, directoryStateIntentFilter);
     broadcastManager.registerReceiver(gameFileCacheReceiver, gameFileCacheIntentFilter);
 
     DirectoryInitialization.start(this);
@@ -160,10 +135,10 @@ public class AppLinkActivity extends FragmentActivity
 
   private void startGame(GameFile game)
   {
-    if (directoryStateReceiver != null)
+    if (mAfterDirectoryInitializationRunner != null)
     {
-      LocalBroadcastManager.getInstance(this).unregisterReceiver(directoryStateReceiver);
-      directoryStateReceiver = null;
+      mAfterDirectoryInitializationRunner.cancel();
+      mAfterDirectoryInitializationRunner = null;
     }
     EmulationActivity.launch(this, game);
   }

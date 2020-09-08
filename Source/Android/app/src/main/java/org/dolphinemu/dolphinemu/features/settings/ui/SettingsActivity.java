@@ -3,7 +3,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
 
@@ -11,7 +10,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.Menu;
@@ -22,8 +20,6 @@ import android.widget.Toast;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 
@@ -151,22 +147,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   }
 
   @Override
-  public void startDirectoryInitializationService(DirectoryStateReceiver receiver,
-          IntentFilter filter)
-  {
-    LocalBroadcastManager.getInstance(this).registerReceiver(
-            receiver,
-            filter);
-    DirectoryInitialization.start(this);
-  }
-
-  @Override
-  public void stopListeningToDirectoryInitializationService(DirectoryStateReceiver receiver)
-  {
-    LocalBroadcastManager.getInstance(this).unregisterReceiver(receiver);
-  }
-
-  @Override
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
@@ -196,20 +176,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
   public void hideLoading()
   {
     dialog.dismiss();
-  }
-
-  @Override
-  public void showPermissionNeededHint()
-  {
-    Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-            .show();
-  }
-
-  @Override
-  public void showExternalStorageNotMountedHint()
-  {
-    Toast.makeText(this, R.string.external_storage_not_mounted, Toast.LENGTH_SHORT)
-            .show();
   }
 
   @Override

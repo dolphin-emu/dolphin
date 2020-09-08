@@ -1,15 +1,13 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization.DirectoryInitializationState;
-import org.dolphinemu.dolphinemu.utils.DirectoryStateReceiver;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.util.HashSet;
@@ -25,7 +23,7 @@ public final class SettingsActivityPresenter
 
   private boolean mShouldSave;
 
-  private DirectoryStateReceiver directoryStateReceiver;
+  private AfterDirectoryInitializationRunner mAfterDirectoryInitializationRunner;
 
   private MenuTag menuTag;
   private String gameId;
@@ -85,33 +83,10 @@ public final class SettingsActivityPresenter
     else
     {
       mView.showLoading();
-      IntentFilter statusIntentFilter = new IntentFilter(
-              DirectoryInitialization.BROADCAST_ACTION);
 
-      directoryStateReceiver =
-              new DirectoryStateReceiver(directoryInitializationState ->
-              {
-                if (directoryInitializationState ==
-                        DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
-                {
-                  mView.hideLoading();
-                  loadSettingsUI();
-                }
-                else if (directoryInitializationState ==
-                        DirectoryInitializationState.EXTERNAL_STORAGE_PERMISSION_NEEDED)
-                {
-                  mView.showPermissionNeededHint();
-                  mView.hideLoading();
-                }
-                else if (directoryInitializationState ==
-                        DirectoryInitializationState.CANT_FIND_EXTERNAL_STORAGE)
-                {
-                  mView.showExternalStorageNotMountedHint();
-                  mView.hideLoading();
-                }
-              });
-
-      mView.startDirectoryInitializationService(directoryStateReceiver, statusIntentFilter);
+      mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
+      mAfterDirectoryInitializationRunner.setFinishedCallback(mView::hideLoading);
+      mAfterDirectoryInitializationRunner.run(context, true, this::loadSettingsUI);
     }
   }
 
@@ -128,10 +103,10 @@ public final class SettingsActivityPresenter
 
   public void onStop(boolean finishing)
   {
-    if (directoryStateReceiver != null)
+    if (mAfterDirectoryInitializationRunner != null)
     {
-      mView.stopListeningToDirectoryInitializationService(directoryStateReceiver);
-      directoryStateReceiver = null;
+      mAfterDirectoryInitializationRunner.cancel();
+      mAfterDirectoryInitializationRunner = null;
     }
 
     if (mSettings != null && finishing && mShouldSave)

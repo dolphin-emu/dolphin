@@ -75,7 +75,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
     if (PermissionsHandler.hasWriteAccess(this))
     {
       new AfterDirectoryInitializationRunner()
-              .run(this, this::setPlatformTabsAndStartGameFileCacheService);
+              .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
   }
 
@@ -216,7 +216,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
       {
         DirectoryInitialization.start(this);
         new AfterDirectoryInitializationRunner()
-                .run(this, this::setPlatformTabsAndStartGameFileCacheService);
+                .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
       }
       else
       {
