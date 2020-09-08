@@ -186,7 +186,6 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
             .setMessage(getString(R.string.game_ini_junk_question))
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> mPresenter.clearSettings())
             .setNegativeButton(R.string.no, null)
-            .create()
             .show();
   }
 

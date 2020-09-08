@@ -866,8 +866,7 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   public void chooseDoubleTapButton()
@@ -899,8 +898,7 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.initInputPointer();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void adjustScale()
@@ -947,8 +945,7 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseController()
@@ -977,8 +974,7 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.refreshInputOverlay();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void showMotionControlsOptions()
@@ -1006,8 +1002,7 @@ public final class EmulationActivity extends AppCompatActivity
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> editor.apply());
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void chooseOrientation()
@@ -1037,8 +1032,7 @@ public final class EmulationActivity extends AppCompatActivity
       updateOrientation();
     });
 
-    AlertDialog alertDialog = builder.create();
-    alertDialog.show();
+    builder.show();
   }
 
   private void setIRSensitivity()
@@ -1180,7 +1174,6 @@ public final class EmulationActivity extends AppCompatActivity
             .setNegativeButton(R.string.cancel, (dialogInterface, i) ->
             {
             })
-            .create()
             .show();
   }
 

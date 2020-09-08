@@ -68,7 +68,6 @@ public class PermissionsHandler
             .setNegativeButton(android.R.string.cancel, (dialogInterface, i) ->
                     Toast.makeText(activity, R.string.write_permission_needed, Toast.LENGTH_SHORT)
                             .show())
-            .create()
             .show();
   }
 }
