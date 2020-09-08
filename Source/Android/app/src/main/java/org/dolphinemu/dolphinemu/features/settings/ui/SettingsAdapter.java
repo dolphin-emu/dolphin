@@ -232,6 +232,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     builder.setTitle(item.getNameId());
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, this);
+    builder.setNeutralButton(R.string.default_value, (dialogInterface, i) ->
+    {
+      // Overridden below to prevent button from closing the dialog.
+      // This can make manipulating multiple sliders easier.
+    });
     mDialog = builder.show();
 
     mTextSliderValue = view.findViewById(R.id.text_value);
@@ -247,6 +252,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     seekbar.setKeyProgressIncrement(5);
 
     seekbar.setOnSeekBarChangeListener(this);
+
+    mDialog.getButton(AlertDialog.BUTTON_NEUTRAL)
+            .setOnClickListener(l -> seekbar.setProgress(item.getDefaultValue()));
   }
 
   public void onSubmenuClick(SubmenuSetting item)

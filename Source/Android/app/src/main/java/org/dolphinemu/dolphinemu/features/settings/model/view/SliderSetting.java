@@ -16,6 +16,8 @@ public abstract class SliderSetting extends SettingsItem
     mUnits = units;
   }
 
+  public abstract int getDefaultValue();
+
   public abstract int getSelectedValue(Settings settings);
 
   public int getMax()

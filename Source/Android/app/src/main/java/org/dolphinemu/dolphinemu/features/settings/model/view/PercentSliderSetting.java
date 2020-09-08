@@ -11,6 +11,12 @@ public final class PercentSliderSetting extends FloatSliderSetting
   }
 
   @Override
+  public int getDefaultValue()
+  {
+    return Math.round(mDefaultValue * 100);
+  }
+
+  @Override
   public int getSelectedValue(Settings settings)
   {
     float value = settings.getSection(getFile(), getSection()).getFloat(getKey(), mDefaultValue);

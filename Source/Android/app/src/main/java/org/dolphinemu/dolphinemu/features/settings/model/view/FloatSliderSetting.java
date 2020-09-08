@@ -13,6 +13,12 @@ public class FloatSliderSetting extends SliderSetting
     mDefaultValue = defaultValue;
   }
 
+  @Override
+  public int getDefaultValue()
+  {
+    return Math.round(mDefaultValue);
+  }
+
   public int getSelectedValue(Settings settings)
   {
     float value = settings.getSection(getFile(), getSection()).getFloat(getKey(), mDefaultValue);

@@ -13,6 +13,12 @@ public final class IntSliderSetting extends SliderSetting
     mDefaultValue = defaultValue;
   }
 
+  @Override
+  public int getDefaultValue()
+  {
+    return mDefaultValue;
+  }
+
   public int getSelectedValue(Settings settings)
   {
     return settings.getSection(getFile(), getSection()).getInt(getKey(), mDefaultValue);
