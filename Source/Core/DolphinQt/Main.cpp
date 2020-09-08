@@ -14,12 +14,13 @@
 #include <QPushButton>
 #include <QWidget>
 
+#include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Host.h"
@@ -231,7 +232,7 @@ int main(int argc, char* argv[])
     win.Show();
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!SConfig::GetInstance().m_analytics_permission_asked)
+    if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
       ModalMessageBox analytics_prompt(&win);
 
@@ -253,7 +254,7 @@ int main(int argc, char* argv[])
 
       const int answer = analytics_prompt.exec();
 
-      SConfig::GetInstance().m_analytics_permission_asked = true;
+      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
       Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance().ReloadConfig();
