@@ -119,7 +119,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  MMIO::ComplexWrite<u32>([](u32, u32 val) {
                    m_ResetCode = val;
                    INFO_LOG(PROCESSORINTERFACE, "Wrote PI_RESET_CODE: %08x", m_ResetCode);
-                   if (~m_ResetCode & 0x4)
+                   if (!SConfig::GetInstance().bWii && ~m_ResetCode & 0x4)
                    {
                      DVDInterface::ResetDrive(true);
                    }
