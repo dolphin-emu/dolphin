@@ -49,7 +49,7 @@ if(ENABLE_PULSEAUDIO)
   # PulseAudio ships with a PulseAudioConfig.cmake with no imported target
   # So we use our own FindPulseAudio instead with "MODULE"
   find_package(PulseAudio MODULE QUIET)
-  if(PULSEAUDIO_FOUND)
+  if(PulseAudio_FOUND)
     message(STATUS "PulseAudio found, enabling PulseAudio sound backend")
     target_sources(audiocommon PRIVATE
       PulseAudioStream.cpp

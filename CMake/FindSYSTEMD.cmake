@@ -1,5 +1,6 @@
-include(FindPkgConfig)
+find_package(PkgConfig QUIET)
 pkg_check_modules(PC_SYSTEMD QUIET "libsystemd")
+
 if (PC_SYSTEMD_FOUND)
 	add_definitions(${PC_SYSTEMD_CFLAGS} ${PC_SYSTEMD_CFLAGS_OTHER})
 endif(PC_SYSTEMD_FOUND)
