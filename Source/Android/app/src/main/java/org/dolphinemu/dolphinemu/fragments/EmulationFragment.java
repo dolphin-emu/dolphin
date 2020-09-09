@@ -19,7 +19,6 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
-import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -33,8 +32,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   private InputOverlay mInputOverlay;
 
   private EmulationState mEmulationState;
-
-  private AfterDirectoryInitializationRunner mAfterDirectoryInitializationRunner;
 
   private EmulationActivity activity;
 
@@ -109,21 +106,12 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   public void onResume()
   {
     super.onResume();
-
-    mAfterDirectoryInitializationRunner = new AfterDirectoryInitializationRunner();
-    mAfterDirectoryInitializationRunner.run(requireContext(), true,
-            () -> mEmulationState.run(activity.isActivityRecreated()));
+    mEmulationState.run(activity.isActivityRecreated());
   }
 
   @Override
   public void onPause()
   {
-    if (mAfterDirectoryInitializationRunner != null)
-    {
-      mAfterDirectoryInitializationRunner.cancel();
-      mAfterDirectoryInitializationRunner = null;
-    }
-
     if (mEmulationState.isRunning())
       mEmulationState.pause();
     super.onPause();

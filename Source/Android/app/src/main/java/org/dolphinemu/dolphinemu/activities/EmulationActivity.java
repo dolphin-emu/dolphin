@@ -45,6 +45,7 @@ import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.IniFile;
@@ -188,7 +189,9 @@ public final class EmulationActivity extends AppCompatActivity
     launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
     launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
     launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    activity.startActivity(launcher);
+
+    new AfterDirectoryInitializationRunner().run(activity, true,
+            () -> activity.startActivity(launcher));
   }
 
   public static void launchFile(FragmentActivity activity, String[] filePaths)
@@ -225,7 +228,8 @@ public final class EmulationActivity extends AppCompatActivity
       launcher.putExtra(EXTRA_PLATFORM, Platform.GAMECUBE);
     }
 
-    activity.startActivity(launcher);
+    new AfterDirectoryInitializationRunner().run(activity, true,
+            () -> activity.startActivity(launcher));
   }
 
   public static void stopIgnoringLaunchRequests()
