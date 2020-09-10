@@ -286,6 +286,10 @@ enum Bug
   // Mali Vulkan driver, causing high CPU usage in the __pi___inval_cache_range kernel
   // function. This flag causes readback buffers to select the coherent type.
   BUG_SLOW_CACHED_READBACK_MEMORY,
+
+  // BUG: GPU Texture Decoding produces a spectacular mess or just outright crashes when using
+  // Vulkan on macOS through MoltenVK.
+  BUG_BROKEN_GPU_TEXTURE_DECODING,
 };
 
 // Initializes our internal vendor, device family, and driver version
