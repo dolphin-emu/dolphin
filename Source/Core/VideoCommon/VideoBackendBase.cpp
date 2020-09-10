@@ -68,8 +68,11 @@ static VideoBackendBase* s_default_backend = nullptr;
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
 // performance graphics mode or using the IGP.
+// AMD drivers >= 13.35 do the same, but for the variable
+// named AmdPowerXpressRequestHighPerformance instead.
 extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
