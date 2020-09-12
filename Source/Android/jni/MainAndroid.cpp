@@ -344,6 +344,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenSh
   Core::SaveScreenShot();
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateSpeedLimit(JNIEnv* env,
+                                                                                     jobject obj,
+                                                                                     jfloat Value)
+{
+  SConfig::GetInstance().m_EmulationSpeed = Value;
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(JNIEnv* env,
                                                                                jobject obj,
                                                                                jint api)

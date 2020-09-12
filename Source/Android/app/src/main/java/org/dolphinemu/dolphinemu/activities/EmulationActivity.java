@@ -101,7 +101,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS})
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS, MENU_ACTION_SPEED_LIMIT})
   public @interface MenuAction
   {
   }
@@ -140,6 +140,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_PAUSE_EMULATION = 31;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
   public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
+  public static final int MENU_ACTION_SPEED_LIMIT = 34;
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -641,6 +642,10 @@ public final class EmulationActivity extends AppCompatActivity
         showMotionControlsOptions();
         return;
 
+      case MENU_ACTION_SPEED_LIMIT:
+        chooseSpeedLimit();
+        return;
+
       case MENU_ACTION_EXIT:
         mEmulationFragment.stopEmulation();
         finish();
@@ -1058,6 +1063,58 @@ public final class EmulationActivity extends AppCompatActivity
     {
       // Do nothing
     });
+    builder.show();
+  }
+
+  private void chooseSpeedLimit()
+  {
+    LayoutInflater inflater = LayoutInflater.from(this);
+    View view = inflater.inflate(R.layout.dialog_seekbar, null);
+
+    final SeekBar seekbar = view.findViewById(R.id.seekbar);
+    final TextView value = view.findViewById(R.id.text_value);
+    final TextView units = view.findViewById(R.id.text_units);
+
+    File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
+    IniFile dolphinIni = new IniFile(dolphinFile);
+
+    seekbar.setMax(200);
+    seekbar.setProgress(Math.round(dolphinIni.getFloat(
+            Settings.SECTION_INI_CORE, SettingsFile.KEY_SPEED_LIMIT, 1.0f) * 100));
+    seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+    {
+      public void onStartTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+
+      public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+      {
+        value.setText(String.valueOf(progress));
+      }
+
+      public void onStopTrackingTouch(SeekBar seekBar)
+      {
+        // Do nothing
+      }
+    });
+
+    value.setText(String.valueOf(seekbar.getProgress()));
+    units.setText("%");
+
+    AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
+    builder.setTitle(R.string.speed_limit);
+    builder.setView(view);
+    builder.setPositiveButton(getString(R.string.ok), (dialogInterface, i) ->
+    {
+      float slValue = seekbar.getProgress() / 100.0f;
+
+      dolphinIni.setFloat(Settings.SECTION_INI_CORE, SettingsFile.KEY_SPEED_LIMIT, slValue);
+      dolphinIni.save(dolphinFile);
+
+      NativeLibrary.UpdateSpeedLimit(slValue);
+    });
+
     builder.show();
   }
 

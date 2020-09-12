@@ -46,6 +46,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             .append(R.id.menu_overlay_controls, EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS);
     buttonsActionsMap
             .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
+    buttonsActionsMap.append(R.id.menu_speed_limit, EmulationActivity.MENU_ACTION_SPEED_LIMIT);
     buttonsActionsMap
             .append(R.id.menu_screen_orientation, EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);

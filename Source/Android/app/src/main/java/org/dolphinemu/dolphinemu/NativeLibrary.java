@@ -288,6 +288,8 @@ public final class NativeLibrary
    */
   public static native void SaveScreenShot();
 
+  public static native void UpdateSpeedLimit(float Value);
+
   /**
    * Saves a game state to the slot number.
    *
