@@ -5,8 +5,8 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.graphics.Rect;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
@@ -23,8 +23,10 @@ import android.widget.Toast;
 
 import androidx.annotation.IntDef;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.PopupMenu;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentActivity;
 import androidx.fragment.app.FragmentManager;
@@ -62,16 +64,12 @@ public final class EmulationActivity extends AppCompatActivity
   private static final String BACKSTACK_NAME_SUBMENU = "submenu";
   public static final int REQUEST_CHANGE_DISC = 1;
 
-  private View mDecorView;
   private EmulationFragment mEmulationFragment;
 
   private SharedPreferences mPreferences;
   private MotionListener mMotionListener;
 
   private Settings mSettings;
-
-  private MenuItem mPauseEmulationButton;
-  private MenuItem mUnpauseEmulationButton;
 
   private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
@@ -85,7 +83,6 @@ public final class EmulationActivity extends AppCompatActivity
   private int mPlatform;
   private String[] mPaths;
   private static boolean sUserPausedEmulation;
-  private boolean backPressedOnce = false;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
@@ -104,7 +101,7 @@ public final class EmulationActivity extends AppCompatActivity
           MENU_ACTION_LOAD_SLOT6, MENU_ACTION_EXIT, MENU_ACTION_CHANGE_DISC,
           MENU_ACTION_RESET_OVERLAY, MENU_SET_IR_SENSITIVITY, MENU_ACTION_CHOOSE_DOUBLETAP,
           MENU_ACTION_SCREEN_ORIENTATION, MENU_ACTION_MOTION_CONTROLS, MENU_ACTION_PAUSE_EMULATION,
-          MENU_ACTION_UNPAUSE_EMULATION})
+          MENU_ACTION_UNPAUSE_EMULATION, MENU_ACTION_OVERLAY_CONTROLS})
   public @interface MenuAction
   {
   }
@@ -142,7 +139,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_MOTION_CONTROLS = 30;
   public static final int MENU_ACTION_PAUSE_EMULATION = 31;
   public static final int MENU_ACTION_UNPAUSE_EMULATION = 32;
-
+  public static final int MENU_ACTION_OVERLAY_CONTROLS = 33;
 
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -156,33 +153,6 @@ public final class EmulationActivity extends AppCompatActivity
             .append(R.id.menu_emulation_adjust_scale, EmulationActivity.MENU_ACTION_ADJUST_SCALE);
     buttonsActionsMap.append(R.id.menu_emulation_choose_controller,
             EmulationActivity.MENU_ACTION_CHOOSE_CONTROLLER);
-    buttonsActionsMap
-            .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_pause, EmulationActivity.MENU_ACTION_PAUSE_EMULATION);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_unpause, EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_screenshot, EmulationActivity.MENU_ACTION_TAKE_SCREENSHOT);
-
-    buttonsActionsMap.append(R.id.menu_quicksave, EmulationActivity.MENU_ACTION_QUICK_SAVE);
-    buttonsActionsMap.append(R.id.menu_quickload, EmulationActivity.MENU_ACTION_QUICK_LOAD);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_save_root, EmulationActivity.MENU_ACTION_SAVE_ROOT);
-    buttonsActionsMap
-            .append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
-    buttonsActionsMap.append(R.id.menu_emulation_save_1, EmulationActivity.MENU_ACTION_SAVE_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_save_2, EmulationActivity.MENU_ACTION_SAVE_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_save_3, EmulationActivity.MENU_ACTION_SAVE_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_save_4, EmulationActivity.MENU_ACTION_SAVE_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_save_5, EmulationActivity.MENU_ACTION_SAVE_SLOT5);
-    buttonsActionsMap.append(R.id.menu_emulation_load_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
-    buttonsActionsMap.append(R.id.menu_emulation_load_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
-    buttonsActionsMap.append(R.id.menu_emulation_load_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
-    buttonsActionsMap.append(R.id.menu_emulation_load_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
-    buttonsActionsMap.append(R.id.menu_emulation_load_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
-    buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
-    buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_emulation_joystick_rel_center,
             EmulationActivity.MENU_ACTION_JOYSTICK_REL_CENTER);
     buttonsActionsMap.append(R.id.menu_emulation_rumble, EmulationActivity.MENU_ACTION_RUMBLE);
@@ -192,8 +162,6 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_SET_IR_SENSITIVITY);
     buttonsActionsMap.append(R.id.menu_emulation_choose_doubletap,
             EmulationActivity.MENU_ACTION_CHOOSE_DOUBLETAP);
-    buttonsActionsMap.append(R.id.menu_screen_orientation,
-            EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_emulation_motion_controls,
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
@@ -317,33 +285,10 @@ public final class EmulationActivity extends AppCompatActivity
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
 
-    int themeId;
-    if (mDeviceHasTouchScreen)
-    {
-      themeId = R.style.DolphinEmulationBase;
+    // Set these options now so that the SurfaceView the game renders into is the right size.
+    enableFullscreenImmersive();
 
-      // Get a handle to the Window containing the UI.
-      mDecorView = getWindow().getDecorView();
-      mDecorView.setOnSystemUiVisibilityChangeListener(visibility ->
-      {
-        if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN) == 0)
-        {
-          // Go back to immersive fullscreen mode in 3s
-          Handler handler = new Handler(getMainLooper());
-          handler.postDelayed(this::enableFullscreenImmersive, 3000 /* 3s */);
-        }
-      });
-      // Set these options now so that the SurfaceView the game renders into is the right size.
-      enableFullscreenImmersive();
-      Toast.makeText(this, getString(R.string.emulation_touch_button_help), Toast.LENGTH_LONG)
-              .show();
-    }
-    else
-    {
-      themeId = R.style.DolphinEmulationTvBase;
-    }
-
-    setTheme(themeId);
+    Toast.makeText(this, getString(R.string.emulation_menu_help), Toast.LENGTH_LONG).show();
 
     Rumble.initRumble(this);
 
@@ -360,10 +305,7 @@ public final class EmulationActivity extends AppCompatActivity
               .commit();
     }
 
-    if (mDeviceHasTouchScreen)
-    {
-      setTitle(mSelectedTitle);
-    }
+    setTitle(mSelectedTitle);
   }
 
   @Override
@@ -391,9 +333,19 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   @Override
+  public void onWindowFocusChanged(boolean hasFocus)
+  {
+    if (hasFocus)
+    {
+      enableFullscreenImmersive();
+    }
+  }
+
+  @Override
   protected void onResume()
   {
     super.onResume();
+
     if (!sIsGameCubeGame && mPreferences.getInt("motionControlsEnabled", 0) != 2)
       mMotionListener.enable();
   }
@@ -414,29 +366,22 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public void onBackPressed()
   {
-    if (!mDeviceHasTouchScreen)
+    if (!closeSubmenu())
     {
-      boolean popResult = getSupportFragmentManager().popBackStackImmediate(
-              BACKSTACK_NAME_SUBMENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-      if (!popResult)
-      {
-        toggleMenu();
-      }
+      toggleMenu();
     }
-    else
+  }
+
+  @Override
+  public boolean onKeyLongPress(int keyCode, @NonNull KeyEvent event)
+  {
+    if (keyCode == KeyEvent.KEYCODE_BACK)
     {
-      if (backPressedOnce)
-      {
-        mEmulationFragment.stopEmulation();
-        finish();
-      }
-      else
-      {
-        backPressedOnce = true;
-        Toast.makeText(this, "Press back again to exit", Toast.LENGTH_LONG).show();
-        new Handler().postDelayed(() -> backPressedOnce = false, 3000);
-      }
+      mEmulationFragment.stopEmulation();
+      finish();
+      return true;
     }
+    return super.onKeyLongPress(keyCode, event);
   }
 
   @Override
@@ -459,14 +404,13 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void enableFullscreenImmersive()
   {
-    // It would be nice to use IMMERSIVE_STICKY, but that doesn't show the toolbar.
-    mDecorView.setSystemUiVisibility(
+    getWindow().getDecorView().setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_LAYOUT_STABLE |
                     View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN |
                     View.SYSTEM_UI_FLAG_HIDE_NAVIGATION |
                     View.SYSTEM_UI_FLAG_FULLSCREEN |
-                    View.SYSTEM_UI_FLAG_IMMERSIVE);
+                    View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
   }
 
   private void updateOrientation()
@@ -475,13 +419,22 @@ public final class EmulationActivity extends AppCompatActivity
             ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE));
   }
 
+  private boolean closeSubmenu()
+  {
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_SUBMENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
+  private boolean closeMenu()
+  {
+    mMenuVisible = false;
+    return getSupportFragmentManager().popBackStackImmediate(BACKSTACK_NAME_MENU,
+            FragmentManager.POP_BACK_STACK_INCLUSIVE);
+  }
+
   private void toggleMenu()
   {
-    boolean result = getSupportFragmentManager().popBackStackImmediate(
-            BACKSTACK_NAME_MENU, FragmentManager.POP_BACK_STACK_INCLUSIVE);
-    mMenuVisible = false;
-
-    if (!result)
+    if (!closeMenu())
     {
       // Removing the menu failed, so that means it wasn't visible. Add it.
       Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
@@ -498,35 +451,13 @@ public final class EmulationActivity extends AppCompatActivity
     }
   }
 
-  @Override
-  public boolean onCreateOptionsMenu(Menu menu)
+  public void showOverlayControlsMenu(@NonNull View anchor)
   {
-    // Inflate the menu; this adds items to the action bar if it is present.
-    if (sIsGameCubeGame)
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation, menu);
-    }
-    else
-    {
-      getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
-    }
+    PopupMenu popup = new PopupMenu(this, anchor);
+    Menu menu = popup.getMenu();
 
-    mPauseEmulationButton = menu.findItem(R.id.menu_emulation_pause);
-    mUnpauseEmulationButton = menu.findItem(R.id.menu_emulation_unpause);
-
-    if (sUserPausedEmulation)
-    {
-      showUnpauseEmulationButton();
-    }
-
-    if (mSettings.getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
-            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false))
-    {
-      menu.findItem(R.id.menu_quicksave).setVisible(true);
-      menu.findItem(R.id.menu_quickload).setVisible(true);
-      menu.findItem(R.id.menu_emulation_save_root).setVisible(true);
-      menu.findItem(R.id.menu_emulation_load_root).setVisible(true);
-    }
+    int id = sIsGameCubeGame ? R.menu.menu_overlay_controls_gc : R.menu.menu_overlay_controls_wii;
+    popup.getMenuInflater().inflate(id, menu);
 
     // Populate the checkbox value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
@@ -534,7 +465,9 @@ public final class EmulationActivity extends AppCompatActivity
     menu.findItem(R.id.menu_emulation_rumble)
             .setChecked(mPreferences.getBoolean("phoneRumble", true));
 
-    return true;
+    popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
+
+    popup.show();
   }
 
   @SuppressWarnings("WrongConstant")
@@ -608,13 +541,11 @@ public final class EmulationActivity extends AppCompatActivity
       case MENU_ACTION_PAUSE_EMULATION:
         sUserPausedEmulation = true;
         NativeLibrary.PauseEmulation();
-        showUnpauseEmulationButton();
         return;
 
       case MENU_ACTION_UNPAUSE_EMULATION:
         sUserPausedEmulation = false;
         NativeLibrary.UnPauseEmulation();
-        showPauseEmulationButton();
         return;
 
       // Screenshot capturing
@@ -631,19 +562,12 @@ public final class EmulationActivity extends AppCompatActivity
         NativeLibrary.LoadState(9);
         return;
 
-      // TV Menu only
       case MENU_ACTION_SAVE_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
-        }
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
         return;
 
       case MENU_ACTION_LOAD_ROOT:
-        if (!mDeviceHasTouchScreen)
-        {
-          showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
-        }
+        showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
         return;
 
       // Save state slots
@@ -718,35 +642,15 @@ public final class EmulationActivity extends AppCompatActivity
         return;
 
       case MENU_ACTION_EXIT:
-        // ATV menu is built using a fragment, this will pop that fragment before emulation ends.
-        if (TvUtil.isLeanback(getApplicationContext()))
-          toggleMenu();  // Hide the menu (it will be showing since we just clicked it)
         mEmulationFragment.stopEmulation();
         finish();
         return;
     }
   }
 
-  private void showPauseEmulationButton()
-  {
-    mUnpauseEmulationButton.setVisible(false);
-    mPauseEmulationButton.setVisible(true);
-  }
-
-  private void showUnpauseEmulationButton()
-  {
-    mPauseEmulationButton.setVisible(false);
-    mUnpauseEmulationButton.setVisible(true);
-  }
-
   public static boolean getHasUserPausedEmulation()
   {
     return sUserPausedEmulation;
-  }
-
-  public static void setHasUserPausedEmulation(boolean value)
-  {
-    sUserPausedEmulation = value;
   }
 
   private void toggleJoystickRelCenter(boolean state)
@@ -764,7 +668,6 @@ public final class EmulationActivity extends AppCompatActivity
     Rumble.setPhoneVibrator(state, this);
   }
 
-
   private void editControlsPlacement()
   {
     if (mEmulationFragment.isConfiguringControls())
@@ -773,6 +676,8 @@ public final class EmulationActivity extends AppCompatActivity
     }
     else
     {
+      closeSubmenu();
+      closeMenu();
       mEmulationFragment.startConfiguringControls();
     }
   }
@@ -781,7 +686,7 @@ public final class EmulationActivity extends AppCompatActivity
   @Override
   public boolean dispatchKeyEvent(KeyEvent event)
   {
-    if (mMenuVisible)
+    if (mMenuVisible || event.getKeyCode() == KeyEvent.KEYCODE_BACK)
     {
       return super.dispatchKeyEvent(event);
     }
@@ -791,14 +696,6 @@ public final class EmulationActivity extends AppCompatActivity
     switch (event.getAction())
     {
       case KeyEvent.ACTION_DOWN:
-        // Handling the case where the back button is pressed.
-        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-        {
-          onBackPressed();
-          return true;
-        }
-
-        // Normal key events.
         action = NativeLibrary.ButtonState.PRESSED;
         break;
       case KeyEvent.ACTION_UP:
@@ -1174,6 +1071,52 @@ public final class EmulationActivity extends AppCompatActivity
             {
             })
             .show();
+  }
+
+  private static boolean areCoordinatesOutside(@Nullable View view, float x, float y)
+  {
+    if (view == null)
+    {
+      return true;
+    }
+
+    Rect viewBounds = new Rect();
+    view.getGlobalVisibleRect(viewBounds);
+    return !viewBounds.contains(Math.round(x), Math.round(y));
+  }
+
+  @Override
+  public boolean dispatchTouchEvent(MotionEvent event)
+  {
+    if (event.getActionMasked() == MotionEvent.ACTION_DOWN)
+    {
+      boolean anyMenuClosed = false;
+
+      Fragment submenu = getSupportFragmentManager().findFragmentById(R.id.frame_submenu);
+      if (submenu != null && areCoordinatesOutside(submenu.getView(), event.getX(), event.getY()))
+      {
+        closeSubmenu();
+        submenu = null;
+        anyMenuClosed = true;
+      }
+
+      if (submenu == null)
+      {
+        Fragment menu = getSupportFragmentManager().findFragmentById(R.id.frame_menu);
+        if (menu != null && areCoordinatesOutside(menu.getView(), event.getX(), event.getY()))
+        {
+          closeMenu();
+          anyMenuClosed = true;
+        }
+      }
+
+      if (anyMenuClosed)
+      {
+        return true;
+      }
+    }
+
+    return super.dispatchTouchEvent(event);
   }
 
   @Override

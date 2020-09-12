@@ -1,5 +1,7 @@
 package org.dolphinemu.dolphinemu.fragments;
 
+import android.content.pm.PackageManager;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -19,8 +21,10 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
+  private TextView mTitleText;
   private View mPauseEmulation;
   private View mUnpauseEmulation;
+
   private static final String KEY_TITLE = "title";
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
@@ -39,7 +43,11 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     buttonsActionsMap
             .append(R.id.menu_emulation_load_root, EmulationActivity.MENU_ACTION_LOAD_ROOT);
     buttonsActionsMap
+            .append(R.id.menu_overlay_controls, EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS);
+    buttonsActionsMap
             .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
+    buttonsActionsMap
+            .append(R.id.menu_screen_orientation, EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
   }
@@ -55,6 +63,14 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     return fragment;
   }
 
+  // This is primarily intended to account for any navigation bar at the bottom of the screen
+  private int getBottomPaddingRequired()
+  {
+    Rect visibleFrame = new Rect();
+    requireActivity().getWindow().getDecorView().getWindowVisibleDisplayFrame(visibleFrame);
+    return visibleFrame.bottom - visibleFrame.top - getResources().getDisplayMetrics().heightPixels;
+  }
+
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
   {
@@ -65,10 +81,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     mPauseEmulation = options.findViewById(R.id.menu_pause_emulation);
     mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
 
-    if (EmulationActivity.getHasUserPausedEmulation())
-    {
-      showUnpauseEmulationButton();
-    }
+    updatePauseUnpauseVisibility();
 
     boolean enableSaveStates = ((EmulationActivity) getActivity()).getSettings()
             .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
@@ -82,6 +95,41 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       options.findViewById(R.id.menu_emulation_load_root).setVisibility(View.VISIBLE);
     }
 
+    PackageManager packageManager = requireActivity().getPackageManager();
+
+    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
+    {
+      options.findViewById(R.id.menu_overlay_controls).setVisibility(View.GONE);
+    }
+
+    if (EmulationActivity.isGameCubeGame())
+    {
+      options.findViewById(R.id.menu_refresh_wiimotes).setVisibility(View.GONE);
+    }
+
+    // Old devices which support both portrait and landscape may report support for neither,
+    // so we only hide the orientation button if the device only supports one orientation
+    if (packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT) !=
+            packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE))
+    {
+      options.findViewById(R.id.menu_screen_orientation).setVisibility(View.GONE);
+    }
+
+    int bottomPaddingRequired = getBottomPaddingRequired();
+
+    // Provide a safe zone between the navigation bar and Exit Emulation to avoid accidental touches
+    float density = getResources().getDisplayMetrics().density;
+    if (bottomPaddingRequired >= 32 * density)
+    {
+      bottomPaddingRequired += 32 * density;
+    }
+
+    if (bottomPaddingRequired > rootView.getPaddingBottom())
+    {
+      rootView.setPadding(rootView.getPaddingLeft(), rootView.getPaddingTop(),
+              rootView.getPaddingRight(), bottomPaddingRequired);
+    }
+
     for (int childIndex = 0; childIndex < options.getChildCount(); childIndex++)
     {
       Button button = (Button) options.getChildAt(childIndex);
@@ -89,26 +137,24 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       button.setOnClickListener(this);
     }
 
-    TextView titleText = rootView.findViewById(R.id.text_game_title);
+    rootView.findViewById(R.id.menu_exit).setOnClickListener(this);
+
+    mTitleText = rootView.findViewById(R.id.text_game_title);
     String title = getArguments().getString(KEY_TITLE);
     if (title != null)
     {
-      titleText.setText(title);
+      mTitleText.setText(title);
     }
 
     return rootView;
   }
 
-  private void showPauseEmulationButton()
+  private void updatePauseUnpauseVisibility()
   {
-    mUnpauseEmulation.setVisibility(View.GONE);
-    mPauseEmulation.setVisibility(View.VISIBLE);
-  }
+    boolean paused = EmulationActivity.getHasUserPausedEmulation();
 
-  private void showUnpauseEmulationButton()
-  {
-    mPauseEmulation.setVisibility(View.GONE);
-    mUnpauseEmulation.setVisibility(View.VISIBLE);
+    mUnpauseEmulation.setVisibility(paused ? View.VISIBLE : View.GONE);
+    mPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
   }
 
   @SuppressWarnings("WrongConstant")
@@ -116,21 +162,23 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   public void onClick(View button)
   {
     int action = buttonsActionsMap.get(button.getId());
-    if (action == EmulationActivity.MENU_ACTION_PAUSE_EMULATION)
+    EmulationActivity activity = (EmulationActivity) requireActivity();
+
+    if (action == EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS)
     {
-      EmulationActivity.setHasUserPausedEmulation(true);
-      NativeLibrary.PauseEmulation();
-      showUnpauseEmulationButton();
-    }
-    else if (action == EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION)
-    {
-      EmulationActivity.setHasUserPausedEmulation(false);
-      NativeLibrary.UnPauseEmulation();
-      showPauseEmulationButton();
+      // We could use the button parameter as the anchor here, but this often results in a tiny menu
+      // (because the button often is in the middle of the screen), so let's use mTitleText instead
+      activity.showOverlayControlsMenu(mTitleText);
     }
     else if (action >= 0)
     {
-      ((EmulationActivity) getActivity()).handleMenuAction(action);
+      activity.handleMenuAction(action);
+    }
+
+    if (action == EmulationActivity.MENU_ACTION_PAUSE_EMULATION ||
+            action == EmulationActivity.MENU_ACTION_UNPAUSE_EMULATION)
+    {
+      updatePauseUnpauseVisibility();
     }
   }
 }
