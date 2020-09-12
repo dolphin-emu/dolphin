@@ -409,7 +409,9 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
 
     mCanceled = false;
 
-    ProgressDialog progressDialog = new ProgressDialog(context, R.style.DolphinDialogBase);
+    // For some reason, setting R.style.DolphinDialogBase as the theme here gives us white text
+    // on a white background when the device is set to dark mode, so let's not set a theme.
+    ProgressDialog progressDialog = new ProgressDialog(context);
 
     progressDialog.setTitle(R.string.convert_converting);
 
