@@ -127,9 +127,9 @@ QGroupBox* PathPane::MakeGameFolderBox()
   m_path_list = new QListWidget;
   m_path_list->insertItems(0, Settings::Instance().GetPaths());
   m_path_list->setSpacing(1);
-  connect(&Settings::Instance(), &Settings::PathAdded,
+  connect(&Settings::Instance(), &Settings::PathAdded, this,
           [this](const QString& dir) { m_path_list->addItem(dir); });
-  connect(&Settings::Instance(), &Settings::PathRemoved, [this](const QString& dir) {
+  connect(&Settings::Instance(), &Settings::PathRemoved, this, [this](const QString& dir) {
     auto items = m_path_list->findItems(dir, Qt::MatchExactly);
     for (auto& item : items)
       delete item;
@@ -182,7 +182,7 @@ QGridLayout* PathPane::MakePathsLayout()
   m_game_edit = new QLineEdit(Settings::Instance().GetDefaultGame());
   connect(m_game_edit, &QLineEdit::editingFinished,
           [this] { Settings::Instance().SetDefaultGame(m_game_edit->text()); });
-  connect(&Settings::Instance(), &Settings::DefaultGameChanged,
+  connect(&Settings::Instance(), &Settings::DefaultGameChanged, this,
           [this](const QString& path) { m_game_edit->setText(path); });
   QPushButton* game_open = new QPushButton(QStringLiteral("..."));
   connect(game_open, &QPushButton::clicked, this, &PathPane::BrowseDefaultGame);

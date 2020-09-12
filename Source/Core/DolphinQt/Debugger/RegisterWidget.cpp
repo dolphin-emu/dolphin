@@ -41,10 +41,10 @@ RegisterWidget::RegisterWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &RegisterWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::RegistersVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsRegistersVisible());
   });
 }

@@ -37,7 +37,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
-  connect(&Settings::Instance(), &Settings::AutoRefreshToggled, [] {
+  connect(&Settings::Instance(), &Settings::AutoRefreshToggled, this, [] {
     const auto paths = Settings::Instance().GetPaths();
 
     for (const auto& path : paths)
@@ -47,7 +47,7 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, [this] {
+  connect(&Settings::Instance(), &Settings::MetadataRefreshRequested, this, [this] {
     m_load_thread.EmplaceItem(Command{CommandType::UpdateMetadata, {}});
   });
 
