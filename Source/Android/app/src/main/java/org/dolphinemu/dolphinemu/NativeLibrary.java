@@ -431,6 +431,10 @@ public final class NativeLibrary
 
   public static native String FormatSize(long bytes, int decimals);
 
+  public static native void SetObscuredPixelsLeft(int width);
+
+  public static native void SetObscuredPixelsTop(int height);
+
   private static boolean alertResult = false;
 
   public static boolean displayAlertMsg(final String caption, final String text,

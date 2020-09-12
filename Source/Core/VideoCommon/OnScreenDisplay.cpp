@@ -5,6 +5,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 
 #include <algorithm>
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <string>
@@ -23,6 +24,9 @@ namespace OSD
 constexpr float LEFT_MARGIN = 10.0f;    // Pixels to the left of OSD messages.
 constexpr float TOP_MARGIN = 10.0f;     // Pixels above the first OSD message.
 constexpr float WINDOW_PADDING = 4.0f;  // Pixels between subsequent OSD messages.
+
+static std::atomic<int> s_obscured_pixels_left = 0;
+static std::atomic<int> s_obscured_pixels_top = 0;
 
 struct Message
 {
@@ -97,8 +101,9 @@ void DrawMessages()
 {
   const bool draw_messages = Config::Get(Config::MAIN_OSD_MESSAGES);
   const u32 now = Common::Timer::GetTimeMs();
-  const float current_x = LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x;
-  float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y;
+  const float current_x =
+      LEFT_MARGIN * ImGui::GetIO().DisplayFramebufferScale.x + s_obscured_pixels_left;
+  float current_y = TOP_MARGIN * ImGui::GetIO().DisplayFramebufferScale.y + s_obscured_pixels_top;
   int index = 0;
 
   std::lock_guard lock{s_messages_mutex};
@@ -128,4 +133,15 @@ void ClearMessages()
   std::lock_guard lock{s_messages_mutex};
   s_messages.clear();
 }
+
+void SetObscuredPixelsLeft(int width)
+{
+  s_obscured_pixels_left = width;
+}
+
+void SetObscuredPixelsTop(int height)
+{
+  s_obscured_pixels_top = height;
+}
+
 }  // namespace OSD

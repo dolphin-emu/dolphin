@@ -137,6 +137,11 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       mTitleText.setText(title);
     }
 
+    if (getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_LTR)
+    {
+      rootView.post(() -> NativeLibrary.SetObscuredPixelsLeft(rootView.getWidth()));
+    }
+
     return rootView;
   }
 
@@ -154,6 +159,14 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     options.findViewById(R.id.menu_quickload).setVisibility(savestateVisibility);
     options.findViewById(R.id.menu_emulation_save_root).setVisibility(savestateVisibility);
     options.findViewById(R.id.menu_emulation_load_root).setVisibility(savestateVisibility);
+  }
+
+  @Override
+  public void onDestroyView()
+  {
+    super.onDestroyView();
+
+    NativeLibrary.SetObscuredPixelsLeft(0);
   }
 
   private void updatePauseUnpauseVisibility()
