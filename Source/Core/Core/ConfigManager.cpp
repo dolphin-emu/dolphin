@@ -836,6 +836,9 @@ struct SetGameMetadata
 
     // Strip the .elf/.dol file extension and directories before the name
     SplitPath(executable.path, nullptr, &config->m_debugger_game_id, nullptr);
+
+    Host_TitleChanged();
+
     return true;
   }
 
@@ -881,6 +884,8 @@ struct SetGameMetadata
   {
     *region = ipl.region;
     config->bWii = false;
+    Host_TitleChanged();
+
     return true;
   }
 
@@ -892,6 +897,8 @@ struct SetGameMetadata
 
     *region = DiscIO::Region::NTSC_U;
     config->bWii = dff_file->GetIsWii();
+    Host_TitleChanged();
+
     return true;
   }
 
