@@ -80,7 +80,16 @@ public final class MainActivity extends AppCompatActivity implements MainView
   protected void onResume()
   {
     super.onResume();
+
+    if (DirectoryInitialization.shouldStart(this))
+    {
+      DirectoryInitialization.start(this);
+      new AfterDirectoryInitializationRunner()
+              .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
+    }
+
     mPresenter.addDirIfNeeded(this);
+
     if (sShouldRescanLibrary)
     {
       GameFileCacheService.startRescan(this);
