@@ -53,9 +53,10 @@ bool CEXIModem::IsPresent() const
   return true;
 }
 
-void CEXIModem::SetCS(int cs)
+void CEXIModem::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
-  m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
+  if (!was_selected && is_selected)
+    m_transfer_descriptor = INVALID_TRANSFER_DESCRIPTOR;
 }
 
 bool CEXIModem::IsInterruptSet()

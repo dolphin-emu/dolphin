@@ -110,7 +110,7 @@ void CEXISD::ImmReadWrite(u32& data, u32 size)
   data = ImmRead(size);
 }
 
-void CEXISD::SetCS(int cs)
+void CEXISD::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
   INFO_LOG_FMT(EXPANSIONINTERFACE, "EXI SD SetCS: {}", cs);
 }

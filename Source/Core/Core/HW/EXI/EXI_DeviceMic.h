@@ -19,7 +19,7 @@ class CEXIMic : public IEXIDevice
 public:
   CEXIMic(Core::System& system, const int index);
   virtual ~CEXIMic();
-  void SetCS(int cs) override;
+  void SetCS(u32 cs, bool was_selected, bool is_selected) override;
   bool IsInterruptSet() override;
   bool IsPresent() const override;
 

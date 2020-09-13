@@ -63,7 +63,7 @@ public:
 
   virtual bool UseDelayedTransferCompletion() const;
   virtual bool IsPresent() const;
-  virtual void SetCS(int cs);
+  virtual void SetCS(u32 cs, bool was_selected, bool is_selected);
   virtual void DoState(PointerWrap& p);
 
   // Is generating interrupt ?

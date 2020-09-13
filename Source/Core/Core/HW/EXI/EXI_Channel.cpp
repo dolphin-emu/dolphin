@@ -87,10 +87,16 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    if (m_channel_id == 0)
                      m_status.ROMDIS = new_status.ROMDIS;
 
-                   IEXIDevice* device = GetDevice(m_status.CHIP_SELECT ^ new_status.CHIP_SELECT);
+                   for (int device = 0; device < NUM_DEVICES; device++)
+                   {
+                     if (m_devices[device])
+                     {
+                       bool was_selected = m_status.CHIP_SELECT & (1 << device);
+                       bool is_selected = new_status.CHIP_SELECT & (1 << device);
+                       m_devices[device]->SetCS(new_status.CHIP_SELECT, was_selected, is_selected);
+                     }
+                   }
                    m_status.CHIP_SELECT = new_status.CHIP_SELECT;
-                   if (device != nullptr)
-                     device->SetCS(m_status.CHIP_SELECT);
 
                    system.GetExpansionInterface().UpdateInterrupts();
                  }));

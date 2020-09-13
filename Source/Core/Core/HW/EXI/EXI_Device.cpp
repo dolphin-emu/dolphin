@@ -83,7 +83,7 @@ bool IEXIDevice::IsPresent() const
   return false;
 }
 
-void IEXIDevice::SetCS(int cs)
+void IEXIDevice::SetCS(u32 cs, bool was_selected, bool is_selected)
 {
 }
 

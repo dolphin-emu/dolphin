@@ -31,7 +31,7 @@ public:
   u32 ImmRead(u32 size) override;
   void ImmReadWrite(u32& data, u32 size) override;
   // TODO: DMA
-  void SetCS(int cs) override;
+  void SetCS(u32 cs, bool was_selected, bool is_selected) override;
 
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
