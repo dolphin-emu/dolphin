@@ -21,7 +21,7 @@ GraphicsSlider::GraphicsSlider(int minimum, int maximum, const Config::Info<int>
 
   connect(this, &GraphicsSlider::valueChanged, this, &GraphicsSlider::Update);
 
-  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);

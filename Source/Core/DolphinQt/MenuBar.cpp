@@ -229,7 +229,7 @@ void MenuBar::AddToolsMenu()
   m_show_cheat_manager =
       tools_menu->addAction(tr("&Cheats Manager"), this, [this] { emit ShowCheatsManager(); });
 
-  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::EnableCheatsChanged, this, [this](bool enabled) {
     m_show_cheat_manager->setEnabled(Core::GetState() != Core::State::Uninitialized && enabled);
   });
 
@@ -267,7 +267,7 @@ void MenuBar::AddToolsMenu()
 
   m_boot_sysmenu->setEnabled(false);
 
-  connect(&Settings::Instance(), &Settings::NANDRefresh, [this] { UpdateToolsMenu(false); });
+  connect(&Settings::Instance(), &Settings::NANDRefresh, this, [this] { UpdateToolsMenu(false); });
 
   m_perform_online_update_menu = tools_menu->addMenu(tr("Perform Online System Update"));
   m_perform_online_update_for_current_region = m_perform_online_update_menu->addAction(

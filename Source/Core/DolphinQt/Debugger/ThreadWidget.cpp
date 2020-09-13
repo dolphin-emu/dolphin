@@ -41,10 +41,10 @@ ThreadWidget::ThreadWidget(QWidget* parent) : QDockWidget(parent)
 
   connect(Host::GetInstance(), &Host::UpdateDisasmDialog, this, &ThreadWidget::Update);
 
-  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::ThreadsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsThreadsVisible());
   });
 }

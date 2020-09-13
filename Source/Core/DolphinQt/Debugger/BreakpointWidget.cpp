@@ -40,7 +40,7 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
   // according to Settings
   setFloating(settings.value(QStringLiteral("breakpointwidget/floating")).toBool());
 
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged, [this](Core::State state) {
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, [this](Core::State state) {
     UpdateButtonsEnabled();
     if (state == Core::State::Uninitialized)
     {
@@ -50,10 +50,10 @@ BreakpointWidget::BreakpointWidget(QWidget* parent) : QDockWidget(parent)
     }
   });
 
-  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::BreakpointsVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled, [this](bool enabled) {
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this, [this](bool enabled) {
     setHidden(!enabled || !Settings::Instance().IsBreakpointsVisible());
   });
 
