@@ -33,6 +33,7 @@ CEXISD::CEXISD(Core::System& system, int channel_num) : IEXIDevice(system)
   else
     filename = Config::Get(Config::MAIN_SP2_SD_CARD_PATH);
 
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "Reading SD card {}", filename);
   m_card.Open(filename, "r+b");
   if (!m_card)
   {
