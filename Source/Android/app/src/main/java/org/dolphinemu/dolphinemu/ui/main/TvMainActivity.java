@@ -217,6 +217,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
+    super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
     if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
       if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
@@ -226,13 +228,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       }
       else
       {
-        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                .show();
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_LONG).show();
       }
-    }
-    else
-    {
-      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
