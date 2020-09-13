@@ -80,20 +80,13 @@ public final class EmulationActivity extends AppCompatActivity
   private boolean mMenuVisible;
 
   private static boolean sIgnoreLaunchRequests = false;
-  private static boolean sIsGameCubeGame;
 
   private boolean activityRecreated;
-  private String mSelectedTitle;
-  private String mSelectedGameId;
-  private int mPlatform;
   private String[] mPaths;
   private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
-  public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
-  public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
-  public static final String EXTRA_PLATFORM = "Platform";
   public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
 
@@ -176,34 +169,7 @@ public final class EmulationActivity extends AppCompatActivity
             EmulationActivity.MENU_ACTION_MOTION_CONTROLS);
   }
 
-  private static String[] scanForSecondDisc(GameFile gameFile)
-  {
-    GameFile secondFile = GameFileCacheService.findSecondDisc(gameFile);
-    if (secondFile == null)
-      return new String[]{gameFile.getPath()};
-    else
-      return new String[]{gameFile.getPath(), secondFile.getPath()};
-  }
-
-  public static void launch(FragmentActivity activity, GameFile gameFile)
-  {
-    if (sIgnoreLaunchRequests)
-      return;
-
-    sIgnoreLaunchRequests = true;
-
-    Intent launcher = new Intent(activity, EmulationActivity.class);
-
-    launcher.putExtra(EXTRA_SELECTED_GAMES, scanForSecondDisc(gameFile));
-    launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
-    launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
-    launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-
-    new AfterDirectoryInitializationRunner().run(activity, true,
-            () -> activity.startActivity(launcher));
-  }
-
-  public static void launchFile(FragmentActivity activity, String[] filePaths)
+  public static void launch(FragmentActivity activity, String[] filePaths)
   {
     if (sIgnoreLaunchRequests)
       return;
@@ -212,30 +178,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     Intent launcher = new Intent(activity, EmulationActivity.class);
     launcher.putExtra(EXTRA_SELECTED_GAMES, filePaths);
-
-    // Try parsing a GameFile first. This should succeed for disc images.
-    GameFile gameFile = GameFile.parse(filePaths[0]);
-    if (gameFile != null)
-    {
-      // We don't want to pollute the game file cache with this new file,
-      // so we can't just call launch() and let it handle the setup.
-      launcher.putExtra(EXTRA_SELECTED_TITLE, gameFile.getTitle());
-      launcher.putExtra(EXTRA_SELECTED_GAMEID, gameFile.getGameId());
-      launcher.putExtra(EXTRA_PLATFORM, gameFile.getPlatform());
-    }
-    else
-    {
-      // Display the path to the file as the game title in the menu.
-      launcher.putExtra(EXTRA_SELECTED_TITLE, filePaths[0]);
-
-      // Use 00000000 as the game ID. This should match the Desktop version behavior.
-      // TODO: This should really be pulled from the Core.
-      launcher.putExtra(EXTRA_SELECTED_GAMEID, "00000000");
-
-      // GameFile might be a FIFO log. Assume GameCube for the platform. It doesn't really matter
-      // anyway, since this only controls the input, and the FIFO player doesn't take any input.
-      launcher.putExtra(EXTRA_PLATFORM, Platform.GAMECUBE);
-    }
 
     new AfterDirectoryInitializationRunner().run(activity, true,
             () -> activity.startActivity(launcher));
@@ -272,9 +214,6 @@ public final class EmulationActivity extends AppCompatActivity
       // Get params we were passed
       Intent gameToEmulate = getIntent();
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
-      mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
-      mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
-      mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       activityRecreated = false;
@@ -293,9 +232,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     updateOrientation();
 
-    // TODO: The accurate way to find out which console we're emulating is to first
-    //       launch emulation and then ask the core which console we're emulating
-    sIsGameCubeGame = Platform.fromNativeInt(mPlatform) == Platform.GAMECUBE;
     mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
 
@@ -317,7 +253,8 @@ public final class EmulationActivity extends AppCompatActivity
               .commit();
     }
 
-    setTitle(mSelectedTitle);
+    if (NativeLibrary.IsGameMetadataValid())
+      setTitle(NativeLibrary.GetCurrentTitleDescription());
   }
 
   @Override
@@ -329,9 +266,6 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
-    outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
-    outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
-    outState.putInt(EXTRA_PLATFORM, mPlatform);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, mIgnoreWarnings);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
     super.onSaveInstanceState(outState);
@@ -340,9 +274,6 @@ public final class EmulationActivity extends AppCompatActivity
   protected void restoreState(Bundle savedInstanceState)
   {
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
-    mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
-    mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
-    mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
     mIgnoreWarnings = savedInstanceState.getBoolean(EXTRA_IGNORE_WARNINGS);
     sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
   }
@@ -361,8 +292,8 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onResume();
 
-    if (!sIsGameCubeGame && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
-      mMotionListener.enable();
+    if (NativeLibrary.IsGameMetadataValid())
+      updateMotionListener();
   }
 
   @Override
@@ -376,6 +307,23 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
+  }
+
+  public void onTitleChanged()
+  {
+    setTitle(NativeLibrary.GetCurrentTitleDescription());
+    updateMotionListener();
+
+    if (mDeviceHasTouchScreen)
+      mEmulationFragment.refreshInputOverlay();
+  }
+
+  private void updateMotionListener()
+  {
+    if (NativeLibrary.IsEmulatingWii() && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
+      mMotionListener.enable();
+    else
+      mMotionListener.disable();
   }
 
   @Override
@@ -459,7 +407,7 @@ public final class EmulationActivity extends AppCompatActivity
     if (!closeMenu())
     {
       // Removing the menu failed, so that means it wasn't visible. Add it.
-      Fragment fragment = MenuFragment.newInstance(mSelectedTitle);
+      Fragment fragment = MenuFragment.newInstance();
       getSupportFragmentManager().beginTransaction()
               .setCustomAnimations(
                       R.animator.menu_slide_in_from_start,
@@ -478,7 +426,8 @@ public final class EmulationActivity extends AppCompatActivity
     PopupMenu popup = new PopupMenu(this, anchor);
     Menu menu = popup.getMenu();
 
-    int id = sIsGameCubeGame ? R.menu.menu_overlay_controls_gc : R.menu.menu_overlay_controls_wii;
+    boolean wii = NativeLibrary.IsEmulatingWii();
+    int id = wii ? R.menu.menu_overlay_controls_wii : R.menu.menu_overlay_controls_gc;
     popup.getMenuInflater().inflate(id, menu);
 
     // Populate the checkbox value for joystick center on touch
@@ -748,7 +697,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
-    if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0)
+    if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
     {
       boolean[] gcEnabledButtons = new boolean[11];
       String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
@@ -972,7 +921,7 @@ public final class EmulationActivity extends AppCompatActivity
   private void setIRSensitivity()
   {
     // IR settings always get saved per-game since WiimoteNew.ini is wiped upon reinstall.
-    File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
+    File file = SettingsFile.getCustomGameSettingsFile(NativeLibrary.GetCurrentGameID());
     IniFile ini = new IniFile(file);
 
     int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 15);
@@ -1212,16 +1161,6 @@ public final class EmulationActivity extends AppCompatActivity
             .replace(R.id.frame_submenu, fragment)
             .addToBackStack(BACKSTACK_NAME_SUBMENU)
             .commit();
-  }
-
-  public String getSelectedTitle()
-  {
-    return mSelectedTitle;
-  }
-
-  public static boolean isGameCubeGame()
-  {
-    return sIsGameCubeGame;
   }
 
   public boolean isActivityRecreated()

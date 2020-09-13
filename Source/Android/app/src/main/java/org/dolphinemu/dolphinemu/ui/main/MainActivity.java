@@ -201,7 +201,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
-          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+          EmulationActivity.launch(this, FileBrowserHelper.getSelectedFiles(result));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:

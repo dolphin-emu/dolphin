@@ -142,7 +142,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
                 TvGameViewHolder holder = (TvGameViewHolder) itemViewHolder;
 
                 // Start the emulation activity and send the path of the clicked ISO to it.
-                EmulationActivity.launch(TvMainActivity.this, holder.gameFile);
+                String[] paths = GameFileCacheService.findSecondDiscAndGetPaths(holder.gameFile);
+                EmulationActivity.launch(TvMainActivity.this, paths);
               }
             });
   }
@@ -224,7 +225,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
-          EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
+          EmulationActivity.launch(this, FileBrowserHelper.getSelectedFiles(result));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:

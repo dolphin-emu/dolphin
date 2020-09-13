@@ -16,6 +16,7 @@ jclass GetNativeLibraryClass();
 jmethodID GetDisplayAlertMsg();
 jmethodID GetDoRumble();
 jmethodID GetUpdateTouchPointer();
+jmethodID GetOnTitleChanged();
 
 jclass GetAnalyticsClass();
 jmethodID GetSendAnalyticsReport();

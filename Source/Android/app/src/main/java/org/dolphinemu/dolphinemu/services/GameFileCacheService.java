@@ -86,6 +86,15 @@ public final class GameFileCacheService extends IntentService
     return matchWithoutRevision;
   }
 
+  public static String[] findSecondDiscAndGetPaths(GameFile gameFile)
+  {
+    GameFile secondFile = findSecondDisc(gameFile);
+    if (secondFile == null)
+      return new String[]{gameFile.getPath()};
+    else
+      return new String[]{gameFile.getPath(), secondFile.getPath()};
+  }
+
   public static boolean hasLoadedCache()
   {
     return hasLoadedCache.get();

@@ -80,6 +80,7 @@ std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
 Common::Event s_emulation_end_event;
 bool s_have_wm_user_stop = false;
+bool s_game_metadata_is_valid = false;
 }  // Anonymous namespace
 
 void UpdatePointer()
@@ -149,6 +150,10 @@ void Host_YieldToUI()
 
 void Host_TitleChanged()
 {
+  s_game_metadata_is_valid = true;
+
+  JNIEnv* env = IDCache::GetEnvForThread();
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetOnTitleChanged());
 }
 
 static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
@@ -608,6 +613,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
     }
   }
 
+  s_game_metadata_is_valid = false;
   Core::Shutdown();
   ButtonManager::Shutdown();
   guard.unlock();
@@ -750,6 +756,31 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetObscuredP
     JNIEnv* env, jobject obj, jint height)
 {
   OSD::SetObscuredPixelsTop(height);
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_IsGameMetadataValid(JNIEnv* env, jobject obj)
+{
+  return s_game_metadata_is_valid;
+}
+
+JNIEXPORT jboolean JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_IsEmulatingWiiUnchecked(JNIEnv* env, jobject obj)
+{
+  return SConfig::GetInstance().bWii;
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentGameIDUnchecked(JNIEnv* env, jobject obj)
+{
+  return ToJString(env, SConfig::GetInstance().GetGameID());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked(JNIEnv* env,
+                                                                                 jobject obj)
+{
+  return ToJString(env, SConfig::GetInstance().GetTitleDescription());
 }
 
 #ifdef __cplusplus
