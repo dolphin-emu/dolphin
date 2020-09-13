@@ -681,12 +681,14 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
 
   if (game_id == "00000000")
   {
+    m_title_name.clear();
     m_title_description.clear();
     return;
   }
 
   const Core::TitleDatabase title_database;
   const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
+  m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
   NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
   Host_TitleChanged();

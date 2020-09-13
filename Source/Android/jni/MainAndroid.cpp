@@ -780,7 +780,12 @@ JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetCurrentTitleDescriptionUnchecked(JNIEnv* env,
                                                                                  jobject obj)
 {
-  return ToJString(env, SConfig::GetInstance().GetTitleDescription());
+  // Prefer showing just the name. If no name is available, show just the game ID.
+  std::string description = SConfig::GetInstance().GetTitleName();
+  if (description.empty())
+    description = SConfig::GetInstance().GetTitleDescription();
+
+  return ToJString(env, description);
 }
 
 #ifdef __cplusplus
