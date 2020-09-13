@@ -230,7 +230,11 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 {
   switch (chip_select)
   {
-  case 0: // HACK - SD
+  case 0:  // SD responds when the CS signal is 0, instead of 1.
+    if (m_devices[0] && m_devices[0]->m_device_type == EXIDeviceType::SD)
+      return m_devices[0].get();
+    else
+      return nullptr;
   case 1:
     return m_devices[0].get();
   case 2:
