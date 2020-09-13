@@ -53,6 +53,9 @@ public final class DirectoryInitialization
 
   public static void start(Context context)
   {
+    if (!isDolphinDirectoryInitializationRunning.compareAndSet(false, true))
+      return;
+
     // Can take a few seconds to run, so don't block UI thread.
     //noinspection TrivialFunctionalExpressionUsage
     ((Runnable) () -> init(context)).run();
@@ -60,9 +63,6 @@ public final class DirectoryInitialization
 
   private static void init(Context context)
   {
-    if (!isDolphinDirectoryInitializationRunning.compareAndSet(false, true))
-      return;
-
     if (directoryState != DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED)
     {
       if (PermissionsHandler.hasWriteAccess(context))
@@ -194,6 +194,12 @@ public final class DirectoryInitialization
     {
       Log.error("[DirectoryInitialization] Failed to delete " + file.getAbsolutePath());
     }
+  }
+
+  public static boolean shouldStart(Context context)
+  {
+    return !isDolphinDirectoryInitializationRunning.get() &&
+            getDolphinDirectoriesState(context) == DirectoryInitializationState.NOT_YET_INITIALIZED;
   }
 
   public static boolean areDolphinDirectoriesReady()

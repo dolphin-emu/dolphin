@@ -25,7 +25,7 @@ public class DolphinApplication extends Application
     Java_GCAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
     Java_WiimoteAdapter.manager = (UsbManager) getSystemService(Context.USB_SERVICE);
 
-    if (PermissionsHandler.hasWriteAccess(getApplicationContext()))
+    if (DirectoryInitialization.shouldStart(getApplicationContext()))
       DirectoryInitialization.start(getApplicationContext());
   }
 

@@ -63,7 +63,15 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onResume()
   {
     super.onResume();
+
+    if (DirectoryInitialization.shouldStart(this))
+    {
+      DirectoryInitialization.start(this);
+      GameFileCacheService.startLoad(this);
+    }
+
     mPresenter.addDirIfNeeded(this);
+
     if (sShouldRescanLibrary)
     {
       GameFileCacheService.startRescan(this);
