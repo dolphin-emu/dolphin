@@ -41,11 +41,13 @@
                     <rect key="frame" x="0.0" y="237.66666666666669" width="375" height="540.33333333333326"/>
                     <subviews>
                         <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" alignment="center" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="90n-Az-9Cs" userLabel="Content Stack">
-                            <rect key="frame" x="20" y="0.0" width="335" height="304.33333333333331"/>
+                            <rect key="frame" x="20" y="0.0" width="335" height="405.66666666666669"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Version Text">
-                                    <rect key="frame" x="0.66666666666665719" y="0.0" width="334" height="284.33333333333331"/>
+                                    <rect key="frame" x="0.66666666666665719" y="0.0" width="334" height="385.66666666666669"/>
                                     <string key="text">This version of DolphiniOS does not support iOS 14.
+
+Apple deliberately broke DolphiniOS's fast CPU emulation (JIT) code. Without the JIT, DolphiniOS cannot run most games at playable speeds.
 
 A future version of DolphiniOS may support iOS 14, so please check our website for more information:
 
@@ -59,7 +61,7 @@ https://cydia.oatmealdome.me</string>
                                     <nil key="highlightedColor"/>
                                 </label>
                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="6uo-Rc-2vE">
-                                    <rect key="frame" x="47.666666666666686" y="304.33333333333337" width="240" height="0.0"/>
+                                    <rect key="frame" x="47.666666666666686" y="405.66666666666674" width="240" height="0.0"/>
                                     <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                     <constraints>
                                         <constraint firstAttribute="height" id="kge-k2-qnG"/>
