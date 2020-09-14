@@ -72,7 +72,6 @@ void Wiimote::Reset()
   SetRumble(false);
 
   // Wiimote starts in non-continuous CORE mode:
-  m_reporting_channel = 0;
   m_reporting_mode = InputReportID::ReportCore;
   m_reporting_continuous = false;
 
@@ -404,10 +403,6 @@ void Wiimote::UpdateButtonsStatus()
 // This is called every ::Wiimote::UPDATE_FREQ (200hz)
 void Wiimote::Update()
 {
-  // Check if connected.
-  if (0 == m_reporting_channel)
-    return;
-
   const auto lock = GetStateLock();
 
   // Hotkey / settings modifier
@@ -567,7 +562,7 @@ void Wiimote::SendDataReport()
   Movie::CheckWiimoteStatus(m_index, rpt_builder, m_active_extension, GetExtensionEncryptionKey());
 
   // Send the report:
-  CallbackInterruptChannel(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
+  InterruptDataInputCallback(rpt_builder.GetDataPtr(), rpt_builder.GetDataSize());
 
   // The interleaved reporting modes toggle back and forth:
   if (InputReportID::ReportInterleave1 == m_reporting_mode)
@@ -576,97 +571,7 @@ void Wiimote::SendDataReport()
     m_reporting_mode = InputReportID::ReportInterleave1;
 }
 
-void Wiimote::ControlChannel(const u16 channel_id, const void* data, u32 size)
-{
-  // Check for custom communication
-  if (channel_id == ::Wiimote::DOLPHIN_DISCONNET_CONTROL_CHANNEL)
-  {
-    // Wii Remote disconnected.
-    Reset();
-
-    return;
-  }
-
-  if (!size)
-  {
-    ERROR_LOG(WIIMOTE, "ControlChannel: zero sized data");
-    return;
-  }
-
-  m_reporting_channel = channel_id;
-
-  const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
-
-  DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
-            hidp.type, hidp.param);
-
-  switch (hidp.type)
-  {
-  case HID_TYPE_HANDSHAKE:
-    PanicAlert("HID_TYPE_HANDSHAKE - %s", (hidp.param == HID_PARAM_INPUT) ? "INPUT" : "OUPUT");
-    break;
-
-  case HID_TYPE_SET_REPORT:
-    if (HID_PARAM_INPUT == hidp.param)
-    {
-      PanicAlert("HID_TYPE_SET_REPORT - INPUT");
-    }
-    else
-    {
-      // AyuanX: My experiment shows Control Channel is never used
-      // shuffle2: but lwbt uses this, so we'll do what we must :)
-      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
-
-      // TODO: Should this be above the previous?
-      u8 handshake = HID_HANDSHAKE_SUCCESS;
-      CallbackInterruptChannel(&handshake, sizeof(handshake));
-    }
-    break;
-
-  case HID_TYPE_DATA:
-    PanicAlert("HID_TYPE_DATA - %s", (hidp.param == HID_PARAM_INPUT) ? "INPUT" : "OUTPUT");
-    break;
-
-  default:
-    PanicAlert("HidControlChannel: Unknown type %x and param %x", hidp.type, hidp.param);
-    break;
-  }
-}
-
-void Wiimote::InterruptChannel(const u16 channel_id, const void* data, u32 size)
-{
-  if (!size)
-  {
-    ERROR_LOG(WIIMOTE, "InterruptChannel: zero sized data");
-    return;
-  }
-
-  m_reporting_channel = channel_id;
-
-  const auto& hidp = *reinterpret_cast<const HIDPacket*>(data);
-
-  switch (hidp.type)
-  {
-  case HID_TYPE_DATA:
-    switch (hidp.param)
-    {
-    case HID_PARAM_OUTPUT:
-      HIDOutputReport(hidp.data, size - HIDPacket::HEADER_SIZE);
-      break;
-
-    default:
-      PanicAlert("HidInput: HID_TYPE_DATA - param 0x%02x", hidp.param);
-      break;
-    }
-    break;
-
-  default:
-    PanicAlert("HidInput: Unknown type 0x%02x and param 0x%02x", hidp.type, hidp.param);
-    break;
-  }
-}
-
-bool Wiimote::CheckForButtonPress()
+bool Wiimote::IsButtonPressed()
 {
   u16 buttons = 0;
   const auto lock = GetStateLock();

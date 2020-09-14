@@ -98,7 +98,7 @@ void Device::QueueReport(T&& report, std::function<void(ErrorCode)> ack_callback
   // Maintain proper rumble state.
   report.rumble = m_rumble;
 
-  m_wiimote->QueueReport(std::forward<T>(report));
+  m_wiimote->QueueReport(report.REPORT_ID, &report, sizeof(report));
 
   if (ack_callback)
     AddReportHandler(MakeAckHandler(report.REPORT_ID, std::move(ack_callback)));
@@ -117,9 +117,7 @@ void AddDevice(std::unique_ptr<WiimoteReal::Wiimote> wiimote)
   }
 
   wiimote->Prepare();
-
-  // Our silly real wiimote interface needs a non-zero "channel" to not drop input reports.
-  wiimote->SetChannel(26);
+  wiimote->EventLinked();
 
   g_controller_interface.AddDevice(std::make_shared<Device>(std::move(wiimote)));
 }
@@ -1063,13 +1061,13 @@ bool Device::IsMotionPlusInDesiredMode() const
 
 void Device::ProcessInputReport(WiimoteReal::Report& report)
 {
-  if (report.size() < WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+  if (report.size() < WiimoteReal::REPORT_HID_HEADER_SIZE)
   {
     WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
     return;
   }
 
-  auto report_id = InputReportID(report[1]);
+  auto report_id = InputReportID(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
 
   for (auto it = m_report_handlers.begin(); true;)
   {
@@ -1077,8 +1075,8 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     {
       if (report_id == InputReportID::Status)
       {
-        if (report.size() <
-            sizeof(InputReportStatus) + WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+        if (report.size() - WiimoteReal::REPORT_HID_HEADER_SIZE <
+            sizeof(TypedInputData<InputReportStatus>))
         {
           WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
         }
@@ -1126,9 +1124,9 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
   }
 
   auto manipulator = MakeDataReportManipulator(
-      report_id, report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      report_id, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + sizeof(InputReportID));
 
-  if (manipulator->GetDataSize() + WiimoteCommon::DataReportBuilder::HEADER_SIZE > report.size())
+  if (manipulator->GetDataSize() + WiimoteReal::REPORT_HID_HEADER_SIZE > report.size())
   {
     WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
     return;
@@ -1535,24 +1533,24 @@ template <typename R, typename T>
 void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
 {
   m_callbacks.emplace_back([handler = std::move(handler)](const WiimoteReal::Report& report) {
-    if (report[1] != u8(T::REPORT_ID))
+    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != u8(T::REPORT_ID))
       return ReportHandler::HandlerResult::NotHandled;
 
     T data;
 
-    if (report.size() < sizeof(T) + WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+    if (report.size() < sizeof(T) + WiimoteReal::REPORT_HID_HEADER_SIZE + 1)
     {
       // Off-brand "NEW 2in1" Wii Remote likes to shorten read data replies.
       WARN_LOG(WIIMOTE, "WiiRemote: Bad report size (%d) for report 0x%x. Zero-filling.",
                int(report.size()), int(T::REPORT_ID));
 
       data = {};
-      std::memcpy(&data, report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE,
-                  report.size() - WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      std::memcpy(&data, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1,
+                  report.size() - WiimoteReal::REPORT_HID_HEADER_SIZE + 1);
     }
     else
     {
-      data = Common::BitCastPtr<T>(report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      data = Common::BitCastPtr<T>(report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1);
     }
 
     if constexpr (std::is_same_v<decltype(handler(data)), void>)
