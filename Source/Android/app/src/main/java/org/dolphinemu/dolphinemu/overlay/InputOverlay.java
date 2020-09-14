@@ -123,7 +123,17 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       defaultOverlay();
 
     // Load the controls.
-    refreshControls();
+    if (NativeLibrary.IsRunning())
+    {
+      // We would've needed a refreshControls call here in addition to the initTouchPointer call
+      // if it wasn't for initTouchPointer calling refreshControls.
+      initTouchPointer();
+    }
+    else
+    {
+      // We can't call initTouchPointer yet because it needs the aspect ratio of the running game.
+      refreshControls();
+    }
 
     // Set the on touch listener.
     setOnTouchListener(this);
