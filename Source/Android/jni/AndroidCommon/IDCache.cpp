@@ -213,8 +213,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
       env->FindClass("org/dolphinemu/dolphinemu/utils/IniFile$Section");
   s_ini_file_section_class = reinterpret_cast<jclass>(env->NewGlobalRef(ini_file_section_class));
   s_ini_file_section_pointer = env->GetFieldID(ini_file_section_class, "mPointer", "J");
-  s_ini_file_section_constructor = env->GetMethodID(
-      ini_file_section_class, "<init>", "(Lorg/dolphinemu/dolphinemu/utils/IniFile;J)V");
+  s_ini_file_section_constructor = env->GetMethodID(ini_file_section_class, "<init>", "(J)V");
   env->DeleteLocalRef(ini_file_section_class);
 
   const jclass map_class = env->FindClass("java/util/LinkedHashMap");
