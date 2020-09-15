@@ -683,7 +683,7 @@
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
-    <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="DolphinAnalytics.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp">
       <Filter>PowerPC\SignatureDB</Filter>
     </ClCompile>
@@ -1475,7 +1475,7 @@
     <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
-    <ClInclude Include="Analytics.h" />
+    <ClInclude Include="DolphinAnalytics.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h">
       <Filter>PowerPC\SignatureDB</Filter>
     </ClInclude>

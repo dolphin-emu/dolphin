@@ -17,7 +17,6 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="ActionReplay.cpp" />
-    <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="ARDecrypt.cpp" />
     <ClCompile Include="BootManager.cpp" />
     <ClCompile Include="Boot\Boot.cpp" />
@@ -44,7 +43,7 @@
     <ClCompile Include="Debugger\OSThread.cpp" />
     <ClCompile Include="Debugger\PPCDebugInterface.cpp" />
     <ClCompile Include="Debugger\RSO.cpp" />
-    <ClCompile Include="DSPEmulator.cpp" />
+    <ClCompile Include="DolphinAnalytics.cpp" />
     <ClCompile Include="DSP\DSPAccelerator.cpp" />
     <ClCompile Include="DSP\DSPAnalyzer.cpp" />
     <ClCompile Include="DSP\DSPAssembler.cpp" />
@@ -77,6 +76,7 @@
     <ClCompile Include="DSP\Jit\x64\DSPJitTables.cpp" />
     <ClCompile Include="DSP\Jit\x64\DSPJitUtil.cpp" />
     <ClCompile Include="DSP\LabelMap.cpp" />
+    <ClCompile Include="DSPEmulator.cpp" />
     <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoDataFile.cpp" />
     <ClCompile Include="FifoPlayer\FifoPlaybackAnalyzer.cpp" />
@@ -380,7 +380,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
-    <ClInclude Include="Analytics.h" />
     <ClInclude Include="ARDecrypt.h" />
     <ClInclude Include="BootManager.h" />
     <ClInclude Include="Boot\Boot.h" />
@@ -408,7 +407,7 @@
     <ClInclude Include="Debugger\OSThread.h" />
     <ClInclude Include="Debugger\PPCDebugInterface.h" />
     <ClInclude Include="Debugger\RSO.h" />
-    <ClInclude Include="DSPEmulator.h" />
+    <ClInclude Include="DolphinAnalytics.h" />
     <ClInclude Include="DSP\DSPAccelerator.h" />
     <ClInclude Include="DSP\DSPAnalyzer.h" />
     <ClInclude Include="DSP\DSPAssembler.h" />
@@ -429,6 +428,7 @@
     <ClInclude Include="DSP\Jit\x64\DSPJitRegCache.h" />
     <ClInclude Include="DSP\Jit\x64\DSPJitTables.h" />
     <ClInclude Include="DSP\LabelMap.h" />
+    <ClInclude Include="DSPEmulator.h" />
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoDataFile.h" />
     <ClInclude Include="FifoPlayer\FifoPlaybackAnalyzer.h" />
