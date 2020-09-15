@@ -317,8 +317,8 @@ add_library(core
   IOS/ES/TitleInformation.cpp
   IOS/ES/TitleManagement.cpp
   IOS/ES/Views.cpp
-  IOS/FS/FileSystem.cpp
   IOS/FS/FileSystem.h
+  IOS/FS/FileSystemCommon.cpp
   IOS/FS/FileSystemProxy.cpp
   IOS/FS/FileSystemProxy.h
   IOS/FS/HostBackend/File.cpp

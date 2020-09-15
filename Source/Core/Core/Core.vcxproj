@@ -195,7 +195,7 @@
     <ClCompile Include="IOS\ES\TitleInformation.cpp" />
     <ClCompile Include="IOS\ES\TitleManagement.cpp" />
     <ClCompile Include="IOS\ES\Views.cpp" />
-    <ClCompile Include="IOS\FS\FileSystem.cpp" />
+    <ClCompile Include="IOS\FS\FileSystemCommon.cpp" />
     <ClCompile Include="IOS\FS\FileSystemProxy.cpp" />
     <ClCompile Include="IOS\FS\HostBackend\FS.cpp" />
     <ClCompile Include="IOS\FS\HostBackend\File.cpp" />

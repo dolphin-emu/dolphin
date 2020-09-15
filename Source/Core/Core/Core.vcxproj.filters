@@ -720,7 +720,7 @@
     <ClCompile Include="IOS\DI\DI.cpp">
       <Filter>IOS\DI</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\FS\FileSystem.cpp">
+    <ClCompile Include="IOS\FS\FileSystemCommon.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>
     <ClCompile Include="IOS\FS\FileSystemProxy.cpp">
