@@ -54,8 +54,8 @@ add_library(inputcommon
   ControllerInterface/DualShockUDPClient/DualShockUDPProto.h
   ControllerInterface/ControllerInterface.cpp
   ControllerInterface/ControllerInterface.h
-  ControllerInterface/Device.cpp
-  ControllerInterface/Device.h
+  ControllerInterface/CoreDevice.cpp
+  ControllerInterface/CoreDevice.h
   ControllerInterface/Wiimote/WiimoteController.cpp
   ControllerInterface/Wiimote/WiimoteController.h
   ControlReference/ControlReference.cpp

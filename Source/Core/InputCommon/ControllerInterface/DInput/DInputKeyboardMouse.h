@@ -7,8 +7,8 @@
 #include <windows.h>
 
 #include "Common/Matrix.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 #include "InputCommon/ControllerInterface/DInput/DInput8.h"
-#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ciface::DInput
 {

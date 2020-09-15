@@ -37,7 +37,7 @@
     <ClCompile Include="ControllerEmu\ControlGroup\Triggers.cpp" />
     <ClCompile Include="ControllerEmu\Setting\NumericSetting.cpp" />
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp" />
-    <ClCompile Include="ControllerInterface\Device.cpp" />
+    <ClCompile Include="ControllerInterface\CoreDevice.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
@@ -79,7 +79,7 @@
     <ClInclude Include="ControllerEmu\ControlGroup\Triggers.h" />
     <ClInclude Include="ControllerEmu\Setting\NumericSetting.h" />
     <ClInclude Include="ControllerInterface\ControllerInterface.h" />
-    <ClInclude Include="ControllerInterface\Device.h" />
+    <ClInclude Include="ControllerInterface\CoreDevice.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput8.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h" />

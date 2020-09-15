@@ -8,7 +8,7 @@
 #include <memory>
 
 #include "InputCommon/ControlReference/ExpressionParser.h"
-#include "InputCommon/ControllerInterface/Device.h"
+#include "InputCommon/ControllerInterface/CoreDevice.h"
 
 // ControlReference
 //

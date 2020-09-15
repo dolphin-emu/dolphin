@@ -95,7 +95,7 @@
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp">
       <Filter>ControllerInterface\XInput</Filter>
     </ClCompile>
-    <ClCompile Include="ControllerInterface\Device.cpp">
+    <ClCompile Include="ControllerInterface\CoreDevice.cpp">
       <Filter>ControllerInterface</Filter>
     </ClCompile>
     <ClCompile Include="ControllerInterface\ControllerInterface.cpp">
@@ -208,7 +208,7 @@
     <ClInclude Include="ControllerInterface\ControllerInterface.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
-    <ClInclude Include="ControllerInterface\Device.h">
+    <ClInclude Include="ControllerInterface\CoreDevice.h">
       <Filter>ControllerInterface</Filter>
     </ClInclude>
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h">
