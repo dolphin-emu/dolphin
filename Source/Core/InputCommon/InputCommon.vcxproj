@@ -47,7 +47,7 @@
     <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\Win32\Win32.cpp" />
-    <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
+    <ClCompile Include="ControllerInterface\Wiimote\WiimoteController.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="DynamicInputTextureConfiguration.cpp" />
@@ -92,7 +92,7 @@
     <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\Win32\Win32.h" />
-    <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h" />
+    <ClInclude Include="ControllerInterface\Wiimote\WiimoteController.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="DynamicInputTextureConfiguration.h" />
     <ClInclude Include="DynamicInputTextureManager.h" />

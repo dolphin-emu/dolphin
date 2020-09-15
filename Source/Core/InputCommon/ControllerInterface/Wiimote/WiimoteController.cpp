@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/Wiimote/Wiimote.h"
+#include "InputCommon/ControllerInterface/Wiimote/WiimoteController.h"
 
 #include "Common/BitUtils.h"
 #include "Common/Logging/Log.h"
@@ -13,7 +13,7 @@
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-namespace ciface::Wiimote
+namespace ciface::WiimoteController
 {
 static constexpr char SOURCE_NAME[] = "Bluetooth";
 
@@ -1677,4 +1677,4 @@ void Device::ProcessStatusReport(const InputReportStatus& status)
   }
 }
 
-}  // namespace ciface::Wiimote
+}  // namespace ciface::WiimoteController

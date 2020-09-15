@@ -18,7 +18,7 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
-namespace ciface::Wiimote
+namespace ciface::WiimoteController
 {
 using namespace WiimoteCommon;
 
@@ -279,4 +279,4 @@ private:
   Clock::time_point m_last_report_time = Clock::now();
 };
 
-}  // namespace ciface::Wiimote
+}  // namespace ciface::WiimoteController
