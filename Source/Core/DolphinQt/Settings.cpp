@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -489,8 +490,7 @@ void Settings::SetDebugFont(QFont font)
 
 QFont Settings::GetDebugFont() const
 {
-  QFont default_font = QFont(QStringLiteral("Monospace"));
-  default_font.setStyleHint(QFont::TypeWriter);
+  QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
