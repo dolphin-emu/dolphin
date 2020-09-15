@@ -156,7 +156,9 @@ void AdvancedPane::CreateLayout()
     m_custom_rtc_datetime->setDisplayFormat(m_custom_rtc_datetime->displayFormat().replace(
         QStringLiteral("yy"), QStringLiteral("yyyy")));
   }
-  m_custom_rtc_datetime->setDateRange({2000, 1, 1}, {2099, 12, 31});
+  m_custom_rtc_datetime->setDateTimeRange(QDateTime({2000, 1, 1}, {0, 0, 0}, Qt::UTC),
+                                          QDateTime({2099, 12, 31}, {23, 59, 59}, Qt::UTC));
+  m_custom_rtc_datetime->setTimeSpec(Qt::UTC);
   rtc_options->layout()->addWidget(m_custom_rtc_datetime);
 
   auto* custom_rtc_description =
