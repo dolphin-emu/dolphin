@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\..\..\VSProps\Base.Macros.props" />
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\VSProps\Base.Macros.props" />
   <Import Project="$(VSPropsDir)Base.Targets.props" />
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DEA96CF2-F237-4A1A-B32F-C916769EFB50}</ProjectGuid>
+    <ProjectGuid>{d79392f7-06d6-4b4b-a39f-4d587c215d3a}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VSPropsDir)Configuration.StaticLibrary.props" />
@@ -15,22 +15,18 @@
     <Import Project="$(VSPropsDir)PCHUse.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
+  <Import Project="DolphinLib.props" />
+  <ImportGroup Condition="'$(Platform)'=='x64'">
+    <Import Project="DolphinLib.x64.props" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Platform)'=='ARM64'">
+    <Import Project="DolphinLib.ARM64.props" />
+  </ImportGroup>
   <ItemGroup>
-    <ClCompile Include="D3DCommon.cpp" />
-    <ClCompile Include="Shader.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="D3DCommon.h" />
-    <ClInclude Include="Shader.h" />
-    <ClInclude Include="SwapChain.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
-      <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>
+    <ProjectReference Include="$(CoreDir)Common\SCMRevGen.vcxproj">
+      <Project>{41279555-f94f-4ebc-99de-af863c10c5c4}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
-  <ImportGroup Label="ExtensionTargets">
-  </ImportGroup>
+  <ImportGroup Label="ExtensionTargets" />
 </Project>
