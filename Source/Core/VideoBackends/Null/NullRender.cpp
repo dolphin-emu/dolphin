@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/Null/Render.h"
+#include "VideoBackends/Null/NullRender.h"
 
 #include "VideoBackends/Null/NullTexture.h"
 

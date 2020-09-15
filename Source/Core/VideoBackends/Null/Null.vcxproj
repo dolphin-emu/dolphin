@@ -17,16 +17,16 @@
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
     <ClCompile Include="NullBackend.cpp" />
+    <ClCompile Include="NullRender.cpp" />
     <ClCompile Include="NullTexture.cpp" />
-    <ClCompile Include="Render.cpp" />
-    <ClCompile Include="VertexManager.cpp" />
+    <ClCompile Include="NullVertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="NullRender.h" />
     <ClInclude Include="NullTexture.h" />
+    <ClInclude Include="NullVertexManager.h" />
     <ClInclude Include="PerfQuery.h" />
-    <ClInclude Include="Render.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
