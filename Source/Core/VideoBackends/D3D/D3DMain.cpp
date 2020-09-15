@@ -10,12 +10,12 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
-#include "VideoBackends/D3D/PerfQuery.h"
-#include "VideoBackends/D3D/Render.h"
-#include "VideoBackends/D3D/SwapChain.h"
-#include "VideoBackends/D3D/VertexManager.h"
+#include "VideoBackends/D3D/D3DBoundingBox.h"
+#include "VideoBackends/D3D/D3DPerfQuery.h"
+#include "VideoBackends/D3D/D3DRender.h"
+#include "VideoBackends/D3D/D3DSwapChain.h"
+#include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 #include "VideoBackends/D3DCommon/Common.h"
 

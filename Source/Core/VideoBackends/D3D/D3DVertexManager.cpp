@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D/VertexManager.h"
+#include "VideoBackends/D3D/D3DVertexManager.h"
 
 #include <d3d11.h>
 
@@ -10,10 +10,10 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DBoundingBox.h"
+#include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3DCommon/Common.h"
 
 #include "VideoCommon/BoundingBox.h"

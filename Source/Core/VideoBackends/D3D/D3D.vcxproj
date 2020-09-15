@@ -16,30 +16,30 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="D3DBase.cpp" />
+    <ClCompile Include="D3DBoundingBox.cpp" />
+    <ClCompile Include="D3DMain.cpp" />
+    <ClCompile Include="D3DNativeVertexFormat.cpp" />
+    <ClCompile Include="D3DPerfQuery.cpp" />
+    <ClCompile Include="D3DRender.cpp" />
     <ClCompile Include="D3DState.cpp" />
+    <ClCompile Include="D3DSwapChain.cpp" />
+    <ClCompile Include="D3DVertexManager.cpp" />
     <ClCompile Include="DXPipeline.cpp" />
     <ClCompile Include="DXShader.cpp" />
     <ClCompile Include="DXTexture.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="NativeVertexFormat.cpp" />
-    <ClCompile Include="PerfQuery.cpp" />
-    <ClCompile Include="Render.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="VertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="D3DBase.h" />
+    <ClInclude Include="D3DBoundingBox.h" />
+    <ClInclude Include="D3DPerfQuery.h" />
+    <ClInclude Include="D3DRender.h" />
     <ClInclude Include="D3DState.h" />
+    <ClInclude Include="D3DSwapChain.h" />
+    <ClInclude Include="D3DVertexManager.h" />
     <ClInclude Include="DXPipeline.h" />
     <ClInclude Include="DXShader.h" />
     <ClInclude Include="DXTexture.h" />
-    <ClInclude Include="PerfQuery.h" />
-    <ClInclude Include="Render.h" />
-    <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>

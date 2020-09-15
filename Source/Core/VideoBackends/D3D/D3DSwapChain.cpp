@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D/SwapChain.h"
+#include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/DXTexture.h"
 
 namespace DX11

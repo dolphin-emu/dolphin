@@ -5,10 +5,10 @@
 #include <array>
 
 #include "VideoBackends/D3D/D3DBase.h"
+#include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DState.h"
+#include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/DXShader.h"
-#include "VideoBackends/D3D/Render.h"
-#include "VideoBackends/D3D/VertexManager.h"
 #include "VideoCommon/NativeVertexFormat.h"
 
 namespace DX11

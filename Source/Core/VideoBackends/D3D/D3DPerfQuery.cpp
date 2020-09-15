@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D/PerfQuery.h"
+#include "VideoBackends/D3D/D3DPerfQuery.h"
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
