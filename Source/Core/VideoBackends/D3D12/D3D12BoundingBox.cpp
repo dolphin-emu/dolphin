@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/BoundingBox.h"
+#include "VideoBackends/D3D12/D3D12BoundingBox.h"
 #include "Common/Logging/Log.h"
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/Renderer.h"
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
 {

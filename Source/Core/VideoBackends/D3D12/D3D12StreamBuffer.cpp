@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/StreamBuffer.h"
+#include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 
 #include <algorithm>
 #include <functional>
@@ -11,7 +11,7 @@
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
 {

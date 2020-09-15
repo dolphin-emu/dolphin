@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/DXShader.h"
+#include "VideoBackends/D3D12/DX12Shader.h"
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 namespace DX12
 {

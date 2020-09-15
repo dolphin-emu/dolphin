@@ -6,11 +6,11 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/DXPipeline.h"
-#include "VideoBackends/D3D12/DXShader.h"
-#include "VideoBackends/D3D12/DXTexture.h"
-#include "VideoBackends/D3D12/DXVertexFormat.h"
+#include "VideoBackends/D3D12/DX12Context.h"
+#include "VideoBackends/D3D12/DX12Pipeline.h"
+#include "VideoBackends/D3D12/DX12Shader.h"
+#include "VideoBackends/D3D12/DX12Texture.h"
+#include "VideoBackends/D3D12/DX12VertexFormat.h"
 
 namespace DX12
 {

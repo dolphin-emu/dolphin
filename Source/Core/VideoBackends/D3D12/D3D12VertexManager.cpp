@@ -4,16 +4,16 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoBackends/D3D12/VertexManager.h"
+#include "VideoBackends/D3D12/D3D12VertexManager.h"
 
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/Renderer.h"
-#include "VideoBackends/D3D12/StreamBuffer.h"
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12StreamBuffer.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/IndexGenerator.h"

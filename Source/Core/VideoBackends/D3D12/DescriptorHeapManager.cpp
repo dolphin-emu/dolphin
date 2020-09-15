@@ -4,7 +4,7 @@
 
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
 #include "Common/Assert.h"
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12

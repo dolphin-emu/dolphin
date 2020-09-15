@@ -2,9 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/SwapChain.h"
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/DXTexture.h"
+#include "VideoBackends/D3D12/D3D12SwapChain.h"
+#include "VideoBackends/D3D12/DX12Context.h"
+#include "VideoBackends/D3D12/DX12Texture.h"
 
 namespace DX12
 {

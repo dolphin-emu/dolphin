@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 
 #include <algorithm>
 #include <array>
@@ -14,8 +14,8 @@
 #include "Common/DynamicLibrary.h"
 #include "Common/StringUtil.h"
 #include "VideoBackends/D3D12/Common.h"
+#include "VideoBackends/D3D12/D3D12StreamBuffer.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
-#include "VideoBackends/D3D12/StreamBuffer.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12

@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/DXVertexFormat.h"
+#include "VideoBackends/D3D12/DX12VertexFormat.h"
 
 #include "Common/Assert.h"
 

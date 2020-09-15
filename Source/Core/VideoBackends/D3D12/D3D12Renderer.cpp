@@ -4,17 +4,17 @@
 
 #include "Common/Logging/Log.h"
 
-#include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/DXPipeline.h"
-#include "VideoBackends/D3D12/DXShader.h"
-#include "VideoBackends/D3D12/DXTexture.h"
-#include "VideoBackends/D3D12/DXVertexFormat.h"
+#include "VideoBackends/D3D12/D3D12BoundingBox.h"
+#include "VideoBackends/D3D12/D3D12PerfQuery.h"
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12SwapChain.h"
+#include "VideoBackends/D3D12/DX12Context.h"
+#include "VideoBackends/D3D12/DX12Pipeline.h"
+#include "VideoBackends/D3D12/DX12Shader.h"
+#include "VideoBackends/D3D12/DX12Texture.h"
+#include "VideoBackends/D3D12/DX12VertexFormat.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
-#include "VideoBackends/D3D12/PerfQuery.h"
-#include "VideoBackends/D3D12/Renderer.h"
-#include "VideoBackends/D3D12/SwapChain.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12

@@ -2,15 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/PerfQuery.h"
+#include "VideoBackends/D3D12/D3D12PerfQuery.h"
 
 #include <algorithm>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/DXContext.h"
-#include "VideoBackends/D3D12/Renderer.h"
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace DX12

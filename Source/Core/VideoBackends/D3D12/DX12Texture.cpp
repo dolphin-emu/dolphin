@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/D3D12/DXTexture.h"
+#include "VideoBackends/D3D12/DX12Texture.h"
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "VideoBackends/D3D12/Common.h"
-#include "VideoBackends/D3D12/DXContext.h"
+#include "VideoBackends/D3D12/D3D12Renderer.h"
+#include "VideoBackends/D3D12/D3D12StreamBuffer.h"
+#include "VideoBackends/D3D12/DX12Context.h"
 #include "VideoBackends/D3D12/DescriptorHeapManager.h"
-#include "VideoBackends/D3D12/Renderer.h"
-#include "VideoBackends/D3D12/StreamBuffer.h"
 
 namespace DX12
 {
