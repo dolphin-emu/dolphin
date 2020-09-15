@@ -8,7 +8,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "DiscIO/CISOBlob.h"
 
 namespace DiscIO

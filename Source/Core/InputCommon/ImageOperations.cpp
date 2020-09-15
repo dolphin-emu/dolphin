@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
-#include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 #include "Common/Image.h"
 
 namespace InputCommon

@@ -261,7 +261,7 @@
     <ClInclude Include="GL\GLExtensions\EXT_texture_compression_s3tc.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
-    <ClInclude Include="File.h" />
+    <ClInclude Include="IOFile.h" />
     <ClInclude Include="Lazy.h" />
     <ClInclude Include="LdrWatcher.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">

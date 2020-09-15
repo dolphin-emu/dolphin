@@ -11,7 +11,7 @@
 #include <functional>
 
 #include "Common/Align.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/Swap.h"
 #include "VideoCommon/VideoConfig.h"

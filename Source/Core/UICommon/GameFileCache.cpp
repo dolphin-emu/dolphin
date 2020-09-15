@@ -17,9 +17,9 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/IOFile.h"
 
 #include "DiscIO/DirectoryBlob.h"
 

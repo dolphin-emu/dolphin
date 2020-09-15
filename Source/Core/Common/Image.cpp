@@ -10,7 +10,7 @@
 #include <png.h>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 
 namespace Common
 {

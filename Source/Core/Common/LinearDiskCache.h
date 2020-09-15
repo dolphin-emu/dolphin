@@ -11,7 +11,7 @@
 #include <type_traits>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Common/Version.h"
 
 // On disk format:

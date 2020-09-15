@@ -43,8 +43,6 @@ add_library(common
   ENetUtil.cpp
   ENetUtil.h
   Event.h
-  File.cpp
-  File.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
@@ -66,6 +64,8 @@ add_library(common
   IniFile.cpp
   IniFile.h
   Inline.h
+  IOFile.cpp
+  IOFile.h
   JitRegister.cpp
   JitRegister.h
   Lazy.h
@@ -106,10 +106,10 @@ add_library(common
   SDCardUtil.cpp
   SDCardUtil.h
   Semaphore.h
-  SFMLHelper.cpp
-  SFMLHelper.h
   SettingsHandler.cpp
   SettingsHandler.h
+  SFMLHelper.cpp
+  SFMLHelper.h
   SPSCQueue.h
   StringUtil.cpp
   StringUtil.h

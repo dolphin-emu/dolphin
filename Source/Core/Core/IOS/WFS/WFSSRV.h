@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/File.h"
+#include "Common/IOFile.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IOS.h"
 #include "DiscIO/Volume.h"
