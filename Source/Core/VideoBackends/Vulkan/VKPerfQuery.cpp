@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/Vulkan/PerfQuery.h"
+#include "VideoBackends/Vulkan/VKPerfQuery.h"
 
 #include <algorithm>
 #include <cstring>
@@ -13,8 +13,8 @@
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/VKRenderer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 #include "VideoCommon/VideoCommon.h"
 

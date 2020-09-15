@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/Vulkan/SwapChain.h"
+#include "VideoBackends/Vulkan/VKSwapChain.h"
 
 #include <algorithm>
 #include <cstdint>

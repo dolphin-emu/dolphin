@@ -7,12 +7,12 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
-#include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingBuffer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/VKBoundingBox.h"
+#include "VideoBackends/Vulkan/VKRenderer.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan

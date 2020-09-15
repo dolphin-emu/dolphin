@@ -16,43 +16,43 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="BoundingBox.cpp" />
     <ClCompile Include="CommandBufferManager.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="PerfQuery.cpp" />
-    <ClCompile Include="StagingBuffer.cpp" />
-    <ClCompile Include="VertexFormat.cpp" />
     <ClCompile Include="ObjectCache.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ShaderCompiler.cpp" />
+    <ClCompile Include="StagingBuffer.cpp" />
     <ClCompile Include="StateTracker.cpp" />
-    <ClCompile Include="StreamBuffer.cpp" />
-    <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="VertexManager.cpp" />
+    <ClCompile Include="VKBoundingBox.cpp" />
+    <ClCompile Include="VKMain.cpp" />
+    <ClCompile Include="VKPerfQuery.cpp" />
     <ClCompile Include="VKPipeline.cpp" />
+    <ClCompile Include="VKRenderer.cpp" />
     <ClCompile Include="VKShader.cpp" />
+    <ClCompile Include="VKStreamBuffer.cpp" />
+    <ClCompile Include="VKSwapChain.cpp" />
     <ClCompile Include="VKTexture.cpp" />
+    <ClCompile Include="VKVertexFormat.cpp" />
+    <ClCompile Include="VKVertexManager.cpp" />
     <ClCompile Include="VulkanContext.cpp" />
     <ClCompile Include="VulkanLoader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="CommandBufferManager.h" />
     <ClInclude Include="Constants.h" />
-    <ClInclude Include="StagingBuffer.h" />
-    <ClInclude Include="VertexFormat.h" />
-    <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="ObjectCache.h" />
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="ShaderCompiler.h" />
+    <ClInclude Include="StagingBuffer.h" />
     <ClInclude Include="StateTracker.h" />
-    <ClInclude Include="StreamBuffer.h" />
-    <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="VKBoundingBox.h" />
+    <ClInclude Include="VKPerfQuery.h" />
     <ClInclude Include="VKPipeline.h" />
+    <ClInclude Include="VKRenderer.h" />
     <ClInclude Include="VKShader.h" />
+    <ClInclude Include="VKStreamBuffer.h" />
+    <ClInclude Include="VKSwapChain.h" />
     <ClInclude Include="VKTexture.h" />
+    <ClInclude Include="VKVertexFormat.h" />
+    <ClInclude Include="VKVertexManager.h" />
     <ClInclude Include="VulkanContext.h" />
     <ClInclude Include="VulkanLoader.h" />
   </ItemGroup>
