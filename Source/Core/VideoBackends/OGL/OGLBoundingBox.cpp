@@ -6,8 +6,8 @@
 
 #include "Common/GL/GLUtil.h"
 
-#include "VideoBackends/OGL/BoundingBox.h"
-#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/OGLBoundingBox.h"
+#include "VideoBackends/OGL/OGLRender.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/VideoConfig.h"

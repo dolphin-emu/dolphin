@@ -6,9 +6,9 @@
 #include "Common/GL/GLUtil.h"
 #include "Common/MsgHandler.h"
 
+#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexShaderGen.h"

@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/OGL/VertexManager.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 
 #include <fstream>
 #include <memory>
@@ -14,9 +14,9 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
 #include "VideoBackends/OGL/OGLPipeline.h"
+#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLStreamBuffer.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"

@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/OGL/PerfQuery.h"
+#include "VideoBackends/OGL/OGLPerfQuery.h"
 
 #include <memory>
 
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
 
-#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/OGLRender.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

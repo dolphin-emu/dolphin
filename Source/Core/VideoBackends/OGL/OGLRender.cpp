@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "VideoBackends/OGL/Render.h"
+#include "VideoBackends/OGL/OGLRender.h"
 
 #include <algorithm>
 #include <cinttypes>
@@ -22,13 +22,13 @@
 
 #include "Core/Config/GraphicsSettings.h"
 
-#include "VideoBackends/OGL/BoundingBox.h"
+#include "VideoBackends/OGL/OGLBoundingBox.h"
 #include "VideoBackends/OGL/OGLPipeline.h"
 #include "VideoBackends/OGL/OGLShader.h"
 #include "VideoBackends/OGL/OGLTexture.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/VertexManager.h"
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"

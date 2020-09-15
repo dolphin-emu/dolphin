@@ -12,28 +12,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="NativeVertexFormat.cpp">
+    <ClCompile Include="OGLNativeVertexFormat.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
-    <ClCompile Include="VertexManager.cpp">
+    <ClCompile Include="OGLVertexManager.cpp">
       <Filter>Decoder</Filter>
     </ClCompile>
-    <ClCompile Include="BoundingBox.cpp">
+    <ClCompile Include="OGLBoundingBox.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="PerfQuery.cpp">
+    <ClCompile Include="OGLPerfQuery.cpp">
       <Filter>Render</Filter>
     </ClCompile>
     <ClCompile Include="ProgramShaderCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Render.cpp">
+    <ClCompile Include="OGLRender.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="StreamBuffer.cpp">
+    <ClCompile Include="OGLStreamBuffer.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="main.cpp" />
+    <ClCompile Include="OGLMain.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
     <ClCompile Include="OGLTexture.cpp">
       <Filter>Render</Filter>
@@ -46,22 +46,22 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="VertexManager.h">
+    <ClInclude Include="OGLVertexManager.h">
       <Filter>Decoder</Filter>
     </ClInclude>
-    <ClInclude Include="BoundingBox.h">
+    <ClInclude Include="OGLBoundingBox.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="PerfQuery.h">
+    <ClInclude Include="OGLPerfQuery.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="ProgramShaderCache.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Render.h">
+    <ClInclude Include="OGLRender.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="StreamBuffer.h">
+    <ClInclude Include="OGLStreamBuffer.h">
       <Filter>Render</Filter>
     </ClInclude>
     <ClInclude Include="SamplerCache.h" />

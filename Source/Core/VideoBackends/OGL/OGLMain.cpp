@@ -45,12 +45,12 @@ Make AA apply instantly during gameplay if possible
 
 #include "Core/Config/GraphicsSettings.h"
 
-#include "VideoBackends/OGL/BoundingBox.h"
-#include "VideoBackends/OGL/PerfQuery.h"
+#include "VideoBackends/OGL/OGLBoundingBox.h"
+#include "VideoBackends/OGL/OGLPerfQuery.h"
+#include "VideoBackends/OGL/OGLRender.h"
+#include "VideoBackends/OGL/OGLVertexManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
-#include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
-#include "VideoBackends/OGL/VertexManager.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 
 #include "VideoCommon/FramebufferManager.h"

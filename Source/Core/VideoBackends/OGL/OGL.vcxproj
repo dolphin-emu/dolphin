@@ -16,31 +16,31 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClCompile Include="OGLBoundingBox.cpp" />
+    <ClCompile Include="OGLMain.cpp" />
+    <ClCompile Include="OGLNativeVertexFormat.cpp" />
+    <ClCompile Include="OGLPerfQuery.cpp" />
     <ClCompile Include="OGLPipeline.cpp" />
+    <ClCompile Include="OGLRender.cpp" />
     <ClCompile Include="OGLShader.cpp" />
+    <ClCompile Include="OGLStreamBuffer.cpp" />
     <ClCompile Include="OGLTexture.cpp" />
-    <ClCompile Include="BoundingBox.cpp" />
-    <ClCompile Include="main.cpp" />
-    <ClCompile Include="NativeVertexFormat.cpp" />
-    <ClCompile Include="PerfQuery.cpp" />
+    <ClCompile Include="OGLVertexManager.cpp" />
     <ClCompile Include="ProgramShaderCache.cpp" />
-    <ClCompile Include="Render.cpp" />
     <ClCompile Include="SamplerCache.cpp" />
-    <ClCompile Include="StreamBuffer.cpp" />
-    <ClCompile Include="VertexManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="OGLPipeline.h" />
-    <ClInclude Include="OGLShader.h" />
-    <ClInclude Include="OGLTexture.h" />
-    <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="GPUTimer.h" />
-    <ClInclude Include="PerfQuery.h" />
+    <ClInclude Include="OGLBoundingBox.h" />
+    <ClInclude Include="OGLPerfQuery.h" />
+    <ClInclude Include="OGLPipeline.h" />
+    <ClInclude Include="OGLRender.h" />
+    <ClInclude Include="OGLShader.h" />
+    <ClInclude Include="OGLStreamBuffer.h" />
+    <ClInclude Include="OGLTexture.h" />
+    <ClInclude Include="OGLVertexManager.h" />
     <ClInclude Include="ProgramShaderCache.h" />
-    <ClInclude Include="Render.h" />
     <ClInclude Include="SamplerCache.h" />
-    <ClInclude Include="StreamBuffer.h" />
-    <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
   </ItemGroup>
   <ItemGroup>
