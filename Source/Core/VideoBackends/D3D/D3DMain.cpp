@@ -17,7 +17,7 @@
 #include "VideoBackends/D3D/D3DSwapChain.h"
 #include "VideoBackends/D3D/D3DVertexManager.h"
 #include "VideoBackends/D3D/VideoBackend.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 
 #include "VideoCommon/FramebufferManager.h"
 #include "VideoCommon/ShaderCache.h"

@@ -11,7 +11,7 @@
 #include "Common/DynamicLibrary.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoConfig.h"
 

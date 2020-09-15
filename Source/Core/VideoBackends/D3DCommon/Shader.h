@@ -6,7 +6,7 @@
 
 #include <optional>
 #include <string_view>
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 #include "VideoCommon/AbstractShader.h"
 
 namespace D3DCommon

@@ -2,12 +2,12 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <ClCompile Include="SwapChain.cpp" />
-    <ClCompile Include="Common.cpp" />
+    <ClCompile Include="D3DCommon.cpp" />
     <ClCompile Include="Shader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="SwapChain.h" />
-    <ClInclude Include="Common.h" />
+    <ClInclude Include="D3DCommon.h" />
     <ClInclude Include="Shader.h" />
   </ItemGroup>
 </Project>

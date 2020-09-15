@@ -14,7 +14,7 @@
 #include "VideoBackends/D3D/D3DBoundingBox.h"
 #include "VideoBackends/D3D/D3DRender.h"
 #include "VideoBackends/D3D/D3DState.h"
-#include "VideoBackends/D3DCommon/Common.h"
+#include "VideoBackends/D3DCommon/D3DCommon.h"
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/GeometryShaderManager.h"
