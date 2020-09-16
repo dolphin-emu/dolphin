@@ -173,10 +173,6 @@ private:
 
   enum class State
   {
-    // Hacky setup
-    Uninitialized,
-    GetId,
-    // Actual states for transmiting and receiving
     ReadyForCommand,
     ReadyForAppCommand,
     SingleBlockRead,
@@ -232,7 +228,7 @@ private:
   File::IOFile m_card;
 
   // STATE_TO_SAVE
-  State state = State::Uninitialized;
+  State state = State::ReadyForCommand;
   BlockState block_state = BlockState::Nothing;
   u32 command_position = 0;
   u32 block_position = 0;
