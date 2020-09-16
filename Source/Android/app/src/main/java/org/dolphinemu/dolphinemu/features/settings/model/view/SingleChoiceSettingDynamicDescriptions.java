@@ -1,11 +1,13 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 
 public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
 {
-  private int mDefaultValue;
+  private AbstractIntSetting mSetting;
 
   private int mChoicesId;
   private int mValuesId;
@@ -13,25 +15,25 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
   private int mDescriptionValuesId;
   private MenuTag menuTag;
 
-  public SingleChoiceSettingDynamicDescriptions(String file, String section, String key,
-          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
-          int descriptionValuesId, int defaultValue, MenuTag menuTag)
+  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId, MenuTag menuTag)
   {
-    super(file, section, key, titleId, descriptionId);
+    super(titleId, descriptionId);
+    mSetting = setting;
     mValuesId = valuesId;
     mChoicesId = choicesId;
     mDescriptionChoicesId = descriptionChoicesId;
     mDescriptionValuesId = descriptionValuesId;
-    mDefaultValue = defaultValue;
     this.menuTag = menuTag;
   }
 
-  public SingleChoiceSettingDynamicDescriptions(String file, String section, String key,
-          int titleId, int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
-          int descriptionValuesId, int defaultValue)
+  public SingleChoiceSettingDynamicDescriptions(AbstractIntSetting setting, int titleId,
+          int descriptionId, int choicesId, int valuesId, int descriptionChoicesId,
+          int descriptionValuesId)
   {
-    this(file, section, key, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
-            descriptionValuesId, defaultValue, null);
+    this(setting, titleId, descriptionId, choicesId, valuesId, descriptionChoicesId,
+            descriptionValuesId, null);
   }
 
   public int getChoicesId()
@@ -56,7 +58,7 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
 
   public int getSelectedValue(Settings settings)
   {
-    return settings.getSection(getFile(), getSection()).getInt(getKey(), mDefaultValue);
+    return mSetting.getInt(settings);
   }
 
   public MenuTag getMenuTag()
@@ -66,12 +68,18 @@ public final class SingleChoiceSettingDynamicDescriptions extends SettingsItem
 
   public void setSelectedValue(Settings settings, int selection)
   {
-    settings.getSection(getFile(), getSection()).setInt(getKey(), selection);
+    mSetting.setInt(settings, selection);
   }
 
   @Override
   public int getType()
   {
     return TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

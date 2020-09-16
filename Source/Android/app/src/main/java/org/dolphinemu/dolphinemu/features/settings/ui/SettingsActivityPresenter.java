@@ -10,9 +10,6 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-import java.util.HashSet;
-import java.util.Set;
-
 public final class SettingsActivityPresenter
 {
   private static final String KEY_SHOULD_SAVE = "should_save";
@@ -27,9 +24,8 @@ public final class SettingsActivityPresenter
 
   private MenuTag menuTag;
   private String gameId;
+  private int revision;
   private Context context;
-
-  private final Set<String> modifiedSettings = new HashSet<>();
 
   SettingsActivityPresenter(SettingsActivityView view, Settings settings)
   {
@@ -37,13 +33,24 @@ public final class SettingsActivityPresenter
     mSettings = settings;
   }
 
-  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, Context context)
+  public void onCreate(Bundle savedInstanceState, MenuTag menuTag, String gameId, int revision,
+          Context context)
   {
     this.menuTag = menuTag;
     this.gameId = gameId;
+    this.revision = revision;
     this.context = context;
 
     mShouldSave = savedInstanceState != null && savedInstanceState.getBoolean(KEY_SHOULD_SAVE);
+  }
+
+  public void onDestroy()
+  {
+    if (mSettings != null)
+    {
+      mSettings.close();
+      mSettings = null;
+    }
   }
 
   public void onStart()
@@ -57,7 +64,7 @@ public final class SettingsActivityPresenter
     {
       if (!TextUtils.isEmpty(gameId))
       {
-        mSettings.loadSettings(gameId, mView);
+        mSettings.loadSettings(gameId, revision, mView);
 
         if (mSettings.gameIniContainsJunk())
         {
@@ -98,7 +105,7 @@ public final class SettingsActivityPresenter
   public void clearSettings()
   {
     mSettings.clearSettings();
-    onSettingChanged(null);
+    onSettingChanged();
   }
 
   public void onStop(boolean finishing)
@@ -112,7 +119,7 @@ public final class SettingsActivityPresenter
     if (mSettings != null && finishing && mShouldSave)
     {
       Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-      mSettings.saveSettings(mView, context, modifiedSettings);
+      mSettings.saveSettings(mView, context);
     }
   }
 
@@ -127,13 +134,8 @@ public final class SettingsActivityPresenter
     return false;
   }
 
-  public void onSettingChanged(String key)
+  public void onSettingChanged()
   {
-    if (key != null)
-    {
-      modifiedSettings.add(key);
-    }
-
     mShouldSave = true;
   }
 

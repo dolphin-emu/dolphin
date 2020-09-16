@@ -13,7 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.dialogs.MotionAlertDialog;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FloatSliderSetting;
@@ -36,10 +38,8 @@ import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SettingViewHold
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SingleChoiceViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SliderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.SubmenuViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.security.InvalidParameterException;
 import java.util.ArrayList;
@@ -164,7 +164,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     item.setChecked(getSettings(), checked);
     notifyItemChanged(position);
 
-    mView.onSettingChanged(item.getKey());
+    mView.onSettingChanged();
   }
 
   public void onSingleChoiceClick(SingleChoiceSetting item, int position)
@@ -265,7 +265,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.setOnDismissListener(dialog1 ->
     {
       notifyItemChanged(position);
-      mView.onSettingChanged(item.getKey());
+      mView.onSettingChanged();
     });
     dialog.setCanceledOnTouchOutside(false);
     dialog.show();
@@ -308,7 +308,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     FilePicker filePicker = (FilePicker) mClickedItem;
 
     if (!filePicker.getSelectedValue(mView.getSettings()).equals(selectedFile))
-      mView.onSettingChanged(filePicker.getKey());
+      mView.onSettingChanged();
 
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 
@@ -317,32 +317,29 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   public void resetPaths()
   {
-    IniFile.Section coreSection = mView.getSettings().getSection(SettingsFile.FILE_NAME_DOLPHIN,
-            Settings.SECTION_INI_CORE);
-    IniFile.Section generalSection = mView.getSettings().getSection(SettingsFile.FILE_NAME_DOLPHIN,
-            Settings.SECTION_INI_GENERAL);
+    Settings settings = mView.getSettings();
 
-    coreSection.delete(SettingsFile.KEY_DEFAULT_ISO);
-    generalSection.delete(SettingsFile.KEY_NAND_ROOT_PATH);
-    generalSection.delete(SettingsFile.KEY_DUMP_PATH);
-    generalSection.delete(SettingsFile.KEY_LOAD_PATH);
-    generalSection.delete(SettingsFile.KEY_RESOURCE_PACK_PATH);
-    generalSection.delete(SettingsFile.KEY_WII_SD_CARD_PATH);
+    StringSetting.MAIN_DEFAULT_ISO.delete(settings);
+    StringSetting.MAIN_FS_PATH.delete(settings);
+    StringSetting.MAIN_DUMP_PATH.delete(settings);
+    StringSetting.MAIN_LOAD_PATH.delete(settings);
+    StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
+    StringSetting.MAIN_SD_PATH.delete(settings);
 
-    mView.onSettingChanged(null);
+    mView.onSettingChanged();
   }
 
   public void setAllLogTypes(boolean value)
   {
-    IniFile.Section section = mView.getSettings().getSection(SettingsFile.FILE_NAME_LOGGER,
-            Settings.SECTION_LOGGER_LOGS);
+    Settings settings = mView.getSettings();
 
     for (Map.Entry<String, String> entry : SettingsFragmentPresenter.LOG_TYPE_NAMES.entrySet())
     {
-      section.setBoolean(entry.getKey(), value);
+      new AdHocBooleanSetting(Settings.FILE_LOGGER, Settings.SECTION_LOGGER_LOGS, entry.getKey(),
+              false).setBoolean(settings, value);
     }
 
-    mView.onSettingChanged(null);
+    mView.onSettingChanged();
   }
 
   private void handleMenuTag(MenuTag menuTag, int value)
@@ -375,7 +372,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceSelection(scSetting, which);
       if (scSetting.getSelectedValue(getSettings()) != value)
-        mView.onSettingChanged(mClickedItem.getKey());
+        mView.onSettingChanged();
 
       handleMenuTag(scSetting.getMenuTag(), value);
 
@@ -390,7 +387,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       int value = getValueForSingleChoiceDynamicDescriptionsSelection(scSetting, which);
       if (scSetting.getSelectedValue(getSettings()) != value)
-        mView.onSettingChanged(mClickedItem.getKey());
+        mView.onSettingChanged();
 
       scSetting.setSelectedValue(getSettings(), value);
 
@@ -401,7 +398,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       StringSingleChoiceSetting scSetting = (StringSingleChoiceSetting) mClickedItem;
       String value = scSetting.getValueAt(which);
       if (!scSetting.getSelectedValue(getSettings()).equals(value))
-        mView.onSettingChanged(mClickedItem.getKey());
+        mView.onSettingChanged();
 
       handleMenuTag(scSetting.getMenuTag(), which);
 
@@ -413,7 +410,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       IntSliderSetting sliderSetting = (IntSliderSetting) mClickedItem;
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
-        mView.onSettingChanged(mClickedItem.getKey());
+        mView.onSettingChanged();
 
       sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 
@@ -423,7 +420,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     {
       FloatSliderSetting sliderSetting = (FloatSliderSetting) mClickedItem;
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
-        mView.onSettingChanged(mClickedItem.getKey());
+        mView.onSettingChanged();
 
       sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 

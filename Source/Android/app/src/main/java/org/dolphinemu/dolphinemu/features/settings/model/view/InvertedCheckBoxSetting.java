@@ -1,24 +1,32 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 
 public final class InvertedCheckBoxSetting extends CheckBoxSetting
 {
-  public InvertedCheckBoxSetting(String file, String section, String key, int titleId,
-          int descriptionId, boolean defaultValue)
+  public InvertedCheckBoxSetting(AbstractBooleanSetting setting, int titleId,
+          int descriptionId)
   {
-    super(file, section, key, titleId, descriptionId, !defaultValue);
+    super(setting, titleId, descriptionId);
   }
 
   @Override
   public boolean isChecked(Settings settings)
   {
-    return !settings.getSection(getFile(), getSection()).getBoolean(getKey(), mDefaultValue);
+    return !mSetting.getBoolean(settings);
   }
 
   @Override
   public void setChecked(Settings settings, boolean checked)
   {
-    settings.getSection(getFile(), getSection()).setBoolean(getKey(), !checked);
+    mSetting.setBoolean(settings, !checked);
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

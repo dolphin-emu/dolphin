@@ -44,11 +44,21 @@ public class RumbleBindingViewHolder extends SettingViewHolder
     mTextSettingName.setText(item.getNameId());
     mTextSettingDescription
             .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     getAdapter().onInputBindingClick(mItem, getAdapterPosition());
+
+    setStyle(mTextSettingName, mItem);
   }
 }

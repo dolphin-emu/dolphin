@@ -29,7 +29,7 @@ public class Rumble
     for (int i = 0; i < 8; i++)
     {
       String deviceName = activity.getSettings()
-              .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_BINDINGS)
+              .getSection(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS)
               .getString(SettingsFile.KEY_EMU_RUMBLE + i, "");
 
       if (!deviceName.isEmpty())

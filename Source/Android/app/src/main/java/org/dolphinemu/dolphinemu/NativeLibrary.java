@@ -335,6 +335,8 @@ public final class NativeLibrary
 
   public static native int DefaultCPUCore();
 
+  public static native String GetDefaultGraphicsBackendName();
+
   public static native int GetMaxLogLevel();
 
   public static native void ReloadConfig();

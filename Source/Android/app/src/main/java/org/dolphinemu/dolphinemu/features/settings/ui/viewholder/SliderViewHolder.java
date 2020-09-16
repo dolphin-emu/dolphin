@@ -49,12 +49,22 @@ public final class SliderViewHolder extends SettingViewHolder
               .getString(R.string.slider_setting_value,
                       mItem.getSelectedValue(getAdapter().getSettings()), mItem.getUnits()));
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     getAdapter().onSliderClick(mItem, getAdapterPosition());
+
+    setStyle(mTextSettingName, mItem);
   }
 }
 

@@ -6,6 +6,7 @@ import android.view.KeyEvent;
 
 import org.dolphinemu.dolphinemu.DolphinApplication;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.utils.Rumble;
 
@@ -54,5 +55,11 @@ public class RumbleBindingSetting extends InputBindingSetting
   public int getType()
   {
     return TYPE_RUMBLE_BINDING;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return null;
   }
 }

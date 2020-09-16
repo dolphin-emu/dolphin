@@ -16,8 +16,8 @@ import androidx.fragment.app.Fragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 public final class MenuFragment extends Fragment implements View.OnClickListener
 {
@@ -50,6 +50,9 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             .append(R.id.menu_screen_orientation, EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
+    buttonsActionsMap.append(R.id.menu_settings_core, EmulationActivity.MENU_ACTION_SETTINGS_CORE);
+    buttonsActionsMap.append(R.id.menu_settings_graphics,
+            EmulationActivity.MENU_ACTION_SETTINGS_GRAPHICS);
   }
 
   public static MenuFragment newInstance(String title)
@@ -82,18 +85,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     mUnpauseEmulation = options.findViewById(R.id.menu_unpause_emulation);
 
     updatePauseUnpauseVisibility();
-
-    boolean enableSaveStates = ((EmulationActivity) getActivity()).getSettings()
-            .getSection(SettingsFile.FILE_NAME_DOLPHIN, Settings.SECTION_INI_CORE)
-            .getBoolean(SettingsFile.KEY_ENABLE_SAVE_STATES, false);
-
-    if (enableSaveStates)
-    {
-      options.findViewById(R.id.menu_quicksave).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_quickload).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_emulation_save_root).setVisibility(View.VISIBLE);
-      options.findViewById(R.id.menu_emulation_load_root).setVisibility(View.VISIBLE);
-    }
 
     PackageManager packageManager = requireActivity().getPackageManager();
 
@@ -147,6 +138,22 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     }
 
     return rootView;
+  }
+
+  @Override
+  public void onResume()
+  {
+    super.onResume();
+
+    LinearLayout options = requireView().findViewById(R.id.layout_options);
+
+    Settings settings = ((EmulationActivity) requireActivity()).getSettings();
+    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBoolean(settings);
+    int savestateVisibility = savestatesEnabled ? View.VISIBLE : View.GONE;
+    options.findViewById(R.id.menu_quicksave).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_quickload).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_emulation_save_root).setVisibility(savestateVisibility);
+    options.findViewById(R.id.menu_emulation_load_root).setVisibility(savestateVisibility);
   }
 
   private void updatePauseUnpauseVisibility()

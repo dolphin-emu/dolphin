@@ -5,8 +5,8 @@ import android.widget.CheckBox;
 import android.widget.TextView;
 
 import org.dolphinemu.dolphinemu.R;
-import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragmentPresenter;
@@ -39,9 +39,10 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     mItem = (CheckBoxSetting) item;
 
     // Special case for LogTypes retrieved via JNI since those aren't string references.
-    if (item.getNameId() == 0 && item.getSection().equals(Settings.SECTION_LOGGER_LOGS))
+    if (item.getNameId() == 0 && item instanceof LogCheckBoxSetting)
     {
-      mTextSettingName.setText(SettingsFragmentPresenter.LOG_TYPE_NAMES.get(item.getKey()));
+      String key = ((LogCheckBoxSetting) item).getKey();
+      mTextSettingName.setText(SettingsFragmentPresenter.LOG_TYPE_NAMES.get(key));
     }
     else
     {
@@ -58,13 +59,23 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     }
 
     mCheckbox.setChecked(mItem.isChecked(getAdapter().getSettings()));
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     mCheckbox.toggle();
 
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
+
+    setStyle(mTextSettingName, mItem);
   }
 }

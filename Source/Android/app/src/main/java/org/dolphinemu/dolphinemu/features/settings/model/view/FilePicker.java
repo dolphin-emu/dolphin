@@ -1,28 +1,34 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+
+import androidx.annotation.Nullable;
 
 public final class FilePicker extends SettingsItem
 {
-  private String mDefaultValue;
+  private AbstractStringSetting mSetting;
   private int mRequestType;
+  private String mDefaultPathRelativeToUserDirectory;
 
-  public FilePicker(String file, String section, String key, int titleId, int descriptionId,
-          String defaultVault, int requestType)
+  public FilePicker(AbstractStringSetting setting, int titleId, int descriptionId, int requestType,
+          @Nullable String defaultPathRelativeToUserDirectory)
   {
-    super(file, section, key, titleId, descriptionId);
-    mDefaultValue = defaultVault;
+    super(titleId, descriptionId);
+    mSetting = setting;
     mRequestType = requestType;
+    mDefaultPathRelativeToUserDirectory = defaultPathRelativeToUserDirectory;
   }
 
   public String getSelectedValue(Settings settings)
   {
-    return settings.getSection(getFile(), getSection()).getString(getKey(), mDefaultValue);
+    return mSetting.getString(settings);
   }
 
   public void setSelectedValue(Settings settings, String selection)
   {
-    settings.getSection(getFile(), getSection()).setString(getKey(), selection);
+    mSetting.setString(settings, selection);
   }
 
   public int getRequestType()
@@ -30,9 +36,21 @@ public final class FilePicker extends SettingsItem
     return mRequestType;
   }
 
+  @Nullable
+  public String getDefaultPathRelativeToUserDirectory()
+  {
+    return mDefaultPathRelativeToUserDirectory;
+  }
+
   @Override
   public int getType()
   {
     return TYPE_FILE_PICKER;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

@@ -80,11 +80,19 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
         }
       }
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     int position = getAdapterPosition();
     if (mItem instanceof SingleChoiceSetting)
     {
@@ -99,5 +107,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       getAdapter().onSingleChoiceDynamicDescriptionsClick(
               (SingleChoiceSettingDynamicDescriptions) mItem, position);
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 }

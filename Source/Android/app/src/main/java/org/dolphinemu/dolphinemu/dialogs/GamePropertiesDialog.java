@@ -8,15 +8,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.DialogFragment;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -26,15 +24,18 @@ public class GamePropertiesDialog extends DialogFragment
   public static final String TAG = "GamePropertiesDialog";
   public static final String ARG_PATH = "path";
   public static final String ARG_GAMEID = "game_id";
+  public static final String ARG_REVISION = "revision";
   public static final String ARG_PLATFORM = "platform";
 
-  public static GamePropertiesDialog newInstance(String path, String gameId, int platform)
+  public static GamePropertiesDialog newInstance(String path, String gameId, int revision,
+          int platform)
   {
     GamePropertiesDialog fragment = new GamePropertiesDialog();
 
     Bundle arguments = new Bundle();
     arguments.putString(ARG_PATH, path);
     arguments.putString(ARG_GAMEID, gameId);
+    arguments.putInt(ARG_REVISION, revision);
     arguments.putInt(ARG_PLATFORM, platform);
     fragment.setArguments(arguments);
 
@@ -50,6 +51,7 @@ public class GamePropertiesDialog extends DialogFragment
 
     String path = requireArguments().getString(ARG_PATH);
     String gameId = requireArguments().getString(ARG_GAMEID);
+    int revision = requireArguments().getInt(ARG_REVISION);
     int platform = requireArguments().getInt(ARG_PLATFORM);
 
     builder.setTitle(requireContext()
@@ -65,30 +67,28 @@ public class GamePropertiesDialog extends DialogFragment
                           .getSupportFragmentManager(), "game_details");
                   break;
                 case 1:
-                  File dolphinFile = SettingsFile.getSettingsFile(SettingsFile.FILE_NAME_DOLPHIN);
-                  IniFile dolphinIni = new IniFile(dolphinFile);
-                  dolphinIni.setString(Settings.SECTION_INI_CORE, SettingsFile.KEY_DEFAULT_ISO,
-                          path);
-                  dolphinIni.save(dolphinFile);
-
-                  NativeLibrary.ReloadConfig();
-                  Toast.makeText(getContext(), "Default ISO set", Toast.LENGTH_SHORT).show();
+                  try (Settings settings = new Settings())
+                  {
+                    settings.loadSettings(null);
+                    StringSetting.MAIN_DEFAULT_ISO.setString(settings, path);
+                    settings.saveSettings(null, getContext());
+                  }
                   break;
                 case 2:
-                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.CONFIG, gameId, revision);
                   break;
                 case 3:
-                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.GRAPHICS, gameId, revision);
                   break;
                 case 4:
-                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId);
+                  SettingsActivity.launch(getContext(), MenuTag.GCPAD_TYPE, gameId, revision);
                   break;
                 case 5:
                   // Clear option for GC, Wii controls for else
                   if (platform == Platform.GAMECUBE.toInt())
                     clearGameSettings(gameId);
                   else
-                    SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId);
+                    SettingsActivity.launch(getActivity(), MenuTag.WIIMOTE, gameId, revision);
                   break;
                 case 6:
                   clearGameSettings(gameId);

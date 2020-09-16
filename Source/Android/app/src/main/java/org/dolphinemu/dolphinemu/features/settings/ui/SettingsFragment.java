@@ -193,9 +193,9 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
-  public void onSettingChanged(String key)
+  public void onSettingChanged()
   {
-    mActivity.onSettingChanged(key);
+    mActivity.onSettingChanged();
   }
 
   @Override

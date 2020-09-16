@@ -16,92 +16,6 @@ import java.io.File;
  */
 public final class SettingsFile
 {
-  public static final String FILE_NAME_DOLPHIN = "Dolphin";
-  public static final String FILE_NAME_GFX = "GFX";
-  public static final String FILE_NAME_LOGGER = "Logger";
-  public static final String FILE_NAME_GCPAD = "GCPadNew";
-  public static final String FILE_NAME_WIIMOTE = "WiimoteNew";
-
-  public static final String KEY_DSP_ENGINE = "DSPEngine";
-  public static final String KEY_LAST_PLATFORM_TAB = "LastPlatformTab";
-
-  public static final String KEY_CPU_CORE = "CPUCore";
-  public static final String KEY_DUAL_CORE = "CPUThread";
-  public static final String KEY_OVERCLOCK_ENABLE = "OverclockEnable";
-  public static final String KEY_OVERCLOCK_PERCENT = "Overclock";
-  public static final String KEY_SPEED_LIMIT = "EmulationSpeed";
-  public static final String KEY_VIDEO_BACKEND = "GFXBackend";
-
-  public static final String KEY_DSP_HLE = "DSPHLE";
-  public static final String KEY_DSP_ENABLE_JIT = "EnableJIT";
-  public static final String KEY_AUDIO_STRETCH = "AudioStretch";
-  public static final String KEY_AUDIO_VOLUME = "Volume";
-
-  public static final String KEY_AUTO_DISC_CHANGE = "AutoDiscChange";
-  public static final String KEY_GAME_CUBE_LANGUAGE = "SelectedLanguage";
-  public static final String KEY_OVERRIDE_REGION_SETTINGS = "OverrideRegionSettings";
-  public static final String KEY_SLOT_A_DEVICE = "SlotA";
-  public static final String KEY_SLOT_B_DEVICE = "SlotB";
-  public static final String KEY_ENABLE_SAVE_STATES = "EnableSaveStates";
-  public static final String KEY_RECURSIVE_ISO_PATHS = "RecursiveISOPaths";
-  public static final String KEY_DEFAULT_ISO = "DefaultISO";
-  public static final String KEY_NAND_ROOT_PATH = "NANDRootPath";
-  public static final String KEY_DUMP_PATH = "DumpPath";
-  public static final String KEY_LOAD_PATH = "LoadPath";
-  public static final String KEY_RESOURCE_PACK_PATH = "ResourcePackPath";
-  public static final String KEY_WII_SD_CARD_PATH = "WiiSDCardPath";
-
-  public static final String KEY_ANALYTICS_ENABLED = "Enabled";
-  public static final String KEY_ANALYTICS_PERMISSION_ASKED = "PermissionAsked";
-
-  public static final String KEY_USE_PANIC_HANDLERS = "UsePanicHandlers";
-  public static final String KEY_OSD_MESSAGES = "OnScreenDisplayMessages";
-
-  public static final String KEY_SHOW_FPS = "ShowFPS";
-  public static final String KEY_INTERNAL_RES = "InternalResolution";
-  public static final String KEY_FSAA = "MSAA";
-  public static final String KEY_ANISOTROPY = "MaxAnisotropy";
-  public static final String KEY_POST_SHADER = "PostProcessingShader";
-  public static final String KEY_SCALED_EFB = "EFBScaledCopy";
-  public static final String KEY_PER_PIXEL = "EnablePixelLighting";
-  public static final String KEY_FORCE_FILTERING = "ForceFiltering";
-  public static final String KEY_DISABLE_FOG = "DisableFog";
-  public static final String KEY_DISABLE_COPY_FILTER = "DisableCopyFilter";
-  public static final String KEY_ARBITRARY_MIPMAP_DETECTION = "ArbitraryMipmapDetection";
-  public static final String KEY_WIDE_SCREEN_HACK = "wideScreenHack";
-  public static final String KEY_FORCE_24_BIT_COLOR = "ForceTrueColor";
-  public static final String KEY_BACKEND_MULTITHREADING = "BackendMultithreading";
-
-  public static final String KEY_STEREO_MODE = "StereoMode";
-  public static final String KEY_STEREO_DEPTH = "StereoDepth";
-  public static final String KEY_STEREO_CONV = "StereoConvergencePercentage";
-  public static final String KEY_STEREO_SWAP = "StereoSwapEyes";
-
-  public static final String KEY_SKIP_EFB = "EFBAccessEnable";
-  public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
-  public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
-  public static final String KEY_DEFER_EFB_COPIES = "DeferEFBCopies";
-  public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
-  public static final String KEY_GPU_TEXTURE_DECODING = "EnableGPUTextureDecoding";
-  public static final String KEY_XFB_TEXTURE = "XFBToTextureEnable";
-  public static final String KEY_IMMEDIATE_XFB = "ImmediateXFBEnable";
-  public static final String KEY_SKIP_DUPLICATE_XFBS = "SkipDuplicateXFBs";
-  public static final String KEY_FAST_DEPTH = "FastDepthCalc";
-  public static final String KEY_ASPECT_RATIO = "AspectRatio";
-  public static final String KEY_SHADER_COMPILATION_MODE = "ShaderCompilationMode";
-  public static final String KEY_WAIT_FOR_SHADERS = "WaitForShadersBeforeStarting";
-
-  public static final String KEY_DEBUG_JITOFF = "JitOff";
-  public static final String KEY_DEBUG_JITLOADSTOREOFF = "JitLoadStoreOff";
-  public static final String KEY_DEBUG_JITLOADSTOREFLOATINGPOINTOFF = "JitLoadStoreFloatingOff";
-  public static final String KEY_DEBUG_JITLOADSTOREPAIREDOFF = "JitLoadStorePairedOff";
-  public static final String KEY_DEBUG_JITFLOATINGPOINTOFF = "JitFloatingPointOff";
-  public static final String KEY_DEBUG_JITINTEGEROFF = "JitIntegerOff";
-  public static final String KEY_DEBUG_JITPAIREDOFF = "JitPairedOff";
-  public static final String KEY_DEBUG_JITSYSTEMREGISTEROFF = "JitSystemRegistersOff";
-  public static final String KEY_DEBUG_JITBRANCHOFF = "JitBranchOff";
-  public static final String KEY_DEBUG_JITREGISTERCACHEOFF = "JitRegisterCacheOff";
-
   public static final String KEY_GCPAD_TYPE = "SIDevice";
   public static final String KEY_GCPAD_PLAYER_1 = "SIDevice0";
   public static final String KEY_GCPAD_G_TYPE = "PadType";
@@ -264,14 +178,6 @@ public final class SettingsFile
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT = "TurntableCrossLeft_";
   public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT = "TurntableCrossRight_";
 
-  public static final String KEY_WII_SD_CARD = "WiiSDCard";
-  public static final String KEY_WII_SD_CARD_ALLOW_WRITES = "WiiSDCardAllowWrites";
-  public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
-  public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
-
-  public static final String KEY_ENABLE_LOGGING = "WriteToFile";
-  public static final String KEY_LOG_VERBOSITY = "Verbosity";
-
   private static BiMap<String, String> sectionsMap = new BiMap<>();
 
   static
@@ -310,7 +216,7 @@ public final class SettingsFile
   {
     readFile(getSettingsFile(fileName), ini, view);
 
-    if (fileName.equals(SettingsFile.FILE_NAME_DOLPHIN))
+    if (fileName.equals(Settings.FILE_DOLPHIN))
     {
       addGcPadSettingsIfTheyDontExist(ini);
     }
@@ -504,16 +410,5 @@ public final class SettingsFile
         coreSection.setInt(key, i == 0 ? 6 : 0);
       }
     }
-  }
-
-  public static void firstAnalyticsAdd(boolean enabled)
-  {
-    IniFile dolphinIni = new IniFile();
-    readFile(SettingsFile.FILE_NAME_DOLPHIN, dolphinIni, null);
-
-    dolphinIni.setBoolean(Settings.SECTION_ANALYTICS, KEY_ANALYTICS_ENABLED, enabled);
-    dolphinIni.setBoolean(Settings.SECTION_ANALYTICS, KEY_ANALYTICS_PERMISSION_ASKED, true);
-
-    saveFile(SettingsFile.FILE_NAME_DOLPHIN, dolphinIni, null);
   }
 }
