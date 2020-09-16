@@ -128,13 +128,24 @@
     <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
-    <string name="gamecube_system_language">System Language</string>
+    <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_widescreen">Widescreen</string>
+    <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
+    <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
+    <string name="wii_pal60_description">Changes refresh rate from 50 Hz to 60 Hz in PAL games that support it.</string>
+    <string name="wii_screensaver">Enable Screen Saver</string>
+    <string name="wii_screensaver_description">Dims the screen after five minutes of inactivity.</string>
+    <string name="sound_mode">Sound</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
+    <string name="wiimote_rumble">Wii Remote Rumble</string>
+    <string name="wiimote_volume">Wii Remote Speaker Volume</string>
+    <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
+    <string name="sensor_bar_position">Sensor Bar Position</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>

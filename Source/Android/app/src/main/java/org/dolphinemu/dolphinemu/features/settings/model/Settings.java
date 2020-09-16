@@ -17,6 +17,7 @@ import java.util.Map;
 public class Settings implements Closeable
 {
   public static final String FILE_DOLPHIN = "Dolphin";
+  public static final String FILE_SYSCONF = "SYSCONF";
   public static final String FILE_GFX = "GFX";
   public static final String FILE_LOGGER = "Logger";
   public static final String FILE_GCPAD = "GCPadNew";
