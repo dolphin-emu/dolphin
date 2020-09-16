@@ -671,6 +671,18 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_FormatSiz
   return ToJString(env, UICommon::FormatSize(bytes, decimals));
 }
 
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetObscuredPixelsLeft(
+    JNIEnv* env, jobject obj, jint width)
+{
+  OSD::SetObscuredPixelsLeft(width);
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetObscuredPixelsTop(
+    JNIEnv* env, jobject obj, jint height)
+{
+  OSD::SetObscuredPixelsTop(height);
+}
+
 #ifdef __cplusplus
 }
 #endif
