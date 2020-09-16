@@ -358,9 +358,9 @@ class VariableExpression : public Expression
 public:
   VariableExpression(std::string name) : m_name(name) {}
 
-  ControlState GetValue() const override { return *m_value_ptr; }
+  ControlState GetValue() const override { return (m_value_ptr != nullptr) ? *m_value_ptr : 0; }
 
-  void SetValue(ControlState value) override { *m_value_ptr = value; }
+  void SetValue(ControlState value) override { if (m_value_ptr != nullptr) *m_value_ptr = value; }
 
   int CountNumControls() const override { return 1; }
 
