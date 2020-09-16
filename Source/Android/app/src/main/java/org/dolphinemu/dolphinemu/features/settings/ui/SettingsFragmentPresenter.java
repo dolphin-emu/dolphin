@@ -234,8 +234,8 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
             R.string.override_region_settings, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_AUTO_DISC_CHANGE, R.string.auto_disc_change, 0));
-    sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 200,
-            "%"));
+    sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 0,
+            200, "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ENABLE_SAVESTATES, R.string.enable_save_states,
             R.string.enable_save_states_description));
@@ -334,7 +334,8 @@ public final class SettingsFragmentPresenter
             dspEngineEntries, dspEngineValues));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_AUDIO_STRETCH, R.string.audio_stretch,
             R.string.audio_stretch_description));
-    sl.add(new IntSliderSetting(IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0, 100, "%"));
+    sl.add(new IntSliderSetting(IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0, 0, 100,
+            "%"));
   }
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
@@ -407,7 +408,7 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OVERCLOCK_ENABLE, R.string.overclock_enable,
             R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
-            R.string.overclock_title_description, 400, "%"));
+            R.string.overclock_title_description, 0, 400, "%"));
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -649,9 +650,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(IntSetting.GFX_STEREO_MODE, R.string.stereoscopy_mode, 0,
             R.array.stereoscopyEntries, R.array.stereoscopyValues));
     sl.add(new IntSliderSetting(IntSetting.GFX_STEREO_DEPTH, R.string.stereoscopy_depth,
-            R.string.stereoscopy_depth_description, 100, "%"));
+            R.string.stereoscopy_depth_description, 0, 100, "%"));
     sl.add(new IntSliderSetting(IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
-            R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 200,
+            R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 0, 200,
             "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.GFX_STEREO_SWAP_EYES, R.string.stereoscopy_swap_eyes,
             R.string.stereoscopy_swap_eyes_description));
