@@ -20,5 +20,6 @@ const Info<bool> MAIN_RECURSIVE_ISO_PATHS{{System::Main, "General", "RecursiveIS
 // UI.Android
 
 const Info<int> MAIN_LAST_PLATFORM_TAB{{System::Main, "Android", "LastPlatformTab"}, 0};
+const Info<int> MAIN_EMULATION_ORIENTATION{{System::Main, "Android", "EmulationOrientation"}, 0};
 
 }  // namespace Config

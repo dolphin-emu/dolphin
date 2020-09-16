@@ -46,8 +46,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             .append(R.id.menu_overlay_controls, EmulationActivity.MENU_ACTION_OVERLAY_CONTROLS);
     buttonsActionsMap
             .append(R.id.menu_refresh_wiimotes, EmulationActivity.MENU_ACTION_REFRESH_WIIMOTES);
-    buttonsActionsMap
-            .append(R.id.menu_screen_orientation, EmulationActivity.MENU_ACTION_SCREEN_ORIENTATION);
     buttonsActionsMap.append(R.id.menu_change_disc, EmulationActivity.MENU_ACTION_CHANGE_DISC);
     buttonsActionsMap.append(R.id.menu_exit, EmulationActivity.MENU_ACTION_EXIT);
     buttonsActionsMap.append(R.id.menu_settings_core, EmulationActivity.MENU_ACTION_SETTINGS_CORE);
@@ -90,9 +88,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 
     updatePauseUnpauseVisibility();
 
-    PackageManager packageManager = requireActivity().getPackageManager();
-
-    if (!packageManager.hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
+    if (!requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
     {
       options.findViewById(R.id.menu_overlay_controls).setVisibility(View.GONE);
     }
@@ -100,14 +96,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     if (!getArguments().getBoolean(KEY_WII, true))
     {
       options.findViewById(R.id.menu_refresh_wiimotes).setVisibility(View.GONE);
-    }
-
-    // Old devices which support both portrait and landscape may report support for neither,
-    // so we only hide the orientation button if the device only supports one orientation
-    if (packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_PORTRAIT) !=
-            packageManager.hasSystemFeature(PackageManager.FEATURE_SCREEN_LANDSCAPE))
-    {
-      options.findViewById(R.id.menu_screen_orientation).setVisibility(View.GONE);
     }
 
     int bottomPaddingRequired = getBottomPaddingRequired();

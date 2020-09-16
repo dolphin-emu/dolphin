@@ -161,6 +161,7 @@
 
     <!-- Interface Preference Fragment -->
     <string name="interface_submenu">Interface</string>
+    <string name="emulation_screen_orientation">Screen Orientation During Emulation</string>
     <string name="panic_handlers">Use Panic Handlers</string>
     <string name="panic_handlers_description">Show a message box when a potentially serious error has occurred. Disabling this may avoid annoying and non-fatal messages, but it may result in major crashes having no explanation at all.</string>
     <string name="osd_messages">Show On-Screen Display Messages</string>
@@ -399,7 +400,6 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
     <string name="emulation_choose_doubletap">Double tap button</string>
-    <string name="emulation_screen_orientation">Screen Orientation</string>
     <string name="emulation_motion_controls">Motion Controls</string>
 
     <!-- GC Adapter Menu-->

@@ -24,5 +24,6 @@ extern const Info<bool> MAIN_RECURSIVE_ISO_PATHS;
 // UI.Android
 
 extern const Info<int> MAIN_LAST_PLATFORM_TAB;
+extern const Info<int> MAIN_EMULATION_ORIENTATION;
 
 }  // namespace Config
