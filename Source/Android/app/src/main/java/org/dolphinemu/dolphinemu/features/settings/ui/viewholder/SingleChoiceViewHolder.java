@@ -4,6 +4,8 @@ import android.content.res.Resources;
 import android.view.View;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
@@ -109,5 +111,11 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     }
 
     setStyle(mTextSettingName, mItem);
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 }

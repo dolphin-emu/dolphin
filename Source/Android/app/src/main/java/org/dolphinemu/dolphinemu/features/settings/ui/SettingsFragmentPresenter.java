@@ -225,6 +225,7 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(R.string.debug_submenu, MenuTag.DEBUG));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -493,6 +494,7 @@ public final class SettingsFragmentPresenter
     sl.add(new HeaderSetting(R.string.graphics_enhancements_and_hacks, 0));
     sl.add(new SubmenuSetting(R.string.enhancements_submenu, MenuTag.ENHANCEMENTS));
     sl.add(new SubmenuSetting(R.string.hacks_submenu, MenuTag.HACKS));
+    sl.add(new HeaderSetting(R.string.setting_clear_info, 0));
   }
 
   private void addEnhanceSettings(ArrayList<SettingsItem> sl)

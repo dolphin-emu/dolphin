@@ -4,6 +4,8 @@ import android.view.View;
 import android.widget.CheckBox;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
@@ -77,5 +79,11 @@ public final class CheckBoxSettingViewHolder extends SettingViewHolder
     getAdapter().onBooleanClick(mItem, getAdapterPosition(), mCheckbox.isChecked());
 
     setStyle(mTextSettingName, mItem);
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 }

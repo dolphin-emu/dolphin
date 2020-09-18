@@ -77,4 +77,14 @@ public abstract class SettingsItem
     AbstractSetting setting = getSetting();
     return setting != null && setting.isRuntimeEditable();
   }
+
+  public boolean hasSetting()
+  {
+    return getSetting() != null;
+  }
+
+  public void clear(Settings settings)
+  {
+    getSetting().delete(settings);
+  }
 }

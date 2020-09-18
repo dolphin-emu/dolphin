@@ -160,6 +160,14 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     notifyDataSetChanged();
   }
 
+  public void clearSetting(SettingsItem item, int position)
+  {
+    item.clear(getSettings());
+    notifyItemChanged(position);
+
+    mView.onSettingChanged();
+  }
+
   public void onBooleanClick(CheckBoxSetting item, int position, boolean checked)
   {
     item.setChecked(getSettings(), checked);

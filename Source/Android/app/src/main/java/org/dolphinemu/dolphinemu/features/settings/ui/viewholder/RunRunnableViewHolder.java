@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 
 import org.dolphinemu.dolphinemu.R;
@@ -56,8 +57,8 @@ public final class RunRunnableViewHolder extends SettingViewHolder
     if (alertTextID > 0)
     {
       AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase)
-              .setTitle(mContext.getString(mItem.getNameId()))
-              .setMessage(mContext.getString(alertTextID));
+              .setTitle(mItem.getNameId())
+              .setMessage(alertTextID);
 
       builder
               .setPositiveButton(R.string.ok, (dialog, whichButton) ->
@@ -73,6 +74,12 @@ public final class RunRunnableViewHolder extends SettingViewHolder
     {
       runRunnable();
     }
+  }
+
+  @Nullable @Override
+  protected SettingsItem getItem()
+  {
+    return mItem;
   }
 
   private void runRunnable()
