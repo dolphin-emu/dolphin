@@ -92,7 +92,8 @@ public:
   void SetCalibrationToDefault();
   void SetCalibrationFromGate(const StickGate& gate);
 
-  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point);
+  static void UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
+                                    Common::DVec2 point2);
   static ControlState GetCalibrationDataRadiusAtAngle(const CalibrationData& data, double angle);
 
   const CalibrationData& GetCalibrationData() const;
