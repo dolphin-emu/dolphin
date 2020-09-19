@@ -663,7 +663,7 @@ else()
 endif()
 
 pkg_search_module(ZSTD QUIET libzstd)
-if(ZSTD_FOUND)
+if(ZSTD_FOUND AND NOT IOS)
   message(STATUS "Using shared zstd")
 else()
   check_vendoring_approved(zstd)
