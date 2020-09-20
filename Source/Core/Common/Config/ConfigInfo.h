@@ -30,10 +30,11 @@ struct Location
 };
 
 template <typename T>
-struct Info
+class Info
 {
-  Info(const Location& location_, const T& default_value_)
-      : location{location_}, default_value{default_value_}
+public:
+  Info(const Location& location, const T& default_value)
+      : m_location{location}, m_default_value{default_value}
   {
   }
 
@@ -42,12 +43,16 @@ struct Info
   template <typename Enum,
             std::enable_if_t<std::is_same<T, detail::UnderlyingType<Enum>>::value>* = nullptr>
   Info(const Info<Enum>& other)
-      : location{other.location}, default_value{static_cast<detail::UnderlyingType<Enum>>(
-                                      other.default_value)}
+      : m_location{other.GetLocation()}, m_default_value{static_cast<detail::UnderlyingType<Enum>>(
+                                             other.GetDefaultValue())}
   {
   }
 
-  Location location;
-  T default_value;
+  const Location& GetLocation() const { return m_location; }
+  const T& GetDefaultValue() const { return m_default_value; }
+
+private:
+  Location m_location;
+  T m_default_value;
 };
 }  // namespace Config

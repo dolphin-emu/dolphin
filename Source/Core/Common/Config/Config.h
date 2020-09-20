@@ -50,7 +50,7 @@ T Get(LayerType layer, const Info<T>& info)
 template <typename T>
 T Get(const Info<T>& info)
 {
-  return GetLayer(GetActiveLayerForConfig(info.location))->Get(info);
+  return GetLayer(GetActiveLayerForConfig(info.GetLocation()))->Get(info);
 }
 
 template <typename T>
@@ -62,7 +62,7 @@ T GetBase(const Info<T>& info)
 template <typename T>
 LayerType GetActiveLayerForConfig(const Info<T>& info)
 {
-  return GetActiveLayerForConfig(info.location);
+  return GetActiveLayerForConfig(info.GetLocation());
 }
 
 template <typename T>
