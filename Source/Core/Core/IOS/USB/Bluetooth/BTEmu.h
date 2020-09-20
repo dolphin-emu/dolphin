@@ -70,7 +70,6 @@ private:
   // this is used to trigger connecting via ACL
   u8 m_scan_enable = 0;
 
-  std::unique_ptr<USB::V0CtrlMessage> m_ctrl_setup;
   std::unique_ptr<USB::V0IntrMessage> m_hci_endpoint;
   std::unique_ptr<USB::V0BulkMessage> m_acl_endpoint;
   std::deque<SQueuedEvent> m_event_queue;

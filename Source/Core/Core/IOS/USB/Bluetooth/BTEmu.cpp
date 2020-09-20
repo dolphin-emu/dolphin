@@ -102,7 +102,6 @@ void BluetoothEmu::DoState(PointerWrap& p)
 
   p.Do(m_is_active);
   p.Do(m_controller_bd);
-  DoStateForMessage(m_ios, p, m_ctrl_setup);
   DoStateForMessage(m_ios, p, m_hci_endpoint);
   DoStateForMessage(m_ios, p, m_acl_endpoint);
   p.Do(m_last_ticks);
@@ -149,10 +148,8 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   {
   case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
-    m_ctrl_setup = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     // Replies are generated inside
-    ExecuteHCICommandMessage(*m_ctrl_setup);
-    m_ctrl_setup.reset();
+    ExecuteHCICommandMessage(USB::V0CtrlMessage(m_ios, request));
     send_reply = false;
     break;
   }
