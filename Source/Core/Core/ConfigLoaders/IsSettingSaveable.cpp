@@ -36,32 +36,32 @@ bool IsSettingSaveable(const Config::Location& config_location)
   static constexpr std::array<const Config::Location*, 17> s_setting_saveable = {
       // Main.Core
 
-      &Config::MAIN_DEFAULT_ISO.location,
-      &Config::MAIN_MEMCARD_A_PATH.location,
-      &Config::MAIN_MEMCARD_B_PATH.location,
-      &Config::MAIN_AUTO_DISC_CHANGE.location,
-      &Config::MAIN_ALLOW_SD_WRITES.location,
-      &Config::MAIN_DPL2_DECODER.location,
-      &Config::MAIN_DPL2_QUALITY.location,
-      &Config::MAIN_RAM_OVERRIDE_ENABLE.location,
-      &Config::MAIN_MEM1_SIZE.location,
-      &Config::MAIN_MEM2_SIZE.location,
-      &Config::MAIN_GFX_BACKEND.location,
-      &Config::MAIN_ENABLE_SAVESTATES.location,
-      &Config::MAIN_FALLBACK_REGION.location,
+      &Config::MAIN_DEFAULT_ISO.GetLocation(),
+      &Config::MAIN_MEMCARD_A_PATH.GetLocation(),
+      &Config::MAIN_MEMCARD_B_PATH.GetLocation(),
+      &Config::MAIN_AUTO_DISC_CHANGE.GetLocation(),
+      &Config::MAIN_ALLOW_SD_WRITES.GetLocation(),
+      &Config::MAIN_DPL2_DECODER.GetLocation(),
+      &Config::MAIN_DPL2_QUALITY.GetLocation(),
+      &Config::MAIN_RAM_OVERRIDE_ENABLE.GetLocation(),
+      &Config::MAIN_MEM1_SIZE.GetLocation(),
+      &Config::MAIN_MEM2_SIZE.GetLocation(),
+      &Config::MAIN_GFX_BACKEND.GetLocation(),
+      &Config::MAIN_ENABLE_SAVESTATES.GetLocation(),
+      &Config::MAIN_FALLBACK_REGION.GetLocation(),
 
       // Main.Interface
 
-      &Config::MAIN_USE_PANIC_HANDLERS.location,
-      &Config::MAIN_OSD_MESSAGES.location,
+      &Config::MAIN_USE_PANIC_HANDLERS.GetLocation(),
+      &Config::MAIN_OSD_MESSAGES.GetLocation(),
 
       // Main.Interface
 
-      &Config::MAIN_SKIP_NKIT_WARNING.location,
+      &Config::MAIN_SKIP_NKIT_WARNING.GetLocation(),
 
       // UI.General
 
-      &Config::MAIN_USE_DISCORD_PRESENCE.location,
+      &Config::MAIN_USE_DISCORD_PRESENCE.GetLocation(),
   };
 
   return std::any_of(s_setting_saveable.cbegin(), s_setting_saveable.cend(),

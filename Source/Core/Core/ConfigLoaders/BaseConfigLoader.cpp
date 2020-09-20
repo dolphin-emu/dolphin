@@ -41,7 +41,7 @@ void SaveToSYSCONF(Config::LayerType layer)
   {
     std::visit(
         [layer, &setting, &sysconf](auto& info) {
-          const std::string key = info.location.section + "." + info.location.key;
+          const std::string key = info.GetLocation().section + "." + info.GetLocation().key;
 
           if (setting.type == SysConf::Entry::Type::Long)
           {
@@ -180,27 +180,28 @@ private:
     {
       std::visit(
           [&](auto& info) {
-            const std::string key = info.location.section + "." + info.location.key;
+            const Config::Location location = info.GetLocation();
+            const std::string key = location.section + "." + location.key;
             if (setting.type == SysConf::Entry::Type::Long)
             {
-              layer->Set(info.location, sysconf.GetData<u32>(key, info.default_value));
+              layer->Set(location, sysconf.GetData<u32>(key, info.GetDefaultValue()));
             }
             else if (setting.type == SysConf::Entry::Type::Byte)
             {
-              layer->Set(info.location, sysconf.GetData<u8>(key, info.default_value));
+              layer->Set(location, sysconf.GetData<u8>(key, info.GetDefaultValue()));
             }
             else if (setting.type == SysConf::Entry::Type::BigArray)
             {
               // Somewhat hacky support for IPL.SADR. The setting only stores the
               // first 4 bytes even thought the SYSCONF entry is much bigger.
-              u32 value = info.default_value;
+              u32 value = info.GetDefaultValue();
               SysConf::Entry* entry = sysconf.GetEntry(key);
               if (entry)
               {
                 std::memcpy(&value, entry->bytes.data(),
                             std::min(entry->bytes.size(), sizeof(u32)));
               }
-              layer->Set(info.location, value);
+              layer->Set(location, value);
             }
           },
           setting.config_info);

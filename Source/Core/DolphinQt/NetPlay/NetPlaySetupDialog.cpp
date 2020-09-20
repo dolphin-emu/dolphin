@@ -381,13 +381,13 @@ void NetPlaySetupDialog::PopulateGameList()
 void NetPlaySetupDialog::ResetTraversalHost()
 {
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_SERVER,
-                           Config::NETPLAY_TRAVERSAL_SERVER.default_value);
+                           Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue());
   Config::SetBaseOrCurrent(Config::NETPLAY_TRAVERSAL_PORT,
-                           Config::NETPLAY_TRAVERSAL_PORT.default_value);
+                           Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue());
 
   ModalMessageBox::information(
       this, tr("Reset Traversal Server"),
       tr("Reset Traversal Server to %1:%2")
-          .arg(QString::fromStdString(Config::NETPLAY_TRAVERSAL_SERVER.default_value),
-               QString::number(Config::NETPLAY_TRAVERSAL_PORT.default_value)));
+          .arg(QString::fromStdString(Config::NETPLAY_TRAVERSAL_SERVER.GetDefaultValue()),
+               QString::number(Config::NETPLAY_TRAVERSAL_PORT.GetDefaultValue())));
 }

@@ -69,10 +69,10 @@ using INIToSectionMap = std::map<std::string, std::pair<Config::System, std::str
 static const INIToLocationMap& GetINIToLocationMap()
 {
   static const INIToLocationMap ini_to_location = {
-      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.location}},
-      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.location}},
-      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.location}},
-      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.location}},
+      {{"Core", "ProgressiveScan"}, {Config::SYSCONF_PROGRESSIVE_SCAN.GetLocation()}},
+      {{"Core", "PAL60"}, {Config::SYSCONF_PAL60.GetLocation()}},
+      {{"Wii", "Widescreen"}, {Config::SYSCONF_WIDESCREEN.GetLocation()}},
+      {{"Wii", "Language"}, {Config::SYSCONF_LANGUAGE.GetLocation()}},
   };
   return ini_to_location;
 }

@@ -52,11 +52,11 @@ T Get(LayerType layer, const Info<T>& info)
 template <typename T>
 T Get(const Info<T>& info)
 {
-  const std::optional<std::string> str = GetAsString(info.location);
+  const std::optional<std::string> str = GetAsString(info.GetLocation());
   if (!str)
-    return info.default_value;
+    return info.GetDefaultValue();
 
-  return detail::TryParse<T>(*str).value_or(info.default_value);
+  return detail::TryParse<T>(*str).value_or(info.GetDefaultValue());
 }
 
 template <typename T>
@@ -68,7 +68,7 @@ T GetBase(const Info<T>& info)
 template <typename T>
 LayerType GetActiveLayerForConfig(const Info<T>& info)
 {
-  return GetActiveLayerForConfig(info.location);
+  return GetActiveLayerForConfig(info.GetLocation());
 }
 
 template <typename T>
