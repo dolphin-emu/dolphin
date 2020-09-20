@@ -33,7 +33,7 @@ extern const Info<bool> SYSCONF_WIIMOTE_MOTOR;
 
 struct SYSCONFSetting
 {
-  std::variant<Info<u32>, Info<bool>> config_info;
+  std::variant<const Info<u32>*, const Info<bool>*> config_info;
   SysConf::Entry::Type type;
 };
 

@@ -472,11 +472,11 @@ static void RestoreSYSCONF()
   for (const auto& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
-        [&](auto& info) {
+        [&](auto* info) {
           // If this setting was overridden, then we copy the base layer value back to the SYSCONF.
           // Otherwise we leave the new value in the SYSCONF.
-          if (Config::GetActiveLayerForConfig(info) == Config::LayerType::Base)
-            Config::SetBase(info, temp_layer.Get(info));
+          if (Config::GetActiveLayerForConfig(*info) == Config::LayerType::Base)
+            Config::SetBase(*info, temp_layer.Get(*info));
         },
         setting.config_info);
   }

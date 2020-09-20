@@ -40,16 +40,16 @@ void SaveToSYSCONF(Config::LayerType layer)
   for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
   {
     std::visit(
-        [layer, &setting, &sysconf](auto& info) {
-          const std::string key = info.GetLocation().section + "." + info.GetLocation().key;
+        [layer, &setting, &sysconf](auto* info) {
+          const std::string key = info->GetLocation().section + "." + info->GetLocation().key;
 
           if (setting.type == SysConf::Entry::Type::Long)
           {
-            sysconf.SetData<u32>(key, setting.type, Config::Get(layer, info));
+            sysconf.SetData<u32>(key, setting.type, Config::Get(layer, *info));
           }
           else if (setting.type == SysConf::Entry::Type::Byte)
           {
-            sysconf.SetData<u8>(key, setting.type, static_cast<u8>(Config::Get(layer, info)));
+            sysconf.SetData<u8>(key, setting.type, static_cast<u8>(Config::Get(layer, *info)));
           }
           else if (setting.type == SysConf::Entry::Type::BigArray)
           {
@@ -58,7 +58,7 @@ void SaveToSYSCONF(Config::LayerType layer)
             SysConf::Entry* entry = sysconf.GetOrAddEntry(key, setting.type);
             if (entry->bytes.size() < 0x1007 + 1)
               entry->bytes.resize(0x1007 + 1);
-            *reinterpret_cast<u32*>(entry->bytes.data()) = Config::Get(layer, info);
+            *reinterpret_cast<u32*>(entry->bytes.data()) = Config::Get(layer, *info);
           }
         },
         setting.config_info);
@@ -179,22 +179,22 @@ private:
     for (const Config::SYSCONFSetting& setting : Config::SYSCONF_SETTINGS)
     {
       std::visit(
-          [&](auto& info) {
-            const Config::Location location = info.GetLocation();
+          [&](auto* info) {
+            const Config::Location location = info->GetLocation();
             const std::string key = location.section + "." + location.key;
             if (setting.type == SysConf::Entry::Type::Long)
             {
-              layer->Set(location, sysconf.GetData<u32>(key, info.GetDefaultValue()));
+              layer->Set(location, sysconf.GetData<u32>(key, info->GetDefaultValue()));
             }
             else if (setting.type == SysConf::Entry::Type::Byte)
             {
-              layer->Set(location, sysconf.GetData<u8>(key, info.GetDefaultValue()));
+              layer->Set(location, sysconf.GetData<u8>(key, info->GetDefaultValue()));
             }
             else if (setting.type == SysConf::Entry::Type::BigArray)
             {
               // Somewhat hacky support for IPL.SADR. The setting only stores the
               // first 4 bytes even thought the SYSCONF entry is much bigger.
-              u32 value = info.GetDefaultValue();
+              u32 value = info->GetDefaultValue();
               SysConf::Entry* entry = sysconf.GetEntry(key);
               if (entry)
               {
