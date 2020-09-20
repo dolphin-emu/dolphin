@@ -7,7 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 namespace Config
 {

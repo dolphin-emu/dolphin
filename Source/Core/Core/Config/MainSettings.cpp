@@ -7,7 +7,7 @@
 #include <fmt/format.h>
 
 #include "AudioCommon/AudioCommon.h"
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SI/SI_Device.h"

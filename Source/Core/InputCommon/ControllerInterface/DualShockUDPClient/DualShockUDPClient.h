@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 namespace ciface::DualShockUDPClient
 {

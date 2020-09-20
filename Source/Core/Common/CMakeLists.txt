@@ -18,13 +18,16 @@ add_library(common
   CommonFuncs.h
   CommonPaths.h
   CommonTypes.h
+  Config/ActiveInfos.cpp
+  Config/ActiveInfos.h
   Config/Config.cpp
   Config/Config.h
-  Config/ConfigInfo.cpp
   Config/ConfigInfo.h
   Config/Enums.h
   Config/Layer.cpp
   Config/Layer.h
+  Config/Location.cpp
+  Config/Location.h
   CPUDetect.h
   Crypto/AES.cpp
   Crypto/AES.h

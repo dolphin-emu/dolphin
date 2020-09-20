@@ -4,6 +4,8 @@
 
 #include "Core/Config/SYSCONFSettings.h"
 
+#include "Common/Config/ConfigInfo.h"
+
 namespace Config
 {
 // SYSCONF.IPL

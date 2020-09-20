@@ -10,12 +10,15 @@
 #include <optional>
 #include <string>
 
-#include "Common/Config/ConfigInfo.h"
 #include "Common/Config/Enums.h"
 #include "Common/Config/Layer.h"
+#include "Common/Config/Location.h"
 
 namespace Config
 {
+template <typename T>
+class Info;
+
 using ConfigChangedCallback = std::function<void()>;
 
 // Layer management
@@ -50,7 +53,7 @@ T Get(LayerType layer, const Info<T>& info)
 template <typename T>
 T Get(const Info<T>& info)
 {
-  return GetLayer(GetActiveLayerForConfig(info.GetLocation()))->Get(info);
+  return info.Get();
 }
 
 template <typename T>

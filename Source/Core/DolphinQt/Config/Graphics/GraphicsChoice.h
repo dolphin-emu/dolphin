@@ -6,7 +6,7 @@
 
 #include <QComboBox>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 class GraphicsChoice : public QComboBox
 {

@@ -4,6 +4,8 @@
 
 #include "Core/Config/UISettings.h"
 
+#include "Common/Config/ConfigInfo.h"
+
 namespace Config
 {
 // UI.General

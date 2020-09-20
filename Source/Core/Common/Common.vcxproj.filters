@@ -37,9 +37,12 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Config\ActiveInfos.h" />
     <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
+    <ClInclude Include="Config\Location.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="ENetUtil.h" />
@@ -266,7 +269,6 @@
     <ClInclude Include="GL\GLExtensions\ARB_texture_compression_bptc.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
-    <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Debug\Watches.h">
       <Filter>Debug</Filter>
     </ClInclude>
@@ -292,8 +294,10 @@
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="CommonFuncs.cpp" />
+    <ClCompile Include="Config\ActiveInfos.cpp" />
     <ClCompile Include="Config\Config.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Config\Location.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
@@ -357,7 +361,6 @@
     <ClCompile Include="File.cpp" />
     <ClCompile Include="LdrWatcher.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
-    <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Debug\Watches.cpp">
       <Filter>Debug</Filter>
     </ClCompile>

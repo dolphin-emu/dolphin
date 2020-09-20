@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 namespace PowerPC
 {

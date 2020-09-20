@@ -7,7 +7,7 @@
 #include <array>
 #include <variant>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Core/SysConf.h"
 
 namespace Config

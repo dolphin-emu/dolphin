@@ -4,7 +4,7 @@
 
 #include "Core/Config/NetplaySettings.h"
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 namespace Config
 {

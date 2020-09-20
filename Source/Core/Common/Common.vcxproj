@@ -41,10 +41,12 @@
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
     <ClInclude Include="Inline.h" />
+    <ClInclude Include="Config\ActiveInfos.h" />
     <ClInclude Include="Config\Config.h" />
     <ClInclude Include="Config\ConfigInfo.h" />
     <ClInclude Include="Config\Enums.h" />
     <ClInclude Include="Config\Layer.h" />
+    <ClInclude Include="Config\Location.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="Debug\MemoryPatches.h" />
@@ -187,9 +189,10 @@
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="CommonFuncs.cpp" />
     <ClCompile Include="CompatPatches.cpp" />
+    <ClCompile Include="Config\ActiveInfos.cpp" />
     <ClCompile Include="Config\Config.cpp" />
-    <ClCompile Include="Config\ConfigInfo.cpp" />
     <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Config\Location.cpp" />
     <ClCompile Include="Debug\MemoryPatches.cpp" />
     <ClCompile Include="Debug\OSThread.cpp" />
     <ClCompile Include="Debug\Watches.cpp" />

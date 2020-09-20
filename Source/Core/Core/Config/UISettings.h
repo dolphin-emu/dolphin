@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 // This is a temporary soluation, although they should be in their repected cpp file in UICommon.
 // However, in order for IsSettingSaveable to compile without some issues, this needs to be here.

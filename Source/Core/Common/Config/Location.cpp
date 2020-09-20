@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Config/Location.h"
+
 #include <cstring>
 
 #include "Common/CommonFuncs.h"
-#include "Common/Config/ConfigInfo.h"
 
 namespace Config
 {

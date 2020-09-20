@@ -7,6 +7,7 @@
 #include <QSignalBlocker>
 
 #include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 #include "DolphinQt/Settings.h"
 

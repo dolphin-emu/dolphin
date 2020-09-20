@@ -15,6 +15,7 @@
 #include <fmt/format.h>
 
 #include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"

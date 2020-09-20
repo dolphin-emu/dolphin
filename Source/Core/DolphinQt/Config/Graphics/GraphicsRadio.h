@@ -6,7 +6,7 @@
 
 #include <QRadioButton>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 class GraphicsRadioInt : public QRadioButton
 {

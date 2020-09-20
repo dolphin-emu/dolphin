@@ -16,6 +16,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/Log.h"

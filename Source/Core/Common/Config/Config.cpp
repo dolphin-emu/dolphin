@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Config/Config.h"
+
 #include <algorithm>
 #include <list>
 #include <map>
 #include <shared_mutex>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ActiveInfos.h"
 
 namespace Config
 {
@@ -70,6 +72,8 @@ void InvokeConfigChangedCallbacks()
 {
   if (s_callback_guards)
     return;
+
+  ActiveInfosBase::InvalidateCache();
 
   for (const auto& callback : s_callbacks)
     callback();

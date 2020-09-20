@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/Config/Config.h"
+#include "Common/Config/Location.h"
 #include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigLoaders/IsSettingSaveable.h"
 #include "jni/AndroidCommon/AndroidCommon.h"

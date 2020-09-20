@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Config/Layer.h"
+
 #include <algorithm>
 #include <cstring>
 #include <map>
 
 #include "Common/Config/Config.h"
-#include "Common/Config/Layer.h"
+#include "Common/Config/ConfigInfo.h"
+#include "Common/Config/Location.h"
 
 namespace Config
 {

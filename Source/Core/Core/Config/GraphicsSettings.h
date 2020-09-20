@@ -6,7 +6,7 @@
 
 #include <string>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/ConfigInfo.h"
 
 enum class AspectMode : int;
 enum class ShaderCompilationMode : int;

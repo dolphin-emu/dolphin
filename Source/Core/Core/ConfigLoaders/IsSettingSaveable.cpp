@@ -7,7 +7,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "Common/Config/Config.h"
+#include "Common/Config/Enums.h"
+#include "Common/Config/Location.h"
 #include "Core/Config/GraphicsSettings.h"
 #include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
