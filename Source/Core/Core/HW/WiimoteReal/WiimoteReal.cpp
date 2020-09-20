@@ -173,12 +173,6 @@ void Wiimote::WriteReport(Report rpt)
       m_speaker_mute = (rpt[2] & 0x4) != 0;
       break;
 
-    case OutputReportID::ReportMode:
-      // Force non-continuous reporting for less BT traffic.
-      // We duplicate reports to maintain 200hz anyways.
-      rpt[2] &= ~0x4;
-      break;
-
     default:
       break;
     }
@@ -414,40 +408,36 @@ bool Wiimote::GetNextReport(Report* report)
 }
 
 // Returns the next report that should be sent
-Report& Wiimote::ProcessReadQueue()
+Report& Wiimote::ProcessReadQueue(bool repeat_last_data_report)
 {
-  // Pop through the queued reports
-  while (GetNextReport(&m_last_input_report))
+  if (!GetNextReport(&m_last_input_report) &&
+      !(IsDataReport(m_last_input_report) && repeat_last_data_report))
   {
-    if (!IsDataReport(m_last_input_report))
-    {
-      // A non-data report, use it.
-      return m_last_input_report;
-
-      // Forget the last data report as it may be of the wrong type
-      // or contain outdated button data
-      // or it's not supposed to be sent at this time
-      // It's just easier to be correct this way and it's probably not horrible.
-    }
+    // If we didn't get a new report and it's not a data report to repeat, it's irrelevant.
+    m_last_input_report.clear();
   }
 
-  // If the last report wasn't a data report it's irrelevant.
-  if (!IsDataReport(m_last_input_report))
-    m_last_input_report.clear();
-
-  // If it was a data report, we repeat that until something else comes in.
   return m_last_input_report;
 }
 
 void Wiimote::Update()
 {
-  // Pop through the queued reports
-  const Report& rpt = ProcessReadQueue();
+  // Wii remotes send input at 200hz once a Wii enables "sniff mode" on the connection.
+  // PC bluetooth stacks do not enable sniff mode causing remotes to send input at only 100hz.
+  // Commercial games do not send speaker data unless input rates approach 200hz.
+  // If we want speaker data we must pretend input is at 200hz.
+  // We duplicate data reports to accomplish this.
+  // Unfortunately this breaks detection of motion gestures in some games.
+  // e.g. Sonic and the Secret Rings, Jett Rocket
+  const bool repeat_reports_to_maintain_200hz = SConfig::GetInstance().m_WiimoteEnableSpeaker;
 
-  // Send the report
-  if (!rpt.empty())
-    InterruptCallback(rpt.front(), rpt.data() + REPORT_HID_HEADER_SIZE,
-                      u32(rpt.size() - REPORT_HID_HEADER_SIZE));
+  const Report& rpt = ProcessReadQueue(repeat_reports_to_maintain_200hz);
+
+  if (rpt.empty())
+    return;
+
+  InterruptCallback(rpt.front(), rpt.data() + REPORT_HID_HEADER_SIZE,
+                    u32(rpt.size() - REPORT_HID_HEADER_SIZE));
 }
 
 bool Wiimote::IsButtonPressed()
