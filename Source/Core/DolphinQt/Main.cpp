@@ -3,6 +3,9 @@
 // Refer to the license.txt file included.
 
 #ifdef _WIN32
+#include <string>
+#include <vector>
+
 #include <Windows.h>
 #include <cstdio>
 #endif
@@ -101,6 +104,12 @@ static bool QtMsgAlertHandler(const char* caption, const char* text, bool yes_no
 int main(int argc, char* argv[])
 {
 #ifdef _WIN32
+  std::vector<std::string> utf8_args = CommandLineToUtf8Argv(GetCommandLineW());
+  const int utf8_argc = static_cast<int>(utf8_args.size());
+  std::vector<char*> utf8_argv(utf8_args.size());
+  for (size_t i = 0; i < utf8_args.size(); ++i)
+    utf8_argv[i] = utf8_args[i].data();
+
   const bool console_attached = AttachConsole(ATTACH_PARENT_PROCESS) != FALSE;
   HANDLE stdout_handle = ::GetStdHandle(STD_OUTPUT_HANDLE);
   if (console_attached && stdout_handle)
@@ -123,7 +132,12 @@ int main(int argc, char* argv[])
 #endif
 
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::IncludeGUIOptions);
-  const optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
+  const optparse::Values& options =
+#ifdef _WIN32
+      CommandLineParse::ParseArguments(parser.get(), utf8_argc, utf8_argv.data());
+#else
+      CommandLineParse::ParseArguments(parser.get(), argc, argv);
+#endif
   const std::vector<std::string> args = parser->args();
 
   QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
