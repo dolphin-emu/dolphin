@@ -200,6 +200,7 @@ private:
 
   u64 m_biggest_referenced_offset = 0;
   u64 m_biggest_verified_offset = 0;
+  bool m_smaller_than_expected = false;
 
   bool m_started = false;
   bool m_done = false;

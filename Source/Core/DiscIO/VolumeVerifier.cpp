@@ -780,18 +780,9 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
           normal_size = DL_DVD_SIZE;
 
         if (size < normal_size)
-        {
-          AddProblem(
-              Severity::Low,
-              Common::GetStringT(
-                  "This disc image has an unusual size. This will likely make the emulated "
-                  "loading times longer. You will likely be unable to share input recordings "
-                  "and use NetPlay with anyone who is using a good dump."));
-        }
+          m_smaller_than_expected = true;
         else
-        {
           AddProblem(Severity::Low, Common::GetStringT("This disc image has an unusual size."));
-        }
       }
     }
   }
@@ -1322,6 +1313,14 @@ void VolumeVerifier::Finish()
                                "dumping program saved the disc image as several parts, you need "
                                "to merge them into one file.");
     AddProblem(Severity::High, std::move(text));
+  }
+  else if (m_smaller_than_expected)
+  {
+    AddProblem(Severity::Low,
+               Common::GetStringT(
+                   "This disc image has an unusual size. This will likely make the emulated "
+                   "loading times longer. You will likely be unable to share input recordings "
+                   "and use NetPlay with anyone who is using a good dump."));
   }
 
   for (auto [partition, blocks] : m_block_errors)
