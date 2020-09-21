@@ -10,6 +10,7 @@
 #include <string>
 
 #include "Common/BitSet.h"
+#include "Common/Config/ConfigInfo.h"
 #include "Common/Logging/Log.h"
 
 namespace Common::Log
@@ -63,8 +64,17 @@ public:
 private:
   struct LogContainer
   {
+    LogContainer() {}
+
+    LogContainer(const char* short_name, const char* full_name)
+        : m_short_name(short_name), m_full_name(full_name),
+          m_config_info({Config::System::Logger, "Logs", short_name}, false)
+    {
+    }
+
     const char* m_short_name;
     const char* m_full_name;
+    Config::Info<bool> m_config_info;
     bool m_enable = false;
   };
 

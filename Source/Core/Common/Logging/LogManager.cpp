@@ -163,8 +163,7 @@ LogManager::LogManager()
   EnableListener(LogListener::LOG_WINDOW_LISTENER, Config::Get(LOGGER_WRITE_TO_WINDOW));
 
   for (LogContainer& container : m_log)
-    container.m_enable = Config::Get(
-        Config::Info<bool>{{Config::System::Logger, "Logs", container.m_short_name}, false});
+    container.m_enable = Config::Get(container.m_config_info);
 
   m_path_cutoff_point = DeterminePathCutOffPoint();
 }
@@ -188,10 +187,7 @@ void LogManager::SaveSettings()
   Config::SetBaseOrCurrent(LOGGER_VERBOSITY, static_cast<int>(GetLogLevel()));
 
   for (const auto& container : m_log)
-  {
-    const Config::Info<bool> info{{Config::System::Logger, "Logs", container.m_short_name}, false};
-    Config::SetBaseOrCurrent(info, container.m_enable);
-  }
+    Config::SetBaseOrCurrent(container.m_config_info, container.m_enable);
 
   Config::Save();
 }

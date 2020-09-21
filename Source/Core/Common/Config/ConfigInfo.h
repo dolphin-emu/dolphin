@@ -25,6 +25,8 @@ class Info
   friend class ActiveInfos<T>;
 
 public:
+  Info() { ActiveInfos<T>::Add(this); }
+
   Info(const Location& location, const T& default_value)
       : m_location{location}, m_default_value{default_value}
   {
