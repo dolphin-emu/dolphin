@@ -135,6 +135,8 @@ private:
     // Average of visible IR "objects".
     Common::Vec2 center_position = {};
 
+    float distance = 0;
+
     bool is_hidden = true;
   };
 
