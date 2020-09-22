@@ -29,8 +29,7 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
 {
   AddInput(Translate, _trans("Recenter"));
 
-  // Default values are optimized for "Super Mario Galaxy 2".
-  // This seems to be acceptable for a good number of games.
+  // Default values chosen to reach screen edges in most games including the Wii Menu.
 
   AddSetting(&m_yaw_setting,
              // i18n: Refers to an amount of rotational movement about the "yaw" axis.
@@ -39,7 +38,7 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
               _trans("°"),
               // i18n: Refers to emulated wii remote movements.
               _trans("Total rotation about the yaw axis.")},
-             15, 0, 360);
+             25, 0, 360);
 }
 
 ControlState IMUCursor::GetTotalYaw() const
