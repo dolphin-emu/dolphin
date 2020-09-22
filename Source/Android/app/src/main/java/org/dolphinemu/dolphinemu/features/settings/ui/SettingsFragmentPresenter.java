@@ -234,8 +234,8 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OVERRIDE_REGION_SETTINGS,
             R.string.override_region_settings, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_AUTO_DISC_CHANGE, R.string.auto_disc_change, 0));
-    sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 200,
-            "%"));
+    sl.add(new PercentSliderSetting(FloatSetting.MAIN_EMULATION_SPEED, R.string.speed_limit, 0, 0,
+            200, "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ANALYTICS_ENABLED, R.string.analytics, 0));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ENABLE_SAVESTATES, R.string.enable_save_states,
             R.string.enable_save_states_description));
@@ -334,7 +334,8 @@ public final class SettingsFragmentPresenter
             dspEngineEntries, dspEngineValues));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_AUDIO_STRETCH, R.string.audio_stretch,
             R.string.audio_stretch_description));
-    sl.add(new IntSliderSetting(IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0, 100, "%"));
+    sl.add(new IntSliderSetting(IntSetting.MAIN_AUDIO_VOLUME, R.string.audio_volume, 0, 0, 100,
+            "%"));
   }
 
   private void addPathsSettings(ArrayList<SettingsItem> sl)
@@ -359,8 +360,8 @@ public final class SettingsFragmentPresenter
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)
   {
-    sl.add(new SingleChoiceSetting(IntSetting.MAIN_GC_LANGUAGE, R.string.gamecube_system_language,
-            0, R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues));
+    sl.add(new SingleChoiceSetting(IntSetting.MAIN_GC_LANGUAGE, R.string.system_language, 0,
+            R.array.gameCubeSystemLanguageEntries, R.array.gameCubeSystemLanguageValues));
     sl.add(new SingleChoiceSetting(IntSetting.MAIN_SLOT_A, R.string.slot_a_device, 0,
             R.array.slotDeviceEntries, R.array.slotDeviceValues));
     sl.add(new SingleChoiceSetting(IntSetting.MAIN_SLOT_B, R.string.slot_b_device, 0,
@@ -369,10 +370,28 @@ public final class SettingsFragmentPresenter
 
   private void addWiiSettings(ArrayList<SettingsItem> sl)
   {
+    sl.add(new SingleChoiceSetting(IntSetting.SYSCONF_LANGUAGE, R.string.system_language, 0,
+            R.array.wiiSystemLanguageEntries, R.array.wiiSystemLanguageValues));
+    sl.add(new CheckBoxSetting(BooleanSetting.SYSCONF_WIDESCREEN, R.string.wii_widescreen,
+            R.string.wii_widescreen_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.SYSCONF_PAL60, R.string.wii_pal60,
+            R.string.wii_pal60_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.SYSCONF_SCREENSAVER, R.string.wii_screensaver,
+            R.string.wii_screensaver_description));
+    sl.add(new SingleChoiceSetting(IntSetting.SYSCONF_SOUND_MODE, R.string.sound_mode, 0,
+            R.array.soundModeEntries, R.array.soundModeValues));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_WII_SD_CARD, R.string.insert_sd_card,
             R.string.insert_sd_card_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_ALLOW_SD_WRITES,
             R.string.wii_sd_card_allow_writes, 0));
+    sl.add(new CheckBoxSetting(BooleanSetting.SYSCONF_WIIMOTE_MOTOR, R.string.wiimote_rumble, 0));
+    sl.add(new IntSliderSetting(IntSetting.SYSCONF_SPEAKER_VOLUME, R.string.wiimote_volume, 0, 0,
+            127, ""));
+    sl.add(new IntSliderSetting(IntSetting.SYSCONF_SENSOR_BAR_SENSITIVITY,
+            R.string.sensor_bar_sensitivity, 0, 1, 5, ""));
+    sl.add(new SingleChoiceSetting(IntSetting.SYSCONF_SENSOR_BAR_POSITION,
+            R.string.sensor_bar_position, 0, R.array.sensorBarPositionEntries,
+            R.array.sensorBarPositionValues));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING,
             R.string.wiimote_scanning, R.string.wiimote_scanning_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_WIIMOTE_ENABLE_SPEAKER, R.string.wiimote_speaker,
@@ -407,7 +426,7 @@ public final class SettingsFragmentPresenter
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OVERCLOCK_ENABLE, R.string.overclock_enable,
             R.string.overclock_enable_description));
     sl.add(new PercentSliderSetting(FloatSetting.MAIN_OVERCLOCK, R.string.overclock_title,
-            R.string.overclock_title_description, 400, "%"));
+            R.string.overclock_title_description, 0, 400, "%"));
   }
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
@@ -649,9 +668,9 @@ public final class SettingsFragmentPresenter
     sl.add(new SingleChoiceSetting(IntSetting.GFX_STEREO_MODE, R.string.stereoscopy_mode, 0,
             R.array.stereoscopyEntries, R.array.stereoscopyValues));
     sl.add(new IntSliderSetting(IntSetting.GFX_STEREO_DEPTH, R.string.stereoscopy_depth,
-            R.string.stereoscopy_depth_description, 100, "%"));
+            R.string.stereoscopy_depth_description, 0, 100, "%"));
     sl.add(new IntSliderSetting(IntSetting.GFX_STEREO_CONVERGENCE_PERCENTAGE,
-            R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 200,
+            R.string.stereoscopy_convergence, R.string.stereoscopy_convergence_description, 0, 200,
             "%"));
     sl.add(new CheckBoxSetting(BooleanSetting.GFX_STEREO_SWAP_EYES, R.string.stereoscopy_swap_eyes,
             R.string.stereoscopy_swap_eyes_description));

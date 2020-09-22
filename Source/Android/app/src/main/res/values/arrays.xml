@@ -85,6 +85,54 @@
         <item>8</item>
     </integer-array>
 
+    <!-- GameCube System Languages -->
+    <string-array name="wiiSystemLanguageEntries">
+        <item>Japanese</item>
+        <item>English</item>
+        <item>German</item>
+        <item>French</item>
+        <item>Spanish</item>
+        <item>Italian</item>
+        <item>Dutch</item>
+        <item>Simplified Chinese</item>
+        <item>Traditional Chinese</item>
+        <item>Korean</item>
+    </string-array>
+    <integer-array name="wiiSystemLanguageValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
+
+    <!-- Sound Mode -->
+    <string-array name="soundModeEntries">
+        <item>Mono</item>
+        <item>Stereo</item>
+        <item>Surround</item>
+    </string-array>
+    <integer-array name="soundModeValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <!-- Sensor Bar Position -->
+    <string-array name="sensorBarPositionEntries">
+        <item>Top</item>
+        <item>Bottom</item>
+    </string-array>
+    <integer-array name="sensorBarPositionValues" translatable="false">
+        <item>1</item>
+        <item>0</item>
+    </integer-array>
+
     <!-- Log Verbosity selection based on LOG_LEVELS in Common/Logging/Log.h -->
     <string-array name="logVerbosityEntriesMaxLevelInfo" translatable="false">
         <item>Notice</item>

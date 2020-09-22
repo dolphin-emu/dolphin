@@ -8,10 +8,10 @@ public class FloatSliderSetting extends SliderSetting
 {
   protected AbstractFloatSetting mSetting;
 
-  public FloatSliderSetting(AbstractFloatSetting setting, int titleId, int descriptionId, int max,
-          String units)
+  public FloatSliderSetting(AbstractFloatSetting setting, int titleId, int descriptionId, int min,
+          int max, String units)
   {
-    super(titleId, descriptionId, max, units);
+    super(titleId, descriptionId, min, max, units);
     mSetting = setting;
   }
 

@@ -239,6 +239,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     SeekBar seekbar = view.findViewById(R.id.seekbar);
 
+    seekbar.setMin(item.getMin());
     seekbar.setMax(item.getMax());
     seekbar.setProgress(mSeekbarProgress);
     seekbar.setKeyProgressIncrement(5);

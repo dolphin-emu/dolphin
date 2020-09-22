@@ -39,6 +39,12 @@ public enum BooleanSetting implements AbstractBooleanSetting
   MAIN_RECURSIVE_ISO_PATHS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
           "RecursiveISOPaths", false),
 
+  SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
+  SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),
+  SYSCONF_PAL60(Settings.FILE_SYSCONF, "IPL", "E60", true),
+
+  SYSCONF_WIIMOTE_MOTOR(Settings.FILE_SYSCONF, "BT", "MOT", true),
+
   GFX_WIDESCREEN_HACK(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "wideScreenHack", false),
   GFX_SHOW_FPS(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS, "ShowFPS", false),
   GFX_ENABLE_GPU_TEXTURE_DECODING(Settings.FILE_GFX, Settings.SECTION_GFX_SETTINGS,
@@ -134,6 +140,9 @@ public enum BooleanSetting implements AbstractBooleanSetting
   @Override
   public boolean isRuntimeEditable()
   {
+    if (mFile.equals(Settings.FILE_SYSCONF))
+      return false;
+
     for (BooleanSetting setting : NOT_RUNTIME_EDITABLE)
     {
       if (setting == this)

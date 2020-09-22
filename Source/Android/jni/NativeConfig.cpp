@@ -25,6 +25,10 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
   {
     system = Config::System::Main;
   }
+  else if (decoded_file == "SYSCONF")
+  {
+    system = Config::System::SYSCONF;
+  }
   else if (decoded_file == "GFX")
   {
     system = Config::System::GFX;
