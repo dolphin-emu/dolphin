@@ -75,9 +75,6 @@ void CameraLogic::Update(const Common::Matrix44& transform)
   using Common::Vec3;
   using Common::Vec4;
 
-  constexpr auto CAMERA_FOV_Y = float(CAMERA_FOV_Y_DEG * MathUtil::TAU / 360);
-  constexpr auto CAMERA_ASPECT_RATIO = float(CAMERA_FOV_X_DEG) / CAMERA_FOV_Y_DEG;
-
   // FYI: A real wiimote normally only returns 1 point for each LED cluster (2 total).
   // Sending all 4 points can actually cause some stuttering issues.
   constexpr int NUM_POINTS = 2;
@@ -86,16 +83,12 @@ void CameraLogic::Update(const Common::Matrix44& transform)
   // This is reduced based on distance from sensor bar.
   constexpr int MAX_POINT_SIZE = 15;
 
-  // Sensor bar:
-  // Distance in meters between LED clusters.
-  constexpr float SENSOR_BAR_LED_SEPARATION = 0.2f;
-
   const std::array<Vec3, NUM_POINTS> leds{
       Vec3{-SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
 
-  const auto camera_view = Matrix44::Perspective(CAMERA_FOV_Y, CAMERA_ASPECT_RATIO, 0.001f, 1000) *
+  const auto camera_view = Matrix44::Perspective(CAMERA_FOV_Y, CAMERA_AR, 0.001f, 1000) *
                            Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) *
                            transform;
 
