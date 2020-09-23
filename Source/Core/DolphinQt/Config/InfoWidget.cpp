@@ -93,7 +93,7 @@ QGroupBox* InfoWidget::CreateGameDetails()
   QLineEdit* internal_name =
       CreateValueDisplay(is_disc_based ? tr("%1 (Disc %2, Revision %3)")
                                              .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)
-                                             .arg(m_game.GetDiscNumber())
+                                             .arg(m_game.GetDiscNumber() + 1)
                                              .arg(m_game.GetRevision()) :
                                          tr("%1 (Revision %3)")
                                              .arg(game_name.isEmpty() ? UNKNOWN_NAME : game_name)
