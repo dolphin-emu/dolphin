@@ -164,6 +164,11 @@ elseif(WIN32)
   if (_M_X86_64)
 	  target_link_libraries(common PRIVATE opengl32.lib)
   endif()
+elseif (ANDROID)
+  target_link_libraries(common
+  PRIVATE
+    androidcommon
+  )
 endif()
 
 if(ANDROID)

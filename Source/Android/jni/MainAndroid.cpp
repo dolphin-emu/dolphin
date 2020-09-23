@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "Common/AndroidAnalytics.h"
+#include "Common/Assert.h"
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -26,6 +27,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
+#include "Common/ScopeGuard.h"
 #include "Common/Version.h"
 #include "Common/WindowSystemInfo.h"
 
@@ -45,7 +47,9 @@
 #include "Core/State.h"
 #include "Core/WiiUtils.h"
 
+#include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
+#include "DiscIO/ScrubbedBlob.h"
 #include "DiscIO/Volume.h"
 
 #include "InputCommon/ControllerInterface/Android/Android.h"
@@ -661,6 +665,65 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallW
 {
   const std::string path = GetJString(env, jFile);
   return static_cast<jboolean>(WiiUtils::InstallWAD(path));
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertDiscImage(
+    JNIEnv* env, jobject obj, jstring jInPath, jstring jOutPath, jint jPlatform, jint jFormat,
+    jint jBlockSize, jint jCompression, jint jCompressionLevel, jboolean jScrub, jobject jCallback)
+{
+  const std::string in_path = GetJString(env, jInPath);
+  const std::string out_path = GetJString(env, jOutPath);
+  const DiscIO::Platform platform = static_cast<DiscIO::Platform>(jPlatform);
+  const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(jFormat);
+  const DiscIO::WIARVZCompressionType compression =
+      static_cast<DiscIO::WIARVZCompressionType>(jCompression);
+  const bool scrub = static_cast<bool>(jScrub);
+
+  std::unique_ptr<DiscIO::BlobReader> blob_reader;
+  if (scrub)
+    blob_reader = DiscIO::ScrubbedBlob::Create(in_path);
+  else
+    blob_reader = DiscIO::CreateBlobReader(in_path);
+
+  if (!blob_reader)
+    return static_cast<jboolean>(false);
+
+  jobject jCallbackGlobal = env->NewGlobalRef(jCallback);
+  Common::ScopeGuard scope_guard([jCallbackGlobal, env] { env->DeleteGlobalRef(jCallbackGlobal); });
+
+  const auto callback = [&jCallbackGlobal](const std::string& text, float completion) {
+    JNIEnv* env = IDCache::GetEnvForThread();
+    return static_cast<bool>(env->CallBooleanMethod(
+        jCallbackGlobal, IDCache::GetCompressCallbackRun(), ToJString(env, text), completion));
+  };
+
+  bool success = false;
+
+  switch (format)
+  {
+  case DiscIO::BlobType::PLAIN:
+    success = DiscIO::ConvertToPlain(blob_reader.get(), in_path, out_path, callback);
+    break;
+
+  case DiscIO::BlobType::GCZ:
+    success =
+        DiscIO::ConvertToGCZ(blob_reader.get(), in_path, out_path,
+                             platform == DiscIO::Platform::WiiDisc ? 1 : 0, jBlockSize, callback);
+    break;
+
+  case DiscIO::BlobType::WIA:
+  case DiscIO::BlobType::RVZ:
+    success = DiscIO::ConvertToWIAOrRVZ(blob_reader.get(), in_path, out_path,
+                                        format == DiscIO::BlobType::RVZ, compression,
+                                        jCompressionLevel, jBlockSize, callback);
+    break;
+
+  default:
+    ASSERT(false);
+    break;
+  }
+
+  return static_cast<jboolean>(success);
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_FormatSize(JNIEnv* env,

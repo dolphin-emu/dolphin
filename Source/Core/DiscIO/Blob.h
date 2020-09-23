@@ -15,6 +15,7 @@
 // automatically do the right thing.
 
 #include <array>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -175,17 +176,16 @@ private:
 // Factory function - examines the path to choose the right type of BlobReader, and returns one.
 std::unique_ptr<BlobReader> CreateBlobReader(const std::string& filename);
 
-typedef bool (*CompressCB)(const std::string& text, float percent, void* arg);
+using CompressCB = std::function<bool(const std::string& text, float percent)>;
 
 bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
-                  const std::string& outfile_path, u32 sub_type, int sector_size = 16384,
-                  CompressCB callback = nullptr, void* arg = nullptr);
+                  const std::string& outfile_path, u32 sub_type, int sector_size,
+                  CompressCB callback);
 bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
-                    const std::string& outfile_path, CompressCB callback = nullptr,
-                    void* arg = nullptr);
+                    const std::string& outfile_path, CompressCB callback);
 bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
                        const std::string& outfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, CompressCB callback = nullptr, void* arg = nullptr);
+                       int chunk_size, CompressCB callback);
 
 }  // namespace DiscIO

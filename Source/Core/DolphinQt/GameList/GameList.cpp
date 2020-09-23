@@ -267,9 +267,8 @@ void GameList::ShowContextMenu(const QPoint&)
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(), [](const auto& game) {
-          return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate();
-        }))
+    if (std::all_of(selected_games.begin(), selected_games.end(),
+                    [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
@@ -301,7 +300,7 @@ void GameList::ShowContextMenu(const QPoint&)
     {
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
 
-      if (game->IsVolumeSizeAccurate())
+      if (game->ShouldAllowConversion())
         menu->addAction(tr("Convert File..."), this, &GameList::ConvertFile);
 
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);

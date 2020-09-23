@@ -433,24 +433,6 @@
         <item>Classic A</item>
     </string-array>
 
-    <string-array name="gameSettingsMenusGC">
-        <item>Details</item>
-        <item>Set as Default ISO</item>
-        <item>Core Settings</item>
-        <item>GFX Settings</item>
-        <item>GameCube Controller Settings</item>
-        <item>Clear Game Settings</item>
-    </string-array>
-    <string-array name="gameSettingsMenusWii">
-        <item>Details</item>
-        <item>Set as Default ISO</item>
-        <item>Core Settings</item>
-        <item>GFX Settings</item>
-        <item>GameCube Controller Settings</item>
-        <item>Wii Controller Settings</item>
-        <item>Clear Game Settings</item>
-    </string-array>
-
     <string-array name="orientationEntries">
         <item>Landscape</item>
         <item>Portrait</item>
@@ -467,4 +449,147 @@
         <item>Use Device Sensors (Without Pointer Emulation)</item>
         <item>Don\'t Use Device Sensors</item>
     </string-array>
+
+    <string-array name="convertFormatEntries" translatable="false">
+        <item>ISO</item>
+        <item>GCZ</item>
+        <item>WIA</item>
+        <item>RVZ</item>
+    </string-array>
+    <integer-array name="convertFormatValues">
+        <item>0</item>
+        <item>3</item>
+        <item>7</item>
+        <item>8</item>
+    </integer-array>
+
+    <string-array name="convertBlockSizeGczEntries">
+        <item>32 KiB</item>
+    </string-array>
+    <integer-array name="convertBlockSizeGczValues">
+        <item>32768</item>
+    </integer-array>
+
+    <string-array name="convertBlockSizeWiaEntries">
+        <item>2 MiB</item>
+    </string-array>
+    <integer-array name="convertBlockSizeWiaValues">
+        <item>2097152</item>
+    </integer-array>
+
+    <string-array name="convertBlockSizeRvzEntries">
+        <item>32 KiB</item>
+        <item>64 KiB</item>
+        <item>128 KiB</item>
+        <item>256 KiB</item>
+        <item>512 KiB</item>
+        <item>1 MiB</item>
+        <item>2 MiB</item>
+    </string-array>
+    <integer-array name="convertBlockSizeRvzValues">
+        <item>32768</item>
+        <item>65536</item>
+        <item>131072</item>
+        <item>262144</item>
+        <item>524288</item>
+        <item>1048576</item>
+        <item>2097152</item>
+    </integer-array>
+
+    <string-array name="convertCompressionGczEntries" translatable="false">
+        <item>Deflate</item>
+    </string-array>
+    <integer-array name="convertCompressionGczValues">
+        <item>0</item>
+    </integer-array>
+
+    <string-array name="convertCompressionWiaEntries">
+        <item>No Compression</item>
+        <item>Purge</item>
+        <item>bzip2 (slow)</item>
+        <item>LZMA (slow)</item>
+        <item>LZMA2 (slow)</item>
+    </string-array>
+    <integer-array name="convertCompressionWiaValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+    </integer-array>
+
+    <string-array name="convertCompressionRvzEntries">
+        <item>No Compression</item>
+        <item>bzip2 (slow)</item>
+        <item>LZMA (slow)</item>
+        <item>LZMA2 (slow)</item>
+        <item>Zstandard (recommended)</item>
+    </string-array>
+    <integer-array name="convertCompressionRvzValues">
+        <item>0</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+    </integer-array>
+
+    <string-array name="convertCompressionLevelEntries">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+    <integer-array name="convertCompressionLevelValues">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
+
+    <string-array name="convertCompressionLevelZstdEntries">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
+        <item>15</item>
+        <item>16</item>
+        <item>17</item>
+        <item>18</item>
+        <item>19</item>
+        <item>20</item>
+        <item>21</item>
+        <item>22</item>
+    </string-array>
+    <integer-array name="convertCompressionLevelZstdValues">
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </integer-array>
 </resources>

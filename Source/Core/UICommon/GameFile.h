@@ -101,6 +101,7 @@ public:
   const std::string& GetCompressionMethod() const { return m_compression_method; }
   bool ShouldShowFileFormatDetails() const;
   std::string GetFileFormatName() const;
+  bool ShouldAllowConversion() const;
   const std::string& GetApploaderDate() const { return m_apploader_date; }
   u64 GetFileSize() const { return m_file_size; }
   u64 GetVolumeSize() const { return m_volume_size; }

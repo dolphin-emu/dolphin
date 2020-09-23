@@ -1686,9 +1686,9 @@ ConversionResultCode WIARVZFileReader<RVZ>::Output(std::vector<OutputParametersE
 }
 
 template <bool RVZ>
-ConversionResultCode
-WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u64 bytes_read, u64 bytes_written,
-                                   u32 total_groups, u64 iso_size, CompressCB callback, void* arg)
+ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u64 bytes_read,
+                                                        u64 bytes_written, u32 total_groups,
+                                                        u64 iso_size, CompressCB callback)
 {
   int ratio = 0;
   if (bytes_read != 0)
@@ -1700,8 +1700,8 @@ WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u64 bytes_read, u64 by
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 
-  return callback(text, completion, arg) ? ConversionResultCode::Success :
-                                           ConversionResultCode::Canceled;
+  return callback(text, completion) ? ConversionResultCode::Success :
+                                      ConversionResultCode::Canceled;
 }
 
 template <bool RVZ>
@@ -1729,8 +1729,7 @@ template <bool RVZ>
 ConversionResultCode
 WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volume,
                                File::IOFile* outfile, WIARVZCompressionType compression_type,
-                               int compression_level, int chunk_size, CompressCB callback,
-                               void* arg)
+                               int compression_level, int chunk_size, CompressCB callback)
 {
   ASSERT(infile->IsDataSizeAccurate());
   ASSERT(chunk_size > 0);
@@ -1832,7 +1831,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
       return result;
 
     return RunCallback(parameters.group_index + parameters.entries.size(), parameters.bytes_read,
-                       bytes_written, total_groups, iso_size, callback, arg);
+                       bytes_written, total_groups, iso_size, callback);
   };
 
   MultithreadedCompressor<CompressThreadState, CompressParameters, OutputParameters> mt_compressor(
@@ -2030,7 +2029,7 @@ WIARVZFileReader<RVZ>::Convert(BlobReader* infile, const VolumeDisc* infile_volu
 bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
                        const std::string& outfile_path, bool rvz,
                        WIARVZCompressionType compression_type, int compression_level,
-                       int chunk_size, CompressCB callback, void* arg)
+                       int chunk_size, CompressCB callback)
 {
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
@@ -2047,7 +2046,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   const auto convert = rvz ? RVZFileReader::Convert : WIAFileReader::Convert;
   const ConversionResultCode result =
       convert(infile, infile_volume.get(), &outfile, compression_type, compression_level,
-              chunk_size, callback, arg);
+              chunk_size, callback);
 
   if (result == ConversionResultCode::ReadFailed)
     PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());

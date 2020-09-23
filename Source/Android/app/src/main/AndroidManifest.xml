@@ -96,6 +96,10 @@
             </intent-filter>
         </activity>
 
+        <activity
+            android:name=".activities.ConvertActivity"
+            android:theme="@style/DolphinBase" />
+
         <service android:name=".utils.DirectoryInitialization"/>
         <service android:name=".services.GameFileCacheService"/>
         <service

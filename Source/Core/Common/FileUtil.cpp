@@ -46,6 +46,11 @@
 #include <sys/param.h>
 #endif
 
+#ifdef ANDROID
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
@@ -132,10 +137,19 @@ bool Delete(const std::string& filename)
 {
   INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
+#ifdef ANDROID
+  if (StringBeginsWith(filename, "content://"))
+  {
+    const bool success = DeleteAndroidContent(filename);
+    if (!success)
+      WARN_LOG(COMMON, "Delete failed on %s", filename.c_str());
+    return success;
+  }
+#endif
+
   const FileInfo file_info(filename);
 
-  // Return true because we care about the file no
-  // being there, not the actual delete.
+  // Return true because we care about the file not being there, not the actual delete.
   if (!file_info.Exists())
   {
     WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
