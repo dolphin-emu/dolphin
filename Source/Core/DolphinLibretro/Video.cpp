@@ -70,7 +70,6 @@ public:
     m_backbuffer_height = EFB_HEIGHT * Libretro::Options::efbScale;
     switch (Libretro::Video::hw_render.context_type)
     {
-    case RETRO_HW_CONTEXT_OPENGLES2:
     case RETRO_HW_CONTEXT_OPENGLES3:
       m_opengl_mode = Mode::OpenGLES;
       break;
@@ -217,10 +216,8 @@ static void ContextDestroy(void)
 #endif
     break;
   case RETRO_HW_CONTEXT_OPENGL:
-  case RETRO_HW_CONTEXT_OPENGLES2:
   case RETRO_HW_CONTEXT_OPENGL_CORE:
   case RETRO_HW_CONTEXT_OPENGLES3:
-  case RETRO_HW_CONTEXT_OPENGLES_VERSION:
     break;
   default:
   case RETRO_HW_CONTEXT_NONE:
@@ -306,13 +303,24 @@ static bool SetHWRender(retro_hw_context_type type)
   switch (type)
   {
   case RETRO_HW_CONTEXT_OPENGL_CORE:
-  case RETRO_HW_CONTEXT_OPENGL:
-  case RETRO_HW_CONTEXT_OPENGLES2:
-  case RETRO_HW_CONTEXT_OPENGLES3:
+    // minimum requirements to run is opengl 3.3 (RA will try to use highest version available anyway)
     hw_render.version_major = 3;
-    hw_render.version_minor = 1;
+    hw_render.version_minor = 3;
     if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
     {
+      Config::SetBase(Config::MAIN_GFX_BACKEND, "OGL");
+      return true;
+    }
+    break;
+  case RETRO_HW_CONTEXT_OPENGLES3:
+  case RETRO_HW_CONTEXT_OPENGL:
+    // when using RETRO_HW_CONTEXT_OPENGL you can't set version above 3.0 (RA will try to use highest version available anyway)
+    // dolphin support OpenGL ES 3.0 too (no support for 2.0) so we are good
+    hw_render.version_major = 3;
+    hw_render.version_minor = 0;
+    if (environ_cb(RETRO_ENVIRONMENT_SET_HW_RENDER, &hw_render))
+    {
+      // Shared context is required with "gl" video driver
       environ_cb(RETRO_ENVIRONMENT_SET_HW_SHARED_CONTEXT, nullptr);
       Config::SetBase(Config::MAIN_GFX_BACKEND, "OGL");
       return true;
@@ -366,8 +374,6 @@ void Init()
     if (SetHWRender(RETRO_HW_CONTEXT_OPENGL))
       return;
     if (SetHWRender(RETRO_HW_CONTEXT_OPENGLES3))
-      return;
-    if (SetHWRender(RETRO_HW_CONTEXT_OPENGLES2))
       return;
 #ifdef _WIN32
     if (SetHWRender(RETRO_HW_CONTEXT_DIRECT3D))
