@@ -93,6 +93,11 @@ void SetProcessDebuggedWithJailbreakd()
 
 void SetProcessDebuggedWithPTrace()
 {
+  if (@available(iOS 14, *))
+  {
+    return;
+  }
+  
   ptrace(PT_TRACEME, 0, NULL, 0);
 }
 

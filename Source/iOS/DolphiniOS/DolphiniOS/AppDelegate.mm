@@ -101,14 +101,17 @@
 #endif
   
 #ifdef NONJAILBROKEN
-  if (@available(iOS 14, *))
+  if (!IsProcessDebugged())
   {
-    // Show the incompatibilty warning
-    self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
-    [self.window makeKeyAndVisible];
-    
-    return true;
+    if (@available(iOS 14, *))
+    {
+      // Show the incompatibilty warning
+      self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
+      self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
+      [self.window makeKeyAndVisible];
+      
+      return true;
+    }
   }
 #endif
   
