@@ -8,10 +8,10 @@ package org.dolphinemu.dolphinemu;
 
 import android.util.DisplayMetrics;
 import android.view.Surface;
-
-import androidx.appcompat.app.AlertDialog;
+import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.dialogs.AlertMessage;
 import org.dolphinemu.dolphinemu.utils.CompressCallback;
 import org.dolphinemu.dolphinemu.utils.Log;
 import org.dolphinemu.dolphinemu.utils.Rumble;
@@ -25,6 +25,9 @@ import java.util.LinkedHashMap;
  */
 public final class NativeLibrary
 {
+  private static final Object sAlertMessageLock = new Object();
+  private static boolean sIsShowingAlertMessage = false;
+
   private static WeakReference<EmulationActivity> sEmulationActivity = new WeakReference<>(null);
 
   /**
@@ -393,6 +396,8 @@ public final class NativeLibrary
    */
   public static native void StopEmulation();
 
+  public static native boolean IsBooting();
+
   public static native void WaitUntilDoneBooting();
 
   /**
@@ -440,8 +445,6 @@ public final class NativeLibrary
 
   public static native void SetObscuredPixelsTop(int height);
 
-  private static boolean alertResult = false;
-
   public static boolean displayAlertMsg(final String caption, final String text,
           final boolean yesNo)
   {
@@ -454,72 +457,55 @@ public final class NativeLibrary
     }
     else
     {
-      // Create object used for waiting.
-      final Object lock = new Object();
-      AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
-              R.style.DolphinDialogBase)
-              .setTitle(caption)
-              .setMessage(text);
-
-      // If not yes/no dialog just have one button that dismisses modal,
-      // otherwise have a yes and no button that sets alertResult accordingly.
-      if (!yesNo)
+      // AlertMessages while the core is booting will deadlock when WaitUntilDoneBooting is called.
+      // Report the AlertMessage text as a toast instead.
+      if (IsBooting())
       {
-        builder
-                .setCancelable(false)
-                .setPositiveButton("OK", (dialog, whichButton) ->
-                {
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                });
+        emulationActivity.runOnUiThread(
+                () -> Toast.makeText(emulationActivity.getApplicationContext(), text,
+                        Toast.LENGTH_LONG)
+                        .show());
       }
       else
       {
-        alertResult = false;
+        sIsShowingAlertMessage = true;
 
-        builder
-                .setPositiveButton("Yes", (dialog, whichButton) ->
-                {
-                  alertResult = true;
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                })
-                .setNegativeButton("No", (dialog, whichButton) ->
-                {
-                  alertResult = false;
-                  dialog.dismiss();
-                  synchronized (lock)
-                  {
-                    lock.notify();
-                  }
-                });
-      }
+        emulationActivity.runOnUiThread(() -> AlertMessage.newInstance(caption, text, yesNo)
+                .show(emulationActivity.getSupportFragmentManager(), "AlertMessage"));
 
-      // Show the AlertDialog on the main thread.
-      emulationActivity.runOnUiThread(builder::show);
-
-      // Wait for the lock to notify that it is complete.
-      synchronized (lock)
-      {
-        try
+        // Wait for the lock to notify that it is complete.
+        synchronized (sAlertMessageLock)
         {
-          lock.wait();
+          try
+          {
+            sAlertMessageLock.wait();
+          }
+          catch (Exception ignored)
+          {
+          }
         }
-        catch (Exception ignored)
+
+        if (yesNo)
         {
+          result = AlertMessage.getAlertResult();
         }
       }
-
-      if (yesNo)
-        result = alertResult;
     }
+    sIsShowingAlertMessage = false;
     return result;
+  }
+
+  public static boolean IsShowingAlertMessage()
+  {
+    return sIsShowingAlertMessage;
+  }
+
+  public static void NotifyAlertMessageLock()
+  {
+    synchronized (sAlertMessageLock)
+    {
+      sAlertMessageLock.notify();
+    }
   }
 
   public static void setEmulationActivity(EmulationActivity emulationActivity)

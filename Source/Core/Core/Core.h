@@ -99,6 +99,7 @@ void UndeclareAsCPUThread();
 
 std::string StopMessage(bool main_thread, std::string_view message);
 
+bool IsBooting();
 bool IsRunning();
 bool IsRunningAndStarted();       // is running and the CPU loop has been entered
 bool IsRunningInCurrentThread();  // this tells us whether we are running in the CPU thread.

@@ -274,6 +274,7 @@ public final class EmulationActivity extends AppCompatActivity
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       activityRecreated = false;
+      Toast.makeText(this, R.string.emulation_menu_help, Toast.LENGTH_LONG).show();
     }
     else
     {
@@ -296,8 +297,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     // Set these options now so that the SurfaceView the game renders into is the right size.
     enableFullscreenImmersive();
-
-    Toast.makeText(this, getString(R.string.emulation_menu_help), Toast.LENGTH_LONG).show();
 
     Rumble.initRumble(this);
 

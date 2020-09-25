@@ -300,6 +300,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
   s_emulation_end_event.Wait();
 }
 
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsBooting(JNIEnv* env,
+                                                                                  jobject obj)
+{
+  return static_cast<jboolean>(Core::IsBooting());
+}
+
 JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_WaitUntilDoneBooting(JNIEnv* env, jobject obj)
 {
