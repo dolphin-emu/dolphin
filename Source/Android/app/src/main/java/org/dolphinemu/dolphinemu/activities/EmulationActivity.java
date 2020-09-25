@@ -823,6 +823,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void adjustScale()
   {
+    SharedPreferences.Editor editor = mPreferences.edit();
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_seekbar, null);
 
@@ -858,10 +859,14 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      SharedPreferences.Editor editor = mPreferences.edit();
       editor.putInt("controlScale", seekbar.getProgress());
       editor.apply();
-
+      mEmulationFragment.refreshInputOverlay();
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      editor.remove("controlScale");
+      editor.apply();
       mEmulationFragment.refreshInputOverlay();
     });
 
@@ -957,11 +962,12 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRSensitivity()
   {
-    int ir_pitch = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
-
+    SharedPreferences.Editor editor = mPreferences.edit();
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
+
+    int ir_pitch = Integer.parseInt(
+            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
 
     TextView text_slider_value_pitch = view.findViewById(R.id.text_ir_pitch);
     TextView units = view.findViewById(R.id.text_ir_pitch_units);
@@ -1059,17 +1065,14 @@ public final class EmulationActivity extends AppCompatActivity
     {
       File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
       IniFile ini = new IniFile(file);
-      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
-              text_slider_value_pitch.getText().toString());
-      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
-              text_slider_value_yaw.getText().toString());
-      ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
-              text_slider_value_vertical_offset.getText().toString());
+      ini.setInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, ir_pitch);
+      ini.setInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, ir_yaw);
+      ini.setInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET,
+              ir_vertical_offset);
       ini.save(file);
 
       NativeLibrary.ReloadWiimoteConfig();
 
-      SharedPreferences.Editor editor = mPreferences.edit();
       editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
               text_slider_value_pitch.getText().toString());
       editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
@@ -1081,6 +1084,22 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
     {
       // Do nothing
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
+      IniFile ini = new IniFile(file);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET);
+      ini.save(file);
+
+      NativeLibrary.ReloadWiimoteConfig();
+
+      editor.remove(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId);
+      editor.remove(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId);
+      editor.remove(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId);
+      editor.apply();
     });
     builder.show();
   }
