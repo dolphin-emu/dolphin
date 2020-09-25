@@ -85,12 +85,14 @@ public final class EmulationActivity extends AppCompatActivity
   private String mSelectedGameId;
   private int mPlatform;
   private String[] mPaths;
+  private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_SELECTED_TITLE = "SelectedTitle";
   public static final String EXTRA_SELECTED_GAMEID = "SelectedGameId";
   public static final String EXTRA_PLATFORM = "Platform";
+  public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
 
   @Retention(SOURCE)
@@ -272,6 +274,7 @@ public final class EmulationActivity extends AppCompatActivity
       mSelectedTitle = gameToEmulate.getStringExtra(EXTRA_SELECTED_TITLE);
       mSelectedGameId = gameToEmulate.getStringExtra(EXTRA_SELECTED_GAMEID);
       mPlatform = gameToEmulate.getIntExtra(EXTRA_PLATFORM, 0);
+      mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
       activityRecreated = false;
       Toast.makeText(this, R.string.emulation_menu_help, Toast.LENGTH_LONG).show();
@@ -327,6 +330,7 @@ public final class EmulationActivity extends AppCompatActivity
     outState.putString(EXTRA_SELECTED_TITLE, mSelectedTitle);
     outState.putString(EXTRA_SELECTED_GAMEID, mSelectedGameId);
     outState.putInt(EXTRA_PLATFORM, mPlatform);
+    outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, mIgnoreWarnings);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
     super.onSaveInstanceState(outState);
   }
@@ -337,6 +341,7 @@ public final class EmulationActivity extends AppCompatActivity
     mSelectedTitle = savedInstanceState.getString(EXTRA_SELECTED_TITLE);
     mSelectedGameId = savedInstanceState.getString(EXTRA_SELECTED_GAMEID);
     mPlatform = savedInstanceState.getInt(EXTRA_PLATFORM);
+    mIgnoreWarnings = savedInstanceState.getBoolean(EXTRA_IGNORE_WARNINGS);
     sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
   }
 
@@ -669,6 +674,16 @@ public final class EmulationActivity extends AppCompatActivity
         finish();
         return;
     }
+  }
+
+  public boolean isIgnoringWarnings()
+  {
+    return mIgnoreWarnings;
+  }
+
+  public void setIgnoreWarnings(boolean value)
+  {
+    mIgnoreWarnings = value;
   }
 
   public static boolean getHasUserPausedEmulation()

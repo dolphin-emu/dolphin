@@ -17,8 +17,10 @@ public final class AlertMessage extends DialogFragment
   private static final String ARG_TITLE = "title";
   private static final String ARG_MESSAGE = "message";
   private static final String ARG_YES_NO = "yesNo";
+  private static final String ARG_IS_WARNING = "isWarning";
 
-  public static AlertMessage newInstance(String title, String message, boolean yesNo)
+  public static AlertMessage newInstance(String title, String message, boolean yesNo,
+          boolean isWarning)
   {
     AlertMessage fragment = new AlertMessage();
 
@@ -26,6 +28,7 @@ public final class AlertMessage extends DialogFragment
     args.putString(ARG_TITLE, title);
     args.putString(ARG_MESSAGE, message);
     args.putBoolean(ARG_YES_NO, yesNo);
+    args.putBoolean(ARG_IS_WARNING, isWarning);
     fragment.setArguments(args);
 
     return fragment;
@@ -39,6 +42,7 @@ public final class AlertMessage extends DialogFragment
     String title = requireArguments().getString(ARG_TITLE);
     String message = requireArguments().getString(ARG_MESSAGE);
     boolean yesNo = requireArguments().getBoolean(ARG_YES_NO);
+    boolean isWarning = requireArguments().getBoolean(ARG_IS_WARNING);
     setCancelable(false);
 
     AlertDialog.Builder builder = new AlertDialog.Builder(emulationActivity,
@@ -71,6 +75,17 @@ public final class AlertMessage extends DialogFragment
                 NativeLibrary.NotifyAlertMessageLock();
               });
     }
+
+    if (isWarning)
+    {
+      builder.setNeutralButton(R.string.ignore_warning_alert_messages, (dialog, which) ->
+      {
+        emulationActivity.setIgnoreWarnings(true);
+        dialog.dismiss();
+        NativeLibrary.NotifyAlertMessageLock();
+      });
+    }
+
     return builder.create();
   }
 

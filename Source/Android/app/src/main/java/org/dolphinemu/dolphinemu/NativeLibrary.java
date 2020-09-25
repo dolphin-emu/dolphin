@@ -446,7 +446,7 @@ public final class NativeLibrary
   public static native void SetObscuredPixelsTop(int height);
 
   public static boolean displayAlertMsg(final String caption, final String text,
-          final boolean yesNo)
+          final boolean yesNo, final boolean isWarning)
   {
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -454,6 +454,10 @@ public final class NativeLibrary
     if (emulationActivity == null)
     {
       Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic alert.");
+    }
+    else if (emulationActivity.isIgnoringWarnings() && isWarning)
+    {
+      return true;
     }
     else
     {
@@ -470,8 +474,9 @@ public final class NativeLibrary
       {
         sIsShowingAlertMessage = true;
 
-        emulationActivity.runOnUiThread(() -> AlertMessage.newInstance(caption, text, yesNo)
-                .show(emulationActivity.getSupportFragmentManager(), "AlertMessage"));
+        emulationActivity.runOnUiThread(
+                () -> AlertMessage.newInstance(caption, text, yesNo, isWarning)
+                        .show(emulationActivity.getSupportFragmentManager(), "AlertMessage"));
 
         // Wait for the lock to notify that it is complete.
         synchronized (sAlertMessageLock)
