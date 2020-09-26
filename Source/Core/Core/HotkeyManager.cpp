@@ -415,15 +415,8 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
         ->control_ref->SetExpression(expression);
   };
 
-  auto hotkey_string = [](std::vector<std::string_view> inputs) {
-    std::string result;
-    for (auto& input : inputs)
-    {
-      if (!result.empty())
-        result += '+';
-      result += input;
-    }
-    return "@(" + result + ')';
+  auto hotkey_string = [](std::vector<std::string> inputs) {
+    return "@(" + JoinStrings(inputs, "+") + ')';
   };
 
   // General hotkeys
@@ -453,8 +446,8 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   // Freelook
-  set_key_expression(HK_FREELOOK_DECREASE_SPEED, hotkey_string({"Shift", "1"}));
-  set_key_expression(HK_FREELOOK_INCREASE_SPEED, hotkey_string({"Shift", "2"}));
+  set_key_expression(HK_FREELOOK_DECREASE_SPEED, hotkey_string({"Shift", "`1`"}));
+  set_key_expression(HK_FREELOOK_INCREASE_SPEED, hotkey_string({"Shift", "`2`"}));
   set_key_expression(HK_FREELOOK_RESET_SPEED, hotkey_string({"Shift", "F"}));
   set_key_expression(HK_FREELOOK_UP, hotkey_string({"Shift", "E"}));
   set_key_expression(HK_FREELOOK_DOWN, hotkey_string({"Shift", "Q"}));
@@ -471,9 +464,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   // Savestates
   for (int i = 0; i < 8; i++)
   {
-    set_key_expression(HK_LOAD_STATE_SLOT_1 + i, fmt::format("F%d", i + 1));
+    set_key_expression(HK_LOAD_STATE_SLOT_1 + i, fmt::format("F{}", i + 1));
     set_key_expression(HK_SAVE_STATE_SLOT_1 + i,
-                       hotkey_string({"Shift", fmt::format("F%d", i + 1)}));
+                       hotkey_string({"Shift", fmt::format("F{}", i + 1)}));
   }
   set_key_expression(HK_UNDO_LOAD_STATE, "F12");
   set_key_expression(HK_UNDO_SAVE_STATE, hotkey_string({"Shift", "F12"}));
