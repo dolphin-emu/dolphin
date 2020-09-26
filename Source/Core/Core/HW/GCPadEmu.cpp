@@ -187,10 +187,10 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
   m_buttons->SetControlExpression(3, "S");  // Y
   m_buttons->SetControlExpression(4, "D");  // Z
 #ifdef _WIN32
-  m_buttons->SetControlExpression(5, "!LMENU & RETURN");  // Start
+  m_buttons->SetControlExpression(5, "RETURN");  // Start
 #else
   // OS X/Linux
-  m_buttons->SetControlExpression(5, "!`Alt_L` & Return");  // Start
+  m_buttons->SetControlExpression(5, "Return");  // Start
 #endif
 
   // stick modifiers to 50 %
