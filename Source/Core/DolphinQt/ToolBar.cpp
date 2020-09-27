@@ -48,7 +48,7 @@ ToolBar::ToolBar(QWidget* parent) : QToolBar(parent)
 
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
           [this] { m_refresh_action->setEnabled(false); });
-  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this,
+  connect(&Settings::Instance(), &Settings::GameListRefreshStarted, this,
           [this] { m_refresh_action->setEnabled(true); });
 
   OnEmulationStateChanged(Core::GetState());

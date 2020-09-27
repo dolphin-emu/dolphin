@@ -511,7 +511,7 @@ void MenuBar::AddViewMenu()
   purge_action->setEnabled(false);
   connect(&Settings::Instance(), &Settings::GameListRefreshRequested, purge_action,
           [purge_action] { purge_action->setEnabled(false); });
-  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, purge_action,
+  connect(&Settings::Instance(), &Settings::GameListRefreshStarted, purge_action,
           [purge_action] { purge_action->setEnabled(true); });
   view_menu->addSeparator();
   view_menu->addAction(tr("Search"), this, &MenuBar::ShowSearch, QKeySequence::Find);

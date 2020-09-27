@@ -35,7 +35,10 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
   qRegisterMetaType<std::shared_ptr<const UICommon::GameFile>>();
   qRegisterMetaType<std::string>();
 
-  connect(qApp, &QApplication::aboutToQuit, this, [this] { m_load_thread.Cancel(); });
+  connect(qApp, &QApplication::aboutToQuit, this, [this] {
+    m_processing_halted = true;
+    m_load_thread.Cancel();
+  });
   connect(this, &QFileSystemWatcher::directoryChanged, this, &GameTracker::UpdateDirectory);
   connect(this, &QFileSystemWatcher::fileChanged, this, &GameTracker::UpdateFile);
   connect(&Settings::Instance(), &Settings::AutoRefreshToggled, this, [] {
@@ -75,27 +78,24 @@ GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
       break;
     case CommandType::UpdateMetadata:
       m_cache.UpdateAdditionalMetadata(
-          [this](const std::shared_ptr<const UICommon::GameFile>& game) {
-            emit GameUpdated(game);
-          });
+          [this](const std::shared_ptr<const UICommon::GameFile>& game) { emit GameUpdated(game); },
+          m_processing_halted);
       QueueOnObject(this, [] { Settings::Instance().NotifyMetadataRefreshComplete(); });
+      break;
+    case CommandType::ResumeProcessing:
+      m_processing_halted = false;
       break;
     case CommandType::PurgeCache:
       m_cache.Clear(UICommon::GameFileCache::DeleteOnDisk::Yes);
       break;
     case CommandType::BeginRefresh:
-      if (m_busy_count++ == 0)
-      {
-        for (auto& file : m_tracked_files.keys())
-          emit GameRemoved(file.toStdString());
-        m_tracked_files.clear();
-      }
+      QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListStarted(); });
+      for (auto& file : m_tracked_files.keys())
+        emit GameRemoved(file.toStdString());
+      m_tracked_files.clear();
       break;
     case CommandType::EndRefresh:
-      if (--m_busy_count == 0)
-      {
-        QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
-      }
+      QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
       break;
     }
   });
@@ -135,6 +135,8 @@ void GameTracker::StartInternal()
 
   m_started = true;
 
+  QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListStarted(); });
+
   std::vector<std::string> paths;
   paths.reserve(m_tracked_files.size());
   for (const QString& path : m_tracked_files.keys())
@@ -150,8 +152,9 @@ void GameTracker::StartInternal()
 
   m_initial_games_emitted_event.Wait();
 
-  bool cache_updated = m_cache.Update(paths, emit_game_loaded, emit_game_removed);
-  cache_updated |= m_cache.UpdateAdditionalMetadata(emit_game_updated);
+  bool cache_updated =
+      m_cache.Update(paths, emit_game_loaded, emit_game_removed, m_processing_halted);
+  cache_updated |= m_cache.UpdateAdditionalMetadata(emit_game_updated, m_processing_halted);
   if (cache_updated)
     m_cache.Save();
 
@@ -196,6 +199,16 @@ void GameTracker::RemoveDirectory(const QString& dir)
 
 void GameTracker::RefreshAll()
 {
+  m_processing_halted = true;
+  m_load_thread.Clear();
+  m_load_thread.EmplaceItem(Command{CommandType::ResumeProcessing, {}});
+
+  if (m_needs_purge)
+  {
+    m_load_thread.EmplaceItem(Command{CommandType::PurgeCache, {}});
+    m_needs_purge = false;
+  }
+
   m_load_thread.EmplaceItem(Command{CommandType::BeginRefresh});
 
   for (const QString& dir : Settings::Instance().GetPaths())
@@ -257,7 +270,7 @@ void GameTracker::RemoveDirectoryInternal(const QString& dir)
 void GameTracker::UpdateDirectoryInternal(const QString& dir)
 {
   auto it = GetIterator(dir);
-  while (it->hasNext() && !m_load_thread.IsCancelled())
+  while (it->hasNext() && !m_processing_halted)
   {
     QString path = QFileInfo(it->next()).canonicalFilePath();
 
@@ -277,6 +290,9 @@ void GameTracker::UpdateDirectoryInternal(const QString& dir)
 
   for (const auto& missing : FindMissingFiles(dir))
   {
+    if (m_processing_halted)
+      break;
+
     auto& tracked_file = m_tracked_files[missing];
 
     tracked_file.remove(dir);
@@ -347,6 +363,6 @@ void GameTracker::LoadGame(const QString& path)
 
 void GameTracker::PurgeCache()
 {
-  m_load_thread.EmplaceItem(Command{CommandType::PurgeCache, {}});
+  m_needs_purge = true;
   Settings::Instance().RefreshGameList();
 }

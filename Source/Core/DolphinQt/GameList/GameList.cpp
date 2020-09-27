@@ -203,9 +203,13 @@ void GameList::UpdateColumnVisibility()
 
 void GameList::MakeEmptyView()
 {
+  const QString refreshing_msg = tr("Refreshing...");
+  const QString empty_msg = tr("Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
+                               "Double-click here to set a games directory...");
+
   m_empty = new QLabel(this);
-  m_empty->setText(tr("Dolphin could not find any GameCube/Wii ISOs or WADs.\n"
-                      "Double-click here to set a games directory..."));
+  m_empty->setText(refreshing_msg);
+  m_empty->setEnabled(false);
   m_empty->setAlignment(Qt::AlignHCenter | Qt::AlignVCenter);
 
   auto event_filter = new DoubleClickEventFilter{m_empty};
@@ -216,6 +220,21 @@ void GameList::MakeEmptyView()
     if (!dir.isEmpty())
       Settings::Instance().AddPath(dir);
   });
+
+  QSizePolicy size_policy{m_empty->sizePolicy()};
+  size_policy.setRetainSizeWhenHidden(true);
+  m_empty->setSizePolicy(size_policy);
+
+  connect(&Settings::Instance(), &Settings::GameListRefreshRequested, this,
+          [this, refreshing_msg = refreshing_msg] {
+            m_empty->setText(refreshing_msg);
+            m_empty->setEnabled(false);
+          });
+  connect(&Settings::Instance(), &Settings::GameListRefreshCompleted, this,
+          [this, empty_msg = empty_msg] {
+            m_empty->setText(empty_msg);
+            m_empty->setEnabled(true);
+          });
 }
 
 void GameList::resizeEvent(QResizeEvent* event)
