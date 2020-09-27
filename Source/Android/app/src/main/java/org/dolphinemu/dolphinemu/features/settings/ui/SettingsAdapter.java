@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -239,7 +240,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     SeekBar seekbar = view.findViewById(R.id.seekbar);
 
-    seekbar.setMin(item.getMin());
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+    {
+      seekbar.setMin(item.getMin());
+    }
     seekbar.setMax(item.getMax());
     seekbar.setProgress(mSeekbarProgress);
     seekbar.setKeyProgressIncrement(5);
@@ -413,7 +417,16 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      }
+      else
+      {
+        sliderSetting
+                .setSelectedValue(getSettings(),
+                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
+      }
 
       closeDialog();
     }
@@ -423,7 +436,16 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+      {
+        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
+      }
+      else
+      {
+        sliderSetting
+                .setSelectedValue(getSettings(),
+                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
+      }
 
       closeDialog();
     }
