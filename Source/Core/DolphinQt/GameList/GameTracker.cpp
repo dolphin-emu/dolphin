@@ -156,6 +156,7 @@ void GameTracker::StartInternal()
     m_cache.Save();
 
   QueueOnObject(this, [] { Settings::Instance().NotifyMetadataRefreshComplete(); });
+  QueueOnObject(this, [] { Settings::Instance().NotifyRefreshGameListComplete(); });
 }
 
 bool GameTracker::AddPath(const QString& dir)
@@ -347,5 +348,5 @@ void GameTracker::LoadGame(const QString& path)
 void GameTracker::PurgeCache()
 {
   m_load_thread.EmplaceItem(Command{CommandType::PurgeCache, {}});
-  RefreshAll();
+  Settings::Instance().RefreshGameList();
 }
