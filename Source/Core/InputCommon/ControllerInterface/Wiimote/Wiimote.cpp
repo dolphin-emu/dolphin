@@ -196,6 +196,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
 
   AddInput(new UndetectableAnalogInput<bool>(&m_ir_state.is_hidden, "IR Hidden", 1));
 
+  AddInput(new UndetectableAnalogInput<float>(&m_ir_state.distance, "IR Distance", 1));
+
   // Raw gyroscope.
   static constexpr std::array<std::array<const char*, 2>, 3> gyro_names = {{
       {"Gyro Pitch Down", "Gyro Pitch Up"},
@@ -1198,9 +1200,9 @@ void Device::UpdateOrientation()
     // FYI: We could do some roll correction from multiple IR objects.
 
     const auto ir_rotation =
-        Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y_DEG, 0,
-                     m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X_DEG) /
-        2 * float(MathUtil::TAU) / 360;
+        Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y, 0,
+                     m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X) /
+        2;
     const auto ir_normal = Common::Vec3(0, 1, 0);
     const auto ir_vector = WiimoteEmu::GetMatrixFromGyroscope(-ir_rotation) * ir_normal;
 
@@ -1226,8 +1228,7 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
 
   using IRObject = WiimoteEmu::IRBasic::IRObject;
 
-  Common::Vec2 point_total;
-  int point_count = 0;
+  MathUtil::RunningVariance<Common::Vec2> points;
 
   const auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
                                    WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
@@ -1237,8 +1238,7 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
     if (point.y > camera_max.y)
       return;
 
-    point_total += Common::Vec2(point);
-    ++point_count;
+    points.Push(Common::Vec2(point));
   };
 
   for (auto& block : data)
@@ -1247,12 +1247,25 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
     add_point(block.GetObject2());
   }
 
-  is_hidden = !point_count;
+  is_hidden = !points.Count();
 
-  if (point_count)
+  if (points.Count() >= 2)
   {
-    center_position =
-        point_total / float(point_count) / Common::Vec2(camera_max) * 2.f - Common::Vec2(1, 1);
+    const auto variance = points.PopulationVariance();
+    // Adjusts Y coorinate to match horizontal FOV.
+    const auto separation =
+        Common::Vec2(std::sqrt(variance.x), std::sqrt(variance.y)) /
+        Common::Vec2(WiimoteEmu::CameraLogic::CAMERA_RES_X,
+                     WiimoteEmu::CameraLogic::CAMERA_RES_Y * WiimoteEmu::CameraLogic::CAMERA_AR) *
+        2;
+
+    distance = WiimoteEmu::CameraLogic::SENSOR_BAR_LED_SEPARATION / separation.Length() / 2 /
+               std::tan(WiimoteEmu::CameraLogic::CAMERA_FOV_X / 2);
+  }
+
+  if (points.Count())
+  {
+    center_position = points.Mean() / Common::Vec2(camera_max) * 2.f - Common::Vec2(1, 1);
   }
   else
   {
