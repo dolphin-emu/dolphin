@@ -2,7 +2,6 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -56,6 +55,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
   private SettingsItem mClickedItem;
   private int mClickedPosition;
+  private int mSeekbarMinValue;
   private int mSeekbarProgress;
 
   private AlertDialog mDialog;
@@ -220,6 +220,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   {
     mClickedItem = item;
     mClickedPosition = position;
+    mSeekbarMinValue = item.getMin();
     mSeekbarProgress = item.getSelectedValue(getSettings());
     AlertDialog.Builder builder = new AlertDialog.Builder(mView.getActivity(),
             R.style.DolphinDialogBase);
@@ -240,12 +241,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
     SeekBar seekbar = view.findViewById(R.id.seekbar);
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-    {
-      seekbar.setMin(item.getMin());
-    }
-    seekbar.setMax(item.getMax());
-    seekbar.setProgress(mSeekbarProgress);
+    // TODO: Once we require API 26, uncomment this line and remove the mSeekbarMinValue variable
+    //seekbar.setMin(item.getMin());
+
+    seekbar.setMax(item.getMax() - mSeekbarMinValue);
+    seekbar.setProgress(mSeekbarProgress - mSeekbarMinValue);
     seekbar.setKeyProgressIncrement(5);
 
     seekbar.setOnSeekBarChangeListener(this);
@@ -417,16 +417,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      {
-        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
-      }
-      else
-      {
-        sliderSetting
-                .setSelectedValue(getSettings(),
-                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
-      }
+      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 
       closeDialog();
     }
@@ -436,16 +427,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       if (sliderSetting.getSelectedValue(getSettings()) != mSeekbarProgress)
         mView.onSettingChanged();
 
-      if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-      {
-        sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
-      }
-      else
-      {
-        sliderSetting
-                .setSelectedValue(getSettings(),
-                        Math.max(mSeekbarProgress, sliderSetting.getMin()));
-      }
+      sliderSetting.setSelectedValue(getSettings(), mSeekbarProgress);
 
       closeDialog();
     }
@@ -471,7 +453,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
   @Override
   public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
   {
-    mSeekbarProgress = progress;
+    mSeekbarProgress = progress + mSeekbarMinValue;
     mTextSliderValue.setText(String.valueOf(mSeekbarProgress));
   }
 
