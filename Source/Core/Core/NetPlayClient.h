@@ -118,7 +118,7 @@ public:
   std::string GetCurrentGolfer();
 
   // Send and receive pads values
-  bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
+  bool WiimoteUpdate(int _number, u8* data, std::size_t size, u8 reporting_mode);
   bool GetNetPads(int pad_nb, bool from_vi, GCPadStatus* pad_status);
 
   u64 GetInitialRTCValue() const;
@@ -167,7 +167,7 @@ protected:
   Common::SPSCQueue<AsyncQueueEntry, false> m_async_queue;
 
   std::array<Common::SPSCQueue<GCPadStatus>, 4> m_pad_buffer;
-  std::array<Common::SPSCQueue<NetWiimote>, 4> m_wiimote_buffer;
+  std::array<Common::SPSCQueue<WiimoteInput>, 4> m_wiimote_buffer;
 
   std::array<GCPadStatus, 4> m_last_pad_status{};
   std::array<bool, 4> m_first_pad_status_received{};
@@ -230,7 +230,7 @@ private:
 
   void UpdateDevices();
   void AddPadStateToPacket(int in_game_pad, const GCPadStatus& np, sf::Packet& packet);
-  void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
+  void SendWiimoteState(int in_game_pad, const WiimoteInput& nw);
   unsigned int OnData(sf::Packet& packet);
   void Send(const sf::Packet& packet, u8 channel_id = DEFAULT_CHANNEL);
   void Disconnect();

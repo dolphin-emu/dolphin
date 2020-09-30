@@ -5,6 +5,7 @@
 #include "Core/NetPlayClient.h"
 
 #include <algorithm>
+#include <cassert>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -518,14 +519,12 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   case NP_MSG_WIIMOTE_DATA:
   {
     PadIndex map;
-    NetWiimote nw;
+    WiimoteInput nw;
     u8 size;
-    packet >> map >> size;
-
-    nw.resize(size);
-
-    for (unsigned int i = 0; i < size; ++i)
-      packet >> nw[i];
+    packet >> map >> nw.report_id >> size;
+    nw.data.resize(size);
+    for (auto& byte : nw.data)
+      packet >> byte;
 
     // Trusting server for good map value (>=0 && <4)
     // add to Wiimote buffer
@@ -1463,17 +1462,14 @@ void NetPlayClient::AddPadStateToPacket(const int in_game_pad, const GCPadStatus
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw)
+void NetPlayClient::SendWiimoteState(const int in_game_pad, const WiimoteInput& nw)
 {
   sf::Packet packet;
   packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
   packet << static_cast<PadIndex>(in_game_pad);
-  packet << static_cast<u8>(nw.size());
-  for (auto it : nw)
-  {
-    packet << it;
-  }
-
+  packet << static_cast<u8>(nw.report_id);
+  packet << static_cast<u8>(nw.data.size());
+  packet.append(nw.data.data(), nw.data.size());
   SendAsync(std::move(packet));
 }
 
@@ -1945,16 +1941,17 @@ u64 NetPlayClient::GetInitialRTCValue() const
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode)
+bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size, u8 reporting_mode)
 {
-  NetWiimote nw;
+  WiimoteInput nw;
+  nw.report_id = reporting_mode;
   {
     std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
 
     // Only send data, if this Wiimote is mapped to this player
     if (m_wiimote_map[_number] == m_local_player->pid)
     {
-      nw.assign(data, data + size);
+      nw.data.assign(data, data + size);
 
       // TODO: add a seperate setting for wiimote buffer?
       while (m_wiimote_buffer[_number].Size() <= m_target_buffer_size * 200 / 120)
@@ -1983,10 +1980,10 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
 
   // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
-  if (nw[1] != reporting_mode)
+  if (nw.report_id != reporting_mode)
   {
     u32 tries = 0;
-    while (nw[1] != reporting_mode)
+    while (nw.report_id != reporting_mode)
     {
       while (m_wiimote_buffer[_number].Size() == 0)
       {
@@ -2007,14 +2004,15 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 repor
     }
 
     // If it still mismatches, it surely desynced
-    if (nw[1] != reporting_mode)
+    if (nw.report_id != reporting_mode)
     {
       PanicAlertT("Netplay has desynced. There is no way to recover from this.");
       return false;
     }
   }
 
-  memcpy(data, nw.data(), size);
+  assert(nw.data.size() == size);
+  std::copy(nw.data.begin(), nw.data.end(), data);
   return true;
 }
 
@@ -2496,11 +2494,13 @@ bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
   std::lock_guard<std::mutex> lk(NetPlay::crit_netplay_client);
 
   // Use the reporting mode 0 for the button pressed event, the real ones start at RT_REPORT_CORE
-  u8 data[2] = {static_cast<u8>(pressed), 0};
+  static const u8 BUTTON_PRESS_REPORTING_MODE = 0;
 
   if (NetPlay::netplay_client)
   {
-    if (NetPlay::netplay_client->WiimoteUpdate(wiimote, data, 2, 0))
+    std::array<u8, 1> data = {u8(pressed)};
+    if (NetPlay::netplay_client->WiimoteUpdate(wiimote, data.data(), data.size(),
+                                               BUTTON_PRESS_REPORTING_MODE))
     {
       return data[0];
     }
