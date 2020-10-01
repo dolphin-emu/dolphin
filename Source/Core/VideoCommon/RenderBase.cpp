@@ -1053,7 +1053,12 @@ void Renderer::DrawImGui()
 
   // Set up common state for drawing.
   SetPipeline(m_imgui_pipeline.get());
-  SetSamplerState(0, RenderState::GetPointSamplerState());
+
+  // Use linear sampling for fractional scaling, point for integer.
+  const float scale = ImGui::GetIO().DisplayFramebufferScale.x;
+  const bool is_integer_scale = (scale == std::floor(scale));
+  SetSamplerState(0, is_integer_scale ? RenderState::GetPointSamplerState() :
+                                        RenderState::GetLinearSamplerState());
   g_vertex_manager->UploadUtilityUniforms(&ubo, sizeof(ubo));
 
   for (int i = 0; i < draw_data->CmdListsCount; i++)
