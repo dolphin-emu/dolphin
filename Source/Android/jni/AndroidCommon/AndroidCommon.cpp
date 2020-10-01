@@ -65,3 +65,24 @@ bool DeleteAndroidContent(const std::string& uri)
   return env->CallStaticBooleanMethod(IDCache::GetContentHandlerClass(),
                                       IDCache::GetContentHandlerDelete(), ToJString(env, uri));
 }
+
+int GetNetworkIpAddress()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkIpAddress());
+}
+
+int GetNetworkPrefixLength()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkPrefixLength());
+}
+
+int GetNetworkGateway()
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticIntMethod(IDCache::GetNetworkHelperClass(),
+                                  IDCache::GetNetworkHelperGetNetworkGateway());
+}
