@@ -648,6 +648,12 @@ s32 WiiSockMan::AddSocket(s32 fd, bool is_rw)
     WiiSocket& sock = WiiSockets[wii_fd];
     sock.SetFd(fd);
     sock.SetWiiFd(wii_fd);
+
+#ifdef __APPLE__
+    int opt_no_sigpipe = 1;
+    if (setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &opt_no_sigpipe, sizeof(opt_no_sigpipe)) < 0)
+      ERROR_LOG(IOS_NET, "Failed to set SO_NOSIGPIPE on socket");
+#endif
   }
 
   SetLastNetError(wii_fd);
