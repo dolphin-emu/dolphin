@@ -449,7 +449,7 @@ void Jit64::fselx(UGeckoInstruction inst)
       MOVAPD(XMM1, Rc);
     }
 
-    if (packed)
+    if (d == c || packed)
     {
       VBLENDVPD(Rd, src1, Rb, XMM0);
       return;
