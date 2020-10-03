@@ -47,7 +47,7 @@
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4Lp-si-dj1" userLabel="Warning Text">
                                     <rect key="frame" x="0.0" y="0.0" width="335" height="426.33333333333331"/>
-                                    <mutableString key="text">You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
+                                    <string key="text">You are about to run an NKit disc image. NKit disc images cause problems that don't happen with normal disc images. These problems include:
 
 • The emulated loading times are longer
 • You can't use NetPlay with people who have normal disc images
@@ -57,7 +57,7 @@
 • Wii games don't work at all in older versions of Dolphin and in many other programs
 
 Are you sure you want to continue anyway?
-</mutableString>
+</string>
                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                     <nil key="textColor"/>
                                     <nil key="highlightedColor"/>
