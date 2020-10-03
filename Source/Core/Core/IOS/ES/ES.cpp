@@ -182,7 +182,7 @@ static ReturnCode CheckIsAllowedToSetUID(Kernel& kernel, const u32 caller_uid,
   if (kernel.GetVersion() == 62)
   {
     const bool is_wiiu_transfer_tool =
-        active_tmd.IsValid() && (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484353ff;
+        active_tmd.IsValid() && ((active_tmd.GetTitleId() | 0xFF) == 0x00010001'484353ff || (active_tmd.GetTitleId() | 0xFF) == 0x00010001'484354ff);
     if (is_wiiu_transfer_tool)
       return IPC_SUCCESS;
   }
