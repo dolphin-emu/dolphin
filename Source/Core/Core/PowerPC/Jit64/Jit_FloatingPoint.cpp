@@ -459,7 +459,7 @@ void Jit64::fselx(UGeckoInstruction inst)
   }
   else if (cpu_info.bSSE4_1)
   {
-    if (packed && d == c)
+    if (d == c)
     {
       BLENDVPD(Rd, Rb);
       return;
