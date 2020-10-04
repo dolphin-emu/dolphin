@@ -7,6 +7,7 @@
 #import <utility>
 #import <variant>
 
+#import "AppDelegate.h"
 #import "AutoStates.h"
 
 #import "ControllerSettingsUtils.h"
@@ -238,9 +239,13 @@
   
   [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
   
+#ifdef NONJAILBROKEN
+  [AppDelegate Shutdown];
+#else
   dispatch_sync(dispatch_get_main_queue(), ^{
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
   });
+#endif
 }
 
 - (void)RunningTitleUpdated
@@ -479,15 +484,21 @@
 - (IBAction)StopButtonPressed:(id)sender
 {
   void (^stop)() = ^{
-    [MainiOS stopEmulation];
-    
     // Delete the automatic save state
     File::Delete(File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav");
+    
+    [MainiOS stopEmulation];
   };
   
   if (SConfig::GetInstance().bConfirmStop)
   {
-    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:DOLocalizedString(@"Do you want to stop the current emulation?") preferredStyle:UIAlertControllerStyleAlert];
+    NSString* message = DOLocalizedString(@"Do you want to stop the current emulation?");
+    
+#ifdef NONJAILBROKEN
+    message = [message stringByAppendingString:@"\n\nDolphiniOS will quit if the emulation is stopped."];
+#endif
+    
+    UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:message preferredStyle:UIAlertControllerStyleAlert];
     
     [alert addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"No") style:UIAlertActionStyleDefault handler:nil]];
     
