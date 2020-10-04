@@ -542,7 +542,10 @@ bool StateTracker::UpdateGXDescriptorSet()
                             g_ActiveConfig.backend_info.bSupportsBBox ?
                                 NUM_GX_DESCRIPTOR_SETS :
                                 (NUM_GX_DESCRIPTOR_SETS - 1),
-                            m_gx_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+                            m_gx_descriptor_sets.data(),
+                            g_ActiveConfig.backend_info.bSupportsGeometryShaders ?
+                                NUM_UBO_DESCRIPTOR_SET_BINDINGS :
+                                (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
                             m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~(DIRTY_FLAG_DESCRIPTOR_SETS | DIRTY_FLAG_GX_UBO_OFFSETS);
   }
@@ -550,7 +553,10 @@ bool StateTracker::UpdateGXDescriptorSet()
   {
     vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                             VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline->GetVkPipelineLayout(), 0,
-                            1, m_gx_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
+                            1, m_gx_descriptor_sets.data(),
+                            g_ActiveConfig.backend_info.bSupportsGeometryShaders ?
+                                NUM_UBO_DESCRIPTOR_SET_BINDINGS :
+                                (NUM_UBO_DESCRIPTOR_SET_BINDINGS - 1),
                             m_bindings.gx_ubo_offsets.data());
     m_dirty_flags &= ~DIRTY_FLAG_GX_UBO_OFFSETS;
   }
