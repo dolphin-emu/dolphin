@@ -307,17 +307,6 @@
   {
     [nav_controller pushViewController:[[UnofficialBuildNoticeViewController alloc] initWithNibName:@"UnofficialBuildNotice" bundle:nil] animated:true];
   }
-  else if (launch_times > 0 && launch_times % 10 == 0)
-  {
-#ifndef PATREON
-    bool suppress_donation_message = [[NSUserDefaults standardUserDefaults] boolForKey:@"suppress_donation_message"];
-    
-    if (!suppress_donation_message)
-    {
-      [nav_controller pushViewController:[[DonationNoticeViewController alloc] initWithNibName:@"DonationNotice" bundle:nil] animated:true];
-    }
-#endif
-  }
 
 #ifdef ANALYTICS
   if (!SConfig::GetInstance().m_analytics_permission_asked)
