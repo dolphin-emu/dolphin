@@ -7,7 +7,6 @@
 #include "Core/HW/WiimoteReal/IOAndroid.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/GCPadStatus.h"
-#include "jni/ButtonManager.h"
 #endif
 
 #include "Common/Logging/Log.h"
