@@ -395,8 +395,11 @@ void RunGpuLoop()
       },
       100);
 
-  AsyncRequests::GetInstance()->SetEnable(false);
-  AsyncRequests::GetInstance()->SetPassthrough(true);
+  if (SConfig::GetInstance().bEMUThread)
+  {
+    AsyncRequests::GetInstance()->SetEnable(false);
+    AsyncRequests::GetInstance()->SetPassthrough(true);
+  }
 }
 
 void FlushGpu()
