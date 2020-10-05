@@ -50,7 +50,6 @@ private:
   void AddCode();
   void EditCode();
   void RemoveCode();
-  void DownloadCodes();
   void SaveCodes();
   void SortAlphabetically();
 
@@ -68,7 +67,6 @@ private:
   QPushButton* m_add_code;
   QPushButton* m_edit_code;
   QPushButton* m_remove_code;
-  QPushButton* m_download_codes;
   std::vector<Gecko::GeckoCode> m_gecko_codes;
   bool m_restart_required;
 };
