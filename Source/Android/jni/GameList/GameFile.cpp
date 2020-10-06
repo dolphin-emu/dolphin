@@ -66,7 +66,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getRevision
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobType(JNIEnv* env,
                                                                                  jobject obj);
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj);
+Java_org_dolphinemu_dolphinemu_model_GameFile_getFileFormatName(JNIEnv* env, jobject obj);
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,
                                                                                    jobject obj);
 JNIEXPORT jstring JNICALL
@@ -167,9 +167,9 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobType
 }
 
 JNIEXPORT jstring JNICALL
-Java_org_dolphinemu_dolphinemu_model_GameFile_getBlobTypeString(JNIEnv* env, jobject obj)
+Java_org_dolphinemu_dolphinemu_model_GameFile_getFileFormatName(JNIEnv* env, jobject obj)
 {
-  return ToJString(env, DiscIO::GetName(GetRef(env, obj)->GetBlobType(), true));
+  return ToJString(env, GetRef(env, obj)->GetFileFormatName());
 }
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBlockSize(JNIEnv* env,

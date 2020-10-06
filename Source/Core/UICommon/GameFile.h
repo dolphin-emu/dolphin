@@ -145,6 +145,7 @@ private:
   u64 m_volume_size{};
   bool m_volume_size_is_accurate{};
   bool m_is_datel_disc{};
+  bool m_is_nkit{};
 
   std::map<DiscIO::Language, std::string> m_short_names;
   std::map<DiscIO::Language, std::string> m_long_names;

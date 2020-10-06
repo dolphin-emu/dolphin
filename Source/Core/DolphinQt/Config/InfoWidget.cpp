@@ -54,10 +54,9 @@ QGroupBox* InfoWidget::CreateFileDetails()
   }
   else
   {
-    const QString file_format =
-        QStringLiteral("%1 (%2)")
-            .arg(QString::fromStdString(DiscIO::GetName(m_game.GetBlobType(), true)))
-            .arg(QString::fromStdString(file_size));
+    const QString file_format = QStringLiteral("%1 (%2)")
+                                    .arg(QString::fromStdString(m_game.GetFileFormatName()))
+                                    .arg(QString::fromStdString(file_size));
     layout->addRow(tr("File Format:"), CreateValueDisplay(file_format));
 
     QString compression = QString::fromStdString(m_game.GetCompressionMethod());
