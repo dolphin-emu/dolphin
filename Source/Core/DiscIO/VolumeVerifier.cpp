@@ -523,6 +523,41 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
                Common::FmtFormatT("The {0} partition is not properly aligned.", name));
   }
 
+  bool invalid_header = false;
+  bool blank_contents = false;
+  std::vector<u8> disc_header(0x80);
+  constexpr u32 WII_MAGIC = 0x5D1C9EA3;
+  if (!m_volume.Read(0, disc_header.size(), disc_header.data(), partition))
+  {
+    invalid_header = true;
+  }
+  else if (Common::swap32(disc_header.data() + 0x18) != WII_MAGIC)
+  {
+    for (size_t i = 0; i < disc_header.size(); i += 4)
+    {
+      if (Common::swap32(disc_header.data() + i) != i)
+      {
+        invalid_header = true;
+        break;
+      }
+    }
+
+    // The loop above ends without setting invalid_header for discs that legitimately lack
+    // updates. No such discs have been released to end users. Most such discs are debug signed,
+    // but there is apparently at least one that is retail signed, the Movie-Ch Install Disc.
+    if (!invalid_header)
+      blank_contents = true;
+  }
+  if (invalid_header)
+  {
+    // This can happen when certain programs that create WBFS files scrub the entirety of
+    // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
+    // the partition table. https://bugs.dolphin-emu.org/issues/8733
+    AddProblem(severity,
+               Common::FmtFormatT("The {0} partition does not seem to contain valid data.", name));
+    return false;
+  }
+
   if (!m_is_datel)
   {
     IOS::HLE::Kernel ios;
@@ -549,40 +584,6 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
                Common::FmtFormatT("The H3 hash table for the {0} partition is not correct.", name));
   }
 
-  bool invalid_disc_header = false;
-  std::vector<u8> disc_header(0x80);
-  constexpr u32 WII_MAGIC = 0x5D1C9EA3;
-  if (!m_volume.Read(0, disc_header.size(), disc_header.data(), partition))
-  {
-    invalid_disc_header = true;
-  }
-  else if (Common::swap32(disc_header.data() + 0x18) != WII_MAGIC)
-  {
-    for (size_t i = 0; i < disc_header.size(); i += 4)
-    {
-      if (Common::swap32(disc_header.data() + i) != i)
-      {
-        invalid_disc_header = true;
-        break;
-      }
-    }
-
-    // The loop above ends without setting invalid_disc_header for discs that legitimately lack
-    // updates. No such discs have been released to end users. Most such discs are debug signed,
-    // but there is apparently at least one that is retail signed, the Movie-Ch Install Disc.
-    if (!invalid_disc_header)
-      return false;
-  }
-  if (invalid_disc_header)
-  {
-    AddProblem(severity,
-               // This can happen when certain programs that create WBFS files scrub the entirety of
-               // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
-               // the partition table. https://bugs.dolphin-emu.org/issues/8733
-               Common::FmtFormatT("The {0} partition does not seem to contain valid data.", name));
-    return false;
-  }
-
   // Prepare for hash verification in the Process step
   if (m_volume.SupportsIntegrityCheck())
   {
@@ -596,6 +597,9 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
 
     m_block_errors.emplace(partition, 0);
   }
+
+  if (blank_contents)
+    return false;
 
   const DiscIO::FileSystem* filesystem = m_volume.GetFileSystem(partition);
   if (!filesystem)
