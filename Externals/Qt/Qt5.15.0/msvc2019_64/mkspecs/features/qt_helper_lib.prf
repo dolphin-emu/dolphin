@@ -1,0 +1,92 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+load(qt_build_paths)
+
+TEMPLATE = lib
+CONFIG -= qt
+QT =  # In case qt is re-added.
+
+INCLUDEPATH += $$MODULE_INCLUDEPATH
+DEFINES += $$MODULE_DEFINES
+
+CONFIG -= warning_clean  # Don't presume 3rd party code to be clean
+load(qt_common)
+
+qtConfig(debug_and_release): CONFIG += debug_and_release
+qtConfig(build_all): CONFIG += build_all
+
+DESTDIR = $$MODULE_BASE_OUTDIR/lib
+DLLDESTDIR = $$MODULE_BASE_OUTDIR/bin
+
+THE_TARGET = $$qt5LibraryTarget($$TARGET)
+
+MODULE = $$replace(TARGET, ^qt, )
+MODULE ~= s,-,_,
+MODULE_PRI = $$MODULE_QMAKE_OUTDIR/mkspecs/modules/qt_ext_$${MODULE}.pri
+ucmodule = $$upper($$MODULE)
+win32|CONFIG(static, static|shared) {
+    prefix = $$QMAKE_PREFIX_STATICLIB
+    suffix = $$QMAKE_EXTENSION_STATICLIB
+} else {
+    prefix = $$QMAKE_PREFIX_SHLIB
+    suffix = $$QMAKE_EXTENSION_SHLIB
+}
+
+!build_pass {
+    CC_USES =
+    LD_USES =
+    for (use, QMAKE_USE) {
+        use = $$split(use, /)
+        name = $$take_first(use)
+        nu = $$upper($$replace(name, -, _))
+        !contains(use, linkonly): CC_USES += $$nu
+        !contains(use, nolink): LD_USES += $$nu
+    }
+    CC_USES = $$unique(CC_USES)
+    LD_USES = $$unique(LD_USES)
+    MODULE_PRI_CONT = \
+        "QMAKE_DEPENDS_$${ucmodule}_CC =$$join(CC_USES, " ", " ")" \
+        "QMAKE_DEPENDS_$${ucmodule}_LD =$$join(LD_USES, " ", " ")" \
+        "QMAKE_INCDIR_$${ucmodule} = $$val_escape(MODULE_INCLUDEPATH)" \
+        "QMAKE_DEFINES_$${ucmodule} = $$val_escape(MODULE_DEFINES)"
+    android {
+        MODULE_PRI_CONT += "QMAKE_LIBS_$${ucmodule} ="
+    } else: if(msvc|qtConfig(debug_and_release)): {
+        win32: \
+            MODULE_DEBUG_LIBS = $$DESTDIR/$$prefix$${TARGET}d.$$suffix
+        else: darwin: \
+            MODULE_DEBUG_LIBS = $$DESTDIR/$$prefix$${TARGET}_debug.$$suffix
+        else: \
+            error("'$$QMAKE_PLATFORM' does not do debug_and_release.")
+        MODULE_RELEASE_LIBS = $$DESTDIR/$$prefix$${TARGET}.$$suffix
+        MODULE_PRI_CONT += \
+            "QMAKE_LIBS_$${ucmodule} =" \  # Needed for the module to be recognized.
+            "QMAKE_LIBS_$${ucmodule}_DEBUG = $$val_escape(MODULE_DEBUG_LIBS)" \
+            "QMAKE_LIBS_$${ucmodule}_RELEASE = $$val_escape(MODULE_RELEASE_LIBS)"
+    } else {
+        MODULE_LIBS = $$DESTDIR/$$prefix$${THE_TARGET}.$$suffix
+        MODULE_PRI_CONT += \
+            "QMAKE_LIBS_$${ucmodule} = $$val_escape(MODULE_LIBS)"
+    }
+    write_file($$MODULE_PRI, MODULE_PRI_CONT)|error()
+} else: android {
+    ABI_TARGET = $$qt5LibraryTarget($$TARGET)
+    ABI_MODULE_LIBS = $$DESTDIR/$$prefix$${ABI_TARGET}.$$suffix
+    MODULE_PRI_CONT = "QMAKE_LIBS_$${ucmodule}_$${QT_ARCH} = $$val_escape(ABI_MODULE_LIBS)"
+    write_file($$MODULE_PRI, MODULE_PRI_CONT, append)|error()
+}
+
+TARGET = $$THE_TARGET
+
+# In static builds of Qt, convenience libraries must be installed,
+# as in this case they are not linked to the final library/plugin.
+installed|if(!not_installed:qtConfig(static)): load(qt_installs)

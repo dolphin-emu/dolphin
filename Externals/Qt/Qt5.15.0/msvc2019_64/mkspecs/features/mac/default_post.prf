@@ -1,0 +1,282 @@
+load(default_post)
+
+# Recompute SDK version in case the user set it explicitly
+sdk_version = $$QMAKE_MAC_SDK_VERSION
+QMAKE_MAC_SDK_VERSION = $$xcodeSDKInfo(SDKVersion)
+
+contains(TEMPLATE, .*app) {
+    !macx-xcode:if(isEmpty(BUILDS)|build_pass) {
+        # Detect changes to the platform SDK
+        QMAKE_EXTRA_VARIABLES += QMAKE_MAC_SDK QMAKE_MAC_SDK_VERSION QMAKE_XCODE_DEVELOPER_PATH
+        QMAKE_EXTRA_INCLUDES += $$shell_quote($$PWD/sdk.mk)
+    }
+
+    # Detect incompatible SDK versions
+
+    isEmpty(QT_MAC_SDK_VERSION_MIN): \
+        QT_MAC_SDK_VERSION_MIN = $$QT_MAC_SDK_VERSION
+
+    !versionAtLeast(QMAKE_MAC_SDK_VERSION, $$QT_MAC_SDK_VERSION_MIN): \
+        warning("Qt requires at least version $$QT_MAC_SDK_VERSION_MIN of the platform SDK," \
+              "you're building against version $${QMAKE_MAC_SDK_VERSION}. Please upgrade.")
+
+    !isEmpty(QT_MAC_SDK_VERSION_MAX) {
+        # For Qt developers only
+        !isEmpty($$list($$(QT_MAC_SDK_NO_VERSION_CHECK))): \
+            CONFIG += sdk_no_version_check
+
+        QMAKE_MAC_SDK_MAJOR_MINOR_VERSION = $$replace(QMAKE_MAC_SDK_VERSION, "(\\d+)(\\.\\d+)(\\.\\d+)?", \\1\\2)
+
+        !sdk_no_version_check:!versionAtMost(QMAKE_MAC_SDK_MAJOR_MINOR_VERSION, $$QT_MAC_SDK_VERSION_MAX) {
+            warning("Qt has only been tested with version $$QT_MAC_SDK_VERSION_MAX"\
+                    "of the platform SDK, you're using $${QMAKE_MAC_SDK_MAJOR_MINOR_VERSION}.")
+            warning("This is an unsupported configuration. You may experience build issues," \
+                    "and by using")
+            warning("the $$QMAKE_MAC_SDK_VERSION SDK you are opting in to new features" \
+                    "that Qt has not been prepared for.")
+
+            warning("Please downgrade the SDK you use to build your app to version" \
+                    "$$QT_MAC_SDK_VERSION_MAX, or configure")
+            warning("with CONFIG+=sdk_no_version_check when running qmake" \
+                    "to silence this warning.")
+        }
+    }
+}
+
+!no_objective_c:CONFIG += objective_c
+
+qt {
+    qtConfig(static) {
+        # C++11 support means using libc++ instead of libstd++. As the
+        # two libraries are incompatible we need to ensure the end user
+        # project is built using the same C++11 support/no support as Qt.
+        qtConfig(c++11) {
+            CONFIG += c++11
+        } else: c++11 {
+            warning("Qt was not built with C++11 enabled, disabling feature")
+            CONFIG -= c++11
+        }
+
+        !c++11 {
+            # Explicitly use libstdc++ if C++11 support is not enabled,
+            # as otherwise the compiler will choose the standard library
+            # based on the deployment target, which for iOS 7 and OS X 10.9
+            # is libc++, and we can't mix and match the two.
+            QMAKE_CXXFLAGS += -stdlib=libstdc++
+            QMAKE_LFLAGS   += -stdlib=libstdc++
+        }
+    }
+}
+
+# Add the same default rpaths as Xcode does for new projects.
+# This is especially important for iOS/tvOS/watchOS where no other option is possible.
+!no_default_rpath {
+    uikit: QMAKE_RPATHDIR += @executable_path/Frameworks
+    else: QMAKE_RPATHDIR += @executable_path/../Frameworks
+    equals(TEMPLATE, lib):!plugin:lib_bundle: QMAKE_RPATHDIR += @loader_path/Frameworks
+}
+
+# Don't pass -headerpad_max_install_names when using Bitcode.
+# In that case the linker emits a warning stating that the flag is ignored when
+# used with bitcode, for reasons that cannot be determined (rdar://problem/20748962).
+# Using this flag is also unnecessary in practice on UIKit platforms since they
+# are sandboxed, and only UIKit platforms support bitcode to begin with.
+!bitcode: QMAKE_LFLAGS += $$QMAKE_LFLAGS_HEADERPAD
+
+app_extension_api_only {
+    QMAKE_CFLAGS              += $$QMAKE_CFLAGS_APPLICATION_EXTENSION
+    QMAKE_CXXFLAGS            += $$QMAKE_CFLAGS_APPLICATION_EXTENSION
+    QMAKE_CXXFLAGS_PRECOMPILE += $$QMAKE_CFLAGS_APPLICATION_EXTENSION
+    QMAKE_LFLAGS              += $$QMAKE_CFLAGS_APPLICATION_EXTENSION
+}
+
+macx-xcode {
+    qmake_pkginfo_typeinfo.name = QMAKE_PKGINFO_TYPEINFO
+    !isEmpty(QMAKE_PKGINFO_TYPEINFO): \
+        qmake_pkginfo_typeinfo.value = $$QMAKE_PKGINFO_TYPEINFO
+    else: \
+        qmake_pkginfo_typeinfo.value = "????"
+    QMAKE_MAC_XCODE_SETTINGS += qmake_pkginfo_typeinfo
+
+    bundle_version = $$VERSION
+    isEmpty(bundle_version): bundle_version = 1.0.0
+
+    l = $$split(bundle_version, '.') 0 0  # make sure there are at least three
+    VER_MAJ = $$member(l, 0, 0)
+    VER_MIN = $$member(l, 1, 1)
+    VER_PAT = $$member(l, 2, 2)
+    unset(l)
+
+    qmake_full_version.name = QMAKE_FULL_VERSION
+    qmake_full_version.value = $${VER_MAJ}.$${VER_MIN}.$${VER_PAT}
+    QMAKE_MAC_XCODE_SETTINGS += qmake_full_version
+
+    qmake_short_version.name = QMAKE_SHORT_VERSION
+    qmake_short_version.value = $${VER_MAJ}.$${VER_MIN}
+    QMAKE_MAC_XCODE_SETTINGS += qmake_short_version
+
+    !isEmpty(QMAKE_XCODE_DEBUG_INFORMATION_FORMAT) {
+        debug_information_format.name = DEBUG_INFORMATION_FORMAT
+        debug_information_format.value = $$QMAKE_XCODE_DEBUG_INFORMATION_FORMAT
+        debug_information_format.build = debug
+        QMAKE_MAC_XCODE_SETTINGS += debug_information_format
+    }
+
+    QMAKE_XCODE_ARCHS =
+
+    arch_device.name = "ARCHS[sdk=$${device.sdk}*]"
+    arch_device.value = $$QMAKE_APPLE_DEVICE_ARCHS
+    QMAKE_XCODE_ARCHS += $$QMAKE_APPLE_DEVICE_ARCHS
+    QMAKE_MAC_XCODE_SETTINGS += arch_device
+
+    simulator {
+        arch_simulator.name = "ARCHS[sdk=$${simulator.sdk}*]"
+        arch_simulator.value = $$QMAKE_APPLE_SIMULATOR_ARCHS
+        QMAKE_XCODE_ARCHS += $$QMAKE_APPLE_SIMULATOR_ARCHS
+        QMAKE_MAC_XCODE_SETTINGS += arch_simulator
+    }
+
+    only_active_arch.name = ONLY_ACTIVE_ARCH
+    only_active_arch.value = YES
+    only_active_arch.build = debug
+    QMAKE_MAC_XCODE_SETTINGS += only_active_arch
+} else {
+    device|!simulator: VALID_DEVICE_ARCHS = $$QMAKE_APPLE_DEVICE_ARCHS
+    simulator: VALID_SIMULATOR_ARCHS = $$QMAKE_APPLE_SIMULATOR_ARCHS
+    VALID_ARCHS = $$VALID_DEVICE_ARCHS $$VALID_SIMULATOR_ARCHS
+
+    isEmpty(VALID_ARCHS): \
+        error("QMAKE_APPLE_DEVICE_ARCHS or QMAKE_APPLE_SIMULATOR_ARCHS must contain at least one architecture")
+
+    single_arch: VALID_ARCHS = $$first(VALID_ARCHS)
+
+    ACTIVE_ARCHS = $(filter $(EXPORT_VALID_ARCHS), $(ARCHS))
+    ARCH_ARGS = $(foreach arch, $(if $(EXPORT_ACTIVE_ARCHS), $(EXPORT_ACTIVE_ARCHS), $(EXPORT_VALID_ARCHS)), -arch $(arch))
+
+    QMAKE_EXTRA_VARIABLES += VALID_ARCHS ACTIVE_ARCHS ARCH_ARGS
+
+    arch_flags = $(EXPORT_ARCH_ARGS)
+
+    QMAKE_CFLAGS += $$arch_flags
+    QMAKE_CXXFLAGS += $$arch_flags
+    QMAKE_LFLAGS += $$arch_flags
+
+    QMAKE_PCH_ARCHS = $$VALID_ARCHS
+
+    macos: deployment_target = $$QMAKE_MACOSX_DEPLOYMENT_TARGET
+    ios: deployment_target = $$QMAKE_IOS_DEPLOYMENT_TARGET
+    tvos: deployment_target = $$QMAKE_TVOS_DEPLOYMENT_TARGET
+    watchos: deployment_target = $$QMAKE_WATCHOS_DEPLOYMENT_TARGET
+
+    # If we're doing a simulator and device build, device and simulator
+    # architectures use different paths and flags for the sysroot and
+    # deployment target switch, so we must multiplex them across multiple
+    # architectures using -Xarch. Otherwise we fall back to the simple path.
+    # This is not strictly necessary, but results in cleaner command lines
+    # and makes it easier for people to override EXPORT_VALID_ARCHS to limit
+    # individual rules to a different set of architecture(s) from the overall
+    # build (such as machtest in QtCore).
+    simulator:device {
+        QMAKE_XARCH_CFLAGS =
+        QMAKE_XARCH_LFLAGS =
+        QMAKE_EXTRA_VARIABLES += QMAKE_XARCH_CFLAGS QMAKE_XARCH_LFLAGS
+
+        for (arch, VALID_ARCHS) {
+            contains(VALID_SIMULATOR_ARCHS, $$arch) {
+                sdk = $$simulator.sdk
+                version_identifier = $$simulator.deployment_identifier
+            } else {
+                sdk = $$device.sdk
+                version_identifier = $$device.deployment_identifier
+            }
+
+            version_min_flags = \
+                -Xarch_$${arch} \
+                -m$${version_identifier}-version-min=$$deployment_target
+            QMAKE_XARCH_CFLAGS_$${arch} = $$version_min_flags \
+                -Xarch_$${arch} \
+                -isysroot$$xcodeSDKInfo(Path, $$sdk)
+            QMAKE_XARCH_LFLAGS_$${arch} = $$version_min_flags \
+                -Xarch_$${arch} \
+                -isysroot$$xcodeSDKInfo(Path, $$sdk)
+
+            QMAKE_XARCH_CFLAGS += $(EXPORT_QMAKE_XARCH_CFLAGS_$${arch})
+            QMAKE_XARCH_LFLAGS += $(EXPORT_QMAKE_XARCH_LFLAGS_$${arch})
+
+            QMAKE_EXTRA_VARIABLES += \
+                QMAKE_XARCH_CFLAGS_$${arch} \
+                QMAKE_XARCH_LFLAGS_$${arch}
+        }
+
+        QMAKE_CFLAGS += $(EXPORT_QMAKE_XARCH_CFLAGS)
+        QMAKE_CXXFLAGS += $(EXPORT_QMAKE_XARCH_CFLAGS)
+        QMAKE_LFLAGS += $(EXPORT_QMAKE_XARCH_LFLAGS)
+    } else {
+        simulator {
+            version_identifier = $$simulator.deployment_identifier
+            sysroot_path  = $$xcodeSDKInfo(Path, $$simulator.sdk)
+        } else {
+            version_identifier = $$device.deployment_identifier
+            sysroot_path  = $$xcodeSDKInfo(Path, $$device.sdk)
+        }
+        version_min_flag = -m$${version_identifier}-version-min=$$deployment_target
+        QMAKE_CFLAGS += -isysroot $$sysroot_path $$version_min_flag
+        QMAKE_CXXFLAGS += -isysroot $$sysroot_path $$version_min_flag
+        QMAKE_LFLAGS += -isysroot $$sysroot_path $$version_min_flag
+    }
+
+    # Enable precompiled headers for multiple architectures
+    QMAKE_CFLAGS_USE_PRECOMPILE =
+    for (arch, VALID_ARCHS) {
+        icc_pch_style: \
+            use_flag = "-pch-use "
+        else: \
+            use_flag = -include
+
+        # Only use Xarch with multi-arch, as the option confuses ccache
+        count(VALID_ARCHS, 1, greaterThan): \
+            QMAKE_CFLAGS_USE_PRECOMPILE += \
+                -Xarch_$${arch}
+
+        QMAKE_CFLAGS_USE_PRECOMPILE += \
+            $${use_flag}${QMAKE_PCH_OUTPUT_$${arch}}
+    }
+    icc_pch_style {
+        QMAKE_CXXFLAGS_USE_PRECOMPILE = $$QMAKE_CFLAGS_USE_PRECOMPILE -include ${QMAKE_PCH_INPUT}
+        QMAKE_CFLAGS_USE_PRECOMPILE =
+    } else {
+        QMAKE_CXXFLAGS_USE_PRECOMPILE = $$QMAKE_CFLAGS_USE_PRECOMPILE
+        QMAKE_OBJCFLAGS_USE_PRECOMPILE = $$QMAKE_CFLAGS_USE_PRECOMPILE
+        QMAKE_OBJCXXFLAGS_USE_PRECOMPILE = $$QMAKE_CFLAGS_USE_PRECOMPILE
+    }
+
+    QMAKE_PCH_OUTPUT_EXT = _${QMAKE_PCH_ARCH}$${QMAKE_PCH_OUTPUT_EXT}
+}
+
+!equals(sdk_version, $$QMAKE_MAC_SDK_VERSION) {
+    # Explicit SDK version has been set, respect that
+    QMAKE_LFLAGS += -Wl,-sdk_version -Wl,$$sdk_version
+}
+
+cache(QMAKE_XCODE_DEVELOPER_PATH, stash)
+!isEmpty(QMAKE_XCODE_VERSION): \
+    cache(QMAKE_XCODE_VERSION, stash)
+
+QMAKE_XCODE_LIBRARY_SUFFIX = $$qtPlatformTargetSuffix()
+
+xcode_product_bundle_identifier_setting.name = PRODUCT_BUNDLE_IDENTIFIER
+xcode_product_bundle_identifier_setting.value = $$QMAKE_TARGET_BUNDLE_PREFIX
+isEmpty(xcode_product_bundle_identifier_setting.value): \
+    xcode_product_bundle_identifier_setting.value = "com.yourcompany"
+xcode_product_bundle_target = $$QMAKE_BUNDLE
+isEmpty(xcode_product_bundle_target): \
+    xcode_product_bundle_target = ${PRODUCT_NAME:rfc1034identifier}
+xcode_product_bundle_identifier_setting.value = "$${xcode_product_bundle_identifier_setting.value}.$${xcode_product_bundle_target}"
+QMAKE_MAC_XCODE_SETTINGS += xcode_product_bundle_identifier_setting
+
+!macx-xcode {
+    generate_xcode_project.commands = @$(QMAKE) -spec macx-xcode \"$(EXPORT__PRO_FILE_)\" $$QMAKE_ARGS
+    generate_xcode_project.target = xcodeproj
+    QMAKE_EXTRA_VARIABLES += _PRO_FILE_
+    QMAKE_EXTRA_TARGETS += generate_xcode_project
+}

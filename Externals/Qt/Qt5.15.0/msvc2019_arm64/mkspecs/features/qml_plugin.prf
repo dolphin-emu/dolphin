@@ -1,0 +1,118 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+load(qt_build_config)
+
+TEMPLATE = lib
+CONFIG += plugin
+
+if(win32|mac):!macx-xcode {
+    qtConfig(debug_and_release): CONFIG += debug_and_release
+    qtConfig(build_all): CONFIG += build_all
+}
+
+CONFIG += relative_qt_rpath  # Qt's QML plugins should be relocatable
+
+# Qt libraries should only use Application Extension safe APIs
+darwin:!no_app_extension_api_only: CONFIG += app_extension_api_only
+
+!no_cxx_module:isEmpty(CXX_MODULE) {
+    CXX_MODULE = $$TARGET
+    TARGET = declarative_$${TARGET}
+}
+isEmpty(TARGETPATH): TARGETPATH = $$eval(QT.$${CXX_MODULE}.name)
+
+win32:CONFIG(shared, static|shared) {
+    # Embed a VERSIONINFO resource into the plugin's DLL.
+    isEmpty(VERSION): VERSION = $$MODULE_VERSION
+    CONFIG += skip_target_version_ext
+}
+
+# Insert the plugins URI into its meta data to enable usage
+# of static plugins in QtDeclarative:
+URI = $$replace(TARGETPATH, "/", ".")
+QMAKE_MOC_OPTIONS += -Muri=$$URI
+
+QMLTYPEFILE = $$_PRO_FILE_PWD_/plugins.qmltypes
+exists($$QMLTYPEFILE): AUX_QML_FILES += $$QMLTYPEFILE
+
+# Install rules
+
+load(qt_build_paths)
+
+DESTDIR = $$MODULE_BASE_OUTDIR/qml/$$TARGETPATH
+
+target.path = $$[QT_INSTALL_QML]/$$TARGETPATH
+INSTALLS += target
+
+# Some final setup
+
+TARGET = $$qt5LibraryTarget($$TARGET, "qml/$$TARGETPATH/")
+
+load(qt_targets)
+load(qt_common)
+
+# plugins.qmltypes is used by Qt Creator for syntax highlighting and the QML code model.  It needs
+# to be regenerated whenever the QML elements exported by the plugin change.  This cannot be done
+# automatically at compile time because qmlplugindump does not support some QML features and it may
+# not be possible when cross-compiling.
+#
+# To regenerate run 'make qmltypes' which will update the plugins.qmltypes file in the source
+# directory.  Then review and commit the changes made to plugins.qmltypes.
+#
+# Due to the above mentioned drawbacks, there is a better mechanism available now: qmltyperegistrar
+# can generate the .qmltypes files at compile time. It will do this when CONFIG += qmltypes is set.
+# Therefore, don't try to generate the qmltypes files via qmlplugindump in that case.
+!cross_compile:!qmltypes {
+    qmlplugindump = qmlplugindump
+    importpath.name = QML2_IMPORT_PATH
+    importpath.value =
+    for(qmod, QTREPOS) {
+        exists($$qmod/qml): importpath.value += $$shell_path($$qmod/qml)
+    }
+    importpath.value = $$unique(importpath.value)
+    QT_TOOL_ENV = importpath
+    qtPrepareTool(QMLPLUGINDUMP, $$qmlplugindump)
+    QT_TOOL_ENV =
+
+    # qtPrepareTool() must be called outside a build pass, as it protects
+    # against concurrent wrapper creation by omitting it during build passes.
+    # However, creating the actual targets is reserved to the build passes.
+    build_pass|!debug_and_release {
+        isEmpty(IMPORT_VERSION) {
+            no_cxx_module {
+                IMPORT_VERSION = $$section(MODULE_VERSION, ., 0, 1)
+                isEmpty(IMPORT_VERSION): error("Must set IMPORT_VERSION")
+            } else {
+                IMPORT_VERSION = $$section(QT.$${CXX_MODULE}.VERSION, ., 0, 1)
+            }
+        }
+
+        load(resolve_target)
+        isEmpty(IMPORT_NAME): IMPORT_NAME = $$replace(TARGETPATH, \\.\\d+\$, )
+
+        !qml1_target {
+            isEmpty(QMAKE_PLUGINDUMP_DEPENDENCIES_FILE):exists($$_PRO_FILE_PWD_/dependencies.json): \
+                QMAKE_PLUGINDUMP_DEPENDENCIES_FILE = $$_PRO_FILE_PWD_/dependencies.json
+            !isEmpty(QMAKE_PLUGINDUMP_DEPENDENCIES_FILE): \
+                QMAKE_QMLPLUGINDUMP_FLAGS += -dependencies $$shell_quote($$QMAKE_PLUGINDUMP_DEPENDENCIES_FILE)
+        }
+
+        qmltypes.target = qmltypes
+        qmltypes.commands = $$QMLPLUGINDUMP -nonrelocatable $$QMAKE_QMLPLUGINDUMP_FLAGS $$replace(IMPORT_NAME, /, .) $$IMPORT_VERSION > $$QMLTYPEFILE
+        qmltypes.depends = $$QMAKE_RESOLVED_TARGET
+    } else {
+        qmltypes.CONFIG += recursive
+    }
+    QMAKE_EXTRA_TARGETS += qmltypes
+}
+
+load(qml_module)

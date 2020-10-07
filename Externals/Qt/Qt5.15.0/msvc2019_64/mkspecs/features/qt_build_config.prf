@@ -1,0 +1,157 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+!contains(QMAKE_INTERNAL_INCLUDED_FILES, .*qmodule\\.pri) {
+    QMAKE_QT_MODULE = $$[QT_HOST_DATA/get]/mkspecs/qmodule.pri
+    !exists($$QMAKE_QT_MODULE)|!include($$QMAKE_QT_MODULE, "", true) {
+        debug(1, "Cannot load qmodule.pri!")
+    } else {
+        debug(1, "Loaded qmodule.pri from ($$QMAKE_QT_MODULE)")
+    }
+} else {
+    debug(1, "Not loading qmodule.pri twice")
+}
+
+PRECOMPILED_DIR = .pch
+OBJECTS_DIR = .obj
+MOC_DIR = .moc
+RCC_DIR = .rcc
+UI_DIR = .uic
+TRACEGEN_DIR = .tracegen
+QMLCACHE_DIR = .qmlcache
+LRELEASE_DIR = .qm
+intel_icl {
+    # ICL 14.0 has a bug that makes it not find #includes in dirs starting with .
+    MOC_DIR = tmp/moc
+    RCC_DIR = tmp/rcc
+    UI_DIR = tmp/uic
+}
+
+QMAKE_DIR_REPLACE_SANE = PRECOMPILED_DIR OBJECTS_DIR MOC_DIR RCC_DIR UI_DIR
+
+load(qt_prefix_build_check)
+
+# force_independent can be set externally. prefix_build not.
+qtIsPrefixBuild($$[QT_HOST_DATA]): \
+    CONFIG += prefix_build force_independent
+
+!build_pass:!isEmpty(_QMAKE_SUPER_CACHE_):force_independent {
+    # When doing a -prefix build of top-level qt5/qt.pro, we need to announce
+    # this repo's output dir to the other repos.
+    MODULE_BASE_OUTDIR = $$shadowed($$dirname(_QMAKE_CONF_))
+    !contains(QTREPOS, $$MODULE_BASE_OUTDIR): \
+        cache(QTREPOS, add super, MODULE_BASE_OUTDIR)
+    # This repo's module pris' location needs to be made known to qmake.
+    isEmpty(MODULE_QMAKE_OUTDIR): MODULE_QMAKE_OUTDIR = $$MODULE_BASE_OUTDIR
+    modpath = $$MODULE_QMAKE_OUTDIR/mkspecs/modules
+    !contains(QMAKEMODULES, $$modpath): \
+        cache(QMAKEMODULES, add super, modpath)
+    unset(modpath)
+}
+
+defineTest(qtSetQmlPath) {
+    !qtConfig(static)|host_build|no_import_scan: \
+        return()
+    deps = $$replace(QT, -private$, _private)
+    deps = $$resolve_depends(deps, "QT.")
+    !contains(deps, qml): \
+        return()
+
+    isEmpty(QTREPOS): \
+        QTREPOS = $$shadowed($$dirname(_QMAKE_CONF_))
+    for (qrep, QTREPOS): \
+        exists($$qrep/qml): \
+            QMLPATHS += $$qrep/qml
+    export(QMLPATHS)
+}
+
+# Apply extra compiler flags passed via configure last.
+CONFIG = qt_build_extra $$CONFIG
+
+# Don't actually try to install anything in non-prefix builds.
+# This is much easier and safer than making every single INSTALLS
+# assignment conditional.
+!prefix_build: \
+    CONFIG += qt_clear_installs
+
+cross_compile: \
+    CONFIG += force_bootstrap
+
+android|uikit|winrt: \
+    CONFIG += builtin_testdata
+
+# Prevent warnings about object files without any symbols
+macos: CONFIG += no_warn_empty_obj_files
+
+# Make sure the doc features are loaded last since they depend on other
+# features setting up things like includepaths to find everything.
+CONFIG = prepare_docs qt_docs_targets $$CONFIG
+
+CONFIG += \
+    utf8_source \
+    create_prl link_prl \
+    no_private_qt_headers_warning QTDIR_build \
+    qt_example_installs \
+    # Qt modules get compiled without exceptions enabled by default.
+    # However, testcases should be still built with exceptions.
+    exceptions_off testcase_exceptions
+
+# Under Windows, this is neither necessary (transitive deps are automatically
+# resolved), nor functional (.res files end up in .prl files and break things).
+unix: CONFIG += explicitlib
+
+# By default we want tests on macOS to be built as standalone executables
+macos: CONFIG += testcase_no_bundle
+
+# Override MinGW's definition in _mingw.h
+mingw: DEFINES += WINVER=0x0601 _WIN32_WINNT=0x0601
+
+# By default, the following features should not be used in Qt's own
+# implementation, so declare them invisible to Qt modules.
+DEFINES += QT_NO_LINKED_LIST # QLinkedList
+
+defineTest(qtBuildPart) {
+    bp = $$eval($$upper($$section(_QMAKE_CONF_, /, -2, -2))_BUILD_PARTS)
+    isEmpty(bp): bp = $$QT_BUILD_PARTS
+    contains(bp, $$1): return(true)
+    return(false)
+}
+
+defineTest(qtNomakeTools) {
+    qtBuildPart(tools): return()
+    for (d, 1) {
+        $${d}.CONFIG += no_default_target no_default_install
+        export($${d}.CONFIG)
+    }
+}
+
+# This overloads the same function from qt_functions.prf.
+# This is not in qt_module.prf, as that gets loaded too late.
+defineTest(qtConfig) {
+    modules = $$QT $$QT_PRIVATE $$QT_FOR_PRIVATE $$QT_FOR_CONFIG
+    modules ~= s,-private$,_private,g
+    modules = $$resolve_depends(modules, "QT.", ".depends")
+    isEmpty(MODULE): \
+        MODULE = $$section($$list($$basename(_PRO_FILE_)), ., 0, 0)
+    exists($$OUT_PWD/qt$${MODULE}-config.pri) {
+        include($$OUT_PWD/qt$${MODULE}-config.pri)
+        modules += $${MODULE} $${MODULE}_private
+    }
+    modules += global global_private
+    modules = $$reverse(modules)
+    for (module, modules) {
+        contains(QT.$${module}.enabled_features, $$1): \
+            return(true)
+        contains(QT.$${module}.disabled_features, $$1): \
+            return(false)
+    }
+    error("Could not find feature $${1}.")
+}

@@ -21,6 +21,7 @@
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Host.h"

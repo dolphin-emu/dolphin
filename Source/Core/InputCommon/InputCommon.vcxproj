@@ -53,6 +53,7 @@
     <ClCompile Include="ControlReference\FunctionExpression.cpp" />
     <ClCompile Include="DInputMouseAbsolute.cpp" />
     <ClCompile Include="GCAdapter.cpp" />
+    <ClCompile Include="GenericMouse.cpp" />
     <ClCompile Include="InputConfig.cpp" />
     <ClCompile Include="InputProfile.cpp" />
   </ItemGroup>

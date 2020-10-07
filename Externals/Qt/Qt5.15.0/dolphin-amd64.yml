@@ -1,0 +1,125 @@
+release: 5.15.0
+platform: win32-msvc
+name: dolphin.amd64
+
+compiler:
+    name: visual_studio
+    version: 2019
+    edition: Community
+    vcvarsall: amd64
+
+configure:
+    nomake:
+        - examples
+        - tests
+    skip:
+        - qt3d
+        - qtactiveqt
+        - qtandroidextras
+        - qtcharts
+        - qtconnectivity
+        - qtdatavis3d
+        - qtdoc
+        - qtgamepad
+        - qtgraphicaleffects
+        - qtlocation
+        - qtlottie
+        - qtmacextras
+        - qtmultimedia
+        - qtnetworkauth
+        - qtpurchasing
+        - qtquick3d
+        - qtquickcontrols
+        - qtquicktimeline
+        - qtremoteobjects
+        - qtscript
+        - qtscxml
+        - qtsensors
+        - qtserialbus
+        - qtserialport
+        - qtspeech
+        - qtsvg
+        - qtwayland
+        - qtwebchannel
+        - qtwebengine
+        - qtwebsockets
+        - qtwebview
+        - qtx11extras
+        - qtxmlpatterns
+    feature:
+        bearermanagement: false
+        concurrent: false
+        dbus: false
+        imageformat_bmp: false
+        qml-devtools: false
+        qml-worker-script: false
+        quick-particles: false
+        quick-path: false
+        sql-odbc: false
+        sql-sqlite: false
+        tiff: false
+        vulkan: false
+        webp: false
+
+postprocess:
+    delete:
+        - bin/assistant.exe
+        - bin/designer.exe
+        - bin/linguist.exe
+        - bin/Qt5PrintSupport.dll
+        - bin/Qt5PrintSupportd.dll
+        - bin/Qt5QmlModels.dll
+        - bin/Qt5QmlModelsd.dll
+        - bin/Qt5QuickTest.dll
+        - bin/Qt5QuickTestd.dll
+        - bin/Qt5Sql.dll
+        - bin/Qt5Sqld.dll
+        - bin/Qt5Test.dll
+        - bin/Qt5Testd.dll
+        - bin/Qt5Xml.dll
+        - bin/Qt5Xmld.dll
+        - doc
+        - include/QtDesigner
+        - include/QtDesignerComponents
+        - include/QtPrintSupport
+        - include/QtQmlDebug
+        - include/QtQmlModels
+        - include/QtQuickTest
+        - include/QtSql
+        - include/QtTest
+        - include/Qt5Xml
+        - lib/Qt5Designer.lib
+        - lib/Qt5Designerd.lib
+        - lib/Qt5DesignerComponents.lib
+        - lib/Qt5DesignerComponentsd.lib
+        - lib/Qt5PrintSupport.lib
+        - lib/Qt5PrintSupportd.lib
+        - lib/Qt5QmlDebug.lib
+        - lib/Qt5QmlDebugd.lib
+        - lib/Qt5QmlModels.lib
+        - lib/Qt5QmlModelsd.lib
+        - lib/Qt5QuickTest.lib
+        - lib/Qt5QuickTestd.lib
+        - lib/Qt5Sql.lib
+        - lib/Qt5Sqld.lib
+        - lib/Qt5Test.lib
+        - lib/Qt5Testd.lib
+        - lib/Qt5Xml.lib
+        - lib/Qt5Xmld.lib
+        - lib/cmake/Qt5Designer
+        - lib/cmake/Qt5DesignerComponents
+        - lib/cmake/Qt5PrintSupport
+        - lib/cmake/Qt5QmlDebug
+        - lib/cmake/Qt5QmlModels
+        - lib/cmake/Qt5QuickTest
+        - lib/cmake/Qt5Sql
+        - lib/cmake/Qt5Test
+        - lib/cmake/Qt5Xml
+        - phrasebooks
+        - plugins/printsupport
+        - plugins/qmltooling
+        - qml/QtTest
+        - translations
+    delete_regex:
+        - .*\.prl
+        - .*\.pdb

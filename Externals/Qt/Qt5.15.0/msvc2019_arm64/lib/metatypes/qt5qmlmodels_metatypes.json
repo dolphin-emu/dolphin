@@ -1,0 +1,2022 @@
+[
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Foreign",
+                        "value": "QItemSelectionModel"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "ItemSelectionModel"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "2"
+                    }
+                ],
+                "className": "QItemSelectionModelForeign",
+                "gadget": true,
+                "qualifiedClassName": "QItemSelectionModelForeign"
+            }
+        ],
+        "inputFile": "qqmlmodelsmodule_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "DefaultProperty",
+                        "value": "delegate"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "Instantiator"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "14"
+                    }
+                ],
+                "className": "QQmlInstantiator",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "objectAt",
+                        "returnType": "QObject*"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "active",
+                        "notify": "activeChanged",
+                        "read": "isActive",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setActive"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "asynchronous",
+                        "notify": "asynchronousChanged",
+                        "read": "isAsync",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setAsync"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "model",
+                        "notify": "modelChanged",
+                        "read": "model",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setModel"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "count",
+                        "notify": "countChanged",
+                        "read": "count",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "delegate",
+                        "notify": "delegateChanged",
+                        "read": "delegate",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlComponent*",
+                        "user": false,
+                        "write": "setDelegate"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "object",
+                        "notify": "objectChanged",
+                        "read": "object",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlInstantiator",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "modelChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "delegateChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "countChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "objectChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "activeChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "asynchronousChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "objectAdded",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "objectRemoved",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "int"
+                            },
+                            {
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "_q_createdItem",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QQmlChangeSet"
+                            },
+                            {
+                                "type": "bool"
+                            }
+                        ],
+                        "name": "_q_modelUpdated",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlinstantiator_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "anonymous"
+                    }
+                ],
+                "className": "QQmlInstanceModel",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "count",
+                        "notify": "countChanged",
+                        "read": "count",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlInstanceModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "countChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "changeSet",
+                                "type": "QQmlChangeSet"
+                            },
+                            {
+                                "name": "reset",
+                                "type": "bool"
+                            }
+                        ],
+                        "name": "modelUpdated",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "createdItem",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "initItem",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "destroyingItem",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "itemPooled",
+                        "returnType": "void",
+                        "revision": 15
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "itemReused",
+                        "returnType": "void",
+                        "revision": 15
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            },
+            {
+                "classInfos": [
+                    {
+                        "name": "DefaultProperty",
+                        "value": "children"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "ObjectModel"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "1"
+                    },
+                    {
+                        "name": "QML.Attached",
+                        "value": "QQmlObjectModelAttached"
+                    }
+                ],
+                "className": "QQmlObjectModel",
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "get",
+                        "returnType": "QObject*",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "append",
+                        "returnType": "void",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "object",
+                                "type": "QObject*"
+                            }
+                        ],
+                        "name": "insert",
+                        "returnType": "void",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "from",
+                                "type": "int"
+                            },
+                            {
+                                "name": "to",
+                                "type": "int"
+                            },
+                            {
+                                "name": "n",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "move",
+                        "returnType": "void",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "from",
+                                "type": "int"
+                            },
+                            {
+                                "name": "to",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "move",
+                        "returnType": "void",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "n",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "remove",
+                        "returnType": "void",
+                        "revision": 3
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "remove",
+                        "returnType": "void",
+                        "revision": 3
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": false,
+                        "final": false,
+                        "name": "children",
+                        "notify": "childrenChanged",
+                        "read": "children",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlListProperty<QObject>",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlObjectModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "childrenChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "public",
+                        "name": "clear",
+                        "returnType": "void",
+                        "revision": 3
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlInstanceModel"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlObjectModelAttached",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "index",
+                        "notify": "indexChanged",
+                        "read": "index",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlObjectModelAttached",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "indexChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlobjectmodel_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "className": "QQmlTableInstanceModel",
+                "object": true,
+                "qualifiedClassName": "QQmlTableInstanceModel",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlInstanceModel"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmltableinstancemodel_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "ListModel"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "1"
+                    }
+                ],
+                "className": "QQmlListModel",
+                "methods": [
+                    {
+                        "access": "public",
+                        "name": "clear",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "remove",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "append",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "insert",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "get",
+                        "returnType": "QJSValue"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "value",
+                                "type": "QJSValue"
+                            }
+                        ],
+                        "name": "set",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "property",
+                                "type": "QString"
+                            },
+                            {
+                                "name": "value",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "name": "setProperty",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "from",
+                                "type": "int"
+                            },
+                            {
+                                "name": "to",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "move",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "sync",
+                        "returnType": "void"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "count",
+                        "notify": "countChanged",
+                        "read": "count",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "dynamicRoles",
+                        "read": "dynamicRoles",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setDynamicRoles"
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "agent",
+                        "read": "agent",
+                        "required": false,
+                        "revision": 14,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlListModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "countChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QAbstractListModel"
+                    }
+                ]
+            },
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "ListElement"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "1"
+                    }
+                ],
+                "className": "QQmlListElement",
+                "object": true,
+                "qualifiedClassName": "QQmlListElement",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmllistmodel_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "className": "DynamicRoleModelNode",
+                "object": true,
+                "qualifiedClassName": "DynamicRoleModelNode",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmllistmodel_p_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "anonymous"
+                    }
+                ],
+                "className": "QQmlListModelWorkerAgent",
+                "methods": [
+                    {
+                        "access": "public",
+                        "name": "addref",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "release",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "clear",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "remove",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "append",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "args",
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "insert",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "get",
+                        "returnType": "QJSValue"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "value",
+                                "type": "QJSValue"
+                            }
+                        ],
+                        "name": "set",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "property",
+                                "type": "QString"
+                            },
+                            {
+                                "name": "value",
+                                "type": "QVariant"
+                            }
+                        ],
+                        "name": "setProperty",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "from",
+                                "type": "int"
+                            },
+                            {
+                                "name": "to",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "move",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "sync",
+                        "returnType": "void"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "count",
+                        "read": "count",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "engine",
+                        "notify": "engineChanged",
+                        "read": "engine",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QV4::ExecutionEngine*",
+                        "user": false,
+                        "write": "setEngine"
+                    }
+                ],
+                "qualifiedClassName": "QQmlListModelWorkerAgent",
+                "signals": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "engine",
+                                "type": "QV4::ExecutionEngine*"
+                            }
+                        ],
+                        "name": "engineChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmllistmodelworkeragent_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "AbstractDelegateComponent"
+                    },
+                    {
+                        "name": "QML.Creatable",
+                        "value": "false"
+                    },
+                    {
+                        "name": "QML.UncreatableReason",
+                        "value": "Cannot create instance of abstract class AbstractDelegateComponent."
+                    }
+                ],
+                "className": "QQmlAbstractDelegateComponent",
+                "object": true,
+                "qualifiedClassName": "QQmlAbstractDelegateComponent",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "delegateChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlComponent"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmlabstractdelegatecomponent_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "DefaultProperty",
+                        "value": "delegate"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "DelegateModel"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "1"
+                    },
+                    {
+                        "name": "QML.Attached",
+                        "value": "QQmlDelegateModelAttached"
+                    }
+                ],
+                "className": "QQmlDelegateModel",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlParserStatus",
+                            "id": "\"org.qt-project.Qt.QQmlParserStatus\""
+                        }
+                    ]
+                ],
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "idx",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "modelIndex",
+                        "returnType": "QVariant"
+                    },
+                    {
+                        "access": "public",
+                        "name": "parentModelIndex",
+                        "returnType": "QVariant"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "model",
+                        "read": "model",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setModel"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "delegate",
+                        "notify": "delegateChanged",
+                        "read": "delegate",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlComponent*",
+                        "user": false,
+                        "write": "setDelegate"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "filterOnGroup",
+                        "notify": "filterGroupChanged",
+                        "read": "filterGroup",
+                        "required": false,
+                        "reset": "resetFilterGroup()",
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setFilterGroup"
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "items",
+                        "read": "items",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlDelegateModelGroup*",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "persistedItems",
+                        "read": "persistedItems",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlDelegateModelGroup*",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "groups",
+                        "read": "groups",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlListProperty<QQmlDelegateModelGroup>",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "parts",
+                        "read": "parts",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "rootIndex",
+                        "notify": "rootIndexChanged",
+                        "read": "rootIndex",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setRootIndex"
+                    }
+                ],
+                "qualifiedClassName": "QQmlDelegateModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "filterGroupChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "defaultGroupsChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "rootIndexChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "delegateChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            },
+                            {
+                                "name": "roles",
+                                "type": "QVector<int>"
+                            }
+                        ],
+                        "name": "_q_itemsChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_itemsInserted",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_itemsRemoved",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "from",
+                                "type": "int"
+                            },
+                            {
+                                "name": "to",
+                                "type": "int"
+                            },
+                            {
+                                "name": "count",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_itemsMoved",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "name": "_q_modelReset",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "int"
+                            },
+                            {
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_rowsInserted",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "name": "parent",
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "name": "begin",
+                                "type": "int"
+                            },
+                            {
+                                "name": "end",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_rowsAboutToBeRemoved",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "int"
+                            },
+                            {
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_rowsRemoved",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "int"
+                            },
+                            {
+                                "type": "int"
+                            },
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "int"
+                            }
+                        ],
+                        "name": "_q_rowsMoved",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "QModelIndex"
+                            },
+                            {
+                                "type": "QVector<int>"
+                            }
+                        ],
+                        "name": "_q_dataChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "private",
+                        "arguments": [
+                            {
+                                "type": "QList<QPersistentModelIndex>"
+                            },
+                            {
+                                "type": "QAbstractItemModel::LayoutChangeHint"
+                            }
+                        ],
+                        "name": "_q_layoutChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlInstanceModel"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlParserStatus"
+                    }
+                ]
+            },
+            {
+                "classInfos": [
+                    {
+                        "name": "QML.Element",
+                        "value": "DelegateModelGroup"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "1"
+                    }
+                ],
+                "className": "QQmlDelegateModelGroup",
+                "methods": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "index",
+                                "type": "int"
+                            }
+                        ],
+                        "name": "get",
+                        "returnType": "QJSValue"
+                    }
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "count",
+                        "notify": "countChanged",
+                        "read": "count",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "name",
+                        "notify": "nameChanged",
+                        "read": "name",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setName"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "includeByDefault",
+                        "notify": "defaultIncludeChanged",
+                        "read": "defaultInclude",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false,
+                        "write": "setDefaultInclude"
+                    }
+                ],
+                "qualifiedClassName": "QQmlDelegateModelGroup",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "countChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "nameChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "defaultIncludeChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "name": "removed",
+                                "type": "QJSValue"
+                            },
+                            {
+                                "name": "inserted",
+                                "type": "QJSValue"
+                            }
+                        ],
+                        "name": "changed",
+                        "returnType": "void"
+                    }
+                ],
+                "slots": [
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "insert",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "create",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "resolve",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "remove",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "addGroups",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "removeGroups",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "setGroups",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "arguments": [
+                            {
+                                "type": "QQmlV4Function*"
+                            }
+                        ],
+                        "name": "move",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlDelegateModelAttached",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "model",
+                        "read": "model",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlDelegateModel*",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "groups",
+                        "notify": "groupsChanged",
+                        "read": "groups",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QStringList",
+                        "user": false,
+                        "write": "setGroups"
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "isUnresolved",
+                        "notify": "unresolvedChanged",
+                        "read": "isUnresolved",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlDelegateModelAttached",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "groupsChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "unresolvedChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmldelegatemodel_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "className": "QQmlDelegateModelItem",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "index",
+                        "notify": "modelIndexChanged",
+                        "read": "modelIndex",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "row",
+                        "notify": "rowChanged",
+                        "read": "modelRow",
+                        "required": false,
+                        "revision": 12,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "column",
+                        "notify": "columnChanged",
+                        "read": "modelColumn",
+                        "required": false,
+                        "revision": 12,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "int",
+                        "user": false
+                    },
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "model",
+                        "read": "modelObject",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlDelegateModelItem",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "modelIndexChanged",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "rowChanged",
+                        "returnType": "void",
+                        "revision": 12
+                    },
+                    {
+                        "access": "public",
+                        "name": "columnChanged",
+                        "returnType": "void",
+                        "revision": 12
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlPartsModel",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "filterOnGroup",
+                        "notify": "filterGroupChanged",
+                        "read": "filterGroup",
+                        "required": false,
+                        "reset": "resetFilterGroup()",
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setFilterGroup"
+                    }
+                ],
+                "qualifiedClassName": "QQmlPartsModel",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "filterGroupChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlInstanceModel"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlDelegateModelGroupEmitter"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlDelegateModelParts",
+                "object": true,
+                "qualifiedClassName": "QQmlDelegateModelParts",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            },
+            {
+                "className": "PropertyUpdater",
+                "object": true,
+                "qualifiedClassName": "PropertyUpdater",
+                "slots": [
+                    {
+                        "access": "public",
+                        "name": "doUpdate",
+                        "returnType": "void"
+                    },
+                    {
+                        "access": "public",
+                        "name": "breakBinding",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmldelegatemodel_p_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "classInfos": [
+                    {
+                        "name": "DefaultProperty",
+                        "value": "data"
+                    },
+                    {
+                        "name": "QML.Element",
+                        "value": "Package"
+                    },
+                    {
+                        "name": "QML.AddedInMinorVersion",
+                        "value": "14"
+                    },
+                    {
+                        "name": "QML.Attached",
+                        "value": "QQuickPackageAttached"
+                    }
+                ],
+                "className": "QQuickPackage",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "data",
+                        "read": "data",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QQmlListProperty<QObject>",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQuickPackage",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            },
+            {
+                "className": "QQuickPackageAttached",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "name",
+                        "read": "name",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QString",
+                        "user": false,
+                        "write": "setName"
+                    }
+                ],
+                "qualifiedClassName": "QQuickPackageAttached",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QObject"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qquickpackage_p.h",
+        "outputRevision": 67
+    },
+    {
+        "classes": [
+            {
+                "className": "QQmlDMAbstractItemModelData",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": true,
+                        "designable": true,
+                        "final": false,
+                        "name": "hasModelChildren",
+                        "read": "hasModelChildren",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "bool",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlDMAbstractItemModelData",
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlDMCachedModelData"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlDMListAccessorData",
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "modelData",
+                        "notify": "modelDataChanged",
+                        "read": "modelData",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QVariant",
+                        "user": false,
+                        "write": "setModelData"
+                    }
+                ],
+                "qualifiedClassName": "QQmlDMListAccessorData",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "modelDataChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlDelegateModelItem"
+                    }
+                ]
+            },
+            {
+                "className": "QQmlDMObjectData",
+                "interfaces": [
+                    [
+                        {
+                            "className": "QQmlAdaptorModelProxyInterface",
+                            "id": "\"org.qt-project.Qt.QQmlAdaptorModelProxyInterface\""
+                        }
+                    ]
+                ],
+                "object": true,
+                "properties": [
+                    {
+                        "constant": false,
+                        "designable": true,
+                        "final": false,
+                        "name": "modelData",
+                        "notify": "modelDataChanged",
+                        "read": "modelData",
+                        "required": false,
+                        "scriptable": true,
+                        "stored": true,
+                        "type": "QObject*",
+                        "user": false
+                    }
+                ],
+                "qualifiedClassName": "QQmlDMObjectData",
+                "signals": [
+                    {
+                        "access": "public",
+                        "name": "modelDataChanged",
+                        "returnType": "void"
+                    }
+                ],
+                "superClasses": [
+                    {
+                        "access": "public",
+                        "name": "QQmlDelegateModelItem"
+                    },
+                    {
+                        "access": "public",
+                        "name": "QQmlAdaptorModelProxyInterface"
+                    }
+                ]
+            }
+        ],
+        "inputFile": "qqmladaptormodel.cpp",
+        "outputRevision": 67
+    }
+]

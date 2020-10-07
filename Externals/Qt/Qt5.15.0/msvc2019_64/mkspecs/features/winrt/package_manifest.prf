@@ -1,0 +1,200 @@
+# This performs basic variable replacement on the contents of the WinRT manifest template, as
+# specified by WINRT_MANIFEST. The resulting manifest file is written to the output directory.
+# While the most common options are covered by the default template, the developer is expected
+# to make an application-level copy of the template in order to customize the manifest further.
+# Afterwards, they can override the default template by assigning their template to WINRT_MANIFEST.
+#
+# All subkeys in WINRT_MANIFEST will be replaced if defined/found, so new variables can be easily
+# added.
+
+# The manifest is generated for each build pass for normal apps, and only once for vcapps.
+# - Normal apps have their package root directory in the same place as the target (one for each build pass).
+# - Visual Studio requires a design-mode manifest in the same location as the vcproj.
+!isEmpty(WINRT_MANIFEST): \
+    if(build_pass:equals(TEMPLATE, "app"))| \
+    if(!build_pass:equals(TEMPLATE, "vcapp")) {
+
+    manifest_file.input = $$WINRT_MANIFEST
+
+    contains(TEMPLATE, "vc.*") {
+        BUILD_DIR = $$OUT_PWD
+    } else {
+        load(resolve_target)
+        BUILD_DIR = $$dirname(QMAKE_RESOLVED_TARGET)
+    }
+
+    contains(TEMPLATE, "vc.*"): \
+        manifest_file.output = $$BUILD_DIR/Package.appxmanifest
+    else: \
+        manifest_file.output = $$BUILD_DIR/AppxManifest.xml
+
+    !contains(WINRT_MANIFEST.CONFIG, "verbatim") {
+        # Provide the C-runtime dependency
+        equals(TEMPLATE, "app") {
+            VCLIBS = Microsoft.VCLibs.$$replace(MSVC_VER, \\., ).00
+            CONFIG(debug, debug|release): \
+                VCLIBS = $${VCLIBS}.Debug
+            else: \
+                VCLIBS = $${VCLIBS}
+            # VS 2017 and 2019 still use vclibs 140
+            contains(MSVC_VER, "15.0"): VCLIBS = $$replace(VCLIBS, 150, 140)
+            contains(MSVC_VER, "16.0"): VCLIBS = $$replace(VCLIBS, 160, 140)
+            VCLIBS = "$${VCLIBS}\" MinVersion=\"14.0.0.0\" Publisher=\"CN=Microsoft Corporation, O=Microsoft Corporation, L=Redmond, S=Washington, C=US"
+            WINRT_MANIFEST.dependencies += $$VCLIBS
+        }
+
+        # Provide default values for required variables
+        isEmpty(WINRT_MANIFEST.target): WINRT_MANIFEST.target = $$TARGET
+        isEmpty(WINRT_MANIFEST.identity) {
+            # Reuse the existing UUID if possible
+            UUID_CACHE = $$OUT_PWD/.qmake.winrt_uuid_$$TARGET
+            exists($$UUID_CACHE) {
+                include($$UUID_CACHE)
+            } else {
+                WINRT_UUID = $$system(uuidgen)
+                isEmpty(WINRT_UUID): error("Unable to generate a UUID. Make sure uuidgen is in your PATH.")
+                WINRT_UUID = "WINRT_MANIFEST.identity = $$WINRT_UUID"
+                write_file($$UUID_CACHE, WINRT_UUID)|error("Unable to write the UUID cache; aborting.")
+                eval($$WINRT_UUID)
+            }
+        }
+        isEmpty(WINRT_MANIFEST.name): WINRT_MANIFEST.name = $$TARGET
+        isEmpty(WINRT_MANIFEST.architecture): WINRT_MANIFEST.architecture = $$VCPROJ_ARCH
+        isEmpty(WINRT_MANIFEST.version): WINRT_MANIFEST.version = 1.0.0.0
+        isEmpty(WINRT_MANIFEST.publisher): WINRT_MANIFEST.publisher = Default publisher display name
+        isEmpty(WINRT_MANIFEST.publisherid): WINRT_MANIFEST.publisherid = CN=$$(USERNAME)
+        isEmpty(WINRT_MANIFEST.phone_product_id): WINRT_MANIFEST.phone_product_id = $$WINRT_MANIFEST.identity
+        isEmpty(WINRT_MANIFEST.phone_publisher_id): WINRT_MANIFEST.phone_publisher_id = 00000000-0000-0000-0000-000000000000
+        isEmpty(WINRT_MANIFEST.description): WINRT_MANIFEST.description = Default package description
+        isEmpty(WINRT_MANIFEST.background): WINRT_MANIFEST.background = green
+        isEmpty(WINRT_MANIFEST.foreground): WINRT_MANIFEST.foreground = light
+        isEmpty(WINRT_MANIFEST.default_language): WINRT_MANIFEST.default_language = en
+        isEmpty(WINRT_MANIFEST.minVersion): \
+            WINRT_MANIFEST.minVersion = $$WINDOWS_TARGET_PLATFORM_VERSION
+        isEmpty(WINRT_MANIFEST.maxVersionTested): \
+            WINRT_MANIFEST.maxVersionTested = $$WINDOWS_TARGET_PLATFORM_MIN_VERSION
+
+        INDENT = "$$escape_expand(\\r\\n)        "
+
+        VS_XML_NAMESPACE = "m2"
+        WINRT_MANIFEST.rotation_preference = $$unique(WINRT_MANIFEST.rotation_preference)
+        !isEmpty(WINRT_MANIFEST.rotation_preference) {
+            MANIFEST_ROTATION += "<$${VS_XML_NAMESPACE}:InitialRotationPreference>"
+            for(ROTATION, WINRT_MANIFEST.rotation_preference): \
+                MANIFEST_ROTATION += "  <$${VS_XML_NAMESPACE}:Rotation Preference=\"$$ROTATION\" />"
+            MANIFEST_ROTATION += "</$${VS_XML_NAMESPACE}:InitialRotationPreference>"
+
+            WINRT_MANIFEST.rotation_preference = $$join(MANIFEST_ROTATION, $$INDENT, $$INDENT)
+        }
+
+        INDENT = "$$escape_expand(\\r\\n)  "
+
+        # All Windows 10 applications need to have internetClient.
+        WINRT_MANIFEST.capabilities += internetClient
+
+        contains(WINRT_MANIFEST.capabilities, defaults) {
+            WINRT_MANIFEST.capabilities -= defaults
+            WINRT_MANIFEST.capabilities += $$WINRT_MANIFEST.capabilities_default
+        }
+
+        contains(WINRT_MANIFEST.capabilities_device, defaults) {
+            WINRT_MANIFEST.capabilities_device -= defaults
+            WINRT_MANIFEST.capabilities_device += $$WINRT_MANIFEST.capabilities_device_default
+        }
+
+        UAP_CAPABILITIES += \
+            appointments \
+            blockedChatMessages \
+            chat \
+            contacts \
+            enterpriseAuthentication \
+            # internetClient is special, as it needs to be written without namespace
+            #internetClient \
+            musicLibrary \
+            objects3D \
+            phoneCall \
+            picturesLibrary \
+            removableStorage \
+            sharedUserCertificates \
+            userAccountInformation \
+            videosLibrary \
+            voipCall
+
+        UAP3_CAPABILITIES += backgroundMediaPlayback remoteSystem userNotificationListener
+
+        IOT_CAPABILITIES += systemManagement
+
+        # Capabilities are given as a string list and may change with the configuration (network, sensors, etc.)
+        WINRT_MANIFEST.capabilities = $$unique(WINRT_MANIFEST.capabilities)
+        WINRT_MANIFEST.capabilities_device = $$unique(WINRT_MANIFEST.capabilities_device)
+        !isEmpty(WINRT_MANIFEST.capabilities)|!isEmpty(WINRT_MANIFEST.capabilities_device) {
+            MANIFEST_CAPABILITIES += "<Capabilities>"
+            for (CAPABILITY, WINRT_MANIFEST.capabilities) {
+                contains(UAP_CAPABILITIES, $$CAPABILITY): \
+                    MANIFEST_CAPABILITIES += "  <uap:Capability Name=\"$$CAPABILITY\" />"
+                else:contains(UAP3_CAPABILITIES, $$CAPABILITY): \
+                    MANIFEST_CAPABILITIES += "  <uap3:Capability Name=\"$$CAPABILITY\" />"
+                else:contains(IOT_CAPABILITIES, $$CAPABILITY): \
+                    MANIFEST_CAPABILITIES += "  <iot:Capability Name=\"$$CAPABILITY\" />"
+                else: \
+                    MANIFEST_CAPABILITIES += "  <Capability Name=\"$$CAPABILITY\" />"
+            }
+            for(CAPABILITY, WINRT_MANIFEST.capabilities_device): \
+                MANIFEST_CAPABILITIES += "  <DeviceCapability Name=\"$$CAPABILITY\" />"
+            MANIFEST_CAPABILITIES += "</Capabilities>"
+
+            WINRT_MANIFEST.capabilities = $$join(MANIFEST_CAPABILITIES, $$INDENT, $$INDENT)
+        }
+
+        # Dependencies are given as a string list. The CRT dependency is added automatically above.
+        # For MSVC2015/2017 the dependencies are added in conjunction with TargetDeviceFamily
+        # Due to the hard coded dependency on "Windows.Universal" the <Dependencies> tag
+        # is already inside the MSVC2015 manifest.
+        WINRT_MANIFEST.dependencies = $$unique(WINRT_MANIFEST.dependencies)
+        !isEmpty(WINRT_MANIFEST.dependencies) {
+            for(DEPENDENCY, WINRT_MANIFEST.dependencies): \
+                MANIFEST_DEPENDENCIES += "  <PackageDependency Name=\"$$DEPENDENCY\" />"
+
+            WINRT_MANIFEST.dependencies = $$join(MANIFEST_DEPENDENCIES, $$INDENT, $$INDENT)
+        }
+
+        # Provide default icons where needed
+        isEmpty(WINRT_ASSETS_PATH): WINRT_ASSETS_PATH = $$[QT_HOST_DATA/get]/mkspecs/common/winrt_winphone/assets
+        TEMPLATE_CONTENTS = $$cat($$WINRT_MANIFEST, lines)
+        ICONS_FOUND = $$find(TEMPLATE_CONTENTS, \\\$\\\$\\{WINRT_MANIFEST\\.(logo|tile)_)
+        ICONS_FOUND ~= s/.*\\\$\\\$\\{WINRT_MANIFEST\\.((logo|tile)_[^\}]+)\\}.*/\\1/g
+        for (ICON_NAME, ICONS_FOUND) {
+            ICON_FILE = $$eval(WINRT_MANIFEST.$$ICON_NAME)
+            isEmpty(ICON_FILE) {
+                equals(ICON_NAME, "logo_310x150"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_wide)
+                else: equals(ICON_NAME, "logo_150x150"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_large)
+                # Windows Phone specifics
+                else: equals(ICON_NAME, "logo_480x800"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_splash)
+                else: equals(ICON_NAME, "logo_71x71"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_medium)
+                else: equals(ICON_NAME, "logo_44x44"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_small)
+                # Windows RT specifics
+                else: equals(ICON_NAME, "logo_620x300"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_splash)
+                else: equals(ICON_NAME, "logo_70x70"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_medium)
+                else: equals(ICON_NAME, "logo_30x30"): ICON_FILE = $$eval(WINRT_MANIFEST.logo_small)
+            }
+            isEmpty(ICON_FILE): ICON_FILE = $$WINRT_ASSETS_PATH/$${ICON_NAME}.png
+            icon_$${ICON_NAME}.input = $$ICON_FILE
+            icon_$${ICON_NAME}.output = $$BUILD_DIR/assets/$$basename(ICON_FILE)
+            icon_$${ICON_NAME}.CONFIG = verbatim
+            QMAKE_SUBSTITUTES += icon_$${ICON_NAME}
+            WINRT_MANIFEST.$${ICON_NAME} = assets/$$basename(ICON_FILE)
+        }
+
+        !contains(TEMPLATE, "vc.*") {
+            winrt_manifest_install.files = $$manifest_file.output
+            winrt_manifest_install.path = $$target.path
+            winrt_assets_install.files = $$BUILD_DIR/assets/*
+            winrt_assets_install.path = $$target.path/assets
+            INSTALLS += winrt_manifest_install winrt_assets_install
+        }
+    } else {
+        manifest_file.CONFIG += verbatim
+    }
+
+    QMAKE_SUBSTITUTES += manifest_file
+}

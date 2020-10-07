@@ -136,11 +136,9 @@
       <Filter>ControllerInterface\DualShockUDPClient</Filter>
     </ClCompile>
     <ClCompile Include="DInputMouseAbsolute.cpp" />
-    <ClCompile Include="GenericMouse.cpp" />
     <ClCompile Include="ControllerInterface\Wiimote\Wiimote.cpp" />
-    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackMisc.cpp">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClCompile>
+    <ClCompile Include="ControllerEmu\ControlGroup\PrimeHackModes.cpp" />
+    <ClCompile Include="GenericMouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="GCAdapter.h" />
@@ -243,9 +241,7 @@
     <ClInclude Include="DInputMouseAbsolute.h" />
     <ClInclude Include="GenericMouse.h" />
     <ClInclude Include="ControllerInterface\Wiimote\Wiimote.h" />
-    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackMisc.h">
-      <Filter>ControllerEmu\ControlGroup</Filter>
-    </ClInclude>
+    <ClInclude Include="ControllerEmu\ControlGroup\PrimeHackModes.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

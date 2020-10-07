@@ -1,0 +1,109 @@
+CONFIG += metatypes
+
+qtPrepareTool(QML_TYPEREGISTRAR, qmltyperegistrar)
+
+isEmpty(QML_IMPORT_VERSION): \
+    QML_IMPORT_VERSION = $$IMPORT_VERSION
+
+# from moc.prf
+isEmpty(QML_IMPORT_MAJOR_VERSION):!isEmpty(QML_IMPORT_VERSION): \
+    QML_IMPORT_MAJOR_VERSION = $$section(QML_IMPORT_VERSION, ., 0, 0)
+
+isEmpty(QML_IMPORT_MINOR_VERSION):!isEmpty(QML_IMPORT_VERSION): \
+    QML_IMPORT_MINOR_VERSION = $$section(QML_IMPORT_VERSION, ., 1, 1)
+
+isEmpty(QML_IMPORT_NAME):!isEmpty(TARGETPATH) {
+    QML_IMPORT_NAME = $$replace(TARGETPATH, "/", ".")
+    QML_IMPORT_NAME = $$replace(QML_IMPORT_NAME, .$${QML_IMPORT_MAJOR_VERSION}$, '')
+}
+
+isEmpty(QML_IMPORT_NAME) {
+    error("Need TARGET_PATH or QML_IMPORT_NAME in order to generate qml types.");
+}
+
+isEmpty(QML_IMPORT_MAJOR_VERSION) {
+    error("Need IMPORT_VERSION, QML_IMPORT_VERSION, or QML_IMPORT_MAJOR_VERSION in order to generate qml types.");
+}
+
+isEmpty(QML_IMPORT_MINOR_VERSION) {
+    QML_IMPORT_MINOR_VERSION = 0
+}
+
+isEmpty(QMLTYPES_FILENAME) {
+    plugin: QMLTYPES_FILENAME = plugins.qmltypes
+    else: QMLTYPES_FILENAME = $${TARGET}.qmltypes
+}
+
+qt_module_deps = $$replace(QT, -private$, '')
+qt_module_deps += $$replace(QT_PRIVATE, -private$, '')
+qt_module_deps = $$resolve_depends(qt_module_deps, "QT.", ".depends" ".run_depends")
+qt_module_deps = $$replace(qt_module_deps, _private$, '')
+qt_module_deps = $$unique(qt_module_deps)
+
+for(dep, qt_module_deps) {
+    METATYPES_FILENAME = $$lower($$eval(QT.$${dep}.module))_metatypes.json
+    INSTALLED_METATYPES = $$[QT_INSTALL_LIBS]/metatypes/$$METATYPES_FILENAME
+    isEmpty(MODULE_BASE_OUTDIR) {
+        QML_FOREIGN_METATYPES += $$INSTALLED_METATYPES
+    } else {
+        MODULE_BASE_METATYPES = $$MODULE_BASE_OUTDIR/lib/metatypes/$$METATYPES_FILENAME
+        exists($$MODULE_BASE_METATYPES): QML_FOREIGN_METATYPES += $$MODULE_BASE_METATYPES
+        else: QML_FOREIGN_METATYPES += $$INSTALLED_METATYPES
+    }
+}
+
+
+QML_TYPEREGISTRAR_FLAGS = \
+    --generate-qmltypes=$$QMLTYPES_FILENAME \
+    --import-name=$$QML_IMPORT_NAME \
+    --major-version=$$QML_IMPORT_MAJOR_VERSION \
+    --minor-version=$$QML_IMPORT_MINOR_VERSION \
+    --foreign-types=$$join(QML_FOREIGN_METATYPES, ',')
+
+DEPENDENCIESFILE = $$_PRO_FILE_PWD_/dependencies.json
+exists($$DEPENDENCIESFILE): QML_TYPEREGISTRAR_FLAGS += --dependencies=$$DEPENDENCIESFILE
+
+!isEmpty(MODULE_PRIVATE_INCLUDES): QML_TYPEREGISTRAR_FLAGS += --private-includes
+
+METATYPES_JSON = $$lower($$basename(TARGET))_metatypes.json
+
+TYPEREGISTRATIONS = $$lower($$basename(TARGET))_qmltyperegistrations$${first(QMAKE_EXT_CPP)}
+
+qmltyperegistrar_compiler.CONFIG += combine
+qmltyperegistrar_compiler.commands = \
+    $$QML_TYPEREGISTRAR $$QML_TYPEREGISTRAR_FLAGS -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
+qmltyperegistrar_compiler.input = METATYPES_JSON
+qmltyperegistrar_compiler.output = $$TYPEREGISTRATIONS
+qmltyperegistrar_compiler.variable_out = SOURCES
+qmltyperegistrar_compiler.name = Automatic QML type registration
+qmltyperegistrar_compiler.dependency_type = TYPE_C
+
+qmltyperegistrar_qmltypes.input = METATYPES_JSON
+qmltyperegistrar_qmltypes.depends = $$TYPEREGISTRATIONS
+qmltyperegistrar_qmltypes.output = $$QMLTYPES_FILENAME
+qmltyperegistrar_qmltypes.CONFIG = no_link
+qmltyperegistrar_qmltypes.commands = $$escape_expand(\\n)  # force creation of rule
+
+install_qmltypes {
+    INSTALL_QML_FILES = false
+
+    android {
+        build_pass {
+            isEmpty(ANDROID_ABIS): ANDROID_ABIS = $$ALL_ANDROID_ABIS
+            ABI = $$first(ANDROID_ABIS)
+            equals(ABI,  $$QT_ARCH): INSTALL_QML_FILES = true
+        }
+    } else: !debug_and_release|!build_all|CONFIG(release, debug|release): INSTALL_QML_FILES = true
+
+    equals(INSTALL_QML_FILES, true) {
+        isEmpty(QMLTYPES_INSTALL_DIR): \
+            QMLTYPES_INSTALL_DIR = $$[QT_INSTALL_QML]/$$TARGETPATH
+        do_install_qmltypes.files = $$OUT_PWD/$$QMLTYPES_FILENAME
+        do_install_qmltypes.path = $$QMLTYPES_INSTALL_DIR
+        do_install_qmltypes.CONFIG += no_check_exist
+        prefix_build: INSTALLS += do_install_qmltypes
+        else: COPIES += do_install_qmltypes
+    }
+}
+
+QMAKE_EXTRA_COMPILERS += qmltyperegistrar_compiler qmltyperegistrar_qmltypes

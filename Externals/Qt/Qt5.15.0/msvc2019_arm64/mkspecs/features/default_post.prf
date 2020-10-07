@@ -1,0 +1,176 @@
+# This file is loaded by qmake right after loading the actual project file.
+
+contains(TEMPLATE, ".*(lib|app)"):CONFIG += have_target
+
+!have_target:!force_qt: CONFIG -= qt
+
+load(resolve_config)
+
+exclusive_builds: load(exclusive_builds_post)
+
+# If the TARGET looks like a path, split it into DESTDIR and the resulting TARGET
+target_dir_part = $$dirname(TARGET)
+!isEmpty(target_dir_part) {
+    isEmpty(DESTDIR): \
+        DESTDIR = $$target_dir_part
+    else: \
+        DESTDIR = $$DESTDIR/$$target_dir_part
+
+    TARGET = $$basename(TARGET)
+    DESTDIR = $$clean_path($$DESTDIR)
+}
+
+QT_BREAKPAD_ROOT_PATH = $$(QT_BREAKPAD_ROOT_PATH)
+!isEmpty(QT_BREAKPAD_ROOT_PATH): \   # quick test first whether requested ...
+        !static:release:have_target: \   # is it applicable?
+        !contains(TARGET, .*phony_target.*): \   # monster hack, you don't really see this here, right? ;)
+        system($$QT_BREAKPAD_ROOT_PATH/qtbreakpadsymbols --breakpad-exists) {    # do we really have it?
+    CONFIG += breakpad force_debug_info
+    CONFIG -= no_debug_info separate_debug_info
+}
+
+force_debug_info|debug: \
+    CONFIG += debug_info
+
+force_debug_info {
+    QMAKE_CFLAGS_RELEASE = $$QMAKE_CFLAGS_RELEASE_WITH_DEBUGINFO
+    QMAKE_CXXFLAGS_RELEASE = $$QMAKE_CXXFLAGS_RELEASE_WITH_DEBUGINFO
+    QMAKE_LFLAGS_RELEASE = $$QMAKE_LFLAGS_RELEASE_WITH_DEBUGINFO
+}
+
+optimize_size {
+    !isEmpty(QMAKE_CFLAGS_OPTIMIZE):!isEmpty(QMAKE_CFLAGS_OPTIMIZE_SIZE)  {
+        QMAKE_CFLAGS_RELEASE -= $$QMAKE_CFLAGS_OPTIMIZE
+        QMAKE_CXXFLAGS_RELEASE -= $$QMAKE_CFLAGS_OPTIMIZE
+        QMAKE_CFLAGS_RELEASE += $$QMAKE_CFLAGS_OPTIMIZE_SIZE
+        QMAKE_CXXFLAGS_RELEASE += $$QMAKE_CFLAGS_OPTIMIZE_SIZE
+    }
+} else: optimize_full {
+    !isEmpty(QMAKE_CFLAGS_OPTIMIZE):!isEmpty(QMAKE_CFLAGS_OPTIMIZE_FULL)  {
+        QMAKE_CFLAGS_RELEASE -= $$QMAKE_CFLAGS_OPTIMIZE
+        QMAKE_CXXFLAGS_RELEASE -= $$QMAKE_CFLAGS_OPTIMIZE
+        QMAKE_CFLAGS_RELEASE += $$QMAKE_CFLAGS_OPTIMIZE_FULL
+        QMAKE_CXXFLAGS_RELEASE += $$QMAKE_CFLAGS_OPTIMIZE_FULL
+    }
+}
+
+optimize_debug {
+    QMAKE_CFLAGS_DEBUG += $$QMAKE_CFLAGS_OPTIMIZE_DEBUG
+    QMAKE_CXXFLAGS_DEBUG += $$QMAKE_CFLAGS_OPTIMIZE_DEBUG
+}
+
+debug {
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_DEBUG
+    QMAKE_CXXFLAGS += $$QMAKE_CXXFLAGS_DEBUG
+    QMAKE_LFLAGS += $$QMAKE_LFLAGS_DEBUG
+    QMAKE_LIBFLAGS += $$QMAKE_LIBFLAGS_DEBUG
+    DEFINES += $$DEFINES_DEBUG
+} else {
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_RELEASE
+    QMAKE_CXXFLAGS += $$QMAKE_CXXFLAGS_RELEASE
+    QMAKE_LFLAGS += $$QMAKE_LFLAGS_RELEASE
+    QMAKE_LIBFLAGS += $$QMAKE_LIBFLAGS_RELEASE
+    DEFINES += $$DEFINES_RELEASE
+}
+
+stack_protector_strong {
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_STACK_PROTECTOR_STRONG
+    QMAKE_CXXFLAGS += $$QMAKE_CFLAGS_STACK_PROTECTOR_STRONG
+}
+
+# disable special linker flags for host builds (no proper test for host support yet)
+!host_build|!cross_compile {
+    use_bfd_linker: QMAKE_LFLAGS += $$QMAKE_LFLAGS_USE_BFD
+    use_gold_linker: QMAKE_LFLAGS += $$QMAKE_LFLAGS_USE_GOLD
+    use_lld_linker: QMAKE_LFLAGS += $$QMAKE_LFLAGS_USE_LLD
+    enable_new_dtags: QMAKE_LFLAGS += $$QMAKE_LFLAGS_NEW_DTAGS
+    enable_gdb_index: QMAKE_LFLAGS += $$QMAKE_LFLAGS_GDB_INDEX
+}
+
+dll:win32: QMAKE_LFLAGS += $$QMAKE_LFLAGS_DLL
+static:mac: QMAKE_LFLAGS += $$QMAKE_LFLAGS_STATIC_LIB
+staticlib:unix {
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_STATIC_LIB
+    QMAKE_CXXFLAGS += $$QMAKE_CXXFLAGS_STATIC_LIB
+}
+
+defined(WINDOWS_TARGET_PLATFORM_VERSION, var):isEmpty(WINDOWS_TARGET_PLATFORM_MIN_VERSION) {
+    WINDOWS_TARGET_PLATFORM_MIN_VERSION = $$WINDOWS_TARGET_PLATFORM_VERSION
+}
+
+incredibuild_xge {
+    CONFIG -= incredibuild_xge
+    CONFIG = incredibuild_xge $$CONFIG
+}
+
+silent {
+    # Ensure that we process silent.prf last, as it will mangle QMAKE_CXX
+    # and friends in a way that some of the other features (sdk.prf and
+    # simd.prf eg) do not handle.
+    CONFIG -= silent
+    CONFIG = silent $$CONFIG
+}
+
+breakpad {
+    load(resolve_target)
+    DEBUGFILENAME = $$shell_quote($$system_path($$QMAKE_RESOLVED_TARGET))
+    PROJECTPATH = $$shell_quote($$system_path($$OUT_PWD))
+
+    !isEmpty(QMAKE_POST_LINK):QMAKE_POST_LINK = $$QMAKE_POST_LINK$$escape_expand(\\n\\t)
+    QMAKE_POST_LINK = $$QMAKE_POST_LINK$$quote($${QT_BREAKPAD_ROOT_PATH}$${QMAKE_DIR_SEP}qtbreakpadsymbols $$DEBUGFILENAME $$PROJECTPATH)
+    !isEmpty(QMAKE_STRIP):QMAKE_POST_LINK = $$QMAKE_POST_LINK$$escape_expand(\\n\\t)$$quote($$QMAKE_STRIP $$DEBUGFILENAME)
+}
+
+c++17: CONFIG += c++1z
+c++latest: CONFIG *= c++2a c++1z c++14 c++11
+
+!c++11:!c++14:!c++1z:!c++2a {
+    # Qt requires C++11 since 5.7, check if we need to force a compiler option
+    QT_COMPILER_STDCXX_no_L = $$replace(QT_COMPILER_STDCXX, "L$", "")
+    !greaterThan(QT_COMPILER_STDCXX_no_L, 199711): CONFIG += c++11
+}
+c++11|c++14|c++1z|c++2a {
+    # Disable special compiler flags for host builds
+    !host_build|!cross_compile {
+        c++2a:       cxxstd = CXX2A
+        else: c++1z: cxxstd = CXX1Z
+        else: c++14: cxxstd = CXX14
+        else:        cxxstd = CXX11
+    } else {
+        # Fall back to c++11, because since 5.7 c++11 is required everywhere,
+        # including host builds
+        cxxstd = CXX11
+    }
+
+    # Check if we should disable compiler extensions or not
+    isEmpty(QMAKE_CXXFLAGS_GNU$$cxxstd) {
+        strict_c++: QMAKE_CXXFLAGS += $$QMAKE_CXXFLAGS_STRICTCXX
+    } else {
+        !strict_c++|isEmpty(QMAKE_CXXFLAGS_$$cxxstd): cxxstd = GNU$$cxxstd
+    }
+
+    QMAKE_CXXFLAGS += $$eval(QMAKE_CXXFLAGS_$$cxxstd)
+    QMAKE_LFLAGS += $$eval(QMAKE_LFLAGS_$$cxxstd)
+
+    unset(cxxstd)
+}
+
+c99|c11 {
+    c11:       cstd = C11
+    else:      cstd = C99
+
+    !isEmpty(QMAKE_CFLAGS_GNU$$cstd) {
+        !strict_c|isEmpty(QMAKE_CFLAGS_$$cstd): cstd = GNU$$cstd
+    }
+
+    QMAKE_CFLAGS += $$eval(QMAKE_CFLAGS_$$cstd)
+
+    unset(cstd)
+}
+
+utf8_source {
+    QMAKE_CFLAGS += $$QMAKE_CFLAGS_UTF8_SOURCE
+    QMAKE_CXXFLAGS += $$QMAKE_CFLAGS_UTF8_SOURCE
+}
+
+!precompile_header: SOURCES += $$NO_PCH_SOURCES

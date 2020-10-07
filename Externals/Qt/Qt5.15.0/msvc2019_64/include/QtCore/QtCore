@@ -1,0 +1,278 @@
+#ifndef QT_QTCORE_MODULE_H
+#define QT_QTCORE_MODULE_H
+#include <QtCore/QtCoreDepends>
+#include "qglobal.h"
+#if QT_CONFIG(animation)
+#include "qabstractanimation.h"
+#endif
+#include "qabstracteventdispatcher.h"
+#if QT_CONFIG(itemmodel)
+#include "qabstractitemmodel.h"
+#endif
+#include "qabstractnativeeventfilter.h"
+#if QT_CONFIG(proxymodel)
+#include "qabstractproxymodel.h"
+#endif
+#if QT_CONFIG(statemachine)
+#include "qabstractstate.h"
+#endif
+#if QT_CONFIG(statemachine)
+#include "qabstracttransition.h"
+#endif
+#include "qalgorithms.h"
+#if QT_CONFIG(animation)
+#include "qanimationgroup.h"
+#endif
+#include "qarraydata.h"
+#include "qarraydataops.h"
+#include "qarraydatapointer.h"
+#include "qatomic.h"
+#include "qbasictimer.h"
+#include "qbitarray.h"
+#include "qbuffer.h"
+#include "qbytearray.h"
+#include "qbytearraylist.h"
+#include "qbytearraymatcher.h"
+#include "qcache.h"
+#include "qcalendar.h"
+#include "qcborarray.h"
+#include "qcborcommon.h"
+#include "qcbormap.h"
+#include "qcborstream.h"
+#if QT_CONFIG(cborstreamreader)
+#include "qcborstreamreader.h"
+#endif
+#if QT_CONFIG(cborstreamwriter)
+#include "qcborstreamwriter.h"
+#endif
+#include "qcborvalue.h"
+#include "qchar.h"
+#include "qcollator.h"
+#if QT_CONFIG(commandlineparser)
+#include "qcommandlineoption.h"
+#endif
+#if QT_CONFIG(commandlineparser)
+#include "qcommandlineparser.h"
+#endif
+#include "qcompilerdetection.h"
+#if QT_CONFIG(concatenatetablesproxymodel)
+#include "qconcatenatetablesproxymodel.h"
+#endif
+#include "qcontainerfwd.h"
+#include "qcontiguouscache.h"
+#include "qcoreapplication.h"
+#include "qcoreevent.h"
+#include "qcryptographichash.h"
+#include "qdatastream.h"
+#include "qdatetime.h"
+#include "qdeadlinetimer.h"
+#include "qdebug.h"
+#include "qdir.h"
+#include "qdiriterator.h"
+#if QT_CONFIG(easingcurve)
+#include "qeasingcurve.h"
+#endif
+#include "qelapsedtimer.h"
+#include "qendian.h"
+#include "qeventloop.h"
+#if QT_CONFIG(qeventtransition)
+#include "qeventtransition.h"
+#endif
+#if QT_CONFIG(future)
+#include "qexception.h"
+#endif
+#include "qfactoryinterface.h"
+#include "qfile.h"
+#include "qfiledevice.h"
+#include "qfileinfo.h"
+#include "qfileselector.h"
+#if QT_CONFIG(filesystemwatcher)
+#include "qfilesystemwatcher.h"
+#endif
+#if QT_CONFIG(statemachine)
+#include "qfinalstate.h"
+#endif
+#include "qflags.h"
+#if QT_CONFIG(future)
+#include "qfuture.h"
+#endif
+#if QT_CONFIG(future)
+#include "qfutureinterface.h"
+#endif
+#if QT_CONFIG(future)
+#include "qfuturesynchronizer.h"
+#endif
+#if QT_CONFIG(future)
+#include "qfuturewatcher.h"
+#endif
+#include "qgenericatomic.h"
+#include "qglobalstatic.h"
+#include "qhash.h"
+#include "qhashfunctions.h"
+#if QT_CONFIG(statemachine)
+#include "qhistorystate.h"
+#endif
+#if QT_CONFIG(identityproxymodel)
+#include "qidentityproxymodel.h"
+#endif
+#include "qiodevice.h"
+#include "qisenum.h"
+#if QT_CONFIG(itemmodel)
+#include "qitemselectionmodel.h"
+#endif
+#include "qiterator.h"
+#include "qjsonarray.h"
+#include "qjsondocument.h"
+#include "qjsonobject.h"
+#include "qjsonvalue.h"
+#if QT_CONFIG(library)
+#include "qlibrary.h"
+#endif
+#include "qlibraryinfo.h"
+#include "qline.h"
+#include "qlinkedlist.h"
+#include "qlist.h"
+#include "qlocale.h"
+#include "qlockfile.h"
+#include "qloggingcategory.h"
+#include "qmap.h"
+#include "qmargins.h"
+#include "qmath.h"
+#include "qmessageauthenticationcode.h"
+#include "qmetaobject.h"
+#include "qmetatype.h"
+#include "qmimedata.h"
+#if QT_CONFIG(mimetype)
+#include "qmimedatabase.h"
+#endif
+#if QT_CONFIG(mimetype)
+#include "qmimetype.h"
+#endif
+#include "qmutex.h"
+#include "qnamespace.h"
+#include "qnumeric.h"
+#include "qobject.h"
+#include "qobjectcleanuphandler.h"
+#include "qobjectdefs.h"
+#include "qoperatingsystemversion.h"
+#include "qpair.h"
+#if QT_CONFIG(animation)
+#include "qparallelanimationgroup.h"
+#endif
+#if QT_CONFIG(animation)
+#include "qpauseanimation.h"
+#endif
+#include "qplugin.h"
+#include "qpluginloader.h"
+#include "qpoint.h"
+#include "qpointer.h"
+#if QT_CONFIG(processenvironment)
+#include "qprocess.h"
+#endif
+#include "qprocessordetection.h"
+#if QT_CONFIG(animation)
+#include "qpropertyanimation.h"
+#endif
+#include "qqueue.h"
+#include "qrandom.h"
+#include "qreadwritelock.h"
+#include "qrect.h"
+#include "qrefcount.h"
+#include "qregexp.h"
+#if QT_CONFIG(regularexpression)
+#include "qregularexpression.h"
+#endif
+#include "qresource.h"
+#if QT_CONFIG(future)
+#include "qresultstore.h"
+#endif
+#include "qrunnable.h"
+#include "qsavefile.h"
+#include "qscopedpointer.h"
+#include "qscopedvaluerollback.h"
+#include "qscopeguard.h"
+#if QT_CONFIG(thread)
+#include "qsemaphore.h"
+#endif
+#if QT_CONFIG(animation)
+#include "qsequentialanimationgroup.h"
+#endif
+#include "qset.h"
+#if QT_CONFIG(settings)
+#include "qsettings.h"
+#endif
+#include "qshareddata.h"
+#include "qsharedmemory.h"
+#include "qsharedpointer.h"
+#include "qsignalmapper.h"
+#if QT_CONFIG(statemachine)
+#include "qsignaltransition.h"
+#endif
+#include "qsize.h"
+#include "qsocketnotifier.h"
+#if QT_CONFIG(sortfilterproxymodel)
+#include "qsortfilterproxymodel.h"
+#endif
+#include "qstack.h"
+#include "qstandardpaths.h"
+#if QT_CONFIG(statemachine)
+#include "qstate.h"
+#endif
+#if QT_CONFIG(statemachine)
+#include "qstatemachine.h"
+#endif
+#include "qstorageinfo.h"
+#include "qstring.h"
+#include "qstringalgorithms.h"
+#include "qstringbuilder.h"
+#include "qstringlist.h"
+#if QT_CONFIG(stringlistmodel)
+#include "qstringlistmodel.h"
+#endif
+#include "qstringliteral.h"
+#include "qstringmatcher.h"
+#include "qstringview.h"
+#include "qsysinfo.h"
+#include "qsystemdetection.h"
+#include "qsystemsemaphore.h"
+#include "qtemporarydir.h"
+#include "qtemporaryfile.h"
+#include "qtextboundaryfinder.h"
+#if QT_CONFIG(textcodec)
+#include "qtextcodec.h"
+#endif
+#include "qtextstream.h"
+#include "qthread.h"
+#if QT_CONFIG(thread)
+#include "qthreadpool.h"
+#endif
+#include "qthreadstorage.h"
+#if QT_CONFIG(easingcurve)
+#include "qtimeline.h"
+#endif
+#include "qtimer.h"
+#if QT_CONFIG(timezone)
+#include "qtimezone.h"
+#endif
+#include "qtranslator.h"
+#if QT_CONFIG(transposeproxymodel)
+#include "qtransposeproxymodel.h"
+#endif
+#include "qtypeinfo.h"
+#include "qtypetraits.h"
+#include "qurl.h"
+#include "qurlquery.h"
+#include "quuid.h"
+#include "qvariant.h"
+#if QT_CONFIG(animation)
+#include "qvariantanimation.h"
+#endif
+#include "qvarlengtharray.h"
+#include "qvector.h"
+#include "qversionnumber.h"
+#include "qversiontagging.h"
+#include "qwaitcondition.h"
+#include "qwineventnotifier.h"
+#include "qxmlstream.h"
+#include "qtcoreversion.h"
+#endif

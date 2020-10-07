@@ -1,0 +1,25 @@
+defineReplace(qtEmccRecommendedVersion) {
+    return (1.39.8)
+}
+
+defineReplace(qtSystemEmccVersion) {
+    EMCC = $$system("emcc -v 2>&1", lines)
+    EMCC_LINE = $$find(EMCC, "^.*\b(emcc)\b.*$")
+    E_VERSION = $$section(EMCC_LINE, " ", 9,9)
+    return ($${E_VERSION})
+}
+
+defineTest(qtConfTest_emccVersion) {
+
+    REQ_VERSION = $$qtEmccRecommendedVersion()
+    EMCC_VERSION = $$qtSystemEmccVersion()
+
+    !defined(QT_EMCC_VERSION, var):!equals(EMCC_VERSION, $${REQ_VERSION}) {
+        warning ("You should use the recommended Emscripten version $$REQ_VERSION with this Qt. You have $${EMCC_VERSION} ")
+    }
+    contains(TEMPLATE, .*app) {
+           !equals(QT_EMCC_VERSION, $$EMCC_VERSION)  {
+               warning("This Qt was built with Emscripten version $${QT_EMCC_VERSION}. You have $${EMCC_VERSION}. The difference may cause issues.")
+           }
+    }
+}

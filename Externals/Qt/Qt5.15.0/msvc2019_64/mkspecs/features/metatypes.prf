@@ -1,0 +1,52 @@
+qtPrepareTool(MOC_COLLECT_JSON, moc)
+
+QMAKE_MOC_OPTIONS += --output-json
+
+MOC_JSON_H_BASE = $${QMAKE_H_MOD_MOC}
+MOC_JSON_CPP_BASE = $${QMAKE_CPP_MOD_MOC}
+
+!isEmpty(MOC_DIR) {
+    MOC_JSON_H_BASE = $$MOC_DIR/$${MOC_JSON_H_BASE}
+    MOC_JSON_CPP_BASE = $$MOC_DIR/$${MOC_JSON_CPP_BASE}
+}
+
+moc_json_header.input = HEADERS
+moc_json_header.output = $${MOC_JSON_H_BASE}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}.json
+moc_json_header.CONFIG = no_link moc_verify
+moc_json_header.depends = $${MOC_JSON_H_BASE}${QMAKE_FILE_BASE}$${first(QMAKE_EXT_CPP)}
+moc_json_header.commands = $$escape_expand(\\n)  # force creation of rule
+moc_json_header.variable_out = MOC_JSON_FILES
+
+moc_json_source.input = SOURCES
+moc_json_source.output = $${MOC_JSON_CPP_BASE}${QMAKE_FILE_BASE}$${QMAKE_EXT_CPP_MOC}.json
+moc_json_source.CONFIG = no_link moc_verify
+moc_json_source.depends = $${MOC_JSON_CPP_BASE}${QMAKE_FILE_BASE}$${QMAKE_EXT_CPP_MOC}
+moc_json_source.commands = $$escape_expand(\\n)  # force creation of rule
+moc_json_source.variable_out = MOC_JSON_FILES
+
+MOC_COLLECT_JSON_OUTPUT = $$lower($$basename(TARGET))_metatypes.json
+
+moc_collect_json.CONFIG += no_link combine target_predeps
+moc_collect_json.commands = $$MOC_COLLECT_JSON --collect-json -o ${QMAKE_FILE_OUT} ${QMAKE_FILE_IN}
+moc_collect_json.input = MOC_JSON_FILES
+moc_collect_json.output = $$MOC_COLLECT_JSON_OUTPUT
+moc_collect_json.name = Collect moc JSON output into central file
+
+install_metatypes {
+    do_install_metatypes.CONFIG += no_check_exist
+    do_install_metatypes.path = $$[QT_INSTALL_LIBS]/metatypes
+    do_install_metatypes.files = $$OUT_PWD/$$MOC_COLLECT_JSON_OUTPUT
+    prefix_build {
+        load(qt_build_paths)
+        !isEmpty(MODULE_BASE_OUTDIR) {
+            metatypes_to_builddir.files = $$do_install_metatypes.files
+            metatypes_to_builddir.path = $$MODULE_BASE_OUTDIR/lib/metatypes
+            COPIES += metatypes_to_builddir
+        }
+        INSTALLS += do_install_metatypes
+    } else {
+        COPIES += do_install_metatypes
+    }
+}
+
+QMAKE_EXTRA_COMPILERS += moc_collect_json moc_json_header moc_json_source

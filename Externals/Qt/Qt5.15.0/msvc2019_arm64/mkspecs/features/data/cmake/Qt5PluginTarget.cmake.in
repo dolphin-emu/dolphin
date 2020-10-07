@@ -1,0 +1,114 @@
+
+add_library(Qt5::$$CMAKE_PLUGIN_NAME MODULE IMPORTED)
+
+!!IF !isEmpty(CMAKE_STATIC_TYPE)
+set(_Qt5$${CMAKE_PLUGIN_NAME}_MODULE_DEPENDENCIES \"$${CMAKE_PLUGIN_MODULE_DEPS}\")
+
+foreach(_module_dep ${_Qt5$${CMAKE_PLUGIN_NAME}_MODULE_DEPENDENCIES})
+    if(NOT Qt5${_module_dep}_FOUND)
+        find_package(Qt5${_module_dep}
+            $$VERSION ${_Qt5$${CMAKE_MODULE_NAME}_FIND_VERSION_EXACT}
+            ${_Qt5$${CMAKE_MODULE_NAME}_DEPENDENCIES_FIND_QUIET}
+            ${_Qt5$${CMAKE_MODULE_NAME}_FIND_DEPENDENCIES_REQUIRED}
+            PATHS \"${CMAKE_CURRENT_LIST_DIR}/..\" NO_DEFAULT_PATH
+        )
+    endif()
+endforeach()
+
+!!IF !isEmpty(CMAKE_RELEASE_TYPE)
+!!IF isEmpty(CMAKE_LIB_DIR_IS_ABSOLUTE)
+_qt5_$${CMAKE_MODULE_NAME}_process_prl_file(
+    \"${_qt5$${CMAKE_MODULE_NAME}_install_prefix}/$${CMAKE_PLUGIN_DIR}$${CMAKE_PRL_FILE_LOCATION_RELEASE}\" RELEASE
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_RELEASE_LIB_DEPENDENCIES
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_RELEASE_LINK_FLAGS
+)
+!!ELSE
+_qt5_$${CMAKE_MODULE_NAME}_process_prl_file(
+    \"$${CMAKE_PLUGIN_DIR}$${CMAKE_PRL_FILE_LOCATION_RELEASE}\" RELEASE
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_RELEASE_LIB_DEPENDENCIES
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_RELEASE_LINK_FLAGS
+)
+!!ENDIF
+!!ENDIF
+
+!!IF !isEmpty(CMAKE_DEBUG_TYPE)
+!!IF isEmpty(CMAKE_LIB_DIR_IS_ABSOLUTE)
+_qt5_$${CMAKE_MODULE_NAME}_process_prl_file(
+    \"${_qt5$${CMAKE_MODULE_NAME}_install_prefix}/$${CMAKE_PLUGIN_DIR}$${CMAKE_PRL_FILE_LOCATION_DEBUG}\" DEBUG
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_DEBUG_LIB_DEPENDENCIES
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_DEBUG_LINK_FLAGS
+)
+!!ELSE
+_qt5_$${CMAKE_MODULE_NAME}_process_prl_file(
+    \"$${CMAKE_PLUGIN_DIR}$${CMAKE_PRL_FILE_LOCATION_DEBUG}\" DEBUG
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_DEBUG_LIB_DEPENDENCIES
+    _Qt5$${CMAKE_PLUGIN_NAME}_STATIC_DEBUG_LINK_FLAGS
+)
+!!ENDIF
+!!ENDIF
+
+set_property(TARGET Qt5::$$CMAKE_PLUGIN_NAME PROPERTY INTERFACE_SOURCES
+    \"${CMAKE_CURRENT_LIST_DIR}/Qt5$${CMAKE_MODULE_NAME}_$${CMAKE_PLUGIN_NAME}_Import.cpp\"
+)
+!!ENDIF
+
+!!IF !isEmpty(CMAKE_RELEASE_TYPE)
+_populate_$${CMAKE_MODULE_NAME}_plugin_properties($$CMAKE_PLUGIN_NAME RELEASE \"$${CMAKE_PLUGIN_LOCATION_RELEASE}\" $${CMAKE_DEBUG_AND_RELEASE})
+!!ENDIF
+!!IF !isEmpty(CMAKE_DEBUG_TYPE)
+_populate_$${CMAKE_MODULE_NAME}_plugin_properties($$CMAKE_PLUGIN_NAME DEBUG \"$${CMAKE_PLUGIN_LOCATION_DEBUG}\" $${CMAKE_DEBUG_AND_RELEASE})
+!!ENDIF
+
+list(APPEND Qt5$${CMAKE_MODULE_NAME}_PLUGINS Qt5::$$CMAKE_PLUGIN_NAME)
+set_property(TARGET Qt5::$${CMAKE_MODULE_NAME} APPEND PROPERTY QT_ALL_PLUGINS_$${CMAKE_PLUGIN_TYPE_ESCAPED} Qt5::$${CMAKE_PLUGIN_NAME})
+!!IF !isEmpty(CMAKE_STATIC_TYPE)
+# $<GENEX_EVAL:...> wasn\'t added until CMake 3.12, so put a version guard around it
+if(CMAKE_VERSION VERSION_LESS \"3.12\")
+    set(_manual_plugins_genex \"$<TARGET_PROPERTY:QT_PLUGINS>\")
+    set(_plugin_type_genex \"$<TARGET_PROPERTY:QT_PLUGINS_$${CMAKE_PLUGIN_TYPE_ESCAPED}>\")
+    set(_no_plugins_genex \"$<TARGET_PROPERTY:QT_NO_PLUGINS>\")
+else()
+    set(_manual_plugins_genex \"$<GENEX_EVAL:$<TARGET_PROPERTY:QT_PLUGINS>>\")
+    set(_plugin_type_genex \"$<GENEX_EVAL:$<TARGET_PROPERTY:QT_PLUGINS_$${CMAKE_PLUGIN_TYPE_ESCAPED}>>\")
+    set(_no_plugins_genex \"$<GENEX_EVAL:$<TARGET_PROPERTY:QT_NO_PLUGINS>>\")
+endif()
+set(_user_specified_genex
+    \"$<IN_LIST:Qt5::$$CMAKE_PLUGIN_NAME,${_manual_plugins_genex};${_plugin_type_genex}>\"
+)
+set(_user_specified_genex_versionless
+    \"$<IN_LIST:Qt::$$CMAKE_PLUGIN_NAME,${_manual_plugins_genex};${_plugin_type_genex}>\"
+)
+string(CONCAT _plugin_genex
+    \"$<$<OR:\"
+        # Add this plugin if it\'s in the list of manually specified plugins or in the list of
+        # explicitly included plugin types.
+        \"${_user_specified_genex},\"
+        \"${_user_specified_genex_versionless},\"
+        # Add this plugin if all of the following are true:
+        # 1) the list of explicitly included plugin types is empty
+        # 2) the QT_PLUGIN_EXTENDS property for the plugin is empty or equal to the current
+        #    module name
+        # 3) the user hasn\'t explicitly excluded the plugin.
+        \"$<AND:\"
+            \"$<STREQUAL:${_plugin_type_genex},>,\"
+            \"$<OR:\"
+                # FIXME: The value of CMAKE_MODULE_NAME seems to be wrong (e.g for Svg plugin
+                # it should be Qt::Svg instead of Qt::Gui).
+                \"$<STREQUAL:$<TARGET_PROPERTY:Qt5::$${CMAKE_PLUGIN_NAME},QT_PLUGIN_EXTENDS>,Qt::$${CMAKE_MODULE_NAME}>,\"
+                \"$<STREQUAL:$<TARGET_PROPERTY:Qt5::$${CMAKE_PLUGIN_NAME},QT_PLUGIN_EXTENDS>,>\"
+            \">,\"
+            \"$<NOT:$<IN_LIST:Qt5::$${CMAKE_PLUGIN_NAME},${_no_plugins_genex}>>,\"
+            \"$<NOT:$<IN_LIST:Qt::$${CMAKE_PLUGIN_NAME},${_no_plugins_genex}>>\"
+        \">\"
+    \">:Qt5::$$CMAKE_PLUGIN_NAME>\"
+)
+set_property(TARGET Qt5::$${CMAKE_MODULE_NAME} APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+    ${_plugin_genex}
+)
+set_property(TARGET Qt5::$${CMAKE_PLUGIN_NAME} APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+    \"$${CMAKE_PLUGIN_QT5_MODULE_DEPS}\"
+)
+!!ENDIF
+set_property(TARGET Qt5::$${CMAKE_PLUGIN_NAME} PROPERTY QT_PLUGIN_TYPE \"$$CMAKE_PLUGIN_TYPE\")
+set_property(TARGET Qt5::$${CMAKE_PLUGIN_NAME} PROPERTY QT_PLUGIN_EXTENDS \"$$CMAKE_PLUGIN_EXTENDS\")
+set_property(TARGET Qt5::$${CMAKE_PLUGIN_NAME} PROPERTY QT_PLUGIN_CLASS_NAME \"$$CMAKE_PLUGIN_NAME\")

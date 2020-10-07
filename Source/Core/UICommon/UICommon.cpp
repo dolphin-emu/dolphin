@@ -102,7 +102,7 @@ void Init()
   GCAdapter::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
 
-  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  Common::SetEnableAlert(false); // Panic Handlers forced off
 }
 
 void Shutdown()

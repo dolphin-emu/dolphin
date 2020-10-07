@@ -1,0 +1,5 @@
+#ifndef QT_QTACCESSIBILITYSUPPORT_MODULE_H
+#define QT_QTACCESSIBILITYSUPPORT_MODULE_H
+#include <QtAccessibilitySupport/QtAccessibilitySupportDepends>
+#include "qtaccessibilitysupportversion.h"
+#endif

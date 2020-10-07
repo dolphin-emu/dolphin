@@ -397,8 +397,6 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   IniFile::Section* interface = ini.GetOrCreateSection("Interface");
 
   interface->Get("ConfirmStop", &bConfirmStop, true);
-  bUsePanicHandlers = false;
-  interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   bHideCursor = true;
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);

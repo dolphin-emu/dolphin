@@ -1,0 +1,149 @@
+#
+#  W A R N I N G
+#  -------------
+#
+# This file is not part of the Qt API.  It exists purely as an
+# implementation detail.  It may change from version to version
+# without notice, or even be removed.
+#
+# We mean it.
+#
+
+defineTest(addInstallFiles) {
+    for(sf, 2) {
+        sf = $$relative_path($$sf, $$_PRO_FILE_PWD_)
+        contains(sf, \\..*) {
+            check_examples: message("Notice: $$_PRO_FILE_ refers to $$sf")
+        } else {
+            sfp = $$replace(sf, /.*, )
+            !equals(sfp, $$sf): \
+                $$1 *= $$sfp
+            else: \
+                $$1 += $$sf
+        }
+    }
+    export($$1)
+}
+
+moduleRoot = $$dirname(_QMAKE_CONF_)
+probase = $$relative_path($$_PRO_FILE_PWD_, $$moduleRoot/examples)
+isEmpty(probase)|contains(probase, ^\\..*): \
+    return()
+
+isEmpty(_QMAKE_CACHE_) {
+    moduleRootRelativeToBuildDir = $$relative_path($$moduleRoot, $$OUT_PWD)
+    # Check if OUT_PWD is inside module root
+    equals(moduleRootRelativeToBuildDir, .)|contains(moduleRootRelativeToBuildDir, \(\.\./\)+\(\.\.\)?): \
+        error("You cannot build examples inside the Qt source tree, except as part of a proper Qt build.")
+}
+
+contains(TEMPLATE, "vc.*"): \
+    return()
+
+contains(TEMPLATE, .*app): \
+    qtSetQmlPath()
+
+for(ex, EXAMPLE_FILES): \
+    sourcefiles += $$files($$absolute_path($$ex, $$_PRO_FILE_PWD_))
+for(res, RESOURCES) {
+    !contains(res, .*\\.qrc): \
+        next()
+    rfile = $$absolute_path($$res, $$_PRO_FILE_PWD_)
+    rpath = $$dirname(rfile)
+    rcont = $$cat($$rfile, lines)
+    for (rline, rcont) {
+        resrc = $$replace(rline, ^[ \\t]*<file[^>]*>([^<]+)</file>[ \\t]*$, \\1)
+        !equals(resrc, $$rline): \
+            sourcefiles += $$absolute_path($$resrc, $$rpath)
+    }
+}
+for(res, RC_FILE) {
+    rfile = $$absolute_path($$res, $$_PRO_FILE_PWD_)
+    rpath = $$dirname(rfile)
+    rcont = $$cat($$rfile, lines)
+    for (rline, rcont) {
+        resrc = $$replace(rline, "^\\d+\\s+ICON\\s+[^\"]*\"([^\"]+)\"\$", \\1)
+        !equals(resrc, $$rline): \
+            sourcefiles += $$absolute_path($$resrc, $$rpath)
+    }
+}
+sourcefiles += \
+    $$ANDROID_PACKAGE_SOURCE_DIR \
+    $$QMAKE_INFO_PLIST \
+    $$DISTFILES
+extras = \
+    $$_PRO_FILE_PWD_/README \
+    $$_PRO_FILE_PWD_/README.TXT \
+    $$_PRO_FILE_PWD_/qmldir \
+    $$files($$_PRO_FILE_PWD_/*.pri) \
+    $$replace(_PRO_FILE_, \\.pro$, .qmlproject) \
+    $$replace(_PRO_FILE_, \\.pro$, .json) \
+    $$replace(_PRO_FILE_, \\.pro$, .inf)
+for(extra, extras): \
+    exists($$extra): \
+        sourcefiles += $$extra
+
+# Just for Qt Creator
+OTHER_FILES += $$sourcefiles
+
+sourcefiles += \
+    $$_PRO_FILE_ $$RC_FILE $$DEF_FILE \
+    $$SOURCES $$HEADERS $$FORMS $$RESOURCES $$TRANSLATIONS \
+    $$DBUS_ADAPTORS $$DBUS_INTERFACES
+addInstallFiles(sources.files, $$sourcefiles)
+sources.path = $$[QT_INSTALL_EXAMPLES]/$$probase
+INSTALLS += sources
+
+check_examples {
+    srcfiles = $$sources.files
+    for(inst, INSTALLS): \
+        !equals(inst, target):!contains($${inst}.CONFIG, no_check_exist): \
+            for(file, $${inst}.files): \
+                instfiles += $$files($$absolute_path($$file, $$_PRO_FILE_PWD_))
+    addInstallFiles(srcfiles, $$instfiles)
+
+    thefiles = $$files($$_PRO_FILE_PWD_/*)
+    for(i, thefiles): \
+        allfiles += $$relative_path($$i, $$_PRO_FILE_PWD_)
+    for(i, srcfiles): \
+        allfiles -= $$relative_path($$i, $$_PRO_FILE_PWD_)
+    for(i, SUBDIRS) {
+        sd = $$eval($${i}.file)
+        !isEmpty(sd) {
+            sd ~= s,/.*,,
+        } else {
+            sd = $$eval($${i}.subdir)
+            isEmpty(sd): sd = $$i
+        }
+        allfiles -= $$sd
+    }
+    allfiles -= doc
+    !isEmpty(allfiles): warning("remaining files in $$_PRO_FILE_PWD_: $$allfiles")
+}
+
+equals(TEMPLATE, app)|equals(TEMPLATE, lib) {
+    !contains(INSTALLS, target) {
+        !install_ok: \
+            error("$$_PRO_FILE_ is lacking an install target.")
+        else: check_examples: \
+            warning("$$_PRO_FILE_ is lacking an install target.")
+    } else: !equals(target.path, $$sources.path) {
+        !install_ok: \
+            error("$$_PRO_FILE_ installs target to unexpected location.")
+        else: check_examples: \
+            warning("$$_PRO_FILE_ installs target to unexpected location.")
+    }
+}
+
+!equals(TEMPLATE, subdirs):!compile_examples {
+    TEMPLATE = aux
+    CONFIG -= have_target qt staticlib dll
+    SOURCES =
+    OBJECTIVE_SOURCES =
+    INSTALLS -= target
+    QMAKE_SUBSTITUTES =
+    QMAKE_EXTRA_COMPILERS =
+    COPIES =
+} else {
+    CONFIG += relative_qt_rpath  # Examples built as part of Qt should be relocatable
+}

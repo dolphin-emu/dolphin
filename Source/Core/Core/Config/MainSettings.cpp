@@ -156,7 +156,7 @@ const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT{{System::Main, "Network", "SSLD
 
 // Main.Interface
 
-const Info<bool> MAIN_USE_PANIC_HANDLERS{{System::Main, "Interface", "UsePanicHandlers"}, true};
+const Info<bool> MAIN_USE_PANIC_HANDLERS{{System::Main, "Interface", "UsePanicHandlers"}, false};
 const Info<bool> MAIN_OSD_MESSAGES{{System::Main, "Interface", "OnScreenDisplayMessages"}, true};
 const Info<bool> MAIN_SKIP_NKIT_WARNING{{System::Main, "Interface", "SkipNKitWarning"}, false};
 
