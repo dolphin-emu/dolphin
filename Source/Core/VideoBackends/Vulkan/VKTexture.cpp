@@ -122,7 +122,7 @@ std::unique_ptr<VKTexture> VKTexture::CreateAdopted(const TextureConfig& tex_con
                                                     VkImageViewType view_type, VkImageLayout layout)
 {
   std::unique_ptr<VKTexture> texture = std::make_unique<VKTexture>(
-      tex_config, nullptr, image, layout, ComputeImageLayout::Undefined);
+      tex_config, VkDeviceMemory(VK_NULL_HANDLE), image, layout, ComputeImageLayout::Undefined);
   if (!texture->CreateView(view_type))
     return nullptr;
 
