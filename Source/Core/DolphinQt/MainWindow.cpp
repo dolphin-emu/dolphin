@@ -18,6 +18,7 @@
 
 #include <future>
 #include <optional>
+#include <variant>
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 #include <signal.h>
@@ -25,7 +26,7 @@
 #include "QtUtils/SignalDaemon.h"
 #endif
 
-#ifndef WIN32
+#ifndef _WIN32
 #include <qpa/qplatformnativeinterface.h>
 #endif
 
@@ -83,6 +84,7 @@
 #include "DolphinQt/HotkeyScheduler.h"
 #include "DolphinQt/MainWindow.h"
 #include "DolphinQt/MenuBar.h"
+#include "DolphinQt/NKitWarningDialog.h"
 #include "DolphinQt/NetPlay/NetPlayBrowser.h"
 #include "DolphinQt/NetPlay/NetPlayDialog.h"
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
@@ -822,7 +824,7 @@ bool MainWindow::RequestStop()
       Core::SetState(Core::State::Paused);
 
     auto confirm = ModalMessageBox::question(
-        this, tr("Confirm"),
+        m_rendering_to_main ? static_cast<QWidget*>(this) : m_render_widget, tr("Confirm"),
         m_stop_requested ? tr("A shutdown is already in progress. Unsaved data "
                               "may be lost if you stop the current emulation "
                               "before it completes. Force stop?") :
@@ -952,6 +954,15 @@ void MainWindow::StartGame(const std::vector<std::string>& paths,
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 {
+  if (std::holds_alternative<BootParameters::Disc>(parameters->parameters))
+  {
+    if (std::get<BootParameters::Disc>(parameters->parameters).volume->IsNKit())
+    {
+      if (!NKitWarningDialog::ShowUnlessDisabled())
+        return;
+    }
+  }
+
   // If we're running, only start a new game once we've stopped the last.
   if (Core::GetState() != Core::State::Uninitialized)
   {
@@ -1363,7 +1374,7 @@ bool MainWindow::NetPlayJoin()
   return true;
 }
 
-bool MainWindow::NetPlayHost(const QString& game_id)
+bool MainWindow::NetPlayHost(const UICommon::GameFile& game)
 {
   if (Core::IsRunning())
   {
@@ -1408,7 +1419,8 @@ bool MainWindow::NetPlayHost(const QString& game_id)
     return false;
   }
 
-  Settings::Instance().GetNetPlayServer()->ChangeGame(game_id.toStdString());
+  Settings::Instance().GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(),
+                                                      m_game_list->GetNetPlayName(game));
 
   // Join our local server
   return NetPlayJoin();
@@ -1694,10 +1706,12 @@ void MainWindow::OnConnectWiiRemote(int id)
   if (!ios || SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
   Core::RunAsCPUThread([&] {
-    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        ios->GetDeviceByName("/dev/usb/oh1/57e/305"));
-    const bool is_connected = bt && bt->AccessWiimoteByIndex(id)->IsConnected();
-    Wiimote::Connect(id, !is_connected);
+    if (const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+            ios->GetDeviceByName("/dev/usb/oh1/57e/305")))
+    {
+      const auto wm = bt->AccessWiimoteByIndex(id);
+      wm->Activate(!wm->IsConnected());
+    }
   });
 }
 

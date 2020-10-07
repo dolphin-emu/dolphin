@@ -113,7 +113,7 @@ bool PlatformWin32::Init()
 
 void PlatformWin32::SetTitle(const std::string& string)
 {
-  SetWindowTextW(m_hwnd, UTF8ToUTF16(string).c_str());
+  SetWindowTextW(m_hwnd, UTF8ToWString(string).c_str());
 }
 
 void PlatformWin32::MainLoop()

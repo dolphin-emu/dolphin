@@ -69,6 +69,8 @@ void DiscordHandler::ShowNewJoinRequest(const std::string& id, const std::string
 
 void DiscordHandler::Run()
 {
+  Common::SetCurrentThreadName("DiscordHandler");
+
   while (!m_stop_requested.IsSet())
   {
     Discord::CallPendingCallbacks();

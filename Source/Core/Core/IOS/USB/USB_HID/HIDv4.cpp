@@ -24,11 +24,8 @@ namespace IOS::HLE::Device
 {
 USB_HIDv4::USB_HIDv4(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
-}
-
-USB_HIDv4::~USB_HIDv4()
-{
-  StopThreads();
+  static_assert(offsetof(USB_HIDv4, m_scan_thread) == sizeof(USB_HIDv4) - sizeof(ScanThread),
+                "ScanThread must be the last data member");
 }
 
 IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
@@ -213,7 +210,7 @@ static void CopyDescriptorToBuffer(std::vector<u8>* buffer, T descriptor)
   descriptor.Swap();
   buffer->insert(buffer->end(), reinterpret_cast<const u8*>(&descriptor),
                  reinterpret_cast<const u8*>(&descriptor) + size);
-  const size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
+  constexpr size_t number_of_padding_bytes = Common::AlignUp(size, 4) - size;
   buffer->insert(buffer->end(), number_of_padding_bytes, 0);
 }
 

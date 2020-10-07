@@ -63,29 +63,32 @@ void Wiimote::InvokeHandler(H&& handler, const WiimoteCommon::OutputReportGeneri
   (this->*handler)(Common::BitCastPtr<T>(rpt.data));
 }
 
-// Here we process the Output Reports that the Wii sends. Our response will be
-// an Input Report back to the Wii. Input and Output is from the Wii's
-// perspective, Output means data to the Wiimote (from the Wii), Input means
-// data from the Wiimote.
-//
-// The call browser:
-//
-// 1. Wiimote_InterruptChannel > InterruptChannel > HIDOutputReport
-// 2. Wiimote_ControlChannel > ControlChannel > HIDOutputReport
+void Wiimote::EventLinked()
+{
+  Reset();
+}
 
-void Wiimote::HIDOutputReport(const void* data, u32 size)
+void Wiimote::EventUnlinked()
+{
+  Reset();
+}
+
+void Wiimote::InterruptDataOutput(const u8* data, u32 size)
 {
   if (!size)
   {
-    ERROR_LOG(WIIMOTE, "HIDOutputReport: zero sized data");
+    ERROR_LOG(WIIMOTE, "OutputData: zero sized data");
     return;
   }
 
-  auto& rpt = *static_cast<const OutputReportGeneric*>(data);
+  auto& rpt = *reinterpret_cast<const OutputReportGeneric*>(data);
   const int rpt_size = size - OutputReportGeneric::HEADER_SIZE;
 
-  DEBUG_LOG(WIIMOTE, "HIDOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index,
-            m_reporting_channel, int(rpt.rpt_id));
+  if (!rpt_size)
+  {
+    ERROR_LOG(WIIMOTE, "OutputData: zero sized report");
+    return;
+  }
 
   // WiiBrew:
   // In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.
@@ -132,21 +135,16 @@ void Wiimote::HIDOutputReport(const void* data, u32 size)
   }
 }
 
-void Wiimote::CallbackInterruptChannel(const u8* data, u32 size)
-{
-  Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, size);
-}
-
 void Wiimote::SendAck(OutputReportID rpt_id, ErrorCode error_code)
 {
-  TypedHIDInputData<InputReportAck> rpt(InputReportID::Ack);
-  auto& ack = rpt.data;
+  TypedInputData<InputReportAck> rpt(InputReportID::Ack);
+  auto& ack = rpt.payload;
 
   ack.buttons = m_status.buttons;
   ack.rpt_id = rpt_id;
   ack.error_code = error_code;
 
-  CallbackInterruptChannel(rpt.GetData(), rpt.GetSize());
+  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
 
 void Wiimote::HandleExtensionSwap()
@@ -235,21 +233,20 @@ void Wiimote::HandleRequestStatus(const OutputReportRequestStatus&)
 
   // Update status struct
   m_status.extension = m_extension_port.IsDeviceConnected();
-
-  m_status.battery = u8(std::lround(m_battery_setting.GetValue() / 100 * MAX_BATTERY_LEVEL));
+  m_status.SetEstimatedCharge(m_battery_setting.GetValue() / ciface::BATTERY_INPUT_MAX_VALUE);
 
   if (Core::WantsDeterminism())
   {
     // One less thing to break determinism:
-    m_status.battery = MAX_BATTERY_LEVEL;
+    m_status.SetEstimatedCharge(1.f);
   }
 
   // Less than 0x20 triggers the low-battery flag:
   m_status.battery_low = m_status.battery < 0x20;
 
-  TypedHIDInputData<InputReportStatus> rpt(InputReportID::Status);
-  rpt.data = m_status;
-  CallbackInterruptChannel(rpt.GetData(), rpt.GetSize());
+  TypedInputData<InputReportStatus> rpt(InputReportID::Status);
+  rpt.payload = m_status;
+  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 }
 
 void Wiimote::HandleWriteData(const OutputReportWriteData& wd)
@@ -390,10 +387,9 @@ void Wiimote::HandleSpeakerData(const WiimoteCommon::OutputReportSpeakerData& rp
     }
     else
     {
-      // Speaker Pan
-      const auto pan = m_speaker_pan_setting.GetValue() / 100;
-
-      m_speaker_logic.SpeakerData(rpt.data, rpt.length, pan);
+      // Speaker data reports result in a write to the speaker hardware at offset 0x00.
+      m_i2c_bus.BusWrite(SpeakerLogic::I2C_ADDR, SpeakerLogic::SPEAKER_DATA_OFFSET, rpt.length,
+                         rpt.data);
     }
   }
 
@@ -444,8 +440,8 @@ bool Wiimote::ProcessReadDataRequest()
     return false;
   }
 
-  TypedHIDInputData<InputReportReadDataReply> rpt(InputReportID::ReadDataReply);
-  auto& reply = rpt.data;
+  TypedInputData<InputReportReadDataReply> rpt(InputReportID::ReadDataReply);
+  auto& reply = rpt.payload;
 
   reply.buttons = m_status.buttons;
   reply.address = Common::swap16(m_read_request.address);
@@ -541,7 +537,7 @@ bool Wiimote::ProcessReadDataRequest()
 
   reply.error = static_cast<u8>(error_code);
 
-  CallbackInterruptChannel(rpt.GetData(), rpt.GetSize());
+  InterruptDataInputCallback(rpt.GetData(), rpt.GetSize());
 
   return true;
 }
@@ -554,7 +550,6 @@ void Wiimote::DoState(PointerWrap& p)
   // No need to sync. This is not wiimote state.
   // p.Do(m_sensor_bar_on_top);
 
-  p.Do(m_reporting_channel);
   p.Do(m_reporting_mode);
   p.Do(m_reporting_continuous);
 

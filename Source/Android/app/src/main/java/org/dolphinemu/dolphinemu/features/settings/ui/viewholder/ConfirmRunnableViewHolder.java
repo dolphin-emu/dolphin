@@ -5,13 +5,13 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
+
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.view.ConfirmRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsFragmentView;
-
-import androidx.appcompat.app.AlertDialog;
 
 public final class ConfirmRunnableViewHolder extends SettingViewHolder
 {
@@ -35,8 +35,8 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
   @Override
   protected void findViews(View root)
   {
-    mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
+    mTextSettingName = root.findViewById(R.id.text_setting_name);
+    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
   }
 
   @Override
@@ -78,9 +78,7 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
               mView.getActivity().finish();
             })
             .setNegativeButton("No", (dialog, whichButton) ->
-            {
-              dialog.dismiss();
-            });
+                    dialog.dismiss());
 
     builder.show();
   }

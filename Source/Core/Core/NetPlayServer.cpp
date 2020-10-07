@@ -51,6 +51,7 @@
 #include "Core/IOS/IOS.h"
 #include "Core/IOS/Uids.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
+#include "Core/SyncIdentifier.h"
 #include "DiscIO/Enums.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
 #include "InputCommon/GCPadStatus.h"
@@ -182,7 +183,7 @@ void NetPlayServer::SetupIndex()
   session.region = Config::Get(Config::NETPLAY_INDEX_REGION);
   session.has_password = !Config::Get(Config::NETPLAY_INDEX_PASSWORD).empty();
   session.method = m_traversal_client ? "traversal" : "direct";
-  session.game_id = m_selected_game.empty() ? "UNKNOWN" : m_selected_game;
+  session.game_id = m_selected_game_name.empty() ? "UNKNOWN" : m_selected_game_name;
   session.player_count = static_cast<int>(m_players.size());
   session.in_game = m_is_running;
   session.port = GetPort();
@@ -238,7 +239,7 @@ void NetPlayServer::ThreadFunc()
       SendToClients(spac);
 
       m_index.SetPlayerCount(static_cast<int>(m_players.size()));
-      m_index.SetGame(m_selected_game);
+      m_index.SetGame(m_selected_game_name);
       m_index.SetInGame(m_is_running);
 
       m_update_pings = false;
@@ -348,6 +349,20 @@ void NetPlayServer::ThreadFunc()
   }
 }  // namespace NetPlay
 
+static void SendSyncIdentifier(sf::Packet& spac, const SyncIdentifier& sync_identifier)
+{
+  // We cast here due to a potential long vs long long mismatch
+  spac << static_cast<sf::Uint64>(sync_identifier.dol_elf_size);
+
+  spac << sync_identifier.game_id;
+  spac << sync_identifier.revision;
+  spac << sync_identifier.disc_number;
+  spac << sync_identifier.is_datel;
+
+  for (const u8& x : sync_identifier.sync_hash)
+    spac << x;
+}
+
 // called from ---NETPLAY--- thread
 unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
 {
@@ -377,15 +392,18 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   if (m_players.size() >= 255)
     return CON_ERR_SERVER_FULL;
 
-  // cause pings to be updated
-  m_update_pings = true;
-
   Client player;
   player.pid = pid;
   player.socket = socket;
 
   rpac >> player.revision;
   rpac >> player.name;
+
+  if (StringUTF8CodePointCount(player.name) > MAX_NAME_LENGTH)
+    return CON_ERR_NAME_TOO_LONG;
+
+  // cause pings to be updated
+  m_update_pings = true;
 
   // try to automatically assign new user a pad
   for (PlayerId& mapping : m_pad_map)
@@ -410,11 +428,12 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket, sf::Packet& rpac)
   Send(player.socket, spac);
 
   // send new client the selected game
-  if (!m_selected_game.empty())
+  if (!m_selected_game_name.empty())
   {
     spac.clear();
     spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-    spac << m_selected_game;
+    SendSyncIdentifier(spac, m_selected_game_identifier);
+    spac << m_selected_game_name;
     Send(player.socket, spac);
   }
 
@@ -784,8 +803,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u8 size;
     packet >> map >> size;
     std::vector<u8> data(size);
-    for (size_t i = 0; i < data.size(); ++i)
-      packet >> data[i];
+    for (u8& byte : data)
+      packet >> byte;
 
     // If the data is not from the correct player,
     // then disconnect them.
@@ -910,7 +929,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     u32 status;
     packet >> status;
 
-    m_players[player.pid].game_status = static_cast<PlayerGameStatus>(status);
+    m_players[player.pid].game_status = static_cast<SyncIdentifierComparison>(status);
 
     // send msg to other clients
     sf::Packet spac;
@@ -1150,16 +1169,19 @@ void NetPlayServer::SendChatMessage(const std::string& msg)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::ChangeGame(const std::string& game)
+bool NetPlayServer::ChangeGame(const SyncIdentifier& sync_identifier,
+                               const std::string& netplay_name)
 {
   std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
 
-  m_selected_game = game;
+  m_selected_game_identifier = sync_identifier;
+  m_selected_game_name = netplay_name;
 
   // send changed game to clients
   sf::Packet spac;
   spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-  spac << game;
+  SendSyncIdentifier(spac, m_selected_game_identifier);
+  spac << m_selected_game_name;
 
   SendAsyncToClients(std::move(spac));
 
@@ -1167,11 +1189,11 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 }
 
 // called from ---GUI--- thread
-bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
+bool NetPlayServer::ComputeMD5(const SyncIdentifier& sync_identifier)
 {
   sf::Packet spac;
   spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
-  spac << file_identifier;
+  SendSyncIdentifier(spac, sync_identifier);
 
   SendAsyncToClients(std::move(spac));
 
@@ -1257,7 +1279,7 @@ bool NetPlayServer::StartGame()
   const sf::Uint64 initial_rtc = GetInitialNetPlayRTC();
 
   const std::string region = SConfig::GetDirectoryForRegion(
-      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game)->GetRegion()));
+      SConfig::ToGameCubeRegion(m_dialog->FindGameFile(m_selected_game_identifier)->GetRegion()));
 
   // sync GC SRAM with clients
   if (!g_SRAM_netplay_initialized)
@@ -1392,7 +1414,7 @@ bool NetPlayServer::SyncSaveData()
     }
   }
 
-  const auto game = m_dialog->FindGameFile(m_selected_game);
+  const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
     PanicAlertT("Selected game doesn't exist in game list!");
@@ -1565,8 +1587,8 @@ bool NetPlayServer::SyncSaveData()
         // Header
         pac << sf::Uint64{header->tid};
         pac << header->banner_size << header->permissions << header->unk1;
-        for (size_t i = 0; i < header->md5.size(); i++)
-          pac << header->md5[i];
+        for (u8 byte : header->md5)
+          pac << byte;
         pac << header->unk2;
         for (size_t i = 0; i < header->banner_size; i++)
           pac << header->banner[i];
@@ -1575,11 +1597,11 @@ bool NetPlayServer::SyncSaveData()
         pac << bk_header->size << bk_header->magic << bk_header->ngid << bk_header->number_of_files
             << bk_header->size_of_files << bk_header->unk1 << bk_header->unk2
             << bk_header->total_size;
-        for (size_t i = 0; i < bk_header->unk3.size(); i++)
-          pac << bk_header->unk3[i];
+        for (u8 byte : bk_header->unk3)
+          pac << byte;
         pac << sf::Uint64{bk_header->tid};
-        for (size_t i = 0; i < bk_header->mac_address.size(); i++)
-          pac << bk_header->mac_address[i];
+        for (u8 byte : bk_header->mac_address)
+          pac << byte;
 
         // Files
         for (const WiiSave::Storage::SaveFile& file : *files)
@@ -1615,7 +1637,7 @@ bool NetPlayServer::SyncCodes()
   m_codes_synced = false;
 
   // Get Game Path
-  const auto game = m_dialog->FindGameFile(m_selected_game);
+  const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
     PanicAlertT("Selected game doesn't exist in game list!");

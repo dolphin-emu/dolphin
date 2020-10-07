@@ -59,7 +59,7 @@ GameList::GameList(QWidget* parent) : QStackedWidget(parent)
   m_model = Settings::Instance().GetGameListModel();
   m_list_proxy = new ListProxyModel(this);
   m_list_proxy->setSortCaseSensitivity(Qt::CaseInsensitive);
-  m_list_proxy->setSortRole(Qt::InitialSortOrderRole);
+  m_list_proxy->setSortRole(GameListModel::SORT_ROLE);
   m_list_proxy->setSourceModel(m_model);
   m_grid_proxy = new GridProxyModel(this);
   m_grid_proxy->setSourceModel(m_model);
@@ -263,18 +263,12 @@ void GameList::ShowContextMenu(const QPoint&)
 
   QMenu* menu = new QMenu(this);
 
-  const auto can_convert = [](const std::shared_ptr<const UICommon::GameFile>& game) {
-    // Converting from TGC is temporarily disabled because PR #8738 was merged prematurely.
-    // The TGC check will be removed by PR #8644.
-    return DiscIO::IsDisc(game->GetPlatform()) && game->IsVolumeSizeAccurate() &&
-           game->GetBlobType() != DiscIO::BlobType::TGC;
-  };
-
   if (HasMultipleSelected())
   {
     const auto selected_games = GetSelectedGames();
 
-    if (std::all_of(selected_games.begin(), selected_games.end(), can_convert))
+    if (std::all_of(selected_games.begin(), selected_games.end(),
+                    [](const auto& game) { return game->ShouldAllowConversion(); }))
     {
       menu->addAction(tr("Convert Selected Files..."), this, &GameList::ConvertFile);
       menu->addSeparator();
@@ -305,9 +299,8 @@ void GameList::ShowContextMenu(const QPoint&)
     if (DiscIO::IsDisc(platform))
     {
       menu->addAction(tr("Set as &Default ISO"), this, &GameList::SetDefaultISO);
-      const auto blob_type = game->GetBlobType();
 
-      if (can_convert(game))
+      if (game->ShouldAllowConversion())
         menu->addAction(tr("Convert File..."), this, &GameList::ConvertFile);
 
       QAction* change_disc = menu->addAction(tr("Change &Disc"), this, &GameList::ChangeDisc);
@@ -404,9 +397,7 @@ void GameList::ShowContextMenu(const QPoint&)
 
     QAction* netplay_host = new QAction(tr("Host with NetPlay"), menu);
 
-    connect(netplay_host, &QAction::triggered, [this, game] {
-      emit NetPlayHost(QString::fromStdString(game->GetUniqueIdentifier()));
-    });
+    connect(netplay_host, &QAction::triggered, [this, game] { emit NetPlayHost(*game); });
 
     connect(&Settings::Instance(), &Settings::EmulationStateChanged, menu, [=](Core::State state) {
       netplay_host->setEnabled(state == Core::State::Uninitialized);
@@ -744,6 +735,11 @@ std::shared_ptr<const UICommon::GameFile>
 GameList::FindSecondDisc(const UICommon::GameFile& game) const
 {
   return m_model->FindSecondDisc(game);
+}
+
+std::string GameList::GetNetPlayName(const UICommon::GameFile& game) const
+{
+  return m_model->GetNetPlayName(game);
 }
 
 void GameList::SetViewColumn(int col, bool view)

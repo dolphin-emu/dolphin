@@ -24,11 +24,8 @@ namespace IOS::HLE::Device
 {
 OH0::OH0(Kernel& ios, const std::string& device_name) : USBHost(ios, device_name)
 {
-}
-
-OH0::~OH0()
-{
-  StopThreads();
+  static_assert(offsetof(OH0, m_scan_thread) == sizeof(OH0) - sizeof(ScanThread),
+                "ScanThread must be the last data member");
 }
 
 IPCCommandResult OH0::Open(const OpenRequest& request)

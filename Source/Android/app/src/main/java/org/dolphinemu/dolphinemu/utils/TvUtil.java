@@ -18,13 +18,12 @@ import android.media.tv.TvContract;
 import android.net.Uri;
 import android.os.Build;
 import android.os.PersistableBundle;
+import android.util.Log;
 
 import androidx.annotation.AnyRes;
 import androidx.annotation.NonNull;
 import androidx.tvprovider.media.tv.Channel;
 import androidx.tvprovider.media.tv.TvContractCompat;
-
-import android.util.Log;
 
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.HomeScreenChannel;
@@ -123,11 +122,10 @@ public class TvUtil
           throws Resources.NotFoundException
   {
     Resources res = context.getResources();
-    Uri resUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
+    return Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE +
             "://" + res.getResourcePackageName(resId)
             + '/' + res.getResourceTypeName(resId)
             + '/' + res.getResourceEntryName(resId));
-    return resUri;
   }
 
   /**
@@ -168,7 +166,7 @@ public class TvUtil
       {
         contentUri = getUriForFile(context, getFileProvider(context), cover);
       }
-      else if ((cover = new File(game.getCoverPath())).exists())
+      else if ((cover = new File(game.getCoverPath(context))).exists())
       {
         contentUri = getUriForFile(context, getFileProvider(context), cover);
       }
@@ -255,9 +253,7 @@ public class TvUtil
    */
   public static List<HomeScreenChannel> createUniversalSubscriptions()
   {
-    //Leaving the subs local variable in case more channels are created other than platforms.
-    List<HomeScreenChannel> subs = new ArrayList<>(createPlatformSubscriptions());
-    return subs;
+    return new ArrayList<>(createPlatformSubscriptions());
   }
 
   private static List<HomeScreenChannel> createPlatformSubscriptions()

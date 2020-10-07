@@ -98,7 +98,7 @@ void Device::QueueReport(T&& report, std::function<void(ErrorCode)> ack_callback
   // Maintain proper rumble state.
   report.rumble = m_rumble;
 
-  m_wiimote->QueueReport(std::forward<T>(report));
+  m_wiimote->QueueReport(report.REPORT_ID, &report, sizeof(report));
 
   if (ack_callback)
     AddReportHandler(MakeAckHandler(report.REPORT_ID, std::move(ack_callback)));
@@ -117,9 +117,7 @@ void AddDevice(std::unique_ptr<WiimoteReal::Wiimote> wiimote)
   }
 
   wiimote->Prepare();
-
-  // Our silly real wiimote interface needs a non-zero "channel" to not drop input reports.
-  wiimote->SetChannel(26);
+  wiimote->EventLinked();
 
   g_controller_interface.AddDevice(std::make_shared<Device>(std::move(wiimote)));
 }
@@ -197,6 +195,8 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   }
 
   AddInput(new UndetectableAnalogInput<bool>(&m_ir_state.is_hidden, "IR Hidden", 1));
+
+  AddInput(new UndetectableAnalogInput<float>(&m_ir_state.distance, "IR Distance", 1));
 
   // Raw gyroscope.
   static constexpr std::array<std::array<const char*, 2>, 3> gyro_names = {{
@@ -288,8 +288,7 @@ Device::Device(std::unique_ptr<WiimoteReal::Wiimote> wiimote) : m_wiimote(std::m
   AddInput(new AnalogInput<float>(&m_classic_state.triggers[1], classic_prefix + "R-Analog", 1.f));
 
   // Specialty inputs:
-  AddInput(new UndetectableAnalogInput<u8>(
-      &m_battery, "Battery", WiimoteCommon::MAX_BATTERY_LEVEL / ciface::BATTERY_INPUT_MAX_VALUE));
+  AddInput(new UndetectableAnalogInput<float>(&m_battery, "Battery", 1.f));
   AddInput(new UndetectableAnalogInput<WiimoteEmu::ExtensionNumber>(
       &m_extension_number_input, "Attached Extension", WiimoteEmu::ExtensionNumber(1)));
   AddInput(new UndetectableAnalogInput<bool>(&m_mplus_attached_input, "Attached MotionPlus", 1));
@@ -611,22 +610,27 @@ void Device::RunTasks()
 
           WiimoteEmu::UpdateCalibrationDataChecksum(calibration_data, 2);
 
+          Checksum checksum = Checksum::Good;
+
           if (read_checksum != std::pair(calibration_data[CALIBRATION_SIZE - 2],
                                          calibration_data[CALIBRATION_SIZE - 1]))
           {
             // We could potentially try another block or call the extension unusable.
             WARN_LOG(WIIMOTE, "WiiRemote: Bad extension calibration checksum.");
+            checksum = Checksum::Bad;
           }
 
           if (m_extension_id == ExtensionID::Nunchuk)
           {
             m_nunchuk_state.SetCalibrationData(
-                Common::BitCastPtr<WiimoteEmu::Nunchuk::CalibrationData>(calibration_data.data()));
+                Common::BitCastPtr<WiimoteEmu::Nunchuk::CalibrationData>(calibration_data.data()),
+                checksum);
           }
           else if (m_extension_id == ExtensionID::Classic)
           {
             m_classic_state.SetCalibrationData(
-                Common::BitCastPtr<WiimoteEmu::Classic::CalibrationData>(calibration_data.data()));
+                Common::BitCastPtr<WiimoteEmu::Classic::CalibrationData>(calibration_data.data()),
+                checksum);
           }
         });
 
@@ -731,24 +735,76 @@ void Device::MotionPlusState::SetCalibrationData(
   calibration->slow = data.slow;
 }
 
-void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::CalibrationData& data)
+Device::NunchukState::Calibration::Calibration() : accel{}, stick{}
+{
+  accel.zero.data.fill(1 << (accel.BITS_OF_PRECISION - 1));
+  // Approximate 1G value per WiiBrew:
+  accel.max.data.fill(740);
+
+  stick.zero.data.fill(1 << (stick.BITS_OF_PRECISION - 1));
+  stick.max.data.fill((1 << stick.BITS_OF_PRECISION) - 1);
+}
+
+void Device::NunchukState::SetCalibrationData(const WiimoteEmu::Nunchuk::CalibrationData& data,
+                                              Checksum checksum)
 {
   DEBUG_LOG(WIIMOTE, "WiiRemote: Set Nunchuk calibration.");
 
   calibration.emplace();
 
-  calibration->stick = data.GetStick();
-  calibration->accel = data.GetAccel();
+  if (checksum == Checksum::Bad)
+    return;
+
+  // Genuine Nunchuks have been observed with "min" and "max" values of zero.
+  // We catch that here and fall back to "full range" calibration.
+  const auto stick_calibration = data.GetStick();
+  if (stick_calibration.IsSane())
+    calibration->stick = stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: Nunchuk stick calibration is not sane. Using fallback values.");
+
+  // No known reports of bad accelerometer calibration but we'll handle it just in case.
+  const auto accel_calibration = data.GetAccel();
+  if (accel_calibration.IsSane())
+    calibration->accel = accel_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: Nunchuk accel calibration is not sane. Using fallback values.");
 }
 
-void Device::ClassicState::SetCalibrationData(const WiimoteEmu::Classic::CalibrationData& data)
+Device::ClassicState::Calibration::Calibration()
+    : left_stick{}, right_stick{}, left_trigger{}, right_trigger{}
+{
+  left_stick.zero.data.fill(1 << (left_stick.BITS_OF_PRECISION - 1));
+  left_stick.max.data.fill((1 << left_stick.BITS_OF_PRECISION) - 1);
+
+  right_stick.zero.data.fill(1 << (right_stick.BITS_OF_PRECISION - 1));
+  right_stick.max.data.fill((1 << right_stick.BITS_OF_PRECISION) - 1);
+
+  left_trigger.max = (1 << left_trigger.BITS_OF_PRECISION) - 1;
+  right_trigger.max = (1 << right_trigger.BITS_OF_PRECISION) - 1;
+}
+
+void Device::ClassicState::SetCalibrationData(const WiimoteEmu::Classic::CalibrationData& data,
+                                              Checksum checksum)
 {
   DEBUG_LOG(WIIMOTE, "WiiRemote: Set Classic Controller calibration.");
 
   calibration.emplace();
 
-  calibration->left_stick = data.GetLeftStick();
-  calibration->right_stick = data.GetRightStick();
+  if (checksum == Checksum::Bad)
+    return;
+
+  const auto left_stick_calibration = data.GetLeftStick();
+  if (left_stick_calibration.IsSane())
+    calibration->left_stick = left_stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: CC left stick calibration is not sane. Using fallback values.");
+
+  const auto right_stick_calibration = data.GetRightStick();
+  if (right_stick_calibration.IsSane())
+    calibration->right_stick = right_stick_calibration;
+  else
+    WARN_LOG(WIIMOTE, "WiiRemote: CC right stick calibration is not sane. Using fallback values.");
 
   calibration->left_trigger = data.GetLeftTrigger();
   calibration->right_trigger = data.GetRightTrigger();
@@ -1007,13 +1063,13 @@ bool Device::IsMotionPlusInDesiredMode() const
 
 void Device::ProcessInputReport(WiimoteReal::Report& report)
 {
-  if (report.size() < WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+  if (report.size() < WiimoteReal::REPORT_HID_HEADER_SIZE)
   {
     WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
     return;
   }
 
-  auto report_id = InputReportID(report[1]);
+  auto report_id = InputReportID(report[WiimoteReal::REPORT_HID_HEADER_SIZE]);
 
   for (auto it = m_report_handlers.begin(); true;)
   {
@@ -1021,8 +1077,8 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
     {
       if (report_id == InputReportID::Status)
       {
-        if (report.size() <
-            sizeof(InputReportStatus) + WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+        if (report.size() - WiimoteReal::REPORT_HID_HEADER_SIZE <
+            sizeof(TypedInputData<InputReportStatus>))
         {
           WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
         }
@@ -1070,9 +1126,9 @@ void Device::ProcessInputReport(WiimoteReal::Report& report)
   }
 
   auto manipulator = MakeDataReportManipulator(
-      report_id, report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      report_id, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + sizeof(InputReportID));
 
-  if (manipulator->GetDataSize() + WiimoteCommon::DataReportBuilder::HEADER_SIZE > report.size())
+  if (manipulator->GetDataSize() + WiimoteReal::REPORT_HID_HEADER_SIZE > report.size())
   {
     WARN_LOG(WIIMOTE, "WiiRemote: Bad report size.");
     return;
@@ -1144,9 +1200,9 @@ void Device::UpdateOrientation()
     // FYI: We could do some roll correction from multiple IR objects.
 
     const auto ir_rotation =
-        Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y_DEG, 0,
-                     m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X_DEG) /
-        2 * float(MathUtil::TAU) / 360;
+        Common::Vec3(m_ir_state.center_position.y * WiimoteEmu::CameraLogic::CAMERA_FOV_Y, 0,
+                     m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X) /
+        2;
     const auto ir_normal = Common::Vec3(0, 1, 0);
     const auto ir_vector = WiimoteEmu::GetMatrixFromGyroscope(-ir_rotation) * ir_normal;
 
@@ -1172,8 +1228,7 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
 
   using IRObject = WiimoteEmu::IRBasic::IRObject;
 
-  Common::Vec2 point_total;
-  int point_count = 0;
+  MathUtil::RunningVariance<Common::Vec2> points;
 
   const auto camera_max = IRObject(WiimoteEmu::CameraLogic::CAMERA_RES_X - 1,
                                    WiimoteEmu::CameraLogic::CAMERA_RES_Y - 1);
@@ -1183,8 +1238,7 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
     if (point.y > camera_max.y)
       return;
 
-    point_total += Common::Vec2(point);
-    ++point_count;
+    points.Push(Common::Vec2(point));
   };
 
   for (auto& block : data)
@@ -1193,12 +1247,25 @@ void Device::IRState::ProcessData(const std::array<WiimoteEmu::IRBasic, 2>& data
     add_point(block.GetObject2());
   }
 
-  is_hidden = !point_count;
+  is_hidden = !points.Count();
 
-  if (point_count)
+  if (points.Count() >= 2)
   {
-    center_position =
-        point_total / float(point_count) / Common::Vec2(camera_max) * 2.f - Common::Vec2(1, 1);
+    const auto variance = points.PopulationVariance();
+    // Adjusts Y coorinate to match horizontal FOV.
+    const auto separation =
+        Common::Vec2(std::sqrt(variance.x), std::sqrt(variance.y)) /
+        Common::Vec2(WiimoteEmu::CameraLogic::CAMERA_RES_X,
+                     WiimoteEmu::CameraLogic::CAMERA_RES_Y * WiimoteEmu::CameraLogic::CAMERA_AR) *
+        2;
+
+    distance = WiimoteEmu::CameraLogic::SENSOR_BAR_LED_SEPARATION / separation.Length() / 2 /
+               std::tan(WiimoteEmu::CameraLogic::CAMERA_FOV_X / 2);
+  }
+
+  if (points.Count())
+  {
+    center_position = points.Mean() / Common::Vec2(camera_max) * 2.f - Common::Vec2(1, 1);
   }
   else
   {
@@ -1479,24 +1546,24 @@ template <typename R, typename T>
 void Device::ReportHandler::AddHandler(std::function<R(const T&)> handler)
 {
   m_callbacks.emplace_back([handler = std::move(handler)](const WiimoteReal::Report& report) {
-    if (report[1] != u8(T::REPORT_ID))
+    if (report[WiimoteReal::REPORT_HID_HEADER_SIZE] != u8(T::REPORT_ID))
       return ReportHandler::HandlerResult::NotHandled;
 
     T data;
 
-    if (report.size() < sizeof(T) + WiimoteCommon::DataReportBuilder::HEADER_SIZE)
+    if (report.size() < sizeof(T) + WiimoteReal::REPORT_HID_HEADER_SIZE + 1)
     {
       // Off-brand "NEW 2in1" Wii Remote likes to shorten read data replies.
       WARN_LOG(WIIMOTE, "WiiRemote: Bad report size (%d) for report 0x%x. Zero-filling.",
                int(report.size()), int(T::REPORT_ID));
 
       data = {};
-      std::memcpy(&data, report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE,
-                  report.size() - WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      std::memcpy(&data, report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1,
+                  report.size() - WiimoteReal::REPORT_HID_HEADER_SIZE + 1);
     }
     else
     {
-      data = Common::BitCastPtr<T>(report.data() + WiimoteCommon::DataReportBuilder::HEADER_SIZE);
+      data = Common::BitCastPtr<T>(report.data() + WiimoteReal::REPORT_HID_HEADER_SIZE + 1);
     }
 
     if constexpr (std::is_same_v<decltype(handler(data)), void>)
@@ -1550,7 +1617,7 @@ void Device::ProcessStatusReport(const InputReportStatus& status)
   // Update status periodically to keep battery level value up to date.
   m_status_outdated_time = Clock::now() + std::chrono::seconds(10);
 
-  m_battery = status.battery;
+  m_battery = status.GetEstimatedCharge() * BATTERY_INPUT_MAX_VALUE;
   m_leds = status.leds;
 
   if (!status.ir)

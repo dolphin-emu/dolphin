@@ -4,7 +4,7 @@
 
 #include "Common/Timer.h"
 
-#include <ctime>
+#include <chrono>
 #include <string>
 
 #ifdef _WIN32
@@ -118,10 +118,9 @@ void Timer::AddTimeDifference()
 // Get the time elapsed since the Start()
 u64 Timer::GetTimeElapsed()
 {
-  // If we have not started yet, return 1 (because then I don't
-  // have to change the FPS calculation in CoreRerecording.cpp .
+  // If we have not started yet, return zero
   if (m_StartTime == 0)
-    return 1;
+    return 0;
 
   // Return the final timer time if the timer is stopped
   if (!m_Running)
@@ -218,7 +217,7 @@ std::string Timer::GetTimeFormatted()
 #ifdef _WIN32
   struct timeb tp;
   (void)::ftime(&tp);
-  return UTF16ToUTF8(tmp) + fmt::format(":{:03}", tp.millitm);
+  return WStringToUTF8(tmp) + fmt::format(":{:03}", tp.millitm);
 #elif defined __APPLE__
   struct timeval t;
   (void)gettimeofday(&t, nullptr);
@@ -233,37 +232,17 @@ std::string Timer::GetTimeFormatted()
 // Returns a timestamp with decimals for precise time comparisons
 double Timer::GetDoubleTime()
 {
-#ifdef _WIN32
-  struct timeb tp;
-  (void)::ftime(&tp);
-#elif defined __APPLE__
-  struct timeval t;
-  (void)gettimeofday(&t, nullptr);
-#else
-  struct timespec t;
-  (void)clock_gettime(CLOCK_MONOTONIC, &t);
-#endif
-  // Get continuous timestamp
-  u64 TmpSeconds = Common::Timer::GetTimeSinceJan1970();
+  // FYI: std::chrono::system_clock epoch is not required to be 1970 until c++20.
+  // We will however assume time_t IS unix time.
+  using Clock = std::chrono::system_clock;
 
-  // Remove a few years. We only really want enough seconds to make
-  // sure that we are detecting actual actions, perhaps 60 seconds is
-  // enough really, but I leave a year of seconds anyway, in case the
-  // user's clock is incorrect or something like that.
-  TmpSeconds = TmpSeconds - DOUBLE_TIME_OFFSET;
+  // TODO: Use this on switch to c++20:
+  // const auto since_epoch = Clock::now().time_since_epoch();
+  const auto unix_epoch = Clock::from_time_t({});
+  const auto since_epoch = Clock::now() - unix_epoch;
 
-  // Make a smaller integer that fits in the double
-  u32 Seconds = (u32)TmpSeconds;
-#ifdef _WIN32
-  double ms = tp.millitm / 1000.0 / 1000.0;
-#elif defined __APPLE__
-  double ms = t.tv_usec / 1000000.0;
-#else
-  double ms = t.tv_nsec / 1000000000.0;
-#endif
-  double TmpTime = Seconds + ms;
-
-  return TmpTime;
+  const auto since_double_time_epoch = since_epoch - std::chrono::seconds(DOUBLE_TIME_OFFSET);
+  return std::chrono::duration_cast<std::chrono::duration<double>>(since_double_time_epoch).count();
 }
 
 // Formats a timestamp from GetDoubleTime() into a date and time string
@@ -275,8 +254,8 @@ std::string Timer::GetDateTimeFormatted(double time)
 
 #ifdef _WIN32
   wchar_t tmp[32] = {};
-  wcsftime(tmp, sizeof(tmp), L"%x %X", localTime);
-  return UTF16ToUTF8(tmp);
+  wcsftime(tmp, std::size(tmp), L"%x %X", localTime);
+  return WStringToUTF8(tmp);
 #else
   char tmp[32] = {};
   strftime(tmp, sizeof(tmp), "%x %X", localTime);

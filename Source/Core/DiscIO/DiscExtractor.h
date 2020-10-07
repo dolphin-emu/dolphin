@@ -61,6 +61,7 @@ bool ExportHeader(const Volume& volume, const Partition& partition,
                   const std::string& export_filename);
 bool ExportBI2Data(const Volume& volume, const Partition& partition,
                    const std::string& export_filename);
+std::optional<u64> GetApploaderSize(const Volume& volume, const Partition& partition);
 bool ExportApploader(const Volume& volume, const Partition& partition,
                      const std::string& export_filename);
 std::optional<u64> GetBootDOLOffset(const Volume& volume, const Partition& partition);

@@ -350,13 +350,11 @@ bool RVZPackDecompressor::Decompress(const DecompressionBuffer& in, Decompressio
       if (result)
         return *result;
 
-      m_size = Common::swap32(m_decompressed.data.data() + m_decompressed_bytes_read);
+      const u32 size = Common::swap32(m_decompressed.data.data() + m_decompressed_bytes_read);
 
-      m_junk = m_size & 0x80000000;
+      m_junk = size & 0x80000000;
       if (m_junk)
       {
-        m_size &= 0x7FFFFFFF;
-
         constexpr size_t SEED_SIZE = LaggedFibonacciGenerator::SEED_SIZE * sizeof(u32);
         constexpr size_t BLOCK_SIZE = 0x8000;
 
@@ -372,6 +370,7 @@ bool RVZPackDecompressor::Decompress(const DecompressionBuffer& in, Decompressio
       }
 
       m_decompressed_bytes_read += sizeof(u32);
+      m_size = size & 0x7FFFFFFF;
     }
 
     size_t bytes_to_write = std::min<size_t>(m_size, out->data.size() - out->bytes_written);

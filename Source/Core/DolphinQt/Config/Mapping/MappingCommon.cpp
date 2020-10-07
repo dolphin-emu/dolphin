@@ -5,6 +5,7 @@
 #include "DolphinQt/Config/Mapping/MappingCommon.h"
 
 #include <tuple>
+#include <vector>
 
 #include <QApplication>
 #include <QPushButton>
@@ -14,14 +15,23 @@
 
 #include "DolphinQt/QtUtils/BlockUserInputFilter.h"
 #include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerInterface/Device.h"
 
 #include "Common/Thread.h"
 
 namespace MappingCommon
 {
-constexpr int INPUT_DETECT_TIME = 3000;
-constexpr int OUTPUT_TEST_TIME = 2000;
+constexpr auto INPUT_DETECT_INITIAL_TIME = std::chrono::seconds(3);
+constexpr auto INPUT_DETECT_CONFIRMATION_TIME = std::chrono::milliseconds(500);
+constexpr auto INPUT_DETECT_MAXIMUM_TIME = std::chrono::seconds(5);
+
+constexpr auto OUTPUT_TEST_TIME = std::chrono::seconds(2);
+
+// Pressing inputs at the same time will result in the & operator vs a hotkey expression.
+constexpr auto HOTKEY_VS_CONJUNCION_THRESHOLD = std::chrono::milliseconds(50);
+
+// Some devices (e.g. DS4) provide an analog and digital input for the trigger.
+// We prefer just the analog input for simultaneous digital+analog input detections.
+constexpr auto SPURIOUS_TRIGGER_COMBO_THRESHOLD = std::chrono::milliseconds(150);
 
 QString GetExpressionForControl(const QString& control_name,
                                 const ciface::Core::DeviceQualifier& control_device,
@@ -68,7 +78,11 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
   // Avoid that the button press itself is registered as an event
   Common::SleepCurrentThread(50);
 
-  const auto [device, input] = device_container.DetectInput(INPUT_DETECT_TIME, device_strings);
+  auto detections =
+      device_container.DetectInput(device_strings, INPUT_DETECT_INITIAL_TIME,
+                                   INPUT_DETECT_CONFIRMATION_TIME, INPUT_DETECT_MAXIMUM_TIME);
+
+  RemoveSpuriousTriggerCombinations(&detections);
 
   const auto timer = new QTimer(button);
 
@@ -83,14 +97,7 @@ QString DetectExpression(QPushButton* button, ciface::Core::DeviceContainer& dev
 
   button->setText(old_text);
 
-  if (!input)
-    return {};
-
-  ciface::Core::DeviceQualifier device_qualifier;
-  device_qualifier.FromDevice(device.get());
-
-  return MappingCommon::GetExpressionForControl(QString::fromStdString(input->GetName()),
-                                                device_qualifier, default_device, quote);
+  return BuildExpression(detections, default_device, quote);
 }
 
 void TestOutput(QPushButton* button, OutputReference* reference)
@@ -102,10 +109,103 @@ void TestOutput(QPushButton* button, OutputReference* reference)
   QApplication::processEvents();
 
   reference->State(1.0);
-  Common::SleepCurrentThread(OUTPUT_TEST_TIME);
+  std::this_thread::sleep_for(OUTPUT_TEST_TIME);
   reference->State(0.0);
 
   button->setText(old_text);
+}
+
+void RemoveSpuriousTriggerCombinations(
+    std::vector<ciface::Core::DeviceContainer::InputDetection>* detections)
+{
+  const auto is_spurious = [&](auto& detection) {
+    return std::any_of(detections->begin(), detections->end(), [&](auto& d) {
+      // This is a suprious digital detection if a "smooth" (analog) detection is temporally near.
+      return &d != &detection && d.smoothness > 1 &&
+             abs(d.press_time - detection.press_time) < SPURIOUS_TRIGGER_COMBO_THRESHOLD;
+    });
+  };
+
+  detections->erase(std::remove_if(detections->begin(), detections->end(), is_spurious),
+                    detections->end());
+}
+
+QString
+BuildExpression(const std::vector<ciface::Core::DeviceContainer::InputDetection>& detections,
+                const ciface::Core::DeviceQualifier& default_device, Quote quote)
+{
+  std::vector<const ciface::Core::DeviceContainer::InputDetection*> pressed_inputs;
+
+  QStringList alternations;
+
+  const auto get_control_expression = [&](auto& detection) {
+    // Return the parent-most name if there is one for better hotkey strings.
+    // Detection of L/R_Ctrl will be changed to just Ctrl.
+    // Users can manually map L_Ctrl if they so desire.
+    const auto input = (quote == Quote::On) ?
+                           detection.device->GetParentMostInput(detection.input) :
+                           detection.input;
+
+    ciface::Core::DeviceQualifier device_qualifier;
+    device_qualifier.FromDevice(detection.device.get());
+
+    return MappingCommon::GetExpressionForControl(QString::fromStdString(input->GetName()),
+                                                  device_qualifier, default_device, quote);
+  };
+
+  bool new_alternation = false;
+
+  const auto handle_press = [&](auto& detection) {
+    pressed_inputs.emplace_back(&detection);
+    new_alternation = true;
+  };
+
+  const auto handle_release = [&]() {
+    if (!new_alternation)
+      return;
+
+    new_alternation = false;
+
+    QStringList alternation;
+    for (auto* input : pressed_inputs)
+      alternation.push_back(get_control_expression(*input));
+
+    const bool is_hotkey = pressed_inputs.size() >= 2 &&
+                           (pressed_inputs[1]->press_time - pressed_inputs[0]->press_time) >
+                               HOTKEY_VS_CONJUNCION_THRESHOLD;
+
+    if (is_hotkey)
+    {
+      alternations.push_back(QStringLiteral("@(%1)").arg(alternation.join(QLatin1Char('+'))));
+    }
+    else
+    {
+      alternation.sort();
+      alternations.push_back(alternation.join(QLatin1Char('&')));
+    }
+  };
+
+  for (auto& detection : detections)
+  {
+    // Remove since released inputs.
+    for (auto it = pressed_inputs.begin(); it != pressed_inputs.end();)
+    {
+      if (!((*it)->release_time > detection.press_time))
+      {
+        handle_release();
+        it = pressed_inputs.erase(it);
+      }
+      else
+        ++it;
+    }
+
+    handle_press(detection);
+  }
+
+  handle_release();
+
+  alternations.removeDuplicates();
+  return alternations.join(QLatin1Char('|'));
 }
 
 }  // namespace MappingCommon

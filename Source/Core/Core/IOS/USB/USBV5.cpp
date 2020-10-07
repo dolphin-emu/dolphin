@@ -86,11 +86,6 @@ struct DeviceEntry
 #pragma pack(pop)
 }  // namespace
 
-USBV5ResourceManager::~USBV5ResourceManager()
-{
-  StopThreads();
-}
-
 void USBV5ResourceManager::DoState(PointerWrap& p)
 {
   p.Do(m_devicechange_first_call);

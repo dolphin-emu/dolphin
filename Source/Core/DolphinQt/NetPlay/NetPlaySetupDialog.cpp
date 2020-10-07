@@ -4,6 +4,8 @@
 
 #include "DolphinQt/NetPlay/NetPlaySetupDialog.h"
 
+#include <memory>
+
 #include <QCheckBox>
 #include <QComboBox>
 #include <QDialogButtonBox>
@@ -17,11 +19,14 @@
 #include <QTabWidget>
 
 #include "Core/Config/NetplaySettings.h"
+#include "Core/NetPlayProto.h"
 
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/ModalMessageBox.h"
+#include "DolphinQt/QtUtils/UTF8CodePointCountValidator.h"
 #include "DolphinQt/Settings.h"
 
+#include "UICommon/GameFile.h"
 #include "UICommon/NetPlayIndex.h"
 
 NetPlaySetupDialog::NetPlaySetupDialog(QWidget* parent)
@@ -86,6 +91,9 @@ void NetPlaySetupDialog::CreateMainLayout()
   m_connection_type = new QComboBox;
   m_reset_traversal_button = new QPushButton(tr("Reset Traversal Settings"));
   m_tab_widget = new QTabWidget;
+
+  m_nickname_edit->setValidator(
+      new UTF8CodePointCountValidator(NetPlay::MAX_NAME_LENGTH, m_nickname_edit));
 
   // Connection widget
   auto* connection_widget = new QWidget;
@@ -342,7 +350,7 @@ void NetPlaySetupDialog::accept()
       return;
     }
 
-    emit Host(items[0]->text());
+    emit Host(*items[0]->data(Qt::UserRole).value<std::shared_ptr<const UICommon::GameFile>>());
   }
 }
 
@@ -353,11 +361,11 @@ void NetPlaySetupDialog::PopulateGameList()
   m_host_games->clear();
   for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
   {
-    auto title = m_game_list_model->GetUniqueIdentifier(i);
-    auto path = m_game_list_model->GetPath(i);
+    std::shared_ptr<const UICommon::GameFile> game = m_game_list_model->GetGameFile(i);
 
-    auto* item = new QListWidgetItem(title);
-    item->setData(Qt::UserRole, path);
+    auto* item =
+        new QListWidgetItem(QString::fromStdString(m_game_list_model->GetNetPlayName(*game)));
+    item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
     m_host_games->addItem(item);
   }
 

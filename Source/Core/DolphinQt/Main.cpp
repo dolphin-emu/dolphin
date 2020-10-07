@@ -14,12 +14,13 @@
 #include <QPushButton>
 #include <QWidget>
 
+#include "Common/Config/Config.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
 
 #include "Core/Analytics.h"
 #include "Core/Boot/Boot.h"
-#include "Core/ConfigManager.h"
+#include "Core/Config/MainSettings.h"
 #include "Core/Core.h"
 
 #include "DolphinQt/Host.h"
@@ -106,6 +107,18 @@ int main(int argc, char* argv[])
   {
     freopen("CONOUT$", "w", stdout);
     freopen("CONOUT$", "w", stderr);
+  }
+#endif
+
+#ifdef __APPLE__
+  // On macOS, a command line option matching the format "-psn_X_XXXXXX" is passed when
+  // the application is launched for the first time. This is to set the "ProcessSerialNumber",
+  // something used by the legacy Process Manager from Carbon. optparse will fail if it finds
+  // this as it isn't a valid Dolphin command line option, so pretend like it doesn't exist
+  // if found.
+  if (strncmp(argv[argc - 1], "-psn", 4) == 0)
+  {
+    argc--;
   }
 #endif
 
@@ -224,7 +237,7 @@ int main(int argc, char* argv[])
     }
 
 #if defined(USE_ANALYTICS) && USE_ANALYTICS
-    if (!SConfig::GetInstance().m_analytics_permission_asked)
+    if (!Config::Get(Config::MAIN_ANALYTICS_PERMISSION_ASKED))
     {
       ModalMessageBox analytics_prompt(&win);
 
@@ -246,7 +259,7 @@ int main(int argc, char* argv[])
 
       const int answer = analytics_prompt.exec();
 
-      SConfig::GetInstance().m_analytics_permission_asked = true;
+      Config::SetBase(Config::MAIN_ANALYTICS_PERMISSION_ASKED, true);
       Settings::Instance().SetAnalyticsEnabled(answer == QMessageBox::Yes);
 
       DolphinAnalytics::Instance().ReloadConfig();

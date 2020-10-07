@@ -22,6 +22,9 @@ USB_VEN::~USB_VEN() = default;
 
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
+  static_assert(offsetof(USB_VEN, m_scan_thread) == sizeof(USB_VEN) - sizeof(ScanThread),
+                "ScanThread must be the last data member");
+
   request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {

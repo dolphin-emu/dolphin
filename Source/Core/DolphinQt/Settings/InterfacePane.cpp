@@ -19,6 +19,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/Config/MainSettings.h"
 #include "Core/Config/UISettings.h"
 #include "Core/ConfigManager.h"
 
@@ -190,9 +191,9 @@ void InterfacePane::ConnectLayout()
   connect(m_checkbox_use_covers, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_show_debugging_ui, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
   connect(m_checkbox_focused_hotkeys, &QCheckBox::toggled, this, &InterfacePane::OnSaveConfig);
-  connect(m_combobox_theme, qOverload<const QString&>(&QComboBox::currentIndexChanged),
-          &Settings::Instance(), &Settings::SetThemeName);
-  connect(m_combobox_userstyle, qOverload<const QString&>(&QComboBox::currentIndexChanged), this,
+  connect(m_combobox_theme, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          [=](int index) { Settings::Instance().SetThemeName(m_combobox_theme->itemText(index)); });
+  connect(m_combobox_userstyle, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
   connect(m_combobox_language, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &InterfacePane::OnSaveConfig);
@@ -233,8 +234,8 @@ void InterfacePane::LoadConfig()
   // Render Window Options
   m_checkbox_top_window->setChecked(Settings::Instance().IsKeepWindowOnTopEnabled());
   m_checkbox_confirm_on_stop->setChecked(startup_params.bConfirmStop);
-  m_checkbox_use_panic_handlers->setChecked(startup_params.bUsePanicHandlers);
-  m_checkbox_enable_osd->setChecked(startup_params.bOnScreenDisplayMessages);
+  m_checkbox_use_panic_handlers->setChecked(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
+  m_checkbox_enable_osd->setChecked(Config::Get(Config::MAIN_OSD_MESSAGES));
   m_checkbox_show_active_title->setChecked(startup_params.m_show_active_title);
   m_checkbox_pause_on_focus_lost->setChecked(startup_params.m_PauseOnFocusLost);
   m_checkbox_use_covers->setChecked(Config::Get(Config::MAIN_USE_GAME_COVERS));
@@ -258,12 +259,12 @@ void InterfacePane::OnSaveConfig()
   // Render Window Options
   Settings::Instance().SetKeepWindowOnTop(m_checkbox_top_window->isChecked());
   settings.bConfirmStop = m_checkbox_confirm_on_stop->isChecked();
-  settings.bUsePanicHandlers = m_checkbox_use_panic_handlers->isChecked();
-  settings.bOnScreenDisplayMessages = m_checkbox_enable_osd->isChecked();
+  Config::SetBase(Config::MAIN_USE_PANIC_HANDLERS, m_checkbox_use_panic_handlers->isChecked());
+  Config::SetBase(Config::MAIN_OSD_MESSAGES, m_checkbox_enable_osd->isChecked());
   settings.m_show_active_title = m_checkbox_show_active_title->isChecked();
   settings.m_PauseOnFocusLost = m_checkbox_pause_on_focus_lost->isChecked();
 
-  Common::SetEnableAlert(settings.bUsePanicHandlers);
+  Common::SetEnableAlert(Config::Get(Config::MAIN_USE_PANIC_HANDLERS));
 
   auto new_language = m_combobox_language->currentData().toString().toStdString();
   if (new_language != SConfig::GetInstance().m_InterfaceLanguage)

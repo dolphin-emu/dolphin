@@ -79,6 +79,7 @@ public:
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
 
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
   bool SupportsIntegrityCheck() const override { return m_encrypted; }
   bool CheckH3TableIntegrity(const Partition& partition) const override;
   bool CheckBlockIntegrity(u64 block_index, const std::vector<u8>& encrypted_data,
@@ -91,6 +92,7 @@ public:
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
+  std::array<u8, 20> GetSyncHash() const override;
 
   // The in parameter can either contain all the data to begin with,
   // or read_function can write data into the in parameter when called.

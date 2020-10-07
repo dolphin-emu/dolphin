@@ -423,8 +423,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 
 u32 HostRead_Instruction(const u32 address)
 {
-  UGeckoInstruction inst = HostRead_U32(address);
-  return inst.hex;
+  return ReadFromHardware<XCheckTLBFlag::OpcodeNoException, u32>(address);
 }
 
 static void Memcheck(u32 address, u32 var, bool write, size_t size)

@@ -4,12 +4,15 @@
 
 #include "DolphinQt/NetPlay/GameListDialog.h"
 
+#include <memory>
+
 #include <QDialogButtonBox>
 #include <QListWidget>
 #include <QVBoxLayout>
 
 #include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/Settings.h"
+#include "UICommon/GameFile.h"
 
 GameListDialog::GameListDialog(QWidget* parent) : QDialog(parent)
 {
@@ -35,12 +38,8 @@ void GameListDialog::CreateWidgets()
 
 void GameListDialog::ConnectWidgets()
 {
-  connect(m_game_list, &QListWidget::itemSelectionChanged, [this] {
-    int row = m_game_list->currentRow();
-
-    m_button_box->setEnabled(row != -1);
-    m_game_id = m_game_list->currentItem()->text();
-  });
+  connect(m_game_list, &QListWidget::itemSelectionChanged,
+          [this] { m_button_box->setEnabled(m_game_list->currentRow() != -1); });
 
   connect(m_game_list, &QListWidget::itemDoubleClicked, this, &GameListDialog::accept);
   connect(m_button_box, &QDialogButtonBox::accepted, this, &GameListDialog::accept);
@@ -54,16 +53,21 @@ void GameListDialog::PopulateGameList()
 
   for (int i = 0; i < game_list_model->rowCount(QModelIndex()); i++)
   {
-    auto* item = new QListWidgetItem(game_list_model->GetUniqueIdentifier(i));
+    std::shared_ptr<const UICommon::GameFile> game = game_list_model->GetGameFile(i);
+
+    auto* item =
+        new QListWidgetItem(QString::fromStdString(game_list_model->GetNetPlayName(*game)));
+    item->setData(Qt::UserRole, QVariant::fromValue(std::move(game)));
     m_game_list->addItem(item);
   }
 
   m_game_list->sortItems();
 }
 
-const QString& GameListDialog::GetSelectedUniqueID() const
+const UICommon::GameFile& GameListDialog::GetSelectedGame() const
 {
-  return m_game_id;
+  auto items = m_game_list->selectedItems();
+  return *items[0]->data(Qt::UserRole).value<std::shared_ptr<const UICommon::GameFile>>();
 }
 
 int GameListDialog::exec()

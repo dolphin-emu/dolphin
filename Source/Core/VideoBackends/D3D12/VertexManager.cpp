@@ -195,10 +195,10 @@ void VertexManager::UploadAllConstants()
 {
   // We are free to re-use parts of the buffer now since we're uploading all constants.
   const u32 pixel_constants_offset = 0;
-  const u32 vertex_constants_offset =
+  constexpr u32 vertex_constants_offset =
       Common::AlignUp(pixel_constants_offset + sizeof(PixelShaderConstants),
                       D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
-  const u32 geometry_constants_offset =
+  constexpr u32 geometry_constants_offset =
       Common::AlignUp(vertex_constants_offset + sizeof(VertexShaderConstants),
                       D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT);
   const u32 allocation_size = geometry_constants_offset + sizeof(GeometryShaderConstants);

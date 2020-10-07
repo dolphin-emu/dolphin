@@ -237,7 +237,7 @@ void AutoUpdateChecker::TriggerUpdate(const AutoUpdateChecker::NewVersionInforma
   STARTUPINFO sinfo = {sizeof(sinfo)};
   sinfo.dwFlags = STARTF_FORCEOFFFEEDBACK;  // No hourglass cursor after starting the process.
   PROCESS_INFORMATION pinfo;
-  if (CreateProcessW(UTF8ToUTF16(reloc_updater_path).c_str(), UTF8ToUTF16(command_line).data(),
+  if (CreateProcessW(UTF8ToWString(reloc_updater_path).c_str(), UTF8ToWString(command_line).data(),
                      nullptr, nullptr, FALSE, 0, nullptr, nullptr, &sinfo, &pinfo))
   {
     CloseHandle(pinfo.hThread);

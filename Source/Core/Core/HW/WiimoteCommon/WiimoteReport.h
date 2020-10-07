@@ -89,7 +89,8 @@ struct OutputReportLeds
 
   u8 rumble : 1;
   u8 ack : 1;
-  u8 : 2;
+  // This field must be named to work around a msvc bug.
+  u8 _padding : 2;
   u8 leds : 4;
 };
 static_assert(sizeof(OutputReportLeds) == 1, "Wrong size");
@@ -166,7 +167,7 @@ static_assert(sizeof(OutputReportSpeakerData) == 21, "Wrong size");
 // FYI: Also contains LSB of accel data:
 union ButtonData
 {
-  static constexpr u16 BUTTON_MASK = ~0x6060;
+  static constexpr u16 BUTTON_MASK = ~0x60e0;
 
   u16 hex;
 
@@ -207,6 +208,22 @@ struct InputReportStatus
   u8 leds : 4;
   u8 padding2[2];
   u8 battery;
+
+  constexpr float GetEstimatedCharge() const
+  {
+    return battery * BATTERY_LEVEL_M / BATTERY_MAX + BATTERY_LEVEL_B;
+  }
+  void SetEstimatedCharge(float charge)
+  {
+    battery = u8(std::lround((charge - BATTERY_LEVEL_B) / BATTERY_LEVEL_M * BATTERY_MAX));
+  }
+
+private:
+  static constexpr auto BATTERY_MAX = std::numeric_limits<decltype(battery)>::max();
+
+  // Linear fit of battery level mid-point for charge bars in home menu.
+  static constexpr float BATTERY_LEVEL_M = 2.46f;
+  static constexpr float BATTERY_LEVEL_B = -0.013f;
 };
 static_assert(sizeof(InputReportStatus) == 6, "Wrong size");
 

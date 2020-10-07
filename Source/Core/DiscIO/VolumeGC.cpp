@@ -11,6 +11,8 @@
 #include <utility>
 #include <vector>
 
+#include <mbedtls/sha1.h>
+
 #include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
@@ -59,11 +61,10 @@ const FileSystem* VolumeGC::GetFileSystem(const Partition& partition) const
 
 std::string VolumeGC::GetGameTDBID(const Partition& partition) const
 {
-  // Don't return an ID for Datel discs
-  if (!GetBootDOLOffset(*this, PARTITION_NONE).has_value())
-    return "";
+  const std::string game_id = GetGameID(partition);
 
-  return GetGameID(partition);
+  // Don't return an ID for Datel discs that are using the game ID of NHL Hitz 2002
+  return game_id == "GNHE5d" && IsDatelDisc() ? "" : game_id;
 }
 
 Region VolumeGC::GetRegion() const
@@ -131,6 +132,24 @@ const BlobReader& VolumeGC::GetBlobReader() const
 Platform VolumeGC::GetVolumeType() const
 {
   return Platform::GameCubeDisc;
+}
+
+bool VolumeGC::IsDatelDisc() const
+{
+  return !GetBootDOLOffset(*this, PARTITION_NONE).has_value();
+}
+
+std::array<u8, 20> VolumeGC::GetSyncHash() const
+{
+  mbedtls_sha1_context context;
+  mbedtls_sha1_init(&context);
+  mbedtls_sha1_starts_ret(&context);
+
+  AddGamePartitionToSyncHash(&context);
+
+  std::array<u8, 20> hash;
+  mbedtls_sha1_finish_ret(&context, hash.data());
+  return hash;
 }
 
 VolumeGC::ConvertedGCBanner VolumeGC::LoadBannerFile() const

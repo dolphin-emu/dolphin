@@ -59,6 +59,8 @@ public:
     return "";
   }
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
+  bool IsNKit() const override;
   Region GetRegion() const override;
   Country GetCountry(const Partition& partition = PARTITION_NONE) const override;
 
@@ -67,6 +69,8 @@ public:
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
+
+  std::array<u8, 20> GetSyncHash() const override;
 
 private:
   std::unique_ptr<BlobReader> m_reader;
@@ -83,6 +87,7 @@ private:
   u32 m_ticket_size = 0;
   u32 m_tmd_size = 0;
   u32 m_data_size = 0;
+  u32 m_opening_bnr_size = 0;
 };
 
 }  // namespace DiscIO

@@ -3,18 +3,17 @@ package org.dolphinemu.dolphinemu.ui.main;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
 import androidx.leanback.app.BrowseSupportFragment;
 import androidx.leanback.widget.ArrayObjectAdapter;
 import androidx.leanback.widget.HeaderItem;
 import androidx.leanback.widget.ListRow;
 import androidx.leanback.widget.ListRowPresenter;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentManager;
-import androidx.core.content.ContextCompat;
-
-import android.widget.Toast;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -24,9 +23,9 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
 import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.model.TvSettingsItem;
-import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.platform.Platform;
+import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 import org.dolphinemu.dolphinemu.utils.PermissionsHandler;
 import org.dolphinemu.dolphinemu.utils.StartupHandler;
@@ -37,11 +36,11 @@ import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
 {
+  private static boolean sShouldRescanLibrary = true;
+
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
-
-  private ArrayObjectAdapter mRowsAdapter;
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -64,8 +63,23 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onResume()
   {
     super.onResume();
+
+    if (DirectoryInitialization.shouldStart(this))
+    {
+      DirectoryInitialization.start(this);
+      GameFileCacheService.startLoad(this);
+    }
+
     mPresenter.addDirIfNeeded(this);
-    GameFileCacheService.startRescan(this);
+
+    if (sShouldRescanLibrary)
+    {
+      GameFileCacheService.startRescan(this);
+    }
+    else
+    {
+      sShouldRescanLibrary = true;
+    }
   }
 
   @Override
@@ -86,6 +100,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onStop()
   {
     super.onStop();
+    if (isChangingConfigurations())
+    {
+      skipRescanningLibrary();
+    }
     StartupHandler.setSessionTime(this);
   }
 
@@ -135,7 +153,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchSettingsActivity(MenuTag menuTag)
   {
-    SettingsActivity.launch(this, menuTag, "");
+    SettingsActivity.launch(this, menuTag);
   }
 
   @Override
@@ -178,31 +196,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   protected void onActivityResult(int requestCode, int resultCode, Intent result)
   {
     super.onActivityResult(requestCode, resultCode, result);
-    switch (requestCode)
+
+    // If the user picked a file, as opposed to just backing out.
+    if (resultCode == MainActivity.RESULT_OK)
     {
-      case MainPresenter.REQUEST_DIRECTORY:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+      switch (requestCode)
+      {
+        case MainPresenter.REQUEST_DIRECTORY:
           mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_GAME_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_GAME_FILE:
           EmulationActivity.launchFile(this, FileBrowserHelper.getSelectedFiles(result));
-        }
-        break;
+          break;
 
-      case MainPresenter.REQUEST_WAD_FILE:
-        // If the user picked a file, as opposed to just backing out.
-        if (resultCode == MainActivity.RESULT_OK)
-        {
+        case MainPresenter.REQUEST_WAD_FILE:
           mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
-        }
-        break;
+          break;
+      }
+    }
+    else
+    {
+      skipRescanningLibrary();
     }
   }
 
@@ -210,29 +225,28 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
           @NonNull int[] grantResults)
   {
-    switch (requestCode)
+    if (requestCode == PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION)
     {
-      case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
-        if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
-        {
-          DirectoryInitialization.start(this);
-          GameFileCacheService.startLoad(this);
-        }
-        else
-        {
-          Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
-                  .show();
-        }
-        break;
-      default:
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        break;
+      if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+      {
+        DirectoryInitialization.start(this);
+        GameFileCacheService.startLoad(this);
+      }
+      else
+      {
+        Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)
+                .show();
+      }
+    }
+    else
+    {
+      super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
   }
 
   private void buildRowsAdapter()
   {
-    mRowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
 
     if (PermissionsHandler.hasWriteAccess(this))
     {
@@ -246,13 +260,13 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       // Add row to the adapter only if it is not empty.
       if (row != null)
       {
-        mRowsAdapter.add(row);
+        rowsAdapter.add(row);
       }
     }
 
-    mRowsAdapter.add(buildSettingsRow());
+    rowsAdapter.add(buildSettingsRow());
 
-    mBrowseFragment.setAdapter(mRowsAdapter);
+    mBrowseFragment.setAdapter(rowsAdapter);
   }
 
   private ListRow buildGamesRow(Platform platform, Collection<GameFile> gameFiles)
@@ -315,5 +329,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
             new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
 
     return new ListRow(header, rowItems);
+  }
+
+  public static void skipRescanningLibrary()
+  {
+    sShouldRescanLibrary = false;
   }
 }

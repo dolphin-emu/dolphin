@@ -40,6 +40,7 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
   m_ticket_size = m_reader->ReadSwapped<u32>(0x10).value_or(0);
   m_tmd_size = m_reader->ReadSwapped<u32>(0x14).value_or(0);
   m_data_size = m_reader->ReadSwapped<u32>(0x18).value_or(0);
+  m_opening_bnr_size = m_reader->ReadSwapped<u32>(0x1C).value_or(0);
 
   m_cert_chain_offset = Common::AlignUp(m_hdr_size, 0x40);
   m_ticket_offset = m_cert_chain_offset + Common::AlignUp(m_cert_chain_size, 0x40);
@@ -284,6 +285,16 @@ Platform VolumeWAD::GetVolumeType() const
   return Platform::WiiWAD;
 }
 
+bool VolumeWAD::IsDatelDisc() const
+{
+  return false;
+}
+
+bool VolumeWAD::IsNKit() const
+{
+  return false;
+}
+
 std::map<Language, std::string> VolumeWAD::GetLongNames() const
 {
   if (!m_tmd.IsValid() || !IOS::ES::IsChannel(m_tmd.GetTitleId()))
@@ -330,6 +341,24 @@ u64 VolumeWAD::GetRawSize() const
 const BlobReader& VolumeWAD::GetBlobReader() const
 {
   return *m_reader;
+}
+
+std::array<u8, 20> VolumeWAD::GetSyncHash() const
+{
+  // We can skip hashing the contents since the TMD contains hashes of the contents.
+  // We specifically don't hash the ticket, since its console ID can differ without any problems.
+
+  mbedtls_sha1_context context;
+  mbedtls_sha1_init(&context);
+  mbedtls_sha1_starts_ret(&context);
+
+  AddTMDToSyncHash(&context, PARTITION_NONE);
+
+  ReadAndAddToSyncHash(&context, m_opening_bnr_offset, m_opening_bnr_size, PARTITION_NONE);
+
+  std::array<u8, 20> hash;
+  mbedtls_sha1_finish_ret(&context, hash.data());
+  return hash;
 }
 
 }  // namespace DiscIO

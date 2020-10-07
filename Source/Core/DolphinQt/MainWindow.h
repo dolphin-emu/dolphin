@@ -7,6 +7,7 @@
 #include <QMainWindow>
 #include <QStringList>
 
+#include <array>
 #include <memory>
 #include <optional>
 #include <string>
@@ -157,7 +158,7 @@ private:
 
   void NetPlayInit();
   bool NetPlayJoin();
-  bool NetPlayHost(const QString& game_id);
+  bool NetPlayHost(const UICommon::GameFile& game);
   void NetPlayQuit();
 
   void OnBootGameCubeIPL(DiscIO::Region region);

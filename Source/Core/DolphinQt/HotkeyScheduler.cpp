@@ -134,6 +134,8 @@ static void HandleFrameStepHotkeys()
 
 void HotkeyScheduler::Run()
 {
+  Common::SetCurrentThreadName("HotkeyScheduler");
+
   while (!m_stop_requested.IsSet())
   {
     Common::SleepCurrentThread(1000 / 60);

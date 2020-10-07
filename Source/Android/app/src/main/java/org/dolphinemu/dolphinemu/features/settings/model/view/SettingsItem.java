@@ -1,14 +1,14 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsAdapter;
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
 
 /**
  * ViewModel abstraction for an Item in the RecyclerView powering SettingsFragments.
- * Each one corresponds to a {@link Setting} object, so this class's subclasses
- * should vaguely correspond to those subclasses. There are a few with multiple analogues
- * and a few with none (Headers, for example, do not correspond to anything in the ini
- * file.)
+ * Most of them correspond to a single line in an INI file, but there are a few with multiple
+ * analogues and a few with none (Headers, for example, do not correspond to anything on disk.)
  */
 public abstract class SettingsItem
 {
@@ -24,72 +24,24 @@ public abstract class SettingsItem
   public static final int TYPE_FILE_PICKER = 9;
   public static final int TYPE_CONFIRM_RUNNABLE = 10;
 
-  private String mKey;
-  private String mSection;
-
-  private Setting mSetting;
-
   private int mNameId;
   private int mDescriptionId;
 
   /**
-   * Base constructor. Takes a key / section name in case the third parameter, the Setting,
-   * is null; in which case, one can be constructed and saved using the key / section.
+   * Base constructor.
    *
-   * @param key           Identifier for the Setting represented by this Item.
-   * @param section       Section to which the Setting belongs.
-   * @param setting       A possibly-null backing Setting, to be modified on UI events.
    * @param nameId        Resource ID for a text string to be displayed as this setting's name.
    * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
    */
 
-  public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId)
+  public SettingsItem(int nameId, int descriptionId)
   {
-    mKey = key;
-    mSection = section;
-    mSetting = setting;
     mNameId = nameId;
     mDescriptionId = descriptionId;
   }
 
   /**
-   * @return The identifier for the backing Setting.
-   */
-  public String getKey()
-  {
-    return mKey;
-  }
-
-  /**
-   * @return The header under which the backing Setting belongs.
-   */
-  public String getSection()
-  {
-    return mSection;
-  }
-
-
-  /**
-   * @return The backing Setting, possibly null.
-   */
-  public Setting getSetting()
-  {
-    return mSetting;
-  }
-
-  /**
-   * Replace the backing setting with a new one. Generally used in cases where
-   * the backing setting is null.
-   *
-   * @param setting A non-null Setting.
-   */
-  public void setSetting(Setting setting)
-  {
-    mSetting = setting;
-  }
-
-  /**
-   * @return A resource ID for a text string representing this Setting's name.
+   * @return A resource ID for a text string representing this setting's name.
    */
   public int getNameId()
   {
@@ -108,4 +60,21 @@ public abstract class SettingsItem
    * @return An integer (ideally, one of the constants defined in this file)
    */
   public abstract int getType();
+
+  protected abstract AbstractSetting getSetting();
+
+  public boolean isOverridden(Settings settings)
+  {
+    AbstractSetting setting = getSetting();
+    return setting != null && setting.isOverridden(settings);
+  }
+
+  public boolean isEditable()
+  {
+    if (!NativeLibrary.IsRunning())
+      return true;
+
+    AbstractSetting setting = getSetting();
+    return setting != null && setting.isRuntimeEditable();
+  }
 }

@@ -17,7 +17,7 @@ GraphicsChoice::GraphicsChoice(const QStringList& options, const Config::Info<in
   connect(this, qOverload<int>(&QComboBox::currentIndexChanged), this, &GraphicsChoice::Update);
   setCurrentIndex(Config::Get(m_setting));
 
-  connect(&Settings::Instance(), &Settings::ConfigChanged, [this] {
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this, [this] {
     QFont bf = font();
     bf.setBold(Config::GetActiveLayerForConfig(m_setting) != Config::LayerType::Base);
     setFont(bf);

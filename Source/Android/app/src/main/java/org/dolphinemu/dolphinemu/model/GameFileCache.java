@@ -4,9 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
-import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
-import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
 import java.io.File;
 import java.util.HashSet;
@@ -33,6 +32,12 @@ public class GameFileCache
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+
+    if (folderPaths == null)
+    {
+      return;
+    }
+
     Set<String> newFolderPaths = new HashSet<>(folderPaths);
     newFolderPaths.add(path);
     SharedPreferences.Editor editor = preferences.edit();
@@ -44,6 +49,12 @@ public class GameFileCache
   {
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+
+    if (folderPaths == null)
+    {
+      return;
+    }
+
     Set<String> newFolderPaths = new HashSet<>();
     for (String folderPath : folderPaths)
     {
@@ -70,15 +81,24 @@ public class GameFileCache
    */
   public boolean scanLibrary(Context context)
   {
-    boolean recursiveScan = NativeLibrary
-            .GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", Settings.SECTION_INI_GENERAL,
-                    SettingsFile.KEY_RECURSIVE_ISO_PATHS, "False").equals("True");
+    boolean recursiveScan;
+    try (Settings settings = new Settings())
+    {
+      settings.loadSettings(null);
+      recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBoolean(settings);
+    }
 
     removeNonExistentGameFolders(context);
 
     SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
     Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
-    String[] folderPaths = folderPathsSet.toArray(new String[folderPathsSet.size()]);
+
+    if (folderPathsSet == null)
+    {
+      return false;
+    }
+
+    String[] folderPaths = folderPathsSet.toArray(new String[0]);
 
     boolean cacheChanged = update(folderPaths, recursiveScan);
     cacheChanged |= updateAdditionalMetadata();

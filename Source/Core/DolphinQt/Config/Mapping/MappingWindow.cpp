@@ -167,6 +167,11 @@ void MappingWindow::ConnectWidgets()
   connect(m_profiles_load, &QPushButton::clicked, this, &MappingWindow::OnLoadProfilePressed);
   connect(m_profiles_delete, &QPushButton::clicked, this, &MappingWindow::OnDeleteProfilePressed);
 
+  connect(m_profiles_combo, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &MappingWindow::OnSelectProfile);
+  connect(m_profiles_combo, &QComboBox::editTextChanged, this,
+          &MappingWindow::OnProfileTextChanged);
+
   // We currently use the "Close" button as an "Accept" button so we must save on reject.
   connect(this, &QDialog::rejected, [this] { emit Save(); });
   connect(m_button_box, &QDialogButtonBox::rejected, this, &QDialog::reject);
@@ -192,6 +197,31 @@ void MappingWindow::UpdateProfileIndex()
 
   if (text_index == -1)
     m_profiles_combo->setCurrentText(current_text);
+}
+
+void MappingWindow::UpdateProfileButtonState()
+{
+  // Make sure save/delete buttons are disabled for built-in profiles
+
+  bool builtin = false;
+  if (m_profiles_combo->findText(m_profiles_combo->currentText()) != -1)
+  {
+    const QString profile_path = m_profiles_combo->currentData().toString();
+    builtin = profile_path.startsWith(QString::fromStdString(File::GetSysDirectory()));
+  }
+
+  m_profiles_save->setEnabled(!builtin);
+  m_profiles_delete->setEnabled(!builtin);
+}
+
+void MappingWindow::OnSelectProfile(int)
+{
+  UpdateProfileButtonState();
+}
+
+void MappingWindow::OnProfileTextChanged(const QString&)
+{
+  UpdateProfileButtonState();
 }
 
 void MappingWindow::OnDeleteProfilePressed()
@@ -281,7 +311,10 @@ void MappingWindow::OnSaveProfilePressed()
   ini.Save(profile_path);
 
   if (m_profiles_combo->findText(profile_name) == -1)
-    m_profiles_combo->addItem(profile_name, QString::fromStdString(profile_path));
+  {
+    PopulateProfileSelection();
+    m_profiles_combo->setCurrentIndex(m_profiles_combo->findText(profile_name));
+  }
 }
 
 void MappingWindow::OnSelectDevice(int)
@@ -429,6 +462,13 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
 
   m_controller = m_config->GetController(GetPort());
 
+  PopulateProfileSelection();
+}
+
+void MappingWindow::PopulateProfileSelection()
+{
+  m_profiles_combo->clear();
+
   const std::string profiles_path =
       File::GetUserPath(D_CONFIG_IDX) + PROFILES_DIR + m_config->GetProfileName();
   for (const auto& filename : Common::DoFileSearch({profiles_path}, {".ini"}))
@@ -437,6 +477,20 @@ void MappingWindow::SetMappingType(MappingWindow::Type type)
     SplitPath(filename, nullptr, &basename, nullptr);
     m_profiles_combo->addItem(QString::fromStdString(basename), QString::fromStdString(filename));
   }
+
+  m_profiles_combo->insertSeparator(m_profiles_combo->count());
+
+  const std::string builtin_profiles_path =
+      File::GetSysDirectory() + PROFILES_DIR + m_config->GetProfileName();
+  for (const auto& filename : Common::DoFileSearch({builtin_profiles_path}, {".ini"}))
+  {
+    std::string basename;
+    SplitPath(filename, nullptr, &basename, nullptr);
+    // i18n: "Stock" refers to input profiles included with Dolphin
+    m_profiles_combo->addItem(tr("%1 (Stock)").arg(QString::fromStdString(basename)),
+                              QString::fromStdString(filename));
+  }
+
   m_profiles_combo->setCurrentIndex(-1);
 }
 

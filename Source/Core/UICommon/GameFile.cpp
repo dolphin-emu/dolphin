@@ -5,6 +5,7 @@
 #include "UICommon/GameFile.h"
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -13,11 +14,13 @@
 #include <memory>
 #include <sstream>
 #include <string>
+#include <string_view>
 #include <tuple>
 #include <utility>
 #include <vector>
 
 #include <fmt/format.h>
+#include <mbedtls/sha1.h>
 #include <pugixml.hpp>
 
 #include "Common/ChunkFile.h"
@@ -120,8 +123,7 @@ GameFile::GameFile(std::string path) : m_file_path(std::move(path))
       m_file_size = volume->GetRawSize();
       m_volume_size = volume->GetSize();
       m_volume_size_is_accurate = volume->IsSizeAccurate();
-      m_is_datel_disc = DiscIO::IsDisc(m_platform) &&
-                        !DiscIO::GetBootDOLOffset(*volume, volume->GetGamePartition());
+      m_is_datel_disc = volume->IsDatelDisc();
 
       m_internal_name = volume->GetInternalName();
       m_game_id = volume->GetGameID();
@@ -337,14 +339,17 @@ void GameFile::DoState(PointerWrap& p)
   m_custom_cover.DoState(p);
 }
 
+std::string GameFile::GetExtension() const
+{
+  std::string extension;
+  SplitPath(m_file_path, nullptr, nullptr, &extension);
+  return extension;
+}
+
 bool GameFile::IsElfOrDol() const
 {
-  if (m_file_path.size() < 4)
-    return false;
-
-  std::string name_end = m_file_path.substr(m_file_path.size() - 4);
-  std::transform(name_end.begin(), name_end.end(), name_end.begin(), ::tolower);
-  return name_end == ".elf" || name_end == ".dol";
+  const std::string extension = GetExtension();
+  return extension == ".elf" || extension == ".dol";
 }
 
 bool GameFile::ReadXMLMetadata(const std::string& path)
@@ -530,7 +535,7 @@ std::vector<DiscIO::Language> GameFile::GetLanguages() const
   return languages;
 }
 
-std::string GameFile::GetUniqueIdentifier() const
+std::string GameFile::GetNetPlayName(const Core::TitleDatabase& title_database) const
 {
   std::vector<std::string> info;
   if (!GetGameID().empty())
@@ -538,12 +543,7 @@ std::string GameFile::GetUniqueIdentifier() const
   if (GetRevision() != 0)
     info.push_back("Revision " + std::to_string(GetRevision()));
 
-  std::string name = GetLongName(DiscIO::Language::English);
-  if (name.empty())
-  {
-    // Use the file name as a fallback. Not necessarily consistent, but it's the best we have
-    name = m_file_name;
-  }
+  const std::string name = GetName(title_database);
 
   int disc_number = GetDiscNumber() + 1;
 
@@ -562,6 +562,66 @@ std::string GameFile::GetUniqueIdentifier() const
   std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
   ss << info.back();
   return name + " (" + ss.str() + ")";
+}
+
+std::array<u8, 20> GameFile::GetSyncHash() const
+{
+  std::array<u8, 20> hash{};
+
+  if (m_platform == DiscIO::Platform::ELFOrDOL)
+  {
+    std::string buffer;
+    if (File::ReadFileToString(m_file_path, buffer))
+      mbedtls_sha1_ret(reinterpret_cast<unsigned char*>(buffer.data()), buffer.size(), hash.data());
+  }
+  else
+  {
+    if (std::unique_ptr<DiscIO::Volume> volume = DiscIO::CreateVolume(m_file_path))
+      hash = volume->GetSyncHash();
+  }
+
+  return hash;
+}
+
+NetPlay::SyncIdentifier GameFile::GetSyncIdentifier() const
+{
+  const u64 dol_elf_size = m_platform == DiscIO::Platform::ELFOrDOL ? m_file_size : 0;
+  return NetPlay::SyncIdentifier{dol_elf_size,  m_game_id,       m_revision,
+                                 m_disc_number, m_is_datel_disc, GetSyncHash()};
+}
+
+NetPlay::SyncIdentifierComparison
+GameFile::CompareSyncIdentifier(const NetPlay::SyncIdentifier& sync_identifier) const
+{
+  const bool is_elf_or_dol = m_platform == DiscIO::Platform::ELFOrDOL;
+  if ((is_elf_or_dol ? m_file_size : 0) != sync_identifier.dol_elf_size)
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  const auto trim = [](const std::string& str, size_t n) {
+    return std::string_view(str.data(), std::min(n, str.size()));
+  };
+
+  if (trim(m_game_id, 3) != trim(sync_identifier.game_id, 3))
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  if (m_disc_number != sync_identifier.disc_number || m_is_datel_disc != sync_identifier.is_datel)
+    return NetPlay::SyncIdentifierComparison::DifferentGame;
+
+  const NetPlay::SyncIdentifierComparison mismatch_result =
+      is_elf_or_dol || m_is_datel_disc ? NetPlay::SyncIdentifierComparison::DifferentGame :
+                                         NetPlay::SyncIdentifierComparison::DifferentVersion;
+
+  if (m_game_id != sync_identifier.game_id)
+  {
+    const bool game_id_is_title_id = m_game_id.size() > 6 || sync_identifier.game_id.size() > 6;
+    return game_id_is_title_id ? NetPlay::SyncIdentifierComparison::DifferentGame : mismatch_result;
+  }
+
+  if (m_revision != sync_identifier.revision)
+    return mismatch_result;
+
+  return GetSyncHash() == sync_identifier.sync_hash ? NetPlay::SyncIdentifierComparison::SameGame :
+                                                      mismatch_result;
 }
 
 std::string GameFile::GetWiiFSPath() const
@@ -591,6 +651,30 @@ bool GameFile::ShouldShowFileFormatDetails() const
   default:
     return true;
   }
+}
+
+std::string GameFile::GetFileFormatName() const
+{
+  switch (m_platform)
+  {
+  case DiscIO::Platform::WiiWAD:
+    return "WAD";
+  case DiscIO::Platform::ELFOrDOL:
+  {
+    std::string extension = GetExtension();
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+
+    // substr removes the dot
+    return extension.substr(std::min<size_t>(1, extension.size()));
+  }
+  default:
+    return DiscIO::GetName(m_blob_type, true);
+  }
+}
+
+bool GameFile::ShouldAllowConversion() const
+{
+  return DiscIO::IsDisc(m_platform) && m_volume_size_is_accurate;
 }
 
 const GameBanner& GameFile::GetBannerImage() const

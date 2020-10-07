@@ -46,6 +46,11 @@
 #include <sys/param.h>
 #endif
 
+#ifdef ANDROID
+#include "Common/StringUtil.h"
+#include "jni/AndroidCommon/AndroidCommon.h"
+#endif
+
 #ifndef S_ISDIR
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
@@ -114,7 +119,7 @@ bool Exists(const std::string& path)
 bool IsDirectory(const std::string& path)
 {
 #ifdef _WIN32
-  return PathIsDirectory(UTF8ToUTF16(path).c_str());
+  return PathIsDirectory(UTF8ToWString(path).c_str());
 #else
   return FileInfo(path).IsDirectory();
 #endif
@@ -132,10 +137,19 @@ bool Delete(const std::string& filename)
 {
   INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
 
+#ifdef ANDROID
+  if (StringBeginsWith(filename, "content://"))
+  {
+    const bool success = DeleteAndroidContent(filename);
+    if (!success)
+      WARN_LOG(COMMON, "Delete failed on %s", filename.c_str());
+    return success;
+  }
+#endif
+
   const FileInfo file_info(filename);
 
-  // Return true because we care about the file no
-  // being there, not the actual delete.
+  // Return true because we care about the file not being there, not the actual delete.
   if (!file_info.Exists())
   {
     WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
@@ -600,7 +614,7 @@ std::string GetCurrentDir()
   if (!dir)
   {
     ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", LastStrerrorString().c_str());
-    return nullptr;
+    return "";
   }
   std::string strDir = dir;
   free(dir);
@@ -621,10 +635,15 @@ std::string CreateTempDir()
     return "";
 
   GUID guid;
-  CoCreateGuid(&guid);
-  TCHAR tguid[40];
-  StringFromGUID2(guid, tguid, 39);
-  tguid[39] = 0;
+  if (FAILED(CoCreateGuid(&guid)))
+  {
+    return "";
+  }
+  OLECHAR tguid[40]{};
+  if (!StringFromGUID2(guid, tguid, _countof(tguid)))
+  {
+    return "";
+  }
   std::string dir = TStrToUTF8(temp) + "/" + TStrToUTF8(tguid);
   if (!CreateDir(dir))
     return "";

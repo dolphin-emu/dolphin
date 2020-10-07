@@ -258,8 +258,8 @@ AbstractTexture* FramebufferManager::ResolveEFBColorTexture(const MathUtil::Rect
 AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rectangle<int>& region,
                                                             bool force_r32f)
 {
-  if (!IsEFBMultisampled() || !force_r32f ||
-      m_efb_depth_texture->GetFormat() == AbstractTextureFormat::R32F)
+  if (!IsEFBMultisampled() &&
+      (!force_r32f || m_efb_depth_texture->GetFormat() == AbstractTextureFormat::D32F))
   {
     return m_efb_depth_texture.get();
   }
@@ -271,7 +271,8 @@ AbstractTexture* FramebufferManager::ResolveEFBDepthTexture(const MathUtil::Rect
   m_efb_depth_texture->FinishedRendering();
   g_renderer->BeginUtilityDrawing();
   g_renderer->SetAndDiscardFramebuffer(m_efb_depth_resolve_framebuffer.get());
-  g_renderer->SetPipeline(m_efb_depth_resolve_pipeline.get());
+  g_renderer->SetPipeline(IsEFBMultisampled() ? m_efb_depth_resolve_pipeline.get() :
+                                                m_efb_depth_cache.copy_pipeline.get());
   g_renderer->SetTexture(0, m_efb_depth_texture.get());
   g_renderer->SetSamplerState(0, RenderState::GetPointSamplerState());
   g_renderer->SetViewportAndScissor(clamped_region);

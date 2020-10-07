@@ -21,6 +21,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
+#include "Core/HW/GCMemcard/GCMemcardUtils.h"
+
 static constexpr std::optional<u64> BytesToMegabits(u64 bytes)
 {
   const u64 factor = ((1024 * 1024) / 8);
@@ -405,22 +407,19 @@ u16 GCMemcard::GetFreeBlocks() const
   return GetActiveBat().m_free_blocks;
 }
 
-u8 GCMemcard::TitlePresent(const DEntry& d) const
+std::optional<u8> GCMemcard::TitlePresent(const DEntry& d) const
 {
   if (!m_valid)
-    return DIRLEN;
+    return std::nullopt;
 
-  u8 i = 0;
-  while (i < DIRLEN)
+  const Directory& dir = GetActiveDirectory();
+  for (u8 i = 0; i < DIRLEN; ++i)
   {
-    if (GetActiveDirectory().m_dir_entries[i].m_gamecode == d.m_gamecode &&
-        GetActiveDirectory().m_dir_entries[i].m_filename == d.m_filename)
-    {
-      break;
-    }
-    i++;
+    if (HasSameIdentity(dir.m_dir_entries[i], d))
+      return i;
   }
-  return i;
+
+  return std::nullopt;
 }
 
 bool GCMemcard::GCI_FileName(u8 index, std::string& filename) const
@@ -853,7 +852,7 @@ GCMemcardImportFileRetVal GCMemcard::ImportFile(const DEntry& direntry,
   {
     return GCMemcardImportFileRetVal::OUTOFBLOCKS;
   }
-  if (TitlePresent(direntry) != DIRLEN)
+  if (TitlePresent(direntry))
   {
     return GCMemcardImportFileRetVal::TITLEPRESENT;
   }

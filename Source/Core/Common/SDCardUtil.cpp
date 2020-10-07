@@ -247,7 +247,7 @@ bool SDCardCreate(u64 disk_size /*in MB*/, const std::string& filename)
   if (!write_sector(file, s_fsinfo_sector))
     goto FailWrite;
 
-  if (BACKUP_BOOT_SECTOR > 0)
+  if constexpr (BACKUP_BOOT_SECTOR > 0)
   {
     if (!write_empty(file, BACKUP_BOOT_SECTOR - 2))
       goto FailWrite;

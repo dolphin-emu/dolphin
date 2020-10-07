@@ -36,6 +36,8 @@ extern const Info<bool> GFX_LOG_RENDER_TIME_TO_FILE;
 extern const Info<bool> GFX_OVERLAY_STATS;
 extern const Info<bool> GFX_OVERLAY_PROJ_STATS;
 extern const Info<bool> GFX_DUMP_TEXTURES;
+extern const Info<bool> GFX_DUMP_MIP_TEXTURES;
+extern const Info<bool> GFX_DUMP_BASE_TEXTURES;
 extern const Info<bool> GFX_HIRES_TEXTURES;
 extern const Info<bool> GFX_CACHE_HIRES_TEXTURES;
 extern const Info<bool> GFX_DUMP_EFB_TARGET;

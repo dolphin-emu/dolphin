@@ -131,9 +131,12 @@ static int GetLayoutHorizontalSpacing(const QGridLayout* layout)
   // Docs claim this is deprecated, but on macOS with Qt 5.8 this is the only one that actually
   // works.
   float pixel_ratio = QGuiApplication::primaryScreen()->devicePixelRatio();
+#ifdef __APPLE__
+  // TODO is this still required?
   hspacing = pixel_ratio * style->pixelMetric(QStyle::PM_DefaultLayoutSpacing);
   if (hspacing >= 0)
     return hspacing;
+#endif
 
   // Ripped from qtbase/src/widgets/styles/qcommonstyle.cpp
   return pixel_ratio * 6;

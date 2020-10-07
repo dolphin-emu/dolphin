@@ -1,28 +1,76 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
-public final class FloatSetting extends Setting
+public enum FloatSetting implements AbstractFloatSetting
 {
-  private float mValue;
+  // These entries have the same names and order as in C++, just for consistency.
 
-  public FloatSetting(String key, String section, float value)
-  {
-    super(key, section);
-    mValue = value;
-  }
+  MAIN_EMULATION_SPEED(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "EmulationSpeed", 1.0f),
+  MAIN_OVERCLOCK(Settings.FILE_DOLPHIN, Settings.SECTION_INI_CORE, "Overclock", 1.0f);
 
-  public float getValue()
-  {
-    return mValue;
-  }
+  private final String mFile;
+  private final String mSection;
+  private final String mKey;
+  private final float mDefaultValue;
 
-  public void setValue(float value)
+  FloatSetting(String file, String section, String key, float defaultValue)
   {
-    mValue = value;
+    mFile = file;
+    mSection = section;
+    mKey = key;
+    mDefaultValue = defaultValue;
   }
 
   @Override
-  public String getValueAsString()
+  public boolean isOverridden(Settings settings)
   {
-    return Float.toString(mValue);
+    if (settings.isGameSpecific() && !NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+      return settings.getSection(mFile, mSection).exists(mKey);
+    else
+      return NativeConfig.isOverridden(mFile, mSection, mKey);
+  }
+
+  @Override
+  public boolean isRuntimeEditable()
+  {
+    return NativeConfig.isSettingSaveable(mFile, mSection, mKey);
+  }
+
+  @Override
+  public boolean delete(Settings settings)
+  {
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).delete(mKey);
+    }
+  }
+
+  @Override
+  public float getFloat(Settings settings)
+  {
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      return NativeConfig.getFloat(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
+    }
+    else
+    {
+      return settings.getSection(mFile, mSection).getFloat(mKey, mDefaultValue);
+    }
+  }
+
+  @Override
+  public void setFloat(Settings settings, float newValue)
+  {
+    if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
+    {
+      NativeConfig.setFloat(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+    }
+    else
+    {
+      settings.getSection(mFile, mSection).setFloat(mKey, newValue);
+    }
   }
 }

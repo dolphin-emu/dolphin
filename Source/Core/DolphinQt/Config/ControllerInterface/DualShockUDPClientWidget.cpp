@@ -4,14 +4,16 @@
 
 #include "DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.h"
 
+#include <fmt/format.h>
+
+#include <QBoxLayout>
 #include <QCheckBox>
-#include <QGridLayout>
-#include <QGroupBox>
 #include <QLabel>
-#include <QLineEdit>
-#include <QSpinBox>
+#include <QListWidget>
+#include <QPushButton>
 
 #include "Common/Config/Config.h"
+#include "DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.h"
 #include "InputCommon/ControllerInterface/DualShockUDPClient/DualShockUDPClient.h"
 
 DualShockUDPClientWidget::DualShockUDPClientWidget()
@@ -22,19 +24,27 @@ DualShockUDPClientWidget::DualShockUDPClientWidget()
 
 void DualShockUDPClientWidget::CreateWidgets()
 {
-  auto* main_layout = new QGridLayout;
+  auto* main_layout = new QVBoxLayout;
 
-  m_server_enabled = new QCheckBox(tr("Enable"));
-  m_server_enabled->setChecked(Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ENABLED));
+  m_servers_enabled = new QCheckBox(tr("Enable"));
+  m_servers_enabled->setChecked(Config::Get(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED));
+  main_layout->addWidget(m_servers_enabled, 0, {});
 
-  m_server_address = new QLineEdit(
-      QString::fromStdString(Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS)));
-  m_server_address->setEnabled(m_server_enabled->isChecked());
+  m_server_list = new QListWidget();
+  main_layout->addWidget(m_server_list);
 
-  m_server_port = new QSpinBox();
-  m_server_port->setMaximum(65535);
-  m_server_port->setValue(Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT));
-  m_server_port->setEnabled(m_server_enabled->isChecked());
+  m_add_server = new QPushButton(tr("Add..."));
+  m_add_server->setEnabled(m_servers_enabled->isChecked());
+
+  m_remove_server = new QPushButton(tr("Remove"));
+  m_remove_server->setEnabled(m_servers_enabled->isChecked());
+
+  QHBoxLayout* hlayout = new QHBoxLayout;
+  hlayout->addStretch();
+  hlayout->addWidget(m_add_server);
+  hlayout->addWidget(m_remove_server);
+
+  main_layout->addItem(hlayout);
 
   auto* description =
       new QLabel(tr("DSU protocol enables the use of input and motion data from compatible "
@@ -46,34 +56,91 @@ void DualShockUDPClientWidget::CreateWidgets()
   description->setWordWrap(true);
   description->setTextInteractionFlags(Qt::TextBrowserInteraction);
   description->setOpenExternalLinks(true);
-
-  main_layout->addWidget(m_server_enabled, 1, 1);
-  main_layout->addWidget(new QLabel(tr("Server IP Address")), 2, 1);
-  main_layout->addWidget(m_server_address, 2, 2);
-  main_layout->addWidget(new QLabel(tr("Server Port")), 3, 1);
-  main_layout->addWidget(m_server_port, 3, 2);
-  main_layout->addWidget(description, 4, 1, 1, 2);
+  main_layout->addWidget(description);
 
   setLayout(main_layout);
+
+  RefreshServerList();
 }
 
 void DualShockUDPClientWidget::ConnectWidgets()
 {
-  connect(m_server_enabled, &QCheckBox::toggled, this, [this] {
-    bool checked = m_server_enabled->isChecked();
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_ENABLED, checked);
-    m_server_address->setEnabled(checked);
-    m_server_port->setEnabled(checked);
-  });
+  connect(m_servers_enabled, &QCheckBox::clicked, this,
+          &DualShockUDPClientWidget::OnServersToggled);
+  connect(m_add_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerAdded);
+  connect(m_remove_server, &QPushButton::clicked, this, &DualShockUDPClientWidget::OnServerRemoved);
+}
 
-  connect(m_server_address, &QLineEdit::editingFinished, this, [this] {
-    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS,
-                             m_server_address->text().toStdString());
-  });
+void DualShockUDPClientWidget::RefreshServerList()
+{
+  m_server_list->clear();
 
-  connect(m_server_port, static_cast<void (QSpinBox::*)(int)>(&QSpinBox::valueChanged), this,
-          [this] {
-            Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVER_PORT,
-                                     static_cast<u16>(m_server_port->value()));
-          });
+  const auto server_address_setting =
+      Config::Get(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVER_PORT);
+
+  // Update our servers setting if the user is using old configuration
+  if (!server_address_setting.empty() && server_port_setting != 0)
+  {
+    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+                             servers_setting + fmt::format("{}:{}:{};", "DS4",
+                                                           server_address_setting,
+                                                           server_port_setting));
+    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_ADDRESS, "");
+    Config::SetBase(ciface::DualShockUDPClient::Settings::SERVER_PORT, 0);
+  }
+
+  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+  const auto server_details = SplitString(servers_setting, ';');
+  for (const std::string& server_detail : server_details)
+  {
+    const auto server_info = SplitString(server_detail, ':');
+    if (server_info.size() < 3)
+      continue;
+
+    QListWidgetItem* list_item = new QListWidgetItem(QString::fromStdString(
+        fmt::format("{}:{} - {}", server_info[1], server_info[2], server_info[0])));
+    m_server_list->addItem(list_item);
+  }
+  emit ConfigChanged();
+}
+
+void DualShockUDPClientWidget::OnServerAdded()
+{
+  DualShockUDPClientAddServerDialog add_server_dialog(this);
+  connect(&add_server_dialog, &DualShockUDPClientAddServerDialog::accepted, this,
+          &DualShockUDPClientWidget::RefreshServerList);
+  add_server_dialog.exec();
+}
+
+void DualShockUDPClientWidget::OnServerRemoved()
+{
+  const int row_to_remove = m_server_list->currentRow();
+
+  const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+  const auto server_details = SplitString(servers_setting, ';');
+
+  std::string new_server_setting;
+  for (int i = 0; i < m_server_list->count(); i++)
+  {
+    if (i == row_to_remove)
+    {
+      continue;
+    }
+
+    new_server_setting += server_details[i] + ';';
+  }
+
+  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS, new_server_setting);
+
+  RefreshServerList();
+}
+
+void DualShockUDPClientWidget::OnServersToggled()
+{
+  bool checked = m_servers_enabled->isChecked();
+  Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS_ENABLED, checked);
+  m_add_server->setEnabled(checked);
+  m_remove_server->setEnabled(checked);
 }

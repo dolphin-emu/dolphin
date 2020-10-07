@@ -69,6 +69,8 @@ void WiiPane::ConnectLayout()
           &WiiPane::OnSaveConfig);
   connect(m_system_language_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
           &WiiPane::OnSaveConfig);
+  connect(m_sound_mode_choice, qOverload<int>(&QComboBox::currentIndexChanged), this,
+          &WiiPane::OnSaveConfig);
   connect(m_screensaver_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_pal60_mode_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
   connect(m_sd_card_checkbox, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
@@ -94,7 +96,7 @@ void WiiPane::ConnectLayout()
   connect(m_wiimote_motor, &QCheckBox::toggled, this, &WiiPane::OnSaveConfig);
 
   // Emulation State
-  connect(&Settings::Instance(), &Settings::EmulationStateChanged,
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
           [=](Core::State state) { OnEmulationStateChanged(state != Core::State::Uninitialized); });
 }
 
@@ -109,10 +111,12 @@ void WiiPane::CreateMisc()
   m_sd_card_checkbox = new QCheckBox(tr("Insert SD Card"));
   m_allow_sd_writes_checkbox = new QCheckBox(tr("Allow Writes to SD Card"));
   m_connect_keyboard_checkbox = new QCheckBox(tr("Connect USB Keyboard"));
+
   m_aspect_ratio_choice_label = new QLabel(tr("Aspect Ratio:"));
   m_aspect_ratio_choice = new QComboBox();
   m_aspect_ratio_choice->addItem(tr("4:3"));
   m_aspect_ratio_choice->addItem(tr("16:9"));
+
   m_system_language_choice_label = new QLabel(tr("System Language:"));
   m_system_language_choice = new QComboBox();
   m_system_language_choice->addItem(tr("Japanese"));
@@ -125,6 +129,13 @@ void WiiPane::CreateMisc()
   m_system_language_choice->addItem(tr("Simplified Chinese"));
   m_system_language_choice->addItem(tr("Traditional Chinese"));
   m_system_language_choice->addItem(tr("Korean"));
+
+  m_sound_mode_choice_label = new QLabel(tr("Sound:"));
+  m_sound_mode_choice = new QComboBox();
+  m_sound_mode_choice->addItem(tr("Mono"));
+  m_sound_mode_choice->addItem(tr("Stereo"));
+  // i18n: Surround audio (Dolby Pro Logic II)
+  m_sound_mode_choice->addItem(tr("Surround"));
 
   m_pal60_mode_checkbox->setToolTip(tr("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                        "(576i) for PAL games.\nMay not work for all games."));
@@ -142,6 +153,8 @@ void WiiPane::CreateMisc()
   misc_settings_group_layout->addWidget(m_aspect_ratio_choice, 3, 1, 1, 1);
   misc_settings_group_layout->addWidget(m_system_language_choice_label, 4, 0, 1, 1);
   misc_settings_group_layout->addWidget(m_system_language_choice, 4, 1, 1, 1);
+  misc_settings_group_layout->addWidget(m_sound_mode_choice_label, 5, 0, 1, 1);
+  misc_settings_group_layout->addWidget(m_sound_mode_choice, 5, 1, 1, 1);
 }
 
 void WiiPane::CreateWhitelistedUSBPassthroughDevices()
@@ -203,6 +216,7 @@ void WiiPane::OnEmulationStateChanged(bool running)
   m_pal60_mode_checkbox->setEnabled(!running);
   m_system_language_choice->setEnabled(!running);
   m_aspect_ratio_choice->setEnabled(!running);
+  m_sound_mode_choice->setEnabled(!running);
   m_wiimote_motor->setEnabled(!running);
   m_wiimote_speaker_volume->setEnabled(!running);
   m_wiimote_ir_sensitivity->setEnabled(!running);
@@ -218,6 +232,7 @@ void WiiPane::LoadConfig()
   m_connect_keyboard_checkbox->setChecked(Settings::Instance().IsUSBKeyboardConnected());
   m_aspect_ratio_choice->setCurrentIndex(Config::Get(Config::SYSCONF_WIDESCREEN));
   m_system_language_choice->setCurrentIndex(Config::Get(Config::SYSCONF_LANGUAGE));
+  m_sound_mode_choice->setCurrentIndex(Config::Get(Config::SYSCONF_SOUND_MODE));
 
   PopulateUSBPassthroughListWidget();
 
@@ -245,6 +260,7 @@ void WiiPane::OnSaveConfig()
   Config::SetBase<u32>(Config::SYSCONF_SPEAKER_VOLUME, m_wiimote_speaker_volume->value());
   Config::SetBase<u32>(Config::SYSCONF_LANGUAGE, m_system_language_choice->currentIndex());
   Config::SetBase<bool>(Config::SYSCONF_WIDESCREEN, m_aspect_ratio_choice->currentIndex());
+  Config::SetBase<u32>(Config::SYSCONF_SOUND_MODE, m_sound_mode_choice->currentIndex());
   Config::SetBase(Config::SYSCONF_WIIMOTE_MOTOR, m_wiimote_motor->isChecked());
 }
 
@@ -264,10 +280,9 @@ void WiiPane::OnUSBWhitelistAddButton()
 void WiiPane::OnUSBWhitelistRemoveButton()
 {
   QString device = m_whitelist_usb_list->currentItem()->text().left(9);
-  QString vid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[0]);
-  QString pid =
-      QString(device.split(QString::fromStdString(":"), QString::SplitBehavior::KeepEmptyParts)[1]);
+  QStringList split = device.split(QString::fromStdString(":"));
+  QString vid = QString(split[0]);
+  QString pid = QString(split[1]);
   const u16 vid_u16 = static_cast<u16>(std::stoul(vid.toStdString(), nullptr, 16));
   const u16 pid_u16 = static_cast<u16>(std::stoul(pid.toStdString(), nullptr, 16));
   SConfig::GetInstance().m_usb_passthrough_devices.erase({vid_u16, pid_u16});

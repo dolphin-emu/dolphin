@@ -1,16 +1,15 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.os.Bundle;
-
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.GridLayout;
+
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -80,13 +79,12 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     mSaveOrLoad = (SaveOrLoad) getArguments().getSerializable(KEY_SAVEORLOAD);
   }
 
-  @Nullable
   @Override
   public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState)
   {
     View rootView = inflater.inflate(R.layout.fragment_saveload_state, container, false);
 
-    GridLayout grid = (GridLayout) rootView.findViewById(R.id.grid_state_slots);
+    GridLayout grid = rootView.findViewById(R.id.grid_state_slots);
     for (int childIndex = 0; childIndex < grid.getChildCount(); childIndex++)
     {
       Button button = (Button) grid.getChildAt(childIndex);

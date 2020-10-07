@@ -1,40 +1,34 @@
 package org.dolphinemu.dolphinemu.features.settings.model.view;
 
-import org.dolphinemu.dolphinemu.features.settings.model.Setting;
-import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+
+import androidx.annotation.Nullable;
 
 public final class FilePicker extends SettingsItem
 {
-  private String mFile;
-  private String mDefaultValue;
+  private AbstractStringSetting mSetting;
   private int mRequestType;
+  private String mDefaultPathRelativeToUserDirectory;
 
-  public FilePicker(String file, String key, String section, int titleId, int descriptionId,
-          String defaultVault, int requestType, Setting setting)
+  public FilePicker(AbstractStringSetting setting, int titleId, int descriptionId, int requestType,
+          @Nullable String defaultPathRelativeToUserDirectory)
   {
-    super(key, section, setting, titleId, descriptionId);
-    mFile = file;
-    mDefaultValue = defaultVault;
+    super(titleId, descriptionId);
+    mSetting = setting;
     mRequestType = requestType;
+    mDefaultPathRelativeToUserDirectory = defaultPathRelativeToUserDirectory;
   }
 
-  public String getFile()
+  public String getSelectedValue(Settings settings)
   {
-    return mFile + ".ini";
+    return mSetting.getString(settings);
   }
 
-  public String getSelectedValue()
+  public void setSelectedValue(Settings settings, String selection)
   {
-    StringSetting setting = (StringSetting) getSetting();
-
-    if (setting == null)
-    {
-      return mDefaultValue;
-    }
-    else
-    {
-      return setting.getValue();
-    }
+    mSetting.setString(settings, selection);
   }
 
   public int getRequestType()
@@ -42,9 +36,21 @@ public final class FilePicker extends SettingsItem
     return mRequestType;
   }
 
+  @Nullable
+  public String getDefaultPathRelativeToUserDirectory()
+  {
+    return mDefaultPathRelativeToUserDirectory;
+  }
+
   @Override
   public int getType()
   {
     return TYPE_FILE_PICKER;
+  }
+
+  @Override
+  public AbstractSetting getSetting()
+  {
+    return mSetting;
   }
 }

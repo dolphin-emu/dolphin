@@ -1,5 +1,6 @@
 package org.dolphinemu.dolphinemu.utils;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
@@ -33,6 +34,7 @@ public class PicassoUtils
 
   public static void loadGameCover(ImageView imageView, GameFile gameFile)
   {
+    Context context = imageView.getContext();
     File cover = new File(gameFile.getCustomCoverPath());
     if (cover.exists())
     {
@@ -46,7 +48,7 @@ public class PicassoUtils
               .error(R.drawable.no_banner)
               .into(imageView);
     }
-    else if ((cover = new File(gameFile.getCoverPath())).exists())
+    else if ((cover = new File(gameFile.getCoverPath(context))).exists())
     {
       Picasso.get()
               .load(cover)
@@ -76,7 +78,7 @@ public class PicassoUtils
                 public void onSuccess()
                 {
                   CoverHelper.saveCover(((BitmapDrawable) imageView.getDrawable()).getBitmap(),
-                          gameFile.getCoverPath());
+                          gameFile.getCoverPath(context));
                 }
 
                 @Override
@@ -98,7 +100,7 @@ public class PicassoUtils
                             {
                               CoverHelper.saveCover(
                                       ((BitmapDrawable) imageView.getDrawable()).getBitmap(),
-                                      gameFile.getCoverPath());
+                                      gameFile.getCoverPath(context));
                             }
 
                             @Override
@@ -121,7 +123,7 @@ public class PicassoUtils
                                           CoverHelper.saveCover(
                                                   ((BitmapDrawable) imageView.getDrawable())
                                                           .getBitmap(),
-                                                  gameFile.getCoverPath());
+                                                  gameFile.getCoverPath(context));
                                         }
 
                                         @Override

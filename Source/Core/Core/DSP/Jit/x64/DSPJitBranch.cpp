@@ -38,7 +38,7 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
   case 0x3:  // LE - Less Equal
     LEA(16, EDX, MScaled(EAX, SCALE_4, 0));
     XOR(16, R(EAX), R(EDX));
-    LEA(16, EAX, MScaled(EAX, SCALE_2, 0));
+    ADD(16, R(EAX), R(EAX));
     OR(16, R(EAX), R(EDX));
     TEST(16, R(EAX), Imm16(0x10));
     break;
@@ -56,9 +56,9 @@ void DSPEmitter::ReJitConditional(const UDSPInstruction opc,
     break;
   case 0xa:  // ?
   case 0xb:  // ?
-    LEA(16, EDX, MScaled(EAX, SCALE_2, 0));
+    LEA(16, EDX, MRegSum(EAX, EAX));
     OR(16, R(EAX), R(EDX));
-    LEA(16, EDX, MScaled(EDX, SCALE_8, 0));
+    SHL(16, R(EDX), Imm8(3));
     NOT(16, R(EAX));
     OR(16, R(EAX), R(EDX));
     TEST(16, R(EAX), Imm16(0x20));

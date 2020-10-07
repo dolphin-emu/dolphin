@@ -148,7 +148,6 @@ private:
   std::vector<Partition> CheckPartitions();
   bool CheckPartition(const Partition& partition);  // Returns false if partition should be ignored
   std::string GetPartitionName(std::optional<u32> type) const;
-  void CheckCorrectlySigned(const Partition& partition, std::string error_text);
   bool IsDebugSigned() const;
   bool ShouldHaveChannelPartition() const;
   bool ShouldHaveInstallPartition() const;

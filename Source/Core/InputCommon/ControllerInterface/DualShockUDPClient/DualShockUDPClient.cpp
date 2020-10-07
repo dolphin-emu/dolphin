@@ -12,6 +12,7 @@
 
 #include <SFML/Network/SocketSelector.hpp>
 #include <SFML/Network/UdpSocket.hpp>
+#include <fmt/format.h>
 
 #include "Common/Config/Config.h"
 #include "Common/Flag.h"
@@ -19,6 +20,7 @@
 #include "Common/MathUtil.h"
 #include "Common/Matrix.h"
 #include "Common/Random.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -28,15 +30,13 @@ namespace ciface::DualShockUDPClient
 {
 namespace Settings
 {
-constexpr char DEFAULT_SERVER_ADDRESS[] = "127.0.0.1";
-constexpr u16 DEFAULT_SERVER_PORT = 26760;
-
-const Config::Info<bool> SERVER_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
-                                        false};
 const Config::Info<std::string> SERVER_ADDRESS{
-    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, DEFAULT_SERVER_ADDRESS};
-const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"},
-                                    DEFAULT_SERVER_PORT};
+    {Config::System::DualShockUDPClient, "Server", "IPAddress"}, ""};
+const Config::Info<int> SERVER_PORT{{Config::System::DualShockUDPClient, "Server", "Port"}, 0};
+const Config::Info<std::string> SERVERS{{Config::System::DualShockUDPClient, "Server", "Entries"},
+                                        ""};
+const Config::Info<bool> SERVERS_ENABLED{{Config::System::DualShockUDPClient, "Server", "Enabled"},
+                                         false};
 }  // namespace Settings
 
 // Clock type used for querying timeframes
@@ -130,14 +130,14 @@ private:
 public:
   void UpdateInput() override;
 
-  Device(Proto::DsModel model, int index);
+  Device(std::string name, int index, std::string server_address, u16 server_port);
 
   std::string GetName() const final override;
   std::string GetSource() const final override;
   std::optional<int> GetPreferredId() const final override;
 
 private:
-  const Proto::DsModel m_model;
+  const std::string m_name;
   const int m_index;
   u32 m_client_uid = Common::Random::GenerateValue<u32>();
   sf::UdpSocket m_socket;
@@ -147,6 +147,8 @@ private:
   bool m_prev_touch_valid = false;
   int m_touch_x = 0;
   int m_touch_y = 0;
+  std::string m_server_address;
+  u16 m_server_port;
 };
 
 using MathUtil::GRAVITY_ACCELERATION;
@@ -155,16 +157,40 @@ constexpr auto SERVER_LISTPORTS_INTERVAL = std::chrono::seconds{1};
 constexpr int TOUCH_X_AXIS_MAX = 1000;
 constexpr int TOUCH_Y_AXIS_MAX = 500;
 
-static bool s_server_enabled;
-static std::string s_server_address;
-static u16 s_server_port;
+struct Server
+{
+  Server(std::string description, std::string address, u16 port)
+      : m_description{std::move(description)}, m_address{std::move(address)}, m_port{port}
+  {
+  }
+  Server(const Server&) = delete;
+  Server(Server&& other) noexcept
+  {
+    m_description = std::move(other.m_description);
+    m_address = std::move(other.m_address);
+    m_port = other.m_port;
+    m_port_info = std::move(other.m_port_info);
+  }
+
+  Server& operator=(const Server&) = delete;
+  Server& operator=(Server&&) = delete;
+
+  ~Server() = default;
+
+  std::string m_description;
+  std::string m_address;
+  u16 m_port;
+  std::mutex m_port_info_mutex;
+  std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> m_port_info;
+  sf::UdpSocket m_socket;
+};
+
+static bool s_servers_enabled;
+static std::vector<Server> s_servers;
 static u32 s_client_uid;
 static SteadyClock::time_point s_next_listports;
 static std::thread s_hotplug_thread;
 static Common::Flag s_hotplug_thread_running;
-static std::mutex s_port_info_mutex;
-static std::array<Proto::MessageType::PortInfo, Proto::PORT_COUNT> s_port_info;
-static sf::UdpSocket s_socket;
 
 static bool IsSameController(const Proto::MessageType::PortInfo& a,
                              const Proto::MessageType::PortInfo& b)
@@ -198,39 +224,48 @@ static void HotplugThreadFunc()
     {
       s_next_listports = now + SERVER_LISTPORTS_INTERVAL;
 
-      // Request info on the four controller ports
-      Proto::Message<Proto::MessageType::ListPorts> msg(s_client_uid);
-      auto& list_ports = msg.m_message;
-      list_ports.pad_request_count = 4;
-      list_ports.pad_id = {0, 1, 2, 3};
-      msg.Finish();
-      if (s_socket.send(&list_ports, sizeof list_ports, s_server_address, s_server_port) !=
-          sf::Socket::Status::Done)
-        ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
+      for (auto& server : s_servers)
+      {
+        // Request info on the four controller ports
+        Proto::Message<Proto::MessageType::ListPorts> msg(s_client_uid);
+        auto& list_ports = msg.m_message;
+        list_ports.pad_request_count = 4;
+        list_ports.pad_id = {0, 1, 2, 3};
+        msg.Finish();
+        if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
+            sf::Socket::Status::Done)
+        {
+          ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
+        }
+      }
     }
 
-    // Receive controller port info
-    using namespace std::chrono;
-    using namespace std::chrono_literals;
-    Proto::Message<Proto::MessageType::FromServer> msg;
-    const auto timeout = s_next_listports - SteadyClock::now();
-    // ReceiveWithTimeout treats a timeout of zero as infinite timeout, which we don't want
-    const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
-    std::size_t received_bytes;
-    sf::IpAddress sender;
-    u16 port;
-    if (ReceiveWithTimeout(s_socket, &msg, sizeof(msg), received_bytes, sender, port,
-                           sf::milliseconds(timeout_ms.count())) == sf::Socket::Status::Done)
+    for (auto& server : s_servers)
     {
-      if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
+      // Receive controller port info
+      using namespace std::chrono;
+      using namespace std::chrono_literals;
+      Proto::Message<Proto::MessageType::FromServer> msg;
+      const auto timeout = s_next_listports - SteadyClock::now();
+      // ReceiveWithTimeout treats a timeout of zero as infinite timeout, which we don't want
+      const auto timeout_ms = std::max(duration_cast<milliseconds>(timeout), 1ms);
+      std::size_t received_bytes;
+      sf::IpAddress sender;
+      u16 port;
+      if (ReceiveWithTimeout(server.m_socket, &msg, sizeof(msg), received_bytes, sender, port,
+                             sf::milliseconds(timeout_ms.count())) == sf::Socket::Status::Done)
       {
-        const bool port_changed = !IsSameController(*port_info, s_port_info[port_info->pad_id]);
+        if (auto port_info = msg.CheckAndCastTo<Proto::MessageType::PortInfo>())
         {
-          std::lock_guard lock{s_port_info_mutex};
-          s_port_info[port_info->pad_id] = *port_info;
+          const bool port_changed =
+              !IsSameController(*port_info, server.m_port_info[port_info->pad_id]);
+          {
+            std::lock_guard lock{server.m_port_info_mutex};
+            server.m_port_info[port_info->pad_id] = *port_info;
+          }
+          if (port_changed)
+            PopulateDevices();
         }
-        if (port_changed)
-          PopulateDevices();
       }
     }
   }
@@ -258,7 +293,10 @@ static void StopHotplugThread()
     return;
   }
 
-  s_socket.unbind();  // interrupt blocking socket
+  for (auto& server : s_servers)
+  {
+    server.m_socket.unbind();  // interrupt blocking socket
+  }
   s_hotplug_thread.join();
 }
 
@@ -270,35 +308,77 @@ static void Restart()
 
   s_client_uid = Common::Random::GenerateValue<u32>();
   s_next_listports = std::chrono::steady_clock::time_point::min();
-  for (size_t port_index = 0; port_index < s_port_info.size(); port_index++)
+  for (auto& server : s_servers)
   {
-    s_port_info[port_index] = {};
-    s_port_info[port_index].pad_id = static_cast<u8>(port_index);
+    for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+    {
+      server.m_port_info[port_index] = {};
+      server.m_port_info[port_index].pad_id = static_cast<u8>(port_index);
+    }
   }
 
   PopulateDevices();  // remove devices
 
-  if (s_server_enabled)
+  if (s_servers_enabled && !s_servers.empty())
     StartHotplugThread();
 }
 
 static void ConfigChanged()
 {
-  bool server_enabled = Config::Get(Settings::SERVER_ENABLED);
-  std::string server_address = Config::Get(Settings::SERVER_ADDRESS);
-  u16 server_port = Config::Get(Settings::SERVER_PORT);
-  if (server_enabled != s_server_enabled || server_address != s_server_address ||
-      server_port != s_server_port)
+  const bool servers_enabled = Config::Get(Settings::SERVERS_ENABLED);
+  const std::string servers_setting = Config::Get(Settings::SERVERS);
+
+  std::string new_servers_setting;
+  for (const auto& server : s_servers)
   {
-    s_server_enabled = server_enabled;
-    s_server_address = server_address;
-    s_server_port = server_port;
+    new_servers_setting +=
+        fmt::format("{}:{}:{};", server.m_description, server.m_address, server.m_port);
+  }
+
+  if (servers_enabled != s_servers_enabled || servers_setting != new_servers_setting)
+  {
+    s_servers_enabled = servers_enabled;
+    s_servers.clear();
+
+    const auto server_details = SplitString(servers_setting, ';');
+    for (const auto& server_detail : server_details)
+    {
+      const auto server_info = SplitString(server_detail, ':');
+      if (server_info.size() < 3)
+        continue;
+
+      const std::string description = server_info[0];
+      const std::string server_address = server_info[1];
+      const auto port = std::stoi(server_info[2]);
+      if (port >= std::numeric_limits<u16>::max())
+      {
+        continue;
+      }
+      u16 server_port = static_cast<u16>(port);
+
+      s_servers.emplace_back(description, server_address, server_port);
+    }
     Restart();
   }
 }
 
 void Init()
 {
+  // The following is added for backwards compatibility
+  const auto server_address_setting = Config::Get(Settings::SERVER_ADDRESS);
+  const auto server_port_setting = Config::Get(Settings::SERVER_PORT);
+
+  if (!server_address_setting.empty() && server_port_setting != 0)
+  {
+    const auto& servers_setting = Config::Get(ciface::DualShockUDPClient::Settings::SERVERS);
+    Config::SetBaseOrCurrent(ciface::DualShockUDPClient::Settings::SERVERS,
+                             servers_setting + fmt::format("{}:{}:{};", "DS4",
+                                                           server_address_setting,
+                                                           server_port_setting));
+    Config::SetBase(Settings::SERVER_ADDRESS, "");
+    Config::SetBase(Settings::SERVER_PORT, 0);
+  }
+
   Config::AddConfigChangedCallback(ConfigChanged);
 }
 
@@ -306,18 +386,21 @@ void PopulateDevices()
 {
   INFO_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
-  g_controller_interface.RemoveDevice(
-      [](const auto* dev) { return dev->GetSource() == "DSUClient"; });
-
-  std::lock_guard lock{s_port_info_mutex};
-  for (size_t port_index = 0; port_index < s_port_info.size(); port_index++)
+  for (auto& server : s_servers)
   {
-    const Proto::MessageType::PortInfo& port_info = s_port_info[port_index];
-    if (port_info.pad_state != Proto::DsState::Connected)
-      continue;
+    g_controller_interface.RemoveDevice(
+        [&server](const auto* dev) { return dev->GetName() == server.m_description; });
 
-    g_controller_interface.AddDevice(
-        std::make_shared<Device>(port_info.model, static_cast<int>(port_index)));
+    std::lock_guard lock{server.m_port_info_mutex};
+    for (size_t port_index = 0; port_index < server.m_port_info.size(); port_index++)
+    {
+      const Proto::MessageType::PortInfo& port_info = server.m_port_info[port_index];
+      if (port_info.pad_state != Proto::DsState::Connected)
+        continue;
+
+      g_controller_interface.AddDevice(std::make_shared<Device>(
+          server.m_description, static_cast<int>(port_index), server.m_address, server.m_port));
+    }
   }
 }
 
@@ -326,7 +409,9 @@ void DeInit()
   StopHotplugThread();
 }
 
-Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
+Device::Device(std::string name, int index, std::string server_address, u16 server_port)
+    : m_name{std::move(name)}, m_index{index}, m_server_address{std::move(server_address)},
+      m_server_port{server_port}
 {
   m_socket.setBlocking(false);
 
@@ -388,19 +473,7 @@ Device::Device(Proto::DsModel model, int index) : m_model{model}, m_index{index}
 
 std::string Device::GetName() const
 {
-  switch (m_model)
-  {
-  case Proto::DsModel::None:
-    return "None";
-  case Proto::DsModel::DS3:
-    return "DualShock 3";
-  case Proto::DsModel::DS4:
-    return "DualShock 4";
-  case Proto::DsModel::Generic:
-    return "Generic Gamepad";
-  default:
-    return "Device";
-  }
+  return m_name;
 }
 
 std::string Device::GetSource() const
@@ -421,7 +494,7 @@ void Device::UpdateInput()
     data_req.register_flags = Proto::RegisterFlags::PadID;
     data_req.pad_id_to_register = m_index;
     msg.Finish();
-    if (m_socket.send(&data_req, sizeof(data_req), s_server_address, s_server_port) !=
+    if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
         sf::Socket::Status::Done)
       ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
   }

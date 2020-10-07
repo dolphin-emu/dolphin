@@ -515,9 +515,9 @@ ResultCode HostFileSystem::Rename(Uid uid, Gid gid, const std::string& old_path,
   }
 
   // Finally, remove the child from the old parent and move it to the new parent.
+  FstEntry* new_entry = GetFstEntryForPath(new_path);
   const auto it = std::find_if(old_parent->children.begin(), old_parent->children.end(),
                                GetNamePredicate(split_old_path.file_name));
-  FstEntry* new_entry = GetFstEntryForPath(new_path);
   if (it != old_parent->children.end())
   {
     *new_entry = *it;

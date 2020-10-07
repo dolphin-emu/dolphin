@@ -278,6 +278,18 @@ void IOWindow::CreateMainLayout()
   m_functions_combo->addItem(QStringLiteral("tap"));
   m_functions_combo->addItem(QStringLiteral("relative"));
   m_functions_combo->addItem(QStringLiteral("pulse"));
+  m_functions_combo->addItem(QStringLiteral("sin"));
+  m_functions_combo->addItem(QStringLiteral("cos"));
+  m_functions_combo->addItem(QStringLiteral("tan"));
+  m_functions_combo->addItem(QStringLiteral("asin"));
+  m_functions_combo->addItem(QStringLiteral("acos"));
+  m_functions_combo->addItem(QStringLiteral("atan"));
+  m_functions_combo->addItem(QStringLiteral("atan2"));
+  m_functions_combo->addItem(QStringLiteral("sqrt"));
+  m_functions_combo->addItem(QStringLiteral("pow"));
+  m_functions_combo->addItem(QStringLiteral("min"));
+  m_functions_combo->addItem(QStringLiteral("max"));
+  m_functions_combo->addItem(QStringLiteral("clamp"));
 
   // Devices
   m_main_layout->addWidget(m_devices_combo);

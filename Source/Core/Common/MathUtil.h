@@ -135,8 +135,12 @@ public:
 
   constexpr size_t Count() const { return m_running_mean.Count(); }
   constexpr T Mean() const { return m_running_mean.Mean(); }
+
   constexpr T Variance() const { return m_variance / (Count() - 1); }
-  constexpr T StandardDeviation() const { return std::sqrt(Variance()); }
+  T StandardDeviation() const { return std::sqrt(Variance()); }
+
+  constexpr T PopulationVariance() const { return m_variance / Count(); }
+  T PopulationStandardDeviation() const { return std::sqrt(PopulationVariance()); }
 
 private:
   RunningMean<T> m_running_mean;

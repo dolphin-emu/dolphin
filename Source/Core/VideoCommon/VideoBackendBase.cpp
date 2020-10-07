@@ -68,8 +68,11 @@ static VideoBackendBase* s_default_backend = nullptr;
 // Nvidia drivers >= v302 will check if the application exports a global
 // variable named NvOptimusEnablement to know if it should run the app in high
 // performance graphics mode or using the IGP.
+// AMD drivers >= 13.35 do the same, but for the variable
+// named AmdPowerXpressRequestHighPerformance instead.
 extern "C" {
 __declspec(dllexport) DWORD NvOptimusEnablement = 1;
+__declspec(dllexport) int AmdPowerXpressRequestHighPerformance = 1;
 }
 #endif
 
@@ -197,9 +200,21 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
   return result;
 }
 
+// This function is called at static initialization, so we can't rely on s_default_backend being set
+std::string VideoBackendBase::GetDefaultBackendName()
+{
+#ifdef HAS_OPENGL
+  return OGL::VideoBackend::NAME;
+#elif defined(_WIN32)
+  return DX11::VideoBackend::NAME;
+#else
+  return Vulkan::VideoBackend::NAME;
+#endif
+}
+
 void VideoBackendBase::PopulateList()
 {
-  // OGL > D3D11 > Vulkan > SW > Null
+  // OGL > D3D11 > D3D12 > Vulkan > SW > Null
 #ifdef HAS_OPENGL
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif

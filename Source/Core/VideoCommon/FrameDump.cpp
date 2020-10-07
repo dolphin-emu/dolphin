@@ -186,11 +186,11 @@ bool FrameDump::CreateVideoFile()
     s_codec_context->codec_tag = MKTAG('X', 'V', 'I', 'D');
 
   s_codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-  s_codec_context->bit_rate = g_Config.iBitrateKbps * 1000;
+  s_codec_context->bit_rate = static_cast<int64_t>(g_Config.iBitrateKbps) * 1000;
   s_codec_context->width = s_width;
   s_codec_context->height = s_height;
-  s_codec_context->time_base.num = 1;
-  s_codec_context->time_base.den = VideoInterface::GetTargetRefreshRate();
+  s_codec_context->time_base.num = VideoInterface::GetTargetRefreshRateDenominator();
+  s_codec_context->time_base.den = VideoInterface::GetTargetRefreshRateNumerator();
   s_codec_context->gop_size = 1;
   s_codec_context->level = 1;
   s_codec_context->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGR0 : AV_PIX_FMT_YUV420P;
@@ -295,6 +295,11 @@ static void WritePacket(AVPacket& pkt)
   av_interleaved_write_frame(s_format_context, &pkt);
 }
 
+static u64 TicksToTimeBaseUnits(u64 ticks, AVRational time_base, u32 ticks_per_second)
+{
+  return ticks * time_base.den / time_base.num / ticks_per_second;
+}
+
 void FrameDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   // Assume that the timing is valid, if the savestate id of the new frame
@@ -346,10 +351,11 @@ void FrameDump::AddFrame(const u8* data, int width, int height, int stride, cons
   else
   {
     delta = state.ticks - s_last_frame;
-    last_pts = (s_last_pts * s_codec_context->time_base.den) / state.ticks_per_second;
+    last_pts = TicksToTimeBaseUnits(s_last_pts, s_codec_context->time_base, state.ticks_per_second);
   }
   u64 pts_in_ticks = s_last_pts + delta;
-  s_scaled_frame->pts = (pts_in_ticks * s_codec_context->time_base.den) / state.ticks_per_second;
+  s_scaled_frame->pts =
+      TicksToTimeBaseUnits(pts_in_ticks, s_codec_context->time_base, state.ticks_per_second);
   if (s_scaled_frame->pts != last_pts)
   {
     s_last_frame = state.ticks;

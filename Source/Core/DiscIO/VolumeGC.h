@@ -43,12 +43,15 @@ public:
   std::vector<u32> GetBanner(u32* width, u32* height) const override;
 
   Platform GetVolumeType() const override;
+  bool IsDatelDisc() const override;
   Region GetRegion() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   bool IsSizeAccurate() const override;
   u64 GetRawSize() const override;
   const BlobReader& GetBlobReader() const override;
+
+  std::array<u8, 20> GetSyncHash() const override;
 
 private:
   static const u32 GC_BANNER_WIDTH = 96;

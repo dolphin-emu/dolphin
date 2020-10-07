@@ -14,6 +14,7 @@
 #include "Common/BitUtils.h"
 #include "Common/Common.h"
 #include "Common/IniFile.h"
+#include "Common/MathUtil.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -37,6 +38,20 @@ struct TwoPointCalibration
   TwoPointCalibration() = default;
   TwoPointCalibration(const T& zero_, const T& max_) : zero{zero_}, max{max_} {}
 
+  // Sanity check is that max and zero are not equal.
+  constexpr bool IsSane() const
+  {
+    if constexpr (std::is_arithmetic_v<T>)
+    {
+      return max != zero;
+    }
+    else
+    {
+      return std::equal(std::begin(max.data), std::end(max.data), std::begin(zero.data),
+                        std::not_equal_to<>());
+    }
+  }
+
   static constexpr size_t BITS_OF_PRECISION = Bits;
 
   T zero;
@@ -51,6 +66,28 @@ struct ThreePointCalibration
   ThreePointCalibration(const T& min_, const T& zero_, const T& max_)
       : min{min_}, zero{zero_}, max{max_}
   {
+  }
+
+  // Sanity check is that min and max are on opposite sides of the zero value.
+  constexpr bool IsSane() const
+  {
+    if constexpr (std::is_arithmetic_v<T>)
+    {
+      return MathUtil::Sign(zero - min) * MathUtil::Sign(zero - max) == -1;
+    }
+    else
+    {
+      for (size_t i = 0; i != std::size(zero.data); ++i)
+      {
+        if (MathUtil::Sign(zero.data[i] - min.data[i]) *
+                MathUtil::Sign(zero.data[i] - max.data[i]) !=
+            -1)
+        {
+          return false;
+        }
+      }
+      return true;
+    }
   }
 
   static constexpr size_t BITS_OF_PRECISION = Bits;

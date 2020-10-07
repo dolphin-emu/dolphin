@@ -125,16 +125,27 @@
     <string name="general_submenu">General</string>
     <string name="dual_core">Dual Core</string>
     <string name="dual_core_description">Split workload to two CPU cores instead of one. Increases speed.</string>
-    <string name="speed_limit">Speed Limit</string>
+    <string name="speed_limit">Speed Limit (0% = Unlimited)</string>
     <string name="overclock_warning">WARNING: Changing this from the default (100%) WILL break games and cause glitches. Please do not report bugs that occur with a non-default clock.</string>
     <string name="gamecube_submenu">GameCube</string>
-    <string name="gamecube_system_language">System Language</string>
+    <string name="system_language">System Language</string>
     <string name="slot_a_device">GameCube Slot A Device</string>
     <string name="slot_b_device">GameCube Slot B Device</string>
     <string name="wii_submenu">Wii</string>
+    <string name="wii_widescreen">Widescreen</string>
+    <string name="wii_widescreen_description">Changes aspect ratio from 4:3 to 16:9 in games that support it.</string>
+    <string name="wii_pal60">Use PAL60 Mode (EuRGB60)</string>
+    <string name="wii_pal60_description">Changes refresh rate from 50 Hz to 60 Hz in PAL games that support it.</string>
+    <string name="wii_screensaver">Enable Screen Saver</string>
+    <string name="wii_screensaver_description">Dims the screen after five minutes of inactivity.</string>
+    <string name="sound_mode">Sound</string>
     <string name="insert_sd_card">Insert SD Card</string>
     <string name="insert_sd_card_description">Supports SD and SDHC. Default size is 128 MB.</string>
     <string name="wii_sd_card_allow_writes">Allow Writes to SD Card</string>
+    <string name="wiimote_rumble">Wii Remote Rumble</string>
+    <string name="wiimote_volume">Wii Remote Speaker Volume</string>
+    <string name="sensor_bar_sensitivity">Sensor Bar Sensitivity</string>
+    <string name="sensor_bar_position">Sensor Bar Position</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
@@ -265,6 +276,17 @@
     <string name="overclock_title">Emulated CPU Clock Speed</string>
     <string name="overclock_title_description">Adjusts the emulated CPU\'s clock rate if \"Override Emulated CPU Clock Speed\" is enabled.</string>
 
+    <!-- Log Configuration -->
+    <string name="log_submenu">Log</string>
+    <string name="enable_logging">Enable Logging</string>
+    <string name="enable_logging_description">Log messages from enabled log types to dolphin-emu/Logs/. Will decrease performance.</string>
+    <string name="log_verbosity">Verbosity</string>
+    <string name="log_enable_all">Enable all Log Types</string>
+    <string name="log_enable_all_confirmation">Are you sure you want to enable all log types?</string>
+    <string name="log_disable_all">Disable all Log Types</string>
+    <string name="log_disable_all_confirmation">Are you sure you want to disable all log types?</string>
+    <string name="log_types">Log Types</string>
+
     <!-- Debug -->
     <string name="debug_submenu">Debug</string>
     <string name="debug_warning">Warning: These settings will slow emulation</string>
@@ -276,7 +298,7 @@
     <string name="debug_jitfloatingpointoff">Jit Floating Point Disabled</string>
     <string name="debug_jitintegeroff">Jit Integer Disabled</string>
     <string name="debug_jitpairedoff">Jit Paired Disabled</string>
-    <string name="debug_jitsystemregistersoffr">Jit System Registers Disabled</string>
+    <string name="debug_jitsystemregistersoff">Jit System Registers Disabled</string>
     <string name="debug_jitbranchoff">Jit Branch Disabled</string>
     <string name="debug_jitregistercacheoff">Jit Register Cache Disabled</string>
 
@@ -291,6 +313,7 @@
     <string name="other">Other</string>
 
     <!-- Game Grid Screen-->
+    <string name="add_directory_title">Add Folder to Library</string>
     <string name="grid_menu_config">Config</string>
     <string name="grid_menu_graphics_settings">Graphics Settings</string>
     <string name="grid_menu_gcpad_settings">GameCube Input</string>
@@ -301,12 +324,15 @@
     <string name="wad_install_success">Successfully installed this title to the NAND.</string>
     <string name="wad_install_failure">Failed to install this title to the NAND.</string>
 
-    <!-- Add Directory Screen-->
-    <string name="add_directory_title">Add Folder to Library</string>
-    <string name="add_directory_up_one_level">Up one level</string>
-    <string name="add_directory_empty_folder">That folder is empty.</string>
-
-    <!-- Preferences Screen -->
+    <!-- Game Properties Screen -->
+    <string name="properties_details">Details</string>
+    <string name="properties_convert">Convert File</string>
+    <string name="properties_set_default_iso">Set as Default ISO</string>
+    <string name="properties_core_settings">Core Settings</string>
+    <string name="properties_gfx_settings">GFX Settings</string>
+    <string name="properties_gc_controller">GameCube Controller Settings</string>
+    <string name="properties_wii_controller">Wii Controller Settings</string>
+    <string name="properties_clear_game_settings">Clear Game Settings</string>
     <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
     <string name="preferences_game_properties">Game Properties</string>
@@ -323,11 +349,37 @@
     <string name="game_details_block_size">Block Size</string>
     <string name="game_details_no_compression">No Compression</string>
 
+    <!-- Convert Screen -->
+    <string name="convert_format">Format</string>
+    <string name="convert_block_size">Block Size</string>
+    <string name="convert_compression">Compression</string>
+    <string name="convert_compression_level">Compression Level</string>
+    <string name="convert_remove_junk_data">Remove Junk Data (Irreversible)</string>
+    <string name="convert_convert">Convert</string>
+    <string name="convert_converting">Converting</string>
+    <string name="convert_warning_iso">Removing junk data does not save any space when converting to ISO (unless you package the ISO file in a compressed file format such as ZIP afterwards). Do you want to continue anyway?</string>
+    <string name="convert_warning_gcz">Converting Wii disc images to GCZ without removing junk data does not save any noticeable amount of space compared to converting to ISO. Do you want to continue anyway?</string>
+    <string name="convert_success_message">The disc image was successfully converted.</string>
+    <string name="convert_failure_message">Dolphin failed to complete the requested action.</string>
+    <string name="convert_format_info">
+ISO: A simple and robust format which is supported by many programs. It takes up more space
+than any other format.
+\n\nGCZ: A basic compressed format which is compatible with most versions of Dolphin and some
+other programs. It can\'t efficiently compress junk data (unless removed) or encrypted Wii data.
+\n\nWIA: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later,
+and a few other programs. It can efficiently compress encrypted Wii data, but not junk data
+(unless removed).
+\n\nRVZ: An advanced compressed format which is compatible with Dolphin 5.0-12188 and later.
+It can efficiently compress both junk data and encrypted Wii data.
+    </string>
+
     <!-- Emulation Menu -->
+    <string name="pause_emulation">Pause Emulation</string>
+    <string name="unpause_emulation">Unpause Emulation</string>
     <string name="emulation_screenshot">Take Screenshot</string>
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
-    <string name="emulation_exit">Exit</string>
+    <string name="emulation_exit">Exit Emulation</string>
     <string name="emulation_slot1">Slot 1</string>
     <string name="emulation_slot2">Slot 2</string>
     <string name="emulation_slot3">Slot 3</string>
@@ -346,7 +398,7 @@
     <string name="emulation_control_joystick_rel_center">Relative Stick Center</string>
     <string name="emulation_control_rumble">Rumble</string>
     <string name="emulation_choose_controller">Choose Controller</string>
-    <string name="emulation_touch_button_help">Swipe down from the top of the screen to access the menu.</string>
+    <string name="emulation_menu_help">Press Back to access the menu.\nLong press Back to exit emulation.</string>
     <string name="emulation_touch_overlay_reset">Reset Overlay</string>
     <string name="emulation_ir_group">Touch IR Pointer</string>
     <string name="emulation_ir_sensitivity">IR Sensitivity</string>
@@ -369,6 +421,7 @@
 
     <string name="write_permission_needed">You need to allow write access to external storage for the emulator to work</string>
     <string name="load_settings">Loading Settings...</string>
+    <string name="setting_not_runtime_editable">This setting can\'t be changed while a game is running.</string>
     <string name="emulation_change_disc">Change Disc</string>
 
     <string name="external_storage_not_mounted">The external storage needs to be available in order to use Dolphin</string>
@@ -382,6 +435,7 @@
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
     <string name="vertical_offset">Vertical Offset</string>
+    <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
     <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
 

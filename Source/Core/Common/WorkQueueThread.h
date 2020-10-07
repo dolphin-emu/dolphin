@@ -10,6 +10,7 @@
 
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/Thread.h"
 
 // A thread that executes the given function for every item placed into its queue.
 
@@ -53,6 +54,8 @@ private:
 
   void ThreadLoop()
   {
+    Common::SetCurrentThreadName("WorkQueueThread");
+
     while (true)
     {
       m_wakeup.Wait();

@@ -48,10 +48,10 @@ MemoryWidget::MemoryWidget(QWidget* parent) : QDockWidget(parent)
   setFloating(settings.value(QStringLiteral("memorywidget/floating")).toBool());
   m_splitter->restoreState(settings.value(QStringLiteral("codewidget/splitter")).toByteArray());
 
-  connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged,
+  connect(&Settings::Instance(), &Settings::MemoryVisibilityChanged, this,
           [this](bool visible) { setHidden(!visible); });
 
-  connect(&Settings::Instance(), &Settings::DebugModeToggled,
+  connect(&Settings::Instance(), &Settings::DebugModeToggled, this,
           [this](bool enabled) { setHidden(!enabled || !Settings::Instance().IsMemoryVisible()); });
 
   connect(&Settings::Instance(), &Settings::EmulationStateChanged, this, &MemoryWidget::Update);

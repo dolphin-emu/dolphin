@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-30 21:10+0200\n"
-"PO-Revision-Date: 2020-06-30 19:10+0000\n"
+"POT-Creation-Date: 2020-09-30 16:35+0200\n"
+"PO-Revision-Date: 2020-09-30 14:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
@@ -22,7 +22,7 @@ msgstr ""
 "Plural-Forms: nplurals=6; plural=n==0 ? 0 : n==1 ? 1 : n==2 ? 2 : n%100>=3 "
 "&& n%100<=10 ? 3 : n%100>=11 && n%100<=99 ? 4 : 5;\n"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1426
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1439
 msgid ""
 "\n"
 "\n"
@@ -34,7 +34,7 @@ msgstr ""
 "نظرًا لأن صور أقراص جيم كيوب تحتوي على القليل من بيانات التحقق ، فقد تكون "
 "هناك مشكلات يتعذر على دولفين اكتشافها."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1432
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1445
 msgid ""
 "\n"
 "\n"
@@ -82,8 +82,8 @@ msgstr "\"%s\" GC/Wii ISO غير صالح ، أو ليس GCM/ISO هو ملف ."
 #. i18n: The symbol for percent.
 #. i18n: The percent symbol.
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Drums.cpp:68
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:252
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:258
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:251
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:257
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/ControlGroup.cpp:36
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/MixedTriggers.cpp:28
 msgid "%"
@@ -106,12 +106,12 @@ msgstr ""
 msgid "%1 %"
 msgstr "%1 %"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:267
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:269
 msgid "%1 % (%2 MHz)"
 msgstr "%1 % (%2 MHz)"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:82
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:160
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:80
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:168
 msgid "%1 (%2)"
 msgstr "%1 (%2)"
 
@@ -129,8 +129,18 @@ msgstr "%1 (القرص %2, إصدار %3)"
 msgid "%1 (Revision %3)"
 msgstr "%1 (%3 إصدار)"
 
+#. i18n: "Stock" refers to input profiles included with Dolphin
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:466
+msgid "%1 (Stock)"
+msgstr ""
+
+#. i18n: %1 is the name of a compression method (e.g. Zstandard)
+#: Source/Core/DolphinQt/ConvertDialog.cpp:244
+msgid "%1 (recommended)"
+msgstr "%1 (موصى به)"
+
 #. i18n: %1 is the name of a compression method (e.g. LZMA)
-#: Source/Core/DolphinQt/ConvertDialog.cpp:239
+#: Source/Core/DolphinQt/ConvertDialog.cpp:226
 msgid "%1 (slow)"
 msgstr "%1 (بطيء)"
 
@@ -175,15 +185,15 @@ msgstr ""
 "%2 موضوع(s)\n"
 "%3 الإطار الحالي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:883
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:902
 msgid "%1 has joined"
 msgstr "%1 قد انضم"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:888
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:907
 msgid "%1 has left"
 msgstr "%1 لقد غادر"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1009
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:1028
 msgid "%1 is now golfing"
 msgstr "%1 is now golfing"
 
@@ -192,11 +202,11 @@ msgstr "%1 is now golfing"
 msgid "%1 ms"
 msgstr "%1 ms"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:272
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:265
 msgid "%1 session found"
 msgstr "%1 وجدت جلسة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:272
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:265
 msgid "%1 sessions found"
 msgstr "%1 العثور على جلسات"
 
@@ -204,11 +214,11 @@ msgstr "%1 العثور على جلسات"
 msgid "%1% (Normal Speed)"
 msgstr "%1% (السرعة القياسية)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:283
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:285
 msgid "%1MB (MEM1)"
 msgstr "%1MB (MEM1)"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:297
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:299
 msgid "%1MB (MEM2)"
 msgstr "%1MB (MEM2)"
 
@@ -229,7 +239,7 @@ msgid "%1x Native (%2x%3)"
 msgstr "%1x Native (%2x%3)"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:259
-#: Source/Core/DiscIO/WIABlob.cpp:1671
+#: Source/Core/DiscIO/WIABlob.cpp:1698
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i of %i نسبة ضغط الكتل %i%%"
@@ -241,17 +251,17 @@ msgstr "%i of %i نسبة ضغط الكتل %i%%"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:662
+#: Source/Core/DiscIO/VolumeVerifier.cpp:674
 #, c-format
 msgid "%s (Masterpiece)"
 msgstr "%s (Masterpiece)"
 
-#: Source/Core/Core/Boot/Boot.cpp:347
+#: Source/Core/Core/Boot/Boot.cpp:348
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL found in %s directory. The disc might not be recognized"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:213
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:211
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -260,7 +270,7 @@ msgstr ""
 "%s  ليس دليلا ، فشل في الانتقال إلى *. الأصل.\n"
 "التحقق من أذونات الكتابة أو نقل الملف خارج الدلفين"
 
-#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:204
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:202
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s لم يكن دليلا ، انتقلت إلى *. الأصل"
@@ -426,7 +436,7 @@ msgstr "&blr إدراج"
 msgid "&JIT"
 msgstr "&JIT"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:113
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:114
 msgid "&Language:"
 msgstr "&اللغة"
 
@@ -475,7 +485,7 @@ msgstr "&إيقاف مؤقت"
 msgid "&Play"
 msgstr "&تشغيل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:299
+#: Source/Core/DolphinQt/GameList/GameList.cpp:293
 msgid "&Properties"
 msgstr "&خصائص"
 
@@ -520,7 +530,7 @@ msgstr "&حد السرعة"
 msgid "&Stop"
 msgstr "&إيقاف "
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:117
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:118
 msgid "&Theme:"
 msgstr "&المظهر"
 
@@ -546,7 +556,7 @@ msgstr "&مشاهدة"
 msgid "&Website"
 msgstr "&الموقع"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:300
+#: Source/Core/DolphinQt/GameList/GameList.cpp:294
 msgid "&Wiki"
 msgstr "&معلومات عن اللعبة"
 
@@ -558,7 +568,7 @@ msgstr "'%1' لم يتم العثور على أي أسماء رموز تم إن�
 msgid "'%1' not found, scanning for common functions instead"
 msgstr "'%1' لم يتم العثور على المسح بحثًا عن الوظائف الشائعة بدلاً من ذلك"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:135
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:136
 msgid "(None)"
 msgstr "(لا شيء)"
 
@@ -595,7 +605,7 @@ msgid "--> %1"
 msgstr "--> %1"
 
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:198
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:704
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:716
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:82
 msgid "..."
 msgstr "..."
@@ -620,7 +630,7 @@ msgstr "16-bit"
 msgid "16-bit Integer"
 msgstr "عدد صحيح 16-بت"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:115
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:118
 msgid "16:9"
 msgstr "16:9"
 
@@ -655,7 +665,7 @@ msgstr "عدد صحيح بت-32"
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:343
 #: Source/Core/DolphinQt/Config/Mapping/Hotkey3D.cpp:23
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:392
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:425
 msgid "3D"
 msgstr "3D"
 
@@ -673,7 +683,7 @@ msgstr "3x Native (1920x1584) for 1080p"
 msgid "4 Mbit (59 blocks)"
 msgstr "4 Mbit (59 blocks)"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:114
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:117
 msgid "4:3"
 msgstr "4:3"
 
@@ -730,7 +740,7 @@ msgstr "< أقل-من"
 msgid "<Nothing>"
 msgstr "<لا شيء>"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:69
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:70
 msgid "<System Language>"
 msgstr "<لغة النظام>"
 
@@ -747,8 +757,8 @@ msgstr ""
 msgid "> Greater-than"
 msgstr "> أكثر-من"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1311
-#: Source/Core/DolphinQt/MainWindow.cpp:1379
+#: Source/Core/DolphinQt/MainWindow.cpp:1322
+#: Source/Core/DolphinQt/MainWindow.cpp:1390
 msgid "A NetPlay Session is already in progress!"
 msgstr "جلسة لعب الشبكة جارية بالفعل!"
 
@@ -770,15 +780,15 @@ msgstr ""
 " wad سيؤدي تثبيت  \n"
 "هذا إلى استبداله بشكل لا رجعة فيه. استمر ؟"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:514
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:518
 msgid "A disc is already about to be inserted."
 msgstr "القرص بالفعل على وشك أن يتم إدراجه."
 
-#: Source/Core/DolphinQt/Main.cpp:196
+#: Source/Core/DolphinQt/Main.cpp:209
 msgid "A save state cannot be loaded without specifying a game to launch."
 msgstr "لا يمكن تحميل حالة الحفظ دون تحديد لعبة لتشغيلها"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:826
+#: Source/Core/DolphinQt/MainWindow.cpp:828
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -786,11 +796,11 @@ msgstr ""
 "إيقاف التشغيل بالفعل قيد التقدم. قد يتم فقد البيانات غير المحفوظة في حالة "
 "إيقاف المحاكاة الحالية قبل اكتمالها. توقف إجباري؟"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:367
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:370
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "لا يمكن تشغيل المزامنة إلا عند تشغيل لعبة وي."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:108
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:116
 msgid ""
 "ALERT:\n"
 "\n"
@@ -831,7 +841,7 @@ msgstr "AR رموز"
 msgid "ASCII"
 msgstr "ASCII"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:415
+#: Source/Core/DolphinQt/ConvertDialog.cpp:410
 msgid "Abort"
 msgstr "إحباط"
 
@@ -840,7 +850,7 @@ msgid "About Dolphin"
 msgstr "ترجمة بواسطة منصور العسيري"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:61
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:216
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:215
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:50
 msgid "Accelerometer"
 msgstr "التسارع"
@@ -965,6 +975,7 @@ msgstr "كشف عن محول"
 msgid "Adapter:"
 msgstr "محول"
 
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:58
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:55
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:50
 msgid "Add"
@@ -972,6 +983,10 @@ msgstr "أضف"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:122
 msgid "Add &breakpoint"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:33
+msgid "Add New DSU Server"
 msgstr ""
 
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:46
@@ -988,7 +1003,7 @@ msgstr "أضف نقطة توقف الذاكرة"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:123
 msgid "Add memory breakpoint"
-msgstr ""
+msgstr "إضافة نقطة توقف للذاكرة"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
@@ -1001,8 +1016,9 @@ msgstr "اضف إليه &تنبية"
 msgid "Add to Watch"
 msgstr "أضف إلى المشاهدة"
 
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:36
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:145
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:155
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:168
 msgid "Add..."
 msgstr "أضف"
 
@@ -1102,7 +1118,7 @@ msgstr "أفريقيا"
 msgid "All Files (*)"
 msgstr "(*) كل الملفات"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:689
+#: Source/Core/DolphinQt/MainWindow.cpp:691
 msgid ""
 "All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia *."
 "rvz *.wad *.dff *.m3u);;All Files (*)"
@@ -1118,20 +1134,20 @@ msgstr ""
 "ملفات جيم كيوب و وي (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wia "
 "*.rvz *.wad *.m3u);;جميع الملفات (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1203
-#: Source/Core/DolphinQt/MainWindow.cpp:1210
+#: Source/Core/DolphinQt/MainWindow.cpp:1214
+#: Source/Core/DolphinQt/MainWindow.cpp:1221
 msgid "All Save States (*.sav *.s##);; All Files (*)"
 msgstr "جميع حالات الحفظ (*.sav *.s##);; كل الملفات (*)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:331
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:364
 msgid "All devices"
 msgstr "جميع أدوات التحكم"
 
-#: Source/Core/Core/NetPlayServer.cpp:1087
+#: Source/Core/Core/NetPlayServer.cpp:1106
 msgid "All players' codes synchronized."
 msgstr "جميع رموز اللاعبين متزامنة."
 
-#: Source/Core/Core/NetPlayServer.cpp:1043
+#: Source/Core/Core/NetPlayServer.cpp:1062
 msgid "All players' saves synchronized."
 msgstr "حفظ جميع اللاعبين متزامنة."
 
@@ -1139,15 +1155,15 @@ msgstr "حفظ جميع اللاعبين متزامنة."
 msgid "Allow Mismatched Region Settings"
 msgstr "السماح بإعدادات المنطقة الغير متطابقة"
 
-#: Source/Core/DolphinQt/Main.cpp:228
+#: Source/Core/DolphinQt/Main.cpp:241
 msgid "Allow Usage Statistics Reporting"
 msgstr "السماح بالإبلاغ عن إحصائيات الاستخدام"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:110
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:112
 msgid "Allow Writes to SD Card"
 msgstr "SD السماح للكتابة على بطاقة"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:229
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:257
 msgid ""
 "Allows manipulation of the in-game camera. Move the mouse while holding the "
 "right button to pan or middle button to roll.\n"
@@ -1168,7 +1184,7 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
 #: Source/Core/DolphinQt/Config/ControllerInterface/ControllerInterfaceWindow.cpp:20
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:213
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionInput.cpp:39
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuMotionControlIMU.cpp:37
 msgid "Alternate Input Sources"
@@ -1176,15 +1192,15 @@ msgstr "مصادر الإدخال البديلة"
 
 #. i18n: Treat a controller as always being connected regardless of what
 #. devices the user actually has plugged in
-#: Source/Core/Core/HW/GCPadEmu.cpp:103
+#: Source/Core/Core/HW/GCPadEmu.cpp:99
 msgid "Always Connected"
 msgstr "متصل دائما"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:172
 msgid "Always Hide Mouse Cursor"
 msgstr "إخفاء مؤشر الماوس دائما"
 
-#: Source/Core/Common/Assert.h:60
+#: Source/Core/Common/Assert.h:40
 #, c-format
 msgid ""
 "An error occurred.\n"
@@ -1231,7 +1247,7 @@ msgstr "تصفية متباينة الخواص "
 msgid "Anti-Aliasing:"
 msgstr "مضاد للتعرج"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:77
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:75
 msgid "Any Region"
 msgstr "أي منطقة"
 
@@ -1273,11 +1289,11 @@ msgstr "تطبيق ملف التوقيع"
 msgid "Arbitrary Mipmap Detection"
 msgstr "Arbitrary Mipmap Detection"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:205
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:235
 msgid "Are you sure that you want to delete '%1'?"
 msgstr "هل أنت متأكد من أنك تريد حذفها '%1'?"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:631
+#: Source/Core/DolphinQt/GameList/GameList.cpp:622
 msgid "Are you sure you want to delete this file?"
 msgstr "هل أنت متأكد من أنك تريد حذف هذا الملف؟"
 
@@ -1285,20 +1301,20 @@ msgstr "هل أنت متأكد من أنك تريد حذف هذا الملف؟"
 msgid "Are you sure you want to delete this pack?"
 msgstr "هل أنت متأكد من أنك تريد حذف هذه الحزمة؟"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:517
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:526
 msgid "Are you sure you want to quit NetPlay?"
 msgstr "هل أنت متأكد من أنك تريد إنهاء اللعب عبر الشبكة؟"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:299
+#: Source/Core/DolphinQt/ConvertDialog.cpp:294
 msgid "Are you sure?"
 msgstr "هل أنت واثق؟"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:77
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:112
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:115
 msgid "Aspect Ratio:"
 msgstr "نسبة العرض"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:233
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:237
 msgid "Assign Controller Ports"
 msgstr "تعيين منافذ وحدة التحكم"
 
@@ -1314,7 +1330,7 @@ msgstr "(Skip Drawing) غير متزامن"
 msgid "Asynchronous (Ubershaders)"
 msgstr "(Ubershaders) غير متزامن"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:233
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:232
 msgid "Attach MotionPlus"
 msgstr "أرفق موشن بلس"
 
@@ -1354,7 +1370,7 @@ msgstr "تلقائي (Multiple of 640x528)"
 msgid "Auto Update Settings"
 msgstr "إعدادات التحديث التلقائي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:414
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:423
 msgid ""
 "Auto internal resolution is not allowed in strict sync mode, as it depends "
 "on window size.\n"
@@ -1370,7 +1386,7 @@ msgstr ""
 msgid "Auto-Adjust Window Size"
 msgstr "ضبط حجم الإطار تلقائيا"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:65
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:64
 msgid "Auto-Hide"
 msgstr "إخفاء تلقائي"
 
@@ -1418,7 +1434,7 @@ msgstr "BP تسجل"
 msgid "Back Chain"
 msgstr ""
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:122
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:133
 msgid "Backend Multithreading"
 msgstr "تعدد المسارات الخلفية"
 
@@ -1431,7 +1447,7 @@ msgstr "إعدادات الخلفية"
 msgid "Backend:"
 msgstr "الخلفية"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:209
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:212
 msgid "Background Input"
 msgstr "خلفية الإدخال"
 
@@ -1445,7 +1461,7 @@ msgstr "الى الوراء"
 msgid "Bad address provided."
 msgstr "تم توفير عنوان غير صحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:352
+#: Source/Core/DiscIO/VolumeVerifier.cpp:353
 msgid "Bad dump"
 msgstr "تفريغ سيئ"
 
@@ -1453,8 +1469,8 @@ msgstr "تفريغ سيئ"
 msgid "Bad value provided."
 msgstr "قيمة سيئة المقدمة."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:787
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:216
+#: Source/Core/DolphinQt/GameList/GameList.cpp:783
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:211
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 #: Source/Core/DolphinQt/MenuBar.cpp:624
 msgid "Banner"
@@ -1488,11 +1504,11 @@ msgstr "الإعدادات الأساسية"
 msgid "Bass"
 msgstr "صوت عميق"
 
-#: Source/Core/DolphinQt/Main.cpp:203
+#: Source/Core/DolphinQt/Main.cpp:216
 msgid "Batch mode cannot be used without specifying a game to launch."
 msgstr "لا يمكن استخدام وضع الدُفعات دون تحديد لعبة لإطلاقها"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:256
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:255
 msgid "Battery"
 msgstr "بطارية"
 
@@ -1500,18 +1516,22 @@ msgstr "بطارية"
 msgid "Beta (once a month)"
 msgstr "Beta (مرة في الشهر)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:110
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:39
+msgid "BetterJoy, DS4Windows, etc"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:121
 msgid "Bitrate (kbps):"
 msgstr "(kbps) معدل البت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:797
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:230
+#: Source/Core/DolphinQt/GameList/GameList.cpp:793
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:225
 #: Source/Core/DolphinQt/MenuBar.cpp:634
 msgid "Block Size"
-msgstr ""
+msgstr "حجم الكتلة"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:71
-#: Source/Core/DolphinQt/ConvertDialog.cpp:72
+#: Source/Core/DolphinQt/ConvertDialog.cpp:61
 msgid "Block Size:"
 msgstr "حجم الكتلة"
 
@@ -1548,19 +1568,19 @@ msgstr ""
 msgid "Boot to Pause"
 msgstr "التمهيد لإيقاف مؤقت"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1526
+#: Source/Core/DolphinQt/MainWindow.cpp:1538
 msgid "BootMii NAND backup file (*.bin);;All Files (*)"
 msgstr "BootMii NAND backup file (*.bin);;All Files (*)"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1552
+#: Source/Core/DolphinQt/MainWindow.cpp:1564
 msgid "BootMii keys file (*.bin);;All Files (*)"
 msgstr "BootMii keys file (*.bin);;All Files (*)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:129
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:140
 msgid "Borderless Fullscreen"
 msgstr "ملء الشاشة بلا حدود"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:175
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:188
 msgid "Bottom"
 msgstr "اسفل"
 
@@ -1617,16 +1637,16 @@ msgstr "مستعرض جلسات اللعب عبر الشبكة"
 msgid "Buffer Size:"
 msgstr "حجم المخزن المؤقت"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:898
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:917
 msgid "Buffer size changed to %1"
 msgstr "تم تغيير حجم المخزن المؤقت إلى %1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:100
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:929
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:102
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:948
 msgid "Buffer:"
 msgstr "المخزن المؤقت"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:89
+#: Source/Core/Core/HW/GCPadEmu.cpp:85
 msgid "Button"
 msgstr "زر"
 
@@ -1637,7 +1657,7 @@ msgstr "زر"
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:39
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Turntable.cpp:51
 #: Source/Core/Core/HW/WiimoteEmu/Extension/UDrawTablet.cpp:37
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:201
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:200
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:25
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:47
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:81
@@ -1650,7 +1670,7 @@ msgstr "زر"
 msgid "Buttons"
 msgstr "الأزرار"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:74
+#: Source/Core/Core/HW/GCPadEmu.cpp:70
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:32
 #: Source/Core/DolphinQt/TAS/GCTASInputWindow.cpp:27
 msgid "C Stick"
@@ -1680,7 +1700,7 @@ msgstr "CRC32:"
 msgid "Cached Interpreter (slower)"
 msgstr "Cached Interpreter (أبطأ)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:211
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:239
 msgid ""
 "Caches custom textures to system RAM on startup.\n"
 "\n"
@@ -1733,17 +1753,19 @@ msgstr "فترة المعايرة"
 msgid "Callstack"
 msgstr "Callstack"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1774
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1764
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "لا يمكن العثور على ريموت وي بواسطة مقبض الاتصال %02x"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1304
-#: Source/Core/DolphinQt/MainWindow.cpp:1372
+#: Source/Core/DolphinQt/MainWindow.cpp:1315
+#: Source/Core/DolphinQt/MainWindow.cpp:1383
 msgid "Can't start a NetPlay Session while a game is still running!"
 msgstr "لا يمكن بدء جلسة اللعب عبر الشبكة بينما لا تزال اللعبة قيد التشغيل! "
 
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:59
 #: Source/Core/DolphinQt/Config/VerifyWidget.cpp:136
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:60
 #: Source/Core/DolphinQt/Settings/USBDeviceAddToWhitelistDialog.cpp:51
 msgid "Cancel"
 msgstr "إلغاء"
@@ -1762,7 +1784,7 @@ msgstr ""
 "WAD لا يمكن تشغيل هذا\n"
 "NAND لأنه لا يمكن تثبيته على"
 
-#: Source/Core/Core/Boot/Boot.cpp:505
+#: Source/Core/Core/Boot/Boot.cpp:506
 msgid "Cannot find the GC IPL."
 msgstr "Cannot find the GC IPL."
 
@@ -1774,7 +1796,7 @@ msgstr ""
 "لا يمكن تفسير القيمة المحددة.\n"
 "هل اخترت النوع الصحيح؟"
 
-#: Source/Core/Core/Boot/Boot.cpp:503
+#: Source/Core/Core/Boot/Boot.cpp:504
 msgid "Cannot start the game, because the GC IPL could not be found."
 msgstr "Cannot start the game, because the GC IPL could not be found."
 
@@ -1792,7 +1814,7 @@ msgstr "مركز"
 msgid "Center and Calibrate"
 msgstr "المركز و المعايرة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:313
+#: Source/Core/DolphinQt/GameList/GameList.cpp:306
 msgid "Change &Disc"
 msgstr "تغيير &القرص"
 
@@ -1813,7 +1835,7 @@ msgstr "تغيير الأقراص تلقائيا"
 msgid "Change the disc to %s"
 msgstr "تغيير القرص الى %s"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:234
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:262
 msgid ""
 "Changes the in-game camera type during freelook.\n"
 "\n"
@@ -1841,7 +1863,7 @@ msgstr ""
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr "سيحدث تغيير الاسرار فقط عند إعادة تشغيل اللعبة."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:204
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:208
 msgid "Chat"
 msgstr "محادثه"
 
@@ -1869,7 +1891,7 @@ msgstr "التحقق من وجود تغييرات في قائمة الألعاب
 msgid "Check for updates"
 msgstr "تحقق من وجود تحديثات"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:656
+#: Source/Core/DolphinQt/GameList/GameList.cpp:647
 msgid ""
 "Check whether you have the permissions required to delete the file or "
 "whether it's still in use."
@@ -1877,7 +1899,7 @@ msgstr ""
 "تحقق مما إذا كان لديك الأذونات المطلوبة لحذف الملف أو ما إذا كان لا يزال قيد "
 "الاستخدام."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:154
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:156
 msgid "Checksum"
 msgstr "اختباري"
 
@@ -1910,7 +1932,7 @@ msgstr "أزرار كلاسيكية"
 msgid "Classic Controller"
 msgstr "Classic Controller"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:138
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:137
 #: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:122
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:105
@@ -1945,7 +1967,7 @@ msgstr "رمز"
 msgid "Code:"
 msgstr "رمز"
 
-#: Source/Core/Core/NetPlayClient.cpp:1570
+#: Source/Core/Core/NetPlayClient.cpp:1596
 msgid "Codes received!"
 msgstr "الرموز الواردة!"
 
@@ -1958,7 +1980,7 @@ msgid "Comment"
 msgstr "التعليق"
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:207
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:210
 msgid "Common"
 msgstr "عام"
 
@@ -1970,18 +1992,18 @@ msgstr "تجميع التظليل قبل البدء"
 msgid "Compiling Shaders"
 msgstr "تجميع التظليل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:798
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:232
+#: Source/Core/DolphinQt/GameList/GameList.cpp:794
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:227
 #: Source/Core/DolphinQt/MenuBar.cpp:635
 msgid "Compression"
-msgstr ""
+msgstr "ضغط"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:80
+#: Source/Core/DolphinQt/ConvertDialog.cpp:69
 msgid "Compression Level:"
 msgstr "مستوى الضغط"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:66
-#: Source/Core/DolphinQt/ConvertDialog.cpp:76
+#: Source/Core/DolphinQt/ConvertDialog.cpp:65
 msgid "Compression:"
 msgstr "ضغط"
 
@@ -1994,7 +2016,7 @@ msgid "Config"
 msgstr "إعدادات"
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:88
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:183
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:186
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:82
 msgid "Configure"
 msgstr "إعدادات"
@@ -2011,13 +2033,13 @@ msgstr "تكوين الإدخال"
 msgid "Configure Output"
 msgstr "تكوين الإخراج"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:204
-#: Source/Core/DolphinQt/ConvertDialog.cpp:298
-#: Source/Core/DolphinQt/ConvertDialog.cpp:404
-#: Source/Core/DolphinQt/GameList/GameList.cpp:514
-#: Source/Core/DolphinQt/GameList/GameList.cpp:630
-#: Source/Core/DolphinQt/MainWindow.cpp:825
-#: Source/Core/DolphinQt/MainWindow.cpp:1493
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:234
+#: Source/Core/DolphinQt/ConvertDialog.cpp:293
+#: Source/Core/DolphinQt/ConvertDialog.cpp:399
+#: Source/Core/DolphinQt/GameList/GameList.cpp:505
+#: Source/Core/DolphinQt/GameList/GameList.cpp:621
+#: Source/Core/DolphinQt/MainWindow.cpp:827
+#: Source/Core/DolphinQt/MainWindow.cpp:1505
 #: Source/Core/DolphinQt/WiiUpdate.cpp:138
 msgid "Confirm"
 msgstr "تأكيد "
@@ -2026,18 +2048,18 @@ msgstr "تأكيد "
 msgid "Confirm backend change"
 msgstr "تأكيد تغيير الخلفية"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:166
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
 msgid "Confirm on Stop"
 msgstr "تأكيد على التوقف"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:1190
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:516
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:525
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:238
 msgid "Confirmation"
 msgstr "التأكيد"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:98
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:194
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:106
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:202
 msgid "Connect"
 msgstr "اتصال"
 
@@ -2045,7 +2067,7 @@ msgstr "اتصال"
 msgid "Connect Balance Board"
 msgstr "ربط لوح الميزان"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:111
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:113
 msgid "Connect USB Keyboard"
 msgstr "ربط لوحة مفاتيح يو إس بي"
 
@@ -2073,7 +2095,7 @@ msgstr "ربط ريموت وي 4"
 msgid "Connect Wii Remotes"
 msgstr "ربط ريموت وي "
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:161
 msgid "Connect Wii Remotes for Emulated Controllers"
 msgstr "ربط ريموت وي لمحاكاة التحكم"
 
@@ -2085,16 +2107,16 @@ msgstr "الاتصال بالإنترنت وإجراء تحديث للنظام �
 msgid "Connected"
 msgstr "متصل"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:185
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:193
 msgid "Connection Type:"
 msgstr "نوع الاتصال"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1178
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1191
 #, c-format
 msgid "Content %08x is corrupt."
 msgstr "المحتوى%08x تالف"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:158
 msgid "Continuous Scanning"
 msgstr "البحث المستمر"
 
@@ -2102,16 +2124,16 @@ msgstr "البحث المستمر"
 msgid "Control NetPlay Golf Mode"
 msgstr "Control NetPlay Golf Mode"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:70
+#: Source/Core/Core/HW/GCPadEmu.cpp:68
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:30
 msgid "Control Stick"
 msgstr "عصا التحكم"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:94
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:92
 msgid "Control Type:"
 msgstr "نوع التحكم"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:389
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:422
 msgid "Controller Profile"
 msgstr "ملف تعريف وحدة التحكم"
 
@@ -2212,20 +2234,23 @@ msgstr ""
 msgid "Convergence:"
 msgstr "التقارب"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:52
-#: Source/Core/DolphinQt/ConvertDialog.cpp:89
+#: Source/Core/DolphinQt/ConvertDialog.cpp:41
 msgid "Convert"
 msgstr "تحويل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:311
+#: Source/Core/DolphinQt/GameList/GameList.cpp:304
 msgid "Convert File..."
 msgstr "تحويل الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:279
+#: Source/Core/DolphinQt/GameList/GameList.cpp:273
 msgid "Convert Selected Files..."
 msgstr "تحويل الملفات المحددة..."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:330
+#: Source/Core/DolphinQt/ConvertDialog.cpp:76
+msgid "Convert..."
+msgstr "تحويل"
+
+#: Source/Core/DolphinQt/ConvertDialog.cpp:325
 msgid ""
 "Converting Wii disc images to GCZ without removing junk data does not save "
 "any noticeable amount of space compared to converting to ISO. Do you want to "
@@ -2236,14 +2261,14 @@ msgstr ""
 "بالتحويل إلى ISO\n"
 "هل تريد المتابعة على أي حال؟"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:415
-#: Source/Core/DolphinQt/ConvertDialog.cpp:422
+#: Source/Core/DolphinQt/ConvertDialog.cpp:410
+#: Source/Core/DolphinQt/ConvertDialog.cpp:417
 msgid "Converting..."
 msgstr "جارٍ التحويل ..."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:230
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:713
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:749
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:234
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:725
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:761
 msgid "Copy"
 msgstr "نسخ"
 
@@ -2290,16 +2315,16 @@ msgstr "النواة"
 msgid "Cost"
 msgstr "كلفة"
 
-#: Source/Core/Core/NetPlayClient.cpp:155
-#: Source/Core/Core/NetPlayClient.cpp:211
+#: Source/Core/Core/NetPlayClient.cpp:157
+#: Source/Core/Core/NetPlayClient.cpp:213
 msgid "Could not communicate with host."
 msgstr "تعذر الاتصال بالمضيف."
 
-#: Source/Core/Core/NetPlayClient.cpp:127
+#: Source/Core/Core/NetPlayClient.cpp:129
 msgid "Could not create client."
 msgstr "تعذر إنشاء عميل."
 
-#: Source/Core/Core/NetPlayClient.cpp:139
+#: Source/Core/Core/NetPlayClient.cpp:141
 msgid "Could not create peer."
 msgstr "تعذر إنشاء نظير."
 
@@ -2414,7 +2439,7 @@ msgstr ""
 "إذا كان الأمر كذلك ، فقد تحتاج إلى إعادة تحديد موقع بطاقة الذاكرة الخاصة بك "
 "في الخيارات."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:964
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:983
 msgid "Couldn't look up central server"
 msgstr "تعذر البحث عن الخادم المركزي"
 
@@ -2439,7 +2464,7 @@ msgstr "إنشاء بطاقة ذاكرة جديدة"
 msgid "Create..."
 msgstr "إنشاء..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:220
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
 msgid ""
 "Creates frame dumps and screenshots at the internal resolution of the "
 "renderer, rather than the size of the window it is displayed within.\n"
@@ -2466,11 +2491,11 @@ msgstr "المنتج"
 msgid "Critical"
 msgstr "حرج"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:119
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:130
 msgid "Crop"
 msgstr "اقتصاص"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:270
 msgid ""
 "Crops the picture from its native aspect ratio to 4:3 or 16:9.\n"
 "\n"
@@ -2493,7 +2518,7 @@ msgstr "المنطقة الحالية"
 msgid "Current context"
 msgstr "السياق الحالي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:155
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:157
 msgid "Current game"
 msgstr "لعبة الحالية"
 
@@ -2505,9 +2530,9 @@ msgstr "الموضوع الحالي"
 msgid "Custom RTC Options"
 msgstr "خيارات تخصيص وقت النظام "
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:92
+#: Source/Core/Core/HW/GCPadEmu.cpp:88
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:102
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:240
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:239
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:27
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:50
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:38
@@ -2544,7 +2569,7 @@ msgstr "DSP LLE Recompiler"
 msgid "DSU Client"
 msgstr "DSU عميل"
 
-#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:40
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:50
 msgid ""
 "DSU protocol enables the use of input and motion data from compatible "
 "sources, like PlayStation, Nintendo Switch and Steam controllers.<br><br>For "
@@ -2561,7 +2586,7 @@ msgstr ""
 msgid "Dance Mat"
 msgstr "بساط الرقص"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:105
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:107
 msgid "Data"
 msgstr "البيانات"
 
@@ -2577,7 +2602,7 @@ msgstr "نوع البيانات"
 msgid "Data in area of file that should be unused."
 msgstr "البيانات في منطقة الملف التي يجب أن تكون غير مستخدمة"
 
-#: Source/Core/Core/NetPlayClient.cpp:1528
+#: Source/Core/Core/NetPlayClient.cpp:1554
 msgid "Data received!"
 msgstr "البيانات المتلقية!"
 
@@ -2600,7 +2625,7 @@ msgid "Debug Only"
 msgstr "التصحيح فقط"
 
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:47
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:386
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:419
 msgid "Debugging"
 msgstr "التصحيح"
 
@@ -2643,7 +2668,7 @@ msgstr "(Read Only) التكوين الافتراضي"
 msgid "Default Device"
 msgstr "الجهاز الافتراضي"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
 msgid "Default Font"
 msgstr "الخط الافتراضي"
 
@@ -2655,7 +2680,7 @@ msgstr "صورة القرص الافتراضية"
 msgid "Default thread"
 msgstr "الموضوع الافتراضي"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:140
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:151
 msgid "Defer EFB Cache Invalidation"
 msgstr "Defer EFB Cache Invalidation"
 
@@ -2663,7 +2688,7 @@ msgstr "Defer EFB Cache Invalidation"
 msgid "Defer EFB Copies to RAM"
 msgstr "إلى ذاكرة الوصول العشوائي EFB تأجيل نسخ"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:253
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:281
 msgid ""
 "Defers invalidation of the EFB access cache until a GPU synchronization "
 "command is executed. If disabled, the cache will be invalidated with every "
@@ -2688,11 +2713,11 @@ msgstr ""
 msgid "Delete"
 msgstr "حذف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:374
+#: Source/Core/DolphinQt/GameList/GameList.cpp:367
 msgid "Delete File..."
 msgstr "حذف الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:290
+#: Source/Core/DolphinQt/GameList/GameList.cpp:284
 msgid "Delete Selected Files..."
 msgstr "حذف الملفات المحددة"
 
@@ -2710,10 +2735,11 @@ msgstr "نسبة العمق"
 msgid "Depth:"
 msgstr "العمق"
 
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:50
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:43
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:233
-#: Source/Core/DolphinQt/GameList/GameList.cpp:789
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:218
+#: Source/Core/DolphinQt/GameList/GameList.cpp:785
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:213
 #: Source/Core/DolphinQt/MenuBar.cpp:626
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Description"
@@ -2762,11 +2788,11 @@ msgstr "Device VID (e.g., 057e)"
 msgid "Device:"
 msgstr "جهاز"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:131
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:142
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "تقوم بتعتيم الشاشة بعد خمس دقائق من الخمول ."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:182
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:190
 msgid "Direct Connection"
 msgstr "اتصال مباشر"
 
@@ -2798,7 +2824,7 @@ msgstr "تعطيل المربع المحيط"
 msgid "Disable Copy Filter"
 msgstr "Disable Copy Filter"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:74
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:73
 msgid "Disable EFB VRAM Copies"
 msgstr "Disable EFB VRAM Copies"
 
@@ -2833,7 +2859,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:217
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:245
 msgid ""
 "Disables the VRAM copy of the EFB, forcing a round-trip to RAM. Inhibits all "
 "upscaling.\n"
@@ -2898,11 +2924,11 @@ msgstr "مسافة"
 msgid "Distance of travel from neutral position."
 msgstr "Distance of travel from neutral position."
 
-#: Source/Core/DolphinQt/Main.cpp:230
+#: Source/Core/DolphinQt/Main.cpp:243
 msgid "Do you authorize Dolphin to report information to Dolphin's developers?"
 msgstr "هل تسمح لشركة دولفين بالإبلاغ عن معلومات لمطوري دولفين؟"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1494
+#: Source/Core/DolphinQt/MainWindow.cpp:1506
 msgid "Do you want to add \"%1\" to the list of Game Paths?"
 msgstr "هل تريد إضافة \"%1\" إلى قائمة مسارات الألعاب؟"
 
@@ -2918,7 +2944,7 @@ msgstr "هل تريد حذف %1 اختيار حفظ الملفات?"
 msgid "Do you want to delete the selected save file?"
 msgstr "هل تريد حذف ملف الحفظ المحدد؟"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:829
+#: Source/Core/DolphinQt/MainWindow.cpp:831
 msgid "Do you want to stop the current emulation?"
 msgstr "هل تريد إيقاف المحاكاة الحالية؟"
 
@@ -2945,8 +2971,8 @@ msgstr "CSV توقيع دولفين ملف"
 msgid "Dolphin Signature File"
 msgstr "دولفين توقيع الملف"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1573
-#: Source/Core/DolphinQt/MainWindow.cpp:1644
+#: Source/Core/DolphinQt/MainWindow.cpp:1585
+#: Source/Core/DolphinQt/MainWindow.cpp:1656
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS Movies (*.dtm)"
 
@@ -2958,7 +2984,7 @@ msgstr ""
 "لم يتمكن دولفين من العثور على أي لعبة جيم كيوب أو وي.\n"
 "انقر نقرًا مزدوجًا هنا لتحديد مجلد الألعاب..."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:506
+#: Source/Core/DolphinQt/ConvertDialog.cpp:504
 msgid "Dolphin failed to complete the requested action."
 msgstr "فشل دولفين في إكمال الإجراء المطلوب."
 
@@ -2970,11 +2996,11 @@ msgstr "فشل دولفين في إكمال الإجراء المطلوب."
 msgid "Dolphin is a free and open-source GameCube and Wii emulator."
 msgstr "محاكي دولفين مفتوح المصدر لجهاز جيم كيوب و وي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:969
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:988
 msgid "Dolphin is too old for traversal server"
 msgstr "دولفين قديم جدا لجتياز الخادم "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1373
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1386
 msgid ""
 "Dolphin is unable to verify typical TGC files properly, since they are not "
 "dumps of actual discs."
@@ -2982,7 +3008,7 @@ msgstr ""
 "يتعذر على دولفين التحقق من ملفات النموذجية بشكل صحيح ، نظرًا لعدم تفريغها من "
 "الأقراص الفعلية"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1366
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1379
 msgid "Dolphin is unable to verify unlicensed discs."
 msgstr "دولفين غير قادر على التحقق من الأقراص غير المرخصة."
 
@@ -2999,6 +3025,10 @@ msgstr "نطاق"
 msgid "Don't Update"
 msgstr "عدم التحديث"
 
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:54
+msgid "Don't show this again"
+msgstr "لا تظهر هذا مرة أخرى"
+
 #: Source/Core/DiscIO/CompressedBlob.cpp:367
 msgid "Done compressing disc image."
 msgstr "تم ضغط صوره القرص."
@@ -3013,7 +3043,7 @@ msgstr "مزدوج"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:43
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:21
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Down"
 msgstr "تحت"
 
@@ -3025,7 +3055,7 @@ msgstr "تحميل الرموز"
 msgid "Download Codes from the WiiRD Database"
 msgstr "WiiRD تحميل رموز من قاعدة بيانات"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:147
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
 msgid "Download Game Covers from GameTDB.com for Use in Grid Mode"
 msgstr "للإستخدام في وضع الشبكة GameTDB.com تحميل أغلفة الألعاب من"
 
@@ -3081,13 +3111,21 @@ msgstr "Dump &MRAM"
 msgid "Dump Audio"
 msgstr "تفريغ الصوت"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:72
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:100
+msgid "Dump Base Textures"
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
 msgid "Dump EFB Target"
 msgstr "EFB هدف التفريغ"
 
 #: Source/Core/DolphinQt/MenuBar.cpp:773
 msgid "Dump Frames"
 msgstr "تفريغ الإطارات"
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:101
+msgid "Dump Mip Maps"
+msgstr ""
 
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:67
 msgid "Dump Objects"
@@ -3133,12 +3171,11 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:68
 #: Source/Core/DolphinQt/Config/Graphics/SoftwareRendererWidget.cpp:66
 msgid "Dump Textures"
 msgstr "تفريغ النسيج"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:102
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:113
 msgid "Dump at Internal Resolution"
 msgstr "تفريغ في الدقة الداخلية"
 
@@ -3171,29 +3208,35 @@ msgstr "تفريغ شهادات الأقران"
 msgid "Dump root CA"
 msgstr "CA تفريغ جذر"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:205
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:222
 msgid ""
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.\n"
+"Dumps decoded game textures based on the other flags to User/Dump/Textures/"
+"<game_id>/.\n"
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
-"Dumps decoded game textures to User/Dump/Textures/<game_id>/.\n"
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:242
+msgid ""
+"Dumps the contents of EFB copies to User/Dump/Textures/.\n"
+"\n"
+"If unsure, leave this unchecked."
+msgstr ""
+"Dumps the contents of EFB copies to User/Dump/Textures/.\n"
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:214
-msgid ""
-"Dumps the contents of EFB copies to User/Dump/Textures/.\n"
-"\n"
-"If unsure, leave this unchecked."
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:39
+msgid "Duration of Turbo Button Press (frames):"
 msgstr ""
-"Dumps the contents of EFB copies to User/Dump/Textures/.\n"
-"\n"
-"إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
+
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:45
+msgid "Duration of Turbo Button Release (frames):"
+msgstr ""
 
 #: Source/Core/DiscIO/Enums.cpp:95
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:65
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:124
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:128
 msgid "Dutch"
 msgstr "الهولندية"
 
@@ -3201,7 +3244,7 @@ msgstr "الهولندية"
 msgid "E&xit"
 msgstr "خروج"
 
-#: Source/Core/Core/HW/EXI/BBA/TAP_Win32.cpp:208
+#: Source/Core/Core/HW/EXI/BBA/TAP_Win32.cpp:210
 #, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
@@ -3214,7 +3257,7 @@ msgstr ""
 "reboot is probably required at this point to get Windows to see the new "
 "driver."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:130
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:132
 msgid ""
 "Each player sends their own inputs to the game, with equal buffer size for "
 "all players, configured by the host.\n"
@@ -3274,11 +3317,11 @@ msgstr "فارغة"
 msgid "Emu Thread already running"
 msgstr "المحاكي قيد التشغيل بالفعل"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "محاكاة محول بلوتوث وي"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:188
 msgid "Emulated Wii Remote"
 msgstr "محاكاة ريموت وي"
 
@@ -3298,8 +3341,9 @@ msgstr ""
 msgid "Emulation Speed"
 msgstr "سرعة المحاكاة "
 
-#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:27
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:89
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:29
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:87
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:99
 #: Source/Core/DolphinQt/Config/Mapping/MappingWidget.cpp:167
 msgid "Enable"
 msgstr "تمكين"
@@ -3345,7 +3389,7 @@ msgstr "FPRF تمكين"
 msgid "Enable MMU"
 msgstr "MMU تمكين"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:120
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:131
 msgid "Enable Progressive Scan"
 msgstr "تمكين المسح التدريجي"
 
@@ -3353,11 +3397,11 @@ msgstr "تمكين المسح التدريجي"
 msgid "Enable Rumble"
 msgstr "تمكين الهزاز"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:108
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:110
 msgid "Enable Screen Saver"
 msgstr "تمكين شاشة التوقف"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:157
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:160
 msgid "Enable Speaker Data"
 msgstr "تمكين بيانات مكبر صوت"
 
@@ -3429,7 +3473,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:248
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:276
 msgid ""
 "Enables multithreaded command submission in backends where supported. "
 "Enabling this option may result in a performance improvement on systems with "
@@ -3443,7 +3487,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:245
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:273
 msgid ""
 "Enables progressive scan if supported by the emulated software. Most games "
 "don't have any issue with this.\n"
@@ -3484,7 +3528,7 @@ msgid ""
 msgstr ""
 "تمكن وحدة إدارة الذاكرة ، اللازمة لبعض الألعاب. (تمكين= متوافق, تعطيل= سريع)"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:202
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:219
 msgid ""
 "Enables validation of API calls made by the video backend, which may assist "
 "in debugging graphical issues.\n"
@@ -3496,7 +3540,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:226
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:254
 msgid ""
 "Encodes frame dumps using the FFV1 codec.\n"
 "\n"
@@ -3511,13 +3555,13 @@ msgstr ""
 msgid "Encoding"
 msgstr "الترميز"
 
-#: Source/Core/Core/NetPlayServer.cpp:111
+#: Source/Core/Core/NetPlayServer.cpp:112
 msgid "Enet Didn't Initialize"
 msgstr "لم يتم تهيئة الشبكة"
 
 #: Source/Core/DiscIO/Enums.cpp:80
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:63
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:119
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:123
 msgid "English"
 msgstr "الإنجليزية"
 
@@ -3541,7 +3585,7 @@ msgstr "أدخل معرف جهاز يو إس بي "
 msgid "Enter new Broadband Adapter MAC address:"
 msgstr "أدخل عنوان الماك ادرس لمحول البرودباند الجديد"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:297
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:301
 msgid "Enter password"
 msgstr "أدخل كلمة المرور"
 
@@ -3561,13 +3605,13 @@ msgstr "يساوي"
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:307
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:313
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:47
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:446
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:195
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:234
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:458
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:225
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:264
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:208
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:224
-#: Source/Core/DolphinQt/ConvertDialog.cpp:454
-#: Source/Core/DolphinQt/ConvertDialog.cpp:505
+#: Source/Core/DolphinQt/ConvertDialog.cpp:449
+#: Source/Core/DolphinQt/ConvertDialog.cpp:503
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:476
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:482
 #: Source/Core/DolphinQt/Debugger/MemoryWidget.cpp:505
@@ -3578,15 +3622,15 @@ msgstr "يساوي"
 #: Source/Core/DolphinQt/Debugger/WatchWidget.cpp:327
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:208
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:282
-#: Source/Core/DolphinQt/Main.cpp:180 Source/Core/DolphinQt/Main.cpp:195
-#: Source/Core/DolphinQt/Main.cpp:202 Source/Core/DolphinQt/MainWindow.cpp:251
-#: Source/Core/DolphinQt/MainWindow.cpp:258
-#: Source/Core/DolphinQt/MainWindow.cpp:973
-#: Source/Core/DolphinQt/MainWindow.cpp:1303
-#: Source/Core/DolphinQt/MainWindow.cpp:1310
-#: Source/Core/DolphinQt/MainWindow.cpp:1371
-#: Source/Core/DolphinQt/MainWindow.cpp:1378
-#: Source/Core/DolphinQt/MainWindow.cpp:1472
+#: Source/Core/DolphinQt/Main.cpp:193 Source/Core/DolphinQt/Main.cpp:208
+#: Source/Core/DolphinQt/Main.cpp:215 Source/Core/DolphinQt/MainWindow.cpp:253
+#: Source/Core/DolphinQt/MainWindow.cpp:260
+#: Source/Core/DolphinQt/MainWindow.cpp:984
+#: Source/Core/DolphinQt/MainWindow.cpp:1314
+#: Source/Core/DolphinQt/MainWindow.cpp:1321
+#: Source/Core/DolphinQt/MainWindow.cpp:1382
+#: Source/Core/DolphinQt/MainWindow.cpp:1389
+#: Source/Core/DolphinQt/MainWindow.cpp:1484
 #: Source/Core/DolphinQt/MenuBar.cpp:1154
 #: Source/Core/DolphinQt/MenuBar.cpp:1224
 #: Source/Core/DolphinQt/MenuBar.cpp:1245
@@ -3599,13 +3643,13 @@ msgstr "يساوي"
 #: Source/Core/DolphinQt/MenuBar.cpp:1474
 #: Source/Core/DolphinQt/MenuBar.cpp:1499
 #: Source/Core/DolphinQt/MenuBar.cpp:1549
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:311
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:413
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:718
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:953
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:327
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:333
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:340
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:422
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:730
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:972
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:335
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:341
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:348
 #: Source/Core/DolphinQt/RenderWidget.cpp:119
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:202
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:223
@@ -3624,36 +3668,36 @@ msgstr "%1 :  خطأ في فتح المحول"
 msgid "Error loading selected language. Falling back to system default."
 msgstr "خطأ في تحميل اللغة المحددة. العودة إلى النظام الافتراضي."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:215
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:210
 msgid "Error obtaining session list: %1"
 msgstr "خطأ في الحصول على قائمة الجلسة: 1%"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:252
+#: Source/Core/DolphinQt/MainWindow.cpp:254
 msgid "Error occured while loading some texture packs"
 msgstr "حدث خطأ أثناء تحميل بعض حزم النسيج"
 
-#: Source/Core/Core/NetPlayClient.cpp:1557
+#: Source/Core/Core/NetPlayClient.cpp:1583
 msgid "Error processing codes."
 msgstr "خطأ معالجة الرموز"
 
-#: Source/Core/Core/NetPlayClient.cpp:1529
+#: Source/Core/Core/NetPlayClient.cpp:1555
 msgid "Error processing data."
 msgstr "خطأ في معالجة البيانات."
 
-#: Source/Core/Core/NetPlayServer.cpp:1795
+#: Source/Core/Core/NetPlayServer.cpp:1817
 #, c-format
 msgid "Error reading file: %s"
 msgstr "خطأ في قراءة الملف: %s"
 
-#: Source/Core/Core/NetPlayServer.cpp:1228
+#: Source/Core/Core/NetPlayServer.cpp:1250
 msgid "Error synchronizing cheat codes!"
 msgstr "خطأ في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1215
+#: Source/Core/Core/NetPlayServer.cpp:1237
 msgid "Error synchronizing save data!"
 msgstr "حدث خطا اثناء مزامنة حفظ البيانات!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1620
+#: Source/Core/Core/NetPlayClient.cpp:1646
 #, c-format
 msgid "Error writing file: %s"
 msgstr "خطأ في كتابة الملف: %s"
@@ -3683,12 +3727,12 @@ msgstr ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1320
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1333
 #, c-format
 msgid "Errors were found in %zu blocks in the %s partition."
 msgstr "تم العثور على أخطاء في %zu كتل في القسم %s"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1332
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1345
 #, c-format
 msgid "Errors were found in %zu unused blocks in the %s partition."
 msgstr "تم العثور على أخطاء في %zu كتل غير مستخدمة في القسم %s"
@@ -3707,27 +3751,39 @@ msgstr "أوروبا"
 msgid "Exit"
 msgstr "خروج"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:557
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:898
+msgid "Expected + or closing paren."
+msgstr ""
+
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:737
 msgid "Expected arguments: "
 msgstr "الحجج المتوقعة"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:681
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:865
 msgid "Expected closing paren."
 msgstr "من المتوقع إغلاق القوسين"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:544
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:724
 msgid "Expected comma."
 msgstr "الفاصلة المتوقعة"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:476
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:656
 msgid "Expected end of expression."
 msgstr "نهاية التعبير المتوقعة"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:611
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:884
+msgid "Expected name of input."
+msgstr ""
+
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:875
+msgid "Expected opening paren."
+msgstr ""
+
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:795
 msgid "Expected start of expression."
 msgstr "بداية التعبير المتوقعة"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:135
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:146
 msgid "Experimental"
 msgstr "تجريبي"
 
@@ -3751,11 +3807,11 @@ msgstr "تصدير تسجيل"
 msgid "Export Save File"
 msgstr "تصدير حفظ الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:363
+#: Source/Core/DolphinQt/GameList/GameList.cpp:356
 msgid "Export Wii Save"
 msgstr "تصدير حفظ وي"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:286
+#: Source/Core/DolphinQt/GameList/GameList.cpp:280
 msgid "Export Wii Saves"
 msgstr "تصدير حفظ وي"
 
@@ -3764,21 +3820,21 @@ msgstr "تصدير حفظ وي"
 msgid "Exported %n save(s)"
 msgstr "تم التصدير %n الحفظ (الكل)"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:222
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:369
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:221
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:402
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:48
 msgid "Extension"
 msgstr "ملحق"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:114
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:118
 msgid "Extension Motion Input"
 msgstr "ملحق إدخال الحركة"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:115
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.h:119
 msgid "Extension Motion Simulation"
 msgstr "ملحق محاكاة الحركة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:540
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:549
 msgid "External"
 msgstr "خارجي"
 
@@ -3836,7 +3892,7 @@ msgstr ""
 "فشل فتح بطاقة الذاكرة:\n"
 "%1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:390
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:399
 msgid "Failed to add this session to the NetPlay index: %1"
 msgstr "فشل في إضافة هذه الجلسة إلى فهرس اللعب عبر الشبكة: 1%"
 
@@ -3848,11 +3904,11 @@ msgstr "Failed to append to signature file '%1'"
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Failed to claim interface for BT passthrough"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:110
+#: Source/Core/DiscIO/VolumeVerifier.cpp:111
 msgid "Failed to connect to Redump.org"
 msgstr "Redump.org فشل الاتصال بـ"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:954
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:973
 msgid "Failed to connect to server: %1"
 msgstr "%1 فشل الاتصال بالخادم"
 
@@ -3869,12 +3925,12 @@ msgstr "D3D فشل إنشاء سلسله مبادله"
 msgid "Failed to create DXGI factory"
 msgstr "Failed to create DXGI factory"
 
-#: Source/Core/Core/NetPlayClient.cpp:833
+#: Source/Core/Core/NetPlayClient.cpp:855
 msgid "Failed to delete NetPlay memory card. Verify your write permissions."
 msgstr ""
 "فشل حذف بطاقة الذاكرة في لعب عبر الشبكة تحقق من أذونات الكتابة الخاصة بك."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:655
+#: Source/Core/DolphinQt/GameList/GameList.cpp:646
 msgid "Failed to delete the selected file."
 msgstr "فشل حذف الملف المحدد."
 
@@ -3894,7 +3950,7 @@ msgstr "فشل تفريغ٪ 1: لا يمكن فتح الملف"
 msgid "Failed to dump %1: Failed to write to file"
 msgstr "فشل تفريغ٪ 1: فشل في الكتابة إلى الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:459
+#: Source/Core/DolphinQt/GameList/GameList.cpp:450
 msgid "Failed to export the following save files:"
 msgstr "فشل تصدير ملفات الحفظ التالية:"
 
@@ -3933,7 +3989,7 @@ msgstr "\"%1\" فشل الاستيراد"
 msgid "Failed to import save files."
 msgstr "فشل في استيراد ملفات الحفظ."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:973
+#: Source/Core/DolphinQt/MainWindow.cpp:984
 msgid "Failed to init core"
 msgstr "فشل في التهيئة الأساسية"
 
@@ -3949,12 +4005,12 @@ msgstr ""
 msgid "Failed to install pack: %1"
 msgstr "%1 :فشل تثبيت الحزمة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:501
+#: Source/Core/DolphinQt/GameList/GameList.cpp:492
 #: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "Failed to install this title to the NAND."
 msgstr "NAND فشل تثبيت هذا العنوان على"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1405
+#: Source/Core/DolphinQt/MainWindow.cpp:1416
 msgid ""
 "Failed to listen on port %1. Is another instance of the NetPlay server "
 "running?"
@@ -3988,11 +4044,11 @@ msgstr "dxgi.dll فشل تحميل"
 msgid "Failed to load map file '%1'"
 msgstr "Failed to load map file '%1'"
 
-#: Source/Core/Core/Boot/Boot.cpp:446
+#: Source/Core/Core/Boot/Boot.cpp:447
 msgid "Failed to load the executable to memory."
 msgstr "فشل تحميل الملف القابل للتنفيذ إلى الذاكرة."
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1472
+#: Source/Core/DolphinQt/MainWindow.cpp:1484
 #: Source/Core/DolphinQt/RenderWidget.cpp:119
 msgid "Failed to open '%1'"
 msgstr "'%1' فشل في الفتح"
@@ -4005,12 +4061,12 @@ msgstr "فشل فتح جهاز البلوتوث: {}"
 msgid "Failed to open config file!"
 msgstr "فشل في فتح ملف التكوين"
 
-#: Source/Core/Core/NetPlayServer.cpp:1761
+#: Source/Core/Core/NetPlayServer.cpp:1783
 #, c-format
 msgid "Failed to open file \"%s\"."
 msgstr "\"%s\" فشل فتح ملف"
 
-#: Source/Core/Core/NetPlayClient.cpp:1590
+#: Source/Core/Core/NetPlayClient.cpp:1616
 #, c-format
 msgid "Failed to open file \"%s\". Verify your write permissions."
 msgstr "فشل فتح ملف \"%s\". تحقق من أذونات الكتابة الخاصة بك."
@@ -4023,16 +4079,16 @@ msgstr ""
 "فشل في فتح ملف في محرر خارجي\n"
 "تأكد من وجود تطبيق معين لفتح الملفات"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1403
+#: Source/Core/DolphinQt/MainWindow.cpp:1414
 msgid "Failed to open server"
 msgstr "فشل في فتح الخادم"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:455
+#: Source/Core/DolphinQt/ConvertDialog.cpp:450
 msgid "Failed to open the input file \"%1\"."
 msgstr "\"%1\" فشل في فتح ملف الإدخال"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:280 Source/Core/DiscIO/FileBlob.cpp:52
-#: Source/Core/DiscIO/WIABlob.cpp:2006
+#: Source/Core/DiscIO/WIABlob.cpp:2037
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -4042,8 +4098,8 @@ msgstr ""
 "\"%s\". فشل في فتح ملف الإخراج\n"
 "تحقق من أن لديك أذونات لكتابة المجلد الهدف ومن أنه يمكن كتابة الوسائط."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:222
-#: Source/Core/DiscIO/VolumeVerifier.cpp:316
+#: Source/Core/DiscIO/VolumeVerifier.cpp:223
+#: Source/Core/DiscIO/VolumeVerifier.cpp:317
 msgid "Failed to parse Redump.org data"
 msgstr "Redump.org فشل تحليل بيانات"
 
@@ -4053,7 +4109,7 @@ msgid "Failed to read %s"
 msgstr "%s فشل في القراءة"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:371 Source/Core/DiscIO/FileBlob.cpp:92
-#: Source/Core/DiscIO/WIABlob.cpp:2021
+#: Source/Core/DiscIO/WIABlob.cpp:2052
 #, c-format
 msgid "Failed to read from the input file \"%s\"."
 msgstr "\"%s\" فشلت القراءة من ملف الإدخال"
@@ -4062,7 +4118,7 @@ msgstr "\"%s\" فشلت القراءة من ملف الإدخال"
 msgid "Failed to remove file"
 msgstr "فشل في إزالة الملف"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:436
+#: Source/Core/DolphinQt/ConvertDialog.cpp:431
 msgid ""
 "Failed to remove junk data from file \"%1\".\n"
 "\n"
@@ -4072,15 +4128,15 @@ msgstr ""
 "\n"
 "هل تريد تحويلها دون إزالة البيانات غير المرغوب فيها؟"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:529
+#: Source/Core/DolphinQt/GameList/GameList.cpp:520
 msgid "Failed to remove this title from the NAND."
 msgstr "NAND فشل في إزالة هذا العنوان من"
 
-#: Source/Core/Core/NetPlayClient.cpp:858
+#: Source/Core/Core/NetPlayClient.cpp:880
 msgid "Failed to reset NetPlay GCI folder. Verify your write permissions."
 msgstr "Failed to reset NetPlay GCI folder. Verify your write permissions."
 
-#: Source/Core/Core/NetPlayClient.cpp:888
+#: Source/Core/Core/NetPlayClient.cpp:910
 msgid "Failed to reset NetPlay NAND folder. Verify your write permissions."
 msgstr "Failed to reset NetPlay NAND folder. Verify your write permissions."
 
@@ -4108,15 +4164,15 @@ msgstr "Failed to save to signature file '%1'"
 msgid "Failed to uninstall pack: %1"
 msgstr "%1 فشل في إلغاء تثبيت الحزمة"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:82
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:75
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Failed to write BT.DINF to SYSCONF"
 
-#: Source/Core/Core/NetPlayClient.cpp:914
+#: Source/Core/Core/NetPlayClient.cpp:936
 msgid "Failed to write Mii data."
 msgstr "Mii فشل في كتابة بيانات"
 
-#: Source/Core/Core/NetPlayClient.cpp:995
+#: Source/Core/Core/NetPlayClient.cpp:1017
 msgid "Failed to write Wii save."
 msgstr "فشل في كتابة حفظ وي."
 
@@ -4125,7 +4181,7 @@ msgid "Failed to write config file!"
 msgstr "فشل في كتابه ملف التكوين"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:375 Source/Core/DiscIO/FileBlob.cpp:98
-#: Source/Core/DiscIO/WIABlob.cpp:2025
+#: Source/Core/DiscIO/WIABlob.cpp:2056
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -4134,14 +4190,14 @@ msgstr ""
 "فشل في كتابة ملف الإخراج \"%s\".\n"
 "تأكد من وجود مساحة كافية على محرك الأقراص الهدف."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:499
-#: Source/Core/DolphinQt/GameList/GameList.cpp:527
-#: Source/Core/DolphinQt/GameList/GameList.cpp:654
+#: Source/Core/DolphinQt/GameList/GameList.cpp:490
+#: Source/Core/DolphinQt/GameList/GameList.cpp:518
+#: Source/Core/DolphinQt/GameList/GameList.cpp:645
 #: Source/Core/DolphinQt/MenuBar.cpp:1040
 msgid "Failure"
 msgstr "فشل"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:128
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:130
 msgid "Fair Input Delay"
 msgstr "تأخير الإدخال العادل"
 
@@ -4163,42 +4219,42 @@ msgstr ""
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:41
 msgid "File Details"
-msgstr ""
+msgstr "تفاصيل الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:796
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:228
+#: Source/Core/DolphinQt/GameList/GameList.cpp:792
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:223
 #: Source/Core/DolphinQt/MenuBar.cpp:633
 msgid "File Format"
-msgstr ""
+msgstr "تنسيق الملف"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:61
 msgid "File Format:"
-msgstr ""
+msgstr "تنسيق الملف"
 
 #: Source/Core/DolphinQt/FIFO/FIFOPlayerWindow.cpp:71
 msgid "File Info"
 msgstr "معلومات الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:791
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:222
+#: Source/Core/DolphinQt/GameList/GameList.cpp:787
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:217
 #: Source/Core/DolphinQt/MenuBar.cpp:628
 msgid "File Name"
 msgstr "اسم الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:792
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:224
+#: Source/Core/DolphinQt/GameList/GameList.cpp:788
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:219
 #: Source/Core/DolphinQt/MenuBar.cpp:629
 msgid "File Path"
 msgstr "مسار الملف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:795
+#: Source/Core/DolphinQt/GameList/GameList.cpp:791
 #: Source/Core/DolphinQt/MenuBar.cpp:632
 msgid "File Size"
 msgstr "حجم الملف"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:53
 msgid "File Size:"
-msgstr ""
+msgstr "حجم الملف"
 
 #: Source/Core/DolphinQt/Config/GeckoCodeWidget.cpp:313
 msgid "File contained no codes."
@@ -4240,7 +4296,7 @@ msgstr "نظام الملفات"
 msgid "Filter Symbols"
 msgstr "تصفية الرموز"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:104
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:102
 msgid "Filters"
 msgstr "تصفية"
 
@@ -4286,7 +4342,7 @@ msgstr ""
 msgid "First Block"
 msgstr "أول كتلة"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "First Person"
 msgstr "First Person"
 
@@ -4331,7 +4387,7 @@ msgstr "24-Bit فرض اللون"
 msgid "Force 4:3"
 msgstr "فرض 4:3"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:128
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:136
 msgid "Force Listen Port:"
 msgstr "فرض الاستماع منفذ"
 
@@ -4375,7 +4431,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:68
+#: Source/Core/DolphinQt/ConvertDialog.cpp:57
 msgid "Format:"
 msgstr "تنسيق"
 
@@ -4385,7 +4441,7 @@ msgstr "تنسيق"
 msgid "Forward"
 msgstr "إلى الأمام"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:138
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:146
 msgid "Forward port (UPnP)"
 msgstr "Forward port (UPnP)"
 
@@ -4414,7 +4470,7 @@ msgstr "زيادة سرعة الإطار المسبق"
 msgid "Frame Advance Reset Speed"
 msgstr " إعادة تعيين سرعة الإطار المسبق"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:98
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:109
 msgid "Frame Dumping"
 msgstr "تفريغ الإطار"
 
@@ -4422,7 +4478,7 @@ msgstr "تفريغ الإطار"
 msgid "Frame Range"
 msgstr "مجموعة الإطار "
 
-#: Source/Core/VideoCommon/RenderBase.cpp:1656
+#: Source/Core/VideoCommon/RenderBase.cpp:1653
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr "Frame dump image(s) '%s' already exists. Overwrite?"
@@ -4435,7 +4491,7 @@ msgstr "إطارات للتسجيل"
 msgid "France"
 msgstr "فرنسا"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:85
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:83
 msgid "Free Look"
 msgstr "تحكم بكاميرا اللعبة"
 
@@ -4506,7 +4562,7 @@ msgstr " تصغير نظرة حرة "
 
 #: Source/Core/DiscIO/Enums.cpp:86
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:64
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:121
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:125
 msgid "French"
 msgstr "الفرنسية"
 
@@ -4566,7 +4622,7 @@ msgstr "GCI مجلد"
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock called with invalid block address"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:348
+#: Source/Core/DolphinQt/ConvertDialog.cpp:343
 msgid "GCZ GC/Wii images (*.gcz)"
 msgstr ""
 
@@ -4597,7 +4653,7 @@ msgstr ""
 msgid "GPU Texture Decoding"
 msgstr "فك النسيج بكارت الشاشة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:231
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
 msgid "Game"
 msgstr "اللعبة"
 
@@ -4611,31 +4667,31 @@ msgstr "إعدادات اللعبة"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:83
 msgid "Game Details"
-msgstr ""
+msgstr "تفاصيل اللعبة"
 
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:124
 msgid "Game Folders"
 msgstr "مجلدات الألعاب"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:793
+#: Source/Core/DolphinQt/GameList/GameList.cpp:789
 #: Source/Core/DolphinQt/MenuBar.cpp:630
 msgid "Game ID"
 msgstr "معرف اللعبة"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:118
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:112
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:110
 msgid "Game ID:"
 msgstr "معرف اللعبة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:657
 msgid "Game Status"
 msgstr "حالة اللعبة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:816
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:830
 msgid "Game changed to \"%1\""
 msgstr "تغيرت اللعبة إلى \"%1\""
 
-#: Source/Core/Core/NetPlayClient.cpp:1481
+#: Source/Core/Core/NetPlayClient.cpp:1507
 msgid "Game is already running!"
 msgstr "لعبة تستخدم بالفعل!"
 
@@ -4662,11 +4718,11 @@ msgstr "محول وي يو لوحدة تحكم جيم كيوب"
 msgid "GameCube Adapter for Wii U at Port %1"
 msgstr "محول تحكم جيم كيوب لجهاز وي يو في منفذ %1"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:351
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
 msgid "GameCube Controller"
 msgstr "تحكم جيم كيوب "
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:350
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:383
 msgid "GameCube Controller at Port %1"
 msgstr "تحكم جيم كيوب في منفذ %1"
 
@@ -4674,11 +4730,11 @@ msgstr "تحكم جيم كيوب في منفذ %1"
 msgid "GameCube Controllers"
 msgstr "تحكم جيم كيوب"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:342
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:375
 msgid "GameCube Keyboard"
 msgstr "لوحة المفاتيح جيم كيوب"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:343
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:376
 msgid "GameCube Keyboard at Port %1"
 msgstr "لوحة مفاتيح جيم كيوب في منفذ %1"
 
@@ -4692,7 +4748,7 @@ msgstr "مدير بطاقة الذاكرة جيم كيوب"
 msgid "GameCube Memory Cards (*.raw *.gcp)"
 msgstr "بطاقات ذاكرة جيم كيوب (*.raw *.gcp)"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:355
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:388
 msgid "GameCube Microphone Slot %1"
 msgstr "فتحة ميكروفون جيم كيوب %1"
 
@@ -4711,12 +4767,12 @@ msgstr "Gecko رموز"
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:113
 #: Source/Core/DolphinQt/Config/Graphics/PostProcessingConfigWindow.cpp:116
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyGeneral.cpp:22
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:381
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:414
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:37
 msgid "General"
 msgstr "عام"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:366
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:399
 msgid "General and Options"
 msgstr "العامة و الخيارات"
 
@@ -4738,7 +4794,7 @@ msgstr "أسماء الرموز التي تم إنشاؤها من '%1'"
 
 #: Source/Core/DiscIO/Enums.cpp:83
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:63
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:124
 msgid "German"
 msgstr "الألمانية"
 
@@ -4750,16 +4806,16 @@ msgstr "ألمانيا"
 msgid "GiB"
 msgstr "غيغابايت"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:140
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:142
 msgid "Golf Mode"
 msgstr "Golf وضع"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:342
+#: Source/Core/DiscIO/VolumeVerifier.cpp:343
 msgid "Good dump"
 msgstr "تفريغ جيد"
 
 #: Source/Core/DolphinQt/Config/Graphics/GraphicsWindow.cpp:34
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:390
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:423
 #: Source/Core/DolphinQt/ToolBar.cpp:131
 msgid "Graphics"
 msgstr "الرسومات"
@@ -4808,7 +4864,7 @@ msgstr "شبكة"
 msgid "Guitar"
 msgstr "Guitar"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:218
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:217
 msgid "Gyroscope"
 msgstr "جيروسكوب"
 
@@ -4839,11 +4895,11 @@ msgstr "ست عشرية"
 msgid "Hide"
 msgstr "إخفاء"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:94
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:92
 msgid "Hide In-Game Sessions"
 msgstr "إخفاء الجلسات داخل اللعبة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:93
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:91
 msgid "Hide Incompatible Sessions"
 msgstr "إخفاء جلسات العمل غير المتوافقة"
 
@@ -4861,16 +4917,16 @@ msgstr "الأعلى"
 msgid "Hit Strength"
 msgstr "ضرب بقوة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:141
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:195
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:149
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:203
 msgid "Host"
 msgstr "هوست"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:302
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:310
 msgid "Host Code:"
 msgstr "رمز المضيف"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:134
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:136
 msgid "Host Input Authority"
 msgstr "سلطة إدخال المضيف"
 
@@ -4878,7 +4934,7 @@ msgstr "سلطة إدخال المضيف"
 msgid "Host Size"
 msgstr "حجم المضيف"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:136
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:138
 msgid ""
 "Host has control of sending all inputs to the game, as received from other "
 "players, giving the host zero latency but increasing latency for others.\n"
@@ -4890,29 +4946,29 @@ msgstr ""
 "مناسب للألعاب غير الرسمية مع أكثر من 3 لاعبين ، وربما على اتصالات غير مستقرة "
 "أو عالية وقت الإستجابة."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:907
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:926
 msgid "Host input authority disabled"
 msgstr "تم تعطيل سلطة إدخال المضيف"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:907
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:926
 msgid "Host input authority enabled"
 msgstr "تمكين سلطة إدخال المضيف"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:405
+#: Source/Core/DolphinQt/GameList/GameList.cpp:398
 msgid "Host with NetPlay"
 msgstr "استضافة لعب عبر الشبكة"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:395
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:428
 msgid "Hotkey Settings"
 msgstr "إعدادات مفاتيح الاختصار"
 
 #: Source/Core/Core/HotkeyManager.cpp:204
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:271
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:270
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:42
 msgid "Hotkeys"
 msgstr "مفاتيح الاختصار"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:150
 msgid "Hotkeys Require Window Focus"
 msgstr "تتطلب مفاتيح الاختصار التركيز على النافذة"
 
@@ -4922,8 +4978,12 @@ msgstr "تتطلب مفاتيح الاختصار التركيز على النا�
 msgid "Hz"
 msgstr "Hz"
 
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:51
+msgid "I am aware of the risks and want to continue"
+msgstr "أنا على دراية بالمخاطر وأريد الاستمرار"
+
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:293
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:214
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:209
 msgid "ID"
 msgstr "المعرف"
 
@@ -4949,7 +5009,7 @@ msgstr ""
 "https://dolphin-emu.org/docs/guides/wii-network-guide/ for instructions on "
 "setting up Wii networking."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:302
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:310
 msgid "IP Address:"
 msgstr "IP عنوان "
 
@@ -4962,11 +5022,11 @@ msgid "IR"
 msgstr "الأشعة تحت الحمراء"
 
 #. i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:179
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:192
 msgid "IR Sensitivity:"
 msgstr "حساسية الأشعة تحت الحمراء"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:98
+#: Source/Core/DolphinQt/ConvertDialog.cpp:85
 msgid ""
 "ISO: A simple and robust format which is supported by many programs. It "
 "takes up more space than any other format.\n"
@@ -4988,7 +5048,7 @@ msgstr ""
 msgid "Icon"
 msgstr " أيقونة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:142
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:144
 msgid ""
 "Identical to Host Input Authority, except the \"Host\" (who has zero "
 "latency) can be switched at any time.\n"
@@ -5003,13 +5063,13 @@ msgstr ""
 msgid "Identity Generation"
 msgstr "إنشاء هوية "
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:109
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:111
 msgid "If \"Allow Writes to SD Card\" is disabled this does not override it."
 msgstr ""
 "SD إذا تم تعطيل \"السماح بالكتابة إلى بطاقة\n"
 "فهذا لا يلغيه"
 
-#: Source/Core/DolphinQt/Main.cpp:232
+#: Source/Core/DolphinQt/Main.cpp:245
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -5038,7 +5098,7 @@ msgstr "تجاهل"
 msgid "Ignore Format Changes"
 msgstr "تجاهل تنسيق التغييرات "
 
-#: Source/Core/DolphinQt/Main.cpp:63
+#: Source/Core/DolphinQt/Main.cpp:64
 msgid "Ignore for this session"
 msgstr "تجاهل"
 
@@ -5079,7 +5139,7 @@ msgstr ""
 msgid "Immediately Present XFB"
 msgstr "XFB على الفور"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:260
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:288
 msgid ""
 "Implements fullscreen mode with a borderless window spanning the whole "
 "screen instead of using exclusive mode. Allows for faster transitions "
@@ -5111,11 +5171,11 @@ msgstr "استيراد حفظ وي"
 msgid "Import failed"
 msgstr "فشل الاستيراد"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1535
+#: Source/Core/DolphinQt/MainWindow.cpp:1547
 msgid "Importing NAND backup"
 msgstr " NAND استيراد النسخ الاحتياطي"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1545
+#: Source/Core/DolphinQt/MainWindow.cpp:1557
 #, c-format
 msgid ""
 "Importing NAND backup\n"
@@ -5124,7 +5184,7 @@ msgstr ""
 "NAND استيراد النسخ الاحتياطي\n"
 "%1s الوقت المنقضي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:231
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
 msgid "In-Game?"
 msgstr "في اللعبة؟"
 
@@ -5161,12 +5221,12 @@ msgstr "زيادة الأشعة تحت الحمراء"
 
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:49
 #: Source/Core/DolphinQt/Config/PropertiesDialog.cpp:59
-#: Source/Core/DolphinQt/ConvertDialog.cpp:112
+#: Source/Core/DolphinQt/ConvertDialog.cpp:99
 msgid "Info"
 msgstr "معلومات"
 
 #: Source/Core/Common/MsgHandler.cpp:89
-#: Source/Core/DolphinQt/GameList/GameList.cpp:622
+#: Source/Core/DolphinQt/GameList/GameList.cpp:613
 #: Source/Core/DolphinQt/MenuBar.cpp:1217
 #: Source/Core/DolphinQt/MenuBar.cpp:1359
 msgid "Information"
@@ -5193,7 +5253,7 @@ msgstr "تجاهل قوة الإدخال"
 msgid "Insert &nop"
 msgstr "Insert &nop"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:109
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:111
 msgid "Insert SD Card"
 msgstr "SD Card ادرج"
 
@@ -5210,7 +5270,7 @@ msgstr "تثبيت التحديث"
 msgid "Install WAD..."
 msgstr "WAD تثبيت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:336
+#: Source/Core/DolphinQt/GameList/GameList.cpp:329
 msgid "Install to the NAND"
 msgstr "NAND تثبيت على"
 
@@ -5243,13 +5303,13 @@ msgstr "كثافة"
 msgid "Interface"
 msgstr "الواجهة"
 
-#: Source/Core/Core/NetPlayServer.cpp:1802
-#: Source/Core/Core/NetPlayServer.cpp:1857 Source/Core/Core/State.cpp:388
+#: Source/Core/Core/NetPlayServer.cpp:1824
+#: Source/Core/Core/NetPlayServer.cpp:1879 Source/Core/Core/State.cpp:388
 msgid "Internal LZO Error - compression failed"
 msgstr "Internal LZO Error - compression failed"
 
-#: Source/Core/Core/NetPlayClient.cpp:1614
-#: Source/Core/Core/NetPlayClient.cpp:1656
+#: Source/Core/Core/NetPlayClient.cpp:1640
+#: Source/Core/Core/NetPlayClient.cpp:1682
 msgid "Internal LZO Error - decompression failed"
 msgstr "Internal LZO Error - decompression failed"
 
@@ -5287,7 +5347,7 @@ msgstr "Interpreter Core"
 msgid "Invalid Mixed Code"
 msgstr "رمز مختلط غير صالح"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:259
+#: Source/Core/DolphinQt/MainWindow.cpp:261
 msgid "Invalid Pack %1 provided: %2"
 msgstr "حزمة غير صالحة 1% مقدمة :2%"
 
@@ -5312,7 +5372,7 @@ msgstr "مكدس استدعاء غير صالح"
 msgid "Invalid checksums."
 msgstr "المجموع الاختباري غير صالح."
 
-#: Source/Core/Core/NetPlayClient.cpp:1769
+#: Source/Core/Core/NetPlayClient.cpp:1795
 msgid "Invalid host"
 msgstr "المضيف غير صالح"
 
@@ -5325,11 +5385,11 @@ msgstr "إدخال غير صالح للحقل \"%1\""
 msgid "Invalid input provided"
 msgstr "إدخال غير صالح المقدمة"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:353
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:449
 msgid "Invalid literal."
 msgstr "قيمة حرفية غير صحيحة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:311
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:315
 msgid "Invalid password provided."
 msgstr "كلمة مرور المقدمة غير صالحة."
 
@@ -5349,13 +5409,13 @@ msgstr "سلسلة البحث غير صالحة ( لا يمكن تحويل إل�
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "سلسلة البحث غير صالحة ( فقط حتى أطوال سلسلة مدعومة)"
 
-#: Source/Core/DolphinQt/Main.cpp:180
+#: Source/Core/DolphinQt/Main.cpp:193
 msgid "Invalid title ID."
 msgstr "معرف عنوان غير صالح."
 
 #: Source/Core/DiscIO/Enums.cpp:92
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:65
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:123
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:127
 msgid "Italian"
 msgstr "الإيطالية"
 
@@ -5435,12 +5495,18 @@ msgstr "JIT Register Cache Off"
 msgid "JIT SystemRegisters Off"
 msgstr "JIT SystemRegisters Off"
 
+#: Source/Core/Core/PowerPC/Jit64/Jit.cpp:852
+msgid ""
+"JIT failed to find code space after a cache clear. This should never happen. "
+"Please report this incident on the bug tracker. Dolphin will now exit."
+msgstr ""
+
 #: Source/Core/DiscIO/Enums.cpp:27 Source/Core/DolphinQt/MenuBar.cpp:278
 msgid "Japan"
 msgstr "اليابان"
 
 #: Source/Core/DiscIO/Enums.cpp:77
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:118
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:122
 msgid "Japanese"
 msgstr "اليابانية"
 
@@ -5451,7 +5517,7 @@ msgstr "اليابانية"
 msgid "Japanese (Shift-JIS)"
 msgstr "(Shift-JIS) اليابانية"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:165
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:166
 msgid "Keep Window on Top"
 msgstr "الاحتفاظ بالإطار في الأعلى"
 
@@ -5473,7 +5539,7 @@ msgstr "مفاتيح"
 msgid "KiB"
 msgstr "كيلوبايت"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:232
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:236
 msgid "Kick Player"
 msgstr "طرد لاعب"
 
@@ -5482,7 +5548,7 @@ msgid "Korea"
 msgstr "كوريا"
 
 #: Source/Core/DiscIO/Enums.cpp:104
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:127
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:131
 msgid "Korean"
 msgstr "الكورية"
 
@@ -5533,7 +5599,7 @@ msgstr "~80ms وقت الإستجابة"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:22
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:23
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Left"
 msgstr "يسار"
 
@@ -5595,7 +5661,7 @@ msgstr "أقل من"
 msgid "License"
 msgstr "ترخيص"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:130
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:138
 msgid "Limit Chunked Upload Speed:"
 msgstr "الحد من سرعة الرفع المقسم:"
 
@@ -5626,7 +5692,7 @@ msgstr "Load &Bad Map File..."
 msgid "Load &Other Map File..."
 msgstr "Load &Other Map File..."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:69
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:68
 msgid "Load Custom Textures"
 msgstr "تحميل النسيج المخصص"
 
@@ -5740,7 +5806,7 @@ msgstr "تحميل الحالة من الفتحة المحددة"
 msgid "Load State from Slot"
 msgstr "تحميل الحالة من فتحة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:111
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:113
 msgid "Load Wii Save"
 msgstr "تحميل حفظ وي"
 
@@ -5769,7 +5835,7 @@ msgstr "تحميل"
 msgid "Loaded symbols from '%1'"
 msgstr "الرموز المحملة من '%1'"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:208
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:236
 msgid ""
 "Loads custom textures from User/Load/Textures/<game_id>/.\n"
 "\n"
@@ -5780,7 +5846,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:545
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:554
 msgid "Local"
 msgstr "محلي"
 
@@ -5828,7 +5894,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:947
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:966
 msgid "Lost connection to NetPlay server..."
 msgstr "فقد الاتصال بالخادم"
 
@@ -5853,7 +5919,7 @@ msgstr "MD5:"
 msgid "MMU"
 msgstr "MMU"
 
-#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:289
+#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:286
 msgid "MORIBUND"
 msgstr ""
 
@@ -5866,8 +5932,8 @@ msgstr "MadCatz Gameshark files(*.gcs)"
 msgid "Main Stick"
 msgstr "العصا الرئيسية"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:790
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:220
+#: Source/Core/DolphinQt/GameList/GameList.cpp:786
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:215
 #: Source/Core/DolphinQt/MenuBar.cpp:627
 msgid "Maker"
 msgstr "المنتج"
@@ -5898,7 +5964,7 @@ msgstr ""
 msgid "Manage NAND"
 msgstr "NAND إدارة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:657
 msgid "Mapping"
 msgstr "تعيين"
 
@@ -5906,11 +5972,11 @@ msgstr "تعيين"
 msgid "Match Found"
 msgstr "وجد تطابق"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:929
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:948
 msgid "Max Buffer:"
 msgstr "المخزن المؤقت الأقصى"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:897
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:916
 msgid "Max buffer size changed to %1"
 msgstr "%1  تم تغيير حجم المخزن المؤقت الأقصى إلى"
 
@@ -5919,7 +5985,7 @@ msgstr "%1  تم تغيير حجم المخزن المؤقت الأقصى إلى
 msgid "Maximum tilt angle."
 msgstr "أقصى زاوية الميل."
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:134
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:145
 msgid "May cause slow down in Wii Menu and some games."
 msgstr "قد يسبب تباطؤ في قائمة وي وبعض الألعاب."
 
@@ -5989,7 +6055,7 @@ msgstr "MemoryCard: Read called with invalid source address (0x%x)"
 msgid "MemoryCard: Write called with invalid destination address (0x%x)"
 msgstr "(0x%x) بطاقة الذاكرة: الكتابة مع عنوان الوجهة غير صالح"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1517
+#: Source/Core/DolphinQt/MainWindow.cpp:1529
 msgid ""
 "Merging a new NAND over your currently selected NAND will overwrite any "
 "channels and savegames that already exist. This process is not reversible, "
@@ -6005,18 +6071,18 @@ msgstr ""
 msgid "MiB"
 msgstr "ميغابايت"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:88
+#: Source/Core/Core/HW/GCPadEmu.cpp:84
 #: Source/Core/DolphinQt/Config/Mapping/GCMicrophone.cpp:27
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:357
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:390
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:95
 msgid "Microphone"
 msgstr "ميكروفون"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:115
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:126
 msgid "Misc"
 msgstr "متنوعة"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:103
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:105
 msgid "Misc Settings"
 msgstr "إعدادات متنوعة"
 
@@ -6035,7 +6101,7 @@ msgstr "عدم تطابق بين هياكل البيانات الداخلية."
 msgid "Modifier"
 msgstr "معدل"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:199
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:216
 msgid ""
 "Modifies textures to show the format they're encoded in.\n"
 "\n"
@@ -6049,11 +6115,15 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:135
+msgid "Mono"
+msgstr "احادي"
+
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:131
 msgid "Monoscopic Shadows"
 msgstr "أحادي الظلال"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
 msgid "Monospaced Font"
 msgstr "خط أحادي المسافة"
 
@@ -6065,16 +6135,16 @@ msgstr "أكثر أو يساوي"
 msgid "More than"
 msgstr "أكثر من"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:368
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:401
 msgid "Motion Input"
 msgstr "إدخال الحركة"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:367
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:400
 msgid "Motion Simulation"
 msgstr "محاكاة الحركة"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:85
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:237
+#: Source/Core/Core/HW/GCPadEmu.cpp:81
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
 msgid "Motor"
 msgstr "محرك"
 
@@ -6096,6 +6166,10 @@ msgstr "فيلم"
 msgid "NAND Check"
 msgstr "NAND تحقق"
 
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:30
+msgid "NKit Warning"
+msgstr ""
+
 #: Source/Core/DolphinQt/FIFO/FIFOAnalyzer.cpp:191
 msgid "NOTE: Stream size doesn't match actual data length\n"
 msgstr "ملاحظة: حجم التدفق لا يطابق مدة البيانات الفعلية\n"
@@ -6112,21 +6186,21 @@ msgstr "NTSC-U"
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:271
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:293
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:230
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:153
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:161
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Name"
 msgstr "الاسم"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:907
+#: Source/Core/DolphinQt/GameList/GameList.cpp:903
 msgid "Name for a new tag:"
 msgstr "الاسم لعلامة جديدة:"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:917
+#: Source/Core/DolphinQt/GameList/GameList.cpp:913
 msgid "Name of the tag to remove:"
 msgstr "اسم العلامة المراد إزالتها:"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:152
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:160
 msgid "Name of your session shown in the server browser"
 msgstr "اسم الجلسة الخاصة بك هو مبين في متصفح الخادم"
 
@@ -6135,7 +6209,7 @@ msgstr "اسم الجلسة الخاصة بك هو مبين في متصفح ال
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:117
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:141
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:148
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:110
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:108
 msgid "Name:"
 msgstr "الاسم"
 
@@ -6148,15 +6222,15 @@ msgstr "Native (640x528)"
 msgid "Native GCI File (*.gci)"
 msgstr "Native GCI File (*.gci)"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:66
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:68
 msgid "NetPlay"
 msgstr "لعب عبر الشبكة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:34
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:33
 msgid "NetPlay Session Browser"
 msgstr "مستعرض جلسات اللعب عبر الشبكة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:30
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:35
 msgid "NetPlay Setup"
 msgstr "اعدادات لعب عبر الشبكة"
 
@@ -6164,16 +6238,16 @@ msgstr "اعدادات لعب عبر الشبكة"
 msgid "Netherlands"
 msgstr "هولندا"
 
-#: Source/Core/Core/NetPlayClient.cpp:2475
+#: Source/Core/Core/NetPlayClient.cpp:2507
 msgid "Netplay has desynced in NetPlay_GetButtonPress()"
 msgstr "Netplay has desynced in NetPlay_GetButtonPress()"
 
-#: Source/Core/Core/NetPlayClient.cpp:1986
+#: Source/Core/Core/NetPlayClient.cpp:2012
 msgid "Netplay has desynced. There is no way to recover from this."
 msgstr "Netplay has desynced. There is no way to recover from this."
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:141
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:126
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:128
 msgid "Network"
 msgstr "شبكة الاتصال"
 
@@ -6193,7 +6267,7 @@ msgstr "نقطة توقف جديدة"
 msgid "New Search"
 msgstr "بحث جديد"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:400
+#: Source/Core/DolphinQt/GameList/GameList.cpp:393
 msgid "New Tag..."
 msgstr "علامة جديدة"
 
@@ -6205,7 +6279,7 @@ msgstr "تم إنشاء هوية جديدة ."
 msgid "New instruction:"
 msgstr "تعليمات جديدة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:907
+#: Source/Core/DolphinQt/GameList/GameList.cpp:903
 msgid "New tag"
 msgstr "علامة جديدة"
 
@@ -6227,13 +6301,17 @@ msgstr "ملف التعريف التالي"
 msgid "Next Search"
 msgstr "البحث التالي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:188
+#: Source/Core/Core/NetPlayClient.cpp:258
+msgid "Nickname is too long."
+msgstr "اللقب طويل جدًا"
+
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:196
 msgid "Nickname:"
 msgstr "الاسم"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:99
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:251
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:252
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:244
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:245
 msgid "No"
 msgstr "لا"
 
@@ -6246,8 +6324,8 @@ msgid "No Audio Output"
 msgstr "لا يوجد إخراج الصوت"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:65
-#: Source/Core/DolphinQt/ConvertDialog.cpp:241
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:188
+#: Source/Core/DolphinQt/ConvertDialog.cpp:228
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:183
 msgid "No Compression"
 msgstr "لا يوجد ضغط"
 
@@ -6285,11 +6363,11 @@ msgstr "لم يتم اكتشاف أية مشكلات."
 msgid "No paths found in the M3U file \"%s\""
 msgstr "M3U لا توجد مسارات في ملف  \"%s\""
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1403
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1416
 msgid "No problems were found."
 msgstr "لا توجد مشاكل."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1397
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1410
 msgid ""
 "No problems were found. This does not guarantee that this is a good dump, "
 "but since Wii titles contain a lot of verification data, it does mean that "
@@ -6308,7 +6386,7 @@ msgstr "لم يتم العثور على ملفات شخصية لإعداد ال�
 msgid "No recording loaded."
 msgstr "لم يتم تحميل التسجيل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:622
+#: Source/Core/DolphinQt/GameList/GameList.cpp:613
 msgid "No save data found."
 msgstr "لم يتم العثور على حفظ البيانات"
 
@@ -6325,7 +6403,7 @@ msgid "No value provided."
 msgstr "لا قيمة مقدمة."
 
 #: Source/Core/DolphinQt/Config/ControllersWindow.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:188
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:228
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:72
 msgid "None"
@@ -6335,7 +6413,7 @@ msgstr "لا شيء"
 msgid "North America"
 msgstr "أمريكا الشمالية"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:665
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:677
 msgid "Not Found"
 msgstr "لم يتم العثور"
 
@@ -6343,7 +6421,7 @@ msgstr "لم يتم العثور"
 msgid "Not Set"
 msgstr "غير مجموعة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:406
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:415
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "ليس كل اللاعبين لديهم اللعبة. هل تريد حقا أن تبدأ؟"
 
@@ -6397,7 +6475,8 @@ msgstr " توجه نونشوك "
 msgid "Nunchuk Stick"
 msgstr "عصا نونشوك"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:664
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:675
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:58
 msgid "OK"
 msgstr "موافق"
 
@@ -6454,7 +6533,7 @@ msgstr ""
 msgid "Open"
 msgstr "فتح"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:373
+#: Source/Core/DolphinQt/GameList/GameList.cpp:366
 msgid "Open &Containing Folder"
 msgstr "فتح موقع الملف"
 
@@ -6466,11 +6545,11 @@ msgstr "فتح"
 msgid "Open FIFO log"
 msgstr "FIFO فتح سجل"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:369
+#: Source/Core/DolphinQt/GameList/GameList.cpp:362
 msgid "Open GameCube &Save Folder"
 msgstr "فتح مجلد حفظ جيم كيوب"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:362
+#: Source/Core/DolphinQt/GameList/GameList.cpp:355
 msgid "Open Wii &Save Folder"
 msgstr "فتح مجلد حفظ وي"
 
@@ -6504,11 +6583,11 @@ msgstr "OpenGL ES"
 msgid "Operators"
 msgstr "مشغل"
 
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:81 Source/Core/Core/HW/GCPadEmu.cpp:99
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:247
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:81 Source/Core/Core/HW/GCPadEmu.cpp:95
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:246
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:38
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:71
-#: Source/Core/DolphinQt/ConvertDialog.cpp:94
+#: Source/Core/DolphinQt/ConvertDialog.cpp:81
 msgid "Options"
 msgstr "خيارات"
 
@@ -6517,13 +6596,13 @@ msgstr "خيارات"
 msgid "Orange"
 msgstr "البرتقالي"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "Orbital"
 msgstr "Orbital"
 
 #: Source/Core/DolphinQt/Config/Graphics/GeneralWidget.cpp:84
 #: Source/Core/DolphinQt/Config/Graphics/HacksWidget.cpp:98
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:168
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:172
 msgid "Other"
 msgstr "أخرى"
 
@@ -6532,11 +6611,11 @@ msgstr "أخرى"
 msgid "Other State Hotkeys"
 msgstr "حالة أخرى مفاتيح الاختصار"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:394
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:427
 msgid "Other State Management"
 msgstr "إدارة الحالة الأخرى"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:158
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:160
 msgid "Other game..."
 msgstr "لعبة أخرى"
 
@@ -6590,19 +6669,19 @@ msgstr "تقسيم %1"
 msgid "Passive"
 msgstr "Passive"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
 msgid "Passthrough a Bluetooth adapter"
 msgstr "المرور عبر محول بلوتوث"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:155
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:163
 msgid "Password"
 msgstr "كلمة المرور"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:154
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:162
 msgid "Password for joining your game (leave empty for none)"
 msgstr "(leave empty for none) كلمه المرور للانضمام إلى لعبتك"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:230
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Password?"
 msgstr "كلمة المرور؟"
 
@@ -6620,7 +6699,7 @@ msgstr "تصحيحات"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:47
 msgid "Path:"
-msgstr ""
+msgstr "مسار"
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:40
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:26
@@ -6635,7 +6714,7 @@ msgstr "إيقاف مؤقت"
 msgid "Pause at End of Movie"
 msgstr "وقفة في نهاية الفيلم"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:170
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:171
 msgid "Pause on Focus Loss"
 msgstr "توقف عند فقدان التركيز"
 
@@ -6662,7 +6741,7 @@ msgstr "لكل بكسل إضاءة"
 msgid "Perform Online System Update"
 msgstr "تحديث النظام عبر الإنترنت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:324
+#: Source/Core/DolphinQt/GameList/GameList.cpp:317
 msgid "Perform System Update"
 msgstr "تحديث النظام"
 
@@ -6680,7 +6759,7 @@ msgstr "بيتابايت"
 msgid "Pick a debug font"
 msgstr "debug اختر خط"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:657
 msgid "Ping"
 msgstr "Ping"
 
@@ -6692,7 +6771,7 @@ msgstr "Pitch Down"
 msgid "Pitch Up"
 msgstr "Pitch Up"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:786
+#: Source/Core/DolphinQt/GameList/GameList.cpp:782
 #: Source/Core/DolphinQt/MenuBar.cpp:623
 msgid "Platform"
 msgstr "منصة"
@@ -6713,18 +6792,18 @@ msgstr "تشغيل التسجيل"
 msgid "Playback Options"
 msgstr "خيارات التشغيل"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:657
 msgid "Player"
 msgstr "لاعب"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:231
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:227
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:224
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:231
 msgid "Players"
 msgstr "اللاعبين"
 
 #. i18n: "Point" refers to the action of pointing a Wii Remote.
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:211
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:219
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:210
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:218
 msgid "Point"
 msgstr "مؤشر"
 
@@ -6733,12 +6812,12 @@ msgstr "مؤشر"
 msgid "Port %1"
 msgstr "منفذ %1"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:96
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:126
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:104
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:134
 msgid "Port:"
 msgstr "منفذ"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:940
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:959
 msgid "Possible desync detected: %1 might have desynced at frame %2"
 msgstr "تم اكتشاف مزامنة محتملة: %1 قد تمت مزامنتها في الإطار %2"
 
@@ -6750,7 +6829,7 @@ msgstr "بعد معالجة التأثير"
 msgid "Post-Processing Shader Configuration"
 msgstr "التكوين بعد تظليل"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:71
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:70
 msgid "Prefetch Custom Textures"
 msgstr "جلب النسيج المخصص المسبق "
 
@@ -6818,11 +6897,11 @@ msgstr "السابقة"
 msgid "Previous Profile"
 msgstr "ملف التعريف السابق"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:99
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:97
 msgid "Private"
 msgstr "خاصة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:98
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:96
 msgid "Private and Public"
 msgstr "خاصة و عامة"
 
@@ -6830,7 +6909,7 @@ msgstr "خاصة و عامة"
 msgid "Problem"
 msgstr "المشكلة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1418
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1431
 msgid ""
 "Problems with high severity were found. The game will most likely not work "
 "at all."
@@ -6838,7 +6917,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة عالية. فان اللعبة علي الأرجح لا تعمل علي "
 "الإطلاق"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1408
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1421
 msgid ""
 "Problems with low severity were found. They will most likely not prevent the "
 "game from running."
@@ -6846,7 +6925,7 @@ msgstr ""
 "تم العثور علي مشاكل ذات خطورة منخفضة. فإنها علي الأرجح لا تمنع اللعبة من "
 "التشغيل"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1413
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1426
 msgid ""
 "Problems with medium severity were found. The whole game or certain parts of "
 "the game might not work correctly."
@@ -6864,11 +6943,11 @@ msgid "Program Counter"
 msgstr "عداد البرنامج"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:288
-#: Source/Core/DolphinQt/ConvertDialog.cpp:417
+#: Source/Core/DolphinQt/ConvertDialog.cpp:412
 msgid "Progress"
 msgstr "التقدم"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:100
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:98
 msgid "Public"
 msgstr "عامة"
 
@@ -6880,11 +6959,11 @@ msgstr "أزالة ذاكره التخزين المؤقت لقائمة الأل�
 msgid "Put Main Menu roms in User/GC/{region}."
 msgstr "Put Main Menu roms in User/GC/{region}."
 
-#: Source/Core/Core/NetPlayClient.cpp:1304
+#: Source/Core/Core/NetPlayClient.cpp:1326
 msgid "Quality of Service (QoS) couldn't be enabled."
 msgstr "(QoS) تعذر تمكين جوده الخدمة ."
 
-#: Source/Core/Core/NetPlayClient.cpp:1300
+#: Source/Core/Core/NetPlayClient.cpp:1322
 msgid "Quality of Service (QoS) was successfully enabled."
 msgstr "تم تمكين جودة الخدمة (QoS) بنجاح."
 
@@ -6895,13 +6974,13 @@ msgstr ""
 "وقت إستجابة الصوت يزيد مع الجودة"
 
 #: Source/Core/Common/MsgHandler.cpp:90
-#: Source/Core/DolphinQt/ConvertDialog.cpp:435
+#: Source/Core/DolphinQt/ConvertDialog.cpp:430
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:423
-#: Source/Core/DolphinQt/MainWindow.cpp:1516
+#: Source/Core/DolphinQt/MainWindow.cpp:1528
 msgid "Question"
 msgstr "مشكلة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:101
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:103
 msgid "Quit"
 msgstr "خروج"
 
@@ -6917,7 +6996,7 @@ msgstr "R"
 msgid "R-Analog"
 msgstr "R-قوة ضغطة"
 
-#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:280
+#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:277
 msgid "READY"
 msgstr "جاهز"
 
@@ -6929,16 +7008,16 @@ msgstr "RSO Modules"
 msgid "RSO auto-detection"
 msgstr "RSO الكشف التلقائي"
 
-#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:283
+#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:280
 msgid "RUNNING"
 msgstr "ادارة"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:356
+#: Source/Core/DolphinQt/ConvertDialog.cpp:351
 msgid "RVZ GC/Wii images (*.rvz)"
 msgstr ""
 
 #. i18n: A range of memory addresses
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:287
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:299
 #: Source/Core/DolphinQt/Debugger/NewBreakpointDialog.cpp:52
 msgid "Range"
 msgstr "نطاق"
@@ -6975,11 +7054,11 @@ msgstr "قراءة أو كتابة"
 msgid "Read-Only Mode"
 msgstr "وضع القراءة فقط"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:159
 msgid "Real Balance Board"
 msgstr "لوح الميزان حقيقي"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:185
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:188
 msgid "Real Wii Remote"
 msgstr "ريموت وي الحقيقي"
 
@@ -6992,7 +7071,7 @@ msgstr "إعادة المركز"
 msgid "Record"
 msgstr "تسجيل"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:169
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:173
 msgid "Record Inputs"
 msgstr "سجل المدخلات"
 
@@ -7048,12 +7127,12 @@ msgid "Redump.org Status:"
 msgstr "Redump.org حالة"
 
 #: Source/Core/DolphinQt/CheatsManager.cpp:387
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:151
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:154
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:202
 #: Source/Core/DolphinQt/Config/GameConfigWidget.cpp:81
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:83
 #: Source/Core/DolphinQt/Debugger/JITWidget.cpp:98
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:90
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:88
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:41
 #: Source/Core/DolphinQt/ToolBar.cpp:115
 msgid "Refresh"
@@ -7063,17 +7142,17 @@ msgstr "تحديث"
 msgid "Refresh Game List"
 msgstr "تحديث قائمة اللعبة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:196
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:198
 msgid "Refreshing..."
 msgstr "تحديث..."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:794
+#: Source/Core/DolphinQt/GameList/GameList.cpp:790
 #: Source/Core/DolphinQt/MenuBar.cpp:631
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:230
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:223
 msgid "Region"
 msgstr "المنطقة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:108
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:106
 msgid "Region:"
 msgstr "المنطقة"
 
@@ -7081,7 +7160,7 @@ msgstr "المنطقة"
 msgid "Registers"
 msgstr "سجلات"
 
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:64
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:63
 msgid "Relative Input"
 msgstr "المدخلات النسبية"
 
@@ -7093,18 +7172,19 @@ msgstr "إدخال الإدخال النسبي"
 msgid "Remind Me Later"
 msgstr "ذكرني لاحقا"
 
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:39
 #: Source/Core/DolphinQt/Config/NewPatchDialog.cpp:107
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:40
 #: Source/Core/DolphinQt/Settings/PathPane.cpp:146
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:156
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:169
 msgid "Remove"
 msgstr "إزالة"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:84
+#: Source/Core/DolphinQt/ConvertDialog.cpp:73
 msgid "Remove Junk Data (Irreversible):"
 msgstr "إزالة البيانات غير المرغوب فيها (لا رجعة فيها)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:401
+#: Source/Core/DolphinQt/GameList/GameList.cpp:394
 msgid "Remove Tag..."
 msgstr "إزالة العلامة"
 
@@ -7116,11 +7196,11 @@ msgstr "فشل الازالة"
 msgid "Remove from Watch"
 msgstr "إزالة من المشاهدة"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:917
+#: Source/Core/DolphinQt/GameList/GameList.cpp:913
 msgid "Remove tag"
 msgstr "إزالة العلامة"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:317
+#: Source/Core/DolphinQt/ConvertDialog.cpp:312
 msgid ""
 "Removing junk data does not save any space when converting to ISO (unless "
 "you package the ISO file in a compressed file format such as ZIP "
@@ -7135,7 +7215,7 @@ msgstr ""
 msgid "Rename symbol"
 msgstr "إعادة تسمية الرمز"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:160
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:161
 msgid "Render Window"
 msgstr "نافذة التقديم"
 
@@ -7147,7 +7227,7 @@ msgstr "تقديم إلى الإطار الرئيسي"
 msgid "Rendering"
 msgstr "تقديم"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:195
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:212
 msgid ""
 "Renders the scene as a wireframe.\n"
 "\n"
@@ -7168,25 +7248,25 @@ msgstr "طلب الانضمام إلى المجموعة"
 
 #: Source/Core/Core/HotkeyManager.cpp:34
 #: Source/Core/DolphinQt/CheatsManager.cpp:388
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:150
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
 #: Source/Core/DolphinQt/Config/Mapping/MappingIndicator.cpp:825
 #: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:121
 msgid "Reset"
 msgstr "إعادة تعيين"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:382
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:390
 msgid "Reset Traversal Server"
 msgstr "إعادة تعيين خادم Traversal"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:383
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:391
 msgid "Reset Traversal Server to %1:%2"
 msgstr "%1:%2  أعاده تعيين خادم الاجتياز إلى"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:87
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:92
 msgid "Reset Traversal Settings"
 msgstr "أعاده تعيين إعدادات الاجتياز"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:153
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:156
 msgid "Reset all saved Wii Remote pairings"
 msgstr "إعادة تعيين كافة اقتران ريموت وي المحفوظة"
 
@@ -7198,7 +7278,7 @@ msgstr "أدارة حزمة الموارد"
 msgid "Resource Pack Path:"
 msgstr "مسار حزمة الموارد"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:269
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:270
 msgid "Restart Required"
 msgstr "مطلوب إعادة تشغيل"
 
@@ -7206,7 +7286,7 @@ msgstr "مطلوب إعادة تشغيل"
 msgid "Restore instruction"
 msgstr "استعادة التعليمات"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:719
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:731
 msgid "Retry"
 msgstr "إعادة المحاولة"
 
@@ -7214,7 +7294,7 @@ msgstr "إعادة المحاولة"
 msgid "Return Speed"
 msgstr "عودة السرعة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:646
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:657
 msgid "Revision"
 msgstr "إصدار"
 
@@ -7229,7 +7309,7 @@ msgstr "%1 مراجعة"
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Slider.cpp:23
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:24
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:24
 msgid "Right"
 msgstr "يمين"
 
@@ -7267,7 +7347,7 @@ msgstr "Roll Left"
 msgid "Roll Right"
 msgstr "Roll Right"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:539
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:548
 msgid "Room ID"
 msgstr "معرف الغرفة"
 
@@ -7292,8 +7372,8 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:84
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:236
+#: Source/Core/Core/HW/GCPadEmu.cpp:80
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:235
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:36
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuGeneral.cpp:66
 msgid "Rumble"
@@ -7307,7 +7387,7 @@ msgstr "Run &To Here"
 msgid "Russia"
 msgstr "روسيا"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:165
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:167
 msgid "SD Card"
 msgstr "SD Card"
 
@@ -7360,8 +7440,8 @@ msgstr "آمنة"
 msgid "Save"
 msgstr "حفظ"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:458
-#: Source/Core/DolphinQt/GameList/GameList.cpp:463
+#: Source/Core/DolphinQt/GameList/GameList.cpp:449
+#: Source/Core/DolphinQt/GameList/GameList.cpp:454
 #: Source/Core/DolphinQt/MenuBar.cpp:1077
 msgid "Save Export"
 msgstr "حفظ التصدير"
@@ -7453,7 +7533,7 @@ msgstr "Save Symbol Map &As..."
 msgid "Save Texture Cache to State"
 msgstr "حفظ النسيج في ذاكرة التخزين المؤقت إلى الحالة"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:393
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:426
 msgid "Save and Load State"
 msgstr "حفظ و تحميل الحالة"
 
@@ -7495,7 +7575,7 @@ msgstr "حفظ إلى الفتحة %1 - %2"
 msgid "Save..."
 msgstr "حفظ"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:349
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:352
 msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
 msgstr "لا يمكن إعادة تعيين اقتران ريموت وي المحفوظة إلا عند تشغيل لعبة وي."
 
@@ -7572,7 +7652,7 @@ msgstr "حدد"
 msgid "Select Dump Path"
 msgstr "تحديد مسار التفريغ"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:441
+#: Source/Core/DolphinQt/GameList/GameList.cpp:432
 #: Source/Core/DolphinQt/MenuBar.cpp:1071
 msgid "Select Export Directory"
 msgstr "حدد تصدير الدليل"
@@ -7651,9 +7731,9 @@ msgid "Select a Directory"
 msgstr "اختر دليل"
 
 #: Source/Core/DolphinQt/Config/InfoWidget.cpp:179
-#: Source/Core/DolphinQt/MainWindow.cpp:687
-#: Source/Core/DolphinQt/MainWindow.cpp:1202
-#: Source/Core/DolphinQt/MainWindow.cpp:1209
+#: Source/Core/DolphinQt/MainWindow.cpp:689
+#: Source/Core/DolphinQt/MainWindow.cpp:1213
+#: Source/Core/DolphinQt/MainWindow.cpp:1220
 msgid "Select a File"
 msgstr "حدد ملف"
 
@@ -7665,7 +7745,7 @@ msgstr "اختر لعبة"
 msgid "Select a SD Card Image"
 msgstr "SD Card حدد صورة"
 
-#: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:17
+#: Source/Core/DolphinQt/NetPlay/GameListDialog.cpp:20
 msgid "Select a game"
 msgstr "اختر لعبة"
 
@@ -7677,29 +7757,29 @@ msgstr "NAND حدد عنوانًا لتثبيته إلى"
 msgid "Select the RSO module address:"
 msgstr "RSO حدد عنوان وحدة"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1572
-#: Source/Core/DolphinQt/MainWindow.cpp:1643
+#: Source/Core/DolphinQt/MainWindow.cpp:1584
+#: Source/Core/DolphinQt/MainWindow.cpp:1655
 msgid "Select the Recording File"
 msgstr "حدد ملف التسجيل"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1550
+#: Source/Core/DolphinQt/MainWindow.cpp:1562
 msgid "Select the keys file (OTP/SEEPROM dump)"
 msgstr "(OTP/SEEPROM dump) حدد ملف المفاتيح"
 
-#: Source/Core/DolphinQt/MainWindow.cpp:1525
+#: Source/Core/DolphinQt/MainWindow.cpp:1537
 #: Source/Core/DolphinQt/MenuBar.cpp:1046
 msgid "Select the save file"
 msgstr "حدد حفظ الملف"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:378
+#: Source/Core/DolphinQt/ConvertDialog.cpp:373
 msgid "Select where you want to save the converted image"
 msgstr "حدد المكان الذي تريد حفظ الصورة المحولة فيه"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:369
+#: Source/Core/DolphinQt/ConvertDialog.cpp:364
 msgid "Select where you want to save the converted images"
 msgstr "حدد المكان الذي تريد حفظ الصور المحولة فيه"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:140
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:139
 msgid "Selected Font"
 msgstr "الخط المحدد"
 
@@ -7707,9 +7787,10 @@ msgstr "الخط المحدد"
 msgid "Selected controller profile does not exist"
 msgstr "اختيار الملف التحكم الشخصي غير موجود "
 
-#: Source/Core/Core/NetPlayServer.cpp:1398
-#: Source/Core/Core/NetPlayServer.cpp:1621
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:422
+#: Source/Core/Core/NetPlayServer.cpp:1420
+#: Source/Core/Core/NetPlayServer.cpp:1643
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:431
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:880
 msgid "Selected game doesn't exist in game list!"
 msgstr "اللعبة المختارة غير موجودة في قائمة الألعاب!"
 
@@ -7833,29 +7914,29 @@ msgstr ""
 "\n"
 "OpenGL إذا لم تكن متأكدًا فحدد"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:207
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:211
 msgid "Send"
 msgstr "إرسال"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:172
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:185
 msgid "Sensor Bar Position:"
 msgstr "موضع الاستشعار"
 
 #. i18n: "Serial" refers to serial numbers, e.g. RVL-RSBE-USA
-#: Source/Core/DiscIO/VolumeVerifier.cpp:315
+#: Source/Core/DiscIO/VolumeVerifier.cpp:316
 #, c-format
 msgid "Serial and/or version data is missing from %s"
 msgstr "%s بيانات التسلسل أو الإصدار مفقودة من"
 
-#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:51
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:52
 msgid "Server IP Address"
 msgstr "IP عنوان"
 
-#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientWidget.cpp:53
+#: Source/Core/DolphinQt/Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp:54
 msgid "Server Port"
 msgstr "منفذ الخادم"
 
-#: Source/Core/Core/NetPlayClient.cpp:1766
+#: Source/Core/Core/NetPlayClient.cpp:1792
 msgid "Server rejected traversal attempt"
 msgstr "الخادم رفض محاولة الاجتياز"
 
@@ -7868,7 +7949,7 @@ msgstr "تعيين القيمة"
 msgid "Set PC"
 msgstr "تعيين الكمبيوتر"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:307
+#: Source/Core/DolphinQt/GameList/GameList.cpp:301
 msgid "Set as &Default ISO"
 msgstr "تعيين القرص افتراضي "
 
@@ -7896,7 +7977,7 @@ msgstr "تعيين عنوان نهاية الرمز"
 msgid "Set symbol size (%1):"
 msgstr "تعيين حجم الرمز (%1):"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:129
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:140
 msgid ""
 "Sets the Wii display mode to 60Hz (480i) instead of 50Hz (576i) for PAL "
 "games.\n"
@@ -7906,7 +7987,7 @@ msgstr ""
 "games.\n"
 "قد لا تعمل لجميع الألعاب."
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:132
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:143
 msgid "Sets the Wii system language."
 msgstr "تحدد لغة نظام وي "
 
@@ -7919,6 +8000,7 @@ msgstr ""
 "backends only."
 
 #: Source/Core/DolphinQt/Config/SettingsWindow.cpp:27
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:51
 msgid "Settings"
 msgstr "إعدادات"
 
@@ -7935,7 +8017,7 @@ msgid "Shader Compilation"
 msgstr "تجميع الظل"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:57
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:214
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:30
 msgid "Shake"
 msgstr "هزة"
@@ -7956,7 +8038,7 @@ msgstr "السجل"
 msgid "Show &Toolbar"
 msgstr "شريط الأدوات"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:169
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:170
 msgid "Show Active Title in Window Title"
 msgstr "إظهار العنوان النشط في عنوان الإطار"
 
@@ -7968,7 +8050,7 @@ msgstr "أستراليا"
 msgid "Show Current Game on Discord"
 msgstr "عرض اللعبة الحالية على الخلاف"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:148
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:149
 msgid "Show Debugging UI"
 msgstr "عرض تصحيح واجهة المستخدم"
 
@@ -7996,7 +8078,7 @@ msgstr "جيم كيوب"
 msgid "Show Germany"
 msgstr "ألمانيا"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:171
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:175
 msgid "Show Golf Mode Overlay"
 msgstr "Show Golf Mode Overlay"
 
@@ -8040,7 +8122,7 @@ msgstr "في اللعب عبر الشبكة Ping عرض الـ"
 msgid "Show Netherlands"
 msgstr "هولندا"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:168
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:169
 msgid "Show On-Screen Display Messages"
 msgstr "عرض الرسائل التي تظهر على الشاشة "
 
@@ -8110,7 +8192,7 @@ msgstr "تظهر في الذاكرة"
 msgid "Show in code"
 msgstr "إظهار في الرموز"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:132
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:140
 msgid "Show in server browser"
 msgstr "إظهار في مستعرض الخادم"
 
@@ -8157,7 +8239,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:197
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:214
 msgid ""
 "Shows various rendering statistics.\n"
 "\n"
@@ -8171,15 +8253,15 @@ msgstr ""
 msgid "Side-by-Side"
 msgstr "Side-by-Side"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:277
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:276
 msgid "Sideways Hold"
 msgstr "امسك بانحراف"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:274
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
 msgid "Sideways Toggle"
 msgstr "تبديل جانبية"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:267
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:266
 msgid "Sideways Wii Remote"
 msgstr "انحراف ريموت وي"
 
@@ -8192,7 +8274,7 @@ msgid "Signed Integer"
 msgstr "عدد صحيح موقّع"
 
 #: Source/Core/DiscIO/Enums.cpp:98
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:125
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:129
 msgid "Simplified Chinese"
 msgstr "الصينية المبسطة"
 
@@ -8200,12 +8282,12 @@ msgstr "الصينية المبسطة"
 msgid "Simulate DK Bongos"
 msgstr "محاكاة الطبول"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:90
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:88
 msgid "Six Axis"
 msgstr "Six Axis"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:58
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:226
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:221
 msgid "Size"
 msgstr "الحجم"
 
@@ -8282,11 +8364,11 @@ msgstr "Socket table"
 msgid "Software Renderer"
 msgstr "Software Renderer"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1284
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1297
 msgid "Some of the data could not be read."
 msgstr "لا يمكن قراءة بعض البيانات."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1034
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1047
 msgid ""
 "Some padding data that should be zero is not zero. This can make the game "
 "freeze at certain points."
@@ -8307,6 +8389,10 @@ msgstr ""
 msgid "Sort Alphabetically"
 msgstr "رتب ترتيب أبجدي"
 
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:133
+msgid "Sound:"
+msgstr "الصوت"
+
 #: Source/Core/UICommon/NetPlayIndex.cpp:251
 msgid "South America"
 msgstr "أمريكا الجنوبية"
@@ -8317,15 +8403,15 @@ msgstr "اسبانيا"
 
 #: Source/Core/DiscIO/Enums.cpp:89
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:64
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:122
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:126
 msgid "Spanish"
 msgstr "الأسبانية"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:250
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:249
 msgid "Speaker Pan"
 msgstr "مكبر الصوت"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:186
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:199
 msgid "Speaker Volume:"
 msgstr "مستوى الصوت"
 
@@ -8357,7 +8443,7 @@ msgstr ""
 msgid "Standard Controller"
 msgstr "وحدة تحكم القياسية"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:98
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:100
 msgid "Start"
 msgstr "تشغيل"
 
@@ -8373,7 +8459,7 @@ msgstr "بدء التسجيل"
 msgid "Start Recording"
 msgstr "بدء التسجيل"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:847
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:861
 msgid "Started game"
 msgstr "بدأت اللعبة"
 
@@ -8433,6 +8519,10 @@ msgstr "خطوة ناجحة!"
 msgid "Stepping"
 msgstr "التنقل"
 
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:136
+msgid "Stereo"
+msgstr "استريو"
+
 #: Source/Core/DolphinQt/Config/Graphics/EnhancementsWidget.cpp:130
 msgid "Stereoscopic 3D Mode:"
 msgstr "3D وضع"
@@ -8463,7 +8553,7 @@ msgstr "إيقاف"
 msgid "Stop Playing/Recording Input"
 msgstr "إيقاف تشغيل / تسجيل الإدخال"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:340
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:349
 msgid "Stopped game"
 msgstr "توقفت اللعبة"
 
@@ -8517,7 +8607,7 @@ msgstr ""
 msgid "Stretch to Window"
 msgstr "تمتد إلى النافذة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:119
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:121
 msgid "Strict Settings Sync"
 msgstr "مزامنة الإعدادات الصارمة"
 
@@ -8549,10 +8639,10 @@ msgstr "مرقم"
 
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:202
 #: Source/Core/DolphinQt/Config/FilesystemWidget.cpp:326
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:222
-#: Source/Core/DolphinQt/ConvertDialog.cpp:512
-#: Source/Core/DolphinQt/GameList/GameList.cpp:499
-#: Source/Core/DolphinQt/GameList/GameList.cpp:527
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:252
+#: Source/Core/DolphinQt/ConvertDialog.cpp:510
+#: Source/Core/DolphinQt/GameList/GameList.cpp:490
+#: Source/Core/DolphinQt/GameList/GameList.cpp:518
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:347
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:451
 #: Source/Core/DolphinQt/MenuBar.cpp:1035
@@ -8564,16 +8654,16 @@ msgstr "ناجح"
 msgid "Success."
 msgstr "ناجح"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:389
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:398
 msgid "Successfully added to the NetPlay index"
 msgstr "تمت إضافته بنجاح إلى فهرس اللعب عبر الشبكة"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:513
+#: Source/Core/DolphinQt/ConvertDialog.cpp:511
 #, c-format
 msgid "Successfully converted %n image(s)."
 msgstr "تم تحويل%n صورة القرص (اقراص) بنجاح"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:223
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:253
 msgid "Successfully deleted '%1'."
 msgstr "'%1'. تم الحذف بنجاح"
 
@@ -8581,7 +8671,7 @@ msgstr "'%1'. تم الحذف بنجاح"
 msgid "Successfully deleted files."
 msgstr "تم حذف الملفات بنجاح."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:463
+#: Source/Core/DolphinQt/GameList/GameList.cpp:454
 msgid "Successfully exported save files"
 msgstr "تم تصدير ملفات الحفظ بنجاح"
 
@@ -8609,12 +8699,12 @@ msgstr "استخرجت بنجاح بيانات النظام."
 msgid "Successfully imported save files."
 msgstr "تم بنجاح استيراد الملفات المحفوظة."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:500
+#: Source/Core/DolphinQt/GameList/GameList.cpp:491
 #: Source/Core/DolphinQt/MenuBar.cpp:1036
 msgid "Successfully installed this title to the NAND."
 msgstr "تم بنجاح تثبيت هذا العنوان على NAND."
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:528
+#: Source/Core/DolphinQt/GameList/GameList.cpp:519
 msgid "Successfully removed this title from the NAND."
 msgstr "تمت إزالة هذا العنوان بنجاح من NAND."
 
@@ -8622,9 +8712,14 @@ msgstr "تمت إزالة هذا العنوان بنجاح من NAND."
 msgid "Support"
 msgstr "الدعم"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:133
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:144
 msgid "Supports SD and SDHC. Default size is 128 MB."
 msgstr "Supports SD and SDHC. Default size is 128 MB."
+
+#. i18n: Surround audio (Dolby Pro Logic II)
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:138
+msgid "Surround"
+msgstr "محيطي"
 
 #: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:184
 msgid "Suspended"
@@ -8645,7 +8740,7 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا بدون تحديد."
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:49
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:212
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:211
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:36
 msgid "Swing"
 msgstr "تمايل"
@@ -8677,23 +8772,23 @@ msgstr "اسم الرمز"
 msgid "Symbols"
 msgstr "رموز"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:149
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
 msgid "Sync"
 msgstr "مزامنة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:115
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:117
 msgid "Sync AR/Gecko Codes"
 msgstr "AR/Gecko مزامنة رموز"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:117
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:119
 msgid "Sync All Wii Saves"
 msgstr "مزامنة جميع حفظ وي"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:113
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:115
 msgid "Sync Saves"
 msgstr "مزامنة الحفظ"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:152
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:155
 msgid "Sync real Wii Remotes and pair them"
 msgstr "مزامنة ريموت وي الحقيقية و اقترانها"
 
@@ -8709,15 +8804,15 @@ msgstr ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "core mode. (ON = Compatible, OFF = Fast)"
 
-#: Source/Core/Core/NetPlayClient.cpp:1119
+#: Source/Core/Core/NetPlayClient.cpp:1141
 msgid "Synchronizing AR codes..."
 msgstr "جارٍ مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayClient.cpp:1050
+#: Source/Core/Core/NetPlayClient.cpp:1072
 msgid "Synchronizing Gecko codes..."
 msgstr "جارٍ مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayClient.cpp:815
+#: Source/Core/Core/NetPlayClient.cpp:837
 msgid "Synchronizing save data..."
 msgstr "جارٍ مزامنة حفظ البيانات"
 
@@ -8730,7 +8825,7 @@ msgid "Synchronous (Ubershaders)"
 msgstr "(Ubershaders) متزامن"
 
 #: Source/Core/DolphinQt/Settings/GameCubePane.cpp:71
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:116
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:120
 msgid "System Language:"
 msgstr "لغة النظام"
 
@@ -8740,13 +8835,13 @@ msgstr "الإدخال"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:384
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:417
 msgid "TAS Tools"
 msgstr "TAS أدوات"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:380
-#: Source/Core/DolphinQt/GameList/GameList.cpp:799
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:234
+#: Source/Core/DolphinQt/GameList/GameList.cpp:373
+#: Source/Core/DolphinQt/GameList/GameList.cpp:795
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:229
 #: Source/Core/DolphinQt/MenuBar.cpp:636
 msgid "Tags"
 msgstr "العلامات"
@@ -8778,26 +8873,30 @@ msgstr "اختبار"
 msgid "Texture Cache"
 msgstr "النسيج من ذاكره التخزين المؤقت"
 
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:96
+msgid "Texture Dumping"
+msgstr ""
+
 #: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:54
 msgid "Texture Format Overlay"
 msgstr "طلاء تنسيق النسيج"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:602
+#: Source/Core/DiscIO/VolumeVerifier.cpp:614
 #, c-format
 msgid "The %s partition does not have a valid file system."
 msgstr "%sلا يحتوي القسم على نظام ملفات صالح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:572
+#: Source/Core/DiscIO/VolumeVerifier.cpp:584
 #, c-format
 msgid "The %s partition does not seem to contain valid data."
 msgstr "%s لا يبدو أن القسم يحتوي على بيانات صالحة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:530
+#: Source/Core/DiscIO/VolumeVerifier.cpp:541
 #, c-format
 msgid "The %s partition is not correctly signed."
 msgstr "%s لم يتم توقيع القسم بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:522
+#: Source/Core/DiscIO/VolumeVerifier.cpp:520
 #, c-format
 msgid "The %s partition is not properly aligned."
 msgstr "%s لا يتم محاذاة القسم بشكل صحيح"
@@ -8811,12 +8910,12 @@ msgstr ""
 "The DFF's minimum loader version (%d) exceeds the version of this FIFO "
 "Player (%d)"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:537
+#: Source/Core/DiscIO/VolumeVerifier.cpp:549
 #, c-format
 msgid "The H3 hash table for the %s partition is not correct."
 msgstr "%s H3 جدول تجزئة للقسم غير صحيح ."
 
-#: Source/Core/Core/Boot/Boot.cpp:340
+#: Source/Core/Core/Boot/Boot.cpp:341
 #, c-format
 msgid "The IPL file is not a known good dump. (CRC32: %x)"
 msgstr "(CRC32: %x) الملف ليس ملف تفريغ جيد معروف"
@@ -8827,7 +8926,7 @@ msgstr "(CRC32: %x) الملف ليس ملف تفريغ جيد معروف"
 #. (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
 #. If your language is not one of the languages above, consider leaving the string untranslated
 #. so that people will recognize it as the name of the game mode.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:466
+#: Source/Core/DiscIO/VolumeVerifier.cpp:464
 msgid "The Masterpiece partitions are missing."
 msgstr "أقسام نادرة مفقودة."
 
@@ -8843,27 +8942,28 @@ msgstr ""
 msgid "The NAND has been repaired."
 msgstr "NAND تم اصلاح"
 
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1004
+msgid "The TMD is not correctly signed."
+msgstr ""
+
 #: Source/Core/Core/ActionReplay.cpp:251
 msgid "The address is invalid"
 msgstr "عنوان غير صالح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:449
+#: Source/Core/DiscIO/VolumeVerifier.cpp:447
 msgid "The channel partition is missing."
 msgstr "قسم القناة مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:444
+#: Source/Core/DiscIO/VolumeVerifier.cpp:442
 msgid "The data partition is missing."
 msgstr "قسم البيانات مفقود."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:483
+#: Source/Core/DiscIO/VolumeVerifier.cpp:481
 msgid ""
 "The data partition is not at its normal position. This will affect the "
-"emulated loading times. When using NetPlay or sending input recordings to "
-"other people, you will experience desyncs if anyone is using a good dump."
+"emulated loading times. You will be unable to share input recordings and use "
+"NetPlay with anyone who is using a good dump."
 msgstr ""
-"قسم البيانات ليس في وضعه الطبيعي. سيؤثر ذلك على أوقات التحميل التي تمت "
-"محاكاتها. عند استخدام اللعب عبر الشبكة أو إرسال تسجيلات الإدخال إلى أشخاص "
-"آخرين ، سوف تواجه مزامنة إذا كان أي شخص يستخدم ملف تفريغ جيد."
 
 #: Source/Core/Core/Movie.cpp:372
 #, c-format
@@ -8893,7 +8993,7 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "صورة القرص \"%s\" بعض البيانات مفقودة."
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:482
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:486
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "تعذر العثور على القرص الذي كان على وشك أن يتم إدراجه"
 
@@ -8927,7 +9027,7 @@ msgstr "The entered PID is invalid."
 msgid "The entered VID is invalid."
 msgstr "The entered VID is invalid."
 
-#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:446
+#: Source/Core/DolphinQt/Config/Mapping/IOWindow.cpp:458
 msgid "The expression contains a syntax error."
 msgstr "يحتوي التعبير على خطأ في بناء الجملة"
 
@@ -8943,7 +9043,7 @@ msgstr ""
 "تالف أو غير ملف بطاقة ذاكرة جيم كيوب\n"
 "%2"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:405
+#: Source/Core/DolphinQt/ConvertDialog.cpp:400
 msgid ""
 "The file %1 already exists.\n"
 "Do you wish to replace it?"
@@ -8964,26 +9064,26 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "الملف %s بالفعل مفتوح، لن الملف غير عنوان مكتوب."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:413
+#: Source/Core/DiscIO/VolumeVerifier.cpp:411
 msgid "The filesystem is invalid or could not be read."
 msgstr "نظام الملفات غير صالح أو لا يمكن قراءته."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:756
+#: Source/Core/DiscIO/VolumeVerifier.cpp:749
 msgid ""
 "The format that the disc image is saved in does not store the size of the "
 "disc image."
 msgstr "التنسيق الذي يتم حفظ صورة القرص به لا يخزن حجم صورة القرص"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:887
+#: Source/Core/DiscIO/VolumeVerifier.cpp:880
 #, c-format
 msgid "The game ID is %s but should be %s."
 msgstr "%s معرف اللعبة هو %s ولكن يجب أن يكون."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:895
+#: Source/Core/DiscIO/VolumeVerifier.cpp:888
 msgid "The game ID is inconsistent."
 msgstr "معرف اللعبة غير متناسق."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:906
+#: Source/Core/DiscIO/VolumeVerifier.cpp:899
 msgid "The game ID is unusually short."
 msgstr "معرف اللعبة قصير بشكل غير عادي."
 
@@ -8991,7 +9091,7 @@ msgstr "معرف اللعبة قصير بشكل غير عادي."
 msgid "The game disc does not contain any usable update information."
 msgstr "لا يحتوي قرص اللعبة على أي معلومات تحديث قابلة للاستخدام."
 
-#: Source/Core/Core/NetPlayClient.cpp:253
+#: Source/Core/Core/NetPlayClient.cpp:255
 msgid "The game is currently running."
 msgstr "اللعبة قيد التشغيل حاليا."
 
@@ -9004,6 +9104,16 @@ msgstr ""
 "منطقة اللعبة لا تتطابق مع وحدة التحكم الخاصة بك. لتجنب حدوث مشكلات في قائمة "
 "النظام ، لا يمكن تحديث وحدة التحكم التي تمت محاكاتها باستخدام هذا القرص."
 
+#: Source/Core/VideoBackends/OGL/Render.cpp:720
+#, c-format
+msgid ""
+"The graphics driver is forcibly enabling anti-aliasing for Dolphin. You need "
+"to turn this off in the graphics driver's settings in order for Dolphin to "
+"work.\n"
+"\n"
+"(MSAA with %d samples found on default framebuffer)"
+msgstr ""
+
 #: Source/Core/DolphinQt/NetPlay/MD5Dialog.cpp:156
 msgid "The hashes do not match!"
 msgstr "لا تتطابق التجزئة!"
@@ -9012,7 +9122,7 @@ msgstr "لا تتطابق التجزئة!"
 msgid "The hashes match!"
 msgstr "تطابق التجزئة"
 
-#: Source/Core/Core/NetPlayClient.cpp:163
+#: Source/Core/Core/NetPlayClient.cpp:165
 msgid ""
 "The host code is too long.\n"
 "Please recheck that you have the correct code."
@@ -9020,12 +9130,12 @@ msgstr ""
 "رمز المضيف طويل جدًا.\n"
 "يرجى إعادة التحقق من أن لديك الرمز الصحيح."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:454
+#: Source/Core/DiscIO/VolumeVerifier.cpp:452
 msgid "The install partition is missing."
 msgstr "قسم التثبيت مفقود."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:196
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:235
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:226
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:265
 msgid "The profile '%1' does not exist"
 msgstr "الملف الشخصي '1%' غير موجود"
 
@@ -9034,7 +9144,7 @@ msgstr "الملف الشخصي '1%' غير موجود"
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "اللعبة المسجلة (%s) ليست هي نفسها اللعبة المختارة (%s)"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:924
+#: Source/Core/DiscIO/VolumeVerifier.cpp:917
 msgid ""
 "The region code does not match the game ID. If this is because the region "
 "code has been modified, the game might run at the wrong speed, graphical "
@@ -9062,15 +9172,15 @@ msgstr ""
 "The selected CPU emulation core (%d) is not available. Please select a "
 "different CPU emulation core in the settings."
 
-#: Source/Core/Core/NetPlayClient.cpp:250
+#: Source/Core/Core/NetPlayClient.cpp:252
 msgid "The server and client's NetPlay versions are incompatible."
 msgstr "إصدارات لعب عبر الشبكة الخاصة بالخادم والعميل غير متوافقة."
 
-#: Source/Core/Core/NetPlayClient.cpp:246
+#: Source/Core/Core/NetPlayClient.cpp:248
 msgid "The server is full."
 msgstr "الخادم ممتلئ."
 
-#: Source/Core/Core/NetPlayClient.cpp:256
+#: Source/Core/Core/NetPlayClient.cpp:261
 msgid "The server sent an unknown error message."
 msgstr "أرسل الخادم رسالة خطأ غير معروفة."
 
@@ -9087,7 +9197,7 @@ msgstr ""
 "هل تريد حقًا تمكين عرض البرامج؟ إذا لم تكن متأكدًا ، فحدد \"لا\"."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:984
+#: Source/Core/DiscIO/VolumeVerifier.cpp:977
 #, c-format
 msgid "The specified common key index is %u but should be %u."
 msgstr ""
@@ -9099,7 +9209,12 @@ msgstr ""
 msgid "The specified file \"%s\" does not exist"
 msgstr "الملف الذي حددته  (%s) غير موجود"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:505
+#. i18n: "Ticket" here is a kind of digital authorization to use a certain title (e.g. a game)
+#: Source/Core/DiscIO/VolumeVerifier.cpp:996
+msgid "The ticket is not correctly signed."
+msgstr "لم يتم توقيع التذكرة بشكل صحيح"
+
+#: Source/Core/DiscIO/VolumeVerifier.cpp:503
 msgid "The type of a partition could not be read."
 msgstr "لا يمكن قراءة نوع القسم."
 
@@ -9110,15 +9225,15 @@ msgid ""
 msgstr ""
 "تم إلغاء التحديث. يوصى بشدة بإنهائه لتجنب إصدارات برامج النظام غير المتسقة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:640
+#: Source/Core/DiscIO/VolumeVerifier.cpp:652
 msgid "The update partition does not contain the IOS used by this title."
 msgstr "لا يحتوي قسم التحديث علي نظام التشغيل المستخدم من قبل هذا العنوان"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:439
+#: Source/Core/DiscIO/VolumeVerifier.cpp:437
 msgid "The update partition is missing."
 msgstr "قسم التحديث مفقود"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:474
+#: Source/Core/DiscIO/VolumeVerifier.cpp:472
 msgid "The update partition is not at its normal position."
 msgstr "قسم التحديث ليس في وضعه الطبيعي"
 
@@ -9126,7 +9241,7 @@ msgstr "قسم التحديث ليس في وضعه الطبيعي"
 msgid "The value is invalid"
 msgstr "قيمة غير صالحة"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:427
+#: Source/Core/DiscIO/VolumeVerifier.cpp:425
 msgid "There are too many partitions in the first partition table."
 msgstr "هناك الكثير من الأقسام في جدول القسم الأول."
 
@@ -9157,7 +9272,7 @@ msgstr ""
 
 #. i18n: You may want to leave the term "ERROR #002" untranslated,
 #. since the emulated software always displays it in English.
-#: Source/Core/DiscIO/VolumeVerifier.cpp:949
+#: Source/Core/DiscIO/VolumeVerifier.cpp:942
 msgid ""
 "This Korean title is set to use an IOS that typically isn't used on Korean "
 "consoles. This is likely to lead to ERROR #002."
@@ -9169,11 +9284,11 @@ msgstr ""
 msgid "This USB device is already whitelisted."
 msgstr "جهاز يو إس بي مدرج بالفعل في القائمة المسموح لها"
 
-#: Source/Core/Core/ConfigManager.cpp:884
+#: Source/Core/Core/ConfigManager.cpp:852
 msgid "This WAD is not bootable."
 msgstr "غير قابل للتمهيد WAD"
 
-#: Source/Core/Core/ConfigManager.cpp:879
+#: Source/Core/Core/ConfigManager.cpp:847
 msgid "This WAD is not valid."
 msgstr "غير صالح WAD"
 
@@ -9185,31 +9300,27 @@ msgstr ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:206
-#: Source/Core/DolphinQt/GameList/GameList.cpp:632
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:236
+#: Source/Core/DolphinQt/GameList/GameList.cpp:623
 msgid "This cannot be undone!"
 msgstr "هذا لا يمكن التراجع عنه"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:777
+#: Source/Core/DiscIO/VolumeVerifier.cpp:770
 msgid "This debug disc image has the size of a retail disc image."
 msgstr "تحتوي صوره القرص التصحيح هذه علي حجم صوره قرص البيع بالتجزئة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:800
+#: Source/Core/DiscIO/VolumeVerifier.cpp:793
 msgid "This disc image has an unusual size."
 msgstr "هذه صورة القرص لها حجم غير عادي."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:793
+#: Source/Core/DiscIO/VolumeVerifier.cpp:787
 msgid ""
 "This disc image has an unusual size. This will likely make the emulated "
-"loading times longer. When using NetPlay or sending input recordings to "
-"other people, you will likely experience desyncs if anyone is using a good "
-"dump."
+"loading times longer. You will likely be unable to share input recordings "
+"and use NetPlay with anyone who is using a good dump."
 msgstr ""
-"هذه الصورة القرص لها حجم غير عادي. هذا سيجعل على الأرجح مرات التحميل التي "
-"تمت محاكاتها أطول. عند استخدام اللعب عبر الشبكة أو إرسال تسجيلات الإدخال إلى "
-"أشخاص آخرين ، من المحتمل أن تواجه المزامنة إذا كان أي شخص يستخدم تفريغًا جيدًا."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:998
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1012
 msgid ""
 "This disc image is in the NKit format. It is not a good dump in its current "
 "form, but it might become a good dump if converted back. The CRC32 of this "
@@ -9221,7 +9332,7 @@ msgstr ""
 "file might match the CRC32 of a good dump even though the files are not "
 "identical."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1308
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1321
 msgid ""
 "This disc image is too small and lacks some data. If your dumping program "
 "saved the disc image as several parts, you need to merge them into one file."
@@ -9229,7 +9340,7 @@ msgstr ""
 "صورة القرص هذه صغيرة جدًا وتفتقر إلى بعض البيانات. إذا كان برنامج التفريغ "
 "الخاص بك قد حفظ صورة القرص كأجزاء متعددة ، فستحتاج إلى دمجها في ملف واحد."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1305
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1318
 msgid ""
 "This disc image is too small and lacks some data. The problem is most likely "
 "that this is a dual-layer disc that has been dumped as a single-layer disc."
@@ -9241,7 +9352,7 @@ msgstr ""
 msgid "This file does not look like a BootMii NAND backup."
 msgstr "BootMii NAND لا يبدو هذا الملف نسخة احتياطية لـ "
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:748
+#: Source/Core/DiscIO/VolumeVerifier.cpp:741
 msgid ""
 "This game has been hacked to fit on a single-layer DVD. Some content such as "
 "pre-rendered videos, extra languages or entire game modes will be broken. "
@@ -9251,7 +9362,7 @@ msgstr ""
 "مقاطع الفيديو المقدمة مسبقًا أو اللغات الإضافية أو أوضاع اللعبة بالكامل. هذه "
 "المشكلة بشكل عام موجودة فقط في نسخ غير قانونية من الألعاب."
 
-#: Source/Core/VideoCommon/VideoBackendBase.cpp:179
+#: Source/Core/VideoCommon/VideoBackendBase.cpp:182
 msgid ""
 "This game requires bounding box emulation to run properly but your graphics "
 "card or its drivers do not support it. As a result you will experience bugs "
@@ -9261,17 +9372,17 @@ msgstr ""
 "برامج التشغيل الخاصة بها لا تدعمها. ونتيجة لذلك سوف تواجه الخلل أو يتجمد "
 "أثناء تشغيل هذه اللعبة."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1388
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1401
 msgid "This is a bad dump."
 msgstr "هذا تفريغ سيء"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1382
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1395
 msgid ""
 "This is a bad dump. This doesn't necessarily mean that the game won't run "
 "correctly."
 msgstr "هذا تفريغ سيء. هذا لا يعني بالضرورة أن اللعبة لن تعمل بشكل صحيح"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1358
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1371
 msgid ""
 "This is a good dump according to Redump.org, but Dolphin has found problems. "
 "This might be a bug in Dolphin."
@@ -9279,15 +9390,15 @@ msgstr ""
 "Redump.org هذا تفريغ جيد وفقًا لموقع\n"
 "لكن دولفين وجد مشاكل. قد يكون هذا خطأ في دولفين"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:1353
+#: Source/Core/DiscIO/VolumeVerifier.cpp:1366
 msgid "This is a good dump."
 msgstr "هذا تفريغ جيد"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:298
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:302
 msgid "This session requires a password:"
 msgstr "تتطلب هذه الجلسة كلمة مرور:"
 
-#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:163
+#: Source/Core/DolphinQt/Settings/AdvancedPane.cpp:165
 msgid ""
 "This setting allows you to set a custom real time clock (RTC) separate from "
 "your current system time.\n"
@@ -9303,20 +9414,16 @@ msgstr ""
 msgid "This software should not be used to play games you do not legally own."
 msgstr "يجب عدم استخدام هذا البرنامج لتشغيل الألعاب التي لا تملكها قانونيًا."
 
-#: Source/Core/Core/ConfigManager.cpp:901
+#: Source/Core/Core/ConfigManager.cpp:869
 msgid "This title cannot be booted."
 msgstr "لا يمكن تشغيل هذا العنوان."
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:395
-msgid "This title is not correctly signed."
-msgstr "لم يتم توقيع هذا العنوان بشكل صحيح"
-
-#: Source/Core/DiscIO/VolumeVerifier.cpp:957
+#: Source/Core/DiscIO/VolumeVerifier.cpp:950
 msgid "This title is set to use an invalid IOS."
 msgstr "تم تعيين هذا العنوان لاستخدام نظام تشغيل غير صالح."
 
 #. i18n: This is "common" as in "shared", not the opposite of "uncommon"
-#: Source/Core/DiscIO/VolumeVerifier.cpp:971
+#: Source/Core/DiscIO/VolumeVerifier.cpp:964
 msgid "This title is set to use an invalid common key."
 msgstr "تم تعيين هذا العنوان لاستخدام مفتاح عام غير صالح"
 
@@ -9357,14 +9464,14 @@ msgid ""
 "This value is multiplied with the depth set in the graphics configuration."
 msgstr "يتم ضرب هذه القيمة مع عمق المنصوص عليها في ضبط الرسومات."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:150
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:158
 msgid ""
 "This will limit the speed of chunked uploading per client, which is used for "
 "save sync."
 msgstr ""
 "سيحد ذلك من سرعة التحميل المتراكم لكل عميل ، والذي يستخدم لحفظ المزامنة."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:121
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:123
 msgid ""
 "This will sync additional graphics settings, and force everyone to the same "
 "internal resolution.\n"
@@ -9393,7 +9500,7 @@ msgid "TiB"
 msgstr "تيرابايت"
 
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Nunchuk.cpp:52
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:213
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:212
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtensionMotionSimulation.cpp:33
 msgid "Tilt"
 msgstr "إمالة"
@@ -9403,8 +9510,8 @@ msgstr "إمالة"
 msgid "Time period of stable input to trigger calibration. (zero to disable)"
 msgstr "الفترة الزمنية للإدخال المستقر لتشغيل المعايرة. (صفر لتعطيل)"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:788
-#: Source/Core/DolphinQt/GameList/GameListModel.cpp:212
+#: Source/Core/DolphinQt/GameList/GameList.cpp:784
+#: Source/Core/DolphinQt/GameList/GameListModel.cpp:207
 #: Source/Core/DolphinQt/GCMemcardManager.cpp:196
 #: Source/Core/DolphinQt/MenuBar.cpp:625
 msgid "Title"
@@ -9493,7 +9600,7 @@ msgstr "Toggle XFB Copies"
 msgid "Toggle XFB Immediate Mode"
 msgstr "Toggle XFB Immediate Mode"
 
-#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:701
+#: Source/Core/InputCommon/ControlReference/ExpressionParser.cpp:918
 msgid "Tokenizing failed."
 msgstr "Tokenizing فشل"
 
@@ -9505,7 +9612,7 @@ msgstr "عدد كبير من التطابقات المطلوب عرضها (%1)"
 msgid "Toolbar"
 msgstr "شريط الأدوات"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:174
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:187
 msgid "Top"
 msgstr "اعلى"
 
@@ -9514,24 +9621,24 @@ msgid "Top-and-Bottom"
 msgstr "Top-and-Bottom"
 
 #. i18n: Refers to an amount of rotational movement about the "pitch" axis.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:57
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:56
 msgid "Total Pitch"
 msgstr "Total Pitch"
 
 #. i18n: Refers to an amount of rotational movement about the "yaw" axis.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:48
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:37
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:47
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:36
 msgid "Total Yaw"
 msgstr "Total Yaw"
 
 #. i18n: Refers to emulated wii remote movements.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:61
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:60
 msgid "Total rotation about the pitch axis."
 msgstr "Total rotation about the pitch axis."
 
 #. i18n: Refers to emulated wii remote movements.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:52
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:41
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:51
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:40
 msgid "Total rotation about the yaw axis."
 msgstr "Total rotation about the yaw axis."
 
@@ -9548,20 +9655,20 @@ msgid "Touch"
 msgstr "لمس"
 
 #: Source/Core/DiscIO/Enums.cpp:101
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:126
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:130
 msgid "Traditional Chinese"
 msgstr "الصينية التقليدية"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:964
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:968
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:983
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:987
 msgid "Traversal Error"
 msgstr "خطأ الاجتياز"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:183
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:191
 msgid "Traversal Server"
 msgstr "اجتياز الخادم"
 
-#: Source/Core/Core/NetPlayClient.cpp:1763
+#: Source/Core/Core/NetPlayClient.cpp:1789
 msgid "Traversal server timed out connecting to the host"
 msgstr "انتهت مهلة خادم الاجتياز للاتصال بالمضيف"
 
@@ -9573,7 +9680,7 @@ msgstr ""
 "<b>True</b>يحاول ترجمة الفروع في وقت مبكر ، وتحسين الأداء في معظم الحالات. "
 "الافتراضيات إلى"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:77
+#: Source/Core/Core/HW/GCPadEmu.cpp:73
 #: Source/Core/Core/HW/WiimoteEmu/Extension/Classic.cpp:95
 #: Source/Core/DolphinQt/Config/Mapping/GCPadEmu.cpp:34
 #: Source/Core/DolphinQt/Config/Mapping/WiimoteEmuExtension.cpp:62
@@ -9602,7 +9709,7 @@ msgstr "U&32"
 msgid "U&8"
 msgstr "U&8"
 
-#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:292
+#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:289
 msgid "UNKNOWN"
 msgstr "غير معروف"
 
@@ -9700,7 +9807,7 @@ msgstr "تعذر الكتابة إلى الملف %s"
 msgid "Unbound"
 msgstr "غير منضم"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:344
+#: Source/Core/DolphinQt/ConvertDialog.cpp:339
 msgid "Uncompressed GC/Wii images (*.iso *.gcm)"
 msgstr "غير مضغوطة GC/Wii صورة (*.iso *.gcm)"
 
@@ -9720,11 +9827,11 @@ msgstr "Unexpected 0x80 call? Aborting..."
 msgid "Uninstall"
 msgstr "إلغاء التثبيت"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:337
+#: Source/Core/DolphinQt/GameList/GameList.cpp:330
 msgid "Uninstall from the NAND"
 msgstr "NAND إلغاء التثبيت من"
 
-#: Source/Core/DolphinQt/GameList/GameList.cpp:515
+#: Source/Core/DolphinQt/GameList/GameList.cpp:506
 msgid ""
 "Uninstalling the WAD will remove the currently installed version of this "
 "title from the NAND without deleting its save data. Continue?"
@@ -9744,16 +9851,16 @@ msgstr "امريكا"
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:61
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:120
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:124
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:738
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:750
 msgid "Unknown"
 msgstr "غير معروف"
 
-#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1177
+#: Source/Core/Core/HW/DVD/DVDInterface.cpp:1209
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unknown DVD command %08x - fatal error"
 
-#: Source/Core/Core/NetPlayServer.cpp:1108
+#: Source/Core/Core/NetPlayServer.cpp:1127
 #, c-format
 msgid ""
 "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking "
@@ -9762,12 +9869,12 @@ msgstr ""
 "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking "
 "player!"
 
-#: Source/Core/Core/NetPlayClient.cpp:1007
+#: Source/Core/Core/NetPlayClient.cpp:1029
 #, c-format
 msgid "Unknown SYNC_SAVE_DATA message received with id: %d"
 msgstr "Unknown SYNC_SAVE_DATA message received with id: %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:1065
+#: Source/Core/Core/NetPlayServer.cpp:1084
 #, c-format
 msgid ""
 "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking "
@@ -9776,21 +9883,21 @@ msgstr ""
 "Unknown SYNC_SAVE_DATA message with id:%d received from player:%d Kicking "
 "player!"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:354
+#: Source/Core/DiscIO/VolumeVerifier.cpp:355
 msgid "Unknown disc"
 msgstr "قرص غير معروف"
 
-#: Source/Core/Core/NetPlayClient.cpp:1772
+#: Source/Core/Core/NetPlayClient.cpp:1798
 #, c-format
 msgid "Unknown error %x"
 msgstr "خطأ غير معروف %x"
 
-#: Source/Core/Core/NetPlayClient.cpp:1220
+#: Source/Core/Core/NetPlayClient.cpp:1242
 #, c-format
 msgid "Unknown message received with id : %d"
 msgstr "تم تلقي رسالة مجهولة بمعرّف : %d"
 
-#: Source/Core/Core/NetPlayServer.cpp:1116
+#: Source/Core/Core/NetPlayServer.cpp:1135
 #, c-format
 msgid "Unknown message with id:%d received from player:%d Kicking player!"
 msgstr "رسالة مجهولة مع معرف:%d تلقى من لاعب:%d طرد لاعب!"
@@ -9811,7 +9918,7 @@ msgstr "عدد صحيح غير موقعة"
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:21
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUAccelerometer.cpp:20
-#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:22
+#: Source/Core/InputCommon/ControllerEmu/ControllerEmu.h:23
 msgid "Up"
 msgstr "فوق"
 
@@ -9858,15 +9965,15 @@ msgstr ""
 "تحديث العنوان %1...\n"
 "سوف يأخذ هذا بعض الوقت."
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:278
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:277
 msgid "Upright Hold"
 msgstr "أمسك وضع عمودي"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:275
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:274
 msgid "Upright Toggle"
 msgstr "تبديل عمودي"
 
-#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:264
+#: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:263
 msgid "Upright Wii Remote"
 msgstr "ريموت وي وضع عمودي"
 
@@ -9874,11 +9981,11 @@ msgstr "ريموت وي وضع عمودي"
 msgid "Usage Statistics Reporting Settings"
 msgstr "إعدادات تقارير إحصائيات الاستخدام "
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:144
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:145
 msgid "Use Built-In Database of Game Names"
 msgstr "استخدم قاعدة بيانات مدمجة لأسماء الألعاب"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:145
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:146
 msgid "Use Custom User Style"
 msgstr "استخدم نمط المستخدم المخصص"
 
@@ -9886,15 +9993,15 @@ msgstr "استخدم نمط المستخدم المخصص"
 msgid "Use Fullscreen"
 msgstr "استخدم شاشة كاملة"
 
-#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:104
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:115
 msgid "Use Lossless Codec (FFV1)"
 msgstr "Use Lossless Codec (FFV1)"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:107
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:109
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "(EuRGB60) PAL60 استخدام وضع "
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:167
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:168
 msgid "Use Panic Handlers"
 msgstr "Use Panic Handlers"
 
@@ -9907,11 +10014,11 @@ msgstr ""
 msgid "User Config"
 msgstr "تكوين المستخدم"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:101
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:102
 msgid "User Interface"
 msgstr "واجهة المستخدم"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:130
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:131
 msgid "User Style:"
 msgstr "نمط المستخدم"
 
@@ -10004,7 +10111,7 @@ msgstr "التحقق من الشهادات"
 msgid "Verifying"
 msgstr "يتحقق"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:232
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:225
 #: Source/Core/DolphinQt/ResourcePackManager.cpp:91
 msgid "Version"
 msgstr "الإصدار"
@@ -10014,7 +10121,7 @@ msgid "Vertex Rounding"
 msgstr "Vertex Rounding"
 
 #. i18n: Refers to a positional offset applied to an emulated wiimote.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:41
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:40
 msgid "Vertical Offset"
 msgstr "أزاحة عمودية"
 
@@ -10082,7 +10189,7 @@ msgstr ""
 "WAD فشل التثبيت\n"
 "الملف المحدد ليس صالحًا"
 
-#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:286
+#: Source/Core/DolphinQt/Debugger/ThreadWidget.cpp:283
 msgid "WAITING"
 msgstr "انتظار"
 
@@ -10112,7 +10219,7 @@ msgstr ""
 msgid "WASAPI (Exclusive Mode)"
 msgstr "WASAPI (الوضع الحصري)"
 
-#: Source/Core/DolphinQt/ConvertDialog.cpp:352
+#: Source/Core/DolphinQt/ConvertDialog.cpp:347
 msgid "WIA GC/Wii images (*.wia)"
 msgstr ""
 
@@ -10169,17 +10276,17 @@ msgstr ""
 "إذا لم تكن متأكدًا ، فاترك هذا محددًا."
 
 #: Source/Core/Common/MsgHandler.cpp:91
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:348
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:366
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:351
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:369
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:124
 #: Source/Core/DolphinQt/Config/GameConfigEdit.cpp:131
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:48
 #: Source/Core/DolphinQt/MenuBar.cpp:1348
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:405
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:414
 msgid "Warning"
 msgstr "تحذير"
 
-#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:33
+#: Source/Core/DolphinQt/TAS/TASInputWindow.cpp:35
 msgid ""
 "Warning: Analog inputs may reset to controller values at random. In some "
 "cases this can be fixed by adding a deadzone."
@@ -10289,7 +10396,25 @@ msgstr "Western (Windows-1252)"
 msgid "Whammy"
 msgstr "الضربة"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:150
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:231
+msgid ""
+"Whether to dump base game textures to User/Dump/Textures/<game_id>/.  This "
+"includes arbitrary base textures if 'Arbitrary Mipmap Detection' is enabled "
+"in Enhancements.\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+
+#: Source/Core/DolphinQt/Config/Graphics/AdvancedWidget.cpp:226
+msgid ""
+"Whether to dump mipmapped game textures to User/Dump/Textures/<game_id>/.  "
+"This includes arbitrary mipmapped textures if 'Arbitrary Mipmap Detection' "
+"is enabled in Enhancements.\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
+
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:163
 msgid "Whitelisted USB Passthrough Devices"
 msgstr "الاجهزة المسموح لها المرور خلال منفذ يو إس بي "
 
@@ -10313,16 +10438,16 @@ msgstr "قائمة وي"
 msgid "Wii NAND Root:"
 msgstr "Wii NAND Root"
 
-#: Source/Core/Core/HW/Wiimote.cpp:62
+#: Source/Core/Core/HW/Wiimote.cpp:89
 msgid "Wii Remote"
 msgstr "ريموت وي"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:181
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:184
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:22
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:27
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:32
 #: Source/Core/DolphinQt/Config/Mapping/HotkeyControllerProfile.cpp:37
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:365
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:398
 #: Source/Core/DolphinQt/NetPlay/PadMappingDialog.cpp:39
 msgid "Wii Remote %1"
 msgstr "%1 ريموت وي"
@@ -10335,15 +10460,15 @@ msgstr "أزرار ريموت وي"
 msgid "Wii Remote Orientation"
 msgstr "اتجاه ريموت وي"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:170
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:183
 msgid "Wii Remote Rumble"
 msgstr "هزاز ريموت وي"
 
-#: Source/Core/DolphinQt/Settings/WiiPane.cpp:166
+#: Source/Core/DolphinQt/Settings/WiiPane.cpp:179
 msgid "Wii Remote Settings"
 msgstr "إعدادات ريموت وي"
 
-#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:145
+#: Source/Core/DolphinQt/Config/ControllersWindow.cpp:148
 msgid "Wii Remotes"
 msgstr "ريموت وي"
 
@@ -10359,11 +10484,11 @@ msgstr "Wii TAS Input %1 - ريموت وي"
 msgid "Wii TAS Input %1 - Wii Remote + Nunchuk"
 msgstr "Wii TAS Input %1 - ريموت وي + نونشوك"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:388
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:421
 msgid "Wii and Wii Remote"
 msgstr "وي و ريموت وي"
 
-#: Source/Core/DiscIO/VolumeVerifier.cpp:105
+#: Source/Core/DiscIO/VolumeVerifier.cpp:106
 msgid "Wii data is not public yet"
 msgstr "بيانات وي ليست عامة بعد"
 
@@ -10375,7 +10500,7 @@ msgstr "ملفات حفظ وي (*.bin);;كل الملفات (*)"
 msgid "WiiTools Signature MEGA File"
 msgstr "WiiTools Signature MEGA File"
 
-#: Source/Core/DolphinQt/Config/LogWidget.cpp:136
+#: Source/Core/DolphinQt/Config/LogWidget.cpp:135
 msgid "Word Wrap"
 msgstr "التفاف"
 
@@ -10388,7 +10513,7 @@ msgstr "عالم"
 msgid "Write"
 msgstr "كتابة"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:107
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:109
 msgid "Write Save/SD Data"
 msgstr "Write Save/SD Data"
 
@@ -10420,6 +10545,10 @@ msgstr "Write to Log and Break"
 #: Source/Core/DolphinQt/Config/LogConfigWidget.cpp:57
 msgid "Write to Window"
 msgstr "الكتابة إلى النافذة"
+
+#: Source/Core/DolphinQt/NetPlay/NetPlayDialog.cpp:676
+msgid "Wrong Version"
+msgstr "إصدار خاطئ"
 
 #. i18n: Refers to a 3D axis (used when mapping motion controls)
 #: Source/Core/DolphinQt/TAS/WiiTASInputWindow.cpp:106
@@ -10453,10 +10582,28 @@ msgid "Yellow"
 msgstr "أصفر"
 
 #: Source/Core/DolphinQt/Debugger/NetworkWidget.cpp:99
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:251
-#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:252
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:244
+#: Source/Core/DolphinQt/NetPlay/NetPlayBrowser.cpp:245
 msgid "Yes"
 msgstr "نعم"
+
+#: Source/Core/DolphinQt/NKitWarningDialog.cpp:37
+msgid ""
+"You are about to run an NKit disc image. NKit disc images cause problems "
+"that don't happen with normal disc images. These problems include:\n"
+"\n"
+"• The emulated loading times are longer\n"
+"• You can't use NetPlay with people who have normal disc images\n"
+"• Input recordings are not compatible between NKit disc images and normal "
+"disc images\n"
+"• Savestates are not compatible between NKit disc images and normal disc "
+"images\n"
+"• Some games crash, such as Super Paper Mario\n"
+"• Wii games don't work at all in older versions of Dolphin and in many other "
+"programs\n"
+"\n"
+"Are you sure you want to continue anyway?\n"
+msgstr ""
 
 #: Source/Core/VideoBackends/Vulkan/main.cpp:355
 msgid ""
@@ -10490,19 +10637,19 @@ msgstr ""
 msgid "You have to enter a name."
 msgstr "يجب عليك إدخال اسم."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:333
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:341
 msgid "You must provide a name for your session!"
 msgstr "يجب تقديم اسم لجلستك!"
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:341
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:349
 msgid "You must provide a region for your session!"
 msgstr "يجب عليك توفير منطقة لجلستك!"
 
-#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:270
+#: Source/Core/DolphinQt/Settings/InterfacePane.cpp:271
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "يجب إعادة تشغيل دولفين حتى يسري التغيير."
 
-#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:327
+#: Source/Core/DolphinQt/NetPlay/NetPlaySetupDialog.cpp:335
 msgid "You must select a game to host!"
 msgstr "يجب عليك اختيار لعبة لاستضافة!"
 
@@ -10541,7 +10688,7 @@ msgid "auto"
 msgstr "تلقائي"
 
 #. i18n: The symbol/abbreviation for centimeters.
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:43
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:42
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:31
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:144
 msgid "cm"
@@ -10551,7 +10698,7 @@ msgstr "cm"
 msgid "d3d12.dll could not be loaded."
 msgstr "d3d12.dll تعذر تحميل"
 
-#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:325
+#: Source/Core/DolphinQt/Config/Mapping/MappingWindow.cpp:358
 msgid "disconnected"
 msgstr "غير متصل"
 
@@ -10574,7 +10721,7 @@ msgid "none"
 msgstr "لا شيء"
 
 #: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:175
-#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:200
+#: Source/Core/DolphinQt/Debugger/BreakpointWidget.cpp:208
 msgid "on"
 msgstr "على"
 
@@ -10592,11 +10739,11 @@ msgstr "s"
 msgid "uDraw GameTablet"
 msgstr "uDraw GameTablet"
 
-#: Source/Core/Core/NetPlayServer.cpp:1100
+#: Source/Core/Core/NetPlayServer.cpp:1119
 msgid "{} failed to synchronize codes."
 msgstr "{} فشل في مزامنة الرموز"
 
-#: Source/Core/Core/NetPlayServer.cpp:1056
+#: Source/Core/Core/NetPlayServer.cpp:1075
 msgid "{} failed to synchronize."
 msgstr "{} فشل في المزامنة"
 
@@ -10617,10 +10764,10 @@ msgstr ""
 "ينتمي دولفين مع نينتندو بأي شكل من الأشكال . "
 
 #. i18n: The symbol/abbreviation for degrees (unit of angular measure).
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:50
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:59
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:49
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/Cursor.cpp:58
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Force.cpp:62
-#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:39
+#: Source/Core/InputCommon/ControllerEmu/ControlGroup/IMUCursor.cpp:38
 #: Source/Core/InputCommon/ControllerEmu/ControlGroup/Tilt.cpp:31
 msgid "°"
 msgstr "°"

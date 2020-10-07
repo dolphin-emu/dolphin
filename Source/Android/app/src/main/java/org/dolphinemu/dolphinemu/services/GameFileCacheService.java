@@ -109,7 +109,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startLoad(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context,
+    new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_LOAD));
   }
 
@@ -120,7 +120,7 @@ public final class GameFileCacheService extends IntentService
    */
   public static void startRescan(Context context)
   {
-    new AfterDirectoryInitializationRunner().run(context,
+    new AfterDirectoryInitializationRunner().run(context, false,
             () -> startService(context, ACTION_RESCAN));
   }
 

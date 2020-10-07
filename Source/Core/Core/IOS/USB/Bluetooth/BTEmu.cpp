@@ -9,8 +9,6 @@
 #include <memory>
 #include <string>
 
-#include <fmt/format.h>
-
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -45,30 +43,25 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     BackUpBTInfoSection(&sysconf);
 
   ConfPads bt_dinf{};
-  bdaddr_t tmp_bd;
-  u8 i = 0;
-  while (i < MAX_BBMOTES)
-  {
-    // Previous records can be safely overwritten, since they are backed up
-    tmp_bd[5] = bt_dinf.active[i].bdaddr[0] = bt_dinf.registered[i].bdaddr[0] = i;
-    tmp_bd[4] = bt_dinf.active[i].bdaddr[1] = bt_dinf.registered[i].bdaddr[1] = 0;
-    tmp_bd[3] = bt_dinf.active[i].bdaddr[2] = bt_dinf.registered[i].bdaddr[2] = 0x79;
-    tmp_bd[2] = bt_dinf.active[i].bdaddr[3] = bt_dinf.registered[i].bdaddr[3] = 0x19;
-    tmp_bd[1] = bt_dinf.active[i].bdaddr[4] = bt_dinf.registered[i].bdaddr[4] = 2;
-    tmp_bd[0] = bt_dinf.active[i].bdaddr[5] = bt_dinf.registered[i].bdaddr[5] = 0x11;
 
-    const char* wm_name;
-    if (i == WIIMOTE_BALANCE_BOARD)
-      wm_name = "Nintendo RVL-WBC-01";
-    else
-      wm_name = "Nintendo RVL-CNT-01";
+  for (u8 i = 0; i != MAX_BBMOTES; ++i)
+  {
+    // Note: BluetoothEmu::GetConnectionHandle and WiimoteDevice::GetNumber rely on final byte.
+    const bdaddr_t tmp_bd = {0x11, 0x02, 0x19, 0x79, 0, i};
+
+    // Previous records can be safely overwritten, since they are backed up
+    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.active[i].bdaddr));
+    std::copy(tmp_bd.begin(), tmp_bd.end(), std::rbegin(bt_dinf.registered[i].bdaddr));
+
+    const auto& wm_name =
+        (i == WIIMOTE_BALANCE_BOARD) ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01";
     memcpy(bt_dinf.registered[i].name, wm_name, 20);
     memcpy(bt_dinf.active[i].name, wm_name, 20);
 
     DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmp_bd[0], tmp_bd[1],
               tmp_bd[2], tmp_bd[3], tmp_bd[4], tmp_bd[5]);
-    m_wiimotes.emplace_back(this, i, tmp_bd, WiimoteCommon::GetSource(i) != WiimoteSource::None);
-    i++;
+
+    m_wiimotes.emplace_back(std::make_unique<WiimoteDevice>(this, i, tmp_bd));
   }
 
   bt_dinf.num_registered = MAX_BBMOTES;
@@ -82,10 +75,7 @@ BluetoothEmu::BluetoothEmu(Kernel& ios, const std::string& device_name)
     PanicAlertT("Failed to write BT.DINF to SYSCONF");
 }
 
-BluetoothEmu::~BluetoothEmu()
-{
-  m_wiimotes.clear();
-}
+BluetoothEmu::~BluetoothEmu() = default;
 
 template <typename T>
 static void DoStateForMessage(Kernel& ios, PointerWrap& p, std::unique_ptr<T>& message)
@@ -112,7 +102,6 @@ void BluetoothEmu::DoState(PointerWrap& p)
 
   p.Do(m_is_active);
   p.Do(m_controller_bd);
-  DoStateForMessage(m_ios, p, m_ctrl_setup);
   DoStateForMessage(m_ios, p, m_hci_endpoint);
   DoStateForMessage(m_ios, p, m_acl_endpoint);
   p.Do(m_last_ticks);
@@ -122,12 +111,22 @@ void BluetoothEmu::DoState(PointerWrap& p)
   m_acl_pool.DoState(p);
 
   for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-    m_wiimotes[i].DoState(p);
+    m_wiimotes[i]->DoState(p);
 }
 
-bool BluetoothEmu::RemoteDisconnect(u16 connection_handle)
+bool BluetoothEmu::RemoteConnect(WiimoteDevice& wiimote)
 {
-  return SendEventDisconnect(connection_handle, 0x13);
+  // If page scan is disabled the controller will not see this connection request.
+  if (!(m_scan_enable & HCI_PAGE_SCAN_ENABLE))
+    return false;
+
+  SendEventRequestConnection(wiimote);
+  return true;
+}
+
+bool BluetoothEmu::RemoteDisconnect(const bdaddr_t& address)
+{
+  return SendEventDisconnect(GetConnectionHandle(address), 0x13);
 }
 
 IPCCommandResult BluetoothEmu::Close(u32 fd)
@@ -149,10 +148,8 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   {
   case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
-    m_ctrl_setup = std::make_unique<USB::V0CtrlMessage>(m_ios, request);
     // Replies are generated inside
-    ExecuteHCICommandMessage(*m_ctrl_setup);
-    m_ctrl_setup.reset();
+    ExecuteHCICommandMessage(USB::V0CtrlMessage(m_ios, request));
     send_reply = false;
     break;
   }
@@ -226,13 +223,15 @@ void BluetoothEmu::SendToDevice(u16 connection_handle, u8* data, u32 size)
 
 void BluetoothEmu::IncDataPacket(u16 connection_handle)
 {
-  m_packet_count[connection_handle & 0xff]++;
+  m_packet_count[GetWiimoteNumberFromConnectionHandle(connection_handle)]++;
 }
 
 // Here we send ACL packets to CPU. They will consist of header + data.
 // The header is for example 07 00 41 00 which means size 0x0007 and channel 0x0041.
-void BluetoothEmu::SendACLPacket(u16 connection_handle, const u8* data, u32 size)
+void BluetoothEmu::SendACLPacket(const bdaddr_t& source, const u8* data, u32 size)
 {
+  const u16 connection_handle = GetConnectionHandle(source);
+
   DEBUG_LOG(IOS_WIIMOTE, "ACL packet from %x ready to send to stack...", connection_handle);
 
   if (m_acl_endpoint && !m_hci_endpoint && m_event_queue.empty())
@@ -331,30 +330,8 @@ void BluetoothEmu::Update()
     m_acl_endpoint.reset();
   }
 
-  // We wait for ScanEnable to be sent from the Bluetooth stack through HCI_CMD_WRITE_SCAN_ENABLE
-  // before we initiate the connection.
-  //
-  // FiRES: TODO find a better way to do this
-
-  // Create ACL connection
-  if (m_hci_endpoint && (m_scan_enable & HCI_PAGE_SCAN_ENABLE))
-  {
-    for (const auto& wiimote : m_wiimotes)
-    {
-      if (wiimote.EventPagingChanged(m_scan_enable))
-        SendEventRequestConnection(wiimote);
-    }
-  }
-
-  // Link channels when connected
-  if (m_acl_endpoint)
-  {
-    for (auto& wiimote : m_wiimotes)
-    {
-      if (wiimote.LinkChannel())
-        break;
-    }
-  }
+  for (auto& wiimote : m_wiimotes)
+    wiimote->Update();
 
   const u64 interval = SystemTimers::GetTicksPerSecond() / Wiimote::UPDATE_FREQ;
   const u64 now = CoreTiming::GetTicks();
@@ -362,8 +339,8 @@ void BluetoothEmu::Update()
   if (now - m_last_ticks > interval)
   {
     g_controller_interface.UpdateInput();
-    for (unsigned int i = 0; i < m_wiimotes.size(); i++)
-      Wiimote::Update(i, m_wiimotes[i].IsConnected());
+    for (auto& wiimote : m_wiimotes)
+      wiimote->UpdateInput();
     m_last_ticks = now;
   }
 
@@ -414,7 +391,7 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(const USB::V0BulkMessage& endpoint)
   m_ios.EnqueueIPCReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
-bool BluetoothEmu::SendEventInquiryComplete()
+bool BluetoothEmu::SendEventInquiryComplete(u8 num_responses)
 {
   SQueuedEvent event(sizeof(SHCIEventInquiryComplete), 0);
 
@@ -422,6 +399,7 @@ bool BluetoothEmu::SendEventInquiryComplete()
   inquiry_complete->EventType = HCI_EVENT_INQUIRY_COMPL;
   inquiry_complete->PayloadLength = sizeof(SHCIEventInquiryComplete) - 2;
   inquiry_complete->EventStatus = 0x00;
+  inquiry_complete->num_responses = num_responses;
 
   AddEventToQueue(event);
 
@@ -432,76 +410,72 @@ bool BluetoothEmu::SendEventInquiryComplete()
 
 bool BluetoothEmu::SendEventInquiryResponse()
 {
-  if (m_wiimotes.empty())
-    return false;
+  // We only respond with the first discoverable remote.
+  // The Wii instructs users to press 1+2 in the desired play order.
+  // Responding with all remotes at once can place them in undesirable slots.
+  // Additional scans will connect each remote in the proper order.
+  constexpr u8 num_responses = 1;
 
-  DEBUG_ASSERT(sizeof(SHCIEventInquiryResult) - 2 +
-                   (m_wiimotes.size() * sizeof(hci_inquiry_response)) <
-               256);
+  static_assert(
+      sizeof(SHCIEventInquiryResult) - 2 + (num_responses * sizeof(hci_inquiry_response)) < 256);
 
-  SQueuedEvent event(static_cast<u32>(sizeof(SHCIEventInquiryResult) +
-                                      m_wiimotes.size() * sizeof(hci_inquiry_response)),
-                     0);
-
-  SHCIEventInquiryResult* inquiry_result = (SHCIEventInquiryResult*)event.buffer;
-
-  inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
-  inquiry_result->PayloadLength =
-      (u8)(sizeof(SHCIEventInquiryResult) - 2 + (m_wiimotes.size() * sizeof(hci_inquiry_response)));
-  inquiry_result->num_responses = (u8)m_wiimotes.size();
-
-  for (size_t i = 0; i < m_wiimotes.size(); i++)
+  const auto iter = std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
+                                 std::mem_fn(&WiimoteDevice::IsInquiryScanEnabled));
+  if (iter == m_wiimotes.end())
   {
-    if (m_wiimotes[i].IsConnected())
-      continue;
-
-    u8* buffer = event.buffer + sizeof(SHCIEventInquiryResult) + i * sizeof(hci_inquiry_response);
-    hci_inquiry_response* response = (hci_inquiry_response*)buffer;
-
-    response->bdaddr = m_wiimotes[i].GetBD();
-    response->uclass[0] = m_wiimotes[i].GetClass()[0];
-    response->uclass[1] = m_wiimotes[i].GetClass()[1];
-    response->uclass[2] = m_wiimotes[i].GetClass()[2];
-
-    response->page_scan_rep_mode = 1;
-    response->page_scan_period_mode = 0;
-    response->page_scan_mode = 0;
-    response->clock_offset = 0x3818;
-
-    DEBUG_LOG(IOS_WIIMOTE, "Event: Send Fake Inquiry of one controller");
-    DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", response->bdaddr[0],
-              response->bdaddr[1], response->bdaddr[2], response->bdaddr[3], response->bdaddr[4],
-              response->bdaddr[5]);
+    // No remotes are discoverable.
+    SendEventInquiryComplete(0);
+    return false;
   }
 
-  AddEventToQueue(event);
+  const auto& wiimote = *iter;
 
+  SQueuedEvent event(
+      u32(sizeof(SHCIEventInquiryResult) + num_responses * sizeof(hci_inquiry_response)), 0);
+
+  const auto inquiry_result = reinterpret_cast<SHCIEventInquiryResult*>(event.buffer);
+  inquiry_result->EventType = HCI_EVENT_INQUIRY_RESULT;
+  inquiry_result->num_responses = num_responses;
+
+  u8* const buffer = event.buffer + sizeof(SHCIEventInquiryResult);
+  const auto response = reinterpret_cast<hci_inquiry_response*>(buffer);
+
+  response->bdaddr = wiimote->GetBD();
+  response->page_scan_rep_mode = 1;
+  response->page_scan_period_mode = 0;
+  response->page_scan_mode = 0;
+  std::copy_n(wiimote->GetClass().begin(), HCI_CLASS_SIZE, response->uclass);
+  response->clock_offset = 0x3818;
+
+  DEBUG_LOG(IOS_WIIMOTE, "Event: Send Fake Inquiry of one controller");
+  DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", response->bdaddr[0],
+            response->bdaddr[1], response->bdaddr[2], response->bdaddr[3], response->bdaddr[4],
+            response->bdaddr[5]);
+
+  inquiry_result->PayloadLength =
+      u8(sizeof(SHCIEventInquiryResult) - 2 +
+         (inquiry_result->num_responses * sizeof(hci_inquiry_response)));
+
+  AddEventToQueue(event);
+  SendEventInquiryComplete(num_responses);
   return true;
 }
 
-bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& bd)
+bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& bd, u8 status)
 {
-  WiimoteDevice* wiimote = AccessWiimote(bd);
-  if (wiimote == nullptr)
-    return false;
-
   SQueuedEvent event(sizeof(SHCIEventConnectionComplete), 0);
 
   SHCIEventConnectionComplete* connection_complete = (SHCIEventConnectionComplete*)event.buffer;
 
   connection_complete->EventType = HCI_EVENT_CON_COMPL;
   connection_complete->PayloadLength = sizeof(SHCIEventConnectionComplete) - 2;
-  connection_complete->EventStatus = 0x00;
-  connection_complete->Connection_Handle = wiimote->GetConnectionHandle();
+  connection_complete->EventStatus = status;
+  connection_complete->Connection_Handle = GetConnectionHandle(bd);
   connection_complete->bdaddr = bd;
   connection_complete->LinkType = HCI_LINK_ACL;
   connection_complete->EncryptionEnabled = HCI_ENCRYPTION_MODE_NONE;
 
   AddEventToQueue(event);
-
-  WiimoteDevice* connection_wiimote = AccessWiimote(connection_complete->Connection_Handle);
-  if (connection_wiimote)
-    connection_wiimote->EventConnectionAccepted();
 
   static constexpr const char* link_type[] = {
       "HCI_LINK_SCO     0x00 - Voice",
@@ -521,7 +495,6 @@ bool BluetoothEmu::SendEventConnectionComplete(const bdaddr_t& bd)
   return true;
 }
 
-// This is called from Update() after ScanEnable has been enabled.
 bool BluetoothEmu::SendEventRequestConnection(const WiimoteDevice& wiimote)
 {
   SQueuedEvent event(sizeof(SHCIEventRequestConnection), 0);
@@ -646,14 +619,7 @@ bool BluetoothEmu::SendEventReadRemoteFeatures(u16 connection_handle)
   read_remote_features->PayloadLength = sizeof(SHCIEventReadRemoteFeatures) - 2;
   read_remote_features->EventStatus = 0x00;
   read_remote_features->ConnectionHandle = connection_handle;
-  read_remote_features->features[0] = wiimote->GetFeatures()[0];
-  read_remote_features->features[1] = wiimote->GetFeatures()[1];
-  read_remote_features->features[2] = wiimote->GetFeatures()[2];
-  read_remote_features->features[3] = wiimote->GetFeatures()[3];
-  read_remote_features->features[4] = wiimote->GetFeatures()[4];
-  read_remote_features->features[5] = wiimote->GetFeatures()[5];
-  read_remote_features->features[6] = wiimote->GetFeatures()[6];
-  read_remote_features->features[7] = wiimote->GetFeatures()[7];
+  std::copy_n(wiimote->GetFeatures().begin(), HCI_FEATURES_SIZE, read_remote_features->features);
 
   DEBUG_LOG(IOS_WIIMOTE, "Event: SendEventReadRemoteFeatures");
   DEBUG_LOG(IOS_WIIMOTE, "  Connection_Handle: 0x%04x", read_remote_features->ConnectionHandle);
@@ -788,7 +754,7 @@ bool BluetoothEmu::SendEventNumberOfCompletedPackets()
     event_hdr->length += sizeof(hci_num_compl_pkts_info);
     hci_event->num_con_handles++;
     info->compl_pkts = m_packet_count[i];
-    info->con_handle = m_wiimotes[i].GetConnectionHandle();
+    info->con_handle = GetConnectionHandle(m_wiimotes[i]->GetBD());
 
     DEBUG_LOG(IOS_WIIMOTE, "  Connection_Handle: 0x%04x", info->con_handle);
     DEBUG_LOG(IOS_WIIMOTE, "  Number_Of_Completed_Packets: %i", info->compl_pkts);
@@ -855,8 +821,8 @@ bool BluetoothEmu::SendEventLinkKeyNotification(const u8 num_to_send)
   {
     hci_link_key_rep_cp* link_key_info =
         (hci_link_key_rep_cp*)((u8*)&event_link_key->bdaddr + sizeof(hci_link_key_rep_cp) * i);
-    link_key_info->bdaddr = m_wiimotes[i].GetBD();
-    memcpy(link_key_info->key, m_wiimotes[i].GetLinkKey(), HCI_KEY_SIZE);
+    link_key_info->bdaddr = m_wiimotes[i]->GetBD();
+    std::copy_n(m_wiimotes[i]->GetLinkKey().begin(), HCI_KEY_SIZE, link_key_info->key);
 
     DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", link_key_info->bdaddr[0],
               link_key_info->bdaddr[1], link_key_info->bdaddr[2], link_key_info->bdaddr[3],
@@ -1147,7 +1113,6 @@ void BluetoothEmu::CommandInquiry(const u8* input)
 
   SendEventCommandStatus(HCI_CMD_INQUIRY);
   SendEventInquiryResponse();
-  SendEventInquiryComplete();
 }
 
 void BluetoothEmu::CommandInquiryCancel(const u8* input)
@@ -1170,8 +1135,6 @@ void BluetoothEmu::CommandCreateCon(const u8* input)
   DEBUG_LOG(IOS_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", create_connection.bdaddr[0],
             create_connection.bdaddr[1], create_connection.bdaddr[2], create_connection.bdaddr[3],
             create_connection.bdaddr[4], create_connection.bdaddr[5]);
-  INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_ACCEPT_CON");
-
   DEBUG_LOG(IOS_WIIMOTE, "  pkt_type: %i", create_connection.pkt_type);
   DEBUG_LOG(IOS_WIIMOTE, "  page_scan_rep_mode: %i", create_connection.page_scan_rep_mode);
   DEBUG_LOG(IOS_WIIMOTE, "  page_scan_mode: %i", create_connection.page_scan_mode);
@@ -1179,7 +1142,12 @@ void BluetoothEmu::CommandCreateCon(const u8* input)
   DEBUG_LOG(IOS_WIIMOTE, "  accept_role_switch: %i", create_connection.accept_role_switch);
 
   SendEventCommandStatus(HCI_CMD_CREATE_CON);
-  SendEventConnectionComplete(create_connection.bdaddr);
+
+  WiimoteDevice* wiimote = AccessWiimote(create_connection.bdaddr);
+  const bool successful = wiimote && wiimote->EventConnectionRequest();
+
+  // Status 0x08 (Connection Timeout) if WiimoteDevice does not accept the connection.
+  SendEventConnectionComplete(create_connection.bdaddr, successful ? 0x00 : 0x08);
 }
 
 void BluetoothEmu::CommandDisconnect(const u8* input)
@@ -1191,14 +1159,12 @@ void BluetoothEmu::CommandDisconnect(const u8* input)
   DEBUG_LOG(IOS_WIIMOTE, "  ConnectionHandle: 0x%04x", disconnect.con_handle);
   DEBUG_LOG(IOS_WIIMOTE, "  Reason: 0x%02x", disconnect.reason);
 
-  DisplayDisconnectMessage((disconnect.con_handle & 0xFF) + 1, disconnect.reason);
-
   SendEventCommandStatus(HCI_CMD_DISCONNECT);
   SendEventDisconnect(disconnect.con_handle, disconnect.reason);
 
   WiimoteDevice* wiimote = AccessWiimote(disconnect.con_handle);
   if (wiimote)
-    wiimote->EventDisconnect();
+    wiimote->EventDisconnect(disconnect.reason);
 }
 
 void BluetoothEmu::CommandAcceptCon(const u8* input)
@@ -1219,13 +1185,23 @@ void BluetoothEmu::CommandAcceptCon(const u8* input)
 
   SendEventCommandStatus(HCI_CMD_ACCEPT_CON);
 
-  // this connection wants to be the master
-  if (accept_connection.role == 0)
-  {
-    SendEventRoleChange(accept_connection.bdaddr, true);
-  }
+  WiimoteDevice* wiimote = AccessWiimote(accept_connection.bdaddr);
+  const bool successful = wiimote && wiimote->EventConnectionAccept();
 
-  SendEventConnectionComplete(accept_connection.bdaddr);
+  if (successful)
+  {
+    // This connection wants to be the master.
+    // The controller performs a master-slave switch and notifies the host.
+    if (accept_connection.role == 0)
+      SendEventRoleChange(accept_connection.bdaddr, true);
+
+    SendEventConnectionComplete(accept_connection.bdaddr, 0x00);
+  }
+  else
+  {
+    // Status 0x08 (Connection Timeout) if WiimoteDevice no longer wants this connection.
+    SendEventConnectionComplete(accept_connection.bdaddr, 0x08);
+  }
 }
 
 void BluetoothEmu::CommandLinkKeyRep(const u8* input)
@@ -1377,14 +1353,21 @@ void BluetoothEmu::CommandReset(const u8* input)
   reply.status = 0x00;
 
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_RESET");
-
   SendEventCommandComplete(HCI_CMD_RESET, &reply, sizeof(hci_status_rp));
+
+  // TODO: We should actually reset connections and channels and everything here.
 }
 
 void BluetoothEmu::CommandSetEventFilter(const u8* input)
 {
   hci_set_event_filter_cp set_event_filter;
   std::memcpy(&set_event_filter, input, sizeof(set_event_filter));
+
+  // It looks like software only ever sets a "new device inquiry response" filter.
+  // This is one we can safely ignore because of our fake inquiry implementation
+  // and documentation says controllers can opt to not implement this filter anyways.
+
+  // TODO: There should be a warn log if an actual filter is being set.
 
   hci_set_event_filter_rp reply;
   reply.status = 0x00;
@@ -1421,13 +1404,9 @@ void BluetoothEmu::CommandReadStoredLinkKey(const u8* input)
   reply.max_num_keys = 255;
 
   if (read_stored_link_key.read_all == 1)
-  {
     reply.num_keys_read = static_cast<u16>(m_wiimotes.size());
-  }
   else
-  {
     ERROR_LOG(IOS_WIIMOTE, "CommandReadStoredLinkKey isn't looking for all devices");
-  }
 
   INFO_LOG(IOS_WIIMOTE, "Command: HCI_CMD_READ_STORED_LINK_KEY:");
   DEBUG_LOG(IOS_WIIMOTE, "input:");
@@ -1486,8 +1465,6 @@ void BluetoothEmu::CommandWriteLocalName(const u8* input)
   SendEventCommandComplete(HCI_CMD_WRITE_LOCAL_NAME, &reply, sizeof(hci_write_local_name_rp));
 }
 
-// Here we normally receive the timeout interval.
-// But not from homebrew games that use lwbt. Why not?
 void BluetoothEmu::CommandWritePageTimeOut(const u8* input)
 {
   hci_write_page_timeout_cp write_page_timeout;
@@ -1502,7 +1479,6 @@ void BluetoothEmu::CommandWritePageTimeOut(const u8* input)
   SendEventCommandComplete(HCI_CMD_WRITE_PAGE_TIMEOUT, &reply, sizeof(hci_host_buffer_size_rp));
 }
 
-// This will enable ScanEnable so that Update() can start the Wii Remote.
 void BluetoothEmu::CommandWriteScanEnable(const u8* input)
 {
   hci_write_scan_enable_cp write_scan_enable;
@@ -1600,6 +1576,8 @@ void BluetoothEmu::CommandWriteInquiryMode(const u8* input)
 
   hci_write_inquiry_mode_rp reply;
   reply.status = 0x00;
+
+  // TODO: Software seems to set an RSSI mode but our fake inquiries generate standard events.
 
   static constexpr const char* inquiry_mode_tag[] = {
       "Standard Inquiry Result event format (default)",
@@ -1743,45 +1721,50 @@ void BluetoothEmu::CommandVendorSpecific_FC4C(const u8* input, u32 size)
   SendEventCommandComplete(0xFC4C, &reply, sizeof(hci_status_rp));
 }
 
-//
-//
-// --- helper
-//
-//
 WiimoteDevice* BluetoothEmu::AccessWiimoteByIndex(std::size_t index)
 {
-  const u16 connection_handle = static_cast<u16>(0x100 + index);
-  return AccessWiimote(connection_handle);
+  if (index < MAX_BBMOTES)
+    return m_wiimotes[index].get();
+
+  return nullptr;
+}
+
+u16 BluetoothEmu::GetConnectionHandle(const bdaddr_t& address)
+{
+  // Handles are normally generated per connection but HLE allows fixed values for each remote.
+  return 0x100 + address.back();
+}
+
+u32 BluetoothEmu::GetWiimoteNumberFromConnectionHandle(u16 connection_handle)
+{
+  // Fixed handle values are generated in GetConnectionHandle.
+  return connection_handle & 0xff;
 }
 
 WiimoteDevice* BluetoothEmu::AccessWiimote(const bdaddr_t& address)
 {
-  const auto iterator =
-      std::find_if(m_wiimotes.begin(), m_wiimotes.end(),
-                   [&address](const WiimoteDevice& remote) { return remote.GetBD() == address; });
-  return iterator != m_wiimotes.cend() ? &*iterator : nullptr;
+  // Fixed bluetooth addresses are generated in WiimoteDevice::WiimoteDevice.
+  const auto wiimote = AccessWiimoteByIndex(address.back());
+
+  if (wiimote && wiimote->GetBD() == address)
+    return wiimote;
+
+  return nullptr;
 }
 
 WiimoteDevice* BluetoothEmu::AccessWiimote(u16 connection_handle)
 {
-  for (auto& wiimote : m_wiimotes)
-  {
-    if (wiimote.GetConnectionHandle() == connection_handle)
-      return &wiimote;
-  }
+  const auto wiimote =
+      AccessWiimoteByIndex(GetWiimoteNumberFromConnectionHandle(connection_handle));
+
+  if (wiimote)
+    return wiimote;
 
   ERROR_LOG(IOS_WIIMOTE, "Can't find Wiimote by connection handle %02x", connection_handle);
   PanicAlertT("Can't find Wii Remote by connection handle %02x", connection_handle);
+
   return nullptr;
 }
 
-void BluetoothEmu::DisplayDisconnectMessage(const int wiimote_number, const int reason)
-{
-  // TODO: If someone wants to be fancy we could also figure out what the values for pDiscon->reason
-  // mean
-  // and display things like "Wii Remote %i disconnected due to inactivity!" etc.
-  Core::DisplayMessage(
-      fmt::format("Wii Remote {} disconnected by emulated software", wiimote_number), 3000);
-}
 }  // namespace Device
 }  // namespace IOS::HLE

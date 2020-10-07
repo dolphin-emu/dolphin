@@ -1,13 +1,15 @@
 add_library(main SHARED
-  AndroidCommon/AndroidCommon.cpp
-  AndroidCommon/IDCache.cpp
   GameList/GameFile.cpp
+  GameList/GameFile.h
   GameList/GameFileCache.cpp
+  IniFile.cpp
   MainAndroid.cpp
+  NativeConfig.cpp
 )
 
 target_link_libraries(main
 PRIVATE
+  androidcommon
   core
   uicommon
 )
@@ -30,3 +32,5 @@ file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/R
 file(REMOVE_RECURSE ${CMAKE_SOURCE_DIR}/Source/Android/app/src/main/assets/Sys/Themes/)
 
 set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} main)
+
+add_subdirectory(AndroidCommon)

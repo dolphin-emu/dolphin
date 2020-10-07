@@ -9,6 +9,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteCommon/WiimoteHid.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
 
 class PointerWrap;
@@ -23,89 +24,129 @@ class BluetoothEmu;
 class WiimoteDevice
 {
 public:
-  WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd, bool ready = false);
+  using ClassType = std::array<u8, HCI_CLASS_SIZE>;
+  using FeaturesType = std::array<u8, HCI_FEATURES_SIZE>;
+  using LinkKeyType = std::array<u8, HCI_KEY_SIZE>;
+
+  WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd);
+  ~WiimoteDevice();
+
+  WiimoteDevice(const WiimoteDevice&) = delete;
+  WiimoteDevice& operator=(const WiimoteDevice&) = delete;
+  WiimoteDevice(WiimoteDevice&&) = delete;
+  WiimoteDevice& operator=(WiimoteDevice&&) = delete;
+
+  void Reset();
+
+  // Called every BluetoothEmu::Update.
+  void Update();
+
+  // Called every ~200hz.
+  void UpdateInput();
 
   void DoState(PointerWrap& p);
 
-  // ugly Host handling....
-  // we really have to clean all this code
+  bool IsInquiryScanEnabled() const;
+  bool IsPageScanEnabled() const;
 
-  bool IsConnected() const { return m_connection_state == ConnectionState::Complete; }
-  bool IsInactive() const { return m_connection_state == ConnectionState::Inactive; }
-  bool LinkChannel();
-  void ResetChannels();
+  u32 GetNumber() const;
+
+  bool IsSourceValid() const;
+  bool IsConnected() const;
+
+  // User-initiated. Produces UI messages.
   void Activate(bool ready);
-  void ExecuteL2capCmd(u8* ptr, u32 size);                      // From CPU
-  void ReceiveL2capData(u16 scid, const void* data, u32 size);  // From Wiimote
 
-  void EventConnectionAccepted();
-  void EventDisconnect();
-  bool EventPagingChanged(u8 page_mode) const;
+  // From CPU
+  void ExecuteL2capCmd(u8* ptr, u32 size);
+  // From Wiimote
+  void InterruptDataInputCallback(u8 hid_type, const u8* data, u32 size);
+
+  bool EventConnectionAccept();
+  bool EventConnectionRequest();
+  void EventDisconnect(u8 reason);
+
+  // nullptr may be passed to disable the remote.
+  void SetSource(WiimoteCommon::HIDWiimote*);
 
   const bdaddr_t& GetBD() const { return m_bd; }
-  const u8* GetClass() const { return m_uclass; }
-  u16 GetConnectionHandle() const { return m_connection_handle; }
-  const u8* GetFeatures() const { return m_features; }
   const char* GetName() const { return m_name.c_str(); }
   u8 GetLMPVersion() const { return m_lmp_version; }
   u16 GetLMPSubVersion() const { return m_lmp_subversion; }
-  u16 GetManufactorID() const { return 0x000F; }  // Broadcom Corporation
-  const u8* GetLinkKey() const { return m_link_key; }
+  // Broadcom Corporation
+  u16 GetManufactorID() const { return 0x000F; }
+  const ClassType& GetClass() const { return m_class; }
+  const FeaturesType& GetFeatures() const { return m_features; }
+  const LinkKeyType& GetLinkKey() const { return m_link_key; }
 
 private:
-  enum class ConnectionState
+  enum class BasebandState
   {
-    Inactive = -1,
-    Ready,
+    Inactive,
+    RequestConnection,
+    Complete,
+  };
+
+  enum class HIDState
+  {
+    Inactive,
     Linking,
-    Complete
   };
-
-  struct HIDChannelState
-  {
-    bool connected = false;
-    bool connected_wait = false;
-    bool config = false;
-    bool config_wait = false;
-  };
-
-  ConnectionState m_connection_state;
-
-  HIDChannelState m_hid_control_channel;
-  HIDChannelState m_hid_interrupt_channel;
-
-  // STATE_TO_SAVE
-  bdaddr_t m_bd;
-  u16 m_connection_handle;
-  u8 m_uclass[HCI_CLASS_SIZE];
-  u8 m_features[HCI_FEATURES_SIZE];
-  u8 m_lmp_version;
-  u16 m_lmp_subversion;
-  u8 m_link_key[HCI_KEY_SIZE];
-  std::string m_name;
-  Device::BluetoothEmu* m_host;
 
   struct SChannel
   {
-    u16 scid;
-    u16 dcid;
-    u16 psm;
+    enum class State
+    {
+      Inactive,
+      ConfigurationPending,
+      Complete,
+    };
 
-    u16 mtu;
-    u16 flush_time_out;
+    SChannel();
+
+    bool IsAccepted() const;
+    bool IsRemoteConfigured() const;
+    bool IsComplete() const;
+
+    State state = State::Inactive;
+    u16 psm;
+    u16 remote_cid;
+    u16 remote_mtu = 0;
   };
 
-  typedef std::map<u32, SChannel> CChannelMap;
-  CChannelMap m_channel;
+  using ChannelMap = std::map<u16, SChannel>;
 
-  bool DoesChannelExist(u16 scid) const { return m_channel.find(scid) != m_channel.end(); }
+  Device::BluetoothEmu* m_host;
+  WiimoteCommon::HIDWiimote* m_hid_source = nullptr;
+
+  // State to save:
+  BasebandState m_baseband_state = BasebandState::Inactive;
+  HIDState m_hid_state = HIDState::Inactive;
+  bdaddr_t m_bd;
+  ClassType m_class;
+  FeaturesType m_features;
+  u8 m_lmp_version;
+  u16 m_lmp_subversion;
+  LinkKeyType m_link_key;
+  std::string m_name;
+  ChannelMap m_channels;
+  u8 m_connection_request_counter = 0;
+
+  void SetBasebandState(BasebandState);
+
+  const SChannel* FindChannelWithPSM(u16 psm) const;
+  SChannel* FindChannelWithPSM(u16 psm);
+
+  bool LinkChannel(u16 psm);
+  u16 GenerateChannelID() const;
+
+  bool DoesChannelExist(u16 scid) const { return m_channels.count(scid) != 0; }
   void SendCommandToACL(u8 ident, u8 code, u8 command_length, u8* command_data);
 
   void SignalChannel(u8* data, u32 size);
 
-  void SendConnectionRequest(u16 scid, u16 psm);
-  void SendConfigurationRequest(u16 scid, u16 mtu = 0, u16 flush_time_out = 0);
-  void SendDisconnectRequest(u16 scid);
+  void SendConnectionRequest(u16 psm);
+  void SendConfigurationRequest(u16 cid, u16 mtu, u16 flush_time_out);
 
   void ReceiveConnectionReq(u8 ident, u8* data, u32 size);
   void ReceiveConnectionResponse(u8 ident, u8* data, u32 size);
@@ -113,8 +154,6 @@ private:
   void ReceiveConfigurationReq(u8 ident, u8* data, u32 size);
   void ReceiveConfigurationResponse(u8 ident, u8* data, u32 size);
 
-  // some new ugly stuff
-  // should be inside the plugin
   void HandleSDP(u16 cid, u8* data, u32 size);
   void SDPSendServiceSearchResponse(u16 cid, u16 transaction_id, u8* service_search_pattern,
                                     u16 maximum_service_record_count);

@@ -5,12 +5,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
-import androidx.fragment.app.FragmentActivity;
 import androidx.core.content.ContextCompat;
-
-import android.widget.Toast;
+import androidx.fragment.app.FragmentActivity;
 
 import org.dolphinemu.dolphinemu.R;
 
@@ -68,7 +67,6 @@ public class PermissionsHandler
             .setNegativeButton(android.R.string.cancel, (dialogInterface, i) ->
                     Toast.makeText(activity, R.string.write_permission_needed, Toast.LENGTH_SHORT)
                             .show())
-            .create()
             .show();
   }
 }

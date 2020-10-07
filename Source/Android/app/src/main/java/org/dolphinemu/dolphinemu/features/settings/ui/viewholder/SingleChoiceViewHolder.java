@@ -26,8 +26,8 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
   @Override
   protected void findViews(View root)
   {
-    mTextSettingName = (TextView) root.findViewById(R.id.text_setting_name);
-    mTextSettingDescription = (TextView) root.findViewById(R.id.text_setting_description);
+    mTextSettingName = root.findViewById(R.id.text_setting_name);
+    mTextSettingDescription = root.findViewById(R.id.text_setting_description);
   }
 
   @Override
@@ -44,7 +44,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     else if (item instanceof SingleChoiceSetting)
     {
       SingleChoiceSetting setting = (SingleChoiceSetting) item;
-      int selected = setting.getSelectedValue();
+      int selected = setting.getSelectedValue(getAdapter().getSettings());
       Resources resMgr = mTextSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getChoicesId());
       int[] values = resMgr.getIntArray(setting.getValuesId());
@@ -60,7 +60,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     {
       StringSingleChoiceSetting setting = (StringSingleChoiceSetting) item;
       String[] choices = setting.getChoicesId();
-      int valueIndex = setting.getSelectValueIndex();
+      int valueIndex = setting.getSelectValueIndex(getAdapter().getSettings());
       if (valueIndex != -1)
         mTextSettingDescription.setText(choices[valueIndex]);
     }
@@ -68,7 +68,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
     {
       SingleChoiceSettingDynamicDescriptions setting =
               (SingleChoiceSettingDynamicDescriptions) item;
-      int selected = setting.getSelectedValue();
+      int selected = setting.getSelectedValue(getAdapter().getSettings());
       Resources resMgr = mTextSettingDescription.getContext().getResources();
       String[] choices = resMgr.getStringArray(setting.getDescriptionChoicesId());
       int[] values = resMgr.getIntArray(setting.getDescriptionValuesId());
@@ -80,11 +80,19 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
         }
       }
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 
   @Override
   public void onClick(View clicked)
   {
+    if (!mItem.isEditable())
+    {
+      showNotRuntimeEditableError();
+      return;
+    }
+
     int position = getAdapterPosition();
     if (mItem instanceof SingleChoiceSetting)
     {
@@ -99,5 +107,7 @@ public final class SingleChoiceViewHolder extends SettingViewHolder
       getAdapter().onSingleChoiceDynamicDescriptionsClick(
               (SingleChoiceSettingDynamicDescriptions) mItem, position);
     }
+
+    setStyle(mTextSettingName, mItem);
   }
 }

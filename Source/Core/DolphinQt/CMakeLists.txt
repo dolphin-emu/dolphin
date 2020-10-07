@@ -1,8 +1,8 @@
 if (NOT Qt5_DIR AND MSVC)
   if(_M_ARM_64)
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_arm64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_arm64/lib/cmake/Qt5")
   else()
-    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.14.1/msvc2019_64/lib/cmake/Qt5")
+    set(Qt5_DIR "${CMAKE_SOURCE_DIR}/Externals/Qt/Qt5.15.0/msvc2019_64/lib/cmake/Qt5")
   endif()
 endif()
 
@@ -37,6 +37,8 @@ add_executable(dolphin-emu
   MainWindow.h
   MenuBar.cpp
   MenuBar.h
+  NKitWarningDialog.cpp
+  NKitWarningDialog.h
   RenderWidget.cpp
   RenderWidget.h
   Resources.cpp
@@ -57,10 +59,14 @@ add_executable(dolphin-emu
   Config/CheatCodeEditor.h
   Config/CheatWarningWidget.cpp
   Config/CheatWarningWidget.h
+  Config/ControllerInterface/DualShockUDPClientAddServerDialog.cpp
+  Config/ControllerInterface/DualShockUDPClientAddServerDialog.h
   Config/ControllerInterface/DualShockUDPClientWidget.cpp
   Config/ControllerInterface/DualShockUDPClientWidget.h
   Config/ControllerInterface/ControllerInterfaceWindow.cpp
   Config/ControllerInterface/ControllerInterfaceWindow.h
+  Config/ControllerInterface/ServerStringValidator.cpp
+  Config/ControllerInterface/ServerStringValidator.h
   Config/ControllersWindow.cpp
   Config/ControllersWindow.h
   Config/FilesystemWidget.cpp
@@ -243,6 +249,8 @@ add_executable(dolphin-emu
   QtUtils/ParallelProgressDialog.h
   QtUtils/ImageConverter.cpp
   QtUtils/ImageConverter.h
+  QtUtils/UTF8CodePointCountValidator.cpp
+  QtUtils/UTF8CodePointCountValidator.h
   QtUtils/WindowActivationEventFilter.cpp
   QtUtils/WindowActivationEventFilter.h
   QtUtils/WinIconHelper.cpp
@@ -467,8 +475,8 @@ if(APPLE)
   include(DolphinPostprocessBundle)
   dolphin_postprocess_bundle(dolphin-emu)
   # Fix rpath
-  add_custom_command(TARGET dolphin-emu 
-    POST_BUILD COMMAND 
+  add_custom_command(TARGET dolphin-emu
+    POST_BUILD COMMAND
     ${CMAKE_INSTALL_NAME_TOOL} -add_rpath "@executable_path/../Frameworks/"
     $<TARGET_FILE:dolphin-emu>)
 else()

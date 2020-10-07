@@ -621,7 +621,7 @@ UIDSys::UIDSys(std::shared_ptr<HLE::FS::FileSystem> fs) : m_fs{fs}
   {
     while (true)
     {
-      const std::pair<u32, u64> entry = ReadUidSysEntry(*file);
+      std::pair<u32, u64> entry = ReadUidSysEntry(*file);
       if (!entry.first && !entry.second)
         break;
 
@@ -766,7 +766,7 @@ std::map<std::string, CertReader> ParseCertChain(const std::vector<u8>& chain)
       return certs;
 
     processed += cert_reader.GetBytes().size();
-    const std::string name = cert_reader.GetName();
+    std::string name = cert_reader.GetName();
     certs.emplace(std::move(name), std::move(cert_reader));
   }
   return certs;

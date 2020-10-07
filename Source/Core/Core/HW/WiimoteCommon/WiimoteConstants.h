@@ -8,11 +8,10 @@
 
 namespace WiimoteCommon
 {
+// Note this size includes the HID header.
+// e.g. 0xa1 0x3d 0x...
+// TODO: Kill/rename this constant so it's more clear.
 constexpr u8 MAX_PAYLOAD = 23;
-
-// Based on testing, old WiiLi.org docs, and WiiUse library:
-// Max battery level seems to be 0xc8 (decimal 200)
-constexpr u8 MAX_BATTERY_LEVEL = 0xc8;
 
 enum class InputReportID : u8
 {

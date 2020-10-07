@@ -1,6 +1,5 @@
 #pragma once
 
-#include <chrono>
 #include <utility>
 
 #include <QObject>
@@ -35,19 +34,7 @@ public:
   void SetMinimum(int minimum) { emit SetMinimumSignal(minimum); }
   void SetMinimumDuration(int ms) { emit SetMinimumDurationSignal(ms); }
   void SetRange(int minimum, int maximum) { emit SetRangeSignal(minimum, maximum); }
-
-  // Can be called from any thread, but only from one thread at a time
-  void SetValue(int progress)
-  {
-    // HACK: To avoid the https://bugreports.qt.io/browse/QTBUG-10561 stack overflow,
-    // limit how often QProgressDialog::setValue can run
-    const auto current_time = std::chrono::steady_clock::now();
-    if (current_time - m_last_setvalue_time >= std::chrono::milliseconds(50))
-    {
-      m_last_setvalue_time = current_time;
-      emit SetValueSignal(progress);
-    }
-  }
+  void SetValue(int progress) { emit SetValueSignal(progress); }
 
   // Can be called from any thread
   bool WasCanceled() { return m_was_cancelled.IsSet(); }
@@ -68,6 +55,31 @@ signals:
 
 private slots:
   void OnCancelled() { m_was_cancelled.Set(); }
+
+  void SetValueSlot(int progress)
+  {
+    // Normally we would've been able to just call setValue instead of having this wrapper
+    // around it, but due to the https://bugreports.qt.io/browse/QTBUG-10561 stack overflow,
+    // we can't. Short summary of the stack overflow: setValue calls processEvents,
+    // which calls SetValueSlot if there is another SetValueSlot event in the queue,
+    // which would call setValue if it wasn't for the check below, and so on.
+
+    m_last_received_progress = progress;
+
+    if (m_is_setting_value)
+      return;
+
+    m_is_setting_value = true;
+
+    int last_set_progress;
+    do
+    {
+      last_set_progress = m_last_received_progress;
+      m_dialog.setValue(m_last_received_progress);
+    } while (m_last_received_progress != last_set_progress);
+
+    m_is_setting_value = false;
+  }
 
 private:
   template <typename Func1, typename Func2>
@@ -94,7 +106,9 @@ private:
     ConnectSignal(&ParallelProgressDialog::SetMinimumDurationSignal,
                   &QProgressDialog::setMinimumDuration);
     ConnectSignal(&ParallelProgressDialog::SetRangeSignal, &QProgressDialog::setRange);
-    ConnectSignal(&ParallelProgressDialog::SetValueSignal, &QProgressDialog::setValue);
+
+    QObject::connect(this, &ParallelProgressDialog::SetValueSignal, this,
+                     &ParallelProgressDialog::SetValueSlot);
 
     ConnectSlot(&QProgressDialog::canceled, &ParallelProgressDialog::OnCancelled);
 
@@ -104,5 +118,6 @@ private:
 
   QProgressDialog m_dialog;
   Common::Flag m_was_cancelled;
-  std::chrono::time_point<std::chrono::steady_clock> m_last_setvalue_time;
+  int m_last_received_progress;
+  bool m_is_setting_value = false;
 };

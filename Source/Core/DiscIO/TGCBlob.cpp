@@ -4,59 +4,43 @@
 
 #include "DiscIO/TGCBlob.h"
 
+#include <algorithm>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <vector>
 
 #include "Common/File.h"
 #include "Common/Swap.h"
 
 namespace
 {
-template <typename T>
-struct Interval
-{
-  T start;
-  T length;
-
-  T End() const { return start + length; }
-  bool IsEmpty() const { return length == 0; }
-};
-
-template <typename T>
-void SplitInterval(T split_point, Interval<T> interval, Interval<T>* out_1, Interval<T>* out_2)
-{
-  if (interval.start < split_point)
-    *out_1 = {interval.start, std::min(interval.length, split_point - interval.start)};
-  else
-    *out_1 = {0, 0};
-
-  if (interval.End() > split_point)
-  {
-    *out_2 = {std::max(interval.start, split_point),
-              std::min(interval.length, interval.End() - split_point)};
-  }
-  else
-  {
-    *out_2 = {0, 0};
-  }
-}
-
 u32 SubtractBE32(u32 minuend_be, u32 subtrahend_le)
 {
   return Common::swap32(Common::swap32(minuend_be) - subtrahend_le);
 }
 
-void Replace8(u64 offset, u64 nbytes, u8* out_ptr, u64 replace_offset, u8 replace_value)
+void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, u64 replace_size,
+             const u8* replace_ptr)
 {
-  if (offset <= replace_offset && offset + nbytes > replace_offset)
-    out_ptr[replace_offset - offset] = replace_value;
+  const u64 replace_start = std::max(offset, replace_offset);
+  const u64 replace_end = std::min(offset + size, replace_offset + replace_size);
+
+  if (replace_end > replace_start)
+  {
+    std::copy(replace_ptr + (replace_start - replace_offset),
+              replace_ptr + (replace_end - replace_offset), out_ptr + (replace_start - offset));
+  }
 }
 
-void Replace32(u64 offset, u64 nbytes, u8* out_ptr, u64 replace_offset, u32 replace_value)
+template <typename T>
+void Replace(u64 offset, u64 size, u8* out_ptr, u64 replace_offset, const T& replace_value)
 {
-  for (size_t i = 0; i < sizeof(u32); ++i)
-    Replace8(offset, nbytes, out_ptr, replace_offset + i, reinterpret_cast<u8*>(&replace_value)[i]);
+  static_assert(std::is_trivially_copyable_v<T>);
+
+  const u8* replace_ptr = reinterpret_cast<const u8*>(&replace_value);
+  Replace(offset, size, out_ptr, replace_offset, sizeof(T), replace_ptr);
 }
 }  // namespace
 
@@ -75,70 +59,59 @@ TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
 {
   m_file.Seek(0, SEEK_SET);
   m_file.ReadArray(&m_header, 1);
-  u32 header_size = Common::swap32(m_header.tgc_header_size);
+
   m_size = m_file.GetSize();
-  m_file_area_shift = static_cast<s64>(Common::swap32(m_header.file_area_virtual_offset)) -
-                      Common::swap32(m_header.file_area_real_offset) + header_size;
+
+  const u32 fst_offset = Common::swap32(m_header.fst_real_offset);
+  const u32 fst_size = Common::swap32(m_header.fst_size);
+  m_fst.resize(fst_size);
+  if (!m_file.Seek(fst_offset, SEEK_SET) || !m_file.ReadBytes(m_fst.data(), m_fst.size()))
+    m_fst.clear();
+
+  constexpr size_t FST_ENTRY_SIZE = 12;
+  if (m_fst.size() < FST_ENTRY_SIZE)
+    return;
+
+  // This calculation can overflow, but this is not a problem, because in that case
+  // the old_offset + file_area_shift calculation later also overflows, cancelling it out
+  const u32 file_area_shift = Common::swap32(m_header.file_area_real_offset) -
+                              Common::swap32(m_header.file_area_virtual_offset) -
+                              Common::swap32(m_header.tgc_header_size);
+
+  const size_t claimed_fst_entries = Common::swap32(m_fst.data() + 8);
+  const size_t fst_entries = std::min(claimed_fst_entries, m_fst.size() / FST_ENTRY_SIZE);
+  for (size_t i = 0; i < fst_entries; ++i)
+  {
+    // If this is a file (as opposed to a directory)...
+    if (m_fst[i * FST_ENTRY_SIZE] == 0)
+    {
+      // ...change its offset
+      const u32 old_offset = Common::swap32(m_fst.data() + i * FST_ENTRY_SIZE + 4);
+      const u32 new_offset = Common::swap32(old_offset + file_area_shift);
+      Replace<u32>(0, m_fst.size(), m_fst.data(), i * FST_ENTRY_SIZE + 4, new_offset);
+    }
+  }
 }
 
 u64 TGCFileReader::GetDataSize() const
 {
-  return m_size + Common::swap32(m_header.file_area_virtual_offset) -
-         Common::swap32(m_header.file_area_real_offset);
+  return m_size - Common::swap32(m_header.tgc_header_size);
 }
 
 bool TGCFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
-{
-  Interval<u64> first_part = {0, 0};
-  Interval<u64> empty_part = {0, 0};
-  Interval<u64> file_part = {0, 0};
-
-  const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
-  const u64 split_point = Common::swap32(m_header.file_area_real_offset) - tgc_header_size;
-  SplitInterval(split_point, Interval<u64>{offset, nbytes}, &first_part, &file_part);
-  if (m_file_area_shift > tgc_header_size)
-  {
-    SplitInterval(static_cast<u64>(m_file_area_shift - tgc_header_size), file_part, &empty_part,
-                  &file_part);
-  }
-
-  // Offsets in the initial areas of the disc are unshifted
-  // (except for InternalRead's constant shift by tgc_header_size).
-  if (!first_part.IsEmpty())
-  {
-    if (!InternalRead(first_part.start, first_part.length, out_ptr + (first_part.start - offset)))
-      return false;
-  }
-
-  // The data between the file area and the area that precedes it is treated as all zeroes.
-  // The game normally won't attempt to access this part of the virtual disc, but let's not return
-  // an error if it gets accessed, in case someone wants to copy or hash the whole virtual disc.
-  if (!empty_part.IsEmpty())
-    std::fill_n(out_ptr + (empty_part.start - offset), empty_part.length, 0);
-
-  // Offsets in the file area are shifted by m_file_area_shift.
-  if (!file_part.IsEmpty())
-  {
-    if (!InternalRead(file_part.start - m_file_area_shift, file_part.length,
-                      out_ptr + (file_part.start - offset)))
-    {
-      return false;
-    }
-  }
-
-  return true;
-}
-
-bool TGCFileReader::InternalRead(u64 offset, u64 nbytes, u8* out_ptr)
 {
   const u32 tgc_header_size = Common::swap32(m_header.tgc_header_size);
 
   if (m_file.Seek(offset + tgc_header_size, SEEK_SET) && m_file.ReadBytes(out_ptr, nbytes))
   {
-    Replace32(offset, nbytes, out_ptr, 0x420,
-              SubtractBE32(m_header.dol_real_offset, tgc_header_size));
-    Replace32(offset, nbytes, out_ptr, 0x424,
-              SubtractBE32(m_header.fst_real_offset, tgc_header_size));
+    const u32 replacement_dol_offset = SubtractBE32(m_header.dol_real_offset, tgc_header_size);
+    const u32 replacement_fst_offset = SubtractBE32(m_header.fst_real_offset, tgc_header_size);
+
+    Replace<u32>(offset, nbytes, out_ptr, 0x0420, replacement_dol_offset);
+    Replace<u32>(offset, nbytes, out_ptr, 0x0424, replacement_fst_offset);
+    Replace(offset, nbytes, out_ptr, Common::swap32(replacement_fst_offset), m_fst.size(),
+            m_fst.data());
+
     return true;
   }
 

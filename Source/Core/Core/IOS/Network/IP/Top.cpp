@@ -86,13 +86,12 @@ static constexpr u32 inet_addr(u8 a, u8 b, u8 c, u8 d)
 
 static int inet_pton(const char* src, unsigned char* dst)
 {
-  int saw_digit, octets;
+  int saw_digit = 0;
+  int octets = 0;
+  unsigned char tmp[4]{};
+  unsigned char* tp = tmp;
   char ch;
-  unsigned char tmp[4], *tp;
 
-  saw_digit = 0;
-  octets = 0;
-  *(tp = tmp) = 0;
   while ((ch = *src++) != '\0')
   {
     if (ch >= '0' && ch <= '9')
@@ -927,8 +926,9 @@ IPCCommandResult NetIPTop::HandleRecvFromRequest(const IOCtlVRequest& request)
 IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& request)
 {
   addrinfo hints;
+  const bool hints_valid = request.in_vectors.size() > 2 && request.in_vectors[2].size;
 
-  if (request.in_vectors.size() > 2 && request.in_vectors[2].size)
+  if (hints_valid)
   {
     hints.ai_flags = Memory::Read_U32(request.in_vectors[2].address);
     hints.ai_family = Memory::Read_U32(request.in_vectors[2].address + 0x4);
@@ -959,9 +959,7 @@ IPCCommandResult NetIPTop::HandleGetAddressInfoRequest(const IOCtlVRequest& requ
   }
 
   addrinfo* result = nullptr;
-  int ret = getaddrinfo(
-      pNodeName, pServiceName,
-      (request.in_vectors.size() > 2 && request.in_vectors[2].size) ? &hints : nullptr, &result);
+  int ret = getaddrinfo(pNodeName, pServiceName, hints_valid ? &hints : nullptr, &result);
   u32 addr = request.io_vectors[0].address;
   u32 sockoffset = addr + 0x460;
   if (ret == 0)

@@ -95,7 +95,8 @@ bool InputConfig::LoadConfig(bool isGC)
 #endif
   }
 
-  if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini"))
+  if (inifile.Load(File::GetUserPath(D_CONFIG_IDX) + m_ini_name + ".ini") &&
+      !inifile.GetSections().empty())
   {
     int n = 0;
     for (auto& controller : m_controllers)

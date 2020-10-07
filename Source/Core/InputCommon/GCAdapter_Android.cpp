@@ -33,7 +33,7 @@ static jclass s_adapter_class;
 
 static bool s_detected = false;
 static int s_fd = 0;
-static u8 s_controller_type[SerialInterface::MAX_SI_CHANNELS] = {
+static std::array<u8, SerialInterface::MAX_SI_CHANNELS> s_controller_type = {
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE,
     ControllerTypes::CONTROLLER_NONE, ControllerTypes::CONTROLLER_NONE};
 static u8 s_controller_rumble[4];
@@ -96,7 +96,7 @@ static void Write()
     if (write_size)
     {
       jbyteArray jrumble_array = env->NewByteArray(5);
-      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, NULL);
+      jbyte* jrumble = env->GetByteArrayElements(jrumble_array, nullptr);
 
       {
         std::lock_guard<std::mutex> lk(s_write_mutex);
@@ -129,7 +129,7 @@ static void Read()
 
   jfieldID payload_field = env->GetStaticFieldID(s_adapter_class, "controller_payload", "[B");
   jobject payload_object = env->GetStaticObjectField(s_adapter_class, payload_field);
-  jbyteArray* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
+  auto* java_controller_payload = reinterpret_cast<jbyteArray*>(&payload_object);
 
   // Get function pointers
   jmethodID getfd_func = env->GetStaticMethodID(s_adapter_class, "GetFD", "()I");
@@ -225,8 +225,7 @@ static void Reset()
   if (s_read_adapter_thread_running.TestAndClear())
     s_read_adapter_thread.join();
 
-  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
-    s_controller_type[i] = ControllerTypes::CONTROLLER_NONE;
+  s_controller_type.fill(ControllerTypes::CONTROLLER_NONE);
 
   s_detected = false;
   s_fd = 0;
@@ -260,7 +259,7 @@ GCPadStatus Input(int chan)
     return {};
 
   int payload_size = 0;
-  std::array<u8, 37> controller_payload_copy;
+  std::array<u8, 37> controller_payload_copy{};
 
   {
     std::lock_guard<std::mutex> lk(s_read_mutex);

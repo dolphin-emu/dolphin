@@ -6,6 +6,7 @@
 #include <thread>
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
+#include "Common/Thread.h"
 
 namespace VideoCommon
 {
@@ -192,6 +193,8 @@ void AsyncShaderCompiler::WorkerThreadExit(void* param)
 
 void AsyncShaderCompiler::WorkerThreadEntryPoint(void* param)
 {
+  Common::SetCurrentThreadName("AsyncShaderCompiler Worker");
+
   // Initialize worker thread with backend-specific method.
   if (!WorkerThreadInitWorkerThread(param))
   {

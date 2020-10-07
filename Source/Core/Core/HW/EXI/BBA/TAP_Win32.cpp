@@ -35,7 +35,7 @@ bool IsTAPDevice(const TCHAR* guid)
     TCHAR net_cfg_instance_id[256];
     DWORD data_type;
 
-    len = sizeof(enum_name);
+    len = _countof(enum_name);
     status = RegEnumKeyEx(netcard_key, i, enum_name, &len, nullptr, nullptr, nullptr, nullptr);
 
     if (status == ERROR_NO_MORE_ITEMS)
@@ -43,7 +43,8 @@ bool IsTAPDevice(const TCHAR* guid)
     else if (status != ERROR_SUCCESS)
       return false;
 
-    _sntprintf(unit_string, sizeof(unit_string), _T("%s\\%s"), ADAPTER_KEY, enum_name);
+    _sntprintf(unit_string, _countof(unit_string), _T("%s\\%s"), ADAPTER_KEY, enum_name);
+    unit_string[_countof(unit_string) - 1] = _T('\0');
 
     status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, unit_string, 0, KEY_READ, &unit_key);
 
@@ -110,14 +111,15 @@ bool GetGUIDs(std::vector<std::basic_string<TCHAR>>& guids)
     DWORD name_type;
     const TCHAR name_string[] = _T("Name");
 
-    len = sizeof(enum_name);
+    len = _countof(enum_name);
     status = RegEnumKeyEx(control_net_key, i, enum_name, &len, nullptr, nullptr, nullptr, nullptr);
 
     if (status != ERROR_SUCCESS)
       continue;
 
-    _sntprintf(connection_string, sizeof(connection_string), _T("%s\\%s\\Connection"),
+    _sntprintf(connection_string, _countof(connection_string), _T("%s\\%s\\Connection"),
                NETWORK_CONNECTIONS_KEY, enum_name);
+    connection_string[_countof(connection_string) - 1] = _T('\0');
 
     status = RegOpenKeyEx(HKEY_LOCAL_MACHINE, connection_string, 0, KEY_READ, &connection_key);
 
@@ -196,7 +198,7 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   }
 
   /* get driver version info */
-  ULONG info[3];
+  ULONG info[3]{};
   if (DeviceIoControl(mHAdapter, TAP_IOCTL_GET_VERSION, &info, sizeof(info), &info, sizeof(info),
                       &len, nullptr))
   {

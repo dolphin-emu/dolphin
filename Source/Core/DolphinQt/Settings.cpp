@@ -8,6 +8,7 @@
 #include <QDir>
 #include <QFile>
 #include <QFileInfo>
+#include <QFontDatabase>
 #include <QSize>
 
 #include "AudioCommon/AudioCommon.h"
@@ -503,8 +504,7 @@ void Settings::SetDebugFont(QFont font)
 
 QFont Settings::GetDebugFont() const
 {
-  QFont default_font = QFont(QStringLiteral("Monospace"));
-  default_font.setStyleHint(QFont::TypeWriter);
+  QFont default_font = QFont(QFontDatabase::systemFont(QFontDatabase::FixedFont).family());
 
   return GetQSettings().value(QStringLiteral("debugger/font"), default_font).value<QFont>();
 }
@@ -529,14 +529,14 @@ void Settings::SetAnalyticsEnabled(bool enabled)
   if (enabled == IsAnalyticsEnabled())
     return;
 
-  SConfig::GetInstance().m_analytics_enabled = enabled;
+  Config::SetBase(Config::MAIN_ANALYTICS_ENABLED, enabled);
 
   emit AnalyticsToggled(enabled);
 }
 
 bool Settings::IsAnalyticsEnabled() const
 {
-  return SConfig::GetInstance().m_analytics_enabled;
+  return Config::Get(Config::MAIN_ANALYTICS_ENABLED);
 }
 
 void Settings::SetToolBarVisible(bool visible)

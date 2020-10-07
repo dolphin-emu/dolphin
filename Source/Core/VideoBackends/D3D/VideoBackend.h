@@ -21,6 +21,8 @@ public:
 
   void InitBackendInfo() override;
 
+  static constexpr const char* NAME = "D3D";
+
 private:
   void FillBackendInfo();
 };

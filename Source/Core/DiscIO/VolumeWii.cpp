@@ -171,11 +171,9 @@ bool VolumeWii::Read(u64 offset, u64 length, u8* buffer, const Partition& partit
     return false;
   const PartitionDetails& partition_details = it->second;
 
-  if (m_reader->SupportsReadWiiDecrypted())
-  {
-    return m_reader->ReadWiiDecrypted(offset, length, buffer,
-                                      partition.offset + *partition_details.data_offset);
-  }
+  const u64 partition_data_offset = partition.offset + *partition_details.data_offset;
+  if (m_reader->SupportsReadWiiDecrypted(offset, length, partition_data_offset))
+    return m_reader->ReadWiiDecrypted(offset, length, buffer, partition_data_offset);
 
   if (!m_encrypted)
   {
@@ -301,10 +299,6 @@ u64 VolumeWii::PartitionOffsetToRawOffset(u64 offset, const Partition& partition
 
 std::string VolumeWii::GetGameTDBID(const Partition& partition) const
 {
-  // Don't return an ID for Datel discs
-  if (m_game_partition == PARTITION_NONE)
-    return "";
-
   return GetGameID(partition);
 }
 
@@ -338,6 +332,11 @@ Platform VolumeWii::GetVolumeType() const
   return Platform::WiiDisc;
 }
 
+bool VolumeWii::IsDatelDisc() const
+{
+  return m_game_partition == PARTITION_NONE;
+}
+
 BlobType VolumeWii::GetBlobType() const
 {
   return m_reader->GetBlobType();
@@ -361,6 +360,33 @@ u64 VolumeWii::GetRawSize() const
 const BlobReader& VolumeWii::GetBlobReader() const
 {
   return *m_reader;
+}
+
+std::array<u8, 20> VolumeWii::GetSyncHash() const
+{
+  mbedtls_sha1_context context;
+  mbedtls_sha1_init(&context);
+  mbedtls_sha1_starts_ret(&context);
+
+  // Disc header
+  ReadAndAddToSyncHash(&context, 0, 0x80, PARTITION_NONE);
+
+  // Region code
+  ReadAndAddToSyncHash(&context, 0x4E000, 4, PARTITION_NONE);
+
+  // The data offset of the game partition - an important factor for disc drive timings
+  const u64 data_offset = PartitionOffsetToRawOffset(0, GetGamePartition());
+  mbedtls_sha1_update_ret(&context, reinterpret_cast<const u8*>(&data_offset), sizeof(data_offset));
+
+  // TMD
+  AddTMDToSyncHash(&context, GetGamePartition());
+
+  // Game partition contents
+  AddGamePartitionToSyncHash(&context);
+
+  std::array<u8, 20> hash;
+  mbedtls_sha1_finish_ret(&context, hash.data());
+  return hash;
 }
 
 bool VolumeWii::CheckH3TableIntegrity(const Partition& partition) const
@@ -570,17 +596,17 @@ bool VolumeWii::EncryptGroup(
     encryption_futures[i] = std::async(
         std::launch::async,
         [&unencrypted_data, &unencrypted_hashes, &aes_context, &out](size_t start, size_t end) {
-          for (size_t i = start; i < end; ++i)
+          for (size_t j = start; j < end; ++j)
           {
-            u8* out_ptr = out->data() + i * BLOCK_TOTAL_SIZE;
+            u8* out_ptr = out->data() + j * BLOCK_TOTAL_SIZE;
 
             u8 iv[16] = {};
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_HEADER_SIZE, iv,
-                                  reinterpret_cast<u8*>(&unencrypted_hashes[i]), out_ptr);
+                                  reinterpret_cast<u8*>(&unencrypted_hashes[j]), out_ptr);
 
             std::memcpy(iv, out_ptr + 0x3D0, sizeof(iv));
             mbedtls_aes_crypt_cbc(&aes_context, MBEDTLS_AES_ENCRYPT, BLOCK_DATA_SIZE, iv,
-                                  unencrypted_data[i].data(), out_ptr + BLOCK_HEADER_SIZE);
+                                  unencrypted_data[j].data(), out_ptr + BLOCK_HEADER_SIZE);
           }
         },
         i * BLOCKS_PER_GROUP / threads, (i + 1) * BLOCKS_PER_GROUP / threads);

@@ -247,7 +247,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       continue;
     }
 
-    char temp[256];
+    char temp[256]{};
     sscanf(line, "%255s", temp);
 
     if (strcmp(temp, "UNUSED") == 0)

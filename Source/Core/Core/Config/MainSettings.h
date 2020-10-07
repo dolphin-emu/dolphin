@@ -87,6 +87,7 @@ extern const Info<bool> MAIN_CUSTOM_RTC_ENABLE;
 extern const Info<u32> MAIN_CUSTOM_RTC_VALUE;
 extern const Info<bool> MAIN_AUTO_DISC_CHANGE;
 extern const Info<bool> MAIN_ALLOW_SD_WRITES;
+extern const Info<bool> MAIN_ENABLE_SAVESTATES;
 
 // Main.DSP
 
@@ -126,4 +127,16 @@ extern const Info<bool> MAIN_NETWORK_SSL_DUMP_WRITE;
 extern const Info<bool> MAIN_NETWORK_SSL_VERIFY_CERTIFICATES;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_ROOT_CA;
 extern const Info<bool> MAIN_NETWORK_SSL_DUMP_PEER_CERT;
+
+// Main.Interface
+
+extern const Info<bool> MAIN_USE_PANIC_HANDLERS;
+extern const Info<bool> MAIN_OSD_MESSAGES;
+extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
+
+// Main.Analytics
+
+extern const Info<std::string> MAIN_ANALYTICS_ID;
+extern const Info<bool> MAIN_ANALYTICS_ENABLED;
+extern const Info<bool> MAIN_ANALYTICS_PERMISSION_ASKED;
 }  // namespace Config

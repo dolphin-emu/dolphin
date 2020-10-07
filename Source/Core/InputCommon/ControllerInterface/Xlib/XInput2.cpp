@@ -175,6 +175,11 @@ KeyboardMouse::KeyboardMouse(Window window, int opcode, int pointer, int keyboar
       delete temp_key;
   }
 
+  // Add combined left/right modifiers with consistent naming across platforms.
+  AddCombinedInput("Alt", {"Alt_L", "Alt_R"});
+  AddCombinedInput("Shift", {"Shift_L", "Shift_R"});
+  AddCombinedInput("Ctrl", {"Control_L", "Control_R"});
+
   // Mouse Buttons
   for (int i = 0; i < 32; i++)
     AddInput(new Button(i, &m_state.buttons));

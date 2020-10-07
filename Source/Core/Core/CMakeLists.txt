@@ -37,6 +37,7 @@ add_library(core
   PatchEngine.h
   State.cpp
   State.h
+  SyncIdentifier.h
   SysConf.cpp
   SysConf.h
   TitleDatabase.cpp
@@ -226,6 +227,8 @@ add_library(core
   HW/GCMemcard/GCMemcardDirectory.h
   HW/GCMemcard/GCMemcardRaw.cpp
   HW/GCMemcard/GCMemcardRaw.h
+  HW/GCMemcard/GCMemcardUtils.cpp
+  HW/GCMemcard/GCMemcardUtils.h
   HW/GCPad.cpp
   HW/GCPad.h
   HW/GCPadEmu.cpp
@@ -566,6 +569,7 @@ PUBLIC
   inputcommon
   ${MBEDTLS_LIBRARIES}
   pugixml
+  RangeSet::RangeSet
   sfml-network
   sfml-system
   videonull
