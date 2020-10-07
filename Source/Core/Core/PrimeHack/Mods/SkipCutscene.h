@@ -32,6 +32,14 @@ public:
         add_return_one(0x800bdb9c);
       }
       break;
+    case Game::PRIME_2_GCN:
+      if (region == Region::NTSC) {
+        add_return_one(0x80142340);
+      }
+      else if (region == Region::PAL) {
+        add_return_one(0x8014257c);
+      }
+      break;
     case Game::PRIME_3:
       if (region == Region::NTSC) {
         add_return_one(0x800b9f30);

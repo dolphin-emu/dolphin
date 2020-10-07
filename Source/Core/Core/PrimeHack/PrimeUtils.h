@@ -20,6 +20,7 @@ u16 read16(u32 addr);
 u32 read32(u32 addr);
 u32 readi(u32 addr);
 u64 read64(u32 addr);
+float readf32(u32 addr);
 void write8(u8 var, u32 addr);
 void write16(u16 var, u32 addr);
 void write32(u32 var, u32 addr);

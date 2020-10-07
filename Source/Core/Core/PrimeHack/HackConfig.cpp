@@ -168,7 +168,7 @@ void UpdateHackSettings() {
   double camera, cursor, fov;
   bool invertx, inverty;
 
-  if (hack_mgr.get_active_game() == Game::PRIME_1_GCN)
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN)
     std::tie<double, double, double, bool, bool>(camera, cursor, fov, invertx, inverty) =
       Pad::PrimeSettings();
   else
@@ -223,7 +223,7 @@ void SetInvertedX(bool inverted) {
 }
 
 double GetHorizontalAxis() {
-  if (hack_mgr.get_active_game() == Game::PRIME_1_GCN) {
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     if (Pad::PrimeUseController()) {
       return std::get<0>(Pad::GetPrimeStickXY());
     } 
@@ -236,7 +236,7 @@ double GetHorizontalAxis() {
 }
 
 double GetVerticalAxis() {
-  if (hack_mgr.get_active_game() == Game::PRIME_1_GCN) {
+  if (hack_mgr.get_active_game() >= Game::PRIME_1_GCN) {
     if (Pad::PrimeUseController()) {
       return std::get<1>(Pad::GetPrimeStickXY());
     } 

@@ -16,15 +16,18 @@ private:
   void run_mod_mp1(bool has_control);
   void run_mod_mp1_gc(bool has_control);
   void run_mod_mp2(bool has_control);
+  void run_mod_mp2_gc(bool has_control);
   void run_mod_mp3(bool has_control);
 
   void noclip_code_mp1(u32 cplayer_address, u32 start_point, u32 return_location);
   void noclip_code_mp1_gc(u32 cplayer_address, u32 start_point, u32 return_location);
   void noclip_code_mp2(u32 cplayer_address, u32 start_point, u32 return_location);
+  void noclip_code_mp2_gc(u32 cplayer_address, u32 start_point, u32 return_location);
   void noclip_code_mp3(u32 cplayer_address, u32 start_point, u32 return_location);
 
   bool has_control_mp1_gc();
   bool has_control_mp2();
+  bool has_control_mp2_gc();
   bool has_control_mp3();
 
   union {
@@ -48,6 +51,10 @@ private:
       u32 control_flag_address;
       u32 load_state_address;
     } mp2_static;
+
+    struct {
+      u32 state_mgr_address;
+    } mp2_gc_static;
 
     struct {
       u32 state_mgr_ptr_address;
