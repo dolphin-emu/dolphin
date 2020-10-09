@@ -435,11 +435,13 @@
 
     <string-array name="orientationEntries">
         <item>Landscape</item>
+        <item>Landscape (reverse)</item>
         <item>Portrait</item>
         <item>Auto</item>
     </string-array>
     <integer-array name="orientationValues">
         <item>0</item>
+        <item>8</item>
         <item>1</item>
         <item>-1</item>
     </integer-array>
