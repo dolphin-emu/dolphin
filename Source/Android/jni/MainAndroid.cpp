@@ -151,14 +151,14 @@ void Host_TitleChanged()
 {
 }
 
-static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType /*style*/)
+static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common::MsgType style)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
 
   // Execute the Java method.
   jboolean result = env->CallStaticBooleanMethod(
       IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
-      ToJString(env, text), yes_no ? JNI_TRUE : JNI_FALSE);
+      ToJString(env, text), yes_no ? JNI_TRUE : JNI_FALSE, style == Common::MsgType::Warning);
 
   return result != JNI_FALSE;
 }
@@ -298,6 +298,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
 
   // Wait for shutdown, to avoid accessing the config at the same time as the shutdown code
   s_emulation_end_event.Wait();
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsBooting(JNIEnv* env,
+                                                                                  jobject obj)
+{
+  return static_cast<jboolean>(Core::IsBooting());
 }
 
 JNIEXPORT void JNICALL

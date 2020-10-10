@@ -112,7 +112,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   @Override
   public void onPause()
   {
-    if (mEmulationState.isRunning())
+    if (mEmulationState.isRunning() && !NativeLibrary.IsShowingAlertMessage())
       mEmulationState.pause();
     super.onPause();
   }
@@ -323,7 +323,7 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
         mSurface = null;
         Log.debug("[EmulationFragment] Surface destroyed.");
 
-        if (state != State.STOPPED)
+        if (state != State.STOPPED && !NativeLibrary.IsShowingAlertMessage())
         {
           // In order to avoid dereferencing nullptr, we must not destroy the surface while booting
           // the core, so wait here if necessary. An easy (but not 100% consistent) way to reach
@@ -362,7 +362,8 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       else if (state == State.PAUSED)
       {
         NativeLibrary.SurfaceChanged(mSurface);
-        if (!EmulationActivity.getHasUserPausedEmulation())
+        if (!EmulationActivity.getHasUserPausedEmulation() &&
+                !NativeLibrary.IsShowingAlertMessage())
         {
           Log.debug("[EmulationFragment] Resuming emulation.");
           NativeLibrary.UnPauseEmulation();

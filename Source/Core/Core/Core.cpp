@@ -170,6 +170,11 @@ void DisplayMessage(std::string message, int time_in_ms)
   OSD::AddMessage(std::move(message), time_in_ms);
 }
 
+bool IsBooting()
+{
+  return s_is_booting.IsSet() || !s_hardware_initialized;
+}
+
 bool IsRunning()
 {
   return (GetState() != State::Uninitialized || s_hardware_initialized) && !s_is_stopping;
@@ -674,7 +679,7 @@ State GetState()
 
 void WaitUntilDoneBooting()
 {
-  if (s_is_booting.IsSet() || !s_hardware_initialized)
+  if (IsBooting())
     s_done_booting.Wait();
 }
 
