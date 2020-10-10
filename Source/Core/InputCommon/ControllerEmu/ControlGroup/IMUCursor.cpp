@@ -37,7 +37,7 @@ IMUCursor::IMUCursor(std::string name_, std::string ui_name_)
               // i18n: The symbol/abbreviation for degrees (unit of angular measure).
               _trans("°"),
               // i18n: Refers to emulated wii remote movements.
-              _trans("Total rotation about the yaw axis.")},
+              _trans("Clamping of rotation about the yaw axis.")},
              25, 0, 360);
 }
 
