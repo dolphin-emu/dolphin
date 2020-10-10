@@ -53,7 +53,7 @@ int CameraLogic::BusWrite(u8 slave_addr, u8 addr, int count, const u8* data_in)
   return RawWrite(&m_reg_data, addr, count, data_in);
 }
 
-void CameraLogic::Update(const Common::Matrix44& transform)
+void CameraLogic::Update(const Common::Matrix44& transform, Common::Vec2 field_of_view)
 {
   // IR data is read from offset 0x37 on real hardware.
   auto& data = m_reg_data.camera_data;
@@ -88,9 +88,9 @@ void CameraLogic::Update(const Common::Matrix44& transform)
       Vec3{SENSOR_BAR_LED_SEPARATION / 2, 0, 0},
   };
 
-  const auto camera_view = Matrix44::Perspective(CAMERA_FOV_Y, CAMERA_AR, 0.001f, 1000) *
-                           Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) *
-                           transform;
+  const auto camera_view =
+      Matrix44::Perspective(field_of_view.y, field_of_view.x / field_of_view.y, 0.001f, 1000) *
+      Matrix44::FromMatrix33(Matrix33::RotateX(float(MathUtil::TAU / 4))) * transform;
 
   struct CameraPoint
   {
