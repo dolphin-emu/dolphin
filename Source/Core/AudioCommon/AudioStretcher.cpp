@@ -18,10 +18,6 @@ AudioStretcher::AudioStretcher(unsigned int sample_rate) : m_sample_rate(sample_
   m_sound_touch.setSampleRate(sample_rate);
   m_sound_touch.setPitch(1.0);
   m_sound_touch.setTempo(1.0);
-  m_sound_touch.setSetting(SETTING_USE_QUICKSEEK, 0);
-  m_sound_touch.setSetting(SETTING_SEQUENCE_MS, 62);
-  m_sound_touch.setSetting(SETTING_SEEKWINDOW_MS, 28);
-  m_sound_touch.setSetting(SETTING_OVERLAP_MS, 8);
 }
 
 void AudioStretcher::Clear()
