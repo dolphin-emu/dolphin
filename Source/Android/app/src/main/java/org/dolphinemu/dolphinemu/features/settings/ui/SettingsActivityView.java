@@ -18,6 +18,11 @@ public interface SettingsActivityView
   void showSettingsFragment(MenuTag menuTag, Bundle extras, boolean addToStack, String gameId);
 
   /**
+   * Reload the current fragment in case multiple settings are updated.
+   */
+  void reloadFragment();
+
+  /**
    * Called by a contained Fragment to get access to the Setting HashMap
    * loaded from disk, so that each Fragment doesn't need to perform its own
    * read operation.

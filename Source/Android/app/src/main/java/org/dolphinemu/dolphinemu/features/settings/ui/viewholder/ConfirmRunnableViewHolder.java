@@ -74,8 +74,7 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
               }
               dialog.dismiss();
 
-              // TODO: Remove finish and properly update dynamic settings descriptions.
-              mView.getActivity().finish();
+              mView.reloadFragment();
             })
             .setNegativeButton("No", (dialog, whichButton) ->
                     dialog.dismiss());

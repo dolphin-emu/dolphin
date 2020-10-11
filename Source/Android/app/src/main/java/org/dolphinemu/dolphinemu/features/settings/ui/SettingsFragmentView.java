@@ -53,6 +53,11 @@ public interface SettingsFragmentView
   void loadSubMenu(MenuTag menuKey);
 
   /**
+   * Reload the current fragment in case multiple settings are updated.
+   */
+  void reloadFragment();
+
+  /**
    * Tell the Fragment to tell the containing activity to display a toast message.
    *
    * @param message Text to be shown in the Toast

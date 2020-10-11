@@ -130,7 +130,7 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
     if (!addToStack && getFragment() != null)
       return;
 
-    FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
 
     if (addToStack)
     {
@@ -160,6 +160,17 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
             getContentResolver(),
             Settings.Global.TRANSITION_ANIMATION_SCALE, 1);
     return duration != 0 && transition != 0;
+  }
+
+  @Override
+  public void reloadFragment()
+  {
+    final SettingsFragment fragment = getFragment();
+    final FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+
+    transaction.detach(fragment);
+    transaction.attach(fragment);
+    transaction.commit();
   }
 
   @Override

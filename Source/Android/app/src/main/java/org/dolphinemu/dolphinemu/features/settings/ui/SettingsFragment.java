@@ -181,6 +181,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
   }
 
   @Override
+  public void reloadFragment()
+  {
+    mActivity.reloadFragment();
+  }
+
+  @Override
   public void showToastMessage(String message)
   {
     mActivity.showToastMessage(message);
