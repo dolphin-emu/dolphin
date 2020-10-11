@@ -73,9 +73,6 @@ public final class ConfirmRunnableViewHolder extends SettingViewHolder
                 Toast.makeText(mContext, confirmationText, Toast.LENGTH_SHORT).show();
               }
               dialog.dismiss();
-
-              // TODO: Remove finish and properly update dynamic settings descriptions.
-              mView.getActivity().finish();
             })
             .setNegativeButton("No", (dialog, whichButton) ->
                     dialog.dismiss());
