@@ -152,8 +152,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
 
     LinearLayout options = requireView().findViewById(R.id.layout_options);
 
-    Settings settings = ((EmulationActivity) requireActivity()).getSettings();
-    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBoolean(settings);
+    boolean savestatesEnabled = BooleanSetting.MAIN_ENABLE_SAVESTATES.getBooleanGlobal();
     int savestateVisibility = savestatesEnabled ? View.VISIBLE : View.GONE;
     options.findViewById(R.id.menu_quicksave).setVisibility(savestateVisibility);
     options.findViewById(R.id.menu_quickload).setVisibility(savestateVisibility);

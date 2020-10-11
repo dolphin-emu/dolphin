@@ -9,6 +9,7 @@ import android.util.SparseArray;
 import android.view.InputDevice;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.AdHocStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 
@@ -28,9 +29,8 @@ public class Rumble
 
     for (int i = 0; i < 8; i++)
     {
-      String deviceName = activity.getSettings()
-              .getSection(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS)
-              .getString(SettingsFile.KEY_EMU_RUMBLE + i, "");
+      String deviceName = AdHocStringSetting.getStringGlobal(Settings.FILE_DOLPHIN,
+              Settings.SECTION_BINDINGS, SettingsFile.KEY_EMU_RUMBLE + i, "");
 
       if (!deviceName.isEmpty())
       {

@@ -291,11 +291,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
       }
     });
 
-    try (Settings settings = new Settings())
-    {
-      settings.loadSettings(null);
-      mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
-    }
+    mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
     showGames();
     GameFileCacheService.startLoad(this);
