@@ -32,6 +32,7 @@ import org.dolphinemu.dolphinemu.utils.StartupHandler;
 import org.dolphinemu.dolphinemu.utils.TvUtil;
 import org.dolphinemu.dolphinemu.viewholders.TvGameViewHolder;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 public final class TvMainActivity extends FragmentActivity implements MainView
@@ -41,6 +42,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   private MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
+
+  private ArrayList<ArrayObjectAdapter> mGameRows = new ArrayList<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -71,6 +74,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     }
 
     mPresenter.addDirIfNeeded(this);
+
+    // In case the user changed a setting that affects how games are displayed,
+    // such as system language, cover downloading...
+    refetchMetadata();
 
     if (sShouldRescanLibrary)
     {
@@ -185,6 +192,14 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     buildRowsAdapter();
   }
 
+  private void refetchMetadata()
+  {
+    for (ArrayObjectAdapter row : mGameRows)
+    {
+      row.notifyArrayItemRangeChanged(0, row.size());
+    }
+  }
+
   /**
    * Callback from AddDirectoryActivity. Applies any changes necessary to the GameGridActivity.
    *
@@ -247,6 +262,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   private void buildRowsAdapter()
   {
     ArrayObjectAdapter rowsAdapter = new ArrayObjectAdapter(new ListRowPresenter());
+    mGameRows.clear();
 
     if (PermissionsHandler.hasWriteAccess(this))
     {
@@ -280,6 +296,9 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     // Create an adapter for this row.
     ArrayObjectAdapter row = new ArrayObjectAdapter(new GameRowPresenter());
     row.addAll(0, gameFiles);
+
+    // Keep a reference to the row in case we need to refresh it.
+    mGameRows.add(row);
 
     // Create a header for this row.
     HeaderItem header = new HeaderItem(platform.toInt(), platform.getHeaderName());

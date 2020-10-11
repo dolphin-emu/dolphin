@@ -121,6 +121,14 @@ public final class GameAdapter extends RecyclerView.Adapter<GameViewHolder> impl
   }
 
   /**
+   * Re-fetches game metadata from the game file cache.
+   */
+  public void refetchMetadata()
+  {
+    notifyItemRangeChanged(0, getItemCount());
+  }
+
+  /**
    * Launches the game that was clicked on.
    *
    * @param view The card representing the game the user wants to play.

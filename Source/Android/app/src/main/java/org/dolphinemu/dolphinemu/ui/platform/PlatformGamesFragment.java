@@ -85,6 +85,12 @@ public final class PlatformGamesFragment extends Fragment implements PlatformGam
     }
   }
 
+  @Override
+  public void refetchMetadata()
+  {
+    mAdapter.refetchMetadata();
+  }
+
   private void findViews(View root)
   {
     mRecyclerView = root.findViewById(R.id.grid_games);

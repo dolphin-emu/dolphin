@@ -87,6 +87,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     mPresenter.addDirIfNeeded(this);
 
+    // In case the user changed a setting that affects how games are displayed,
+    // such as system language, cover downloading...
+    refetchMetadata();
+
     if (sShouldRescanLibrary)
     {
       GameFileCacheService.startRescan(this);
@@ -252,6 +256,18 @@ public final class MainActivity extends AppCompatActivity implements MainView
       if (fragment != null)
       {
         fragment.showGames();
+      }
+    }
+  }
+
+  private void refetchMetadata()
+  {
+    for (Platform platform : Platform.values())
+    {
+      PlatformGamesView fragment = getPlatformGamesView(platform);
+      if (fragment != null)
+      {
+        fragment.refetchMetadata();
       }
     }
   }
