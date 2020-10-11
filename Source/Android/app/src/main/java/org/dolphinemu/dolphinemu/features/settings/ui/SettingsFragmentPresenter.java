@@ -224,7 +224,6 @@ public final class SettingsFragmentPresenter
     sl.add(new SubmenuSetting(R.string.advanced_submenu, MenuTag.CONFIG_ADVANCED));
     sl.add(new SubmenuSetting(R.string.log_submenu, MenuTag.CONFIG_LOG));
     sl.add(new SubmenuSetting(R.string.debug_submenu, MenuTag.DEBUG));
-    sl.add(new HeaderSetting(R.string.gametdb_thanks, 0));
   }
 
   private void addGeneralSettings(ArrayList<SettingsItem> sl)
@@ -247,6 +246,8 @@ public final class SettingsFragmentPresenter
             R.string.panic_handlers_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_OSD_MESSAGES, R.string.osd_messages,
             R.string.osd_messages_description));
+    sl.add(new CheckBoxSetting(BooleanSetting.MAIN_USE_GAME_COVERS, R.string.download_game_covers,
+            0));
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)

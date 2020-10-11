@@ -38,6 +38,8 @@ public enum BooleanSetting implements AbstractBooleanSetting
 
   MAIN_RECURSIVE_ISO_PATHS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
           "RecursiveISOPaths", false),
+  MAIN_USE_GAME_COVERS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_GENERAL,
+          "UseGameCovers", true),
 
   SYSCONF_SCREENSAVER(Settings.FILE_SYSCONF, "IPL", "SSV", false),
   SYSCONF_WIDESCREEN(Settings.FILE_SYSCONF, "IPL", "AR", true),

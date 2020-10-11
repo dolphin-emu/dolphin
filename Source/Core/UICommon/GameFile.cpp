@@ -52,6 +52,17 @@ namespace UICommon
 namespace
 {
 const std::string EMPTY_STRING;
+
+bool UseGameCovers()
+{
+#ifdef ANDROID
+  // Android has its own code for handling covers, written completely in Java.
+  // It's best if we disable the C++ cover code on Android to avoid duplicated data and such.
+  return false;
+#else
+  return Config::Get(Config::MAIN_USE_GAME_COVERS);
+#endif
+}
 }  // Anonymous namespace
 
 DiscIO::Language GameFile::GetConfigLanguage() const
@@ -169,7 +180,7 @@ bool GameFile::IsValid() const
 
 bool GameFile::CustomCoverChanged()
 {
-  if (!m_custom_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_custom_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   std::string path, name;
@@ -196,7 +207,7 @@ bool GameFile::CustomCoverChanged()
 
 void GameFile::DownloadDefaultCover()
 {
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
@@ -262,7 +273,7 @@ void GameFile::DownloadDefaultCover()
 
 bool GameFile::DefaultCoverChanged()
 {
-  if (!m_default_cover.buffer.empty() || !Config::Get(Config::MAIN_USE_GAME_COVERS))
+  if (!m_default_cover.buffer.empty() || !UseGameCovers())
     return false;
 
   const auto cover_path = File::GetUserPath(D_COVERCACHE_IDX) + DIR_SEP;
