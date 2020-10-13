@@ -97,7 +97,7 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -110,7 +110,7 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getInt(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
+      return NativeConfig.getInt(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
     }
     else
     {
@@ -123,7 +123,7 @@ public enum IntSetting implements AbstractIntSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setInt(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setInt(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

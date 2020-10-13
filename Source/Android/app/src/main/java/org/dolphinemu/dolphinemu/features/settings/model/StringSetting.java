@@ -70,7 +70,7 @@ public enum StringSetting implements AbstractStringSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -83,7 +83,7 @@ public enum StringSetting implements AbstractStringSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getString(settings.getActiveLayer(), mFile, mSection, mKey,
+      return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey,
               mDefaultValue);
     }
     else
@@ -97,7 +97,7 @@ public enum StringSetting implements AbstractStringSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setString(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setString(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

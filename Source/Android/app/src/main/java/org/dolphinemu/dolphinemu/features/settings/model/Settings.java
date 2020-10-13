@@ -86,7 +86,7 @@ public class Settings implements Closeable
     return !TextUtils.isEmpty(mGameId);
   }
 
-  public int getActiveLayer()
+  public int getWriteLayer()
   {
     return isGameSpecific() ? NativeConfig.LAYER_LOCAL_GAME : NativeConfig.LAYER_BASE_OR_CURRENT;
   }

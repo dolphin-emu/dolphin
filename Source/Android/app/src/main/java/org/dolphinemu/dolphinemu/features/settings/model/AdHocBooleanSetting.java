@@ -35,18 +35,18 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   @Override
   public boolean delete(Settings settings)
   {
-    return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+    return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
   }
 
   @Override
   public boolean getBoolean(Settings settings)
   {
-    return NativeConfig.getBoolean(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
+    return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
   public void setBoolean(Settings settings, boolean newValue)
   {
-    NativeConfig.setBoolean(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+    NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 }

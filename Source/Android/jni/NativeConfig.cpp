@@ -15,6 +15,7 @@
 
 constexpr jint LAYER_BASE_OR_CURRENT = 0;
 constexpr jint LAYER_LOCAL_GAME = 1;
+constexpr jint LAYER_ACTIVE = 2;
 
 static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, jstring key)
 {
@@ -48,21 +49,31 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
 
 static std::shared_ptr<Config::Layer> GetLayer(jint layer, const Config::Location& location)
 {
+  Config::LayerType layer_type;
+
   switch (layer)
   {
   case LAYER_BASE_OR_CURRENT:
     if (GetActiveLayerForConfig(location) == Config::LayerType::Base)
-      return Config::GetLayer(Config::LayerType::Base);
+      layer_type = Config::LayerType::Base;
     else
-      return Config::GetLayer(Config::LayerType::CurrentRun);
+      layer_type = Config::LayerType::CurrentRun;
+    break;
 
   case LAYER_LOCAL_GAME:
-    return Config::GetLayer(Config::LayerType::LocalGame);
+    layer_type = Config::LayerType::LocalGame;
+    break;
+
+  case LAYER_ACTIVE:
+    layer_type = Config::GetActiveLayerForConfig(location);
+    break;
 
   default:
     ASSERT(false);
     return nullptr;
   }
+
+  return Config::GetLayer(layer_type);
 }
 
 template <typename T>
