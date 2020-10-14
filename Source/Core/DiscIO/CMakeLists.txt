@@ -58,6 +58,7 @@ add_library(discio
 
 target_link_libraries(discio
 PUBLIC
+  common
   BZip2::BZip2
   LibLZMA::LibLZMA
   zstd

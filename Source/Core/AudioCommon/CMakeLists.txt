@@ -75,4 +75,11 @@ if(WIN32)
   )
 endif()
 
-target_link_libraries(audiocommon PRIVATE cubeb SoundTouch FreeSurround)
+target_link_libraries(audiocommon
+PUBLIC
+  common
+
+PRIVATE
+  cubeb
+  SoundTouch
+  FreeSurround)

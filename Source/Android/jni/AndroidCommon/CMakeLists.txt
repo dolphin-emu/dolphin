@@ -8,6 +8,7 @@ add_library(androidcommon STATIC
 target_link_libraries(androidcommon
 PRIVATE
   android
+  common
   log
   "-Wl,--no-warn-mismatch"
   "-Wl,--whole-archive"

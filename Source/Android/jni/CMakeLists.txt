@@ -10,6 +10,7 @@ add_library(main SHARED
 target_link_libraries(main
 PRIVATE
   androidcommon
+  common
   core
   uicommon
 )
