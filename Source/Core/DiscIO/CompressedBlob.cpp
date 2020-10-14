@@ -16,7 +16,6 @@
 #include <utility>
 #include <vector>
 
-#include <fmt/format.h>
 #include <zlib.h>
 
 #include "Common/Assert.h"
@@ -256,9 +255,8 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
     const int ratio =
         parameters.inpos == 0 ? 0 : static_cast<int>(100 * *position / parameters.inpos);
 
-    const std::string text =
-        fmt::format(Common::GetStringT("{0} of {1} blocks. Compression ratio {2}%"),
-                    parameters.block_number, num_blocks, ratio);
+    const std::string text = Common::FmtFormatT("{0} of {1} blocks. Compression ratio {2}%",
+                                                parameters.block_number, num_blocks, ratio);
 
     const float completion = static_cast<float>(parameters.block_number) / num_blocks;
 

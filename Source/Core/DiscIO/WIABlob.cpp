@@ -1694,9 +1694,8 @@ ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u
   if (bytes_read != 0)
     ratio = static_cast<int>(100 * bytes_written / bytes_read);
 
-  const std::string text =
-      fmt::format(Common::GetStringT("{0} of {1} blocks. Compression ratio {2}%"), groups_written,
-                  total_groups, ratio);
+  const std::string text = Common::FmtFormatT("{0} of {1} blocks. Compression ratio {2}%",
+                                              groups_written, total_groups, ratio);
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 

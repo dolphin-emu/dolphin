@@ -677,7 +677,7 @@ std::string GameFile::GetFileFormatName() const
   {
     std::string name = DiscIO::GetName(m_blob_type, true);
     if (m_is_nkit)
-      name = fmt::format(Common::GetStringT("{0} (NKit)"), name);
+      name = Common::FmtFormatT("{0} (NKit)", name);
     return name;
   }
   }
