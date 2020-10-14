@@ -154,7 +154,7 @@ public:
   // First call Start, then AddDataOnlyForPurgeHashing/Compress any number of times,
   // then End, then GetData/GetSize any number of times.
 
-  virtual bool Start() = 0;
+  virtual bool Start(std::optional<u64> size) = 0;
   virtual bool AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size) { return true; }
   virtual bool Compress(const u8* data, size_t size) = 0;
   virtual bool End() = 0;
@@ -169,7 +169,7 @@ public:
   PurgeCompressor();
   ~PurgeCompressor();
 
-  bool Start() override;
+  bool Start(std::optional<u64> size) override;
   bool AddPrecedingDataOnlyForPurgeHashing(const u8* data, size_t size) override;
   bool Compress(const u8* data, size_t size) override;
   bool End() override;
@@ -189,7 +189,7 @@ public:
   Bzip2Compressor(int compression_level);
   ~Bzip2Compressor();
 
-  bool Start() override;
+  bool Start(std::optional<u64> size) override;
   bool Compress(const u8* data, size_t size) override;
   bool End() override;
 
@@ -211,7 +211,7 @@ public:
                  u8* compressor_data_size_out);
   ~LZMACompressor();
 
-  bool Start() override;
+  bool Start(std::optional<u64> size) override;
   bool Compress(const u8* data, size_t size) override;
   bool End() override;
 
@@ -234,7 +234,7 @@ public:
   ZstdCompressor(int compression_level);
   ~ZstdCompressor();
 
-  bool Start() override;
+  bool Start(std::optional<u64> size) override;
   bool Compress(const u8* data, size_t size) override;
   bool End() override;
 

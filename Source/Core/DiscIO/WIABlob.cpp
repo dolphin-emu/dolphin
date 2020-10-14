@@ -1040,7 +1040,7 @@ std::optional<std::vector<u8>> WIARVZFileReader<RVZ>::Compress(Compressor* compr
 {
   if (compressor)
   {
-    if (!compressor->Start() || !compressor->Compress(data, size) || !compressor->End())
+    if (!compressor->Start(size) || !compressor->Compress(data, size) || !compressor->End())
       return std::nullopt;
 
     data = compressor->GetData();
@@ -1564,7 +1564,7 @@ WIARVZFileReader<RVZ>::ProcessAndCompress(CompressThreadState* state, CompressPa
 
     if (state->compressor)
     {
-      if (!state->compressor->Start())
+      if (!state->compressor->Start(entry.exception_lists.size() + entry.main_data.size()))
         return ConversionResultCode::InternalError;
     }
 
