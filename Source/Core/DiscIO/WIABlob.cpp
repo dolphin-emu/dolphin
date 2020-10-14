@@ -16,6 +16,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <fmt/format.h>
 #include <mbedtls/sha1.h>
 #include <zstd.h>
 
@@ -27,7 +28,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/ScopeGuard.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 
 #include "DiscIO/Blob.h"
@@ -617,9 +617,9 @@ std::string WIARVZFileReader<RVZ>::VersionToString(u32 version)
   const u8 d = version & 0xff;
 
   if (d == 0 || d == 0xff)
-    return StringFromFormat("%u.%02x.%02x", a, b, c);
+    return fmt::format("{}.{:02x}.{:02x}", a, b, c);
   else
-    return StringFromFormat("%u.%02x.%02x.beta%u", a, b, c, d);
+    return fmt::format("{}.{:02x}.{:02x}.beta{}", a, b, c, d);
 }
 
 template <bool RVZ>
@@ -1695,8 +1695,8 @@ ConversionResultCode WIARVZFileReader<RVZ>::RunCallback(size_t groups_written, u
     ratio = static_cast<int>(100 * bytes_written / bytes_read);
 
   const std::string text =
-      StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
-                       groups_written, total_groups, ratio);
+      fmt::format(Common::GetStringT("{0} of {1} blocks. Compression ratio {2}%"), groups_written,
+                  total_groups, ratio);
 
   const float completion = static_cast<float>(bytes_read) / iso_size;
 

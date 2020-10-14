@@ -9,10 +9,11 @@
 #include <locale>
 #include <optional>
 
+#include <fmt/format.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
-#include "Common/StringUtil.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -45,7 +46,7 @@ std::string NameForPartitionType(u32 partition_type, bool include_prefix)
       return include_prefix ? "P-" + type_as_game_id : type_as_game_id;
     }
 
-    return StringFromFormat(include_prefix ? "P%u" : "%u", partition_type);
+    return fmt::format(include_prefix ? "P{}" : "{}", partition_type);
   }
 }
 

@@ -63,6 +63,7 @@ PUBLIC
   zstd
 
 PRIVATE
+  fmt::fmt
   minizip
   pugixml
   ZLIB::ZLIB

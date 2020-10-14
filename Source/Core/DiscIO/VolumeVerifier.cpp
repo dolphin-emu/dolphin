@@ -16,6 +16,7 @@
 #include <string_view>
 #include <unordered_set>
 
+#include <fmt/format.h>
 #include <mbedtls/md5.h>
 #include <mbedtls/sha1.h>
 #include <pugixml.hpp>
@@ -519,10 +520,8 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
   if (partition.offset % VolumeWii::BLOCK_TOTAL_SIZE != 0 ||
       m_volume.PartitionOffsetToRawOffset(0, partition) % VolumeWii::BLOCK_TOTAL_SIZE != 0)
   {
-    AddProblem(
-        Severity::Medium,
-        StringFromFormat(Common::GetStringT("The %s partition is not properly aligned.").c_str(),
-                         name.c_str()));
+    AddProblem(Severity::Medium,
+               fmt::format(Common::GetStringT("The {0} partition is not properly aligned."), name));
   }
 
   if (!m_is_datel)
@@ -542,16 +541,14 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     {
       AddProblem(
           Severity::Low,
-          StringFromFormat(Common::GetStringT("The %s partition is not correctly signed.").c_str(),
-                           name.c_str()));
+          fmt::format(Common::GetStringT("The {0} partition is not correctly signed."), name));
     }
   }
 
   if (m_volume.SupportsIntegrityCheck() && !m_volume.CheckH3TableIntegrity(partition))
   {
-    std::string text = StringFromFormat(
-        Common::GetStringT("The H3 hash table for the %s partition is not correct.").c_str(),
-        name.c_str());
+    std::string text = fmt::format(
+        Common::GetStringT("The H3 hash table for the {0} partition is not correct."), name);
     AddProblem(Severity::Low, std::move(text));
   }
 
@@ -584,9 +581,8 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
     // This can happen when certain programs that create WBFS files scrub the entirety of
     // the Masterpiece partitions in Super Smash Bros. Brawl without removing them from
     // the partition table. https://bugs.dolphin-emu.org/issues/8733
-    std::string text = StringFromFormat(
-        Common::GetStringT("The %s partition does not seem to contain valid data.").c_str(),
-        name.c_str());
+    std::string text = fmt::format(
+        Common::GetStringT("The {0} partition does not seem to contain valid data."), name);
     AddProblem(severity, std::move(text));
     return false;
   }
@@ -614,9 +610,8 @@ bool VolumeVerifier::CheckPartition(const Partition& partition)
       return true;
     }
 
-    std::string text = StringFromFormat(
-        Common::GetStringT("The %s partition does not have a valid file system.").c_str(),
-        name.c_str());
+    std::string text = fmt::format(
+        Common::GetStringT("The {0} partition does not have a valid file system."), name);
     AddProblem(severity, std::move(text));
     return false;
   }
@@ -675,7 +670,7 @@ std::string VolumeVerifier::GetPartitionName(std::optional<u32> type) const
     // (French), Clásicos (Spanish), Capolavori (Italian), 클래식 게임 체험판 (Korean).
     // If your language is not one of the languages above, consider leaving the string untranslated
     // so that people will recognize it as the name of the game mode.
-    name = StringFromFormat(Common::GetStringT("%s (Masterpiece)").c_str(), name.c_str());
+    name = fmt::format(Common::GetStringT("{0} (Masterpiece)"), name);
   }
   return name;
 }
@@ -903,10 +898,9 @@ void VolumeVerifier::CheckMisc()
         // Hacked version of the Wii Backup Disc (aka "pinkfish" disc).
         std::string proper_game_id = game_id_unencrypted;
         proper_game_id[0] = '4';
-        AddProblem(
-            Severity::Low,
-            StringFromFormat(Common::GetStringT("The game ID is %s but should be %s.").c_str(),
-                             game_id_unencrypted.c_str(), proper_game_id.c_str()));
+        AddProblem(Severity::Low,
+                   fmt::format(Common::GetStringT("The game ID is {0} but should be {1}."),
+                               game_id_unencrypted, proper_game_id));
         inconsistent_game_id = false;
       }
     }
@@ -1000,9 +994,9 @@ void VolumeVerifier::CheckMisc()
       {
         // Many fakesigned WADs have the common key index set to a (random?) bogus value.
         // For WADs, Dolphin will detect this and use the correct key, making this low severity.
-        std::string text = StringFromFormat(
+        std::string text = fmt::format(
             // i18n: This is "common" as in "shared", not the opposite of "uncommon"
-            Common::GetStringT("The specified common key index is %u but should be %u.").c_str(),
+            Common::GetStringT("The specified common key index is {0} but should be {1}."),
             specified_common_key_index, fixed_common_key_index);
         AddProblem(Severity::Low, std::move(text));
       }
@@ -1214,9 +1208,8 @@ void VolumeVerifier::Process()
     m_content_future = std::async(std::launch::async, [this, read_succeeded, content] {
       if (!read_succeeded || !m_volume.CheckContentIntegrity(content, m_data, m_ticket))
       {
-        AddProblem(
-            Severity::High,
-            StringFromFormat(Common::GetStringT("Content %08x is corrupt.").c_str(), content.id));
+        AddProblem(Severity::High,
+                   fmt::format(Common::GetStringT("Content {0:08x} is corrupt."), content.id));
       }
     });
 
@@ -1331,9 +1324,9 @@ void VolumeVerifier::Finish()
     if (blocks > 0)
     {
       const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
-      std::string text = StringFromFormat(
-          Common::GetStringT("Errors were found in %zu blocks in the %s partition.").c_str(),
-          blocks, name.c_str());
+      std::string text =
+          fmt::format(Common::GetStringT("Errors were found in {0} blocks in the {1} partition."),
+                      blocks, name);
       AddProblem(Severity::Medium, std::move(text));
     }
   }
@@ -1343,9 +1336,9 @@ void VolumeVerifier::Finish()
     if (blocks > 0)
     {
       const std::string name = GetPartitionName(m_volume.GetPartitionType(partition));
-      std::string text = StringFromFormat(
-          Common::GetStringT("Errors were found in %zu unused blocks in the %s partition.").c_str(),
-          blocks, name.c_str());
+      std::string text = fmt::format(
+          Common::GetStringT("Errors were found in {0} unused blocks in the {1} partition."),
+          blocks, name);
       AddProblem(Severity::Low, std::move(text));
     }
   }

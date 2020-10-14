@@ -15,6 +15,8 @@
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <fmt/format.h>
 #include <zlib.h>
 
 #include "Common/Assert.h"
@@ -24,7 +26,6 @@
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DiscScrubber.h"
@@ -256,8 +257,8 @@ static ConversionResultCode Output(OutputParameters parameters, File::IOFile* ou
         parameters.inpos == 0 ? 0 : static_cast<int>(100 * *position / parameters.inpos);
 
     const std::string text =
-        StringFromFormat(Common::GetStringT("%i of %i blocks. Compression ratio %i%%").c_str(),
-                         parameters.block_number, num_blocks, ratio);
+        fmt::format(Common::GetStringT("{0} of {1} blocks. Compression ratio {2}%"),
+                    parameters.block_number, num_blocks, ratio);
 
     const float completion = static_cast<float>(parameters.block_number) / num_blocks;
 
