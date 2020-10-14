@@ -40,7 +40,7 @@ public class GameFile
 
   public native int getBlobType();
 
-  public native String getBlobTypeString();
+  public native String getFileFormatName();
 
   public native long getBlockSize();
 
