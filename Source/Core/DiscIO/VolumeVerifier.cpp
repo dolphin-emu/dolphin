@@ -391,7 +391,11 @@ void VolumeVerifier::Start()
       (m_volume.GetVolumeType() == Platform::WiiDisc && !m_volume.IsEncryptedAndHashed()) ||
       IsDebugSigned();
 
-  CheckDiscSize(CheckPartitions());
+  const std::vector<Partition> partitions = CheckPartitions();
+
+  if (IsDisc(m_volume.GetVolumeType()))
+    m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
+
   CheckMisc();
 
   SetUpHashing();
@@ -727,13 +731,14 @@ bool VolumeVerifier::ShouldBeDualLayer() const
                             std::string_view(m_volume.GetGameID()));
 }
 
-void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
+void VolumeVerifier::CheckVolumeSize()
 {
-  if (!IsDisc(m_volume.GetVolumeType()))
-    return;
+  u64 volume_size = m_volume.GetSize();
+  const bool is_disc = IsDisc(m_volume.GetVolumeType());
+  const bool should_be_dual_layer = is_disc && ShouldBeDualLayer();
+  const bool is_size_accurate = m_volume.IsSizeAccurate();
+  bool volume_size_roughly_known = is_size_accurate;
 
-  m_biggest_referenced_offset = GetBiggestReferencedOffset(partitions);
-  const bool should_be_dual_layer = ShouldBeDualLayer();
   if (should_be_dual_layer && m_biggest_referenced_offset <= SL_DVD_R_SIZE)
   {
     AddProblem(Severity::Medium,
@@ -743,21 +748,44 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
                    "This problem generally only exists in illegal copies of games."));
   }
 
-  if (!m_volume.IsSizeAccurate())
+  if (!is_size_accurate)
   {
     AddProblem(Severity::Low,
                Common::GetStringT("The format that the disc image is saved in does not "
                                   "store the size of the disc image."));
+
+    if (m_volume.SupportsIntegrityCheck())
+    {
+      volume_size = m_biggest_verified_offset;
+      volume_size_roughly_known = true;
+    }
   }
-  else if (!m_is_tgc)
+
+  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size() ||
+      (volume_size_roughly_known && m_biggest_referenced_offset > volume_size))
+  {
+    const bool second_layer_missing = is_disc && volume_size_roughly_known &&
+                                      volume_size >= SL_DVD_SIZE && volume_size <= SL_DVD_R_SIZE;
+    std::string text =
+        second_layer_missing ?
+            Common::GetStringT("This disc image is too small and lacks some data. The problem is "
+                               "most likely that this is a dual-layer disc that has been dumped "
+                               "as a single-layer disc.") :
+            Common::GetStringT("This disc image is too small and lacks some data. If your "
+                               "dumping program saved the disc image as several parts, you need "
+                               "to merge them into one file.");
+    AddProblem(Severity::High, std::move(text));
+    return;
+  }
+
+  if (is_disc && is_size_accurate && !m_is_tgc)
   {
     const Platform platform = m_volume.GetVolumeType();
     const bool should_be_gc_size = platform == Platform::GameCubeDisc || m_is_datel;
-    const u64 size = m_volume.GetSize();
 
-    const bool valid_gamecube = size == MINI_DVD_SIZE;
-    const bool valid_retail_wii = size == SL_DVD_SIZE || size == DL_DVD_SIZE;
-    const bool valid_debug_wii = size == SL_DVD_R_SIZE || size == DL_DVD_R_SIZE;
+    const bool valid_gamecube = volume_size == MINI_DVD_SIZE;
+    const bool valid_retail_wii = volume_size == SL_DVD_SIZE || volume_size == DL_DVD_SIZE;
+    const bool valid_debug_wii = volume_size == SL_DVD_R_SIZE || volume_size == DL_DVD_R_SIZE;
 
     const bool debug = IsDebugSigned();
     if ((should_be_gc_size && !valid_gamecube) ||
@@ -779,7 +807,7 @@ void VolumeVerifier::CheckDiscSize(const std::vector<Partition>& partitions)
         else
           normal_size = DL_DVD_SIZE;
 
-        if (size < normal_size)
+        if (volume_size < normal_size)
         {
           AddProblem(
               Severity::Low,
@@ -1296,33 +1324,7 @@ void VolumeVerifier::Finish()
   if (m_read_errors_occurred)
     AddProblem(Severity::Medium, Common::GetStringT("Some of the data could not be read."));
 
-  bool file_too_small = false;
-
-  if (m_content_index != m_content_offsets.size() || m_block_index != m_blocks.size())
-    file_too_small = true;
-
-  if (IsDisc(m_volume.GetVolumeType()) &&
-      (m_volume.IsSizeAccurate() || m_volume.SupportsIntegrityCheck()))
-  {
-    u64 volume_size = m_volume.IsSizeAccurate() ? m_volume.GetSize() : m_biggest_verified_offset;
-    if (m_biggest_referenced_offset > volume_size)
-      file_too_small = true;
-  }
-
-  if (file_too_small)
-  {
-    const bool second_layer_missing =
-        m_biggest_referenced_offset > SL_DVD_SIZE && m_volume.GetSize() >= SL_DVD_SIZE;
-    std::string text =
-        second_layer_missing ?
-            Common::GetStringT("This disc image is too small and lacks some data. The problem is "
-                               "most likely that this is a dual-layer disc that has been dumped "
-                               "as a single-layer disc.") :
-            Common::GetStringT("This disc image is too small and lacks some data. If your "
-                               "dumping program saved the disc image as several parts, you need "
-                               "to merge them into one file.");
-    AddProblem(Severity::High, std::move(text));
-  }
+  CheckVolumeSize();
 
   for (auto [partition, blocks] : m_block_errors)
   {
