@@ -321,7 +321,7 @@ std::tuple<double, double> GCPad::GetPrimeStickXY()
 {
   const auto stick_state = m_primehack_stick->GetState();
 
-  return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue() * 100, stick_state.y * m_primehack_vertical_sensitivity.GetValue() * -100);
+  return std::make_tuple(stick_state.x * m_primehack_horizontal_sensitivity.GetValue(), stick_state.y * -m_primehack_vertical_sensitivity.GetValue());
 }
 
 bool GCPad::PrimeControllerMode()
