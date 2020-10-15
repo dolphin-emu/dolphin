@@ -331,6 +331,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
     StringSetting.MAIN_SD_PATH.delete(settings);
 
+    notifyItemRangeChanged(0, getItemCount());
     mView.onSettingChanged();
   }
 
@@ -344,6 +345,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
               false).setBoolean(settings, value);
     }
 
+    notifyItemRangeChanged(0, getItemCount());
     mView.onSettingChanged();
   }
 
