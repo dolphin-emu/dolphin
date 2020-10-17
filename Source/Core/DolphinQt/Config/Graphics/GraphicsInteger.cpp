@@ -12,7 +12,7 @@
 
 GraphicsInteger::GraphicsInteger(int minimum, int maximum, const Config::Info<int>& setting,
                                  int step)
-    : QSpinBox(), m_setting(setting)
+    : ToolTipSpinBox(), m_setting(setting)
 {
   setMinimum(minimum);
   setMaximum(maximum);
