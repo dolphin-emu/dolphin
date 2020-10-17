@@ -60,6 +60,7 @@
     <ClCompile Include="Config\GameConfigWidget.cpp" />
     <ClCompile Include="Config\GeckoCodeWidget.cpp" />
     <ClCompile Include="Config\Graphics\AdvancedWidget.cpp" />
+    <ClCompile Include="Config\Graphics\BalloonTip.cpp" />
     <ClCompile Include="Config\Graphics\EnhancementsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GeneralWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsBool.cpp" />
@@ -222,6 +223,7 @@
     <QtMoc Include="Config\GameConfigWidget.h" />
     <QtMoc Include="Config\GeckoCodeWidget.h" />
     <QtMoc Include="Config\Graphics\AdvancedWidget.h" />
+    <QtMoc Include="Config\Graphics\BalloonTip.h" />
     <QtMoc Include="Config\Graphics\EnhancementsWidget.h" />
     <QtMoc Include="Config\Graphics\GeneralWidget.h" />
     <QtMoc Include="Config\Graphics\GraphicsBool.h" />

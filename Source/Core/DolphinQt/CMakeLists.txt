@@ -81,6 +81,8 @@ add_executable(dolphin-emu
   Config/GeckoCodeWidget.h
   Config/Graphics/AdvancedWidget.cpp
   Config/Graphics/AdvancedWidget.h
+  Config/Graphics/BalloonTip.cpp
+  Config/Graphics/BalloonTip.h
   Config/Graphics/EnhancementsWidget.cpp
   Config/Graphics/EnhancementsWidget.h
   Config/Graphics/GeneralWidget.cpp
