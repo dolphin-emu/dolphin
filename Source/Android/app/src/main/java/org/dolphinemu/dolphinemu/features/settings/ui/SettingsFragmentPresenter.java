@@ -15,7 +15,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.ConfirmRunnable;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
@@ -354,7 +354,7 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
-    sl.add(new ConfirmRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
+    sl.add(new RunRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
             mView.getAdapter()::resetPaths));
   }
 
@@ -626,10 +626,10 @@ public final class SettingsFragmentPresenter
             R.string.enable_logging_description));
     sl.add(new SingleChoiceSetting(IntSetting.LOGGER_VERBOSITY, R.string.log_verbosity, 0,
             getLogVerbosityEntries(), getLogVerbosityValues()));
-    sl.add(new ConfirmRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
+    sl.add(new RunRunnable(R.string.log_enable_all, 0, R.string.log_enable_all_confirmation, 0,
             () -> mView.getAdapter().setAllLogTypes(true)));
-    sl.add(new ConfirmRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation,
-            0, () -> mView.getAdapter().setAllLogTypes(false)));
+    sl.add(new RunRunnable(R.string.log_disable_all, 0, R.string.log_disable_all_confirmation, 0,
+            () -> mView.getAdapter().setAllLogTypes(false)));
 
     sl.add(new HeaderSetting(R.string.log_types, 0));
     for (Map.Entry<String, String> entry : LOG_TYPE_NAMES.entrySet())

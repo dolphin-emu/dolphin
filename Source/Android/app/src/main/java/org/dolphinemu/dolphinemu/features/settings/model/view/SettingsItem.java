@@ -22,10 +22,10 @@ public abstract class SettingsItem
   public static final int TYPE_RUMBLE_BINDING = 7;
   public static final int TYPE_SINGLE_CHOICE_DYNAMIC_DESCRIPTIONS = 8;
   public static final int TYPE_FILE_PICKER = 9;
-  public static final int TYPE_CONFIRM_RUNNABLE = 10;
+  public static final int TYPE_RUN_RUNNABLE = 10;
 
-  private int mNameId;
-  private int mDescriptionId;
+  private final int mNameId;
+  private final int mDescriptionId;
 
   /**
    * Base constructor.

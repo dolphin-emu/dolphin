@@ -29,7 +29,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.CheckBoxSettingViewHolder;
-import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.ConfirmRunnableViewHolder;
+import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.RunRunnableViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.FilePickerViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.HeaderViewHolder;
 import org.dolphinemu.dolphinemu.features.settings.ui.viewholder.InputBindingSettingViewHolder;
@@ -49,8 +49,8 @@ import java.util.Map;
 public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolder>
         implements DialogInterface.OnClickListener, SeekBar.OnSeekBarChangeListener
 {
-  private SettingsFragmentView mView;
-  private Context mContext;
+  private final SettingsFragmentView mView;
+  private final Context mContext;
   private ArrayList<SettingsItem> mSettings;
 
   private SettingsItem mClickedItem;
@@ -110,9 +110,9 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
         return new FilePickerViewHolder(view, this);
 
-      case SettingsItem.TYPE_CONFIRM_RUNNABLE:
+      case SettingsItem.TYPE_RUN_RUNNABLE:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new ConfirmRunnableViewHolder(view, this, mContext, mView);
+        return new RunRunnableViewHolder(view, this, mContext);
 
       default:
         throw new IllegalArgumentException("Invalid view type: " + viewType);
