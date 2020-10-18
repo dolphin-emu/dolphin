@@ -737,7 +737,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
     if (selection)
     {
       StartGame(selection->GetFilePath(), ScanForSecondDisc::Yes, savestate_path);
-      EnableScreenSaver(false);
     }
     else
     {
@@ -745,7 +744,6 @@ void MainWindow::Play(const std::optional<std::string>& savestate_path)
       if (!default_path.isEmpty() && QFile::exists(default_path))
       {
         StartGame(default_path, ScanForSecondDisc::Yes, savestate_path);
-        EnableScreenSaver(false);
       }
       else
       {
@@ -776,7 +774,6 @@ void MainWindow::OnStopComplete()
 {
   m_stop_requested = false;
   HideRenderWidget();
-  EnableScreenSaver(true);
 #ifdef USE_DISCORD_PRESENCE
   if (!m_netplay_dialog->isVisible())
     Discord::UpdateDiscordPresence();
@@ -993,13 +990,6 @@ void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 
   if (Config::Get(Config::MAIN_FULLSCREEN))
     m_fullscreen_requested = true;
-
-#ifdef Q_OS_WIN
-  // Prevents Windows from sleeping, turning off the display, or idling
-  EXECUTION_STATE shouldScreenSave =
-      Config::Get(Config::MAIN_DISABLE_SCREENSAVER) ? ES_DISPLAY_REQUIRED : 0;
-  SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
-#endif
 }
 
 void MainWindow::SetFullScreenResolution(bool fullscreen)
@@ -1304,6 +1294,10 @@ void MainWindow::NetPlayInit()
   Discord::InitNetPlayFunctionality(*m_netplay_discord);
   m_netplay_discord->Start();
 #endif
+  connect(&Settings::Instance(), &Settings::ConfigChanged, this,
+          &MainWindow::UpdateScreenSaverInhibition);
+  connect(&Settings::Instance(), &Settings::EmulationStateChanged, this,
+          &MainWindow::UpdateScreenSaverInhibition);
 }
 
 bool MainWindow::NetPlayJoin()
@@ -1435,13 +1429,16 @@ void MainWindow::NetPlayQuit()
 #endif
 }
 
-void MainWindow::EnableScreenSaver(bool enable)
+void MainWindow::UpdateScreenSaverInhibition()
 {
+  const bool inhibit =
+      Config::Get(Config::MAIN_DISABLE_SCREENSAVER) && (Core::GetState() == Core::State::Running);
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   if (GetWindowSystemType() == WindowSystemType::X11)
-    UICommon::EnableScreenSaver(winId(), enable);
+    UICommon::InhibitScreenSaver(winId(), inhibit);
 #else
-  UICommon::EnableScreenSaver(enable);
+  UICommon::InhibitScreenSaver(inhibit);
 #endif
 }
 
