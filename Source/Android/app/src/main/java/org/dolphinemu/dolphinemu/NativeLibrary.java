@@ -6,6 +6,8 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.widget.Toast;
@@ -451,23 +453,19 @@ public final class NativeLibrary
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
     boolean result = false;
-    if (emulationActivity == null)
-    {
-      Log.warning("[NativeLibrary] EmulationActivity is null, can't do panic alert.");
-    }
-    else if (emulationActivity.isIgnoringWarnings() && isWarning)
+    if (isWarning && emulationActivity != null && emulationActivity.isIgnoringWarnings())
     {
       return true;
     }
     else
     {
-      // AlertMessages while the core is booting will deadlock when WaitUntilDoneBooting is called.
-      // Report the AlertMessage text as a toast instead.
-      if (IsBooting())
+      // AlertMessages while the core is booting will deadlock if WaitUntilDoneBooting is called.
+      // We also can't use AlertMessages unless we have a non-null activity reference.
+      // As a fallback, we use toasts instead.
+      if (emulationActivity == null || IsBooting())
       {
-        emulationActivity.runOnUiThread(
-                () -> Toast.makeText(emulationActivity.getApplicationContext(), text,
-                        Toast.LENGTH_LONG)
+        new Handler(Looper.getMainLooper()).post(
+                () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)
                         .show());
       }
       else
