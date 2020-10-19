@@ -186,7 +186,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     }
     if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
       out.WriteFmt("  uint4 posmtx : BLENDINDICES,\n");
-    out.WriteFmt("  float4 rawpos : POSITION) {\n");
+    out.WriteFmt("  float4 rawpos : POSITION) {{\n");
   }
 
   out.WriteFmt("VS_OUTPUT o;\n");
