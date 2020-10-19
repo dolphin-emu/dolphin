@@ -31,6 +31,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
+#include <shellapi.h>
 constexpr u32 CODEPAGE_SHIFT_JIS = 932;
 constexpr u32 CODEPAGE_WINDOWS_1252 = 1252;
 #else
@@ -628,5 +629,24 @@ std::string PathToString(const std::filesystem::path& path)
 #else
   return path.native();
 #endif
+}
+#endif
+
+#ifdef _WIN32
+std::vector<std::string> CommandLineToUtf8Argv(const wchar_t* command_line)
+{
+  int nargs;
+  LPWSTR* tokenized = CommandLineToArgvW(command_line, &nargs);
+  if (!tokenized)
+    return {};
+
+  std::vector<std::string> argv(nargs);
+  for (size_t i = 0; i < nargs; ++i)
+  {
+    argv[i] = WStringToUTF8(tokenized[i]);
+  }
+
+  LocalFree(tokenized);
+  return argv;
 }
 #endif
