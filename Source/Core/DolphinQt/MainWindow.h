@@ -182,7 +182,7 @@ private:
 
   QStringList PromptFileNames();
 
-  void EnableScreenSaver(bool enable);
+  void UpdateScreenSaverInhibition();
 
   void OnStopComplete();
   void dragEnterEvent(QDragEnterEvent* event) override;
