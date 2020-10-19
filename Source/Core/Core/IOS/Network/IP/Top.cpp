@@ -542,9 +542,11 @@ IPCCommandResult NetIPTop::HandleGetPeerNameRequest(const IOCtlRequest& request)
 
 IPCCommandResult NetIPTop::HandleGetHostIDRequest(const IOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), Common::Log::IOS_WC24);
   const DefaultInterface interface = GetSystemDefaultInterfaceOrFallback();
-  return GetDefaultReply(Common::swap32(interface.inet));
+  const u32 host_ip = Common::swap32(interface.inet);
+  INFO_LOG(IOS_NET, "IOCTL_SO_GETHOSTID = %u.%u.%u.%u", host_ip >> 24, (host_ip >> 16) & 0xFF,
+           (host_ip >> 8) & 0xFF, host_ip & 0xFF);
+  return GetDefaultReply(host_ip);
 }
 
 IPCCommandResult NetIPTop::HandleInetAToNRequest(const IOCtlRequest& request)
