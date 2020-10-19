@@ -1179,7 +1179,7 @@ void Device::UpdateOrientation()
 
   // Apply M+ gyro data to our orientation.
   m_orientation =
-      WiimoteEmu::GetMatrixFromGyroscope(m_mplus_state.gyro_data * -1 * elapsed_time.count()) *
+      WiimoteEmu::GetRotationFromGyroscope(m_mplus_state.gyro_data * -1 * elapsed_time.count()) *
       m_orientation;
 
   // When M+ data is not available give accel/ir data more weight.
@@ -1204,7 +1204,7 @@ void Device::UpdateOrientation()
                      m_ir_state.center_position.x * WiimoteEmu::CameraLogic::CAMERA_FOV_X) /
         2;
     const auto ir_normal = Common::Vec3(0, 1, 0);
-    const auto ir_vector = WiimoteEmu::GetMatrixFromGyroscope(-ir_rotation) * ir_normal;
+    const auto ir_vector = WiimoteEmu::GetRotationFromGyroscope(-ir_rotation) * ir_normal;
 
     // Pitch correction will be slightly wrong based on sensorbar height.
     // Keep weight below accelerometer weight for that reason.
@@ -1213,6 +1213,9 @@ void Device::UpdateOrientation()
 
     m_orientation = WiimoteEmu::ComplementaryFilter(m_orientation, ir_vector, ir_weight, ir_normal);
   }
+
+  // Normalize for floating point inaccuracies.
+  m_orientation = m_orientation.Normalized();
 
   // Update our (pitch, roll, yaw) inputs now that orientation has been adjusted.
   m_rotation_inputs =

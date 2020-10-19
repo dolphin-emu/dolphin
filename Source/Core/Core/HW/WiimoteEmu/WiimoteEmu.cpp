@@ -758,7 +758,7 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(m_imu_cursor_state.rotation *
+  return GetTransformation(Common::Matrix33::FromQuaternion(m_imu_cursor_state.rotation) *
                            Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch));
 }
 
