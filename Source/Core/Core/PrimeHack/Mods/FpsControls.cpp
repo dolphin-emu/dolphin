@@ -107,7 +107,7 @@ namespace prime {
 
     int visor_id, visor_off;
     std::tie(visor_id, visor_off) = get_visor_switch(visors,
-      read32(powerups_array_base + 0x1c) == 0);
+      read32(powerups_array_base + active_visor_offset) == 0);
 
     if (visor_id != -1) {
       if (read32(powerups_array_base + (visor_off * powerups_size) + powerups_offset)) {
