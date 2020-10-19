@@ -277,6 +277,8 @@ add_executable(dolphin-emu
   TAS/TASCheckBox.h
   TAS/TASInputWindow.cpp
   TAS/TASInputWindow.h
+  TAS/TASSlider.cpp
+  TAS/TASSlider.h
   TAS/StickWidget.cpp
   TAS/StickWidget.h
   TAS/IRWidget.cpp
