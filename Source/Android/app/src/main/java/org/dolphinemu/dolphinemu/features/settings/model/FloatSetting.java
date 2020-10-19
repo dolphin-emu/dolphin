@@ -40,7 +40,7 @@ public enum FloatSetting implements AbstractFloatSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -53,7 +53,7 @@ public enum FloatSetting implements AbstractFloatSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getFloat(settings.getActiveLayer(), mFile, mSection, mKey, mDefaultValue);
+      return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
     }
     else
     {
@@ -66,7 +66,7 @@ public enum FloatSetting implements AbstractFloatSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setFloat(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setFloat(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {

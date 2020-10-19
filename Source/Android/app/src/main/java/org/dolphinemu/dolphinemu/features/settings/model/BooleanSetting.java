@@ -157,7 +157,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.deleteKey(settings.getActiveLayer(), mFile, mSection, mKey);
+      return NativeConfig.deleteKey(settings.getWriteLayer(), mFile, mSection, mKey);
     }
     else
     {
@@ -170,7 +170,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      return NativeConfig.getBoolean(settings.getActiveLayer(), mFile, mSection, mKey,
+      return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey,
               mDefaultValue);
     }
     else
@@ -184,7 +184,7 @@ public enum BooleanSetting implements AbstractBooleanSetting
   {
     if (NativeConfig.isSettingSaveable(mFile, mSection, mKey))
     {
-      NativeConfig.setBoolean(settings.getActiveLayer(), mFile, mSection, mKey, newValue);
+      NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
     }
     else
     {
