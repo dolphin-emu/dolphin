@@ -2,18 +2,18 @@ package org.dolphinemu.dolphinemu.features.settings.model.view;
 
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractSetting;
 
-public final class ConfirmRunnable extends SettingsItem
+public final class RunRunnable extends SettingsItem
 {
-  private int mAlertText;
-  private int mConfirmationText;
-  private Runnable mRunnable;
+  private final int mAlertText;
+  private final int mToastTextAfterRun;
+  private final Runnable mRunnable;
 
-  public ConfirmRunnable(int titleId, int descriptionId, int alertText, int confirmationText,
+  public RunRunnable(int titleId, int descriptionId, int alertText, int toastTextAfterRun,
           Runnable runnable)
   {
     super(titleId, descriptionId);
     mAlertText = alertText;
-    mConfirmationText = confirmationText;
+    mToastTextAfterRun = toastTextAfterRun;
     mRunnable = runnable;
   }
 
@@ -22,9 +22,9 @@ public final class ConfirmRunnable extends SettingsItem
     return mAlertText;
   }
 
-  public int getConfirmationText()
+  public int getToastTextAfterRun()
   {
-    return mConfirmationText;
+    return mToastTextAfterRun;
   }
 
   public Runnable getRunnable()
@@ -35,7 +35,7 @@ public final class ConfirmRunnable extends SettingsItem
   @Override
   public int getType()
   {
-    return TYPE_CONFIRM_RUNNABLE;
+    return TYPE_RUN_RUNNABLE;
   }
 
   @Override
