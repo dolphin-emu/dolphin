@@ -162,7 +162,7 @@ private:
   GetTransformation(const Common::Matrix33& extra_rotation = Common::Matrix33::Identity()) const;
 
   // Returns the world rotation from the effects of sideways/upright settings.
-  Common::Matrix33 GetOrientation() const;
+  Common::Quaternion GetOrientation() const;
 
   Common::Vec3 GetTotalAcceleration() const;
   Common::Vec3 GetTotalAngularVelocity() const;
