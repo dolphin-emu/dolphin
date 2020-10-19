@@ -9,12 +9,13 @@
 #include <cinttypes>
 #include <cstring>
 
+#include <fmt/format.h>
+
 #include "Common/Crypto/AES.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/IOS/ES/Formats.h"
 
@@ -132,9 +133,10 @@ std::string NANDImporter::GetPath(const NANDFSTEntry& entry, const std::string& 
 
 std::string NANDImporter::FormatDebugString(const NANDFSTEntry& entry)
 {
-  return StringFromFormat("%12.12s 0x%02x 0x%02x 0x%04x 0x%04x 0x%08x 0x%04x 0x%04x 0x%04x 0x%08x",
-                          entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size,
-                          entry.x1, entry.uid, entry.gid, entry.x3);
+  return fmt::format(
+      "{:12.12} {:#04x} {:#04x} {:#06x} {:#06x} {:#010x} {:#06x} {:#06x} {:#06x} {:#010x}",
+      entry.name, entry.mode, entry.attr, entry.sub, entry.sib, entry.size, entry.x1, entry.uid,
+      entry.gid, entry.x3);
 }
 
 void NANDImporter::ProcessEntry(u16 entry_number, const std::string& parent_path)
@@ -216,7 +218,7 @@ bool NANDImporter::ExtractCertificates(const std::string& nand_root)
     return false;
   }
 
-  File::IOFile content_file(content_dir + StringFromFormat("%08x.app", content_metadata.id), "rb");
+  File::IOFile content_file(content_dir + fmt::format("{:08x}.app", content_metadata.id), "rb");
   std::vector<u8> content_bytes(content_file.GetSize());
   if (!content_file.ReadBytes(content_bytes.data(), content_bytes.size()))
   {

@@ -5,6 +5,9 @@
 #pragma once
 
 #include <string>
+#include <utility>
+
+#include <fmt/format.h>
 
 namespace Common
 {
@@ -30,6 +33,13 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
 #endif
     ;
 void SetEnableAlert(bool enable);
+
+// Like fmt::format, except the string becomes translatable
+template <typename... Args>
+std::string FmtFormatT(const char* string, Args&&... args)
+{
+  return fmt::format(Common::GetStringT(string), std::forward<Args>(args)...);
+}
 }  // namespace Common
 
 #define SuccessAlert(format, ...)                                                                  \
