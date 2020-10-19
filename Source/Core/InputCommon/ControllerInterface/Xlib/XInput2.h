@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <array>
+
 extern "C" {
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
@@ -24,7 +26,7 @@ class KeyboardMouse : public Core::Device
 private:
   struct State
   {
-    char keyboard[32];
+    std::array<char, 32> keyboard;
     unsigned int buttons;
     Common::Vec2 cursor;
     Common::Vec2 axis;
@@ -90,7 +92,7 @@ private:
   };
 
 private:
-  void SelectEventsForDevice(Window window, XIEventMask* mask, int deviceid);
+  void SelectEventsForDevice(XIEventMask* mask, int deviceid);
   void UpdateCursor();
 
 public:
@@ -106,8 +108,9 @@ private:
   Window m_window;
   Display* m_display;
   State m_state{};
-  int xi_opcode;
-  const int pointer_deviceid, keyboard_deviceid;
+  const int xi_opcode;
+  const int pointer_deviceid;
+  const int keyboard_deviceid;
   std::string name;
 };
 }  // namespace ciface::XInput2
