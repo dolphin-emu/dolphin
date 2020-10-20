@@ -24,44 +24,41 @@ public class Analytics
   {
     new AfterDirectoryInitializationRunner().run(context, false, () ->
     {
-      Settings settings = new Settings();
-      settings.loadSettings(null);
-      if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBoolean(settings))
+      if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.getBooleanGlobal())
       {
-        showMessage(context, settings);
-      }
-      else
-      {
-        settings.close();
+        showMessage(context);
       }
     });
   }
 
-  private static void showMessage(Context context, Settings settings)
+  private static void showMessage(Context context)
   {
     new AlertDialog.Builder(context, R.style.DolphinDialogBase)
             .setTitle(context.getString(R.string.analytics))
             .setMessage(context.getString(R.string.analytics_desc))
             .setPositiveButton(R.string.yes, (dialogInterface, i) ->
             {
-              firstAnalyticsAdd(settings, true);
+              firstAnalyticsAdd(true);
             })
             .setNegativeButton(R.string.no, (dialogInterface, i) ->
             {
-              firstAnalyticsAdd(settings, false);
+              firstAnalyticsAdd(false);
             })
             .show();
   }
 
-  private static void firstAnalyticsAdd(Settings settings, boolean enabled)
+  private static void firstAnalyticsAdd(boolean enabled)
   {
-    BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
-    BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);
+    try (Settings settings = new Settings())
+    {
+      settings.loadSettings(null);
 
-    // Context is set to null to avoid toasts
-    settings.saveSettings(null, null);
+      BooleanSetting.MAIN_ANALYTICS_ENABLED.setBoolean(settings, enabled);
+      BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.setBoolean(settings, true);
 
-    settings.close();
+      // Context is set to null to avoid toasts
+      settings.saveSettings(null, null);
+    }
   }
 
   public static void sendReport(String endpoint, byte[] data)

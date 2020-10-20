@@ -1,13 +1,13 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
-public class AdHocBooleanSetting implements AbstractBooleanSetting
+public class AdHocStringSetting implements AbstractStringSetting
 {
   private final String mFile;
   private final String mSection;
   private final String mKey;
-  private final boolean mDefaultValue;
+  private final String mDefaultValue;
 
-  public AdHocBooleanSetting(String file, String section, String key, boolean defaultValue)
+  public AdHocStringSetting(String file, String section, String key, String defaultValue)
   {
     mFile = file;
     mSection = section;
@@ -39,20 +39,19 @@ public class AdHocBooleanSetting implements AbstractBooleanSetting
   }
 
   @Override
-  public boolean getBoolean(Settings settings)
+  public String getString(Settings settings)
   {
-    return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+    return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
   }
 
   @Override
-  public void setBoolean(Settings settings, boolean newValue)
+  public void setString(Settings settings, String newValue)
   {
-    NativeConfig.setBoolean(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
+    NativeConfig.setString(settings.getWriteLayer(), mFile, mSection, mKey, newValue);
   }
 
-  public static boolean getBooleanGlobal(String file, String section, String key,
-          boolean defaultValue)
+  public static String getStringGlobal(String file, String section, String key, String defaultValue)
   {
-    return NativeConfig.getBoolean(NativeConfig.LAYER_ACTIVE, file, section, key, defaultValue);
+    return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, file, section, key, defaultValue);
   }
 }

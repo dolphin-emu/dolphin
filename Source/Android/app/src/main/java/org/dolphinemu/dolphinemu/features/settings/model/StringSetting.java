@@ -104,4 +104,9 @@ public enum StringSetting implements AbstractStringSetting
       settings.getSection(mFile, mSection).setString(mKey, newValue);
     }
   }
+
+  public String getStringGlobal()
+  {
+    return NativeConfig.getString(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+  }
 }

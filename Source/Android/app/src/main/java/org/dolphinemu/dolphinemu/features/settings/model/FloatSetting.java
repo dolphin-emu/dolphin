@@ -73,4 +73,9 @@ public enum FloatSetting implements AbstractFloatSetting
       settings.getSection(mFile, mSection).setFloat(mKey, newValue);
     }
   }
+
+  public float getFloatGlobal()
+  {
+    return NativeConfig.getFloat(NativeConfig.LAYER_ACTIVE, mFile, mSection, mKey, mDefaultValue);
+  }
 }

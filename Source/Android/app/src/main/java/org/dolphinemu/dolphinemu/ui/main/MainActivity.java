@@ -87,6 +87,10 @@ public final class MainActivity extends AppCompatActivity implements MainView
 
     mPresenter.addDirIfNeeded(this);
 
+    // In case the user changed a setting that affects how games are displayed,
+    // such as system language, cover downloading...
+    refetchMetadata();
+
     if (sShouldRescanLibrary)
     {
       GameFileCacheService.startRescan(this);
@@ -254,6 +258,18 @@ public final class MainActivity extends AppCompatActivity implements MainView
     }
   }
 
+  private void refetchMetadata()
+  {
+    for (Platform platform : Platform.values())
+    {
+      PlatformGamesView fragment = getPlatformGamesView(platform);
+      if (fragment != null)
+      {
+        fragment.refetchMetadata();
+      }
+    }
+  }
+
   @Nullable
   private PlatformGamesView getPlatformGamesView(Platform platform)
   {
@@ -289,11 +305,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
       }
     });
 
-    try (Settings settings = new Settings())
-    {
-      settings.loadSettings(null);
-      mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getInt(settings));
-    }
+    mViewPager.setCurrentItem(IntSetting.MAIN_LAST_PLATFORM_TAB.getIntGlobal());
 
     showGames();
     GameFileCacheService.startLoad(this);

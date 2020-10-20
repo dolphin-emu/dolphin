@@ -10,6 +10,7 @@ import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.GameFile;
 
 import java.io.File;
@@ -62,7 +63,7 @@ public class PicassoUtils
     }
     // GameTDB has a pretty close to complete collection for US/EN covers. First pass at getting
     // the cover will be by the disk's region, second will be the US cover, and third EN.
-    else
+    else if (BooleanSetting.MAIN_USE_GAME_COVERS.getBooleanGlobal())
     {
       Picasso.get()
               .load(CoverHelper.buildGameTDBUrl(gameFile, CoverHelper.getRegion(gameFile)))
@@ -135,6 +136,17 @@ public class PicassoUtils
                           });
                 }
               });
+    }
+    else
+    {
+      Picasso.get()
+              .load(R.drawable.no_banner)
+              .noFade()
+              .noPlaceholder()
+              .fit()
+              .centerInside()
+              .config(Bitmap.Config.ARGB_8888)
+              .into(imageView);
     }
   }
 }
