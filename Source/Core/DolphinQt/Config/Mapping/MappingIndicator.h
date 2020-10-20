@@ -204,4 +204,5 @@ private:
   ControllerEmu::ReshapableInput::CalibrationData m_calibration_data;
   QTimer* m_informative_timer;
   std::optional<Common::DVec2> m_new_center;
+  Common::DVec2 m_prev_point;
 };

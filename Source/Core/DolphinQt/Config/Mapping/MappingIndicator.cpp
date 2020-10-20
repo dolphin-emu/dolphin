@@ -856,6 +856,7 @@ void CalibrationWidget::SetupActions()
 
 void CalibrationWidget::StartCalibration()
 {
+  m_prev_point = {};
   m_calibration_data.assign(m_input.CALIBRATION_SAMPLE_COUNT, 0.0);
 
   // Cancel calibration.
@@ -888,7 +889,9 @@ void CalibrationWidget::Update(Common::DVec2 point)
 
   if (IsCalibrating())
   {
-    m_input.UpdateCalibrationData(m_calibration_data, point - *m_new_center);
+    const auto new_point = point - *m_new_center;
+    m_input.UpdateCalibrationData(m_calibration_data, m_prev_point, new_point);
+    m_prev_point = new_point;
 
     if (IsCalibrationDataSensible(m_calibration_data))
     {

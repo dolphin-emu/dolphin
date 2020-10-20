@@ -25,18 +25,24 @@ constexpr auto CALIBRATION_CONFIG_SCALE = 100;
 constexpr auto CENTER_CONFIG_NAME = "Center";
 constexpr auto CENTER_CONFIG_SCALE = 100;
 
-// Calculate distance to intersection of a ray with a line defined by two points.
-double GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 point1, Common::DVec2 point2)
+// Calculate distance to intersection of a ray with a line segment defined by two points.
+std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 point1,
+                                             Common::DVec2 point2)
 {
   const auto diff = point2 - point1;
 
   const auto dot = diff.Dot({-ray.y, ray.x});
   if (std::abs(dot) < 0.00001)
   {
-    // Handle situation where both points are on top of eachother.
-    // This could occur if the user configures a single calibration value
-    // or when updating calibration.
-    return point1.Length();
+    // Both points are on top of eachother.
+    return std::nullopt;
+  }
+
+  const auto segment_position = point1.Dot({ray.y, -ray.x}) / dot;
+  if (segment_position < -0.00001 || segment_position > 1.00001)
+  {
+    // Ray does not pass through segment.
+    return std::nullopt;
   }
 
   return diff.Cross(-point1) / dot;
@@ -147,9 +153,13 @@ ControlState ReshapableInput::GetCalibrationDataRadiusAtAngle(const CalibrationD
   const double sample1_angle = sample1_index * MathUtil::TAU / data.size();
   const double sample2_angle = sample2_index * MathUtil::TAU / data.size();
 
-  return GetRayLineIntersection(GetPointFromAngleAndLength(angle, 1.0),
-                                GetPointFromAngleAndLength(sample1_angle, data[sample1_index]),
-                                GetPointFromAngleAndLength(sample2_angle, data[sample2_index]));
+  const auto intersection =
+      GetRayLineIntersection(GetPointFromAngleAndLength(angle, 1.0),
+                             GetPointFromAngleAndLength(sample1_angle, data[sample1_index]),
+                             GetPointFromAngleAndLength(sample2_angle, data[sample2_index]));
+
+  // Intersection has no value when points are on top of eachother.
+  return intersection.value_or(data[sample1_index]);
 }
 
 ControlState ReshapableInput::GetDefaultInputRadiusAtAngle(double angle) const
@@ -173,46 +183,16 @@ void ReshapableInput::SetCalibrationFromGate(const StickGate& gate)
     val = gate.GetRadiusAtAngle(MathUtil::TAU * i++ / m_calibration.size());
 }
 
-void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2 point)
+void ReshapableInput::UpdateCalibrationData(CalibrationData& data, Common::DVec2 point1,
+                                            Common::DVec2 point2)
 {
-  const auto angle_scale = MathUtil::TAU / data.size();
-
-  const u32 calibration_index =
-      std::lround((std::atan2(point.y, point.x) + MathUtil::TAU) / angle_scale) % data.size();
-  const double calibration_angle = calibration_index * angle_scale;
-  auto& calibration_sample = data[calibration_index];
-
-  // Update closest sample from provided x,y.
-  calibration_sample = std::clamp(point.Length(), calibration_sample,
-                                  SquareStickGate(1).GetRadiusAtAngle(calibration_angle));
-
-  // Here we update all other samples in our calibration vector to maintain
-  // a convex polygon containing our new calibration point.
-  // This is required to properly fill in angles that cannot be gotten.
-  // (e.g. Keyboard input only has 8 possible angles)
-
-  // Note: Loop assumes an even sample count, which should not be a problem.
-  for (auto sample_offset = u32(data.size() / 2 - 1); sample_offset > 1; --sample_offset)
+  for (u32 i = 0; i != data.size(); ++i)
   {
-    const auto update_at_offset = [&](u32 offset1, u32 offset2) {
-      const u32 sample1_index = (calibration_index + offset1) % data.size();
-      const double sample1_angle = sample1_index * angle_scale;
-      auto& sample1 = data[sample1_index];
+    const auto angle = i * MathUtil::TAU / data.size();
+    const auto intersection =
+        GetRayLineIntersection(GetPointFromAngleAndLength(angle, 1.0), point1, point2);
 
-      const u32 sample2_index = (calibration_index + offset2) % data.size();
-      const double sample2_angle = sample2_index * angle_scale;
-      auto& sample2 = data[sample2_index];
-
-      const double intersection =
-          GetRayLineIntersection(GetPointFromAngleAndLength(sample2_angle, 1.0),
-                                 GetPointFromAngleAndLength(sample1_angle, sample1),
-                                 GetPointFromAngleAndLength(calibration_angle, calibration_sample));
-
-      sample2 = std::max(sample2, intersection);
-    };
-
-    update_at_offset(sample_offset, sample_offset - 1);
-    update_at_offset(u32(data.size() - sample_offset), u32(data.size() - sample_offset + 1));
+    data[i] = std::max(data[i], intersection.value_or(data[i]));
   }
 }
 
