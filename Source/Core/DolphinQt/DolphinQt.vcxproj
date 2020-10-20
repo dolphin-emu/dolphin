@@ -105,6 +105,11 @@
     <ClCompile Include="Config\PatchesWidget.cpp" />
     <ClCompile Include="Config\PropertiesDialog.cpp" />
     <ClCompile Include="Config\SettingsWindow.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipCheckBox.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipComboBox.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipRadioButton.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipSlider.cpp" />
+    <ClCompile Include="Config\ToolTipControls\ToolTipSpinBox.cpp" />
     <ClCompile Include="Config\VerifyWidget.cpp" />
     <ClCompile Include="ConvertDialog.cpp" />
     <ClCompile Include="Debugger\BreakpointWidget.cpp" />
@@ -263,6 +268,12 @@
     <QtMoc Include="Config\Mapping\WiimoteEmuMotionControlIMU.h" />
     <QtMoc Include="Config\PropertiesDialog.h" />
     <QtMoc Include="Config\SettingsWindow.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipCheckBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipComboBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipRadioButton.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipSlider.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipSpinBox.h" />
+    <ClInclude Include="Config\ToolTipControls\ToolTipWidget.h" />
     <QtMoc Include="Config\VerifyWidget.h" />
     <QtMoc Include="ConvertDialog.h" />
     <QtMoc Include="Debugger\BreakpointWidget.h" />

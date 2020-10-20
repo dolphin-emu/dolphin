@@ -171,6 +171,17 @@ add_executable(dolphin-emu
   Config/PropertiesDialog.h
   Config/SettingsWindow.cpp
   Config/SettingsWindow.h
+  Config/ToolTipControls/ToolTipCheckBox.cpp
+  Config/ToolTipControls/ToolTipCheckBox.h
+  Config/ToolTipControls/ToolTipComboBox.cpp
+  Config/ToolTipControls/ToolTipComboBox.h
+  Config/ToolTipControls/ToolTipRadioButton.cpp
+  Config/ToolTipControls/ToolTipRadioButton.h
+  Config/ToolTipControls/ToolTipSlider.cpp
+  Config/ToolTipControls/ToolTipSlider.h
+  Config/ToolTipControls/ToolTipSpinBox.cpp
+  Config/ToolTipControls/ToolTipSpinBox.h
+  Config/ToolTipControls/ToolTipWidget.h
   Config/VerifyWidget.cpp
   Config/VerifyWidget.h
   Debugger/BreakpointWidget.cpp
