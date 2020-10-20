@@ -1,0 +1,41 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: normal
+
+.core-defs:
+  variables:
+    CORENAME: dolphin
+    CORE_ARGS: -DLIBRETRO=ON
+
+.core-linux-defs:
+  extends: .core-defs
+  variables:
+    CORE_ARGS: -DLIBRETRO=ON -DENABLE_QT=OFF
+
+include:
+  - template: Jobs/Code-Quality.gitlab-ci.yml
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/android-cmake.yml'
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-cmake.yml'
+
+stages:
+  - build-prepare
+  - build-shared
+  - test
+
+#Desktop
+libretro-build-linux-x86_64:
+  extends:
+    - .libretro-linux-cmake-x86_64
+    - .core-linux-defs
+
+# Android
+libretro-build-android-arm64-v8a:
+  extends:
+    - .libretro-android-cmake-arm64-v8a
+    - .core-defs
+
+libretro-build-android-x86_64:
+  extends:
+    - .libretro-android-cmake-x86_64
+    - .core-defs
