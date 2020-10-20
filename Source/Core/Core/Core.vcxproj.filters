@@ -217,6 +217,9 @@
     <ClCompile Include="Debugger\Dump.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\OSThread.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
@@ -1048,6 +1051,9 @@
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\GCELF.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\OSThread.h">
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\PPCDebugInterface.h">
