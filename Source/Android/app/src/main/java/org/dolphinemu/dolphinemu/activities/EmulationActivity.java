@@ -874,6 +874,11 @@ public final class EmulationActivity extends AppCompatActivity
       IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, seekbar.getProgress());
       mEmulationFragment.refreshInputOverlay();
     });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
+      mEmulationFragment.refreshInputOverlay();
+    });
 
     builder.show();
   }
@@ -966,8 +971,11 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRSensitivity()
   {
-    int ir_pitch = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
+    // IR settings always get saved per-game since WiimoteNew.ini is wiped upon reinstall.
+    File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
+    IniFile ini = new IniFile(file);
+
+    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 15);
 
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
@@ -999,8 +1007,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int ir_yaw = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
+    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 15);
 
     TextView text_slider_value_yaw = view.findViewById(R.id.text_ir_yaw);
     TextView units_yaw = view.findViewById(R.id.text_ir_yaw_units);
@@ -1030,9 +1037,8 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
 
-    int ir_vertical_offset = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-                    "10"));
+    int ir_vertical_offset =
+            ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET, 10);
 
     TextView text_slider_value_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset);
     TextView units_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset_units);
@@ -1066,8 +1072,6 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
-      IniFile ini = new IniFile(file);
       ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
               text_slider_value_pitch.getText().toString());
       ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
@@ -1077,19 +1081,19 @@ public final class EmulationActivity extends AppCompatActivity
       ini.save(file);
 
       NativeLibrary.ReloadWiimoteConfig();
-
-      SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
-              text_slider_value_pitch.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
-              text_slider_value_yaw.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-              text_slider_value_vertical_offset.getText().toString());
-      editor.apply();
     });
     builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
     {
       // Do nothing
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET);
+      ini.save(file);
+
+      NativeLibrary.ReloadWiimoteConfig();
     });
     builder.show();
   }
