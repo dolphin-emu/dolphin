@@ -1,9 +1,7 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -18,6 +16,8 @@ import androidx.fragment.app.Fragment;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Log;
 
@@ -26,8 +26,6 @@ import java.io.File;
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
   private static final String KEY_GAMEPATHS = "gamepaths";
-
-  private SharedPreferences mPreferences;
 
   private InputOverlay mInputOverlay;
 
@@ -71,8 +69,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
     // So this fragment doesn't restart on configuration changes; i.e. rotation.
     setRetainInstance(true);
-
-    mPreferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 
     String[] gamePaths = getArguments().getStringArray(KEY_GAMEPATHS);
     mEmulationState = new EmulationState(gamePaths, getTemporaryStateFilePath());
@@ -124,20 +120,10 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     super.onDetach();
   }
 
-  public void toggleInputOverlayVisibility()
+  public void toggleInputOverlayVisibility(Settings settings)
   {
-    SharedPreferences.Editor editor = mPreferences.edit();
-
-    // If the overlay is currently set to INVISIBLE
-    if (!mPreferences.getBoolean("showInputOverlay", false))
-    {
-      editor.putBoolean("showInputOverlay", true);
-    }
-    else
-    {
-      editor.putBoolean("showInputOverlay", false);
-    }
-    editor.commit();
+    BooleanSetting.MAIN_SHOW_INPUT_OVERLAY
+            .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
     mInputOverlay.refreshControls();
   }
 
