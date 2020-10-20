@@ -69,6 +69,7 @@
 #define WFSROOT_DIR "WFS"
 #define BACKUP_DIR "Backup"
 #define RESOURCEPACK_DIR "ResourcePacks"
+#define DYNAMICINPUT_DIR "DynamicInputTextures"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"

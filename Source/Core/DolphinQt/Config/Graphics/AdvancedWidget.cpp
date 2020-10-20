@@ -232,9 +232,10 @@ void AdvancedWidget::AddDescriptions()
       "User/Dump/Textures/<game_id>/.  This includes arbitrary base textures if 'Arbitrary "
       "Mipmap Detection' is enabled in Enhancements.\n\nIf unsure, leave "
       "this checked.");
-  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
-      "Loads custom textures from User/Load/Textures/<game_id>/.\n\nIf unsure, leave this "
-      "unchecked.");
+  static const char TR_LOAD_CUSTOM_TEXTURE_DESCRIPTION[] =
+      QT_TR_NOOP("Loads custom textures from User/Load/Textures/<game_id>/ and "
+                 "User/Load/DynamicInputTextures/<game_id>/.\n\nIf unsure, leave this "
+                 "unchecked.");
   static const char TR_CACHE_CUSTOM_TEXTURE_DESCRIPTION[] = QT_TR_NOOP(
       "Caches custom textures to system RAM on startup.\n\nThis can require exponentially "
       "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");

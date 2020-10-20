@@ -259,6 +259,9 @@ public:
   void BeginUIFrame();
   void EndUIFrame();
 
+  // Will forcibly reload all textures on the next swap
+  void ForceReloadTextures();
+
 protected:
   // Bitmask containing information about which configuration has changed for the backend.
   enum ConfigChangeBits : u32
@@ -410,6 +413,8 @@ private:
   void FinishFrameData();
 
   std::unique_ptr<NetPlayChatUI> m_netplay_chat_ui;
+
+  Common::Flag m_force_reload_textures;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
