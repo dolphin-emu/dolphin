@@ -6,6 +6,7 @@ import android.text.TextUtils;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
@@ -14,6 +15,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.WiimoteProfileSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
@@ -33,7 +35,6 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
-import org.dolphinemu.dolphinemu.utils.IniFile;
 import org.dolphinemu.dolphinemu.utils.Log;
 
 import java.io.File;
@@ -755,22 +756,21 @@ public final class SettingsFragmentPresenter
   private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
   {
     // Bindings use controller numbers 4-7 (0-3 are GameCube), but the extension setting uses 1-4.
-    // But game game specific extension settings are saved in their own profile. These profiles
+    // But game specific extension settings are saved in their own profile. These profiles
     // do not have any way to specify the controller that is loaded outside of knowing the filename
     // of the profile that was loaded.
-    LegacyStringSetting extension;
+    AbstractStringSetting extension;
+    final String defaultExtension = "None";
     if (mGameID.isEmpty())
     {
       extension = new LegacyStringSetting(Settings.FILE_WIIMOTE,
               Settings.SECTION_WIIMOTE + (wiimoteNumber - 3), SettingsFile.KEY_WIIMOTE_EXTENSION,
-              getExtensionValue(wiimoteNumber - 3));
+              defaultExtension);
     }
     else
     {
-      mSettings.loadWiimoteProfile(mGameID, wiimoteNumber - 4);
-      extension = new LegacyStringSetting(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-              Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIMOTE_EXTENSION + (wiimoteNumber - 4),
-              getExtensionValue(wiimoteNumber - 4));
+      extension = new WiimoteProfileSetting(mGameID, wiimoteNumber - 4, Settings.SECTION_PROFILE,
+              SettingsFile.KEY_WIIMOTE_EXTENSION, defaultExtension);
     }
 
     sl.add(new StringSingleChoiceSetting(extension, R.string.wiimote_extensions, 0,
@@ -1187,22 +1187,6 @@ public final class SettingsFragmentPresenter
                 R.string.generic_right, mGameID));
         break;
     }
-  }
-
-  private String getExtensionValue(int wiimoteNumber)
-  {
-    IniFile.Section section;
-    if (mGameID.equals("")) // Main settings
-    {
-      section = mSettings.getSection(Settings.FILE_WIIMOTE,
-              Settings.SECTION_WIIMOTE + wiimoteNumber);
-    }
-    else // Game settings
-    {
-      section = mSettings.getSection(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-              Settings.SECTION_PROFILE);
-    }
-    return section.getString(SettingsFile.KEY_WIIMOTE_EXTENSION, "None");
   }
 
   private static int getLogVerbosityEntries()

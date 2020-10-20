@@ -320,19 +320,6 @@ public final class DirectoryInitialization
     }
   }
 
-  public static void copyFile(String from, String to)
-  {
-    try
-    {
-      InputStream in = new FileInputStream(from);
-      OutputStream out = new FileOutputStream(to);
-      copyFile(in, out);
-    }
-    catch (IOException ignored)
-    {
-    }
-  }
-
   private static void copyFile(InputStream in, OutputStream out) throws IOException
   {
     byte[] buffer = new byte[1024];
