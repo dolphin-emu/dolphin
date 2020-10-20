@@ -217,6 +217,27 @@ Wiimote::Wiimote(const unsigned int index) : m_index(index)
                           new ControllerEmu::IMUGyroscope("IMUGyroscope", _trans("Gyroscope")));
   groups.emplace_back(m_imu_ir = new ControllerEmu::IMUCursor("IMUIR", _trans("Point")));
 
+  const auto fov_default =
+      Common::DVec2(CameraLogic::CAMERA_FOV_X, CameraLogic::CAMERA_FOV_Y) / MathUtil::TAU * 360;
+
+  m_imu_ir->AddSetting(&m_fov_x_setting,
+                       // i18n: FOV stands for "Field of view".
+                       {_trans("Horizontal FOV"),
+                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+                        _trans("°"),
+                        // i18n: Refers to emulated wii remote camera properties.
+                        _trans("Camera field of view (affects sensitivity of pointing).")},
+                       fov_default.x, 0.01, 180);
+
+  m_imu_ir->AddSetting(&m_fov_y_setting,
+                       // i18n: FOV stands for "Field of view".
+                       {_trans("Vertical FOV"),
+                        // i18n: The symbol/abbreviation for degrees (unit of angular measure).
+                        _trans("°"),
+                        // i18n: Refers to emulated wii remote camera properties.
+                        _trans("Camera field of view (affects sensitivity of pointing).")},
+                       fov_default.y, 0.01, 180);
+
   // Extension
   groups.emplace_back(m_attachments = new ControllerEmu::Attachments(_trans("Extension")));
   m_attachments->AddAttachment(std::make_unique<WiimoteEmu::None>());
@@ -505,7 +526,9 @@ void Wiimote::SendDataReport()
     {
       // Note: Camera logic currently contains no changing state so we can just update it here.
       // If that changes this should be moved to Wiimote::Update();
-      m_camera_logic.Update(GetTotalTransformation());
+      m_camera_logic.Update(GetTotalTransformation(),
+                            Common::Vec2(m_fov_x_setting.GetValue(), m_fov_y_setting.GetValue()) /
+                                360 * float(MathUtil::TAU));
 
       // The real wiimote reads camera data from the i2c bus starting at offset 0x37:
       const u8 camera_data_offset =
