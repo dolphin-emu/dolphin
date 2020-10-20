@@ -183,8 +183,6 @@
     <string name="load_path">Load Path</string>
     <string name="resource_pack_path">Resource Pack Path</string>
     <string name="SD_card_path">SD Card Path</string>
-    <string name="reset_paths">Reset Paths to Default Settings</string>
-    <string name="reset_paths_confirmation">Are you sure you want to reset Paths to default settings?</string>
 
     <!-- Graphics Settings -->
     <string name="graphics_general">General</string>

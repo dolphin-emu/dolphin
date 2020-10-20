@@ -357,8 +357,6 @@ public final class SettingsFragmentPresenter
             MainPresenter.REQUEST_DIRECTORY, "/ResourcePacks"));
     sl.add(new FilePicker(StringSetting.MAIN_SD_PATH, R.string.SD_card_path, 0,
             MainPresenter.REQUEST_SD_FILE, "/Wii/sd.raw"));
-    sl.add(new RunRunnable(R.string.reset_paths, 0, R.string.reset_paths_confirmation, 0,
-            mView.getAdapter()::resetPaths));
   }
 
   private void addGameCubeSettings(ArrayList<SettingsItem> sl)

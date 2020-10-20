@@ -325,21 +325,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = null;
   }
 
-  public void resetPaths()
-  {
-    Settings settings = mView.getSettings();
-
-    StringSetting.MAIN_DEFAULT_ISO.delete(settings);
-    StringSetting.MAIN_FS_PATH.delete(settings);
-    StringSetting.MAIN_DUMP_PATH.delete(settings);
-    StringSetting.MAIN_LOAD_PATH.delete(settings);
-    StringSetting.MAIN_RESOURCEPACK_PATH.delete(settings);
-    StringSetting.MAIN_SD_PATH.delete(settings);
-
-    notifyItemRangeChanged(0, getItemCount());
-    mView.onSettingChanged();
-  }
-
   public void setAllLogTypes(boolean value)
   {
     Settings settings = mView.getSettings();
