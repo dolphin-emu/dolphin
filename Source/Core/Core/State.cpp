@@ -213,10 +213,6 @@ static void DoState(PointerWrap& p)
   p.DoMarker("Wiimote");
   Gecko::DoState(p);
   p.DoMarker("Gecko");
-
-#if defined(HAVE_FFMPEG)
-  FrameDump::DoState();
-#endif
 }
 
 void LoadFromBuffer(std::vector<u8>& buffer)
