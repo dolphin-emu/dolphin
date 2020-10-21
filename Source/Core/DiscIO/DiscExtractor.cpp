@@ -5,7 +5,6 @@
 #include "DiscIO/DiscExtractor.h"
 
 #include <algorithm>
-#include <cinttypes>
 #include <locale>
 #include <optional>
 
@@ -58,11 +57,9 @@ u64 ReadFile(const Volume& volume, const Partition& partition, const FileInfo* f
 
   const u64 read_length = std::min(max_buffer_size, file_info->GetSize() - offset_in_file);
 
-  DEBUG_LOG(DISCIO,
-            "Reading %" PRIx64 " bytes at %" PRIx64 " from file %s. Offset: %" PRIx64
-            " Size: %" PRIx32,
-            read_length, offset_in_file, file_info->GetPath().c_str(), file_info->GetOffset(),
-            file_info->GetSize());
+  DEBUG_LOG_FMT(DISCIO, "Reading {:x} bytes at {:x} from file {}. Offset: {:x} Size: {:x}",
+                read_length, offset_in_file, file_info->GetPath(), file_info->GetOffset(),
+                file_info->GetSize());
 
   if (!volume.Read(file_info->GetOffset() + offset_in_file, read_length, buffer, partition))
     return 0;
@@ -144,14 +141,14 @@ void ExportDirectory(const Volume& volume, const Partition& partition, const Fil
     if (update_progress(path))
       return;
 
-    DEBUG_LOG(DISCIO, "%s", export_path.c_str());
+    DEBUG_LOG_FMT(DISCIO, "{}", export_path);
 
     if (!file_info.IsDirectory())
     {
       if (File::Exists(export_path))
-        NOTICE_LOG(DISCIO, "%s already exists", export_path.c_str());
+        NOTICE_LOG_FMT(DISCIO, "{} already exists", export_path);
       else if (!ExportFile(volume, partition, &file_info, export_path))
-        ERROR_LOG(DISCIO, "Could not export %s", export_path.c_str());
+        ERROR_LOG_FMT(DISCIO, "Could not export {}", export_path);
     }
     else if (recursive)
     {

@@ -54,7 +54,7 @@ VolumeWAD::VolumeWAD(std::unique_ptr<BlobReader> reader) : m_reader(std::move(re
 
   if (!IOS::ES::IsValidTMDSize(m_tmd_size))
   {
-    ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
+    ERROR_LOG_FMT(DISCIO, "TMD is too large: {} bytes", m_tmd_size);
     return;
   }
 
@@ -240,7 +240,8 @@ IOS::ES::TicketReader VolumeWAD::GetTicketWithFixedCommonKey() const
     }
   }
 
-  ERROR_LOG(DISCIO, "Couldn't find valid common key for WAD file (%u specified)", specified_index);
+  ERROR_LOG_FMT(DISCIO, "Couldn't find valid common key for WAD file ({} specified)",
+                specified_index);
   return m_ticket;
 }
 

@@ -98,7 +98,7 @@ DriveReader::DriveReader(const std::string& drive)
   }
   else
   {
-    NOTICE_LOG(DISCIO, "Load from DVD backup failed or no disc in drive %s", drive.c_str());
+    NOTICE_LOG_FMT(DISCIO, "Load from DVD backup failed or no disc in drive {}", drive);
   }
 }
 

@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <cinttypes>
 #include <future>
 #include <limits>
 #include <memory>
@@ -97,7 +96,7 @@ void RedumpVerifier::Start(const Volume& volume)
     switch (download_state->status)
     {
     case DownloadStatus::FailButOldCacheAvailable:
-      ERROR_LOG(DISCIO, "Failed to fetch data from Redump.org, using old cached data instead");
+      ERROR_LOG_FMT(DISCIO, "Failed to fetch data from Redump.org, using old cached data instead");
       [[fallthrough]];
     case DownloadStatus::Success:
       return ScanDatfile(ReadDatfile(system), system);
@@ -156,7 +155,7 @@ RedumpVerifier::DownloadStatus RedumpVerifier::DownloadDatfile(const std::string
 
   File::CreateFullPath(output_path);
   if (!File::IOFile(output_path, "wb").WriteBytes(result->data(), result->size()))
-    ERROR_LOG(DISCIO, "Failed to write downloaded datfile to %s", output_path.c_str());
+    ERROR_LOG_FMT(DISCIO, "Failed to write downloaded datfile to {}", output_path);
   return DownloadStatus::Success;
 }
 
@@ -275,7 +274,7 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
 
         if (game_id_start == std::string::npos || serial.size() < game_id_start + 4)
         {
-          ERROR_LOG(DISCIO, "Invalid serial in redump datfile: %s", serial_str.c_str());
+          ERROR_LOG_FMT(DISCIO, "Invalid serial in redump datfile: {}", serial_str);
           continue;
         }
 
@@ -1167,8 +1166,7 @@ void VolumeVerifier::Process()
 
   if (!read_succeeded)
   {
-    ERROR_LOG(DISCIO, "Read failed at 0x%" PRIx64 " to 0x%" PRIx64, m_progress,
-              m_progress + bytes_to_read);
+    ERROR_LOG_FMT(DISCIO, "Read failed at {:#x} to {:#x}", m_progress, m_progress + bytes_to_read);
 
     m_read_errors_occurred = true;
     m_calculating_any_hash = false;
@@ -1245,12 +1243,12 @@ void VolumeVerifier::Process()
             {
               if (m_scrubber.CanBlockBeScrubbed(offset))
               {
-                WARN_LOG(DISCIO, "Integrity check failed for unused block at 0x%" PRIx64, offset);
+                WARN_LOG_FMT(DISCIO, "Integrity check failed for unused block at {:#x}", offset);
                 m_unused_block_errors[m_blocks[block_index].partition]++;
               }
               else
               {
-                WARN_LOG(DISCIO, "Integrity check failed for block at 0x%" PRIx64, offset);
+                WARN_LOG_FMT(DISCIO, "Integrity check failed for block at {:#x}", offset);
                 m_block_errors[m_blocks[block_index].partition]++;
               }
             }

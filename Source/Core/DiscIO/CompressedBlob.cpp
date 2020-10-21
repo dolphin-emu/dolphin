@@ -206,7 +206,7 @@ static ConversionResult<OutputParameters> Compress(CompressThreadState* state,
 
   if (retval != Z_OK)
   {
-    ERROR_LOG(DISCIO, "Deflate failed");
+    ERROR_LOG_FMT(DISCIO, "Deflate failed");
     return ConversionResultCode::InternalError;
   }
 
