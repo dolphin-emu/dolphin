@@ -62,19 +62,26 @@ function(add_sanitizers ...)
     foreach (TARGET ${ARGV})
         # Check if this target will be compiled by exactly one compiler. Other-
         # wise sanitizers can't be used and a warning should be printed once.
+        get_target_property(TARGET_TYPE ${TARGET} TYPE)
+        if (TARGET_TYPE STREQUAL "INTERFACE_LIBRARY")
+            message(WARNING "Can't use any sanitizers for target ${TARGET}, "
+                    "because it is an interface library and cannot be "
+                    "compiled directly.")
+            return()
+        endif ()
         sanitizer_target_compilers(${TARGET} TARGET_COMPILER)
         list(LENGTH TARGET_COMPILER NUM_COMPILERS)
         if (NUM_COMPILERS GREATER 1)
             message(WARNING "Can't use any sanitizers for target ${TARGET}, "
                     "because it will be compiled by incompatible compilers. "
-                    "Target will be compiled without sanitzers.")
+                    "Target will be compiled without sanitizers.")
             return()
 
         # If the target is compiled by no known compiler, ignore it.
         elseif (NUM_COMPILERS EQUAL 0)
             message(WARNING "Can't use any sanitizers for target ${TARGET}, "
                     "because it uses an unknown compiler. Target will be "
-                    "compiled without sanitzers.")
+                    "compiled without sanitizers.")
             return()
         endif ()
 

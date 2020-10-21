@@ -33,6 +33,7 @@ void CEXIMic::StreamInit()
 void CEXIMic::StreamTerminate()
 {
   StreamStop();
+  CubebUtils::ScopedThreadAccess thread_access;
   m_cubeb_ctx.reset();
 }
 
@@ -73,6 +74,9 @@ void CEXIMic::StreamStart()
   stream_size = buff_size_samples * 500;
   stream_buffer = new s16[stream_size];
 
+  // Can be called by multiple threads (main and emulation)
+  CubebUtils::ScopedThreadAccess thread_access;
+
   cubeb_stream_params params;
   params.format = CUBEB_SAMPLE_S16LE;
   params.rate = sample_rate;
@@ -107,6 +111,9 @@ void CEXIMic::StreamStop()
 {
   if (m_cubeb_stream)
   {
+    // Can be called by multiple threads (main and emulation)
+    CubebUtils::ScopedThreadAccess thread_access;
+
     if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
       ERROR_LOG(EXPANSIONINTERFACE, "Error stopping cubeb stream");
     cubeb_stream_destroy(m_cubeb_stream);

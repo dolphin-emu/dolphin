@@ -33,14 +33,6 @@ extern "C" {
 }
 #endif
 
-typedef struct {
-  char const * name;
-  unsigned int const channels;
-  cubeb_channel_layout const layout;
-} cubeb_layout_map;
-
-extern cubeb_layout_map const CUBEB_CHANNEL_LAYOUT_MAPS[CUBEB_LAYOUT_MAX];
-
 struct cubeb_ops {
   int (* init)(cubeb ** context, char const * context_name);
   char const * (* get_backend_id)(cubeb * context);
@@ -49,7 +41,6 @@ struct cubeb_ops {
                           cubeb_stream_params params,
                           uint32_t * latency_ms);
   int (* get_preferred_sample_rate)(cubeb * context, uint32_t * rate);
-  int (* get_preferred_channel_layout)(cubeb * context, cubeb_channel_layout * layout);
   int (* enumerate_devices)(cubeb * context, cubeb_device_type type,
                             cubeb_device_collection * collection);
   int (* device_collection_destroy)(cubeb * context,
@@ -72,8 +63,8 @@ struct cubeb_ops {
   int (* stream_reset_default_device)(cubeb_stream * stream);
   int (* stream_get_position)(cubeb_stream * stream, uint64_t * position);
   int (* stream_get_latency)(cubeb_stream * stream, uint32_t * latency);
+  int (* stream_get_input_latency)(cubeb_stream * stream, uint32_t * latency);
   int (* stream_set_volume)(cubeb_stream * stream, float volumes);
-  int (* stream_set_panning)(cubeb_stream * stream, float panning);
   int (* stream_get_current_device)(cubeb_stream * stream,
                                     cubeb_device ** const device);
   int (* stream_device_destroy)(cubeb_stream * stream,

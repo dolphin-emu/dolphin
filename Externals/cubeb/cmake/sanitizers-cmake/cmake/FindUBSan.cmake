@@ -42,5 +42,5 @@ function (add_sanitize_undefined TARGET)
         return()
     endif ()
 
-    saitizer_add_flags(${TARGET} "UndefinedBehaviorSanitizer" "UBSan")
+    sanitizer_add_flags(${TARGET} "UndefinedBehaviorSanitizer" "UBSan")
 endfunction ()

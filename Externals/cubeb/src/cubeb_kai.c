@@ -31,11 +31,13 @@ struct cubeb {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   cubeb_stream_params params;
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
-  void * user_ptr;
 
   HKAI hkai;
   KAISPEC spec;
@@ -170,6 +172,11 @@ kai_stream_init(cubeb * context, cubeb_stream ** stream,
 
   if (!output_stream_params)
     return CUBEB_ERROR_INVALID_PARAMETER;
+
+  // Loopback is unsupported
+  if (output_stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
 
   if (output_stream_params->channels < 1 ||
       output_stream_params->channels > MAX_CHANNELS)
@@ -354,8 +361,8 @@ static struct cubeb_ops const kai_ops = {
   /*.stream_reset_default_device =*/ NULL,
   /*.stream_get_position =*/ kai_stream_get_position,
   /*.stream_get_latency = */ kai_stream_get_latency,
+  /*.stream_get_input_latency = */ NULL,
   /*.stream_set_volume =*/ kai_stream_set_volume,
-  /*.stream_set_panning =*/ NULL,
   /*.stream_get_current_device =*/ NULL,
   /*.stream_device_destroy =*/ NULL,
   /*.stream_register_device_changed_callback=*/ NULL,

@@ -14,9 +14,57 @@
 #include <limits.h>
 #include <poll.h>
 #include <unistd.h>
+#include <dlfcn.h>
 #include <alsa/asoundlib.h>
 #include "cubeb/cubeb.h"
 #include "cubeb-internal.h"
+
+#ifdef DISABLE_LIBASOUND_DLOPEN
+#define WRAP(x) x
+#else
+#define WRAP(x) cubeb_##x
+#define LIBASOUND_API_VISIT(X)                   \
+  X(snd_config)                                  \
+  X(snd_config_add)                              \
+  X(snd_config_copy)                             \
+  X(snd_config_delete)                           \
+  X(snd_config_get_id)                           \
+  X(snd_config_get_string)                       \
+  X(snd_config_imake_integer)                    \
+  X(snd_config_search)                           \
+  X(snd_config_search_definition)                \
+  X(snd_lib_error_set_handler)                   \
+  X(snd_pcm_avail_update)                        \
+  X(snd_pcm_close)                               \
+  X(snd_pcm_delay)                               \
+  X(snd_pcm_drain)                               \
+  X(snd_pcm_frames_to_bytes)                     \
+  X(snd_pcm_get_params)                          \
+  X(snd_pcm_hw_params_any)                       \
+  X(snd_pcm_hw_params_get_channels_max)          \
+  X(snd_pcm_hw_params_get_rate)                  \
+  X(snd_pcm_hw_params_set_rate_near)             \
+  X(snd_pcm_hw_params_sizeof)                    \
+  X(snd_pcm_nonblock)                            \
+  X(snd_pcm_open)                                \
+  X(snd_pcm_open_lconf)                          \
+  X(snd_pcm_pause)                               \
+  X(snd_pcm_poll_descriptors)                    \
+  X(snd_pcm_poll_descriptors_count)              \
+  X(snd_pcm_poll_descriptors_revents)            \
+  X(snd_pcm_readi)                               \
+  X(snd_pcm_recover)                             \
+  X(snd_pcm_set_params)                          \
+  X(snd_pcm_start)                               \
+  X(snd_pcm_state)                               \
+  X(snd_pcm_writei)                              \
+
+#define MAKE_TYPEDEF(x) static typeof(x) * cubeb_##x;
+LIBASOUND_API_VISIT(MAKE_TYPEDEF);
+#undef MAKE_TYPEDEF
+/* snd_pcm_hw_params_alloca is actually a macro */
+#define snd_pcm_hw_params_sizeof cubeb_snd_pcm_hw_params_sizeof
+#endif
 
 #define CUBEB_STREAM_MAX 16
 #define CUBEB_WATCHDOG_MS 10000
@@ -36,6 +84,7 @@ static struct cubeb_ops const alsa_ops;
 
 struct cubeb {
   struct cubeb_ops const * ops;
+  void * libasound;
 
   pthread_t thread;
 
@@ -76,12 +125,14 @@ enum stream_state {
 };
 
 struct cubeb_stream {
+  /* Note: Must match cubeb_stream layout in cubeb.c. */
   cubeb * context;
+  void * user_ptr;
+  /**/
   pthread_mutex_t mutex;
   snd_pcm_t * pcm;
   cubeb_data_callback data_callback;
   cubeb_state_callback state_callback;
-  void * user_ptr;
   snd_pcm_uframes_t stream_position;
   snd_pcm_uframes_t last_position;
   snd_pcm_uframes_t buffer_size;
@@ -243,8 +294,8 @@ set_timeout(struct timeval * timeout, unsigned int ms)
 static void
 stream_buffer_decrement(cubeb_stream * stm, long count)
 {
-  char * bufremains = stm->buffer + snd_pcm_frames_to_bytes(stm->pcm, count);
-  memmove(stm->buffer, bufremains, snd_pcm_frames_to_bytes(stm->pcm, stm->bufframes - count));
+  char * bufremains = stm->buffer + WRAP(snd_pcm_frames_to_bytes)(stm->pcm, count);
+  memmove(stm->buffer, bufremains, WRAP(snd_pcm_frames_to_bytes)(stm->pcm, stm->bufframes - count));
   stm->bufframes -= count;
 }
 
@@ -276,9 +327,9 @@ alsa_process_stream(cubeb_stream * stm)
   /* Call _poll_descriptors_revents() even if we don't use it
      to let underlying plugins clear null events.  Otherwise poll()
      may wake up again and again, producing unnecessary CPU usage. */
-  snd_pcm_poll_descriptors_revents(stm->pcm, stm->fds, stm->nfds, &revents);
+  WRAP(snd_pcm_poll_descriptors_revents)(stm->pcm, stm->fds, stm->nfds, &revents);
 
-  avail = snd_pcm_avail_update(stm->pcm);
+  avail = WRAP(snd_pcm_avail_update)(stm->pcm);
 
   /* Got null event? Bail and wait for another wakeup. */
   if (avail == 0) {
@@ -301,7 +352,7 @@ alsa_process_stream(cubeb_stream * stm)
       // TODO: should it be marked as DRAINING?
     }
 
-    got = snd_pcm_readi(stm->pcm, stm->buffer+stm->bufframes, avail);
+    got = WRAP(snd_pcm_readi)(stm->pcm, stm->buffer+stm->bufframes, avail);
 
     if (got < 0) {
       avail = got; // the error handler below will recover us
@@ -345,7 +396,7 @@ alsa_process_stream(cubeb_stream * stm)
       (!stm->other_stream || stm->other_stream->bufframes > 0)) {
     long got = avail - stm->bufframes;
     void * other_buffer = stm->other_stream ? stm->other_stream->buffer : NULL;
-    char * buftail = stm->buffer + snd_pcm_frames_to_bytes(stm->pcm, stm->bufframes);
+    char * buftail = stm->buffer + WRAP(snd_pcm_frames_to_bytes)(stm->pcm, stm->bufframes);
 
     /* Correct read size to the other stream available frames */
     if (stm->other_stream && got > (snd_pcm_sframes_t) stm->other_stream->bufframes) {
@@ -372,8 +423,8 @@ alsa_process_stream(cubeb_stream * stm)
     long drain_frames = avail - stm->bufframes;
     double drain_time = (double) drain_frames / stm->params.rate;
 
-    char * buftail = stm->buffer + snd_pcm_frames_to_bytes(stm->pcm, stm->bufframes);
-    memset(buftail, 0, snd_pcm_frames_to_bytes(stm->pcm, drain_frames));
+    char * buftail = stm->buffer + WRAP(snd_pcm_frames_to_bytes)(stm->pcm, stm->bufframes);
+    memset(buftail, 0, WRAP(snd_pcm_frames_to_bytes)(stm->pcm, drain_frames));
     stm->bufframes = avail;
 
     /* Mark as draining, unless we're waiting for capture */
@@ -400,7 +451,7 @@ alsa_process_stream(cubeb_stream * stm)
       }
     }
 
-    wrote = snd_pcm_writei(stm->pcm, stm->buffer, avail);
+    wrote = WRAP(snd_pcm_writei)(stm->pcm, stm->buffer, avail);
     if (wrote < 0) {
       avail = wrote; // the error handler below will recover us
     } else {
@@ -413,13 +464,13 @@ alsa_process_stream(cubeb_stream * stm)
 
   /* Got some error? Let's try to recover the stream. */
   if (avail < 0) {
-    avail = snd_pcm_recover(stm->pcm, avail, 0);
+    avail = WRAP(snd_pcm_recover)(stm->pcm, avail, 0);
 
     /* Capture pcm must be started after initial setup/recover */
     if (avail >= 0 &&
         stm->stream_type == SND_PCM_STREAM_CAPTURE &&
-        snd_pcm_state(stm->pcm) == SND_PCM_STATE_PREPARED) {
-      avail = snd_pcm_start(stm->pcm);
+        WRAP(snd_pcm_state)(stm->pcm) == SND_PCM_STATE_PREPARED) {
+      avail = WRAP(snd_pcm_start)(stm->pcm);
     }
   }
 
@@ -535,26 +586,26 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
 
   slave_def = NULL;
 
-  r = snd_config_search(root_pcm, "slave", &slave_pcm);
+  r = WRAP(snd_config_search)(root_pcm, "slave", &slave_pcm);
   if (r < 0) {
     return NULL;
   }
 
-  r = snd_config_get_string(slave_pcm, &string);
+  r = WRAP(snd_config_get_string)(slave_pcm, &string);
   if (r >= 0) {
-    r = snd_config_search_definition(lconf, "pcm_slave", string, &slave_def);
+    r = WRAP(snd_config_search_definition)(lconf, "pcm_slave", string, &slave_def);
     if (r < 0) {
       return NULL;
     }
   }
 
   do {
-    r = snd_config_search(slave_def ? slave_def : slave_pcm, "pcm", &pcm);
+    r = WRAP(snd_config_search)(slave_def ? slave_def : slave_pcm, "pcm", &pcm);
     if (r < 0) {
       break;
     }
 
-    r = snd_config_get_string(slave_def ? slave_def : slave_pcm, &string);
+    r = WRAP(snd_config_get_string)(slave_def ? slave_def : slave_pcm, &string);
     if (r < 0) {
       break;
     }
@@ -563,7 +614,7 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
     if (r < 0 || r > (int) sizeof(node_name)) {
       break;
     }
-    r = snd_config_search(lconf, node_name, &pcm);
+    r = WRAP(snd_config_search)(lconf, node_name, &pcm);
     if (r < 0) {
       break;
     }
@@ -572,7 +623,7 @@ get_slave_pcm_node(snd_config_t * lconf, snd_config_t * root_pcm)
   } while (0);
 
   if (slave_def) {
-    snd_config_delete(slave_def);
+    WRAP(snd_config_delete)(slave_def);
   }
 
   return NULL;
@@ -595,22 +646,22 @@ init_local_config_with_workaround(char const * pcm_name)
 
   lconf = NULL;
 
-  if (snd_config == NULL) {
+  if (*WRAP(snd_config) == NULL) {
     return NULL;
   }
 
-  r = snd_config_copy(&lconf, snd_config);
+  r = WRAP(snd_config_copy)(&lconf, *WRAP(snd_config));
   if (r < 0) {
     return NULL;
   }
 
   do {
-    r = snd_config_search_definition(lconf, "pcm", pcm_name, &pcm_node);
+    r = WRAP(snd_config_search_definition)(lconf, "pcm", pcm_name, &pcm_node);
     if (r < 0) {
       break;
     }
 
-    r = snd_config_get_id(pcm_node, &string);
+    r = WRAP(snd_config_get_id)(pcm_node, &string);
     if (r < 0) {
       break;
     }
@@ -619,7 +670,7 @@ init_local_config_with_workaround(char const * pcm_name)
     if (r < 0 || r > (int) sizeof(node_name)) {
       break;
     }
-    r = snd_config_search(lconf, node_name, &pcm_node);
+    r = WRAP(snd_config_search)(lconf, node_name, &pcm_node);
     if (r < 0) {
       break;
     }
@@ -630,12 +681,12 @@ init_local_config_with_workaround(char const * pcm_name)
     }
 
     /* Fetch the PCM node's type, and bail out if it's not the PulseAudio plugin. */
-    r = snd_config_search(pcm_node, "type", &node);
+    r = WRAP(snd_config_search)(pcm_node, "type", &node);
     if (r < 0) {
       break;
     }
 
-    r = snd_config_get_string(node, &string);
+    r = WRAP(snd_config_get_string)(node, &string);
     if (r < 0) {
       break;
     }
@@ -646,18 +697,18 @@ init_local_config_with_workaround(char const * pcm_name)
 
     /* Don't clobber an explicit existing handle_underrun value, set it only
        if it doesn't already exist. */
-    r = snd_config_search(pcm_node, "handle_underrun", &node);
+    r = WRAP(snd_config_search)(pcm_node, "handle_underrun", &node);
     if (r != -ENOENT) {
       break;
     }
 
     /* Disable pcm_pulse's asynchronous underrun handling. */
-    r = snd_config_imake_integer(&node, "handle_underrun", 0);
+    r = WRAP(snd_config_imake_integer)(&node, "handle_underrun", 0);
     if (r < 0) {
       break;
     }
 
-    r = snd_config_add(pcm_node, node);
+    r = WRAP(snd_config_add)(pcm_node, node);
     if (r < 0) {
       break;
     }
@@ -665,7 +716,7 @@ init_local_config_with_workaround(char const * pcm_name)
     return lconf;
   } while (0);
 
-  snd_config_delete(lconf);
+  WRAP(snd_config_delete)(lconf);
 
   return NULL;
 }
@@ -677,9 +728,9 @@ alsa_locked_pcm_open(snd_pcm_t ** pcm, char const * pcm_name, snd_pcm_stream_t s
 
   pthread_mutex_lock(&cubeb_alsa_mutex);
   if (local_config) {
-    r = snd_pcm_open_lconf(pcm, pcm_name, stream, SND_PCM_NONBLOCK, local_config);
+    r = WRAP(snd_pcm_open_lconf)(pcm, pcm_name, stream, SND_PCM_NONBLOCK, local_config);
   } else {
-    r = snd_pcm_open(pcm, pcm_name, stream, SND_PCM_NONBLOCK);
+    r = WRAP(snd_pcm_open)(pcm, pcm_name, stream, SND_PCM_NONBLOCK);
   }
   pthread_mutex_unlock(&cubeb_alsa_mutex);
 
@@ -692,7 +743,7 @@ alsa_locked_pcm_close(snd_pcm_t * pcm)
   int r;
 
   pthread_mutex_lock(&cubeb_alsa_mutex);
-  r = snd_pcm_close(pcm);
+  r = WRAP(snd_pcm_close)(pcm);
   pthread_mutex_unlock(&cubeb_alsa_mutex);
 
   return r;
@@ -748,6 +799,7 @@ silent_error_handler(char const * file, int line, char const * function,
 alsa_init(cubeb ** context, char const * context_name)
 {
   (void)context_name;
+  void * libasound = NULL;
   cubeb * ctx;
   int r;
   int i;
@@ -758,9 +810,30 @@ alsa_init(cubeb ** context, char const * context_name)
   assert(context);
   *context = NULL;
 
+#ifndef DISABLE_LIBASOUND_DLOPEN
+  libasound = dlopen("libasound.so.2", RTLD_LAZY);
+  if (!libasound) {
+    libasound = dlopen("libasound.so", RTLD_LAZY);
+    if (!libasound) {
+      return CUBEB_ERROR;
+    }
+  }
+
+#define LOAD(x) {                               \
+    cubeb_##x = dlsym(libasound, #x);            \
+    if (!cubeb_##x) {                           \
+      dlclose(libasound);                        \
+      return CUBEB_ERROR;                       \
+    }                                           \
+  }
+
+  LIBASOUND_API_VISIT(LOAD);
+#undef LOAD
+#endif
+
   pthread_mutex_lock(&cubeb_alsa_mutex);
   if (!cubeb_alsa_error_handler_set) {
-    snd_lib_error_set_handler(silent_error_handler);
+    WRAP(snd_lib_error_set_handler)(silent_error_handler);
     cubeb_alsa_error_handler_set = 1;
   }
   pthread_mutex_unlock(&cubeb_alsa_mutex);
@@ -769,6 +842,7 @@ alsa_init(cubeb ** context, char const * context_name)
   assert(ctx);
 
   ctx->ops = &alsa_ops;
+  ctx->libasound = libasound;
 
   r = pthread_mutex_init(&ctx->mutex, NULL);
   assert(r == 0);
@@ -817,7 +891,7 @@ alsa_init(cubeb ** context, char const * context_name)
        config fails with EINVAL, the PA PCM is too old for this workaround. */
     if (r == -EINVAL) {
       pthread_mutex_lock(&cubeb_alsa_mutex);
-      snd_config_delete(ctx->local_config);
+      WRAP(snd_config_delete)(ctx->local_config);
       pthread_mutex_unlock(&cubeb_alsa_mutex);
       ctx->local_config = NULL;
     } else if (r >= 0) {
@@ -859,8 +933,12 @@ alsa_destroy(cubeb * ctx)
 
   if (ctx->local_config) {
     pthread_mutex_lock(&cubeb_alsa_mutex);
-    snd_config_delete(ctx->local_config);
+    WRAP(snd_config_delete)(ctx->local_config);
     pthread_mutex_unlock(&cubeb_alsa_mutex);
+  }
+
+  if (ctx->libasound) {
+    dlclose(ctx->libasound);
   }
 
   free(ctx);
@@ -889,6 +967,10 @@ alsa_stream_init_single(cubeb * ctx, cubeb_stream ** stream, char const * stream
   assert(ctx && stream);
 
   *stream = NULL;
+
+  if (stream_params->prefs & CUBEB_STREAM_PREF_LOOPBACK) {
+    return CUBEB_ERROR_NOT_SUPPORTED;
+  }
 
   switch (stream_params->format) {
   case CUBEB_SAMPLE_S16LE:
@@ -942,7 +1024,7 @@ alsa_stream_init_single(cubeb * ctx, cubeb_stream ** stream, char const * stream
     return CUBEB_ERROR;
   }
 
-  r = snd_pcm_nonblock(stm->pcm, 1);
+  r = WRAP(snd_pcm_nonblock)(stm->pcm, 1);
   assert(r == 0);
 
   latency_us = latency_frames * 1e6 / stm->params.rate;
@@ -955,7 +1037,7 @@ alsa_stream_init_single(cubeb * ctx, cubeb_stream ** stream, char const * stream
     latency_us = latency_us < min_latency ? min_latency: latency_us;
   }
 
-  r = snd_pcm_set_params(stm->pcm, format, SND_PCM_ACCESS_RW_INTERLEAVED,
+  r = WRAP(snd_pcm_set_params)(stm->pcm, format, SND_PCM_ACCESS_RW_INTERLEAVED,
                          stm->params.channels, stm->params.rate, 1,
                          latency_us);
   if (r < 0) {
@@ -963,20 +1045,20 @@ alsa_stream_init_single(cubeb * ctx, cubeb_stream ** stream, char const * stream
     return CUBEB_ERROR_INVALID_FORMAT;
   }
 
-  r = snd_pcm_get_params(stm->pcm, &stm->buffer_size, &period_size);
+  r = WRAP(snd_pcm_get_params)(stm->pcm, &stm->buffer_size, &period_size);
   assert(r == 0);
 
   /* Double internal buffer size to have enough space when waiting for the other side of duplex connection */
   stm->buffer_size *= 2;
-  stm->buffer = calloc(1, snd_pcm_frames_to_bytes(stm->pcm, stm->buffer_size));
+  stm->buffer = calloc(1, WRAP(snd_pcm_frames_to_bytes)(stm->pcm, stm->buffer_size));
   assert(stm->buffer);
 
-  stm->nfds = snd_pcm_poll_descriptors_count(stm->pcm);
+  stm->nfds = WRAP(snd_pcm_poll_descriptors_count)(stm->pcm);
   assert(stm->nfds > 0);
 
   stm->saved_fds = calloc(stm->nfds, sizeof(struct pollfd));
   assert(stm->saved_fds);
-  r = snd_pcm_poll_descriptors(stm->pcm, stm->saved_fds, stm->nfds);
+  r = WRAP(snd_pcm_poll_descriptors)(stm->pcm, stm->saved_fds, stm->nfds);
   assert((nfds_t) r == stm->nfds);
 
   if (alsa_register_stream(ctx, stm) != 0) {
@@ -1048,7 +1130,7 @@ alsa_stream_destroy(cubeb_stream * stm)
   pthread_mutex_lock(&stm->mutex);
   if (stm->pcm) {
     if (stm->state == DRAINING) {
-      snd_pcm_drain(stm->pcm);
+      WRAP(snd_pcm_drain)(stm->pcm);
     }
     alsa_locked_pcm_close(stm->pcm);
     stm->pcm = NULL;
@@ -1094,12 +1176,12 @@ alsa_get_max_channel_count(cubeb * ctx, uint32_t * max_channels)
 
   assert(stm);
 
-  r = snd_pcm_hw_params_any(stm->pcm, hw_params);
+  r = WRAP(snd_pcm_hw_params_any)(stm->pcm, hw_params);
   if (r < 0) {
     return CUBEB_ERROR;
   }
 
-  r = snd_pcm_hw_params_get_channels_max(hw_params, max_channels);
+  r = WRAP(snd_pcm_hw_params_get_channels_max)(hw_params, max_channels);
   if (r < 0) {
     return CUBEB_ERROR;
   }
@@ -1120,34 +1202,34 @@ alsa_get_preferred_sample_rate(cubeb * ctx, uint32_t * rate) {
 
   /* get a pcm, disabling resampling, so we get a rate the
    * hardware/dmix/pulse/etc. supports. */
-  r = snd_pcm_open(&pcm, CUBEB_ALSA_PCM_NAME, SND_PCM_STREAM_PLAYBACK, SND_PCM_NO_AUTO_RESAMPLE);
+  r = WRAP(snd_pcm_open)(&pcm, CUBEB_ALSA_PCM_NAME, SND_PCM_STREAM_PLAYBACK, SND_PCM_NO_AUTO_RESAMPLE);
   if (r < 0) {
     return CUBEB_ERROR;
   }
 
-  r = snd_pcm_hw_params_any(pcm, hw_params);
+  r = WRAP(snd_pcm_hw_params_any)(pcm, hw_params);
   if (r < 0) {
-    snd_pcm_close(pcm);
+    WRAP(snd_pcm_close)(pcm);
     return CUBEB_ERROR;
   }
 
-  r = snd_pcm_hw_params_get_rate(hw_params, rate, &dir);
+  r = WRAP(snd_pcm_hw_params_get_rate)(hw_params, rate, &dir);
   if (r >= 0) {
     /* There is a default rate: use it. */
-    snd_pcm_close(pcm);
+    WRAP(snd_pcm_close)(pcm);
     return CUBEB_OK;
   }
 
   /* Use a common rate, alsa may adjust it based on hw/etc. capabilities. */
   *rate = 44100;
 
-  r = snd_pcm_hw_params_set_rate_near(pcm, hw_params, rate, NULL);
+  r = WRAP(snd_pcm_hw_params_set_rate_near)(pcm, hw_params, rate, NULL);
   if (r < 0) {
-    snd_pcm_close(pcm);
+    WRAP(snd_pcm_close)(pcm);
     return CUBEB_ERROR;
   }
 
-  snd_pcm_close(pcm);
+  WRAP(snd_pcm_close)(pcm);
 
   return CUBEB_OK;
 }
@@ -1180,10 +1262,10 @@ alsa_stream_start(cubeb_stream * stm)
   pthread_mutex_lock(&stm->mutex);
   /* Capture pcm must be started after initial setup/recover */
   if (stm->stream_type == SND_PCM_STREAM_CAPTURE &&
-      snd_pcm_state(stm->pcm) == SND_PCM_STATE_PREPARED) {
-    snd_pcm_start(stm->pcm);
+      WRAP(snd_pcm_state)(stm->pcm) == SND_PCM_STATE_PREPARED) {
+    WRAP(snd_pcm_start)(stm->pcm);
   }
-  snd_pcm_pause(stm->pcm, 0);
+  WRAP(snd_pcm_pause)(stm->pcm, 0);
   gettimeofday(&stm->last_activity, NULL);
   pthread_mutex_unlock(&stm->mutex);
 
@@ -1223,7 +1305,7 @@ alsa_stream_stop(cubeb_stream * stm)
   pthread_mutex_unlock(&ctx->mutex);
 
   pthread_mutex_lock(&stm->mutex);
-  snd_pcm_pause(stm->pcm, 1);
+  WRAP(snd_pcm_pause)(stm->pcm, 1);
   pthread_mutex_unlock(&stm->mutex);
 
   return CUBEB_OK;
@@ -1239,8 +1321,8 @@ alsa_stream_get_position(cubeb_stream * stm, uint64_t * position)
   pthread_mutex_lock(&stm->mutex);
 
   delay = -1;
-  if (snd_pcm_state(stm->pcm) != SND_PCM_STATE_RUNNING ||
-      snd_pcm_delay(stm->pcm, &delay) != 0) {
+  if (WRAP(snd_pcm_state)(stm->pcm) != SND_PCM_STATE_RUNNING ||
+      WRAP(snd_pcm_delay)(stm->pcm, &delay) != 0) {
     *position = stm->last_position;
     pthread_mutex_unlock(&stm->mutex);
     return CUBEB_OK;
@@ -1265,7 +1347,7 @@ alsa_stream_get_latency(cubeb_stream * stm, uint32_t * latency)
   snd_pcm_sframes_t delay;
   /* This function returns the delay in frames until a frame written using
      snd_pcm_writei is sent to the DAC. The DAC delay should be < 1ms anyways. */
-  if (snd_pcm_delay(stm->pcm, &delay)) {
+  if (WRAP(snd_pcm_delay)(stm->pcm, &delay)) {
     return CUBEB_ERROR;
   }
 
@@ -1352,7 +1434,6 @@ static struct cubeb_ops const alsa_ops = {
   .get_max_channel_count = alsa_get_max_channel_count,
   .get_min_latency = alsa_get_min_latency,
   .get_preferred_sample_rate = alsa_get_preferred_sample_rate,
-  .get_preferred_channel_layout = NULL,
   .enumerate_devices = alsa_enumerate_devices,
   .device_collection_destroy = alsa_device_collection_destroy,
   .destroy = alsa_destroy,
@@ -1363,8 +1444,8 @@ static struct cubeb_ops const alsa_ops = {
   .stream_reset_default_device = NULL,
   .stream_get_position = alsa_stream_get_position,
   .stream_get_latency = alsa_stream_get_latency,
+  .stream_get_input_latency = NULL,
   .stream_set_volume = alsa_stream_set_volume,
-  .stream_set_panning = NULL,
   .stream_get_current_device = NULL,
   .stream_device_destroy = NULL,
   .stream_register_device_changed_callback = NULL,
