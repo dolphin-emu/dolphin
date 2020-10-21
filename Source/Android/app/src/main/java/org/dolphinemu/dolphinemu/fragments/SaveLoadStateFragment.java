@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.os.Bundle;
+import android.text.format.DateUtils;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.GridLayout;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
@@ -22,40 +24,35 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
   }
 
   private static final String KEY_SAVEORLOAD = "saveorload";
-  private static SparseIntArray saveButtonsActionsMap = new SparseIntArray();
+
+  private static int[] saveActionsMap = new int[]{
+          EmulationActivity.MENU_ACTION_SAVE_SLOT1,
+          EmulationActivity.MENU_ACTION_SAVE_SLOT2,
+          EmulationActivity.MENU_ACTION_SAVE_SLOT3,
+          EmulationActivity.MENU_ACTION_SAVE_SLOT4,
+          EmulationActivity.MENU_ACTION_SAVE_SLOT5,
+          EmulationActivity.MENU_ACTION_SAVE_SLOT6,
+  };
+
+  private static int[] loadActionsMap = new int[]{
+          EmulationActivity.MENU_ACTION_LOAD_SLOT1,
+          EmulationActivity.MENU_ACTION_LOAD_SLOT2,
+          EmulationActivity.MENU_ACTION_LOAD_SLOT3,
+          EmulationActivity.MENU_ACTION_LOAD_SLOT4,
+          EmulationActivity.MENU_ACTION_LOAD_SLOT5,
+          EmulationActivity.MENU_ACTION_LOAD_SLOT6,
+  };
+
+  private static SparseIntArray buttonsMap = new SparseIntArray();
 
   static
   {
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_1, EmulationActivity.MENU_ACTION_SAVE_SLOT1);
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_2, EmulationActivity.MENU_ACTION_SAVE_SLOT2);
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_3, EmulationActivity.MENU_ACTION_SAVE_SLOT3);
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_4, EmulationActivity.MENU_ACTION_SAVE_SLOT4);
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_5, EmulationActivity.MENU_ACTION_SAVE_SLOT5);
-    saveButtonsActionsMap
-            .append(R.id.loadsave_state_button_6, EmulationActivity.MENU_ACTION_SAVE_SLOT6);
-  }
-
-  private static SparseIntArray loadButtonsActionsMap = new SparseIntArray();
-
-  static
-  {
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_1, EmulationActivity.MENU_ACTION_LOAD_SLOT1);
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_2, EmulationActivity.MENU_ACTION_LOAD_SLOT2);
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_3, EmulationActivity.MENU_ACTION_LOAD_SLOT3);
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_4, EmulationActivity.MENU_ACTION_LOAD_SLOT4);
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_5, EmulationActivity.MENU_ACTION_LOAD_SLOT5);
-    loadButtonsActionsMap
-            .append(R.id.loadsave_state_button_6, EmulationActivity.MENU_ACTION_LOAD_SLOT6);
+    buttonsMap.append(R.id.loadsave_state_button_1, 0);
+    buttonsMap.append(R.id.loadsave_state_button_2, 1);
+    buttonsMap.append(R.id.loadsave_state_button_3, 2);
+    buttonsMap.append(R.id.loadsave_state_button_4, 3);
+    buttonsMap.append(R.id.loadsave_state_button_5, 4);
+    buttonsMap.append(R.id.loadsave_state_button_6, 5);
   }
 
   private SaveOrLoad mSaveOrLoad;
@@ -88,6 +85,7 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     for (int childIndex = 0; childIndex < grid.getChildCount(); childIndex++)
     {
       Button button = (Button) grid.getChildAt(childIndex);
+      setButtonText(button, childIndex);
       button.setOnClickListener(this);
     }
 
@@ -99,20 +97,31 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
 
   @SuppressWarnings("WrongConstant")
   @Override
-  public void onClick(View button)
+  public void onClick(View view)
   {
-    int action = 0;
-    switch (mSaveOrLoad)
+    int buttonIndex = buttonsMap.get(view.getId(), -1);
+
+    int action = (mSaveOrLoad == SaveOrLoad.SAVE ? saveActionsMap : loadActionsMap)[buttonIndex];
+    ((EmulationActivity) getActivity()).handleMenuAction(action);
+
+    // The savestate most likely hasn't gotten saved yet (it happens asynchronously),
+    // so we unfortunately can't rely on setButtonText/GetUnixTimeOfStateSlot here.
+    Button button = (Button) view;
+    CharSequence time = DateUtils.getRelativeTimeSpanString(0, 0, DateUtils.MINUTE_IN_MILLIS);
+    button.setText(getString(R.string.emulation_state_slot, buttonIndex + 1, time));
+  }
+
+  private void setButtonText(Button button, int index)
+  {
+    long creationTime = NativeLibrary.GetUnixTimeOfStateSlot(index);
+    if (creationTime != 0)
     {
-      case SAVE:
-        action = saveButtonsActionsMap.get(button.getId(), -1);
-        break;
-      case LOAD:
-        action = loadButtonsActionsMap.get(button.getId(), -1);
+      CharSequence relativeTime = DateUtils.getRelativeTimeSpanString(creationTime);
+      button.setText(getString(R.string.emulation_state_slot, index + 1, relativeTime));
     }
-    if (action >= 0)
+    else
     {
-      ((EmulationActivity) getActivity()).handleMenuAction(action);
+      button.setText(getString(R.string.emulation_state_slot_empty, index + 1));
     }
   }
 }
