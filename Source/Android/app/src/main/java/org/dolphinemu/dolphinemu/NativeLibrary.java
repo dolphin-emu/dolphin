@@ -447,6 +447,40 @@ public final class NativeLibrary
 
   public static native void SetObscuredPixelsTop(int height);
 
+  public static native boolean IsGameMetadataValid();
+
+  public static boolean IsEmulatingWii()
+  {
+    CheckGameMetadataValid();
+    return IsEmulatingWiiUnchecked();
+  }
+
+  public static String GetCurrentGameID()
+  {
+    CheckGameMetadataValid();
+    return GetCurrentGameIDUnchecked();
+  }
+
+  public static String GetCurrentTitleDescription()
+  {
+    CheckGameMetadataValid();
+    return GetCurrentTitleDescriptionUnchecked();
+  }
+
+  private static void CheckGameMetadataValid()
+  {
+    if (!IsGameMetadataValid())
+    {
+      throw new IllegalStateException("No game is running");
+    }
+  }
+
+  private static native boolean IsEmulatingWiiUnchecked();
+
+  private static native String GetCurrentGameIDUnchecked();
+
+  private static native String GetCurrentTitleDescriptionUnchecked();
+
   public static boolean displayAlertMsg(final String caption, final String text,
           final boolean yesNo, final boolean isWarning)
   {
@@ -534,6 +568,19 @@ public final class NativeLibrary
     else
     {
       emulationActivity.runOnUiThread(emulationActivity::initInputPointer);
+    }
+  }
+
+  private static void onTitleChanged()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      emulationActivity.runOnUiThread(emulationActivity::onTitleChanged);
     }
   }
 

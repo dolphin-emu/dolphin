@@ -124,17 +124,20 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (!mPreferences.getBoolean("OverlayInitV3", false))
       defaultOverlay();
 
-    // Load the controls.
-    if (NativeLibrary.IsRunning())
+    // Load the controls if we can. If not, EmulationActivity has to do it later.
+    if (NativeLibrary.IsGameMetadataValid())
     {
-      // We would've needed a refreshControls call here in addition to the initTouchPointer call
-      // if it wasn't for initTouchPointer calling refreshControls.
-      initTouchPointer();
-    }
-    else
-    {
-      // We can't call initTouchPointer yet because it needs the aspect ratio of the running game.
-      refreshControls();
+      if (NativeLibrary.IsRunning())
+      {
+        // We would've needed a refreshControls call here in addition to the initTouchPointer call
+        // if it wasn't for initTouchPointer calling refreshControls.
+        initTouchPointer();
+      }
+      else
+      {
+        // We can't call initTouchPointer yet because it needs the aspect ratio of the running game.
+        refreshControls();
+      }
     }
 
     // Set the on touch listener.
@@ -152,7 +155,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Refresh before starting the pointer
     refreshControls();
 
-    if (!EmulationActivity.isGameCubeGame())
+    if (!NativeLibrary.IsEmulatingWii())
     {
       int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
 
@@ -715,7 +718,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     if (BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBooleanGlobal())
     {
       // Add all the enabled overlay items back to the HashSet.
-      if (EmulationActivity.isGameCubeGame())
+      if (!NativeLibrary.IsEmulatingWii())
       {
         IniFile dolphinIni = new IniFile(SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN));
 
@@ -775,7 +778,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
 
     // Values for these come from R.array.controllersEntries
-    if (EmulationActivity.isGameCubeGame() || mPreferences.getInt("wiiController", 3) == 0)
+    if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
     {
       if (isLandscape)
         gcDefaultOverlay();

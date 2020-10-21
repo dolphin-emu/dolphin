@@ -85,6 +85,10 @@
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
+#ifdef ANDROID
+#include "jni/AndroidCommon/IDCache.h"
+#endif
+
 namespace Core
 {
 static bool s_wants_determinism;
@@ -334,6 +338,12 @@ static void CpuThread(const std::optional<std::string>& savestate_path, bool del
 
   // This needs to be delayed until after the video backend is ready.
   DolphinAnalytics::Instance().ReportGameStart();
+
+#ifdef ANDROID
+  // For some reason, calling the JNI function AttachCurrentThread from the CPU thread after a
+  // certain point causes a crash if fastmem is enabled. Let's call it early to avoid that problem.
+  static_cast<void>(IDCache::GetEnvForThread());
+#endif
 
   if (_CoreParameter.bFastmem)
     EMM::InstallExceptionHandler();  // Let's run under memory watch

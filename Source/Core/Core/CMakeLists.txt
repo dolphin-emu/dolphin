@@ -583,6 +583,11 @@ if (APPLE)
     ${IOB_LIBRARY}
     ${IOK_LIBRARY}
   )
+elseif (ANDROID)
+  target_link_libraries(core
+  PRIVATE
+    androidcommon
+  )
 endif()
 
 if(LIBUSB_FOUND)

@@ -26,6 +26,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
   private View mUnpauseEmulation;
 
   private static final String KEY_TITLE = "title";
+  private static final String KEY_WII = "wii";
   private static SparseIntArray buttonsActionsMap = new SparseIntArray();
 
   static
@@ -55,12 +56,16 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
             EmulationActivity.MENU_ACTION_SETTINGS_GRAPHICS);
   }
 
-  public static MenuFragment newInstance(String title)
+  public static MenuFragment newInstance()
   {
     MenuFragment fragment = new MenuFragment();
 
     Bundle arguments = new Bundle();
-    arguments.putSerializable(KEY_TITLE, title);
+    if (NativeLibrary.IsGameMetadataValid())
+    {
+      arguments.putString(KEY_TITLE, NativeLibrary.GetCurrentTitleDescription());
+      arguments.putBoolean(KEY_WII, NativeLibrary.IsEmulatingWii());
+    }
     fragment.setArguments(arguments);
 
     return fragment;
@@ -93,7 +98,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
       options.findViewById(R.id.menu_overlay_controls).setVisibility(View.GONE);
     }
 
-    if (EmulationActivity.isGameCubeGame())
+    if (!getArguments().getBoolean(KEY_WII, true))
     {
       options.findViewById(R.id.menu_refresh_wiimotes).setVisibility(View.GONE);
     }
@@ -131,7 +136,7 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     rootView.findViewById(R.id.menu_exit).setOnClickListener(this);
 
     mTitleText = rootView.findViewById(R.id.text_game_title);
-    String title = getArguments().getString(KEY_TITLE);
+    String title = getArguments().getString(KEY_TITLE, null);
     if (title != null)
     {
       mTitleText.setText(title);

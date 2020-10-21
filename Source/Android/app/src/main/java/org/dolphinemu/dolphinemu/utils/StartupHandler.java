@@ -48,7 +48,7 @@ public final class StartupHandler
     if (start_files != null && start_files.length > 0)
     {
       // Start the emulation activity, send the ISO passed in and finish the main activity
-      EmulationActivity.launchFile(parent, start_files);
+      EmulationActivity.launch(parent, start_files);
       parent.finish();
     }
   }
