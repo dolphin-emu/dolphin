@@ -11,10 +11,10 @@
 #include <fmt/format.h>
 
 #include "Common/Align.h"
-#include "Common/Debug/OSThread.h"
 #include "Common/GekkoDisassembler.h"
 
 #include "Core/Core.h"
+#include "Core/Debugger/OSThread.h"
 #include "Core/HW/DSP.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -176,14 +176,14 @@ Common::Debug::Threads PPCDebugInterface::GetThreads() const
   if (!PowerPC::HostIsRAMAddress(active_queue_head))
     return threads;
 
-  auto active_thread = std::make_unique<Common::Debug::OSThreadView>(active_queue_head);
+  auto active_thread = std::make_unique<Core::Debug::OSThreadView>(active_queue_head);
   if (!active_thread->IsValid())
     return threads;
 
   const auto insert_threads = [&threads](u32 addr, auto get_next_addr) {
     while (addr != 0 && PowerPC::HostIsRAMAddress(addr))
     {
-      auto thread = std::make_unique<Common::Debug::OSThreadView>(addr);
+      auto thread = std::make_unique<Core::Debug::OSThreadView>(addr);
       if (!thread->IsValid())
         break;
       addr = get_next_addr(*thread);

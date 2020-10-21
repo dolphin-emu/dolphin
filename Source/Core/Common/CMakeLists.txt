@@ -34,8 +34,6 @@ add_library(common
   Crypto/ec.h
   Debug/MemoryPatches.cpp
   Debug/MemoryPatches.h
-  Debug/OSThread.cpp
-  Debug/OSThread.h
   Debug/Threads.h
   Debug/Watches.cpp
   Debug/Watches.h

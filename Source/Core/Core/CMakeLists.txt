@@ -80,6 +80,8 @@ add_library(core
   Debugger/Dump.cpp
   Debugger/Dump.h
   Debugger/GCELF.h
+  Debugger/OSThread.cpp
+  Debugger/OSThread.h
   Debugger/PPCDebugInterface.cpp
   Debugger/PPCDebugInterface.h
   Debugger/RSO.cpp
