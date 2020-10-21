@@ -18,19 +18,19 @@ static ptrdiff_t s_path_cutoff_point = 0;
 
 static void LogCallback(const char* format, ...)
 {
-  if (!Common::Log::LogManager::GetInstance())
+  auto* instance = Common::Log::LogManager::GetInstance();
+  if (instance == nullptr)
     return;
 
   va_list args;
   va_start(args, format);
-
   const char* filename = va_arg(args, const char*) + s_path_cutoff_point;
-  int lineno = va_arg(args, int);
-  std::string adapted_format(StripSpaces(format + strlen("%s:%d:")));
-
-  Common::Log::LogManager::GetInstance()->LogWithFullPath(
-      Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, adapted_format.c_str(), args);
+  const int lineno = va_arg(args, int);
+  const std::string adapted_format(StripSpaces(format + strlen("%s:%d:")));
+  const std::string message = StringFromFormatV(adapted_format.c_str(), args);
   va_end(args);
+
+  instance->Log(Common::Log::LNOTICE, Common::Log::AUDIO, filename, lineno, message.c_str());
 }
 
 static void DestroyContext(cubeb* ctx)

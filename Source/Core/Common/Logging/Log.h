@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <fmt/format.h>
+#include <string_view>
+
 namespace Common::Log
 {
 enum LOG_TYPE
@@ -72,8 +75,17 @@ enum LOG_LEVELS
 
 static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 
-void GenericLog(Common::Log::LOG_LEVELS level, Common::Log::LOG_TYPE type, const char* file,
-                int line, const char* fmt, ...)
+void GenericLogFmtImpl(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                       std::string_view format, const fmt::format_args& args);
+
+template <typename... Args>
+void GenericLogFmt(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
+                   std::string_view format, const Args&... args)
+{
+  GenericLogFmtImpl(level, type, file, line, format, fmt::make_format_args(args...));
+}
+
+void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, const char* fmt, ...)
 #ifdef __GNUC__
     __attribute__((format(printf, 5, 6)))
 #endif
@@ -120,4 +132,39 @@ void GenericLog(Common::Log::LOG_LEVELS level, Common::Log::LOG_TYPE type, const
   do                                                                                               \
   {                                                                                                \
     GENERIC_LOG(Common::Log::t, Common::Log::LDEBUG, __VA_ARGS__);                                 \
+  } while (0)
+
+// fmtlib capable API
+
+#define GENERIC_LOG_FMT(t, v, ...)                                                                 \
+  do                                                                                               \
+  {                                                                                                \
+    if (v <= MAX_LOGLEVEL)                                                                         \
+      Common::Log::GenericLogFmt(v, t, __FILE__, __LINE__, __VA_ARGS__);                           \
+  } while (0)
+
+#define ERROR_LOG_FMT(t, ...)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    GENERIC_LOG_FMT(Common::Log::t, Common::Log::LERROR, __VA_ARGS__);                             \
+  } while (0)
+#define WARN_LOG_FMT(t, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+    GENERIC_LOG_FMT(Common::Log::t, Common::Log::LWARNING, __VA_ARGS__);                           \
+  } while (0)
+#define NOTICE_LOG_FMT(t, ...)                                                                     \
+  do                                                                                               \
+  {                                                                                                \
+    GENERIC_LOG_FMT(Common::Log::t, Common::Log::LNOTICE, __VA_ARGS__);                            \
+  } while (0)
+#define INFO_LOG_FMT(t, ...)                                                                       \
+  do                                                                                               \
+  {                                                                                                \
+    GENERIC_LOG_FMT(Common::Log::t, Common::Log::LINFO, __VA_ARGS__);                              \
+  } while (0)
+#define DEBUG_LOG_FMT(t, ...)                                                                      \
+  do                                                                                               \
+  {                                                                                                \
+    GENERIC_LOG_FMT(Common::Log::t, Common::Log::LDEBUG, __VA_ARGS__);                             \
   } while (0)
