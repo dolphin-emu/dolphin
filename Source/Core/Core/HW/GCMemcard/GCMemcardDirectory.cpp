@@ -430,7 +430,7 @@ void GCMemcardDirectory::ClearBlock(u32 address)
     if (m_last_block == -1)
       return;
   }
-  ((Memcard::GCMBlock*)m_last_block_address)->Erase();
+  std::memset(m_last_block_address, 0xFF, Memcard::BLOCK_SIZE);
 }
 
 inline void GCMemcardDirectory::SyncSaves()
@@ -629,7 +629,8 @@ void GCMemcardDirectory::FlushToFile()
         if (gci)
         {
           gci.WriteBytes(&save.m_gci_header, Memcard::DENTRY_SIZE);
-          gci.WriteBytes(save.m_save_data.data(), Memcard::BLOCK_SIZE * save.m_save_data.size());
+          for (const Memcard::GCMBlock& block : save.m_save_data)
+            gci.WriteBytes(block.m_block.data(), Memcard::BLOCK_SIZE);
 
           if (gci.IsGood())
           {
