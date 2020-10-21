@@ -68,7 +68,6 @@
     <ClCompile Include="Config\Graphics\GraphicsInteger.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsRadio.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsSlider.cpp" />
-    <ClCompile Include="Config\Graphics\GraphicsWidget.cpp" />
     <ClCompile Include="Config\Graphics\GraphicsWindow.cpp" />
     <ClCompile Include="Config\Graphics\HacksWidget.cpp" />
     <ClCompile Include="Config\Graphics\PostProcessingConfigWindow.cpp" />

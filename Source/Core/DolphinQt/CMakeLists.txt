@@ -97,7 +97,6 @@ add_executable(dolphin-emu
   Config/Graphics/GraphicsRadio.h
   Config/Graphics/GraphicsSlider.cpp
   Config/Graphics/GraphicsSlider.h
-  Config/Graphics/GraphicsWidget.cpp
   Config/Graphics/GraphicsWidget.h
   Config/Graphics/GraphicsWindow.cpp
   Config/Graphics/GraphicsWindow.h
