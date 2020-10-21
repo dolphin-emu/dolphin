@@ -297,9 +297,6 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
       case MainPresenter.REQUEST_GAME_FILE:
         extensions = FileBrowserHelper.GAME_EXTENSIONS;
         break;
-      case MainPresenter.REQUEST_WAD_FILE:
-        extensions = FileBrowserHelper.WAD_EXTENSION;
-        break;
       default:
         throw new InvalidParameterException("Unhandled request code");
     }

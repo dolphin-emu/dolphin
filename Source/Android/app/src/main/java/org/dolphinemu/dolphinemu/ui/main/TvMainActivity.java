@@ -179,8 +179,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchInstallWAD()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_WAD_FILE, false,
-            FileBrowserHelper.WAD_EXTENSION);
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+    startActivityForResult(intent, MainPresenter.REQUEST_WAD_FILE);
   }
 
   @Override
@@ -226,7 +228,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          mPresenter.installWAD(FileBrowserHelper.getSelectedPath(result));
+          mPresenter.installWAD(result.getData().toString());
           break;
       }
     }
