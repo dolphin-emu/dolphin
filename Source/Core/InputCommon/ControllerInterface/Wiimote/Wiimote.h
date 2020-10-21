@@ -275,7 +275,7 @@ private:
   std::list<ReportHandler> m_report_handlers;
 
   // World rotation. (used to rotate IR data and provide pitch, roll, yaw inputs)
-  Common::Matrix33 m_orientation = Common::Matrix33::Identity();
+  Common::Quaternion m_orientation = Common::Quaternion::Identity();
   Clock::time_point m_last_report_time = Clock::now();
 };
 

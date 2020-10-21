@@ -154,6 +154,8 @@ union TVec4
   TVec4(TVec3<T> _vec, T _w) : TVec4{_vec.x, _vec.y, _vec.z, _w} {}
   TVec4(T _x, T _y, T _z, T _w) : data{_x, _y, _z, _w} {}
 
+  T Dot(const TVec4& other) const { return x * other.x + y * other.y + z * other.z + w * other.w; }
+
   TVec4& operator*=(const TVec4& rhs)
   {
     x *= rhs.x;
@@ -321,11 +323,40 @@ auto operator/(TVec2<T> lhs, T2 scalar)
 using Vec2 = TVec2<float>;
 using DVec2 = TVec2<double>;
 
+class Matrix33;
+
+class Quaternion
+{
+public:
+  static Quaternion Identity();
+
+  static Quaternion RotateX(float rad);
+  static Quaternion RotateY(float rad);
+  static Quaternion RotateZ(float rad);
+
+  static Quaternion Rotate(float rad, const Vec3& axis);
+
+  Quaternion() = default;
+  Quaternion(float w, float x, float y, float z);
+
+  float Norm() const;
+  Quaternion Normalized() const;
+  Quaternion Conjugate() const;
+  Quaternion Inverted() const;
+
+  Quaternion& operator*=(const Quaternion& rhs);
+
+  Vec4 data;
+};
+
+Quaternion operator*(Quaternion lhs, const Quaternion& rhs);
+Vec3 operator*(const Quaternion& lhs, const Vec3& rhs);
+
 class Matrix33
 {
 public:
   static Matrix33 Identity();
-  static Matrix33 FromQuaternion(float x, float y, float z, float w);
+  static Matrix33 FromQuaternion(const Quaternion&);
 
   // Return a rotation matrix around the x,y,z axis
   static Matrix33 RotateX(float rad);

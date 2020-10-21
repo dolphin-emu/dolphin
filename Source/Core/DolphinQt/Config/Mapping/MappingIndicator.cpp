@@ -579,7 +579,7 @@ void AccelerometerMappingIndicator::Draw()
   // UI axes are opposite that of Wii remote accelerometer.
   p.scale(-1.0, -1.0);
 
-  const auto rotation = WiimoteEmu::GetMatrixFromAcceleration(state);
+  const auto rotation = WiimoteEmu::GetRotationFromAcceleration(state);
 
   // Draw sphere.
   p.setPen(GetCosmeticPen(QPen(GetRawInputColor(), 0.5)));
@@ -650,8 +650,9 @@ void GyroMappingIndicator::Draw()
   const auto jitter = raw_gyro_state - m_previous_velocity;
   m_previous_velocity = raw_gyro_state;
 
-  m_state *= WiimoteEmu::GetMatrixFromGyroscope(angular_velocity * Common::Vec3(-1, +1, -1) /
-                                                INDICATOR_UPDATE_FREQ);
+  m_state *= WiimoteEmu::GetRotationFromGyroscope(angular_velocity * Common::Vec3(-1, +1, -1) /
+                                                  INDICATOR_UPDATE_FREQ);
+  m_state = m_state.Normalized();
 
   // Reset orientation when stable for a bit:
   constexpr u32 STABLE_RESET_STEPS = INDICATOR_UPDATE_FREQ;
@@ -664,10 +665,11 @@ void GyroMappingIndicator::Draw()
     ++m_stable_steps;
 
   if (STABLE_RESET_STEPS == m_stable_steps)
-    m_state = Common::Matrix33::Identity();
+    m_state = Common::Quaternion::Identity();
 
   // Use an empty rotation matrix if gyroscope data is not present.
-  const auto rotation = (gyro_state.has_value() ? m_state : Common::Matrix33{});
+  const auto rotation =
+      (gyro_state.has_value() ? Common::Matrix33::FromQuaternion(m_state) : Common::Matrix33{});
 
   QPainter p(this);
   DrawBoundingBox(p);

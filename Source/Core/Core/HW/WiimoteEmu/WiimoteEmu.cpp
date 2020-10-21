@@ -757,10 +757,10 @@ Common::Matrix44 Wiimote::GetTransformation(const Common::Matrix33& extra_rotati
          Common::Matrix44::Translate(-m_swing_state.position - m_point_state.position);
 }
 
-Common::Matrix33 Wiimote::GetOrientation() const
+Common::Quaternion Wiimote::GetOrientation() const
 {
-  return Common::Matrix33::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
-         Common::Matrix33::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
+  return Common::Quaternion::RotateZ(float(MathUtil::TAU / -4 * IsSideways())) *
+         Common::Quaternion::RotateX(float(MathUtil::TAU / 4 * IsUpright()));
 }
 
 Common::Vec3 Wiimote::GetTotalAcceleration() const
@@ -781,8 +781,9 @@ Common::Vec3 Wiimote::GetTotalAngularVelocity() const
 
 Common::Matrix44 Wiimote::GetTotalTransformation() const
 {
-  return GetTransformation(m_imu_cursor_state.rotation *
-                           Common::Matrix33::RotateX(m_imu_cursor_state.recentered_pitch));
+  return GetTransformation(Common::Matrix33::FromQuaternion(
+      m_imu_cursor_state.rotation *
+      Common::Quaternion::RotateX(m_imu_cursor_state.recentered_pitch)));
 }
 
 }  // namespace WiimoteEmu
