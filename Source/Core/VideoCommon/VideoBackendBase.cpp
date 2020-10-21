@@ -206,16 +206,10 @@ static VideoBackendBase* GetDefaultVideoBackend()
   return backends.front().get();
 }
 
-// This function is called at static initialization, so we can't rely on s_default_backend being set
 std::string VideoBackendBase::GetDefaultBackendName()
 {
-#ifdef HAS_OPENGL
-  return OGL::VideoBackend::NAME;
-#elif defined(_WIN32)
-  return DX11::VideoBackend::NAME;
-#else
-  return Vulkan::VideoBackend::NAME;
-#endif
+  auto* default_backend = GetDefaultVideoBackend();
+  return default_backend ? default_backend->GetName() : "";
 }
 
 const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
