@@ -58,8 +58,8 @@ void AudioStretcher::ProcessSamples(const short* in, unsigned int num_in, unsign
   m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
   m_sound_touch.setTempo(m_stretch_ratio);
 
-  DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", num_in, num_out,
-            m_stretch_ratio, backlog_fullness, lpf_gain);
+  DEBUG_LOG_FMT(AUDIO, "Audio stretching: samples:{}/{} ratio:{} backlog:{} gain: {}", num_in,
+                num_out, m_stretch_ratio, backlog_fullness, lpf_gain);
 
   m_sound_touch.putSamples(in, num_in);
 }
