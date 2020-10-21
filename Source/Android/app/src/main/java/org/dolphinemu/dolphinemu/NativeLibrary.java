@@ -114,7 +114,7 @@ public final class NativeLibrary
     public static final int NUNCHUK_SWING_UP = 208;
     public static final int NUNCHUK_SWING_DOWN = 209;
     public static final int NUNCHUK_SWING_LEFT = 210;
-    public static final int NUNCHUK_SWING_RIGHT = 221;
+    public static final int NUNCHUK_SWING_RIGHT = 211;
     public static final int NUNCHUK_SWING_FORWARD = 212;
     public static final int NUNCHUK_SWING_BACKWARD = 213;
     public static final int NUNCHUK_TILT = 214;

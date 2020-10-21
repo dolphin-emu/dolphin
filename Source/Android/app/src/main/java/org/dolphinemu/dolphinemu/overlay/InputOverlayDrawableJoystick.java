@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu.overlay;
 
-import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -15,6 +14,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.view.MotionEvent;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 
 /**
  * Custom {@link BitmapDrawable} that is capable
@@ -22,22 +22,20 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
  */
 public final class InputOverlayDrawableJoystick
 {
-  private SharedPreferences mPreferences;
-
   private final int[] axisIDs = {0, 0, 0, 0};
   private final float[] axises = {0f, 0f};
   private int trackId = -1;
-  private int mJoystickType;
+  private final int mJoystickType;
   private int mControlPositionX, mControlPositionY;
   private int mPreviousTouchX, mPreviousTouchY;
-  private int mWidth;
-  private int mHeight;
+  private final int mWidth;
+  private final int mHeight;
   private Rect mVirtBounds;
   private Rect mOrigBounds;
-  private BitmapDrawable mOuterBitmap;
-  private BitmapDrawable mDefaultStateInnerBitmap;
-  private BitmapDrawable mPressedStateInnerBitmap;
-  private BitmapDrawable mBoundsBoxBitmap;
+  private final BitmapDrawable mOuterBitmap;
+  private final BitmapDrawable mDefaultStateInnerBitmap;
+  private final BitmapDrawable mPressedStateInnerBitmap;
+  private final BitmapDrawable mBoundsBoxBitmap;
   private boolean mPressedState = false;
 
   /**
@@ -51,9 +49,8 @@ public final class InputOverlayDrawableJoystick
    * @param rectInner          {@link Rect} which represents the inner joystick bounds.
    * @param joystick           Identifier for which joystick this is.
    */
-  public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter,
-          Bitmap bitmapInnerDefault, Bitmap bitmapInnerPressed,
-          Rect rectOuter, Rect rectInner, int joystick, SharedPreferences prefsHandle)
+  public InputOverlayDrawableJoystick(Resources res, Bitmap bitmapOuter, Bitmap bitmapInnerDefault,
+          Bitmap bitmapInnerPressed, Rect rectOuter, Rect rectInner, int joystick)
   {
     axisIDs[0] = joystick + 1;
     axisIDs[1] = joystick + 2;
@@ -61,7 +58,6 @@ public final class InputOverlayDrawableJoystick
     axisIDs[3] = joystick + 4;
     mJoystickType = joystick;
 
-    mPreferences = prefsHandle;
     mOuterBitmap = new BitmapDrawable(res, bitmapOuter);
     mDefaultStateInnerBitmap = new BitmapDrawable(res, bitmapInnerDefault);
     mPressedStateInnerBitmap = new BitmapDrawable(res, bitmapInnerPressed);
@@ -98,7 +94,7 @@ public final class InputOverlayDrawableJoystick
 
   public boolean TrackEvent(MotionEvent event)
   {
-    boolean reCenter = mPreferences.getBoolean("joystickRelCenter", true);
+    boolean reCenter = BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBooleanGlobal();
     int pointerIndex = event.getActionIndex();
     boolean pressed = false;
 

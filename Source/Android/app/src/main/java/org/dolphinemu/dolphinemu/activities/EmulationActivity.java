@@ -33,6 +33,8 @@ import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
@@ -149,7 +151,7 @@ public final class EmulationActivity extends AppCompatActivity
   public static final int MENU_ACTION_SETTINGS_CORE = 34;
   public static final int MENU_ACTION_SETTINGS_GRAPHICS = 35;
 
-  private static SparseIntArray buttonsActionsMap = new SparseIntArray();
+  private static final SparseIntArray buttonsActionsMap = new SparseIntArray();
 
   static
   {
@@ -248,7 +250,6 @@ public final class EmulationActivity extends AppCompatActivity
   {
     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
     editor.remove("wiiController");
-    editor.remove("motionControlsEnabled");
     editor.apply();
   }
 
@@ -324,6 +325,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     if (!isChangingConfigurations())
     {
+      mSettings.saveSettings(null, null);
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
@@ -359,7 +361,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     super.onResume();
 
-    if (!sIsGameCubeGame && mPreferences.getInt("motionControlsEnabled", 0) != 2)
+    if (!sIsGameCubeGame && IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings) != 2)
       mMotionListener.enable();
   }
 
@@ -481,9 +483,9 @@ public final class EmulationActivity extends AppCompatActivity
 
     // Populate the checkbox value for joystick center on touch
     menu.findItem(R.id.menu_emulation_joystick_rel_center)
-            .setChecked(mPreferences.getBoolean("joystickRelCenter", true));
+            .setChecked(BooleanSetting.MAIN_JOYSTICK_REL_CENTER.getBoolean(mSettings));
     menu.findItem(R.id.menu_emulation_rumble)
-            .setChecked(mPreferences.getBoolean("phoneRumble", true));
+            .setChecked(BooleanSetting.MAIN_PHONE_RUMBLE.getBoolean(mSettings));
 
     popup.setOnMenuItemClickListener(this::onOptionsItemSelected);
 
@@ -693,16 +695,12 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void toggleJoystickRelCenter(boolean state)
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    editor.putBoolean("joystickRelCenter", state);
-    editor.commit();
+    BooleanSetting.MAIN_JOYSTICK_REL_CENTER.setBoolean(mSettings, state);
   }
 
   private void toggleRumble(boolean state)
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    editor.putBoolean("phoneRumble", state);
-    editor.apply();
+    BooleanSetting.MAIN_PHONE_RUMBLE.setBoolean(mSettings, state);
     Rumble.setPhoneVibrator(state, this);
   }
 
@@ -748,71 +746,74 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void toggleControls()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
-    boolean[] enabledButtons = new boolean[14];
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
     if (sIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0)
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] gcEnabledButtons = new boolean[11];
+      String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
+
+      for (int i = 0; i < gcEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
+        gcEnabledButtons[i] = BooleanSetting.valueOf(gcSettingBase + i).getBoolean(mSettings);
       }
-      builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
-              (dialog, indexSelected, isChecked) -> editor
-                      .putBoolean("buttonToggleGc" + indexSelected, isChecked));
+      builder.setMultiChoiceItems(R.array.gcpadButtons, gcEnabledButtons,
+              (dialog, indexSelected, isChecked) -> BooleanSetting
+                      .valueOf(gcSettingBase + indexSelected).setBoolean(mSettings, isChecked));
     }
     else if (mPreferences.getInt("wiiController", 3) == 4)
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] wiiClassicEnabledButtons = new boolean[14];
+      String classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_";
+
+      for (int i = 0; i < wiiClassicEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
+        wiiClassicEnabledButtons[i] =
+                BooleanSetting.valueOf(classicSettingBase + i).getBoolean(mSettings);
       }
-      builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
-              (dialog, indexSelected, isChecked) -> editor
-                      .putBoolean("buttonToggleClassic" + indexSelected, isChecked));
+      builder.setMultiChoiceItems(R.array.classicButtons, wiiClassicEnabledButtons,
+              (dialog, indexSelected, isChecked) -> BooleanSetting
+                      .valueOf(classicSettingBase + indexSelected)
+                      .setBoolean(mSettings, isChecked));
     }
     else
     {
-      for (int i = 0; i < enabledButtons.length; i++)
+      boolean[] wiiEnabledButtons = new boolean[11];
+      String wiiSettingBase = "MAIN_BUTTON_TOGGLE_WII_";
+
+      for (int i = 0; i < wiiEnabledButtons.length; i++)
       {
-        enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
+        wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
       }
       if (mPreferences.getInt("wiiController", 3) == 3)
       {
-        builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
-                (dialog, indexSelected, isChecked) -> editor
-                        .putBoolean("buttonToggleWii" + indexSelected, isChecked));
+        builder.setMultiChoiceItems(R.array.nunchukButtons, wiiEnabledButtons,
+                (dialog, indexSelected, isChecked) -> BooleanSetting
+                        .valueOf(wiiSettingBase + indexSelected).setBoolean(mSettings, isChecked));
       }
       else
       {
-        builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
-                (dialog, indexSelected, isChecked) -> editor
-                        .putBoolean("buttonToggleWii" + indexSelected, isChecked));
+        builder.setMultiChoiceItems(R.array.wiimoteButtons, wiiEnabledButtons,
+                (dialog, indexSelected, isChecked) -> BooleanSetting
+                        .valueOf(wiiSettingBase + indexSelected).setBoolean(mSettings, isChecked));
       }
     }
     builder.setNeutralButton(R.string.emulation_toggle_all,
-            (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility());
+            (dialogInterface, i) -> mEmulationFragment.toggleInputOverlayVisibility(mSettings));
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
-    {
-      editor.apply();
-
-      mEmulationFragment.refreshInputOverlay();
-    });
+            mEmulationFragment.refreshInputOverlay());
 
     builder.show();
   }
 
   public void chooseDoubleTapButton()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
 
     int currentController =
             mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
 
-    int currentValue = mPreferences.getInt("doubleTapButton",
-            InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(InputOverlayPointer.DOUBLE_TAP_A));
+    int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
 
     int buttonList = currentController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC ?
             R.array.doubleTapWithClassic : R.array.doubleTap;
@@ -823,14 +824,12 @@ public final class EmulationActivity extends AppCompatActivity
       currentValue = InputOverlay.OVERLAY_WIIMOTE;
     }
 
-    builder.setSingleChoiceItems(buttonList, currentValue, (DialogInterface dialog, int which) ->
-            editor.putInt("doubleTapButton", InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
+    builder.setSingleChoiceItems(buttonList, currentValue,
+            (DialogInterface dialog, int which) -> IntSetting.MAIN_DOUBLE_TAP_BUTTON
+                    .setInt(mSettings, InputOverlayPointer.DOUBLE_TAP_OPTIONS.get(which)));
 
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
-    {
-      editor.commit();
-      mEmulationFragment.initInputPointer();
-    });
+            mEmulationFragment.initInputPointer());
 
     builder.show();
   }
@@ -845,7 +844,7 @@ public final class EmulationActivity extends AppCompatActivity
     final TextView units = view.findViewById(R.id.text_units);
 
     seekbar.setMax(150);
-    seekbar.setProgress(mPreferences.getInt("controlScale", 50));
+    seekbar.setProgress(IntSetting.MAIN_CONTROL_SCALE.getInt(mSettings));
     seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
     {
       public void onStartTrackingTouch(SeekBar seekBar)
@@ -872,10 +871,12 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putInt("controlScale", seekbar.getProgress());
-      editor.apply();
-
+      IntSetting.MAIN_CONTROL_SCALE.setInt(mSettings, seekbar.getProgress());
+      mEmulationFragment.refreshInputOverlay();
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      IntSetting.MAIN_CONTROL_SCALE.delete(mSettings);
       mEmulationFragment.refreshInputOverlay();
     });
 
@@ -913,14 +914,13 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void showMotionControlsOptions()
   {
-    final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_motion_controls);
     builder.setSingleChoiceItems(R.array.motionControlsEntries,
-            mPreferences.getInt("motionControlsEnabled", 1),
+            IntSetting.MAIN_MOTION_CONTROLS.getInt(mSettings),
             (dialog, indexSelected) ->
             {
-              editor.putInt("motionControlsEnabled", indexSelected);
+              IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
 
               if (indexSelected != 2)
                 mMotionListener.enable();
@@ -934,7 +934,7 @@ public final class EmulationActivity extends AppCompatActivity
 
               NativeLibrary.ReloadWiimoteConfig();
             });
-    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> editor.apply());
+    builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
 
     builder.show();
   }
@@ -971,8 +971,11 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void setIRSensitivity()
   {
-    int ir_pitch = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId, "15"));
+    // IR settings always get saved per-game since WiimoteNew.ini is wiped upon reinstall.
+    File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
+    IniFile ini = new IniFile(file);
+
+    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 15);
 
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
@@ -1004,8 +1007,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int ir_yaw = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId, "15"));
+    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 15);
 
     TextView text_slider_value_yaw = view.findViewById(R.id.text_ir_yaw);
     TextView units_yaw = view.findViewById(R.id.text_ir_yaw_units);
@@ -1035,9 +1037,8 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
 
-    int ir_vertical_offset = Integer.parseInt(
-            mPreferences.getString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-                    "10"));
+    int ir_vertical_offset =
+            ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET, 10);
 
     TextView text_slider_value_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset);
     TextView units_vertical_offset = view.findViewById(R.id.text_ir_vertical_offset_units);
@@ -1071,8 +1072,6 @@ public final class EmulationActivity extends AppCompatActivity
     builder.setView(view);
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      File file = SettingsFile.getCustomGameSettingsFile(mSelectedGameId);
-      IniFile ini = new IniFile(file);
       ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH,
               text_slider_value_pitch.getText().toString());
       ini.setString(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW,
@@ -1082,19 +1081,19 @@ public final class EmulationActivity extends AppCompatActivity
       ini.save(file);
 
       NativeLibrary.ReloadWiimoteConfig();
-
-      SharedPreferences.Editor editor = mPreferences.edit();
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_PITCH + mSelectedGameId,
-              text_slider_value_pitch.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_YAW + mSelectedGameId,
-              text_slider_value_yaw.getText().toString());
-      editor.putString(SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET + mSelectedGameId,
-              text_slider_value_vertical_offset.getText().toString());
-      editor.apply();
     });
     builder.setNegativeButton(R.string.cancel, (dialogInterface, i) ->
     {
       // Do nothing
+    });
+    builder.setNeutralButton(R.string.default_values, (dialogInterface, i) ->
+    {
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW);
+      ini.deleteKey(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_VERTICAL_OFFSET);
+      ini.save(file);
+
+      NativeLibrary.ReloadWiimoteConfig();
     });
     builder.show();
   }

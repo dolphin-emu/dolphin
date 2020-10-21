@@ -24,6 +24,7 @@ public class Settings implements Closeable
   public static final String FILE_WIIMOTE = "WiimoteNew";
 
   public static final String SECTION_INI_ANDROID = "Android";
+  public static final String SECTION_INI_ANDROID_OVERLAY_BUTTONS = "AndroidOverlayButtons";
   public static final String SECTION_INI_GENERAL = "General";
   public static final String SECTION_INI_CORE = "Core";
   public static final String SECTION_INI_INTERFACE = "Interface";
