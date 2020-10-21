@@ -36,13 +36,14 @@ private:
 
   public:
     std::string GetName() const override { return m_keyname; }
-    Key(Display* display, KeyCode keycode, const char* keyboard);
+    Key(Display* display, KeyCode keycode, const char* keyboard, char* keyboard_buffer);
     ControlState GetState() const override;
 
   private:
     std::string m_keyname;
     Display* const m_display;
     const char* const m_keyboard;
+    char* const m_keyboard_buffer;
     const KeyCode m_keycode;
   };
 
@@ -50,11 +51,12 @@ private:
   {
   public:
     std::string GetName() const override { return name; }
-    Button(unsigned int index, unsigned int* buttons);
+    Button(unsigned int index, unsigned int* buttons, unsigned int* buttons_buffer);
     ControlState GetState() const override;
 
   private:
     const unsigned int* m_buttons;
+    unsigned int* m_buttons_buffer;
     const unsigned int m_index;
     std::string name;
   };
@@ -106,6 +108,7 @@ private:
   Window m_window;
   Display* m_display;
   State m_state{};
+  State m_state_buffer{};
   int xi_opcode;
   const int pointer_deviceid, keyboard_deviceid;
   std::string name;
