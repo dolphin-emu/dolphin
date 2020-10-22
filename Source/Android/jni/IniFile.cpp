@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <fmt/format.h>
+
 #include <jni.h>
 
 #include "Common/IniFile.h"
@@ -32,14 +34,14 @@ template <typename T>
 static T GetInSection(JNIEnv* env, jobject obj, jstring key, T default_value)
 {
   T result;
-  GetSectionPointer(env, obj)->Get(GetJString(env, key), &result, default_value);
+  GetSectionPointer(env, obj)->Get(fmt::to_string(key), &result, default_value);
   return result;
 }
 
 template <typename T>
 static void SetInSection(JNIEnv* env, jobject obj, jstring key, T new_value)
 {
-  GetSectionPointer(env, obj)->Set(GetJString(env, key), new_value);
+  GetSectionPointer(env, obj)->Set(fmt::to_string(key), new_value);
 }
 
 template <typename T>
@@ -47,8 +49,8 @@ static T Get(JNIEnv* env, jobject obj, jstring section_name, jstring key, T defa
 {
   T result;
   GetIniFilePointer(env, obj)
-      ->GetOrCreateSection(GetJString(env, section_name))
-      ->Get(GetJString(env, key), &result, default_value);
+      ->GetOrCreateSection(fmt::to_string(section_name))
+      ->Get(fmt::to_string(key), &result, default_value);
   return result;
 }
 
@@ -56,8 +58,8 @@ template <typename T>
 static void Set(JNIEnv* env, jobject obj, jstring section_name, jstring key, T new_value)
 {
   GetIniFilePointer(env, obj)
-      ->GetOrCreateSection(GetJString(env, section_name))
-      ->Set(GetJString(env, key), new_value);
+      ->GetOrCreateSection(fmt::to_string(section_name))
+      ->Set(fmt::to_string(key), new_value);
 }
 
 #ifdef __cplusplus
@@ -67,19 +69,19 @@ extern "C" {
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_exists(
     JNIEnv* env, jobject obj, jstring key)
 {
-  return static_cast<jboolean>(GetSectionPointer(env, obj)->Exists(GetJString(env, key)));
+  return static_cast<jboolean>(GetSectionPointer(env, obj)->Exists(fmt::to_string(key)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_delete(
     JNIEnv* env, jobject obj, jstring key)
 {
-  return static_cast<jboolean>(GetSectionPointer(env, obj)->Delete(GetJString(env, key)));
+  return static_cast<jboolean>(GetSectionPointer(env, obj)->Delete(fmt::to_string(key)));
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_getString(
     JNIEnv* env, jobject obj, jstring key, jstring default_value)
 {
-  return ToJString(env, GetInSection(env, obj, key, GetJString(env, default_value)));
+  return ToJString(env, GetInSection(env, obj, key, fmt::to_string(default_value)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_getBoolean(
@@ -103,7 +105,7 @@ JNIEXPORT jfloat JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Secti
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_setString(
     JNIEnv* env, jobject obj, jstring key, jstring new_value)
 {
-  SetInSection(env, obj, key, GetJString(env, new_value));
+  SetInSection(env, obj, key, fmt::to_string(new_value));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_00024Section_setBoolean(
@@ -128,27 +130,27 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_load(
     JNIEnv* env, jobject obj, jstring path, jboolean keep_current_data)
 {
   return static_cast<jboolean>(
-      GetIniFilePointer(env, obj)->Load(GetJString(env, path), keep_current_data));
+      GetIniFilePointer(env, obj)->Load(fmt::to_string(path), keep_current_data));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_save(JNIEnv* env,
                                                                              jobject obj,
                                                                              jstring path)
 {
-  return static_cast<jboolean>(GetIniFilePointer(env, obj)->Save(GetJString(env, path)));
+  return static_cast<jboolean>(GetIniFilePointer(env, obj)->Save(fmt::to_string(path)));
 }
 
 JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_getOrCreateSection(
     JNIEnv* env, jobject obj, jstring section_name)
 {
   return SectionToJava(
-      env, obj, GetIniFilePointer(env, obj)->GetOrCreateSection(GetJString(env, section_name)));
+      env, obj, GetIniFilePointer(env, obj)->GetOrCreateSection(fmt::to_string(section_name)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_exists__Ljava_lang_String_2(
     JNIEnv* env, jobject obj, jstring section_name)
 {
-  return static_cast<jboolean>(GetIniFilePointer(env, obj)->Exists(GetJString(env, section_name)));
+  return static_cast<jboolean>(GetIniFilePointer(env, obj)->Exists(fmt::to_string(section_name)));
 }
 
 JNIEXPORT jboolean JNICALL
@@ -156,27 +158,27 @@ Java_org_dolphinemu_dolphinemu_utils_IniFile_exists__Ljava_lang_String_2Ljava_la
     JNIEnv* env, jobject obj, jstring section_name, jstring key)
 {
   return static_cast<jboolean>(
-      GetIniFilePointer(env, obj)->Exists(GetJString(env, section_name), GetJString(env, key)));
+      GetIniFilePointer(env, obj)->Exists(fmt::to_string(section_name), fmt::to_string(key)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_deleteSection(
     JNIEnv* env, jobject obj, jstring section_name)
 {
   return static_cast<jboolean>(
-      GetIniFilePointer(env, obj)->DeleteSection(GetJString(env, section_name)));
+      GetIniFilePointer(env, obj)->DeleteSection(fmt::to_string(section_name)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_deleteKey(
     JNIEnv* env, jobject obj, jstring section_name, jstring key)
 {
   return static_cast<jboolean>(
-      GetIniFilePointer(env, obj)->DeleteKey(GetJString(env, section_name), GetJString(env, key)));
+      GetIniFilePointer(env, obj)->DeleteKey(fmt::to_string(section_name), fmt::to_string(key)));
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_getString(
     JNIEnv* env, jobject obj, jstring section_name, jstring key, jstring default_value)
 {
-  return ToJString(env, Get(env, obj, section_name, key, GetJString(env, default_value)));
+  return ToJString(env, Get(env, obj, section_name, key, fmt::to_string(default_value)));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_getBoolean(
@@ -202,7 +204,7 @@ JNIEXPORT jfloat JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_getFloat(
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_setString(
     JNIEnv* env, jobject obj, jstring section_name, jstring key, jstring new_value)
 {
-  Set(env, obj, section_name, key, GetJString(env, new_value));
+  Set(env, obj, section_name, key, fmt::to_string(new_value));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_IniFile_setBoolean(

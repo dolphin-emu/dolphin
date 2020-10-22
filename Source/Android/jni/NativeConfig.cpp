@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+#include <fmt/format.h>
+
 #include <jni.h>
 
 #include "Common/Assert.h"
@@ -19,7 +21,7 @@ constexpr jint LAYER_ACTIVE = 2;
 
 static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, jstring key)
 {
-  const std::string decoded_file = GetJString(env, file);
+  const std::string decoded_file = fmt::to_string(file);
 
   Config::System system;
   if (decoded_file == "Dolphin")
@@ -44,7 +46,7 @@ static Config::Location GetLocation(JNIEnv* env, jstring file, jstring section, 
     return {};
   }
 
-  return Config::Location{system, GetJString(env, section), GetJString(env, key)};
+  return Config::Location{system, fmt::to_string(section), fmt::to_string(key)};
 }
 
 static std::shared_ptr<Config::Layer> GetLayer(jint layer, const Config::Location& location)
@@ -107,7 +109,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_loadGameInis
                                                                                  jstring jGameId,
                                                                                  jint jRevision)
 {
-  const std::string game_id = GetJString(env, jGameId);
+  const std::string game_id = fmt::to_string(jGameId);
   const u16 revision = static_cast<u16>(jRevision);
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
   Config::AddLayer(ConfigLoaders::GenerateLocalGameConfigLoader(game_id, revision));
@@ -150,7 +152,7 @@ Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_getString(
     jstring default_value)
 {
   const Config::Location location = GetLocation(env, file, section, key);
-  return ToJString(env, Get(layer, location, GetJString(env, default_value)));
+  return ToJString(env, Get(layer, location, fmt::to_string(default_value)));
 }
 
 JNIEXPORT jboolean JNICALL
@@ -181,7 +183,7 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_features_settings_model_NativeConfig_setString(
     JNIEnv* env, jclass obj, jint layer, jstring file, jstring section, jstring key, jstring value)
 {
-  return Set(layer, GetLocation(env, file, section, key), GetJString(env, value));
+  return Set(layer, GetLocation(env, file, section, key), fmt::to_string(value));
 }
 
 JNIEXPORT void JNICALL

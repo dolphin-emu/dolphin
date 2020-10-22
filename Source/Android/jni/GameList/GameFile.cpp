@@ -8,6 +8,8 @@
 #include <utility>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include <jni.h>
 
 #include "DiscIO/Blob.h"
@@ -191,7 +193,7 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JN
                                                                               jobject obj,
                                                                               jstring path)
 {
-  auto game_file = std::make_shared<UICommon::GameFile>(GetJString(env, path));
+  auto game_file = std::make_shared<UICommon::GameFile>(fmt::to_string(path));
   if (!game_file->IsValid())
     game_file.reset();
 

@@ -5,6 +5,8 @@
 #include <memory>
 #include <vector>
 
+#include <fmt/format.h>
+
 #include <jni.h>
 
 #include "UICommon/GameFileCache.h"
@@ -30,7 +32,7 @@ extern "C" {
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_newGameFileCache(
     JNIEnv* env, jobject obj, jstring path)
 {
-  return reinterpret_cast<jlong>(new UICommon::GameFileCache(GetJString(env, path)));
+  return reinterpret_cast<jlong>(new UICommon::GameFileCache(fmt::to_string(path)));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_finalize(JNIEnv* env,
@@ -57,7 +59,7 @@ JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_add
                                                                                       jstring path)
 {
   bool cache_changed = false;
-  return GameFileToJava(env, GetPointer(env, obj)->AddOrGet(GetJString(env, path), &cache_changed));
+  return GameFileToJava(env, GetPointer(env, obj)->AddOrGet(fmt::to_string(path), &cache_changed));
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_update(
@@ -71,7 +73,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_up
   for (jsize i = 0; i < size; ++i)
   {
     const auto path = reinterpret_cast<jstring>(env->GetObjectArrayElement(folder_paths, i));
-    folder_paths_vector.push_back(GetJString(env, path));
+    folder_paths_vector.push_back(fmt::to_string(path));
     env->DeleteLocalRef(path);
   }
 

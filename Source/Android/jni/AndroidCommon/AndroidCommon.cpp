@@ -5,23 +5,14 @@
 #include "jni/AndroidCommon/AndroidCommon.h"
 
 #include <string>
-#include <string_view>
 #include <vector>
+
+#include <fmt/format.h>
 
 #include <jni.h>
 
 #include "Common/StringUtil.h"
 #include "jni/AndroidCommon/IDCache.h"
-
-std::string GetJString(JNIEnv* env, jstring jstr)
-{
-  const jchar* jchars = env->GetStringChars(jstr, nullptr);
-  const jsize length = env->GetStringLength(jstr);
-  const std::u16string_view string_view(reinterpret_cast<const char16_t*>(jchars), length);
-  const std::string converted_string = UTF16ToUTF8(string_view);
-  env->ReleaseStringChars(jstr, jchars);
-  return converted_string;
-}
 
 jstring ToJString(JNIEnv* env, const std::string& str)
 {
@@ -37,7 +28,7 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   result.reserve(size);
 
   for (jsize i = 0; i < size; ++i)
-    result.push_back(GetJString(env, (jstring)env->GetObjectArrayElement(array, i)));
+    result.push_back(fmt::to_string((jstring)env->GetObjectArrayElement(array, i)));
 
   return result;
 }

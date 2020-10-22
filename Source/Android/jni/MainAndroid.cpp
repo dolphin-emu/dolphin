@@ -9,6 +9,7 @@
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
+#include <fmt/format.h>
 #include <jni.h>
 #include <memory>
 #include <mutex>
@@ -187,7 +188,7 @@ static std::string GetAnalyticValue(const std::string& key)
   auto value = reinterpret_cast<jstring>(env->CallStaticObjectMethod(
       IDCache::GetAnalyticsClass(), IDCache::GetAnalyticsValue(), ToJString(env, key)));
 
-  std::string stdvalue = GetJString(env, value);
+  std::string stdvalue = fmt::to_string(value);
 
   return stdvalue;
 }
@@ -251,13 +252,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(J
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
     JNIEnv* env, jobject obj, jstring jDevice, jint Button, jint Action)
 {
-  return ButtonManager::GamepadEvent(GetJString(env, jDevice), Button, Action);
+  return ButtonManager::GamepadEvent(fmt::to_string(jDevice), Button, Action);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadMoveEvent(
     JNIEnv* env, jobject obj, jstring jDevice, jint Axis, jfloat Value)
 {
-  ButtonManager::GamepadAxisEvent(GetJString(env, jDevice), Axis, Value);
+  ButtonManager::GamepadAxisEvent(fmt::to_string(jDevice), Axis, Value);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetMotionSensorsEnabled(
@@ -314,7 +315,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveStateAs(
                                                                                 jboolean wait)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  State::SaveAs(GetJString(env, path), wait);
+  State::SaveAs(fmt::to_string(path), wait);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JNIEnv* env,
@@ -330,13 +331,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(
                                                                                 jstring path)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  State::LoadAs(GetJString(env, path));
+  State::LoadAs(fmt::to_string(path));
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_DirectoryInitialization_SetSysDirectory(
     JNIEnv* env, jobject obj, jstring jPath)
 {
-  const std::string path = GetJString(env, jPath);
+  const std::string path = fmt::to_string(jPath);
   File::SetSysDirectory(path);
 }
 
@@ -351,7 +352,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetUserDirec
     JNIEnv* env, jobject obj, jstring jDirectory)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  UICommon::SetUserDirectory(GetJString(env, jDirectory));
+  UICommon::SetUserDirectory(fmt::to_string(jDirectory));
 }
 
 JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUserDirectory(JNIEnv* env,
@@ -364,7 +365,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetCacheDire
     JNIEnv* env, jobject obj, jstring jDirectory)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  File::SetUserPath(D_CACHE_IDX, GetJString(env, jDirectory) + DIR_SEP);
+  File::SetUserPath(D_CACHE_IDX, fmt::to_string(jDirectory) + DIR_SEP);
 }
 
 JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_DefaultCPUCore(JNIEnv* env,
@@ -558,14 +559,14 @@ JNIEXPORT void JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2Ljava_lang_String_2Z(
     JNIEnv* env, jobject obj, jobjectArray jPaths, jstring jSavestate, jboolean jDeleteSavestate)
 {
-  Run(env, JStringArrayToVector(env, jPaths), GetJString(env, jSavestate), jDeleteSavestate);
+  Run(env, JStringArrayToVector(env, jPaths), fmt::to_string(jSavestate), jDeleteSavestate);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ChangeDisc(JNIEnv* env,
                                                                                jobject obj,
                                                                                jstring jFile)
 {
-  const std::string path = GetJString(env, jFile);
+  const std::string path = fmt::to_string(jFile);
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Change Disc: %s", path.c_str());
   Core::RunAsCPUThread([&path] { DVDInterface::ChangeDisc(path); });
 }
@@ -596,7 +597,7 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_InstallW
                                                                                    jobject obj,
                                                                                    jstring jFile)
 {
-  const std::string path = GetJString(env, jFile);
+  const std::string path = fmt::to_string(jFile);
   return static_cast<jboolean>(WiiUtils::InstallWAD(path));
 }
 
@@ -604,8 +605,8 @@ JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_ConvertD
     JNIEnv* env, jobject obj, jstring jInPath, jstring jOutPath, jint jPlatform, jint jFormat,
     jint jBlockSize, jint jCompression, jint jCompressionLevel, jboolean jScrub, jobject jCallback)
 {
-  const std::string in_path = GetJString(env, jInPath);
-  const std::string out_path = GetJString(env, jOutPath);
+  const std::string in_path = fmt::to_string(jInPath);
+  const std::string out_path = fmt::to_string(jOutPath);
   const DiscIO::Platform platform = static_cast<DiscIO::Platform>(jPlatform);
   const DiscIO::BlobType format = static_cast<DiscIO::BlobType>(jFormat);
   const DiscIO::WIARVZCompressionType compression =
