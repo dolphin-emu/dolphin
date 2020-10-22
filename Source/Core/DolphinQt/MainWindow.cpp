@@ -1434,6 +1434,11 @@ void MainWindow::UpdateScreenSaverInhibition()
   const bool inhibit =
       Config::Get(Config::MAIN_DISABLE_SCREENSAVER) && (Core::GetState() == Core::State::Running);
 
+  if (inhibit == m_is_screensaver_inhibited)
+    return;
+
+  m_is_screensaver_inhibited = inhibit;
+
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   if (GetWindowSystemType() == WindowSystemType::X11)
     UICommon::InhibitScreenSaver(winId(), inhibit);
