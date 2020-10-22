@@ -40,7 +40,7 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
   File::OpenFStream(json_stream, json_file, std::ios_base::in);
   if (!json_stream.is_open())
   {
-    ERROR_LOG(VIDEO, "Failed to load dynamic input json file '%s'", json_file.c_str());
+    ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}'", json_file);
     m_valid = false;
     return;
   }
@@ -50,8 +50,8 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
 
   if (!error.empty())
   {
-    ERROR_LOG(VIDEO, "Failed to load dynamic input json file '%s' due to parse error: %s",
-              json_file.c_str(), error.c_str());
+    ERROR_LOG_FMT(VIDEO, "Failed to load dynamic input json file '{}' due to parse error: {}",
+                  json_file, error);
     m_valid = false;
     return;
   }
@@ -59,10 +59,11 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
   const picojson::value& output_textures_json = out.get("output_textures");
   if (!output_textures_json.is<picojson::object>())
   {
-    ERROR_LOG(VIDEO,
-              "Failed to load dynamic input json file '%s' because 'output_textures' is missing or "
-              "was not of type object",
-              json_file.c_str());
+    ERROR_LOG_FMT(
+        VIDEO,
+        "Failed to load dynamic input json file '{}' because 'output_textures' is missing or "
+        "was not of type object",
+        json_file);
     m_valid = false;
     return;
   }
@@ -103,11 +104,11 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
 
     if (!image.is<std::string>() || !emulated_controls.is<picojson::object>())
     {
-      ERROR_LOG(VIDEO,
-                "Failed to load dynamic input json file '%s' because required fields "
-                "'image', or 'emulated_controls' are either "
-                "missing or the incorrect type",
-                json_file.c_str());
+      ERROR_LOG_FMT(VIDEO,
+                    "Failed to load dynamic input json file '{}' because required fields "
+                    "'image', or 'emulated_controls' are either "
+                    "missing or the incorrect type",
+                    json_file);
       m_valid = false;
       return;
     }
@@ -121,10 +122,10 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
     const std::string image_full_path = m_base_path + texture_data.m_image_name;
     if (!File::Exists(image_full_path))
     {
-      ERROR_LOG(VIDEO,
-                "Failed to load dynamic input json file '%s' because the image '%s' "
-                "could not be loaded",
-                json_file.c_str(), image_full_path.c_str());
+      ERROR_LOG_FMT(VIDEO,
+                    "Failed to load dynamic input json file '{}' because the image '{}' "
+                    "could not be loaded",
+                    json_file, image_full_path);
       m_valid = false;
       return;
     }
@@ -134,10 +135,10 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
     {
       if (!map.is<picojson::object>())
       {
-        ERROR_LOG(VIDEO,
-                  "Failed to load dynamic input json file '%s' because 'emulated_controls' "
-                  "map key '%s' is incorrect type.  Expected map  ",
-                  json_file.c_str(), emulated_controller_name.c_str());
+        ERROR_LOG_FMT(VIDEO,
+                      "Failed to load dynamic input json file '{}' because 'emulated_controls' "
+                      "map key '{}' is incorrect type.  Expected map  ",
+                      json_file, emulated_controller_name);
         m_valid = false;
         return;
       }
@@ -147,10 +148,11 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
       {
         if (!regions_array.is<picojson::array>())
         {
-          ERROR_LOG(VIDEO,
-                    "Failed to load dynamic input json file '%s' because emulated controller '%s' "
-                    "key '%s' has incorrect value type.  Expected array ",
-                    json_file.c_str(), emulated_controller_name.c_str(), emulated_control.c_str());
+          ERROR_LOG_FMT(
+              VIDEO,
+              "Failed to load dynamic input json file '{}' because emulated controller '{}' "
+              "key '{}' has incorrect value type.  Expected array ",
+              json_file, emulated_controller_name, emulated_control);
           m_valid = false;
           return;
         }
@@ -161,11 +163,11 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
           Rect r;
           if (!region.is<picojson::array>())
           {
-            ERROR_LOG(
+            ERROR_LOG_FMT(
                 VIDEO,
-                "Failed to load dynamic input json file '%s' because emulated controller '%s' "
-                "key '%s' has a region with the incorrect type.  Expected array ",
-                json_file.c_str(), emulated_controller_name.c_str(), emulated_control.c_str());
+                "Failed to load dynamic input json file '{}' because emulated controller '{}' "
+                "key '{}' has a region with the incorrect type.  Expected array ",
+                json_file, emulated_controller_name, emulated_control);
             m_valid = false;
             return;
           }
@@ -174,12 +176,12 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
 
           if (region_offsets.size() != 4)
           {
-            ERROR_LOG(
+            ERROR_LOG_FMT(
                 VIDEO,
-                "Failed to load dynamic input json file '%s' because emulated controller '%s' "
-                "key '%s' has a region that does not have 4 offsets (left, top, right, "
+                "Failed to load dynamic input json file '{}' because emulated controller '{}' "
+                "key '{}' has a region that does not have 4 offsets (left, top, right, "
                 "bottom).",
-                json_file.c_str(), emulated_controller_name.c_str(), emulated_control.c_str());
+                json_file, emulated_controller_name, emulated_control);
             m_valid = false;
             return;
           }
@@ -187,11 +189,11 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
           if (!std::all_of(region_offsets.begin(), region_offsets.end(),
                            [](picojson::value val) { return val.is<double>(); }))
           {
-            ERROR_LOG(
+            ERROR_LOG_FMT(
                 VIDEO,
-                "Failed to load dynamic input json file '%s' because emulated controller '%s' "
-                "key '%s' has a region that has the incorrect offset type.",
-                json_file.c_str(), emulated_controller_name.c_str(), emulated_control.c_str());
+                "Failed to load dynamic input json file '{}' because emulated controller '{}' "
+                "key '{}' has a region that has the incorrect offset type.",
+                json_file, emulated_controller_name, emulated_control);
             m_valid = false;
             return;
           }
@@ -217,10 +219,10 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
 
     if (host_controls.empty())
     {
-      ERROR_LOG(VIDEO,
-                "Failed to load dynamic input json file '%s' because field "
-                "'host_controls' is missing ",
-                json_file.c_str());
+      ERROR_LOG_FMT(VIDEO,
+                    "Failed to load dynamic input json file '{}' because field "
+                    "'host_controls' is missing ",
+                    json_file);
       m_valid = false;
       return;
     }
@@ -229,10 +231,10 @@ DynamicInputTextureConfiguration::DynamicInputTextureConfiguration(const std::st
     {
       if (!map.is<picojson::object>())
       {
-        ERROR_LOG(VIDEO,
-                  "Failed to load dynamic input json file '%s' because 'host_controls' "
-                  "map key '%s' is incorrect type ",
-                  json_file.c_str(), host_device.c_str());
+        ERROR_LOG_FMT(VIDEO,
+                      "Failed to load dynamic input json file '{}' because 'host_controls' "
+                      "map key '{}' is incorrect type ",
+                      json_file, host_device);
         m_valid = false;
         return;
       }

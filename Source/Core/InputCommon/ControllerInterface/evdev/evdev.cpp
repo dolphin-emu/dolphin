@@ -253,8 +253,8 @@ static void AddDeviceNode(const char* devnode)
   auto evdev_device = FindDeviceWithUniqueIDAndPhysicalLocation(uniq, phys);
   if (evdev_device)
   {
-    NOTICE_LOG(SERIALINTERFACE, "evdev combining devices with unique id: %s, physical location: %s",
-               uniq, phys);
+    NOTICE_LOG_FMT(SERIALINTERFACE,
+                   "evdev combining devices with unique id: {}, physical location: {}", uniq, phys);
 
     evdev_device->AddNode(devnode, fd, dev);
 
@@ -282,7 +282,7 @@ static void AddDeviceNode(const char* devnode)
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("evdev Hotplug Thread");
-  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread started");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "evdev hotplug thread started");
 
   udev* const udev = udev_new();
   Common::ScopeGuard udev_guard([udev] { udev_unref(udev); });
@@ -337,7 +337,7 @@ static void HotplugThreadFunc()
       AddDeviceNode(devnode);
     }
   }
-  NOTICE_LOG(SERIALINTERFACE, "evdev hotplug thread stopped");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "evdev hotplug thread stopped");
 }
 
 static void StartHotplugThread()

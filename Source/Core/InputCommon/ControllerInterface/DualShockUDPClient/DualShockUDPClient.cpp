@@ -215,7 +215,7 @@ static sf::Socket::Status ReceiveWithTimeout(sf::UdpSocket& socket, void* data, 
 static void HotplugThreadFunc()
 {
   Common::SetCurrentThreadName("DualShockUDPClient Hotplug Thread");
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread started");
 
   while (s_hotplug_thread_running.IsSet())
   {
@@ -235,7 +235,7 @@ static void HotplugThreadFunc()
         if (server.m_socket.send(&list_ports, sizeof list_ports, server.m_address, server.m_port) !=
             sf::Socket::Status::Done)
         {
-          ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
+          ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient HotplugThreadFunc send failed");
         }
       }
     }
@@ -269,7 +269,7 @@ static void HotplugThreadFunc()
       }
     }
   }
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient hotplug thread stopped");
 }
 
 static void StartHotplugThread()
@@ -302,7 +302,7 @@ static void StopHotplugThread()
 
 static void Restart()
 {
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient Restart");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient Restart");
 
   StopHotplugThread();
 
@@ -384,7 +384,7 @@ void Init()
 
 void PopulateDevices()
 {
-  INFO_LOG(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
+  INFO_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient PopulateDevices");
 
   for (auto& server : s_servers)
   {
@@ -496,7 +496,9 @@ void Device::UpdateInput()
     msg.Finish();
     if (m_socket.send(&data_req, sizeof(data_req), m_server_address, m_server_port) !=
         sf::Socket::Status::Done)
-      ERROR_LOG(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
+    {
+      ERROR_LOG_FMT(SERIALINTERFACE, "DualShockUDPClient UpdateInput send failed");
+    }
   }
 
   // Receive and handle controller data
