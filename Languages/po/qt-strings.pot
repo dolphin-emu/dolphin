@@ -1,6 +1,14 @@
 # This file contains strings which are defined in Qt's source code
-# and may be shown in applications which use Qt. Extracted from Qt 5.15.1.
+# and may be accessed in applications which use Qt. Extracted from Qt 5.15.1.
 msgid ""
+msgstr ""
+
+#: qtbase/src/gui/kernel/qguiapplication.cpp:234
+msgctxt ""
+"Translate this string to the string 'LTR' in left-to-right languages or to "
+"'RTL' in right-to-left languages (such as Hebrew and Arabic) to get proper "
+"widget layout."
+msgid "QT_LAYOUT_DIRECTION"
 msgstr ""
 
 #: qtbase/src/gui/kernel/qplatformtheme.cpp:708
