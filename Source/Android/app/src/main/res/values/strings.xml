@@ -380,12 +380,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_savestate">Save State</string>
     <string name="emulation_loadstate">Load State</string>
     <string name="emulation_exit">Exit Emulation</string>
-    <string name="emulation_slot1">Slot 1</string>
-    <string name="emulation_slot2">Slot 2</string>
-    <string name="emulation_slot3">Slot 3</string>
-    <string name="emulation_slot4">Slot 4</string>
-    <string name="emulation_slot5">Slot 5</string>
-    <string name="emulation_slot6">Slot 6</string>
+    <string name="emulation_state_slot">Slot %1$d\n\n%2$s</string>
+    <string name="emulation_state_slot_empty">Slot %1$d\n\nEmpty</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wii Remotes</string>

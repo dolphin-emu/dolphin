@@ -333,6 +333,12 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadStateAs(
   State::LoadAs(GetJString(env, path));
 }
 
+JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetUnixTimeOfStateSlot(
+    JNIEnv* env, jobject obj, jint slot)
+{
+  return static_cast<jlong>(State::GetUnixTimeOfSlot(slot));
+}
+
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_utils_DirectoryInitialization_SetSysDirectory(
     JNIEnv* env, jobject obj, jstring jPath)
 {

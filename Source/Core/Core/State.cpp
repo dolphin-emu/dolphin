@@ -478,6 +478,17 @@ std::string GetInfoStringOfSlot(int slot, bool translate)
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
 
+u64 GetUnixTimeOfSlot(int slot)
+{
+  State::StateHeader header;
+  if (!ReadHeader(MakeStateFilename(slot), header))
+    return 0;
+
+  constexpr u64 MS_PER_SEC = 1000;
+  return static_cast<u64>(header.time * MS_PER_SEC) +
+         (Common::Timer::DOUBLE_TIME_OFFSET * MS_PER_SEC);
+}
+
 static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_data)
 {
   Flush();

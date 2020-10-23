@@ -327,6 +327,11 @@ public final class NativeLibrary
   public static native void LoadStateAs(String path);
 
   /**
+   * Returns when the savestate in the given slot was created, or 0 if the slot is empty.
+   */
+  public static native long GetUnixTimeOfStateSlot(int slot);
+
+  /**
    * Sets the current working user directory
    * If not set, it auto-detects a location
    */
