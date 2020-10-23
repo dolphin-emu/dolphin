@@ -97,7 +97,6 @@ void Init()
   SConfig::Init();
   Discord::Init();
   Common::Log::LogManager::Init();
-  VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
   VideoBackendBase::ActivateBackend(Config::Get(Config::MAIN_GFX_BACKEND));
@@ -109,7 +108,6 @@ void Shutdown()
 {
   GCAdapter::Shutdown();
   WiimoteReal::Shutdown();
-  VideoBackendBase::ClearList();
   Common::Log::LogManager::Shutdown();
   Discord::Shutdown();
   SConfig::Shutdown();

@@ -51,7 +51,7 @@ void SoftwareRendererWidget::CreateWidgets()
   rendering_layout->addWidget(new QLabel(tr("Backend:")), 1, 1);
   rendering_layout->addWidget(m_backend_combo, 1, 2);
 
-  for (const auto& backend : g_available_video_backends)
+  for (const auto& backend : VideoBackendBase::GetAvailableBackends())
     m_backend_combo->addItem(tr(backend->GetDisplayName().c_str()));
 
   auto* overlay_box = new QGroupBox(tr("Overlay Information"));
@@ -122,7 +122,7 @@ void SoftwareRendererWidget::ConnectWidgets()
 
 void SoftwareRendererWidget::LoadSettings()
 {
-  for (const auto& backend : g_available_video_backends)
+  for (const auto& backend : VideoBackendBase::GetAvailableBackends())
   {
     if (backend->GetName() == Config::Get(Config::MAIN_GFX_BACKEND))
     {
@@ -137,7 +137,7 @@ void SoftwareRendererWidget::LoadSettings()
 
 void SoftwareRendererWidget::SaveSettings()
 {
-  for (const auto& backend : g_available_video_backends)
+  for (const auto& backend : VideoBackendBase::GetAvailableBackends())
   {
     if (tr(backend->GetDisplayName().c_str()) == m_backend_combo->currentText())
     {

@@ -60,8 +60,7 @@ public:
   u16 Video_GetBoundingBox(int index);
 
   static std::string GetDefaultBackendName();
-  static void PopulateList();
-  static void ClearList();
+  static const std::vector<std::unique_ptr<VideoBackendBase>>& GetAvailableBackends();
   static void ActivateBackend(const std::string& name);
 
   // Fills the backend_info fields with the capabilities of the selected backend/device.
@@ -79,5 +78,4 @@ protected:
   bool m_initialized = false;
 };
 
-extern std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;
 extern VideoBackendBase* g_video_backend;

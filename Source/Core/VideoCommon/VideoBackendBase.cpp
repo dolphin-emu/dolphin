@@ -58,9 +58,7 @@
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VideoState.h"
 
-std::vector<std::unique_ptr<VideoBackendBase>> g_available_video_backends;
 VideoBackendBase* g_video_backend = nullptr;
-static VideoBackendBase* s_default_backend = nullptr;
 
 #ifdef _WIN32
 #include <windows.h>
@@ -200,61 +198,59 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
   return result;
 }
 
-// This function is called at static initialization, so we can't rely on s_default_backend being set
+static VideoBackendBase* GetDefaultVideoBackend()
+{
+  const auto& backends = VideoBackendBase::GetAvailableBackends();
+  if (backends.empty())
+    return nullptr;
+  return backends.front().get();
+}
+
 std::string VideoBackendBase::GetDefaultBackendName()
 {
-#ifdef HAS_OPENGL
-  return OGL::VideoBackend::NAME;
-#elif defined(_WIN32)
-  return DX11::VideoBackend::NAME;
-#else
-  return Vulkan::VideoBackend::NAME;
-#endif
+  auto* default_backend = GetDefaultVideoBackend();
+  return default_backend ? default_backend->GetName() : "";
 }
 
-void VideoBackendBase::PopulateList()
+const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvailableBackends()
 {
-  // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+  static auto s_available_backends = [] {
+    std::vector<std::unique_ptr<VideoBackendBase>> backends;
+
+    // OGL > D3D11 > D3D12 > Vulkan > SW > Null
 #ifdef HAS_OPENGL
-  g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
+    backends.push_back(std::make_unique<OGL::VideoBackend>());
 #endif
 #ifdef _WIN32
-  g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
-  g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
+    backends.push_back(std::make_unique<DX11::VideoBackend>());
+    backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
-  g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
+    backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #ifdef HAS_OPENGL
-  g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
+    backends.push_back(std::make_unique<SW::VideoSoftware>());
 #endif
-  g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
+    backends.push_back(std::make_unique<Null::VideoBackend>());
 
-  const auto iter =
-      std::find_if(g_available_video_backends.begin(), g_available_video_backends.end(),
-                   [](const auto& backend) { return backend != nullptr; });
+    if (!backends.empty())
+      g_video_backend = backends.front().get();
 
-  if (iter == g_available_video_backends.end())
-    return;
-
-  s_default_backend = iter->get();
-  g_video_backend = iter->get();
-}
-
-void VideoBackendBase::ClearList()
-{
-  g_available_video_backends.clear();
+    return backends;
+  }();
+  return s_available_backends;
 }
 
 void VideoBackendBase::ActivateBackend(const std::string& name)
 {
   // If empty, set it to the default backend (expected behavior)
   if (name.empty())
-    g_video_backend = s_default_backend;
+    g_video_backend = GetDefaultVideoBackend();
 
-  const auto iter =
-      std::find_if(g_available_video_backends.begin(), g_available_video_backends.end(),
-                   [&name](const auto& backend) { return name == backend->GetName(); });
+  const auto& backends = GetAvailableBackends();
+  const auto iter = std::find_if(backends.begin(), backends.end(), [&name](const auto& backend) {
+    return name == backend->GetName();
+  });
 
-  if (iter == g_available_video_backends.end())
+  if (iter == backends.end())
     return;
 
   g_video_backend = iter->get();
