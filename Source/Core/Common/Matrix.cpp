@@ -269,6 +269,11 @@ Matrix44 Matrix44::FromMatrix33(const Matrix33& m33)
   return mtx;
 }
 
+Matrix44 Matrix44::FromQuaternion(const Quaternion& q)
+{
+  return FromMatrix33(Matrix33::FromQuaternion(q));
+}
+
 Matrix44 Matrix44::FromArray(const std::array<float, 16>& arr)
 {
   Matrix44 mtx;
