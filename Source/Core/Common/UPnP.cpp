@@ -52,7 +52,7 @@ static bool InitUPnP()
 #endif
   if (!devlist)
   {
-    WARN_LOG(NETPLAY, "An error occurred trying to discover UPnP devices.");
+    WARN_LOG_FMT(NETPLAY, "An error occurred trying to discover UPnP devices.");
 
     s_error = true;
 
@@ -81,12 +81,12 @@ static bool InitUPnP()
       parserootdesc(desc_xml.get(), desc_xml_size, &s_data);
       GetUPNPUrls(&s_urls, &s_data, dev->descURL, 0);
 
-      NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
+      NOTICE_LOG_FMT(NETPLAY, "Got info from IGD at {}.", dev->descURL);
       break;
     }
     else
     {
-      WARN_LOG(NETPLAY, "Error getting info from IGD at %s.", dev->descURL);
+      WARN_LOG_FMT(NETPLAY, "Error getting info from IGD at {}.", dev->descURL);
     }
   }
 
@@ -137,11 +137,11 @@ static void MapPortThread(const u16 port)
 {
   if (InitUPnP() && MapPort(s_our_ip.data(), port))
   {
-    NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, s_our_ip.data());
+    NOTICE_LOG_FMT(NETPLAY, "Successfully mapped port {} to {}.", port, s_our_ip.data());
     return;
   }
 
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, s_our_ip.data());
+  WARN_LOG_FMT(NETPLAY, "Failed to map port {} to {}.", port, s_our_ip.data());
 }
 
 // UPnP thread: try to unmap a port

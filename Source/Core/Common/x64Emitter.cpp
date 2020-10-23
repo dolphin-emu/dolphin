@@ -1647,7 +1647,7 @@ void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
     return;
   }
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
-    ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
+    ERROR_LOG_FMT(DYNA_REC, "Redundant MOV @ {} - bug in JIT?", fmt::ptr(code));
   WriteNormalOp(bits, NormalOp::MOV, a1, a2);
 }
 void XEmitter::TEST(int bits, const OpArg& a1, const OpArg& a2)

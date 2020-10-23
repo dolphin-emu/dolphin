@@ -112,7 +112,7 @@ bool MsgAlert(bool yes_no, MsgType style, const char* format, ...)
   CharArrayFromFormatV(buffer, sizeof(buffer) - 1, s_str_translator(format).c_str(), args);
   va_end(args);
 
-  ERROR_LOG(MASTER_LOG, "%s: %s", caption, buffer);
+  ERROR_LOG_FMT(MASTER_LOG, "{}: {}", caption, buffer);
 
   // Don't ignore questions, especially AskYesNo, PanicYesNo could be ignored
   if (s_msg_handler != nullptr &&
