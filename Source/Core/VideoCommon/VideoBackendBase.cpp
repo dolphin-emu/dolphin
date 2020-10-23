@@ -26,6 +26,9 @@
 #if !defined(_WIN32) || !defined(_M_ARM64)
 #define HAS_OPENGL 1
 #endif
+#ifdef _WIN32
+#define HAS_VULKAN 1
+#endif
 
 // TODO: ugly
 #ifdef _WIN32
@@ -37,7 +40,9 @@
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
 #endif
+#ifdef HAS_VULKAN
 #include "VideoBackends/Vulkan/VideoBackend.h"
+#endif
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
