@@ -51,7 +51,7 @@ void ciface::Win32::Init(void* hwnd)
 
     if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED)))
     {
-      ERROR_LOG(SERIALINTERFACE, "CoInitializeEx failed: %i", GetLastError());
+      ERROR_LOG_FMT(SERIALINTERFACE, "CoInitializeEx failed: {}", GetLastError());
       return;
     }
     Common::ScopeGuard uninit([] { CoUninitialize(); });
@@ -65,12 +65,12 @@ void ciface::Win32::Init(void* hwnd)
     ATOM window_class = RegisterClassEx(&window_class_info);
     if (!window_class)
     {
-      NOTICE_LOG(SERIALINTERFACE, "RegisterClassEx failed: %i", GetLastError());
+      NOTICE_LOG_FMT(SERIALINTERFACE, "RegisterClassEx failed: {}", GetLastError());
       return;
     }
     Common::ScopeGuard unregister([&window_class] {
       if (!UnregisterClass(MAKEINTATOM(window_class), GetModuleHandle(nullptr)))
-        ERROR_LOG(SERIALINTERFACE, "UnregisterClass failed: %i", GetLastError());
+        ERROR_LOG_FMT(SERIALINTERFACE, "UnregisterClass failed: {}", GetLastError());
     });
 
     message_window = CreateWindowEx(0, L"Message", nullptr, 0, 0, 0, 0, 0, HWND_MESSAGE, nullptr,
@@ -78,12 +78,12 @@ void ciface::Win32::Init(void* hwnd)
     promise_guard.Exit();
     if (!message_window)
     {
-      ERROR_LOG(SERIALINTERFACE, "CreateWindowEx failed: %i", GetLastError());
+      ERROR_LOG_FMT(SERIALINTERFACE, "CreateWindowEx failed: {}", GetLastError());
       return;
     }
     Common::ScopeGuard destroy([&] {
       if (!DestroyWindow(message_window))
-        ERROR_LOG(SERIALINTERFACE, "DestroyWindow failed: %i", GetLastError());
+        ERROR_LOG_FMT(SERIALINTERFACE, "DestroyWindow failed: {}", GetLastError());
     });
 
     std::array<RAWINPUTDEVICE, 2> devices;
@@ -101,7 +101,7 @@ void ciface::Win32::Init(void* hwnd)
     if (!RegisterRawInputDevices(devices.data(), static_cast<UINT>(devices.size()),
                                  static_cast<UINT>(sizeof(decltype(devices)::value_type))))
     {
-      ERROR_LOG(SERIALINTERFACE, "RegisterRawInputDevices failed: %i", GetLastError());
+      ERROR_LOG_FMT(SERIALINTERFACE, "RegisterRawInputDevices failed: {}", GetLastError());
       return;
     }
 
@@ -126,17 +126,18 @@ void ciface::Win32::PopulateDevices(void* hwnd)
     s_done_populating.Reset();
     PostMessage(s_message_window, WM_INPUT_DEVICE_CHANGE, 0, 0);
     if (!s_done_populating.WaitFor(std::chrono::seconds(10)))
-      ERROR_LOG(SERIALINTERFACE, "win32 timed out when trying to populate devices");
+      ERROR_LOG_FMT(SERIALINTERFACE, "win32 timed out when trying to populate devices");
   }
   else
   {
-    ERROR_LOG(SERIALINTERFACE, "win32 asked to populate devices, but device thread isn't running");
+    ERROR_LOG_FMT(SERIALINTERFACE,
+                  "win32 asked to populate devices, but device thread isn't running");
   }
 }
 
 void ciface::Win32::DeInit()
 {
-  NOTICE_LOG(SERIALINTERFACE, "win32 DeInit");
+  NOTICE_LOG_FMT(SERIALINTERFACE, "win32 DeInit");
   if (s_thread.joinable())
   {
     PostMessage(s_message_window, WM_DOLPHIN_STOP, 0, 0);
