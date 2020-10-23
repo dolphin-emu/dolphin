@@ -22,11 +22,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
-// OpenGL is not available on Windows-on-ARM64
-#if !defined(_WIN32) || !defined(_M_ARM64)
-#define HAS_OPENGL 1
-#endif
-
 // TODO: ugly
 #ifdef _WIN32
 #include "VideoBackends/D3D/VideoBackend.h"
