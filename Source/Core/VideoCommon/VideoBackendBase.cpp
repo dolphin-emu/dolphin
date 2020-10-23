@@ -37,7 +37,9 @@
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
 #endif
+#ifdef HAS_VULKAN
 #include "VideoBackends/Vulkan/VideoBackend.h"
+#endif
 
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -225,7 +227,7 @@ const std::vector<std::unique_ptr<VideoBackendBase>>& VideoBackendBase::GetAvail
     backends.push_back(std::make_unique<DX11::VideoBackend>());
     backends.push_back(std::make_unique<DX12::VideoBackend>());
 #endif
-#ifdef USE_VULKAN
+#ifdef HAS_VULKAN
     backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
 #ifdef HAS_OPENGL
