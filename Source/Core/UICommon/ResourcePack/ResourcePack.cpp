@@ -226,7 +226,8 @@ bool ResourcePack::Install(const std::string& path)
       return false;
     }
 
-    std::ofstream out(output_path, std::ios::trunc | std::ios::binary);
+    std::ofstream out;
+    File::OpenFStream(out, output_path, std::ios::trunc | std::ios::binary);
 
     if (!out.good())
     {
