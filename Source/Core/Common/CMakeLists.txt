@@ -230,7 +230,7 @@ if(ENABLE_EGL AND EGL_FOUND)
     GL/GLInterface/EGL.cpp
     GL/GLInterface/EGL.h
   )
-  if(ANDROID)
+  if(ANDROID AND NOT LIBRETRO)
     target_sources(common PRIVATE
       GL/GLInterface/EGLAndroid.cpp
       GL/GLInterface/EGLAndroid.h

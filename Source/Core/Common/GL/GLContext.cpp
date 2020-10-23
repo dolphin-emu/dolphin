@@ -20,7 +20,7 @@
 #if HAVE_X11
 #include "Common/GL/GLInterface/EGLX11.h"
 #endif
-#if defined(ANDROID)
+#if defined(ANDROID) && !defined(__LIBRETRO__)
 #include "Common/GL/GLInterface/EGLAndroid.h"
 #endif
 #endif
@@ -88,7 +88,7 @@ std::unique_ptr<GLContext> GLContext::Create(const WindowSystemInfo& wsi, bool s
   if (wsi.type == WindowSystemType::Windows)
     context = std::make_unique<GLContextWGL>();
 #endif
-#if defined(ANDROID)
+#if defined(ANDROID) && !defined(__LIBRETRO__)
   if (wsi.type == WindowSystemType::Android)
     context = std::make_unique<GLContextEGLAndroid>();
 #endif
