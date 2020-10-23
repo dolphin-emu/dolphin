@@ -563,7 +563,6 @@ PUBLIC
   videonull
   videoogl
   videosoftware
-  videovulkan
 
 PRIVATE
   fmt::fmt
@@ -599,6 +598,10 @@ if(LIBUSB_FOUND)
     IOS/USB/Bluetooth/BTReal.cpp
     IOS/USB/Bluetooth/BTReal.h
   )
+endif()
+
+if(ENABLE_VULKAN)
+  target_link_libraries(core PUBLIC videovulkan)
 endif()
 
 if(WIN32)
