@@ -193,6 +193,15 @@ public final class EmulationActivity extends AppCompatActivity
     SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
     editor.remove("wiiController");
     editor.apply();
+
+    try (Settings settings = new Settings())
+    {
+      settings.loadSettings(null);
+      IntSetting.MAIN_MOTION_CONTROLS.delete(settings);
+
+      // Context is set to null to avoid toasts
+      settings.saveSettings(null, null);
+    }
   }
 
   @Override
