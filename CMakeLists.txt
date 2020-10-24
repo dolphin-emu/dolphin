@@ -115,8 +115,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
 if (WIN32)
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/Binary)
 
-	if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
-	  string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
+  if (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
+    string(APPEND CMAKE_RUNTIME_OUTPUT_DIRECTORY /ARM64)
   endif()
 
   set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_RUNTIME_OUTPUT_DIRECTORY})
@@ -557,7 +557,12 @@ add_subdirectory(Externals/imgui)
 add_subdirectory(Externals/glslang)
 
 if(ENABLE_VULKAN)
-  add_definitions(-DUSE_VULKAN)
+  add_definitions(-DHAS_VULKAN)
+endif()
+
+if(NOT WIN32 OR (NOT (CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")))
+  # OpenGL is available on all platforms except windows-arm64
+  add_definitions(-DHAS_OPENGL)
 endif()
 
 find_package(pugixml)
