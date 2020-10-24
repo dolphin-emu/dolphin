@@ -78,7 +78,7 @@ public final class DirectoryInitialization
           {
             // This has to be done after calling NativeLibrary.Initialize(),
             // as it relies on the config system
-            EmulationActivity.clearWiimoteNewIniLinkedPreferences(context);
+            EmulationActivity.updateWiimoteNewIniPreferences(context);
           }
 
           directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;

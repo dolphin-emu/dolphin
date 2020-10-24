@@ -188,20 +188,30 @@ public final class EmulationActivity extends AppCompatActivity
     sIgnoreLaunchRequests = false;
   }
 
-  public static void clearWiimoteNewIniLinkedPreferences(Context context)
+  public static void updateWiimoteNewIniPreferences(Context context)
   {
-    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-    editor.remove("wiiController");
-    editor.apply();
+    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+    updateWiimoteNewController(preferences.getInt("wiiController", 3), context);
 
-    try (Settings settings = new Settings())
-    {
-      settings.loadSettings(null);
-      IntSetting.MAIN_MOTION_CONTROLS.delete(settings);
+    updateWiimoteNewImuIr(IntSetting.MAIN_MOTION_CONTROLS.getIntGlobal());
+  }
 
-      // Context is set to null to avoid toasts
-      settings.saveSettings(null, null);
-    }
+  private static void updateWiimoteNewController(int value, Context context)
+  {
+    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
+    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+    wiimoteNewIni.setString("Wiimote1", "Extension",
+            context.getResources().getStringArray(R.array.controllersValues)[value]);
+    wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", value == 2);
+    wiimoteNewIni.save(wiimoteNewFile);
+  }
+
+  private static void updateWiimoteNewImuIr(int value)
+  {
+    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
+    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+    wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", value != 1);
+    wiimoteNewIni.save(wiimoteNewFile);
   }
 
   @Override
@@ -852,13 +862,7 @@ public final class EmulationActivity extends AppCompatActivity
             {
               editor.putInt("wiiController", indexSelected);
 
-              File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
-              IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
-              wiimoteNewIni.setString("Wiimote1", "Extension",
-                      getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-              wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", indexSelected == 2);
-              wiimoteNewIni.save(wiimoteNewFile);
-
+              updateWiimoteNewController(indexSelected, this);
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
@@ -885,11 +889,7 @@ public final class EmulationActivity extends AppCompatActivity
               else
                 mMotionListener.disable();
 
-              File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
-              IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
-              wiimoteNewIni.setBoolean("Wiimote1", "IMUIR/Enabled", indexSelected != 1);
-              wiimoteNewIni.save(wiimoteNewFile);
-
+              updateWiimoteNewImuIr(indexSelected);
               NativeLibrary.ReloadWiimoteConfig();
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) -> dialogInterface.dismiss());
