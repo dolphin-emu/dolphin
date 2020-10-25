@@ -29,6 +29,8 @@
 #include <QToolTip>
 #endif
 
+#include "Core/Config/MainSettings.h"
+
 namespace
 {
 std::unique_ptr<BalloonTip> s_the_balloon_tip = nullptr;
@@ -81,21 +83,42 @@ BalloonTip::BalloonTip(PrivateTag, const QIcon& icon, QString title, QString mes
   QColor window_color;
   QColor text_color;
   QColor dolphin_emphasis;
+  const bool use_high_contrast = Config::Get(Config::MAIN_USE_HIGH_CONTRAST_TOOLTIPS);
   if (brightness > 128)
   {
-    // Our theme color is light, so make it darker
-    window_color = QColor(72, 72, 72);
-    text_color = Qt::white;
-    dolphin_emphasis = Qt::yellow;
-    m_border_color = palette().color(QPalette::Window).darker(160);
+    if (use_high_contrast)
+    {
+      // Our theme color is light, so make it darker
+      window_color = QColor(72, 72, 72);
+      text_color = Qt::white;
+      dolphin_emphasis = Qt::yellow;
+      m_border_color = palette().color(QPalette::Window).darker(160);
+    }
+    else
+    {
+      window_color = pal.color(QPalette::Window);
+      text_color = pal.color(QPalette::Text);
+      dolphin_emphasis = QColor(QStringLiteral("#0090ff"));
+      m_border_color = pal.color(QPalette::Text);
+    }
   }
   else
   {
-    // Our theme color is dark, so make it lighter
-    window_color = Qt::white;
-    text_color = Qt::black;
-    dolphin_emphasis = QColor(QStringLiteral("#0090ff"));
-    m_border_color = palette().color(QPalette::Window).darker(160);
+    if (use_high_contrast)
+    {
+      // Our theme color is dark, so make it lighter
+      window_color = Qt::white;
+      text_color = Qt::black;
+      dolphin_emphasis = QColor(QStringLiteral("#0090ff"));
+      m_border_color = palette().color(QPalette::Window).darker(160);
+    }
+    else
+    {
+      window_color = pal.color(QPalette::Window);
+      text_color = pal.color(QPalette::Text);
+      dolphin_emphasis = Qt::yellow;
+      m_border_color = pal.color(QPalette::Text);
+    }
   }
 
   const auto style_sheet = QStringLiteral("background-color: #%1; color: #%2;")
