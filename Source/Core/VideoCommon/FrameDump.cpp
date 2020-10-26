@@ -33,12 +33,6 @@ extern "C" {
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
-#define AV_CODEC_FLAG_GLOBAL_HEADER CODEC_FLAG_GLOBAL_HEADER
-#define av_frame_alloc avcodec_alloc_frame
-#define av_frame_free avcodec_free_frame
-#endif
-
 struct FrameDumpContext
 {
   AVFormatContext* format = nullptr;
@@ -75,25 +69,10 @@ void InitAVCodec()
   static bool first_run = true;
   if (first_run)
   {
-#if LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT < AV_VERSION_INT(58, 9, 100)
-    av_register_all();
-#endif
     // TODO: We never call avformat_network_deinit.
     avformat_network_init();
     first_run = false;
   }
-}
-
-bool AVStreamCopyContext(AVStream* stream, AVCodecContext* codec_context)
-{
-#if (LIBAVCODEC_VERSION_MICRO >= 100 && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 33, 100)) ||  \
-    (LIBAVCODEC_VERSION_MICRO < 100 && LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 5, 0))
-
-  stream->time_base = codec_context->time_base;
-  return avcodec_parameters_from_context(stream->codecpar, codec_context) >= 0;
-#else
-  return avcodec_copy_context(stream->codec, codec_context) >= 0;
-#endif
 }
 
 std::string GetDumpPath(const std::string& extension, std::time_t time, u32 index)
@@ -125,52 +104,6 @@ std::string GetDumpPath(const std::string& extension, std::time_t time, u32 inde
   }
 
   return path;
-}
-
-int ReceivePacket(AVCodecContext* avctx, AVPacket* pkt, int* got_packet)
-{
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 37, 100)
-  return avcodec_encode_video2(avctx, pkt, nullptr, got_packet);
-#else
-  *got_packet = 0;
-
-  const int error = avcodec_receive_packet(avctx, pkt);
-  if (!error)
-    *got_packet = 1;
-
-  if (error == AVERROR(EAGAIN) || error == AVERROR_EOF)
-    return 0;
-
-  return error;
-#endif
-}
-
-int SendFrameAndReceivePacket(AVCodecContext* avctx, AVPacket* pkt, AVFrame* frame, int* got_packet)
-{
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 37, 100)
-  return avcodec_encode_video2(avctx, pkt, frame, got_packet);
-#else
-  *got_packet = 0;
-
-  const int error = avcodec_send_frame(avctx, frame);
-  if (error)
-    return error;
-
-  return ReceivePacket(avctx, pkt, got_packet);
-#endif
-}
-
-void WritePacket(AVPacket& pkt, const FrameDumpContext& context)
-{
-  av_packet_rescale_ts(&pkt, context.codec->time_base, context.stream->time_base);
-
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
-  if (context.codec->coded_frame->key_frame)
-    pkt.flags |= AV_PKT_FLAG_KEY;
-#endif
-
-  pkt.stream_index = context.stream->index;
-  av_interleaved_write_frame(context.format, &pkt);
 }
 
 }  // namespace
@@ -294,20 +227,18 @@ bool FrameDump::CreateVideoFile()
   m_context->scaled_frame->width = m_context->width;
   m_context->scaled_frame->height = m_context->height;
 
-#if LIBAVCODEC_VERSION_MAJOR >= 55
   if (av_frame_get_buffer(m_context->scaled_frame, 1))
     return false;
-#else
-  if (avcodec_default_get_buffer(m_context->codec, m_context->scaled_frame))
-    return false;
-#endif
 
   m_context->stream = avformat_new_stream(m_context->format, codec);
-  if (!m_context->stream || !AVStreamCopyContext(m_context->stream, m_context->codec))
+  if (!m_context->stream ||
+      avcodec_parameters_from_context(m_context->stream->codecpar, m_context->codec) < 0)
   {
     ERROR_LOG(VIDEO, "Could not create stream");
     return false;
   }
+
+  m_context->stream->time_base = m_context->codec->time_base;
 
   NOTICE_LOG(VIDEO, "Opening file %s for dumping", dump_path.c_str());
   if (avio_open(&m_context->format->pb, dump_path.c_str(), AVIO_FLAG_WRITE) < 0 ||
@@ -392,45 +323,44 @@ void FrameDump::AddFrame(const FrameData& frame)
   m_context->last_pts = pts;
   m_context->scaled_frame->pts = pts;
 
-  // Encode and write the image.
-  AVPacket pkt;
-  av_init_packet(&pkt);
-
-  int got_packet = 0;
-  const int error =
-      SendFrameAndReceivePacket(m_context->codec, &pkt, m_context->scaled_frame, &got_packet);
-
-  if (error)
+  if (const int error = avcodec_send_frame(m_context->codec, m_context->scaled_frame))
   {
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
     return;
   }
 
-  if (got_packet)
-    WritePacket(pkt, *m_context);
-
-  HandleDelayedPackets();
+  ProcessPackets();
 }
 
-void FrameDump::HandleDelayedPackets()
+void FrameDump::ProcessPackets()
 {
   while (true)
   {
     AVPacket pkt;
     av_init_packet(&pkt);
 
-    int got_packet = 0;
-    const int error = ReceivePacket(m_context->codec, &pkt, &got_packet);
-    if (error)
+    const int receive_error = avcodec_receive_packet(m_context->codec, &pkt);
+
+    if (receive_error == AVERROR(EAGAIN) || receive_error == AVERROR_EOF)
     {
-      ERROR_LOG(VIDEO, "Error while encoding delayed frames: %d", error);
+      // We have processed all available packets.
       break;
     }
 
-    if (!got_packet)
+    if (receive_error)
+    {
+      ERROR_LOG_FMT(VIDEO, "Error receiving packet: {}", receive_error);
       break;
+    }
 
-    WritePacket(pkt, *m_context);
+    av_packet_rescale_ts(&pkt, m_context->codec->time_base, m_context->stream->time_base);
+    pkt.stream_index = m_context->stream->index;
+
+    if (const int write_error = av_interleaved_write_frame(m_context->format, &pkt))
+    {
+      ERROR_LOG_FMT(VIDEO, "Error writing packet: {}", write_error);
+      break;
+    }
   }
 }
 
@@ -439,15 +369,14 @@ void FrameDump::Stop()
   if (!IsStarted())
     return;
 
-#if LIBAVCODEC_VERSION_INT >= AV_VERSION_INT(57, 37, 100)
   // Signal end of stream to encoder.
   if (const int flush_error = avcodec_send_frame(m_context->codec, nullptr))
     WARN_LOG_FMT(VIDEO, "Error sending flush packet: {}", flush_error);
-#endif
 
-  HandleDelayedPackets();
+  ProcessPackets();
   av_write_trailer(m_context->format);
   CloseVideoFile();
+
   NOTICE_LOG(VIDEO, "Stopping frame dump");
   OSD::AddMessage("Stopped dumping frames");
 }

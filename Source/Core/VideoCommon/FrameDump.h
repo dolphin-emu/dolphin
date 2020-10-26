@@ -50,7 +50,7 @@ private:
   bool CreateVideoFile();
   void CloseVideoFile();
   void CheckForConfigChange(const FrameData&);
-  void HandleDelayedPackets();
+  void ProcessPackets();
 
 #if defined(HAVE_FFMPEG)
   std::unique_ptr<FrameDumpContext> m_context;
