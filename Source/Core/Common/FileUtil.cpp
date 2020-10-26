@@ -135,14 +135,14 @@ bool IsFile(const std::string& path)
 // Doesn't supports deleting a directory
 bool Delete(const std::string& filename)
 {
-  INFO_LOG(COMMON, "Delete: file %s", filename.c_str());
+  INFO_LOG_FMT(COMMON, "Delete: file {}", filename);
 
 #ifdef ANDROID
   if (StringBeginsWith(filename, "content://"))
   {
     const bool success = DeleteAndroidContent(filename);
     if (!success)
-      WARN_LOG(COMMON, "Delete failed on %s", filename.c_str());
+      WARN_LOG_FMT(COMMON, "Delete failed on {}", filename);
     return success;
   }
 #endif
@@ -152,29 +152,27 @@ bool Delete(const std::string& filename)
   // Return true because we care about the file not being there, not the actual delete.
   if (!file_info.Exists())
   {
-    WARN_LOG(COMMON, "Delete: %s does not exist", filename.c_str());
+    WARN_LOG_FMT(COMMON, "Delete: {} does not exist", filename);
     return true;
   }
 
   // We can't delete a directory
   if (file_info.IsDirectory())
   {
-    WARN_LOG(COMMON, "Delete failed: %s is a directory", filename.c_str());
+    WARN_LOG_FMT(COMMON, "Delete failed: {} is a directory", filename);
     return false;
   }
 
 #ifdef _WIN32
   if (!DeleteFile(UTF8ToTStr(filename).c_str()))
   {
-    WARN_LOG(COMMON, "Delete: DeleteFile failed on %s: %s", filename.c_str(),
-             GetLastErrorString().c_str());
+    WARN_LOG_FMT(COMMON, "Delete: DeleteFile failed on {}: {}", filename, GetLastErrorString());
     return false;
   }
 #else
   if (unlink(filename.c_str()) == -1)
   {
-    WARN_LOG(COMMON, "Delete: unlink failed on %s: %s", filename.c_str(),
-             LastStrerrorString().c_str());
+    WARN_LOG_FMT(COMMON, "Delete: unlink failed on {}: {}", filename, LastStrerrorString());
     return false;
   }
 #endif
@@ -185,31 +183,31 @@ bool Delete(const std::string& filename)
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& path)
 {
-  INFO_LOG(COMMON, "CreateDir: directory %s", path.c_str());
+  INFO_LOG_FMT(COMMON, "CreateDir: directory {}", path);
 #ifdef _WIN32
   if (::CreateDirectory(UTF8ToTStr(path).c_str(), nullptr))
     return true;
-  DWORD error = GetLastError();
+  const DWORD error = GetLastError();
   if (error == ERROR_ALREADY_EXISTS)
   {
-    WARN_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: already exists", path.c_str());
+    WARN_LOG_FMT(COMMON, "CreateDir: CreateDirectory failed on {}: already exists", path);
     return true;
   }
-  ERROR_LOG(COMMON, "CreateDir: CreateDirectory failed on %s: %i", path.c_str(), error);
+  ERROR_LOG_FMT(COMMON, "CreateDir: CreateDirectory failed on {}: {}", path, error);
   return false;
 #else
   if (mkdir(path.c_str(), 0755) == 0)
     return true;
 
-  int err = errno;
+  const int err = errno;
 
   if (err == EEXIST)
   {
-    WARN_LOG(COMMON, "CreateDir: mkdir failed on %s: already exists", path.c_str());
+    WARN_LOG_FMT(COMMON, "CreateDir: mkdir failed on {}: already exists", path);
     return true;
   }
 
-  ERROR_LOG(COMMON, "CreateDir: mkdir failed on %s: %s", path.c_str(), strerror(err));
+  ERROR_LOG_FMT(COMMON, "CreateDir: mkdir failed on {}: {}", path, strerror(err));
   return false;
 #endif
 }
@@ -218,11 +216,11 @@ bool CreateDir(const std::string& path)
 bool CreateFullPath(const std::string& fullPath)
 {
   int panicCounter = 100;
-  INFO_LOG(COMMON, "CreateFullPath: path %s", fullPath.c_str());
+  INFO_LOG_FMT(COMMON, "CreateFullPath: path {}", fullPath);
 
   if (Exists(fullPath))
   {
-    INFO_LOG(COMMON, "CreateFullPath: path exists %s", fullPath.c_str());
+    INFO_LOG_FMT(COMMON, "CreateFullPath: path exists {}", fullPath);
     return true;
   }
 
@@ -245,7 +243,7 @@ bool CreateFullPath(const std::string& fullPath)
     panicCounter--;
     if (panicCounter <= 0)
     {
-      ERROR_LOG(COMMON, "CreateFullPath: directory structure is too deep");
+      ERROR_LOG_FMT(COMMON, "CreateFullPath: directory structure is too deep");
       return false;
     }
     position++;
@@ -255,25 +253,24 @@ bool CreateFullPath(const std::string& fullPath)
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string& filename)
 {
-  INFO_LOG(COMMON, "DeleteDir: directory %s", filename.c_str());
+  INFO_LOG_FMT(COMMON, "DeleteDir: directory {}", filename);
 
   // check if a directory
   if (!IsDirectory(filename))
   {
-    ERROR_LOG(COMMON, "DeleteDir: Not a directory %s", filename.c_str());
+    ERROR_LOG_FMT(COMMON, "DeleteDir: Not a directory {}", filename);
     return false;
   }
 
 #ifdef _WIN32
   if (::RemoveDirectory(UTF8ToTStr(filename).c_str()))
     return true;
-  ERROR_LOG(COMMON, "DeleteDir: RemoveDirectory failed on %s: %s", filename.c_str(),
-            GetLastErrorString().c_str());
+  ERROR_LOG_FMT(COMMON, "DeleteDir: RemoveDirectory failed on {}: {}", filename,
+                GetLastErrorString());
 #else
   if (rmdir(filename.c_str()) == 0)
     return true;
-  ERROR_LOG(COMMON, "DeleteDir: rmdir failed on %s: %s", filename.c_str(),
-            LastStrerrorString().c_str());
+  ERROR_LOG_FMT(COMMON, "DeleteDir: rmdir failed on {}: {}", filename, LastStrerrorString());
 #endif
 
   return false;
@@ -282,7 +279,7 @@ bool DeleteDir(const std::string& filename)
 // renames file srcFilename to destFilename, returns true on success
 bool Rename(const std::string& srcFilename, const std::string& destFilename)
 {
-  INFO_LOG(COMMON, "Rename: %s --> %s", srcFilename.c_str(), destFilename.c_str());
+  INFO_LOG_FMT(COMMON, "Rename: {} --> {}", srcFilename, destFilename);
 #ifdef _WIN32
   auto sf = UTF8ToTStr(srcFilename);
   auto df = UTF8ToTStr(destFilename);
@@ -297,13 +294,13 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename)
     if (MoveFile(sf.c_str(), df.c_str()))
       return true;
   }
-  ERROR_LOG(COMMON, "Rename: MoveFile failed on %s --> %s: %s", srcFilename.c_str(),
-            destFilename.c_str(), GetLastErrorString().c_str());
+  ERROR_LOG_FMT(COMMON, "Rename: MoveFile failed on {} --> {}: {}", srcFilename, destFilename,
+                GetLastErrorString());
 #else
   if (rename(srcFilename.c_str(), destFilename.c_str()) == 0)
     return true;
-  ERROR_LOG(COMMON, "Rename: rename failed on %s --> %s: %s", srcFilename.c_str(),
-            destFilename.c_str(), LastStrerrorString().c_str());
+  ERROR_LOG_FMT(COMMON, "Rename: rename failed on {} --> {}: {}", srcFilename, destFilename,
+                LastStrerrorString());
 #endif
   return false;
 }
@@ -346,13 +343,13 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
 // copies file source_path to destination_path, returns true on success
 bool Copy(const std::string& source_path, const std::string& destination_path)
 {
-  INFO_LOG(COMMON, "Copy: %s --> %s", source_path.c_str(), destination_path.c_str());
+  INFO_LOG_FMT(COMMON, "Copy: {} --> {}", source_path, destination_path);
 #ifdef _WIN32
   if (CopyFile(UTF8ToTStr(source_path).c_str(), UTF8ToTStr(destination_path).c_str(), FALSE))
     return true;
 
-  ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", source_path.c_str(), destination_path.c_str(),
-            GetLastErrorString().c_str());
+  ERROR_LOG_FMT(COMMON, "Copy: failed %s --> %s: %s", source_path, destination_path,
+                GetLastErrorString());
   return false;
 #else
   std::ifstream source{source_path, std::ios::binary};
@@ -378,17 +375,17 @@ u64 GetSize(const int fd)
 u64 GetSize(FILE* f)
 {
   // can't use off_t here because it can be 32-bit
-  u64 pos = ftello(f);
+  const u64 pos = ftello(f);
   if (fseeko(f, 0, SEEK_END) != 0)
   {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, LastStrerrorString().c_str());
+    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), LastStrerrorString());
     return 0;
   }
 
-  u64 size = ftello(f);
+  const u64 size = ftello(f);
   if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
   {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, LastStrerrorString().c_str());
+    ERROR_LOG_FMT(COMMON, "GetSize: seek failed {}: {}", fmt::ptr(f), LastStrerrorString());
     return 0;
   }
 
@@ -398,12 +395,11 @@ u64 GetSize(FILE* f)
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename)
 {
-  INFO_LOG(COMMON, "CreateEmptyFile: %s", filename.c_str());
+  INFO_LOG_FMT(COMMON, "CreateEmptyFile: {}", filename);
 
   if (!File::IOFile(filename, "wb"))
   {
-    ERROR_LOG(COMMON, "CreateEmptyFile: failed %s: %s", filename.c_str(),
-              LastStrerrorString().c_str());
+    ERROR_LOG_FMT(COMMON, "CreateEmptyFile: failed {}: {}", filename, LastStrerrorString());
     return false;
   }
 
@@ -413,7 +409,7 @@ bool CreateEmptyFile(const std::string& filename)
 // Recursive or non-recursive list of files and directories under directory.
 FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
-  INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
+  INFO_LOG_FMT(COMMON, "ScanDirectoryTree: directory {}", directory);
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
@@ -480,7 +476,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory)
 {
-  INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
+  INFO_LOG_FMT(COMMON, "DeleteDirRecursively: {}", directory);
   bool success = true;
 
 #ifdef _WIN32
@@ -613,7 +609,7 @@ std::string GetCurrentDir()
   char* dir = __getcwd(nullptr, 0);
   if (!dir)
   {
-    ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", LastStrerrorString().c_str());
+    ERROR_LOG_FMT(COMMON, "GetCurrentDirectory failed: {}", LastStrerrorString());
     return "";
   }
   std::string strDir = dir;
@@ -766,14 +762,14 @@ std::string GetSysDirectory()
 #endif
   sysDir += DIR_SEP;
 
-  INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
+  INFO_LOG_FMT(COMMON, "GetSysDirectory: Setting to {}:", sysDir);
   return sysDir;
 }
 
 #ifdef ANDROID
 void SetSysDirectory(const std::string& path)
 {
-  INFO_LOG(COMMON, "Setting Sys directory to %s", path.c_str());
+  INFO_LOG_FMT(COMMON, "Setting Sys directory to {}", path);
   s_android_sys_directory = path;
 }
 #endif
