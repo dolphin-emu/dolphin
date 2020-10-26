@@ -348,7 +348,7 @@ bool Copy(const std::string& source_path, const std::string& destination_path)
   if (CopyFile(UTF8ToTStr(source_path).c_str(), UTF8ToTStr(destination_path).c_str(), FALSE))
     return true;
 
-  ERROR_LOG_FMT(COMMON, "Copy: failed %s --> %s: %s", source_path, destination_path,
+  ERROR_LOG_FMT(COMMON, "Copy: failed {} --> {}: {}", source_path, destination_path,
                 GetLastErrorString());
   return false;
 #else
