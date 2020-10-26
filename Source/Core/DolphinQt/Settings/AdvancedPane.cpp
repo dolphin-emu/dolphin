@@ -129,10 +129,10 @@ void AdvancedPane::CreateLayout()
   mem2_override_slider_layout->addWidget(m_mem2_override_slider_label);
 
   auto* ram_override_description =
-      new QLabel(tr("Adjusts the emulated sizes of MEM1 and MEM2.\n\n"
-                    "Some titles may recognize the larger memory arena(s) and take "
-                    "advantage of it, though retail titles are normally optimized for "
-                    "the retail memory limitations."));
+      new QLabel(tr("Adjusts the amount of RAM in the emulated console.\n\n"
+                    "WARNING: Enabling this will completely break many games. Only a small number "
+                    "of games can benefit from this."));
+
   ram_override_description->setWordWrap(true);
   ram_override_layout->addWidget(ram_override_description);
 
