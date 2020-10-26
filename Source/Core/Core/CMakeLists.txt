@@ -646,7 +646,7 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux")
   option(ENABLE_BLUEZ "Enables bluetooth support" ON)
   if(ENABLE_BLUEZ)
     find_package(BlueZ)
-    if(BLUEZ_FOUND)
+    if(BlueZ_FOUND)
       message(STATUS "BlueZ found, enabling bluetooth support")
       target_sources(core PRIVATE
         HW/WiimoteReal/IOLinux.cpp
