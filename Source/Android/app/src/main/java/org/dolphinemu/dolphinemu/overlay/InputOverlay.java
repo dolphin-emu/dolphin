@@ -155,7 +155,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Refresh before starting the pointer
     refreshControls();
 
-    if (!NativeLibrary.IsEmulatingWii())
+    if (NativeLibrary.IsEmulatingWii())
     {
       int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
 
