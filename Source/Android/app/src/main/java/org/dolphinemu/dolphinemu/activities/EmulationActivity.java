@@ -868,10 +868,7 @@ public final class EmulationActivity extends AppCompatActivity
             {
               IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
 
-              if (indexSelected != 2)
-                mMotionListener.enable();
-              else
-                mMotionListener.disable();
+              updateMotionListener();
 
               File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
