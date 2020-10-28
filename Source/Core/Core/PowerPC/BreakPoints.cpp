@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/MMU.h"
+#include "Core/ScriptEngine.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -146,6 +147,31 @@ void BreakPoints::ClearAllTemporary()
       ++bp;
     }
   }
+}
+
+bool ScriptBreakPoints::HasBreakPoint(u32 address)
+{
+  // return m_scripts.contains(address); // C++20
+  return m_scripts.count(address) > 0;
+}
+
+void ScriptBreakPoints::CheckBreakPoint(u32 address)
+{
+  auto range = m_scripts.equal_range(address);
+  for (auto bp = range.first; bp != range.second; bp++)
+    ScriptEngine::ExecuteScript(address, bp->second);
+}
+
+void ScriptBreakPoints::Add(u32 address, u32 script_id)
+{
+  m_scripts.emplace(address, script_id);
+}
+
+void ScriptBreakPoints::RemoveScript(u32 script_id)
+{
+  for (auto it = m_scripts.begin(); it != m_scripts.end();)
+    if (it->second == script_id)
+      m_scripts.erase(it);
 }
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const

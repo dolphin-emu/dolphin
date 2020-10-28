@@ -56,6 +56,7 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/ScriptEngine.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
@@ -536,6 +537,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     return false;
 
   PatchEngine::LoadPatches();
+  ScriptEngine::LoadScripts();
   HLE::PatchFixedFunctions();
   return true;
 }

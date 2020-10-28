@@ -35,6 +35,8 @@ add_library(core
   NetPlayServer.h
   PatchEngine.cpp
   PatchEngine.h
+  ScriptEngine.cpp
+  ScriptEngine.h
   State.cpp
   State.h
   SyncIdentifier.h
@@ -684,3 +686,5 @@ if(UNIX)
     MemoryWatcher.h
   )
 endif()
+
+target_link_libraries(core PUBLIC ${LUAJIT_LIBRARIES})

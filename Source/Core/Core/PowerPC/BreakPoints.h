@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <map>
 #include <string>
 #include <vector>
 
@@ -73,6 +74,18 @@ public:
 
 private:
   TBreakPoints m_breakpoints;
+};
+
+class ScriptBreakPoints
+{
+public:
+  bool HasBreakPoint(u32 address);
+  void CheckBreakPoint(u32 address);
+  void Add(u32 address, u32 script_id);
+  void RemoveScript(u32 script_id);
+
+private:
+  std::multimap<u32, u32> m_scripts;
 };
 
 // Memory breakpoints

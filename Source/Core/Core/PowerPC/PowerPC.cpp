@@ -41,6 +41,7 @@ Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
 BreakPoints breakpoints;
+ScriptBreakPoints script_breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
@@ -615,6 +616,7 @@ void CheckBreakPoints()
     if (PowerPC::breakpoints.IsTempBreakPoint(PC))
       PowerPC::breakpoints.Remove(PC);
   }
+  PowerPC::script_breakpoints.CheckBreakPoint(PC);
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)

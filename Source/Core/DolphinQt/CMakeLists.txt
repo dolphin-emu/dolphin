@@ -168,6 +168,8 @@ add_executable(dolphin-emu
   Config/PatchesWidget.h
   Config/PropertiesDialog.cpp
   Config/PropertiesDialog.h
+        Config/ScriptsWidget.cpp
+        Config/ScriptsWidget.h
   Config/SettingsWindow.cpp
   Config/SettingsWindow.h
   Config/VerifyWidget.cpp

@@ -62,6 +62,7 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/ScriptEngine.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 
@@ -530,6 +531,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     BootManager::RestoreConfig();
 
     PatchEngine::Shutdown();
+    ScriptEngine::Shutdown();
     HLE::Clear();
   }};
 
