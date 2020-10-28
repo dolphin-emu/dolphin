@@ -15,7 +15,6 @@ import org.dolphinemu.dolphinemu.features.settings.model.LegacyStringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.CheckBoxSetting;
-import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.FilePicker;
 import org.dolphinemu.dolphinemu.features.settings.model.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.InputBindingSetting;
@@ -24,6 +23,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.InvertedCheckBoxSe
 import org.dolphinemu.dolphinemu.features.settings.model.view.LogCheckBoxSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.PercentSliderSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.RumbleBindingSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.view.RunRunnable;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SettingsItem;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettingDynamicDescriptions;
