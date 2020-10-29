@@ -45,7 +45,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
   private FloatingActionButton mFab;
   private static boolean sShouldRescanLibrary = true;
 
-  private MainPresenter mPresenter = new MainPresenter(this, this);
+  private final MainPresenter mPresenter = new MainPresenter(this, this);
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -85,7 +85,7 @@ public final class MainActivity extends AppCompatActivity implements MainView
               .run(this, false, this::setPlatformTabsAndStartGameFileCacheService);
     }
 
-    mPresenter.addDirIfNeeded(this);
+    mPresenter.addDirIfNeeded();
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...

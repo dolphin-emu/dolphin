@@ -39,11 +39,11 @@ public final class TvMainActivity extends FragmentActivity implements MainView
 {
   private static boolean sShouldRescanLibrary = true;
 
-  private MainPresenter mPresenter = new MainPresenter(this, this);
+  private final MainPresenter mPresenter = new MainPresenter(this, this);
 
   private BrowseSupportFragment mBrowseFragment;
 
-  private ArrayList<ArrayObjectAdapter> mGameRows = new ArrayList<>();
+  private final ArrayList<ArrayObjectAdapter> mGameRows = new ArrayList<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState)
@@ -73,7 +73,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       GameFileCacheService.startLoad(this);
     }
 
-    mPresenter.addDirIfNeeded(this);
+    mPresenter.addDirIfNeeded();
 
     // In case the user changed a setting that affects how games are displayed,
     // such as system language, cover downloading...
