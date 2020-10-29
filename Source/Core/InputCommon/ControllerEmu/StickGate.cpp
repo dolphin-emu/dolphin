@@ -48,6 +48,16 @@ std::optional<double> GetRayLineIntersection(Common::DVec2 ray, Common::DVec2 po
   return diff.Cross(-point1) / dot;
 }
 
+double GetNearestNotch(double angle, double virtual_notch_angle)
+{
+  constexpr auto sides = 8;
+  constexpr auto rounding = MathUtil::TAU / sides;
+  const auto closest_notch = std::round(angle / rounding) * rounding;
+  const auto angle_diff =
+      std::fmod(angle - closest_notch + MathUtil::PI, MathUtil::TAU) - MathUtil::PI;
+  return std::abs(angle_diff) < virtual_notch_angle / 2 ? closest_notch : angle;
+}
+
 Common::DVec2 GetPointFromAngleAndLength(double angle, double length)
 {
   return Common::DVec2{std::cos(angle), std::sin(angle)} * length;
@@ -276,15 +286,23 @@ ReshapableInput::ReshapeData ReshapableInput::Reshape(ControlState x, ControlSta
   y -= m_center.y;
 
   // TODO: make the AtAngle functions work with negative angles:
-  const ControlState angle = std::atan2(y, x) + MathUtil::TAU;
+  ControlState angle = std::atan2(y, x) + MathUtil::TAU;
 
-  const ControlState gate_max_dist = GetGateRadiusAtAngle(angle);
   const ControlState input_max_dist = GetInputRadiusAtAngle(angle);
+  ControlState gate_max_dist = GetGateRadiusAtAngle(angle);
 
   // If input radius (from calibration) is zero apply no scaling to prevent division by zero.
   const ControlState max_dist = input_max_dist ? input_max_dist : gate_max_dist;
 
   ControlState dist = Common::DVec2{x, y}.Length() / max_dist;
+
+  const double virtual_notch_size = GetVirtualNotchSize();
+
+  if (virtual_notch_size > 0.0 && dist >= MINIMUM_NOTCH_DISTANCE)
+  {
+    angle = GetNearestNotch(angle, virtual_notch_size);
+    gate_max_dist = GetGateRadiusAtAngle(angle);
+  }
 
   // If the modifier is pressed, scale the distance by the modifier's value.
   // This is affected by the modifier's "range" setting which defaults to 50%.
