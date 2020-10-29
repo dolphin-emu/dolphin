@@ -221,8 +221,16 @@ HttpRequest::Response HttpRequest::Impl::Fetch(const std::string& url, Method me
   curl_easy_getinfo(m_curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
   if (response_code != 200)
   {
-    ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
-                  type, url, response_code, buffer.data(), static_cast<int>(buffer.size()));
+    if (buffer.empty())
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {}", type, url,
+                    response_code);
+    }
+    else
+    {
+      ERROR_LOG_FMT(COMMON, "Failed to {} {}: server replied with code {} and body\n\x1b[0m{:.{}}",
+                    type, url, response_code, buffer.data(), static_cast<int>(buffer.size()));
+    }
     return {};
   }
 
