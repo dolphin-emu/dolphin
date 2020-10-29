@@ -18,13 +18,13 @@ namespace IOS::HLE::Device
 {
 constexpr u32 USBV5_VERSION = 0x50001;
 
-USB_VEN::~USB_VEN() = default;
+USB_VEN::~USB_VEN()
+{
+  m_scan_thread.Stop();
+}
 
 IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
-  static_assert(offsetof(USB_VEN, m_scan_thread) == sizeof(USB_VEN) - sizeof(ScanThread),
-                "ScanThread must be the last data member");
-
   request.Log(GetDeviceName(), Common::Log::IOS_USB);
   switch (request.request)
   {
