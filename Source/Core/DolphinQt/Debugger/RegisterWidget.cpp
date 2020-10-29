@@ -101,6 +101,7 @@ void RegisterWidget::ConnectWidgets()
   connect(m_table, &QTableWidget::customContextMenuRequested, this,
           &RegisterWidget::ShowContextMenu);
   connect(m_table, &QTableWidget::itemChanged, this, &RegisterWidget::OnItemChanged);
+  connect(&Settings::Instance(), &Settings::DebugFontChanged, m_table, &QWidget::setFont);
 }
 
 void RegisterWidget::OnItemChanged(QTableWidgetItem* item)
