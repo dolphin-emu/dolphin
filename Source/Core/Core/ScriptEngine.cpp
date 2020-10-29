@@ -10,6 +10,7 @@
 #include <limits>
 #include <vector>
 
+#include <cassert>
 #include <lua.hpp>
 
 #include "Common/Assert.h"
@@ -19,13 +20,10 @@
 
 namespace ScriptEngine
 {
-namespace lua
+// Namespace Lua hosts static binding code.
+namespace Lua
 {
-static lua_State* s_L = nullptr;
-static const char* s_hooks_table = "_dolphin_hooks";
-
-// TODO Register panic error handler
-// TODO Support multiple scripts
+static const char* s_context_registry_key = "c";
 
 static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
 {
@@ -36,53 +34,73 @@ static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
   return std::nullopt;
 }
 
-static int set_hook(lua_State* L)
+static Script::Context* get_context(lua_State* L)
+{
+  lua_pushstring(L, Lua::s_context_registry_key);
+  lua_gettable(L, LUA_REGISTRYINDEX);
+  void* context_ptr = lua_touserdata(L, -1);
+  assert(context_ptr != nullptr);
+  lua_pop(L, 1);
+  return reinterpret_cast<Script::Context*>(context_ptr);
+}
+
+static int add_hook(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   luaL_checkany(L, 2);  // hook function
   if (!addr_arg.has_value())
     return 0;
+  if (!lua_isfunction(L, 2))
+    return 0;
   u32 addr = *addr_arg;
 
-  // Remember to execute Lua function at address.
-  // TODO Support multiple hooks at same address.
-  // hooks[addr] = func
-  lua_getglobal(L, s_hooks_table);  // map
-  const int table = lua_gettop(L);
-  lua_pushvalue(L, 1);  // map key (address)
-  lua_pushvalue(L, 2);  // map value (function)
-  lua_settable(L, table);
-
-  // Instruct PowerPC to break
-  PowerPC::script_breakpoints.Add(addr, 0);
+  // Get reference to Lua function.
+  Script::Context* ctx = get_context(L);
+  lua_pushvalue(L, 2);
+  int lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+  // Register breakpoint on PowerPC.
+  LuaFuncHandle handle(ctx, lua_ref);
+  PowerPC::script_hooks.m_hooks.emplace(addr, handle);
 
   return 0;
 }
 
-static void invoke_hook(u32 addr)
+static int remove_hook(lua_State* L)
 {
-  lua_State* L = s_L;
-  int frame = lua_gettop(L);
+  // TODO This algorithm is kind of weird.
+  // remove_hook takes the same arguments as add_hook, so a Lua function value.
+  // However, the PowerPC only stores opaque Lua references.
+  // So in order to know which function to remove, we have to check each stored value for equality.
 
-  // Look up Lua function at address.
-  // func = hooks[addr]
-  lua_getglobal(L, s_hooks_table);  // map
-  const int table = lua_gettop(L);
-  lua_pushinteger(L, static_cast<lua_Integer>(addr));
-  lua_gettable(L, table);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  luaL_checkany(L, 2);  // hook function
+  if (!addr_arg.has_value())
+    return 0;
+  if (!lua_isfunction(L, 2))
+    return 0;
+  u32 addr = *addr_arg;
 
-  // Call function. (Should always evaluate to true)
-  if (lua_isfunction(L, -1))
+  for (;;)
   {
-    int err = lua_pcall(L, 0, 0, 0);
-    if (err != 0)
+    auto range = PowerPC::script_hooks.m_hooks.equal_range(addr);
+    for (auto it = range.first; it != range.second; it++)
     {
-      const char* error_str = lua_tostring(lua::s_L, -1);
-      PanicAlert("Error running Lua hook at %x: %s", addr, error_str);
+      lua_rawgeti(L, LUA_REGISTRYINDEX, it->second.lua_ref());
+      int equal = lua_rawequal(L, 2, -1);
+      lua_pop(L, 1);
+      if (equal)
+      {
+        PowerPC::script_hooks.m_hooks.erase(it);
+        goto removeNext;
+      }
     }
+    break;
+  removeNext:
+    continue;
   }
 
-  lua_settop(L, frame);
+  // TODO Return flag whether something was removed maybe?
+  return 0;
 }
 
 static int lua_memcpy(lua_State* L)
@@ -205,7 +223,8 @@ static int set_gpr(lua_State* L)
 
 // clang-format off
 static const luaL_Reg dolphinlib[] = {
-    {"set_hook", set_hook},
+    {"add_hook", add_hook},
+    {"remove_hook", remove_hook},
     {"memcpy", lua_memcpy},
     {"strncpy", lua_strncpy},
     {"read_u8", read_u8},
@@ -220,58 +239,115 @@ static const luaL_Reg dolphinlib[] = {
 };
 // clang-format on
 
-}  // namespace lua
+}  // namespace Lua
+
+bool ScriptEngine::LuaFuncHandle::Equals(const LuaFuncHandle& other) const
+{
+  return m_ctx == other.m_ctx && m_lua_ref == other.m_lua_ref;
+}
+
+Script::Script(std::string file_path, bool active)
+    : m_file_path(std::move(file_path)), m_active(active)
+{
+  if (active)
+    Script::Load();
+}
+
+Script::~Script()
+{
+  Unload();
+}
+
+Script::Script(Script&& other) noexcept : m_active(other.m_active), m_ctx(other.m_ctx)
+{
+  other.m_ctx = nullptr;
+}
+
+void Script::Load()
+{
+  if (m_ctx != nullptr)
+    return;
+  // Create Lua state.
+  lua_State* L = luaL_newstate();
+  luaL_openlib(L, "dolphin", Lua::dolphinlib, 0);
+  luaL_openlibs(L);
+  // TODO Register panic error handler
+  m_ctx = new Context(L);
+  fflush(stdout);
+  m_ctx->self = m_ctx;  // TODO This looks weird.
+  // Write the context reference to Lua.
+  lua_pushstring(L, Lua::s_context_registry_key);
+  lua_pushlightuserdata(L, reinterpret_cast<void*>(m_ctx));
+  lua_settable(L, LUA_REGISTRYINDEX);
+  // Load script.
+  int err = luaL_dofile(L, m_file_path.c_str());
+  if (err != 0)
+  {
+    const char* error_str = lua_tostring(L, -1);
+    PanicAlert("Error running Lua script: %s", error_str);
+    Unload();
+    return;
+  }
+}
+
+void Script::Unload()
+{
+  fflush(stdout);
+  delete m_ctx;
+  m_ctx = nullptr;
+}
+
+Script::Context::~Context()
+{
+  auto& hooks = PowerPC::script_hooks.m_hooks;
+  for (auto it = hooks.cbegin(); it != hooks.cend();)
+    if (it->second.ctx() == self)
+      hooks.erase(it++);
+    else
+      ++it;
+  lua_close(L);
+}
+
+void Script::Context::ExecuteHook(int lua_ref)
+{
+  int frame = lua_gettop(L);
+  lua_rawgeti(L, LUA_REGISTRYINDEX, lua_ref);
+  int err = lua_pcall(L, 0, 0, 0);
+  if (err != 0)
+  {
+    const char* error_str = lua_tostring(L, -1);
+    PanicAlert("Error running Lua hook: %s", error_str);
+  }
+  lua_settop(L, frame);
+}
+
+void Script::set_active(bool active)
+{
+  if (active && !m_active)
+    Script::Load();
+  else if (!active && m_active)
+    Script::Unload();
+  m_active = active;
+}
 
 static std::vector<Script> s_scripts;
 
 void LoadScripts()
 {
   // TODO Load from ini file
-  s_scripts.push_back({.file_path = "/home/richie/opt/dolphin/scripts/test.lua", .active = true});
-  // Create fresh Lua state.
-  if (lua::s_L != nullptr)
-  {
-    lua_close(lua::s_L);
-    lua::s_L = nullptr;
-  }
-  lua::s_L = luaL_newstate();
-  // New empty hooks table.
-  lua_newtable(lua::s_L);
-  lua_setglobal(lua::s_L, lua::s_hooks_table);
-  // Open library and scripts.
-  luaL_openlib(lua::s_L, "dolphin", lua::dolphinlib, 0);
-  luaL_openlibs(lua::s_L);
-  for (auto& script : s_scripts)
-  {
-    int err = luaL_dofile(lua::s_L, script.file_path.c_str());
-    if (err != 0)
-    {
-      const char* error_str = lua_tostring(lua::s_L, -1);
-      PanicAlert("Error running Lua script: %s", error_str);
-    }
-  }
+  Script s("/home/richie/opt/dolphin/scripts/test.lua", true);
+  s_scripts.push_back(std::move(s));
 }
 
 void Shutdown()
 {
   s_scripts.clear();
-
-  if (lua::s_L != nullptr)
-  {
-    lua_close(lua::s_L);
-    lua::s_L = nullptr;
-  }
 }
 
 void Reload()
 {
   Shutdown();
   LoadScripts();
-}
-
-void ExecuteScript(u32 address, u32 _script_id)
-{
-  lua::invoke_hook(address);
 }
 
 }  // namespace ScriptEngine

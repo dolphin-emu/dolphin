@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/ScriptEngine.h"
 
 namespace Common
 {
@@ -76,18 +77,6 @@ private:
   TBreakPoints m_breakpoints;
 };
 
-class ScriptBreakPoints
-{
-public:
-  bool HasBreakPoint(u32 address);
-  void CheckBreakPoint(u32 address);
-  void Add(u32 address, u32 script_id);
-  void RemoveScript(u32 script_id);
-
-private:
-  std::multimap<u32, u32> m_scripts;
-};
-
 // Memory breakpoints
 class MemChecks
 {
@@ -111,4 +100,15 @@ public:
 
 private:
   TMemChecks m_mem_checks;
+};
+
+// Script hooks
+class ScriptHooks
+{
+public:
+  [[nodiscard]] bool HasBreakPoint(u32 address) const;
+  void ExecuteBreakPoint(u32 address);
+
+public:
+  std::multimap<u32, ScriptEngine::LuaFuncHandle> m_hooks;
 };

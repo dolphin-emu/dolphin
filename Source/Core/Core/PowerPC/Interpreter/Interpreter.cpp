@@ -282,7 +282,8 @@ void Interpreter::Run()
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+          if (PowerPC::breakpoints.IsAddressBreakPoint(PC) ||
+              PowerPC::script_hooks.HasBreakPoint(PC))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG(POWERPC, "----------------------------");

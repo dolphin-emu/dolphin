@@ -149,31 +149,6 @@ void BreakPoints::ClearAllTemporary()
   }
 }
 
-bool ScriptBreakPoints::HasBreakPoint(u32 address)
-{
-  // return m_scripts.contains(address); // C++20
-  return m_scripts.count(address) > 0;
-}
-
-void ScriptBreakPoints::CheckBreakPoint(u32 address)
-{
-  auto range = m_scripts.equal_range(address);
-  for (auto bp = range.first; bp != range.second; bp++)
-    ScriptEngine::ExecuteScript(address, bp->second);
-}
-
-void ScriptBreakPoints::Add(u32 address, u32 script_id)
-{
-  m_scripts.emplace(address, script_id);
-}
-
-void ScriptBreakPoints::RemoveScript(u32 script_id)
-{
-  for (auto it = m_scripts.begin(); it != m_scripts.end();)
-    if (it->second == script_id)
-      m_scripts.erase(it);
-}
-
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
   TMemChecksStr mc_strings;
@@ -300,4 +275,20 @@ bool TMemCheck::Action(Common::DebugInterface* debug_interface, u32 value, u32 a
       return true;
   }
   return false;
+}
+
+bool ScriptHooks::HasBreakPoint(u32 address) const
+{
+#if __cplusplus >= 202002L
+  return m_hooks.contains(address);
+#else
+  return m_hooks.count(address) > 0;
+#endif
+}
+
+void ScriptHooks::ExecuteBreakPoint(u32 address)
+{
+  auto range = m_hooks.equal_range(address);
+  for (auto it = range.first; it != range.second; it++)
+    it->second.Execute();
 }

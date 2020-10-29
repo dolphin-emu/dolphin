@@ -202,7 +202,9 @@ static bool CanSwapAdjacentOps(const CodeOp& a, const CodeOp& b)
   // can't reorder around breakpoints
   if (SConfig::GetInstance().bEnableDebugging &&
       (PowerPC::breakpoints.IsAddressBreakPoint(a.address) ||
-       PowerPC::breakpoints.IsAddressBreakPoint(b.address)))
+       PowerPC::breakpoints.IsAddressBreakPoint(b.address) ||
+       PowerPC::script_hooks.HasBreakPoint(a.address) ||
+       PowerPC::script_hooks.HasBreakPoint(b.address)))
     return false;
   if (b_flags & (FL_SET_CRx | FL_ENDBLOCK | FL_TIMER | FL_EVIL | FL_SET_OE))
     return false;
