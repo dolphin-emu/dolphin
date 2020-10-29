@@ -8,13 +8,16 @@
 #include "Core/ScriptEngine.h"
 
 #include <limits>
+#include <set>
 #include <vector>
 
 #include <cassert>
 #include <lua.hpp>
 
 #include "Common/Assert.h"
+#include "Common/IniFile.h"
 
+#include "Core/ConfigManager.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -246,11 +249,9 @@ bool ScriptEngine::LuaFuncHandle::Equals(const LuaFuncHandle& other) const
   return m_ctx == other.m_ctx && m_lua_ref == other.m_lua_ref;
 }
 
-Script::Script(std::string file_path, bool active)
-    : m_file_path(std::move(file_path)), m_active(active)
+Script::Script(const ScriptTarget& other) : m_file_path(other.file_path)
 {
-  if (active)
-    Script::Load();
+  Script::Load();
 }
 
 Script::~Script()
@@ -258,7 +259,7 @@ Script::~Script()
   Unload();
 }
 
-Script::Script(Script&& other) noexcept : m_active(other.m_active), m_ctx(other.m_ctx)
+Script::Script(Script&& other) noexcept : m_ctx(other.m_ctx)
 {
   other.m_ctx = nullptr;
 }
@@ -321,33 +322,46 @@ void Script::Context::ExecuteHook(int lua_ref)
   lua_settop(L, frame);
 }
 
-void Script::set_active(bool active)
-{
-  if (active && !m_active)
-    Script::Load();
-  else if (!active && m_active)
-    Script::Unload();
-  m_active = active;
-}
-
 static std::vector<Script> s_scripts;
+
+void LoadScriptSection(const std::string& section, std::vector<ScriptTarget>& scripts,
+                       IniFile& localIni)
+{
+  // Load the name of all enabled patches
+  std::vector<std::string> lines;
+  std::set<std::string> pathsEnabled;
+  std::set<std::string> pathsDisabled;
+  localIni.GetLines(section, &lines);
+  for (const std::string& line : lines)
+  {
+    if (line.length() < 2 || line[1] != ' ')
+      continue;
+    std::string file_path = line.substr(2);
+    if (line[0] == 'y')
+      pathsEnabled.insert(file_path);
+    else if (line[0] == 'n')
+      pathsDisabled.insert(file_path);
+  }
+  for (const auto& it : pathsEnabled)
+    scripts.push_back(ScriptTarget{.file_path = it, .active = true});
+  for (const auto& it : pathsDisabled)
+    scripts.push_back(ScriptTarget{.file_path = it, .active = false});
+}
 
 void LoadScripts()
 {
-  // TODO Load from ini file
-  Script s("/home/richie/opt/dolphin/scripts/test.lua", true);
-  s_scripts.push_back(std::move(s));
+  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
+  std::vector<ScriptTarget> scriptTargets;
+  LoadScriptSection("Scripts", scriptTargets, localIni);
+
+  s_scripts.clear();
+  for (auto& target : scriptTargets)
+    s_scripts.emplace_back(target);
 }
 
 void Shutdown()
 {
   s_scripts.clear();
-}
-
-void Reload()
-{
-  Shutdown();
-  LoadScripts();
 }
 
 }  // namespace ScriptEngine

@@ -8,6 +8,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -16,6 +17,12 @@ class IniFile;
 
 namespace ScriptEngine
 {
+struct ScriptTarget
+{
+  std::string file_path;
+  bool active = false;
+};
+
 // Top-level script instance definition and state.
 class Script
 {
@@ -36,13 +43,11 @@ public:
   };
 
 public:
-  Script(std::string file_path, bool active);
+  explicit Script(const ScriptTarget&);
   ~Script();
   Script(const Script&) = delete;
   Script(Script&&) noexcept;
   [[nodiscard]] inline const std::string& file_path() const { return m_file_path; };
-  [[nodiscard]] inline bool active() const { return m_active; };
-  void set_active(bool active);
 
 private:
   void Load();
@@ -51,7 +56,6 @@ private:
 private:
   // Target state
   std::string m_file_path;
-  bool m_active = false;
 
 private:
   Context* m_ctx = nullptr;  // nullptr if script invalid
@@ -78,8 +82,9 @@ inline bool operator==(const LuaFuncHandle& lhs, const LuaFuncHandle& rhs)
   return lhs.Equals(rhs);
 }
 
+void LoadScriptSection(const std::string& section, std::vector<ScriptTarget>& scripts,
+                       IniFile& localIni);
 void LoadScripts();
 void Shutdown();
-void Reload();
 
 }  // namespace ScriptEngine

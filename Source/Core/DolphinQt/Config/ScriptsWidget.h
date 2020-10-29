@@ -11,6 +11,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace ScriptEngine
+{
+struct ScriptTarget;
+}
+
 class QListWidget;
 class QListWidgetItem;
 class QPushButton;
@@ -41,4 +46,7 @@ private:
   QListWidget* m_list;
   QPushButton* m_add_button;
   QPushButton* m_remove_button;
+
+  std::vector<ScriptEngine::ScriptTarget> m_scripts;
+  std::string m_game_id;
 };

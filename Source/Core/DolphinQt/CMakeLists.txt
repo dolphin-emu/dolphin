@@ -164,12 +164,14 @@ add_executable(dolphin-emu
   Config/Mapping/WiimoteEmuMotionControlIMU.h
   Config/NewPatchDialog.cpp
   Config/NewPatchDialog.h
+  Config/NewScriptDialog.cpp
+  Config/NewScriptDialog.h
   Config/PatchesWidget.cpp
   Config/PatchesWidget.h
   Config/PropertiesDialog.cpp
   Config/PropertiesDialog.h
-        Config/ScriptsWidget.cpp
-        Config/ScriptsWidget.h
+  Config/ScriptsWidget.cpp
+  Config/ScriptsWidget.h
   Config/SettingsWindow.cpp
   Config/SettingsWindow.h
   Config/VerifyWidget.cpp

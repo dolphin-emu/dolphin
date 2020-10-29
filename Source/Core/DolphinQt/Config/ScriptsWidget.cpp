@@ -8,8 +8,21 @@
 #include <QListWidget>
 #include <QPushButton>
 
-ScriptsWidget::ScriptsWidget(const UICommon::GameFile& game)
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+
+#include "Core/ScriptEngine.h"
+
+#include "DolphinQt/Config/NewScriptDialog.h"
+
+#include "UICommon/GameFile.h"
+
+ScriptsWidget::ScriptsWidget(const UICommon::GameFile& game) : m_game_id(game.GetGameID())
 {
+  IniFile game_ini_local;
+  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  ScriptEngine::LoadScriptSection("Scripts", m_scripts, game_ini_local);
+
   CreateWidgets();
   ConnectWidgets();
 
@@ -45,31 +58,64 @@ void ScriptsWidget::ConnectWidgets()
 
 void ScriptsWidget::OnItemChanged(QListWidgetItem* item)
 {
+  m_scripts[m_list->row(item)].active = (item->checkState() == Qt::Checked);
+  SaveScripts();
 }
 
 void ScriptsWidget::OnAdd()
 {
+  ScriptEngine::ScriptTarget script;
+  if (NewScriptDialog(this, script).exec())
+  {
+    m_scripts.push_back(script);
+    SaveScripts();
+    Update();
+  }
 }
 
 void ScriptsWidget::OnRemove()
 {
   if (m_list->selectedItems().isEmpty())
     return;
+  m_scripts.erase(m_scripts.begin() + m_list->row(m_list->selectedItems()[0]));
+  SaveScripts();
   Update();
+}
+
+void ScriptsWidget::SaveScripts()
+{
+  std::vector<std::string> lines;
+
+  for (const auto& script : m_scripts)
+  {
+    if (script.active)
+      lines.push_back("y " + script.file_path);
+    else
+      lines.push_back("n " + script.file_path);
+  }
+
+  IniFile game_ini_local;
+  game_ini_local.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
+  game_ini_local.SetLines("Scripts", lines);
+  game_ini_local.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini");
 }
 
 void ScriptsWidget::Update()
 {
   m_list->clear();
+
+  for (const auto& script : m_scripts)
+  {
+    auto* item = new QListWidgetItem(QString::fromStdString(script.file_path));
+    item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
+    item->setCheckState(script.active ? Qt::Checked : Qt::Unchecked);
+
+    m_list->addItem(item);
+  }
 }
 
 void ScriptsWidget::UpdateActions()
 {
   bool selected = !m_list->selectedItems().isEmpty();
-
-  auto* item = selected ? m_list->selectedItems()[0] : nullptr;
-
-  bool user_defined = selected ? item->data(Qt::UserRole).toBool() : true;
-
-  m_remove_button->setEnabled(selected && user_defined);
+  m_remove_button->setEnabled(selected);
 }
