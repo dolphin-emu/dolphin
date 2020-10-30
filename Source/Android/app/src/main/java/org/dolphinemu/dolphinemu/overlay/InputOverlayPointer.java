@@ -20,12 +20,12 @@ public class InputOverlayPointer
 
   private final float[] axes = {0f, 0f};
 
-  private float maxHeight;
-  private float maxWidth;
-  private float aspectAdjusted;
-  private boolean xAdjusted;
+  private final float maxHeight;
+  private final float maxWidth;
+  private final float aspectAdjusted;
+  private final boolean xAdjusted;
   private boolean doubleTap = false;
-  private int doubleTapButton;
+  private final int doubleTapButton;
   private int trackId = -1;
 
   public static ArrayList<Integer> DOUBLE_TAP_OPTIONS = new ArrayList<>();
@@ -53,6 +53,7 @@ public class InputOverlayPointer
     float gameAR = NativeLibrary.GetGameAspectRatio();
     aspectAdjusted = gameAR / deviceAR;
 
+    // TODO: Max pointer value shouldn't be reached by tapping in buffer region when buffer is used.
     if (gameAR <= deviceAR) // Black bars on left/right
     {
       xAdjusted = true;
@@ -69,7 +70,7 @@ public class InputOverlayPointer
       Integer buffer = (y - gameY);
 
       maxWidth = (float) x / 2;
-      maxHeight = (float) (y - buffer) / 2;
+      maxHeight = (float) (y + buffer) / 2;
     }
   }
 
