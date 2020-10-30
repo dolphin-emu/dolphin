@@ -21,6 +21,10 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+// clang-format off
+#define DOLPHIN_LUA_METHOD(x) {.name = #x, .func = (x)}
+// clang-format on
+
 namespace ScriptEngine
 {
 // Namespace Lua hosts static binding code.
@@ -47,7 +51,9 @@ static Script::Context* get_context(lua_State* L)
   return reinterpret_cast<Script::Context*>(context_ptr);
 }
 
-static int add_hook(lua_State* L)
+// Lua: hook_instruction(number address, function hook) -> ()
+// Registers a PowerPC breakpoint that calls the provided function.
+static int hook_instruction(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   luaL_checkany(L, 2);  // hook function
@@ -57,24 +63,28 @@ static int add_hook(lua_State* L)
     return 0;
   u32 addr = *addr_arg;
 
+  // Get pointer to Lua function.
+  const void* lua_ptr = lua_topointer(L, 2);
+  // Skip if function is already registered.
+  auto range = PowerPC::script_hooks.m_hooks.equal_range(addr);
+  for (auto it = range.first; it != range.second; it++)
+    if (it->second.lua_ptr() == lua_ptr)
+      return 0;
   // Get reference to Lua function.
   Script::Context* ctx = get_context(L);
   lua_pushvalue(L, 2);
   int lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
   // Register breakpoint on PowerPC.
-  LuaFuncHandle handle(ctx, lua_ref);
+  LuaFuncHandle handle(ctx, lua_ptr, lua_ref);
   PowerPC::script_hooks.m_hooks.emplace(addr, handle);
 
   return 0;
 }
 
-static int remove_hook(lua_State* L)
+// Lua: unhook_instruction(number address, function hook) -> ()
+// Removes a hook previously registered with hook_instruction, with the same arguments.
+static int unhook_instruction(lua_State* L)
 {
-  // TODO This algorithm is kind of weird.
-  // remove_hook takes the same arguments as add_hook, so a Lua function value.
-  // However, the PowerPC only stores opaque Lua references.
-  // So in order to know which function to remove, we have to check each stored value for equality.
-
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   luaL_checkany(L, 2);  // hook function
   if (!addr_arg.has_value())
@@ -83,30 +93,28 @@ static int remove_hook(lua_State* L)
     return 0;
   u32 addr = *addr_arg;
 
-  for (;;)
+  // Get pointer to Lua function.
+  const void* lua_ptr = lua_topointer(L, 2);
+  // Search for pointer and remove reference.
+  auto range = PowerPC::script_hooks.m_hooks.equal_range(addr);
+  for (auto it = range.first; it != range.second; it++)
   {
-    auto range = PowerPC::script_hooks.m_hooks.equal_range(addr);
-    for (auto it = range.first; it != range.second; it++)
+    if (it->second.lua_ptr() == lua_ptr)
     {
-      lua_rawgeti(L, LUA_REGISTRYINDEX, it->second.lua_ref());
-      int equal = lua_rawequal(L, 2, -1);
-      lua_pop(L, 1);
-      if (equal)
-      {
-        PowerPC::script_hooks.m_hooks.erase(it);
-        goto removeNext;
-      }
+      luaL_unref(L, LUA_REGISTRYINDEX, it->second.lua_ref());
+      PowerPC::script_hooks.m_hooks.erase(it);
+      lua_pushboolean(L, 1);
+      return 1;
     }
-    break;
-  removeNext:
-    continue;
   }
-
-  // TODO Return flag whether something was removed maybe?
-  return 0;
+  // Nothing found.
+  lua_pushboolean(L, 0);
+  return 1;
 }
 
-static int lua_memcpy(lua_State* L)
+// Lua: mem_read(number address, number len) -> (string)
+// Reads bytes from PowerPC memory beginning at the provided offset.
+static int mem_read(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   lua_Integer len_arg = luaL_checkinteger(L, 2);
@@ -117,7 +125,7 @@ static int lua_memcpy(lua_State* L)
     if (len_arg > 0)
       len = static_cast<size_t>(len_arg);
     std::string cpp_str = PowerPC::HostGetString(*addr_arg, len);
-    lua_pushlstring(L, cpp_str.c_str(), len);
+    lua_pushlstring(L, cpp_str.data(), len);
   }
   else
     lua_pushlstring(L, "", 0);
@@ -125,7 +133,27 @@ static int lua_memcpy(lua_State* L)
   return 1;
 }
 
-static int lua_strncpy(lua_State* L)
+// Lua: mem_write(number address, string data) -> ()
+// Writes the provided bytes to PowerPC memory at the provided offset.
+static int mem_write(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  size_t mem_size;
+  auto* mem_ptr = reinterpret_cast<const u8*>(luaL_checklstring(L, 2, &mem_size));
+  if (!addr_arg.has_value())
+    return 0;
+  if (mem_ptr == nullptr)
+    return 0;
+
+  for (size_t i = 0; i < mem_size; i++)
+    PowerPC::HostWrite_U8(mem_ptr[i], (*addr_arg) + i);
+
+  return 0;
+}
+
+// Lua: str_read(number address, number max_len) -> (string)
+// Reads a C string from PowerPC memory with a maximum length.
+static int str_read(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   lua_Integer len_arg = luaL_checkinteger(L, 2);
@@ -143,9 +171,10 @@ static int lua_strncpy(lua_State* L)
       if (c == '\0')
         break;
     }
-    if (chars.empty() || chars.back() != '\0')
-      chars.push_back('\0');
-    lua_pushlstring(L, chars.data(), chars.size() - 1);
+    if (!chars.empty())
+      lua_pushlstring(L, chars.data(), chars.size());
+    else
+      lua_pushlstring(L, "", 0);
   }
   else
     lua_pushlstring(L, "", 0);
@@ -153,6 +182,40 @@ static int lua_strncpy(lua_State* L)
   return 1;
 }
 
+// Lua: str_write(number address, string data, number max_len) -> (string)
+// Writes the provided data as a C string to PowerPC memory with a maximum length.
+// The resulting string will always be zero-terminated.
+static int str_write(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  if (!addr_arg.has_value())
+    return 0;
+  size_t size;
+  const char* ptr = luaL_checklstring(L, 2, &size);
+  if (ptr == nullptr)
+    return 0;
+  lua_Integer max_len_arg = luaL_checkinteger(L, 3);
+  if (max_len_arg < 0)
+    return 0;
+  auto max_len = static_cast<size_t>(max_len_arg);
+
+  if (size <= max_len)
+  {
+    for (size_t i = 0; i < size; i++)
+      PowerPC::HostWrite_U8(ptr[i], (*addr_arg) + i);
+  }
+  else
+  {
+    size_t i;
+    for (i = 0; i < max_len - 1; i++)
+      PowerPC::HostWrite_U8(ptr[i], (*addr_arg) + i);
+    PowerPC::HostWrite_U8(0, (*addr_arg) + i);
+  }
+
+  return 0;
+}
+
+// Lua: read_u8(number address) -> (number)
 static int read_u8(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
@@ -163,6 +226,7 @@ static int read_u8(lua_State* L)
   return 1;
 }
 
+// Lua: read_u16(number address) -> (number)
 static int read_u16(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
@@ -173,6 +237,7 @@ static int read_u16(lua_State* L)
   return 1;
 }
 
+// Lua: read_u32(number address) -> (number)
 static int read_u32(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
@@ -183,6 +248,7 @@ static int read_u32(lua_State* L)
   return 1;
 }
 
+// Lua: read_f32(number address) -> (number)
 static int read_f32(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
@@ -193,6 +259,7 @@ static int read_f32(lua_State* L)
   return 1;
 }
 
+// Lua: read_f64(number address) -> (number)
 static int read_f64(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
@@ -204,6 +271,8 @@ static int read_f64(lua_State* L)
 }
 
 // TODO Use metatable
+// Lua: get_gpr(number idx) -> (number)
+// Returns a PowerPC GPR (general purpose register) with the specified index.
 static int get_gpr(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 1);
@@ -215,6 +284,8 @@ static int get_gpr(lua_State* L)
 }
 
 // TODO Use metatable
+// Lua: set_gpr(number idx, number value) -> (number)
+// Sets a PowerPC GPR (general purpose register) to the specified value.
 static int set_gpr(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 1);
@@ -226,28 +297,28 @@ static int set_gpr(lua_State* L)
 
 // clang-format off
 static const luaL_Reg dolphinlib[] = {
-    {"add_hook", add_hook},
-    {"remove_hook", remove_hook},
-    {"memcpy", lua_memcpy},
-    {"strncpy", lua_strncpy},
-    {"read_u8", read_u8},
-    {"read_u16", read_u16},
-    {"read_u32", read_u32},
-    {"read_f32", read_f32},
-    {"read_f64", read_f64},
-    {"get_gpr", get_gpr},
-    {"set_gpr", set_gpr},
+    // Processor hooks
+    DOLPHIN_LUA_METHOD(hook_instruction),
+    DOLPHIN_LUA_METHOD(unhook_instruction),
+    // Memory access
+    DOLPHIN_LUA_METHOD(mem_read),
+    DOLPHIN_LUA_METHOD(mem_write),
+    DOLPHIN_LUA_METHOD(str_read),
+    DOLPHIN_LUA_METHOD(str_write),
+    DOLPHIN_LUA_METHOD(read_u8),
+    DOLPHIN_LUA_METHOD(read_u16),
+    DOLPHIN_LUA_METHOD(read_u32),
+    DOLPHIN_LUA_METHOD(read_f32),
+    DOLPHIN_LUA_METHOD(read_f64),
+    // Register access
     // TODO Write methods
+    DOLPHIN_LUA_METHOD(get_gpr),
+    DOLPHIN_LUA_METHOD(set_gpr),
     {nullptr, nullptr}
 };
 // clang-format on
 
 }  // namespace Lua
-
-bool ScriptEngine::LuaFuncHandle::Equals(const LuaFuncHandle& other) const
-{
-  return m_ctx == other.m_ctx && m_lua_ref == other.m_lua_ref;
-}
 
 Script::Script(const ScriptTarget& other) : m_file_path(other.file_path)
 {
