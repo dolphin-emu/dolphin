@@ -66,7 +66,10 @@ private:
 class LuaFuncHandle
 {
 public:
-  LuaFuncHandle(Script::Context* ctx, const void* lua_ptr, int lua_ref) : m_ctx(ctx), m_lua_ptr(lua_ptr), m_lua_ref(lua_ref) {}
+  LuaFuncHandle(Script::Context* ctx, const void* lua_ptr, int lua_ref)
+      : m_ctx(ctx), m_lua_ptr(lua_ptr), m_lua_ref(lua_ref)
+  {
+  }
   inline void Execute() { m_ctx->ExecuteHook(m_lua_ref); };
   [[nodiscard]] inline Script::Context* ctx() const { return m_ctx; };
   [[nodiscard]] inline const void* lua_ptr() const { return m_lua_ptr; };
@@ -74,13 +77,14 @@ public:
 
 private:
   Script::Context* const m_ctx;
-  const void* const m_lua_ptr; // opaque ptr used for equality check
-  const int m_lua_ref; // reference to Lua value
+  const void* const m_lua_ptr;  // opaque ptr used for equality check
+  const int m_lua_ref;          // reference to Lua value
 };
 
 void LoadScriptSection(const std::string& section, std::vector<ScriptTarget>& scripts,
                        IniFile& localIni);
 void LoadScripts();
+void ExecuteFrameHooks();
 void Shutdown();
 
 }  // namespace ScriptEngine

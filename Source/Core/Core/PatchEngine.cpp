@@ -28,6 +28,12 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
+// TODO Hacky forward decl to ScriptEngine
+namespace ScriptEngine
+{
+void ExecuteFrameHooks();
+}
+
 namespace PatchEngine
 {
 constexpr std::array<const char*, 3> s_patch_type_strings{{
@@ -255,6 +261,10 @@ bool ApplyFramePatches()
   // Run the Gecko code handler
   Gecko::RunCodeHandler();
   ActionReplay::RunAllActive();
+
+  // Sneak in a call to ScriptEngine.
+  // TODO Ugly design
+  ScriptEngine::ExecuteFrameHooks();
 
   return true;
 }

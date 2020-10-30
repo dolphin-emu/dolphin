@@ -9,6 +9,7 @@
 
 #include <limits>
 #include <set>
+#include <unordered_map>
 #include <vector>
 
 #include <cassert>
@@ -31,6 +32,7 @@ namespace ScriptEngine
 namespace Lua
 {
 static const char* s_context_registry_key = "c";
+static std::unordered_map<const void*, LuaFuncHandle> s_frame_hooks;
 
 static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
 {
@@ -110,6 +112,47 @@ static int unhook_instruction(lua_State* L)
   // Nothing found.
   lua_pushboolean(L, 0);
   return 1;
+}
+
+// Lua: hook_frame(function hook) -> ()
+// Registers a function to be called each frame.
+static int hook_frame(lua_State* L)
+{
+  if (!lua_isfunction(L, 1))
+    return 0;
+
+  // Get pointer to Lua function.
+  const void* lua_ptr = lua_topointer(L, 1);
+  // Skip if function is already registered.
+  if (s_frame_hooks.count(lua_ptr) > 0)
+    return 0;
+  // Get reference to Lua function.
+  Script::Context* ctx = get_context(L);
+  lua_pushvalue(L, 1);
+  int lua_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+  // Register frame hook.
+  LuaFuncHandle handle(ctx, lua_ptr, lua_ref);
+  s_frame_hooks.emplace(lua_ptr, handle);
+
+  return 0;
+}
+
+// Lua: unhook_frame(function hook) -> ()
+// Removes a hook previously registered with unhook_frame, with the same arguments.
+static int unhook_frame(lua_State* L)
+{
+  if (!lua_isfunction(L, 1))
+    return 0;
+
+  const void* lua_ptr = lua_topointer(L, 1);
+  auto entry = s_frame_hooks.find(lua_ptr);
+  if (entry == s_frame_hooks.end())
+    return 0;
+  // Dereference function.
+  luaL_unref(L, LUA_REGISTRYINDEX, entry->second.lua_ref());
+  s_frame_hooks.erase(entry);
+
+  return 0;
 }
 
 // Lua: mem_read(number address, number len) -> (string)
@@ -297,9 +340,11 @@ static int set_gpr(lua_State* L)
 
 // clang-format off
 static const luaL_Reg dolphinlib[] = {
-    // Processor hooks
+    // Hooks
     DOLPHIN_LUA_METHOD(hook_instruction),
     DOLPHIN_LUA_METHOD(unhook_instruction),
+    DOLPHIN_LUA_METHOD(hook_frame),
+    DOLPHIN_LUA_METHOD(unhook_frame),
     // Memory access
     DOLPHIN_LUA_METHOD(mem_read),
     DOLPHIN_LUA_METHOD(mem_write),
@@ -428,6 +473,12 @@ void LoadScripts()
   s_scripts.clear();
   for (auto& target : scriptTargets)
     s_scripts.emplace_back(target);
+}
+
+void ExecuteFrameHooks()
+{
+  for (auto& hook : Lua::s_frame_hooks)
+    hook.second.Execute();
 }
 
 void Shutdown()
