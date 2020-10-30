@@ -23,6 +23,7 @@ public class InputOverlayPointer
   private final float maxHeight;
   private final float maxWidth;
   private final float aspectAdjusted;
+  private final Integer buffer;
   private final boolean xAdjusted;
   private boolean doubleTap = false;
   private final int doubleTapButton;
@@ -53,12 +54,11 @@ public class InputOverlayPointer
     float gameAR = NativeLibrary.GetGameAspectRatio();
     aspectAdjusted = gameAR / deviceAR;
 
-    // TODO: Max pointer value shouldn't be reached by tapping in buffer region when buffer is used.
     if (gameAR <= deviceAR) // Black bars on left/right
     {
       xAdjusted = true;
       Integer gameX = Math.round((float) y * gameAR);
-      Integer buffer = (x - gameX);
+      buffer = (x - gameX);
 
       maxWidth = (float) (x - buffer) / 2;
       maxHeight = (float) y / 2;
@@ -67,7 +67,7 @@ public class InputOverlayPointer
     {
       xAdjusted = false;
       Integer gameY = Math.round((float) x / gameAR);
-      Integer buffer = (y - gameY);
+      buffer = (y - gameY);
 
       maxWidth = (float) x / 2;
       maxHeight = (float) (y + buffer) / 2;
@@ -100,11 +100,11 @@ public class InputOverlayPointer
     if (xAdjusted)
     {
       axes[0] = (y - maxHeight) / maxHeight;
-      axes[1] = ((x * aspectAdjusted) - maxWidth) / maxWidth;
+      axes[1] = ((x * aspectAdjusted) - maxWidth) / (maxWidth + buffer);
     }
     else
     {
-      axes[0] = ((y * aspectAdjusted) - maxHeight) / maxHeight;
+      axes[0] = ((y * aspectAdjusted) - maxHeight) / (maxHeight - buffer / 2.0f);
       axes[1] = (x - maxWidth) / maxWidth;
     }
   }
