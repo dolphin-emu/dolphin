@@ -24,7 +24,7 @@
 #include "InputCommon/GCPadStatus.h"
 
 // clang-format off
-constexpr std::array<const char*, 138> s_hotkey_labels{{
+constexpr std::array<const char*, 139> s_hotkey_labels{{
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Eject Disc"),
@@ -104,6 +104,7 @@ constexpr std::array<const char*, 138> s_hotkey_labels{{
 
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
+    _trans("Toggle Skip EFB Access"),
     _trans("Toggle EFB Copies"),
     _trans("Toggle XFB Copies"),
     _trans("Toggle XFB Immediate Mode"),
