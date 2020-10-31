@@ -1,13 +1,30 @@
+empty_table = {}
+if empty_table["__len"] ~= 0 then
+  print("Running default LuaJIT with Lua 5.1 support")
+else
+  print("Running LuaJIT with Lua 5.2 feature opt-in")
+end
+
 -- General purpose registers
-for i, gpr in ipairs(dolphin.ppc.gpr) do
-  print(string.format("gpr[%d] = %x", i, gpr))
+for i = 0, 31, 1 do
+  print(string.format("gpr[%d] = %x", i, dolphin.ppc.gpr[i]))
+end
+if dolphin.ppc.gpr[32] ~= nil then
+  error("gpr out of bounds access")
 end
 print(string.format("pc = %x", dolphin.ppc.pc))
 
 -- Paired single registers
-for i, ps_reg in ipairs(dolphin.ppc.ps_f64) do
+for i = 0, 31, 1 do
+  ps_reg = dolphin.ppc.ps_f64[i]
   print(string.format("ps[%d][0] = %f", i, ps_reg[0]))
   print(string.format("ps[%d][1] = %f", i, ps_reg[1]))
+end
+if dolphin.ppc.ps_f64[32] ~= nil then
+  error("ps out of bounds access")
+end
+if dolphin.ppc.ps_f64[0][2] ~= nil then
+  error("ps elem out of bounds access")
 end
 
 -- Basic memory access
@@ -49,7 +66,7 @@ dolphin.hook_instruction(0x80008ef0, main_hook) -- should be no-op
 
 -- Test frame hook registry
 dummy_frame_hook = function ()
-  print("SHOULD NOT SEE THIS")
+  print("Frame hook executed erroneously")
 end
 dolphin.hook_frame(dummy_frame_hook)
 dolphin.hook_frame(dummy_frame_hook)
@@ -57,7 +74,7 @@ dolphin.unhook_frame(dummy_frame_hook)
 
 -- Test instruction hook registry
 dummy_instruction_hook = function ()
-  print("SHOULD NOT SEE THIS")
+  error("Instruction hook executed erroneously")
 end
 dolphin.hook_instruction(0x80008ef0, dummy_instruction_hook)
 dolphin.hook_instruction(0x80008ef0, dummy_instruction_hook) -- should be no-op

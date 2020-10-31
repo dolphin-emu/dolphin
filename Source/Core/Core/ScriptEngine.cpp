@@ -34,6 +34,7 @@ namespace Lua
 static const char* s_context_registry_key = "c";
 static std::unordered_map<const void*, LuaFuncHandle> s_frame_hooks;
 
+// Casts a value on the Lua stack to an u32 and raises a Dolphin alert on dubious integer values.
 static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
 {
   lua_Integer addr_arg = luaL_checkinteger(L, numIdx);
@@ -43,6 +44,8 @@ static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
   return std::nullopt;
 }
 
+// Reads a pointer to the current context from the Lua state.
+// The provided Lua state must originate from that context.
 static Script::Context* get_context(lua_State* L)
 {
   lua_pushstring(L, Lua::s_context_registry_key);
@@ -262,9 +265,9 @@ static int str_write(lua_State* L)
 static int read_u8(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
-  lua_Integer result = 0;
-  if (addr_arg)
-    result = static_cast<lua_Integer>(PowerPC::HostRead_U8(*addr_arg));
+  if (!addr_arg)
+    return 0;
+  auto result = static_cast<lua_Integer>(PowerPC::HostRead_U8(*addr_arg));
   lua_pushinteger(L, result);
   return 1;
 }
@@ -273,9 +276,9 @@ static int read_u8(lua_State* L)
 static int read_u16(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
-  lua_Integer result = 0;
-  if (addr_arg)
-    result = static_cast<lua_Integer>(PowerPC::HostRead_U16(*addr_arg));
+  if (!addr_arg)
+    return 0;
+  auto result = static_cast<lua_Integer>(PowerPC::HostRead_U16(*addr_arg));
   lua_pushinteger(L, result);
   return 1;
 }
@@ -284,9 +287,9 @@ static int read_u16(lua_State* L)
 static int read_u32(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
-  lua_Integer result = 0;
-  if (addr_arg)
-    result = static_cast<lua_Integer>(PowerPC::HostRead_U32(*addr_arg));
+  if (!addr_arg)
+    return 0;
+  auto result = static_cast<lua_Integer>(PowerPC::HostRead_U32(*addr_arg));
   lua_pushinteger(L, result);
   return 1;
 }
@@ -295,9 +298,9 @@ static int read_u32(lua_State* L)
 static int read_f32(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
-  lua_Number result = 0;
-  if (addr_arg)
-    result = static_cast<lua_Number>(PowerPC::HostRead_F32(*addr_arg));
+  if (!addr_arg)
+    return 0;
+  auto result = static_cast<lua_Number>(PowerPC::HostRead_F32(*addr_arg));
   lua_pushnumber(L, result);
   return 1;
 }
@@ -306,9 +309,9 @@ static int read_f32(lua_State* L)
 static int read_f64(lua_State* L)
 {
   std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
-  lua_Number result = 0;
-  if (addr_arg)
-    result = PowerPC::HostRead_F64(*addr_arg);
+  if (!addr_arg)
+    return 0;
+  lua_Number result = PowerPC::HostRead_F64(*addr_arg);
   lua_pushnumber(L, result);
   return 1;
 }
@@ -363,71 +366,72 @@ static int write_f64(lua_State* L)
   return 0;
 }
 
-// Lua: get_gpr(_, number idx) -> (number)
+// Lua: gpr_get(_, number idx) -> (number)
 // Returns a PowerPC GPR (general purpose register) with the specified index.
-static int get_gpr(lua_State* L)
+static int gpr_get(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
-  u32 val = 0;
-  if (idx_arg >= 0 && idx_arg < 32)
-    val = PowerPC::ppcState.gpr[idx_arg];
+  assert(std::size(PowerPC::ppcState.gpr) == 32);
+  if (idx_arg < 0 || idx_arg >= static_cast<lua_Integer>(std::size(PowerPC::ppcState.gpr)))
+    return 0;
+  u32 val = PowerPC::ppcState.gpr[idx_arg];
   lua_pushinteger(L, static_cast<lua_Integer>(val));
   return 1;
 }
 
-// Lua: set_gpr(_, number idx, number value) -> (number)
+// Lua: gpr_set(_, number idx, number value) -> (number)
 // Sets a PowerPC GPR (general purpose register) to the specified value.
-static int set_gpr(lua_State* L)
+static int gpr_set(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
   lua_Integer val_arg = luaL_checkinteger(L, 3);
-  if (idx_arg >= 0 && idx_arg < 32)
+  if (idx_arg >= 0 && idx_arg < static_cast<lua_Integer>(std::size(PowerPC::ppcState.gpr)))
     PowerPC::ppcState.gpr[idx_arg] = static_cast<u32>(val_arg);
   return 0;
 }
 
-// Lua: get_sr(_, number idx) -> (number)
+// Lua: sr_get(_, number idx) -> (number)
 // Returns a PowerPC SR (segment register) with the specified index.
-static int get_sr(lua_State* L)
+static int sr_get(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
-  u32 val = 0;
-  if (idx_arg >= 0 && idx_arg < 16)
-    val = PowerPC::ppcState.sr[idx_arg];
+  if (idx_arg < 0 || idx_arg >= static_cast<lua_Integer>(std::size(PowerPC::ppcState.sr)))
+    return 0;
+  u32 val = PowerPC::ppcState.sr[idx_arg];
   lua_pushinteger(L, static_cast<lua_Integer>(val));
   return 1;
 }
 
-// Lua: set_sr(_, number idx, number value) -> (number)
+// Lua: sr_set(_, number idx, number value) -> (number)
 // Sets a PowerPC SR (segment register) to the specified value.
-static int set_sr(lua_State* L)
+static int sr_set(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
   lua_Integer val_arg = luaL_checkinteger(L, 3);
-  if (idx_arg >= 0 && idx_arg < 16)
+  if (idx_arg >= 0 && idx_arg < static_cast<lua_Integer>(std::size(PowerPC::ppcState.sr)))
     PowerPC::ppcState.sr[idx_arg] = static_cast<u32>(val_arg);
   return 0;
 }
 
-// Lua: get_spr(_, number idx) -> (number)
+// Lua: spr_get(_, number idx) -> (number)
 // Returns a PowerPC SPR (special purpose) with the specified index.
-static int get_spr(lua_State* L)
+static int spr_get(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
-  u32 val = 0;
-  if (idx_arg >= 0 && idx_arg < 1024)
-    val = PowerPC::ppcState.spr[idx_arg];
+  if (idx_arg < 0 || idx_arg >= static_cast<lua_Integer>(std::size(PowerPC::ppcState.spr)))
+    return 0;
+  u32 val = PowerPC::ppcState.spr[idx_arg];
   lua_pushinteger(L, static_cast<lua_Integer>(val));
   return 1;
 }
 
-// Lua: set_spr(_, number idx) -> (number)
+// Lua: spr_set(_, number idx) -> (number)
 // Returns a PowerPC SPR (special purpose) with the specified index.
-static int set_spr(lua_State* L)
+static int spr_set(lua_State* L)
 {
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
   lua_Integer val_arg = luaL_checkinteger(L, 3);
-  if (idx_arg >= 0 && idx_arg < 1024)
+  if (idx_arg >= 0 && idx_arg < static_cast<lua_Integer>(std::size(PowerPC::ppcState.spr)))
     PowerPC::ppcState.spr[idx_arg] = static_cast<u32>(val_arg);
   return 0;
 }
@@ -439,11 +443,13 @@ static int get_ps_u32(lua_State* L)
   const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
   PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
-  u32 value = 0;
+  u32 value;
   if (idx_arg == 0)
     value = ps.PS0AsU32();
   else if (idx_arg == 1)
     value = ps.PS1AsU32();
+  else
+    return 0;
   lua_pushinteger(L, static_cast<lua_Integer>(value));
   return 1;
 }
@@ -472,11 +478,13 @@ static int get_ps_f64(lua_State* L)
   const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
   lua_Integer idx_arg = luaL_checkinteger(L, 2);
   PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
-  double value = 0;
+  double value;
   if (idx_arg == 0)
     value = ps.PS0AsDouble();
   else if (idx_arg == 1)
     value = ps.PS1AsDouble();
+  else
+    return 0;
   lua_pushnumber(L, value);
   return 1;
 }
@@ -506,7 +514,10 @@ static inline int ppc_get(lua_State* L)
   else if (std::strcmp(field, "npc") == 0)
     lua_pushinteger(L, static_cast<lua_Integer>(PowerPC::ppcState.npc));
   else
+  {
     lua_rawget(L, 1);
+    return 1 - lua_isnil(L, 1);
+  }
   return 1;
 }
 
@@ -551,7 +562,7 @@ static inline void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFu
   lua_setfield(L, -2, "__newindex");
 }
 
-// Registers a new array-like object with a custom getter and setter
+// Registers a new array-like object with a custom get, set and ipairs
 // to the table on the top of the stack.
 static inline void register_getset_object(lua_State* L, const char* name, lua_CFunction get,
                                           lua_CFunction set)
@@ -568,7 +579,7 @@ static inline void register_ps_registers(lua_State* L, const char* name, lua_CFu
 {
   lua_newtable(L);                    // object
   new_getset_metatable(L, get, set);  // metatable for elements
-  for (u8 i = 0; i < 16; i++)
+  for (u8 i = 0; i < static_cast<u8>(std::size(PowerPC::ppcState.ps)); i++)
   {
     lua_pushinteger(L, static_cast<lua_Integer>(i));
     u8* idx = reinterpret_cast<u8*>(lua_newuserdata(L, 1));
@@ -589,9 +600,9 @@ static void init(lua_State* L)
 
   // ppc object
   lua_newtable(L);
-  register_getset_object(L, "gpr", get_gpr, set_gpr);
-  register_getset_object(L, "sr", get_sr, set_sr);
-  register_getset_object(L, "spr", get_spr, set_spr);
+  register_getset_object(L, "gpr", gpr_get, gpr_set);
+  register_getset_object(L, "sr", sr_get, sr_set);
+  register_getset_object(L, "spr", spr_get, spr_set);
   register_ps_registers(L, "ps_u32", get_ps_u32, set_ps_u32);
   register_ps_registers(L, "ps_f64", get_ps_f64, set_ps_f64);
   new_getset_metatable(L, ppc_get, ppc_set);
@@ -614,11 +625,14 @@ static void init(lua_State* L)
 
 }  // namespace Lua
 
-Script::Script(const ScriptTarget& other) : m_file_path(other.file_path)
+// Constructs a script from a target.
+Script::Script(std::string file_path) : m_file_path(std::move(file_path))
 {
   Script::Load();
 }
 
+// Fully unloads a script destroying the context object, references to the script, and the Lua
+// state.
 Script::~Script()
 {
   Unload();
@@ -720,7 +734,8 @@ void LoadScripts()
 
   s_scripts.clear();
   for (auto& target : scriptTargets)
-    s_scripts.emplace_back(target);
+    if (target.active)
+      s_scripts.emplace_back(Script(target.file_path));
 }
 
 void ExecuteFrameHooks()

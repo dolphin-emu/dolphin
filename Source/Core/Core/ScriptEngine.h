@@ -43,11 +43,12 @@ public:
   };
 
 public:
-  explicit Script(const ScriptTarget&);
+  explicit Script(std::string file_path);
   ~Script();
+
+  // Script is the sole owner of the context, thus copying is forbidden.
   Script(const Script&) = delete;
   Script(Script&&) noexcept;
-  [[nodiscard]] inline const std::string& file_path() const { return m_file_path; };
 
 private:
   void Load();
