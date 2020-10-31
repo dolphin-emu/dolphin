@@ -8,6 +8,10 @@ set(MBEDTLS_INCLUDE_DIRS ${MBEDTLS_INCLUDE_DIR})
 set(MBEDTLS_LIBRARIES ${MBEDTLS_LIBRARY} ${MBEDX509_LIBRARY} ${MBEDCRYPTO_LIBRARY})
 
 set(CMAKE_REQUIRED_INCLUDES ${MBEDTLS_INCLUDE_DIRS})
+
+# Clear cache variables created by find_package_handle_standard_args.
+# Without this, an initial failure to find mbedtls will cause all later configurations to fail.
+unset(MBEDTLS_VERSION_OK CACHE)
 check_cxx_source_compiles("
 	#include <mbedtls/version.h>
 	#if MBEDTLS_VERSION_NUMBER < 0x02040000
