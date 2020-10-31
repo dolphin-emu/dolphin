@@ -258,10 +258,10 @@ static int str_write(lua_State* L)
   return 0;
 }
 
-// Lua: read_u8(number address) -> (number)
+// Lua: read_u8(_, number address) -> (number)
 static int read_u8(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
   lua_Integer result = 0;
   if (addr_arg)
     result = static_cast<lua_Integer>(PowerPC::HostRead_U8(*addr_arg));
@@ -269,10 +269,10 @@ static int read_u8(lua_State* L)
   return 1;
 }
 
-// Lua: read_u16(number address) -> (number)
+// Lua: read_u16(_, number address) -> (number)
 static int read_u16(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
   lua_Integer result = 0;
   if (addr_arg)
     result = static_cast<lua_Integer>(PowerPC::HostRead_U16(*addr_arg));
@@ -280,10 +280,10 @@ static int read_u16(lua_State* L)
   return 1;
 }
 
-// Lua: read_u32(number address) -> (number)
+// Lua: read_u32(_, number address) -> (number)
 static int read_u32(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
   lua_Integer result = 0;
   if (addr_arg)
     result = static_cast<lua_Integer>(PowerPC::HostRead_U32(*addr_arg));
@@ -291,10 +291,10 @@ static int read_u32(lua_State* L)
   return 1;
 }
 
-// Lua: read_f32(number address) -> (number)
+// Lua: read_f32(_, number address) -> (number)
 static int read_f32(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
   lua_Number result = 0;
   if (addr_arg)
     result = static_cast<lua_Number>(PowerPC::HostRead_F32(*addr_arg));
@@ -302,10 +302,10 @@ static int read_f32(lua_State* L)
   return 1;
 }
 
-// Lua: read_f64(number address) -> (number)
+// Lua: read_f64(_, number address) -> (number)
 static int read_f64(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
   lua_Number result = 0;
   if (addr_arg)
     result = PowerPC::HostRead_F64(*addr_arg);
@@ -313,12 +313,61 @@ static int read_f64(lua_State* L)
   return 1;
 }
 
-// TODO Use metatable
-// Lua: get_gpr(number idx) -> (number)
+// Lua: write_u8(_, number address, number value) -> ()
+static int write_u8(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  lua_Integer value = luaL_checkinteger(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_U8(static_cast<u8>(value), *addr_arg);
+  return 0;
+}
+
+// Lua: write_u16(_, number address, number value) -> ()
+static int write_u16(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  lua_Integer value = luaL_checkinteger(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_U16(static_cast<u16>(value), *addr_arg);
+  return 0;
+}
+
+// Lua: write_u32(_, number address, number value) -> ()
+static int write_u32(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  lua_Integer value = luaL_checkinteger(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_U32(static_cast<u32>(value), *addr_arg);
+  return 0;
+}
+
+// Lua: write_f32(_, number address, number value) -> ()
+static int write_f32(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  lua_Number value = luaL_checknumber(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_F32(static_cast<float>(value), *addr_arg);
+  return 0;
+}
+
+// Lua: write_f64(_, number address, number value) -> ()
+static int write_f64(lua_State* L)
+{
+  std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  lua_Number value = luaL_checknumber(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_F64(value, *addr_arg);
+  return 0;
+}
+
+// Lua: get_gpr(_, number idx) -> (number)
 // Returns a PowerPC GPR (general purpose register) with the specified index.
 static int get_gpr(lua_State* L)
 {
-  lua_Integer idx_arg = luaL_checkinteger(L, 1);
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
   u32 val = 0;
   if (idx_arg >= 0 && idx_arg < 32)
     val = PowerPC::ppcState.gpr[idx_arg];
@@ -326,15 +375,151 @@ static int get_gpr(lua_State* L)
   return 1;
 }
 
-// TODO Use metatable
-// Lua: set_gpr(number idx, number value) -> (number)
+// Lua: set_gpr(_, number idx, number value) -> (number)
 // Sets a PowerPC GPR (general purpose register) to the specified value.
 static int set_gpr(lua_State* L)
 {
-  lua_Integer idx_arg = luaL_checkinteger(L, 1);
-  lua_Integer val_arg = luaL_checkinteger(L, 2);
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  lua_Integer val_arg = luaL_checkinteger(L, 3);
   if (idx_arg >= 0 && idx_arg < 32)
     PowerPC::ppcState.gpr[idx_arg] = static_cast<u32>(val_arg);
+  return 0;
+}
+
+// Lua: get_sr(_, number idx) -> (number)
+// Returns a PowerPC SR (segment register) with the specified index.
+static int get_sr(lua_State* L)
+{
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  u32 val = 0;
+  if (idx_arg >= 0 && idx_arg < 16)
+    val = PowerPC::ppcState.sr[idx_arg];
+  lua_pushinteger(L, static_cast<lua_Integer>(val));
+  return 1;
+}
+
+// Lua: set_sr(_, number idx, number value) -> (number)
+// Sets a PowerPC SR (segment register) to the specified value.
+static int set_sr(lua_State* L)
+{
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  lua_Integer val_arg = luaL_checkinteger(L, 3);
+  if (idx_arg >= 0 && idx_arg < 16)
+    PowerPC::ppcState.sr[idx_arg] = static_cast<u32>(val_arg);
+  return 0;
+}
+
+// Lua: get_spr(_, number idx) -> (number)
+// Returns a PowerPC SPR (special purpose) with the specified index.
+static int get_spr(lua_State* L)
+{
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  u32 val = 0;
+  if (idx_arg >= 0 && idx_arg < 1024)
+    val = PowerPC::ppcState.spr[idx_arg];
+  lua_pushinteger(L, static_cast<lua_Integer>(val));
+  return 1;
+}
+
+// Lua: set_spr(_, number idx) -> (number)
+// Returns a PowerPC SPR (special purpose) with the specified index.
+static int set_spr(lua_State* L)
+{
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  lua_Integer val_arg = luaL_checkinteger(L, 3);
+  if (idx_arg >= 0 && idx_arg < 1024)
+    PowerPC::ppcState.spr[idx_arg] = static_cast<u32>(val_arg);
+  return 0;
+}
+
+// Lua: get_ps_u32(userdata ps_reg, number idx) -> (number)
+// Accesses one of the two elements of a PS (paired single) register in u32 mode.
+static int get_ps_u32(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  u32 value = 0;
+  if (idx_arg == 0)
+    value = ps.PS0AsU32();
+  else if (idx_arg == 1)
+    value = ps.PS1AsU32();
+  lua_pushinteger(L, static_cast<lua_Integer>(value));
+  return 1;
+}
+
+// Lua: set_ps_u32(userdata ps_reg, number idx, number value) -> ()
+// Sets one of the two elements of a PS (paired single) register in u32 mode.
+static int set_ps_u32(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  lua_Integer value_arg = luaL_checkinteger(L, 3);
+  u32 value_32 = static_cast<u32>(value_arg);
+  u64 value = static_cast<u64>(value_32);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  if (idx_arg == 0)
+    ps.SetPS0(value);
+  else if (idx_arg == 1)
+    ps.SetPS1(value);
+  return 0;
+}
+
+// Lua: get_ps_f64(userdata ps_reg, number idx) -> (number)
+// Accesses one of the two elements of a PS (paired single) register in f64 mode.
+static int get_ps_f64(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  double value = 0;
+  if (idx_arg == 0)
+    value = ps.PS0AsDouble();
+  else if (idx_arg == 1)
+    value = ps.PS1AsDouble();
+  lua_pushnumber(L, value);
+  return 1;
+}
+
+// Lua: set_ps_f64(userdata ps_reg, number idx, number value) -> ()
+// Sets one of the two elements of a PS (paired single) register in f64 mode.
+static int set_ps_f64(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  lua_Number value = luaL_checkinteger(L, 3);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  if (idx_arg == 0)
+    ps.SetPS0(value);
+  else if (idx_arg == 1)
+    ps.SetPS1(value);
+  return 0;
+}
+
+// Lua: ppc_get(table ppc, string field) -> (any)
+// Gets a field or register on the special "ppc" table.
+static inline int ppc_get(lua_State* L)
+{
+  const char* field = luaL_checkstring(L, 2);
+  if (std::strcmp(field, "pc") == 0)
+    lua_pushinteger(L, static_cast<lua_Integer>(PowerPC::ppcState.pc));
+  else if (std::strcmp(field, "npc") == 0)
+    lua_pushinteger(L, static_cast<lua_Integer>(PowerPC::ppcState.npc));
+  else
+    lua_rawget(L, 1);
+  return 1;
+}
+
+// Lua: ppc_set(table ppc, string field, number value) -> ()
+// Sets a register on the special "ppc" table.
+static inline int ppc_set(lua_State* L)
+{
+  const char* field = luaL_checkstring(L, 2);
+  lua_Integer value = luaL_checkinteger(L, 3);
+  if (std::strcmp(field, "pc") == 0)
+    PowerPC::ppcState.pc = static_cast<u32>(value);
+  if (std::strcmp(field, "npc") == 0)
+    PowerPC::ppcState.npc = static_cast<u32>(value);
   return 0;
 }
 
@@ -350,18 +535,82 @@ static const luaL_Reg dolphinlib[] = {
     DOLPHIN_LUA_METHOD(mem_write),
     DOLPHIN_LUA_METHOD(str_read),
     DOLPHIN_LUA_METHOD(str_write),
-    DOLPHIN_LUA_METHOD(read_u8),
-    DOLPHIN_LUA_METHOD(read_u16),
-    DOLPHIN_LUA_METHOD(read_u32),
-    DOLPHIN_LUA_METHOD(read_f32),
-    DOLPHIN_LUA_METHOD(read_f64),
-    // Register access
-    // TODO Write methods
-    DOLPHIN_LUA_METHOD(get_gpr),
-    DOLPHIN_LUA_METHOD(set_gpr),
     {nullptr, nullptr}
 };
 // clang-format on
+
+// Sets a custom getter and setter to the table or userdata on the top of the stack.
+static inline void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFunction set)
+{
+  lua_newtable(L);  // metatable
+  // metatable[__index] = get
+  lua_pushcfunction(L, get);
+  lua_setfield(L, -2, "__index");
+  // metatable[__newindex] = set
+  lua_pushcfunction(L, set);
+  lua_setfield(L, -2, "__newindex");
+}
+
+// Registers a new array-like object with a custom getter and setter
+// to the table on the top of the stack.
+static inline void register_getset_object(lua_State* L, const char* name, lua_CFunction get,
+                                          lua_CFunction set)
+{
+  lua_newtable(L);
+  new_getset_metatable(L, get, set);
+  lua_setmetatable(L, -2);
+  lua_setfield(L, -2, name);
+}
+
+// Registers a table with 16 userdatas representing the PS (paired single) registers.
+static inline void register_ps_registers(lua_State* L, const char* name, lua_CFunction get,
+                                         lua_CFunction set)
+{
+  lua_newtable(L);                    // object
+  new_getset_metatable(L, get, set);  // metatable for elements
+  for (u8 i = 0; i < 16; i++)
+  {
+    lua_pushinteger(L, static_cast<lua_Integer>(i));
+    u8* idx = reinterpret_cast<u8*>(lua_newuserdata(L, 1));
+    *idx = i;
+    lua_pushvalue(L, -3);
+    lua_setmetatable(L, -2);  // set metatable on userdata
+    lua_settable(L, -4);
+  }
+  lua_pop(L, 1);  // metatable of elements
+  lua_setfield(L, -2, name);
+}
+
+static void init(lua_State* L)
+{
+  luaL_openlib(L, "dolphin", Lua::dolphinlib, 0);  // TODO Don't use openlib
+  int frame = lua_gettop(L);
+  lua_getglobal(L, "dolphin");
+
+  // ppc object
+  lua_newtable(L);
+  register_getset_object(L, "gpr", get_gpr, set_gpr);
+  register_getset_object(L, "sr", get_sr, set_sr);
+  register_getset_object(L, "spr", get_spr, set_spr);
+  register_ps_registers(L, "ps_u32", get_ps_u32, set_ps_u32);
+  register_ps_registers(L, "ps_f64", get_ps_f64, set_ps_f64);
+  new_getset_metatable(L, ppc_get, ppc_set);
+  lua_setmetatable(L, -2);
+
+  // dolphin["ppc"] = ppc
+  lua_setfield(L, -2, "ppc");
+
+  // memory access
+  register_getset_object(L, "mem_u8", read_u8, write_u8);
+  register_getset_object(L, "mem_u16", read_u16, write_u16);
+  register_getset_object(L, "mem_u32", read_u32, write_u32);
+  register_getset_object(L, "mem_f32", read_f32, write_f32);
+  register_getset_object(L, "mem_f64", read_f64, write_f64);
+
+  lua_pop(L, 1);
+  assert(lua_gettop(L) == frame);
+  luaL_openlibs(L);
+}
 
 }  // namespace Lua
 
@@ -386,8 +635,7 @@ void Script::Load()
     return;
   // Create Lua state.
   lua_State* L = luaL_newstate();
-  luaL_openlib(L, "dolphin", Lua::dolphinlib, 0);
-  luaL_openlibs(L);
+  Lua::init(L);
   // TODO Register panic error handler
   m_ctx = new Context(L);
   fflush(stdout);
