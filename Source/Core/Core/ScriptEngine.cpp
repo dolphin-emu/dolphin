@@ -228,7 +228,7 @@ static int str_read(lua_State* L)
   return 1;
 }
 
-// Lua: str_write(number address, string data, number max_len) -> (string)
+// Lua: str_write(number address, string data, number max_len) -> ()
 // Writes the provided data as a C string to PowerPC memory with a maximum length.
 // The resulting string will always be zero-terminated.
 static int str_write(lua_State* L)
