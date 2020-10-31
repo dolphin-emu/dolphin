@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <list>
 #include <map>
+#include <mutex>
 #include <shared_mutex>
 
 #include "Common/Config/Config.h"

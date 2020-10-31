@@ -42,13 +42,10 @@ import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
 import org.dolphinemu.dolphinemu.fragments.SaveLoadStateFragment;
-import org.dolphinemu.dolphinemu.model.GameFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
-import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.ui.main.MainActivity;
 import org.dolphinemu.dolphinemu.ui.main.TvMainActivity;
-import org.dolphinemu.dolphinemu.ui.platform.Platform;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
 import org.dolphinemu.dolphinemu.utils.ControllerMappingHelper;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
@@ -871,10 +868,7 @@ public final class EmulationActivity extends AppCompatActivity
             {
               IntSetting.MAIN_MOTION_CONTROLS.setInt(mSettings, indexSelected);
 
-              if (indexSelected != 2)
-                mMotionListener.enable();
-              else
-                mMotionListener.disable();
+              updateMotionListener();
 
               File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);

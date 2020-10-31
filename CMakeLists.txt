@@ -545,7 +545,7 @@ if (_M_X86)
 endif()
 add_subdirectory(Externals/cpp-optparse)
 
-find_package(fmt 6.0)
+find_package(fmt 7.0)
 if(fmt_FOUND)
   message(STATUS "Using shared fmt ${fmt_VERSION}")
 else()
