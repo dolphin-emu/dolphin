@@ -4,6 +4,7 @@
 
 #include "DolphinQt/Config/ScriptsWidget.h"
 
+#include <QFileDialog>
 #include <QGridLayout>
 #include <QListWidget>
 #include <QPushButton>
@@ -12,8 +13,6 @@
 #include "Common/IniFile.h"
 
 #include "Core/ScriptEngine.h"
-
-#include "DolphinQt/Config/NewScriptDialog.h"
 
 #include "UICommon/GameFile.h"
 
@@ -64,9 +63,11 @@ void ScriptsWidget::OnItemChanged(QListWidgetItem* item)
 
 void ScriptsWidget::OnAdd()
 {
-  ScriptEngine::ScriptTarget script;
-  if (NewScriptDialog(this, script).exec())
+  QString path = QFileDialog::getOpenFileName(this, tr("Select a script"), QDir::currentPath(),
+                                              tr("Lua script (*.lua);; All Files (*)"));
+  if (!path.isEmpty())
   {
+    ScriptEngine::ScriptTarget script{.file_path = path.toStdString(), .active = true};
     m_scripts.push_back(script);
     SaveScripts();
     Update();
