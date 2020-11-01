@@ -504,20 +504,128 @@ static int set_ps_f64(lua_State* L)
   return 0;
 }
 
+// Converts a string with max 8 chars to u64.
+static constexpr u64 string_to_u64(const std::string_view& e)
+{
+  u64 res = 0;
+  if (e.length() >= 1)
+    res |= (static_cast<u64>(e[0]) << 56u);
+  if (e.length() >= 2)
+    res |= (static_cast<u64>(e[1]) << 48u);
+  if (e.length() >= 3)
+    res |= (static_cast<u64>(e[2]) << 40u);
+  if (e.length() >= 4)
+    res |= (static_cast<u64>(e[3]) << 32u);
+  if (e.length() >= 5)
+    res |= (static_cast<u64>(e[4]) << 24u);
+  if (e.length() >= 6)
+    res |= (static_cast<u64>(e[5]) << 16u);
+  if (e.length() >= 7)
+    res |= (static_cast<u64>(e[6]) << 8u);
+  if (e.length() >= 8)
+    res |= static_cast<u64>(e[7]);
+  if (e.length() >= 9)
+    res = 0;
+  return res;
+}
+
 // Lua: ppc_get(table ppc, string field) -> (any)
 // Gets a field or register on the special "ppc" table.
 static inline int ppc_get(lua_State* L)
 {
   const char* field = luaL_checkstring(L, 2);
-  if (std::strcmp(field, "pc") == 0)
-    lua_pushinteger(L, static_cast<lua_Integer>(PowerPC::ppcState.pc));
-  else if (std::strcmp(field, "npc") == 0)
-    lua_pushinteger(L, static_cast<lua_Integer>(PowerPC::ppcState.npc));
-  else
+  std::string_view field_str(field);
+  u64 field_case = string_to_u64(field_str);
+  u32 value = 0;
+
+#define PPC_GET_REGISTER(name, v)                                                                  \
+  case string_to_u64(name):                                                                        \
+    value = PowerPC::ppcState.v;                                                                   \
+    break;
+
+  switch (field_case)
   {
+    PPC_GET_REGISTER("pc", pc)
+    PPC_GET_REGISTER("npc", npc)
+    PPC_GET_REGISTER("xer", spr[SPR_XER])
+    PPC_GET_REGISTER("lr", spr[SPR_LR])
+    PPC_GET_REGISTER("ctr", spr[SPR_CTR])
+    PPC_GET_REGISTER("dsisr", spr[SPR_DSISR])
+    PPC_GET_REGISTER("dar", spr[SPR_DAR])
+    PPC_GET_REGISTER("dec", spr[SPR_DEC])
+    PPC_GET_REGISTER("sdr", spr[SPR_SDR])
+    PPC_GET_REGISTER("srr0", spr[SPR_SRR0])
+    PPC_GET_REGISTER("srr1", spr[SPR_SRR1])
+    PPC_GET_REGISTER("tl", spr[SPR_TL])
+    PPC_GET_REGISTER("tu", spr[SPR_TU])
+    PPC_GET_REGISTER("tl_w", spr[SPR_TL_W])
+    PPC_GET_REGISTER("tu_w", spr[SPR_TU_W])
+    PPC_GET_REGISTER("pvr", spr[SPR_PVR])
+    PPC_GET_REGISTER("sprg0", spr[SPR_SPRG0])
+    PPC_GET_REGISTER("sprg1", spr[SPR_SPRG1])
+    PPC_GET_REGISTER("sprg2", spr[SPR_SPRG2])
+    PPC_GET_REGISTER("sprg3", spr[SPR_SPRG3])
+    PPC_GET_REGISTER("ear", spr[SPR_EAR])
+    PPC_GET_REGISTER("ibat0u", spr[SPR_IBAT0U])
+    PPC_GET_REGISTER("ibat0l", spr[SPR_IBAT0L])
+    PPC_GET_REGISTER("ibat1u", spr[SPR_IBAT1U])
+    PPC_GET_REGISTER("ibat1l", spr[SPR_IBAT1L])
+    PPC_GET_REGISTER("ibat2u", spr[SPR_IBAT2U])
+    PPC_GET_REGISTER("ibat2l", spr[SPR_IBAT2L])
+    PPC_GET_REGISTER("ibat3u", spr[SPR_IBAT3U])
+    PPC_GET_REGISTER("ibat3l", spr[SPR_IBAT3L])
+    PPC_GET_REGISTER("dbat0u", spr[SPR_DBAT0U])
+    PPC_GET_REGISTER("dbat0l", spr[SPR_DBAT0L])
+    PPC_GET_REGISTER("dbat1u", spr[SPR_DBAT1U])
+    PPC_GET_REGISTER("dbat1l", spr[SPR_DBAT1L])
+    PPC_GET_REGISTER("dbat2u", spr[SPR_DBAT2U])
+    PPC_GET_REGISTER("dbat2l", spr[SPR_DBAT2L])
+    PPC_GET_REGISTER("dbat3u", spr[SPR_DBAT3U])
+    PPC_GET_REGISTER("dbat3l", spr[SPR_DBAT3L])
+    PPC_GET_REGISTER("ibat4u", spr[SPR_IBAT4U])
+    PPC_GET_REGISTER("ibat4l", spr[SPR_IBAT4L])
+    PPC_GET_REGISTER("ibat5u", spr[SPR_IBAT5U])
+    PPC_GET_REGISTER("ibat5l", spr[SPR_IBAT5L])
+    PPC_GET_REGISTER("ibat6u", spr[SPR_IBAT6U])
+    PPC_GET_REGISTER("ibat6l", spr[SPR_IBAT6L])
+    PPC_GET_REGISTER("ibat7u", spr[SPR_IBAT7U])
+    PPC_GET_REGISTER("ibat7l", spr[SPR_IBAT7L])
+    PPC_GET_REGISTER("dbat4u", spr[SPR_DBAT4U])
+    PPC_GET_REGISTER("dbat4l", spr[SPR_DBAT4L])
+    PPC_GET_REGISTER("dbat5u", spr[SPR_DBAT5U])
+    PPC_GET_REGISTER("dbat5l", spr[SPR_DBAT5L])
+    PPC_GET_REGISTER("dbat6u", spr[SPR_DBAT6U])
+    PPC_GET_REGISTER("dbat6l", spr[SPR_DBAT6L])
+    PPC_GET_REGISTER("dbat7u", spr[SPR_DBAT7U])
+    PPC_GET_REGISTER("dbat7l", spr[SPR_DBAT7L])
+    PPC_GET_REGISTER("gqr0", spr[SPR_GQR0])
+    PPC_GET_REGISTER("hid0", spr[SPR_HID0])
+    PPC_GET_REGISTER("hid1", spr[SPR_HID1])
+    PPC_GET_REGISTER("hid2", spr[SPR_HID2])
+    PPC_GET_REGISTER("hid4", spr[SPR_HID4])
+    PPC_GET_REGISTER("wpar", spr[SPR_WPAR])
+    PPC_GET_REGISTER("dmau", spr[SPR_DMAU])
+    PPC_GET_REGISTER("dmal", spr[SPR_DMAL])
+    PPC_GET_REGISTER("ecid_u", spr[SPR_ECID_U])
+    PPC_GET_REGISTER("ecid_m", spr[SPR_ECID_M])
+    PPC_GET_REGISTER("ecid_l", spr[SPR_ECID_L])
+    PPC_GET_REGISTER("l2cr", spr[SPR_L2CR])
+    PPC_GET_REGISTER("ummcr0", spr[SPR_UMMCR0])
+    PPC_GET_REGISTER("mmcr0", spr[SPR_MMCR0])
+    PPC_GET_REGISTER("pmc1", spr[SPR_PMC1])
+    PPC_GET_REGISTER("pmc2", spr[SPR_PMC2])
+    PPC_GET_REGISTER("ummcr1", spr[SPR_UMMCR1])
+    PPC_GET_REGISTER("mmcr1", spr[SPR_MMCR1])
+    PPC_GET_REGISTER("pmc3", spr[SPR_PMC3])
+    PPC_GET_REGISTER("pmc4", spr[SPR_PMC4])
+    PPC_GET_REGISTER("thrm1", spr[SPR_THRM1])
+    PPC_GET_REGISTER("thrm2", spr[SPR_THRM2])
+    PPC_GET_REGISTER("thrm3", spr[SPR_THRM3])
+  default:
     lua_rawget(L, 1);
     return 1 - lua_isnil(L, 1);
   }
+  lua_pushinteger(L, static_cast<lua_Integer>(value));
   return 1;
 }
 
@@ -527,10 +635,95 @@ static inline int ppc_set(lua_State* L)
 {
   const char* field = luaL_checkstring(L, 2);
   lua_Integer value = luaL_checkinteger(L, 3);
-  if (std::strcmp(field, "pc") == 0)
-    PowerPC::ppcState.pc = static_cast<u32>(value);
-  if (std::strcmp(field, "npc") == 0)
-    PowerPC::ppcState.npc = static_cast<u32>(value);
+
+#define PPC_SET_REGISTER(name, v)                                                                  \
+  case string_to_u64(name):                                                                        \
+    PowerPC::ppcState.v = static_cast<u32>(value);                                                 \
+    break;
+
+  std::string_view field_str(field);
+  u64 field_case = string_to_u64(field_str);
+  switch (field_case)
+  {
+    PPC_SET_REGISTER("pc", pc)
+    PPC_SET_REGISTER("npc", npc)
+    PPC_SET_REGISTER("xer", spr[SPR_XER])
+    PPC_SET_REGISTER("lr", spr[SPR_LR])
+    PPC_SET_REGISTER("ctr", spr[SPR_CTR])
+    PPC_SET_REGISTER("dsisr", spr[SPR_DSISR])
+    PPC_SET_REGISTER("dar", spr[SPR_DAR])
+    PPC_SET_REGISTER("dec", spr[SPR_DEC])
+    PPC_SET_REGISTER("sdr", spr[SPR_SDR])
+    PPC_SET_REGISTER("srr0", spr[SPR_SRR0])
+    PPC_SET_REGISTER("srr1", spr[SPR_SRR1])
+    PPC_SET_REGISTER("tl", spr[SPR_TL])
+    PPC_SET_REGISTER("tu", spr[SPR_TU])
+    PPC_SET_REGISTER("tl_w", spr[SPR_TL_W])
+    PPC_SET_REGISTER("tu_w", spr[SPR_TU_W])
+    PPC_SET_REGISTER("pvr", spr[SPR_PVR])
+    PPC_SET_REGISTER("sprg0", spr[SPR_SPRG0])
+    PPC_SET_REGISTER("sprg1", spr[SPR_SPRG1])
+    PPC_SET_REGISTER("sprg2", spr[SPR_SPRG2])
+    PPC_SET_REGISTER("sprg3", spr[SPR_SPRG3])
+    PPC_SET_REGISTER("ear", spr[SPR_EAR])
+    PPC_SET_REGISTER("ibat0u", spr[SPR_IBAT0U])
+    PPC_SET_REGISTER("ibat0l", spr[SPR_IBAT0L])
+    PPC_SET_REGISTER("ibat1u", spr[SPR_IBAT1U])
+    PPC_SET_REGISTER("ibat1l", spr[SPR_IBAT1L])
+    PPC_SET_REGISTER("ibat2u", spr[SPR_IBAT2U])
+    PPC_SET_REGISTER("ibat2l", spr[SPR_IBAT2L])
+    PPC_SET_REGISTER("ibat3u", spr[SPR_IBAT3U])
+    PPC_SET_REGISTER("ibat3l", spr[SPR_IBAT3L])
+    PPC_SET_REGISTER("dbat0u", spr[SPR_DBAT0U])
+    PPC_SET_REGISTER("dbat0l", spr[SPR_DBAT0L])
+    PPC_SET_REGISTER("dbat1u", spr[SPR_DBAT1U])
+    PPC_SET_REGISTER("dbat1l", spr[SPR_DBAT1L])
+    PPC_SET_REGISTER("dbat2u", spr[SPR_DBAT2U])
+    PPC_SET_REGISTER("dbat2l", spr[SPR_DBAT2L])
+    PPC_SET_REGISTER("dbat3u", spr[SPR_DBAT3U])
+    PPC_SET_REGISTER("dbat3l", spr[SPR_DBAT3L])
+    PPC_SET_REGISTER("ibat4u", spr[SPR_IBAT4U])
+    PPC_SET_REGISTER("ibat4l", spr[SPR_IBAT4L])
+    PPC_SET_REGISTER("ibat5u", spr[SPR_IBAT5U])
+    PPC_SET_REGISTER("ibat5l", spr[SPR_IBAT5L])
+    PPC_SET_REGISTER("ibat6u", spr[SPR_IBAT6U])
+    PPC_SET_REGISTER("ibat6l", spr[SPR_IBAT6L])
+    PPC_SET_REGISTER("ibat7u", spr[SPR_IBAT7U])
+    PPC_SET_REGISTER("ibat7l", spr[SPR_IBAT7L])
+    PPC_SET_REGISTER("dbat4u", spr[SPR_DBAT4U])
+    PPC_SET_REGISTER("dbat4l", spr[SPR_DBAT4L])
+    PPC_SET_REGISTER("dbat5u", spr[SPR_DBAT5U])
+    PPC_SET_REGISTER("dbat5l", spr[SPR_DBAT5L])
+    PPC_SET_REGISTER("dbat6u", spr[SPR_DBAT6U])
+    PPC_SET_REGISTER("dbat6l", spr[SPR_DBAT6L])
+    PPC_SET_REGISTER("dbat7u", spr[SPR_DBAT7U])
+    PPC_SET_REGISTER("dbat7l", spr[SPR_DBAT7L])
+    PPC_SET_REGISTER("gqr0", spr[SPR_GQR0])
+    PPC_SET_REGISTER("hid0", spr[SPR_HID0])
+    PPC_SET_REGISTER("hid1", spr[SPR_HID1])
+    PPC_SET_REGISTER("hid2", spr[SPR_HID2])
+    PPC_SET_REGISTER("hid4", spr[SPR_HID4])
+    PPC_SET_REGISTER("wpar", spr[SPR_WPAR])
+    PPC_SET_REGISTER("dmau", spr[SPR_DMAU])
+    PPC_SET_REGISTER("dmal", spr[SPR_DMAL])
+    PPC_SET_REGISTER("ecid_u", spr[SPR_ECID_U])
+    PPC_SET_REGISTER("ecid_m", spr[SPR_ECID_M])
+    PPC_SET_REGISTER("ecid_l", spr[SPR_ECID_L])
+    PPC_SET_REGISTER("l2cr", spr[SPR_L2CR])
+    PPC_SET_REGISTER("ummcr0", spr[SPR_UMMCR0])
+    PPC_SET_REGISTER("mmcr0", spr[SPR_MMCR0])
+    PPC_SET_REGISTER("pmc1", spr[SPR_PMC1])
+    PPC_SET_REGISTER("pmc2", spr[SPR_PMC2])
+    PPC_SET_REGISTER("ummcr1", spr[SPR_UMMCR1])
+    PPC_SET_REGISTER("mmcr1", spr[SPR_MMCR1])
+    PPC_SET_REGISTER("pmc3", spr[SPR_PMC3])
+    PPC_SET_REGISTER("pmc4", spr[SPR_PMC4])
+    PPC_SET_REGISTER("thrm1", spr[SPR_THRM1])
+    PPC_SET_REGISTER("thrm2", spr[SPR_THRM2])
+    PPC_SET_REGISTER("thrm3", spr[SPR_THRM3])
+  default:
+    break;
+  }
   return 0;
 }
 
@@ -650,7 +843,6 @@ void Script::Load()
   // Create Lua state.
   lua_State* L = luaL_newstate();
   Lua::init(L);
-  // TODO Register panic error handler
   m_ctx = new Context(L);
   fflush(stdout);
   m_ctx->self = m_ctx;  // TODO This looks weird.
