@@ -60,7 +60,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
   private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
   private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
-  private InputOverlayPointer overlayPointer;
+  private InputOverlayPointer overlayPointer = null;
+
+  private Rect mSurfacePosition = null;
 
   private boolean mIsFirstRun = true;
   private boolean mIsInEditMode = false;
@@ -125,19 +127,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // Load the controls if we can. If not, EmulationActivity has to do it later.
     if (NativeLibrary.IsGameMetadataValid())
-    {
-      if (NativeLibrary.IsRunning())
-      {
-        // We would've needed a refreshControls call here in addition to the initTouchPointer call
-        // if it wasn't for initTouchPointer calling refreshControls.
-        initTouchPointer();
-      }
-      else
-      {
-        // We can't call initTouchPointer yet because it needs the aspect ratio of the running game.
-        refreshControls();
-      }
-    }
+      refreshControls();
 
     // Set the on touch listener.
     setOnTouchListener(this);
@@ -149,24 +139,33 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     requestFocus();
   }
 
+  public void setSurfacePosition(Rect rect)
+  {
+    mSurfacePosition = rect;
+    initTouchPointer();
+  }
+
   public void initTouchPointer()
   {
-    // Refresh before starting the pointer
-    refreshControls();
+    // Check if we have all the data we need yet
+    boolean aspectRatioAvailable = NativeLibrary.IsRunning() && !NativeLibrary.IsBooting();
+    if (!aspectRatioAvailable || mSurfacePosition == null)
+      return;
 
-    if (NativeLibrary.IsEmulatingWii())
+    // Check if there's any point in running the pointer code
+    if (!NativeLibrary.IsEmulatingWii())
+      return;
+
+    int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
+
+    if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUK) !=
+            InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
+            doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
     {
-      int doubleTapButton = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getIntGlobal();
-
-      if (mPreferences.getInt("wiiController", OVERLAY_WIIMOTE_NUNCHUK) !=
-              InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
-              doubleTapButton == InputOverlayPointer.DOUBLE_TAP_CLASSIC_A)
-      {
-        doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
-      }
-
-      overlayPointer = new InputOverlayPointer(this.getContext(), doubleTapButton);
+      doubleTapButton = InputOverlayPointer.DOUBLE_TAP_A;
     }
+
+    overlayPointer = new InputOverlayPointer(mSurfacePosition, doubleTapButton);
   }
 
   @Override
