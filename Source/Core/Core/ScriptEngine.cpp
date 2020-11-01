@@ -938,6 +938,7 @@ void ExecuteFrameHooks()
 
 void Shutdown()
 {
+  Lua::s_frame_hooks.clear();
   s_scripts.clear();
 }
 
