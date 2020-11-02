@@ -209,20 +209,16 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
   }
 }
 
-void JitArm64::HLEFunction(UGeckoInstruction inst)
+void JitArm64::HLEFunction(u32 hook_index)
 {
+  FlushCarry();
   gpr.Flush(FlushMode::FLUSH_ALL);
   fpr.Flush(FlushMode::FLUSH_ALL);
 
   MOVI2R(W0, js.compilerPC);
-  MOVI2R(W1, inst.hex);
+  MOVI2R(W1, hook_index);
   MOVP2R(X30, &HLE::Execute);
   BLR(X30);
-
-  ARM64Reg WA = gpr.GetReg();
-  LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(npc));
-  WriteExit(WA);
-  gpr.Unlock(WA);
 }
 
 void JitArm64::DoNothing(UGeckoInstruction inst)
@@ -490,6 +486,21 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
   B(dispatcher);
 }
 
+bool JitArm64::HandleFunctionHooking(u32 address)
+{
+  return HLE::ReplaceFunctionIfPossible(address, [&](u32 hook_index, HLE::HookType type) {
+    HLEFunction(hook_index);
+
+    if (type != HLE::HookType::Replace)
+      return false;
+
+    LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
+    js.downcountAmount += js.st.numCycles;
+    WriteExit(DISPATCHER_PC);
+    return true;
+  });
+}
+
 void JitArm64::DumpCode(const u8* start, const u8* end)
 {
   std::string output;
@@ -747,6 +758,9 @@ void JitArm64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
       SetJumpTarget(NoExtException);
       SetJumpTarget(exit);
     }
+
+    if (HandleFunctionHooking(op.address))
+      break;
 
     if (!op.skip)
     {
