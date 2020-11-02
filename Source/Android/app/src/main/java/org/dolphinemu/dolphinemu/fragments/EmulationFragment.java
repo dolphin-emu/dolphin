@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.fragments;
 
 import android.content.Context;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Surface;
@@ -92,6 +93,15 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
     {
       doneButton.setOnClickListener(v -> stopConfiguringControls());
     }
+
+    contents.post(() ->
+    {
+      int overlayX = mInputOverlay.getLeft();
+      int overlayY = mInputOverlay.getTop();
+      mInputOverlay.setSurfacePosition(new Rect(
+              surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
+              surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
+    });
 
     // The new Surface created here will get passed to the native code via onSurfaceChanged.
 
