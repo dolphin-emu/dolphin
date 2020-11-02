@@ -124,22 +124,27 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
   {
     BooleanSetting.MAIN_SHOW_INPUT_OVERLAY
             .setBoolean(settings, !BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBoolean(settings));
-    mInputOverlay.refreshControls();
+
+    if (mInputOverlay != null)
+      mInputOverlay.refreshControls();
   }
 
   public void initInputPointer()
   {
-    mInputOverlay.initTouchPointer();
+    if (mInputOverlay != null)
+      mInputOverlay.initTouchPointer();
   }
 
   public void refreshInputOverlay()
   {
-    mInputOverlay.refreshControls();
+    if (mInputOverlay != null)
+      mInputOverlay.refreshControls();
   }
 
   public void resetInputOverlay()
   {
-    mInputOverlay.resetButtonPlacement();
+    if (mInputOverlay != null)
+      mInputOverlay.resetButtonPlacement();
   }
 
   @Override
@@ -169,19 +174,25 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
   public void startConfiguringControls()
   {
-    getView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
-    mInputOverlay.setIsInEditMode(true);
+    if (mInputOverlay != null)
+    {
+      requireView().findViewById(R.id.done_control_config).setVisibility(View.VISIBLE);
+      mInputOverlay.setIsInEditMode(true);
+    }
   }
 
   public void stopConfiguringControls()
   {
-    getView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
-    mInputOverlay.setIsInEditMode(false);
+    if (mInputOverlay != null)
+    {
+      requireView().findViewById(R.id.done_control_config).setVisibility(View.GONE);
+      mInputOverlay.setIsInEditMode(false);
+    }
   }
 
   public boolean isConfiguringControls()
   {
-    return mInputOverlay.isInEditMode();
+    return mInputOverlay != null && mInputOverlay.isInEditMode();
   }
 
   private static class EmulationState
