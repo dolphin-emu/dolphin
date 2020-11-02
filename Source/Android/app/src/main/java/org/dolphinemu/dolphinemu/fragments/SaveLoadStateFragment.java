@@ -104,11 +104,16 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     int action = (mSaveOrLoad == SaveOrLoad.SAVE ? saveActionsMap : loadActionsMap)[buttonIndex];
     ((EmulationActivity) getActivity()).handleMenuAction(action);
 
-    // The savestate most likely hasn't gotten saved yet (it happens asynchronously),
-    // so we unfortunately can't rely on setButtonText/GetUnixTimeOfStateSlot here.
-    Button button = (Button) view;
-    CharSequence time = DateUtils.getRelativeTimeSpanString(0, 0, DateUtils.MINUTE_IN_MILLIS);
-    button.setText(getString(R.string.emulation_state_slot, buttonIndex + 1, time));
+    if (mSaveOrLoad == SaveOrLoad.SAVE)
+    {
+      // Update the "last modified" time.
+      // The savestate most likely hasn't gotten saved to disk yet (it happens asynchronously),
+      // so we unfortunately can't rely on setButtonText/GetUnixTimeOfStateSlot here.
+
+      Button button = (Button) view;
+      CharSequence time = DateUtils.getRelativeTimeSpanString(0, 0, DateUtils.MINUTE_IN_MILLIS);
+      button.setText(getString(R.string.emulation_state_slot, buttonIndex + 1, time));
+    }
   }
 
   private void setButtonText(Button button, int index)
