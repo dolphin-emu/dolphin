@@ -223,8 +223,10 @@ static std::optional<DefaultInterface> GetSystemDefaultInterface()
     sockaddr_in addr{};
     socklen_t length = sizeof(addr);
     addr.sin_family = AF_INET;
-    // The address is irrelevant -- no packet is actually sent. This just needs to be a public IP.
+    // The address and port are irrelevant -- no packet is actually sent. These just need to be set
+    // to a valid IP and port.
     addr.sin_addr.s_addr = inet_addr(8, 8, 8, 8);
+    addr.sin_port = htons(53);
     if (connect(sock, reinterpret_cast<const sockaddr*>(&addr), sizeof(addr)) == -1)
       return {};
     if (getsockname(sock, reinterpret_cast<sockaddr*>(&addr), &length) == -1)
