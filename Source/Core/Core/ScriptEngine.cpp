@@ -27,13 +27,13 @@ namespace ScriptEngine
 // Namespace Lua hosts static binding code.
 namespace Lua
 {
-static const char* s_context_registry_key = "c";
+static constexpr char S_CONTEXT_REGISTRY_KEY[] = "c";
 static std::unordered_map<const void*, LuaFuncHandle> s_frame_hooks;
 
 // Casts a value on the Lua stack to an u32 and raises a Dolphin alert on dubious integer values.
-static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
+static std::optional<u32> luaL_checkaddress(lua_State* L, int num_idx)
 {
-  lua_Integer addr_arg = luaL_checkinteger(L, numIdx);
+  lua_Integer addr_arg = luaL_checkinteger(L, num_idx);
   if (addr_arg > 0 && addr_arg < std::numeric_limits<u32>::max())
     return static_cast<u32>(addr_arg);
   PanicAlert("Unable to resolve read address %lx (Lua)", addr_arg);
@@ -44,7 +44,7 @@ static std::optional<u32> luaL_checkaddress(lua_State* L, int numIdx)
 // The provided Lua state must originate from that context.
 static Script::Context* get_context(lua_State* L)
 {
-  lua_pushstring(L, Lua::s_context_registry_key);
+  lua_pushstring(L, Lua::S_CONTEXT_REGISTRY_KEY);
   lua_gettable(L, LUA_REGISTRYINDEX);
   void* context_ptr = lua_touserdata(L, -1);
   assert(context_ptr != nullptr);
@@ -69,8 +69,10 @@ static int hook_instruction(lua_State* L)
   // Skip if function is already registered.
   auto range = PowerPC::script_hooks.m_hooks.equal_range(addr);
   for (auto it = range.first; it != range.second; it++)
+  {
     if (it->second.lua_ptr() == lua_ptr)
       return 0;
+  }
   // Get reference to Lua function.
   Script::Context* ctx = get_context(L);
   lua_pushvalue(L, 2);
@@ -158,8 +160,8 @@ static int unhook_frame(lua_State* L)
 // Reads bytes from PowerPC memory beginning at the provided offset.
 static int mem_read(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
-  lua_Integer len_arg = luaL_checkinteger(L, 2);
+  const std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  const lua_Integer len_arg = luaL_checkinteger(L, 2);
 
   if (addr_arg)
   {
@@ -170,7 +172,9 @@ static int mem_read(lua_State* L)
     lua_pushlstring(L, cpp_str.data(), len);
   }
   else
+  {
     lua_pushlstring(L, "", 0);
+  }
 
   return 1;
 }
@@ -179,9 +183,9 @@ static int mem_read(lua_State* L)
 // Writes the provided bytes to PowerPC memory at the provided offset.
 static int mem_write(lua_State* L)
 {
-  std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
+  const std::optional<u32> addr_arg = luaL_checkaddress(L, 1);
   size_t mem_size;
-  auto* mem_ptr = reinterpret_cast<const u8*>(luaL_checklstring(L, 2, &mem_size));
+  auto* const mem_ptr = reinterpret_cast<const u8*>(luaL_checklstring(L, 2, &mem_size));
   if (!addr_arg.has_value())
     return 0;
   if (mem_ptr == nullptr)
@@ -527,7 +531,7 @@ static constexpr u64 string_to_u64(const std::string_view& e)
 
 // Lua: ppc_get(table ppc, string field) -> (any)
 // Gets a field or register on the special "ppc" table.
-static inline int ppc_get(lua_State* L)
+static int ppc_get(lua_State* L)
 {
   const char* field = luaL_checkstring(L, 2);
   std::string_view field_str(field);
@@ -629,7 +633,7 @@ static inline int ppc_get(lua_State* L)
 
 // Lua: ppc_set(table ppc, string field, number value) -> ()
 // Sets a register on the special "ppc" table.
-static inline int ppc_set(lua_State* L)
+static int ppc_set(lua_State* L)
 {
   const char* field = luaL_checkstring(L, 2);
   lua_Integer value = luaL_checkinteger(L, 3);
@@ -729,7 +733,7 @@ static inline int ppc_set(lua_State* L)
 
 // clang-format off
 #define DOLPHIN_LUA_METHOD(x) {.name = #x, .func = (x)}
-static const luaL_Reg dolphinlib[] = {
+static const luaL_Reg s_dolphin_lib[] = {
     // Hooks
     DOLPHIN_LUA_METHOD(hook_instruction),
     DOLPHIN_LUA_METHOD(unhook_instruction),
@@ -746,7 +750,7 @@ static const luaL_Reg dolphinlib[] = {
 // clang-format on
 
 // Sets a custom getter and setter to the table or userdata on the top of the stack.
-static inline void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFunction set)
+static void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFunction set)
 {
   lua_newtable(L);  // metatable
   // metatable[__index] = get
@@ -757,10 +761,10 @@ static inline void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFu
   lua_setfield(L, -2, "__newindex");
 }
 
-// Registers a new array-like object with a custom get, set and ipairs
+// Registers a new array-like object with a custom get and set
 // to the table on the top of the stack.
-static inline void register_getset_object(lua_State* L, const char* name, lua_CFunction get,
-                                          lua_CFunction set)
+static void register_getset_object(lua_State* L, const char* name, lua_CFunction get,
+                                   lua_CFunction set)
 {
   lua_newtable(L);
   new_getset_metatable(L, get, set);
@@ -768,9 +772,10 @@ static inline void register_getset_object(lua_State* L, const char* name, lua_CF
   lua_setfield(L, -2, name);
 }
 
-// Registers a table with 16 userdatas representing the PS (paired single) registers.
-static inline void register_ps_registers(lua_State* L, const char* name, lua_CFunction get,
-                                         lua_CFunction set)
+// Registers a table with 16 userdata representing the PS (paired single) registers.
+// Each userdatum is exactly one byte carrying the index of the PS register.
+static void register_ps_registers(lua_State* L, const char* name, lua_CFunction get,
+                                  lua_CFunction set)
 {
   lua_newtable(L);                    // object
   new_getset_metatable(L, get, set);  // metatable for elements
@@ -789,7 +794,7 @@ static inline void register_ps_registers(lua_State* L, const char* name, lua_CFu
 
 static void init(lua_State* L)
 {
-  luaL_openlib(L, "dolphin", Lua::dolphinlib, 0);  // TODO Don't use openlib
+  luaL_openlib(L, "dolphin", Lua::s_dolphin_lib, 0);  // TODO Don't use openlib
   int frame = lua_gettop(L);
   lua_getglobal(L, "dolphin");
 
@@ -849,7 +854,7 @@ void Script::Load()
   fflush(stdout);
   m_ctx->self = m_ctx;  // TODO This looks weird.
   // Write the context reference to Lua.
-  lua_pushstring(L, Lua::s_context_registry_key);
+  lua_pushstring(L, Lua::S_CONTEXT_REGISTRY_KEY);
   lua_pushlightuserdata(L, reinterpret_cast<void*>(m_ctx));
   lua_settable(L, LUA_REGISTRYINDEX);
   // Load script.
@@ -874,10 +879,12 @@ Script::Context::~Context()
 {
   auto& hooks = PowerPC::script_hooks.m_hooks;
   for (auto it = hooks.cbegin(); it != hooks.cend();)
+  {
     if (it->second.ctx() == self)
       hooks.erase(it++);
     else
       ++it;
+  }
   lua_close(L);
 }
 
@@ -897,39 +904,41 @@ void Script::Context::ExecuteHook(int lua_ref)
 static std::vector<Script> s_scripts;
 
 void LoadScriptSection(const std::string& section, std::vector<ScriptTarget>& scripts,
-                       IniFile& localIni)
+                       IniFile& local_ini)
 {
   // Load the name of all enabled patches
   std::vector<std::string> lines;
-  std::set<std::string> pathsEnabled;
-  std::set<std::string> pathsDisabled;
-  localIni.GetLines(section, &lines);
+  std::set<std::string> paths_enabled;
+  std::set<std::string> paths_disabled;
+  local_ini.GetLines(section, &lines);
   for (const std::string& line : lines)
   {
     if (line.length() < 2 || line[1] != ' ')
       continue;
     std::string file_path = line.substr(2);
     if (line[0] == 'y')
-      pathsEnabled.insert(file_path);
+      paths_enabled.insert(std::move(file_path));
     else if (line[0] == 'n')
-      pathsDisabled.insert(file_path);
+      paths_disabled.insert(std::move(file_path));
   }
-  for (const auto& it : pathsEnabled)
+  for (const auto& it : paths_enabled)
     scripts.push_back(ScriptTarget{.file_path = it, .active = true});
-  for (const auto& it : pathsDisabled)
+  for (const auto& it : paths_disabled)
     scripts.push_back(ScriptTarget{.file_path = it, .active = false});
 }
 
 void LoadScripts()
 {
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
-  std::vector<ScriptTarget> scriptTargets;
-  LoadScriptSection("Scripts", scriptTargets, localIni);
+  IniFile local_ini = SConfig::GetInstance().LoadLocalGameIni();
+  std::vector<ScriptTarget> script_targets;
+  LoadScriptSection("Scripts", script_targets, local_ini);
 
   s_scripts.clear();
-  for (auto& target : scriptTargets)
+  for (auto& target : script_targets)
+  {
     if (target.active)
       s_scripts.emplace_back(Script(target.file_path));
+  }
 }
 
 void ExecuteFrameHooks()

@@ -819,7 +819,6 @@ endif()
 find_package(LuaJit)
 include_directories(${LUAJIT_INCLUDE_DIRS})
 
-
 if (WIN32)
   include_directories(Externals/OpenAL/include)
 endif()

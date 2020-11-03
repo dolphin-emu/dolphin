@@ -71,10 +71,10 @@ public:
       : m_ctx(ctx), m_lua_ptr(lua_ptr), m_lua_ref(lua_ref)
   {
   }
-  inline void Execute() { m_ctx->ExecuteHook(m_lua_ref); };
-  [[nodiscard]] inline Script::Context* ctx() const { return m_ctx; };
-  [[nodiscard]] inline const void* lua_ptr() const { return m_lua_ptr; };
-  [[nodiscard]] inline int lua_ref() const { return m_lua_ref; };
+  void Execute() { m_ctx->ExecuteHook(m_lua_ref); };
+  [[nodiscard]] Script::Context* ctx() const { return m_ctx; };
+  [[nodiscard]] const void* lua_ptr() const { return m_lua_ptr; };
+  [[nodiscard]] int lua_ref() const { return m_lua_ref; };
 
 private:
   Script::Context* const m_ctx;
@@ -83,7 +83,7 @@ private:
 };
 
 void LoadScriptSection(const std::string& section, std::vector<ScriptTarget>& scripts,
-                       IniFile& localIni);
+                       IniFile& local_ini);
 void LoadScripts();
 void ExecuteFrameHooks();
 void Shutdown();

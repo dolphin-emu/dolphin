@@ -27,12 +27,7 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
-
-// TODO Hacky forward decl to ScriptEngine
-namespace ScriptEngine
-{
-void ExecuteFrameHooks();
-}
+#include "Core/ScriptEngine.h"
 
 namespace PatchEngine
 {

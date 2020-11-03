@@ -65,13 +65,12 @@ void ScriptsWidget::OnAdd()
 {
   QString path = QFileDialog::getOpenFileName(this, tr("Select a script"), QDir::currentPath(),
                                               tr("Lua script (*.lua);; All Files (*)"));
-  if (!path.isEmpty())
-  {
-    ScriptEngine::ScriptTarget script{.file_path = path.toStdString(), .active = true};
-    m_scripts.push_back(script);
-    SaveScripts();
-    Update();
-  }
+  if (path.isEmpty())
+    return;
+  ScriptEngine::ScriptTarget script{.file_path = path.toStdString(), .active = true};
+  m_scripts.push_back(script);
+  SaveScripts();
+  Update();
 }
 
 void ScriptsWidget::OnRemove()
