@@ -38,12 +38,10 @@ void ScriptsWidget::CreateWidgets()
   m_add_button = new QPushButton(tr("&Add..."));
   m_remove_button = new QPushButton(tr("&Remove"));
 
-  auto* layout = new QGridLayout;
-
+  auto* const layout = new QGridLayout;
   layout->addWidget(m_list, 0, 0, 1, -1);
   layout->addWidget(m_add_button, 1, 0);
   layout->addWidget(m_remove_button, 1, 1);
-
   setLayout(layout);
 }
 
@@ -63,12 +61,12 @@ void ScriptsWidget::OnItemChanged(QListWidgetItem* item)
 
 void ScriptsWidget::OnAdd()
 {
-  QString path = QFileDialog::getOpenFileName(this, tr("Select a script"), QDir::currentPath(),
-                                              tr("Lua script (*.lua);; All Files (*)"));
+  const QString path = QFileDialog::getOpenFileName(
+      this, tr("Select a script"), QDir::currentPath(), tr("Lua script (*.lua);; All Files (*)"));
   if (path.isEmpty())
     return;
   ScriptEngine::ScriptTarget script{.file_path = path.toStdString(), .active = true};
-  m_scripts.push_back(script);
+  m_scripts.push_back(std::move(script));
   SaveScripts();
   Update();
 }
@@ -85,7 +83,6 @@ void ScriptsWidget::OnRemove()
 void ScriptsWidget::SaveScripts()
 {
   std::vector<std::string> lines;
-
   for (const auto& script : m_scripts)
   {
     if (script.active)
@@ -106,16 +103,15 @@ void ScriptsWidget::Update()
 
   for (const auto& script : m_scripts)
   {
-    auto* item = new QListWidgetItem(QString::fromStdString(script.file_path));
+    auto* const item = new QListWidgetItem(QString::fromStdString(script.file_path));
     item->setFlags(item->flags() | Qt::ItemIsUserCheckable);
     item->setCheckState(script.active ? Qt::Checked : Qt::Unchecked);
-
     m_list->addItem(item);
   }
 }
 
 void ScriptsWidget::UpdateActions()
 {
-  bool selected = !m_list->selectedItems().isEmpty();
+  const bool selected = !m_list->selectedItems().isEmpty();
   m_remove_button->setEnabled(selected);
 }
