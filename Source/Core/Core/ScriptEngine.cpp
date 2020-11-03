@@ -22,10 +22,6 @@
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// clang-format off
-#define DOLPHIN_LUA_METHOD(x) {.name = #x, .func = (x)}
-// clang-format on
-
 namespace ScriptEngine
 {
 // Namespace Lua hosts static binding code.
@@ -625,6 +621,8 @@ static inline int ppc_get(lua_State* L)
     lua_rawget(L, 1);
     return 1 - lua_isnil(L, 1);
   }
+#undef PPC_GET_REGISTER
+
   lua_pushinteger(L, static_cast<lua_Integer>(value));
   return 1;
 }
@@ -724,10 +722,13 @@ static inline int ppc_set(lua_State* L)
   default:
     break;
   }
+#undef PPC_SET_REGISTER
+
   return 0;
 }
 
 // clang-format off
+#define DOLPHIN_LUA_METHOD(x) {.name = #x, .func = (x)}
 static const luaL_Reg dolphinlib[] = {
     // Hooks
     DOLPHIN_LUA_METHOD(hook_instruction),
@@ -741,6 +742,7 @@ static const luaL_Reg dolphinlib[] = {
     DOLPHIN_LUA_METHOD(str_write),
     {nullptr, nullptr}
 };
+#undef DOLPHIN_LUA_METHOD
 // clang-format on
 
 // Sets a custom getter and setter to the table or userdata on the top of the stack.
