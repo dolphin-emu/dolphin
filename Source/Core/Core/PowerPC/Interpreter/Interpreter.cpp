@@ -282,8 +282,7 @@ void Interpreter::Run()
 #endif
 
           // 2: check for breakpoint
-          if (PowerPC::breakpoints.IsAddressBreakPoint(PC) ||
-              PowerPC::script_hooks.HasBreakPoint(PC))
+          if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
           {
 #ifdef SHOW_HISTORY
             NOTICE_LOG(POWERPC, "----------------------------");
@@ -312,6 +311,10 @@ void Interpreter::Run()
             Host_UpdateDisasmDialog();
             return;
           }
+
+          if (PowerPC::script_hooks.HasBreakPoint(PC))
+            PowerPC::script_hooks.ExecuteBreakPoint(PC);
+
           SingleStepInner();
         }
         PowerPC::ppcState.downcount -= i;
