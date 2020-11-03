@@ -38,5 +38,5 @@ CMakeLists.txt.user
 /.idea/
 # Ignore Visual Studio Code's working dir
 /.vscode/
-
-cmake-build-debug/
+# Ignore IntelliJ's build dir
+cmake-build-*/
