@@ -65,6 +65,12 @@ OctagonAnalogStick::OctagonAnalogStick(const char* name_, const char* ui_name_,
                                        ControlState gate_radius)
     : AnalogStick(name_, ui_name_, std::make_unique<ControllerEmu::OctagonStickGate>(gate_radius))
 {
+  AddVirtualNotchSetting(&m_virtual_notch_setting, 45);
+}
+
+ControlState OctagonAnalogStick::GetVirtualNotchSize() const
+{
+  return m_virtual_notch_setting.GetValue() * MathUtil::TAU / 360;
 }
 
 }  // namespace ControllerEmu

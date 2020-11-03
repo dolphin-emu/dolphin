@@ -169,6 +169,45 @@ QPolygonF GetPolygonFromRadiusGetter(F&& radius_getter)
   return shape;
 }
 
+// Constructs a polygon by querying a radius at varying angles:
+template <typename F>
+QPolygonF GetPolygonSegmentFromRadiusGetter(F&& radius_getter, double direction,
+                                            double segment_size, double segment_depth)
+{
+  constexpr int shape_point_count = 6;
+  QPolygonF shape{shape_point_count};
+
+  // We subtract from the provided direction angle so it's better
+  // to add Tau here to prevent a negative value instead of
+  // expecting the function call to be aware of this internal logic
+  const double center_angle = direction + MathUtil::TAU;
+  const double center_radius_outer = radius_getter(center_angle);
+  const double center_radius_inner = center_radius_outer - segment_depth;
+
+  const double lower_angle = center_angle - segment_size / 2;
+  const double lower_radius_outer = radius_getter(lower_angle);
+  const double lower_radius_inner = lower_radius_outer - segment_depth;
+
+  const double upper_angle = center_angle + segment_size / 2;
+  const double upper_radius_outer = radius_getter(upper_angle);
+  const double upper_radius_inner = upper_radius_outer - segment_depth;
+
+  shape[0] = {std::cos(lower_angle) * (lower_radius_inner),
+              std::sin(lower_angle) * (lower_radius_inner)};
+  shape[1] = {std::cos(center_angle) * (center_radius_inner),
+              std::sin(center_angle) * (center_radius_inner)};
+  shape[2] = {std::cos(upper_angle) * (upper_radius_inner),
+              std::sin(upper_angle) * (upper_radius_inner)};
+  shape[3] = {std::cos(upper_angle) * upper_radius_outer,
+              std::sin(upper_angle) * upper_radius_outer};
+  shape[4] = {std::cos(center_angle) * center_radius_outer,
+              std::sin(center_angle) * center_radius_outer};
+  shape[5] = {std::cos(lower_angle) * lower_radius_outer,
+              std::sin(lower_angle) * lower_radius_outer};
+
+  return shape;
+}
+
 // Used to check if the user seems to have attempted proper calibration.
 bool IsCalibrationDataSensible(const ControllerEmu::ReshapableInput::CalibrationData& data)
 {
@@ -208,6 +247,24 @@ bool IsPointOutsideCalibration(Common::DVec2 point, ControllerEmu::ReshapableInp
   constexpr double ALLOWED_ERROR = 1.3;
 
   return current_radius > input_radius * ALLOWED_ERROR;
+}
+
+void DrawVirtualNotches(QPainter& p, ControllerEmu::ReshapableInput& stick, QColor notch_color)
+{
+  const double segment_size = stick.GetVirtualNotchSize();
+  if (segment_size <= 0.0)
+    return;
+
+  p.setBrush(notch_color);
+  for (int i = 0; i < 8; ++i)
+  {
+    const double segment_depth = 1.0 - ControllerEmu::MINIMUM_NOTCH_DISTANCE;
+    const double segment_gap = MathUtil::TAU / 8.0;
+    const double direction = segment_gap * i;
+    p.drawPolygon(GetPolygonSegmentFromRadiusGetter(
+        [&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }, direction, segment_size,
+        segment_depth));
+  }
 }
 
 template <typename F>
@@ -300,6 +357,8 @@ void ReshapableInputIndicator::DrawReshapableInput(
   p.setBrush(gate_brush_color);
   p.drawPolygon(
       GetPolygonFromRadiusGetter([&stick](double ang) { return stick.GetGateRadiusAtAngle(ang); }));
+
+  DrawVirtualNotches(p, stick, gate_pen_color);
 
   const auto center = stick.GetCenter();
 
