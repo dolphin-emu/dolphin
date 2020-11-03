@@ -19,9 +19,12 @@
 #include "DolphinQt/Config/InfoWidget.h"
 #include "DolphinQt/Config/PatchesWidget.h"
 #include "DolphinQt/Config/PropertiesDialog.h"
-#include "DolphinQt/Config/ScriptsWidget.h"
 #include "DolphinQt/Config/VerifyWidget.h"
 #include "DolphinQt/QtUtils/WrapInScrollArea.h"
+
+#ifdef USE_LUA_SCRIPTS
+#include "DolphinQt/Config/ScriptsWidget.h"
+#endif
 
 #include "UICommon/GameFile.h"
 
@@ -43,7 +46,6 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   GeckoCodeWidget* gecko = new GeckoCodeWidget(game);
   PatchesWidget* patches = new PatchesWidget(game);
   GameConfigWidget* game_config = new GameConfigWidget(game);
-  ScriptsWidget* scripts = new ScriptsWidget(game);
 
   connect(gecko, &GeckoCodeWidget::OpenGeneralSettings, this,
           &PropertiesDialog::OpenGeneralSettings);
@@ -59,7 +61,11 @@ PropertiesDialog::PropertiesDialog(QWidget* parent, const UICommon::GameFile& ga
   tab_widget->addTab(GetWrappedWidget(gecko, this, padding_width, padding_height),
                      tr("Gecko Codes"));
   tab_widget->addTab(GetWrappedWidget(info, this, padding_width, padding_height), tr("Info"));
+
+#ifdef USE_LUA_SCRIPTS
+  ScriptsWidget* scripts = new ScriptsWidget(game);
   tab_widget->addTab(GetWrappedWidget(scripts, this, padding_width, padding_height), tr("Scripts"));
+#endif
 
   if (game.GetPlatform() != DiscIO::Platform::ELFOrDOL)
   {

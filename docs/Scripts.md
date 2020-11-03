@@ -8,7 +8,7 @@ Scripts will have access to your system like any other program, including the ab
 
 **Requirements**
 
-Script support is disabled by default, and has to be enabled via CMake flag ... (TODO)
+Script support is disabled by default, and has to be enabled via CMake flag `-DLUA_SCRIPTS=true`.
 
 Scripting support requires LuaJIT headers while compiling and the LuaJIT library at runtime.
 Debian provides both with the `luajit` package.

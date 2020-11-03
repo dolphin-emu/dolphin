@@ -246,9 +246,14 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!op.skip)
     {
+#ifndef USE_LUA_SCRIPTS
+      const bool breakpoint = SConfig::GetInstance().bEnableDebugging &&
+                              PowerPC::breakpoints.IsAddressBreakPoint(op.address);
+#else
       const bool breakpoint = SConfig::GetInstance().bEnableDebugging &&
                               (PowerPC::breakpoints.IsAddressBreakPoint(op.address) ||
                                PowerPC::script_hooks.HasBreakPoint(op.address));
+#endif
       const bool check_fpu = (op.opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
       const bool endblock = (op.opinfo->flags & FL_ENDBLOCK) != 0;
       const bool memcheck = (op.opinfo->flags & FL_LOADSTORE) && jo.memcheck;

@@ -816,8 +816,11 @@ else()
   message(STATUS "libsystemd not found, disabling traversal server watchdog support")
 endif()
 
-find_package(LuaJit)
-include_directories(${LUAJIT_INCLUDE_DIRS})
+if(LUA_SCRIPTS)
+  find_package(LuaJit)
+  include_directories(${LUAJIT_INCLUDE_DIRS})
+  add_definitions(-DUSE_LUA_SCRIPTS)
+endif()
 
 if (WIN32)
   include_directories(Externals/OpenAL/include)

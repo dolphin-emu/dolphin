@@ -35,8 +35,6 @@ add_library(core
   NetPlayServer.h
   PatchEngine.cpp
   PatchEngine.h
-  ScriptEngine.cpp
-  ScriptEngine.h
   State.cpp
   State.h
   SyncIdentifier.h
@@ -472,6 +470,15 @@ add_library(core
   PowerPC/Interpreter/Interpreter_Tables.cpp
 )
 
+if(LUA_SCRIPTS)
+target_sources(core PRIVATE
+  ScriptEngine.cpp
+  ScriptEngine.h
+  PowerPC/ScriptHooks.cpp
+  PowerPC/ScriptHooks.h
+)
+endif()
+
 if(_M_X86)
   target_sources(core PRIVATE
     DSP/Jit/x64/DSPEmitter.cpp
@@ -687,4 +694,6 @@ if(UNIX)
   )
 endif()
 
-target_link_libraries(core PUBLIC ${LUAJIT_LIBRARIES})
+if(LUA_SCRIPTS)
+  target_link_libraries(core PUBLIC ${LUAJIT_LIBRARIES})
+endif()

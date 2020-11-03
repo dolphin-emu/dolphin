@@ -1066,9 +1066,12 @@ bool Jit64::DoJit(u32 em_address, JitBlock* b, u32 nextPC)
         js.firstFPInstructionFound = true;
       }
 
-      if (SConfig::GetInstance().bEnableDebugging &&
-          (breakpoints.IsAddressBreakPoint(op.address) || script_hooks.HasBreakPoint(op.address)) &&
-          !CPU::IsStepping())
+      bool has_breakpoint = breakpoints.IsAddressBreakPoint(op.address);
+#ifdef USE_LUA_SCRIPTS
+      has_breakpoint = has_breakpoint || script_hooks.HasBreakPoint(op.address);
+#endif
+
+      if (SConfig::GetInstance().bEnableDebugging && has_breakpoint && !CPU::IsStepping())
       {
         // Turn off block linking if there are breakpoints so that the Step Over command does not
         // link this block.

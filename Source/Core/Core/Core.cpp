@@ -62,7 +62,6 @@
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/ScriptEngine.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 
@@ -72,6 +71,10 @@
 
 #ifdef USE_MEMORYWATCHER
 #include "Core/MemoryWatcher.h"
+#endif
+
+#ifdef USE_LUA_SCRIPTS
+#include "Core/ScriptEngine.h"
 #endif
 
 #include "InputCommon/ControlReference/ControlReference.h"
@@ -531,7 +534,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     BootManager::RestoreConfig();
 
     PatchEngine::Shutdown();
+#ifdef USE_LUA_SCRIPTS
     ScriptEngine::Shutdown();
+#endif
     HLE::Clear();
   }};
 

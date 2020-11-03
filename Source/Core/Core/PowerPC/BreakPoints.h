@@ -5,12 +5,10 @@
 #pragma once
 
 #include <cstddef>
-#include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/ScriptEngine.h"
 
 namespace Common
 {
@@ -100,15 +98,4 @@ public:
 
 private:
   TMemChecks m_mem_checks;
-};
-
-// Script hooks
-class ScriptHooks
-{
-public:
-  [[nodiscard]] bool HasBreakPoint(u32 address) const;
-  void ExecuteBreakPoint(u32 address);
-
-public:
-  std::multimap<u32, ScriptEngine::LuaFuncHandle> m_hooks;
 };

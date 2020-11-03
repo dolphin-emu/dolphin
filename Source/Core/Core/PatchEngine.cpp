@@ -27,7 +27,10 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PowerPC/MMU.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#ifdef USE_LUA_SCRIPTS
 #include "Core/ScriptEngine.h"
+#endif
 
 namespace PatchEngine
 {
@@ -257,9 +260,11 @@ bool ApplyFramePatches()
   Gecko::RunCodeHandler();
   ActionReplay::RunAllActive();
 
+#ifdef USE_LUA_SCRIPTS
   // Sneak in a call to ScriptEngine.
   // TODO Ugly design
   ScriptEngine::ExecuteFrameHooks();
+#endif
 
   return true;
 }

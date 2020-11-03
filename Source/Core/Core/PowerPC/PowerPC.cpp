@@ -41,9 +41,12 @@ Interpreter* const s_interpreter = Interpreter::getInstance();
 static CoreMode s_mode = CoreMode::Interpreter;
 
 BreakPoints breakpoints;
-ScriptHooks script_hooks;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
+
+#ifdef USE_LUA_SCRIPTS
+ScriptHooks script_hooks;
+#endif
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;
 
@@ -616,7 +619,9 @@ void CheckBreakPoints()
     if (PowerPC::breakpoints.IsTempBreakPoint(PC))
       PowerPC::breakpoints.Remove(PC);
   }
+#ifdef USE_LUA_SCRIPTS
   PowerPC::script_hooks.ExecuteBreakPoint(PC);
+#endif
 }
 
 void PowerPCState::SetSR(u32 index, u32 value)

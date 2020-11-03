@@ -56,7 +56,10 @@ namespace fs = std::filesystem;
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
+
+#ifdef USE_LUA_SCRIPTS
 #include "Core/ScriptEngine.h"
+#endif
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/VolumeDisc.h"
@@ -537,7 +540,9 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
     return false;
 
   PatchEngine::LoadPatches();
+#ifdef USE_LUA_SCRIPTS
   ScriptEngine::LoadScripts();
+#endif
   HLE::PatchFixedFunctions();
   return true;
 }

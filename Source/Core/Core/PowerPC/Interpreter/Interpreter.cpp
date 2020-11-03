@@ -312,8 +312,10 @@ void Interpreter::Run()
             return;
           }
 
+#ifdef USE_LUA_SCRIPTS
           if (PowerPC::script_hooks.HasBreakPoint(PC))
             PowerPC::script_hooks.ExecuteBreakPoint(PC);
+#endif
 
           SingleStepInner();
         }

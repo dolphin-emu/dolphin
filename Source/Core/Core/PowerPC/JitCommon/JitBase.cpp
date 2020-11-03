@@ -33,10 +33,15 @@ bool JitBase::CanMergeNextInstructions(int count) const
   // Be careful: a breakpoint kills flags in between instructions
   for (int i = 1; i <= count; i++)
   {
-    if (SConfig::GetInstance().bEnableDebugging &&
-        (PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address) ||
-         PowerPC::script_hooks.HasBreakPoint(js.op[i].address)))
-      return false;
+    if (SConfig::GetInstance().bEnableDebugging)
+    {
+      if (PowerPC::breakpoints.IsAddressBreakPoint(js.op[i].address))
+        return false;
+#ifdef USE_LUA_SCRIPTS
+      if (PowerPC::script_hooks.HasBreakPoint(js.op[i].address))
+        return false;
+#endif
+    }
     if (js.op[i].isBranchTarget)
       return false;
   }

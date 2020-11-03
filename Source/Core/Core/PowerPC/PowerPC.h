@@ -18,6 +18,10 @@
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 
+#ifdef USE_LUA_SCRIPTS
+#include "Core/PowerPC/ScriptHooks.h"
+#endif
+
 class CPUCoreBase;
 class PointerWrap;
 
@@ -173,9 +177,12 @@ static_assert(offsetof(PowerPC::PowerPCState, above_fits_in_first_0x100) <= 0x10
 extern PowerPCState ppcState;
 
 extern BreakPoints breakpoints;
-extern ScriptHooks script_hooks;
 extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
+
+#ifdef USE_LUA_SCRIPTS
+extern ScriptHooks script_hooks;
+#endif
 
 const std::vector<CPUCore>& AvailableCPUCores();
 CPUCore DefaultCPUCore();
