@@ -186,16 +186,19 @@ private:
   {
     Request request;
     bool is_ssl;
+    bool is_aborted = false;
     union
     {
       NET_IOCTL net_type;
       SSL_IOCTL ssl_type;
     };
+    void Abort(s32 value);
   };
 
   friend class WiiSockMan;
   void SetFd(s32 s);
   void SetWiiFd(s32 s);
+  s32 Shutdown(u32 how);
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
@@ -246,7 +249,8 @@ public:
   s32 AddSocket(s32 fd, bool is_rw);
   bool IsSocketBlocking(s32 wii_fd) const;
   s32 GetHostSocket(s32 wii_fd) const;
-  s32 DeleteSocket(s32 s);
+  s32 ShutdownSocket(s32 wii_fd, u32 how);
+  s32 DeleteSocket(s32 wii_fd);
   s32 GetLastNetError() const { return errno_last; }
   void SetLastNetError(s32 error) { errno_last = error; }
   void Clean() { WiiSockets.clear(); }

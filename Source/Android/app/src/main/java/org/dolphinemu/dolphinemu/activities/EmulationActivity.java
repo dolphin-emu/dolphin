@@ -73,7 +73,6 @@ public final class EmulationActivity extends AppCompatActivity
 
   private Settings mSettings;
 
-  private boolean mDeviceHasTouchScreen;
   private boolean mMenuVisible;
 
   private static boolean sIgnoreLaunchRequests = false;
@@ -229,7 +228,6 @@ public final class EmulationActivity extends AppCompatActivity
 
     updateOrientation();
 
-    mDeviceHasTouchScreen = getPackageManager().hasSystemFeature("android.hardware.touchscreen");
     mMotionListener = new MotionListener(this);
 
     // Set these options now so that the SurfaceView the game renders into is the right size.
@@ -311,8 +309,7 @@ public final class EmulationActivity extends AppCompatActivity
     setTitle(NativeLibrary.GetCurrentTitleDescription());
     updateMotionListener();
 
-    if (mDeviceHasTouchScreen)
-      mEmulationFragment.refreshInputOverlay();
+    mEmulationFragment.refreshInputOverlay();
   }
 
   private void updateMotionListener()
@@ -1169,7 +1166,6 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void initInputPointer()
   {
-    if (mDeviceHasTouchScreen)
-      mEmulationFragment.initInputPointer();
+    mEmulationFragment.initInputPointer();
   }
 }

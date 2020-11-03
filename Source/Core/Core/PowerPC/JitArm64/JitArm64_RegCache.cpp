@@ -239,20 +239,7 @@ void Arm64GPRCache::FlushCRRegisters(BitSet32 regs, bool maintain_state)
 
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
-  BitSet32 to_flush;
-  for (size_t i = 0; i < GUEST_GPR_COUNT; ++i)
-  {
-    bool flush = true;
-    if (m_guest_registers[i].GetType() == REG_REG)
-    {
-      // Has to be flushed if it isn't in a callee saved register
-      ARM64Reg host_reg = m_guest_registers[i].GetReg();
-      flush = IsCalleeSaved(host_reg) ? flush : true;
-    }
-
-    to_flush[i] = flush;
-  }
-  FlushRegisters(to_flush, mode == FLUSH_MAINTAIN_STATE);
+  FlushRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
   FlushCRRegisters(BitSet32(~0U), mode == FLUSH_MAINTAIN_STATE);
 }
 
