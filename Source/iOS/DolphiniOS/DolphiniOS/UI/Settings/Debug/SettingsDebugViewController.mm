@@ -13,7 +13,6 @@
 #define MISC_ROW_SYNC_ON_SKIP_IDLE 0
 #define MISC_ROW_FASTMEM 1
 #define MISC_ROW_CONSOLE_LOG 2
-#define MISC_ROW_SET_DEBUGGED 3
 
 @interface SettingsDebugViewController ()
 
@@ -47,11 +46,6 @@
 #ifdef NONJAILBROKEN
   [self.m_fastmem_switch setEnabled:false];
 #endif
-  
-  if (IsProcessDebugged())
-  {
-    [self DisableSetDebuggedCell];
-  }
 }
 
 - (void)DisableSetDebuggedCell
@@ -141,14 +135,6 @@
       // Reload
       SConfig::GetInstance().LoadSettings();
     }
-    else if (indexPath.row == MISC_ROW_SET_DEBUGGED)
-    {
-      if (!IsProcessDebugged())
-      {
-        SetProcessDebugged();
-        [self DisableSetDebuggedCell];
-      }
-    }
   }
   
   [self.tableView deselectRowAtIndexPath:indexPath animated:true];
@@ -171,10 +157,6 @@
     {
       message = NSLocalizedString(@"This button will enable debug logging to the console. To undo, delete User/Config/Logger.ini.\n\nWARNING: Enabling this will cause a slight performance decrease.", nil);
     }
-    else if (indexPath.row == MISC_ROW_SET_DEBUGGED)
-    {
-      message = NSLocalizedString(@"This button will set DolphiniOS's process as debugged using a hack.\n\nThis hack can trigger an iOS bug which will cause DolphiniOS to crash or freeze on launch if it is quit by iOS. If you are finished using the emulator, you should press the Quit button in Settings to quit DolphiniOS manually to avoid this bug.\n\nOnly press this button if you are experiencing memory errors or freezes when you start a game.", nil);
-    }
     
     UIAlertController* controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Help") message:message preferredStyle:UIAlertControllerStyleAlert];
     
@@ -186,13 +168,6 @@
 
 - (CGFloat)tableView:(UITableView*)tableView heightForRowAtIndexPath:(NSIndexPath*)indexPath
 {
-//#ifndef NONJAILBROKEN
-  if (indexPath.section == 1 && indexPath.row == MISC_ROW_SET_DEBUGGED)
-  {
-    return CGFLOAT_MIN;
-  }
-//#endif
-  
   return [super tableView:tableView heightForRowAtIndexPath:indexPath];
 }
 
