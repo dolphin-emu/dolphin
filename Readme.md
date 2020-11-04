@@ -20,8 +20,7 @@ You'll need:
 ### Clone the repo
 
 ```
-git clone git@github.com:OatmealDome/dolphin.git
-git checkout ios-jb
+git clone -b ios-jb https://github.com/OatmealDome/dolphin.git
 ```
 
 ### Install required dependencies
