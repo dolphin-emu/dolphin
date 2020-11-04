@@ -4,19 +4,16 @@
 
 #import "AppDelegate.h"
 
-#import "DebuggerUtils.h"
+#import "JitAcquisitionUtils.h"
 
 #import <UIKit/UIKit.h>
 
 
 int main(int argc, char* argv[])
 {
-  if (!IsProcessDebugged())
+  @autoreleasepool
   {
-    @autoreleasepool
-    {
-      SetProcessDebugged();
-    }
+    AcquireJit();
   }
   
   NSString* appDelegateClassName;

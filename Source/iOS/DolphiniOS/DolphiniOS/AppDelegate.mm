@@ -30,8 +30,6 @@
 #import "Core/PowerPC/PowerPC.h"
 #import "Core/State.h"
 
-#import "DebuggerUtils.h"
-
 #import "DolphiniOS-Swift.h"
 
 #import "DonationNoticeViewController.h"
@@ -50,6 +48,8 @@
 #import "InputCommon/InputConfig.h"
 
 #import "InvalidCpuCoreNoticeViewController.h"
+
+#import "JitAcquisitionUtils.h"
 
 #import "KilledBuildNoticeViewController.h"
 
@@ -101,7 +101,7 @@
 #endif
   
 #ifdef NONJAILBROKEN
-  if (!IsProcessDebugged())
+  if (!HasJit())
   {
     if (@available(iOS 14, *))
     {
@@ -615,7 +615,7 @@
   UICommon::Shutdown();
   
 #ifdef NONJAILBROKEN
-  if (IsProcessDebugged())
+  if (HasJit())
   {
     exit(0);
   }
