@@ -37,6 +37,7 @@ Inspect and manipulate PowerPC register state.
 | `dolphin.ppc.sr[x]`     | `u32[16]`        | SRs (segment registers)            |
 | `dolphin.ppc.spr[x]`    | `u32[1024]`      | SPRs (special purpose registers)   |
 | `dolphin.ppc.ps_u32[x]` | `(u32, u32)[32]` | paired single registers (u32 mode) |
+| `dolphin.ppc.ps_u64[x]` | `(u64, u64)[32]` | paired single registers (u64 mode) |
 | `dolphin.ppc.ps_f64[x]` | `(f64, f64)[32]` | paired single registers (f64 mode) |
 
 ### Memory access
@@ -52,6 +53,7 @@ Lua tables taking an address as index. Supports unaligned access.
 | `dolphin.ppc.mem_u8`  | `u8[*]`  | Read/write u8             |
 | `dolphin.ppc.mem_u16` | `u16[*]` | Read/write big-endian u16 |
 | `dolphin.ppc.mem_u32` | `u32[*]` | Read/write big-endian u32 |
+| `dolphin.ppc.mem_u64` | `u32[*]` | Read/write big-endian u64 |
 | `dolphin.ppc.mem_f32` | `f32[*]` | Read/write big-endian f32 |
 | `dolphin.ppc.mem_f64` | `f64[*]` | Read/write big-endian f64 |
 

@@ -296,6 +296,17 @@ static int read_u32(lua_State* L)
   return 1;
 }
 
+// Lua: read_u64(_, number address) -> (number)
+static int read_u64(lua_State* L)
+{
+  const std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  if (!addr_arg)
+    return 0;
+  const auto result = static_cast<lua_Integer>(PowerPC::HostRead_U64(*addr_arg));
+  lua_pushinteger(L, result);
+  return 1;
+}
+
 // Lua: read_f32(_, number address) -> (number)
 static int read_f32(lua_State* L)
 {
@@ -345,6 +356,16 @@ static int write_u32(lua_State* L)
   const lua_Integer value = luaL_checkinteger(L, 3);
   if (addr_arg)
     PowerPC::HostWrite_U32(static_cast<u32>(value), *addr_arg);
+  return 0;
+}
+
+// Lua: write_u64(_, number address, number value) -> ()
+static int write_u64(lua_State* L)
+{
+  const std::optional<u32> addr_arg = luaL_checkaddress(L, 2);
+  const lua_Integer value = luaL_checkinteger(L, 3);
+  if (addr_arg)
+    PowerPC::HostWrite_U64(static_cast<u64>(value), *addr_arg);
   return 0;
 }
 
@@ -465,6 +486,40 @@ static int set_ps_u32(lua_State* L)
   const lua_Integer value_arg = luaL_checkinteger(L, 3);
   const u32 value_32 = static_cast<u32>(value_arg);
   const u64 value = static_cast<u64>(value_32);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  if (idx_arg == 0)
+    ps.SetPS0(value);
+  else if (idx_arg == 1)
+    ps.SetPS1(value);
+  return 0;
+}
+
+// Lua: get_ps_u64(userdata ps_reg, number idx) -> (number)
+// Accesses one of the two elements of a PS (paired single) register in u64 mode.
+static int get_ps_u64(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  const lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
+  u64 value;
+  if (idx_arg == 0)
+    value = ps.PS0AsU64();
+  else if (idx_arg == 1)
+    value = ps.PS1AsU64();
+  else
+    return 0;
+  lua_pushinteger(L, static_cast<lua_Integer>(value));
+  return 1;
+}
+
+// Lua: set_ps_u64(userdata ps_reg, number idx, number value) -> ()
+// Sets one of the two elements of a PS (paired single) register in u64 mode.
+static int set_ps_u64(lua_State* L)
+{
+  const u8* idx = reinterpret_cast<const u8*>(lua_touserdata(L, 1));
+  const lua_Integer idx_arg = luaL_checkinteger(L, 2);
+  const lua_Integer value_arg = luaL_checkinteger(L, 3);
+  const u64 value = static_cast<u64>(value_arg);
   PowerPC::PairedSingle& ps = PowerPC::ppcState.ps[*idx];
   if (idx_arg == 0)
     ps.SetPS0(value);
@@ -801,6 +856,7 @@ static void init(lua_State* L)
   register_getset_object(L, "sr", sr_get, sr_set);
   register_getset_object(L, "spr", spr_get, spr_set);
   register_ps_registers(L, "ps_u32", get_ps_u32, set_ps_u32);
+  register_ps_registers(L, "ps_u64", get_ps_u64, set_ps_u64);
   register_ps_registers(L, "ps_f64", get_ps_f64, set_ps_f64);
   new_getset_metatable(L, ppc_get, ppc_set);
   lua_setmetatable(L, -2);
@@ -812,6 +868,7 @@ static void init(lua_State* L)
   register_getset_object(L, "mem_u8", read_u8, write_u8);
   register_getset_object(L, "mem_u16", read_u16, write_u16);
   register_getset_object(L, "mem_u32", read_u32, write_u32);
+  register_getset_object(L, "mem_u64", read_u64, write_u64);
   register_getset_object(L, "mem_f32", read_f32, write_f32);
   register_getset_object(L, "mem_f64", read_f64, write_f64);
 
