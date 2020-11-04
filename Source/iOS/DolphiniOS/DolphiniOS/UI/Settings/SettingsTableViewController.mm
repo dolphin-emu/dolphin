@@ -8,7 +8,7 @@
 
 #import "Common/CommonFuncs.h"
 
-#import "DebuggerUtils.h"
+#import "JitAcquisitionUtils.h"
 
 @interface SettingsTableViewController ()
 
@@ -88,7 +88,7 @@
 #if !defined(NONJAILBROKEN) || DEBUG
     return CGFLOAT_MIN;
 #else
-    return IsProcessDebugged() ? real_height : CGFLOAT_MIN;
+    return HasJitWithPTrace() ? real_height : CGFLOAT_MIN;
 #endif
   }
   

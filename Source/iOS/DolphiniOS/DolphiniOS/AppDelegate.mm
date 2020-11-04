@@ -615,7 +615,7 @@
   UICommon::Shutdown();
   
 #ifdef NONJAILBROKEN
-  if (HasJit())
+  if (HasJitWithPTrace())
   {
     exit(0);
   }
