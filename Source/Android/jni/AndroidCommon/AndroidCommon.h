@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <ios>
 #include <string>
 
 #include <jni.h>
@@ -17,6 +18,7 @@ bool IsPathAndroidContent(const std::string& uri);
 
 // Turns a C/C++ style mode (e.g. "rb") into one which can be used with OpenAndroidContent.
 std::string OpenModeToAndroid(std::string mode);
+std::string OpenModeToAndroid(std::ios_base::openmode mode);
 
 // Opens a given file and returns a file descriptor.
 int OpenAndroidContent(const std::string& uri, const std::string& mode);

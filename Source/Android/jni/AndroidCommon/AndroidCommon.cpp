@@ -4,6 +4,7 @@
 
 #include "jni/AndroidCommon/AndroidCommon.h"
 
+#include <ios>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -64,6 +65,28 @@ std::string OpenModeToAndroid(std::string mode)
     mode = "wa";
 
   return mode;
+}
+
+std::string OpenModeToAndroid(std::ios_base::openmode mode)
+{
+  std::string result;
+
+  if (mode & std::ios_base::in)
+    result += 'r';
+
+  if (mode & (std::ios_base::out | std::ios_base::app))
+    result += 'w';
+
+  if (mode & std::ios_base::app)
+    result += 'a';
+
+  constexpr std::ios_base::openmode t = std::ios_base::in | std::ios_base::trunc;
+  if ((mode & t) == t)
+    result += 't';
+
+  // The 'b' specifier is not supported. Since we're on POSIX, it's fine to just skip it.
+
+  return result;
 }
 
 int OpenAndroidContent(const std::string& uri, const std::string& mode)
