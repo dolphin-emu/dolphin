@@ -1,13 +1,5 @@
 -- Example script for use with RMCP01 (Mario Kart Wii PAL)
 
--- LuaJIT runtime fingerprinting
-empty_table = {}
-if empty_table["__len"] ~= 0 then
-  print("Running default LuaJIT with Lua 5.1 support")
-else
-  print("Running LuaJIT with Lua 5.2 feature opt-in")
-end
-
 -- General purpose registers
 for i = 0, 31, 1 do
   print(string.format("gpr[%d] = %x", i, dolphin.ppc.gpr[i]))

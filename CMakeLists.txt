@@ -817,8 +817,8 @@ else()
 endif()
 
 if(LUA_SCRIPTS)
-  find_package(LuaJit)
-  include_directories(${LUAJIT_INCLUDE_DIRS})
+  find_package(Lua 5.3 REQUIRED)
+  include_directories(${LUA_INCLUDE_DIR})
   add_definitions(-DUSE_LUA_SCRIPTS)
 endif()
 

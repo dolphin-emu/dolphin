@@ -1,7 +1,6 @@
 # Lua Scripts
 
-Dolphin ships support for Lua 5.1 scripts that run embedded with the emulator
-through [LuaJIT](https://luajit.org/) 2.0 or 2.1.
+Dolphin ships support for Lua 5.3 scripts that run embedded with the emulator.
 
 *Caution:* Never run untrusted scripts or scripts you do not understand yourself!
 Scripts will have access to your system like any other program, including the ability to do nasty things.
@@ -10,8 +9,8 @@ Scripts will have access to your system like any other program, including the ab
 
 Script support is disabled by default, and has to be enabled via CMake flag `-DLUA_SCRIPTS=true`.
 
-Scripting support requires LuaJIT headers while compiling and the LuaJIT library at runtime.
-Debian provides both with the `luajit` package.
+Scripting support requires Lua sources while compiling and the Lua 5.3 dynamic library at runtime.
+Debian provides both with the `liblua5.3-dev` and `lua5.3` packages.
 
 **Usage**
 

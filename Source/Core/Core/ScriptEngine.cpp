@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 // ScriptEngine
-// Expands the emulator using LuaJIT scripts.
+// Expands the emulator using Lua scripts.
 
 #include "Core/ScriptEngine.h"
 
@@ -13,7 +13,7 @@
 #include <vector>
 
 #include <cassert>
-#include <lua.hpp>
+#include <lua5.3/lua.hpp>
 
 #include "Common/Assert.h"
 #include "Common/IniFile.h"
@@ -733,24 +733,6 @@ static int ppc_set(lua_State* L)
   return 0;
 }
 
-// clang-format off
-#define DOLPHIN_LUA_METHOD(x) {.name = #x, .func = (x)}
-static const luaL_Reg s_dolphin_lib[] = {
-    // Hooks
-    DOLPHIN_LUA_METHOD(hook_instruction),
-    DOLPHIN_LUA_METHOD(unhook_instruction),
-    DOLPHIN_LUA_METHOD(hook_frame),
-    DOLPHIN_LUA_METHOD(unhook_frame),
-    // Memory access
-    DOLPHIN_LUA_METHOD(mem_read),
-    DOLPHIN_LUA_METHOD(mem_write),
-    DOLPHIN_LUA_METHOD(str_read),
-    DOLPHIN_LUA_METHOD(str_write),
-    {nullptr, nullptr}
-};
-#undef DOLPHIN_LUA_METHOD
-// clang-format on
-
 // Sets a custom getter and setter to the table or userdata on the top of the stack.
 static void new_getset_metatable(lua_State* L, lua_CFunction get, lua_CFunction set)
 {
@@ -796,9 +778,22 @@ static void register_ps_registers(lua_State* L, const char* name, lua_CFunction 
 
 static void init(lua_State* L)
 {
-  luaL_openlib(L, "dolphin", Lua::s_dolphin_lib, 0);  // TODO Don't use openlib
   const int frame = lua_gettop(L);
-  lua_getglobal(L, "dolphin");
+
+  // Build "dolphin object".
+  lua_newtable(L);
+#define DOLPHIN_LUA_METHOD(m) lua_pushcfunction(L, (m)); lua_setfield(L, -2, (#m));
+  // Hooks
+  DOLPHIN_LUA_METHOD(hook_instruction);
+  DOLPHIN_LUA_METHOD(unhook_instruction);
+  DOLPHIN_LUA_METHOD(hook_frame);
+  DOLPHIN_LUA_METHOD(unhook_frame);
+  // Memory access
+  DOLPHIN_LUA_METHOD(mem_read);
+  DOLPHIN_LUA_METHOD(mem_write);
+  DOLPHIN_LUA_METHOD(str_read);
+  DOLPHIN_LUA_METHOD(str_write);
+#undef DOLPHIN_LUA_METHOD
 
   // ppc object
   lua_newtable(L);
@@ -820,7 +815,7 @@ static void init(lua_State* L)
   register_getset_object(L, "mem_f32", read_f32, write_f32);
   register_getset_object(L, "mem_f64", read_f64, write_f64);
 
-  lua_pop(L, 1);
+  lua_setglobal(L, "dolphin");
   assert(lua_gettop(L) == frame);
   luaL_openlibs(L);
 }

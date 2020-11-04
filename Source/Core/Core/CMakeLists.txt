@@ -695,5 +695,5 @@ if(UNIX)
 endif()
 
 if(LUA_SCRIPTS)
-  target_link_libraries(core PUBLIC ${LUAJIT_LIBRARIES})
+  target_link_libraries(core PUBLIC ${LUA_LIBRARIES})
 endif()
