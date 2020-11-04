@@ -2,6 +2,9 @@ package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.Build;
+import android.provider.DocumentsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -288,21 +291,28 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     mClickedItem = item;
     FilePicker filePicker = (FilePicker) item;
 
-    HashSet<String> extensions;
     switch (filePicker.getRequestType())
     {
       case MainPresenter.REQUEST_SD_FILE:
-        extensions = FileBrowserHelper.RAW_EXTENSION;
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("*/*");
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+          intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI,
+                  filePicker.getSelectedValue(mView.getSettings()));
+        }
+
+        mView.getActivity().startActivityForResult(intent, filePicker.getRequestType());
         break;
       case MainPresenter.REQUEST_GAME_FILE:
-        extensions = FileBrowserHelper.GAME_EXTENSIONS;
+        FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
+                FileBrowserHelper.GAME_EXTENSIONS);
         break;
       default:
         throw new InvalidParameterException("Unhandled request code");
     }
-
-    FileBrowserHelper.openFilePicker(mView.getActivity(), filePicker.getRequestType(), false,
-            extensions);
   }
 
   public void onFilePickerConfirmation(String selectedFile)
