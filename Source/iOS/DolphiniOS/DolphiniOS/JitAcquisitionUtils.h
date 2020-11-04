@@ -11,6 +11,7 @@ extern "C"
 
 void AcquireJit(void);
 bool HasJit(void);
+bool HasJitWithPTrace(void);
 
 #ifdef __cplusplus
 }

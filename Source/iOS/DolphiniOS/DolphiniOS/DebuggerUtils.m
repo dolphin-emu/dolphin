@@ -101,22 +101,3 @@ void SetProcessDebuggedWithPTrace()
   ptrace(PT_TRACEME, 0, NULL, 0);
 }
 
-void SetProcessDebugged()
-{
-#if !TARGET_OS_SIMULATOR
-#ifndef NONJAILBROKEN
-  // Check for jailbreakd (Chimera)
-  NSFileManager* file_manager = [NSFileManager defaultManager];
-  if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
-  {
-    SetProcessDebuggedWithJailbreakd();
-  }
-  else
-  {
-    SetProcessDebuggedWithDaemon();
-  }
-#else
-  SetProcessDebuggedWithPTrace();
-#endif
-#endif
-}

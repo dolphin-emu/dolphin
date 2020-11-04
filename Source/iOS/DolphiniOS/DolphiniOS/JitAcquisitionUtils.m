@@ -6,18 +6,8 @@
 #import "EntitlementUtils.h"
 
 static bool s_has_jit = false;
+static bool s_has_jit_with_ptrace = false;
 
-void AcquireJitViaDebug()
-{
-  s_has_jit = true;
-  
-  if (IsProcessDebugged())
-  {
-    return;
-  }
-  
-  SetProcessDebugged();
-}
 
 void AcquireJit()
 {
@@ -32,6 +22,12 @@ void AcquireJit()
     }
   }
   
+  if (IsProcessDebugged())
+  {
+    s_has_jit = true;
+    return;
+  }
+  
 #if TARGET_OS_SIMULATOR
   s_has_jit = true;
 #elif defined(NONJAILBROKEN)
@@ -41,14 +37,33 @@ void AcquireJit()
   }
   else
   {
-    AcquireJitViaDebug();
+    SetProcessDebuggedWithPTrace();
+    
+    s_has_jit = true;
+    s_has_jit_with_ptrace = true;
   }
 #else // jailbroken
-  AcquireJitViaDebug();
+  // Check for jailbreakd (Chimera)
+  NSFileManager* file_manager = [NSFileManager defaultManager];
+  if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
+  {
+    SetProcessDebuggedWithJailbreakd();
+  }
+  else
+  {
+    SetProcessDebuggedWithDaemon();
+  }
+  
+  s_has_jit = true;
 #endif
 }
 
 bool HasJit()
 {
   return s_has_jit;
+}
+
+bool HasJitWithPTrace()
+{
+  return s_has_jit_with_ptrace;
 }
