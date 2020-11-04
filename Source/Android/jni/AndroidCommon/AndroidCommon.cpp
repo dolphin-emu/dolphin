@@ -10,6 +10,7 @@
 
 #include <jni.h>
 
+#include "Common/Assert.h"
 #include "Common/StringUtil.h"
 #include "jni/AndroidCommon/IDCache.h"
 
@@ -42,21 +43,35 @@ std::vector<std::string> JStringArrayToVector(JNIEnv* env, jobjectArray array)
   return result;
 }
 
+bool IsPathAndroidContent(const std::string& uri)
+{
+  return StringBeginsWith(uri, "content://");
+}
+
+std::string OpenModeToAndroid(std::string mode)
+{
+  // The 'b' specifier is not supported. Since we're on POSIX, it's fine to just skip it.
+  if (!mode.empty() && mode.back() == 'b')
+    mode.pop_back();
+
+  if (mode == "r+")
+    mode = "rw";
+  else if (mode == "w+")
+    mode = "rwt";
+  else if (mode == "a+")
+    mode = "rwa";
+  else if (mode == "a")
+    mode = "wa";
+
+  return mode;
+}
+
 int OpenAndroidContent(const std::string& uri, const std::string& mode)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  const jint fd = env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
-                                           IDCache::GetContentHandlerOpenFd(), ToJString(env, uri),
-                                           ToJString(env, mode));
-
-  // We can get an IllegalArgumentException when passing an invalid mode
-  if (env->ExceptionCheck())
-  {
-    env->ExceptionDescribe();
-    abort();
-  }
-
-  return fd;
+  return env->CallStaticIntMethod(IDCache::GetContentHandlerClass(),
+                                  IDCache::GetContentHandlerOpenFd(), ToJString(env, uri),
+                                  ToJString(env, mode));
 }
 
 bool DeleteAndroidContent(const std::string& uri)

@@ -17,7 +17,9 @@ public class ContentHandler
       return DolphinApplication.getAppContext().getContentResolver()
               .openFileDescriptor(Uri.parse(uri), mode).detachFd();
     }
-    catch (FileNotFoundException | NullPointerException e)
+    // Some content providers throw IllegalArgumentException for invalid modes,
+    // despite the documentation saying that invalid modes result in a FileNotFoundException
+    catch (FileNotFoundException | IllegalArgumentException | NullPointerException e)
     {
       return -1;
     }
