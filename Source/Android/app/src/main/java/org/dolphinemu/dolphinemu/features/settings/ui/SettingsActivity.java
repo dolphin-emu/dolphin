@@ -175,12 +175,14 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
       if (requestCode == MainPresenter.REQUEST_SD_FILE)
       {
         Uri uri = canonicalizeIfPossible(result.getData());
-
         int takeFlags = result.getFlags() &
                 (Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-        getContentResolver().takePersistableUriPermission(uri, takeFlags);
 
-        getFragment().getAdapter().onFilePickerConfirmation(uri.toString());
+        FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.RAW_EXTENSION, () ->
+        {
+          getContentResolver().takePersistableUriPermission(uri, takeFlags);
+          getFragment().getAdapter().onFilePickerConfirmation(uri.toString());
+        });
       }
       else
       {

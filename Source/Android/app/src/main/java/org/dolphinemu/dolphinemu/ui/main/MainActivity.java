@@ -205,7 +205,9 @@ public final class MainActivity extends AppCompatActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          mPresenter.installWAD(result.getData().toString());
+          FileBrowserHelper.runAfterExtensionCheck(this, result.getData(),
+                  FileBrowserHelper.WAD_EXTENSION,
+                  () -> mPresenter.installWAD(result.getData().toString()));
           break;
       }
     }
