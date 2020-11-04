@@ -8,6 +8,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface NonJailbrokenNoticeViewController : UIViewController
 
+@property (weak, nonatomic) IBOutlet UILabel* m_quit_label;
+@property (weak, nonatomic) IBOutlet UILabel* m_bug_label;
 @property (weak, nonatomic) IBOutlet UIButton* m_ok_button;
 
 @end
