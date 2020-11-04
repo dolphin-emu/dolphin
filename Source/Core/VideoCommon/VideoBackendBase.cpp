@@ -16,6 +16,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Config/Config.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 
 #include "Core/Config/MainSettings.h"
