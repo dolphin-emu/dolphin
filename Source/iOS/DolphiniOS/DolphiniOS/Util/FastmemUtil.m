@@ -15,9 +15,11 @@ bool CanEnableFastmem(void)
     vm_address_t addr = 0;
     kern_return_t retval = vm_allocate(mach_task_self(), &addr, memory_size, VM_FLAGS_ANYWHERE);
     
-    s_can_enable_fastmem = retval == KERN_SUCCESS;
-
-    vm_deallocate(mach_task_self(), addr, memory_size);
+    if (retval == KERN_SUCCESS)
+    {
+      s_can_enable_fastmem = true;
+      vm_deallocate(mach_task_self(), addr, memory_size);
+    }
   });
   
   return s_can_enable_fastmem;
