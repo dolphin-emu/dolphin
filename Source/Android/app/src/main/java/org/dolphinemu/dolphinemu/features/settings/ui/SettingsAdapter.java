@@ -105,11 +105,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
       case SettingsItem.TYPE_INPUT_BINDING:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new InputBindingSettingViewHolder(view, this, mContext);
+        return new InputBindingSettingViewHolder(view, this);
 
       case SettingsItem.TYPE_RUMBLE_BINDING:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);
-        return new RumbleBindingViewHolder(view, this, mContext);
+        return new RumbleBindingViewHolder(view, this);
 
       case SettingsItem.TYPE_FILE_PICKER:
         view = inflater.inflate(R.layout.list_item_setting, parent, false);

@@ -708,60 +708,58 @@ public final class SettingsFragmentPresenter
     {
       sl.add(new HeaderSetting(R.string.generic_buttons, 0));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_A + gcPadNumber, R.string.button_a, mGameID));
+              SettingsFile.KEY_GCBIND_A + gcPadNumber, R.string.button_a));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_B + gcPadNumber, R.string.button_b, mGameID));
+              SettingsFile.KEY_GCBIND_B + gcPadNumber, R.string.button_b));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_X + gcPadNumber, R.string.button_x, mGameID));
+              SettingsFile.KEY_GCBIND_X + gcPadNumber, R.string.button_x));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_Y + gcPadNumber, R.string.button_y, mGameID));
+              SettingsFile.KEY_GCBIND_Y + gcPadNumber, R.string.button_y));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_Z + gcPadNumber, R.string.button_z, mGameID));
+              SettingsFile.KEY_GCBIND_Z + gcPadNumber, R.string.button_z));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_START + gcPadNumber, R.string.button_start, mGameID));
+              SettingsFile.KEY_GCBIND_START + gcPadNumber, R.string.button_start));
 
       sl.add(new HeaderSetting(R.string.controller_control, 0));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_CONTROL_UP + gcPadNumber, R.string.generic_up, mGameID));
+              SettingsFile.KEY_GCBIND_CONTROL_UP + gcPadNumber, R.string.generic_up));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_CONTROL_DOWN + gcPadNumber, R.string.generic_down, mGameID));
+              SettingsFile.KEY_GCBIND_CONTROL_DOWN + gcPadNumber, R.string.generic_down));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_CONTROL_LEFT + gcPadNumber, R.string.generic_left, mGameID));
+              SettingsFile.KEY_GCBIND_CONTROL_LEFT + gcPadNumber, R.string.generic_left));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber, R.string.generic_right,
-              mGameID));
+              SettingsFile.KEY_GCBIND_CONTROL_RIGHT + gcPadNumber, R.string.generic_right));
 
       sl.add(new HeaderSetting(R.string.controller_c, 0));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_C_UP + gcPadNumber, R.string.generic_up, mGameID));
+              SettingsFile.KEY_GCBIND_C_UP + gcPadNumber, R.string.generic_up));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_C_DOWN + gcPadNumber, R.string.generic_down, mGameID));
+              SettingsFile.KEY_GCBIND_C_DOWN + gcPadNumber, R.string.generic_down));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_C_LEFT + gcPadNumber, R.string.generic_left, mGameID));
+              SettingsFile.KEY_GCBIND_C_LEFT + gcPadNumber, R.string.generic_left));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_C_RIGHT + gcPadNumber, R.string.generic_right, mGameID));
+              SettingsFile.KEY_GCBIND_C_RIGHT + gcPadNumber, R.string.generic_right));
 
       sl.add(new HeaderSetting(R.string.controller_trig, 0));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_TRIGGER_L + gcPadNumber, R.string.trigger_left, mGameID));
+              SettingsFile.KEY_GCBIND_TRIGGER_L + gcPadNumber, R.string.trigger_left));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber, R.string.trigger_right, mGameID));
+              SettingsFile.KEY_GCBIND_TRIGGER_R + gcPadNumber, R.string.trigger_right));
 
       sl.add(new HeaderSetting(R.string.controller_dpad, 0));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber, R.string.generic_up, mGameID));
+              SettingsFile.KEY_GCBIND_DPAD_UP + gcPadNumber, R.string.generic_up));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_DPAD_DOWN + gcPadNumber, R.string.generic_down, mGameID));
+              SettingsFile.KEY_GCBIND_DPAD_DOWN + gcPadNumber, R.string.generic_down));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber, R.string.generic_left, mGameID));
+              SettingsFile.KEY_GCBIND_DPAD_LEFT + gcPadNumber, R.string.generic_left));
       sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber, R.string.generic_right, mGameID));
+              SettingsFile.KEY_GCBIND_DPAD_RIGHT + gcPadNumber, R.string.generic_right));
 
 
       sl.add(new HeaderSetting(R.string.emulation_control_rumble, 0));
       sl.add(new RumbleBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-              SettingsFile.KEY_EMU_RUMBLE + gcPadNumber, R.string.emulation_control_rumble,
-              mGameID));
+              SettingsFile.KEY_EMU_RUMBLE + gcPadNumber, R.string.emulation_control_rumble));
     }
     else // Adapter
     {
@@ -803,92 +801,84 @@ public final class SettingsFragmentPresenter
 
     sl.add(new HeaderSetting(R.string.generic_buttons, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_A + wiimoteNumber, R.string.button_a, mGameID));
+            SettingsFile.KEY_WIIBIND_A + wiimoteNumber, R.string.button_a));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_B + wiimoteNumber, R.string.button_b, mGameID));
+            SettingsFile.KEY_WIIBIND_B + wiimoteNumber, R.string.button_b));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_1 + wiimoteNumber, R.string.button_one, mGameID));
+            SettingsFile.KEY_WIIBIND_1 + wiimoteNumber, R.string.button_one));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_2 + wiimoteNumber, R.string.button_two, mGameID));
+            SettingsFile.KEY_WIIBIND_2 + wiimoteNumber, R.string.button_two));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_MINUS + wiimoteNumber, R.string.button_minus, mGameID));
+            SettingsFile.KEY_WIIBIND_MINUS + wiimoteNumber, R.string.button_minus));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_PLUS + wiimoteNumber, R.string.button_plus, mGameID));
+            SettingsFile.KEY_WIIBIND_PLUS + wiimoteNumber, R.string.button_plus));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_HOME + wiimoteNumber, R.string.button_home, mGameID));
+            SettingsFile.KEY_WIIBIND_HOME + wiimoteNumber, R.string.button_home));
 
     sl.add(new HeaderSetting(R.string.wiimote_ir, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_UP + wiimoteNumber, R.string.generic_up, mGameID));
+            SettingsFile.KEY_WIIBIND_IR_UP + wiimoteNumber, R.string.generic_up));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_DOWN + wiimoteNumber, R.string.generic_down, mGameID));
+            SettingsFile.KEY_WIIBIND_IR_DOWN + wiimoteNumber, R.string.generic_down));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_LEFT + wiimoteNumber, R.string.generic_left, mGameID));
+            SettingsFile.KEY_WIIBIND_IR_LEFT + wiimoteNumber, R.string.generic_left));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_RIGHT + wiimoteNumber, R.string.generic_right, mGameID));
+            SettingsFile.KEY_WIIBIND_IR_RIGHT + wiimoteNumber, R.string.generic_right));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_FORWARD + wiimoteNumber, R.string.generic_forward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_IR_FORWARD + wiimoteNumber, R.string.generic_forward));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_BACKWARD + wiimoteNumber, R.string.generic_backward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_IR_BACKWARD + wiimoteNumber, R.string.generic_backward));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_IR_HIDE + wiimoteNumber, R.string.ir_hide, mGameID));
+            SettingsFile.KEY_WIIBIND_IR_HIDE + wiimoteNumber, R.string.ir_hide));
 
     sl.add(new HeaderSetting(R.string.wiimote_swing, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_UP + wiimoteNumber, R.string.generic_up, mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_UP + wiimoteNumber, R.string.generic_up));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_DOWN + wiimoteNumber, R.string.generic_down, mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_DOWN + wiimoteNumber, R.string.generic_down));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_LEFT + wiimoteNumber, R.string.generic_left, mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_LEFT + wiimoteNumber, R.string.generic_left));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_RIGHT + wiimoteNumber, R.string.generic_right, mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_RIGHT + wiimoteNumber, R.string.generic_right));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_FORWARD + wiimoteNumber, R.string.generic_forward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_FORWARD + wiimoteNumber, R.string.generic_forward));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SWING_BACKWARD + wiimoteNumber, R.string.generic_backward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_SWING_BACKWARD + wiimoteNumber, R.string.generic_backward));
 
     sl.add(new HeaderSetting(R.string.wiimote_tilt, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_TILT_FORWARD + wiimoteNumber, R.string.generic_forward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_TILT_FORWARD + wiimoteNumber, R.string.generic_forward));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_TILT_BACKWARD + wiimoteNumber, R.string.generic_backward,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_TILT_BACKWARD + wiimoteNumber, R.string.generic_backward));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_TILT_LEFT + wiimoteNumber, R.string.generic_left, mGameID));
+            SettingsFile.KEY_WIIBIND_TILT_LEFT + wiimoteNumber, R.string.generic_left));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_TILT_RIGHT + wiimoteNumber, R.string.generic_right, mGameID));
+            SettingsFile.KEY_WIIBIND_TILT_RIGHT + wiimoteNumber, R.string.generic_right));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_TILT_MODIFIER + wiimoteNumber, R.string.tilt_modifier,
-            mGameID));
+            SettingsFile.KEY_WIIBIND_TILT_MODIFIER + wiimoteNumber, R.string.tilt_modifier));
 
     sl.add(new HeaderSetting(R.string.wiimote_shake, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SHAKE_X + wiimoteNumber, R.string.shake_x, mGameID));
+            SettingsFile.KEY_WIIBIND_SHAKE_X + wiimoteNumber, R.string.shake_x));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SHAKE_Y + wiimoteNumber, R.string.shake_y, mGameID));
+            SettingsFile.KEY_WIIBIND_SHAKE_Y + wiimoteNumber, R.string.shake_y));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber, R.string.shake_z, mGameID));
+            SettingsFile.KEY_WIIBIND_SHAKE_Z + wiimoteNumber, R.string.shake_z));
 
     sl.add(new HeaderSetting(R.string.controller_dpad, 0));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber, R.string.generic_up, mGameID));
+            SettingsFile.KEY_WIIBIND_DPAD_UP + wiimoteNumber, R.string.generic_up));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_DPAD_DOWN + wiimoteNumber, R.string.generic_down, mGameID));
+            SettingsFile.KEY_WIIBIND_DPAD_DOWN + wiimoteNumber, R.string.generic_down));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber, R.string.generic_left, mGameID));
+            SettingsFile.KEY_WIIBIND_DPAD_LEFT + wiimoteNumber, R.string.generic_left));
     sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber, R.string.generic_right, mGameID));
+            SettingsFile.KEY_WIIBIND_DPAD_RIGHT + wiimoteNumber, R.string.generic_right));
 
 
     sl.add(new HeaderSetting(R.string.emulation_control_rumble, 0));
     sl.add(new RumbleBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-            SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber, R.string.emulation_control_rumble,
-            mGameID));
+            SettingsFile.KEY_EMU_RUMBLE + wiimoteNumber, R.string.emulation_control_rumble));
   }
 
   private void addExtensionTypeSettings(ArrayList<SettingsItem> sl, int wiimoteNumber,
@@ -899,316 +889,275 @@ public final class SettingsFragmentPresenter
       case 1: // Nunchuk
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_C + wiimoteNumber, R.string.nunchuk_button_c,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_C + wiimoteNumber, R.string.nunchuk_button_c));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_Z + wiimoteNumber, R.string.button_z, mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_Z + wiimoteNumber, R.string.button_z));
 
         sl.add(new HeaderSetting(R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_UP + wiimoteNumber, R.string.generic_up, mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_DOWN + wiimoteNumber, R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_RIGHT + wiimoteNumber, R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.wiimote_swing, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_DOWN + wiimoteNumber,
+                R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_LEFT + wiimoteNumber,
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_FORWARD + wiimoteNumber,
-                R.string.generic_forward, mGameID));
+                R.string.generic_forward));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_SWING_BACKWARD + wiimoteNumber,
-                R.string.generic_backward, mGameID));
+                R.string.generic_backward));
 
         sl.add(new HeaderSetting(R.string.wiimote_tilt, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_FORWARD + wiimoteNumber,
-                R.string.generic_forward, mGameID));
+                R.string.generic_forward));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_BACKWARD + wiimoteNumber,
-                R.string.generic_backward, mGameID));
+                R.string.generic_backward));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_RIGHT + wiimoteNumber,
+                R.string.generic_right));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_TILT_MODIFIER + wiimoteNumber,
-                R.string.tilt_modifier, mGameID));
+                R.string.tilt_modifier));
 
         sl.add(new HeaderSetting(R.string.wiimote_shake, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_X + wiimoteNumber, R.string.shake_x,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_X + wiimoteNumber, R.string.shake_x));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Y + wiimoteNumber, R.string.shake_y,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Y + wiimoteNumber, R.string.shake_y));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Z + wiimoteNumber, R.string.shake_z,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Z + wiimoteNumber, R.string.shake_z));
         break;
       case 2: // Classic
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_A + wiimoteNumber, R.string.button_a, mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_A + wiimoteNumber, R.string.button_a));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_B + wiimoteNumber, R.string.button_b, mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_B + wiimoteNumber, R.string.button_b));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_X + wiimoteNumber, R.string.button_x, mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_X + wiimoteNumber, R.string.button_x));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_Y + wiimoteNumber, R.string.button_y, mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_Y + wiimoteNumber, R.string.button_y));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_ZL + wiimoteNumber, R.string.classic_button_zl,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_ZL + wiimoteNumber, R.string.classic_button_zl));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_ZR + wiimoteNumber, R.string.classic_button_zr,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_ZR + wiimoteNumber, R.string.classic_button_zr));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_MINUS + wiimoteNumber, R.string.button_minus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_MINUS + wiimoteNumber, R.string.button_minus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_PLUS + wiimoteNumber, R.string.button_plus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_PLUS + wiimoteNumber, R.string.button_plus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_HOME + wiimoteNumber, R.string.button_home,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_HOME + wiimoteNumber, R.string.button_home));
 
         sl.add(new HeaderSetting(R.string.classic_leftstick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_DOWN + wiimoteNumber, R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_LEFT_RIGHT + wiimoteNumber,
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.classic_rightstick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_DOWN + wiimoteNumber,
+                R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_LEFT + wiimoteNumber,
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_CLASSIC_RIGHT_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.controller_trig, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_L + wiimoteNumber, R.string.trigger_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_L + wiimoteNumber, R.string.trigger_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_R + wiimoteNumber, R.string.trigger_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_TRIGGER_R + wiimoteNumber,
+                R.string.trigger_right));
 
         sl.add(new HeaderSetting(R.string.controller_dpad, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_DOWN + wiimoteNumber, R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_RIGHT + wiimoteNumber,
+                R.string.generic_right));
         break;
       case 3: // Guitar
         sl.add(new HeaderSetting(R.string.guitar_frets, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber, R.string.generic_green,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber,
+                R.string.generic_green));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_FRET_RED + wiimoteNumber, R.string.generic_red,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_FRET_RED + wiimoteNumber, R.string.generic_red));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_GUITAR_FRET_YELLOW + wiimoteNumber,
-                R.string.generic_yellow, mGameID));
+                R.string.generic_yellow));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_FRET_BLUE + wiimoteNumber, R.string.generic_blue,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_FRET_BLUE + wiimoteNumber, R.string.generic_blue));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_GUITAR_FRET_ORANGE + wiimoteNumber,
-                R.string.generic_orange, mGameID));
+                R.string.generic_orange));
 
         sl.add(new HeaderSetting(R.string.guitar_strum, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STRUM_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STRUM_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STRUM_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STRUM_DOWN + wiimoteNumber, R.string.generic_down));
 
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_MINUS + wiimoteNumber, R.string.button_minus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_MINUS + wiimoteNumber, R.string.button_minus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_PLUS + wiimoteNumber, R.string.button_plus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_PLUS + wiimoteNumber, R.string.button_plus));
 
         sl.add(new HeaderSetting(R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STICK_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STICK_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STICK_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STICK_DOWN + wiimoteNumber, R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STICK_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STICK_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_STICK_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_STICK_RIGHT + wiimoteNumber,
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.guitar_whammy, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_GUITAR_WHAMMY_BAR + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_GUITAR_WHAMMY_BAR + wiimoteNumber,
+                R.string.generic_right));
         break;
       case 4: // Drums
         sl.add(new HeaderSetting(R.string.drums_pads, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_RED + wiimoteNumber, R.string.generic_red,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_RED + wiimoteNumber, R.string.generic_red));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_YELLOW + wiimoteNumber, R.string.generic_yellow,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_YELLOW + wiimoteNumber,
+                R.string.generic_yellow));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_BLUE + wiimoteNumber, R.string.generic_blue,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_BLUE + wiimoteNumber, R.string.generic_blue));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_GREEN + wiimoteNumber, R.string.generic_green,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_GREEN + wiimoteNumber, R.string.generic_green));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_ORANGE + wiimoteNumber, R.string.generic_orange,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_ORANGE + wiimoteNumber,
+                R.string.generic_orange));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PAD_BASS + wiimoteNumber, R.string.drums_pad_bass,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PAD_BASS + wiimoteNumber, R.string.drums_pad_bass));
 
         sl.add(new HeaderSetting(R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_STICK_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_STICK_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_STICK_DOWN + wiimoteNumber, R.string.generic_down,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_STICK_DOWN + wiimoteNumber, R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_STICK_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_STICK_LEFT + wiimoteNumber, R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_STICK_RIGHT + wiimoteNumber, R.string.generic_right,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_STICK_RIGHT + wiimoteNumber,
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_MINUS + wiimoteNumber, R.string.button_minus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_MINUS + wiimoteNumber, R.string.button_minus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_DRUMS_PLUS + wiimoteNumber, R.string.button_plus,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_DRUMS_PLUS + wiimoteNumber, R.string.button_plus));
         break;
       case 5: // Turntable
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_LEFT + wiimoteNumber,
-                R.string.turntable_button_green_left, mGameID));
+                R.string.turntable_button_green_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_RED_LEFT + wiimoteNumber,
-                R.string.turntable_button_red_left, mGameID));
+                R.string.turntable_button_red_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_BLUE_LEFT + wiimoteNumber,
-                R.string.turntable_button_blue_left, mGameID));
+                R.string.turntable_button_blue_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_RIGHT + wiimoteNumber,
-                R.string.turntable_button_green_right, mGameID));
+                R.string.turntable_button_green_right));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_RED_RIGHT + wiimoteNumber,
-                R.string.turntable_button_red_right, mGameID));
+                R.string.turntable_button_red_right));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_BLUE_RIGHT + wiimoteNumber,
-                R.string.turntable_button_blue_right, mGameID));
+                R.string.turntable_button_blue_right));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_MINUS + wiimoteNumber,
-                R.string.button_minus, mGameID));
+                R.string.button_minus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_PLUS + wiimoteNumber,
-                R.string.button_plus, mGameID));
+                R.string.button_plus));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_EUPHORIA + wiimoteNumber,
-                R.string.turntable_button_euphoria, mGameID));
+                R.string.turntable_button_euphoria));
 
         sl.add(new HeaderSetting(R.string.turntable_table_left, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_LEFT + wiimoteNumber, R.string.generic_left,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_LEFT + wiimoteNumber,
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_LEFT_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.turntable_table_right, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_LEFT + wiimoteNumber,
-                R.string.generic_left, mGameID));
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_RIGHT_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.generic_stick, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
-                SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_UP + wiimoteNumber, R.string.generic_up,
-                mGameID));
+                SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_UP + wiimoteNumber, R.string.generic_up));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_DOWN + wiimoteNumber,
-                R.string.generic_down, mGameID));
+                R.string.generic_down));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_LEFT + wiimoteNumber,
-                R.string.generic_left, mGameID));
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_STICK_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
 
         sl.add(new HeaderSetting(R.string.turntable_effect, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_EFFECT_DIAL + wiimoteNumber,
-                R.string.turntable_effect_dial, mGameID));
+                R.string.turntable_effect_dial));
 
         sl.add(new HeaderSetting(R.string.turntable_crossfade, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT + wiimoteNumber,
-                R.string.generic_left, mGameID));
+                R.string.generic_left));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT + wiimoteNumber,
-                R.string.generic_right, mGameID));
+                R.string.generic_right));
         break;
     }
   }

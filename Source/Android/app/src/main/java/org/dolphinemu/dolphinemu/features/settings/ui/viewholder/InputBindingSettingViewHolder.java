@@ -1,8 +1,5 @@
 package org.dolphinemu.dolphinemu.features.settings.ui.viewholder;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.TextView;
 
@@ -20,13 +17,9 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
   private TextView mTextSettingName;
   private TextView mTextSettingDescription;
 
-  private Context mContext;
-
-  public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter, Context context)
+  public InputBindingSettingViewHolder(View itemView, SettingsAdapter adapter)
   {
     super(itemView, adapter);
-
-    mContext = context;
   }
 
   @Override
@@ -39,13 +32,10 @@ public final class InputBindingSettingViewHolder extends SettingViewHolder
   @Override
   public void bind(SettingsItem item)
   {
-    SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-
     mItem = (InputBindingSetting) item;
 
     mTextSettingName.setText(mItem.getNameId());
-    mTextSettingDescription
-            .setText(sharedPreferences.getString(mItem.getKey() + mItem.getGameId(), ""));
+    mTextSettingDescription.setText(mItem.getDescriptionValue());
 
     setStyle(mTextSettingName, mItem);
   }

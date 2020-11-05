@@ -43,7 +43,7 @@ public class Settings implements Closeable
 
   public static final String SECTION_WIIMOTE = "Wiimote";
 
-  public static final String SECTION_BINDINGS = "Android";
+  public static final String SECTION_BINDINGS = "AndroidBindings";
   public static final String SECTION_CONTROLS = "Controls";
   public static final String SECTION_PROFILE = "Profile";
 
