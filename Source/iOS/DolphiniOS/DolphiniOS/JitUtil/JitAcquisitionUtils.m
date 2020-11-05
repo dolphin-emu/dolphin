@@ -12,6 +12,12 @@ static bool s_has_jit_with_ptrace = false;
 
 void AcquireJit()
 {
+  if (IsProcessDebugged())
+  {
+    s_has_jit = true;
+    return;
+  }
+  
   if (@available(iOS 14.2, *))
   {
     // Query MobileGestalt for the CPU architecture
@@ -42,12 +48,6 @@ void AcquireJit()
       s_has_jit = true;
       return;
     }
-  }
-  
-  if (IsProcessDebugged())
-  {
-    s_has_jit = true;
-    return;
   }
   
 #if TARGET_OS_SIMULATOR
