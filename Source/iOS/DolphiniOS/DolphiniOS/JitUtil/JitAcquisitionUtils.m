@@ -2,18 +2,40 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import <dlfcn.h>
+
 #import "DebuggerUtils.h"
 #import "EntitlementUtils.h"
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
 
-
 void AcquireJit()
 {
   if (@available(iOS 14.2, *))
   {
-    if (HasGetTaskAllowEntitlement())
+    // Query MobileGestalt for the CPU architecture
+    void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
+    if (!gestalt_handle)
+    {
+      NSLog(@"Failed to load MobileGestalt: %s", dlerror());
+      abort();
+    }
+    
+    typedef NSString* (*MGCopyAnswer_ptr)(NSString*);
+    MGCopyAnswer_ptr MGCopyAnswer = (MGCopyAnswer_ptr)dlsym(gestalt_handle, "MGCopyAnswer");
+    
+    char* dlsym_error = dlerror();
+    if (dlsym_error)
+    {
+      NSLog(@"Failed to load from MobileGestalt: %s", dlsym_error);
+      abort();
+    }
+    
+    NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
+    bool is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
+    
+    if (is_arm64e && HasGetTaskAllowEntitlement())
     {
       // CS_EXECSEG_ALLOW_UNSIGNED will let us have JIT
       // (assuming it's signed correctly)
