@@ -10,6 +10,7 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/MsgHandler.h"
 
