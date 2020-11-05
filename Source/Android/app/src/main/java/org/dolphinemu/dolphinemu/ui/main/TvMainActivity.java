@@ -2,6 +2,7 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Toast;
 
@@ -173,8 +174,10 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchOpenFileActivity()
   {
-    FileBrowserHelper.openFilePicker(this, MainPresenter.REQUEST_GAME_FILE, false,
-            FileBrowserHelper.GAME_EXTENSIONS);
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+    intent.addCategory(Intent.CATEGORY_OPENABLE);
+    intent.setType("*/*");
+    startActivityForResult(intent, MainPresenter.REQUEST_GAME_FILE);
   }
 
   @Override
@@ -218,6 +221,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
     // If the user picked a file, as opposed to just backing out.
     if (resultCode == MainActivity.RESULT_OK)
     {
+      Uri uri = result.getData();
       switch (requestCode)
       {
         case MainPresenter.REQUEST_DIRECTORY:
@@ -225,12 +229,12 @@ public final class TvMainActivity extends FragmentActivity implements MainView
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:
-          EmulationActivity.launch(this, FileBrowserHelper.getSelectedFiles(result));
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.GAME_EXTENSIONS,
+                  () -> EmulationActivity.launch(this, result.getData().toString()));
           break;
 
         case MainPresenter.REQUEST_WAD_FILE:
-          FileBrowserHelper.runAfterExtensionCheck(this, result.getData(),
-                  FileBrowserHelper.WAD_EXTENSION,
+          FileBrowserHelper.runAfterExtensionCheck(this, uri, FileBrowserHelper.WAD_EXTENSION,
                   () -> mPresenter.installWAD(result.getData().toString()));
           break;
       }
