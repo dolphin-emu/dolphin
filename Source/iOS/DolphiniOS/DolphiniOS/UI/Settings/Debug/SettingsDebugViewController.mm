@@ -10,6 +10,8 @@
 
 #import "DebuggerUtils.h"
 
+#import "FastmemUtil.h"
+
 #define MISC_ROW_SYNC_ON_SKIP_IDLE 0
 #define MISC_ROW_FASTMEM 1
 #define MISC_ROW_CONSOLE_LOG 2
@@ -44,7 +46,7 @@
   [self.m_fastmem_switch setOn:config.bFastmem];
   
 #ifdef NONJAILBROKEN
-  [self.m_fastmem_switch setEnabled:false];
+  [self.m_fastmem_switch setEnabled:CanEnableFastmem()];
 #endif
 }
 
