@@ -802,7 +802,7 @@
 				B996C86D23D6F0D000700D6F /* DolphiniOS-Prefix.pch */,
 				B99B05A923A09CDC0076C7D8 /* Build Resources */,
 				B91BF364236B3DFF00199BA7 /* UI */,
-				B98963C92553E362007CCA0D /* JitUtil */,
+				B98963C92553E362007CCA0D /* Util */,
 				B945A3732362908500B21680 /* AppDelegate.h */,
 				B945A3742362908500B21680 /* AppDelegate.mm */,
 				B989119E244451D300A24522 /* StringUtils.h */,
@@ -1057,7 +1057,7 @@
 			path = Analytics;
 			sourceTree = "<group>";
 		};
-		B98963C92553E362007CCA0D /* JitUtil */ = {
+		B98963C92553E362007CCA0D /* Util */ = {
 			isa = PBXGroup;
 			children = (
 				B971E1F7245EB63E00D2A698 /* DebuggerUtils.h */,
@@ -1067,7 +1067,7 @@
 				B992D27B25528BAF00CB02FD /* JitAcquisitionUtils.h */,
 				B992D27925528B9700CB02FD /* JitAcquisitionUtils.m */,
 			);
-			path = JitUtil;
+			path = Util;
 			sourceTree = "<group>";
 		};
 		B989DFC723B4ADA7005C7773 /* Extensions */ = {
