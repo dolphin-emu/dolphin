@@ -55,6 +55,7 @@
 		B95BCFF823F9EC8900CE4E6D /* GraphicsGeneralViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFF723F9EC8900CE4E6D /* GraphicsGeneralViewController.mm */; };
 		B95BCFFB23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm in Sources */ = {isa = PBXBuildFile; fileRef = B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */; };
 		B962BCD8238C3965009F86F5 /* TCDirectionalPad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */; };
+		B96400762553E90E00AD68EC /* FastmemUtil.m in Sources */ = {isa = PBXBuildFile; fileRef = B96400752553E90E00AD68EC /* FastmemUtil.m */; };
 		B964B13E248EB63E00EE5A3B /* SoftwareInfoViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */; };
 		B964B141248ED58200EE5A3B /* SoftwarePropertiesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B140248ED58200EE5A3B /* SoftwarePropertiesViewController.mm */; };
 		B964B145248F613700EE5A3B /* SoftwareVerifyStartViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B964B144248F613700EE5A3B /* SoftwareVerifyStartViewController.mm */; };
@@ -364,6 +365,8 @@
 		B95BCFF923F9EF9E00CE4E6D /* GraphicsSettingsUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphicsSettingsUtils.h; sourceTree = "<group>"; };
 		B95BCFFA23F9EF9E00CE4E6D /* GraphicsSettingsUtils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = GraphicsSettingsUtils.mm; sourceTree = "<group>"; };
 		B962BCD7238C3965009F86F5 /* TCDirectionalPad.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCDirectionalPad.swift; sourceTree = "<group>"; };
+		B96400742553E8FE00AD68EC /* FastmemUtil.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FastmemUtil.h; sourceTree = "<group>"; };
+		B96400752553E90E00AD68EC /* FastmemUtil.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FastmemUtil.m; sourceTree = "<group>"; };
 		B964B13C248EB63E00EE5A3B /* SoftwareInfoViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwareInfoViewController.h; sourceTree = "<group>"; };
 		B964B13D248EB63E00EE5A3B /* SoftwareInfoViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwareInfoViewController.mm; sourceTree = "<group>"; };
 		B964B13F248ED58200EE5A3B /* SoftwarePropertiesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SoftwarePropertiesViewController.h; sourceTree = "<group>"; };
@@ -1064,6 +1067,8 @@
 				B971E1F8245EB63E00D2A698 /* DebuggerUtils.m */,
 				B992D28025528F2300CB02FD /* EntitlementUtils.h */,
 				B992D27E25528E0B00CB02FD /* EntitlementUtils.m */,
+				B96400742553E8FE00AD68EC /* FastmemUtil.h */,
+				B96400752553E90E00AD68EC /* FastmemUtil.m */,
 				B992D27B25528BAF00CB02FD /* JitAcquisitionUtils.h */,
 				B992D27925528B9700CB02FD /* JitAcquisitionUtils.m */,
 			);
@@ -1837,6 +1842,7 @@
 				B95A0945238533DC00DBBB01 /* TCButtonType.swift in Sources */,
 				B99D361D23E3F405005627CE /* WiiAspectRatioViewController.mm in Sources */,
 				B9F03CAC23B021E000423AE6 /* ControllerGroupListViewController.mm in Sources */,
+				B96400762553E90E00AD68EC /* FastmemUtil.m in Sources */,
 				B964B141248ED58200EE5A3B /* SoftwarePropertiesViewController.mm in Sources */,
 				B9D1E1AB23E2B4B6008A6EE2 /* ConfigGameCubeViewController.mm in Sources */,
 				B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */,

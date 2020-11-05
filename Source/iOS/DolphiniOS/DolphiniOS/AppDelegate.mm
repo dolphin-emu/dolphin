@@ -38,6 +38,8 @@
 #import <FirebaseAnalytics/FirebaseAnalytics.h>
 #import <FirebaseCrashlytics/FirebaseCrashlytics.h>
 
+#import "FastmemUtil.h"
+
 #import "GameFileCacheHolder.h"
 
 #import "InputCommon/ControllerEmu/ControlGroup/Attachments.h"
@@ -393,7 +395,7 @@
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
 #ifdef NONJAILBROKEN
-  SConfig::GetInstance().bFastmem = false;
+  SConfig::GetInstance().bFastmem = CanEnableFastmem();
 #endif
   
   // Apply latest touchscreen controller configuration
