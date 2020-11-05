@@ -35,6 +35,8 @@
 #import "InputCommon/ControllerEmu/ControllerEmu.h"
 #import "InputCommon/InputConfig.h"
 
+#import "JitAcquisitionUtils.h"
+
 #import <mach/mach.h>
 
 #import "MainiOS.h"
@@ -240,12 +242,16 @@
   [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
   
 #ifdef NONJAILBROKEN
-  [AppDelegate Shutdown];
-#else
+  if (HasJitWithPTrace())
+  {
+    [AppDelegate Shutdown];
+    return;
+  }
+#endif
+  
   dispatch_sync(dispatch_get_main_queue(), ^{
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
   });
-#endif
 }
 
 - (void)RunningTitleUpdated
