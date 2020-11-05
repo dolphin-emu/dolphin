@@ -44,6 +44,7 @@ static jmethodID s_compress_cb_run;
 static jclass s_content_handler_class;
 static jmethodID s_content_handler_open_fd;
 static jmethodID s_content_handler_delete;
+static jmethodID s_content_handler_get_size_and_is_directory;
 
 static jclass s_network_helper_class;
 static jmethodID s_network_helper_get_network_ip_address;
@@ -210,6 +211,11 @@ jmethodID GetContentHandlerDelete()
   return s_content_handler_delete;
 }
 
+jmethodID GetContentHandlerGetSizeAndIsDirectory()
+{
+  return s_content_handler_get_size_and_is_directory;
+}
+
 jclass GetNetworkHelperClass()
 {
   return s_network_helper_class;
@@ -229,6 +235,7 @@ jmethodID GetNetworkHelperGetNetworkGateway()
 {
   return s_network_helper_get_network_gateway;
 }
+
 }  // namespace IDCache
 
 #ifdef __cplusplus
@@ -306,6 +313,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
                                                      "(Ljava/lang/String;Ljava/lang/String;)I");
   s_content_handler_delete =
       env->GetStaticMethodID(s_content_handler_class, "delete", "(Ljava/lang/String;)Z");
+  s_content_handler_get_size_and_is_directory = env->GetStaticMethodID(
+      s_content_handler_class, "getSizeAndIsDirectory", "(Ljava/lang/String;)J");
 
   const jclass network_helper_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");

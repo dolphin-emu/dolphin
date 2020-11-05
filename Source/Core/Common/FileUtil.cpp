@@ -78,18 +78,39 @@ FileInfo::FileInfo(const char* path) : FileInfo(std::string(path))
 #else
 FileInfo::FileInfo(const std::string& path) : FileInfo(path.c_str())
 {
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path.c_str(), &m_stat) == 0;
 }
 
 FileInfo::FileInfo(const char* path)
 {
-  m_exists = stat(path, &m_stat) == 0;
+#ifdef ANDROID
+  if (IsPathAndroidContent(path))
+    AndroidContentInit(path);
+  else
+#endif
+    m_exists = stat(path, &m_stat) == 0;
 }
 #endif
 
 FileInfo::FileInfo(int fd)
 {
-  m_exists = fstat(fd, &m_stat);
+  m_exists = fstat(fd, &m_stat) == 0;
 }
+
+#ifdef ANDROID
+void FileInfo::AndroidContentInit(const std::string& path)
+{
+  const jlong result = GetAndroidContentSizeAndIsDirectory(path);
+  m_exists = result != -1;
+  m_stat.st_mode = result == -2 ? S_IFDIR : S_IFREG;
+  m_stat.st_size = result >= 0 ? result : 0;
+}
+#endif
 
 bool FileInfo::Exists() const
 {

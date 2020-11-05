@@ -104,6 +104,14 @@ bool DeleteAndroidContent(const std::string& uri)
                                       IDCache::GetContentHandlerDelete(), ToJString(env, uri));
 }
 
+jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  return env->CallStaticLongMethod(IDCache::GetContentHandlerClass(),
+                                   IDCache::GetContentHandlerGetSizeAndIsDirectory(),
+                                   ToJString(env, uri));
+}
+
 int GetNetworkIpAddress()
 {
   JNIEnv* env = IDCache::GetEnvForThread();

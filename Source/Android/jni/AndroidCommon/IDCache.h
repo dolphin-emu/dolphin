@@ -44,6 +44,7 @@ jmethodID GetCompressCallbackRun();
 jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
 jmethodID GetContentHandlerDelete();
+jmethodID GetContentHandlerGetSizeAndIsDirectory();
 
 jclass GetNetworkHelperClass();
 jmethodID GetNetworkHelperGetNetworkIpAddress();

@@ -25,6 +25,9 @@ int OpenAndroidContent(const std::string& uri, const std::string& mode);
 
 // Deletes a given file.
 bool DeleteAndroidContent(const std::string& uri);
+// Returns -1 if not found, -2 if directory, file size otherwise.
+jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri);
+
 int GetNetworkIpAddress();
 int GetNetworkPrefixLength();
 int GetNetworkGateway();

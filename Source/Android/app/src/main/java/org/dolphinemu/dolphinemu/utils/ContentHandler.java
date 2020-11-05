@@ -74,6 +74,31 @@ public class ContentHandler
     return false;
   }
 
+  /**
+   * @return -1 if not found, -2 if directory, file size otherwise
+   */
+  @Keep
+  public static long getSizeAndIsDirectory(String uri)
+  {
+    final String[] projection = new String[]{Document.COLUMN_MIME_TYPE, Document.COLUMN_SIZE};
+    try (Cursor cursor = getContentResolver().query(Uri.parse(uri), projection, null, null, null))
+    {
+      if (cursor != null && cursor.moveToFirst())
+      {
+        if (Document.MIME_TYPE_DIR.equals(cursor.getString(0)))
+          return -2;
+        else
+          return cursor.isNull(1) ? 0 : cursor.getLong(1);
+      }
+    }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to get metadata for " + uri + " without permission");
+    }
+
+    return -1;
+  }
+
   @Nullable
   public static String getDisplayName(@NonNull Uri uri)
   {

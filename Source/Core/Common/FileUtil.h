@@ -113,6 +113,10 @@ public:
   u64 GetSize() const;
 
 private:
+#ifdef ANDROID
+  void AndroidContentInit(const std::string& path);
+#endif
+
   struct stat m_stat;
   bool m_exists;
 };
