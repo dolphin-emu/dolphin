@@ -44,12 +44,12 @@
                             <rect key="frame" x="20" y="0.0" width="335" height="344.66666666666669"/>
                             <subviews>
                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="G2L-KW-hUh" userLabel="Version Text">
-                                    <rect key="frame" x="0.66666666666665719" y="0.0" width="333.66666666666674" height="324.66666666666669"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="335" height="324.66666666666669"/>
                                     <string key="text">DolphiniOS is not compatible with your device and/or iOS version.
 
 Non-jailbroken devices with A11 processors or lower running any version of iOS 14 are not supported at this time.
 
-If you are running iOS 14.0 or iOS 14.1 on a device with an A12 processor or newer, please upgrade to iOS 14.2.
+If you are running iOS 14.0 or iOS 14.1 on a non-jailbroken device with an A12 processor or newer, please upgrade to iOS 14.2.
 
 If this device is jailbroken, please install DolphiniOS from our Cydia source instead of sideloading it:
 
