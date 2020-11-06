@@ -513,12 +513,16 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
 
   WiimoteReal::InitAdapterClass();
 
-  // No use running the loop when booting fails
   s_have_wm_user_stop = false;
+
   std::unique_ptr<BootParameters> boot = BootParameters::GenerateFromFile(paths, savestate_path);
-  boot->delete_savestate = delete_savestate;
+  if (boot)
+    boot->delete_savestate = delete_savestate;
+
   WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf, s_surf);
   wsi.render_surface_scale = GetRenderSurfaceScale(env);
+
+  // No use running the loop when booting fails
   if (BootManager::BootCore(std::move(boot), wsi))
   {
     ButtonManager::Init(SConfig::GetInstance().GetGameID());

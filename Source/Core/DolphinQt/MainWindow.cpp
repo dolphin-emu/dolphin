@@ -951,7 +951,7 @@ void MainWindow::StartGame(const std::vector<std::string>& paths,
 
 void MainWindow::StartGame(std::unique_ptr<BootParameters>&& parameters)
 {
-  if (std::holds_alternative<BootParameters::Disc>(parameters->parameters))
+  if (parameters && std::holds_alternative<BootParameters::Disc>(parameters->parameters))
   {
     if (std::get<BootParameters::Disc>(parameters->parameters).volume->IsNKit())
     {
