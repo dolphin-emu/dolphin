@@ -12,6 +12,8 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentManager;
+
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.AlertMessage;
 import org.dolphinemu.dolphinemu.utils.CompressCallback;
@@ -508,9 +510,22 @@ public final class NativeLibrary
       {
         sIsShowingAlertMessage = true;
 
-        emulationActivity.runOnUiThread(
-                () -> AlertMessage.newInstance(caption, text, yesNo, isWarning)
-                        .show(emulationActivity.getSupportFragmentManager(), "AlertMessage"));
+        emulationActivity.runOnUiThread(() ->
+        {
+          FragmentManager fragmentManager = emulationActivity.getSupportFragmentManager();
+          if (fragmentManager.isStateSaved())
+          {
+            // The activity is being destroyed, so we can't use it to display an AlertMessage.
+            // Fall back to a toast.
+            Toast.makeText(emulationActivity, text, Toast.LENGTH_LONG).show();
+            NotifyAlertMessageLock();
+          }
+          else
+          {
+            AlertMessage.newInstance(caption, text, yesNo, isWarning)
+                    .show(fragmentManager, "AlertMessage");
+          }
+        });
 
         // Wait for the lock to notify that it is complete.
         synchronized (sAlertMessageLock)
