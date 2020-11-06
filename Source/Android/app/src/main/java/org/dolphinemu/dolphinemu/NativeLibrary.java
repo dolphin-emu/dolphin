@@ -403,14 +403,12 @@ public final class NativeLibrary
    */
   public static native void StopEmulation();
 
-  public static native boolean IsBooting();
-
-  public static native void WaitUntilDoneBooting();
-
   /**
    * Returns true if emulation is running (or is paused).
    */
   public static native boolean IsRunning();
+
+  public static native boolean IsRunningAndStarted();
 
   /**
    * Enables or disables CPU block profiling
@@ -487,7 +485,7 @@ public final class NativeLibrary
   private static native String GetCurrentTitleDescriptionUnchecked();
 
   public static boolean displayAlertMsg(final String caption, final String text,
-          final boolean yesNo, final boolean isWarning)
+          final boolean yesNo, final boolean isWarning, final boolean nonBlocking)
   {
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -498,10 +496,9 @@ public final class NativeLibrary
     }
     else
     {
-      // AlertMessages while the core is booting will deadlock if WaitUntilDoneBooting is called.
-      // We also can't use AlertMessages unless we have a non-null activity reference.
-      // As a fallback, we use toasts instead.
-      if (emulationActivity == null || IsBooting())
+      // We can't use AlertMessages unless we have a non-null activity reference
+      // and are allowed to block. As a fallback, we can use toasts.
+      if (emulationActivity == null || nonBlocking)
       {
         new Handler(Looper.getMainLooper()).post(
                 () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)

@@ -148,7 +148,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   public void initTouchPointer()
   {
     // Check if we have all the data we need yet
-    boolean aspectRatioAvailable = NativeLibrary.IsRunning() && !NativeLibrary.IsBooting();
+    boolean aspectRatioAvailable = NativeLibrary.IsRunningAndStarted();
     if (!aspectRatioAvailable || mSurfacePosition == null)
       return;
 
