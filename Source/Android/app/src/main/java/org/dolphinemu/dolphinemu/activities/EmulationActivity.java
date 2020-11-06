@@ -457,6 +457,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void handleCheckableMenuAction(@MenuAction int menuAction, MenuItem item)
   {
+    //noinspection SwitchIntDef
     switch (menuAction)
     {
       case MENU_ACTION_JOYSTICK_REL_CENTER:
@@ -472,6 +473,7 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void handleMenuAction(@MenuAction int menuAction)
   {
+    //noinspection SwitchIntDef
     switch (menuAction)
     {
       // Edit the placement of the controls
@@ -487,137 +489,137 @@ public final class EmulationActivity extends AppCompatActivity
       // Enable/Disable specific buttons or the entire input overlay.
       case MENU_ACTION_TOGGLE_CONTROLS:
         toggleControls();
-        return;
+        break;
 
       // Adjust the scale of the overlay controls.
       case MENU_ACTION_ADJUST_SCALE:
         adjustScale();
-        return;
+        break;
 
       // (Wii games only) Change the controller for the input overlay.
       case MENU_ACTION_CHOOSE_CONTROLLER:
         chooseController();
-        return;
+        break;
 
       case MENU_ACTION_REFRESH_WIIMOTES:
         NativeLibrary.RefreshWiimotes();
-        return;
+        break;
 
       case MENU_ACTION_PAUSE_EMULATION:
         sUserPausedEmulation = true;
         NativeLibrary.PauseEmulation();
-        return;
+        break;
 
       case MENU_ACTION_UNPAUSE_EMULATION:
         sUserPausedEmulation = false;
         NativeLibrary.UnPauseEmulation();
-        return;
+        break;
 
       // Screenshot capturing
       case MENU_ACTION_TAKE_SCREENSHOT:
         NativeLibrary.SaveScreenShot();
-        return;
+        break;
 
       // Quick save / load
       case MENU_ACTION_QUICK_SAVE:
         NativeLibrary.SaveState(9, false);
-        return;
+        break;
 
       case MENU_ACTION_QUICK_LOAD:
         NativeLibrary.LoadState(9);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_ROOT:
         showSubMenu(SaveLoadStateFragment.SaveOrLoad.SAVE);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_ROOT:
         showSubMenu(SaveLoadStateFragment.SaveOrLoad.LOAD);
-        return;
+        break;
 
       // Save state slots
       case MENU_ACTION_SAVE_SLOT1:
         NativeLibrary.SaveState(0, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT2:
         NativeLibrary.SaveState(1, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT3:
         NativeLibrary.SaveState(2, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT4:
         NativeLibrary.SaveState(3, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT5:
         NativeLibrary.SaveState(4, false);
-        return;
+        break;
 
       case MENU_ACTION_SAVE_SLOT6:
         NativeLibrary.SaveState(5, false);
-        return;
+        break;
 
       // Load state slots
       case MENU_ACTION_LOAD_SLOT1:
         NativeLibrary.LoadState(0);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT2:
         NativeLibrary.LoadState(1);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT3:
         NativeLibrary.LoadState(2);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT4:
         NativeLibrary.LoadState(3);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT5:
         NativeLibrary.LoadState(4);
-        return;
+        break;
 
       case MENU_ACTION_LOAD_SLOT6:
         NativeLibrary.LoadState(5);
-        return;
+        break;
 
       case MENU_ACTION_CHANGE_DISC:
         FileBrowserHelper.openFilePicker(this, REQUEST_CHANGE_DISC, false,
                 FileBrowserHelper.GAME_EXTENSIONS);
-        return;
+        break;
 
       case MENU_SET_IR_SENSITIVITY:
         setIRSensitivity();
-        return;
+        break;
 
       case MENU_ACTION_CHOOSE_DOUBLETAP:
         chooseDoubleTapButton();
-        return;
+        break;
 
       case MENU_ACTION_SCREEN_ORIENTATION:
         chooseOrientation();
-        return;
+        break;
 
       case MENU_ACTION_MOTION_CONTROLS:
         showMotionControlsOptions();
-        return;
+        break;
 
       case MENU_ACTION_SETTINGS_CORE:
         SettingsActivity.launch(this, MenuTag.CONFIG);
-        return;
+        break;
 
       case MENU_ACTION_SETTINGS_GRAPHICS:
         SettingsActivity.launch(this, MenuTag.GRAPHICS);
-        return;
+        break;
 
       case MENU_ACTION_EXIT:
         mEmulationFragment.stopEmulation();
         finish();
-        return;
+        break;
     }
   }
 
