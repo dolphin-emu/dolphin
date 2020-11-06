@@ -915,7 +915,7 @@ public final class EmulationActivity extends AppCompatActivity
     File file = SettingsFile.getCustomGameSettingsFile(NativeLibrary.GetCurrentGameID());
     IniFile ini = new IniFile(file);
 
-    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 15);
+    int ir_pitch = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_PITCH, 20);
 
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_ir_sensitivity, null);
@@ -947,7 +947,7 @@ public final class EmulationActivity extends AppCompatActivity
       }
     });
 
-    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 15);
+    int ir_yaw = ini.getInt(Settings.SECTION_CONTROLS, SettingsFile.KEY_WIIBIND_IR_YAW, 25);
 
     TextView text_slider_value_yaw = view.findViewById(R.id.text_ir_yaw);
     TextView units_yaw = view.findViewById(R.id.text_ir_yaw_units);
