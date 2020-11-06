@@ -543,12 +543,6 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   ButtonManager::Shutdown();
   host_identity_guard.unlock();
 
-  if (s_surf)
-  {
-    ANativeWindow_release(s_surf);
-    s_surf = nullptr;
-  }
-
   env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
                             IDCache::GetFinishEmulationActivity());
 }
