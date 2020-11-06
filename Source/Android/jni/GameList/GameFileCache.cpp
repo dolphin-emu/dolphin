@@ -28,7 +28,7 @@ extern "C" {
 #endif
 
 JNIEXPORT jlong JNICALL Java_org_dolphinemu_dolphinemu_model_GameFileCache_newGameFileCache(
-    JNIEnv* env, jobject obj, jstring path)
+    JNIEnv* env, jclass obj, jstring path)
 {
   return reinterpret_cast<jlong>(new UICommon::GameFileCache(GetJString(env, path)));
 }

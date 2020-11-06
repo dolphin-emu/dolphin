@@ -188,7 +188,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
 }
 
 JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env,
-                                                                              jobject obj,
+                                                                              jclass obj,
                                                                               jstring path)
 {
   auto game_file = std::make_shared<UICommon::GameFile>(GetJString(env, path));
