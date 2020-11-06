@@ -81,10 +81,12 @@ public final class EmulationActivity extends AppCompatActivity
   private String[] mPaths;
   private boolean mIgnoreWarnings;
   private static boolean sUserPausedEmulation;
+  private boolean mMenuToastShown;
 
   public static final String EXTRA_SELECTED_GAMES = "SelectedGames";
   public static final String EXTRA_IGNORE_WARNINGS = "IgnoreWarnings";
   public static final String EXTRA_USER_PAUSED_EMULATION = "sUserPausedEmulation";
+  public static final String EXTRA_MENU_TOAST_SHOWN = "MenuToastShown";
 
   @Retention(SOURCE)
   @IntDef({MENU_ACTION_EDIT_CONTROLS_PLACEMENT, MENU_ACTION_TOGGLE_CONTROLS, MENU_ACTION_ADJUST_SCALE,
@@ -212,8 +214,8 @@ public final class EmulationActivity extends AppCompatActivity
       mPaths = gameToEmulate.getStringArrayExtra(EXTRA_SELECTED_GAMES);
       mIgnoreWarnings = gameToEmulate.getBooleanExtra(EXTRA_IGNORE_WARNINGS, false);
       sUserPausedEmulation = gameToEmulate.getBooleanExtra(EXTRA_USER_PAUSED_EMULATION, false);
+      mMenuToastShown = false;
       activityRecreated = false;
-      Toast.makeText(this, R.string.emulation_menu_help, Toast.LENGTH_LONG).show();
     }
     else
     {
@@ -260,8 +262,9 @@ public final class EmulationActivity extends AppCompatActivity
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
-    outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, mIgnoreWarnings);
+    outState.putBoolean(EXTRA_IGNORE_WARNINGS, mIgnoreWarnings);
     outState.putBoolean(EXTRA_USER_PAUSED_EMULATION, sUserPausedEmulation);
+    outState.putBoolean(EXTRA_MENU_TOAST_SHOWN, mMenuToastShown);
     super.onSaveInstanceState(outState);
   }
 
@@ -270,6 +273,7 @@ public final class EmulationActivity extends AppCompatActivity
     mPaths = savedInstanceState.getStringArray(EXTRA_SELECTED_GAMES);
     mIgnoreWarnings = savedInstanceState.getBoolean(EXTRA_IGNORE_WARNINGS);
     sUserPausedEmulation = savedInstanceState.getBoolean(EXTRA_USER_PAUSED_EMULATION);
+    mMenuToastShown = savedInstanceState.getBoolean(EXTRA_MENU_TOAST_SHOWN);
   }
 
   @Override
@@ -306,6 +310,13 @@ public final class EmulationActivity extends AppCompatActivity
 
   public void onTitleChanged()
   {
+    if (!mMenuToastShown)
+    {
+      // The reason why this doesn't run earlier is because we want to be sure the boot succeeded.
+      Toast.makeText(this, R.string.emulation_menu_help, Toast.LENGTH_LONG).show();
+      mMenuToastShown = true;
+    }
+
     setTitle(NativeLibrary.GetCurrentTitleDescription());
     updateMotionListener();
 
