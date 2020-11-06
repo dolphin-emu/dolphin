@@ -342,7 +342,6 @@ public final class EmulationActivity extends AppCompatActivity
     if (keyCode == KeyEvent.KEYCODE_BACK)
     {
       mEmulationFragment.stopEmulation();
-      finish();
       return true;
     }
     return super.onKeyLongPress(keyCode, event);
@@ -617,7 +616,6 @@ public final class EmulationActivity extends AppCompatActivity
 
       case MENU_ACTION_EXIT:
         mEmulationFragment.stopEmulation();
-        finish();
         break;
     }
   }

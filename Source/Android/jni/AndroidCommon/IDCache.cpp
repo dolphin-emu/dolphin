@@ -15,6 +15,7 @@ static jmethodID s_display_alert_msg;
 static jmethodID s_do_rumble;
 static jmethodID s_update_touch_pointer;
 static jmethodID s_on_title_changed;
+static jmethodID s_finish_emulation_activity;
 
 static jclass s_game_file_class;
 static jfieldID s_game_file_pointer;
@@ -92,6 +93,11 @@ jmethodID GetUpdateTouchPointer()
 jmethodID GetOnTitleChanged()
 {
   return s_on_title_changed;
+}
+
+jmethodID GetFinishEmulationActivity()
+{
+  return s_finish_emulation_activity;
 }
 
 jclass GetAnalyticsClass()
@@ -221,6 +227,8 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_update_touch_pointer =
       env->GetStaticMethodID(s_native_library_class, "updateTouchPointer", "()V");
   s_on_title_changed = env->GetStaticMethodID(s_native_library_class, "onTitleChanged", "()V");
+  s_finish_emulation_activity =
+      env->GetStaticMethodID(s_native_library_class, "finishEmulationActivity", "()V");
   env->DeleteLocalRef(native_library_class);
 
   const jclass game_file_class = env->FindClass("org/dolphinemu/dolphinemu/model/GameFile");

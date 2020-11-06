@@ -77,7 +77,6 @@ ANativeWindow* s_surf;
 // sequentially for access.
 std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
-Common::Event s_emulation_end_event;
 bool s_have_wm_user_stop = false;
 bool s_game_metadata_is_valid = false;
 }  // Anonymous namespace
@@ -210,17 +209,11 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
 {
-  {
-    std::lock_guard<std::mutex> guard(s_host_identity_lock);
-    s_emulation_end_event.Reset();
-    Core::Stop();
+  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  Core::Stop();
 
-    // Kick the waiting event
-    s_update_main_frame_event.Set();
-  }
-
-  // Wait for shutdown, to avoid accessing the config at the same time as the shutdown code
-  s_emulation_end_event.Wait();
+  // Kick the waiting event
+  s_update_main_frame_event.Set();
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsBooting(JNIEnv*, jclass)
@@ -533,7 +526,8 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
     s_surf = nullptr;
   }
 
-  s_emulation_end_event.Set();
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                            IDCache::GetFinishEmulationActivity());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2(

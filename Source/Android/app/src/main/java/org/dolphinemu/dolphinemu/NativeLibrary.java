@@ -563,6 +563,20 @@ public final class NativeLibrary
     sEmulationActivity.clear();
   }
 
+  public static void finishEmulationActivity()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      Log.verbose("[NativeLibrary] Finishing EmulationActivity.");
+      emulationActivity.runOnUiThread(emulationActivity::finish);
+    }
+  }
+
   public static void updateTouchPointer()
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
