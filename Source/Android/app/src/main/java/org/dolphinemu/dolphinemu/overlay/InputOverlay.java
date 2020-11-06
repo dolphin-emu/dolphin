@@ -31,6 +31,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
@@ -70,6 +71,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   private InputOverlayDrawableDpad mDpadBeingConfigured;
   private InputOverlayDrawableJoystick mJoystickBeingConfigured;
 
+  private final Settings mSettings;
   private final SharedPreferences mPreferences;
 
   // Buttons that have special positions in Wiimote only
@@ -121,9 +123,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
   {
     super(context, attrs);
 
+    mSettings = new Settings();
+    mSettings.loadSettings(null);
+
     mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
-    if (!mPreferences.getBoolean("OverlayInitV3", false))
-      defaultOverlay();
+
+    defaultOverlay();
 
     // Load the controls if we can. If not, EmulationActivity has to do it later.
     if (NativeLibrary.IsGameMetadataValid())
@@ -345,7 +350,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     int controller = sPrefs.getInt("wiiController", 3);
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "-Portrait" : "";
+                    "_PORTRAIT" : "";
 
     // Maybe combine Button and Joystick as subclasses of the same parent?
     // Or maybe create an interface like IMoveableHUDControl?
@@ -711,7 +716,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     String orientation =
             getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT ?
-                    "-Portrait" : "";
+                    "_PORTRAIT" : "";
 
     if (BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.getBooleanGlobal())
     {
@@ -806,61 +811,50 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     refreshControls();
   }
 
-  private void saveControlPosition(int sharedPrefsId, int x, int y, int controller,
+  private void saveControlPosition(int buttonId, int x, int y, int controller,
           String orientation)
   {
-    final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
-    SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
-    sPrefsEditor.putFloat(getXKey(sharedPrefsId, controller, orientation), x);
-    sPrefsEditor.putFloat(getYKey(sharedPrefsId, controller, orientation), y);
-    sPrefsEditor.apply();
+    // TODO: Make these settings between 0 and 1 (where 0 is one edge of the screen and 1 is the
+    //       other) instead of storing a number of pixels. Bounds checking should discard old values.
+    FloatSetting.valueOf(getXKey(buttonId, controller, orientation)).setFloat(mSettings, x);
+    FloatSetting.valueOf(getYKey(buttonId, controller, orientation)).setFloat(mSettings, y);
   }
 
-  private static String getKey(int sharedPrefsId, int controller, String orientation, String suffix)
+  private static String getKey(int buttonId, int controller, String orientation, String suffix)
   {
-    if (controller == 2 && WIIMOTE_H_BUTTONS.contains(sharedPrefsId))
+    if (controller == 2 && WIIMOTE_H_BUTTONS.contains(buttonId))
     {
-      return sharedPrefsId + "_H" + orientation + suffix;
+      return buttonId + "_H" + orientation + suffix;
     }
-    else if (controller == 1 && WIIMOTE_O_BUTTONS.contains(sharedPrefsId))
+    else if (controller == 1 && WIIMOTE_O_BUTTONS.contains(buttonId))
     {
-      return sharedPrefsId + "_O" + orientation + suffix;
+      return buttonId + "_O" + orientation + suffix;
     }
     else
     {
-      return sharedPrefsId + orientation + suffix;
+      return buttonId + orientation + suffix;
     }
   }
 
-  private static String getXKey(int sharedPrefsId, int controller, String orientation)
+  private static String getXKey(int buttonId, int controller, String orientation)
   {
-    return getKey(sharedPrefsId, controller, orientation, "-X");
+    return "MAIN_BUTTON_TYPE_" + getKey(buttonId, controller, orientation, "_X");
   }
 
-  private static String getYKey(int sharedPrefsId, int controller, String orientation)
+  private static String getYKey(int buttonId, int controller, String orientation)
   {
-    return getKey(sharedPrefsId, controller, orientation, "-Y");
+    return "MAIN_BUTTON_TYPE_" + getKey(buttonId, controller, orientation, "_Y");
   }
 
   /**
    * Initializes an InputOverlayDrawableButton, given by resId, with all of the
    * parameters set for it to be properly shown on the InputOverlay.
    * <p>
-   * This works due to the way the X and Y coordinates are stored within
-   * the {@link SharedPreferences}.
-   * <p>
    * In the input overlay configuration menu,
    * once a touch event begins and then ends (ie. Organizing the buttons to one's own liking for the overlay).
    * the X and Y coordinates of the button at the END of its touch event
    * (when you remove your finger/stylus from the touchscreen) are then stored
-   * within a SharedPreferences instance so that those values can be retrieved here.
-   * <p>
-   * This has a few benefits over the conventional way of storing the values
-   * (ie. within the Dolphin ini file).
-   * <ul>
-   * <li>No native calls</li>
-   * <li>Keeps Android-only values inside the Android environment</li>
-   * </ul>
+   * so that those values can be retrieved here.
    * <p>
    * Technically no modifications should need to be performed on the returned
    * InputOverlayDrawableButton. Simply add it to the HashSet of overlay items and wait
@@ -878,7 +872,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
 
-    // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
     int controller = sPrefs.getInt("wiiController", 3);
 
@@ -943,8 +936,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(buttonId, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(buttonId, controller, orientation), 0f);
+    int drawableX =
+            (int) FloatSetting.valueOf(getXKey(buttonId, controller, orientation)).getFloatGlobal();
+    int drawableY =
+            (int) FloatSetting.valueOf(getYKey(buttonId, controller, orientation)).getFloatGlobal();
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -985,7 +980,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
 
-    // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
     int controller = sPrefs.getInt("wiiController", 3);
 
@@ -1027,8 +1021,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(buttonUp, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(buttonUp, controller, orientation), 0f);
+    int drawableX =
+            (int) FloatSetting.valueOf(getXKey(buttonUp, controller, orientation)).getFloatGlobal();
+    int drawableY =
+            (int) FloatSetting.valueOf(getYKey(buttonUp, controller, orientation)).getFloatGlobal();
 
     int width = overlayDrawable.getWidth();
     int height = overlayDrawable.getHeight();
@@ -1059,7 +1055,6 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     // Resources handle for fetching the initial Drawable resource.
     final Resources res = context.getResources();
 
-    // SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
     final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
     int controller = sPrefs.getInt("wiiController", 3);
 
@@ -1076,8 +1071,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
     // The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
     // These were set in the input overlay configuration menu.
-    int drawableX = (int) sPrefs.getFloat(getXKey(joystick, controller, orientation), 0f);
-    int drawableY = (int) sPrefs.getFloat(getYKey(joystick, controller, orientation), 0f);
+    int drawableX =
+            (int) FloatSetting.valueOf(getXKey(joystick, controller, orientation)).getFloatGlobal();
+    int drawableY =
+            (int) FloatSetting.valueOf(getYKey(joystick, controller, orientation)).getFloatGlobal();
 
     // Decide inner scale based on joystick ID
     float innerScale;
@@ -1120,57 +1117,68 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void defaultOverlay()
   {
-    if (!mPreferences.getBoolean("OverlayInitV2", false))
+    String buttonTypeBase = "MAIN_BUTTON_TYPE_";
+    String portrait = "_PORTRAIT";
+
+    // Only change the overlay if the 'A' button is in the upper corner.
+    // GameCube
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + "_X").getFloatGlobal() == 0f)
     {
-      // It's possible that a user has created their overlay before this was added
-      // Only change the overlay if the 'A' button is not in the upper corner.
-      // GameCube
-      if (mPreferences.getFloat(ButtonType.BUTTON_A + "-X", 0f) == 0f)
-      {
-        gcDefaultOverlay();
-      }
-      if (mPreferences.getFloat(ButtonType.BUTTON_A + "-Portrait" + "-X", 0f) == 0f)
-      {
-        gcPortraitDefaultOverlay();
-      }
-
-      // Wii
-      if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "-X", 0f) == 0f)
-      {
-        wiiDefaultOverlay();
-      }
-      if (mPreferences.getFloat(ButtonType.WIIMOTE_BUTTON_A + "-Portrait" + "-X", 0f) == 0f)
-      {
-        wiiPortraitDefaultOverlay();
-      }
-
-      // Wii Classic
-      if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "-X", 0f) == 0f)
-      {
-        wiiClassicDefaultOverlay();
-      }
-      if (mPreferences.getFloat(ButtonType.CLASSIC_BUTTON_A + "-Portrait" + "-X", 0f) == 0f)
-      {
-        wiiClassicPortraitDefaultOverlay();
-      }
+      gcDefaultOverlay();
+    }
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + portrait + "_X")
+            .getFloatGlobal() == 0f)
+    {
+      gcPortraitDefaultOverlay();
     }
 
-    if (!mPreferences.getBoolean("OverlayInitV3", false))
+    // Wii
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_X")
+            .getFloatGlobal() == 0f)
+    {
+      wiiDefaultOverlay();
+    }
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + portrait + "_X")
+            .getFloatGlobal() == 0f)
+    {
+      wiiPortraitDefaultOverlay();
+    }
+
+    // Wii Classic
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A + "_X")
+            .getFloatGlobal() == 0f)
+    {
+      wiiClassicDefaultOverlay();
+    }
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A + portrait + "_X")
+            .getFloatGlobal() == 0f)
+    {
+      wiiClassicPortraitDefaultOverlay();
+    }
+
+    // Wii Only
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_H_X")
+            .getFloatGlobal() == 0f)
     {
       wiiOnlyDefaultOverlay();
+    }
+    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "_X")
+            .getFloatGlobal() == 0f)
+    {
       wiiOnlyPortraitDefaultOverlay();
     }
+  }
 
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-    sPrefsEditor.putBoolean("OverlayInitV2", true);
-    sPrefsEditor.putBoolean("OverlayInitV3", true);
-    sPrefsEditor.apply();
+  private void setButtonPosition(String settingName, int defaultValueId, float maxValue)
+  {
+    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
+    // to a decimal before multiplying by MAX X/Y.
+    FloatSetting.valueOf("MAIN_BUTTON_TYPE_" + settingName).setFloat(mSettings,
+            (((float) getResources().getInteger(defaultValueId) / 1000) * maxValue));
   }
 
   private void gcDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1184,63 +1192,33 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_A + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_A_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_B_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_B + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_B_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_X_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_X + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_X_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_Y_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Y + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_Y_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_Z_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Z + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_Z_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_UP_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_UP + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_UP_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-X",
-            (((float) res.getInteger(R.integer.TRIGGER_L_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L + "-Y",
-            (((float) res.getInteger(R.integer.TRIGGER_L_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-X",
-            (((float) res.getInteger(R.integer.TRIGGER_R_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R + "-Y",
-            (((float) res.getInteger(R.integer.TRIGGER_R_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_START_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_START + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_START_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.STICK_C + "-X",
-            (((float) res.getInteger(R.integer.STICK_C_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.STICK_C + "-Y",
-            (((float) res.getInteger(R.integer.STICK_C_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-X",
-            (((float) res.getInteger(R.integer.STICK_MAIN_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.STICK_MAIN + "-Y",
-            (((float) res.getInteger(R.integer.STICK_MAIN_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.BUTTON_A + "_X", R.integer.BUTTON_A_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_A + "_Y", R.integer.BUTTON_A_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_B + "_X", R.integer.BUTTON_B_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_B + "_Y", R.integer.BUTTON_B_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_X + "_X", R.integer.BUTTON_X_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_X + "_Y", R.integer.BUTTON_X_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_Y + "_X", R.integer.BUTTON_Y_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_Y + "_Y", R.integer.BUTTON_Y_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_Z + "_X", R.integer.BUTTON_Z_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_Z + "_Y", R.integer.BUTTON_Z_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_UP + "_X", R.integer.BUTTON_UP_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_UP + "_Y", R.integer.BUTTON_UP_Y, maxY);
+    setButtonPosition(ButtonType.TRIGGER_L + "_X", R.integer.TRIGGER_L_X, maxX);
+    setButtonPosition(ButtonType.TRIGGER_L + "_Y", R.integer.TRIGGER_L_Y, maxY);
+    setButtonPosition(ButtonType.TRIGGER_R + "_X", R.integer.TRIGGER_R_X, maxX);
+    setButtonPosition(ButtonType.TRIGGER_R + "_Y", R.integer.TRIGGER_R_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_START + "_X", R.integer.BUTTON_START_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_START + "_Y", R.integer.BUTTON_START_Y, maxY);
+    setButtonPosition(ButtonType.STICK_C + "_X", R.integer.STICK_C_X, maxX);
+    setButtonPosition(ButtonType.STICK_C + "_Y", R.integer.STICK_C_Y, maxY);
+    setButtonPosition(ButtonType.STICK_MAIN + "_X", R.integer.STICK_MAIN_X, maxX);
+    setButtonPosition(ButtonType.STICK_MAIN + "_Y", R.integer.STICK_MAIN_Y, maxY);
   }
 
   private void gcPortraitDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1254,64 +1232,38 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
-    String portrait = "-Portrait";
+    String portrait = "_PORTRAIT";
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.BUTTON_A + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_A_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_A + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_A_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_B + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_B_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_B + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_B_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_X + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_X_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_X + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_X_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Y + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_Y_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Y + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_Y_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Z + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_Z_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_Z + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_Z_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_UP + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_UP_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_UP + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_UP_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L + portrait + "-X",
-            (((float) res.getInteger(R.integer.TRIGGER_L_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_L + portrait + "-Y",
-            (((float) res.getInteger(R.integer.TRIGGER_L_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R + portrait + "-X",
-            (((float) res.getInteger(R.integer.TRIGGER_R_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.TRIGGER_R + portrait + "-Y",
-            (((float) res.getInteger(R.integer.TRIGGER_R_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_START + portrait + "-X",
-            (((float) res.getInteger(R.integer.BUTTON_START_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.BUTTON_START + portrait + "-Y",
-            (((float) res.getInteger(R.integer.BUTTON_START_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.STICK_C + portrait + "-X",
-            (((float) res.getInteger(R.integer.STICK_C_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.STICK_C + portrait + "-Y",
-            (((float) res.getInteger(R.integer.STICK_C_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.STICK_MAIN + portrait + "-X",
-            (((float) res.getInteger(R.integer.STICK_MAIN_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.STICK_MAIN + portrait + "-Y",
-            (((float) res.getInteger(R.integer.STICK_MAIN_PORTRAIT_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.BUTTON_A + portrait + "_X", R.integer.BUTTON_A_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_A + portrait + "_Y", R.integer.BUTTON_A_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_B + portrait + "_X", R.integer.BUTTON_B_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_B + portrait + "_Y", R.integer.BUTTON_B_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_X + portrait + "_X", R.integer.BUTTON_X_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_X + portrait + "_Y", R.integer.BUTTON_X_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_Y + portrait + "_X", R.integer.BUTTON_Y_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_Y + portrait + "_Y", R.integer.BUTTON_Y_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_Z + portrait + "_X", R.integer.BUTTON_Z_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_Z + portrait + "_Y", R.integer.BUTTON_Z_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_UP + portrait + "_X", R.integer.BUTTON_UP_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.BUTTON_UP + portrait + "_Y", R.integer.BUTTON_UP_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.TRIGGER_L + portrait + "_X", R.integer.TRIGGER_L_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.TRIGGER_L + portrait + "_Y", R.integer.TRIGGER_L_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.TRIGGER_R + portrait + "_X", R.integer.TRIGGER_R_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.TRIGGER_R + portrait + "_Y", R.integer.TRIGGER_R_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.BUTTON_START + portrait + "_X", R.integer.BUTTON_START_PORTRAIT_X,
+            maxX);
+    setButtonPosition(ButtonType.BUTTON_START + portrait + "_Y", R.integer.BUTTON_START_PORTRAIT_Y,
+            maxY);
+    setButtonPosition(ButtonType.STICK_C + portrait + "_X", R.integer.STICK_C_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.STICK_C + portrait + "_Y", R.integer.STICK_C_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.STICK_MAIN + portrait + "_X", R.integer.STICK_MAIN_PORTRAIT_X,
+            maxX);
+    setButtonPosition(ButtonType.STICK_MAIN + portrait + "_Y", R.integer.STICK_MAIN_PORTRAIT_Y,
+            maxY);
   }
 
   private void wiiDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1325,63 +1277,35 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_A_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_B_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_B_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_1_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_1_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_2_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_2_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_Z_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_Z_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_C_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_C_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_UP_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_UP_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_STICK_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_STICK_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_X", R.integer.WIIMOTE_BUTTON_A_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_Y", R.integer.WIIMOTE_BUTTON_A_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_X", R.integer.WIIMOTE_BUTTON_B_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_Y", R.integer.WIIMOTE_BUTTON_B_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_X", R.integer.WIIMOTE_BUTTON_1_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_Y", R.integer.WIIMOTE_BUTTON_1_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_X", R.integer.WIIMOTE_BUTTON_2_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_Y", R.integer.WIIMOTE_BUTTON_2_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_Z + "_X", R.integer.NUNCHUK_BUTTON_Z_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_Z + "_Y", R.integer.NUNCHUK_BUTTON_Z_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_C + "_X", R.integer.NUNCHUK_BUTTON_C_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_C + "_Y", R.integer.NUNCHUK_BUTTON_C_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_MINUS + "_X", R.integer.WIIMOTE_BUTTON_MINUS_X,
+            maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_MINUS + "_Y", R.integer.WIIMOTE_BUTTON_MINUS_Y,
+            maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_PLUS + "_X", R.integer.WIIMOTE_BUTTON_PLUS_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_PLUS + "_Y", R.integer.WIIMOTE_BUTTON_PLUS_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_X", R.integer.WIIMOTE_UP_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_Y", R.integer.WIIMOTE_UP_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_HOME + "_X", R.integer.WIIMOTE_BUTTON_HOME_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_HOME + "_Y", R.integer.WIIMOTE_BUTTON_HOME_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_STICK + "_X", R.integer.NUNCHUK_STICK_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_STICK + "_Y", R.integer.NUNCHUK_STICK_Y, maxY);
   }
 
   private void wiiOnlyDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1395,45 +1319,25 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_H-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_H-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_A_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_H-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_B_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_H-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_B_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_H-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_1_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_H-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_1_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_H-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_2_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_H-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_2_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_O-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_O_UP_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_O-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_O_UP_Y) / 1000) * maxY));
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H_X", R.integer.WIIMOTE_H_BUTTON_A_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H_Y", R.integer.WIIMOTE_H_BUTTON_A_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_H_X", R.integer.WIIMOTE_H_BUTTON_B_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_H_Y", R.integer.WIIMOTE_H_BUTTON_B_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_H_X", R.integer.WIIMOTE_H_BUTTON_1_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_H_Y", R.integer.WIIMOTE_H_BUTTON_1_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_H_X", R.integer.WIIMOTE_H_BUTTON_2_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_H_Y", R.integer.WIIMOTE_H_BUTTON_2_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_O_X", R.integer.WIIMOTE_O_UP_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_O_Y", R.integer.WIIMOTE_O_UP_Y, maxY);
 
     // Horizontal dpad
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_RIGHT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_RIGHT_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.WIIMOTE_RIGHT + "_X", R.integer.WIIMOTE_RIGHT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_RIGHT + "_Y", R.integer.WIIMOTE_RIGHT_Y, maxY);
   }
 
   private void wiiPortraitDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1447,69 +1351,61 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
-    String portrait = "-Portrait";
+    String portrait = "_PORTRAIT";
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_A_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_A_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_B_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_B_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_1_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_1_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_2_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_2_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + portrait + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_Z_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_Z + portrait + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_Z_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + portrait + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_C_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_BUTTON_C + portrait + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_BUTTON_C_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_MINUS + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_MINUS_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_PLUS + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_PLUS_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_UP_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_UP_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_HOME + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_BUTTON_HOME_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + portrait + "-X",
-            (((float) res.getInteger(R.integer.NUNCHUK_STICK_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.NUNCHUK_STICK + portrait + "-Y",
-            (((float) res.getInteger(R.integer.NUNCHUK_STICK_PORTRAIT_Y) / 1000) * maxY));
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_A_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_A_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_B_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_B_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_1_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_1_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_2_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_2_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_Z + portrait + "_X",
+            R.integer.NUNCHUK_BUTTON_Z_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_Z + portrait + "_Y",
+            R.integer.NUNCHUK_BUTTON_Z_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_C + portrait + "_X",
+            R.integer.NUNCHUK_BUTTON_C_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_BUTTON_C + portrait + "_Y",
+            R.integer.NUNCHUK_BUTTON_C_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_MINUS + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_MINUS_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_MINUS + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_MINUS_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_PLUS + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_PLUS_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_PLUS + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_PLUS_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_UP + portrait + "_X",
+            R.integer.WIIMOTE_UP_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_UP + portrait + "_Y",
+            R.integer.WIIMOTE_UP_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_HOME + portrait + "_X",
+            R.integer.WIIMOTE_BUTTON_HOME_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_HOME + portrait + "_Y",
+            R.integer.WIIMOTE_BUTTON_HOME_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.NUNCHUK_STICK + portrait + "_X",
+            R.integer.NUNCHUK_STICK_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.NUNCHUK_STICK + portrait + "_Y",
+            R.integer.NUNCHUK_STICK_PORTRAIT_Y, maxY);
     // Horizontal dpad
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_RIGHT_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_RIGHT + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_RIGHT_PORTRAIT_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.WIIMOTE_RIGHT + portrait + "_X",
+            R.integer.WIIMOTE_RIGHT_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_RIGHT + portrait + "_Y",
+            R.integer.WIIMOTE_RIGHT_PORTRAIT_Y, maxY);
   }
 
   private void wiiOnlyPortraitDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1523,40 +1419,32 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
-    String portrait = "-Portrait";
+    String portrait = "_PORTRAIT";
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_A_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_A_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_H" + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_B_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_B + "_H" + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_B_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_H" + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_1_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_1 + "_H" + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_1_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_H" + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_2_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_BUTTON_2 + "_H" + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_H_BUTTON_2_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_O" + portrait + "-X",
-            (((float) res.getInteger(R.integer.WIIMOTE_O_UP_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.WIIMOTE_UP + "_O" + portrait + "-Y",
-            (((float) res.getInteger(R.integer.WIIMOTE_O_UP_PORTRAIT_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "_X",
+            R.integer.WIIMOTE_H_BUTTON_A_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "_Y",
+            R.integer.WIIMOTE_H_BUTTON_A_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_H" + portrait + "_X",
+            R.integer.WIIMOTE_H_BUTTON_B_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_B + "_H" + portrait + "_Y",
+            R.integer.WIIMOTE_H_BUTTON_B_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_H" + portrait + "_X",
+            R.integer.WIIMOTE_H_BUTTON_1_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_1 + "_H" + portrait + "_Y",
+            R.integer.WIIMOTE_H_BUTTON_1_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_H" + portrait + "_X",
+            R.integer.WIIMOTE_H_BUTTON_2_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_BUTTON_2 + "_H" + portrait + "_Y",
+            R.integer.WIIMOTE_H_BUTTON_2_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_O" + portrait + "_X",
+            R.integer.WIIMOTE_O_UP_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.WIIMOTE_UP + "_O" + portrait + "_Y",
+            R.integer.WIIMOTE_O_UP_PORTRAIT_Y, maxY);
   }
 
   private void wiiClassicDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1570,75 +1458,41 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_A_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_A_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_B_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_B_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_X_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_X_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_Y_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_Y_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_HOME_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_HOME_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZL_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZL_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZR_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZR_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_DPAD_UP_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_DPAD_UP_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_LEFT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_LEFT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_RIGHT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_RIGHT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_L_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_L_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_A + "_X", R.integer.CLASSIC_BUTTON_A_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_A + "_Y", R.integer.CLASSIC_BUTTON_A_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_B + "_X", R.integer.CLASSIC_BUTTON_B_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_B + "_Y", R.integer.CLASSIC_BUTTON_B_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_X + "_X", R.integer.CLASSIC_BUTTON_X_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_X + "_Y", R.integer.CLASSIC_BUTTON_X_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_Y + "_X", R.integer.CLASSIC_BUTTON_Y_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_Y + "_Y", R.integer.CLASSIC_BUTTON_Y_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_MINUS + "_X", R.integer.CLASSIC_BUTTON_MINUS_X,
+            maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_MINUS + "_Y", R.integer.CLASSIC_BUTTON_MINUS_Y,
+            maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_PLUS + "_X", R.integer.CLASSIC_BUTTON_PLUS_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_PLUS + "_Y", R.integer.CLASSIC_BUTTON_PLUS_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_HOME + "_X", R.integer.CLASSIC_BUTTON_HOME_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_HOME + "_Y", R.integer.CLASSIC_BUTTON_HOME_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZL + "_X", R.integer.CLASSIC_BUTTON_ZL_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZL + "_Y", R.integer.CLASSIC_BUTTON_ZL_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZR + "_X", R.integer.CLASSIC_BUTTON_ZR_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZR + "_Y", R.integer.CLASSIC_BUTTON_ZR_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_DPAD_UP + "_X", R.integer.CLASSIC_DPAD_UP_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_DPAD_UP + "_Y", R.integer.CLASSIC_DPAD_UP_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_STICK_LEFT + "_X", R.integer.CLASSIC_STICK_LEFT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_STICK_LEFT + "_Y", R.integer.CLASSIC_STICK_LEFT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_STICK_RIGHT + "_X", R.integer.CLASSIC_STICK_RIGHT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_STICK_RIGHT + "_Y", R.integer.CLASSIC_STICK_RIGHT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_L + "_X", R.integer.CLASSIC_TRIGGER_L_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_L + "_Y", R.integer.CLASSIC_TRIGGER_L_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_R + "_X", R.integer.CLASSIC_TRIGGER_R_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_R + "_Y", R.integer.CLASSIC_TRIGGER_R_Y, maxY);
   }
 
   private void wiiClassicPortraitDefaultOverlay()
   {
-    SharedPreferences.Editor sPrefsEditor = mPreferences.edit();
-
     // Get screen size
     Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
     DisplayMetrics outMetrics = new DisplayMetrics();
@@ -1652,69 +1506,63 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
       maxX = maxY;
       maxY = tmp;
     }
-    Resources res = getResources();
-    String portrait = "-Portrait";
+    String portrait = "_PORTRAIT";
 
-    // Each value is a percent from max X/Y stored as an int. Have to bring that value down
-    // to a decimal before multiplying by MAX X/Y.
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_A_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_A + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_A_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_B_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_B + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_B_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_X_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_X + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_X_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_Y_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_Y + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_Y_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_MINUS + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_MINUS_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_PLUS + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_PLUS_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_HOME_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_HOME + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_HOME_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZL_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZL + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZL_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZR_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_BUTTON_ZR + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_BUTTON_ZR_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_DPAD_UP_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_DPAD_UP + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_DPAD_UP_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_LEFT_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_LEFT + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_LEFT_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_RIGHT_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_STICK_RIGHT + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_STICK_RIGHT_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_L_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_L + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_L_PORTRAIT_Y) / 1000) * maxY));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + portrait + "-X",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_PORTRAIT_X) / 1000) * maxX));
-    sPrefsEditor.putFloat(ButtonType.CLASSIC_TRIGGER_R + portrait + "-Y",
-            (((float) res.getInteger(R.integer.CLASSIC_TRIGGER_R_PORTRAIT_Y) / 1000) * maxY));
-
-    // We want to commit right away, otherwise the overlay could load before this is saved.
-    sPrefsEditor.commit();
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_A + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_A_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_A + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_A_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_B + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_B_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_B + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_B_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_X + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_X_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_X + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_X_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_Y + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_Y_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_Y + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_Y_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_MINUS + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_MINUS_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_MINUS + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_MINUS_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_PLUS + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_PLUS_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_PLUS + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_PLUS_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_HOME + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_HOME_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_HOME + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_HOME_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZL + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_ZL_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZL + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_ZL_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZR + portrait + "_X",
+            R.integer.CLASSIC_BUTTON_ZR_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_BUTTON_ZR + portrait + "_Y",
+            R.integer.CLASSIC_BUTTON_ZR_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_DPAD_UP + portrait + "_X",
+            R.integer.CLASSIC_DPAD_UP_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_DPAD_UP + portrait + "_Y",
+            R.integer.CLASSIC_DPAD_UP_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_STICK_LEFT + portrait + "_X",
+            R.integer.CLASSIC_STICK_LEFT_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_STICK_LEFT + portrait + "_Y",
+            R.integer.CLASSIC_STICK_LEFT_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_STICK_RIGHT + portrait + "_X",
+            R.integer.CLASSIC_STICK_RIGHT_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_STICK_RIGHT + portrait + "_Y",
+            R.integer.CLASSIC_STICK_RIGHT_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_L + portrait + "_X",
+            R.integer.CLASSIC_TRIGGER_L_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_L + portrait + "_Y",
+            R.integer.CLASSIC_TRIGGER_L_PORTRAIT_Y, maxY);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_R + portrait + "_X",
+            R.integer.CLASSIC_TRIGGER_R_PORTRAIT_X, maxX);
+    setButtonPosition(ButtonType.CLASSIC_TRIGGER_R + portrait + "_Y",
+            R.integer.CLASSIC_TRIGGER_R_PORTRAIT_Y, maxY);
   }
 }
