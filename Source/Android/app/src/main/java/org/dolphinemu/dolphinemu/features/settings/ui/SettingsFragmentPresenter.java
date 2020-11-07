@@ -1,9 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
@@ -48,7 +46,7 @@ import java.util.Map;
 
 public final class SettingsFragmentPresenter
 {
-  private SettingsFragmentView mView;
+  private final SettingsFragmentView mView;
 
   public static final LinkedHashMap<String, String> LOG_TYPE_NAMES =
           NativeLibrary.GetLogTypeNames();
@@ -931,13 +929,9 @@ public final class SettingsFragmentPresenter
           public void setBoolean(Settings settings, boolean newValue)
           {
             // Set this setting now since multiple settings that change controllers may be modified.
-            SharedPreferences preferences = PreferenceManager
-                    .getDefaultSharedPreferences(mView.getActivity().getApplicationContext());
-            final SharedPreferences.Editor editor = preferences.edit();
-
-            editor.putInt("wiiController", newValue ? InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL :
-                    InputOverlay.OVERLAY_WIIMOTE_VERTICAL);
-            editor.commit();
+            IntSetting.MAIN_WII_OVERLAY_CONTROLLER.setInt(mSettings,
+                    newValue ? InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL :
+                            InputOverlay.OVERLAY_WIIMOTE_VERTICAL);
 
             getWiimoteSection(wiimoteNumberAdjusted, false).setBoolean(settings.isGameSpecific() ?
                     SettingsFile.KEY_WIIMOTE_ORIENTATION + wiimoteNumberAdjusted :

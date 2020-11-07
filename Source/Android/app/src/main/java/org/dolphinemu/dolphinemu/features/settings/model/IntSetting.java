@@ -1,6 +1,7 @@
 package org.dolphinemu.dolphinemu.features.settings.model;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.overlay.InputOverlayPointer;
 
 import java.util.Arrays;
@@ -22,6 +23,8 @@ public enum IntSetting implements AbstractIntSetting
   MAIN_CONTROL_SCALE(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "ControlScale", 50),
   MAIN_LAST_PLATFORM_TAB(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "LastPlatformTab", 0),
   MAIN_MOTION_CONTROLS(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID, "MotionControls", 1),
+  MAIN_WII_OVERLAY_CONTROLLER(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID,
+          "WiiOverlayController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK),
 
   MAIN_DOUBLE_TAP_BUTTON(Settings.FILE_DOLPHIN, Settings.SECTION_INI_ANDROID_OVERLAY_BUTTONS,
           "DoubleTapButton",

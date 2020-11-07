@@ -1,12 +1,12 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
@@ -32,7 +32,7 @@ public final class SettingsActivityPresenter
 
   private static final String KEY_SHOULD_SAVE = "should_save";
 
-  private SettingsActivityView mView;
+  private final SettingsActivityView mView;
 
   private Settings mSettings;
 
@@ -164,26 +164,23 @@ public final class SettingsActivityPresenter
 
   public void onGcPadSettingChanged(MenuTag key, int value)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    final SharedPreferences.Editor editor = preferences.edit();
-
     if (key == MenuTag.GCPAD_1) // Player 1
     {
       switch (value)
       {
         case InputOverlay.DISABLED_GAMECUBE_CONTROLLER:
-          editor.putInt("wiiController", InputOverlay.OVERLAY_NONE);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER.setInt(mSettings, InputOverlay.OVERLAY_NONE);
           break;
 
         case InputOverlay.EMULATED_GAMECUBE_CONTROLLER:
-          editor.putInt("wiiController", InputOverlay.OVERLAY_GAMECUBE);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER.setInt(mSettings, InputOverlay.OVERLAY_GAMECUBE);
           break;
 
         case InputOverlay.GAMECUBE_ADAPTER:
-          editor.putInt("wiiController", InputOverlay.OVERLAY_GAMECUBE_ADAPTER);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                  .setInt(mSettings, InputOverlay.OVERLAY_GAMECUBE_ADAPTER);
           break;
       }
-      editor.commit();
     }
 
     if (value != InputOverlay.DISABLED_GAMECUBE_CONTROLLER)
@@ -196,8 +193,6 @@ public final class SettingsActivityPresenter
 
   public void onWiimoteSettingChanged(MenuTag menuTag, int value)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    final SharedPreferences.Editor editor = preferences.edit();
     File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
     IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
 
@@ -210,18 +205,18 @@ public final class SettingsActivityPresenter
       switch (value)
       {
         case WIIMOTE_DISABLED:
-          editor.putInt("wiiController", InputOverlay.OVERLAY_NONE);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER.setInt(mSettings, InputOverlay.OVERLAY_NONE);
           break;
 
         case WIIMOTE_EMULATED:
-          setWiiOverlayControllerByExtension(context, extension);
+          setWiiOverlayControllerByExtension(mSettings, extension);
           break;
 
         case WIIMOTE_REAL:
-          editor.putInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_REAL);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                  .setInt(mSettings, InputOverlay.OVERLAY_WIIMOTE_REAL);
           break;
       }
-      editor.commit();
     }
 
     switch (value)
@@ -231,7 +226,11 @@ public final class SettingsActivityPresenter
         break;
 
       case WIIMOTE_REAL:
-        mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
+        if (!BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING.getBooleanGlobal())
+        {
+          BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING.setBoolean(mSettings, true);
+          mView.showToastMessage(context.getString(R.string.wiimote_scanning_enabled));
+        }
         break;
     }
   }
@@ -256,17 +255,15 @@ public final class SettingsActivityPresenter
               menuTag.getSubType() - 4);
     }
 
-    setWiiOverlayControllerByExtension(context, extension);
+    setWiiOverlayControllerByExtension(mSettings, extension);
 
     Bundle bundle = new Bundle();
     bundle.putInt(SettingsFragmentPresenter.ARG_CONTROLLER_TYPE, value);
     mView.showSettingsFragment(menuTag, bundle, true, gameId);
   }
 
-  public static void setWiiOverlayControllerByExtension(Context context, String extension)
+  public static void setWiiOverlayControllerByExtension(Settings settings, String extension)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    final SharedPreferences.Editor editor = preferences.edit();
     File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
     IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
 
@@ -277,22 +274,25 @@ public final class SettingsActivityPresenter
                 .getBoolean(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_ORIENTATION,
                         false))
         {
-          editor.putInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                  .setInt(settings, InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL);
         }
         else
         {
-          editor.putInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_VERTICAL);
+          IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                  .setInt(settings, InputOverlay.OVERLAY_WIIMOTE_VERTICAL);
         }
         break;
 
       case "Nunchuk":
-        editor.putInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
+        IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                .setInt(settings, InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
         break;
 
       case "Classic":
-        editor.putInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_CLASSIC);
+        IntSetting.MAIN_WII_OVERLAY_CONTROLLER
+                .setInt(settings, InputOverlay.OVERLAY_WIIMOTE_CLASSIC);
         break;
     }
-    editor.commit();
   }
 }

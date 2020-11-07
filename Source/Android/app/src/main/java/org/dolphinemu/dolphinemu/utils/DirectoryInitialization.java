@@ -17,6 +17,7 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -41,7 +42,8 @@ public final class DirectoryInitialization
           DirectoryInitializationState.NOT_YET_INITIALIZED;
   private static String userPath;
   private static String internalPath;
-  private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
+  private static final AtomicBoolean isDolphinDirectoryInitializationRunning =
+          new AtomicBoolean(false);
 
   public enum DirectoryInitializationState
   {
@@ -161,11 +163,19 @@ public final class DirectoryInitialization
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
     if (prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion)
     {
-      EmulationActivity.clearWiimoteNewIniLinkedPreferences(context);
       copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), true, context);
       SharedPreferences.Editor sPrefsEditor = prefs.edit();
       sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);
       sPrefsEditor.apply();
+
+      new AfterDirectoryInitializationRunner().run(context, false, () ->
+      {
+        // Use the overlay controller to enable controllers since WiimoteNew is deleted on reinstall.
+        EmulationActivity.handleWiiOverlayDisablesControllersSetting(context,
+                IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getIntGlobal(), false, true);
+
+        NativeLibrary.ReloadWiimoteConfig();
+      });
     }
     else
     {

@@ -149,6 +149,7 @@
     <string name="sensor_bar_position">Sensor Bar Position</string>
     <string name="wiimote_scanning">Wii Remote Continuous Scanning</string>
     <string name="wiimote_scanning_description">Leave this on if you are using a DolphinBar for real Wiimote support.</string>
+    <string name="wiimote_scanning_enabled">Wii Remote Continuous Scanning has been enabled.</string>
     <string name="wiimote_speaker">Wii Remote Speaker</string>
     <string name="wiimote_speaker_description">Enable sound output through the speaker on a real Wiimote (DolphinBar required).</string>
     <string name="override_region_settings">Allow Mismatched Region Settings</string>
@@ -402,6 +403,7 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="emulation_choose_doubletap">Double tap button</string>
     <string name="emulation_screen_orientation">Screen Orientation</string>
     <string name="emulation_motion_controls">Motion Controls</string>
+    <string name="emulation_no_buttons">Overlay controller has no buttons.</string>
 
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

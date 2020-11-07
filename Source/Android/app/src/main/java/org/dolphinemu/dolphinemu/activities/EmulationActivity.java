@@ -186,13 +186,6 @@ public final class EmulationActivity extends AppCompatActivity
     sIgnoreLaunchRequests = false;
   }
 
-  public static void clearWiimoteNewIniLinkedPreferences(Context context)
-  {
-    SharedPreferences.Editor editor = PreferenceManager.getDefaultSharedPreferences(context).edit();
-    editor.remove("wiiController");
-    editor.apply();
-  }
-
   @Override
   protected void onCreate(Bundle savedInstanceState)
   {
@@ -653,6 +646,9 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void editControlsPlacement()
   {
+    if (overlayControllerWithoutButtons(IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getInt(mSettings)))
+      return;
+
     if (mEmulationFragment.isConfiguringControls())
     {
       mEmulationFragment.stopConfiguringControls();
@@ -693,11 +689,14 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void toggleControls()
   {
+    final int wiiController = IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getInt(mSettings);
+
+    if (overlayControllerWithoutButtons(wiiController))
+      return;
+
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
-    if (!NativeLibrary.IsEmulatingWii() ||
-            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
-                    InputOverlay.OVERLAY_GAMECUBE)
+    if (!NativeLibrary.IsEmulatingWii() || wiiController == InputOverlay.OVERLAY_GAMECUBE)
     {
       boolean[] gcEnabledButtons = new boolean[11];
       String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
@@ -710,8 +709,7 @@ public final class EmulationActivity extends AppCompatActivity
               (dialog, indexSelected, isChecked) -> BooleanSetting
                       .valueOf(gcSettingBase + indexSelected).setBoolean(mSettings, isChecked));
     }
-    else if (mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
-            InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
+    else if (wiiController == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
     {
       boolean[] wiiClassicEnabledButtons = new boolean[14];
       String classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_";
@@ -735,8 +733,7 @@ public final class EmulationActivity extends AppCompatActivity
       {
         wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
       }
-      if (mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
-              InputOverlay.OVERLAY_WIIMOTE_NUNCHUK)
+      if (wiiController == InputOverlay.OVERLAY_WIIMOTE_NUNCHUK)
       {
         builder.setMultiChoiceItems(R.array.nunchukButtons, wiiEnabledButtons,
                 (dialog, indexSelected, isChecked) -> BooleanSetting
@@ -761,8 +758,7 @@ public final class EmulationActivity extends AppCompatActivity
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
 
-    int currentController =
-            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK);
+    int currentController = IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getInt(mSettings);
 
     int currentValue = IntSetting.MAIN_DOUBLE_TAP_BUTTON.getInt(mSettings);
 
@@ -787,6 +783,9 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void adjustScale()
   {
+    if (overlayControllerWithoutButtons(IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getInt(mSettings)))
+      return;
+
     LayoutInflater inflater = LayoutInflater.from(this);
     View view = inflater.inflate(R.layout.dialog_seekbar, null);
 
@@ -837,16 +836,16 @@ public final class EmulationActivity extends AppCompatActivity
   private void chooseController()
   {
     final Handler handler = new Handler();
-    final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_choose_controller);
     builder.setSingleChoiceItems(R.array.controllersEntries,
-            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK),
+            IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getInt(mSettings),
             (dialog, indexSelected) ->
             {
-              editor.putInt("wiiController", indexSelected);
+              IntSetting.MAIN_WII_OVERLAY_CONTROLLER.setInt(mSettings, indexSelected);
 
-              handleWiiOverlayDisablesControllersSetting(indexSelected, false);
+              handleWiiOverlayDisablesControllersSetting(getApplicationContext(), indexSelected,
+                      false, false);
 
               File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
@@ -867,7 +866,17 @@ public final class EmulationActivity extends AppCompatActivity
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
-      editor.apply();
+      if (IntSetting.MAIN_WII_OVERLAY_CONTROLLER.getIntGlobal() ==
+              InputOverlay.OVERLAY_WIIMOTE_REAL &&
+              !BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING.getBooleanGlobal())
+      {
+        BooleanSetting.MAIN_WIIMOTE_CONTINUOUS_SCANNING.setBoolean(mSettings, true);
+
+        // Immediately save settings so native code can respond to the enabled scanning thread.
+        mSettings.saveSettings(null, null);
+        Toast.makeText(this, R.string.wiimote_scanning_enabled, Toast.LENGTH_SHORT).show();
+      }
+
       mEmulationFragment.refreshInputOverlay();
     });
 
@@ -875,7 +884,8 @@ public final class EmulationActivity extends AppCompatActivity
   }
 
   // TODO: Make this setting work with custom GameSettings and update setting description.
-  public static void handleWiiOverlayDisablesControllersSetting(int selection, boolean isFirstRun)
+  public static void handleWiiOverlayDisablesControllersSetting(Context context, int selection,
+          boolean emulationStart, boolean freshWiimoteNewIni)
   {
     File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
     IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
@@ -899,6 +909,19 @@ public final class EmulationActivity extends AppCompatActivity
 
         case InputOverlay.OVERLAY_WIIMOTE_VERTICAL:
         case InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL:
+          NativeLibrary.SetSIDevice(InputOverlay.DISABLED_GAMECUBE_CONTROLLER, 0);
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_EMULATED);
+
+          if (freshWiimoteNewIni)
+          {
+            wiimoteNewIni
+                    .setBoolean(SettingsFile.KEY_WIIMOTE_PLAYER_1,
+                            SettingsFile.KEY_WIIMOTE_ORIENTATION,
+                            selection == InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL);
+          }
+          break;
+
         case InputOverlay.OVERLAY_WIIMOTE_NUNCHUK:
         case InputOverlay.OVERLAY_WIIMOTE_CLASSIC:
           NativeLibrary.SetSIDevice(InputOverlay.DISABLED_GAMECUBE_CONTROLLER, 0);
@@ -913,8 +936,8 @@ public final class EmulationActivity extends AppCompatActivity
           break;
       }
     }
-    // The following code is unnecessary on first run.
-    else if (!isFirstRun)
+    // The following code is unnecessary on emulation start.
+    else if (!emulationStart)
     {
       switch (selection)
       {
@@ -928,6 +951,18 @@ public final class EmulationActivity extends AppCompatActivity
 
         case InputOverlay.OVERLAY_WIIMOTE_VERTICAL:
         case InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL:
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_EMULATED);
+
+          if (freshWiimoteNewIni)
+          {
+            wiimoteNewIni
+                    .setBoolean(SettingsFile.KEY_WIIMOTE_PLAYER_1,
+                            SettingsFile.KEY_WIIMOTE_ORIENTATION,
+                            selection == InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL);
+          }
+          break;
+
         case InputOverlay.OVERLAY_WIIMOTE_NUNCHUK:
         case InputOverlay.OVERLAY_WIIMOTE_CLASSIC:
           wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
@@ -940,6 +975,13 @@ public final class EmulationActivity extends AppCompatActivity
           break;
       }
     }
+
+    if (freshWiimoteNewIni)
+    {
+      wiimoteNewIni.setString(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_EXTENSION,
+              context.getResources().getStringArray(R.array.controllersValues)[selection]);
+    }
+
     wiimoteNewIni.save(wiimoteNewFile);
     NativeLibrary.UpdateGCAdapterScanThread();
   }
@@ -1256,5 +1298,19 @@ public final class EmulationActivity extends AppCompatActivity
   public void initInputPointer()
   {
     mEmulationFragment.initInputPointer();
+  }
+
+  private boolean overlayControllerWithoutButtons(int controller)
+  {
+    final boolean noButtons = controller == InputOverlay.OVERLAY_GAMECUBE_ADAPTER ||
+            controller == InputOverlay.OVERLAY_WIIMOTE_REAL ||
+            controller == InputOverlay.OVERLAY_NONE;
+
+    if (noButtons)
+    {
+      Toast.makeText(this, R.string.emulation_no_buttons, Toast.LENGTH_SHORT).show();
+    }
+
+    return noButtons;
   }
 }
