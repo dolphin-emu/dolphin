@@ -435,7 +435,6 @@ public final class EmulationActivity extends AppCompatActivity
     popup.show();
   }
 
-  @SuppressWarnings("WrongConstant")
   @Override
   public boolean onOptionsItemSelected(MenuItem item)
   {

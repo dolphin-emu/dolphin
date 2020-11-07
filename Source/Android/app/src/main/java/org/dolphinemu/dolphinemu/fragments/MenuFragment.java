@@ -180,7 +180,6 @@ public final class MenuFragment extends Fragment implements View.OnClickListener
     mPauseEmulation.setVisibility(paused ? View.GONE : View.VISIBLE);
   }
 
-  @SuppressWarnings("WrongConstant")
   @Override
   public void onClick(View button)
   {

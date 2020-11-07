@@ -95,7 +95,6 @@ public final class SaveLoadStateFragment extends Fragment implements View.OnClic
     return rootView;
   }
 
-  @SuppressWarnings("WrongConstant")
   @Override
   public void onClick(View view)
   {
