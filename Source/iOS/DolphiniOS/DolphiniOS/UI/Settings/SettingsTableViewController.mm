@@ -6,8 +6,6 @@
 
 #import "AppDelegate.h"
 
-#import "Common/CommonFuncs.h"
-
 #import "JitAcquisitionUtils.h"
 
 @interface SettingsTableViewController ()
@@ -41,8 +39,6 @@
   }
   
   [self.m_version_label setText:version_str];
-  
-  [self.m_core_label setText:CppToFoundationString(GetBuildType())];
 }
 
 - (void)viewWillAppear:(BOOL)animated

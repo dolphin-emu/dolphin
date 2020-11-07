@@ -52,5 +52,3 @@ std::string GetLastErrorString();
 // Obtains a full path to the specified module.
 std::optional<std::wstring> GetModuleName(void* hInstance);
 #endif
-
-std::string GetBuildType();
