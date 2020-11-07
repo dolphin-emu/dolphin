@@ -63,10 +63,6 @@
     {
       url = @"https://oatmealdome.me/dolphinios/";
     }
-    else if (indexPath.row == 4)
-    {
-      url = @"https://patreon.com/oatmealdome";
-    }
     else
     {
       return;
