@@ -1115,55 +1115,85 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
     return mIsInEditMode;
   }
 
+  private float getMaxXOrYScreenSize(boolean returnX)
+  {
+    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
+    DisplayMetrics outMetrics = new DisplayMetrics();
+    display.getMetrics(outMetrics);
+    float maxX = outMetrics.heightPixels;
+    float maxY = outMetrics.widthPixels;
+    // Height and width changes depending on orientation. Use the larger value for height.
+    if (maxY < maxX)
+    {
+      float tmp = maxX;
+      maxX = maxY;
+      maxY = tmp;
+    }
+
+    return returnX ? maxX : maxY;
+  }
+
   private void defaultOverlay()
   {
     String buttonTypeBase = "MAIN_BUTTON_TYPE_";
     String portrait = "_PORTRAIT";
 
-    // Only change the overlay if the 'A' button is in the upper corner.
+    // Only change the overlay if the 'A' button is in the upper corner and within bounds.
+    // Don't adjust for values less than 0 since users won't expect an overlay reset for buttons
+    // slightly over the left side of the screen.
+    float gcA = FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + "_X").getFloatGlobal();
+    float gcPortraitA = FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + portrait + "_X")
+            .getFloatGlobal();
+    float wiiA = FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_X")
+            .getFloatGlobal();
+    float wiiPortraitA = FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A +
+            portrait + "_X").getFloatGlobal();
+    float wiiClassicA = FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A + "_X")
+            .getFloatGlobal();
+    float wiiClassicPortraitA = FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A +
+            portrait + "_X").getFloatGlobal();
+    float wiiOnlyA = FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_H_X")
+            .getFloatGlobal();
+    float wiiOnlyPortraitA = FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A +
+            "_H" + portrait + "_X").getFloatGlobal();
+    float maxX = getMaxXOrYScreenSize(true);
+
     // GameCube
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + "_X").getFloatGlobal() == 0f)
+    if (gcA == 0f || gcA > maxX)
     {
       gcDefaultOverlay();
     }
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.BUTTON_A + portrait + "_X")
-            .getFloatGlobal() == 0f)
+    if (gcPortraitA == 0f || gcPortraitA > maxX)
     {
       gcPortraitDefaultOverlay();
     }
 
     // Wii
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_X")
-            .getFloatGlobal() == 0f)
+    if (wiiA == 0f || wiiA > maxX)
     {
       wiiDefaultOverlay();
     }
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + portrait + "_X")
-            .getFloatGlobal() == 0f)
+    if (wiiPortraitA == 0f || wiiPortraitA > maxX)
     {
       wiiPortraitDefaultOverlay();
     }
 
     // Wii Classic
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A + "_X")
-            .getFloatGlobal() == 0f)
+    if (wiiClassicA == 0f || wiiClassicA > maxX)
     {
       wiiClassicDefaultOverlay();
     }
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.CLASSIC_BUTTON_A + portrait + "_X")
-            .getFloatGlobal() == 0f)
+    if (wiiClassicPortraitA == 0f || wiiClassicPortraitA > maxX)
     {
       wiiClassicPortraitDefaultOverlay();
     }
 
     // Wii Only
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_H_X")
-            .getFloatGlobal() == 0f)
+    if (wiiOnlyA == 0f || wiiOnlyA > maxX)
     {
       wiiOnlyDefaultOverlay();
     }
-    if (FloatSetting.valueOf(buttonTypeBase + ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "_X")
-            .getFloatGlobal() == 0f)
+    if (wiiOnlyPortraitA == 0f || wiiOnlyPortraitA > maxX)
     {
       wiiOnlyPortraitDefaultOverlay();
     }
@@ -1179,19 +1209,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void gcDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for height.
-    if (maxY > maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
 
     setButtonPosition(ButtonType.BUTTON_A + "_X", R.integer.BUTTON_A_X, maxX);
     setButtonPosition(ButtonType.BUTTON_A + "_Y", R.integer.BUTTON_A_Y, maxY);
@@ -1219,19 +1238,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void gcPortraitDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for height.
-    if (maxY < maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
     String portrait = "_PORTRAIT";
 
     setButtonPosition(ButtonType.BUTTON_A + portrait + "_X", R.integer.BUTTON_A_PORTRAIT_X, maxX);
@@ -1264,19 +1272,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY > maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
 
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_X", R.integer.WIIMOTE_BUTTON_A_X, maxX);
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_Y", R.integer.WIIMOTE_BUTTON_A_Y, maxY);
@@ -1306,19 +1303,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiOnlyDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY > maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
 
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H_X", R.integer.WIIMOTE_H_BUTTON_A_X, maxX);
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H_Y", R.integer.WIIMOTE_H_BUTTON_A_Y, maxY);
@@ -1338,19 +1324,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiPortraitDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY < maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
     String portrait = "_PORTRAIT";
 
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + portrait + "_X",
@@ -1406,19 +1381,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiOnlyPortraitDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY < maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
     String portrait = "_PORTRAIT";
 
     setButtonPosition(ButtonType.WIIMOTE_BUTTON_A + "_H" + portrait + "_X",
@@ -1445,19 +1409,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiClassicDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY > maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
 
     setButtonPosition(ButtonType.CLASSIC_BUTTON_A + "_X", R.integer.CLASSIC_BUTTON_A_X, maxX);
     setButtonPosition(ButtonType.CLASSIC_BUTTON_A + "_Y", R.integer.CLASSIC_BUTTON_A_Y, maxY);
@@ -1493,19 +1446,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
   private void wiiClassicPortraitDefaultOverlay()
   {
-    // Get screen size
-    Display display = ((Activity) getContext()).getWindowManager().getDefaultDisplay();
-    DisplayMetrics outMetrics = new DisplayMetrics();
-    display.getMetrics(outMetrics);
-    float maxX = outMetrics.heightPixels;
-    float maxY = outMetrics.widthPixels;
-    // Height and width changes depending on orientation. Use the larger value for maxX.
-    if (maxY < maxX)
-    {
-      float tmp = maxX;
-      maxX = maxY;
-      maxY = tmp;
-    }
+    float maxX = getMaxXOrYScreenSize(true);
+    float maxY = getMaxXOrYScreenSize(false);
     String portrait = "_PORTRAIT";
 
     setButtonPosition(ButtonType.CLASSIC_BUTTON_A + portrait + "_X",
