@@ -1,10 +1,14 @@
 package org.dolphinemu.dolphinemu.features.settings.ui;
 
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.text.TextUtils;
 
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.AbstractBooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.AbstractIntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.FloatSetting;
@@ -30,6 +34,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.view.SingleChoiceSettin
 import org.dolphinemu.dolphinemu.features.settings.model.view.StringSingleChoiceSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.view.SubmenuSetting;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization;
 import org.dolphinemu.dolphinemu.utils.EGLHelper;
@@ -111,7 +116,7 @@ public final class SettingsFragmentPresenter
 
   private void loadSettingsList()
   {
-    if (!TextUtils.isEmpty(mGameID))
+    if (mSettings.isGameSpecific())
     {
       mView.getActivity().setTitle("Game Settings: " + mGameID);
     }
@@ -248,6 +253,13 @@ public final class SettingsFragmentPresenter
             R.string.osd_messages_description));
     sl.add(new CheckBoxSetting(BooleanSetting.MAIN_USE_GAME_COVERS, R.string.download_game_covers,
             0));
+    if (mView.getActivity().getPackageManager()
+            .hasSystemFeature(PackageManager.FEATURE_TOUCHSCREEN))
+    {
+      sl.add(new CheckBoxSetting(BooleanSetting.MAIN_WII_OVERLAY_DISABLES_CONTROLLERS,
+              R.string.wii_overlay_disables_controllers,
+              R.string.wii_overlay_disables_controllers_description));
+    }
   }
 
   private void addAudioSettings(ArrayList<SettingsItem> sl)
@@ -432,6 +444,12 @@ public final class SettingsFragmentPresenter
 
   private void addGcPadSettings(ArrayList<SettingsItem> sl)
   {
+    // TODO: Remove this and the string.
+    if (!mGameID.equals(""))
+    {
+      sl.add(new HeaderSetting(R.string.custom_game_settings_wip, 0));
+    }
+
     for (int i = 0; i < 4; i++)
     {
       LegacyIntSetting gcPadSetting;
@@ -453,6 +471,12 @@ public final class SettingsFragmentPresenter
 
   private void addWiimoteSettings(ArrayList<SettingsItem> sl)
   {
+    // TODO: Remove this and the string.
+    if (!mGameID.equals(""))
+    {
+      sl.add(new HeaderSetting(R.string.custom_game_settings_wip, 0));
+    }
+
     for (int i = 0; i < 4; i++)
     {
       LegacyIntSetting wiimoteSetting;
@@ -872,7 +896,95 @@ public final class SettingsFragmentPresenter
   {
     switch (extentionType)
     {
-      case 1: // Nunchuk
+      case SettingsActivityPresenter.WIIMOTE_EXT_NONE:
+        final int wiimoteNumberAdjusted;
+
+        if (mSettings.isGameSpecific())
+        {
+          wiimoteNumberAdjusted = wiimoteNumber - 4;
+          mSettings.loadWiimoteProfile(mGameID, wiimoteNumberAdjusted);
+        }
+        else
+        {
+          wiimoteNumberAdjusted = wiimoteNumber - 3;
+        }
+
+        AbstractBooleanSetting wiimoteOrientation = new AbstractBooleanSetting()
+        {
+          Boolean valueSelected;
+
+          @Override
+          public boolean getBoolean(Settings settings)
+          {
+            if (valueSelected != null)
+            {
+              return valueSelected;
+            }
+            else
+            {
+              return getWiimoteSection(wiimoteNumberAdjusted, true)
+                      .getBoolean(SettingsFile.KEY_WIIMOTE_ORIENTATION, false);
+            }
+          }
+
+          @Override
+          public void setBoolean(Settings settings, boolean newValue)
+          {
+            // Set this setting now since multiple settings that change controllers may be modified.
+            SharedPreferences preferences = PreferenceManager
+                    .getDefaultSharedPreferences(mView.getActivity().getApplicationContext());
+            final SharedPreferences.Editor editor = preferences.edit();
+
+            editor.putInt("wiiController", newValue ? InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL :
+                    InputOverlay.OVERLAY_WIIMOTE_VERTICAL);
+            editor.commit();
+
+            getWiimoteSection(wiimoteNumberAdjusted, false).setBoolean(settings.isGameSpecific() ?
+                    SettingsFile.KEY_WIIMOTE_ORIENTATION + wiimoteNumberAdjusted :
+                    SettingsFile.KEY_WIIMOTE_ORIENTATION, newValue);
+
+            valueSelected = newValue;
+          }
+
+          @Override
+          public boolean isOverridden(Settings settings)
+          {
+            if (valueSelected != null)
+            {
+              return settings.isGameSpecific() && valueSelected != settings
+                      .getSection(Settings.FILE_WIIMOTE,
+                              Settings.SECTION_WIIMOTE + wiimoteNumberAdjusted)
+                      .getBoolean(SettingsFile.KEY_WIIMOTE_ORIENTATION, false);
+            }
+            else
+            {
+              return settings.isGameSpecific() && getWiimoteSection(wiimoteNumberAdjusted, true)
+                      .getBoolean(SettingsFile.KEY_WIIMOTE_ORIENTATION, false) != settings
+                      .getSection(Settings.FILE_WIIMOTE,
+                              Settings.SECTION_WIIMOTE + wiimoteNumberAdjusted)
+                      .getBoolean(SettingsFile.KEY_WIIMOTE_ORIENTATION, false);
+            }
+          }
+
+          @Override
+          public boolean isRuntimeEditable()
+          {
+            return false;
+          }
+
+          @Override
+          public boolean delete(Settings settings)
+          {
+            valueSelected = null;
+            return getWiimoteSection(wiimoteNumberAdjusted, true)
+                    .delete(SettingsFile.KEY_WIIMOTE_ORIENTATION);
+          }
+        };
+
+        sl.add(new CheckBoxSetting(wiimoteOrientation, R.string.wiimote_orientation, 0));
+        break;
+
+      case SettingsActivityPresenter.WIIMOTE_EXT_NUNCHUK:
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_NUNCHUK_C + wiimoteNumber, R.string.nunchuk_button_c,
@@ -941,7 +1053,8 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_NUNCHUK_SHAKE_Z + wiimoteNumber, R.string.shake_z,
                 mGameID));
         break;
-      case 2: // Classic
+
+      case SettingsActivityPresenter.WIIMOTE_EXT_CLASSIC:
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_CLASSIC_A + wiimoteNumber, R.string.button_a, mGameID));
@@ -1017,7 +1130,8 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_CLASSIC_DPAD_RIGHT + wiimoteNumber, R.string.generic_right,
                 mGameID));
         break;
-      case 3: // Guitar
+
+      case SettingsActivityPresenter.WIIMOTE_EXT_GUITAR:
         sl.add(new HeaderSetting(R.string.guitar_frets, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_GUITAR_FRET_GREEN + wiimoteNumber, R.string.generic_green,
@@ -1070,7 +1184,8 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_GUITAR_WHAMMY_BAR + wiimoteNumber, R.string.generic_right,
                 mGameID));
         break;
-      case 4: // Drums
+
+      case SettingsActivityPresenter.WIIMOTE_EXT_DRUMS:
         sl.add(new HeaderSetting(R.string.drums_pads, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_DRUMS_PAD_RED + wiimoteNumber, R.string.generic_red,
@@ -1113,7 +1228,8 @@ public final class SettingsFragmentPresenter
                 SettingsFile.KEY_WIIBIND_DRUMS_PLUS + wiimoteNumber, R.string.button_plus,
                 mGameID));
         break;
-      case 5: // Turntable
+
+      case SettingsActivityPresenter.WIIMOTE_EXT_TURNTABLE:
         sl.add(new HeaderSetting(R.string.generic_buttons, 0));
         sl.add(new InputBindingSetting(Settings.FILE_DOLPHIN, Settings.SECTION_BINDINGS,
                 SettingsFile.KEY_WIIBIND_TURNTABLE_GREEN_LEFT + wiimoteNumber,
@@ -1189,20 +1305,26 @@ public final class SettingsFragmentPresenter
     }
   }
 
-  private String getExtensionValue(int wiimoteNumber)
+  private IniFile.Section getWiimoteSection(int wiimoteNumber, boolean getProfileSectionIfCustom)
   {
-    IniFile.Section section;
-    if (mGameID.equals("")) // Main settings
+    IniFile.Section wiimoteSection;
+    if (mSettings.isGameSpecific())
     {
-      section = mSettings.getSection(Settings.FILE_WIIMOTE,
+      wiimoteSection = mSettings.getSection(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
+              getProfileSectionIfCustom ? Settings.SECTION_PROFILE : Settings.SECTION_CONTROLS);
+    }
+    else
+    {
+      wiimoteSection = mSettings.getSection(Settings.FILE_WIIMOTE,
               Settings.SECTION_WIIMOTE + wiimoteNumber);
     }
-    else // Game settings
-    {
-      section = mSettings.getSection(Settings.GAME_SETTINGS_PLACEHOLDER_FILE_NAME,
-              Settings.SECTION_PROFILE);
-    }
-    return section.getString(SettingsFile.KEY_WIIMOTE_EXTENSION, "None");
+    return wiimoteSection;
+  }
+
+  private String getExtensionValue(int wiimoteNumber)
+  {
+    return getWiimoteSection(wiimoteNumber, true)
+            .getString(SettingsFile.KEY_WIIMOTE_EXTENSION, "None");
   }
 
   private static int getLogVerbosityEntries()

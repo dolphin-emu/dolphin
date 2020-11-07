@@ -7,6 +7,7 @@ import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.graphics.Rect;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.SparseIntArray;
@@ -38,6 +39,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.IntSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity;
+import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivityPresenter;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
 import org.dolphinemu.dolphinemu.fragments.EmulationFragment;
 import org.dolphinemu.dolphinemu.fragments.MenuFragment;
@@ -693,7 +695,9 @@ public final class EmulationActivity extends AppCompatActivity
   {
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_toggle_controls);
-    if (!NativeLibrary.IsEmulatingWii() || mPreferences.getInt("wiiController", 3) == 0)
+    if (!NativeLibrary.IsEmulatingWii() ||
+            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
+                    InputOverlay.OVERLAY_GAMECUBE)
     {
       boolean[] gcEnabledButtons = new boolean[11];
       String gcSettingBase = "MAIN_BUTTON_TOGGLE_GC_";
@@ -706,7 +710,8 @@ public final class EmulationActivity extends AppCompatActivity
               (dialog, indexSelected, isChecked) -> BooleanSetting
                       .valueOf(gcSettingBase + indexSelected).setBoolean(mSettings, isChecked));
     }
-    else if (mPreferences.getInt("wiiController", 3) == 4)
+    else if (mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
+            InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
     {
       boolean[] wiiClassicEnabledButtons = new boolean[14];
       String classicSettingBase = "MAIN_BUTTON_TOGGLE_CLASSIC_";
@@ -730,7 +735,8 @@ public final class EmulationActivity extends AppCompatActivity
       {
         wiiEnabledButtons[i] = BooleanSetting.valueOf(wiiSettingBase + i).getBoolean(mSettings);
       }
-      if (mPreferences.getInt("wiiController", 3) == 3)
+      if (mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK) ==
+              InputOverlay.OVERLAY_WIIMOTE_NUNCHUK)
       {
         builder.setMultiChoiceItems(R.array.nunchukButtons, wiiEnabledButtons,
                 (dialog, indexSelected, isChecked) -> BooleanSetting
@@ -766,7 +772,7 @@ public final class EmulationActivity extends AppCompatActivity
     if (currentController != InputOverlay.OVERLAY_WIIMOTE_CLASSIC &&
             currentValue == InputOverlay.OVERLAY_WIIMOTE_CLASSIC)
     {
-      currentValue = InputOverlay.OVERLAY_WIIMOTE;
+      currentValue = InputOverlay.OVERLAY_WIIMOTE_VERTICAL;
     }
 
     builder.setSingleChoiceItems(buttonList, currentValue,
@@ -830,23 +836,34 @@ public final class EmulationActivity extends AppCompatActivity
 
   private void chooseController()
   {
+    final Handler handler = new Handler();
     final SharedPreferences.Editor editor = mPreferences.edit();
     AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.DolphinDialogBase);
     builder.setTitle(R.string.emulation_choose_controller);
     builder.setSingleChoiceItems(R.array.controllersEntries,
-            mPreferences.getInt("wiiController", 3),
+            mPreferences.getInt("wiiController", InputOverlay.OVERLAY_WIIMOTE_NUNCHUK),
             (dialog, indexSelected) ->
             {
               editor.putInt("wiiController", indexSelected);
 
+              handleWiiOverlayDisablesControllersSetting(indexSelected, false);
+
               File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
               IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
-              wiimoteNewIni.setString("Wiimote1", "Extension",
-                      getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-              wiimoteNewIni.setBoolean("Wiimote1", "Options/Sideways Wiimote", indexSelected == 2);
+              wiimoteNewIni
+                      .setString(SettingsFile.KEY_WIIMOTE_PLAYER_1,
+                              SettingsFile.KEY_WIIMOTE_EXTENSION, getResources()
+                                      .getStringArray(R.array.controllersValues)[indexSelected]);
+              wiimoteNewIni
+                      .setBoolean(SettingsFile.KEY_WIIMOTE_PLAYER_1,
+                              SettingsFile.KEY_WIIMOTE_ORIENTATION,
+                              indexSelected == InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL);
               wiimoteNewIni.save(wiimoteNewFile);
 
-              NativeLibrary.ReloadWiimoteConfig();
+              // Delay needed to avoid registering overlay Wii Remote as Player 2 in Super Smash
+              // Bros. Brawl's character selection screen when switching controllers with
+              // "Disable Unselected Wii Overlay Controllers" enabled.
+              handler.postDelayed(NativeLibrary::ReloadWiimoteConfig, 500);
             });
     builder.setPositiveButton(R.string.ok, (dialogInterface, i) ->
     {
@@ -855,6 +872,76 @@ public final class EmulationActivity extends AppCompatActivity
     });
 
     builder.show();
+  }
+
+  // TODO: Make this setting work with custom GameSettings and update setting description.
+  public static void handleWiiOverlayDisablesControllersSetting(int selection, boolean isFirstRun)
+  {
+    File wiimoteNewFile = SettingsFile.getSettingsFile(Settings.FILE_WIIMOTE);
+    IniFile wiimoteNewIni = new IniFile(wiimoteNewFile);
+
+    if (BooleanSetting.MAIN_WII_OVERLAY_DISABLES_CONTROLLERS.getBooleanGlobal() &&
+            selection != InputOverlay.OVERLAY_NONE)
+    {
+      switch (selection)
+      {
+        case InputOverlay.OVERLAY_GAMECUBE:
+          NativeLibrary.SetSIDevice(InputOverlay.EMULATED_GAMECUBE_CONTROLLER, 0);
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_DISABLED);
+          break;
+
+        case InputOverlay.OVERLAY_GAMECUBE_ADAPTER:
+          NativeLibrary.SetSIDevice(InputOverlay.GAMECUBE_ADAPTER, 0);
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_DISABLED);
+          break;
+
+        case InputOverlay.OVERLAY_WIIMOTE_VERTICAL:
+        case InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL:
+        case InputOverlay.OVERLAY_WIIMOTE_NUNCHUK:
+        case InputOverlay.OVERLAY_WIIMOTE_CLASSIC:
+          NativeLibrary.SetSIDevice(InputOverlay.DISABLED_GAMECUBE_CONTROLLER, 0);
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_EMULATED);
+          break;
+
+        case InputOverlay.OVERLAY_WIIMOTE_REAL:
+          NativeLibrary.SetSIDevice(InputOverlay.DISABLED_GAMECUBE_CONTROLLER, 0);
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_REAL);
+          break;
+      }
+    }
+    // The following code is unnecessary on first run.
+    else if (!isFirstRun)
+    {
+      switch (selection)
+      {
+        case InputOverlay.OVERLAY_GAMECUBE:
+          NativeLibrary.SetSIDevice(InputOverlay.EMULATED_GAMECUBE_CONTROLLER, 0);
+          break;
+
+        case InputOverlay.OVERLAY_GAMECUBE_ADAPTER:
+          NativeLibrary.SetSIDevice(InputOverlay.GAMECUBE_ADAPTER, 0);
+          break;
+
+        case InputOverlay.OVERLAY_WIIMOTE_VERTICAL:
+        case InputOverlay.OVERLAY_WIIMOTE_HORIZONTAL:
+        case InputOverlay.OVERLAY_WIIMOTE_NUNCHUK:
+        case InputOverlay.OVERLAY_WIIMOTE_CLASSIC:
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_EMULATED);
+          break;
+
+        case InputOverlay.OVERLAY_WIIMOTE_REAL:
+          wiimoteNewIni.setInt(SettingsFile.KEY_WIIMOTE_PLAYER_1, SettingsFile.KEY_WIIMOTE_TYPE,
+                  SettingsActivityPresenter.WIIMOTE_REAL);
+          break;
+      }
+    }
+    wiimoteNewIni.save(wiimoteNewFile);
+    NativeLibrary.UpdateGCAdapterScanThread();
   }
 
   private void showMotionControlsOptions()

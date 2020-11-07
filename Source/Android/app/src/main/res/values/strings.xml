@@ -41,6 +41,7 @@
     <!-- END WARNING -->
 
     <string name="wiimote_extensions">Extension</string>
+    <string name="wiimote_orientation">Horizontal Orientation</string>
     <string name="wiimote_extensions_description">Choose and bind the Wii Remote extension.</string>
     <string name="wiimote_ir">IR</string>
     <string name="wiimote_swing">Swing</string>
@@ -427,6 +428,10 @@ It can efficiently compress both junk data and encrypted Wii data.
 
     <string name="select_dir">Select This Directory</string>
 
+    <!-- Android Exclusive Settings-->
+    <string name="wii_overlay_disables_controllers">Disable Unselected Wii Overlay Controllers</string>
+    <string name="wii_overlay_disables_controllers_description">Disable overlay GameCube controller when using Wii Remote and vice versa. Inconvenient if switching between GameCube and Wii games. Unimplemented with custom game settings.</string>
+
     <!-- Misc -->
     <string name="pitch">Total Pitch</string>
     <string name="yaw">Total Yaw</string>
@@ -434,7 +439,8 @@ It can efficiently compress both junk data and encrypted Wii data.
     <string name="default_values">Default Values</string>
     <string name="slider_setting_value">%1$d%2$s</string>
     <string name="disc_number">Disc %1$d</string>
-    <string name="disabled_gc_overlay_notice">GameCube Controller 1 is set to \"None\"</string>
+    <string name="overlay_controller_disabled">Controller 1 is disabled</string>
+    <string name="custom_game_settings_wip">Values can be set but not properly read yet.</string>
     <string name="ignore_warning_alert_messages">Ignore for this session</string>
 
 </resources>
