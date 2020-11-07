@@ -38,6 +38,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
@@ -475,6 +476,27 @@ Java_org_dolphinemu_dolphinemu_NativeLibrary_UpdateGCAdapterScanThread(JNIEnv* e
   {
     GCAdapter::StopScanThread();
   }
+}
+
+JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetSIDevice(JNIEnv* env,
+                                                                                jobject obj,
+                                                                                jint gcController,
+                                                                                jint channel)
+{
+  if (channel < 0 || channel > 3)
+  {
+    __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG,
+                        "Only SIDevice channels 0 through 3 are supported, received %d", channel);
+  }
+
+  IniFile ini;
+  ini.Load(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+  ini.GetOrCreateSection("Core")->Set("SIDevice" + std::to_string(channel), gcController);
+  ini.Save(File::GetUserPath(D_CONFIG_IDX) + "Dolphin.ini");
+
+  SerialInterface::ChangeDevice(static_cast<SerialInterface::SIDevices>(gcController), channel);
+  SConfig::GetInstance().m_SIDevice[channel] =
+      static_cast<SerialInterface::SIDevices>(gcController);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Initialize(JNIEnv* env,

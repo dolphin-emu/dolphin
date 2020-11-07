@@ -354,6 +354,8 @@ public final class NativeLibrary
 
   public static native void UpdateGCAdapterScanThread();
 
+  public static native void SetSIDevice(int SIDevice0, int channel);
+
   /**
    * Initializes the native parts of the app.
    *

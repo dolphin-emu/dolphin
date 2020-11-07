@@ -48,6 +48,8 @@ public final class SettingsFile
 
   public static final String KEY_WIIMOTE_TYPE = "Source";
   public static final String KEY_WIIMOTE_EXTENSION = "Extension";
+  public static final String KEY_WIIMOTE_ORIENTATION = "Options/Sideways Wiimote";
+  public static final String KEY_WIIMOTE_PLAYER_1 = "Wiimote1";
 
   // Controller keys for game specific settings
   public static final String KEY_WIIMOTE_G_TYPE = "WiimoteSource";
@@ -250,8 +252,7 @@ public final class SettingsFile
 
   public static void readWiimoteProfile(final String gameId, IniFile ini, final int padId)
   {
-    String profile = gameId + "_Wii" + padId;
-    readFile(getWiiProfile(profile), ini, null);
+    readFile(getWiiProfile(gameId, padId), ini, null);
   }
 
   /**
@@ -276,18 +277,27 @@ public final class SettingsFile
   {
     IniFile iniCopy = new IniFile(ini);
 
-    // Profile options(wii extension) are not saved, only used to properly display values
+    // Profile options are not saved, only used to properly display values
     iniCopy.deleteSection(Settings.SECTION_PROFILE);
 
     for (int i = 0; i < 3; i++)
     {
-      String key = SettingsFile.KEY_WIIMOTE_EXTENSION + i;
-      if (iniCopy.exists(Settings.SECTION_CONTROLS, key))
+      // Extension and orientation get saved into a controller profile.
+      String extension = SettingsFile.KEY_WIIMOTE_EXTENSION + i;
+      String orientation = SettingsFile.KEY_WIIMOTE_ORIENTATION + i;
+
+      if (iniCopy.exists(Settings.SECTION_CONTROLS, extension))
       {
-        // Special case. Extension gets saved into a controller profile
-        String value = iniCopy.getString(Settings.SECTION_CONTROLS, key, "");
+        String value = iniCopy.getString(Settings.SECTION_CONTROLS, extension, "");
         saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, value, i);
-        iniCopy.deleteKey(Settings.SECTION_CONTROLS, key);
+        iniCopy.deleteKey(Settings.SECTION_CONTROLS, extension);
+      }
+
+      if (iniCopy.exists(Settings.SECTION_CONTROLS, orientation))
+      {
+        String value = iniCopy.getString(Settings.SECTION_CONTROLS, orientation, "False");
+        saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_ORIENTATION, value, i);
+        iniCopy.deleteKey(Settings.SECTION_CONTROLS, orientation);
       }
     }
 
@@ -302,14 +312,12 @@ public final class SettingsFile
    * @param value
    * @param padId
    */
-  private static void saveCustomWiimoteSetting(final String gameId, final String key,
+  public static void saveCustomWiimoteSetting(final String gameId, final String key,
           final String value, final int padId)
   {
+    File wiiProfile = getWiiProfile(gameId, padId);
     String profile = gameId + "_Wii" + padId;
-    String wiiConfigPath =
-            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
-                    profile + ".ini";
-    File wiiProfile = getWiiProfile(profile);
+    String wiiConfigPath = wiiProfile.getAbsolutePath();
     // If it doesn't exist, create it
     boolean wiiProfileExists = wiiProfile.exists();
     if (!wiiProfileExists)
@@ -388,11 +396,11 @@ public final class SettingsFile
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
   }
 
-  private static File getWiiProfile(String profile)
+  private static File getWiiProfile(String gameId, int padId)
   {
     String wiiConfigPath =
-            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
-                    profile + ".ini";
+            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" + gameId +
+                    "_Wii" + padId + ".ini";
 
     return new File(wiiConfigPath);
   }
