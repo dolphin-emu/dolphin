@@ -187,8 +187,7 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_getBannerHe
   return static_cast<jint>(GetRef(env, obj)->GetBannerImage().height);
 }
 
-JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env,
-                                                                              jclass obj,
+JNIEXPORT jobject JNICALL Java_org_dolphinemu_dolphinemu_model_GameFile_parse(JNIEnv* env, jclass,
                                                                               jstring path)
 {
   auto game_file = std::make_shared<UICommon::GameFile>(GetJString(env, path));
