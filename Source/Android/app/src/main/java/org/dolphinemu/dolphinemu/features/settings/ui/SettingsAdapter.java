@@ -279,16 +279,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     dialog.show();
   }
 
-  public void onFilePickerDirectoryClick(SettingsItem item)
+  public void onFilePickerDirectoryClick(SettingsItem item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
 
     FileBrowserHelper.openDirectoryPicker(mView.getActivity(), FileBrowserHelper.GAME_EXTENSIONS);
   }
 
-  public void onFilePickerFileClick(SettingsItem item)
+  public void onFilePickerFileClick(SettingsItem item, int position)
   {
     mClickedItem = item;
+    mClickedPosition = position;
     FilePicker filePicker = (FilePicker) item;
 
     switch (filePicker.getRequestType())
@@ -320,7 +322,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
     FilePicker filePicker = (FilePicker) mClickedItem;
 
     if (!filePicker.getSelectedValue(mView.getSettings()).equals(selectedFile))
+    {
+      notifyItemChanged(mClickedPosition);
       mView.onSettingChanged();
+    }
 
     filePicker.setSelectedValue(mView.getSettings(), selectedFile);
 

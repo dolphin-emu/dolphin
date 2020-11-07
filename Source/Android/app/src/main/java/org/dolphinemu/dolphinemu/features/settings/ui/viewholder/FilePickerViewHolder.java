@@ -71,13 +71,14 @@ public final class FilePickerViewHolder extends SettingViewHolder
       return;
     }
 
+    int position = getAdapterPosition();
     if (mFilePicker.getRequestType() == MainPresenter.REQUEST_DIRECTORY)
     {
-      getAdapter().onFilePickerDirectoryClick(mItem);
+      getAdapter().onFilePickerDirectoryClick(mItem, position);
     }
     else
     {
-      getAdapter().onFilePickerFileClick(mItem);
+      getAdapter().onFilePickerFileClick(mItem, position);
     }
 
     setStyle(mTextSettingName, mItem);
