@@ -121,6 +121,15 @@ std::string GetAndroidContentDisplayName(const std::string& uri)
   return display_name ? GetJString(env, reinterpret_cast<jstring>(display_name)) : "";
 }
 
+std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject children =
+      env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
+                                  IDCache::GetContentHandlerGetChildNames(), ToJString(env, uri));
+  return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(children));
+}
+
 int GetNetworkIpAddress()
 {
   JNIEnv* env = IDCache::GetEnvForThread();

@@ -497,14 +497,47 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   {
     const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return parent_entry;
+  DIR* dirp = nullptr;
+
+#ifdef ANDROID
+  std::vector<std::string> child_names;
+  if (IsPathAndroidContent(directory))
+  {
+    child_names = GetAndroidContentChildNames(directory);
+  }
+  else
+#endif
+  {
+    dirp = opendir(directory.c_str());
+    if (!dirp)
+      return parent_entry;
+  }
+
+#ifdef ANDROID
+  auto it = child_names.cbegin();
+#endif
 
   // non Windows loop
-  while (dirent* result = readdir(dirp))
+  while (true)
   {
-    const std::string virtual_name(result->d_name);
+    std::string virtual_name;
+
+#ifdef ANDROID
+    if (!dirp)
+    {
+      if (it == child_names.cend())
+        break;
+      virtual_name = *it;
+      ++it;
+    }
+    else
+#endif
+    {
+      dirent* result = readdir(dirp);
+      if (!result)
+        break;
+      virtual_name = result->d_name;
+    }
 #endif
     if (virtual_name == "." || virtual_name == "..")
       continue;
@@ -535,7 +568,8 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   FindClose(hFind);
 #else
   }
-  closedir(dirp);
+  if (dirp)
+    closedir(dirp);
 #endif
 
   return parent_entry;

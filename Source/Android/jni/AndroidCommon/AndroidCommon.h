@@ -6,6 +6,7 @@
 
 #include <ios>
 #include <string>
+#include <vector>
 
 #include <jni.h>
 
@@ -33,6 +34,9 @@ jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri);
 // way to get it, but the display name is not guaranteed to always actually be like a file name.
 // An empty string will be returned for files which do not exist.
 std::string GetAndroidContentDisplayName(const std::string& uri);
+
+// Returns the display names of all children of a directory.
+std::vector<std::string> GetAndroidContentChildNames(const std::string& uri);
 
 int GetNetworkIpAddress();
 int GetNetworkPrefixLength();
