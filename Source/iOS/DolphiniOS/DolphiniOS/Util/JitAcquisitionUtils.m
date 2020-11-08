@@ -13,6 +13,41 @@ static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
 static DOLJitError s_acquisition_error = DOLJitErrorNone;
 
+DOLJitError AcquireJitWithAllowUnsigned()
+{
+  // Query MobileGestalt for the CPU architecture
+  void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
+  if (!gestalt_handle)
+  {
+    return DOLJitErrorGestaltFailed;
+  }
+  
+  typedef NSString* (*MGCopyAnswer_ptr)(NSString*);
+  MGCopyAnswer_ptr MGCopyAnswer = (MGCopyAnswer_ptr)dlsym(gestalt_handle, "MGCopyAnswer");
+  
+  if (!MGCopyAnswer)
+  {
+    return DOLJitErrorGestaltFailed;
+  }
+  
+  NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
+  bool is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
+  
+  if (!is_arm64e)
+  {
+    return DOLJitErrorNotArm64e;
+  }
+  
+  if (!HasGetTaskAllowEntitlement())
+  {
+    return DOLJitErrorImproperlySigned;
+  }
+  
+  // CS_EXECSEG_ALLOW_UNSIGNED will let us have JIT
+  // (assuming it's signed correctly)
+  return DOLJitErrorNone;
+}
+
 void AcquireJit()
 {
   if (IsProcessDebugged())
@@ -23,33 +58,22 @@ void AcquireJit()
   
   if (@available(iOS 14.2, *))
   {
-    // Query MobileGestalt for the CPU architecture
-    void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
-    if (!gestalt_handle)
+    s_acquisition_error = AcquireJitWithAllowUnsigned();
+    if (s_acquisition_error == DOLJitErrorNone)
     {
-      s_acquisition_error = DOLJitErrorGestaltFailed;
-      return;
-    }
-    
-    typedef NSString* (*MGCopyAnswer_ptr)(NSString*);
-    MGCopyAnswer_ptr MGCopyAnswer = (MGCopyAnswer_ptr)dlsym(gestalt_handle, "MGCopyAnswer");
-    
-    if (!MGCopyAnswer)
-    {
-      s_acquisition_error = DOLJitErrorGestaltFailed;
-      return;
-    }
-    
-    NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
-    bool is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
-    
-    if (is_arm64e && HasGetTaskAllowEntitlement())
-    {
-      // CS_EXECSEG_ALLOW_UNSIGNED will let us have JIT
-      // (assuming it's signed correctly)
       s_has_jit = true;
       return;
     }
+    
+#ifndef NONJAILBROKEN
+    // Reset on jailbroken devices - we have a chance still to acquire JIT
+    // via jailbreakd or csdbgd
+    s_acquisition_error = DOLJitErrorNone;
+#else
+    // On non-jailbroken devices running iOS 14.2, this is our only chance
+    // to get JIT.
+    return;
+#endif
   }
   
 #if TARGET_OS_SIMULATOR
