@@ -16,6 +16,21 @@ import org.dolphinemu.dolphinemu.DolphinApplication;
 import java.io.FileNotFoundException;
 import java.util.List;
 
+/*
+  We use a lot of "catch (Exception e)" in this class. This is for two reasons:
+
+  1. We don't want any exceptions to escape to native code, as this leads to nasty crashes
+     that often don't have stack traces that make sense.
+
+  2. The sheer number of different exceptions, both documented and undocumented. These include:
+     - FileNotFoundException when a file doesn't exist
+     - FileNotFoundException when using an invalid open mode (according to the documentation)
+     - IllegalArgumentException when using an invalid open mode (in practice with FileProvider)
+     - IllegalArgumentException when providing a tree where a document was expected and vice versa
+     - SecurityException when trying to access something the user hasn't granted us permission to
+     - UnsupportedOperationException when a URI specifies a storage provider that doesn't exist
+ */
+
 public class ContentHandler
 {
   @Keep
@@ -28,14 +43,12 @@ public class ContentHandler
     catch (SecurityException e)
     {
       Log.error("Tried to open " + uri + " without permission");
-      return -1;
     }
-    // Some content providers throw IllegalArgumentException for invalid modes,
-    // despite the documentation saying that invalid modes result in a FileNotFoundException
-    catch (FileNotFoundException | IllegalArgumentException | NullPointerException e)
+    catch (Exception ignored)
     {
-      return -1;
     }
+
+    return -1;
   }
 
   @Keep
@@ -45,16 +58,20 @@ public class ContentHandler
     {
       return DocumentsContract.deleteDocument(getContentResolver(), unmangle(uri));
     }
-    catch (SecurityException e)
-    {
-      Log.error("Tried to delete " + uri + " without permission");
-      return false;
-    }
     catch (FileNotFoundException e)
     {
       // Return true because we care about the file not being there, not the actual delete.
       return true;
     }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to delete " + uri + " without permission");
+    }
+    catch (Exception ignored)
+    {
+    }
+
+    return false;
   }
 
   public static boolean exists(@NonNull String uri)
@@ -72,7 +89,7 @@ public class ContentHandler
     {
       Log.error("Tried to check if " + uri + " exists without permission");
     }
-    catch (FileNotFoundException ignored)
+    catch (Exception ignored)
     {
     }
 
@@ -104,7 +121,7 @@ public class ContentHandler
     {
       Log.error("Tried to get metadata for " + uri + " without permission");
     }
-    catch (FileNotFoundException ignored)
+    catch (Exception ignored)
     {
     }
 
@@ -118,10 +135,11 @@ public class ContentHandler
     {
       return getDisplayName(unmangle(uri));
     }
-    catch (FileNotFoundException e)
+    catch (Exception ignored)
     {
-      return null;
     }
+
+    return null;
   }
 
   @Nullable
@@ -139,6 +157,9 @@ public class ContentHandler
     catch (SecurityException e)
     {
       Log.error("Tried to get display name of " + uri + " without permission");
+    }
+    catch (Exception ignored)
+    {
     }
 
     return null;
@@ -172,7 +193,7 @@ public class ContentHandler
     {
       Log.error("Tried to get children of " + uri + " without permission");
     }
-    catch (FileNotFoundException ignored)
+    catch (Exception ignored)
     {
     }
 
@@ -208,6 +229,9 @@ public class ContentHandler
     catch (SecurityException e)
     {
       Log.error("Tried to get child " + childName + " of " + parentUri + " without permission");
+    }
+    catch (Exception ignored)
+    {
     }
 
     throw new FileNotFoundException(parentUri + "/" + childName);
