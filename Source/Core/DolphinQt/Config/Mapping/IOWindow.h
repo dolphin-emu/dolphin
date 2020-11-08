@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <memory>
+#include <string>
+
 #include <QDialog>
 #include <QString>
 #include <QSyntaxHighlighter>
@@ -34,13 +37,10 @@ class ControlExpressionSyntaxHighlighter final : public QSyntaxHighlighter
 {
   Q_OBJECT
 public:
-  ControlExpressionSyntaxHighlighter(QTextDocument* parent, QLineEdit* result);
+  explicit ControlExpressionSyntaxHighlighter(QTextDocument* parent);
 
 protected:
   void highlightBlock(const QString& text) final override;
-
-private:
-  QLineEdit* const m_result_text;
 };
 
 class IOWindow final : public QDialog
@@ -73,6 +73,8 @@ private:
   void AppendSelectedOption();
   void UpdateOptionList();
   void UpdateDeviceList();
+
+  void UpdateExpression(std::string new_expression);
 
   // Main Layout
   QVBoxLayout* m_main_layout;
@@ -108,6 +110,7 @@ private:
   QPushButton* m_apply_button;
 
   ControlReference* m_reference;
+  std::string m_original_expression;
   ControllerEmu::EmulatedController* m_controller;
 
   ciface::Core::DeviceQualifier m_devq;

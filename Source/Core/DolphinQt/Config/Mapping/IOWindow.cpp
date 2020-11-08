@@ -93,9 +93,8 @@ QTextCharFormat GetCommentCharFormat()
 }
 }  // namespace
 
-ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent,
-                                                                       QLineEdit* result)
-    : QSyntaxHighlighter(parent), m_result_text(result)
+ControlExpressionSyntaxHighlighter::ControlExpressionSyntaxHighlighter(QTextDocument* parent)
+    : QSyntaxHighlighter(parent)
 {
 }
 
@@ -168,17 +167,10 @@ void ControlExpressionSyntaxHighlighter::highlightBlock(const QString&)
   }
 
   // This doesn't need to be run for every "block", but it works.
-  if (ciface::ExpressionParser::ParseStatus::Successful != tokenize_status)
-  {
-    m_result_text->setText(tr("Invalid Token."));
-  }
-  else
+  if (ciface::ExpressionParser::ParseStatus::Successful == tokenize_status)
   {
     ciface::ExpressionParser::RemoveInertTokens(&tokens);
     const auto parse_status = ciface::ExpressionParser::ParseTokens(tokens);
-
-    m_result_text->setText(
-        QString::fromStdString(parse_status.description.value_or(_trans("Success."))));
 
     if (ciface::ExpressionParser::ParseStatus::Successful != parse_status.status)
     {
@@ -203,7 +195,8 @@ private:
 
 IOWindow::IOWindow(MappingWidget* parent, ControllerEmu::EmulatedController* controller,
                    ControlReference* ref, IOWindow::Type type)
-    : QDialog(parent), m_reference(ref), m_controller(controller), m_type(type)
+    : QDialog(parent), m_reference(ref), m_original_expression(ref->GetExpression()),
+      m_controller(controller), m_type(type)
 {
   CreateMainLayout();
 
@@ -242,7 +235,7 @@ void IOWindow::CreateMainLayout()
 
   m_expression_text = new QPlainTextEdit();
   m_expression_text->setFont(QFontDatabase::systemFont(QFontDatabase::FixedFont));
-  new ControlExpressionSyntaxHighlighter(m_expression_text->document(), m_parse_text);
+  new ControlExpressionSyntaxHighlighter(m_expression_text->document());
 
   m_operators_combo = new QComboBox();
   m_operators_combo->addItem(tr("Operators"));
@@ -404,6 +397,7 @@ void IOWindow::ConnectWidgets()
   connect(m_expression_text, &QPlainTextEdit::textChanged, [this] {
     m_apply_button->setText(m_apply_button->text().remove(QStringLiteral("*")));
     m_apply_button->setText(m_apply_button->text() + QStringLiteral("*"));
+    UpdateExpression(m_expression_text->toPlainText().toStdString());
   });
 
   connect(m_operators_combo, qOverload<int>(&QComboBox::activated), [this](int index) {
@@ -423,6 +417,9 @@ void IOWindow::ConnectWidgets()
 
     m_functions_combo->setCurrentIndex(0);
   });
+
+  // revert the expression when the window closes without using the OK button
+  connect(this, &IOWindow::finished, [this] { UpdateExpression(m_original_expression); });
 }
 
 void IOWindow::AppendSelectedOption()
@@ -448,8 +445,10 @@ void IOWindow::OnDialogButtonPressed(QAbstractButton* button)
     return;
   }
 
-  m_reference->SetExpression(m_expression_text->toPlainText().toStdString());
-  m_controller->UpdateSingleControlReference(g_controller_interface, m_reference);
+  const auto lock = m_controller->GetStateLock();
+
+  UpdateExpression(m_expression_text->toPlainText().toStdString());
+  m_original_expression = m_reference->GetExpression();
 
   m_apply_button->setText(m_apply_button->text().remove(QStringLiteral("*")));
 
@@ -530,6 +529,26 @@ void IOWindow::UpdateDeviceList()
 
   m_devices_combo->setCurrentText(
       QString::fromStdString(m_controller->GetDefaultDevice().ToString()));
+}
+
+void IOWindow::UpdateExpression(std::string new_expression)
+{
+  const auto lock = m_controller->GetStateLock();
+  if (new_expression == m_reference->GetExpression())
+    return;
+
+  const auto error = m_reference->SetExpression(std::move(new_expression));
+  const auto status = m_reference->GetParseStatus();
+  m_controller->UpdateSingleControlReference(g_controller_interface, m_reference);
+
+  if (error)
+    m_parse_text->setText(QString::fromStdString(*error));
+  else if (status == ciface::ExpressionParser::ParseStatus::EmptyExpression)
+    m_parse_text->setText(QString());
+  else if (status != ciface::ExpressionParser::ParseStatus::Successful)
+    m_parse_text->setText(tr("Invalid Expression."));
+  else
+    m_parse_text->setText(tr("Success."));
 }
 
 InputStateDelegate::InputStateDelegate(IOWindow* parent) : QItemDelegate(parent), m_parent(parent)
