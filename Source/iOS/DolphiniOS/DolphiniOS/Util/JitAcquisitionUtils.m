@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#import "JitAcquisitionUtils.h"
+
 #import <dlfcn.h>
 
 #import "CodeSignatureUtils.h"
@@ -9,6 +11,7 @@
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
+static DOLJitError s_acquisition_error = DOLJitErrorNone;
 
 void AcquireJit()
 {
@@ -24,18 +27,17 @@ void AcquireJit()
     void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
     if (!gestalt_handle)
     {
-      NSLog(@"Failed to load MobileGestalt: %s", dlerror());
-      abort();
+      s_acquisition_error = DOLJitErrorGestaltFailed;
+      return;
     }
     
     typedef NSString* (*MGCopyAnswer_ptr)(NSString*);
     MGCopyAnswer_ptr MGCopyAnswer = (MGCopyAnswer_ptr)dlsym(gestalt_handle, "MGCopyAnswer");
     
-    char* dlsym_error = dlerror();
-    if (dlsym_error)
+    if (!MGCopyAnswer)
     {
-      NSLog(@"Failed to load from MobileGestalt: %s", dlsym_error);
-      abort();
+      s_acquisition_error = DOLJitErrorGestaltFailed;
+      return;
     }
     
     NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
@@ -88,4 +90,9 @@ bool HasJit()
 bool HasJitWithPTrace()
 {
   return s_has_jit_with_ptrace;
+}
+
+DOLJitError GetJitAcqusitionError()
+{
+  return s_acquisition_error;
 }
