@@ -124,9 +124,9 @@ std::string GetAndroidContentDisplayName(const std::string& uri)
 std::vector<std::string> GetAndroidContentChildNames(const std::string& uri)
 {
   JNIEnv* env = IDCache::GetEnvForThread();
-  jobject children =
-      env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
-                                  IDCache::GetContentHandlerGetChildNames(), ToJString(env, uri));
+  jobject children = env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
+                                                 IDCache::GetContentHandlerGetChildNames(),
+                                                 ToJString(env, uri), false);
   return JStringArrayToVector(env, reinterpret_cast<jobjectArray>(children));
 }
 

@@ -15,12 +15,15 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public final class MainPresenter
@@ -123,9 +126,21 @@ public final class MainPresenter
 
   public void onDirectorySelected(Intent result)
   {
-    ContentResolver contentResolver = mContext.getContentResolver();
     Uri uri = result.getData();
 
+    boolean recursive = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
+    String[] childNames = ContentHandler.getChildNames(uri, recursive);
+    if (Arrays.stream(childNames).noneMatch((name) ->
+            FileBrowserHelper.GAME_EXTENSIONS.contains(FileBrowserHelper.getExtension(name))))
+    {
+      AlertDialog.Builder builder = new AlertDialog.Builder(mContext, R.style.DolphinDialogBase);
+      builder.setMessage(mContext.getString(R.string.wrong_file_extension_in_directory,
+              FileBrowserHelper.setToSortedDelimitedString(FileBrowserHelper.GAME_EXTENSIONS)));
+      builder.setPositiveButton(R.string.ok, null);
+      builder.show();
+    }
+
+    ContentResolver contentResolver = mContext.getContentResolver();
     Uri canonicalizedUri = contentResolver.canonicalize(uri);
     if (canonicalizedUri != null)
       uri = canonicalizedUri;

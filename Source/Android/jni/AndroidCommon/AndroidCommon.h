@@ -35,7 +35,7 @@ jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri);
 // An empty string will be returned for files which do not exist.
 std::string GetAndroidContentDisplayName(const std::string& uri);
 
-// Returns the display names of all children of a directory.
+// Returns the display names of all children of a directory, non-recursively.
 std::vector<std::string> GetAndroidContentChildNames(const std::string& uri);
 
 int GetNetworkIpAddress();

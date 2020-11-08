@@ -330,7 +330,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
   s_content_handler_get_display_name = env->GetStaticMethodID(
       s_content_handler_class, "getDisplayName", "(Ljava/lang/String;)Ljava/lang/String;");
   s_content_handler_get_child_names = env->GetStaticMethodID(
-      s_content_handler_class, "getChildNames", "(Ljava/lang/String;)[Ljava/lang/String;");
+      s_content_handler_class, "getChildNames", "(Ljava/lang/String;Z)[Ljava/lang/String;");
 
   const jclass network_helper_class =
       env->FindClass("org/dolphinemu/dolphinemu/utils/NetworkHelper");

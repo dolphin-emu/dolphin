@@ -14,6 +14,7 @@ import androidx.annotation.Keep;
 import org.dolphinemu.dolphinemu.DolphinApplication;
 
 import java.io.FileNotFoundException;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -166,26 +167,52 @@ public class ContentHandler
   }
 
   @NonNull @Keep
-  public static String[] getChildNames(@NonNull String uri)
+  public static String[] getChildNames(@NonNull String uri, boolean recursive)
   {
     try
     {
-      Uri unmangledUri = unmangle(uri);
-      String documentId = DocumentsContract.getDocumentId(treeToDocument(unmangledUri));
-      Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(unmangledUri, documentId);
+      return getChildNames(unmangle(uri), recursive);
+    }
+    catch (Exception ignored)
+    {
+    }
 
-      final String[] projection = new String[]{Document.COLUMN_DISPLAY_NAME};
+    return new String[0];
+  }
+
+  @NonNull
+  public static String[] getChildNames(@NonNull Uri uri, boolean recursive)
+  {
+    ArrayList<String> result = new ArrayList<>();
+    getChildNames(uri, DocumentsContract.getDocumentId(treeToDocument(uri)), recursive, result);
+    return result.toArray(new String[0]);
+  }
+
+  private static void getChildNames(@NonNull Uri uri, @NonNull String documentId, boolean recursive,
+          List<String> resultOut)
+  {
+    try
+    {
+      Uri childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(uri, documentId);
+
+      final String[] projection = recursive ? new String[]{Document.COLUMN_DISPLAY_NAME,
+              Document.COLUMN_MIME_TYPE, Document.COLUMN_DOCUMENT_ID} :
+              new String[]{Document.COLUMN_DISPLAY_NAME};
       try (Cursor cursor = getContentResolver().query(childrenUri, projection, null, null, null))
       {
         if (cursor != null)
         {
-          String[] result = new String[cursor.getCount()];
-          for (int i = 0; i < result.length; i++)
+          while (cursor.moveToNext())
           {
-            cursor.moveToNext();
-            result[i] = cursor.getString(0);
+            if (recursive && Document.MIME_TYPE_DIR.equals(cursor.getString(1)))
+            {
+              getChildNames(uri, cursor.getString(2), recursive, resultOut);
+            }
+            else
+            {
+              resultOut.add(cursor.getString(0));
+            }
           }
-          return result;
         }
       }
     }
@@ -196,8 +223,6 @@ public class ContentHandler
     catch (Exception ignored)
     {
     }
-
-    return new String[0];
   }
 
   @NonNull

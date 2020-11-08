@@ -102,10 +102,8 @@ public final class FileBrowserHelper
       int messageId = validExtensions.size() == 1 ?
               R.string.wrong_file_extension_single : R.string.wrong_file_extension_multiple;
 
-      ArrayList<String> extensionsList = new ArrayList<>(validExtensions);
-      Collections.sort(extensionsList);
-
-      message = context.getString(messageId, extension, join(", ", extensionsList));
+      message = context.getString(messageId, extension,
+              setToSortedDelimitedString(validExtensions));
     }
 
     new AlertDialog.Builder(context, R.style.DolphinDialogBase)
@@ -117,13 +115,20 @@ public final class FileBrowserHelper
   }
 
   @Nullable
-  private static String getExtension(@Nullable String fileName)
+  public static String getExtension(@Nullable String fileName)
   {
     if (fileName == null)
       return null;
 
     int dotIndex = fileName.lastIndexOf(".");
     return dotIndex != -1 ? fileName.substring(dotIndex + 1) : null;
+  }
+
+  public static String setToSortedDelimitedString(Set<String> set)
+  {
+    ArrayList<String> list = new ArrayList<>(set);
+    Collections.sort(list);
+    return join(", ", list);
   }
 
   // TODO: Replace this with String.join once we can use Java 8
