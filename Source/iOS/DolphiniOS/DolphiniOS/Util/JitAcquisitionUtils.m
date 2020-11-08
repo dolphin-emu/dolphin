@@ -81,7 +81,7 @@ void AcquireJit()
 #elif defined(NONJAILBROKEN)
   if (@available(iOS 14, *))
   {
-    // can't do anything here
+    s_acquisition_error = DOLJitErrorNeedUpdate;
   }
   else
   {
