@@ -34,9 +34,6 @@
 /* Class = "UINavigationItem"; title = "Settings"; ObjectID = "ack-ew-MP2"; */
 "ack-ew-MP2.title" = "설정";
 
-/* Class = "UILabel"; text = "Donate"; ObjectID = "cRV-Hq-IOP"; */
-"cRV-Hq-IOP.text" = "Donate";
-
 /* Class = "UILabel"; text = "Help"; ObjectID = "dfe-JF-PdQ"; */
 "dfe-JF-PdQ.text" = "도움말";
 
@@ -108,12 +105,6 @@
 
 /* Class = "UILabel"; text = "Set Process As Debugged"; ObjectID = "3ho-Oh-qCP"; */
 "3ho-Oh-qCP.text" = "Set Process As Debugged";
-
-/* Class = "UILabel"; text = "1.0.0"; ObjectID = "9Bx-0J-21P"; */
-"9Bx-0J-21P.text" = "1.0.0";
-
-/* Class = "UILabel"; text = "Emulation Core"; ObjectID = "hMd-RA-rNX"; */
-"hMd-RA-rNX.text" = "Emulation Core";
 
 /* Class = "UILabel"; text = "Fastmem"; ObjectID = "M3l-U9-UrT"; */
 "M3l-U9-UrT.text" = "Fastmem";

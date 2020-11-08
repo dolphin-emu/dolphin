@@ -16,9 +16,6 @@
 /* Class = "UILabel"; text = "Debug"; ObjectID = "6JD-gF-g10"; */
 "6JD-gF-g10.text" = "调试";
 
-/* Class = "UILabel"; text = "1.0.0"; ObjectID = "9Bx-0J-21P"; */
-"9Bx-0J-21P.text" = "1.0.0";
-
 /* Class = "UILabel"; text = "Register Cache Disabled"; ObjectID = "9xh-DU-gOm"; */
 "9xh-DU-gOm.text" = "Register Cache Disabled";
 
@@ -70,9 +67,6 @@
 /* Class = "UILabel"; text = "Integer Disabled"; ObjectID = "bxk-99-Snh"; */
 "bxk-99-Snh.text" = "Integer Disabled";
 
-/* Class = "UILabel"; text = "Donate"; ObjectID = "cRV-Hq-IOP"; */
-"cRV-Hq-IOP.text" = "Donate";
-
 /* Class = "UILabel"; text = "Help"; ObjectID = "dfe-JF-PdQ"; */
 "dfe-JF-PdQ.text" = "帮助";
 
@@ -84,9 +78,6 @@
 
 /* Class = "UILabel"; text = "Help"; ObjectID = "gtb-Ne-ddc"; */
 "gtb-Ne-ddc.text" = "帮助";
-
-/* Class = "UILabel"; text = "Emulation Core"; ObjectID = "hMd-RA-rNX"; */
-"hMd-RA-rNX.text" = "Emulation Core";
 
 /* Class = "UINavigationItem"; title = "Debug"; ObjectID = "ico-l1-GvZ"; */
 "ico-l1-GvZ.title" = "调试";
