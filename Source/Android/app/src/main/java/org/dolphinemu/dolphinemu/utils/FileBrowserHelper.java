@@ -28,7 +28,14 @@ import java.util.Set;
 public final class FileBrowserHelper
 {
   public static final HashSet<String> GAME_EXTENSIONS = new HashSet<>(Arrays.asList(
-          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf", "dff"));
+          "gcm", "tgc", "iso", "ciso", "gcz", "wbfs", "wia", "rvz", "wad", "dol", "elf"));
+
+  public static final HashSet<String> GAME_LIKE_EXTENSIONS = new HashSet<>(GAME_EXTENSIONS);
+
+  static
+  {
+    GAME_LIKE_EXTENSIONS.add("dff");
+  }
 
   public static final HashSet<String> RAW_EXTENSION = new HashSet<>(Collections.singletonList(
           "raw"));
