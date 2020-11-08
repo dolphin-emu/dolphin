@@ -99,6 +99,12 @@ public class ContentHandler
     return -1;
   }
 
+  @Nullable @Keep
+  public static String getDisplayName(String uri)
+  {
+    return getDisplayName(Uri.parse(uri));
+  }
+
   @Nullable
   public static String getDisplayName(@NonNull Uri uri)
   {

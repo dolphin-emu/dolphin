@@ -45,6 +45,7 @@ jclass GetContentHandlerClass();
 jmethodID GetContentHandlerOpenFd();
 jmethodID GetContentHandlerDelete();
 jmethodID GetContentHandlerGetSizeAndIsDirectory();
+jmethodID GetContentHandlerGetDisplayName();
 
 jclass GetNetworkHelperClass();
 jmethodID GetNetworkHelperGetNetworkIpAddress();

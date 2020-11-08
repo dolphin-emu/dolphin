@@ -28,6 +28,12 @@ bool DeleteAndroidContent(const std::string& uri);
 // Returns -1 if not found, -2 if directory, file size otherwise.
 jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri);
 
+// An unmangled URI (one which the C++ code has not appended anything to) can't be relied on
+// to contain a file name at all. If a file name is desired, this function is the most reliable
+// way to get it, but the display name is not guaranteed to always actually be like a file name.
+// An empty string will be returned for files which do not exist.
+std::string GetAndroidContentDisplayName(const std::string& uri);
+
 int GetNetworkIpAddress();
 int GetNetworkPrefixLength();
 int GetNetworkGateway();

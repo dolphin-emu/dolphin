@@ -112,6 +112,15 @@ jlong GetAndroidContentSizeAndIsDirectory(const std::string& uri)
                                    ToJString(env, uri));
 }
 
+std::string GetAndroidContentDisplayName(const std::string& uri)
+{
+  JNIEnv* env = IDCache::GetEnvForThread();
+  jobject display_name =
+      env->CallStaticObjectMethod(IDCache::GetContentHandlerClass(),
+                                  IDCache::GetContentHandlerGetDisplayName(), ToJString(env, uri));
+  return display_name ? GetJString(env, reinterpret_cast<jstring>(display_name)) : "";
+}
+
 int GetNetworkIpAddress()
 {
   JNIEnv* env = IDCache::GetEnvForThread();
