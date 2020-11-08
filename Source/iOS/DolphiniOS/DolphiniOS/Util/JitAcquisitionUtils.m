@@ -4,8 +4,8 @@
 
 #import <dlfcn.h>
 
+#import "CodeSignatureUtils.h"
 #import "DebuggerUtils.h"
-#import "EntitlementUtils.h"
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;

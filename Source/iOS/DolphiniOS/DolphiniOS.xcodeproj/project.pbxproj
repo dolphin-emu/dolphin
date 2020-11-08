@@ -101,7 +101,7 @@
 		B989DFCA23B4ADF0005C7773 /* ControllerExtensionsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B989DFC923B4ADF0005C7773 /* ControllerExtensionsViewController.mm */; };
 		B989DFCD23B4AE33005C7773 /* ControllerExtensionCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */; };
 		B992D27A25528B9800CB02FD /* JitAcquisitionUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B992D27925528B9700CB02FD /* JitAcquisitionUtils.m */; };
-		B992D27F25528E0B00CB02FD /* EntitlementUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B992D27E25528E0B00CB02FD /* EntitlementUtils.m */; };
+		B992D27F25528E0B00CB02FD /* CodeSignatureUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B992D27E25528E0B00CB02FD /* CodeSignatureUtils.m */; };
 		B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B99577A024664F90008C5115 /* KilledBuildNotice.xib */; };
 		B99577A424665004008C5115 /* KilledBuildNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */; };
 		B99577AD24673EC0008C5115 /* NetPlaySetup.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B99577AC24673EBF008C5115 /* NetPlaySetup.storyboard */; };
@@ -448,8 +448,8 @@
 		B989DFCC23B4AE33005C7773 /* ControllerExtensionCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ControllerExtensionCell.m; sourceTree = "<group>"; };
 		B992D27925528B9700CB02FD /* JitAcquisitionUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JitAcquisitionUtils.m; sourceTree = "<group>"; };
 		B992D27B25528BAF00CB02FD /* JitAcquisitionUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JitAcquisitionUtils.h; sourceTree = "<group>"; };
-		B992D27E25528E0B00CB02FD /* EntitlementUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = EntitlementUtils.m; sourceTree = "<group>"; };
-		B992D28025528F2300CB02FD /* EntitlementUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EntitlementUtils.h; sourceTree = "<group>"; };
+		B992D27E25528E0B00CB02FD /* CodeSignatureUtils.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CodeSignatureUtils.m; sourceTree = "<group>"; };
+		B992D28025528F2300CB02FD /* CodeSignatureUtils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CodeSignatureUtils.h; sourceTree = "<group>"; };
 		B99577A024664F90008C5115 /* KilledBuildNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = KilledBuildNotice.xib; path = DolphiniOS/UI/Notices/KilledBuild/KilledBuildNotice.xib; sourceTree = SOURCE_ROOT; };
 		B99577A224665004008C5115 /* KilledBuildNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = KilledBuildNoticeViewController.h; path = KilledBuild/KilledBuildNoticeViewController.h; sourceTree = "<group>"; };
 		B99577A324665004008C5115 /* KilledBuildNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = KilledBuildNoticeViewController.m; path = KilledBuild/KilledBuildNoticeViewController.m; sourceTree = "<group>"; };
@@ -1065,8 +1065,8 @@
 			children = (
 				B971E1F7245EB63E00D2A698 /* DebuggerUtils.h */,
 				B971E1F8245EB63E00D2A698 /* DebuggerUtils.m */,
-				B992D28025528F2300CB02FD /* EntitlementUtils.h */,
-				B992D27E25528E0B00CB02FD /* EntitlementUtils.m */,
+				B992D28025528F2300CB02FD /* CodeSignatureUtils.h */,
+				B992D27E25528E0B00CB02FD /* CodeSignatureUtils.m */,
 				B96400742553E8FE00AD68EC /* FastmemUtil.h */,
 				B96400752553E90E00AD68EC /* FastmemUtil.m */,
 				B992D27B25528BAF00CB02FD /* JitAcquisitionUtils.h */,
@@ -1871,7 +1871,7 @@
 				B9D1E1B123E2B5E0008A6EE2 /* GameCubeLanguageViewController.mm in Sources */,
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
-				B992D27F25528E0B00CB02FD /* EntitlementUtils.m in Sources */,
+				B992D27F25528E0B00CB02FD /* CodeSignatureUtils.m in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
 				B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */,
 			);
