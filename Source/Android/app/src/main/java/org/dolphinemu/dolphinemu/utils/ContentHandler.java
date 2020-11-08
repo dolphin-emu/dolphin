@@ -21,6 +21,11 @@ public class ContentHandler
     {
       return getContentResolver().openFileDescriptor(Uri.parse(uri), mode).detachFd();
     }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to open " + uri + " without permission");
+      return -1;
+    }
     // Some content providers throw IllegalArgumentException for invalid modes,
     // despite the documentation saying that invalid modes result in a FileNotFoundException
     catch (FileNotFoundException | IllegalArgumentException | NullPointerException e)
@@ -34,6 +39,11 @@ public class ContentHandler
     try
     {
       return DocumentsContract.deleteDocument(getContentResolver(), Uri.parse(uri));
+    }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to delete " + uri + " without permission");
+      return false;
     }
     catch (FileNotFoundException e)
     {
@@ -52,6 +62,10 @@ public class ContentHandler
       {
         return cursor.getString(0);
       }
+    }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to get display name of " + uri + " without permission");
     }
 
     return null;
