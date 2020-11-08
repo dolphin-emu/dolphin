@@ -168,7 +168,8 @@ public final class TvMainActivity extends FragmentActivity implements MainView
   @Override
   public void launchFileListActivity()
   {
-    FileBrowserHelper.openDirectoryPicker(this, FileBrowserHelper.GAME_EXTENSIONS);
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+    startActivityForResult(intent, MainPresenter.REQUEST_DIRECTORY);
   }
 
   @Override
@@ -225,7 +226,7 @@ public final class TvMainActivity extends FragmentActivity implements MainView
       switch (requestCode)
       {
         case MainPresenter.REQUEST_DIRECTORY:
-          mPresenter.onDirectorySelected(FileBrowserHelper.getSelectedPath(result));
+          mPresenter.onDirectorySelected(result);
           break;
 
         case MainPresenter.REQUEST_GAME_FILE:

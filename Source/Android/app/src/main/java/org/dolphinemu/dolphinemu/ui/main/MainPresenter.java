@@ -2,9 +2,11 @@ package org.dolphinemu.dolphinemu.ui.main;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.net.Uri;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -17,6 +19,9 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag;
 import org.dolphinemu.dolphinemu.model.GameFileCache;
 import org.dolphinemu.dolphinemu.services.GameFileCacheService;
 import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner;
+import org.dolphinemu.dolphinemu.utils.FileBrowserHelper;
+
+import java.util.Set;
 
 public final class MainPresenter
 {
@@ -116,9 +121,19 @@ public final class MainPresenter
     }
   }
 
-  public void onDirectorySelected(String dir)
+  public void onDirectorySelected(Intent result)
   {
-    mDirToAdd = dir;
+    ContentResolver contentResolver = mContext.getContentResolver();
+    Uri uri = result.getData();
+
+    Uri canonicalizedUri = contentResolver.canonicalize(uri);
+    if (canonicalizedUri != null)
+      uri = canonicalizedUri;
+
+    int takeFlags = result.getFlags() & Intent.FLAG_GRANT_READ_URI_PERMISSION;
+    mContext.getContentResolver().takePersistableUriPermission(uri, takeFlags);
+
+    mDirToAdd = uri.toString();
   }
 
   public void installWAD(String file)

@@ -6,6 +6,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 import org.dolphinemu.dolphinemu.features.settings.model.Settings;
 import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.utils.ContentHandler;
 import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.io.File;
@@ -58,8 +59,7 @@ public class GameFileCache
       String path = dolphinIni.getString(Settings.SECTION_INI_GENERAL,
               SettingsFile.KEY_ISO_PATH_BASE + i, "");
 
-      File folder = new File(path);
-      if (folder.exists())
+      if (path.startsWith("content://") ? ContentHandler.exists(path) : new File(path).exists())
       {
         pathSet.add(path);
       }
