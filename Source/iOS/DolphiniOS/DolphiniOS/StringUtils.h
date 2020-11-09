@@ -4,14 +4,16 @@
 
 #import <Foundation/Foundation.h>
 
+#define FoundationToCString(x) [x UTF8String]
+
+#define CToFoundationString(x) [NSString stringWithUTF8String:x]
+
 #ifdef __cplusplus
 
 #import <string>
 
-#define FoundationToCppString(x) std::string([x UTF8String])
+#define FoundationToCppString(x) std::string(FoundationToCString(x))
 
-#define CppToFoundationString(x) [NSString stringWithUTF8String:x.c_str()]
+#define CppToFoundationString(x) CToFoundationString(x.c_str())
 
 #endif
-
-#define CToFoundationString(x) [NSString stringWithUTF8String:x]
