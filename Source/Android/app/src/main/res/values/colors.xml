@@ -11,4 +11,6 @@
 
     <color name="tv_card_unselected">#444444</color>
 
+    <color name="invalid_setting_overlay">#36ff0000</color>
+
 </resources>

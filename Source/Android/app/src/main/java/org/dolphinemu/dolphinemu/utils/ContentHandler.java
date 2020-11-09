@@ -52,6 +52,24 @@ public class ContentHandler
     }
   }
 
+  public static boolean exists(@NonNull String uri)
+  {
+    try
+    {
+      final String[] projection = new String[]{Document.COLUMN_MIME_TYPE, Document.COLUMN_SIZE};
+      try (Cursor cursor = getContentResolver().query(Uri.parse(uri), projection, null, null, null))
+      {
+        return cursor != null && cursor.getCount() > 0;
+      }
+    }
+    catch (SecurityException e)
+    {
+      Log.error("Tried to check if " + uri + " exists without permission");
+    }
+
+    return false;
+  }
+
   @Nullable
   public static String getDisplayName(@NonNull Uri uri)
   {

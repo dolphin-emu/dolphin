@@ -14,6 +14,7 @@ import com.nononsenseapps.filepicker.Utils;
 
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.CustomFilePickerActivity;
+import org.dolphinemu.dolphinemu.features.settings.model.StringSetting;
 import org.dolphinemu.dolphinemu.ui.main.MainPresenter;
 
 import java.io.File;
@@ -94,6 +95,16 @@ public final class FileBrowserHelper
     return null;
   }
 
+  public static boolean isPathEmptyOrValid(StringSetting path)
+  {
+    return isPathEmptyOrValid(path.getStringGlobal());
+  }
+
+  public static boolean isPathEmptyOrValid(String path)
+  {
+    return !path.startsWith("content://") || ContentHandler.exists(path);
+  }
+
   public static void runAfterExtensionCheck(Context context, Uri uri, Set<String> validExtensions,
           Runnable runnable)
   {
@@ -132,6 +143,7 @@ public final class FileBrowserHelper
             .setMessage(message)
             .setPositiveButton(R.string.yes, (dialogInterface, i) -> runnable.run())
             .setNegativeButton(R.string.no, null)
+            .setCancelable(false)
             .show();
   }
 
