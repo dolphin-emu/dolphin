@@ -9,7 +9,7 @@ extern "C"
 {
 #endif
 
-bool HasGetTaskAllowEntitlement(void);
+bool HasValidCodeSignature(void);
 
 #ifdef __cplusplus
 }

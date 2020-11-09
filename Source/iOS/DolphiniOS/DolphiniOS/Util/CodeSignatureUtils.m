@@ -12,7 +12,9 @@
 #import <mach-o/loader.h>
 #import <mach-o/getsect.h>
 
-// Code from iSH: app/AppGroup.m
+// partly adapted from iSH: app/AppGroup.m
+
+#define CS_EXECSEG_ALLOW_UNSIGNED 0x10
 
 struct cs_blob_index {
     uint32_t type;
@@ -26,87 +28,115 @@ struct cs_superblob {
     struct cs_blob_index index[];
 };
 
+struct cs_generic {
+    uint32_t magic;
+    uint32_t length;
+};
+
 struct cs_entitlements {
     uint32_t magic;
     uint32_t length;
     char entitlements[];
 };
 
-static NSDictionary *AppEntitlements() {
-    static NSDictionary *entitlements;
-    if (entitlements != nil)
-        return entitlements;
-    
-    // Inspired by codesign.c in Darwin sources for Security.framework
-    
-    // Find our mach-o header
-    Dl_info dl_info;
-    if (dladdr(AppEntitlements, &dl_info) == 0)
-        return nil;
-    if (dl_info.dli_fbase == NULL)
-        return nil;
-    char *base = dl_info.dli_fbase;
-    struct mach_header_64 *header = dl_info.dli_fbase;
-    if (header->magic != MH_MAGIC_64)
-        return nil;
-    
-    // Simulator executables have fake entitlements in the code signature. The real entitlements can be found in an __entitlements section.
-    size_t entitlements_size;
-    char *entitlements_data = getsectiondata(header, "__TEXT", "__entitlements", &entitlements_size);
-    if (entitlements_data != NULL) {
-        NSData *data = [NSData dataWithBytesNoCopy:entitlements_data
-                                            length:entitlements_size
-                                      freeWhenDone:NO];
-        return entitlements = [NSPropertyListSerialization propertyListWithData:data
-                                                                        options:NSPropertyListImmutable
-                                                                         format:nil
-                                                                          error:nil];
-    }
-    
-    // Find the LC_CODE_SIGNATURE
-    struct load_command *lc = (void *) (base + sizeof(*header));
-    struct linkedit_data_command *cs_lc = NULL;
-    for (uint32_t i = 0; i < header->ncmds; i++) {
-        if (lc->cmd == LC_CODE_SIGNATURE) {
-            cs_lc = (void *) lc;
-            break;
-        }
-        lc = (void *) ((char *) lc + lc->cmdsize);
-    }
-    if (cs_lc == NULL)
-        return nil;
+struct cs_codedirectory {
+    uint32_t magic;
+    uint32_t length;
+    uint32_t version;
+    uint32_t flags;
+    uint32_t hashOffset;
+    uint32_t identOffset;
+    uint32_t specialSlots;
+    uint32_t codeSlots;
+    uint32_t codeLimit;
+    uint8_t hashSize;
+    uint8_t hashType;
+    uint8_t platform;
+    uint8_t pageSize;
+    uint32_t spareTwo;
+  
+    uint32_t scatterOffset;
+  
+    uint32_t teamOffset;
+  
+    uint32_t spare3;
+    uint64_t codeLimit64;
+  
+    uint64_t execSegmentBase;
+    uint64_t execSegmentLimit;
+    uint64_t execSegmentFlags;
+};
 
-    // Read the code signature off disk, as it's apparently not loaded into memory
-    NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingFromURL:NSBundle.mainBundle.executableURL error:nil];
-    if (fileHandle == nil)
-        return nil;
-    [fileHandle seekToFileOffset:cs_lc->dataoff];
-    NSData *csData = [fileHandle readDataOfLength:cs_lc->datasize];
-    [fileHandle closeFile];
-    const struct cs_superblob *cs = csData.bytes;
-    if (ntohl(cs->magic) != 0xfade0cc0)
-        return nil;
-    
-    // Find the entitlements in the code signature
-    NSData *entitlementsData = nil;
-    for (uint32_t i = 0; i < ntohl(cs->count); i++) {
-        struct cs_entitlements *ents = (void *) ((char *) cs + ntohl(cs->index[i].offset));
-        if (ntohl(ents->magic) == 0xfade7171) {
-            entitlementsData = [NSData dataWithBytes:ents->entitlements
-                                              length:ntohl(ents->length) - offsetof(struct cs_entitlements, entitlements)];
-        }
-    }
-    if (entitlementsData == nil)
-        return nil;
-    
-    return entitlements = [NSPropertyListSerialization propertyListWithData:entitlementsData
-                                                                    options:NSPropertyListImmutable
-                                                                     format:nil
-                                                                      error:nil];
-}
-
-bool HasGetTaskAllowEntitlement()
+bool HasValidCodeSignature()
 {
-  NSDictionary* entitlements = AppEntitlements();
-  return [[entitlements objectForKey:@"get-task-allow"] boolValue];
+  // Find our mach-o header
+  Dl_info dl_info;
+  if (dladdr(HasValidCodeSignature, &dl_info) == 0)
+      return false;
+  if (dl_info.dli_fbase == NULL)
+      return false;
+  char *base = dl_info.dli_fbase;
+  struct mach_header_64 *header = dl_info.dli_fbase;
+  if (header->magic != MH_MAGIC_64)
+      return false;
+  
+  // Find the LC_CODE_SIGNATURE
+  struct load_command *lc = (void *) (base + sizeof(*header));
+  struct linkedit_data_command *cs_lc = NULL;
+  for (uint32_t i = 0; i < header->ncmds; i++) {
+      if (lc->cmd == LC_CODE_SIGNATURE) {
+          cs_lc = (void *) lc;
+          break;
+      }
+      lc = (void *) ((char *) lc + lc->cmdsize);
+  }
+  if (cs_lc == NULL)
+      return false;
+  
+  // Read the code signature off disk, as it's apparently not loaded into memory
+  NSFileHandle *fileHandle = [NSFileHandle fileHandleForReadingFromURL:NSBundle.mainBundle.executableURL error:nil];
+  if (fileHandle == nil)
+      return false;
+  [fileHandle seekToFileOffset:cs_lc->dataoff];
+  NSData *csData = [fileHandle readDataOfLength:cs_lc->datasize];
+  [fileHandle closeFile];
+  const struct cs_superblob *cs = csData.bytes;
+  if (ntohl(cs->magic) != 0xfade0cc0)
+      return false;
+  
+  bool verified_directory = false;
+  
+  // Read the codesignature
+  NSData *entitlementsData = nil;
+  for (uint32_t i = 0; i < ntohl(cs->count); i++) {
+    struct cs_generic* generic = (void *) ((char *) cs + ntohl(cs->index[i].offset));
+    uint32_t magic = ntohl(generic->magic);
+    
+    if (magic == 0xfade7171)
+    {
+      struct cs_entitlements* ents = (void*)generic;
+      entitlementsData = [NSData dataWithBytes:ents->entitlements
+                                        length:ntohl(ents->length) - offsetof(struct cs_entitlements, entitlements)];
+    }
+    else if (magic == 0xfade0c02)
+    {
+      struct cs_codedirectory* directory = (void*)generic;
+      uint32_t version = ntohl(directory->version);
+      uint64_t execSegmentFlags = ntohll(directory->execSegmentFlags);
+      
+      verified_directory = version >= 0x20400 && (execSegmentFlags & CS_EXECSEG_ALLOW_UNSIGNED) == CS_EXECSEG_ALLOW_UNSIGNED;
+    }
+  }
+  
+  if (entitlementsData == nil)
+  {
+    return false;
+  }
+  
+  id entitlements = [NSPropertyListSerialization propertyListWithData:entitlementsData
+                                                           options:NSPropertyListImmutable
+                                                            format:nil
+                                                             error:nil];
+  
+  return [[entitlements objectForKey:@"get-task-allow"] boolValue] && verified_directory;
 }

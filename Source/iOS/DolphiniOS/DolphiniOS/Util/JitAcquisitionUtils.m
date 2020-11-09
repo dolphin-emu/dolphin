@@ -44,7 +44,7 @@ DOLJitError AcquireJitWithAllowUnsigned()
     return DOLJitErrorNotArm64e;
   }
   
-  if (!HasGetTaskAllowEntitlement())
+  if (!HasValidCodeSignature())
   {
     return DOLJitErrorImproperlySigned;
   }
