@@ -80,6 +80,7 @@ void AcquireJit()
     // Reset on jailbroken devices - we have a chance still to acquire JIT
     // via jailbreakd or csdbgd
     s_acquisition_error = DOLJitErrorNone;
+    s_acquisition_error_message[0] = '\0';
 #else
     // On non-jailbroken devices running iOS 14.2, this is our only chance
     // to get JIT.
