@@ -9,9 +9,24 @@ cd "$(dirname "$0")/.."
 SRCDIR=Source
 find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -s -p ./Languages/po -o dolphin-emu.pot --package-name="Dolphin Emulator" \
-	--keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT --keyword=PanicAlertT \
-	--keyword=PanicYesNoT --keyword=AskYesNoT --keyword=CriticalAlertT --keyword=GetStringT \
-	--keyword=_trans --keyword=tr:1,1t --keyword=tr:1,2c --keyword=QT_TR_NOOP --keyword=FmtFormatT \
+	--keyword=_ \
+	--keyword=wxTRANSLATE \
+	--keyword=AskYesNoT \
+	--keyword=AskYesNoFmtT \
+	--keyword=CriticalAlertT \
+	--keyword=CriticalAlertFmtT \
+	--keyword=PanicAlertT \
+	--keyword=PanicAlertFmtT \
+	--keyword=PanicYesNoT \
+	--keyword=PanicYesNoFmtT \
+	--keyword=SuccessAlertT \
+	--keyword=SuccessAlertFmtT \
+	--keyword=GetStringT \
+	--keyword=_trans \
+	--keyword=tr:1,1t \
+	--keyword=tr:1,2c \
+	--keyword=QT_TR_NOOP \
+	--keyword=FmtFormatT \
 	--add-comments=i18n --from-code=utf-8 -f -
 
 # Copy strings from qt-strings.pot to dolphin-emu.pot
