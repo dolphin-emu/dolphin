@@ -361,30 +361,30 @@ public class ConvertFragment extends Fragment implements View.OnClickListener
   {
     String originalPath = gameFile.getPath();
 
-    StringBuilder path = new StringBuilder(new File(originalPath).getName());
-    int dotIndex = path.lastIndexOf(".");
+    StringBuilder filename = new StringBuilder(new File(originalPath).getName());
+    int dotIndex = filename.lastIndexOf(".");
     if (dotIndex != -1)
-      path.setLength(dotIndex);
+      filename.setLength(dotIndex);
     switch (mFormat.getValue(requireContext()))
     {
       case BLOB_TYPE_PLAIN:
-        path.append(".iso");
+        filename.append(".iso");
         break;
       case BLOB_TYPE_GCZ:
-        path.append(".gcz");
+        filename.append(".gcz");
         break;
       case BLOB_TYPE_WIA:
-        path.append(".wia");
+        filename.append(".wia");
         break;
       case BLOB_TYPE_RVZ:
-        path.append(".rvz");
+        filename.append(".rvz");
         break;
     }
 
     Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
     intent.addCategory(Intent.CATEGORY_OPENABLE);
     intent.setType("application/octet-stream");
-    intent.putExtra(Intent.EXTRA_TITLE, path.toString());
+    intent.putExtra(Intent.EXTRA_TITLE, filename.toString());
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
       intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, originalPath);
     startActivityForResult(intent, REQUEST_CODE_SAVE_FILE);
