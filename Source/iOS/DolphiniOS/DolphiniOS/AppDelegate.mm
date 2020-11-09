@@ -51,6 +51,7 @@
 
 #import "InvalidCpuCoreNoticeViewController.h"
 
+#import "JitAcquisitionFailureNoticeViewController.h"
 #import "JitAcquisitionUtils.h"
 
 #import "KilledBuildNoticeViewController.h"
@@ -102,17 +103,15 @@
   }
 #endif
   
-#ifdef NONJAILBROKEN
   if (!HasJit())
   {
     // Show the incompatibilty warning
     self.window = [[UIWindow alloc] initWithFrame:UIScreen.mainScreen.bounds];
-    self.window.rootViewController = [[UIViewController alloc] initWithNibName:@"OSTooNewNotice" bundle:nil];
+    self.window.rootViewController = [[JitAcquisitionFailureNoticeViewController alloc] initWithNibName:@"JitAcquisitionFailureNotice" bundle:nil];
     [self.window makeKeyAndVisible];
     
     return true;
   }
-#endif
   
   if ([[NSUserDefaults standardUserDefaults] boolForKey:@"is_killed"])
   {
