@@ -99,9 +99,9 @@ void AcquireJit()
 #else // jailbroken
   bool success = false;
   
-  // Check for jailbreakd (Chimera)
+  // Check for jailbreakd (Chimera, Electra, Odyssey...)
   NSFileManager* file_manager = [NSFileManager defaultManager];
-  if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
+  if ([file_manager fileExistsAtPath:@"/var/run/jailbreakd.pid"])
   {
     success = SetProcessDebuggedWithJailbreakd();
     if (!success)
