@@ -37,6 +37,8 @@ DOLJitError AcquireJitWithAllowUnsigned()
   NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
   bool is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
   
+  dlclose(gestalt_handle);
+  
   if (!is_arm64e)
   {
     return DOLJitErrorNotArm64e;
@@ -46,8 +48,6 @@ DOLJitError AcquireJitWithAllowUnsigned()
   {
     return DOLJitErrorImproperlySigned;
   }
-  
-  dlclose(gestalt_handle);
   
   // CS_EXECSEG_ALLOW_UNSIGNED will let us have JIT
   // (assuming it's signed correctly)
