@@ -77,7 +77,12 @@ ANativeWindow* s_surf;
 // sequentially for access.
 std::mutex s_host_identity_lock;
 Common::Event s_update_main_frame_event;
-Common::Event s_emulation_end_event;
+
+// This exists to prevent surfaces from being destroyed during the boot process,
+// as that can lead to the boot process dereferencing nullptr.
+std::mutex s_surface_lock;
+bool s_need_nonblocking_alert_msg;
+
 bool s_have_wm_user_stop = false;
 bool s_game_metadata_is_valid = false;
 }  // Anonymous namespace
@@ -160,9 +165,10 @@ static bool MsgAlert(const char* caption, const char* text, bool yes_no, Common:
   JNIEnv* env = IDCache::GetEnvForThread();
 
   // Execute the Java method.
-  jboolean result = env->CallStaticBooleanMethod(
-      IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(), ToJString(env, caption),
-      ToJString(env, text), yes_no ? JNI_TRUE : JNI_FALSE, style == Common::MsgType::Warning);
+  jboolean result =
+      env->CallStaticBooleanMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDisplayAlertMsg(),
+                                   ToJString(env, caption), ToJString(env, text), yes_no,
+                                   style == Common::MsgType::Warning, s_need_nonblocking_alert_msg);
 
   return result != JNI_FALSE;
 }
@@ -210,33 +216,22 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulati
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv*, jclass)
 {
-  {
-    std::lock_guard<std::mutex> guard(s_host_identity_lock);
-    s_emulation_end_event.Reset();
-    Core::Stop();
+  std::lock_guard<std::mutex> guard(s_host_identity_lock);
+  Core::Stop();
 
-    // Kick the waiting event
-    s_update_main_frame_event.Set();
-  }
-
-  // Wait for shutdown, to avoid accessing the config at the same time as the shutdown code
-  s_emulation_end_event.Wait();
-}
-
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsBooting(JNIEnv*, jclass)
-{
-  return static_cast<jboolean>(Core::IsBooting());
-}
-
-JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WaitUntilDoneBooting(JNIEnv*,
-                                                                                         jclass)
-{
-  Core::WaitUntilDoneBooting();
+  // Kick the waiting event
+  s_update_main_frame_event.Set();
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunning(JNIEnv*, jclass)
 {
-  return Core::IsRunning();
+  return static_cast<jboolean>(Core::IsRunning());
+}
+
+JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_IsRunningAndStarted(JNIEnv*,
+                                                                                            jclass)
+{
+  return static_cast<jboolean>(Core::IsRunningAndStarted());
 }
 
 JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_onGamePadEvent(
@@ -398,6 +393,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
                                                                                    jclass,
                                                                                    jobject surf)
 {
+  std::lock_guard<std::mutex> guard(s_surface_lock);
+
   s_surf = ANativeWindow_fromSurface(env, surf);
   if (s_surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
@@ -409,6 +406,8 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv*,
                                                                                      jclass)
 {
+  std::lock_guard<std::mutex> guard(s_surface_lock);
+
   if (g_renderer)
     g_renderer->ChangeSurface(nullptr);
 
@@ -487,7 +486,7 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   ASSERT(!paths.empty());
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Running : %s", paths[0].c_str());
 
-  std::unique_lock<std::mutex> guard(s_host_identity_lock);
+  std::unique_lock<std::mutex> host_identity_guard(s_host_identity_lock);
 
   WiimoteReal::InitAdapterClass();
 
@@ -500,24 +499,41 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   WindowSystemInfo wsi(WindowSystemType::Android, nullptr, s_surf, s_surf);
   wsi.render_surface_scale = GetRenderSurfaceScale(env);
 
-  // No use running the loop when booting fails
-  if (BootManager::BootCore(std::move(boot), wsi))
+  s_need_nonblocking_alert_msg = true;
+  std::unique_lock<std::mutex> surface_guard(s_surface_lock);
+
+  bool successful_boot = BootManager::BootCore(std::move(boot), wsi);
+  if (successful_boot)
   {
     ButtonManager::Init(SConfig::GetInstance().GetGameID());
+
     static constexpr int TIMEOUT = 10000;
     static constexpr int WAIT_STEP = 25;
     int time_waited = 0;
     // A Core::CORE_ERROR state would be helpful here.
-    while (!Core::IsRunning() && time_waited < TIMEOUT && !s_have_wm_user_stop)
+    while (!Core::IsRunningAndStarted())
     {
+      if (time_waited >= TIMEOUT || s_have_wm_user_stop)
+      {
+        successful_boot = false;
+        break;
+      }
+
       std::this_thread::sleep_for(std::chrono::milliseconds(WAIT_STEP));
       time_waited += WAIT_STEP;
     }
-    while (Core::IsRunning())
+  }
+
+  s_need_nonblocking_alert_msg = false;
+  surface_guard.unlock();
+
+  if (successful_boot)
+  {
+    while (Core::IsRunningAndStarted())
     {
-      guard.unlock();
+      host_identity_guard.unlock();
       s_update_main_frame_event.Wait();
-      guard.lock();
+      host_identity_guard.lock();
       Core::HostDispatchJobs();
     }
   }
@@ -525,15 +541,10 @@ static void Run(JNIEnv* env, const std::vector<std::string>& paths,
   s_game_metadata_is_valid = false;
   Core::Shutdown();
   ButtonManager::Shutdown();
-  guard.unlock();
+  host_identity_guard.unlock();
 
-  if (s_surf)
-  {
-    ANativeWindow_release(s_surf);
-    s_surf = nullptr;
-  }
-
-  s_emulation_end_event.Set();
+  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(),
+                            IDCache::GetFinishEmulationActivity());
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_Run___3Ljava_lang_String_2(

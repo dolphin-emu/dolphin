@@ -102,7 +102,6 @@ static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
 static Common::Flag s_is_booting;
-static Common::Event s_done_booting;
 static std::thread s_emu_thread;
 static StateChangedCallbackFunc s_on_state_changed_callback;
 
@@ -175,11 +174,6 @@ void DisplayMessage(std::string message, int time_in_ms)
   OSD::AddMessage(std::move(message), time_in_ms);
 }
 
-bool IsBooting()
-{
-  return s_is_booting.IsSet() || !s_hardware_initialized;
-}
-
 bool IsRunning()
 {
   return (GetState() != State::Uninitialized || s_hardware_initialized) && !s_is_stopping;
@@ -249,7 +243,6 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   g_video_backend->PrepareWindow(prepared_wsi);
 
   // Start the emu thread
-  s_done_booting.Reset();
   s_is_booting.Set();
   s_emu_thread = std::thread(EmuThread, std::move(boot), prepared_wsi);
   return true;
@@ -435,7 +428,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     s_on_state_changed_callback(State::Starting);
   Common::ScopeGuard flag_guard{[] {
     s_is_booting.Clear();
-    s_done_booting.Set();
     s_is_started = false;
     s_is_stopping = false;
     s_wants_determinism = false;
@@ -568,7 +560,6 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   // The hardware is initialized.
   s_hardware_initialized = true;
   s_is_booting.Clear();
-  s_done_booting.Set();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
   CPU::Break();
@@ -690,12 +681,6 @@ State GetState()
     return State::Starting;
 
   return State::Uninitialized;
-}
-
-void WaitUntilDoneBooting()
-{
-  if (IsBooting())
-    s_done_booting.Wait();
 }
 
 static std::string GenerateScreenshotFolderPath()

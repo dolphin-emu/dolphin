@@ -12,6 +12,8 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.widget.Toast;
 
+import androidx.fragment.app.FragmentManager;
+
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 import org.dolphinemu.dolphinemu.dialogs.AlertMessage;
 import org.dolphinemu.dolphinemu.utils.CompressCallback;
@@ -403,14 +405,12 @@ public final class NativeLibrary
    */
   public static native void StopEmulation();
 
-  public static native boolean IsBooting();
-
-  public static native void WaitUntilDoneBooting();
-
   /**
    * Returns true if emulation is running (or is paused).
    */
   public static native boolean IsRunning();
+
+  public static native boolean IsRunningAndStarted();
 
   /**
    * Enables or disables CPU block profiling
@@ -487,7 +487,7 @@ public final class NativeLibrary
   private static native String GetCurrentTitleDescriptionUnchecked();
 
   public static boolean displayAlertMsg(final String caption, final String text,
-          final boolean yesNo, final boolean isWarning)
+          final boolean yesNo, final boolean isWarning, final boolean nonBlocking)
   {
     Log.error("[NativeLibrary] Alert: " + text);
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -498,10 +498,9 @@ public final class NativeLibrary
     }
     else
     {
-      // AlertMessages while the core is booting will deadlock if WaitUntilDoneBooting is called.
-      // We also can't use AlertMessages unless we have a non-null activity reference.
-      // As a fallback, we use toasts instead.
-      if (emulationActivity == null || IsBooting())
+      // We can't use AlertMessages unless we have a non-null activity reference
+      // and are allowed to block. As a fallback, we can use toasts.
+      if (emulationActivity == null || nonBlocking)
       {
         new Handler(Looper.getMainLooper()).post(
                 () -> Toast.makeText(DolphinApplication.getAppContext(), text, Toast.LENGTH_LONG)
@@ -511,9 +510,22 @@ public final class NativeLibrary
       {
         sIsShowingAlertMessage = true;
 
-        emulationActivity.runOnUiThread(
-                () -> AlertMessage.newInstance(caption, text, yesNo, isWarning)
-                        .show(emulationActivity.getSupportFragmentManager(), "AlertMessage"));
+        emulationActivity.runOnUiThread(() ->
+        {
+          FragmentManager fragmentManager = emulationActivity.getSupportFragmentManager();
+          if (fragmentManager.isStateSaved())
+          {
+            // The activity is being destroyed, so we can't use it to display an AlertMessage.
+            // Fall back to a toast.
+            Toast.makeText(emulationActivity, text, Toast.LENGTH_LONG).show();
+            NotifyAlertMessageLock();
+          }
+          else
+          {
+            AlertMessage.newInstance(caption, text, yesNo, isWarning)
+                    .show(fragmentManager, "AlertMessage");
+          }
+        });
 
         // Wait for the lock to notify that it is complete.
         synchronized (sAlertMessageLock)
@@ -561,6 +573,20 @@ public final class NativeLibrary
     Log.verbose("[NativeLibrary] Unregistering EmulationActivity.");
 
     sEmulationActivity.clear();
+  }
+
+  public static void finishEmulationActivity()
+  {
+    final EmulationActivity emulationActivity = sEmulationActivity.get();
+    if (emulationActivity == null)
+    {
+      Log.warning("[NativeLibrary] EmulationActivity is null.");
+    }
+    else
+    {
+      Log.verbose("[NativeLibrary] Finishing EmulationActivity.");
+      emulationActivity.runOnUiThread(emulationActivity::finish);
+    }
   }
 
   public static void updateTouchPointer()

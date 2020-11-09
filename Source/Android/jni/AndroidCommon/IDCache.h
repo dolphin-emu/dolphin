@@ -15,6 +15,7 @@ jmethodID GetDisplayAlertMsg();
 jmethodID GetDoRumble();
 jmethodID GetUpdateTouchPointer();
 jmethodID GetOnTitleChanged();
+jmethodID GetFinishEmulationActivity();
 
 jclass GetAnalyticsClass();
 jmethodID GetSendAnalyticsReport();
