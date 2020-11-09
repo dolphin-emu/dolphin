@@ -25,13 +25,13 @@
   switch (GetJitAcqusitionError())
   {
     case DOLJitErrorNotArm64e:
-      error_message = @"Non-jailbroken devices with A11 processors and lower on iOS 14.2 are not supported at this time. If you wish to run DolphiniOS, your device must be jailbroken.";
+      error_message = @"Non-jailbroken devices with A11 processors and lower running iOS 14 are not supported at this time. If you wish to run DolphiniOS, your device must be jailbroken.";
       break;
     case DOLJitErrorImproperlySigned:
       error_message = @"DolphiniOS is not signed correctly. Please use a known working signing service like AltStore or iOS App Signer.";
       break;
     case DOLJitErrorNeedUpdate:
-      error_message = @"Non-jailbroken devices running iOS 14.0 or iOS 14.1 are not supported. If your device has an A12 processor or higher, please update to iOS 14.2. If your device has an A11 processor or lower, it must be jailbroken to run DolphiniOS at this time.";
+      error_message = @"Non-jailbroken devices with A12 processors and newer running iOS 14.0 or iOS 14.1 are not supported. Please update to iOS 14.2.";
       break;
     case DOLJitErrorGestaltFailed:
       error_message = @"Failed to query MobileGestalt.";

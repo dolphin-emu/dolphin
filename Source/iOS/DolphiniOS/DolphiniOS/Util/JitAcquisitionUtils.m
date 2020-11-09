@@ -11,17 +11,18 @@
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
+static bool s_is_arm64e = false;
 static DOLJitError s_acquisition_error = DOLJitErrorNone;
 static char s_acquisition_error_message[256];
 
-DOLJitError AcquireJitWithAllowUnsigned()
+
+bool GetCpuArchitecture()
 {
   // Query MobileGestalt for the CPU architecture
   void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
   if (!gestalt_handle)
   {
-    SetJitAcquisitionErrorMessage(dlerror());
-    return DOLJitErrorGestaltFailed;
+    return false;
   }
   
   typedef NSString* (*MGCopyAnswer_ptr)(NSString*);
@@ -29,17 +30,26 @@ DOLJitError AcquireJitWithAllowUnsigned()
   
   if (!MGCopyAnswer)
   {
-    SetJitAcquisitionErrorMessage(dlerror());
-    dlclose(gestalt_handle);
-    return DOLJitErrorGestaltFailed;
+    return false;
   }
   
   NSString* cpu_architecture = MGCopyAnswer(@"k7QIBwZJJOVw+Sej/8h8VA"); // "CPUArchitecture"
-  bool is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
+  s_is_arm64e = [cpu_architecture isEqualToString:@"arm64e"];
   
   dlclose(gestalt_handle);
   
-  if (!is_arm64e)
+  return true;
+}
+
+DOLJitError AcquireJitWithAllowUnsigned()
+{
+  if (!GetCpuArchitecture())
+  {
+    SetJitAcquisitionErrorMessage(dlerror());
+    return DOLJitErrorGestaltFailed;
+  }
+  
+  if (!s_is_arm64e)
   {
     return DOLJitErrorNotArm64e;
   }
@@ -91,7 +101,22 @@ void AcquireJit()
 #ifdef NONJAILBROKEN
   if (@available(iOS 14, *))
   {
-    s_acquisition_error = DOLJitErrorNeedUpdate;
+    if (!GetCpuArchitecture())
+    {
+      SetJitAcquisitionErrorMessage(dlerror());
+      s_acquisition_error = DOLJitErrorGestaltFailed;
+    }
+    else
+    {
+      if (s_is_arm64e)
+      {
+        s_acquisition_error = DOLJitErrorNeedUpdate;
+      }
+      else
+      {
+        s_acquisition_error = DOLJitErrorNotArm64e;
+      }
+    }
   }
   else
   {
