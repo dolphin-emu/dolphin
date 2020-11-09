@@ -8,8 +8,6 @@
 
 namespace IDCache
 {
-static constexpr jint JNI_VERSION = JNI_VERSION_1_6;
-
 JNIEnv* GetEnvForThread();
 
 jclass GetNativeLibraryClass();
