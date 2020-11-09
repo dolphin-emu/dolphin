@@ -46,7 +46,7 @@ option(USE_DISCORD_PRESENCE "Enables Discord Rich Presence, show the current gam
 #    of our software in the wild.
 option(ENABLE_ANALYTICS "Enables opt-in Analytics collection" ON)
 
-option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
+option(ENABLE_FFMPEG_FRAMEDUMPS "Allow encoding frame dumps with ffmpeg" ON)
 
 option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 option(FASTLOG "Enable all logs" OFF)
@@ -470,16 +470,16 @@ if(ENABLE_EGL)
   endif()
 endif()
 
-if(ENCODE_FRAMEDUMPS)
+if(ENABLE_FFMPEG_FRAMEDUMPS)
   if(WIN32 AND _M_X86_64)
     set(FFMPEG_DIR Externals/ffmpeg)
   endif()
   find_package(FFmpeg COMPONENTS avcodec avformat avutil swscale)
   if(FFmpeg_FOUND)
-    message(STATUS "libav/ffmpeg found, enabling AVI frame dumps")
+    message(STATUS "FFmpeg dev components found, frame dumps can be encoded with ffmpeg")
     add_definitions(-DHAVE_FFMPEG)
   else()
-    message(STATUS "libav/ffmpeg not found, disabling AVI frame dumps")
+    message(STATUS "FFmpeg dev components not found, frame dumps will fallback to PNG images")
   endif()
 endif()
 
