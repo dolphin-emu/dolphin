@@ -68,11 +68,25 @@ bool SetProcessDebuggedWithDaemon()
   return true;
 }
 
+void* LoadLibJailbreak()
+{
+  // Try to use one provided by the jailbreak first
+  void* dylib_handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
+  if (dylib_handle)
+  {
+    return dylib_handle;
+  }
+  
+  // Attempt to use our internal copy taken from Chimera
+  NSString* internal_path = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:@"libjailbreak.dylib"];
+  return dlopen([internal_path UTF8String], RTLD_LAZY);
+}
+
 // We can just ask jailbreakd to set CS_DEBUGGED for us.
 bool SetProcessDebuggedWithJailbreakd()
 {
   // Open a handle to libjailbreak
-  void* dylib_handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
+  void* dylib_handle = LoadLibJailbreak();
   if (!dylib_handle)
   {
     SetJitAcquisitionErrorMessage(dlerror());

@@ -43,6 +43,9 @@
 		B946AF17245BFF110043767A /* WiiSystemUpdateViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B946AF16245BFF110043767A /* WiiSystemUpdateViewController.mm */; };
 		B947222F24FC551D007507A9 /* SoftwarePatchesViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B947222E24FC551D007507A9 /* SoftwarePatchesViewController.mm */; };
 		B94817D52489758300CD27AD /* InGameChangeDiscViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */; };
+		B94C49FE25590D4300EBF06B /* JitAcquisitionFailureNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B94C49FD25590D4300EBF06B /* JitAcquisitionFailureNotice.xib */; };
+		B94C4A0125590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B94C4A0025590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m */; };
+		B94C4A032559230500EBF06B /* libjailbreak.dylib in CopyFiles */ = {isa = PBXBuildFile; fileRef = B94C4A022559230500EBF06B /* libjailbreak.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		B95A092D2382715E00DBBB01 /* TCButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A092C2382715E00DBBB01 /* TCButton.swift */; };
 		B95A0932238275C200DBBB01 /* TCGameCubePad.xib in Resources */ = {isa = PBXBuildFile; fileRef = B95A0931238275C200DBBB01 /* TCGameCubePad.xib */; };
 		B95A09342382782600DBBB01 /* TCGameCubePad.swift in Sources */ = {isa = PBXBuildFile; fileRef = B95A09332382782600DBBB01 /* TCGameCubePad.swift */; };
@@ -189,6 +192,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				B94C4A032559230500EBF06B /* libjailbreak.dylib in CopyFiles */,
 				B91BF389236BFB0C00199BA7 /* libMoltenVK.dylib in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -348,6 +352,10 @@
 		B947222E24FC551D007507A9 /* SoftwarePatchesViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SoftwarePatchesViewController.mm; sourceTree = "<group>"; };
 		B94817D32489758300CD27AD /* InGameChangeDiscViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameChangeDiscViewController.h; sourceTree = "<group>"; };
 		B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameChangeDiscViewController.mm; sourceTree = "<group>"; };
+		B94C49FD25590D4300EBF06B /* JitAcquisitionFailureNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = JitAcquisitionFailureNotice.xib; sourceTree = "<group>"; };
+		B94C49FF25590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = JitAcquisitionFailureNoticeViewController.h; sourceTree = "<group>"; };
+		B94C4A0025590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = JitAcquisitionFailureNoticeViewController.m; sourceTree = "<group>"; };
+		B94C4A022559230500EBF06B /* libjailbreak.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libjailbreak.dylib; path = ../../../Externals/libjailbreak/libjailbreak.dylib; sourceTree = "<group>"; };
 		B95A092B2382715E00DBBB01 /* DolphiniOS-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "DolphiniOS-Bridging-Header.h"; sourceTree = "<group>"; };
 		B95A092C2382715E00DBBB01 /* TCButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TCButton.swift; sourceTree = "<group>"; };
 		B95A0931238275C200DBBB01 /* TCGameCubePad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = TCGameCubePad.xib; sourceTree = "<group>"; };
@@ -745,6 +753,7 @@
 				B9B536D323DE604A00F03106 /* Donation */,
 				B9C956222460FFA70095EC98 /* ImproperlySigned */,
 				B971154C23DF4451001C6BD6 /* InvalidCpuCore */,
+				B94C49FC25590C9B00EBF06B /* JitAcquisitionFailure */,
 				B94D332D2466366300E75790 /* KilledBuild */,
 				B92243DF24E9C7AC0085632F /* NKitWarning */,
 				B971E1C6245E209500D2A698 /* NonJailbroken */,
@@ -781,6 +790,7 @@
 		B945A3672362908400B21680 = {
 			isa = PBXGroup;
 			children = (
+				B94C4A022559230500EBF06B /* libjailbreak.dylib */,
 				B945A3722362908500B21680 /* DolphiniOS */,
 				B945A3712362908500B21680 /* Products */,
 				B945A3932362D98300B21680 /* Frameworks */,
@@ -868,6 +878,16 @@
 				B94817D42489758300CD27AD /* InGameChangeDiscViewController.mm */,
 			);
 			path = ChangeDisc;
+			sourceTree = "<group>";
+		};
+		B94C49FC25590C9B00EBF06B /* JitAcquisitionFailure */ = {
+			isa = PBXGroup;
+			children = (
+				B94C49FF25590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.h */,
+				B94C4A0025590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m */,
+				B94C49FD25590D4300EBF06B /* JitAcquisitionFailureNotice.xib */,
+			);
+			path = JitAcquisitionFailure;
 			sourceTree = "<group>";
 		};
 		B94D332D2466366300E75790 /* KilledBuild */ = {
@@ -1580,6 +1600,7 @@
 				4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */,
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
+				B94C49FE25590D4300EBF06B /* JitAcquisitionFailureNotice.xib in Resources */,
 				B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */,
 				B988D80023B60B510092CB6C /* MFiGCPadProfile.ini in Resources */,
 				B971E1C5245E040500D2A698 /* Entitlements_NJB.plist in Resources */,
@@ -1874,6 +1895,7 @@
 				B992D27F25528E0B00CB02FD /* CodeSignatureUtils.m in Sources */,
 				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
 				B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */,
+				B94C4A0125590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
