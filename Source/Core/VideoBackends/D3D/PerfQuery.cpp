@@ -35,7 +35,7 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
   {
     // TODO
     FlushOne();
-    ERROR_LOG(VIDEO, "Flushed query buffer early!");
+    ERROR_LOG_FMT(VIDEO, "Flushed query buffer early!");
   }
 
   // start query
