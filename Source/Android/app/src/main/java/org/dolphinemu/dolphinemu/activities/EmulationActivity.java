@@ -257,7 +257,6 @@ public final class EmulationActivity extends AppCompatActivity
   {
     if (!isChangingConfigurations())
     {
-      mSettings.saveSettings(null, null);
       mEmulationFragment.saveTemporaryState();
     }
     outState.putStringArray(EXTRA_SELECTED_GAMES, mPaths);
@@ -302,6 +301,7 @@ public final class EmulationActivity extends AppCompatActivity
   protected void onStop()
   {
     super.onStop();
+    mSettings.saveSettings(null, null);
   }
 
   public void onTitleChanged()
