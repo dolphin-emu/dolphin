@@ -790,7 +790,6 @@
 		B945A3672362908400B21680 = {
 			isa = PBXGroup;
 			children = (
-				B94C4A022559230500EBF06B /* libjailbreak.dylib */,
 				B945A3722362908500B21680 /* DolphiniOS */,
 				B945A3712362908500B21680 /* Products */,
 				B945A3932362D98300B21680 /* Frameworks */,
@@ -841,6 +840,7 @@
 				B95A09472385DE9600DBBB01 /* AudioToolbox.framework */,
 				B95A09482385DE9600DBBB01 /* AudioUnit.framework */,
 				B95A09462385DE9500DBBB01 /* CoreAudio.framework */,
+				B94C4A022559230500EBF06B /* libjailbreak.dylib */,
 				B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */,
 				B91BF37B236BEEF700199BA7 /* Metal.framework */,
 				B945A3F32362E24000B21680 /* libc++.tbd */,
