@@ -17,6 +17,17 @@
   [super viewDidLoad];
 }
 
+- (void)viewWillAppear:(BOOL)animated
+{
+  if (!HasJitWithPTrace())
+  {
+    [self.m_quit_label setHidden:true];
+    [self.m_bug_label setHidden:true];
+    [self.m_ok_button setEnabled:true];
+    [self.m_ok_button setAlpha:1.0f];
+  }
+}
+
 - (void)viewDidAppear:(BOOL)animated
 {
   [super viewDidAppear:animated];
@@ -27,13 +38,6 @@
       [self.m_ok_button setEnabled:true];
       [self.m_ok_button setAlpha:1.0f];
     });
-  }
-  else
-  {
-    [self.m_quit_label setHidden:true];
-    [self.m_bug_label setHidden:true];
-    [self.m_ok_button setEnabled:true];
-    [self.m_ok_button setAlpha:1.0f];
   }
 }
 
