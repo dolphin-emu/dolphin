@@ -10,9 +10,9 @@ extern "C"
 #endif
 
 bool IsProcessDebugged(void);
-void SetProcessDebuggedWithDaemon(void);
-void SetProcessDebuggedWithJailbreakd(void);
-void SetProcessDebuggedWithPTrace(void);
+bool SetProcessDebuggedWithDaemon(void);
+bool SetProcessDebuggedWithJailbreakd(void);
+bool SetProcessDebuggedWithPTrace(void);
 
 #ifdef __cplusplus
 }

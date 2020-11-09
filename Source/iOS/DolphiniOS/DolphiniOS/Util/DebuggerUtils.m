@@ -8,6 +8,8 @@
 #import <stdio.h>
 #import <unistd.h>
 
+#import "JitAcquisitionUtils.h"
+
 #define CS_OPS_STATUS 0 /* OK */
 #define CS_DEBUGGED 0x10000000 /* process is or has been debugged */
 extern int csops(pid_t pid, unsigned int  ops, void * useraddr, size_t usersize);
@@ -35,7 +37,7 @@ bool IsProcessDebugged()
 //
 // Yes, this is a giant hack. However, it works across jailbreaks so
 // that's enough for me.
-void SetProcessDebuggedWithDaemon()
+bool SetProcessDebuggedWithDaemon()
 {
   // Serialize the process name
   int process_id = getpid();
@@ -45,16 +47,16 @@ void SetProcessDebuggedWithDaemon()
   CFMessagePortRef port = CFMessagePortCreateRemote(kCFAllocatorDefault, CFSTR("me.oatmealdome.csdbgd-port"));
   if (port == NULL)
   {
-    NSLog(@"Failed to create port");
-    abort();
+    SetJitAcquisitionErrorMessage("Unable to open port");
+    return false;
   }
   
   // Send the message
   SInt32 ret = CFMessagePortSendRequest(port, 1, (__bridge CFDataRef)data, 1000, 0, NULL, NULL);
   if (ret != kCFMessagePortSuccess)
   {
-    NSLog(@"Failed to send message through port");
-    abort();
+    SetJitAcquisitionErrorMessage("Failed to send message through port");
+    return false;
   }
   
   // Wait until CS_DEBUGGED is set
@@ -62,42 +64,46 @@ void SetProcessDebuggedWithDaemon()
   {
     usleep(500000);
   }
+  
+  return true;
 }
 
 // We can just ask jailbreakd to set CS_DEBUGGED for us.
-void SetProcessDebuggedWithJailbreakd()
+bool SetProcessDebuggedWithJailbreakd()
 {
   // Open a handle to libjailbreak
   void* dylib_handle = dlopen("/usr/lib/libjailbreak.dylib", RTLD_LAZY);
   if (!dylib_handle)
   {
-    NSLog(@"Failed to load libjailbreak.dylib: %s", dlerror());
-    abort();
+    SetJitAcquisitionErrorMessage(dlerror());
+    return false;
   }
   
   // Load the function
   typedef void (*entitle_now_ptr)(pid_t pid, uint32_t flags);
   entitle_now_ptr ptr = (entitle_now_ptr)dlsym(dylib_handle, "jb_oneshot_entitle_now");
   
-  // Check for errors
-  char* dlsym_error = dlerror();
-  if (dlsym_error)
+  if (!ptr)
   {
-    NSLog(@"Failed to load from libjailbreak.dylib: %s", dlsym_error);
-    abort();
+    SetJitAcquisitionErrorMessage(dlerror());
+    return false;
   }
   
   // Go!
   ptr(getpid(), FLAG_PLATFORMIZE);
+  
+  return true;
 }
 
-void SetProcessDebuggedWithPTrace()
+bool SetProcessDebuggedWithPTrace()
 {
   if (@available(iOS 14, *))
   {
-    return;
+    return false;
   }
   
   ptrace(PT_TRACEME, 0, NULL, 0);
+  
+  return true;
 }
 
