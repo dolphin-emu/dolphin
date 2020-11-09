@@ -12,6 +12,7 @@
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
 static DOLJitError s_acquisition_error = DOLJitErrorNone;
+static char* s_acquisition_error_message = NULL;
 
 DOLJitError AcquireJitWithAllowUnsigned()
 {
@@ -19,6 +20,7 @@ DOLJitError AcquireJitWithAllowUnsigned()
   void* gestalt_handle = dlopen("/usr/lib/libMobileGestalt.dylib", RTLD_LAZY);
   if (!gestalt_handle)
   {
+    s_acquisition_error_message = dlerror();
     return DOLJitErrorGestaltFailed;
   }
   
@@ -27,6 +29,7 @@ DOLJitError AcquireJitWithAllowUnsigned()
   
   if (!MGCopyAnswer)
   {
+    s_acquisition_error_message = dlerror();
     return DOLJitErrorGestaltFailed;
   }
   
@@ -119,4 +122,14 @@ bool HasJitWithPTrace()
 DOLJitError GetJitAcqusitionError()
 {
   return s_acquisition_error;
+}
+
+char* GetJitAcquisitionErrorMessage()
+{
+  return s_acquisition_error_message;
+}
+
+void SetJitAcquisitionErrorMessage(char* error)
+{
+  s_acquisition_error_message = error;
 }

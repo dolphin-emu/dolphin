@@ -24,6 +24,8 @@ void AcquireJit(void);
 bool HasJit(void);
 bool HasJitWithPTrace(void);
 DOLJitError GetJitAcqusitionError(void);
+char* GetJitAcquisitionErrorMessage(void);
+void SetJitAcquisitionErrorMessage(char* error);
 
 #ifdef __cplusplus
 }
