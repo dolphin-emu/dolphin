@@ -94,18 +94,28 @@ void AcquireJit()
     s_has_jit_with_ptrace = true;
   }
 #else // jailbroken
+  bool success = false;
+  
   // Check for jailbreakd (Chimera)
   NSFileManager* file_manager = [NSFileManager defaultManager];
   if ([file_manager fileExistsAtPath:@"/Library/LaunchDaemons/jailbreakd.plist"])
   {
-    SetProcessDebuggedWithJailbreakd();
+    success = SetProcessDebuggedWithJailbreakd();
+    if (!success)
+    {
+      s_acquisition_error = DOLJitErrorJailbreakdFailed;
+    }
   }
   else
   {
-    SetProcessDebuggedWithDaemon();
+    success = SetProcessDebuggedWithDaemon();
+    if (!success)
+    {
+      s_acquisition_error = DOLJitErrorCsdbgdFailed;
+    }
   }
   
-  s_has_jit = true;
+  s_has_jit = success;
 #endif
 }
 
