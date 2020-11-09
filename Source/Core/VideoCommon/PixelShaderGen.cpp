@@ -685,9 +685,9 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     if (use_shader_blend)
     {
       // Store off a copy of the initial fb value for blending
-      out.Write("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
-                "\tfloat4 ocol0;\n"
-                "\tfloat4 ocol1;\n");
+      out.WriteFmt("\tfloat4 initial_ocol0 = FB_FETCH_VALUE;\n"
+                   "\tfloat4 ocol0;\n"
+                   "\tfloat4 ocol1;\n");
     }
   }
   else  // D3D
@@ -1512,15 +1512,15 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   if (uid_data->fog_RangeBaseEnabled)
   {
     out.SetConstantsUsed(C_FOGF, C_FOGF);
-    out.Write("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
-              "\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
-              "\tuint indexlower = uint(floatindex);\n"
-              "\tuint indexupper = indexlower + 1u;\n"
-              "\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
-              "\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
-              "\tfloat k = lerp(klower, kupper, frac(floatindex));\n"
-              "\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n"
-              "\tze *= x_adjust;\n");
+    out.WriteFmt("\tfloat offset = (2.0 * (rawpos.x / " I_FOGF ".w)) - 1.0 - " I_FOGF ".z;\n"
+                 "\tfloat floatindex = clamp(9.0 - abs(offset) * 9.0, 0.0, 9.0);\n"
+                 "\tuint indexlower = uint(floatindex);\n"
+                 "\tuint indexupper = indexlower + 1u;\n"
+                 "\tfloat klower = " I_FOGRANGE "[indexlower >> 2u][indexlower & 3u];\n"
+                 "\tfloat kupper = " I_FOGRANGE "[indexupper >> 2u][indexupper & 3u];\n"
+                 "\tfloat k = lerp(klower, kupper, frac(floatindex));\n"
+                 "\tfloat x_adjust = sqrt(offset * offset + k * k) / k;\n"
+                 "\tze *= x_adjust;\n");
   }
 
   out.WriteFmt("\tfloat fog = clamp(ze - " I_FOGF ".y, 0.0, 1.0);\n");
