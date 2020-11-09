@@ -62,6 +62,11 @@ void AcquireJit()
     return;
   }
   
+#if TARGET_OS_SIMULATOR
+  s_has_jit = true;
+  return;
+#endif
+  
   if (@available(iOS 14.2, *))
   {
     s_acquisition_error = AcquireJitWithAllowUnsigned();
@@ -82,9 +87,7 @@ void AcquireJit()
 #endif
   }
   
-#if TARGET_OS_SIMULATOR
-  s_has_jit = true;
-#elif defined(NONJAILBROKEN)
+#ifdef NONJAILBROKEN
   if (@available(iOS 14, *))
   {
     s_acquisition_error = DOLJitErrorNeedUpdate;
