@@ -86,11 +86,14 @@ bool SetProcessDebuggedWithJailbreakd()
   if (!ptr)
   {
     SetJitAcquisitionErrorMessage(dlerror());
+    dlclose(dylib_handle);
     return false;
   }
   
   // Go!
   ptr(getpid(), FLAG_PLATFORMIZE);
+  
+  dlclose(dylib_handle);
   
   return true;
 }

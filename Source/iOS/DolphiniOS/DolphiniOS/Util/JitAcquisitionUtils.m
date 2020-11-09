@@ -30,6 +30,7 @@ DOLJitError AcquireJitWithAllowUnsigned()
   if (!MGCopyAnswer)
   {
     SetJitAcquisitionErrorMessage(dlerror());
+    dlclose(gestalt_handle);
     return DOLJitErrorGestaltFailed;
   }
   
@@ -45,6 +46,8 @@ DOLJitError AcquireJitWithAllowUnsigned()
   {
     return DOLJitErrorImproperlySigned;
   }
+  
+  dlclose(gestalt_handle);
   
   // CS_EXECSEG_ALLOW_UNSIGNED will let us have JIT
   // (assuming it's signed correctly)
