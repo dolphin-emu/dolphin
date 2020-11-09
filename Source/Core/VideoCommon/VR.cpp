@@ -22,13 +22,11 @@
 #include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
-#include "VideoCommon/VROculus.h"
 
 const char* scm_vr_sdk_str = SCM_OCULUS_STR;
 
 float g_current_fps = 60.0f, g_current_speed = 0.0f;  // g_current_speed is a percentage
 
-#ifdef HAVE_OPENVR
 #include "VideoCommon\VROpenVR.h"
 
 vr::IVRSystem* m_pHMD;
@@ -44,20 +42,6 @@ int m_iValidPoseCount;
 
 void ClearDebugProj();
 
-#ifdef OVR_MAJOR_VERSION
-ovrHmd hmd = nullptr;
-ovrHmdDesc hmdDesc;
-ovrFovPort g_best_eye_fov[2], g_eye_fov[2], g_last_eye_fov[2];
-ovrEyeRenderDesc g_eye_render_desc[2];
-#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 7
-ovrFrameTiming g_rift_frame_timing;
-#endif
-ovrPosef g_eye_poses[2], g_front_eye_poses[2];
-int g_ovr_frameindex;
-#if OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 7
-ovrGraphicsLuid luid;
-#endif
-#endif
 
 #ifdef _WIN32
 LUID* g_hmd_luid = nullptr;
@@ -65,34 +49,7 @@ LUID* g_hmd_luid = nullptr;
 
 std::mutex g_vr_lock;
 
-#if defined(OVR_MAJOR_VERSION)
-#if OVR_PRODUCT_VERSION >= 1
-bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
-bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
-     g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = false, g_vr_has_asynchronous_timewarp = true;
-bool g_vr_supports_extended = false;
-#elif OVR_MAJOR_VERSION >= 7
-bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
-bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
-     g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
-bool g_vr_supports_extended = false;
-#else
-bool g_vr_cant_motion_blur = false, g_vr_must_motion_blur = false;
-bool g_vr_has_dynamic_predict = true, g_vr_has_configure_rendering = true,
-     g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
-bool g_vr_supports_extended = true;
-#endif
-#else
-bool g_vr_cant_motion_blur = true, g_vr_must_motion_blur = false;
-bool g_vr_has_dynamic_predict = false, g_vr_has_configure_rendering = false,
-     g_vr_has_hq_distortion = true;
-bool g_vr_has_configure_tracking = true, g_vr_has_asynchronous_timewarp = false;
-bool g_vr_supports_extended = false;
-#endif
-
+// Hopefully, the fact that these aren't defined **should** prevent Dolphin VR from referencing Oculus
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
 bool g_vr_has_timewarp_tweak = true;
 bool g_vr_needs_DXGIFactory1 = false;
@@ -112,8 +69,8 @@ bool g_vr_needs_endframe = false;
 
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
 
-bool g_force_vr = false, g_prefer_openvr = false, g_one_hmd = false;
-bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false, g_openvr_is_vive = true, g_openvr_is_rift = false;
+bool g_force_vr = false, g_prefer_openvr = true, g_one_hmd = false; // Always use OpenVR
+bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = true, g_openvr_is_vive = true, g_openvr_is_rift = false; 
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
