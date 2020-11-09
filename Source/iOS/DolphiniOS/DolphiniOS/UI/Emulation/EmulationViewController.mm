@@ -501,7 +501,10 @@
     NSString* message = DOLocalizedString(@"Do you want to stop the current emulation?");
     
 #ifdef NONJAILBROKEN
-    message = [message stringByAppendingString:@"\n\nDolphiniOS will quit if the emulation is stopped."];
+    if (HasJitWithPTrace())
+    {
+      message = [message stringByAppendingString:@"\n\nDolphiniOS will quit if the emulation is stopped."];
+    }
 #endif
     
     UIAlertController* alert = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Confirm") message:message preferredStyle:UIAlertControllerStyleAlert];
