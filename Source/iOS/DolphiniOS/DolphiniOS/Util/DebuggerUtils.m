@@ -79,7 +79,7 @@ void* LoadLibJailbreak()
   
   // Attempt to use our internal copy taken from Chimera
   NSString* internal_path = [[[[NSBundle mainBundle] bundlePath] stringByAppendingPathComponent:@"Frameworks"] stringByAppendingPathComponent:@"libjailbreak.dylib"];
-  return dlopen([internal_path UTF8String], RTLD_LAZY);
+  return dlopen(FoundationToCString(internal_path), RTLD_LAZY);
 }
 
 // We can just ask jailbreakd to set CS_DEBUGGED for us.
