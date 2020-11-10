@@ -394,7 +394,14 @@
   Config::SetBaseOrCurrent(Config::MAIN_USE_GAME_COVERS, true);
   
 #ifdef NONJAILBROKEN
+  bool can_enable_fastmem = CanEnableFastmem();
+  
   SConfig::GetInstance().bFastmem = CanEnableFastmem();
+  
+  if (can_enable_fastmem)
+  {
+    Config::SetBaseOrCurrent(Config::MAIN_DEBUG_HACKY_FASTMEM, GetFastmemType() == DOLFastmemTypeHacky);
+  }
 #endif
   
   // Apply latest touchscreen controller configuration

@@ -9,7 +9,15 @@ extern "C"
 {
 #endif
 
+typedef NS_ENUM(NSUInteger, DOLFastmemType)
+{
+  DOLFastmemTypeNone,
+  DOLFastmemTypeProper,
+  DOLFastmemTypeHacky
+};
+
 bool CanEnableFastmem(void);
+DOLFastmemType GetFastmemType(void);
 
 #ifdef __cplusplus
 }

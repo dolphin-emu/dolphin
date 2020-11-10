@@ -133,6 +133,7 @@ extern const Info<bool> MAIN_SKIP_NKIT_WARNING;
 
 // Main.Debug
 
+extern const Info<bool> MAIN_DEBUG_HACKY_FASTMEM;
 extern const Info<bool> MAIN_DEBUG_LOAD_STORE_FLOATING_OFF;
 extern const Info<bool> MAIN_DEBUG_LOAD_STORE_PAIRED_OFF;
 extern const Info<bool> MAIN_DEBUG_BRANCH_OFF;

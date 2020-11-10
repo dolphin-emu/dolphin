@@ -29,7 +29,7 @@ public:
   void ReleaseView(void* view, size_t size);
 
   // This finds 1 GB in 32-bit, 16 GB in 64-bit.
-  static u8* FindMemoryBase();
+  static u8* FindMemoryBase(bool hacky);
 
 private:
 #ifdef _WIN32

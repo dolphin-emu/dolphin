@@ -164,12 +164,12 @@ void MemArena::ReleaseView(void* view, size_t size)
 #endif
 }
 
-u8* MemArena::FindMemoryBase()
+u8* MemArena::FindMemoryBase(bool hacky)
 {
 #if _ARCH_32
   const size_t memory_size = 0x31000000;
 #else
-  const size_t memory_size = 0x400000000;
+  const size_t memory_size = hacky ? 0x80000000 : 0x400000000;
 #endif
 
 #ifdef _WIN32

@@ -317,8 +317,10 @@ void Init()
 
 bool InitFastmemArena()
 {
+  bool use_hacky_fastmem = Config::Get(Config::MAIN_DEBUG_HACKY_FASTMEM) && !SConfig::GetInstance().bMMU;
+
   u32 flags = GetFlags();
-  physical_base = Common::MemArena::FindMemoryBase();
+  physical_base = Common::MemArena::FindMemoryBase(use_hacky_fastmem);
 
   if (!physical_base)
     return false;
@@ -338,7 +340,23 @@ bool InitFastmemArena()
   }
 
 #ifndef _ARCH_32
-  logical_base = physical_base + 0x200000000;
+  size_t offset;
+  if (use_hacky_fastmem)
+  {
+    // This is really, really bad. logical_base and physical_base are pointers to 4GB chunks of virtual
+    // memory containing their respective address spaces. Setting the difference between these pointers
+    // to something lower than 4GB works by chance. However, for any game that uses non-standard BATs,
+    // Dolphin will likely at some point attempt to map logical memory over physical memory. Major breakage
+    // will occur if this happens. Hacky fastmem is only ever used if MMU is disabled in an attempt to
+    // prevent such a scenario.
+    offset = 0x40000000;
+  }
+  else
+  {
+    offset = 0x200000000;
+  }
+
+  logical_base = physical_base + offset;
 #endif
 
   is_fastmem_arena_initialized = true;
