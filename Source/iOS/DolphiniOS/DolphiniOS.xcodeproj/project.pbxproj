@@ -341,7 +341,6 @@
 		B945A3912362D90200B21680 /* EAGLView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EAGLView.m; sourceTree = "<group>"; };
 		B945A3942362D98400B21680 /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
 		B945A3962362D99000B21680 /* libz.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libz.tbd; path = usr/lib/libz.tbd; sourceTree = SDKROOT; };
-		B945A3982362DA7A00B21680 /* DolphiniOS */ = {isa = PBXFileReference; lastKnownFileType = folder; path = DolphiniOS; sourceTree = "<group>"; };
 		B945A3F32362E24000B21680 /* libc++.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = "libc++.tbd"; path = "usr/lib/libc++.tbd"; sourceTree = SDKROOT; };
 		B946AF0F245B953B0043767A /* TopBarModeViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TopBarModeViewController.h; sourceTree = "<group>"; };
 		B946AF10245B953B0043767A /* TopBarModeViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TopBarModeViewController.m; sourceTree = "<group>"; };
@@ -844,7 +843,6 @@
 				B91BF387236BFAF600199BA7 /* libMoltenVK.dylib */,
 				B91BF37B236BEEF700199BA7 /* Metal.framework */,
 				B945A3F32362E24000B21680 /* libc++.tbd */,
-				B945A3982362DA7A00B21680 /* DolphiniOS */,
 				B945A3962362D99000B21680 /* libz.tbd */,
 				B945A3942362D98400B21680 /* OpenGLES.framework */,
 				93227A79A53E50FE37648CB5 /* libPods-DolphiniOS.a */,
