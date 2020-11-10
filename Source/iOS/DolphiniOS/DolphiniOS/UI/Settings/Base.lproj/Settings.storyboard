@@ -770,8 +770,37 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                             </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="073-6x-KHm">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="none" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="f83-CR-5v2">
                                         <rect key="frame" x="16" y="639.33333206176758" width="343" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="f83-CR-5v2" id="dga-AF-Pbv">
+                                            <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Hacky Fastmem Mode" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" minimumScaleFactor="0.5" translatesAutoresizingMaskIntoConstraints="NO" id="chE-HL-YEC">
+                                                    <rect key="frame" x="16" y="11.666666666666664" width="230" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <switch opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" contentHorizontalAlignment="center" contentVerticalAlignment="center" on="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Bhf-w3-ZTR">
+                                                    <rect key="frame" x="246" y="6.6666666666666679" width="51" height="31.000000000000004"/>
+                                                    <connections>
+                                                        <action selector="HackyFastmemChanged:" destination="6VJ-jD-NfQ" eventType="valueChanged" id="fR7-q2-j8m"/>
+                                                    </connections>
+                                                </switch>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="Bhf-w3-ZTR" firstAttribute="leading" secondItem="chE-HL-YEC" secondAttribute="trailing" id="1BA-xK-r1R"/>
+                                                <constraint firstItem="chE-HL-YEC" firstAttribute="leading" secondItem="dga-AF-Pbv" secondAttribute="leadingMargin" id="BQk-Lk-FBb"/>
+                                                <constraint firstItem="Bhf-w3-ZTR" firstAttribute="centerY" secondItem="dga-AF-Pbv" secondAttribute="centerY" id="dAP-mJ-vKo"/>
+                                                <constraint firstItem="chE-HL-YEC" firstAttribute="centerY" secondItem="dga-AF-Pbv" secondAttribute="centerY" id="fzm-Fr-Gum"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="Bhf-w3-ZTR" secondAttribute="trailing" id="iPl-mZ-jI7"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="073-6x-KHm">
+                                        <rect key="frame" x="16" y="683.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="073-6x-KHm" id="1Ir-KB-Jd4">
                                             <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
@@ -792,7 +821,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" preservesSuperviewLayoutMargins="YES" selectionStyle="default" accessoryType="detailButton" indentationWidth="10" rowHeight="44" id="Tif-Kx-tey">
-                                        <rect key="frame" x="16" y="683.33333206176758" width="343" height="44"/>
+                                        <rect key="frame" x="16" y="727.33333206176758" width="343" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" preservesSuperviewLayoutMargins="YES" insetsLayoutMarginsFromSafeArea="NO" tableViewCell="Tif-Kx-tey" id="NBc-oc-mVX">
                                             <rect key="frame" x="0.0" y="0.0" width="303" height="44"/>
@@ -825,6 +854,7 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                         <outlet property="m_branch_switch" destination="kpl-jJ-akF" id="ecv-XU-wVM"/>
                         <outlet property="m_fastmem_switch" destination="ts1-id-DRO" id="zGD-T1-SvU"/>
                         <outlet property="m_fp_switch" destination="hSW-ts-PuQ" id="qy4-Ut-8YZ"/>
+                        <outlet property="m_hacky_fastmem_switch" destination="Bhf-w3-ZTR" id="1MY-MK-cCj"/>
                         <outlet property="m_integer_switch" destination="9Q7-Fm-UJm" id="mbm-E8-Z91"/>
                         <outlet property="m_load_store_fp_switch" destination="EHO-HA-zJE" id="BKh-Ed-t1c"/>
                         <outlet property="m_load_store_p_switch" destination="f6m-Hj-mwh" id="zmH-zh-JNU"/>

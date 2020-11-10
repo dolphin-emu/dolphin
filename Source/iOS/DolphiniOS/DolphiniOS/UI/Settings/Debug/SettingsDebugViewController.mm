@@ -4,8 +4,10 @@
 
 #import "SettingsDebugViewController.h"
 
+#import "Common/Config/Config.h"
 #import "Common/FileUtil.h"
 
+#import "Core/Config/MainSettings.h"
 #import "Core/ConfigManager.h"
 
 #import "DebuggerUtils.h"
@@ -44,9 +46,12 @@
   
   [self.m_skip_idle_switch setOn:config.bSyncGPUOnSkipIdleHack];
   [self.m_fastmem_switch setOn:config.bFastmem];
+  [self.m_hacky_fastmem_switch setOn:Config::Get(Config::MAIN_DEBUG_HACKY_FASTMEM)];
   
 #ifdef NONJAILBROKEN
-  [self.m_fastmem_switch setEnabled:CanEnableFastmem()];
+  bool can_enable_fastmem = CanEnableFastmem();
+  [self.m_fastmem_switch setEnabled:can_enable_fastmem];
+  [self.m_hacky_fastmem_switch setEnabled:can_enable_fastmem];
 #endif
 }
 
@@ -109,6 +114,11 @@
 - (IBAction)FastmemChanged:(id)sender
 {
   SConfig::GetInstance().bFastmem = [self.m_fastmem_switch isOn];
+}
+
+- (IBAction)HackyFastmemChanged:(id)sender
+{
+  Config::SetBaseOrCurrent(Config::MAIN_DEBUG_HACKY_FASTMEM, [self.m_hacky_fastmem_switch isOn]);
 }
 
 - (void)tableView:(UITableView*)tableView didSelectRowAtIndexPath:(NSIndexPath*)indexPath

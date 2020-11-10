@@ -111,3 +111,6 @@
 
 /* Class = "UILabel"; text = "Enable Debug Logs"; ObjectID = "yCy-ds-hEn"; */
 "yCy-ds-hEn.text" = "Enable Debug Logs";
+
+/* Class = "UILabel"; text = "Hacky Fastmem Mode"; ObjectID = "chE-HL-YEC"; */
+"chE-HL-YEC.text" = "Hacky Fastmem Mode";
