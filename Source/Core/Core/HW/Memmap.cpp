@@ -320,7 +320,7 @@ bool InitFastmemArena()
   bool use_hacky_fastmem = Config::Get(Config::MAIN_DEBUG_HACKY_FASTMEM);
 
   // Don't use hacky fastmem with MMU-enabled games. Always fallback to slowmem.
-  if (use_hacky_fastmem && Config::GetInstance().bMMU)
+  if (use_hacky_fastmem && SConfig::GetInstance().bMMU)
     return false;
 
   u32 flags = GetFlags();
