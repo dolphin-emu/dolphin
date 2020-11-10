@@ -317,7 +317,11 @@ void Init()
 
 bool InitFastmemArena()
 {
-  bool use_hacky_fastmem = Config::Get(Config::MAIN_DEBUG_HACKY_FASTMEM) && !SConfig::GetInstance().bMMU;
+  bool use_hacky_fastmem = Config::Get(Config::MAIN_DEBUG_HACKY_FASTMEM);
+
+  // Don't use hacky fastmem with MMU-enabled games. Always fallback to slowmem.
+  if (use_hacky_fastmem && Config::GetInstance().bMMU)
+    return false;
 
   u32 flags = GetFlags();
   physical_base = Common::MemArena::FindMemoryBase(use_hacky_fastmem);
