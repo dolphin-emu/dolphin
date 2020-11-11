@@ -396,7 +396,7 @@
 #ifdef NONJAILBROKEN
   bool can_enable_fastmem = CanEnableFastmem();
   
-  SConfig::GetInstance().bFastmem = CanEnableFastmem();
+  SConfig::GetInstance().bFastmem = can_enable_fastmem;
   
   if (can_enable_fastmem)
   {
