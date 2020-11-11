@@ -16,7 +16,8 @@
 
 #define MISC_ROW_SYNC_ON_SKIP_IDLE 0
 #define MISC_ROW_FASTMEM 1
-#define MISC_ROW_CONSOLE_LOG 2
+#define MISC_ROW_FASTMEM_HACKY 2
+#define MISC_ROW_CONSOLE_LOG 3
 
 @interface SettingsDebugViewController ()
 
@@ -164,6 +165,10 @@
     else if (indexPath.row == MISC_ROW_FASTMEM)
     {
       message = NSLocalizedString(@"This setting changes whether Dolphin uses the faster method of emulating the GameCube / Wii RAM. Non-jailbroken devices cannot enable this option due to iOS limitations.\n\nWARNING: Disabling this option will decrease performance (FPS).", nil);
+    }
+    else if (indexPath.row == MISC_ROW_FASTMEM_HACKY)
+    {
+      message = NSLocalizedString(@"This setting changes whether Dolphin uses the 'hacky' version of fastmem. This type of fastmem works on non-jailbroken devices with at least 4GB of RAM for free, but will cause issues in some games. When launching an incompatible game, Dolphin will automatically turn off fastmem altogether to avoid a crash.\n\nWARNING: Disabling this option on a device that doesn't support proper fastmem will cause Dolphin to crash.", nil);
     }
     else if (indexPath.row == MISC_ROW_CONSOLE_LOG)
     {
