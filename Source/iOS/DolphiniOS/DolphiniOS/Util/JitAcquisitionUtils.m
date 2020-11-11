@@ -8,6 +8,7 @@
 
 #import "CodeSignatureUtils.h"
 #import "DebuggerUtils.h"
+#import "FastmemUtil.h"
 
 static bool s_has_jit = false;
 static bool s_has_jit_with_ptrace = false;
@@ -124,6 +125,19 @@ void AcquireJit()
     
     s_has_jit = true;
     s_has_jit_with_ptrace = true;
+  }
+  else
+  {
+    // Check for psychicpaper - should be able to use proper fastmem
+    if (CanEnableFastmem() && GetFastmemType() == DOLFastmemTypeProper)
+    {
+      s_has_jit = true;
+    }
+    else
+    {
+      // Something is up with the entitlements.
+      s_acquisition_error  = DOLJitErrorImproperlySigned;
+    }
   }
 #else // jailbroken
   bool success = false;
