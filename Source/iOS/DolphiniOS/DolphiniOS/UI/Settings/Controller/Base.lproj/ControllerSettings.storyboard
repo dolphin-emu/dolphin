@@ -992,7 +992,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Haptic Feedback" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1OV-rN-vOL">
-                                                    <rect key="frame" x="16" y="11" width="129" height="22"/>
+                                                    <rect key="frame" x="16" y="11" width="270" height="22"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1006,6 +1006,7 @@
                                             </subviews>
                                             <constraints>
                                                 <constraint firstAttribute="trailingMargin" secondItem="Mps-w0-Avx" secondAttribute="trailing" id="Ev0-LL-ENa"/>
+                                                <constraint firstItem="Mps-w0-Avx" firstAttribute="leadingMargin" secondItem="1OV-rN-vOL" secondAttribute="trailing" id="K4g-cu-ZMT"/>
                                                 <constraint firstItem="Mps-w0-Avx" firstAttribute="centerY" secondItem="ON8-Ba-GbW" secondAttribute="centerY" id="S6C-Uv-exE"/>
                                                 <constraint firstItem="1OV-rN-vOL" firstAttribute="centerY" secondItem="ON8-Ba-GbW" secondAttribute="centerY" id="aWE-1q-EE5"/>
                                                 <constraint firstItem="1OV-rN-vOL" firstAttribute="leading" secondItem="ON8-Ba-GbW" secondAttribute="leadingMargin" id="pA8-7v-pIr"/>
@@ -1021,7 +1022,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Motion Controls" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5AM-ha-84z">
-                                                    <rect key="frame" x="16" y="11" width="122" height="22"/>
+                                                    <rect key="frame" x="16" y="11" width="270" height="22"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1034,6 +1035,7 @@
                                                 </switch>
                                             </subviews>
                                             <constraints>
+                                                <constraint firstItem="5Lf-z9-7fU" firstAttribute="leadingMargin" secondItem="5AM-ha-84z" secondAttribute="trailing" id="1KJ-Yo-7g2"/>
                                                 <constraint firstItem="5AM-ha-84z" firstAttribute="centerY" secondItem="Fs0-66-Ai7" secondAttribute="centerY" id="MwU-HN-kdr"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="5Lf-z9-7fU" secondAttribute="trailing" id="NgU-6b-ck4"/>
                                                 <constraint firstItem="5AM-ha-84z" firstAttribute="bottom" secondItem="Fs0-66-Ai7" secondAttribute="bottomMargin" id="Uk9-1G-jxP"/>
@@ -1050,7 +1052,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Stick Recentering" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ygG-fJ-PN6">
-                                                    <rect key="frame" x="16" y="11" width="134" height="22"/>
+                                                    <rect key="frame" x="16" y="11" width="270" height="22"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="textColor"/>
                                                     <nil key="highlightedColor"/>
@@ -1066,6 +1068,7 @@
                                                 <constraint firstItem="ygG-fJ-PN6" firstAttribute="bottom" secondItem="bqS-Vn-h3U" secondAttribute="bottomMargin" id="5dM-eB-k1J"/>
                                                 <constraint firstItem="ygG-fJ-PN6" firstAttribute="leading" secondItem="bqS-Vn-h3U" secondAttribute="leadingMargin" id="62I-36-1Dd"/>
                                                 <constraint firstAttribute="trailingMargin" secondItem="BBT-LV-FL3" secondAttribute="trailing" id="80j-yF-E4F"/>
+                                                <constraint firstItem="BBT-LV-FL3" firstAttribute="leadingMargin" secondItem="ygG-fJ-PN6" secondAttribute="trailing" id="ASu-rW-Xgo"/>
                                                 <constraint firstItem="BBT-LV-FL3" firstAttribute="centerY" secondItem="bqS-Vn-h3U" secondAttribute="centerY" id="Gd9-kp-mJa"/>
                                                 <constraint firstItem="ygG-fJ-PN6" firstAttribute="centerY" secondItem="bqS-Vn-h3U" secondAttribute="centerY" id="zod-6c-fg0"/>
                                             </constraints>
