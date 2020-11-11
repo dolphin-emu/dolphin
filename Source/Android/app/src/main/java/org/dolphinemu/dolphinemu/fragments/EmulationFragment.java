@@ -94,14 +94,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
       doneButton.setOnClickListener(v -> stopConfiguringControls());
     }
 
-    contents.post(() ->
+    if (mInputOverlay != null)
     {
-      int overlayX = mInputOverlay.getLeft();
-      int overlayY = mInputOverlay.getTop();
-      mInputOverlay.setSurfacePosition(new Rect(
-              surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
-              surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
-    });
+      contents.post(() ->
+      {
+        int overlayX = mInputOverlay.getLeft();
+        int overlayY = mInputOverlay.getTop();
+        mInputOverlay.setSurfacePosition(new Rect(
+                surfaceView.getLeft() - overlayX, surfaceView.getTop() - overlayY,
+                surfaceView.getRight() - overlayX, surfaceView.getBottom() - overlayY));
+      });
+    }
 
     // The new Surface created here will get passed to the native code via onSurfaceChanged.
 
