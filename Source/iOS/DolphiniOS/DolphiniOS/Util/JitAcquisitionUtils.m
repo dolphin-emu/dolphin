@@ -118,7 +118,7 @@ void AcquireJit()
       }
     }
   }
-  else
+  else if (@available(iOS 13.5, *))
   {
     SetProcessDebuggedWithPTrace();
     
