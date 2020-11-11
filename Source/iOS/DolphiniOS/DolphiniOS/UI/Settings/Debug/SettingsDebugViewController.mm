@@ -56,12 +56,6 @@
 #endif
 }
 
-- (void)DisableSetDebuggedCell
-{
-  [self.m_set_debugged_cell setSelectionStyle:UITableViewCellSelectionStyleNone];
-  [self.m_set_debugged_label setTextColor:[UIColor grayColor]];
-}
-
 - (IBAction)LoadStoreChanged:(id)sender
 {
   SConfig::GetInstance().bJITLoadStoreOff = [self.m_load_store_switch isOn];
