@@ -49,10 +49,11 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
   {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
+    PanicAlertFmtT(
+        "Failed to open the output file \"{}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
     return false;
   }
 
@@ -89,15 +90,15 @@ bool ConvertToPlain(BlobReader* infile, const std::string& infile_path,
     const u64 sz = std::min(buffer_size, infile->GetDataSize() - inpos);
     if (!infile->Read(inpos, sz, buffer.data()))
     {
-      PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+      PanicAlertFmtT("Failed to read from the input file \"{}\".", infile_path);
       success = false;
       break;
     }
     if (!outfile.WriteBytes(buffer.data(), sz))
     {
-      PanicAlertT("Failed to write the output file \"%s\".\n"
-                  "Check that you have enough space available on the target drive.",
-                  outfile_path.c_str());
+      PanicAlertFmtT("Failed to write the output file \"{}\".\n"
+                     "Check that you have enough space available on the target drive.",
+                     outfile_path);
       success = false;
       break;
     }

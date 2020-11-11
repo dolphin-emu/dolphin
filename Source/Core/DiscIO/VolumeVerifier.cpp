@@ -312,11 +312,11 @@ std::vector<RedumpVerifier::PotentialMatch> RedumpVerifier::ScanDatfile(const st
     // so show a panic alert rather than just using ERROR_LOG
 
     // i18n: "Serial" refers to serial numbers, e.g. RVL-RSBE-USA
-    PanicAlertT("Serial and/or version data is missing from %s\n"
-                "Please append \"%s\" (without the quotes) to the datfile URL when downloading\n"
-                "Example: %s",
-                GetPathForSystem(system).c_str(), "serial,version",
-                "http://redump.org/datfile/gc/serial,version");
+    PanicAlertFmtT("Serial and/or version data is missing from {}\n"
+                   "Please append \"{}\" (without the quotes) to the datfile URL when downloading\n"
+                   "Example: {}",
+                   GetPathForSystem(system), "serial,version",
+                   "http://redump.org/datfile/gc/serial,version");
     m_result = {Status::Error, Common::GetStringT("Failed to parse Redump.org data")};
     return {};
   }
