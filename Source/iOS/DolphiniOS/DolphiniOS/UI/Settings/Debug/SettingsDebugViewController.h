@@ -20,8 +20,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (weak, nonatomic) IBOutlet UISwitch* m_skip_idle_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_fastmem_switch;
 @property (weak, nonatomic) IBOutlet UISwitch* m_hacky_fastmem_switch;
-@property (weak, nonatomic) IBOutlet UITableViewCell* m_set_debugged_cell;
-@property (weak, nonatomic) IBOutlet UILabel* m_set_debugged_label;
 
 @end
 
