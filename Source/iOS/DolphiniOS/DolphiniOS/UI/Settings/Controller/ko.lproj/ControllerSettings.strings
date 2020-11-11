@@ -204,3 +204,6 @@
 
 /* Class = "UILabel"; text = "Stick Recentering"; ObjectID = "ygG-fJ-PN6"; */
 "ygG-fJ-PN6.text" = "Stick Recentering";
+
+/* Class = "UILabel"; text = "Motion Pointer"; ObjectID = "red-cu-aCy"; */
+"red-cu-aCy.text" = "Motion Pointer";
