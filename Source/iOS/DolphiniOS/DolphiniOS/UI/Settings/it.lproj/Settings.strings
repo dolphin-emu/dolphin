@@ -103,9 +103,6 @@
 /* Class = "UILabel"; text = "Quit"; ObjectID = "1co-pK-Y2u"; */
 "1co-pK-Y2u.text" = "Esci";
 
-/* Class = "UILabel"; text = "Set Process As Debugged"; ObjectID = "3ho-Oh-qCP"; */
-"3ho-Oh-qCP.text" = "Set Process As Debugged";
-
 /* Class = "UILabel"; text = "Fastmem"; ObjectID = "M3l-U9-UrT"; */
 "M3l-U9-UrT.text" = "Fastmem";
 
