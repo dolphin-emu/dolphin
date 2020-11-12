@@ -206,6 +206,23 @@
       
       [user_defaults setBool:true forKey:@"seen_top_bar_swipe_down_notice"];
     }
+    
+    self.m_pull_down_button_visibility_left = 5;
+    self.m_pull_down_button_timer = [NSTimer scheduledTimerWithTimeInterval:1 repeats:true block:^(NSTimer*)
+    {
+      if (self.m_pull_down_button_visibility_left > 0)
+      {
+        self.m_pull_down_button_visibility_left--;
+        
+        if (self.m_pull_down_button_visibility_left == 0)
+        {
+          [UIView animateWithDuration:1 animations:^
+          {
+            [self.m_pull_down_button setAlpha:0.0f];
+          }];
+        }
+      }
+    }];
   });
   
   // Hack for GC IPL - the running title isn't updated on boot
@@ -250,6 +267,8 @@
 #endif
   
   dispatch_sync(dispatch_get_main_queue(), ^{
+    [self.m_pull_down_button_timer invalidate];
+    
     [self performSegueWithIdentifier:@"toSoftwareTable" sender:nil];
   });
 }
@@ -437,6 +456,15 @@
   }
   
   self.additionalSafeAreaInsets = insets;
+}
+
+- (void)touchesEnded:(NSSet<UITouch*>*)touches withEvent:(UIEvent*)event
+{
+  if (self.m_pull_down_mode == DOLTopBarPullDownModeButton)
+  {
+    self.m_pull_down_button_visibility_left = 5;
+    [self.m_pull_down_button setAlpha:0.5f];
+  }
 }
 
 #pragma mark - Screen rotation specific

@@ -61,6 +61,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property(nonatomic) DiscIO::Region m_ipl_region;
 @property(nonatomic) int m_ts_active_port;
 @property(nonatomic) DOLTopBarPullDownMode m_pull_down_mode;
+@property(nonatomic) NSTimer* m_pull_down_button_timer;
+@property(nonatomic) NSUInteger m_pull_down_button_visibility_left;
 @property(weak, nonatomic) TCView* m_ts_active_view;
 @property(nonatomic) UIBarButtonItem* m_stop_button;
 @property(nonatomic) UIBarButtonItem* m_pause_button;
