@@ -9,6 +9,7 @@ DOLPHIN_EXPORT_PATH="$EXPORT_PATH/dolphin_ipa_root/"
 APPLICATION_DESTINATION_PATH=$DOLPHIN_EXPORT_PATH/Payload/DolphiniOS.app
 CODESIGN_ARGS='-f -s 0059C24602FCB60DA511DCAA08727C70C1FF9A99'
 ENTITLEMENTS_FILE="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_NJB.plist"
+ENTITLEMENTS_FILE_UNI="$ROOT_SRC_DIR/DolphiniOS/DolphiniOS/BuildResources/Entitlements_NJB_Universal.plist"
 BUNDLE_ID="me.oatmealdome.DolphiniOS-njb"
 BUILD_NUMBER=$(/usr/libexec/PlistBuddy -c "Print CFBundleVersion" "$PROJECT_DIR/DolphiniOS/Info.plist")
 
@@ -46,8 +47,16 @@ codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE $APPLICATION_DESTINATI
 # Remove the mobileprovision file
 rm $APPLICATION_DESTINATION_PATH/embedded.mobileprovision || true
 
+# Create standard IPA
 cd $DOLPHIN_EXPORT_PATH
 zip -r ../DolphiniOS-NJB.ipa .
+
+# Resign for universal
+codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE_UNI $APPLICATION_DESTINATION_PATH
+codesign $CODESIGN_ARGS --entitlements $ENTITLEMENTS_FILE_UNI $APPLICATION_DESTINATION_PATH/Frameworks/*
+
+# Create universal IPA
+zip -r ../DolphiniOS-NJB-Universal.ipa .
 
 if [ -n "$IS_CI" ]; then
   echo "$2=$EXPORT_PATH" >> $GITHUB_ENV

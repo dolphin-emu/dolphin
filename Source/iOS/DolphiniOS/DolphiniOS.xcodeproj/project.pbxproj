@@ -154,6 +154,7 @@
 		B9B536E423DE822B00F03106 /* ReloadStateNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536E323DE822B00F03106 /* ReloadStateNotice.xib */; };
 		B9B536E723DE824800F03106 /* ReloadStateNoticeViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B536E623DE824800F03106 /* ReloadStateNoticeViewController.mm */; };
 		B9B536EA23DE976B00F03106 /* ReloadFailedNotice.xib in Resources */ = {isa = PBXBuildFile; fileRef = B9B536E923DE976B00F03106 /* ReloadFailedNotice.xib */; };
+		B9B68AB0255DC06200480009 /* Entitlements_NJB_Universal.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9B68AAF255DC06200480009 /* Entitlements_NJB_Universal.plist */; };
 		B9B948B123BDC95E00E244FF /* EmulationViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B023BDC95E00E244FF /* EmulationViewController.mm */; };
 		B9B948B723BF22C900E244FF /* InGamePortSelectorViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9B948B623BF22C900E244FF /* InGamePortSelectorViewController.mm */; };
 		B9B948BB23BFC4EC00E244FF /* PortSelectorCell.m in Sources */ = {isa = PBXBuildFile; fileRef = B9B948BA23BFC4EC00E244FF /* PortSelectorCell.m */; };
@@ -547,6 +548,7 @@
 		B9B536E623DE824800F03106 /* ReloadStateNoticeViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = ReloadStateNoticeViewController.mm; sourceTree = "<group>"; };
 		B9B536E923DE976B00F03106 /* ReloadFailedNotice.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; name = ReloadFailedNotice.xib; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNotice.xib; sourceTree = SOURCE_ROOT; };
 		B9B536EB23DE97B000F03106 /* ReloadFailedNoticeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReloadFailedNoticeViewController.h; path = DolphiniOS/UI/Notices/ReloadFailed/ReloadFailedNoticeViewController.h; sourceTree = SOURCE_ROOT; };
+		B9B68AAF255DC06200480009 /* Entitlements_NJB_Universal.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Entitlements_NJB_Universal.plist; path = BuildResources/Entitlements_NJB_Universal.plist; sourceTree = "<group>"; };
 		B9B948AF23BDC95E00E244FF /* EmulationViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = EmulationViewController.h; sourceTree = "<group>"; };
 		B9B948B023BDC95E00E244FF /* EmulationViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = EmulationViewController.mm; sourceTree = "<group>"; };
 		B9B948B523BF22C900E244FF /* InGamePortSelectorViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGamePortSelectorViewController.h; sourceTree = "<group>"; };
@@ -1172,6 +1174,7 @@
 				B95A09402384F32900DBBB01 /* DolphinImageTemplate.json.in */,
 				B99B05AC23A0AAC60076C7D8 /* Entitlements_JB.plist */,
 				B971E1C4245E040500D2A698 /* Entitlements_NJB.plist */,
+				B9B68AAF255DC06200480009 /* Entitlements_NJB_Universal.plist */,
 			);
 			name = "Build Resources";
 			sourceTree = "<group>";
@@ -1597,6 +1600,7 @@
 				B95A093E2384E82D00DBBB01 /* DolphinImages.xcassets in Resources */,
 				4EF97B4E23B6B8F300F13FCF /* DefaultPreferences.plist in Resources */,
 				B988D80123B60B510092CB6C /* MFiWiimoteProfile.ini in Resources */,
+				B9B68AB0255DC06200480009 /* Entitlements_NJB_Universal.plist in Resources */,
 				B95A094D2386FAAB00DBBB01 /* TCWiiPad.xib in Resources */,
 				B94C49FE25590D4300EBF06B /* JitAcquisitionFailureNotice.xib in Resources */,
 				B99577A124664F90008C5115 /* KilledBuildNotice.xib in Resources */,
