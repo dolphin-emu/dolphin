@@ -60,10 +60,12 @@ bool InputConfig::LoadConfig(bool isGC)
 
     for (int i = 0; i < 4; i++)
     {
-      if (control_section->Exists(type + "Profile" + std::string(num[i])))
+      const auto profile_name = fmt::format("{}Profile{}", type, num[i]);
+
+      if (control_section->Exists(profile_name))
       {
         std::string profile_setting;
-        if (control_section->Get(type + "Profile" + std::string(num[i]), &profile_setting))
+        if (control_section->Get(profile_name, &profile_setting))
         {
           auto profiles = InputProfile::GetProfilesFromSetting(
               profile_setting, File::GetUserPath(D_CONFIG_IDX) + path);
@@ -71,7 +73,7 @@ bool InputConfig::LoadConfig(bool isGC)
           if (profiles.empty())
           {
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("No profiles found for game setting '%s'", profile_setting.c_str());
+            PanicAlertFmtT("No profiles found for game setting '{}'", profile_setting);
             continue;
           }
 
