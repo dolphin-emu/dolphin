@@ -128,7 +128,7 @@
 		B99D362B23E415A0005627CE /* ConfigAdvancedViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362A23E415A0005627CE /* ConfigAdvancedViewController.mm */; };
 		B99D362E23E49461005627CE /* CpuEmulationEngineViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B99D362D23E49461005627CE /* CpuEmulationEngineViewController.mm */; };
 		B9A7AD6323C16B0F00C70473 /* InGameSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */; };
-		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */; };
+		B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.mm */; };
 		B9A7AD6A23C1EC0B00C70473 /* InGameSettingsTableViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */; };
 		B9A7AD6D23C5308E00C70473 /* ControllerGroupEnabledCell.mm in Sources */ = {isa = PBXBuildFile; fileRef = B9A7AD6C23C5308E00C70473 /* ControllerGroupEnabledCell.mm */; };
 		B9AAAB3E23D789CD0094F159 /* LocalizerUtils.m in Sources */ = {isa = PBXBuildFile; fileRef = B9AAAB3D23D789CD0094F159 /* LocalizerUtils.m */; };
@@ -502,7 +502,7 @@
 		B9A7AD6123C16B0F00C70473 /* InGameSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameSettingsViewController.h; sourceTree = "<group>"; };
 		B9A7AD6223C16B0F00C70473 /* InGameSettingsViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6523C1960000C70473 /* ControllerTouchscreenSettingsViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ControllerTouchscreenSettingsViewController.h; sourceTree = "<group>"; };
-		B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ControllerTouchscreenSettingsViewController.m; sourceTree = "<group>"; };
+		B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.mm */ = {isa = PBXFileReference; explicitFileType = sourcecode.cpp.objcpp; path = ControllerTouchscreenSettingsViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6823C1EC0B00C70473 /* InGameSettingsTableViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = InGameSettingsTableViewController.h; sourceTree = "<group>"; };
 		B9A7AD6923C1EC0B00C70473 /* InGameSettingsTableViewController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = InGameSettingsTableViewController.mm; sourceTree = "<group>"; };
 		B9A7AD6B23C5304D00C70473 /* ControllerGroupEnabledCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ControllerGroupEnabledCell.h; sourceTree = "<group>"; };
@@ -1239,7 +1239,7 @@
 				B988D80623B83AB40092CB6C /* ControllerDsuClientViewController.h */,
 				B988D80723B83AB40092CB6C /* ControllerDsuClientViewController.mm */,
 				B9A7AD6523C1960000C70473 /* ControllerTouchscreenSettingsViewController.h */,
-				B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.m */,
+				B9A7AD6623C1960000C70473 /* ControllerTouchscreenSettingsViewController.mm */,
 			);
 			path = Interface;
 			sourceTree = "<group>";
@@ -1891,7 +1891,7 @@
 				B988D80823B83AB40092CB6C /* ControllerDsuClientViewController.mm in Sources */,
 				B95A09382382D89600DBBB01 /* TCJoystick.swift in Sources */,
 				B992D27F25528E0B00CB02FD /* CodeSignatureUtils.m in Sources */,
-				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.m in Sources */,
+				B9A7AD6723C1960000C70473 /* ControllerTouchscreenSettingsViewController.mm in Sources */,
 				B971E1CB245E288B00D2A698 /* NonJailbrokenNoticeViewController.m in Sources */,
 				B94C4A0125590DA100EBF06B /* JitAcquisitionFailureNoticeViewController.m in Sources */,
 			);
