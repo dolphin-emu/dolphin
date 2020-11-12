@@ -142,3 +142,4 @@ jobs:
         BUCKET_ROOT_PATH: "s3://dios-archive/builds"
       run: |
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
+        s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB-Universal.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Universal-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
