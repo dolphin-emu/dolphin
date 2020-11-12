@@ -56,7 +56,6 @@ jobs:
         mkdir build-Xcode
         cd Source/iOS/DolphiniOS
         xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}
-        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Patreon)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}   
       
     - name: Package (Normal)
       env:
@@ -69,24 +68,12 @@ jobs:
         cp -R "${{ github.workspace }}/build-Xcode/Release (Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
         Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildDebs.sh build.keychain JB_DEB_PATH
         
-    - name: Package (Patreon)
-      env:
-        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
-        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-jb-patreon"
-        BUILD_FOR_PATREON: "YES"
-        IS_CI: "YES"
-      run: |
-        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
-        cp -R "${{ github.workspace }}/build-Xcode/Release (Patreon)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
-        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildDebs.sh build.keychain JB_PATREON_DEB_PATH
-        
     - name: Upload
       env:
         S3CMD_ARGS: "--access_key=${{ secrets.SPACES_KEY }} --secret_key=${{ secrets.SPACES_SECRET }} --host=${{ secrets.SPACES_ENDPOINT }} --host-bucket=${{ secrets.S3_BUCKET }}"
         BUCKET_ROOT_PATH: "s3://dios-archive/builds"
       run: |
         s3cmd put ${{ env.JB_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.JB_PATREON_DEB_PATH }}/DolphiniOS.deb ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-JB-Patreon-${{ github.run_number }}.deb ${{ env.S3CMD_ARGS }}
   
   build-njb:
     runs-on: macos-10.15
@@ -137,8 +124,7 @@ jobs:
         mkdir build-Xcode
         cd Source/iOS/DolphiniOS
         xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Non-Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}
-        xcodebuild -workspace DolphiniOS.xcworkspace -configuration "Release (Patreon Non-Jailbroken)" -scheme "DolphiniOS" ${{ env.XCODEBUILD_ARGS }}    
-        
+
     - name: Package (Normal)
       env:
         PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
@@ -150,21 +136,9 @@ jobs:
         cp -R "${{ github.workspace }}/build-Xcode/Release (Non-Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
         Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildIpa.sh build.keychain NJB_IPA_PATH
     
-    - name: Package (Patreon)
-      env:
-        PROJECT_DIR: "${{ github.workspace }}/Source/iOS/DolphiniOS"
-        ARCHIVE_PATH: "${{ github.workspace }}/build-Xcode/archive-root-njb-patreon"
-        BUILD_FOR_PATREON: "YES"
-        IS_CI: "YES"
-      run: |
-        mkdir -p ${{ env.ARCHIVE_PATH }}/Products/Applications/
-        cp -R "${{ github.workspace }}/build-Xcode/Release (Patreon Non-Jailbroken)-iphoneos/DolphiniOS.app" ${{ env.ARCHIVE_PATH }}/Products/Applications/
-        Source/iOS/DolphiniOS/DolphiniOS/BuildResources/BuildScripts/BuildIpa.sh build.keychain NJB_PATREON_IPA_PATH
-        
     - name: Upload
       env:
         S3CMD_ARGS: "--access_key=${{ secrets.SPACES_KEY }} --secret_key=${{ secrets.SPACES_SECRET }} --host=${{ secrets.SPACES_ENDPOINT }} --host-bucket=${{ secrets.S3_BUCKET }}"
         BUCKET_ROOT_PATH: "s3://dios-archive/builds"
       run: |
         s3cmd put ${{ env.NJB_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
-        s3cmd put ${{ env.NJB_PATREON_IPA_PATH }}/DolphiniOS-NJB.ipa ${{ env.BUCKET_ROOT_PATH }}/DolphiniOS-NJB-Patreon-${{ github.run_number }}.ipa ${{ env.S3CMD_ARGS }}
