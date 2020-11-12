@@ -110,7 +110,7 @@ void SWVertexLoader::SetFormat(u8 attributeIndex, u8 primitiveType)
       xfmem.MatrixIndexB.Tex6MtxIdx != g_main_cp_state.matrix_index_b.Tex6MtxIdx ||
       xfmem.MatrixIndexB.Tex7MtxIdx != g_main_cp_state.matrix_index_b.Tex7MtxIdx)
   {
-    ERROR_LOG(VIDEO, "Matrix indices don't match");
+    ERROR_LOG_FMT(VIDEO, "Matrix indices don't match");
   }
 
   m_vertex.posMtx = xfmem.MatrixIndexA.PosNormalMtxIdx;

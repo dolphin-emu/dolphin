@@ -80,7 +80,7 @@ void VertexManager::ResetBuffer(u32 vertex_stride)
   if (!has_vbuffer_allocation || !has_ibuffer_allocation)
   {
     // Flush any pending commands first, so that we can wait on the fences
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
+    WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
     Renderer::GetInstance()->ExecuteCommandList(false);
 
     // Attempt to allocate again, this may cause a fence wait
@@ -182,7 +182,7 @@ bool VertexManager::ReserveConstantStorage()
   }
 
   // The only places that call constant updates are safe to have state restored.
-  WARN_LOG(VIDEO, "Executing command list while waiting for space in uniform buffer");
+  WARN_LOG_FMT(VIDEO, "Executing command list while waiting for space in uniform buffer");
   Renderer::GetInstance()->ExecuteCommandList(false);
 
   // Since we are on a new command buffer, all constants have been invalidated, and we need
@@ -244,7 +244,7 @@ void VertexManager::UploadUtilityUniforms(const void* data, u32 data_size)
   if (!m_uniform_stream_buffer.ReserveMemory(data_size,
                                              D3D12_CONSTANT_BUFFER_DATA_PLACEMENT_ALIGNMENT))
   {
-    WARN_LOG(VIDEO, "Executing command buffer while waiting for ext space in uniform buffer");
+    WARN_LOG_FMT(VIDEO, "Executing command buffer while waiting for ext space in uniform buffer");
     Renderer::GetInstance()->ExecuteCommandList(false);
   }
 
@@ -266,7 +266,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   if (!m_texel_stream_buffer.ReserveMemory(data_size, elem_size))
   {
     // Try submitting cmdbuffer.
-    WARN_LOG(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
+    WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
     Renderer::GetInstance()->ExecuteCommandList(false);
     if (!m_texel_stream_buffer.ReserveMemory(data_size, elem_size))
     {
@@ -296,7 +296,7 @@ bool VertexManager::UploadTexelBuffer(const void* data, u32 data_size, TexelBuff
   if (!m_texel_stream_buffer.ReserveMemory(reserve_size, elem_size))
   {
     // Try submitting cmdbuffer.
-    WARN_LOG(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
+    WARN_LOG_FMT(VIDEO, "Submitting command buffer while waiting for space in texel buffer");
     Renderer::GetInstance()->ExecuteCommandList(false);
     if (!m_texel_stream_buffer.ReserveMemory(reserve_size, elem_size))
     {

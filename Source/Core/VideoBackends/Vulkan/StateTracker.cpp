@@ -351,12 +351,12 @@ bool StateTracker::Bind()
   if (!UpdateDescriptorSet())
   {
     // We can fail to allocate descriptors if we exhaust the pool for this command buffer.
-    WARN_LOG(VIDEO, "Failed to get a descriptor set, executing buffer");
+    WARN_LOG_FMT(VIDEO, "Failed to get a descriptor set, executing buffer");
     Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!UpdateDescriptorSet())
     {
       // Something strange going on.
-      ERROR_LOG(VIDEO, "Failed to get descriptor set, skipping draw");
+      ERROR_LOG_FMT(VIDEO, "Failed to get descriptor set, skipping draw");
       return false;
     }
   }
@@ -405,12 +405,12 @@ bool StateTracker::BindCompute()
 
   if (!UpdateComputeDescriptorSet())
   {
-    WARN_LOG(VIDEO, "Failed to get a compute descriptor set, executing buffer");
+    WARN_LOG_FMT(VIDEO, "Failed to get a compute descriptor set, executing buffer");
     Renderer::GetInstance()->ExecuteCommandBuffer(false, false);
     if (!UpdateComputeDescriptorSet())
     {
       // Something strange going on.
-      ERROR_LOG(VIDEO, "Failed to get descriptor set, skipping dispatch");
+      ERROR_LOG_FMT(VIDEO, "Failed to get descriptor set, skipping dispatch");
       return false;
     }
   }

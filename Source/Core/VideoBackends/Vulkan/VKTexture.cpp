@@ -369,7 +369,8 @@ void VKTexture::Load(u32 level, u32 width, u32 height, u32 row_length, const u8*
     if (!stream_buffer->ReserveMemory(upload_size, upload_alignment))
     {
       // Execute the command buffer first.
-      WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
+      WARN_LOG_FMT(VIDEO,
+                   "Executing command list while waiting for space in texture upload buffer");
       Renderer::GetInstance()->ExecuteCommandBuffer(false);
 
       // Try allocating again. This may cause a fence wait.

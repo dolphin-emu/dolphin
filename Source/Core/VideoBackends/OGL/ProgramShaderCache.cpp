@@ -357,7 +357,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
 
     if (compileStatus != GL_TRUE)
     {
-      ERROR_LOG(VIDEO, "%s failed compilation:\n%s", prefix, info_log.c_str());
+      ERROR_LOG_FMT(VIDEO, "{} failed compilation:\n{}", prefix, info_log);
 
       std::string filename = VideoBackendBase::BadShaderFilename(prefix, num_failures++);
       std::ofstream file;
@@ -376,7 +376,7 @@ bool ProgramShaderCache::CheckShaderCompileResult(GLuint id, GLenum type, std::s
       return false;
     }
 
-    WARN_LOG(VIDEO, "%s compiled with warnings:\n%s", prefix, info_log.c_str());
+    WARN_LOG_FMT(VIDEO, "{} compiled with warnings:\n{}", prefix, info_log);
   }
 
   return true;
@@ -396,7 +396,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
     glGetProgramInfoLog(id, length, &length, &info_log[0]);
     if (linkStatus != GL_TRUE)
     {
-      ERROR_LOG(VIDEO, "Program failed linking:\n%s", info_log.c_str());
+      ERROR_LOG_FMT(VIDEO, "Program failed linking:\n{}", info_log);
       std::string filename = VideoBackendBase::BadShaderFilename("p", num_failures++);
       std::ofstream file;
       File::OpenFStream(file, filename, std::ios_base::out);
@@ -421,7 +421,7 @@ bool ProgramShaderCache::CheckProgramLinkResult(GLuint id, std::string_view vcod
       return false;
     }
 
-    WARN_LOG(VIDEO, "Program linked with warnings:\n%s", info_log.c_str());
+    WARN_LOG_FMT(VIDEO, "Program linked with warnings:\n{}", info_log);
   }
 
   return true;
@@ -554,7 +554,7 @@ PipelineProgram* ProgramShaderCache::GetPipelineProgram(const GLVertexFormat* ve
     glGetProgramiv(prog->shader.glprogid, GL_LINK_STATUS, &link_status);
     if (link_status != GL_TRUE)
     {
-      WARN_LOG(VIDEO, "Failed to create GL program from program binary.");
+      WARN_LOG_FMT(VIDEO, "Failed to create GL program from program binary.");
       prog->shader.Destroy();
       return nullptr;
     }
