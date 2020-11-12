@@ -50,7 +50,7 @@ cd $DOLPHIN_EXPORT_PATH
 zip -r ../DolphiniOS-NJB.ipa .
 
 if [ -n "$IS_CI" ]; then
-  echo ::set-env name=$2::$EXPORT_PATH
+  echo "$2=$EXPORT_PATH" >> $GITHUB_ENV
 else
   open $EXPORT_PATH
 fi

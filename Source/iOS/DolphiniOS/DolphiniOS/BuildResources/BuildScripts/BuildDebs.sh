@@ -76,7 +76,7 @@ dpkg-deb -b $CSDBGD_EXPORT_PATH
 mv $EXPORT_PATH/csdbgd_deb_root.deb $EXPORT_PATH/csdbgd.deb
 
 if [ -n "$IS_CI" ]; then
-  echo ::set-env name=$2::$EXPORT_PATH
+  echo "$2=$EXPORT_PATH" >> $GITHUB_ENV
 else
   open $EXPORT_PATH
 fi
