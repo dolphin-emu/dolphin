@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
 
 #include <fmt/format.h>
@@ -60,7 +59,7 @@ bool NANDImporter::ReadNANDBin(const std::string& path_to_bin,
   const u64 image_size = file.GetSize();
   if (image_size != NAND_BIN_SIZE + NAND_KEYS_SIZE && image_size != NAND_BIN_SIZE)
   {
-    PanicAlertT("This file does not look like a BootMii NAND backup.");
+    PanicAlertFmtT("This file does not look like a BootMii NAND backup.");
     return false;
   }
 
@@ -273,6 +272,6 @@ void NANDImporter::ExportKeys(const std::string& nand_root)
   const std::string file_path = nand_root + "/keys.bin";
   File::IOFile file(file_path, "wb");
   if (!file.WriteBytes(m_nand_keys.data(), NAND_KEYS_SIZE))
-    PanicAlertT("Unable to write to file %s", file_path.c_str());
+    PanicAlertFmtT("Unable to write to file {}", file_path);
 }
 }  // namespace DiscIO

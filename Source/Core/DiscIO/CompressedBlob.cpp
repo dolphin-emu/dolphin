@@ -8,7 +8,6 @@
 #endif
 
 #include <algorithm>
-#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <memory>
@@ -84,7 +83,7 @@ u64 CompressedBlobReader::GetBlockCompressedSize(u64 block_num) const
   else if (block_num == m_header.num_blocks - 1)
     return m_header.compressed_data_size - start;
   else
-    PanicAlert("GetBlockCompressedSize - illegal block number %i", (int)block_num);
+    PanicAlertFmt("{} - illegal block number {}", __func__, block_num);
   return 0;
 }
 
@@ -97,7 +96,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   if (offset & (1ULL << 63))
   {
     if (comp_block_size != m_header.block_size)
-      PanicAlert("Uncompressed block with wrong size");
+      PanicAlertFmt("Uncompressed block with wrong size");
     uncompressed = true;
     offset &= ~(1ULL << 63);
   }
@@ -108,18 +107,19 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   m_file.Seek(offset, SEEK_SET);
   if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
   {
-    PanicAlertT("The disc image \"%s\" is truncated, some of the data is missing.",
-                m_file_name.c_str());
+    PanicAlertFmtT("The disc image \"{}\" is truncated, some of the data is missing.", m_file_name);
     m_file.Clear();
     return false;
   }
 
   // First, check hash.
-  u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
+  const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
-    PanicAlertT("The disc image \"%s\" is corrupt.\n"
-                "Hash of block %" PRIu64 " is %08x instead of %08x.",
-                m_file_name.c_str(), block_num, block_hash, m_hashes[block_num]);
+  {
+    PanicAlertFmtT("The disc image \"{}\" is corrupt.\n"
+                   "Hash of block {} is {:08x} instead of {:08x}.",
+                   m_file_name, block_num, block_hash, m_hashes[block_num]);
+  }
 
   if (uncompressed)
   {
@@ -132,7 +132,7 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     z.avail_in = comp_block_size;
     if (z.avail_in > m_header.block_size)
     {
-      PanicAlert("We have a problem");
+      PanicAlertFmt("We have a problem");
     }
     z.next_out = out_ptr;
     z.avail_out = m_header.block_size;
@@ -143,12 +143,12 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
     {
       // this seem to fire wrongly from time to time
       // to be sure, don't use compressed isos :P
-      PanicAlert("Failure reading block %" PRIu64 " - out of data and not at end.", block_num);
+      PanicAlertFmt("Failure reading block {} - out of data and not at end.", block_num);
     }
     inflateEnd(&z);
     if (uncomp_size != m_header.block_size)
     {
-      PanicAlert("Wrong block size");
+      PanicAlertFmt("Wrong block size");
       return false;
     }
   }
@@ -276,10 +276,11 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   File::IOFile outfile(outfile_path, "wb");
   if (!outfile)
   {
-    PanicAlertT("Failed to open the output file \"%s\".\n"
-                "Check that you have permissions to write the target folder and that the media can "
-                "be written.",
-                outfile_path.c_str());
+    PanicAlertFmtT(
+        "Failed to open the output file \"{}\".\n"
+        "Check that you have permissions to write the target folder and that the media can "
+        "be written.",
+        outfile_path);
     return false;
   }
 
@@ -367,13 +368,13 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   }
 
   if (result == ConversionResultCode::ReadFailed)
-    PanicAlertT("Failed to read from the input file \"%s\".", infile_path.c_str());
+    PanicAlertFmtT("Failed to read from the input file \"{}\".", infile_path);
 
   if (result == ConversionResultCode::WriteFailed)
   {
-    PanicAlertT("Failed to write the output file \"%s\".\n"
-                "Check that you have enough space available on the target drive.",
-                outfile_path.c_str());
+    PanicAlertFmtT("Failed to write the output file \"{}\".\n"
+                   "Check that you have enough space available on the target drive.",
+                   outfile_path);
   }
 
   return result == ConversionResultCode::Success;

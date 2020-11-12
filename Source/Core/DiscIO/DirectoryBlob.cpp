@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <array>
-#include <cinttypes>
 #include <cstring>
 #include <locale>
 #include <map>

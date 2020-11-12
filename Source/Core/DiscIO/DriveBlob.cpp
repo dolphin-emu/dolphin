@@ -146,7 +146,7 @@ bool DriveReader::ReadMultipleAlignedBlocks(u64 block_num, u64 num_blocks, u8* o
       !ReadFile(m_disc_handle, out_ptr, static_cast<DWORD>(GetSectorSize() * num_blocks),
                 &bytes_read, nullptr))
   {
-    PanicAlertT("Disc Read Error");
+    PanicAlertFmtT("Disc Read Error");
     return false;
   }
   return bytes_read == GetSectorSize() * num_blocks;
