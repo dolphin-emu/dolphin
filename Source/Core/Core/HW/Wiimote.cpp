@@ -68,7 +68,7 @@ HIDWiimote* GetHIDWiimoteSource(unsigned int index)
   switch (GetSource(index))
   {
   case WiimoteSource::Emulated:
-    hid_source = static_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
+    hid_source = dynamic_cast<WiimoteEmu::Wiimote*>(::Wiimote::GetConfig()->GetController(index));
     break;
 
   case WiimoteSource::Real:
@@ -95,51 +95,51 @@ InputConfig* GetConfig()
 
 ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiimoteEmu::WiimoteGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetNunchukGroup(int number, WiimoteEmu::NunchukGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetClassicGroup(int number, WiimoteEmu::ClassicGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetGuitarGroup(int number, WiimoteEmu::GuitarGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetDrumsGroup(int number, WiimoteEmu::DrumsGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetTurntableGroup(int number, WiimoteEmu::TurntableGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetTurntableGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetUDrawTabletGroup(int number, WiimoteEmu::UDrawTabletGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetUDrawTabletGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetDrawsomeTabletGroup(int number,
                                                     WiimoteEmu::DrawsomeTabletGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
       ->GetDrawsomeTabletGroup(group);
 }
 
 ControllerEmu::ControlGroup* GetTaTaConGroup(int number, WiimoteEmu::TaTaConGroup group)
 {
-  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
+  return dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetTaTaConGroup(group);
 }
 
 void Shutdown()
@@ -173,7 +173,7 @@ void Initialize(InitializeMode init_mode)
 void ResetAllWiimotes()
 {
   for (int i = WIIMOTE_CHAN_0; i < MAX_BBMOTES; ++i)
-    static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
+    dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->Reset();
 }
 
 void LoadConfig()
@@ -203,7 +203,7 @@ void DoState(PointerWrap& p)
     if (WiimoteSource(state_wiimote_source) == WiimoteSource::Emulated)
     {
       // Sync complete state of emulated wiimotes.
-      static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
+      dynamic_cast<WiimoteEmu::Wiimote*>(s_config.GetController(i))->DoState(p);
     }
 
     if (p.GetMode() == PointerWrap::MODE_READ)

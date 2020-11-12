@@ -345,52 +345,52 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group) const
 
 ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group) const
 {
-  return static_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get())
+  return dynamic_cast<Nunchuk*>(m_attachments->GetAttachmentList()[ExtensionNumber::NUNCHUK].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group) const
 {
-  return static_cast<Classic*>(m_attachments->GetAttachmentList()[ExtensionNumber::CLASSIC].get())
+  return dynamic_cast<Classic*>(m_attachments->GetAttachmentList()[ExtensionNumber::CLASSIC].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group) const
 {
-  return static_cast<Guitar*>(m_attachments->GetAttachmentList()[ExtensionNumber::GUITAR].get())
+  return dynamic_cast<Guitar*>(m_attachments->GetAttachmentList()[ExtensionNumber::GUITAR].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group) const
 {
-  return static_cast<Drums*>(m_attachments->GetAttachmentList()[ExtensionNumber::DRUMS].get())
+  return dynamic_cast<Drums*>(m_attachments->GetAttachmentList()[ExtensionNumber::DRUMS].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group) const
 {
-  return static_cast<Turntable*>(
+  return dynamic_cast<Turntable*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::TURNTABLE].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetUDrawTabletGroup(UDrawTabletGroup group) const
 {
-  return static_cast<UDrawTablet*>(
+  return dynamic_cast<UDrawTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::UDRAW_TABLET].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetDrawsomeTabletGroup(DrawsomeTabletGroup group) const
 {
-  return static_cast<DrawsomeTablet*>(
+  return dynamic_cast<DrawsomeTablet*>(
              m_attachments->GetAttachmentList()[ExtensionNumber::DRAWSOME_TABLET].get())
       ->GetGroup(group);
 }
 
 ControllerEmu::ControlGroup* Wiimote::GetTaTaConGroup(TaTaConGroup group) const
 {
-  return static_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
+  return dynamic_cast<TaTaCon*>(m_attachments->GetAttachmentList()[ExtensionNumber::TATACON].get())
       ->GetGroup(group);
 }
 
@@ -681,12 +681,12 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 
 Extension* Wiimote::GetNoneExtension() const
 {
-  return static_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
+  return dynamic_cast<Extension*>(m_attachments->GetAttachmentList()[ExtensionNumber::NONE].get());
 }
 
 Extension* Wiimote::GetActiveExtension() const
 {
-  return static_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
+  return dynamic_cast<Extension*>(m_attachments->GetAttachmentList()[m_active_extension].get());
 }
 
 EncryptionKey Wiimote::GetExtensionEncryptionKey() const
@@ -694,7 +694,7 @@ EncryptionKey Wiimote::GetExtensionEncryptionKey() const
   if (ExtensionNumber::NONE == GetActiveExtensionNumber())
     return {};
 
-  return static_cast<EncryptedExtension*>(GetActiveExtension())->ext_key;
+  return dynamic_cast<EncryptedExtension*>(GetActiveExtension())->ext_key;
 }
 
 bool Wiimote::IsSideways() const
