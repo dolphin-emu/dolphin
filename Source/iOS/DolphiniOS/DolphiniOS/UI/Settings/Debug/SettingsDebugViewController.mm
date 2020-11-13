@@ -52,7 +52,7 @@
 #ifdef NONJAILBROKEN
   bool can_enable_fastmem = CanEnableFastmem();
   [self.m_fastmem_switch setEnabled:can_enable_fastmem];
-  [self.m_hacky_fastmem_switch setEnabled:can_enable_fastmem];
+  [self.m_hacky_fastmem_switch setEnabled:GetFastmemType() == DOLFastmemTypeProper];
 #endif
 }
 
