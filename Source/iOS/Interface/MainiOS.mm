@@ -403,4 +403,12 @@ void UpdateWiiPointer()
   ButtonManager::GamepadAxisEvent("Touchscreen", pad, axis, value);
 }
 
++ (void)gamepadEventIrRecenter:(int)action
+{
+  for (int i = 4; i < 8; i++)
+  {
+    ButtonManager::GamepadEvent("Touchscreen", i, ButtonManager::ButtonType::WIIMOTE_IR_RECENTER, action);
+  }
+}
+
 @end

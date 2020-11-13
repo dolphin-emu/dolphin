@@ -25,5 +25,6 @@ void UpdateWiiPointer();
 + (UIViewController*)getEmulationViewController;
 + (void)gamepadEventOnPad:(int)pad button:(int)button action:(int)action;
 + (void)gamepadMoveEventOnPad:(int)pad axis:(int)axis value:(CGFloat)value;
++ (void)gamepadEventIrRecenter:(int)action;
 
 @end
