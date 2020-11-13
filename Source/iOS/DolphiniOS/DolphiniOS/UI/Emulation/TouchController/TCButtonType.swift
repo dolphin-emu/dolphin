@@ -5,6 +5,7 @@
 import Foundation
 
 // ButtonManager::ButtonType
+@objc
 enum TCButtonType: Int
 {
   // GameCube
@@ -117,7 +118,9 @@ enum TCButtonType: Int
   case WIIMOTE_GYRO_ROLL_RIGHT = 634
   case WIIMOTE_GYRO_YAW_LEFT = 635
   case WIIMOTE_GYRO_YAW_RIGHT = 636
-  // TODO: Classic Controller, Guitar, Drums, Turntable, Rumble
+  // Wiimote IMU IR
+  case WIIMOTE_IR_RECENTER = 800
+  // TODO: Guitar, Drums, Turntable, Rumble
   
   func getImageName() -> String
   {

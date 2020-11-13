@@ -31,7 +31,7 @@ namespace ButtonManager
 namespace
 {
 constexpr char TOUCHSCREEN_KEY[] = "Touchscreen";
-constexpr std::array<const char*, 155> CONFIG_STRINGS{{
+constexpr std::array<const char*, 156> CONFIG_STRINGS{{
     // GC
     "InputA",
     "InputB",
@@ -194,11 +194,13 @@ constexpr std::array<const char*, 155> CONFIG_STRINGS{{
     "WiimoteGyroRollRight",
     "WiimoteGyroYawLeft",
     "WiimoteGyroYawRight",
+    // Wiimote IMU IR
+    "WiimoteIrRecenter",
     // Rumble
     "Rumble",
 }};
 
-constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
+constexpr std::array<ButtonType, 156> CONFIG_TYPES{{
     // GC
     BUTTON_A,
     BUTTON_B,
@@ -361,6 +363,8 @@ constexpr std::array<ButtonType, 155> CONFIG_TYPES{{
     WIIMOTE_GYRO_ROLL_RIGHT,
     WIIMOTE_GYRO_YAW_LEFT,
     WIIMOTE_GYRO_YAW_RIGHT,
+    // Wiimote IMU IR
+    WIIMOTE_IR_RECENTER,
     // Rumble
     RUMBLE,
 }};
@@ -629,6 +633,10 @@ void Init(const std::string& game_id)
             new sBind(a, WIIMOTE_GYRO_YAW_LEFT, BIND_AXIS, WIIMOTE_GYRO_YAW_LEFT, 1.0f));
     AddBind(TOUCHSCREEN_KEY,
             new sBind(a, WIIMOTE_GYRO_YAW_RIGHT, BIND_AXIS, WIIMOTE_GYRO_YAW_RIGHT, -1.0f));
+
+    // Wiimote IMU IR
+    AddBind(TOUCHSCREEN_KEY,
+            new sBind(a, WIIMOTE_IR_RECENTER, BIND_BUTTON, WIIMOTE_IR_RECENTER, 1.0f));
   }
   // Init our controller bindings
   IniFile ini;

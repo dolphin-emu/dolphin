@@ -205,6 +205,9 @@ Touchscreen::Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_
     AddInput(new Axis(m_pad_id, ButtonManager::WIIMOTE_GYRO_YAW_RIGHT));
   }
 
+  // Wiimote IMU IR
+  AddInput(new Button(m_pad_id, ButtonManager::WIIMOTE_IR_RECENTER));
+
   // Rumble
   AddOutput(new Motor(m_pad_id, ButtonManager::RUMBLE));
 }
