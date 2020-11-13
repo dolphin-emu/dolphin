@@ -325,6 +325,7 @@
   NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
   
   // Check for updates
+  bool hacky_fastmem_disable = false;
 #ifndef DEBUG
   NSURL* update_url = [NSURL URLWithString:@"https://dolphinios.oatmealdome.me/api/v2/update.json"];
   
@@ -367,7 +368,7 @@
       });
     }
     
-    bool hacky_fastmem_disable = [json_dict[@"hacky_fastmem_disable"] boolValue];
+    hacky_fastmem_disable = [json_dict[@"hacky_fastmem_disable"] boolValue];
     if (hacky_fastmem_disable)
     {
       Config::SetBaseOrCurrent(Config::MAIN_DEBUG_HACKY_FASTMEM, false);
@@ -404,7 +405,7 @@
   
   SConfig::GetInstance().bFastmem = can_enable_fastmem;
   
-  if (can_enable_fastmem)
+  if (can_enable_fastmem && !hacky_fastmem_disable)
   {
     Config::SetBaseOrCurrent(Config::MAIN_DEBUG_HACKY_FASTMEM, GetFastmemType() == DOLFastmemTypeHacky);
   }
