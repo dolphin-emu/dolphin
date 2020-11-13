@@ -367,6 +367,12 @@
       });
     }
     
+    bool hacky_fastmem_disable = [json_dict[@"hacky_fastmem_disable"] boolValue];
+    if (hacky_fastmem_disable)
+    {
+      Config::SetBaseOrCurrent(Config::MAIN_DEBUG_HACKY_FASTMEM, false);
+    }
+    
     NSDictionary* dict = json_dict[dict_key];
     if (![dict[@"version"] isEqualToString:version_str])
     {
