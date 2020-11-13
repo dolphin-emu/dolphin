@@ -55,7 +55,7 @@
   if (indexPath.section == 0)
   {
     NSString* url;
-    if (indexPath.row == 3)
+    if (indexPath.row == 2)
     {
       url = @"https://oatmealdome.me/dolphinios/";
     }
