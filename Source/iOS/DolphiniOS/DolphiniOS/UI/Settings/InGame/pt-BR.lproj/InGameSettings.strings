@@ -57,3 +57,6 @@
 
 /* Class = "UILabel"; text = "Change Disc"; ObjectID = "wCh-P0-Prf"; */
 "wCh-P0-Prf.text" = "Mudar Disco";
+
+/* Class = "UILabel"; text = "Recenter Wii Pointer"; ObjectID = "oiJ-Pz-4dj"; */
+"oiJ-Pz-4dj.text" = "Recenter Wii Pointer";
