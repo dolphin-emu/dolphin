@@ -462,7 +462,7 @@
     input_config->SaveConfig();
   };
   
-  const NSInteger latest_tscontroller_config_version = 1;
+  const NSInteger latest_tscontroller_config_version = 2;
   
   if ([[NSUserDefaults standardUserDefaults] integerForKey:@"tscontroller_config_version"] != latest_tscontroller_config_version)
   {
