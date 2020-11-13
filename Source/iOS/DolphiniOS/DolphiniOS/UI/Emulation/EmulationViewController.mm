@@ -200,7 +200,7 @@
     
     if (![user_defaults boolForKey:@"seen_top_bar_swipe_down_notice"])
     {
-      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Tutorial" message:@"You can change settings and stop the emulation from the top bar.\n\nTo reveal the top bar while using the touchscreen controller, swipe down from the top of the screen.\n\nIf you are using a physical controller, tap the arrow button on the top left of the screen to reveal the top bar. You can also press the center button (MFi) / menu button (Xbox) / options button (DualShock 4) on your controller." preferredStyle:UIAlertControllerStyleAlert];
+      UIAlertController* alert = [UIAlertController alertControllerWithTitle:@"Tutorial" message:@"You can change settings and stop the emulation from the top bar.\n\nTo reveal the top bar while using the touchscreen controller, swipe down from the top of the screen.\n\nIf you are using a physical controller, tap the arrow button on the top left of the screen to reveal the top bar. You can also press the center button (MFi) / menu button (Xbox) / options button (DualShock 4 and DualSense) on your controller." preferredStyle:UIAlertControllerStyleAlert];
       [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
       [self presentViewController:alert animated:true completion:nil];
       
