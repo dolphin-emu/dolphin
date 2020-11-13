@@ -325,7 +325,7 @@
   NSString* version_str = [NSString stringWithFormat:@"%@ (%@)", [info objectForKey:@"CFBundleShortVersionString"], [info objectForKey:@"CFBundleVersion"]];
   
   // Check for updates
-  bool hacky_fastmem_disable = false;
+  __block bool hacky_fastmem_disable = false;
 #ifndef DEBUG
   NSURL* update_url = [NSURL URLWithString:@"https://dolphinios.oatmealdome.me/api/v2/update.json"];
   
