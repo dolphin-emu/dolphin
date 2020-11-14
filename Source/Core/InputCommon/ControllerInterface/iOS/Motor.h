@@ -19,8 +19,8 @@ namespace ciface::iOS
 class Motor : public Core::Device::Output
 {
 public:
-  Motor();
-  Motor(CHHapticEngine* engine);
+  Motor(const std::string name);
+  Motor(const std::string name, CHHapticEngine* engine);
   ~Motor();
   std::string GetName() const override;
   void SetState(ControlState state) override;
@@ -35,5 +35,6 @@ private:
   // TODO: is this correct?
   CHHapticAdvancedPatternPlayer* m_haptic_player;
 #endif
+  const std::string m_name;
 };
 }  // namespace ciface::iOS

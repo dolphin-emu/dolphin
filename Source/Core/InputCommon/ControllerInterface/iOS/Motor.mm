@@ -15,7 +15,7 @@
 
 namespace ciface::iOS
 {
-Motor::Motor() API_AVAILABLE(ios(13.0))
+Motor::Motor(const std::string name) API_AVAILABLE(ios(13.0)) : m_name(name)
 {
   if (![[CHHapticEngine capabilitiesForHardware] supportsHaptics])
   {
@@ -46,7 +46,7 @@ Motor::Motor() API_AVAILABLE(ios(13.0))
   CreatePlayer();
 }
 
-Motor::Motor(CHHapticEngine* engine) API_AVAILABLE(ios(13.0))
+Motor::Motor(const std::string name, CHHapticEngine* engine) API_AVAILABLE(ios(13.0)) : m_name(name)
 {
   this->m_haptic_engine = engine;
 
@@ -93,7 +93,7 @@ void Motor::CreatePlayer() API_AVAILABLE(ios(13.0))
 
 std::string Motor::GetName() const
 {
-  return "Haptics";
+  return m_name;
 }
 
 void Motor::SetState(ControlState state)

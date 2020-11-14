@@ -216,7 +216,10 @@ Touchscreen::Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_
 #elif defined(IPHONEOS)
   if (__builtin_available(iOS 13.0, *))
   {
-    AddOutput(new ciface::iOS::Motor());
+    std::ostringstream ss;
+    ss << "Rumble " << static_cast<int>(ButtonManager::RUMBLE);
+
+    AddOutput(new ciface::iOS::Motor(ss.str()));
   }
 #endif
 }
