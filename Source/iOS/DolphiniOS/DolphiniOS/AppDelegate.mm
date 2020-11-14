@@ -582,10 +582,6 @@
 
 - (void)applicationDidReceiveMemoryWarning:(UIApplication*)application
 {
-  // Write out the configuration
-  Config::Save();
-  SConfig::GetInstance().SaveSettings();
-  
   // Create a "background" save state just in case
   std::string state_path = File::GetUserPath(D_STATESAVES_IDX) + "backgroundAuto.sav";
   File::Delete(state_path);
