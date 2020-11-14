@@ -45,6 +45,8 @@ add_library(common
   Event.h
   File.cpp
   File.h
+  FileByHandle.cpp
+  FileByHandle.h
   FileSearch.cpp
   FileSearch.h
   FileUtil.cpp
