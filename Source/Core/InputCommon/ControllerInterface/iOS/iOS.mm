@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/iOS/ControllerScanner.h"
 #include "InputCommon/ControllerInterface/iOS/iOS.h"
+#include "InputCommon/ControllerInterface/iOS/Motor.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Touch/Touchscreen.h"
-#include "InputCommon/ControllerInterface/iOS/ControllerScanner.h"
 
 namespace ciface::iOS
 {
@@ -155,6 +156,15 @@ Controller::Controller(GCController* controller) : m_controller(controller)
   else
   {
     m_supports_accelerometer = false;
+  }
+
+  if (@available(iOS 14.0, *))
+  {
+    GCDeviceHaptics* haptics = controller.haptics;
+    if (haptics != nil)
+    {
+      AddOutput(new Motor("Rumble", [haptics createEngineWithLocality:GCHapticsLocalityDefault]));
+    }
   }
 }
 
