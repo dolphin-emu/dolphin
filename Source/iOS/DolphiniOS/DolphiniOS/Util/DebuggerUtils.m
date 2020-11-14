@@ -26,6 +26,27 @@ bool IsProcessDebugged()
   return retval == 0 && flags & CS_DEBUGGED;
 }
 
+bool WaitUntilProcessDebugged(int timeout)
+{
+  int time_left = timeout;
+  bool is_debugged = false;
+  
+  while (time_left <= 0)
+  {
+    is_debugged = IsProcessDebugged();
+    if (is_debugged)
+    {
+      break;
+    }
+    
+    time_left--;
+    
+    usleep(1000000 * timeout);
+  }
+  
+  return is_debugged;
+}
+
 // Set CS_DEBUGGED if it hasn't been already (ie running through Xcode).
 //
 // We contact csdbgd (installed with the deb) which will attach to our
@@ -60,12 +81,13 @@ bool SetProcessDebuggedWithDaemon()
   }
   
   // Wait until CS_DEBUGGED is set
-  while (!IsProcessDebugged())
+  bool success = WaitUntilProcessDebugged(5);
+  if (!success)
   {
-    usleep(500000);
+    SetJitAcquisitionErrorMessage("csdbgd timed out");
   }
   
-  return true;
+  return success;
 }
 
 void* LoadLibJailbreak()
@@ -105,11 +127,21 @@ bool SetProcessDebuggedWithJailbreakd()
   }
   
   // Go!
-  ptr(getpid(), FLAG_PLATFORMIZE);
+  dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0), ^
+  {
+    ptr(getpid(), FLAG_PLATFORMIZE);
+  });
+
+  // Wait until CS_DEBUGGED is set
+  bool success = WaitUntilProcessDebugged(5);
+  if (!success)
+  {
+    SetJitAcquisitionErrorMessage("jb_oneshot_entitle_now timed out");
+  }
   
   dlclose(dylib_handle);
   
-  return true;
+  return success;
 }
 
 bool SetProcessDebuggedWithPTrace()
