@@ -1521,7 +1521,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   else
   {
     if (uid_data->fog_fsel != 2)
-      WARN_LOG(VIDEO, "Unknown Fog Type! %08x", uid_data->fog_fsel);
+      WARN_LOG_FMT(VIDEO, "Unknown Fog Type! {:08x}", uid_data->fog_fsel);
   }
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");

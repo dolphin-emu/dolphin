@@ -114,7 +114,7 @@ bool TextureCacheBase::Initialize()
 {
   if (!CreateUtilityTextures())
   {
-    PanicAlert("Failed to create utility textures.");
+    PanicAlertFmt("Failed to create utility textures.");
     return false;
   }
 
@@ -268,8 +268,8 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
   const AbstractPipeline* pipeline = g_shader_cache->GetPaletteConversionPipeline(tlutfmt);
   if (!pipeline)
   {
-    ERROR_LOG(VIDEO, "Failed to get conversion pipeline for format 0x%02X",
-              static_cast<u32>(tlutfmt));
+    ERROR_LOG_FMT(VIDEO, "Failed to get conversion pipeline for format {:#04X}",
+                  static_cast<u32>(tlutfmt));
     return nullptr;
   }
 
@@ -321,7 +321,7 @@ TextureCacheBase::ApplyPaletteToEntry(TCacheEntry* entry, u8* palette, TLUTForma
   }
   else
   {
-    ERROR_LOG(VIDEO, "Texel buffer upload of %u bytes failed", palette_size);
+    ERROR_LOG_FMT(VIDEO, "Texel buffer upload of {} bytes failed", palette_size);
     g_renderer->EndUtilityDrawing();
   }
 
@@ -337,9 +337,9 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::ReinterpretEntry(const TCacheEn
       g_shader_cache->GetTextureReinterpretPipeline(existing_entry->format.texfmt, new_format);
   if (!pipeline)
   {
-    ERROR_LOG(VIDEO,
-              "Failed to obtain texture reinterpreting pipeline from format 0x%02X to 0x%02X",
-              static_cast<u32>(existing_entry->format.texfmt), static_cast<u32>(new_format));
+    ERROR_LOG_FMT(VIDEO,
+                  "Failed to obtain texture reinterpreting pipeline from format {:#04X} to {:#04X}",
+                  static_cast<u32>(existing_entry->format.texfmt), static_cast<u32>(new_format));
     return nullptr;
   }
 
@@ -388,7 +388,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* e
   const u32 max = g_ActiveConfig.backend_info.MaxTextureSize;
   if (max < new_width || max < new_height)
   {
-    ERROR_LOG(VIDEO, "Texture too big, width = %d, height = %d", new_width, new_height);
+    ERROR_LOG_FMT(VIDEO, "Texture too big, width = {}, height = {}", new_width, new_height);
     return;
   }
 
@@ -397,7 +397,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntry* e
   std::optional<TexPoolEntry> new_texture = AllocateTexture(newconfig);
   if (!new_texture)
   {
-    ERROR_LOG(VIDEO, "Scaling failed due to texture allocation failure");
+    ERROR_LOG_FMT(VIDEO, "Scaling failed due to texture allocation failure");
     return;
   }
 
@@ -465,7 +465,7 @@ void TextureCacheBase::SerializeTexture(AbstractTexture* tex, const TextureConfi
   }
   else
   {
-    PanicAlert("Failed to create staging texture for serialization");
+    PanicAlertFmt("Failed to create staging texture for serialization");
   }
 
   p.Do(texture_data);
@@ -485,7 +485,7 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   auto tex = AllocateTexture(config);
   if (!tex)
   {
-    PanicAlert("Failed to create texture for deserialization");
+    PanicAlertFmt("Failed to create texture for deserialization");
     return std::nullopt;
   }
 
@@ -494,13 +494,13 @@ std::optional<TextureCacheBase::TexPoolEntry> TextureCacheBase::DeserializeTextu
   {
     for (u32 level = 0; level < config.levels; level++)
     {
-      u32 level_width = std::max(config.width >> level, 1u);
-      u32 level_height = std::max(config.height >> level, 1u);
-      size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
-      size_t size = stride * level_height;
+      const u32 level_width = std::max(config.width >> level, 1u);
+      const u32 level_height = std::max(config.height >> level, 1u);
+      const size_t stride = AbstractTexture::CalculateStrideForFormat(config.format, level_width);
+      const size_t size = stride * level_height;
       if ((start + size) > texture_data.size())
       {
-        ERROR_LOG(VIDEO, "Insufficient texture data for layer %u level %u", layer, level);
+        ERROR_LOG_FMT(VIDEO, "Insufficient texture data for layer {} level {}", layer, level);
         return tex;
       }
 
@@ -1273,7 +1273,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const TextureFo
 
   if (!src_data)
   {
-    ERROR_LOG(VIDEO, "Trying to use an invalid texture address 0x%8x", address);
+    ERROR_LOG_FMT(VIDEO, "Trying to use an invalid texture address {:#010x}", address);
     return nullptr;
   }
 
@@ -1718,7 +1718,7 @@ TextureCacheBase::GetXFBTexture(u32 address, u32 width, u32 height, u32 stride,
   const u8* src_data = Memory::GetPointer(address);
   if (!src_data)
   {
-    ERROR_LOG(VIDEO, "Trying to load XFB texture from invalid address 0x%8x", address);
+    ERROR_LOG_FMT(VIDEO, "Trying to load XFB texture from invalid address {:#010x}", address);
     return nullptr;
   }
 
@@ -2087,7 +2087,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
   u8* dst = Memory::GetPointer(dstAddr);
   if (dst == nullptr)
   {
-    ERROR_LOG(VIDEO, "Trying to copy from EFB to invalid address 0x%8x", dstAddr);
+    ERROR_LOG_FMT(VIDEO, "Trying to copy from EFB to invalid address {:#010x}", dstAddr);
     return;
   }
 
@@ -2145,7 +2145,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(
     // To avoid a "incorrect" result, we simply skip doing the copy_to_vram code path
     // so if the game does try to use the scrambled texture, dolphin will grab the scrambled
     // texture (or black if copy_to_ram is also disabled) out of ram.
-    ERROR_LOG(VIDEO, "Memory stride too small (%i < %i)", dstStride, bytes_per_row);
+    ERROR_LOG_FMT(VIDEO, "Memory stride too small ({} < {})", dstStride, bytes_per_row);
     copy_to_vram = false;
   }
 
@@ -2408,7 +2408,7 @@ std::unique_ptr<AbstractStagingTexture> TextureCacheBase::GetEFBCopyStagingTextu
   std::unique_ptr<AbstractStagingTexture> tex = g_renderer->CreateStagingTexture(
       StagingTextureType::Readback, m_efb_encoding_texture->GetConfig());
   if (!tex)
-    WARN_LOG(VIDEO, "Failed to create EFB copy staging texture");
+    WARN_LOG_FMT(VIDEO, "Failed to create EFB copy staging texture");
 
   return tex;
 }
@@ -2487,8 +2487,8 @@ TextureCacheBase::AllocateTexture(const TextureConfig& config)
   std::unique_ptr<AbstractTexture> texture = g_renderer->CreateTexture(config);
   if (!texture)
   {
-    WARN_LOG(VIDEO, "Failed to allocate a %ux%ux%u texture", config.width, config.height,
-             config.layers);
+    WARN_LOG_FMT(VIDEO, "Failed to allocate a {}x{}x{} texture", config.width, config.height,
+                 config.layers);
     return {};
   }
 
@@ -2498,8 +2498,8 @@ TextureCacheBase::AllocateTexture(const TextureConfig& config)
     framebuffer = g_renderer->CreateFramebuffer(texture.get(), nullptr);
     if (!framebuffer)
     {
-      WARN_LOG(VIDEO, "Failed to allocate a %ux%ux%u framebuffer", config.width, config.height,
-               config.layers);
+      WARN_LOG_FMT(VIDEO, "Failed to allocate a {}x{}x{} framebuffer", config.width, config.height,
+                   config.layers);
       return {};
     }
   }
@@ -2660,7 +2660,7 @@ void TextureCacheBase::CopyEFBToCacheEntry(TCacheEntry* entry, bool is_depth_cop
           NeedsCopyFilterInShader(filter_coefficients)));
   if (!copy_pipeline)
   {
-    WARN_LOG(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
+    WARN_LOG_FMT(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
     return;
   }
 
@@ -2728,7 +2728,7 @@ void TextureCacheBase::CopyEFB(AbstractStagingTexture* dst, const EFBCopyParams&
   const AbstractPipeline* copy_pipeline = g_shader_cache->GetEFBCopyToRAMPipeline(params);
   if (!copy_pipeline)
   {
-    WARN_LOG(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
+    WARN_LOG_FMT(VIDEO, "Skipping EFB copy to VRAM due to missing pipeline.");
     return;
   }
 

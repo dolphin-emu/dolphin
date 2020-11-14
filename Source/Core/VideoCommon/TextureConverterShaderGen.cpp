@@ -209,7 +209,8 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy zbuf format: 0x%X", static_cast<int>(uid_data->dst_format));
+      ERROR_LOG_FMT(VIDEO, "Unknown copy zbuf format: {:#X}",
+                    static_cast<int>(uid_data->dst_format));
       out.Write("  ocol0 = float4(texcol.bgr, 0.0);\n");
       break;
     }
@@ -239,8 +240,8 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy intensity format: 0x%X",
-                static_cast<int>(uid_data->dst_format));
+      ERROR_LOG_FMT(VIDEO, "Unknown copy intensity format: {:#X}",
+                    static_cast<int>(uid_data->dst_format));
       out.Write("  ocol0 = texcol;\n");
       break;
     }
@@ -315,7 +316,8 @@ ShaderCode GeneratePixelShader(APIType api_type, const UidData* uid_data)
       break;
 
     default:
-      ERROR_LOG(VIDEO, "Unknown copy color format: 0x%X", static_cast<int>(uid_data->dst_format));
+      ERROR_LOG_FMT(VIDEO, "Unknown copy color format: {:#X}",
+                    static_cast<int>(uid_data->dst_format));
       out.Write("  ocol0 = texcol;\n");
       break;
     }

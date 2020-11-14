@@ -626,7 +626,7 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
   break;
 
   default:
-    WARN_LOG(VIDEO, "From format %u is not supported", static_cast<u32>(from_format));
+    WARN_LOG_FMT(VIDEO, "From format {} is not supported", static_cast<u32>(from_format));
     return "{}\n";
   }
 
@@ -678,7 +678,7 @@ std::string GenerateTextureReinterpretShader(TextureFormat from_format, TextureF
   }
   break;
   default:
-    WARN_LOG(VIDEO, "To format %u is not supported", static_cast<u32>(to_format));
+    WARN_LOG_FMT(VIDEO, "To format {} is not supported", static_cast<u32>(to_format));
     return "{}\n";
   }
 
