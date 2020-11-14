@@ -391,6 +391,9 @@
     <ClCompile Include="HW\DSPHLE\UCodes\AXWii.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
+    <ClCompile Include="HW\DSPHLE\UCodes\AXWiiOld.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\CARD.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClCompile>
@@ -1171,6 +1174,9 @@
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AXWii.h">
+      <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
+    </ClInclude>
+    <ClInclude Include="HW\DSPHLE\UCodes\AXWiiOld.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\CARD.h">

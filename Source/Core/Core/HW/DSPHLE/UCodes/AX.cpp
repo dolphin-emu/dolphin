@@ -426,7 +426,7 @@ void AXUCode::ProcessPBList(u32 pb_addr)
     ReadPB(pb_addr, pb, m_crc);
 
     u32 updates_addr = HILO_TO_32(pb.updates.data);
-    u16* updates = (u16*)HLEMemory_Get_Pointer(updates_addr);
+    u16* updates = static_cast<u16*>(HLEMemory_Get_Pointer(updates_addr));
 
     for (int curr_ms = 0; curr_ms < 5; ++curr_ms)
     {
