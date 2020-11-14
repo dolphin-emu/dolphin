@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #ifdef ANDROID
-#include <jni/AndroidCommon/IDCache.h>
+#include "InputCommon/ControllerInterface/Android/Motor.h"
 #endif
 
 #include <sstream>
@@ -209,7 +209,9 @@ Touchscreen::Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_
   AddInput(new Button(m_pad_id, ButtonManager::WIIMOTE_IR_RECENTER));
 
   // Rumble
-  AddOutput(new Motor(m_pad_id, ButtonManager::RUMBLE));
+#ifdef ANDROID
+  AddOutput(new ciface::Android::Motor(m_pad_id, ButtonManager::RUMBLE));
+#endif
 }
 // Buttons and stuff
 
@@ -235,33 +237,5 @@ std::string Touchscreen::Axis::GetName() const
 ControlState Touchscreen::Axis::GetState() const
 {
   return ButtonManager::GetAxisValue(m_pad_id, m_index) * m_neg;
-}
-
-Touchscreen::Motor::~Motor()
-{
-}
-
-std::string Touchscreen::Motor::GetName() const
-{
-  std::ostringstream ss;
-  ss << "Rumble " << static_cast<int>(m_index);
-  return ss.str();
-}
-
-void Touchscreen::Motor::SetState(ControlState state)
-{
-  if (state > 0)
-  {
-    std::thread(Rumble, m_pad_id, state).detach();
-  }
-}
-
-void Touchscreen::Motor::Rumble(int pad_id, double state)
-{
-#ifdef ANDROID
-  JNIEnv* env = IDCache::GetEnvForThread();
-  env->CallStaticVoidMethod(IDCache::GetNativeLibraryClass(), IDCache::GetDoRumble(), pad_id,
-                            state);
-#endif
 }
 }  // namespace ciface::Touch

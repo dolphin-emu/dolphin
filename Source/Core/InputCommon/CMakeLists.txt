@@ -122,6 +122,8 @@ elseif(ANDROID)
   target_sources(inputcommon PRIVATE
     ControllerInterface/Android/Android.cpp
     ControllerInterface/Android/Android.h
+    ControllerInterface/Android/Motor.cpp
+    ControllerInterface/Android/Motor.h
     ControllerInterface/Touch/ButtonManager.cpp
     ControllerInterface/Touch/ButtonManager.h
     ControllerInterface/Touch/Touchscreen.cpp
