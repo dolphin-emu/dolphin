@@ -140,6 +140,8 @@ elseif(IOS)
     ControllerInterface/iOS/ControllerScanner.h
     ControllerInterface/iOS/iOS.mm
     ControllerInterface/iOS/iOS.h
+    ControllerInterface/iOS/Motor.mm
+    ControllerInterface/iOS/Motor.h
   )
 endif()
 

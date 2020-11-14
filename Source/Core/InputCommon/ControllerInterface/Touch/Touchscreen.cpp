@@ -4,6 +4,8 @@
 
 #ifdef ANDROID
 #include "InputCommon/ControllerInterface/Android/Motor.h"
+#elif defined(IPHONEOS)
+#include "InputCommon/ControllerInterface/iOS/Motor.h"
 #endif
 
 #include <sstream>
@@ -211,6 +213,11 @@ Touchscreen::Touchscreen(int pad_id, bool accelerometer_enabled, bool gyroscope_
   // Rumble
 #ifdef ANDROID
   AddOutput(new ciface::Android::Motor(m_pad_id, ButtonManager::RUMBLE));
+#elif defined(IPHONEOS)
+  if (__builtin_available(iOS 13.0, *))
+  {
+    AddOutput(new ciface::iOS::Motor());
+  }
 #endif
 }
 // Buttons and stuff
