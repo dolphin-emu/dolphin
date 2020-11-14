@@ -15,7 +15,7 @@ jobs:
     
     - name: Install build utilities
       run: |
-        sudo xcode-select -s /Applications/Xcode_12.app/Contents/Developer
+        sudo xcode-select -s /Applications/Xcode_12.2.app/Contents/Developer
         brew install ninja bartycrouch dpkg s3cmd libmagic dos2unix
         pip3 install polib python-magic
         
@@ -83,7 +83,7 @@ jobs:
     
     - name: Install build utilities
       run: |
-        sudo xcode-select -s /Applications/Xcode_12.app/Contents/Developer
+        sudo xcode-select -s /Applications/Xcode_12.2.app/Contents/Developer
         brew install ninja bartycrouch dpkg s3cmd libmagic dos2unix
         pip3 install polib python-magic
         
