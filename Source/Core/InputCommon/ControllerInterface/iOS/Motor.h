@@ -7,6 +7,7 @@
 #ifdef __OBJC__
 #include <CoreHaptics/CoreHaptics.h>
 #else
+struct NSObject;
 struct CHHapticEngine;
 struct CHHapticAdvancedPatternPlayer;
 #endif
@@ -36,6 +37,11 @@ private:
   CHHapticAdvancedPatternPlayer* m_haptic_player;
 #endif
   const std::string m_name;
+#ifdef __OBJC__
+  id<NSObject> m_notification_token;
+#else
+  NSObject* m_notification_token;
+#endif
   ControlState m_last_state;
 };
 }  // namespace ciface::iOS

@@ -21,7 +21,7 @@ Motor::Motor(const std::string name) API_AVAILABLE(ios(13.0)) : m_name(name)
   {
     return;
   }
-  
+
   if (![[NSUserDefaults standardUserDefaults] boolForKey:@"rumble_enabled"])
   {
     return;
@@ -60,6 +60,11 @@ Motor::Motor(const std::string name, CHHapticEngine* engine) API_AVAILABLE(ios(1
 
 Motor::~Motor() API_AVAILABLE(ios(13.0))
 {
+  if (this->m_notification_token)
+  {
+    [[NSNotificationCenter defaultCenter] removeObserver:this->m_notification_token];
+  }
+
   if (this->m_haptic_player)
   {
     NSError* error;
@@ -70,6 +75,7 @@ Motor::~Motor() API_AVAILABLE(ios(13.0))
 
   this->m_haptic_engine = nil;
   this->m_haptic_player = nil;
+  this->m_notification_token = nil;
 }
 
 void Motor::CreatePlayer() API_AVAILABLE(ios(13.0))
@@ -102,6 +108,17 @@ void Motor::CreatePlayer() API_AVAILABLE(ios(13.0))
 
   [this->m_haptic_player setLoopEnabled:true];
   [this->m_haptic_player setLoopEnd:0.0f];
+
+  this->m_notification_token = [[NSNotificationCenter defaultCenter] addObserverForName:@"me.oatmealdome.DolphiniOS.emulation_stop" object:nil queue:nil usingBlock:^(NSNotification*)
+  {
+    NSError* inner_error;
+    [this->m_haptic_player stopAtTime:CHHapticTimeImmediate error:&inner_error];
+
+    if (inner_error)
+    {
+      LOG_NSERROR("Failed to stop stop haptics on emulation stop: %s", inner_error);
+    }
+  }];
 }
 
 std::string Motor::GetName() const

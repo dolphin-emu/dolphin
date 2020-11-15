@@ -263,6 +263,8 @@
   
   [[TCDeviceMotion shared] stopMotionUpdates];
   
+  [[NSNotificationCenter defaultCenter] postNotificationName:@"me.oatmealdome.DolphiniOS.emulation_stop" object:self];
+  
   [[FIRCrashlytics crashlytics] setCustomValue:@"none" forKey:@"current-game"];
   
 #ifdef NONJAILBROKEN
