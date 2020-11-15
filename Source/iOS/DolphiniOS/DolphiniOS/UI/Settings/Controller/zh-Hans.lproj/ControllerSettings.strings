@@ -7,8 +7,8 @@
 /* Class = "UILabel"; text = "Group Name"; ObjectID = "1Bh-Yd-mZn"; */
 "1Bh-Yd-mZn.text" = "Group Name";
 
-/* Class = "UILabel"; text = "Haptic Feedback"; ObjectID = "1OV-rN-vOL"; */
-"1OV-rN-vOL.text" = "Haptic Feedback";
+/* Class = "UILabel"; text = "Button Haptic Feedback"; ObjectID = "1OV-rN-vOL"; */
+"1OV-rN-vOL.text" = "Button Haptic Feedback";
 
 /* Class = "UINavigationItem"; title = "Touchscreen"; ObjectID = "1sn-GJ-oux"; */
 "1sn-GJ-oux.title" = "Touchscreen";
