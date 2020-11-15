@@ -80,6 +80,14 @@ Controller::Controller(GCController* controller) : m_controller(controller)
 
         // TODO: WTF is touchpadSecondary?
       }
+      else if ([gamepad isKindOfClass:[GCXboxGamepad class]])
+      {
+        GCXboxGamepad* xbox_gamepad = (GCXboxGamepad*)gamepad;
+        AddInput(new Button(xbox_gamepad.paddleButton1, "Paddle 1"));
+        AddInput(new Button(xbox_gamepad.paddleButton2, "Paddle 2"));
+        AddInput(new Button(xbox_gamepad.paddleButton3, "Paddle 3"));
+        AddInput(new Button(xbox_gamepad.paddleButton4, "Paddle 4"));
+      }
     }
 
     if (@available(iOS 13, *))
