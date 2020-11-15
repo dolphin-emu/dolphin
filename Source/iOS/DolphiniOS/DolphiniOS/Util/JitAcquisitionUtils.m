@@ -136,7 +136,25 @@ void AcquireJit()
     else
     {
       // Something is up with the entitlements.
-      s_acquisition_error  = DOLJitErrorImproperlySigned;
+      s_acquisition_error = DOLJitErrorImproperlySigned;
+      
+      DOLFastmemType type = GetFastmemType();
+      if (!CanEnableFastmem())
+      {
+        SetJitAcquisitionErrorMessage("Fastmem cannot be enabled. psychicpaper builds should allow fastmem to be enabled.");
+      }
+      else if (type == DOLFastmemTypeNone)
+      {
+        SetJitAcquisitionErrorMessage("DOLFastmemTypeNone was found. This is supposed to be impossible.");
+      }
+      else if (type == DOLFastmemTypeHacky)
+      {
+        SetJitAcquisitionErrorMessage("Hacky fastmem is the 'maximum fastmem level' that is supported. psychicpaper builds should allow proper fastmem instead of only hacky fastmem.");
+      }
+      else
+      {
+        SetJitAcquisitionErrorMessage("Unknown error.");
+      }
     }
   }
 #else // jailbroken
