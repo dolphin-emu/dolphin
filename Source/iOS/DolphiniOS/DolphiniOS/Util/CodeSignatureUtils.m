@@ -12,6 +12,8 @@
 #import <mach-o/loader.h>
 #import <mach-o/getsect.h>
 
+#import "JitAcquisitionUtils.h"
+
 // partly adapted from iSH: app/AppGroup.m
 
 #define CS_EXECSEG_ALLOW_UNSIGNED 0x10
@@ -124,12 +126,34 @@ bool HasValidCodeSignature()
       uint32_t version = ntohl(directory->version);
       uint64_t execSegmentFlags = ntohll(directory->execSegmentFlags);
       
-      verified_directory = version >= 0x20400 && (execSegmentFlags & CS_EXECSEG_ALLOW_UNSIGNED) == CS_EXECSEG_ALLOW_UNSIGNED;
+      if (version < 0x20400)
+      {
+        char error[128];
+        sprintf(error, "CodeDirectory version is 0x%x. Should be 0x20400 or higher.", version);
+        
+        SetJitAcquisitionErrorMessage(error);
+        
+        continue;
+      }
+      
+      if ((execSegmentFlags & CS_EXECSEG_ALLOW_UNSIGNED) != CS_EXECSEG_ALLOW_UNSIGNED)
+      {
+        char error[128];
+        sprintf(error, "CS_EXECSEG_ALLOW_UNSIGNED is not set. The current executable segment flags are 0x%llx.", execSegmentFlags);
+        
+        SetJitAcquisitionErrorMessage(error);
+        
+        continue;
+      }
+      
+      verified_directory = true;
     }
   }
   
   if (entitlementsData == nil)
   {
+    SetJitAcquisitionErrorMessage("Could not find entitlements data within the code signature.");
+    
     return false;
   }
   
@@ -138,5 +162,12 @@ bool HasValidCodeSignature()
                                                             format:nil
                                                              error:nil];
   
-  return [[entitlements objectForKey:@"get-task-allow"] boolValue] && verified_directory;
+  if (![[entitlements objectForKey:@"get-task-allow"] boolValue])
+  {
+    SetJitAcquisitionErrorMessage("get-task-allow entitlement is not set to true.");
+    
+    return false;
+  }
+  
+  return verified_directory;
 }
