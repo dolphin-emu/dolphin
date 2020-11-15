@@ -78,7 +78,7 @@ private:
   {
   public:
     AccelerometerAxis(GCMotion* motion, MotionPlane plane, const double multiplier,
-                      const std::string name);
+                      bool separate_gravity, const std::string name);
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -86,6 +86,7 @@ private:
     GCMotion* m_motion;
     MotionPlane m_plane;
     double m_multiplier;
+    bool m_separate_gravity;
     const std::string m_name;
   };
 

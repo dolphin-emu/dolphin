@@ -134,12 +134,21 @@ Controller::Controller(GCController* controller) : m_controller(controller)
       motion.sensorsActive = true;
     }
 
-    AddInput(new AccelerometerAxis(motion, X, -1.0, "Accel Left"));
-    AddInput(new AccelerometerAxis(motion, X, 1.0, "Accel Right"));
-    AddInput(new AccelerometerAxis(motion, Y, 1.0, "Accel Forward"));
-    AddInput(new AccelerometerAxis(motion, Y, -1.0, "Accel Back"));
-    AddInput(new AccelerometerAxis(motion, Z, 1.0, "Accel Up"));
-    AddInput(new AccelerometerAxis(motion, Z, -1.0, "Accel Down"));
+    bool separate_gravity = true;
+
+    if (@available(iOS 14.0, *))
+    {
+      // Query GCMotion to see if the controller doeson't separate gravity
+      // and acceleration, like the DualShock 4
+      separate_gravity = motion.hasGravityAndUserAcceleration;
+    } 
+    
+    AddInput(new AccelerometerAxis(motion, X, -1.0, separate_gravity, "Accel Left"));
+    AddInput(new AccelerometerAxis(motion, X, 1.0, separate_gravity, "Accel Right"));
+    AddInput(new AccelerometerAxis(motion, Y, 1.0, separate_gravity, "Accel Forward"));
+    AddInput(new AccelerometerAxis(motion, Y, -1.0, separate_gravity, "Accel Back"));
+    AddInput(new AccelerometerAxis(motion, Z, 1.0, separate_gravity, "Accel Up"));
+    AddInput(new AccelerometerAxis(motion, Z, -1.0, separate_gravity, "Accel Down"));
 
     if (motion.hasAttitudeAndRotationRate)
     {
@@ -238,8 +247,9 @@ ControlState Controller::Axis::GetState() const
 }
 
 Controller::AccelerometerAxis::AccelerometerAxis(GCMotion* motion, MotionPlane plane,
-                                                 const double multiplier, const std::string name)
-    : m_motion(motion), m_plane(plane), m_name(name)
+                                                const double multiplier, bool separate_gravity,
+                                                const std::string name)
+    : m_motion(motion), m_plane(plane), m_separate_gravity(separate_gravity), m_name(name) 
 {
   if (plane == X || plane == Y)
   {
@@ -260,16 +270,27 @@ std::string Controller::AccelerometerAxis::GetName() const
 
 ControlState Controller::AccelerometerAxis::GetState() const
 {
-  double full_multiplier = -9.81 * m_multiplier;
+  GCAcceleration acceleration;
+  double full_multiplier = m_multiplier;
+
+  if (m_separate_gravity)
+  {
+    full_multiplier *= -9.81;
+    acceleration = m_motion.userAcceleration;
+  }
+  else
+  {
+    acceleration = m_motion.acceleration;
+  }
 
   switch (m_plane)
   {
   case X:
-    return m_motion.userAcceleration.x * full_multiplier;
+    return acceleration.x * full_multiplier;
   case Y:
-    return m_motion.userAcceleration.y * full_multiplier;
+    return acceleration.y * full_multiplier;
   case Z:
-    return m_motion.userAcceleration.z * full_multiplier;
+    return acceleration.z * full_multiplier;
   }
 }
 
