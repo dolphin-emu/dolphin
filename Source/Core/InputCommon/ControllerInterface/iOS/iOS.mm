@@ -127,11 +127,14 @@ Controller::Controller(GCController* controller) : m_controller(controller)
   if (controller.motion != nil)
   {
     GCMotion* motion = controller.motion;
-
-    // The DualShock 4 requires manual sensor activation
-    if (motion.sensorsRequireManualActivation)
+    
+    if (@available(iOS 14.0, *))
     {
-      motion.sensorsActive = true;
+      // The DualShock 4 requires manual sensor activation
+      if (motion.sensorsRequireManualActivation)
+      {
+        motion.sensorsActive = true;
+      }
     }
 
     bool separate_gravity = true;
