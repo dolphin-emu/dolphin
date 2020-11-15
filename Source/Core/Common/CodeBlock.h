@@ -98,6 +98,9 @@ public:
   {
     ASSERT(!m_is_child);
     Common::FreeMemoryPages(region, total_region_size);
+#ifdef _BULLETPROOF_JIT
+    Common::FreeMemoryPages(secondary_region, total_region_size);
+#endif
     region = nullptr;
     region_size = 0;
     total_region_size = 0;
