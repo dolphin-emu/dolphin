@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17156" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="17506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina5_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17126"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="17505"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -284,7 +284,7 @@
                                 <rect key="frame" x="0.0" y="56" width="375" height="668"/>
                                 <subviews>
                                     <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" distribution="equalSpacing" spacing="20" translatesAutoresizingMaskIntoConstraints="NO" id="EUw-Jf-ZuR">
-                                        <rect key="frame" x="20" y="0.0" width="335" height="656.33333333333337"/>
+                                        <rect key="frame" x="20" y="0.0" width="335" height="676.66666666666663"/>
                                         <subviews>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4ti-Da-q5L">
                                                 <rect key="frame" x="0.0" y="0.0" width="335" height="0.0"/>
@@ -314,27 +314,27 @@ Dolphin is not affiliated with Nintendo in any way.</string>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="4JH-mf-sk9" userLabel="Copyright Two">
-                                                <rect key="frame" x="0.0" y="323" width="335" height="101.66666666666669"/>
-                                                <string key="text">© 2019-2020+ OatmealDome and goob47. 
+                                                <rect key="frame" x="0.0" y="323" width="335" height="122"/>
+                                                <string key="text">© 2019-2020+ OatmealDome, Simonx22, goob47, and yoshisuga.
 DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. The DolphiniOS team has no relation to the official Dolphin project or its mainainers.</string>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="This software should not be used to play games you do not legally own." textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="f6q-Ez-JFr" userLabel="Piracy Notice">
-                                                <rect key="frame" x="0.0" y="444.66666666666669" width="335" height="40.666666666666686"/>
+                                                <rect key="frame" x="0.0" y="465" width="335" height="40.666666666666686"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Thank you to the following generous Patrons!" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Apg-2S-OEc">
-                                                <rect key="frame" x="0.0" y="505.33333333333343" width="335" height="40.666666666666686"/>
+                                                <rect key="frame" x="0.0" y="525.66666666666663" width="335" height="40.666666666666629"/>
                                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                 <nil key="textColor"/>
                                                 <nil key="highlightedColor"/>
                                             </label>
                                             <stackView opaque="NO" contentMode="scaleToFill" distribution="fillEqually" alignment="center" translatesAutoresizingMaskIntoConstraints="NO" id="Hnr-d2-FCH">
-                                                <rect key="frame" x="0.0" y="566" width="335" height="20.333333333333371"/>
+                                                <rect key="frame" x="0.0" y="586.33333333333337" width="335" height="20.333333333333371"/>
                                                 <subviews>
                                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Patrons 1" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qg5-mQ-I0A">
                                                         <rect key="frame" x="0.0" y="0.0" width="167.66666666666666" height="20.333333333333332"/>
@@ -351,14 +351,14 @@ DolphiniOS is an unofficial and separately maintained port of Dolphin to iOS. Th
                                                 </subviews>
                                             </stackView>
                                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Sud-8v-xe3">
-                                                <rect key="frame" x="0.0" y="606.33333333333337" width="335" height="30"/>
+                                                <rect key="frame" x="0.0" y="626.66666666666663" width="335" height="30"/>
                                                 <state key="normal" title="Source Code"/>
                                                 <connections>
                                                     <action selector="SourceCodePressed:" destination="u6n-zE-oUh" eventType="touchUpInside" id="fZp-pU-kEd"/>
                                                 </connections>
                                             </button>
                                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="zt5-m9-tq2">
-                                                <rect key="frame" x="0.0" y="656.33333333333337" width="335" height="0.0"/>
+                                                <rect key="frame" x="0.0" y="676.66666666666663" width="335" height="0.0"/>
                                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                                 <constraints>
                                                     <constraint firstAttribute="height" id="Iug-ms-yiu"/>
