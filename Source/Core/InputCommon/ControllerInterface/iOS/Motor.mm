@@ -60,6 +60,11 @@ Motor::Motor(const std::string name, CHHapticEngine* engine) API_AVAILABLE(ios(1
 
 Motor::~Motor() API_AVAILABLE(ios(13.0))
 {
+  if (this->m_haptic_player)
+  {
+    [this->m_haptic_player stopAtTime:CHHapticTimeImmediate error:&error];
+  }
+
   this->m_haptic_engine = nil;
   this->m_haptic_player = nil;
 }
