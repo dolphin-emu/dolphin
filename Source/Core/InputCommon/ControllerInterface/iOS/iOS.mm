@@ -127,7 +127,7 @@ Controller::Controller(GCController* controller) : m_controller(controller)
   if (controller.motion != nil)
   {
     GCMotion* motion = controller.motion;
-    
+
     if (@available(iOS 14.0, *))
     {
       // The DualShock 4 requires manual sensor activation
@@ -153,7 +153,16 @@ Controller::Controller(GCController* controller) : m_controller(controller)
     AddInput(new AccelerometerAxis(motion, Z, 1.0, separate_gravity, "Accel Up"));
     AddInput(new AccelerometerAxis(motion, Z, -1.0, separate_gravity, "Accel Down"));
 
-    if (motion.hasAttitudeAndRotationRate)
+    if (@available(iOS 14.0, *))
+    {
+      m_supports_gyroscope = motion.hasRotationRate;
+    }
+    else
+    {
+      m_supports_gyroscope = motion.hasAttitudeAndRotationRate;
+    }
+
+    if (m_supports_gyroscope)
     {
       AddInput(new GyroscopeAxis(motion, X, 1.0, "Gyro Pitch Up"));
       AddInput(new GyroscopeAxis(motion, X, -1.0, "Gyro Pitch Down"));
@@ -161,12 +170,6 @@ Controller::Controller(GCController* controller) : m_controller(controller)
       AddInput(new GyroscopeAxis(motion, Y, 1.0, "Gyro Roll Right"));
       AddInput(new GyroscopeAxis(motion, Z, -1.0, "Gyro Yaw Left"));
       AddInput(new GyroscopeAxis(motion, Z, 1.0, "Gyro Yaw Right"));
-
-      m_supports_gyroscope = true;
-    }
-    else
-    {
-      m_supports_gyroscope = false;
     }
 
     m_supports_accelerometer = true;
