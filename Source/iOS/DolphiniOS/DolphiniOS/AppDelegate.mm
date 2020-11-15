@@ -270,11 +270,11 @@
   {
     // Check the CPUCore type if necessary
     bool has_changed_core = [[NSUserDefaults standardUserDefaults] boolForKey:@"did_deliberately_change_cpu_core"];
+    
+    const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
 
-    if (!has_changed_core)
+    if (!has_changed_core && File::Exists(config_path))
     {
-      const std::string config_path = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-      
       // Load Dolphin.ini
       IniFile dolphin_config;
       dolphin_config.Load(config_path);
