@@ -67,6 +67,21 @@ Controller::Controller(GCController* controller) : m_controller(controller)
     AddInput(new Axis(gamepad.rightThumbstick.yAxis, -1.0f, "R Stick Y-"));
 
     // Optionals and buttons only on newer iOS versions
+    if (@available(iOS 14, *))
+    {
+      if ([gamepad isKindOfClass:[GCDualShockGamepad class]])
+      {
+        GCDualShockGamepad* ds_gamepad = (GCDualShockGamepad*)gamepad;
+        AddInput(new Button(ds_gamepad.touchpadButton, "Touchpad"));
+        AddInput(new Axis(ds_gamepad.touchpadPrimary.xAxis, 1.0f, "Touchpad X+"));
+        AddInput(new Axis(ds_gamepad.touchpadPrimary.xAxis, -1.0f, "Touchpad X-"));
+        AddInput(new Axis(ds_gamepad.touchpadPrimary.yAxis, 1.0f, "Touchpad Y+"));
+        AddInput(new Axis(ds_gamepad.touchpadPrimary.yAxis, -1.0f, "Touchpad Y-"));
+
+        // TODO: WTF is touchpadSecondary?
+      }
+    }
+
     if (@available(iOS 13, *))
     {
       AddInput(new Button(gamepad.buttonMenu, "Menu"));
