@@ -4,6 +4,8 @@
 
 #import "ControllerTouchscreenSettingsViewController.h"
 
+#import <CoreHaptics/CoreHaptics.h>
+
 #import "ControllerSettingsUtils.h"
 
 #import "Core/Core.h"
@@ -32,6 +34,15 @@
   [super viewWillAppear:animated];
   
   [self.m_haptic_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"haptic_feedback_enabled"]];
+  
+  if (@available(iOS 13.0, *))
+  {
+    if ([[CHHapticEngine capabilitiesForHardware] supportsHaptics])
+    {
+      [self.m_rumble_switch setEnabled:true];
+      [self.m_rumble_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"rumble_enabled"]];
+    }
+  }
   
   if (self.traitCollection.forceTouchCapability == UIForceTouchCapabilityAvailable)
   {
@@ -89,6 +100,16 @@
 - (IBAction)HapticChanged:(id)sender
 {
   [[NSUserDefaults standardUserDefaults] setBool:self.m_haptic_switch.on forKey:@"haptic_feedback_enabled"];
+}
+
+- (IBAction)RumbleChanged:(id)sender
+{
+  [[NSUserDefaults standardUserDefaults] setBool:self.m_rumble_switch.on forKey:@"rumble_enabled"];
+  
+  if (Core::IsRunning())
+  {
+    [self ShowEmulationWarning];
+  }
 }
 
 - (IBAction)ThreeDTouchChanged:(id)sender

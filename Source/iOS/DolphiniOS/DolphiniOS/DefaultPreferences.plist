@@ -47,5 +47,7 @@
 	<integer>0</integer>
 	<key>3d_touch_analog_triggers_enabled</key>
 	<true/>
+	<key>rumble_enabled</key>
+	<true/>
 </dict>
 </plist>

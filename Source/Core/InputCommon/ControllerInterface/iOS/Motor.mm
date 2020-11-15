@@ -22,6 +22,11 @@ Motor::Motor(const std::string name) API_AVAILABLE(ios(13.0)) : m_name(name)
     return;
   }
   
+  if (![[NSUserDefaults standardUserDefaults] boolForKey:@"rumble_enabled"])
+  {
+    return;
+  }
+  
   NSError* error;
   this->m_haptic_engine = [[CHHapticEngine alloc] initAndReturnError:&error];
 
