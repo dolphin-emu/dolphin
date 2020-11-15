@@ -37,6 +37,11 @@
     NSString* new_text = [target_label.text stringByAppendingString:[NSString stringWithFormat:@"%@\n", [thanks_array objectAtIndex:i]]];
     [target_label setText:new_text];
   }
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+  [super viewDidAppear:animated];
   
   // Flash the scroll indicators
   [self.m_scroll_view flashScrollIndicators];
