@@ -128,6 +128,12 @@ Controller::Controller(GCController* controller) : m_controller(controller)
   {
     GCMotion* motion = controller.motion;
 
+    // The DualShock 4 requires manual sensor activation
+    if (motion.sensorsRequireManualActivation)
+    {
+      motion.sensorsActive = true;
+    }
+
     AddInput(new AccelerometerAxis(motion, X, -1.0, "Accel Left"));
     AddInput(new AccelerometerAxis(motion, X, 1.0, "Accel Right"));
     AddInput(new AccelerometerAxis(motion, Y, 1.0, "Accel Forward"));
