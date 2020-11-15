@@ -35,6 +35,7 @@ option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
 option(ENABLE_WX_EXCLUSIVITY "Enables W^X for platforms that need it" OFF)
+option(ENABLE_BULLETPROOF_JIT "Enables the bulletproof JIT as an alternative to W^X permission swapping" OFF)
 option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
@@ -426,7 +427,7 @@ if(IOS)
     set(ENABLE_NOGUI 0)
   endif()
   
-  set(ENABLE_WX_EXCLUSIVITY 1)
+  set(ENABLE_BULLETPROOF_JIT 1)
   set(USE_UPNP 0)
   set(ENABLE_QT 0)
   set(USE_DISCORD_PRESENCE 0)
@@ -458,6 +459,15 @@ if(ENABLE_WX_EXCLUSIVITY)
   endif()
 
   add_definitions(-D_WX_EXCLUSIVITY)
+endif()
+
+if(ENABLE_BULLETPROOF_JIT)
+  message(STATUS "Enabling bulletproof JIT.")
+  if(NOT IOS)
+    message(FATAL_ERROR "WX exclusivity is not supported on this platform.")
+  endif()
+
+  add_definitions(-D_BULLETPROOF_JIT)
 endif()
 
 # Set file offset size to 64 bits.

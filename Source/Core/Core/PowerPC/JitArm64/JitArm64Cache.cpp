@@ -64,8 +64,13 @@ void JitArm64BlockCache::WriteLinkBlock(Arm64Gen::ARM64XEmitter& emit,
 
 void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
-  u8* location = source.exitPtrs;
-  ARM64XEmitter emit(location);
+#ifdef _BULLETPROOF_JIT
+  JitArm64& arm_jit = static_cast<JitArm64&>(m_jit);
+  Arm64Gen::ARM64CodeBlock& code_block = static_cast<Arm64Gen::ARM64CodeBlock&>(arm_jit);
+  ARM64XEmitter emit(source.exitPtrs, code_block.GetBpDifference());
+#else
+  ARM64XEmitter emit(source.exitPtrs);
+#endif
 
   WriteLinkBlock(emit, source, dest);
 
@@ -74,11 +79,17 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 
 void JitArm64BlockCache::WriteDestroyBlock(const JitBlock& block)
 {
+  JitArm64& arm_jit = static_cast<JitArm64&>(m_jit);
+  
   // Only clear the entry points as we might still be within this block.
+#ifdef _BULLETPROOF_JIT
+  Arm64Gen::ARM64CodeBlock& code_block = static_cast<Arm64Gen::ARM64CodeBlock&>(arm_jit);
+  ARM64XEmitter emit(block.checkedEntry, code_block.GetBpDifference());
+#else
   ARM64XEmitter emit(block.checkedEntry);
+#endif
 
-  JitArm64& armJit = static_cast<JitArm64&>(m_jit);
-  armJit.WriteCodeAtRegion(
+  arm_jit.WriteCodeAtRegion(
       [&] {
         while (emit.GetWritableCodePtr() <= block.normalEntry)
           emit.BRK(0x123);

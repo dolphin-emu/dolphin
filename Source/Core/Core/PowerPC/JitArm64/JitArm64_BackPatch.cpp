@@ -314,7 +314,11 @@ bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
   if ((const u8*)ctx->CTX_PC - fault_location > fastmem_area_length)
     return false;
 
+#ifdef _BULLETPROOF_JIT
+  ARM64XEmitter emitter((u8*)fault_location, GetBpDifference());
+#else
   ARM64XEmitter emitter((u8*)fault_location);
+#endif
 
   const u32 num_insts_max = fastmem_area_length / 4 - 1;
 

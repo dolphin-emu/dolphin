@@ -494,6 +494,9 @@ class ARM64XEmitter
 
 private:
   u8* m_code;
+#ifdef _BULLETPROOF_JIT
+  long m_writable_difference;
+#endif
   u8* m_lastCacheFlushEnd;
 
   void AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags);
@@ -532,16 +535,31 @@ protected:
   void Write32(u32 value);
 
 public:
+#ifdef _BULLETPROOF_JIT
+  ARM64XEmitter() : m_code(nullptr), m_writable_difference(0), m_lastCacheFlushEnd(nullptr) {}
+
+  ARM64XEmitter(u8* code_ptr, long writable_difference)
+  {
+    m_code = code_ptr;
+    m_writable_difference = writable_difference;
+    m_lastCacheFlushEnd = code_ptr;
+  }
+#else
   ARM64XEmitter() : m_code(nullptr), m_lastCacheFlushEnd(nullptr) {}
+
   ARM64XEmitter(u8* code_ptr)
   {
     m_code = code_ptr;
     m_lastCacheFlushEnd = code_ptr;
   }
+#endif
 
   virtual ~ARM64XEmitter() {}
   void SetCodePtr(u8* ptr);
   void SetCodePtrUnsafe(u8* ptr);
+#ifdef _BULLETPROOF_JIT
+  void SetBpDifference(long difference);
+#endif
   void ReserveCodeSpace(u32 bytes);
   u8* AlignCode16();
   u8* AlignCodePage();
@@ -549,6 +567,9 @@ public:
   void FlushIcache();
   void FlushIcacheSection(u8* start, u8* end);
   u8* GetWritableCodePtr();
+#ifdef _BULLETPROOF_JIT
+  long GetBpDifference();
+#endif
 
   // FixupBranch branching
   void SetJumpTarget(FixupBranch const& branch);
@@ -1137,9 +1158,15 @@ private:
     // AArch64: 0xD4200000 = BRK 0
     constexpr u32 brk_0 = 0xD4200000;
 
+#ifdef _BULLETPROOF_JIT
+    u8* target_region = secondary_region;
+#else
+    u8* target_region = region;
+#endif
+
     for (size_t i = 0; i < region_size; i += sizeof(u32))
     {
-      std::memcpy(region + i, &brk_0, sizeof(u32));
+      std::memcpy(target_region + i, &brk_0, sizeof(u32));
     }
   }
 };

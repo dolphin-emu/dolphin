@@ -37,6 +37,9 @@ private:
 
 protected:
   u8* region = nullptr;
+#ifdef _BULLETPROOF_JIT
+  u8* secondary_region = nullptr;
+#endif
   // Size of region we can use.
   size_t region_size = 0;
   // Original size of the region we allocated.
@@ -64,6 +67,13 @@ public:
     total_region_size = size;
     region = static_cast<u8*>(Common::AllocateExecutableMemory(total_region_size));
     T::SetCodePtr(region);
+
+#ifdef _BULLETPROOF_JIT
+    secondary_region = static_cast<u8*>(Common::RemapExecutableRegion(region, total_region_size));
+    Common::WriteProtectMemory(region, total_region_size, true);
+
+    T::SetBpDifference(secondary_region - region);
+#endif
   }
 
   // Always clear code space with breakpoints, so that if someone accidentally executes
@@ -94,6 +104,9 @@ public:
     for (CodeBlock* child : m_children)
     {
       child->region = nullptr;
+#ifdef _BULLETPROOF_JIT
+      child->secondary_region = nullptr;
+#endif
       child->region_size = 0;
       child->total_region_size = 0;
     }
@@ -242,6 +255,10 @@ public:
     child->region = child_region;
     child->region_size = child_size;
     child->total_region_size = child_size;
+#ifdef _BULLETPROOF_JIT
+    long difference = secondary_region - region;
+    child->secondary_region = child->region + difference;
+#endif
     child->ResetCodePtr();
     m_children.emplace_back(child);
   }

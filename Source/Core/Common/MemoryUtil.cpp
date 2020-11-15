@@ -68,6 +68,27 @@ void* AllocateExecutableMemory(size_t size)
   return ptr;
 }
 
+#ifdef _BULLETPROOF_JIT
+void* RemapExecutableRegion(void* region, size_t size)
+{
+  vm_address_t new_region;
+  vm_address_t target = reinterpret_cast<vm_address_t>(region);
+  vm_prot_t cur_protection = 0;
+  vm_prot_t max_protection = 0;
+
+  kern_return_t retval =
+      vm_remap(mach_task_self(), &new_region, size, 0, true, mach_task_self(), target, false,
+               &cur_protection, &max_protection, VM_INHERIT_DEFAULT);
+  if (retval != KERN_SUCCESS)
+  {
+    PanicAlert("vm_remap failed for RemapExecutableRegion (0x%x)", retval);
+    return nullptr;
+  }
+
+  return reinterpret_cast<void*>(new_region);
+}
+#endif
+
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
