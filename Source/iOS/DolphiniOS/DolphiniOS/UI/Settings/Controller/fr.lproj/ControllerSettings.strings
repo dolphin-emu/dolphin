@@ -207,3 +207,6 @@
 
 /* Class = "UILabel"; text = "Motion Pointer"; ObjectID = "red-cu-aCy"; */
 "red-cu-aCy.text" = "Motion Pointer";
+
+/* Class = "UILabel"; text = "3D Touch Analog Triggers"; ObjectID = "QbG-DP-mWi"; */
+"QbG-DP-mWi.text" = "3D Touch Analog Triggers";

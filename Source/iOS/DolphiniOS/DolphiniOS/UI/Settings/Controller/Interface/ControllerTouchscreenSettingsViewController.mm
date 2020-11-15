@@ -6,6 +6,7 @@
 
 #import "ControllerSettingsUtils.h"
 
+#import "Core/Core.h"
 #import "Core/HW/Wiimote.h"
 #import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
@@ -31,6 +32,17 @@
   [super viewWillAppear:animated];
   
   [self.m_haptic_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"haptic_feedback_enabled"]];
+  
+  if (self.traitCollection.forceTouchCapability == UIForceTouchCapabilityAvailable)
+  {
+    [self.m_3d_touch_switch setEnabled:true];
+    [self.m_3d_touch_switch setOn:[[NSUserDefaults standardUserDefaults] boolForKey:@"3d_touch_analog_triggers_enabled"]];
+  }
+  else
+  {
+    [self.m_3d_touch_switch setEnabled:false];
+    [self.m_3d_touch_switch setOn:false];
+  }
   
   [self.m_motion_switch setOn:[[TCDeviceMotion shared] getMotionMode] == 0];
   
@@ -66,9 +78,27 @@
   [self.m_button_opacity_slider setValue:[[NSUserDefaults standardUserDefaults] floatForKey:@"pad_opacity_value"]];
 }
 
+- (void)ShowEmulationWarning
+{
+  UIAlertController* alert_controller = [UIAlertController alertControllerWithTitle:DOLocalizedString(@"Note") message:NSLocalizedString(@"This change will take effect after emulation is stopped.", nil) preferredStyle:UIAlertControllerStyleAlert];
+  [alert_controller addAction:[UIAlertAction actionWithTitle:DOLocalizedString(@"OK") style:UIAlertActionStyleDefault handler:nil]];
+  
+  [self presentViewController:alert_controller animated:true completion:nil];
+}
+
 - (IBAction)HapticChanged:(id)sender
 {
   [[NSUserDefaults standardUserDefaults] setBool:self.m_haptic_switch.on forKey:@"haptic_feedback_enabled"];
+}
+
+- (IBAction)ThreeDTouchChanged:(id)sender
+{
+  [[NSUserDefaults standardUserDefaults] setBool:self.m_3d_touch_switch.on forKey:@"3d_touch_analog_triggers_enabled"];
+  
+  if (Core::IsRunning())
+  {
+    [self ShowEmulationWarning];
+  }
 }
 
 - (IBAction)MotionChanged:(id)sender

@@ -47,7 +47,9 @@ class TCButton: UIButton
     self.setTitle("", for: .normal)
     self.addTarget(self, action: #selector(buttonPressed), for: .touchDown)
     self.addTarget(self, action: #selector(buttonReleased), for: .touchUpInside)
-    self.m_use_3d_touch = self.traitCollection.forceTouchCapability == .available
+    
+    let threed_touch_enabled: Bool = UserDefaults.standard.bool(forKey: "3d_touch_analog_triggers_enabled")
+    self.m_use_3d_touch = threed_touch_enabled && self.traitCollection.forceTouchCapability == .available
   }
   
   func updateImage()
