@@ -116,6 +116,11 @@ void Motor::SetState(ControlState state)
     return;
   }
 
+  if (state == m_last_state)
+  {
+    return;
+  }
+
   NSError* error;
   if (state > 0)
   {
@@ -130,5 +135,7 @@ void Motor::SetState(ControlState state)
   {
     LOG_NSERROR("Failed to start/stop haptics: %s", error);
   }
+
+  m_last_state = state;
 }
 } // namespace ciface::Android

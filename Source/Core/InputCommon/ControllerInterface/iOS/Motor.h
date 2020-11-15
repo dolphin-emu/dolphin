@@ -36,5 +36,6 @@ private:
   CHHapticAdvancedPatternPlayer* m_haptic_player;
 #endif
   const std::string m_name;
+  ControlState m_last_state;
 };
 }  // namespace ciface::iOS
