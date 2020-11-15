@@ -23,6 +23,7 @@
 #import "Core/Core.h"
 #import "Core/HW/GCKeyboard.h"
 #import "Core/HW/GCPad.h"
+#import "Core/HW/GCPadEmu.h"
 #import "Core/HW/Wiimote.h"
 #import "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #import "Core/IOS/ES/ES.h"
@@ -412,7 +413,7 @@
 #endif
   
   // Apply latest touchscreen controller configuration
-  void(^update_input_config)(InputConfig*, bool) = ^(InputConfig* input_config, bool is_wii)
+  void(^update_touch_input_config)(InputConfig*, bool) = ^(InputConfig* input_config, bool is_wii)
   {
     for (int i = 0; i < 4; i++)
     {
@@ -473,10 +474,43 @@
   
   if ([[NSUserDefaults standardUserDefaults] integerForKey:@"tscontroller_config_version"] != latest_tscontroller_config_version)
   {
-    update_input_config(Pad::GetConfig(), false);
-    update_input_config(Wiimote::GetConfig(), true);
+    update_touch_input_config(Pad::GetConfig(), false);
+    update_touch_input_config(Wiimote::GetConfig(), true);
     
     [[NSUserDefaults standardUserDefaults] setInteger:latest_tscontroller_config_version forKey:@"tscontroller_config_version"];
+  }
+  
+  // Apply updates to the MFi configs if necessary
+  void(^update_mfi_input_config)(InputConfig*, bool) = ^(InputConfig* input_config, bool is_wii)
+  {
+    for (int i = 0; i < 4; i++)
+    {
+      ControllerEmu::EmulatedController* controller = input_config->GetController(i);
+      if ([ControllerSettingsUtils IsControllerConnectedToMFi:controller])
+      {
+        ControllerEmu::ControlGroup* rumble_group;
+        if (is_wii)
+        {
+          rumble_group = Wiimote::GetWiimoteGroup(i, WiimoteEmu::WiimoteGroup::Rumble);
+        }
+        else
+        {
+          rumble_group = Pad::GetGroup(i, PadGroup::Rumble);
+        }
+        
+        rumble_group->SetControlExpression(0, "Rumble");
+      }
+    }
+  };
+  
+  const NSInteger latest_mfi_config_version = 1;
+  
+  if ([[NSUserDefaults standardUserDefaults] integerForKey:@"mfi_config_version"] != latest_mfi_config_version)
+  {
+    update_mfi_input_config(Pad::GetConfig(), false);
+    update_mfi_input_config(Wiimote::GetConfig(), true);
+    
+    [[NSUserDefaults standardUserDefaults] setInteger:latest_mfi_config_version forKey:@"mfi_config_version"];
   }
 
   [[GameFileCacheHolder sharedInstance] scanSoftwareFolder];

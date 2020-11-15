@@ -43,5 +43,7 @@
 	<false/>
 	<key>tscontroller_config_version</key>
 	<integer>0</integer>
+	<key>mfi_config_version</key>
+	<integer>0</integer>
 </dict>
 </plist>

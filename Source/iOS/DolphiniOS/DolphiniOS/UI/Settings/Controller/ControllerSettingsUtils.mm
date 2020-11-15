@@ -100,6 +100,11 @@ static const std::map<SerialInterface::SIDevices, int> s_gc_types = {
   return controller->GetDefaultDevice().source == "Android";
 }
 
++ (bool)IsControllerConnectedToMFi:(ControllerEmu::EmulatedController*)controller
+{
+  return controller->GetDefaultDevice().source == "MFi";
+}
+
 + (bool)ShouldControllerSupportFullMotion:(ControllerEmu::EmulatedController*)controller
 {
   ciface::Core::Device* device = g_controller_interface.FindDevice(controller->GetDefaultDevice()).get();
