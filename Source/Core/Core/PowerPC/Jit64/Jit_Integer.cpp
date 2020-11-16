@@ -1849,6 +1849,30 @@ void Jit64::slwx(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC(a);
   }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b);
+    if (amount & 0x20)
+    {
+      gpr.SetImmediate32(a, 0);
+    }
+    else
+    {
+      RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+      RCOpArg Rs = gpr.Use(s, RCMode::Read);
+      RegCache::Realize(Ra, Rs);
+
+      if (a != s)
+        MOV(32, Ra, Rs);
+
+      amount &= 0x1f;
+      if (amount != 0)
+        SHL(32, Ra, Imm8(amount));
+    }
+
+    if (inst.Rc)
+      ComputeRC(a);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
