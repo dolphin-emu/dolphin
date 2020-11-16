@@ -1071,8 +1071,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_SAVE_DATA_FAILURE:
     {
-      m_dialog->AppendChat(
-          fmt::format(Common::GetStringT("{} failed to synchronize."), player.name));
+      m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize.", player.name));
       m_dialog->OnGameStartAborted();
       ChunkedDataAbort();
       m_start_pending = false;
@@ -1115,8 +1114,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
     case SYNC_CODES_FAILURE:
     {
-      m_dialog->AppendChat(
-          fmt::format(Common::GetStringT("{} failed to synchronize codes."), player.name));
+      m_dialog->AppendChat(Common::FmtFormatT("{0} failed to synchronize codes.", player.name));
       m_dialog->OnGameStartAborted();
       m_start_pending = false;
     }

@@ -107,7 +107,8 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   m_file.Seek(offset, SEEK_SET);
   if (!m_file.ReadBytes(m_zlib_buffer.data(), comp_block_size))
   {
-    PanicAlertFmtT("The disc image \"{}\" is truncated, some of the data is missing.", m_file_name);
+    PanicAlertFmtT("The disc image \"{0}\" is truncated, some of the data is missing.",
+                   m_file_name);
     m_file.Clear();
     return false;
   }
@@ -116,8 +117,8 @@ bool CompressedBlobReader::GetBlock(u64 block_num, u8* out_ptr)
   const u32 block_hash = Common::HashAdler32(m_zlib_buffer.data(), comp_block_size);
   if (block_hash != m_hashes[block_num])
   {
-    PanicAlertFmtT("The disc image \"{}\" is corrupt.\n"
-                   "Hash of block {} is {:08x} instead of {:08x}.",
+    PanicAlertFmtT("The disc image \"{0}\" is corrupt.\n"
+                   "Hash of block {1} is {2:08x} instead of {3:08x}.",
                    m_file_name, block_num, block_hash, m_hashes[block_num]);
   }
 
@@ -277,7 +278,7 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   if (!outfile)
   {
     PanicAlertFmtT(
-        "Failed to open the output file \"{}\".\n"
+        "Failed to open the output file \"{0}\".\n"
         "Check that you have permissions to write the target folder and that the media can "
         "be written.",
         outfile_path);
@@ -368,11 +369,11 @@ bool ConvertToGCZ(BlobReader* infile, const std::string& infile_path,
   }
 
   if (result == ConversionResultCode::ReadFailed)
-    PanicAlertFmtT("Failed to read from the input file \"{}\".", infile_path);
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
 
   if (result == ConversionResultCode::WriteFailed)
   {
-    PanicAlertFmtT("Failed to write the output file \"{}\".\n"
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                    "Check that you have enough space available on the target drive.",
                    outfile_path);
   }

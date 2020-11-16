@@ -560,8 +560,8 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
   const int ret = libusb_open(m_device, &m_handle);
   if (ret != 0)
   {
-    m_last_open_error = fmt::format(Common::GetStringT("Failed to open Bluetooth device: {}"),
-                                    libusb_error_name(ret));
+    m_last_open_error =
+        Common::FmtFormatT("Failed to open Bluetooth device: {0}", libusb_error_name(ret));
     return false;
   }
 
@@ -574,9 +574,8 @@ bool BluetoothReal::OpenDevice(libusb_device* device)
     result = libusb_detach_kernel_driver(m_handle, INTERFACE);
     if (result < 0 && result != LIBUSB_ERROR_NOT_FOUND && result != LIBUSB_ERROR_NOT_SUPPORTED)
     {
-      m_last_open_error =
-          fmt::format(Common::GetStringT("Failed to detach kernel driver for BT passthrough: {}"),
-                      libusb_error_name(result));
+      m_last_open_error = Common::FmtFormatT(
+          "Failed to detach kernel driver for BT passthrough: {0}", libusb_error_name(result));
       return false;
     }
   }
