@@ -25,13 +25,13 @@ namespace prime {
     void calculate_pitch_delta();
     float calculate_yaw_vel();
     void handle_beam_visor_switch(std::array<int, 4> const &beams,
-      std::array<std::tuple<int, int>, 4> const &visors);
+                                  std::array<std::tuple<int, int>, 4> const& visors);
     void mp3_handle_cursor(bool lock);
 
     void run_mod_menu(Region region);
     void run_mod_mp1();
     void run_mod_mp2(Region region);
-    void run_mod_mp3();
+    void run_mod_mp3(bool is_trilogy);
     void run_mod_mp1_gc();
     void run_mod_mp2_gc();
 
@@ -41,7 +41,7 @@ namespace prime {
     void add_beam_change_code_mp1(u32 start_point);
     void add_beam_change_code_mp2(u32 start_point);
     void add_grapple_slide_code_mp3(u32 start_point);
-    void add_control_state_hook_mp3(u32 start_point, Region region);
+    void add_control_state_hook_mp3(u32 start_point, bool is_trilogy, Region region);
     // Very large code, apologies for anyone who reads this
     // corresponding assembly is in comments :)
     void add_strafe_code_mp1_ntsc();
@@ -52,6 +52,7 @@ namespace prime {
     void init_mod_mp3(Region region);
     void init_mod_mp1_gc(Region region);
     void init_mod_mp2_gc(Region region);
+    void init_mod_mp3_wii(Region region);
 
     // All 3 of these games have this in common (MP3 just ignores beams)
     u32 active_visor_offset;

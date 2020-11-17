@@ -18,6 +18,7 @@ namespace prime {
       run_mod_mp2_gc();
       break;
     case Game::PRIME_3:
+    case Game::PRIME_3_WII:
       run_mod_mp3();
       break;
     default:
@@ -219,6 +220,9 @@ namespace prime {
     case Game::PRIME_3:
       init_mod_mp3(region);
       break;
+    case Game::PRIME_3_WII:
+      init_mod_mp3_wii(region);
+      break;
     }
     initialized = true;
   }
@@ -313,6 +317,20 @@ namespace prime {
       mp3_static.tweakgun_address = 0x806730fc;
       mp3_static.culling_address = 0x80314038;
     }
+    else {}
+  }
+  
+  void ViewModifier::init_mod_mp3_wii(Region region) {
+    if (region == Region::NTSC) {
+      mp3_static.camera_ptr_address = 0x805c4f94;
+      mp3_static.tweakgun_address = 0x8067d78c;
+      mp3_static.culling_address = 0x80316a1c;
+    }
+    /*else if (region == Region::PAL) {
+      mp3_static.camera_ptr_address = 0x805ca0e8;
+      mp3_static.tweakgun_address = 0x806730fc;
+      mp3_static.culling_address = 0x80314038;
+    }*/
     else {}
   }
 }  // namespace prime
