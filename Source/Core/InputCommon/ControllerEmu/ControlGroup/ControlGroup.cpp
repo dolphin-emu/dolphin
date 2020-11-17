@@ -33,9 +33,7 @@ void ControlGroup::AddVirtualNotchSetting(SettingValue<double>* value, double ma
   AddSetting(value,
              {_trans("Virtual Notches"),
               // i18n: The degrees symbol.
-              _trans("°"),
-              // i18n: Snap the thumbstick position to the nearest octagonal axis.
-              _trans("Snap the thumbstick position to the nearest octagonal axis.")},
+              _trans("°"), _trans("Snap the thumbstick position to the nearest octagonal axis.")},
              0, 0, max_virtual_notch_deg);
 }
 
