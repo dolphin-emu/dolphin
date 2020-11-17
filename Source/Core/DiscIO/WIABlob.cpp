@@ -2033,7 +2033,7 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
   if (!outfile)
   {
     PanicAlertFmtT(
-        "Failed to open the output file \"{}\".\n"
+        "Failed to open the output file \"{0}\".\n"
         "Check that you have permissions to write the target folder and that the media can "
         "be written.",
         outfile_path);
@@ -2048,11 +2048,11 @@ bool ConvertToWIAOrRVZ(BlobReader* infile, const std::string& infile_path,
               chunk_size, callback);
 
   if (result == ConversionResultCode::ReadFailed)
-    PanicAlertFmtT("Failed to read from the input file \"{}\".", infile_path);
+    PanicAlertFmtT("Failed to read from the input file \"{0}\".", infile_path);
 
   if (result == ConversionResultCode::WriteFailed)
   {
-    PanicAlertFmtT("Failed to write the output file \"{}\".\n"
+    PanicAlertFmtT("Failed to write the output file \"{0}\".\n"
                    "Check that you have enough space available on the target drive.",
                    outfile_path);
   }

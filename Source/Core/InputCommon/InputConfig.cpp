@@ -73,7 +73,7 @@ bool InputConfig::LoadConfig(bool isGC)
           if (profiles.empty())
           {
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertFmtT("No profiles found for game setting '{}'", profile_setting);
+            PanicAlertFmtT("No profiles found for game setting '{0}'", profile_setting);
             continue;
           }
 
