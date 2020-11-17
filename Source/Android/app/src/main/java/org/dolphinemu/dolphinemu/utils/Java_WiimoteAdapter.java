@@ -10,6 +10,8 @@ import android.hardware.usb.UsbEndpoint;
 import android.hardware.usb.UsbInterface;
 import android.hardware.usb.UsbManager;
 
+import androidx.annotation.Keep;
+
 import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.services.USBPermService;
 
@@ -30,6 +32,7 @@ public class Java_WiimoteAdapter
   static UsbInterface[] usb_intf = new UsbInterface[MAX_WIIMOTES];
   static UsbEndpoint[] usb_in = new UsbEndpoint[MAX_WIIMOTES];
 
+  @Keep
   public static byte[][] wiimote_payload = new byte[MAX_WIIMOTES][MAX_PAYLOAD];
 
   private static void RequestPermission()
@@ -62,6 +65,7 @@ public class Java_WiimoteAdapter
     }
   }
 
+  @Keep
   public static boolean QueryAdapter()
   {
     HashMap<String, UsbDevice> devices = manager.getDeviceList();
@@ -80,11 +84,13 @@ public class Java_WiimoteAdapter
     return false;
   }
 
+  @Keep
   public static int Input(int index)
   {
     return usb_con.bulkTransfer(usb_in[index], wiimote_payload[index], MAX_PAYLOAD, TIMEOUT);
   }
 
+  @Keep
   public static int Output(int index, byte[] buf, int size)
   {
     byte report_number = buf[0];
@@ -114,6 +120,7 @@ public class Java_WiimoteAdapter
     return write + 1;
   }
 
+  @Keep
   public static boolean OpenAdapter()
   {
     // If the adapter is already open. Don't attempt to do it again
