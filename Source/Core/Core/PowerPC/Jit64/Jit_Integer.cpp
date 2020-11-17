@@ -1907,6 +1907,43 @@ void Jit64::srawx(UGeckoInstruction inst)
   int b = inst.RB;
   int s = inst.RS;
 
+  if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b);
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
+    if (a != s)
+      MOV(32, Ra, Rs);
+
+    bool special = amount & 0x20;
+    amount &= 0x1f;
+
+    if (special)
+    {
+      SAR(32, Ra, Imm8(31));
+      FinalizeCarry(CC_NZ);
+    }
+    else if (amount == 0)
+    {
+      FinalizeCarry(false);
+    }
+    else if (!js.op->wantsCA)
+    {
+      SAR(32, Ra, Imm8(amount));
+      FinalizeCarry(CC_NZ);
+    }
+    else
+    {
+      MOV(32, R(RSCRATCH), Ra);
+      SAR(32, Ra, Imm8(amount));
+      SHL(32, R(RSCRATCH), Imm8(32 - amount));
+      TEST(32, Ra, R(RSCRATCH));
+      FinalizeCarry(CC_NZ);
+    }
+  }
+  else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
     RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
