@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "fmt/format.h"
+#include <fmt/format.h>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -163,8 +163,9 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     static bool warn_once = true;
     if (warn_once)
     {
-      ERROR_LOG(VIDEO, "BBox shall be used but it is disabled. Please use a gameini to enable it "
-                       "for this game.");
+      ERROR_LOG_FMT(VIDEO,
+                    "BBox shall be used but it is disabled. Please use a gameini to enable it "
+                    "for this game.");
     }
     warn_once = false;
     return 0;
@@ -175,9 +176,10 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     static bool warn_once = true;
     if (warn_once)
     {
-      PanicAlertT("This game requires bounding box emulation to run properly but your graphics "
-                  "card or its drivers do not support it. As a result you will experience bugs or "
-                  "freezes while running this game.");
+      PanicAlertFmtT(
+          "This game requires bounding box emulation to run properly but your graphics "
+          "card or its drivers do not support it. As a result you will experience bugs or "
+          "freezes while running this game.");
     }
     warn_once = false;
     return 0;

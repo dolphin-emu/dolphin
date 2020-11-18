@@ -49,7 +49,8 @@ u16 GetEncodedSampleCount(EFBCopyFormat format)
   case EFBCopyFormat::XFB:
     return 2;
   default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GetEncodedSampleCount)", static_cast<int>(format));
+    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GetEncodedSampleCount)",
+                  static_cast<int>(format));
     return 1;
   }
 }
@@ -839,8 +840,8 @@ std::string GenerateEncodingShader(const EFBCopyParams& params, APIType api_type
     WriteXFBEncoder(code, api_type, params);
     break;
   default:
-    PanicAlert("Invalid EFB Copy Format (0x%X)! (GenerateEncodingShader)",
-               static_cast<int>(params.copy_format));
+    PanicAlertFmt("Invalid EFB Copy Format ({:#X})! (GenerateEncodingShader)",
+                  static_cast<int>(params.copy_format));
     break;
   }
 
@@ -1487,7 +1488,7 @@ float4 DecodePixel(int val)
     break;
 
   default:
-    PanicAlert("Unknown format");
+    PanicAlertFmt("Unknown format");
     break;
   }
 

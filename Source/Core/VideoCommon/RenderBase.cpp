@@ -900,7 +900,7 @@ bool Renderer::InitializeImGui()
 {
   if (!ImGui::CreateContext())
   {
-    PanicAlert("Creating ImGui context failed");
+    PanicAlertFmt("Creating ImGui context failed");
     return false;
   }
 
@@ -919,7 +919,7 @@ bool Renderer::InitializeImGui()
   m_imgui_vertex_format = CreateNativeVertexFormat(vdecl);
   if (!m_imgui_vertex_format)
   {
-    PanicAlert("Failed to create imgui vertex format");
+    PanicAlertFmt("Failed to create imgui vertex format");
     return false;
   }
 
@@ -935,7 +935,7 @@ bool Renderer::InitializeImGui()
     std::unique_ptr<AbstractTexture> font_tex = CreateTexture(font_tex_config);
     if (!font_tex)
     {
-      PanicAlert("Failed to create imgui texture");
+      PanicAlertFmt("Failed to create imgui texture");
       return false;
     }
     font_tex->Load(0, font_tex_width, font_tex_height, font_tex_width, font_tex_pixels,
@@ -962,7 +962,7 @@ bool Renderer::RecompileImGuiPipeline()
       CreateShaderFromSource(ShaderStage::Pixel, FramebufferShaderGen::GenerateImGuiPixelShader());
   if (!vertex_shader || !pixel_shader)
   {
-    PanicAlert("Failed to compile imgui shaders");
+    PanicAlertFmt("Failed to compile imgui shaders");
     return false;
   }
 
@@ -974,7 +974,7 @@ bool Renderer::RecompileImGuiPipeline()
         ShaderStage::Geometry, FramebufferShaderGen::GeneratePassthroughGeometryShader(1, 1));
     if (!geometry_shader)
     {
-      PanicAlert("Failed to compile imgui geometry shader");
+      PanicAlertFmt("Failed to compile imgui geometry shader");
       return false;
     }
   }
@@ -1000,7 +1000,7 @@ bool Renderer::RecompileImGuiPipeline()
   m_imgui_pipeline = CreatePipeline(pconfig);
   if (!m_imgui_pipeline)
   {
-    PanicAlert("Failed to create imgui pipeline");
+    PanicAlertFmt("Failed to create imgui pipeline");
     return false;
   }
 
@@ -1436,7 +1436,7 @@ bool Renderer::CheckFrameDumpRenderTexture(u32 target_width, u32 target_height)
                                   AbstractTextureFormat::RGBA8, AbstractTextureFlag_RenderTarget));
   if (!m_frame_dump_render_texture)
   {
-    PanicAlert("Failed to allocate frame dump render texture");
+    PanicAlertFmt("Failed to allocate frame dump render texture");
     return false;
   }
   m_frame_dump_render_framebuffer = CreateFramebuffer(m_frame_dump_render_texture.get(), nullptr);
@@ -1480,7 +1480,7 @@ void Renderer::FlushFrameDump()
   }
   else
   {
-    ERROR_LOG(VIDEO, "Failed to map texture for dumping.");
+    ERROR_LOG_FMT(VIDEO, "Failed to map texture for dumping.");
   }
 
   m_frame_dump_needs_flush = false;
@@ -1552,8 +1552,8 @@ void Renderer::FrameDumpThreadFunc()
 #if !defined(HAVE_FFMPEG)
   if (dump_to_ffmpeg)
   {
-    WARN_LOG(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
-                    "Frames will be saved as PNG images instead.");
+    WARN_LOG_FMT(VIDEO, "FrameDump: Dolphin was not compiled with FFmpeg, using fallback option. "
+                        "Frames will be saved as PNG images instead.");
     dump_to_ffmpeg = false;
   }
 #endif
@@ -1666,7 +1666,7 @@ bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
     std::string filename = GetFrameDumpNextImageFileName();
     if (File::Exists(filename))
     {
-      if (!AskYesNoT("Frame dump image(s) '%s' already exists. Overwrite?", filename.c_str()))
+      if (!AskYesNoFmtT("Frame dump image(s) '{}' already exists. Overwrite?", filename))
         return false;
     }
   }

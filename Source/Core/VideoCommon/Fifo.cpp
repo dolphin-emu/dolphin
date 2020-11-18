@@ -123,7 +123,7 @@ void Init()
 void Shutdown()
 {
   if (s_gpu_mainloop.IsRunning())
-    PanicAlert("Fifo shutting down while active");
+    PanicAlertFmt("FIFO shutting down while active");
 
   Common::FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
   s_video_buffer = nullptr;
@@ -167,7 +167,10 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
 
     // Opportunistically reset FIFOs so we don't wrap around.
     if (may_move_read_ptr && s_fifo_aux_write_ptr != s_fifo_aux_read_ptr)
-      PanicAlert("aux fifo not synced (%p, %p)", s_fifo_aux_write_ptr, s_fifo_aux_read_ptr);
+    {
+      PanicAlertFmt("Aux FIFO not synced ({}, {})", fmt::ptr(s_fifo_aux_write_ptr),
+                    fmt::ptr(s_fifo_aux_read_ptr));
+    }
 
     memmove(s_fifo_aux_data, s_fifo_aux_read_ptr, s_fifo_aux_write_ptr - s_fifo_aux_read_ptr);
     s_fifo_aux_write_ptr -= (s_fifo_aux_read_ptr - s_fifo_aux_data);
@@ -206,7 +209,7 @@ void PushFifoAuxBuffer(const void* ptr, size_t size)
     {
       // That will sync us up to the last 32 bytes, so this short region
       // of FIFO would have to point to a 2MB display list or something.
-      PanicAlert("absurdly large aux buffer");
+      PanicAlertFmt("Absurdly large aux buffer");
       return;
     }
   }
@@ -224,13 +227,13 @@ void* PopFifoAuxBuffer(size_t size)
 // Description: RunGpuLoop() sends data through this function.
 static void ReadDataFromFifo(u32 readPtr)
 {
-  size_t len = 32;
-  if (len > (size_t)(s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
+  constexpr size_t len = 32;
+  if (len > static_cast<size_t>(s_video_buffer + FIFO_SIZE - s_video_buffer_write_ptr))
   {
-    size_t existing_len = s_video_buffer_write_ptr - s_video_buffer_read_ptr;
-    if (len > (size_t)(FIFO_SIZE - existing_len))
+    const size_t existing_len = s_video_buffer_write_ptr - s_video_buffer_read_ptr;
+    if (len > static_cast<size_t>(FIFO_SIZE - existing_len))
     {
-      PanicAlert("FIFO out of bounds (existing %zu + new %zu > %u)", existing_len, len, FIFO_SIZE);
+      PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len, len, FIFO_SIZE);
       return;
     }
     memmove(s_video_buffer, s_video_buffer_read_ptr, existing_len);
@@ -245,9 +248,9 @@ static void ReadDataFromFifo(u32 readPtr)
 // The deterministic_gpu_thread version.
 static void ReadDataFromFifoOnCPU(u32 readPtr)
 {
-  size_t len = 32;
+  constexpr size_t len = 32;
   u8* write_ptr = s_video_buffer_write_ptr;
-  if (len > (size_t)(s_video_buffer + FIFO_SIZE - write_ptr))
+  if (len > static_cast<size_t>(s_video_buffer + FIFO_SIZE - write_ptr))
   {
     // We can't wrap around while the GPU is working on the data.
     // This should be very rare due to the reset in SyncGPU.
@@ -260,14 +263,14 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
 
     if (s_video_buffer_pp_read_ptr != s_video_buffer_read_ptr)
     {
-      PanicAlert("desynced read pointers");
+      PanicAlertFmt("Desynced read pointers");
       return;
     }
     write_ptr = s_video_buffer_write_ptr;
-    size_t existing_len = write_ptr - s_video_buffer_pp_read_ptr;
-    if (len > (size_t)(FIFO_SIZE - existing_len))
+    const size_t existing_len = write_ptr - s_video_buffer_pp_read_ptr;
+    if (len > static_cast<size_t>(FIFO_SIZE - existing_len))
     {
-      PanicAlert("FIFO out of bounds (existing %zu + new %zu > %u)", existing_len, len, FIFO_SIZE);
+      PanicAlertFmt("FIFO out of bounds (existing {} + new {} > {})", existing_len, len, FIFO_SIZE);
       return;
     }
   }
