@@ -223,7 +223,7 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
   if (mode == "fake-completion")
     return GPUDeterminismMode::FakeCompletion;
 
-  NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
+  NOTICE_LOG_FMT(BOOT, "Unknown GPU determinism mode {}", mode);
   return GPUDeterminismMode::Auto;
 }
 

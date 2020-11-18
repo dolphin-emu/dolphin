@@ -109,7 +109,7 @@ NetPlayServer::NetPlayServer(const u16 port, const bool forward_port, NetPlayUI*
   //--use server time
   if (enet_initialize() != 0)
   {
-    PanicAlertT("Enet Didn't Initialize");
+    PanicAlertFmtT("Enet Didn't Initialize");
   }
 
   m_pad_map.fill(0);
@@ -275,8 +275,8 @@ void NetPlayServer::ThreadFunc()
       {
         // Actual client initialization is deferred to the receive event, so here
         // we'll just log the new connection.
-        INFO_LOG(NETPLAY, "Peer connected from: %x:%u", netEvent.peer->address.host,
-                 netEvent.peer->address.port);
+        INFO_LOG_FMT(NETPLAY, "Peer connected from: {:x}:{}", netEvent.peer->address.host,
+                     netEvent.peer->address.port);
       }
       break;
       case ENET_EVENT_TYPE_RECEIVE:
@@ -678,7 +678,7 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   MessageId mid;
   packet >> mid;
 
-  INFO_LOG(NETPLAY, "Got client message: %x", mid);
+  INFO_LOG_FMT(NETPLAY, "Got client message: {:x}", mid);
 
   // don't need lock because this is the only thread that modifies the players
   // only need locks for writes to m_players in this thread
@@ -1121,8 +1121,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     break;
 
     default:
-      PanicAlertT(
-          "Unknown SYNC_GECKO_CODES message with id:%d received from player:%d Kicking player!",
+      PanicAlertFmtT(
+          "Unknown SYNC_GECKO_CODES message with id:{0} received from player:{1} Kicking player!",
           sub_id, player.pid);
       return 1;
     }
@@ -1130,8 +1130,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   break;
 
   default:
-    PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
-                player.pid);
+    PanicAlertFmtT("Unknown message with id:{0} received from player:{1} Kicking player!", mid,
+                   player.pid);
     // unknown message, kick the client
     return 1;
   }
@@ -1232,7 +1232,7 @@ bool NetPlayServer::RequestStartGame()
     m_start_pending = true;
     if (!SyncSaveData())
     {
-      PanicAlertT("Error synchronizing save data!");
+      PanicAlertFmtT("Error synchronizing save data!");
       m_start_pending = false;
       return false;
     }
@@ -1245,7 +1245,7 @@ bool NetPlayServer::RequestStartGame()
     m_start_pending = true;
     if (!SyncCodes())
     {
-      PanicAlertT("Error synchronizing cheat codes!");
+      PanicAlertFmtT("Error synchronizing cheat codes!");
       m_start_pending = false;
       return false;
     }
@@ -1638,7 +1638,7 @@ bool NetPlayServer::SyncCodes()
   const auto game = m_dialog->FindGameFile(m_selected_game_identifier);
   if (game == nullptr)
   {
-    PanicAlertT("Selected game doesn't exist in game list!");
+    PanicAlertFmtT("Selected game doesn't exist in game list!");
     return false;
   }
 
@@ -1672,16 +1672,16 @@ bool NetPlayServer::SyncCodes()
     u16 codelines = 0;
     for (const Gecko::GeckoCode& active_code : s_active_codes)
     {
-      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Indexing {}", active_code.name);
       for (const Gecko::GeckoCode::Code& code : active_code.codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", code.address, code.data);
         codelines++;
       }
     }
 
     // Output codelines to send
-    NOTICE_LOG(ACTIONREPLAY, "Sending %d Gecko codelines", codelines);
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {} Gecko codelines", codelines);
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
@@ -1700,10 +1700,10 @@ bool NetPlayServer::SyncCodes()
       // Iterate through the active code vector and send each codeline
       for (const Gecko::GeckoCode& active_code : s_active_codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {}", active_code.name);
         for (const Gecko::GeckoCode::Code& code : active_code.codes)
         {
-          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", code.address, code.data);
+          NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", code.address, code.data);
           pac << code.address;
           pac << code.data;
         }
@@ -1722,16 +1722,16 @@ bool NetPlayServer::SyncCodes()
     u16 codelines = 0;
     for (const ActionReplay::ARCode& active_code : s_active_codes)
     {
-      NOTICE_LOG(ACTIONREPLAY, "Indexing %s", active_code.name.c_str());
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Indexing {}", active_code.name);
       for (const ActionReplay::AREntry& op : active_code.ops)
       {
-        NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
         codelines++;
       }
     }
 
     // Output codelines to send
-    NOTICE_LOG(ACTIONREPLAY, "Sending %d AR codelines", codelines);
+    NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {} AR codelines", codelines);
 
     // Send initial packet. Notify of the sync operation and total number of lines being sent.
     {
@@ -1750,10 +1750,10 @@ bool NetPlayServer::SyncCodes()
       // Iterate through the active code vector and send each codeline
       for (const ActionReplay::ARCode& active_code : s_active_codes)
       {
-        NOTICE_LOG(ACTIONREPLAY, "Sending %s", active_code.name.c_str());
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Sending {}", active_code.name);
         for (const ActionReplay::AREntry& op : active_code.ops)
         {
-          NOTICE_LOG(ACTIONREPLAY, "%08x %08x", op.cmd_addr, op.value);
+          NOTICE_LOG_FMT(ACTIONREPLAY, "{:08x} {:08x}", op.cmd_addr, op.value);
           pac << op.cmd_addr;
           pac << op.value;
         }
@@ -1778,7 +1778,7 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
   File::IOFile file(file_path, "rb");
   if (!file)
   {
-    PanicAlertT("Failed to open file \"%s\".", file_path.c_str());
+    PanicAlertFmtT("Failed to open file \"{0}\".", file_path);
     return false;
   }
 
@@ -1812,14 +1812,14 @@ bool NetPlayServer::CompressFileIntoPacket(const std::string& file_path, sf::Pac
 
     if (!file.ReadBytes(in_buffer.data(), cur_len))
     {
-      PanicAlertT("Error reading file: %s", file_path.c_str());
+      PanicAlertFmtT("Error reading file: {0}", file_path.c_str());
       return false;
     }
 
     if (lzo1x_1_compress(in_buffer.data(), cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
         LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - compression failed");
+      PanicAlertFmtT("Internal LZO Error - compression failed");
       return false;
     }
 
@@ -1874,7 +1874,7 @@ bool NetPlayServer::CompressBufferIntoPacket(const std::vector<u8>& in_buffer, s
     if (lzo1x_1_compress(&in_buffer[i], cur_len, out_buffer.data(), &out_len, wrkmem.data()) !=
         LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - compression failed");
+      PanicAlertFmtT("Internal LZO Error - compression failed");
       return false;
     }
 

@@ -77,9 +77,9 @@ static bool VerifyRoms()
 
   if (rom_idx < 0)
   {
-    if (AskYesNoT("Your DSP ROMs have incorrect hashes.\n"
-                  "Would you like to stop now to fix the problem?\n"
-                  "If you select \"No\", audio might be garbled."))
+    if (AskYesNoFmtT("Your DSP ROMs have incorrect hashes.\n"
+                     "Would you like to stop now to fix the problem?\n"
+                     "If you select \"No\", audio might be garbled."))
       return false;
   }
 
@@ -254,7 +254,7 @@ void DSPCore_CheckExceptions()
       else
       {
 #if defined(_DEBUG) || defined(DEBUGFAST)
-        ERROR_LOG(DSPLLE, "Firing exception %d failed", i);
+        ERROR_LOG_FMT(DSPLLE, "Firing exception {} failed", i);
 #endif
       }
     }

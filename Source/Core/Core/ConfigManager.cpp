@@ -80,7 +80,7 @@ SConfig::~SConfig()
 
 void SConfig::SaveSettings()
 {
-  NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  NOTICE_LOG_FMT(BOOT, "Saving settings to {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
 
@@ -343,7 +343,7 @@ void SConfig::LoadSettings()
 {
   Config::Load();
 
-  INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
+  INFO_LOG_FMT(BOOT, "Loading Settings from {}", File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
 
@@ -690,7 +690,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, const std::stri
   const DiscIO::Language language = GetLanguageAdjustedForRegion(bWii, region);
   m_title_name = title_database.GetTitleName(m_gametdb_id, language);
   m_title_description = title_database.Describe(m_gametdb_id, language);
-  NOTICE_LOG(CORE, "Active title: %s", m_title_description.c_str());
+  NOTICE_LOG_FMT(CORE, "Active title: {}", m_title_description);
   Host_TitleChanged();
 
   Config::AddLayer(ConfigLoaders::GenerateGlobalGameConfigLoader(game_id, revision));
@@ -848,12 +848,12 @@ struct SetGameMetadata
   {
     if (!wad.GetTMD().IsValid())
     {
-      PanicAlertT("This WAD is not valid.");
+      PanicAlertFmtT("This WAD is not valid.");
       return false;
     }
     if (!IOS::ES::IsChannel(wad.GetTMD().GetTitleId()))
     {
-      PanicAlertT("This WAD is not bootable.");
+      PanicAlertFmtT("This WAD is not bootable.");
       return false;
     }
 
@@ -871,7 +871,7 @@ struct SetGameMetadata
     const IOS::ES::TMDReader tmd = ios.GetES()->FindInstalledTMD(nand_title.id);
     if (!tmd.IsValid() || !IOS::ES::IsChannel(nand_title.id))
     {
-      PanicAlertT("This title cannot be booted.");
+      PanicAlertFmtT("This title cannot be booted.");
       return false;
     }
 

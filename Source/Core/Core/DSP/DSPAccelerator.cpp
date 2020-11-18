@@ -27,7 +27,7 @@ u16 Accelerator::ReadD3()
     m_current_address++;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_read_aram_d3() - unknown format 0x%x", m_sample_format);
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_aram_d3() - unknown format {:#x}", m_sample_format);
     break;
   }
 
@@ -54,7 +54,7 @@ void Accelerator::WriteD3(u16 value)
     m_current_address++;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_write_aram_d3() - unknown format 0x%x", m_sample_format);
+    ERROR_LOG_FMT(DSPLLE, "dsp_write_aram_d3() - unknown format {:#x}", m_sample_format);
     break;
   }
 }
@@ -133,7 +133,7 @@ u16 Accelerator::Read(const s16* coefs)
     m_current_address += 1;
     break;
   default:
-    ERROR_LOG(DSPLLE, "dsp_read_accelerator() - unknown format 0x%x", m_sample_format);
+    ERROR_LOG_FMT(DSPLLE, "dsp_read_accelerator() - unknown format {:#x}", m_sample_format);
     step_size_bytes = 2;
     m_current_address += 1;
     val = 0;

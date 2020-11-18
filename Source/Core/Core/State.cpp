@@ -381,7 +381,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
       }
 
       if (lzo1x_1_compress(buffer_data + i, cur_len, out, &out_len, wrkmem) != LZO_E_OK)
-        PanicAlertT("Internal LZO Error - compression failed");
+        PanicAlertFmtT("Internal LZO Error - compression failed");
 
       // The size of the data to write is 'out_len'
       f.WriteArray((lzo_uint32*)&out_len, 1);
@@ -532,9 +532,9 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
       if (res != LZO_E_OK)
       {
         // This doesn't seem to happen anymore.
-        PanicAlertT("Internal LZO Error - decompression failed (%d) (%li, %li) \n"
-                    "Try loading the state again",
-                    res, i, new_len);
+        PanicAlertFmtT("Internal LZO Error - decompression failed ({0}) ({1}, {2}) \n"
+                       "Try loading the state again",
+                       res, i, new_len);
         return;
       }
 
@@ -543,12 +543,12 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   }
   else  // uncompressed
   {
-    const size_t size = (size_t)(f.GetSize() - sizeof(StateHeader));
+    const auto size = static_cast<size_t>(f.GetSize() - sizeof(StateHeader));
     buffer.resize(size);
 
     if (!f.ReadBytes(&buffer[0], size))
     {
-      PanicAlert("wtf? reading bytes: %zu", size);
+      PanicAlertFmt("Error reading bytes: {0}", size);
       return;
     }
   }
@@ -638,7 +638,7 @@ void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 void Init()
 {
   if (lzo_init() != LZO_E_OK)
-    PanicAlertT("Internal LZO Error - lzo_init() failed");
+    PanicAlertFmtT("Internal LZO Error - lzo_init() failed");
 }
 
 void Shutdown()
@@ -727,12 +727,12 @@ void UndoLoadState()
     }
     else
     {
-      PanicAlertT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
+      PanicAlertFmtT("No undo.dtm found, aborting undo load state to prevent movie desyncs");
     }
   }
   else
   {
-    PanicAlertT("There is nothing to undo!");
+    PanicAlertFmtT("There is nothing to undo!");
   }
 }
 
