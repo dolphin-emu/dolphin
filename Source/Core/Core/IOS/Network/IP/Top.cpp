@@ -145,10 +145,18 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
     return SO_REUSEADDR;
   case 0x80:
     return SO_LINGER;
+  case 0x100:
+    return SO_OOBINLINE;
   case 0x1001:
     return SO_SNDBUF;
   case 0x1002:
     return SO_RCVBUF;
+  case 0x1003:
+    return SO_SNDLOWAT;
+  case 0x1004:
+    return SO_RCVLOWAT;
+  case 0x1008:
+    return SO_TYPE;
   case 0x1009:
     return SO_ERROR;
   }
