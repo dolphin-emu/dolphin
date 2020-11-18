@@ -33,6 +33,7 @@ namespace prime {
     void init_mod_mp2(Region region);
     void init_mod_mp2_gc(Region region);
     void init_mod_mp3(Region region);
+    void init_mod_mp3_wii(Region region);
 
     union {
       struct {

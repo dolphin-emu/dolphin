@@ -50,13 +50,16 @@ namespace prime {
       run_mod_mp2(region);
       break;
     case Game::PRIME_3:
-      run_mod_mp3();
+      run_mod_mp3(true);
       break;
     case Game::PRIME_1_GCN:
       run_mod_mp1_gc();
       break;
     case Game::PRIME_2_GCN:
       run_mod_mp2_gc();
+      break;
+    case Game::PRIME_3_WII:
+      run_mod_mp3(false);
       break;
     default:
       break;
@@ -81,6 +84,7 @@ namespace prime {
     // even for things like visors/beams)
     u32 powerups_array_base;
     powerups_array_base = read32(powerups_ptr_address);
+
 
     // We copy out the ownership status of beams and visors to our own array for
     // get_beam_switch and get_visor_switch
@@ -151,7 +155,7 @@ namespace prime {
     write32(0, mp1_static.angvel_limiter_address);
 
     u32 ball_state = read32(mp1_static.cplayer_address + 0x2f4);
-    if (ball_state != 1 && ball_state != 2) {
+    if (ball_state == 0) {
       // Actual angular velocity Z address amazing
       writef32(calculate_yaw_vel(), mp1_static.yaw_vel_address);
     }
@@ -169,7 +173,7 @@ namespace prime {
     writef32(1.52f, mp1_gc_static.tweak_player_address + 0x134);
 
     u32 ball_state = read32(mp1_gc_static.cplayer_address + 0x2f4);
-    if (ball_state != 1 && ball_state != 2) {
+    if (ball_state == 0) {
       // Actual angular velocity Z address amazing
       writef32(calculate_yaw_vel() / 200.f, mp1_gc_static.yaw_vel_address);
     }
@@ -226,7 +230,7 @@ namespace prime {
 
     u32 ball_state = read32(cplayer_address + 0x374);
 
-    if (ball_state != 1 && ball_state != 2)
+    if (ball_state == 0)
       writef32(calculate_yaw_vel(), cplayer_address + 0x178);
 
     // Nothing new here
@@ -274,7 +278,7 @@ namespace prime {
 
     const u32 ball_state = read32(cplayer_address + 0x38c);
 
-    if (ball_state != 1 && ball_state != 2) {
+    if (ball_state == 0) {
       // Forgot to note this in MP1 GC, in trilogy we were using angular momentum
       // whereas we're using angvel here, so divide out Samus' mass (200)
       writef32(calculate_yaw_vel() / 200.f, cplayer_address + 0x1bc);
@@ -293,25 +297,37 @@ namespace prime {
   }
 
   // this game is
-  void FpsControls::run_mod_mp3() {
-    u32 cplayer_address = read32(read32(read32(mp3_static.cplayer_ptr_address) + 0x04) + 0x2184);
+  void FpsControls::run_mod_mp3(bool is_trilogy) {
+    u32 cplayer_address = 0;
+    if (is_trilogy)
+      cplayer_address = read32(read32(read32(mp3_static.cplayer_ptr_address) + 0x04) + 0x2184);
+    else
+      cplayer_address = read32(read32(mp3_static.cplayer_ptr_address) + 0x2184);
 
-    if (!mem_check(cplayer_address)) {
-      // Handles death screen cursor
-      if (read8(mp3_static.cursor_dlg_enabled_address)) {
+    // Handles menu screen cursor
+    if (read8(mp3_static.cursor_dlg_enabled_address)) {
         mp3_handle_cursor(false);
-      }
-      return;
+        return;
     }
 
+    if (!mem_check(cplayer_address))
+      return;
+
     // HACK ooo
-    powerups_ptr_address = cplayer_address + 0x35a8;
+    if (is_trilogy)
+      powerups_ptr_address = cplayer_address + 0x35a8;
+    else
+      powerups_ptr_address = cplayer_address + 0x35a0;
     handle_beam_visor_switch({}, prime_three_visors);
 
     // Handle Interactable Entities
     bool lock_camera = false;
 
-    u32 obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
+    u32 obj_list_iterator = 0;
+    if(is_trilogy)
+      obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
+    else
+      obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address) + 0x1018) + 4;
     const u32 base = obj_list_iterator;
 
     while (true) {
@@ -378,8 +394,8 @@ namespace prime {
     bool is_boss_metaridley = is_string_ridley(boss_name_str);
 
     // Compare based on boss name string, Meta Ridley only appears once
-    if (read8(mp3_static.cursor_dlg_enabled_address) || is_boss_metaridley) {
-      if (is_boss_metaridley && !fighting_ridley) {
+    if (is_boss_metaridley) {
+      if (!fighting_ridley) {
         fighting_ridley = true;
         set_state(ModState::CODE_DISABLED);
       }
@@ -403,11 +419,14 @@ namespace prime {
     // Gun damping uses its own TOC value, so screw it (I checked the binary)
     u32 rtoc_gun_damp = GPR(2) - mp3_static.gun_lag_toc_offset;
     write32(0, rtoc_gun_damp);
-    writef32(pitch, cplayer_address + 0x784);
+    if(is_trilogy)
+      writef32(pitch, cplayer_address + 0x784);
+    else
+      writef32(pitch, cplayer_address + 0x77c);
 
     u32 ball_state = read32(cplayer_address + 0x358);
 
-    if (ball_state != 1 && ball_state != 2)
+    if (ball_state == 0)
       writef32(calculate_yaw_vel(), cplayer_address + 0x174);
 
     // Nothing new here
@@ -430,6 +449,9 @@ namespace prime {
       break;
     case Game::PRIME_3:
       init_mod_mp3(region);
+      break;
+    case Game::PRIME_3_WII:
+      init_mod_mp3_wii(region);
       break;
     }
     initialized = true;
@@ -475,30 +497,64 @@ namespace prime {
                                                                 // ; to their own transform (safety no-op, does other updating too)
   }
 
-  void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
+  void FpsControls::add_control_state_hook_mp3(u32 start_point, bool is_trilogy, Region region) {
     if (region == Region::NTSC)
     {
-      code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
-      code_changes.emplace_back(start_point + 0x04, 0x38636c40);  // addi r3, r3, 0x6c40  ; load 0x805c6c40 into r3
-                                                                  // ; (indirect pointer to player camera control)
+      if (is_trilogy)
+      {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
+        code_changes.emplace_back(start_point + 0x04,
+                                  0x38636c40);  // addi r3, r3, 0x6c40  ; load 0x805c6c40 into r3
+                                                // ; (indirect pointer to player camera control)
+      }
+      else
+      {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
+        code_changes.emplace_back(start_point + 0x04,
+                                  0x38634f6c);  // addi r3, r3, 0x4f6c  ; load 0x805c4f6c into r3, same reason as Trilogy NTSC
+      }
     }
     else if (region == Region::PAL)
     {
-      code_changes.emplace_back(start_point + 0x00, 0x3c60805d);  // lis  r3, 0x805d      ;
-      code_changes.emplace_back(start_point + 0x04, 0x3863a0c0);  // subi r3, r3, 0x5f40  ; load 0x805ca0c0 into r3, same reason as NTSC
+      if (is_trilogy)
+      {
+        code_changes.emplace_back(start_point + 0x00, 0x3c60805d);  // lis  r3, 0x805d      ;
+        code_changes.emplace_back(start_point + 0x04,
+                                  0x3863a0c0);  // subi r3, r3, 0x5f40  ; load 0x805ca0c0 into r3, same reason as NTSC
+      }
+      else
+      {
+        /* TO-DO */
+      }
     }
     code_changes.emplace_back(start_point + 0x08, 0x8063002c);  // lwz  r3, 0x2c(r3)      ; deref player camera control base address into r3
-    code_changes.emplace_back(start_point + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)      ; the point at which the function which was hooked
+    if (is_trilogy)
+      code_changes.emplace_back(start_point + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)    ; the point at which the function which was hooked
+    else
+      code_changes.emplace_back(start_point + 0x0c, 0x60000000);  // nop                  ; doesn't apply with non trilogy mp3
     code_changes.emplace_back(start_point + 0x10, 0x80632184);  // lwz  r3, 0x2184(r3)    ; should have r31 equal to the
                                                                 // ; object which is being modified
     code_changes.emplace_back(start_point + 0x14, 0x7c03f800);  // cmpw r3, r31           ; if r31 is player camera control (in r3)
-    code_changes.emplace_back(start_point + 0x18, 0x4d820020);  // beqlr                  ; then DON'T store the value of
-                                                                // ; r6 into 0x78+(player camera control)
+    if (is_trilogy)
+      code_changes.emplace_back(start_point + 0x18, 0x4d820020);  // beqlr                ; then DON'T store the value of
+                                                                  // ; r6 into 0x78+(player camera control)
+    else // can't jump to LR since the function is not called but jumped to instead
+    {
+      if (region == Region::NTSC)
+        code_changes.emplace_back(start_point + 0x18, 0x418255b0); // beq 8000ae48         ; then DON'T store the value of
+                                                                   // ; r6 into 0x78+(player camera control)
+    }
     code_changes.emplace_back(start_point + 0x1c, 0x7fe3fb78);  // mr   r3, r31           ; otherwise do it
     code_changes.emplace_back(start_point + 0x20, 0x90c30078);  // stw  r6, 0x78(r3)      ; this is the normal action
                                                                 // ; which was overwritten by a bl to this mini-function
-    code_changes.emplace_back(start_point + 0x24, 0x4e800020);  // blr                    ; LR wasn't changed, so we're
-                                                                // ; safe here (same case as beqlr)
+    if (is_trilogy)
+      code_changes.emplace_back(start_point + 0x24, 0x4e800020);  // blr                    ; LR wasn't changed, so we're
+                                                                  // ; safe here (same case as beqlr)
+    else // not sure why but it won't call this function and rather jump to it
+    {
+      if (region == Region::NTSC)
+        code_changes.emplace_back(start_point + 0x24, 0x480055A4);  // b 8000ae48
+    }
   }
 
   // Truly cursed
@@ -1177,7 +1233,7 @@ namespace prime {
 
       // Remove visors menu
       code_changes.emplace_back(0x800614ec, 0x48000018);
-      add_control_state_hook_mp3(0x80005880, Region::NTSC);
+      add_control_state_hook_mp3(0x80005880, true, Region::NTSC);
       add_grapple_slide_code_mp3(0x8017f2a0);
 
       mp3_static.cplayer_ptr_address = 0x805c6c6c;
@@ -1202,7 +1258,7 @@ namespace prime {
 
       // Remove visors menu
       code_changes.emplace_back(0x800614ec, 0x48000018);
-      add_control_state_hook_mp3(0x80005880, Region::PAL);
+      add_control_state_hook_mp3(0x80005880, true, Region::PAL);
       add_grapple_slide_code_mp3(0x8017ebec);
 
       mp3_static.cplayer_ptr_address = 0x805ca0ec;
@@ -1221,4 +1277,68 @@ namespace prime {
     powerups_offset = 0x58;
     has_beams = false;
   }
-}
+
+  void FpsControls::init_mod_mp3_wii(Region region)
+  {
+    if (region == Region::NTSC)
+    {
+      code_changes.emplace_back(0x80080be8, 0xec010072);
+      code_changes.emplace_back(0x801521f0, 0x60000000);
+      code_changes.emplace_back(0x801521c8, 0x60000000);
+      code_changes.emplace_back(0x80139108, 0x60000000);
+      code_changes.emplace_back(0x80138750, 0x60000000);
+      code_changes.emplace_back(0x8000ae44, 0x4bffaa3c);
+      code_changes.emplace_back(0x80080e6c, 0x60000000);
+      code_changes.emplace_back(0x8007fef0, 0x480000e4);
+      code_changes.emplace_back(0x80183288, 0x60000000);
+
+      // Remove visors menu
+      code_changes.emplace_back(0x800617e4, 0x48000018);
+      add_control_state_hook_mp3(0x80005880, false, Region::NTSC);
+      add_grapple_slide_code_mp3(0x80182c9c);
+
+      mp3_static.cplayer_ptr_address = 0x805c4f98;
+      mp3_static.cursor_dlg_enabled_address = 0x805c70c7;
+      mp3_static.cursor_ptr_address = 0x8067dc18;
+      mp3_static.cursor_offset = 0xc54;
+      mp3_static.boss_info_address = 0x8067C0e4;
+      mp3_static.lockon_address = 0x805c50E4;
+      mp3_static.gun_lag_toc_offset = 0x5ff0;
+      mp3_static.motion_vtf_address = 0x802e2508;
+    }
+    else if (region == Region::PAL) // Not yet implemented
+    {
+      /*code_changes.emplace_back(0x80080ab8, 0xec010072);
+      code_changes.emplace_back(0x8014d9e0, 0x60000000);
+      code_changes.emplace_back(0x8014d9b8, 0x60000000);
+      code_changes.emplace_back(0x80133c74, 0x60000000);
+      code_changes.emplace_back(0x801332bc, 0x60000000);
+      code_changes.emplace_back(0x8000ab58, 0x4bffad29);
+      code_changes.emplace_back(0x80080d44, 0x60000000);
+      code_changes.emplace_back(0x8007fdc8, 0x480000e4);
+      code_changes.emplace_back(0x8017f1d8, 0x60000000);
+
+      // Remove visors menu
+      code_changes.emplace_back(0x800614ec, 0x48000018);
+      add_control_state_hook_mp3(0x80005880, false, Region::PAL);
+      add_grapple_slide_code_mp3(0x8017ebec);
+
+      mp3_static.cplayer_ptr_address = 0x805ca0ec;
+      mp3_static.cursor_dlg_enabled_address = 0x805cc1d7;
+      mp3_static.cursor_ptr_address = 0x80673588;
+      mp3_static.cursor_offset = 0xd04;
+      mp3_static.boss_info_address = 0x80671a6c;
+      mp3_static.lockon_address = 0x805ca237;
+      mp3_static.gun_lag_toc_offset = 0x6000;
+      mp3_static.motion_vtf_address = 0x802e0a88;*/
+    }
+    else
+    {
+    }
+
+    active_visor_offset = 0x34;
+    powerups_size = 12;
+    powerups_offset = 0x58;
+    has_beams = false;
+  }
+  }
