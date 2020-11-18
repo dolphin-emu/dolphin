@@ -3,6 +3,7 @@ package org.dolphinemu.dolphinemu.utils;
 import android.content.Context;
 import android.os.Build;
 
+import androidx.annotation.Keep;
 import androidx.appcompat.app.AlertDialog;
 
 import com.android.volley.Request;
@@ -61,6 +62,7 @@ public class Analytics
     }
   }
 
+  @Keep
   public static void sendReport(String endpoint, byte[] data)
   {
     StringRequest request = new StringRequest(Request.Method.POST, endpoint,
@@ -76,6 +78,7 @@ public class Analytics
     VolleyUtil.getQueue().add(request);
   }
 
+  @Keep
   public static String getValue(String key)
   {
     switch (key)

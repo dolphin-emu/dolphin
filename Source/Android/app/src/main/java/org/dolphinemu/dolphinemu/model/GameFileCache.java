@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import androidx.annotation.Keep;
+
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
 
 import java.io.File;
@@ -15,7 +17,8 @@ public class GameFileCache
   private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
   private static final Set<String> EMPTY_SET = new HashSet<>();
 
-  private long mPointer;  // Do not rename or move without editing the native code
+  @Keep
+  private long mPointer;
 
   public GameFileCache(String path)
   {

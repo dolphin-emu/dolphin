@@ -2,10 +2,14 @@ package org.dolphinemu.dolphinemu.model;
 
 import android.content.Context;
 
+import androidx.annotation.Keep;
+
 public class GameFile
 {
-  private long mPointer;  // Do not rename or move without editing the native code
+  @Keep
+  private long mPointer;
 
+  @Keep
   private GameFile(long pointer)
   {
     mPointer = pointer;

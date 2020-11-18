@@ -12,6 +12,7 @@ import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.widget.Toast;
 
+import androidx.annotation.Keep;
 import androidx.fragment.app.FragmentManager;
 
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -264,6 +265,7 @@ public final class NativeLibrary
    * @param padID Ignored for now. Future use would be to pass rumble to a connected controller
    * @param state Ignored for now since phone rumble can't just be 'turned' on/off
    */
+  @Keep
   public static void rumble(int padID, double state)
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -486,6 +488,7 @@ public final class NativeLibrary
 
   private static native String GetCurrentTitleDescriptionUnchecked();
 
+  @Keep
   public static boolean displayAlertMsg(final String caption, final String text,
           final boolean yesNo, final boolean isWarning, final boolean nonBlocking)
   {
@@ -575,6 +578,7 @@ public final class NativeLibrary
     sEmulationActivity.clear();
   }
 
+  @Keep
   public static void finishEmulationActivity()
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -589,6 +593,7 @@ public final class NativeLibrary
     }
   }
 
+  @Keep
   public static void updateTouchPointer()
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
@@ -602,7 +607,8 @@ public final class NativeLibrary
     }
   }
 
-  private static void onTitleChanged()
+  @Keep
+  public static void onTitleChanged()
   {
     final EmulationActivity emulationActivity = sEmulationActivity.get();
     if (emulationActivity == null)
@@ -615,6 +621,7 @@ public final class NativeLibrary
     }
   }
 
+  @Keep
   public static float getRenderSurfaceScale()
   {
     DisplayMetrics metrics = new DisplayMetrics();
