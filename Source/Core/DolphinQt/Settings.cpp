@@ -24,7 +24,6 @@
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
 
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/QtUtils/QueueOnObject.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -146,6 +145,11 @@ void Settings::RemovePath(const QString& qpath)
 void Settings::RefreshGameList()
 {
   emit GameListRefreshRequested();
+}
+
+void Settings::NotifyRefreshGameListStarted()
+{
+  emit GameListRefreshStarted();
 }
 
 void Settings::NotifyRefreshGameListComplete()
@@ -294,12 +298,6 @@ void Settings::SetLogConfigVisible(bool visible)
     GetQSettings().setValue(QStringLiteral("logging/logconfigvisible"), visible);
     emit LogConfigVisibilityChanged(visible);
   }
-}
-
-GameListModel* Settings::GetGameListModel() const
-{
-  static GameListModel* model = new GameListModel;
-  return model;
 }
 
 std::shared_ptr<NetPlay::NetPlayClient> Settings::GetNetPlayClient()

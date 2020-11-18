@@ -40,7 +40,6 @@
 #include "Core/NetPlayServer.h"
 #include "Core/SyncIdentifier.h"
 
-#include "DolphinQt/GameList/GameListModel.h"
 #include "DolphinQt/NetPlay/ChunkedProgressDialog.h"
 #include "DolphinQt/NetPlay/GameListDialog.h"
 #include "DolphinQt/NetPlay/MD5Dialog.h"
@@ -60,8 +59,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
-NetPlayDialog::NetPlayDialog(QWidget* parent)
-    : QDialog(parent), m_game_list_model(Settings::Instance().GetGameListModel())
+NetPlayDialog::NetPlayDialog(const GameListModel& game_list_model, QWidget* parent)
+    : QDialog(parent), m_game_list_model(game_list_model)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowContextHelpButtonHint);
 
@@ -158,7 +157,7 @@ void NetPlayDialog::CreateMainLayout()
     Settings::Instance().GetNetPlayServer()->ComputeMD5(m_current_game_identifier);
   });
   m_md5_menu->addAction(tr("Other game..."), this, [this] {
-    GameListDialog gld(this);
+    GameListDialog gld(m_game_list_model, this);
 
     if (gld.exec() != QDialog::Accepted)
       return;
@@ -322,13 +321,13 @@ void NetPlayDialog::ConnectWidgets()
   connect(m_quit_button, &QPushButton::clicked, this, &NetPlayDialog::reject);
 
   connect(m_game_button, &QPushButton::clicked, [this] {
-    GameListDialog gld(this);
+    GameListDialog gld(m_game_list_model, this);
     if (gld.exec() == QDialog::Accepted)
     {
       Settings& settings = Settings::Instance();
 
       const UICommon::GameFile& game = gld.GetSelectedGame();
-      const std::string netplay_name = settings.GetGameListModel()->GetNetPlayName(game);
+      const std::string netplay_name = m_game_list_model.GetNetPlayName(game);
 
       settings.GetNetPlayServer()->ChangeGame(game.GetSyncIdentifier(), netplay_name);
       Settings::GetQSettings().setValue(QStringLiteral("netplay/hostgame"),
@@ -1048,9 +1047,9 @@ NetPlayDialog::FindGameFile(const NetPlay::SyncIdentifier& sync_identifier,
 
   std::optional<std::shared_ptr<const UICommon::GameFile>> game_file =
       RunOnObject(this, [this, &sync_identifier, found] {
-        for (int i = 0; i < m_game_list_model->rowCount(QModelIndex()); i++)
+        for (int i = 0; i < m_game_list_model.rowCount(QModelIndex()); i++)
         {
-          auto game_file = m_game_list_model->GetGameFile(i);
+          auto game_file = m_game_list_model.GetGameFile(i);
           *found = std::min(*found, game_file->CompareSyncIdentifier(sync_identifier));
           if (*found == NetPlay::SyncIdentifierComparison::SameGame)
             return game_file;

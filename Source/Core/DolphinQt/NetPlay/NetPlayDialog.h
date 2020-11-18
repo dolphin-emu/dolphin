@@ -9,11 +9,11 @@
 
 #include "Common/Lazy.h"
 #include "Core/NetPlayClient.h"
+#include "DolphinQt/GameList/GameListModel.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 class ChunkedProgressDialog;
 class MD5Dialog;
-class GameListModel;
 class PadMappingDialog;
 class QCheckBox;
 class QComboBox;
@@ -31,7 +31,7 @@ class NetPlayDialog : public QDialog, public NetPlay::NetPlayUI
 {
   Q_OBJECT
 public:
-  explicit NetPlayDialog(QWidget* parent = nullptr);
+  explicit NetPlayDialog(const GameListModel& game_list_model, QWidget* parent = nullptr);
   ~NetPlayDialog();
 
   void show(std::string nickname, bool use_traversal);
@@ -151,7 +151,7 @@ private:
   std::string m_current_game_name;
   Common::Lazy<std::string> m_external_ip_address;
   std::string m_nickname;
-  GameListModel* m_game_list_model = nullptr;
+  const GameListModel& m_game_list_model;
   bool m_use_traversal = false;
   bool m_is_copy_button_retry = false;
   bool m_got_stop_request = true;
