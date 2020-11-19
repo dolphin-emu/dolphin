@@ -80,14 +80,14 @@ static PyObject* RemoveMemcheck(PyObject* self, PyObject* args)
   Py_RETURN_NONE;
 }
 
-void SetupMemoryModule(PyObject* module, MemoryModuleState* state)
+static void SetupMemoryModule(PyObject* module, MemoryModuleState* state)
 {
   // If Memory wasn't static, you'd store the memory instance in the state:
   //API::Memory* memory = PyScripting::PyScriptingBackend::GetCurrent()->GetMemory();
   //state->memory = memory;
 }
 
-void CleanupMemoryModule(PyObject* module, MemoryModuleState* state)
+static void CleanupMemoryModule(PyObject* module, MemoryModuleState* state)
 {
 }
 

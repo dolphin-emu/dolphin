@@ -25,7 +25,7 @@
 namespace PyScripting
 {
 
-PyThreadState* InitMainPythonInterpreter()
+static PyThreadState* InitMainPythonInterpreter()
 {
 #ifdef _WIN32
   static const std::wstring python_home = UTF8ToWString(File::GetExeDirectory()) + L"/python-embed";
@@ -67,7 +67,7 @@ PyThreadState* InitMainPythonInterpreter()
   return PyEval_SaveThread();
 }
 
-void Init(std::filesystem::path script_filepath)
+static void Init(std::filesystem::path script_filepath)
 {
   if (script_filepath.is_relative())
     script_filepath = File::GetExeDirectory() / script_filepath;
@@ -98,7 +98,7 @@ void Init(std::filesystem::path script_filepath)
   }
 }
 
-void ShutdownMainPythonInterpreter()
+static void ShutdownMainPythonInterpreter()
 {
   if (Py_FinalizeEx() != 0)
   {

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <string>
 #include <optional>
 #include <Python.h>
 

@@ -17,7 +17,7 @@ struct ControllerModuleState
   API::WiiManip* wii_manip;
 };
 
-PyObject* GCPadStatusToPyDict(GCPadStatus status) {
+static PyObject* GCPadStatusToPyDict(GCPadStatus status) {
   return Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,"
                        "s:B,s:B,s:B,s:B,s:B,s:B,s:B,s:B,s:O}",
       "Left", status.button & PAD_BUTTON_LEFT ? Py_True : Py_False,
@@ -46,7 +46,7 @@ PyObject* GCPadStatusToPyDict(GCPadStatus status) {
   );
 }
 
-GCPadStatus GCPadStatusFromPyDict(PyObject* dict) {
+static GCPadStatus GCPadStatusFromPyDict(PyObject* dict) {
   bool button_left = PyObject_IsTrue(PyDict_GetItemString(dict, "Left"));
   bool button_right = PyObject_IsTrue(PyDict_GetItemString(dict, "Right"));
   bool button_down = PyObject_IsTrue(PyDict_GetItemString(dict, "Down"));
@@ -90,7 +90,7 @@ GCPadStatus GCPadStatusFromPyDict(PyObject* dict) {
   return status;
 }
 
-PyObject* WiiButtonDataToPyDict(WiimoteCommon::ButtonData status) {
+static PyObject* WiiButtonDataToPyDict(WiimoteCommon::ButtonData status) {
   return Py_BuildValue("{s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O,s:O}",
       "Left", status.left ? Py_True : Py_False,
       "Right", status.right ? Py_True : Py_False,
@@ -106,7 +106,7 @@ PyObject* WiiButtonDataToPyDict(WiimoteCommon::ButtonData status) {
   );
 }
 
-WiimoteCommon::ButtonData WiiButtonDataFromPyDict(PyObject* dict) {
+static WiimoteCommon::ButtonData WiiButtonDataFromPyDict(PyObject* dict) {
   WiimoteCommon::ButtonData status;
   status.hex = 0;
   status.left = PyObject_IsTrue(PyDict_GetItemString(dict, "Left"));
@@ -123,7 +123,7 @@ WiimoteCommon::ButtonData WiiButtonDataFromPyDict(PyObject* dict) {
   return status;
 }
 
-PyObject* get_gc_buttons(PyObject* module, PyObject* args)
+static PyObject* get_gc_buttons(PyObject* module, PyObject* args)
 {
   auto controller_id_opt = Py::ParseTuple<int>(args);
   if (!controller_id_opt.has_value())
@@ -134,7 +134,7 @@ PyObject* get_gc_buttons(PyObject* module, PyObject* args)
   return GCPadStatusToPyDict(pad_status);
 }
 
-PyObject* set_gc_buttons(PyObject* module, PyObject* args)
+static PyObject* set_gc_buttons(PyObject* module, PyObject* args)
 {
   int controller_id;
   PyObject* dict;
@@ -146,7 +146,7 @@ PyObject* set_gc_buttons(PyObject* module, PyObject* args)
   Py_RETURN_NONE;
 }
 
-PyObject* get_wii_buttons(PyObject* module, PyObject* args)
+static PyObject* get_wii_buttons(PyObject* module, PyObject* args)
 {
   auto controller_id_opt = Py::ParseTuple<int>(args);
   if (!controller_id_opt.has_value())
@@ -157,7 +157,7 @@ PyObject* get_wii_buttons(PyObject* module, PyObject* args)
   return WiiButtonDataToPyDict(status);
 }
 
-PyObject* set_wii_buttons(PyObject* module, PyObject* args)
+static PyObject* set_wii_buttons(PyObject* module, PyObject* args)
 {
   int controller_id;
   PyObject* dict;
@@ -169,13 +169,13 @@ PyObject* set_wii_buttons(PyObject* module, PyObject* args)
   Py_RETURN_NONE;
 }
 
-void setup_controller_module(PyObject* module, ControllerModuleState* state)
+static void setup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip = PyScriptingBackend::GetCurrent()->GetGCManip();
   state->wii_manip = PyScriptingBackend::GetCurrent()->GetWiiManip();
 }
 
-void cleanup_controller_module(PyObject* module, ControllerModuleState* state)
+static void cleanup_controller_module(PyObject* module, ControllerModuleState* state)
 {
   state->gc_manip->Clear();
   state->wii_manip->Clear();

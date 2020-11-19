@@ -6,6 +6,8 @@
 
 #include <imgui.h>
 #include <string>
+#include <vector>
+#include <functional>
 
 #include "Common/CommonTypes.h"
 

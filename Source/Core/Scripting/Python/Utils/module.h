@@ -21,12 +21,6 @@ constexpr PyMethodDef MakeMethodDef(const char* name, const char* doc = "")
   return methodDefinition;
 }
 
-constexpr PyModuleDef MakeModuleDef(const char* module_name, PyMethodDef func_defs[])
-{
-  PyModuleDef moduleDefinition{PyModuleDef_HEAD_INIT, module_name, nullptr, -1, func_defs};
-  return moduleDefinition;
-}
-
 inline Py::Object LoadPyCodeIntoModule(PyObject* module, const char* pycode)
 {
   PyObject* globals = PyModule_GetDict(module);

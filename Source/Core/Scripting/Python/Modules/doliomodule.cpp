@@ -17,7 +17,7 @@ struct DolioModuleState
   std::stringstream buffer;
 };
 
-void flush_stdout(PyObject* module)
+static void flush_stdout(PyObject* module)
 {
   DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   auto content = state->buffer.str();
@@ -27,7 +27,7 @@ void flush_stdout(PyObject* module)
   state->buffer.str("");
 }
 
-void flush_stderr(PyObject* module)
+static void flush_stderr(PyObject* module)
 {
   DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   auto content = state->buffer.str();
@@ -37,7 +37,7 @@ void flush_stderr(PyObject* module)
   state->buffer.str("");
 }
 
-void dol_write_stdout(PyObject* module, const char* what)
+static void dol_write_stdout(PyObject* module, const char* what)
 {
   DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   for (auto i = 0; what[i] != '\0'; ++i)
@@ -49,7 +49,7 @@ void dol_write_stdout(PyObject* module, const char* what)
   }
 }
 
-void dol_write_stderr(PyObject* module, const char* what)
+static void dol_write_stderr(PyObject* module, const char* what)
 {
   DolioModuleState* state = Py::GetState<DolioModuleState>(module);
   for (auto i = 0; what[i] != '\0'; ++i)
@@ -61,17 +61,17 @@ void dol_write_stderr(PyObject* module, const char* what)
   }
 }
 
-void setup_dolio_module_stdout(PyObject* module, DolioModuleState* state)
+static void setup_dolio_module_stdout(PyObject* module, DolioModuleState* state)
 {
   PySys_SetObject("stdout", module);
 }
 
-void setup_dolio_module_stderr(PyObject* module, DolioModuleState* state)
+static void setup_dolio_module_stderr(PyObject* module, DolioModuleState* state)
 {
   PySys_SetObject("stderr", module);
 }
 
-void cleanup_dolio_module(PyObject* module, DolioModuleState* state)
+static void cleanup_dolio_module(PyObject* module, DolioModuleState* state)
 {
 }
 

@@ -63,7 +63,7 @@ constexpr const char* GetPyFmt()
   )");
   return nullptr;
 }
-#pragma region template specializations for each type
+// template specializations for each type
 template <>
 constexpr const char* GetPyFmt<signed char>()
 {
@@ -139,7 +139,7 @@ constexpr const char* GetPyFmt<PyBytesObject*>()
 {
   return "S";
 }
-#pragma endregion
+// end of template specializations for each type
 
 template <typename T>
 constexpr const char* fmt = GetPyFmt<T>();
