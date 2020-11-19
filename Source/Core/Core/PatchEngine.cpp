@@ -243,10 +243,10 @@ bool ApplyFramePatches()
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
   if (!MSR.DR || !MSR.IR || !IsStackSane())
   {
-    DEBUG_LOG(
-        ACTIONREPLAY,
-        "Need to retry later. CPU configuration is currently incorrect. PC = 0x%08X, MSR = 0x%08X",
-        PC, MSR.Hex);
+    DEBUG_LOG_FMT(ACTIONREPLAY,
+                  "Need to retry later. CPU configuration is currently incorrect. PC = {:#010x}, "
+                  "MSR = {:#010x}",
+                  PC, MSR.Hex);
     return false;
   }
 

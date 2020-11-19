@@ -126,7 +126,7 @@ static Location MapINIToRealLocation(const std::string& section, const std::stri
   if (!fail && system)
     return {*system, config_section, key};
 
-  WARN_LOG(CORE, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
+  WARN_LOG_FMT(CORE, "Unknown game INI option in section {}: {}", section, key);
   return {Config::System::Main, "", ""};
 }
 
@@ -216,7 +216,7 @@ private:
           if (!File::Exists(ini_path))
           {
             // TODO: PanicAlert shouldn't be used for this.
-            PanicAlertT("Selected controller profile does not exist");
+            PanicAlertFmtT("Selected controller profile does not exist");
             continue;
           }
 

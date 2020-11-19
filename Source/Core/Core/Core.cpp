@@ -220,7 +220,7 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
   {
     if (IsRunning())
     {
-      PanicAlertT("Emu Thread already running");
+      PanicAlertFmtT("Emu Thread already running");
       return false;
     }
 
@@ -233,8 +233,8 @@ bool Init(std::unique_ptr<BootParameters> boot, const WindowSystemInfo& wsi)
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
-  INFO_LOG(BOOT, "Starting core = %s mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
-  INFO_LOG(BOOT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
+  INFO_LOG_FMT(BOOT, "Starting core = {} mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
+  INFO_LOG_FMT(BOOT, "CPU Thread separate = {}", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
 
@@ -278,10 +278,10 @@ void Stop()  // - Hammertime!
 
   Fifo::EmulatorState(false);
 
-  INFO_LOG(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
+  INFO_LOG_FMT(CONSOLE, "Stop [Main Thread]\t\t---- Shutting down ----");
 
   // Stop the CPU
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stop CPU").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stop CPU"));
   CPU::Stop();
 
   if (_CoreParameter.bCPUThread)
@@ -289,7 +289,7 @@ void Stop()  // - Hammertime!
     // Video_EnterLoop() should now exit so that EmuThread()
     // will continue concurrently with the rest of the commands
     // in this function. We no longer rely on Postmessage.
-    INFO_LOG(CONSOLE, "%s", StopMessage(true, "Wait for Video Loop to exit ...").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Wait for Video Loop to exit ..."));
 
     g_video_backend->Video_ExitLoop();
   }
@@ -412,7 +412,7 @@ static void FifoPlayerThread(const std::optional<std::string>& savestate_path,
   else
   {
     // FIFO log does not contain any frames, cannot continue.
-    PanicAlert("FIFO file is invalid, cannot playback.");
+    PanicAlertFmt("FIFO file is invalid, cannot playback.");
     FifoPlayer::GetInstance().Close();
     return;
   }
@@ -435,7 +435,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     if (s_on_state_changed_callback)
       s_on_state_changed_callback(State::Uninitialized);
 
-    INFO_LOG(CONSOLE, "Stop\t\t---- Shutdown complete ----");
+    INFO_LOG_FMT(CONSOLE, "Stop\t\t---- Shutdown complete ----");
   }};
 
   Common::SetCurrentThreadName("Emuthread - Starting");
@@ -510,9 +510,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   Common::ScopeGuard hw_guard{[] {
     // We must set up this flag before executing HW::Shutdown()
     s_hardware_initialized = false;
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Shutting down HW"));
     HW::Shutdown();
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "HW shutdown").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "HW shutdown"));
 
     // Clear on screen messages that haven't expired
     OSD::ClearMessages();
@@ -529,7 +529,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   if (!g_video_backend->Initialize(wsi))
   {
-    PanicAlert("Failed to initialize video backend!");
+    PanicAlertFmt("Failed to initialize video backend!");
     return;
   }
   Common::ScopeGuard video_guard{[] { g_video_backend->Shutdown(); }};
@@ -546,7 +546,7 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
 
   if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
   {
-    PanicAlert("Failed to initialize DSP emulation!");
+    PanicAlertFmt("Failed to initialize DSP emulation!");
     return;
   }
 
@@ -615,11 +615,11 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
     Fifo::RunGpuLoop();
 
     // We have now exited the Video Loop
-    INFO_LOG(CONSOLE, "%s", StopMessage(false, "Video Loop Ended").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(false, "Video Loop Ended"));
 
     // Join with the CPU thread.
     s_cpu_thread.join();
-    INFO_LOG(CONSOLE, "%s", StopMessage(true, "CPU thread stopped.").c_str());
+    INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "CPU thread stopped."));
   }
   else  // SingleCore mode
   {
@@ -628,9 +628,9 @@ static void EmuThread(std::unique_ptr<BootParameters> boot, WindowSystemInfo wsi
   }
 
 #ifdef USE_GDBSTUB
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "Stopping GDB ...").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "Stopping GDB ..."));
   gdb_deinit();
-  INFO_LOG(CONSOLE, "%s", StopMessage(true, "GDB stopped.").c_str());
+  INFO_LOG_FMT(CONSOLE, "{}", StopMessage(true, "GDB stopped."));
 #endif
 }
 
@@ -656,7 +656,7 @@ void SetState(State state)
     Wiimote::Resume();
     break;
   default:
-    PanicAlert("Invalid state");
+    PanicAlertFmt("Invalid state");
     break;
   }
 
@@ -995,7 +995,7 @@ void UpdateWantDeterminism(bool initial)
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != s_wants_determinism || initial)
   {
-    NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
+    NOTICE_LOG_FMT(COMMON, "Want determinism <- {}", new_want_determinism ? "true" : "false");
 
     RunAsCPUThread([&] {
       s_wants_determinism = new_want_determinism;

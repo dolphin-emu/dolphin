@@ -309,7 +309,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   MessageId mid;
   packet >> mid;
 
-  INFO_LOG(NETPLAY, "Got server message: %x", mid);
+  INFO_LOG_FMT(NETPLAY, "Got server message: {:x}", mid);
 
   switch (mid)
   {
@@ -320,8 +320,8 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     packet >> player.name;
     packet >> player.revision;
 
-    INFO_LOG(NETPLAY, "Player %s (%d) using %s joined", player.name.c_str(), player.pid,
-             player.revision.c_str());
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) using {} joined", player.name, player.pid,
+                 player.revision);
 
     {
       std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
@@ -346,7 +346,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         break;
 
       const auto& player = it->second;
-      INFO_LOG(NETPLAY, "Player %s (%d) left", player.name.c_str(), pid);
+      INFO_LOG_FMT(NETPLAY, "Player {} ({}) left", player.name, pid);
       m_dialog->OnPlayerDisconnect(player.name);
       m_players.erase(m_players.find(pid));
     }
@@ -365,7 +365,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // don't need lock to read in this thread
     const Player& player = m_players[pid];
 
-    INFO_LOG(NETPLAY, "Player %s (%d) wrote: %s", player.name.c_str(), player.pid, msg.c_str());
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) wrote: {}", player.name, player.pid, msg);
 
     // add to gui
     std::ostringstream ss;
@@ -596,7 +596,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> netplay_name;
     }
 
-    INFO_LOG(NETPLAY, "Game changed to %s", netplay_name.c_str());
+    INFO_LOG_FMT(NETPLAY, "Game changed to {}", netplay_name);
 
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game, netplay_name);
@@ -641,7 +641,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> m_current_game;
       packet >> m_net_settings.m_CPUthread;
 
-      INFO_LOG(NETPLAY, "Start of game %s", m_selected_game.game_id.c_str());
+      INFO_LOG_FMT(NETPLAY, "Start of game {}", m_selected_game.game_id);
 
       {
         std::underlying_type_t<PowerPC::CPUCore> core;
@@ -735,7 +735,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   case NP_MSG_STOP_GAME:
   case NP_MSG_DISABLE_GAME:
   {
-    INFO_LOG(NETPLAY, "Game stopped");
+    INFO_LOG_FMT(NETPLAY, "Game stopped");
 
     StopGame();
     m_dialog->OnMsgStopGame();
@@ -792,7 +792,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         player = it->second.name;
     }
 
-    INFO_LOG(NETPLAY, "Player %s (%d) desynced!", player.c_str(), pid_to_blame);
+    INFO_LOG_FMT(NETPLAY, "Player {} ({}) desynced!", player, pid_to_blame);
 
     m_dialog->OnDesync(frame, player);
   }
@@ -851,7 +851,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
                                (is_slot_a ? "A." : "B.") + region + (mc251 ? ".251" : "") + ".raw";
       if (File::Exists(path) && !File::Delete(path))
       {
-        PanicAlertT("Failed to delete NetPlay memory card. Verify your write permissions.");
+        PanicAlertFmtT("Failed to delete NetPlay memory card. Verify your write permissions.");
         SyncSaveDataResponse(false);
         return 0;
       }
@@ -876,7 +876,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       if ((File::Exists(path) && !File::DeleteDirRecursively(path + DIR_SEP)) ||
           !File::CreateFullPath(path + DIR_SEP))
       {
-        PanicAlertT("Failed to reset NetPlay GCI folder. Verify your write permissions.");
+        PanicAlertFmtT("Failed to reset NetPlay GCI folder. Verify your write permissions.");
         SyncSaveDataResponse(false);
         return 0;
       }
@@ -906,7 +906,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       if (File::Exists(path) && !File::DeleteDirRecursively(path))
       {
-        PanicAlertT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
+        PanicAlertFmtT("Failed to reset NetPlay NAND folder. Verify your write permissions.");
         SyncSaveDataResponse(false);
         return 0;
       }
@@ -932,7 +932,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
         if (!buffer || !file || !file->Write(buffer->data(), buffer->size()))
         {
-          PanicAlertT("Failed to write Mii data.");
+          PanicAlertFmtT("Failed to write Mii data.");
           SyncSaveDataResponse(false);
           return 0;
         }
@@ -1013,7 +1013,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         if (!save->WriteHeader(header) || !save->WriteBkHeader(bk_header) ||
             !save->WriteFiles(files))
         {
-          PanicAlertT("Failed to write Wii save.");
+          PanicAlertFmtT("Failed to write Wii save.");
           SyncSaveDataResponse(false);
           return 0;
         }
@@ -1025,7 +1025,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     break;
 
     default:
-      PanicAlertT("Unknown SYNC_SAVE_DATA message received with id: %d", sub_id);
+      PanicAlertFmtT("Unknown SYNC_SAVE_DATA message received with id: {0}", sub_id);
       break;
     }
   }
@@ -1059,7 +1059,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       m_sync_gecko_codes_success_count = 0;
 
-      NOTICE_LOG(ACTIONREPLAY, "Receiving %d Gecko codelines", m_sync_gecko_codes_count);
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} Gecko codelines", m_sync_gecko_codes_count);
 
       // Check if no codes to sync, if so return as finished
       if (m_sync_gecko_codes_count == 0)
@@ -1068,7 +1068,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         SyncCodeResponse(true);
       }
       else
+      {
         m_dialog->AppendChat(Common::GetStringT("Synchronizing Gecko codes..."));
+      }
     }
     break;
 
@@ -1094,7 +1096,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> new_code.address;
         packet >> new_code.data;
 
-        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.address, new_code.data);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.address, new_code.data);
 
         gcode.codes.push_back(std::move(new_code));
 
@@ -1128,7 +1130,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       m_sync_ar_codes_success_count = 0;
 
-      NOTICE_LOG(ACTIONREPLAY, "Receiving %d AR codelines", m_sync_ar_codes_count);
+      NOTICE_LOG_FMT(ACTIONREPLAY, "Receiving {} AR codelines", m_sync_ar_codes_count);
 
       // Check if no codes to sync, if so return as finished
       if (m_sync_ar_codes_count == 0)
@@ -1137,7 +1139,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         SyncCodeResponse(true);
       }
       else
+      {
         m_dialog->AppendChat(Common::GetStringT("Synchronizing AR codes..."));
+      }
     }
     break;
 
@@ -1163,7 +1167,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
         packet >> new_code.cmd_addr;
         packet >> new_code.value;
 
-        NOTICE_LOG(ACTIONREPLAY, "Received %08x %08x", new_code.cmd_addr, new_code.value);
+        NOTICE_LOG_FMT(ACTIONREPLAY, "Received {:08x} {:08x}", new_code.cmd_addr, new_code.value);
         arcode.ops.push_back(new_code);
 
         if (++m_sync_ar_codes_success_count >= m_sync_ar_codes_count)
@@ -1238,7 +1242,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   break;
 
   default:
-    PanicAlertT("Unknown message received with id : %d", mid);
+    PanicAlertFmtT("Unknown message received with id : {0}", mid);
     break;
   }
 
@@ -1500,7 +1504,7 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   if (m_is_running.IsSet())
   {
-    PanicAlertT("Game is already running!");
+    PanicAlertFmtT("Game is already running!");
     return false;
   }
 
@@ -1609,7 +1613,7 @@ bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::stri
   File::IOFile file(file_path, "wb");
   if (!file)
   {
-    PanicAlertT("Failed to open file \"%s\". Verify your write permissions.", file_path.c_str());
+    PanicAlertFmtT("Failed to open file \"{0}\". Verify your write permissions.", file_path);
     return false;
   }
 
@@ -1633,13 +1637,13 @@ bool NetPlayClient::DecompressPacketIntoFile(sf::Packet& packet, const std::stri
     if (lzo1x_decompress(in_buffer.data(), cur_len, out_buffer.data(), &new_len, nullptr) !=
         LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - decompression failed");
+      PanicAlertFmtT("Internal LZO Error - decompression failed");
       return false;
     }
 
     if (!file.WriteBytes(out_buffer.data(), new_len))
     {
-      PanicAlertT("Error writing file: %s", file_path.c_str());
+      PanicAlertFmtT("Error writing file: {0}", file_path);
       return false;
     }
   }
@@ -1675,7 +1679,7 @@ std::optional<std::vector<u8>> NetPlayClient::DecompressPacketIntoBuffer(sf::Pac
 
     if (lzo1x_decompress(in_buffer.data(), cur_len, &out_buffer[i], &new_len, nullptr) != LZO_E_OK)
     {
-      PanicAlertT("Internal LZO Error - decompression failed");
+      PanicAlertFmtT("Internal LZO Error - decompression failed");
       return {};
     }
 
@@ -1782,16 +1786,16 @@ void NetPlayClient::OnConnectFailed(u8 reason)
   switch (reason)
   {
   case TraversalConnectFailedClientDidntRespond:
-    PanicAlertT("Traversal server timed out connecting to the host");
+    PanicAlertFmtT("Traversal server timed out connecting to the host");
     break;
   case TraversalConnectFailedClientFailure:
-    PanicAlertT("Server rejected traversal attempt");
+    PanicAlertFmtT("Server rejected traversal attempt");
     break;
   case TraversalConnectFailedNoSuchClient:
-    PanicAlertT("Invalid host");
+    PanicAlertFmtT("Invalid host");
     break;
   default:
-    PanicAlertT("Unknown error %x", reason);
+    PanicAlertFmtT("Unknown error {0:x}", reason);
     break;
   }
 }
@@ -2006,7 +2010,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const std::size_t size,
     // If it still mismatches, it surely desynced
     if (nw.report_id != reporting_mode)
     {
-      PanicAlertT("Netplay has desynced. There is no way to recover from this.");
+      PanicAlertFmtT("Netplay has desynced. There is no way to recover from this.");
       return false;
     }
   }
@@ -2504,7 +2508,7 @@ bool Wiimote::NetPlay_GetButtonPress(int wiimote, bool pressed)
     {
       return data[0];
     }
-    PanicAlertT("Netplay has desynced in NetPlay_GetButtonPress()");
+    PanicAlertFmtT("Netplay has desynced in NetPlay_GetButtonPress()");
     return false;
   }
 

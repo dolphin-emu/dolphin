@@ -144,12 +144,12 @@ void AnalyzeRange(u16 start_addr, u16 end_addr)
       }
       if (found)
       {
-        INFO_LOG(DSPLLE, "Idle skip location found at %02x (sigNum:%zu)", addr, s + 1);
+        INFO_LOG_FMT(DSPLLE, "Idle skip location found at {:02x} (sigNum:{})", addr, s + 1);
         code_flags[addr] |= CODE_IDLE_SKIP;
       }
     }
   }
-  INFO_LOG(DSPLLE, "Finished analysis.");
+  INFO_LOG_FMT(DSPLLE, "Finished analysis.");
 }
 }  // Anonymous namespace
 
