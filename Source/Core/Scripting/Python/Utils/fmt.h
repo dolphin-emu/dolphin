@@ -32,7 +32,7 @@ constexpr const char* GetPyFmt()
   static_assert((!std::is_same_v<T, bool>),
                 "The Python C API does not have a boolean type. "
                 "Consider using PyObject* and checking with PyObject_IsTrue(PyObject*)");
-  static_assert(false, R"(
+  static_assert(sizeof(T) != sizeof(T), R"(
   no python format string known for type.
 
   If you get a compile error that ends in here, typically one of these things happened:

@@ -74,10 +74,11 @@ atexit.register(_dol_mod_cleanup)
 }
 
 template <typename TState, FuncOnState<TState> TSetup, FuncOnState<TState> TCleanup>
-constexpr PyModuleDef MakeStatefulModuleDef(const char* name, PyMethodDef func_defs[])
+PyModuleDef MakeStatefulModuleDef(const char* name, PyMethodDef func_defs[])
 {
+  auto func = SetupModuleWithState<TState, TSetup, TCleanup>;
   static PyModuleDef_Slot slots_with_exec[] = {
-      {Py_mod_exec, SetupModuleWithState<TState, TSetup, TCleanup>}, {0, nullptr} // Sentinel
+      {Py_mod_exec, (void*) func}, {0, nullptr} // Sentinel
   };
   static PyModuleDef moduleDefinition{
       PyModuleDef_HEAD_INIT,
