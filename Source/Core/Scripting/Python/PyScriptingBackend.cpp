@@ -127,10 +127,16 @@ PyScriptingBackend::PyScriptingBackend(std::filesystem::path script_filepath,
     // below (PyEval_SaveThread) because DECREF-ing them needs the GIL to be held.
     Py::Object result_stdout = Py::Wrap(PyImport_ImportModule("dolio_stdout"));
     if (result_stdout.IsNull())
+    {
       ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stdout for stdout");
+      PyErr_Print();
+    }
     Py::Object result_stderr = Py::Wrap(PyImport_ImportModule("dolio_stderr"));
     if (result_stderr.IsNull())
+    {
       ERROR_LOG(SCRIPTING, "Error auto-importing dolio_stderr for stderr");
+      PyErr_Print();
+    }
   }
 
   Init(script_filepath);
