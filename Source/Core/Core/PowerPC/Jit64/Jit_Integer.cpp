@@ -1729,6 +1729,25 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   {
     gpr.SetImmediate32(a, Common::RotateLeft(gpr.Imm32(s), gpr.Imm32(b) & 0x1F) & mask);
   }
+  else if (gpr.IsImm(b))
+  {
+    u32 amount = gpr.Imm32(b) & 0x1f;
+    RCX64Reg Ra = gpr.Bind(a, RCMode::Write);
+    RCOpArg Rs = gpr.Use(s, RCMode::Read);
+    RegCache::Realize(Ra, Rs);
+
+    if (a != s)
+      MOV(32, Ra, Rs);
+
+    if (amount)
+      ROL(32, Ra, Imm8(amount));
+
+    // we need flags if we're merging the branch
+    if (inst.Rc && CheckMergedBranch(0))
+      AND(32, Ra, Imm32(mask));
+    else
+      AndWithMask(Ra, mask);
+  }
   else
   {
     RCX64Reg ecx = gpr.Scratch(ECX);  // no register choice
