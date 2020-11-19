@@ -48,6 +48,7 @@
     <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="Flag.h" />
     <ClInclude Include="FloatUtils.h" />
+    <ClInclude Include="FormatUtil.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="HttpRequest.h" />

@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <fmt/format.h>
 #include <string_view>
+#include "Common/FormatUtil.h"
 
 namespace Common::Log
 {
@@ -78,10 +80,13 @@ static const char LOG_LEVEL_TO_CHAR[7] = "-NEWID";
 void GenericLogFmtImpl(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
                        fmt::string_view format, const fmt::format_args& args);
 
-template <typename S, typename... Args>
+template <std::size_t NumFields, typename S, typename... Args>
 void GenericLogFmt(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, const S& format,
                    const Args&... args)
 {
+  static_assert(NumFields == sizeof...(args),
+                "Unexpected number of replacement fields in format string; did you pass too few or "
+                "too many arguments?");
   GenericLogFmtImpl(level, type, file, line, format,
                     fmt::make_args_checked<Args...>(format, args...));
 }
@@ -141,7 +146,12 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
   do                                                                                               \
   {                                                                                                \
     if (v <= MAX_LOGLEVEL)                                                                         \
-      Common::Log::GenericLogFmt(v, t, __FILE__, __LINE__, FMT_STRING(format), ##__VA_ARGS__);     \
+    {                                                                                              \
+      /* Use a macro-like name to avoid shadowing warnings */                                      \
+      constexpr auto GENERIC_LOG_FMT_N = Common::CountFmtReplacementFields(format);                \
+      Common::Log::GenericLogFmt<GENERIC_LOG_FMT_N>(v, t, __FILE__, __LINE__, FMT_STRING(format),  \
+                                                    ##__VA_ARGS__);                                \
+    }                                                                                              \
   } while (0)
 
 #define ERROR_LOG_FMT(t, ...)                                                                      \
