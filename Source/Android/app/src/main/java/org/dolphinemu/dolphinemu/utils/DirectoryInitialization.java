@@ -39,6 +39,7 @@ public final class DirectoryInitialization
   private static final int WiimoteNewVersion = 5;  // Last changed in PR 8907
   private static volatile DirectoryInitializationState directoryState =
           DirectoryInitializationState.NOT_YET_INITIALIZED;
+  private static volatile boolean areDirectoriesAvailable = false;
   private static String userPath;
   private static String internalPath;
   private static AtomicBoolean isDolphinDirectoryInitializationRunning = new AtomicBoolean(false);
@@ -73,6 +74,8 @@ public final class DirectoryInitialization
           boolean wiimoteIniWritten = initializeExternalStorage(context);
           NativeLibrary.Initialize();
           NativeLibrary.ReportStartToAnalytics();
+
+          areDirectoriesAvailable = true;
 
           if (wiimoteIniWritten)
           {
@@ -229,32 +232,22 @@ public final class DirectoryInitialization
 
   public static String getUserDirectory()
   {
-    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED)
-    {
-      throw new IllegalStateException("DirectoryInitialization has to run at least once!");
-    }
-    else if (isDolphinDirectoryInitializationRunning.get())
+    if (!areDirectoriesAvailable)
     {
       throw new IllegalStateException(
-              "DirectoryInitialization has to finish running first!");
+              "DirectoryInitialization must run before accessing the user directory!");
     }
     return userPath;
-
   }
 
   public static String getDolphinInternalDirectory()
   {
-    if (directoryState == DirectoryInitializationState.NOT_YET_INITIALIZED)
-    {
-      throw new IllegalStateException("DirectoryInitialization has to run at least once!");
-    }
-    else if (isDolphinDirectoryInitializationRunning.get())
+    if (!areDirectoriesAvailable)
     {
       throw new IllegalStateException(
-              "DirectoryInitialization has to finish running first!");
+              "DirectoryInitialization must run before accessing the internal directory!");
     }
     return internalPath;
-
   }
 
   private static void sendBroadcastState(DirectoryInitializationState state, Context context)
