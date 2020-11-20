@@ -248,12 +248,6 @@ public final class SettingsFile
     readFile(getGenericGameSettingsForAllRegions(gameId), ini, view);
   }
 
-  public static void readWiimoteProfile(final String gameId, IniFile ini, final int padId)
-  {
-    String profile = gameId + "_Wii" + padId;
-    readFile(getWiiProfile(profile), ini, null);
-  }
-
   /**
    * Saves a given .ini file on disk.
    * If unsuccessful, outputs an error telling why it failed.
@@ -274,69 +268,7 @@ public final class SettingsFile
 
   public static void saveCustomGameSettings(final String gameId, IniFile ini)
   {
-    IniFile iniCopy = new IniFile(ini);
-
-    // Profile options(wii extension) are not saved, only used to properly display values
-    iniCopy.deleteSection(Settings.SECTION_PROFILE);
-
-    for (int i = 0; i < 3; i++)
-    {
-      String key = SettingsFile.KEY_WIIMOTE_EXTENSION + i;
-      if (iniCopy.exists(Settings.SECTION_CONTROLS, key))
-      {
-        // Special case. Extension gets saved into a controller profile
-        String value = iniCopy.getString(Settings.SECTION_CONTROLS, key, "");
-        saveCustomWiimoteSetting(gameId, KEY_WIIMOTE_EXTENSION, value, i);
-        iniCopy.deleteKey(Settings.SECTION_CONTROLS, key);
-      }
-    }
-
-    iniCopy.save(getCustomGameSettingsFile(gameId));
-  }
-
-  /**
-   * Saves the wiimote setting in a profile and enables that profile.
-   *
-   * @param gameId
-   * @param key
-   * @param value
-   * @param padId
-   */
-  private static void saveCustomWiimoteSetting(final String gameId, final String key,
-          final String value, final int padId)
-  {
-    String profile = gameId + "_Wii" + padId;
-    String wiiConfigPath =
-            DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +
-                    profile + ".ini";
-    File wiiProfile = getWiiProfile(profile);
-    // If it doesn't exist, create it
-    boolean wiiProfileExists = wiiProfile.exists();
-    if (!wiiProfileExists)
-    {
-      String defautlWiiProfilePath =
-              DirectoryInitialization.getUserDirectory() +
-                      "/Config/Profiles/Wiimote/WiimoteProfile.ini";
-      DirectoryInitialization.copyFile(defautlWiiProfilePath, wiiConfigPath);
-    }
-
-    IniFile wiiProfileIni = new IniFile(wiiConfigPath);
-
-    if (!wiiProfileExists)
-    {
-      wiiProfileIni.setString(Settings.SECTION_PROFILE, "Device",
-              "Android/" + (padId + 4) + "/Touchscreen");
-    }
-
-    wiiProfileIni.setString(Settings.SECTION_PROFILE, key, value);
-    wiiProfileIni.save(wiiConfigPath);
-
-    // Enable the profile
-    File gameSettingsFile = SettingsFile.getCustomGameSettingsFile(gameId);
-    IniFile gameSettingsIni = new IniFile(gameSettingsFile);
-    gameSettingsIni.setString(Settings.SECTION_CONTROLS, KEY_WIIMOTE_PROFILE + (padId + 1),
-            profile);
-    gameSettingsIni.save(gameSettingsFile);
+    ini.save(getCustomGameSettingsFile(gameId));
   }
 
   public static String mapSectionNameFromIni(String generalSectionName)
@@ -388,7 +320,7 @@ public final class SettingsFile
             DirectoryInitialization.getUserDirectory() + "/GameSettings/" + gameId + ".ini");
   }
 
-  private static File getWiiProfile(String profile)
+  public static File getWiiProfile(String profile)
   {
     String wiiConfigPath =
             DirectoryInitialization.getUserDirectory() + "/Config/Profiles/Wiimote/" +

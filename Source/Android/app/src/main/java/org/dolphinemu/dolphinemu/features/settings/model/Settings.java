@@ -135,11 +135,6 @@ public class Settings implements Closeable
     mIniFiles.put(GAME_SETTINGS_PLACEHOLDER_FILE_NAME, ini);
   }
 
-  public void loadWiimoteProfile(String gameId, int padId)
-  {
-    SettingsFile.readWiimoteProfile(gameId, getGameSpecificFile(), padId);
-  }
-
   public void loadSettings(String gameId, int revision, SettingsActivityView view)
   {
     mGameId = gameId;
