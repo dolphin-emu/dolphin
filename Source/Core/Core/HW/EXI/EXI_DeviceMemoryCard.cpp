@@ -34,7 +34,6 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayProto.h"
 #include "DiscIO/Enums.h"
 
 namespace ExpansionInterface
