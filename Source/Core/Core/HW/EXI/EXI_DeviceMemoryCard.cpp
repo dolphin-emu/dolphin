@@ -199,7 +199,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
   {
     if (File::Rename(strDirectoryName, strDirectoryName + ".original"))
     {
-      PanicAlertT("%s was not a directory, moved to *.original", strDirectoryName.c_str());
+      PanicAlertFmtT("{0} was not a directory, moved to *.original", strDirectoryName);
       if (migrate)
         MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
       else
@@ -208,10 +208,10 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     else  // we tried but the user wants to crash
     {
       // TODO more user friendly abort
-      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your "
-                  "write permissions or move the file outside of Dolphin",
-                  strDirectoryName.c_str());
-      exit(0);
+      PanicAlertFmtT("{0} is not a directory, failed to move to *.original.\n Verify your "
+                     "write permissions or move the file outside of Dolphin",
+                     strDirectoryName);
+      std::exit(0);
     }
   }
 
@@ -338,7 +338,7 @@ bool CEXIMemoryCard::IsInterruptSet()
 
 void CEXIMemoryCard::TransferByte(u8& byte)
 {
-  DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: > %02x", byte);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: > {:02x}", byte);
   if (m_uPosition == 0)
   {
     command = byte;  // first byte is command
@@ -361,11 +361,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case cmdPageProgram:
     case cmdExtraByteProgram:
     case cmdChipErase:
-      DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
-                command);
+      DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
+                    command);
       break;
     default:
-      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", command);
       break;
     }
     if (command == cmdClearStatus)
@@ -486,12 +486,12 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       break;
 
     default:
-      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x", byte);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte {:02x}", byte);
       byte = 0xFF;
     }
   }
   m_uPosition++;
-  DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
+  DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: < {:02x}", byte);
 }
 
 void CEXIMemoryCard::DoState(PointerWrap& p)
@@ -534,7 +534,7 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 
   if ((address + _uSize) % Memcard::BLOCK_SIZE == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / Memcard::BLOCK_SIZE);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "reading from block: {:x}", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
@@ -550,7 +550,7 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 
   if (((address + _uSize) % Memcard::BLOCK_SIZE) == 0)
   {
-    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / Memcard::BLOCK_SIZE);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

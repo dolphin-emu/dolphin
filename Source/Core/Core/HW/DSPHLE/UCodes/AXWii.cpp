@@ -26,7 +26,7 @@ AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_m
   for (u16& volume : m_last_aux_volumes)
     volume = 0x8000;
 
-  INFO_LOG(DSPHLE, "Instantiating AXWiiUCode");
+  INFO_LOG_FMT(DSPHLE, "Instantiating AXWiiUCode");
 
   m_old_axwii = (crc == 0xfa450138);
 }

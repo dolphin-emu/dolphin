@@ -19,7 +19,7 @@ namespace DSP::LLE
 {
 void DSPPatches::Patch(std::size_t index)
 {
-  PanicAlert("Patch functionality not supported in DSP module.");
+  PanicAlertFmt("Patch functionality not supported in DSP module.");
 }
 
 DSPDebugInterface::DSPDebugInterface() = default;
@@ -252,12 +252,12 @@ bool DSPDebugInterface::IsMemCheck(u32 address, size_t size) const
 
 void DSPDebugInterface::ClearAllMemChecks()
 {
-  PanicAlert("MemCheck functionality not supported in DSP module.");
+  PanicAlertFmt("MemCheck functionality not supported in DSP module.");
 }
 
 void DSPDebugInterface::ToggleMemCheck(u32 address, bool read, bool write, bool log)
 {
-  PanicAlert("MemCheck functionality not supported in DSP module.");
+  PanicAlertFmt("MemCheck functionality not supported in DSP module.");
 }
 
 // =======================================================
