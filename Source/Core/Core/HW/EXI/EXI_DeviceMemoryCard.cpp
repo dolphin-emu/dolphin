@@ -121,7 +121,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
   m_command = Command::NintendoID;
   m_status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
   m_position = 0;
-  memset(m_programming_buffer, 0, sizeof(m_programming_buffer));
+  m_programming_buffer.fill(0);
   // Nintendo Memory Card EXI IDs
   // 0x00000004 Memory Card 59     4Mbit
   // 0x00000008 Memory Card 123    8Mb
