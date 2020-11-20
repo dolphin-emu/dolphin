@@ -133,6 +133,7 @@ LogManager::LogManager()
   m_log[DYNA_REC] = {"JIT", "JIT Dynamic Recompiler"};
   m_log[EXPANSIONINTERFACE] = {"EXI", "Expansion Interface"};
   m_log[FILEMON] = {"FileMon", "File Monitor"};
+  m_log[FRAMEDUMP] = {"FRAMEDUMP", "FrameDump"};
   m_log[GDB_STUB] = {"GDB_STUB", "GDB Stub"};
   m_log[GPFIFO] = {"GP", "GatherPipe FIFO"};
   m_log[HOST_GPU] = {"Host GPU", "Host GPU"};

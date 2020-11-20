@@ -151,14 +151,14 @@ bool FrameDump::CreateVideoFile()
   AVOutputFormat* const output_format = av_guess_format(format.c_str(), dump_path.c_str(), nullptr);
   if (!output_format)
   {
-    ERROR_LOG(VIDEO, "Invalid format %s", format.c_str());
+    ERROR_LOG_FMT(FRAMEDUMP, "Invalid format {}", format);
     return false;
   }
 
   if (avformat_alloc_output_context2(&m_context->format, output_format, nullptr,
                                      dump_path.c_str()) < 0)
   {
-    ERROR_LOG(VIDEO, "Could not allocate output context");
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not allocate output context");
     return false;
   }
 
@@ -172,7 +172,7 @@ bool FrameDump::CreateVideoFile()
     if (codec_desc)
       codec_id = codec_desc->id;
     else
-      WARN_LOG(VIDEO, "Invalid codec %s", codec_name.c_str());
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid codec {}", codec_name);
   }
 
   const AVCodec* codec = nullptr;
@@ -181,7 +181,7 @@ bool FrameDump::CreateVideoFile()
   {
     codec = avcodec_find_encoder_by_name(g_Config.sDumpEncoder.c_str());
     if (!codec)
-      WARN_LOG(VIDEO, "Invalid encoder %s", g_Config.sDumpEncoder.c_str());
+      WARN_LOG_FMT(FRAMEDUMP, "Invalid encoder {}", g_Config.sDumpEncoder);
   }
   if (!codec)
     codec = avcodec_find_encoder(codec_id);
@@ -189,7 +189,7 @@ bool FrameDump::CreateVideoFile()
   m_context->codec = avcodec_alloc_context3(codec);
   if (!codec || !m_context->codec)
   {
-    ERROR_LOG(VIDEO, "Could not find encoder or allocate codec context");
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not find encoder or allocate codec context");
     return false;
   }
 
@@ -199,7 +199,7 @@ bool FrameDump::CreateVideoFile()
 
   const auto time_base = GetTimeBaseForCurrentRefreshRate();
 
-  INFO_LOG_FMT(VIDEO, "Creating video file: {} x {} @ {}/{} fps", m_context->width,
+  INFO_LOG_FMT(FRAMEDUMP, "Creating video file: {} x {} @ {}/{} fps", m_context->width,
                m_context->height, time_base.den, time_base.num);
 
   m_context->codec->codec_type = AVMEDIA_TYPE_VIDEO;
@@ -216,7 +216,7 @@ bool FrameDump::CreateVideoFile()
 
   if (avcodec_open2(m_context->codec, codec, nullptr) < 0)
   {
-    ERROR_LOG(VIDEO, "Could not open codec");
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not open codec");
     return false;
   }
 
@@ -234,23 +234,23 @@ bool FrameDump::CreateVideoFile()
   if (!m_context->stream ||
       avcodec_parameters_from_context(m_context->stream->codecpar, m_context->codec) < 0)
   {
-    ERROR_LOG(VIDEO, "Could not create stream");
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not create stream");
     return false;
   }
 
   m_context->stream->time_base = m_context->codec->time_base;
 
-  NOTICE_LOG(VIDEO, "Opening file %s for dumping", dump_path.c_str());
+  NOTICE_LOG_FMT(FRAMEDUMP, "Opening file {} for dumping", dump_path);
   if (avio_open(&m_context->format->pb, dump_path.c_str(), AVIO_FLAG_WRITE) < 0 ||
       avformat_write_header(m_context->format, nullptr))
   {
-    ERROR_LOG(VIDEO, "Could not open %s", dump_path.c_str());
+    ERROR_LOG_FMT(FRAMEDUMP, "Could not open {}", dump_path);
     return false;
   }
 
   if (av_cmp_q(m_context->stream->time_base, time_base) != 0)
   {
-    WARN_LOG_FMT(VIDEO, "Stream time base differs at {}/{}", m_context->stream->time_base.den,
+    WARN_LOG_FMT(FRAMEDUMP, "Stream time base differs at {}/{}", m_context->stream->time_base.den,
                  m_context->stream->time_base.num);
   }
 
@@ -291,13 +291,13 @@ void FrameDump::AddFrame(const FrameData& frame)
   {
     if (pts <= m_context->last_pts)
     {
-      WARN_LOG(VIDEO, "PTS delta < 1. Current frame will not be dumped.");
+      WARN_LOG_FMT(FRAMEDUMP, "PTS delta < 1. Current frame will not be dumped.");
       return;
     }
     else if (pts > m_context->last_pts + 1 && !m_context->gave_vfr_warning)
     {
-      WARN_LOG(VIDEO, "PTS delta > 1. Resulting file will have variable frame rate. "
-                      "Subsequent occurances will not be reported.");
+      WARN_LOG_FMT(FRAMEDUMP, "PTS delta > 1. Resulting file will have variable frame rate. "
+                              "Subsequent occurances will not be reported.");
       m_context->gave_vfr_warning = true;
     }
   }
@@ -325,7 +325,7 @@ void FrameDump::AddFrame(const FrameData& frame)
 
   if (const int error = avcodec_send_frame(m_context->codec, m_context->scaled_frame))
   {
-    ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
+    ERROR_LOG_FMT(FRAMEDUMP, "Error while encoding video: {}", error);
     return;
   }
 
@@ -349,7 +349,7 @@ void FrameDump::ProcessPackets()
 
     if (receive_error)
     {
-      ERROR_LOG_FMT(VIDEO, "Error receiving packet: {}", receive_error);
+      ERROR_LOG_FMT(FRAMEDUMP, "Error receiving packet: {}", receive_error);
       break;
     }
 
@@ -358,7 +358,7 @@ void FrameDump::ProcessPackets()
 
     if (const int write_error = av_interleaved_write_frame(m_context->format, &pkt))
     {
-      ERROR_LOG_FMT(VIDEO, "Error writing packet: {}", write_error);
+      ERROR_LOG_FMT(FRAMEDUMP, "Error writing packet: {}", write_error);
       break;
     }
   }
@@ -371,13 +371,13 @@ void FrameDump::Stop()
 
   // Signal end of stream to encoder.
   if (const int flush_error = avcodec_send_frame(m_context->codec, nullptr))
-    WARN_LOG_FMT(VIDEO, "Error sending flush packet: {}", flush_error);
+    WARN_LOG_FMT(FRAMEDUMP, "Error sending flush packet: {}", flush_error);
 
   ProcessPackets();
   av_write_trailer(m_context->format);
   CloseVideoFile();
 
-  NOTICE_LOG(VIDEO, "Stopping frame dump");
+  NOTICE_LOG_FMT(FRAMEDUMP, "Stopping frame dump");
   OSD::AddMessage("Stopped dumping frames");
 }
 
@@ -422,19 +422,19 @@ void FrameDump::CheckForConfigChange(const FrameData& frame)
   if ((frame.width != m_context->width || frame.height != m_context->height) &&
       (frame.width > 0 && frame.height > 0))
   {
-    INFO_LOG(VIDEO, "Starting new dump on resolution change.");
+    INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on resolution change.");
     restart_dump = true;
   }
   else if (!IsFirstFrameInCurrentFile() &&
            frame.state.savestate_index != m_context->savestate_index)
   {
-    INFO_LOG(VIDEO, "Starting new dump on savestate load.");
+    INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on savestate load.");
     restart_dump = true;
   }
   else if (frame.state.refresh_rate_den != m_context->codec->time_base.num ||
            frame.state.refresh_rate_num != m_context->codec->time_base.den)
   {
-    INFO_LOG_FMT(VIDEO, "Starting new dump on refresh rate change {}/{} vs {}/{}.",
+    INFO_LOG_FMT(FRAMEDUMP, "Starting new dump on refresh rate change {}/{} vs {}/{}.",
                  m_context->codec->time_base.den, m_context->codec->time_base.num,
                  frame.state.refresh_rate_num, frame.state.refresh_rate_den);
     restart_dump = true;
