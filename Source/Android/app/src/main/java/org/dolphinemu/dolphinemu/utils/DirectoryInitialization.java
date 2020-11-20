@@ -70,9 +70,16 @@ public final class DirectoryInitialization
         if (setDolphinUserDirectory(context))
         {
           initializeInternalStorage(context);
-          initializeExternalStorage(context);
+          boolean wiimoteIniWritten = initializeExternalStorage(context);
           NativeLibrary.Initialize();
           NativeLibrary.ReportStartToAnalytics();
+
+          if (wiimoteIniWritten)
+          {
+            // This has to be done after calling NativeLibrary.Initialize(),
+            // as it relies on the config system
+            EmulationActivity.updateWiimoteNewIniPreferences(context);
+          }
 
           directoryState = DirectoryInitializationState.DOLPHIN_DIRECTORIES_INITIALIZED;
         }
@@ -137,7 +144,8 @@ public final class DirectoryInitialization
     SetSysDirectory(sysDirectory.getPath());
   }
 
-  private static void initializeExternalStorage(Context context)
+  // Returns whether the WiimoteNew.ini file was written to
+  private static boolean initializeExternalStorage(Context context)
   {
     // Create User directory structure and copy some NAND files from the extracted Sys directory.
     CreateUserDirectories();
@@ -159,21 +167,20 @@ public final class DirectoryInitialization
     copyAsset("GCPadNew.ini", new File(configDirectory, "GCPadNew.ini"), true, context);
 
     SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-    if (prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion)
+    boolean overwriteWiimoteIni = prefs.getInt("WiimoteNewVersion", 0) != WiimoteNewVersion;
+    boolean wiimoteIniWritten = copyAsset("WiimoteNew.ini",
+            new File(configDirectory, "WiimoteNew.ini"), overwriteWiimoteIni, context);
+    if (overwriteWiimoteIni)
     {
-      EmulationActivity.clearWiimoteNewIniLinkedPreferences(context);
-      copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), true, context);
       SharedPreferences.Editor sPrefsEditor = prefs.edit();
       sPrefsEditor.putInt("WiimoteNewVersion", WiimoteNewVersion);
       sPrefsEditor.apply();
     }
-    else
-    {
-      copyAsset("WiimoteNew.ini", new File(configDirectory, "WiimoteNew.ini"), false, context);
-    }
 
     copyAsset("WiimoteProfile.ini", new File(profileDirectory, "WiimoteProfile.ini"), true,
             context);
+
+    return wiimoteIniWritten;
   }
 
   private static void deleteDirectoryRecursively(@NonNull final File file)
@@ -258,7 +265,7 @@ public final class DirectoryInitialization
     LocalBroadcastManager.getInstance(context).sendBroadcast(localIntent);
   }
 
-  private static void copyAsset(String asset, File output, Boolean overwrite, Context context)
+  private static boolean copyAsset(String asset, File output, Boolean overwrite, Context context)
   {
     Log.verbose("[DirectoryInitialization] Copying File " + asset + " to " + output);
 
@@ -266,11 +273,14 @@ public final class DirectoryInitialization
     {
       if (!output.exists() || overwrite)
       {
-        InputStream in = context.getAssets().open(asset);
-        OutputStream out = new FileOutputStream(output);
-        copyFile(in, out);
-        in.close();
-        out.close();
+        try (InputStream in = context.getAssets().open(asset))
+        {
+          try (OutputStream out = new FileOutputStream(output))
+          {
+            copyFile(in, out);
+            return true;
+          }
+        }
       }
     }
     catch (IOException e)
@@ -278,6 +288,7 @@ public final class DirectoryInitialization
       Log.error("[DirectoryInitialization] Failed to copy asset file: " + asset +
               e.getMessage());
     }
+    return false;
   }
 
   private static void copyAssetFolder(String assetFolder, File outputFolder, Boolean overwrite,
