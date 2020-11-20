@@ -47,7 +47,7 @@ namespace ExpansionInterface
 #define SIZE_TO_Mb (1024 * 8 * 16)
 
 static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
-static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
+static const auto MC_TRANSFER_RATE_WRITE = static_cast<u32>(96.125f * 1024.0f);
 
 static std::array<CoreTiming::EventType*, 2> s_et_cmd_done;
 static std::array<CoreTiming::EventType*, 2> s_et_transfer_complete;
@@ -58,11 +58,12 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
   int card_index = (int)userdata;
-  CEXIMemoryCard* self =
-      (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
+  auto* self = static_cast<CEXIMemoryCard*>(
+      ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index));
   if (self == nullptr)
   {
-    self = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
+    self = static_cast<CEXIMemoryCard*>(
+        ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index));
   }
   if (self)
   {
@@ -116,7 +117,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
   //   may have been restored, we need to anticipate those arriving.
 
   interruptSwitch = 0;
-  m_bInterruptSet = 0;
+  m_bInterruptSet = false;
   command = 0;
   status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
   m_uPosition = 0;
@@ -262,7 +263,7 @@ void CEXIMemoryCard::CmdDone()
   status |= MC_STATUS_READY;
   status &= ~MC_STATUS_BUSY;
 
-  m_bInterruptSet = 1;
+  m_bInterruptSet = true;
   ExpansionInterface::UpdateInterrupts();
 }
 
@@ -275,7 +276,7 @@ void CEXIMemoryCard::TransferComplete()
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
   CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
-  CoreTiming::ScheduleEvent((int)cycles, s_et_cmd_done[card_index], (u64)card_index);
+  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[card_index], card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -378,7 +379,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
 
       status |= MC_STATUS_READY;
 
-      m_bInterruptSet = 0;
+      m_bInterruptSet = false;
 
       byte = 0xFF;
       m_uPosition = 0;
@@ -398,7 +399,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       if (m_uPosition == 1)
         byte = 0x80;  // dummy cycle
       else
-        byte = (u8)(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+        byte = static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
       break;
 
     case cmdReadArray:
@@ -435,9 +436,9 @@ void CEXIMemoryCard::TransferByte(u8& byte)
 
     case cmdReadID:
       if (m_uPosition == 1)  // (unspecified)
-        byte = (u8)(card_id >> 8);
+        byte = static_cast<u8>(card_id >> 8);
       else
-        byte = (u8)((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+        byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
       break;
 
     case cmdSectorErase:
@@ -542,7 +543,7 @@ void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 
   // Schedule transfer complete later based on read speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            s_et_transfer_complete[card_index], (u64)card_index);
+                            s_et_transfer_complete[card_index], card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -558,6 +559,6 @@ void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 
   // Schedule transfer complete later based on write speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            s_et_transfer_complete[card_index], (u64)card_index);
+                            s_et_transfer_complete[card_index], card_index);
 }
 }  // namespace ExpansionInterface
