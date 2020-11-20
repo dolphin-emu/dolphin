@@ -82,7 +82,7 @@ void Wiimote::Reset()
   if (m_eeprom_dirty)
   {
     // Write out existing EEPROM
-    INFO_LOG(WIIMOTE, "Wrote EEPROM for %s", GetName().c_str());
+    INFO_LOG_FMT(WIIMOTE, "Wrote EEPROM for {}", GetName());
     std::ofstream file;
     File::OpenFStream(file, eeprom_file, std::ios::binary | std::ios::out);
     file.write(reinterpret_cast<char*>(m_eeprom.data.data()), EEPROM_FREE_SIZE);
@@ -405,7 +405,7 @@ bool Wiimote::ProcessExtensionPortEvent()
   // FYI: This happens even during a read request which continues after the status report is sent.
   m_reporting_mode = InputReportID::ReportDisabled;
 
-  DEBUG_LOG(WIIMOTE, "Sending status report due to extension status change.");
+  DEBUG_LOG_FMT(WIIMOTE, "Sending status report due to extension status change.");
 
   HandleRequestStatus(OutputReportRequestStatus{});
 
