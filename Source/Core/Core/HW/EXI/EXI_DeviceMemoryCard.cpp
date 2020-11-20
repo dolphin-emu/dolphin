@@ -59,24 +59,24 @@ void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
                                                std::function<void(CEXIMemoryCard*)> callback)
 {
   int card_index = (int)userdata;
-  CEXIMemoryCard* pThis =
+  CEXIMemoryCard* self =
       (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARD, card_index);
-  if (pThis == nullptr)
+  if (self == nullptr)
   {
-    pThis = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
+    self = (CEXIMemoryCard*)ExpansionInterface::FindDevice(EXIDEVICE_MEMORYCARDFOLDER, card_index);
   }
-  if (pThis)
+  if (self)
   {
-    callback(pThis);
+    callback(self);
   }
 }
 
-void CEXIMemoryCard::CmdDoneCallback(u64 userdata, s64 cyclesLate)
+void CEXIMemoryCard::CmdDoneCallback(u64 userdata, s64)
 {
   EventCompleteFindInstance(userdata, [](CEXIMemoryCard* instance) { instance->CmdDone(); });
 }
 
-void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64 cyclesLate)
+void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64)
 {
   EventCompleteFindInstance(userdata,
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
@@ -106,7 +106,7 @@ void CEXIMemoryCard::Shutdown()
   s_et_transfer_complete.fill(nullptr);
 }
 
-CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder,
+CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
                                const Memcard::HeaderData& header_data)
     : card_index(index)
 {
@@ -134,7 +134,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder,
   // card_id = 0xc243;
   card_id = 0xc221;  // It's a Nintendo brand memcard
 
-  if (gciFolder)
+  if (gci_folder)
   {
     SetupGciFolder(header_data);
   }
@@ -178,52 +178,52 @@ CEXIMemoryCard::GetGCIFolderPath(int card_index, AllowMovieFolder allow_movie_fo
 void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 {
   const std::string& game_id = SConfig::GetInstance().GetGameID();
-  u32 CurrentGameId = 0;
+  u32 current_game_id = 0;
   if (game_id.length() >= 4 && game_id != "00000000" &&
       SConfig::GetInstance().GetTitleID() != Titles::SYSTEM_MENU)
   {
-    CurrentGameId = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
+    current_game_id = Common::swap32(reinterpret_cast<const u8*>(game_id.c_str()));
   }
 
   // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
   // in lambda captures
-  const auto folder_path = GetGCIFolderPath(card_index, AllowMovieFolder::Yes);
-  const auto& strDirectoryName = folder_path.first;
-  const bool migrate = folder_path.second;
+  const auto folder_path_pair = GetGCIFolderPath(card_index, AllowMovieFolder::Yes);
+  const std::string& dir_path = folder_path_pair.first;
+  const bool migrate = folder_path_pair.second;
 
-  const File::FileInfo file_info(strDirectoryName);
+  const File::FileInfo file_info(dir_path);
   if (!file_info.Exists())
   {
     if (migrate)  // first use of memcard folder, migrate automatically
-      MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+      MigrateFromMemcardFile(dir_path + DIR_SEP, card_index);
     else
-      File::CreateFullPath(strDirectoryName + DIR_SEP);
+      File::CreateFullPath(dir_path + DIR_SEP);
   }
   else if (!file_info.IsDirectory())
   {
-    if (File::Rename(strDirectoryName, strDirectoryName + ".original"))
+    if (File::Rename(dir_path, dir_path + ".original"))
     {
-      PanicAlertFmtT("{0} was not a directory, moved to *.original", strDirectoryName);
+      PanicAlertFmtT("{0} was not a directory, moved to *.original", dir_path);
       if (migrate)
-        MigrateFromMemcardFile(strDirectoryName + DIR_SEP, card_index);
+        MigrateFromMemcardFile(dir_path + DIR_SEP, card_index);
       else
-        File::CreateFullPath(strDirectoryName + DIR_SEP);
+        File::CreateFullPath(dir_path + DIR_SEP);
     }
     else  // we tried but the user wants to crash
     {
       // TODO more user friendly abort
       PanicAlertFmtT("{0} is not a directory, failed to move to *.original.\n Verify your "
                      "write permissions or move the file outside of Dolphin",
-                     strDirectoryName);
+                     dir_path);
       std::exit(0);
     }
   }
 
-  memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index,
-                                                    header_data, CurrentGameId);
+  memorycard = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, card_index, header_data,
+                                                    current_game_id);
 }
 
-void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
+void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 {
   const bool is_slot_a = card_index == 0;
   std::string filename = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
@@ -236,10 +236,10 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
       SConfig::GetDirectoryForRegion(SConfig::ToGameCubeRegion(SConfig::GetInstance().m_region));
   MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
-  if (sizeMb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
+  if (size_mb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
     filename.insert(filename.find_last_of("."), ".251");
 
-  memorycard = std::make_unique<MemoryCard>(filename, card_index, sizeMb);
+  memorycard = std::make_unique<MemoryCard>(filename, card_index, size_mb);
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
@@ -521,44 +521,44 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
   }
 }
 
-IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
+IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int custom_index)
 {
   if (device_type != m_device_type)
     return nullptr;
-  if (customIndex != card_index)
+  if (custom_index != card_index)
     return nullptr;
   return this;
 }
 
 // DMA reads are preceded by all of the necessary setup via IMMRead
 // read all at once instead of single byte at a time as done by IEXIDevice::DMARead
-void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
+void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 {
-  memorycard->Read(address, _uSize, Memory::GetPointer(_uAddr));
+  memorycard->Read(address, size, Memory::GetPointer(addr));
 
-  if ((address + _uSize) % Memcard::BLOCK_SIZE == 0)
+  if ((address + size) % Memcard::BLOCK_SIZE == 0)
   {
     INFO_LOG_FMT(EXPANSIONINTERFACE, "reading from block: {:x}", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
-  CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
+  CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
                             s_et_transfer_complete[card_index], (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
 // write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
-void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
+void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
-  memorycard->Write(address, _uSize, Memory::GetPointer(_uAddr));
+  memorycard->Write(address, size, Memory::GetPointer(addr));
 
-  if (((address + _uSize) % Memcard::BLOCK_SIZE) == 0)
+  if (((address + size) % Memcard::BLOCK_SIZE) == 0)
   {
     INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed
-  CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
+  CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
                             s_et_transfer_complete[card_index], (u64)card_index);
 }
 }  // namespace ExpansionInterface

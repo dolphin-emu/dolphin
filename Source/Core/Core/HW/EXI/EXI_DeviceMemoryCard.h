@@ -30,16 +30,16 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(const int index, bool gciFolder, const Memcard::HeaderData& header_data);
+  CEXIMemoryCard(const int index, bool gci_folder, const Memcard::HeaderData& header_data);
   virtual ~CEXIMemoryCard();
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool UseDelayedTransferCompletion() const override;
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
-  IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1) override;
-  void DMARead(u32 _uAddr, u32 _uSize) override;
-  void DMAWrite(u32 _uAddr, u32 _uSize) override;
+  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index) override;
+  void DMARead(u32 addr, u32 size) override;
+  void DMAWrite(u32 addr, u32 size) override;
 
   // CoreTiming events need to be registered during boot since CoreTiming is DoState()-ed
   // before ExpansionInterface so we'll lose the save stated events if the callbacks are
@@ -52,7 +52,7 @@ public:
 
 private:
   void SetupGciFolder(const Memcard::HeaderData& header_data);
-  void SetupRawMemcard(u16 sizeMb);
+  void SetupRawMemcard(u16 size_mb);
   static void EventCompleteFindInstance(u64 userdata,
                                         std::function<void(CEXIMemoryCard*)> callback);
 
