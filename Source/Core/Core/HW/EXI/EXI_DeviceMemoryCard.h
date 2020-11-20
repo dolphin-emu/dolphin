@@ -90,21 +90,21 @@ private:
     cmdChipErase = 0xF4,
   };
 
-  int card_index;
+  int m_card_index;
   //! memory card state
 
   // STATE_TO_SAVE
-  int interruptSwitch;
-  bool m_bInterruptSet;
-  int command;
-  int status;
-  u32 m_uPosition;
-  u8 programming_buffer[128];
+  int m_interrupt_switch;
+  bool m_interrupt_set;
+  int m_command;
+  int m_status;
+  u32 m_position;
+  u8 m_programming_buffer[128];
   //! memory card parameters
-  unsigned int card_id;
-  unsigned int address;
-  u32 memory_card_size;
-  std::unique_ptr<MemoryCardBase> memorycard;
+  unsigned int m_card_id;
+  unsigned int m_address;
+  u32 m_memory_card_size;
+  std::unique_ptr<MemoryCardBase> m_memory_card;
 
 protected:
   void TransferByte(u8& byte) override;

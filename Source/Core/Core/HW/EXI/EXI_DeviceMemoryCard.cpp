@@ -108,7 +108,7 @@ void CEXIMemoryCard::Shutdown()
 
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
                                const Memcard::HeaderData& header_data)
-    : card_index(index)
+    : m_card_index(index)
 {
   ASSERT_MSG(EXPANSIONINTERFACE, static_cast<std::size_t>(index) < s_et_cmd_done.size(),
              "Trying to create invalid memory card index %d.", index);
@@ -116,12 +116,12 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
   // NOTE: When loading a save state, DMA completion callbacks (s_et_transfer_complete) and such
   //   may have been restored, we need to anticipate those arriving.
 
-  interruptSwitch = 0;
-  m_bInterruptSet = false;
-  command = 0;
-  status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
-  m_uPosition = 0;
-  memset(programming_buffer, 0, sizeof(programming_buffer));
+  m_interrupt_switch = 0;
+  m_interrupt_set = false;
+  m_command = 0;
+  m_status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
+  m_position = 0;
+  memset(m_programming_buffer, 0, sizeof(m_programming_buffer));
   // Nintendo Memory Card EXI IDs
   // 0x00000004 Memory Card 59     4Mbit
   // 0x00000008 Memory Card 123    8Mb
@@ -132,7 +132,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
 
   // 0x00000510 16Mb "bigben" card
   // card_id = 0xc243;
-  card_id = 0xc221;  // It's a Nintendo brand memcard
+  m_card_id = 0xc221;  // It's a Nintendo brand memcard
 
   if (gci_folder)
   {
@@ -143,10 +143,10 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
     SetupRawMemcard(header_data.m_size_mb);
   }
 
-  memory_card_size = memorycard->GetCardId() * SIZE_TO_Mb;
+  m_memory_card_size = m_memory_card->GetCardId() * SIZE_TO_Mb;
   std::array<u8, 20> header{};
-  memorycard->Read(0, static_cast<s32>(header.size()), header.data());
-  SetCardFlashID(header.data(), card_index);
+  m_memory_card->Read(0, static_cast<s32>(header.size()), header.data());
+  SetCardFlashID(header.data(), m_card_index);
 }
 
 std::pair<std::string /* path */, bool /* migrate */>
@@ -187,7 +187,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
 
   // TODO(C++20): Use structured bindings when we can use C++20 and refer to structured bindings
   // in lambda captures
-  const auto folder_path_pair = GetGCIFolderPath(card_index, AllowMovieFolder::Yes);
+  const auto folder_path_pair = GetGCIFolderPath(m_card_index, AllowMovieFolder::Yes);
   const std::string& dir_path = folder_path_pair.first;
   const bool migrate = folder_path_pair.second;
 
@@ -195,7 +195,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
   if (!file_info.Exists())
   {
     if (migrate)  // first use of memcard folder, migrate automatically
-      MigrateFromMemcardFile(dir_path + DIR_SEP, card_index);
+      MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_index);
     else
       File::CreateFullPath(dir_path + DIR_SEP);
   }
@@ -205,7 +205,7 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     {
       PanicAlertFmtT("{0} was not a directory, moved to *.original", dir_path);
       if (migrate)
-        MigrateFromMemcardFile(dir_path + DIR_SEP, card_index);
+        MigrateFromMemcardFile(dir_path + DIR_SEP, m_card_index);
       else
         File::CreateFullPath(dir_path + DIR_SEP);
     }
@@ -219,16 +219,16 @@ void CEXIMemoryCard::SetupGciFolder(const Memcard::HeaderData& header_data)
     }
   }
 
-  memorycard = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, card_index, header_data,
-                                                    current_game_id);
+  m_memory_card = std::make_unique<GCMemcardDirectory>(dir_path + DIR_SEP, m_card_index,
+                                                       header_data, current_game_id);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
 {
-  const bool is_slot_a = card_index == 0;
+  const bool is_slot_a = m_card_index == 0;
   std::string filename = is_slot_a ? Config::Get(Config::MAIN_MEMCARD_A_PATH) :
                                      Config::Get(Config::MAIN_MEMCARD_B_PATH);
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(m_card_index) &&
       Movie::IsStartingFromClearSave())
     filename = File::GetUserPath(D_GCUSER_IDX) + fmt::format("Movie{}.raw", is_slot_a ? 'A' : 'B');
 
@@ -239,13 +239,13 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
   if (size_mb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
     filename.insert(filename.find_last_of('.'), ".251");
 
-  memorycard = std::make_unique<MemoryCard>(filename, card_index, size_mb);
+  m_memory_card = std::make_unique<MemoryCard>(filename, m_card_index, size_mb);
 }
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
-  CoreTiming::RemoveEvent(s_et_transfer_complete[card_index]);
+  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_index]);
+  CoreTiming::RemoveEvent(s_et_transfer_complete[m_card_index]);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion() const
@@ -260,41 +260,41 @@ bool CEXIMemoryCard::IsPresent() const
 
 void CEXIMemoryCard::CmdDone()
 {
-  status |= MC_STATUS_READY;
-  status &= ~MC_STATUS_BUSY;
+  m_status |= MC_STATUS_READY;
+  m_status &= ~MC_STATUS_BUSY;
 
-  m_bInterruptSet = true;
+  m_interrupt_set = true;
   ExpansionInterface::UpdateInterrupts();
 }
 
 void CEXIMemoryCard::TransferComplete()
 {
   // Transfer complete, send interrupt
-  ExpansionInterface::GetChannel(card_index)->SendTransferComplete();
+  ExpansionInterface::GetChannel(m_card_index)->SendTransferComplete();
 }
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
-  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[card_index], card_index);
+  CoreTiming::RemoveEvent(s_et_cmd_done[m_card_index]);
+  CoreTiming::ScheduleEvent(cycles, s_et_cmd_done[m_card_index], m_card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
 {
   if (cs)  // not-selected to selected
   {
-    m_uPosition = 0;
+    m_position = 0;
   }
   else
   {
-    switch (command)
+    switch (m_command)
     {
     case cmdSectorErase:
-      if (m_uPosition > 2)
+      if (m_position > 2)
       {
-        memorycard->ClearBlock(address & (memory_card_size - 1));
-        status |= MC_STATUS_BUSY;
-        status &= ~MC_STATUS_READY;
+        m_memory_card->ClearBlock(m_address & (m_memory_card_size - 1));
+        m_status |= MC_STATUS_BUSY;
+        m_status &= ~MC_STATUS_READY;
 
         //???
 
@@ -303,27 +303,27 @@ void CEXIMemoryCard::SetCS(int cs)
       break;
 
     case cmdChipErase:
-      if (m_uPosition > 2)
+      if (m_position > 2)
       {
         // TODO: Investigate on HW, I (LPFaint99) believe that this only
         // erases the system area (Blocks 0-4)
-        memorycard->ClearAll();
-        status &= ~MC_STATUS_BUSY;
+        m_memory_card->ClearAll();
+        m_status &= ~MC_STATUS_BUSY;
       }
       break;
 
     case cmdPageProgram:
-      if (m_uPosition >= 5)
+      if (m_position >= 5)
       {
-        int count = m_uPosition - 5;
+        int count = m_position - 5;
         int i = 0;
-        status &= ~MC_STATUS_BUSY;
+        m_status &= ~MC_STATUS_BUSY;
 
         while (count--)
         {
-          memorycard->Write(address, 1, &(programming_buffer[i++]));
+          m_memory_card->Write(m_address, 1, &(m_programming_buffer[i++]));
           i &= 127;
-          address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+          m_address = (m_address & ~0x1FF) | ((m_address + 1) & 0x1FF);
         }
 
         CmdDoneLater(5000);
@@ -335,20 +335,20 @@ void CEXIMemoryCard::SetCS(int cs)
 
 bool CEXIMemoryCard::IsInterruptSet()
 {
-  if (interruptSwitch)
-    return m_bInterruptSet;
+  if (m_interrupt_switch)
+    return m_interrupt_set;
   return false;
 }
 
 void CEXIMemoryCard::TransferByte(u8& byte)
 {
   DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: > {:02x}", byte);
-  if (m_uPosition == 0)
+  if (m_position == 0)
   {
-    command = byte;  // first byte is command
-    byte = 0xFF;     // would be tristate, but we don't care.
+    m_command = byte;  // first byte is command
+    byte = 0xFF;       // would be tristate, but we don't care.
 
-    switch (command)  // This seems silly, do we really need it?
+    switch (m_command)  // This seems silly, do we really need it?
     {
     case cmdNintendoID:
     case cmdReadArray:
@@ -366,28 +366,28 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case cmdExtraByteProgram:
     case cmdChipErase:
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
-                    command);
+                    m_command);
       break;
     default:
-      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", command);
+      WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", m_command);
       break;
     }
-    if (command == cmdClearStatus)
+    if (m_command == cmdClearStatus)
     {
-      status &= ~MC_STATUS_PROGRAMEERROR;
-      status &= ~MC_STATUS_ERASEERROR;
+      m_status &= ~MC_STATUS_PROGRAMEERROR;
+      m_status &= ~MC_STATUS_ERASEERROR;
 
-      status |= MC_STATUS_READY;
+      m_status |= MC_STATUS_READY;
 
-      m_bInterruptSet = false;
+      m_interrupt_set = false;
 
       byte = 0xFF;
-      m_uPosition = 0;
+      m_position = 0;
     }
   }
   else
   {
-    switch (command)
+    switch (m_command)
     {
     case cmdNintendoID:
       //
@@ -396,68 +396,68 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       // "bigben" card:
       // 00 | ff 00 00 05 10 00 00 00 00 00 00 00 00 00 00
       // we do it the Nintendo way.
-      if (m_uPosition == 1)
+      if (m_position == 1)
         byte = 0x80;  // dummy cycle
       else
-        byte = static_cast<u8>(memorycard->GetCardId() >> (24 - (((m_uPosition - 2) & 3) * 8)));
+        byte = static_cast<u8>(m_memory_card->GetCardId() >> (24 - (((m_position - 2) & 3) * 8)));
       break;
 
     case cmdReadArray:
-      switch (m_uPosition)
+      switch (m_position)
       {
       case 1:  // AD1
-        address = byte << 17;
+        m_address = byte << 17;
         byte = 0xFF;
         break;
       case 2:  // AD2
-        address |= byte << 9;
+        m_address |= byte << 9;
         break;
       case 3:  // AD3
-        address |= (byte & 3) << 7;
+        m_address |= (byte & 3) << 7;
         break;
       case 4:  // BA
-        address |= (byte & 0x7F);
+        m_address |= (byte & 0x7F);
         break;
       }
-      if (m_uPosition > 1)  // not specified for 1..8, anyway
+      if (m_position > 1)  // not specified for 1..8, anyway
       {
-        memorycard->Read(address & (memory_card_size - 1), 1, &byte);
+        m_memory_card->Read(m_address & (m_memory_card_size - 1), 1, &byte);
         // after 9 bytes, we start incrementing the address,
         // but only the sector offset - the pointer wraps around
-        if (m_uPosition >= 9)
-          address = (address & ~0x1FF) | ((address + 1) & 0x1FF);
+        if (m_position >= 9)
+          m_address = (m_address & ~0x1FF) | ((m_address + 1) & 0x1FF);
       }
       break;
 
     case cmdReadStatus:
       // (unspecified for byte 1)
-      byte = status;
+      byte = m_status;
       break;
 
     case cmdReadID:
-      if (m_uPosition == 1)  // (unspecified)
-        byte = static_cast<u8>(card_id >> 8);
+      if (m_position == 1)  // (unspecified)
+        byte = static_cast<u8>(m_card_id >> 8);
       else
-        byte = static_cast<u8>((m_uPosition & 1) ? (card_id) : (card_id >> 8));
+        byte = static_cast<u8>((m_position & 1) ? (m_card_id) : (m_card_id >> 8));
       break;
 
     case cmdSectorErase:
-      switch (m_uPosition)
+      switch (m_position)
       {
       case 1:  // AD1
-        address = byte << 17;
+        m_address = byte << 17;
         break;
       case 2:  // AD2
-        address |= byte << 9;
+        m_address |= byte << 9;
         break;
       }
       byte = 0xFF;
       break;
 
     case cmdSetInterrupt:
-      if (m_uPosition == 1)
+      if (m_position == 1)
       {
-        interruptSwitch = byte;
+        m_interrupt_switch = byte;
       }
       byte = 0xFF;
       break;
@@ -467,24 +467,24 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       break;
 
     case cmdPageProgram:
-      switch (m_uPosition)
+      switch (m_position)
       {
       case 1:  // AD1
-        address = byte << 17;
+        m_address = byte << 17;
         break;
       case 2:  // AD2
-        address |= byte << 9;
+        m_address |= byte << 9;
         break;
       case 3:  // AD3
-        address |= (byte & 3) << 7;
+        m_address |= (byte & 3) << 7;
         break;
       case 4:  // BA
-        address |= (byte & 0x7F);
+        m_address |= (byte & 0x7F);
         break;
       }
 
-      if (m_uPosition >= 5)
-        programming_buffer[((m_uPosition - 5) & 0x7F)] = byte;  // wrap around after 128 bytes
+      if (m_position >= 5)
+        m_programming_buffer[((m_position - 5) & 0x7F)] = byte;  // wrap around after 128 bytes
 
       byte = 0xFF;
       break;
@@ -494,7 +494,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       byte = 0xFF;
     }
   }
-  m_uPosition++;
+  m_position++;
   DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: < {:02x}", byte);
 }
 
@@ -509,15 +509,15 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
 
   if (storeContents)
   {
-    p.Do(interruptSwitch);
-    p.Do(m_bInterruptSet);
-    p.Do(command);
-    p.Do(status);
-    p.Do(m_uPosition);
-    p.Do(programming_buffer);
-    p.Do(address);
-    memorycard->DoState(p);
-    p.Do(card_index);
+    p.Do(m_interrupt_switch);
+    p.Do(m_interrupt_set);
+    p.Do(m_command);
+    p.Do(m_status);
+    p.Do(m_position);
+    p.Do(m_programming_buffer);
+    p.Do(m_address);
+    m_memory_card->DoState(p);
+    p.Do(m_card_index);
   }
 }
 
@@ -525,7 +525,7 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int custom_index
 {
   if (device_type != m_device_type)
     return nullptr;
-  if (custom_index != card_index)
+  if (custom_index != m_card_index)
     return nullptr;
   return this;
 }
@@ -534,31 +534,31 @@ IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int custom_index
 // read all at once instead of single byte at a time as done by IEXIDevice::DMARead
 void CEXIMemoryCard::DMARead(u32 addr, u32 size)
 {
-  memorycard->Read(address, size, Memory::GetPointer(addr));
+  m_memory_card->Read(m_address, size, Memory::GetPointer(addr));
 
-  if ((address + size) % Memcard::BLOCK_SIZE == 0)
+  if ((m_address + size) % Memcard::BLOCK_SIZE == 0)
   {
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "reading from block: {:x}", address / Memcard::BLOCK_SIZE);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "reading from block: {:x}", m_address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            s_et_transfer_complete[card_index], card_index);
+                            s_et_transfer_complete[m_card_index], m_card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
 // write all at once instead of single byte at a time as done by IEXIDevice::DMAWrite
 void CEXIMemoryCard::DMAWrite(u32 addr, u32 size)
 {
-  memorycard->Write(address, size, Memory::GetPointer(addr));
+  m_memory_card->Write(m_address, size, Memory::GetPointer(addr));
 
-  if (((address + size) % Memcard::BLOCK_SIZE) == 0)
+  if (((m_address + size) % Memcard::BLOCK_SIZE) == 0)
   {
-    INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", address / Memcard::BLOCK_SIZE);
+    INFO_LOG_FMT(EXPANSIONINTERFACE, "writing to block: {:x}", m_address / Memcard::BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed
   CoreTiming::ScheduleEvent(size * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            s_et_transfer_complete[card_index], card_index);
+                            s_et_transfer_complete[m_card_index], m_card_index);
 }
 }  // namespace ExpansionInterface
