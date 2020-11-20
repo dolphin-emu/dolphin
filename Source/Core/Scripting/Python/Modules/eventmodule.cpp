@@ -185,7 +185,7 @@ using PyMemoryBreakpointEvent = PyEventFromMappingFunc<PyMemoryBreakpoint>;
 // deduced from the PyEvent signature's input argument.
 using EventContainer = PythonEventContainer<PyFrameAdvanceEvent, PyMemoryBreakpointEvent>;
 template <>
-const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents;
+const std::tuple<PyFrameAdvanceEvent, PyMemoryBreakpointEvent> EventContainer::s_pyevents = {};
 
 std::optional<CoroutineScheduler> GetCoroutineScheduler(std::string aeventname)
 {
