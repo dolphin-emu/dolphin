@@ -1666,7 +1666,7 @@ bool Renderer::StartFrameDumpToImage(const FrameDump::FrameData&)
     std::string filename = GetFrameDumpNextImageFileName();
     if (File::Exists(filename))
     {
-      if (!AskYesNoFmtT("Frame dump image(s) '{}' already exists. Overwrite?", filename))
+      if (!AskYesNoFmtT("Frame dump image(s) '{0}' already exists. Overwrite?", filename))
         return false;
     }
   }

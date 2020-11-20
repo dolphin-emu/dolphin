@@ -525,7 +525,7 @@ void SetCpClearRegister()
 void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess)
 {
   // TODO(Omega): Maybe dump FIFO to file on this error
-  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({:#04x} @ {}, {}).\n"
+  PanicAlertFmtT("GFX FIFO: Unknown Opcode ({0:#04x} @ {1}, {2}).\n"
                  "This means one of the following:\n"
                  "* The emulated GPU got desynced, disabling dual core can help\n"
                  "* Command stream corrupted by some spurious memory bug\n"
