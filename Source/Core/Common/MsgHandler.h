@@ -102,6 +102,16 @@ std::string FmtFormatT(const char* string, Args&&... args)
                                                     ##__VA_ARGS__);                                \
   }()
 
+#define GenericAlertFmtT(yes_no, style, format, ...)                                               \
+  [&] {                                                                                            \
+    static_assert(!Common::ContainsNonPositionalArguments(format),                                 \
+                  "Translatable strings must use positional arguments (e.g. {0} instead of {})");  \
+    /* Use a macro-like name to avoid shadowing warnings */                                        \
+    constexpr auto GENERIC_ALERT_FMT_N = Common::CountFmtReplacementFields(format);                \
+    return Common::MsgAlertFmt<GENERIC_ALERT_FMT_N>(yes_no, style, FMT_STRING(format),             \
+                                                    ##__VA_ARGS__);                                \
+  }()
+
 #define SuccessAlertFmt(format, ...)                                                               \
   GenericAlertFmt(false, Common::MsgType::Information, format, ##__VA_ARGS__)
 
@@ -119,16 +129,16 @@ std::string FmtFormatT(const char* string, Args&&... args)
 
 // Use these macros (that do the same thing) if the message should be translated.
 #define SuccessAlertFmtT(format, ...)                                                              \
-  GenericAlertFmt(false, Common::MsgType::Information, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Information, format, ##__VA_ARGS__)
 
 #define PanicAlertFmtT(format, ...)                                                                \
-  GenericAlertFmt(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Warning, format, ##__VA_ARGS__)
 
 #define PanicYesNoFmtT(format, ...)                                                                \
-  GenericAlertFmt(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
+  GenericAlertFmtT(true, Common::MsgType::Warning, format, ##__VA_ARGS__)
 
 #define AskYesNoFmtT(format, ...)                                                                  \
-  GenericAlertFmt(true, Common::MsgType::Question, format, ##__VA_ARGS__)
+  GenericAlertFmtT(true, Common::MsgType::Question, format, ##__VA_ARGS__)
 
 #define CriticalAlertFmtT(format, ...)                                                             \
-  GenericAlertFmt(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
+  GenericAlertFmtT(false, Common::MsgType::Critical, format, ##__VA_ARGS__)
