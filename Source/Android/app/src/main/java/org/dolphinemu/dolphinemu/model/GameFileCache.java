@@ -1,22 +1,18 @@
 package org.dolphinemu.dolphinemu.model;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-
 import androidx.annotation.Keep;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting;
+import org.dolphinemu.dolphinemu.features.settings.model.Settings;
+import org.dolphinemu.dolphinemu.features.settings.utils.SettingsFile;
+import org.dolphinemu.dolphinemu.utils.IniFile;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 public class GameFileCache
 {
-  private static final String GAME_FOLDER_PATHS_PREFERENCE = "gameFolderPaths";
-  private static final Set<String> EMPTY_SET = new HashSet<>();
-
   @Keep
   private long mPointer;
 
@@ -30,50 +26,72 @@ public class GameFileCache
   @Override
   public native void finalize();
 
-  public static void addGameFolder(String path, Context context)
+  public static void addGameFolder(String path)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+    File dolphinFile = SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN);
+    IniFile dolphinIni = new IniFile(dolphinFile);
+    LinkedHashSet<String> pathSet = getPathSet(false);
+    int totalISOPaths =
+            dolphinIni.getInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS, 0);
 
-    if (folderPaths == null)
+    if (!pathSet.contains(path))
     {
-      return;
+      dolphinIni.setInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS,
+              totalISOPaths + 1);
+      dolphinIni.setString(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATH_BASE +
+              totalISOPaths, path);
+      dolphinIni.save(dolphinFile);
+      NativeLibrary.ReloadConfig();
     }
-
-    Set<String> newFolderPaths = new HashSet<>(folderPaths);
-    newFolderPaths.add(path);
-    SharedPreferences.Editor editor = preferences.edit();
-    editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
-    editor.apply();
   }
 
-  private void removeNonExistentGameFolders(Context context)
+  private static LinkedHashSet<String> getPathSet(boolean removeNonExistentFolders)
   {
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    Set<String> folderPaths = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
+    File dolphinFile = SettingsFile.getSettingsFile(Settings.FILE_DOLPHIN);
+    IniFile dolphinIni = new IniFile(dolphinFile);
+    LinkedHashSet<String> pathSet = new LinkedHashSet<>();
+    int totalISOPaths =
+            dolphinIni.getInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS, 0);
 
-    if (folderPaths == null)
+    for (int i = 0; i < totalISOPaths; i++)
     {
-      return;
-    }
+      String path = dolphinIni.getString(Settings.SECTION_INI_GENERAL,
+              SettingsFile.KEY_ISO_PATH_BASE + i, "");
 
-    Set<String> newFolderPaths = new HashSet<>();
-    for (String folderPath : folderPaths)
-    {
-      File folder = new File(folderPath);
+      File folder = new File(path);
       if (folder.exists())
       {
-        newFolderPaths.add(folderPath);
+        pathSet.add(path);
       }
     }
 
-    if (folderPaths.size() != newFolderPaths.size())
+    if (removeNonExistentFolders && totalISOPaths > pathSet.size())
     {
-      // One or more folders are being deleted
-      SharedPreferences.Editor editor = preferences.edit();
-      editor.putStringSet(GAME_FOLDER_PATHS_PREFERENCE, newFolderPaths);
-      editor.apply();
+      int setIndex = 0;
+
+      dolphinIni.setInt(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATHS,
+              pathSet.size());
+
+      // One or more folders have been removed.
+      for (String entry : pathSet)
+      {
+        dolphinIni.setString(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATH_BASE +
+                setIndex, entry);
+
+        setIndex++;
+      }
+
+      // Delete known unnecessary keys. Ignore i values beyond totalISOPaths.
+      for (int i = setIndex; i < totalISOPaths; i++)
+      {
+        dolphinIni.deleteKey(Settings.SECTION_INI_GENERAL, SettingsFile.KEY_ISO_PATH_BASE + i);
+      }
+
+      dolphinIni.save(dolphinFile);
+      NativeLibrary.ReloadConfig();
     }
+
+    return pathSet;
   }
 
   /**
@@ -81,19 +99,11 @@ public class GameFileCache
    *
    * @return true if the cache was modified
    */
-  public boolean scanLibrary(Context context)
+  public boolean scanLibrary()
   {
     boolean recursiveScan = BooleanSetting.MAIN_RECURSIVE_ISO_PATHS.getBooleanGlobal();
 
-    removeNonExistentGameFolders(context);
-
-    SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-    Set<String> folderPathsSet = preferences.getStringSet(GAME_FOLDER_PATHS_PREFERENCE, EMPTY_SET);
-
-    if (folderPathsSet == null)
-    {
-      return false;
-    }
+    LinkedHashSet<String> folderPathsSet = getPathSet(true);
 
     String[] folderPaths = folderPathsSet.toArray(new String[0]);
 

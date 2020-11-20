@@ -107,11 +107,11 @@ public final class MainPresenter
     return false;
   }
 
-  public void addDirIfNeeded(Context context)
+  public void addDirIfNeeded()
   {
     if (mDirToAdd != null)
     {
-      GameFileCache.addGameFolder(mDirToAdd, context);
+      GameFileCache.addGameFolder(mDirToAdd);
       mDirToAdd = null;
     }
   }
