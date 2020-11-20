@@ -58,6 +58,7 @@
     <ClInclude Include="FileUtil.h" />
     <ClInclude Include="FixedSizeQueue.h" />
     <ClInclude Include="Flag.h" />
+    <ClInclude Include="FormatUtil.h" />
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="GekkoDisassembler.h" />
     <ClInclude Include="GL\GLExtensions\AMD_pinned_memory.h" />

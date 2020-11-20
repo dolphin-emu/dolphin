@@ -81,7 +81,7 @@ void GenericLog(LOG_LEVELS level, LOG_TYPE type, const char* file, int line, con
 }
 
 void GenericLogFmtImpl(LOG_LEVELS level, LOG_TYPE type, const char* file, int line,
-                       std::string_view format, const fmt::format_args& args)
+                       fmt::string_view format, const fmt::format_args& args)
 {
   auto* instance = LogManager::GetInstance();
   if (instance == nullptr)
