@@ -62,10 +62,28 @@ if (MSVC)
   # Use PCH
   add_subdirectory(PCH)
   add_definitions(/I${PCH_DIRECTORY})
-  add_definitions(/Yu${PCH_PATH}) 
+  add_definitions(/Yu${PCH_PATH})
 
   # Don't include timestamps in binaries
   add_link_options(/Brepro)
+else()
+  check_and_add_flag(HAVE_WALL -Wall)
+  # TODO: would like these but they produce overwhelming amounts of warnings
+  #check_and_add_flag(EXTRA -Wextra)
+  #check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
+  #check_and_add_flag(SWITCH_DEFAULT -Wswitch-default)
+  #check_and_add_flag(FLOAT_EQUAL -Wfloat-equal)
+  #check_and_add_flag(CONVERSION -Wconversion)
+  #check_and_add_flag(ZERO_AS_NULL_POINTER_CONSTANT -Wzero-as-null-pointer-constant)
+  check_and_add_flag(TYPE_LIMITS -Wtype-limits)
+  check_and_add_flag(SIGN_COMPARE -Wsign-compare)
+  check_and_add_flag(IGNORED_QUALIFIERS -Wignored-qualifiers)
+  check_and_add_flag(UNINITIALIZED -Wuninitialized)
+  check_and_add_flag(LOGICAL_OP -Wlogical-op)
+  check_and_add_flag(SHADOW -Wshadow)
+  check_and_add_flag(INIT_SELF -Winit-self)
+  check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
+  check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
 endif()
 
 # These aren't actually needed for C11/C++11
