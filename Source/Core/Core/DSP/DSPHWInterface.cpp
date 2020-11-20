@@ -132,7 +132,7 @@ void gdsp_ifx_write(u32 addr, u16 val)
   case DSP_GAIN:
     if (val != 0)
     {
-      DEBUG_LOG(DSPLLE, "Gain Written: {:#06x}", val);
+      DEBUG_LOG_FMT(DSPLLE, "Gain Written: {:#06x}", val);
     }
     [[fallthrough]];
   case DSP_DSPA:
