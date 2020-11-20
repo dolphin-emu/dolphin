@@ -118,7 +118,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gci_folder,
 
   m_interrupt_switch = 0;
   m_interrupt_set = false;
-  m_command = 0;
+  m_command = Command::NintendoID;
   m_status = MC_STATUS_BUSY | MC_STATUS_UNLOCKED | MC_STATUS_READY;
   m_position = 0;
   memset(m_programming_buffer, 0, sizeof(m_programming_buffer));
@@ -289,7 +289,7 @@ void CEXIMemoryCard::SetCS(int cs)
   {
     switch (m_command)
     {
-    case cmdSectorErase:
+    case Command::SectorErase:
       if (m_position > 2)
       {
         m_memory_card->ClearBlock(m_address & (m_memory_card_size - 1));
@@ -302,7 +302,7 @@ void CEXIMemoryCard::SetCS(int cs)
       }
       break;
 
-    case cmdChipErase:
+    case Command::ChipErase:
       if (m_position > 2)
       {
         // TODO: Investigate on HW, I (LPFaint99) believe that this only
@@ -312,7 +312,7 @@ void CEXIMemoryCard::SetCS(int cs)
       }
       break;
 
-    case cmdPageProgram:
+    case Command::PageProgram:
       if (m_position >= 5)
       {
         int count = m_position - 5;
@@ -328,6 +328,9 @@ void CEXIMemoryCard::SetCS(int cs)
 
         CmdDoneLater(5000);
       }
+      break;
+
+    default:
       break;
     }
   }
@@ -345,26 +348,26 @@ void CEXIMemoryCard::TransferByte(u8& byte)
   DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: > {:02x}", byte);
   if (m_position == 0)
   {
-    m_command = byte;  // first byte is command
-    byte = 0xFF;       // would be tristate, but we don't care.
+    m_command = static_cast<Command>(byte);  // first byte is command
+    byte = 0xFF;                             // would be tristate, but we don't care.
 
     switch (m_command)  // This seems silly, do we really need it?
     {
-    case cmdNintendoID:
-    case cmdReadArray:
-    case cmdArrayToBuffer:
-    case cmdSetInterrupt:
-    case cmdWriteBuffer:
-    case cmdReadStatus:
-    case cmdReadID:
-    case cmdReadErrorBuffer:
-    case cmdWakeUp:
-    case cmdSleep:
-    case cmdClearStatus:
-    case cmdSectorErase:
-    case cmdPageProgram:
-    case cmdExtraByteProgram:
-    case cmdChipErase:
+    case Command::NintendoID:
+    case Command::ReadArray:
+    case Command::ArrayToBuffer:
+    case Command::SetInterrupt:
+    case Command::WriteBuffer:
+    case Command::ReadStatus:
+    case Command::ReadID:
+    case Command::ReadErrorBuffer:
+    case Command::WakeUp:
+    case Command::Sleep:
+    case Command::ClearStatus:
+    case Command::SectorErase:
+    case Command::PageProgram:
+    case Command::ExtraByteProgram:
+    case Command::ChipErase:
       DEBUG_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0. seems normal.",
                     m_command);
       break;
@@ -372,7 +375,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       WARN_LOG_FMT(EXPANSIONINTERFACE, "EXI MEMCARD: command {:02x} at position 0", m_command);
       break;
     }
-    if (m_command == cmdClearStatus)
+    if (m_command == Command::ClearStatus)
     {
       m_status &= ~MC_STATUS_PROGRAMEERROR;
       m_status &= ~MC_STATUS_ERASEERROR;
@@ -389,7 +392,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
   {
     switch (m_command)
     {
-    case cmdNintendoID:
+    case Command::NintendoID:
       //
       // Nintendo card:
       // 00 | 80 00 00 00 10 00 00 00
@@ -402,7 +405,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
         byte = static_cast<u8>(m_memory_card->GetCardId() >> (24 - (((m_position - 2) & 3) * 8)));
       break;
 
-    case cmdReadArray:
+    case Command::ReadArray:
       switch (m_position)
       {
       case 1:  // AD1
@@ -429,19 +432,19 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       }
       break;
 
-    case cmdReadStatus:
+    case Command::ReadStatus:
       // (unspecified for byte 1)
       byte = m_status;
       break;
 
-    case cmdReadID:
+    case Command::ReadID:
       if (m_position == 1)  // (unspecified)
         byte = static_cast<u8>(m_card_id >> 8);
       else
         byte = static_cast<u8>((m_position & 1) ? (m_card_id) : (m_card_id >> 8));
       break;
 
-    case cmdSectorErase:
+    case Command::SectorErase:
       switch (m_position)
       {
       case 1:  // AD1
@@ -454,7 +457,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       byte = 0xFF;
       break;
 
-    case cmdSetInterrupt:
+    case Command::SetInterrupt:
       if (m_position == 1)
       {
         m_interrupt_switch = byte;
@@ -462,11 +465,11 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       byte = 0xFF;
       break;
 
-    case cmdChipErase:
+    case Command::ChipErase:
       byte = 0xFF;
       break;
 
-    case cmdPageProgram:
+    case Command::PageProgram:
       switch (m_position)
       {
       case 1:  // AD1

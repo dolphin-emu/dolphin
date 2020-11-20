@@ -71,23 +71,23 @@ private:
   // Variant of CmdDone which schedules an event later in the future to complete the command.
   void CmdDoneLater(u64 cycles);
 
-  enum
+  enum class Command
   {
-    cmdNintendoID = 0x00,
-    cmdReadArray = 0x52,
-    cmdArrayToBuffer = 0x53,
-    cmdSetInterrupt = 0x81,
-    cmdWriteBuffer = 0x82,
-    cmdReadStatus = 0x83,
-    cmdReadID = 0x85,
-    cmdReadErrorBuffer = 0x86,
-    cmdWakeUp = 0x87,
-    cmdSleep = 0x88,
-    cmdClearStatus = 0x89,
-    cmdSectorErase = 0xF1,
-    cmdPageProgram = 0xF2,
-    cmdExtraByteProgram = 0xF3,
-    cmdChipErase = 0xF4,
+    NintendoID = 0x00,
+    ReadArray = 0x52,
+    ArrayToBuffer = 0x53,
+    SetInterrupt = 0x81,
+    WriteBuffer = 0x82,
+    ReadStatus = 0x83,
+    ReadID = 0x85,
+    ReadErrorBuffer = 0x86,
+    WakeUp = 0x87,
+    Sleep = 0x88,
+    ClearStatus = 0x89,
+    SectorErase = 0xF1,
+    PageProgram = 0xF2,
+    ExtraByteProgram = 0xF3,
+    ChipErase = 0xF4,
   };
 
   int m_card_index;
@@ -96,7 +96,7 @@ private:
   // STATE_TO_SAVE
   int m_interrupt_switch;
   bool m_interrupt_set;
-  int m_command;
+  Command m_command;
   int m_status;
   u32 m_position;
   u8 m_programming_buffer[128];
