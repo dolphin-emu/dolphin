@@ -30,8 +30,8 @@ enum class AllowMovieFolder
 class CEXIMemoryCard : public IEXIDevice
 {
 public:
-  CEXIMemoryCard(const int index, bool gci_folder, const Memcard::HeaderData& header_data);
-  virtual ~CEXIMemoryCard();
+  CEXIMemoryCard(int index, bool gci_folder, const Memcard::HeaderData& header_data);
+  ~CEXIMemoryCard() override;
   void SetCS(int cs) override;
   bool IsInterruptSet() override;
   bool UseDelayedTransferCompletion() const override;
