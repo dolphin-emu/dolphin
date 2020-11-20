@@ -1209,7 +1209,7 @@ void ExecuteCommand(ReplyType reply_type)
   default:
     ERROR_LOG_FMT(DVDINTERFACE, "Unknown command {:#010x} (Buffer {:#010x}, {:#x})", s_DICMDBUF[0],
                   s_DIMAR, s_DILENGTH);
-    PanicAlertFmtT("Unknown DVD command {:08x} - fatal error", s_DICMDBUF[0]);
+    PanicAlertFmtT("Unknown DVD command {0:08x} - fatal error", s_DICMDBUF[0]);
     SetDriveError(DriveError::InvalidCommand);
     interrupt_type = DIInterruptType::DEINT;
     break;

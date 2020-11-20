@@ -344,7 +344,7 @@ static void FinishRead(u64 id, s64 cycles_late)
   DVDInterface::DIInterruptType interrupt;
   if (buffer.size() != request.length)
   {
-    PanicAlertFmtT("The disc could not be read (at {:#x} - {:#x}).", request.dvd_offset,
+    PanicAlertFmtT("The disc could not be read (at {0:#x} - {1:#x}).", request.dvd_offset,
                    request.dvd_offset + request.length);
 
     DVDInterface::SetDriveError(DVDInterface::DriveError::BlockOOB);

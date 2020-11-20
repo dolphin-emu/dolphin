@@ -51,7 +51,7 @@ bool TextureToPng(const u8* data, int row_stride, const std::string& filename, i
   File::IOFile fp(filename, "wb");
   if (!fp.IsOpen())
   {
-    PanicAlertFmtT("Screenshot failed: Could not open file \"{}\" (error {})", filename, errno);
+    PanicAlertFmtT("Screenshot failed: Could not open file \"{0}\" (error {1})", filename, errno);
     goto finalise;
   }
 
