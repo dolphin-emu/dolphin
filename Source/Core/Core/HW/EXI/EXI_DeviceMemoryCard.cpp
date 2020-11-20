@@ -237,7 +237,7 @@ void CEXIMemoryCard::SetupRawMemcard(u16 size_mb)
   MemoryCard::CheckPath(filename, region_dir, is_slot_a);
 
   if (size_mb == Memcard::MBIT_SIZE_MEMORY_CARD_251)
-    filename.insert(filename.find_last_of("."), ".251");
+    filename.insert(filename.find_last_of('.'), ".251");
 
   memorycard = std::make_unique<MemoryCard>(filename, card_index, size_mb);
 }
