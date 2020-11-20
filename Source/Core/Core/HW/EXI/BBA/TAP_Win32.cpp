@@ -159,7 +159,7 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 
   if (adapter == INVALID_HANDLE_VALUE)
   {
-    INFO_LOG(SP1, "Failed to open TAP at %s", device_path.c_str());
+    INFO_LOG_FMT(SP1, "Failed to open TAP at {}", WStringToUTF8(device_path));
     return false;
   }
   return true;
@@ -179,21 +179,21 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
 
   if (!Win32TAPHelper::GetGUIDs(device_guids))
   {
-    ERROR_LOG(SP1, "Failed to find a TAP GUID");
+    ERROR_LOG_FMT(SP1, "Failed to find a TAP GUID");
     return false;
   }
 
-  for (size_t i = 0; i < device_guids.size(); i++)
+  for (const auto& device_guid : device_guids)
   {
-    if (Win32TAPHelper::OpenTAP(mHAdapter, device_guids.at(i)))
+    if (Win32TAPHelper::OpenTAP(mHAdapter, device_guid))
     {
-      INFO_LOG(SP1, "OPENED %s", device_guids.at(i).c_str());
+      INFO_LOG_FMT(SP1, "OPENED {}", WStringToUTF8(device_guid));
       break;
     }
   }
   if (mHAdapter == INVALID_HANDLE_VALUE)
   {
-    PanicAlert("Failed to open any TAP");
+    PanicAlertFmt("Failed to open any TAP");
     return false;
   }
 
@@ -202,16 +202,17 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   if (DeviceIoControl(mHAdapter, TAP_IOCTL_GET_VERSION, &info, sizeof(info), &info, sizeof(info),
                       &len, nullptr))
   {
-    INFO_LOG(SP1, "TAP-Win32 Driver Version %d.%d %s", info[0], info[1], info[2] ? "(DEBUG)" : "");
+    INFO_LOG_FMT(SP1, "TAP-Win32 Driver Version {}.{} {}", info[0], info[1],
+                 info[2] ? "(DEBUG)" : "");
   }
   if (!(info[0] > TAP_WIN32_MIN_MAJOR ||
         (info[0] == TAP_WIN32_MIN_MAJOR && info[1] >= TAP_WIN32_MIN_MINOR)))
   {
-    PanicAlertT("ERROR: This version of Dolphin requires a TAP-Win32 driver"
-                " that is at least version %d.%d -- If you recently upgraded your Dolphin"
-                " distribution, a reboot is probably required at this point to get"
-                " Windows to see the new driver.",
-                TAP_WIN32_MIN_MAJOR, TAP_WIN32_MIN_MINOR);
+    PanicAlertFmtT("ERROR: This version of Dolphin requires a TAP-Win32 driver"
+                   " that is at least version {0}.{1} -- If you recently upgraded your Dolphin"
+                   " distribution, a reboot is probably required at this point to get"
+                   " Windows to see the new driver.",
+                   TAP_WIN32_MIN_MAJOR, TAP_WIN32_MIN_MINOR);
     return false;
   }
 
@@ -220,8 +221,8 @@ bool CEXIETHERNET::TAPNetworkInterface::Activate()
   if (!DeviceIoControl(mHAdapter, TAP_IOCTL_SET_MEDIA_STATUS, &status, sizeof(status), &status,
                        sizeof(status), &len, nullptr))
   {
-    ERROR_LOG(SP1, "WARNING: The TAP-Win32 driver rejected a"
-                   "TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
+    ERROR_LOG_FMT(SP1, "WARNING: The TAP-Win32 driver rejected a"
+                       "TAP_IOCTL_SET_MEDIA_STATUS DeviceIoControl call.");
     return false;
   }
 
@@ -283,7 +284,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
       // IO should be pending.
       if (GetLastError() != ERROR_IO_PENDING)
       {
-        ERROR_LOG(SP1, "ReadFile failed (err=0x%X)", GetLastError());
+        ERROR_LOG_FMT(SP1, "ReadFile failed (err={:#x})", GetLastError());
         continue;
       }
 
@@ -295,14 +296,14 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
           continue;
 
         // Something else went wrong.
-        ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+        ERROR_LOG_FMT(SP1, "GetOverlappedResult failed (err={:#x})", GetLastError());
         continue;
       }
     }
 
     // Copy to BBA buffer, and fire interrupt if enabled.
-    DEBUG_LOG(SP1, "Received %u bytes:\n %s", transferred,
-              ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10).c_str());
+    DEBUG_LOG_FMT(SP1, "Received {} bytes:\n {}", transferred,
+                  ArrayToString(self->m_eth_ref->mRecvBuffer.get(), transferred, 0x10));
     if (self->readEnabled.IsSet())
     {
       self->m_eth_ref->mRecvBufferLength = transferred;
@@ -313,7 +314,7 @@ void CEXIETHERNET::TAPNetworkInterface::ReadThreadHandler(TAPNetworkInterface* s
 
 bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
 {
-  DEBUG_LOG(SP1, "SendFrame %u bytes:\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+  DEBUG_LOG_FMT(SP1, "SendFrame {} bytes:\n{}", size, ArrayToString(frame, size, 0x10));
 
   // Check for a background write. We can't issue another one until this one has completed.
   DWORD transferred;
@@ -321,7 +322,7 @@ bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
   {
     // Wait for previous write to complete.
     if (!GetOverlappedResult(mHAdapter, &mWriteOverlapped, &transferred, TRUE))
-      ERROR_LOG(SP1, "GetOverlappedResult failed (err=0x%X)", GetLastError());
+      ERROR_LOG_FMT(SP1, "GetOverlappedResult failed (err={:#x})", GetLastError());
   }
 
   // Copy to write buffer.
@@ -339,7 +340,7 @@ bool CEXIETHERNET::TAPNetworkInterface::SendFrame(const u8* frame, u32 size)
     // IO should be pending.
     if (GetLastError() != ERROR_IO_PENDING)
     {
-      ERROR_LOG(SP1, "WriteFile failed (err=0x%X)", GetLastError());
+      ERROR_LOG_FMT(SP1, "WriteFile failed (err={:#x})", GetLastError());
       ResetEvent(mWriteOverlapped.hEvent);
       mWritePending = false;
       return false;

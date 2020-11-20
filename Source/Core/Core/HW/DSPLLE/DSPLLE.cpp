@@ -129,8 +129,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
   if (bytes.size() != size_in_bytes)
   {
-    ERROR_LOG(DSPLLE, "%s has a wrong size (%zu, expected %u)", filename.c_str(), bytes.size(),
-              size_in_bytes);
+    ERROR_LOG_FMT(DSPLLE, "{} has a wrong size ({}, expected {})", filename, bytes.size(),
+                  size_in_bytes);
     return false;
   }
 
@@ -264,7 +264,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
     if (gdsp_mbox_peek(MAILBOX_CPU) & 0x80000000)
     {
       // the DSP didn't read the previous value
-      WARN_LOG(DSPLLE, "Mailbox isn't empty ... strange");
+      WARN_LOG_FMT(DSPLLE, "Mailbox isn't empty ... strange");
     }
 
 #if PROFILE
@@ -278,7 +278,7 @@ void DSPLLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
   }
   else
   {
-    ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
+    ERROR_LOG_FMT(DSPLLE, "CPU can't write to DSP mailbox");
   }
 }
 
@@ -290,7 +290,7 @@ void DSPLLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
   }
   else
   {
-    ERROR_LOG(DSPLLE, "CPU can't write to DSP mailbox");
+    ERROR_LOG_FMT(DSPLLE, "CPU can't write to DSP mailbox");
   }
 }
 

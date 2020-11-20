@@ -82,7 +82,7 @@ void CEXIMic::StreamStart()
   u32 minimum_latency;
   if (cubeb_get_min_latency(m_cubeb_ctx.get(), &params, &minimum_latency) != CUBEB_OK)
   {
-    WARN_LOG(EXPANSIONINTERFACE, "Error getting minimum latency");
+    WARN_LOG_FMT(EXPANSIONINTERFACE, "Error getting minimum latency");
   }
 
   if (cubeb_stream_init(m_cubeb_ctx.get(), &m_cubeb_stream, "Dolphin Emulated GameCube Microphone",
@@ -90,17 +90,17 @@ void CEXIMic::StreamStart()
                         std::max<u32>(buff_size_samples, minimum_latency), DataCallback,
                         state_callback, this) != CUBEB_OK)
   {
-    ERROR_LOG(EXPANSIONINTERFACE, "Error initializing cubeb stream");
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error initializing cubeb stream");
     return;
   }
 
   if (cubeb_stream_start(m_cubeb_stream) != CUBEB_OK)
   {
-    ERROR_LOG(EXPANSIONINTERFACE, "Error starting cubeb stream");
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error starting cubeb stream");
     return;
   }
 
-  INFO_LOG(EXPANSIONINTERFACE, "started cubeb stream");
+  INFO_LOG_FMT(EXPANSIONINTERFACE, "started cubeb stream");
 }
 
 void CEXIMic::StreamStop()
@@ -108,7 +108,7 @@ void CEXIMic::StreamStop()
   if (m_cubeb_stream)
   {
     if (cubeb_stream_stop(m_cubeb_stream) != CUBEB_OK)
-      ERROR_LOG(EXPANSIONINTERFACE, "Error stopping cubeb stream");
+      ERROR_LOG_FMT(EXPANSIONINTERFACE, "Error stopping cubeb stream");
     cubeb_stream_destroy(m_cubeb_stream);
     m_cubeb_stream = nullptr;
   }
@@ -266,7 +266,7 @@ void CEXIMic::TransferByte(u8& byte)
   break;
 
   default:
-    ERROR_LOG(EXPANSIONINTERFACE, "EXI MIC: unknown command byte %02x", command);
+    ERROR_LOG_FMT(EXPANSIONINTERFACE, "EXI MIC: unknown command byte {:02x}", command);
     break;
   }
 
