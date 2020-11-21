@@ -20,6 +20,9 @@ namespace prime {
     case Game::PRIME_3:
       run_mod_mp3(has_control_mp3());
       break;
+    case Game::PRIME_3_WII:
+      run_mod_mp3(has_control_mp3());
+      break;
     default:
       break;
     }
@@ -68,7 +71,10 @@ namespace prime {
   }
 
   bool Noclip::has_control_mp3() {
-    u32 state_mgr = read32(mp3_static.state_mgr_ptr_address + 0x28);
+    u32 state_mgr_ptr_offset = 0x28;
+    if (GetHackManager()->get_active_game() == Game::PRIME_3_WII)
+      state_mgr_ptr_offset += 4;
+    u32 state_mgr = read32(mp3_static.state_mgr_ptr_address + state_mgr_ptr_offset);
     if (!mem_check(state_mgr)) {
       return false;
     }
@@ -225,7 +231,10 @@ namespace prime {
 
 
   void Noclip::run_mod_mp3(bool has_control) {
-    const u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x28) + 0x2184);
+    u32 offset = 0x28;
+    if (GetHackManager()->get_active_game() == Game::PRIME_3_WII)
+      offset += 4;
+    u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + offset) + 0x2184);
     if (!mem_check(cplayer_address)) {
       return;
     }
@@ -243,7 +252,7 @@ namespace prime {
       return;
     }
 
-    u32 object_list_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x28) + 0x1010);
+    u32 object_list_address = read32(read32(mp3_static.state_mgr_ptr_address + offset) + 0x1010);
     if (!mem_check(object_list_address)) {
       return;
     }
@@ -252,7 +261,7 @@ namespace prime {
       return;
     }
     u32 camera_address = read32(object_list_address + 4 + (8 * camera_id));
-
+    
     player_vec = (get_movement_vec(camera_address + 0x3c) * 0.5f) + player_vec;
     player_vec.write_to(cplayer_address + 0x6c);
   }
@@ -421,6 +430,22 @@ namespace prime {
       }
       else {}
       break;
+    case Game::PRIME_3_WII:
+      if (region == Region::NTSC)
+      {
+        noclip_code_mp3(0x805c4f6c, 0x80004380, 0x8000bee8);
+        code_changes.emplace_back(0x8017c054, 0x60000000);
+        code_changes.emplace_back(0x8017c05c, 0x60000000);
+        code_changes.emplace_back(0x8017c064, 0x60000000);
+        code_changes.emplace_back(0x8017c06c, 0xd0410084);
+        code_changes.emplace_back(0x8017c070, 0xd0210094);
+        code_changes.emplace_back(0x8017c074, 0xd00100a4);
+        code_changes.emplace_back(0x8017c078, 0x4be938a1);
+
+        mp3_static.state_mgr_ptr_address = 0x805c4f6c;
+        mp3_static.cam_uid_ptr_address = 0x805c4fa4;
+      }
+      break;
     default:
       break;
     }
@@ -532,6 +557,17 @@ namespace prime {
           write64(0xffffffffffffffff, cplayer_address + 0x88);
         }
       }
+      break;
+      case Game::PRIME_3_WII:
+      {
+        const u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x2c) + 0x2184);
+        if (mem_check(cplayer_address))
+        {
+          player_vec.read_from(cplayer_address + 0x6c);
+          old_matexclude_list = read64(cplayer_address + 0x88);
+          write64(0xffffffffffffffff, cplayer_address + 0x88);
+        }
+      }
       }
     }
     else if ((mod_state() == ModState::DISABLED || mod_state() == ModState::CODE_DISABLED) && old_state == ModState::ENABLED) {
@@ -562,6 +598,16 @@ namespace prime {
       {
         const u32 cplayer_address = read32(read32(mp3_static.state_mgr_ptr_address + 0x28) + 0x2184);
         if (mem_check(cplayer_address)) {
+          write64(old_matexclude_list, cplayer_address + 0x88);
+        }
+        break;
+      }
+      case Game::PRIME_3_WII:
+      {
+        const u32 cplayer_address =
+            read32(read32(mp3_static.state_mgr_ptr_address + 0x2c) + 0x2184);
+        if (mem_check(cplayer_address))
+        {
           write64(old_matexclude_list, cplayer_address + 0x88);
         }
         break;

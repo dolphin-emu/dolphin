@@ -50,7 +50,7 @@ namespace prime {
       run_mod_mp2(region);
       break;
     case Game::PRIME_3:
-      run_mod_mp3(true);
+      run_mod_mp3();
       break;
     case Game::PRIME_1_GCN:
       run_mod_mp1_gc();
@@ -59,7 +59,7 @@ namespace prime {
       run_mod_mp2_gc();
       break;
     case Game::PRIME_3_WII:
-      run_mod_mp3(false);
+      run_mod_mp3();
       break;
     default:
       break;
@@ -297,9 +297,10 @@ namespace prime {
   }
 
   // this game is
-  void FpsControls::run_mod_mp3(bool is_trilogy) {
+  void FpsControls::run_mod_mp3() {
+    Game active_game = GetHackManager()->get_active_game();
     u32 cplayer_address = 0;
-    if (is_trilogy)
+    if (active_game == Game::PRIME_3)
       cplayer_address = read32(read32(read32(mp3_static.cplayer_ptr_address) + 0x04) + 0x2184);
     else
       cplayer_address = read32(read32(mp3_static.cplayer_ptr_address) + 0x2184);
@@ -314,7 +315,7 @@ namespace prime {
       return;
 
     // HACK ooo
-    if (is_trilogy)
+    if (active_game == Game::PRIME_3)
       powerups_ptr_address = cplayer_address + 0x35a8;
     else
       powerups_ptr_address = cplayer_address + 0x35a0;
@@ -324,7 +325,7 @@ namespace prime {
     bool lock_camera = false;
 
     u32 obj_list_iterator = 0;
-    if(is_trilogy)
+    if (active_game == Game::PRIME_3)
       obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address - 4) + 0x1018) + 4;
     else
       obj_list_iterator = read32(read32(mp3_static.cplayer_ptr_address) + 0x1018) + 4;
@@ -419,7 +420,7 @@ namespace prime {
     // Gun damping uses its own TOC value, so screw it (I checked the binary)
     u32 rtoc_gun_damp = GPR(2) - mp3_static.gun_lag_toc_offset;
     write32(0, rtoc_gun_damp);
-    if(is_trilogy)
+    if (active_game == Game::PRIME_3)
       writef32(pitch, cplayer_address + 0x784);
     else
       writef32(pitch, cplayer_address + 0x77c);
@@ -497,10 +498,11 @@ namespace prime {
                                                                 // ; to their own transform (safety no-op, does other updating too)
   }
 
-  void FpsControls::add_control_state_hook_mp3(u32 start_point, bool is_trilogy, Region region) {
+  void FpsControls::add_control_state_hook_mp3(u32 start_point, Region region) {
+    Game active_game = GetHackManager()->get_active_game();
     if (region == Region::NTSC)
     {
-      if (is_trilogy)
+      if (active_game == Game::PRIME_3)
       {
         code_changes.emplace_back(start_point + 0x00, 0x3c60805c);  // lis  r3, 0x805c      ;
         code_changes.emplace_back(start_point + 0x04,
@@ -516,7 +518,7 @@ namespace prime {
     }
     else if (region == Region::PAL)
     {
-      if (is_trilogy)
+      if (active_game == Game::PRIME_3)
       {
         code_changes.emplace_back(start_point + 0x00, 0x3c60805d);  // lis  r3, 0x805d      ;
         code_changes.emplace_back(start_point + 0x04,
@@ -528,14 +530,14 @@ namespace prime {
       }
     }
     code_changes.emplace_back(start_point + 0x08, 0x8063002c);  // lwz  r3, 0x2c(r3)      ; deref player camera control base address into r3
-    if (is_trilogy)
+    if (active_game == Game::PRIME_3)
       code_changes.emplace_back(start_point + 0x0c, 0x80630004);  // lwz  r3, 0x04(r3)    ; the point at which the function which was hooked
     else
       code_changes.emplace_back(start_point + 0x0c, 0x60000000);  // nop                  ; doesn't apply with non trilogy mp3
     code_changes.emplace_back(start_point + 0x10, 0x80632184);  // lwz  r3, 0x2184(r3)    ; should have r31 equal to the
                                                                 // ; object which is being modified
     code_changes.emplace_back(start_point + 0x14, 0x7c03f800);  // cmpw r3, r31           ; if r31 is player camera control (in r3)
-    if (is_trilogy)
+    if (active_game == Game::PRIME_3)
       code_changes.emplace_back(start_point + 0x18, 0x4d820020);  // beqlr                ; then DON'T store the value of
                                                                   // ; r6 into 0x78+(player camera control)
     else // can't jump to LR since the function is not called but jumped to instead
@@ -547,7 +549,7 @@ namespace prime {
     code_changes.emplace_back(start_point + 0x1c, 0x7fe3fb78);  // mr   r3, r31           ; otherwise do it
     code_changes.emplace_back(start_point + 0x20, 0x90c30078);  // stw  r6, 0x78(r3)      ; this is the normal action
                                                                 // ; which was overwritten by a bl to this mini-function
-    if (is_trilogy)
+    if (active_game == Game::PRIME_3)
       code_changes.emplace_back(start_point + 0x24, 0x4e800020);  // blr                    ; LR wasn't changed, so we're
                                                                   // ; safe here (same case as beqlr)
     else // not sure why but it won't call this function and rather jump to it
@@ -1233,7 +1235,7 @@ namespace prime {
 
       // Remove visors menu
       code_changes.emplace_back(0x800614ec, 0x48000018);
-      add_control_state_hook_mp3(0x80005880, true, Region::NTSC);
+      add_control_state_hook_mp3(0x80005880, Region::NTSC);
       add_grapple_slide_code_mp3(0x8017f2a0);
 
       mp3_static.cplayer_ptr_address = 0x805c6c6c;
@@ -1258,7 +1260,7 @@ namespace prime {
 
       // Remove visors menu
       code_changes.emplace_back(0x800614ec, 0x48000018);
-      add_control_state_hook_mp3(0x80005880, true, Region::PAL);
+      add_control_state_hook_mp3(0x80005880, Region::PAL);
       add_grapple_slide_code_mp3(0x8017ebec);
 
       mp3_static.cplayer_ptr_address = 0x805ca0ec;
@@ -1294,7 +1296,7 @@ namespace prime {
 
       // Remove visors menu
       code_changes.emplace_back(0x800617e4, 0x48000018);
-      add_control_state_hook_mp3(0x80005880, false, Region::NTSC);
+      add_control_state_hook_mp3(0x80005880, Region::NTSC);
       add_grapple_slide_code_mp3(0x80182c9c);
 
       mp3_static.cplayer_ptr_address = 0x805c4f98;
