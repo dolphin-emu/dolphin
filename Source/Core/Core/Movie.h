@@ -8,6 +8,7 @@
 #include <functional>
 #include <optional>
 #include <string>
+#include <string_view>
 
 #include "Common/CommonTypes.h"
 
@@ -63,6 +64,8 @@ static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes")
 #pragma pack(push, 1)
 struct DTMHeader
 {
+  std::string_view GetGameID() const { return {gameID.data(), gameID.size()}; }
+
   std::array<u8, 4> filetype;  // Unique Identifier (always "DTM"0x1A)
 
   std::array<char, 6> gameID;  // The Game ID
