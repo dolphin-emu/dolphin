@@ -176,8 +176,43 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
             "\n");
 
   // Hardware Lighting
-  WriteVertexLighting(out, api_type, "pos.xyz", "_norm0", "rawcolor0", "rawcolor1", "o.colors_0",
-                      "o.colors_1");
+  out.Write("// xfmem.numColorChans controls the number of color channels available to TEV,\n"
+            "// but we still need to generate all channels here, as it can be used in texgen.\n"
+            "// Cel-damage is an example of this.\n"
+            "float4 vertex_color_0, vertex_color_1;\n"
+            "\n");
+  out.Write("// To use color 1, the vertex descriptor must have color 0 and 1.\n"
+            "// If color 1 is present but not color 0, it is used for lighting channel 0.\n"
+            "bool use_color_1 = ((components & {0}) == {0}); // VB_HAS_COL0 | VB_HAS_COL1\n",
+            VB_HAS_COL0 | VB_HAS_COL1);
+
+  out.Write("for (uint color = 0; color < {}; color++) {{\n", NUM_XF_COLOR_CHANNELS);
+  out.Write("  if ((color == 0 || use_color_1) && (components & ({} << color)) != 0) {{\n",
+            VB_HAS_COL0);
+  out.Write("    float4 color_value;\n"
+            "    // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are "
+            "present.\n"
+            "    if (color == 0u)\n"
+            "      vertex_color_0 = rawcolor0;\n"
+            "    else\n"
+            "      vertex_color_1 = rawcolor1;\n"
+            "  }} else if (color == 0 && (components & {}) != 0) {{\n",
+            VB_HAS_COL1);
+  out.Write("    // Use color1 for channel 0 if color0 is not present.\n"
+            "    vertex_color_0 = rawcolor1;\n"
+            "  }} else {{\n"
+            "    // The default alpha channel depends on the number of components in the vertex.\n"
+            "    float alpha = float((color_chan_alpha >> color) & 1u);\n"
+            "    if (color == 0u)\n"
+            "      vertex_color_0 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "    else\n"
+            "      vertex_color_1 = float4(1.0, 1.0, 1.0, alpha);\n"
+            "  }}\n"
+            "}}\n"
+            "\n");
+
+  WriteVertexLighting(out, api_type, "pos.xyz", "_norm0", "vertex_color_0", "vertex_color_1",
+                      "o.colors_0", "o.colors_1");
 
   // Texture Coordinates
   if (num_texgen > 0)
@@ -207,13 +242,26 @@ ShaderCode GenVertexShader(APIType api_type, const ShaderHostConfig& host_config
   if (per_pixel_lighting)
   {
     out.Write("o.Normal = _norm0;\n"
-              "o.WorldPos = pos.xyz;\n");
+              "o.WorldPos = pos.xyz;\n"
+              "// Pass through the vertex colors unmodified so we can evaluate the lighting\n"
+              "// in the same manner.\n");
     out.Write("if ((components & {}u) != 0u) // VB_HAS_COL0\n"
-              "  o.colors_0 = rawcolor0;\n",
+              "  o.colors_0 = vertex_color_0;\n",
               VB_HAS_COL0);
     out.Write("if ((components & {}u) != 0u) // VB_HAS_COL1\n"
-              "  o.colors_1 = rawcolor1;\n",
+              "  o.colors_1 = vertex_color_1;\n",
               VB_HAS_COL1);
+  }
+  else
+  {
+    out.Write("// The number of colors available to TEV is determined by numColorChans.\n"
+              "// We have to provide the fields to match the interface, so set to zero\n"
+              "// if it's not enabled.\n"
+              "if (xfmem_numColorChans == 0u)\n"
+              "  o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n"
+              "if (xfmem_numColorChans <= 1u)\n"
+              "  o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n"
+              "\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do

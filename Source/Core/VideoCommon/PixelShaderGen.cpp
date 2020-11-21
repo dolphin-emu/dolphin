@@ -203,9 +203,6 @@ PixelShaderUid GetPixelShaderUid()
 
   if (g_ActiveConfig.bEnablePixelLighting)
   {
-    // The lighting shader only needs the two color bits of the 23bit component bit array.
-    uid_data->components =
-        (VertexLoaderManager::g_current_components & (VB_HAS_COL0 | VB_HAS_COL1)) >> VB_COL_SHIFT;
     uid_data->numColorChans = xfmem.numChan.numColorChans;
     GetLightingShaderUid(uid_data->lighting);
   }
@@ -768,8 +765,11 @@ ShaderCode GeneratePixelShaderCode(APIType api_type, const ShaderHostConfig& hos
     // out.SetConstantsUsed(C_PLIGHT_COLORS, C_PLIGHT_COLORS+7); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PLIGHTS, C_PLIGHTS+31); // TODO: Can be optimized further
     // out.SetConstantsUsed(C_PMATERIALS, C_PMATERIALS+3);
-    GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components << VB_COL_SHIFT,
-                               "colors_", "col");
+    GenerateLightingShaderCode(out, uid_data->lighting, "colors_", "col");
+    if (uid_data->numColorChans == 0)
+      out.Write("col0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    if (uid_data->numColorChans <= 1)
+      out.Write("col1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   // HACK to handle cases where the tex gen is not enabled

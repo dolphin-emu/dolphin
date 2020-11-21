@@ -229,6 +229,7 @@ const char* GetInterpolationQualifier(bool msaa, bool ssaa, bool in_glsl_interfa
 static const char s_shader_uniforms[] = "\tuint    components;\n"
                                         "\tuint    xfmem_dualTexInfo;\n"
                                         "\tuint    xfmem_numColorChans;\n"
+                                        "\tuint    color_chan_alpha;\n"
                                         "\tfloat4 " I_POSNORMALMATRIX "[6];\n"
                                         "\tfloat4 " I_PROJECTION "[4];\n"
                                         "\tint4 " I_MATERIALS "[4];\n"
