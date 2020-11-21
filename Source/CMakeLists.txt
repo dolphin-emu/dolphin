@@ -84,6 +84,15 @@ else()
   check_and_add_flag(INIT_SELF -Winit-self)
   check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
   check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
+
+  # Disable -Wstringop-truncation warnings as they result in many false positives.
+  # In most (all?) cases where std::strncpy is used, we want to fill the entire buffer
+  # or match emulated code that also ignores the null terminator, so the warnings are not useful.
+  # Given that Dolphin itself mostly uses std::string, they do not really help catch any bugs.
+  check_cxx_compiler_flag(-Wstringop-truncation HAS_STRINGOP_TRUNCATION_WARNING)
+  if (HAS_STRINGOP_TRUNCATION_WARNING)
+    check_and_add_flag(NO_STRINGOP_TRUNCATION -Wno-stringop-truncation)
+  endif()
 endif()
 
 # These aren't actually needed for C11/C++11
